@@ -1,0 +1,39 @@
+<RCC>
+  <qresource prefix="glmixer" >
+    <file>icons/fileimport.png</file>
+    <file>icons/manipulation.png</file>
+    <file>icons/mixer.png</file>
+    <file>icons/process-stop.png</file>
+    <file>icons/view-refresh.png</file>
+    <file>icons/applications-utilities.png</file>
+    <file>icons/camera-photo.png</file>
+    <file>icons/camera-video.png</file>
+    <file>icons/camera-web.png</file>
+    <file>icons/display.png</file>
+    <file>icons/media-shuffle.png</file>
+    <file>icons/media-repeat.png</file>
+    <file>icons/preferences.png</file>
+    <file>icons/tools.png</file>
+    <file>icons/users.png</file>
+    <file>icons/video.png</file>
+    <file>icons/zoom-out.png</file>
+    <file>icons/zoom-original.png</file>
+    <file>icons/zoom-in.png</file>
+    <file>icons/zoom-fit-best.png</file>
+    <file>icons/media-skip-forward.png</file>
+    <file>icons/media-skip-backward.png</file>
+    <file>icons/media-seek-forward.png</file>
+    <file>icons/media-seek-backward.png</file>
+    <file>icons/media-playback-stop.png</file>
+    <file>icons/media-playback-start.png</file>
+    <file>icons/media-playback-pause.png</file>
+    <file>icons/media-eject.png</file>
+    <file>icons/info.png</file>
+    <file>icons/history.png</file>
+    <file>icons/gear.png</file>
+    <file>icons/filesave.png</file>
+    <file>icons/fileopen.png</file>
+    <file>icons/fileclose.png</file>
+    <file>icons/apply.png</file>
+  </qresource>
+</RCC>
