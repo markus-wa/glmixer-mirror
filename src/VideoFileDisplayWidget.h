@@ -1,0 +1,42 @@
+/****************************************************************************
+**
+
+**
+****************************************************************************/
+
+#ifndef GLWIDGET_H_
+#define GLWIDGET_H_
+
+#include "glRenderWidget.h"
+#include "VideoFile.h"
+
+
+class VideoFileDisplayWidget : public glRenderWidget
+{
+    Q_OBJECT
+
+public:
+    VideoFileDisplayWidget(QWidget *parent = 0);
+    ~VideoFileDisplayWidget();
+
+    // OpenGL implementation
+    virtual void initializeGL();
+    virtual void paintGL();
+
+
+public slots:
+    void updateFrame (int i);
+    void setVideo(VideoFile* f);
+    void setVideoAspectRatio(bool usevideoratio);
+
+protected:
+
+    VideoFile *is;
+    GLuint squareDisplayList;
+    GLuint textureIndex;
+    bool useVideoAspectRatio;
+
+};
+
+#endif
+
