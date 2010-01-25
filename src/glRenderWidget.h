@@ -9,8 +9,6 @@
 #define GLRENDERWIDGET_H_
 
 
-#define UNIT 1.0
-
 #include <QStringList>
 #include <QtOpenGL>
 
@@ -26,6 +24,7 @@ public:
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
     virtual void paintGL();
+    void setBackgroundColor(float r, float g, float b);
 
     // Events management
     virtual void timerEvent(QTimerEvent *) { update(); }

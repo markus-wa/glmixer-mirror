@@ -1111,11 +1111,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionNew_Project"/>
-    <addaction name="actionOpen_Project"/>
-    <addaction name="actionSave_Project"/>
-    <addaction name="separator"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionCamera"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -1135,6 +1132,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <addaction name="actionGeometry_view"/>
     <addaction name="actionDepth_view"/>
     <addaction name="separator"/>
+    <addaction name="actionConfigure_Render"/>
     <addaction name="actionKeep_aspect_ratio"/>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
@@ -1150,7 +1148,16 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <addaction name="actionFormats_and_Codecs"/>
     <addaction name="actionOpenGL_extensions"/>
    </widget>
+   <widget class="QMenu" name="menuSession">
+    <property name="title">
+     <string>Session</string>
+    </property>
+    <addaction name="actionNew_Session"/>
+    <addaction name="actionLoad_Session"/>
+    <addaction name="actionSave_Session"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuSession"/>
    <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -1160,7 +1167,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
    </property>
    <property name="text">
-    <string>Import Video</string>
+    <string>Add Movie</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -1252,7 +1259,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <normaloff>:/glv/icons/display.png</normaloff>:/glv/icons/display.png</iconset>
    </property>
    <property name="text">
-    <string>Full screen</string>
+    <string>Render Full screen</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
@@ -1269,26 +1276,6 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <string>Keep aspect ratio</string>
    </property>
   </action>
-  <action name="actionEnable_stereo">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Enable stereo</string>
-   </property>
-  </action>
-  <action name="actionOpen_right">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset>
-     <normaloff>:/glv/icons/fileopen.png</normaloff>:/glv/icons/fileopen.png</iconset>
-   </property>
-   <property name="text">
-    <string>Open right stereo</string>
-   </property>
-  </action>
   <action name="actionAbout">
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -1296,40 +1283,6 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
    <property name="text">
     <string>About glmixer</string>
-   </property>
-  </action>
-  <action name="actionOpen_Project">
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
-   </property>
-   <property name="text">
-    <string>Open Project</string>
-   </property>
-  </action>
-  <action name="actionSave_Project">
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/filesave.png</normaloff>:/glmixer/icons/filesave.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save Project</string>
-   </property>
-  </action>
-  <action name="actionNew_Project">
-   <property name="text">
-    <string>New Project</string>
-   </property>
-  </action>
-  <action name="actionRender_Window">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Render Window</string>
    </property>
   </action>
   <action name="actionMixing_view">
@@ -1355,6 +1308,43 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <string>Depth view</string>
    </property>
   </action>
+  <action name="actionNew_Session">
+   <property name="text">
+    <string>New Session</string>
+   </property>
+  </action>
+  <action name="actionLoad_Session">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load Session</string>
+   </property>
+  </action>
+  <action name="actionSave_Session">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/filesave.png</normaloff>:/glmixer/icons/filesave.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Session</string>
+   </property>
+  </action>
+  <action name="actionCamera">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/camera-web.png</normaloff>:/glmixer/icons/camera-web.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add Camera</string>
+   </property>
+  </action>
+  <action name="actionConfigure_Render">
+   <property name="text">
+    <string>Configure Render</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -1366,6 +1356,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
  </customwidgets>
  <resources>
   <include location="../icons.qrc"/>
+  <include location="../textures.qrc"/>
  </resources>
  <connections>
   <connection>

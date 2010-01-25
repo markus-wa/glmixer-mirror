@@ -546,7 +546,7 @@ void VideoFile::fill_first_frame(bool seek) {
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
         if (avcodec_decode_video2(video_st->codec, pFrame, &frameFinished, packet) >= 0) {
 #else
-            if ( avcodec_decode_video(video_st->codec, pFrame, &frameFinished, packet->data, packet->size) >= 0) {
+        if ( avcodec_decode_video(video_st->codec, pFrame, &frameFinished, packet->data, packet->size) >= 0) {
 #endif
             // and if the frame is finished (should be in one shot for video stream)
             if (frameFinished) {

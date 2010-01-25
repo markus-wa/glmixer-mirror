@@ -10,40 +10,32 @@
 
 #include <QtOpenGL>
 #include "VideoFile.h"
+#include "Source.h"
 
-class VideoSource : public QObject {
+class VideoSource : public QObject, public Source {
+
     Q_OBJECT
 
     friend class MainRenderWidget;
 
-public:
-
-    GLuint getFboTexture(){
-    	return fbo->texture();
-    }
-
-    static GLuint getDisplayList(){
-    	return squareDisplayList;
-    }
-
-
+    // only MainRenderWidget can create a source (need its GL context)
 protected:
 	VideoSource(VideoFile *f, QGLWidget *context);
 	virtual ~VideoSource();
-    void renderTexture();
+    void update();
 
 public slots:
     void updateFrame (int i);
 
+public:
+    inline VideoFile *getVideoFile() { return is; }
+
 private:
     VideoFile *is;
-    QGLWidget *glcontext;
-    GLuint textureIndex;
-    QGLFramebufferObject *fbo;
+
     bool bufferChanged;
     int bufferIndex;
 
-    static GLuint squareDisplayList;
 };
 
 #endif /* VIDEOSOURCE_H_ */

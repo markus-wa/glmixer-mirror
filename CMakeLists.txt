@@ -51,6 +51,8 @@ find_package( mp3lame QUIET)
 find_package( faac QUIET)
 find_package( faad QUIET)
 
+find_package( OpenCV QUIET)
+
 if (AVCODEC_FOUND)
   message(STATUS "FFMPEG avcodec Library Found OK")
   include_directories(${AVCODEC_INCLUDE_DIR})
@@ -135,7 +137,15 @@ if (MATROSKA_FOUND)
   message(STATUS "MATROSKA Library Found OK")
 endif (MATROSKA_FOUND)
 
-set( FFMPEG_LIBRARIES   ${AVFORMAT_LIBRARY}
+# If there is OpenCV, then this application will use OpenCV
+if (OpenCV_FOUND)
+  message(STATUS "OpenCV Library found OK")
+  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${OpenCV_LIBS} )
+else (OpenCV_FOUND)
+  message(STATUS "OpenCV Library Not found")
+endif (OpenCV_FOUND)
+
+set( GLMIXER_LIBRARIES   ${AVFORMAT_LIBRARY}
                         ${AVCODEC_LIBRARY}
                         ${AVUTIL_LIBRARY}
                         ${SWSCALE_LIBRARY}

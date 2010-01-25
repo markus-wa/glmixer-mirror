@@ -27,8 +27,12 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         QString OpenVideo(VideoFile **);
         void closeEvent ( QCloseEvent * event );
 
+
     public slots:
-        void on_actionOpen_activated();
+
+    // menu and actions
+		void on_actionOpen_activated();
+		void on_actionCamera_activated();
         void on_actionFormats_and_Codecs_activated();
         void on_actionOpenGL_extensions_activated();
         void on_markInSlider_sliderReleased ();
@@ -40,18 +44,22 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         void on_actionShow_frames_toggled(bool);
         void on_actionAbout_activated();
 
+	// GUI interaction
         void updateRefreshTimerState();
         void updateMarks();
         void pauseAfterFrame();
         void refreshTiming();
-
         void displayLogMessage(QString msg);
         void displayErrorMessage(QString msg);
+
+	// source information
+        void controlSource(SourceSet::iterator csi);
 
     private:
 
 //        videoFileDisplayWidget *videowidget;
-        VideoFile *tmpvideofile;
+        VideoFile *selectedSourceVideoFile;
+
         QTimer *refreshTimingTimer;
         bool waspaused;
         bool skipNextRefresh;

@@ -7,7 +7,10 @@
 
 #include <QMessageBox>
 #include "glRenderWidget.moc"
+#include "Source.h"
 
+
+#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
 QStringList glRenderWidget::listofextensions;
 
@@ -57,27 +60,36 @@ void glRenderWidget::initializeGL()
     glEnable(GL_BLEND);
 
     // Blending Function For transparency Based On Source Alpha Value
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // ANTIALIASING
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
-     // setup color
+     // setup default background color to black
      glClearColor(0.0, 0.0, 0.0, 1.0f);
-//     qglClearColor(QColor::fromRgb(1.0, 0.0, 0.0).dark());
 
+}
+
+
+void glRenderWidget::setBackgroundColor(float r, float g, float b){
+
+
+    makeCurrent();
+
+    glClearColor( CLAMP(r, 0.0, 1.0), CLAMP(g, 0.0, 1.0), CLAMP(b, 0.0, 1.0), 1.0 );
 }
 
 void glRenderWidget::resizeGL(int w, int h)
 {
+
     glViewport(0, 0, w, h);
 
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(-UNIT, UNIT, -UNIT, UNIT);
+    gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
 
     glMatrixMode(GL_MODELVIEW);
 }

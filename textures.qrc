@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="glmixer" >
+    <file>textures/circle.png</file>
+    <file>textures/shadow.png</file>
+    <file>textures/shadow_corner.png</file>
+  </qresource>
+</RCC>

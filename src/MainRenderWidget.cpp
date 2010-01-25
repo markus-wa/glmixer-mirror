@@ -7,6 +7,9 @@
 
 #include "MainRenderWidget.moc"
 
+#include "OpencvSource.h"
+#include <algorithm>
+
 
 // static members
 MainRenderWidget *MainRenderWidget::_instance = 0;
@@ -32,20 +35,34 @@ void MainRenderWidget::deleteInstance(){
         delete _instance;
 }
 
-MainRenderWidget::MainRenderWidget(QWidget *parent): glRenderWidget(parent), _s(NULL),
-		_aspectRatio(DEFAULT_ASPECT_RATIO), _useAspectRatio(true) {
+MainRenderWidget::MainRenderWidget(QWidget *parent): glRenderWidget(parent), _fbo(NULL), _useAspectRatio(true) {
 
+	if (!QGLFramebufferObject::hasOpenGLFramebufferObjects ())
+	  qWarning("Frame Buffer Objects not supported on this graphics hardware");
+
+	setRenderingResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+
+	this->startTimer(16);
+
+	currentSource = getEnd();
+}
+
+void MainRenderWidget::setRenderingResolution(int w, int h) {
+
+	_aspectRatio = (float) w / (float) h;
 
     makeCurrent();
-    fbo = new QGLFramebufferObject(512, 512);
 
-	this->startTimer(20);
+    if (_fbo)
+    	delete _fbo;
+
+    _fbo = new QGLFramebufferObject(w, h);
 
 }
 
 MainRenderWidget::~MainRenderWidget() {
-	if (_s)
-		delete _s;
+
+	clearSourceSet();
 }
 
 void MainRenderWidget::paintGL()
@@ -63,16 +80,12 @@ void MainRenderWidget::paintGL()
 	//	  5 pop modelview
 
 
-	if (_s) {
+	for(SourceSet::iterator its = _sources.begin(); its != _sources.end(); its++) {
 		// steps 1 and 2 :
-		_s->renderTexture();
+		(*its)->update();
 
 		// step 3
-        fbo->bind();
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        glBindTexture(GL_TEXTURE_2D, _s->textureIndex);
-		glCallList(VideoSource::squareDisplayList);
-        fbo->release();
+
 
 		// step 4
         glPushMatrix();
@@ -83,16 +96,142 @@ void MainRenderWidget::paintGL()
 			else
 				glScalef( _aspectRatio / windowaspectratio,  1.f, 1.f);
         }
-		glCallList(VideoSource::squareDisplayList);
+
+
+        glTranslated((*its)->getX(), (*its)->getY(), 0.0);
+		glScaled( (*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+		(*its)->draw();
+
 		glPopMatrix();
 
 	}
+
+	// TODO; create a specific fbo for the render source.
+	// code to render the ouput of the window into fbo
+
+	//        fbo->bind();
+	//        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	//        glBindTexture(GL_TEXTURE_2D, _s->textureIndex);
+	//		glCallList(VideoSource::squareDisplayList);
+	//        fbo->release();
 }
 
-void MainRenderWidget::createSource(VideoFile *vf) {
+void MainRenderWidget::addSource(VideoFile *vf) {
+
+	// create a source appropriate for this videofile
+	VideoSource *s = new VideoSource(vf, (QGLWidget *) this);
+	// set the last created source to be current
+	setCurrentSource( _sources.insert( (Source *) s) );
+//	_sources.insert( (Source *) s);
+}
 
 
-//	makeCurrent();
-	_s = new VideoSource(vf, (QGLWidget *) this);
+#ifdef OPEN_CV
+void MainRenderWidget::addSource(int opencvIndex) {
+
+	OpencvSource *s = new OpencvSource(opencvIndex, (QGLWidget *) this);
+	_sources.insert( (Source *) s);
 
 }
+#endif
+
+void MainRenderWidget::removeSource(SourceSet::iterator itsource){
+
+    if (itsource != _sources.end()) {
+        delete (*itsource);
+        _sources.erase(itsource);
+    }
+
+}
+
+void MainRenderWidget::clearSourceSet() {
+    // TODO does it work?
+	for(SourceSet::iterator its = _sources.begin(); its != _sources.end(); its++)
+		removeSource(its);
+}
+
+
+bool MainRenderWidget::notAtEnd(SourceSet::iterator itsource){
+    return (itsource != _sources.end());
+}
+
+
+bool MainRenderWidget::isValid(SourceSet::iterator itsource){
+
+	if (notAtEnd(itsource))
+		return ( _sources.find(*itsource) != _sources.end() );
+	else
+		return false;
+}
+
+void MainRenderWidget::setCurrentSource(SourceSet::iterator  si){
+
+	if (si != currentSource) {
+		if ( notAtEnd(currentSource) )
+			 (*currentSource)->activate(false);
+
+		currentSource = si;
+		emit currentSourceChanged(currentSource);
+
+		if ( notAtEnd(currentSource) )
+			(*currentSource)->activate(true);
+	}
+}
+
+SourceSet::iterator  MainRenderWidget::changeDepth(SourceSet::iterator itsource, double newdepth){
+	// TODO : implement
+
+    if (itsource != _sources.end()) {
+//        Source *tmp = new Source(*itsource, newdepth);
+//
+//        // sort again the set by depth: this is done by removing the element and adding a clone
+//        _sources->erase(itsource);
+//        return (_sources->insert(tmp));
+    }
+
+    return itsource;
+}
+
+
+SourceSet::iterator MainRenderWidget::getById(GLuint name) {
+
+    return std::find_if( _sources.begin(), _sources.end(), hasName(name) );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// code to select rendering texture target:
+
+// glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);  <- fbo is GLuint QGLFramebufferObject::handle ()
+// glGenTextures(1, &texture);
+//glBindTexture(target, texture);
+//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.width(), size.height(), 0,
+//             GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+//
+//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//
+//glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
+//		GL_TEXTURE_2D, texture, 0);
+//
+//or
+//
+//glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT,
+//		GL_TEXTURE_2D, texture, 0);
+
+// etc.. till GL_COLOR_ATTACHMENT15_EXT
+

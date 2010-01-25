@@ -2,14 +2,17 @@
 # you can modify the behavior by setting some variables, e.g.
 set(QT_USE_OPENGL TRUE)
 # -> this will cause cmake to include and link against the OpenGL module
+
 include(${QT_USE_FILE})
 
 # the variable "qtproject_SRCS" contains all .cpp files of this project
 set(MYQT_SRCS
+	CameraDialog.cpp
     VideoFileDialogPreview.cpp
     VideoFileDialog.cpp
     VideoFileDisplayWidget.cpp
     VideoFile.cpp
+    Source.cpp
     VideoSource.cpp
 	glRenderWidget.cpp
     MainRenderWidget.cpp
@@ -21,14 +24,24 @@ set(MYQT_SRCS
 set(MYQT_UIS
     glmixer.ui
     VideoFileDialog.ui
+    CameraDialog.ui
 )
 
 set(MYQT_RCS
     ../icons.qrc
+    ../textures.qrc
 )
 
-qt4_wrap_ui(MYQT_UIS_H ${MYQT_UIS})
 
+# If there is OpenCV, then this application will use OpenCV
+if (OpenCV_FOUND)
+  include_directories(${OpenCV_INCLUDE_DIR})
+  add_definitions(-DOPEN_CV )
+  set( MYQT_SRCS    ${MYQT_SRCS} OpencvSource.cpp OpencvDisplayWidget.cpp )
+endif (OpenCV_FOUND)
+
+# do the qt-cmake magic
+qt4_wrap_ui(MYQT_UIS_H ${MYQT_UIS})
 qt4_add_resources(MYQT_RCS_SRCS ${MYQT_RCS})
 
 # Don't forget to include output directory, otherwise
@@ -50,7 +63,7 @@ qt4_automoc( ${MYQT_UIS_H} ${MYQT_SRCS})
 add_executable(glmixer ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )
 
 # link the "qtproject" target against the Qt libraries. which libraries exactly, is defined by the "include(${QT_USE_FILE})" line above, which sets up this variable.
-target_link_libraries(glmixer ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${OPENGL_LIBRARY} ${FFMPEG_LIBRARIES})
+target_link_libraries(glmixer ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${OPENGL_LIBRARY} ${GLMIXER_LIBRARIES})
 
 install(TARGETS glmixer DESTINATION bin)
 
