@@ -640,12 +640,19 @@ public slots:
      * time stamp is reduced and the frame will be displayed earlier than normal.
      *
      * However, this implementation of the playing speed is still not fully correct :(... The problem is that the delay or
-     * acceleration seems to accumulate after a long period out of normal play speed. Although the playback speed always end
-     * up to be the one requested, it sometimes takes time to reach it :(...
+     * acceleration seems to accumulate after a period out of normal play speed. Although the playback speed always end
+     * up to be the one requested, it sometimes takes little time to reach it...
      *
      * @param playspeed SPEED_QUARTER = 0, SPEED_THIRD = 1, SPEED_HALF = 2, SPEED_NORMAL = 3, SPEED_DOUBLE = 4, SPEED_TRIPLE = 5
      */
     void setPlaySpeed(int playspeed);
+    /**
+     * Gets the playing speed factor from the list of available playback speeds available in the PlaySpeed type.
+     * NB: the argument is an integer for Qt compatibility with signals/slots, but it is used as a type PlaySpeed.
+     *
+     * @return SPEED_QUARTER = 0, SPEED_THIRD = 1, SPEED_HALF = 2, SPEED_NORMAL = 3, SPEED_DOUBLE = 4, SPEED_TRIPLE = 5
+     */
+    int getPlaySpeed();
     /**
      * Seek backward of SEEK_STEP percent of the movie duration.
      * Does nothing if the process is not running (started).

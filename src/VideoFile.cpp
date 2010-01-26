@@ -373,6 +373,22 @@ void VideoFile::setPlaySpeed(int playspeed) {
     logmessage += tr("Playing speed set to %2.\n").arg(play_speed);
 }
 
+int VideoFile::getPlaySpeed(){
+
+	if (play_speed - 0.25 < 0.1 )
+		return SPEED_QUARTER;
+	if (play_speed - 0.333 < 0.1 )
+		return SPEED_THIRD;
+	if (play_speed - 0.5 < 0.1 )
+		return SPEED_HALF;
+	if (play_speed - 1.0 < 0.1 )
+		return SPEED_NORMAL;
+	if (play_speed - 2.0 < 0.1 )
+		return SPEED_DOUBLE;
+	if (play_speed - 3 < 0.1 )
+		return SPEED_TRIPLE;
+}
+
 void VideoFile::thread_terminated() {
 
     // recieved this message while 'quit' was not requested ?
