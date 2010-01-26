@@ -9,6 +9,7 @@
 #define SOURCE_H_
 
 #include <QtOpenGL>
+ #include <QDomElement>
 
 #define SELECTBUFSIZE 64
 #define MIN_DEPTH_LAYER 0.0
@@ -109,7 +110,9 @@ public:
 
 protected:
 
+	// identity and properties
 	GLuint id;
+	QDomElement dom;
 
 	// GL Stuff
 	QGLWidget *glcontext;

@@ -55,6 +55,13 @@ Source::Source(QGLWidget *context) :
 		lineDisplayList[1] = lineDisplayList[0] + 1;
 	}
 
+	// set attributes and children
+	dom.setAttribute("id", id);
+	QDomElement coordinates;
+	coordinates.setAttribute("x", x);
+	coordinates.setAttribute("y", y);
+	coordinates.setAttribute("z", z);
+	dom.appendChild(coordinates);
 
 }
 
