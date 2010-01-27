@@ -177,6 +177,16 @@ void GLMixer::on_actionOpen_activated(){
 // and to read the correct information and configuration options
 void GLMixer::controlSource(SourceSet::iterator csi){
 
+	static OpencvSource *cvs = NULL;
+	// the static pointer to opencv source keeps last reference to it when selected (controlled here)
+	// -> we should disconnect it to the play button if we change source
+	if (cvs) {
+        QObject::disconnect(startButton, SIGNAL(toggled(bool)), cvs, SLOT(play(bool)));
+        // clear it for next time
+        cvs = NULL;
+	}
+
+
 	// whatever happens, we will drop the control on the current video source
 	//   (this slot is called by MainRenderWidget through signal currentSourceChanged
 	//    which is sent ONLY when the current source is changed)
@@ -312,10 +322,10 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 					vconfigDockWidget->setEnabled(false);
 
 					// display info (even if one frame only)
-					endLineEdit->setText( QString().setNum( selectedSourceVideoFile->getEnd()) );
-					timeLineEdit->setText( QString().setNum( selectedSourceVideoFile->getBegin()) );
-					markInLineEdit->setText( QString().setNum( selectedSourceVideoFile->getMarkIn() ));
-					markOutLineEdit->setText( QString().setNum( selectedSourceVideoFile->getMarkOut() ));
+					endLineEdit->setText( tr("%1 frame").arg( selectedSourceVideoFile->getEnd()) );
+					timeLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getBegin()) );
+					markInLineEdit->setText( "-" );
+					markOutLineEdit->setText( "-" );
 				}
 	        }
 
@@ -323,7 +333,7 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		else
 		{
 			// if it is an OpencvSource (camera)
-			OpencvSource *cvs = dynamic_cast<OpencvSource *>(*csi);
+			cvs = dynamic_cast<OpencvSource *>(*csi);
 			if (cvs != NULL) {
 				// fill in the information panel
 				vinfoDockWidget->setEnabled(true);
@@ -332,6 +342,10 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 				widthLineEdit->setText( QString("%1").arg(cvs->getFrameWidth()));
 				heightLineEdit->setText( QString("%1").arg(cvs->getFrameHeight()));
 				framerateLineEdit->setText(QString().setNum(cvs->getFrameRate(),'f',1));
+				endLineEdit->setText("-");
+				timeLineEdit->setText("-");
+				markInLineEdit->setText("-");
+				markOutLineEdit->setText("-");
 
 				// we can play/stop  it
 				vcontrolDockWidget->setEnabled(true);
@@ -374,7 +388,7 @@ void GLMixer::on_actionCamera_activated()
 //	MainRenderWidget::getInstance()->addSource(0);
 
 	CameraDialog cd(this);
-//	cd.setModal(false);
+	cd.setModal(false);
 
 	if (cd.exec() == QDialog::Accepted) {
 		// create a source according to the selected driver :
@@ -383,7 +397,7 @@ void GLMixer::on_actionCamera_activated()
 		if (cd.getDriver() == CameraDialog::OPENCV_CAMERA && cd.indexOpencvCamera() >= 0)
 		{
 			MainRenderWidget::getInstance()->addSource(cd.indexOpencvCamera());
-			statusbar->showMessage( tr("Source created with OpenCV drivers for webcam (%1)").arg(cd.indexOpencvCamera()) );
+			statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()) );
 		}
 #endif
 
@@ -393,14 +407,16 @@ void GLMixer::on_actionCamera_activated()
 
 void GLMixer::on_actionShow_frames_toggled(bool on){
 
-    if (on){
-        endLineEdit->setText( QString().setNum(selectedSourceVideoFile->getEnd()) );
-        timeLineEdit->setText( QString().setNum(selectedSourceVideoFile->getBegin()) );
-    } else {
-        endLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getEnd()) );
-        timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getBegin()) );
-    }
-    updateMarks();
+	if (selectedSourceVideoFile) {
+		if (on){
+			endLineEdit->setText( tr("%1 frames").arg(selectedSourceVideoFile->getEnd()) );
+			timeLineEdit->setText( tr("frame %1").arg(selectedSourceVideoFile->getBegin()) );
+		} else {
+			endLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getEnd()) );
+			timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getBegin()) );
+		}
+		updateMarks();
+	}
 }
 
 void GLMixer::on_markInSlider_sliderReleased (){
@@ -427,7 +443,7 @@ void GLMixer::refreshTiming(){
         frameSlider->setValue(f_percent);
 
         if (actionShow_frames->isChecked())
-            timeLineEdit->setText( QString().setNum(selectedSourceVideoFile->getCurrentFrameTime()) );
+            timeLineEdit->setText( tr("frame %1").arg(selectedSourceVideoFile->getCurrentFrameTime()) );
         else
             timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
     }
@@ -474,7 +490,7 @@ void GLMixer::on_frameSlider_sliderMoved (int v){
 
     // cosmetics to show the time of the frame (refreshTiming disabled)
     if (actionShow_frames->isChecked())
-        timeLineEdit->setText( QString().setNum(pos) );
+        timeLineEdit->setText( tr("frame %1").arg(pos) );
     else
         timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(pos) );
 }
@@ -546,8 +562,8 @@ void GLMixer::updateMarks (){
     markOutSlider->setValue(o_percent);
 
     if (actionShow_frames->isChecked()) {
-        markInLineEdit->setText( QString().setNum( selectedSourceVideoFile->getMarkIn() ));
-        markOutLineEdit->setText( QString().setNum( selectedSourceVideoFile->getMarkOut() ));
+        markInLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getMarkIn() ));
+        markOutLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getMarkOut() ));
     } else {
         markInLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame( selectedSourceVideoFile->getMarkIn() ));
         markOutLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame( selectedSourceVideoFile->getMarkOut() ));

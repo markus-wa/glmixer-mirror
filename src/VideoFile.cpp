@@ -762,7 +762,7 @@ QString VideoFile::getTimeFromFrame(int64_t t) const {
     int m = (s % 3600) / 60;
     s = (s % 3600) % 60;
     int ds = (int) (time * 100.0);
-    return QString("%1:%2:%3.%4").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0')).arg(ds, 2, 10, QChar(
+    return QString("%1h %2m %3.%4s").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0')).arg(ds, 2, 10, QChar(
                 '0'));
 }
 
