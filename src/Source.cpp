@@ -65,6 +65,12 @@ Source::Source(QGLWidget *context) :
 
 }
 
+
+Source::~Source() {
+
+	glDeleteTextures(1, &textureIndex);
+}
+
 //
 //Source::Source(Source *clone, double d) {
 //
@@ -122,11 +128,13 @@ void Source::draw(bool withalpha, bool withborder, GLenum mode) const {
                 glCallList(lineDisplayList[0]);
         }
         glBindTexture(GL_TEXTURE_2D, textureIndex);
+        // ensure alpha channel is modulated
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		// set transparency
+		glColor4f(texcolor, texcolor, texcolor, withalpha ? texalpha : 1.0);
 
     }
-
-    // set transparency
-    glColor4f(texcolor, texcolor, texcolor, withalpha ? texalpha : 1.0);
     // draw
     glCallList(squareDisplayList);
 }
@@ -149,20 +157,48 @@ GLuint Source::buildHalfList() {
     glNewList(id, GL_COMPILE);
 
 
-    glBegin(GL_TRIANGLES); // begin drawing a triangle
+    glBegin(GL_QUADS); // begin drawing a grid
 
     glColor4f(1.0, 1.0, 1.0, 1.0);
     // Front Face (note that the texture's corners have to match the quad's corners)
     glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3d(-1.0, -1.0, 0.0); // Bottom Left
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3d(1.0, -1.0, 0.0); // Bottom Right
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3d(1.0, 1.0, 0.0); // Top Right
+    int I = 8, J = 6;
+    float x = 0.f, y = 0.f, u = 0.f, v = 0.f;
+    float dx = 2.f / (float)I, dy = 2.f / (float)J, du = 1.f / (float)I, dv = 1.f / (float)J;
+    for (int i = 0; i < I; ++i)
+    	for (int j = 0; j < J; ++j)
+    		if ( (i+j)%2 == 0 ) {
+    			u = (float) i * du;
+    			v = 1.f - (float) j * dv;
+    			x = (float) i * dx -1.0;
+    			y = (float) j * dy -1.0;
+    		    glTexCoord2f(u, v);
+    		    glVertex3f(x, y, 0.0f); // Bottom Left
+    		    glTexCoord2f(u + du, v);
+    		    glVertex3f(x + dx, y, 0.0f); // Bottom Right
+    		    glTexCoord2f(u + du, v - dv);
+    		    glVertex3f(x + dx, y + dy, 0.0f); // Top Right
+    		    glTexCoord2f(u, v - dv);
+    		    glVertex3f(x, y + dy, 0.0f); // Top Left
+    	    }
 
     glEnd();
+
+//    glBegin(GL_TRIANGLES); // begin drawing a triangle
+//
+//    glColor4f(1.0, 1.0, 1.0, 1.0);
+//    // Front Face (note that the texture's corners have to match the quad's corners)
+//    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+//
+//    glTexCoord2f(0.0f, 1.0f);
+//    glVertex3d(-1.0, -1.0, 0.0); // Bottom Left
+//    glTexCoord2f(1.0f, 1.0f);
+//    glVertex3d(1.0, -1.0, 0.0); // Bottom Right
+//    glTexCoord2f(1.0f, 0.0f);
+//    glVertex3d(1.0, 1.0, 0.0); // Top Right
+//
+//    glEnd();
 
     glEndList();
     return id;
@@ -252,8 +288,8 @@ GLuint Source::buildLineList() {
     glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
     glPushMatrix();
-    glTranslatef(0.05, -0.1, 0.1);
-    glScalef(1.3, 1.3, 1.0);
+    glTranslatef(0.05, -0.05, 0.1);
+    glScalef(1.2, 1.2, 1.0);
     glBegin(GL_QUADS); // begin drawing a square
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
@@ -292,8 +328,8 @@ GLuint Source::buildLineList() {
     glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
     glPushMatrix();
-    glTranslatef(0.15, -0.3, 0.1);
-    glScalef(1.2, 1.2, 1.0);
+    glTranslatef(0.15, -0.13, 0.1);
+    glScalef(1.15, 1.15, 1.0);
     glBegin(GL_QUADS); // begin drawing a square
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left

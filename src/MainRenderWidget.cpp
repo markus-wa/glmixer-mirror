@@ -130,7 +130,9 @@ void MainRenderWidget::addSource(VideoFile *vf) {
 void MainRenderWidget::addSource(int opencvIndex) {
 
 	OpencvSource *s = new OpencvSource(opencvIndex, (QGLWidget *) this);
-	_sources.insert( (Source *) s);
+
+	// set the last created source to be current
+	setCurrentSource( _sources.insert( (Source *) s) );
 
 }
 #endif

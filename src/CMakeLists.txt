@@ -37,7 +37,7 @@ set(MYQT_RCS
 if (OpenCV_FOUND)
   include_directories(${OpenCV_INCLUDE_DIR})
   add_definitions(-DOPEN_CV )
-  set( MYQT_SRCS    ${MYQT_SRCS} OpencvSource.cpp OpencvDisplayWidget.cpp )
+  set( MYQT_SRCS  ${MYQT_SRCS} OpencvSource.cpp OpencvDisplayWidget.cpp )
 endif (OpenCV_FOUND)
 
 # do the qt-cmake magic

@@ -1241,7 +1241,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show frames</string>
+    <string>Display time as frames</string>
    </property>
   </action>
   <action name="actionOpenGL_extensions">

@@ -7,28 +7,95 @@
 
 #include <OpencvDisplayWidget.h>
 
+#include <QThread>
+
+class OpencvThread: public QThread {
+public:
+	OpencvThread(OpencvDisplayWidget *source) :
+        QThread(), cvs(source), end(true) {
+    }
+    ~OpencvThread() {
+    }
+
+    void run();
+
+    OpencvDisplayWidget* cvs;
+    bool end;
+
+};
+
+void OpencvThread::run(){
+
+	while (!end) {
+		cvs->mutex->lock();
+	    Q_CHECK_PTR(cvs->capture);
+		if (!cvs->frameChanged) {
+			cvs->frame = cvQueryFrame( cvs->capture );
+			cvs->frameChanged = true;
+			cvs->cond->wait(cvs->mutex);
+		}
+		cvs->mutex->unlock();
+	}
+}
+
 OpencvDisplayWidget::OpencvDisplayWidget(QWidget *parent)
-		  : glRenderWidget(parent), capture(0)
+		  : glRenderWidget(parent), capture(NULL), frameChanged(false)
 {
+	// create thread
+	mutex = new QMutex;
+    Q_CHECK_PTR(mutex);
+    cond = new QWaitCondition;
+    Q_CHECK_PTR(cond);
+	thread = new OpencvThread(this);
+    Q_CHECK_PTR(thread);
+
+	startTimer(20);
 }
 
 void OpencvDisplayWidget::setCamera(int camindex)
 {
-	// release former capture if we had one (changing camera index)
-	if (capture)
-		cvReleaseCapture(&capture);
+	if (camindex < 0) {  // stop
+		thread->end = true;
+		mutex->lock();
+		cond->wakeAll();
+	    frameChanged = false;
+		mutex->unlock();
+	    thread->wait(500);
+		if (capture) {
+			cvReleaseCapture(&capture);
+			capture = NULL;
+		}
 
-	capture  = cvCreateCameraCapture(camindex);
-	startTimer(20);
+	} else { // start
+
+		if (capture)
+			cvReleaseCapture(&capture);
+		capture  = cvCreateCameraCapture(camindex);
+	    Q_CHECK_PTR(capture);
+		thread->end = false;
+		thread->start();
+	}
 }
 
 OpencvDisplayWidget::~OpencvDisplayWidget() {
 
-	cvReleaseCapture(&capture);
+	thread->end = true;
+	mutex->lock();
+	cond->wakeAll();
+	mutex->unlock();
+    thread->wait(500);
+	delete thread;
+	delete cond;
+	delete mutex;
+
+	// release former capture if we had one (changing camera index)
+	if (capture)
+		cvReleaseCapture(&capture);
 
     if (squareDisplayList){
         makeCurrent();
         glDeleteLists(squareDisplayList, 1);
+    	glDeleteTextures(1, &textureIndex);
     }
 }
 
@@ -38,11 +105,22 @@ void OpencvDisplayWidget::timerEvent( QTimerEvent * event )
 	updateGL();
 }
 
+
+void OpencvDisplayWidget::resizeGL(int w, int h)
+{
+    glViewport(0, 0, w, h);
+
+    // Setup specific projection and view for this window
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-1, 1, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+}
+
 void OpencvDisplayWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
-
-    glClearColor(0.0, 0.0, 0.0, 1.0f);
 
     glEnable(GL_TEXTURE_2D);
     glGenTextures(1, &textureIndex);
@@ -50,14 +128,10 @@ void OpencvDisplayWidget::initializeGL()
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
 
     squareDisplayList = glGenLists(1);
     glNewList(squareDisplayList, GL_COMPILE);
     {
-        qglColor(QColor::fromRgb(10, 10, 10));
         glBegin(GL_QUADS); // begin drawing a square
 
         // Front Face (note that the texture's corners have to match the quad's corners)
@@ -81,18 +155,17 @@ void OpencvDisplayWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
-	if (capture) {
-		IplImage *frame = cvQueryFrame( capture );
-		glBindTexture(GL_TEXTURE_2D, textureIndex);
-		if (frame) {
-//			qDebug("OpencvDisplayWidget::paintGL()");
+	if( frameChanged )
+	{
+    	// update the texture
+        glBindTexture(GL_TEXTURE_2D, textureIndex);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glTexImage2D(GL_TEXTURE_2D, 0, 4, frame->width, frame->height,0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
-		}
-
-	} else {
-		// TODO : apply texture with message "no camera detected"
+		mutex->lock();
+		frameChanged = false;
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height,0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+		cond->wakeAll();
+		mutex->unlock();
 	}
 
 	glCallList(squareDisplayList);

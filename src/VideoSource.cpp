@@ -40,7 +40,7 @@ void VideoSource::update(){
         const VideoPicture *vp = is->getPictureAtIndex(bufferIndex);
         if (vp && vp->isAllocated()) {
 
-        	glcontext->makeCurrent();
+//        	glcontext->makeCurrent();
 
         	// update the texture
             glBindTexture(GL_TEXTURE_2D, textureIndex);

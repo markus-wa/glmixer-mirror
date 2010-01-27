@@ -93,6 +93,8 @@ void MixerViewWidget::initializeGL()
 
 	if (!circle)
 		circle = buildCircleList();
+
+
 }
 
 
@@ -322,7 +324,7 @@ GLuint MixerViewWidget::buildCircleList() {
 
     glDisable(GL_TEXTURE_2D);
     glColor4f(0.7, 0.7, 0.7, 1.0);
-    gluDisk(quadObj, 0.9  * SOURCE_UNIT, (CIRCLE_SIZE + 0.15) * SOURCE_UNIT, 40, 40);
+    gluDisk(quadObj, 0.01  * SOURCE_UNIT, (CIRCLE_SIZE + 0.09) * SOURCE_UNIT, 40, 40);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

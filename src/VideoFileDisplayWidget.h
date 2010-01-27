@@ -20,8 +20,9 @@ public:
     ~VideoFileDisplayWidget();
 
     // OpenGL implementation
-    virtual void initializeGL();
-    virtual void paintGL();
+    void initializeGL();
+    void paintGL();
+    void resizeGL(int w, int h);
 
 
 public slots:

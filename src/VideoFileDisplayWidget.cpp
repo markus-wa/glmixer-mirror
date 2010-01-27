@@ -7,7 +7,7 @@
 
 
 VideoFileDisplayWidget::VideoFileDisplayWidget(QWidget *parent)
-  : glRenderWidget(parent), is(NULL), squareDisplayList(0), textureIndex(0), useVideoAspectRatio(true)
+  : glRenderWidget(parent), is(NULL), textureIndex(0), useVideoAspectRatio(true)
 
 {
 
@@ -18,6 +18,7 @@ VideoFileDisplayWidget::~VideoFileDisplayWidget()
     if (squareDisplayList){
         makeCurrent();
         glDeleteLists(squareDisplayList, 1);
+    	glDeleteTextures(1, &textureIndex);
     }
 }
 
@@ -47,16 +48,14 @@ void VideoFileDisplayWidget::initializeGL()
     glGenTextures(1, &textureIndex);
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // ugly but fast for preview
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 
     squareDisplayList = glGenLists(1);
     glNewList(squareDisplayList, GL_COMPILE);
     {
-        qglColor(QColor::fromRgb(100, 100, 100).lighter());
         glBegin(GL_QUADS); // begin drawing a square
 
         // Front Face (note that the texture's corners have to match the quad's corners)
@@ -103,6 +102,19 @@ void VideoFileDisplayWidget::updateFrame (int i)
     // end
 
     update();
+}
+
+
+void VideoFileDisplayWidget::resizeGL(int w, int h)
+{
+    glViewport(0, 0, w, h);
+
+    // Setup specific projection and view for this window
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-1, 1, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
 }
 
 void VideoFileDisplayWidget::paintGL()

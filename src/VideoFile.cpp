@@ -37,6 +37,7 @@ extern "C" {
 #include <QtGui/QTreeWidget>
 #include <QtGui/QLabel>
 #include <QtGui/QVBoxLayout>
+#include <QThread>
 
 class ParsingThread: public QThread {
 public:
@@ -153,7 +154,7 @@ void VideoPicture::saveToPPM(QString filename) const {
 
 bool VideoFile::ffmpegregistered = false;
 
-VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversionAlgorithm, enum PixelFormat avFormat, int destinationWidth, int destinationHeight) :
+VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversionAlgorithm, int destinationWidth, int destinationHeight) :
     QObject(parent), filename(QString()) {
 
     if (!ffmpegregistered) {
@@ -168,7 +169,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
     // read software conversion parameters
     targetWidth = destinationWidth;
     targetHeight = destinationHeight;
-    targetFormat = avFormat;
+    targetFormat = PIX_FMT_RGB24;
     powerOfTwo = generatePowerOfTwo;
     conversionAlgorithm = swsConversionAlgorithm;
 
@@ -491,6 +492,28 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
         targetHeight = VideoFile::roundPowerOfTwo(targetHeight);
     }
 
+    // automatic optimal selection of target format
+    if (video_st->codec->pix_fmt == PIX_FMT_RGB32 || video_st->codec->pix_fmt == PIX_FMT_BGR32)
+    	targetFormat = PIX_FMT_RGBA;
+    else
+    	targetFormat = PIX_FMT_RGB24;
+
+//    if (video_st->codec->pix_fmt == PIX_FMT_RGB32)
+//    	qDebug("source format PIX_FMT_RGB32");
+//    if (video_st->codec->pix_fmt == PIX_FMT_RGB24)
+//    	qDebug("source format PIX_FMT_RGB24");
+//    if (video_st->codec->pix_fmt == PIX_FMT_RGBA)
+//    	qDebug("source format PIX_FMT_RGBA");
+//
+//
+//    if (targetFormat == PIX_FMT_RGB32)
+//    	qDebug("target format PIX_FMT_RGB32");
+//    if (targetFormat == PIX_FMT_RGB24)
+//    	qDebug("target format PIX_FMT_RGB24");
+//    if (targetFormat == PIX_FMT_RGBA)
+//    	qDebug("target format PIX_FMT_RGBA");
+
+
     /* allocate the buffers */
     for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i) {
         if (!pictq[i].allocate(targetWidth, targetHeight, targetFormat)) {
@@ -512,6 +535,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
         emit error(tr("Error opening %1:\nCannot allocate picture buffer.").arg(filename));
         return false;
     }
+
 
     // create conversion context
     img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,

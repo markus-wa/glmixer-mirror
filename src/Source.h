@@ -24,7 +24,7 @@ public:
 
 	Source(QGLWidget *context);
 	//    Source(Source *clone, double newdepth = MIN_DEPTH_LAYER);
-	virtual ~Source() {};
+	virtual ~Source();
 
 	virtual void update() = 0;
 

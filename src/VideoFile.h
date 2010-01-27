@@ -14,7 +14,6 @@ extern "C" {
 }
 
 #include <QObject>
-#include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
 #include <QTimer>
@@ -231,10 +230,6 @@ public:
      *  If no scaling is needed (generatePowerOfTwo false and no custom dimensions), use SWS_POINT for best performance.
      *  See libswscale/swscale.h for details.
      *
-     *  The avFormat parameter specifies the internal pixel format of the decoded frames. To use frames as OpenGL
-     *  textures, this is usually PIX_FMT_RGB24 (for GL_RGB) or PIX_FMT_RGBA (for GL_RGBA).
-     *  See libswscale/swscale.h and libavutil/pixfmt.h for details.
-     *
      *  The width and height parameters should be used only if your application requires frames of special dimensions.
      *  (If the generatePowerOfTwo parameter is true, these dimensions will be approximated to the closest power of two values).
      *
@@ -244,13 +239,11 @@ public:
      *  @param parent QObject parent class.
      *  @param generatePowerOfTwo True to request a resize of the frames to the closest power of two dimensions.
      *  @param swsConversionQuality SWS_POINT, SWS_FAST_BILINEAR, SWS_BILINEAR, SWS_BICUBLIN, SWS_BICUBIC, SWS_SPLINE or SWS_SINC
-     *  @param avFormat Usually PIX_FMT_RGB24 or PIX_FMT_RGBA
      *  @param destinationWidth Width of the VideoPicture to produce; leave at 0 for auto detection from the file resolution.
      *  @param destinationHeight Height of the VideoPicture to produce; leave at 0 for auto detection from the file resolution.
      */
     VideoFile(QObject *parent = 0,  bool generatePowerOfTwo = false,
-                int swsConversionQuality = SWS_POINT, enum PixelFormat avFormat = PIX_FMT_RGB24,
-                int destinationWidth = 0, int destinationHeight = 0);
+                int swsConversionQuality = SWS_POINT, int destinationWidth = 0, int destinationHeight = 0);
     /**
      * Destructor.
      *
@@ -690,14 +683,30 @@ public slots:
      */
     void setOptionAllowDirtySeek(bool dirty);
     /**
+     * Gets the "allow dirty seek" option.
+     *
+     * @return true if the option is active.
+     */
+    inline bool getOptionAllowDirtySeek() {
+    	return seek_any;
+    }
+    /**
      * Sets the "restart to Mark IN" option.
      *
      * When this option is active, stopping a VideoFile will jump back to the IN mark, ready to restart from there.
      *
-     * @param on true to activate the optin.
+     * @param on true to activate the option.
      */
-    void setOptionRestartToMarkIn(bool on) {
+    inline void setOptionRestartToMarkIn(bool on) {
         restart_where_stopped = !on;
+    }
+    /**
+     * Gets the "restart to Mark IN" option.
+     *
+     * @return true if the option is active.
+     */
+    inline bool getOptionRestartToMarkIn() {
+        return !restart_where_stopped;
     }
     /**
      * Sets the "revert to black" option.
@@ -708,6 +717,14 @@ public slots:
      * @param black true to activate the option.
      */
     void setOptionRevertToBlackWhenStop(bool black);
+    /**
+     * Gets the "revert to black" option.
+     *
+     * @return true if the option is active.
+     */
+    inline bool getOptionRevertToBlackWhenStop() {
+    	return (resetPicture == &blackPicture);
+    }
 
 protected slots:
     /**

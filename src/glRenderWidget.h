@@ -42,7 +42,7 @@ public slots:
 signals:
 	void windowClosed();
 
-private:
+protected:
 
     static QStringList listofextensions;
 };

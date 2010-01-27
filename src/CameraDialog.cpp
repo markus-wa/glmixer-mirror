@@ -18,6 +18,7 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
 
 #ifdef OPEN_CV
     currentCameraIndex = -1;
+    QObject::connect(opencvComboBox, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
 
 	openCVpreview = new OpencvDisplayWidget(this);
 	openCVpreview->setFixedSize(200, 150);
@@ -60,6 +61,7 @@ void CameraDialog::on_tabWidget_currentChanged(int tabID){
 	if (tabID == 0) { // OpenCV
 #ifdef OPEN_CV
 		currentDriver = OPENCV_CAMERA;
+		openCVpreview->setCamera(currentCameraIndex);
 #endif
 	}
 
@@ -68,6 +70,7 @@ void CameraDialog::on_tabWidget_currentChanged(int tabID){
 
 #ifdef OPEN_CV
 		// delete the opencvDisplayWidget ?
+		 openCVpreview->setCamera(-1);
 #endif
 		currentDriver = FIREWIRE_CAMERA;
 	}
@@ -84,19 +87,21 @@ void CameraDialog::autodetectOpencvCameras(){
 	CvCapture* cvcap;
 	cvcap = cvCreateCameraCapture(i);
 	while (cvcap) {
-		opencvComboBox->addItem( QString("Camera %1").arg(i) );
+		opencvComboBox->addItem( QString("USB Camera %1").arg(i) );
 		cvReleaseCapture(&cvcap);
 		// next ?
 		++i;
 		cvcap = cvCreateCameraCapture(i);
 	}
+	cvReleaseCapture(&cvcap);
 
 	if ( opencvComboBox->count() > 0 ) {
-		setOpencvCamera(0);
-        QObject::connect(opencvComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(setOpencvCamera(int)));
+		currentCameraIndex = 0;
+        opencvComboBox->setEnabled(true);
 	}
-	else
+	else {
 		opencvComboBox->setEnabled(false);
+	}
 }
 
 void CameraDialog::setOpencvCamera(int i){
@@ -105,8 +110,6 @@ void CameraDialog::setOpencvCamera(int i){
 
 	// create the OpencvDisplayWidget
 	openCVpreview->setCamera(currentCameraIndex);
-
-	update();
 }
 
 #endif
