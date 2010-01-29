@@ -5,7 +5,8 @@
  *      Author: bh
  */
 
-#include <OpencvDisplayWidget.h>
+#include "common.h"
+#include "OpencvDisplayWidget.h"
 
 #include <QThread>
 

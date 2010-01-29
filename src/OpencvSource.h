@@ -11,7 +11,8 @@
 
 #ifdef OPEN_CV
 
-#include <Source.h>
+#include "common.h"
+#include "Source.h"
 
 #include <cv.h>
 #include <highgui.h>

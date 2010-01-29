@@ -5,6 +5,7 @@
  *      Author: bh
  */
 
+ 
 #include "Source.h"
 #include "glRenderWidget.h"
 
@@ -40,7 +41,7 @@ Source::Source(QGLWidget *context) :
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// TODO : use fbo in MainRenderWidget using a different attachment point per source
-	attachmentPoint = GL_COLOR_ATTACHMENT0_EXT;
+	//attachmentPoint = GL_COLOR_ATTACHMENT0_EXT;
 
 	// create display list if never created
 	if (!squareDisplayList)

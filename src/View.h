@@ -8,9 +8,9 @@
 #ifndef VIEW_H_
 #define VIEW_H_
 
+#include "common.h"
 #include "SourceSet.h"
 
-#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
 class View {
 public:

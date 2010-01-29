@@ -43,8 +43,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     // Init state
     vcontrolDockWidget->setEnabled(false);
     vinfoDockWidget->setEnabled(false);
-//    vinfoDockWidget->setVisible(false);
     vconfigDockWidget->setEnabled(false);
+
+    // TODO : Qt application config
+//    vinfoDockWidget->setVisible(false);
 //    vconfigDockWidget->setVisible(false);
 
     // Timer to update sliders and counters

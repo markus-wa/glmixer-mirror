@@ -6,11 +6,12 @@
  */
 
 #include <QMessageBox>
+
+#include "common.h"
 #include "glRenderWidget.moc"
 #include "Source.h"
 
 
-#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
 QStringList glRenderWidget::listofextensions;
 

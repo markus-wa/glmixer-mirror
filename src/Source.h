@@ -9,7 +9,9 @@
 #define SOURCE_H_
 
 #include <QtOpenGL>
- #include <QDomElement>
+#include <QDomElement>
+
+#include "common.h"
 
 #define SELECTBUFSIZE 64
 #define MIN_DEPTH_LAYER 0.0
