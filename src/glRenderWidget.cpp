@@ -28,7 +28,6 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget)
 	if (!format().doubleBuffer())
 	  qWarning("Could not set double buffering; results will be suboptimal");
 
-
 	if (listofextensions.isEmpty()) {
 	  makeCurrent();
 	  QString allextensions = QString( (char *) glGetString(GL_EXTENSIONS));
@@ -68,14 +67,13 @@ void glRenderWidget::initializeGL()
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
-     // setup default background color to black
-     glClearColor(0.0, 0.0, 0.0, 1.0f);
+    // setup default background color to black
+    glClearColor(0.0, 0.0, 0.0, 1.0f);
 
 }
 
 
 void glRenderWidget::setBackgroundColor(float r, float g, float b){
-
 
     makeCurrent();
 
@@ -84,7 +82,6 @@ void glRenderWidget::setBackgroundColor(float r, float g, float b){
 
 void glRenderWidget::resizeGL(int w, int h)
 {
-
     glViewport(0, 0, w, h);
 
     // Setup specific projection and view for this window
@@ -93,6 +90,8 @@ void glRenderWidget::resizeGL(int w, int h)
     gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
 
     glMatrixMode(GL_MODELVIEW);
+	
+	update();
 }
 
 void glRenderWidget::paintGL()
@@ -101,59 +100,6 @@ void glRenderWidget::paintGL()
 
 }
 
-void glRenderWidget::setFullScreen(bool on) {
-
-	// this is valid only for WINDOW widgets
-	if (windowFlags() & Qt::Window) {
-
-		// if ask fullscreen and already fullscreen
-		if (on && (windowState() & Qt::WindowFullScreen))
-			return;
-
-		// if ask NOT fullscreen and already NOT fullscreen
-		if (!on && !(windowState() & Qt::WindowFullScreen))
-			return;
-
-		// other cases ; need to switch fullscreen <-> not fullscreen
-		setWindowState(windowState() ^ Qt::WindowFullScreen);
-		update();
-	}
-
-}
-
-void glRenderWidget::mouseDoubleClickEvent ( QMouseEvent * event ){
-
-	// switch fullscreen / window
-	if (windowFlags() & Qt::Window) {
-		setWindowState(windowState() ^ Qt::WindowFullScreen);
-		update();
-	}
-
-}
-
-void glRenderWidget::keyPressEvent(QKeyEvent * event ){
-
-	switch (event->key()) {
-	     case Qt::Key_Escape:
-	    	 setFullScreen(false);
-			 break;
-	     case Qt::Key_Enter:
-	     case Qt::Key_Space:
-	    	 setFullScreen(true);
-			 event->accept();
-	    	 break;
-	     default:
-	    	 QGLWidget::keyPressEvent(event);
-	}
-}
-
-
-void glRenderWidget::closeEvent ( QCloseEvent * event ){
-
-	emit windowClosed();
-	event->accept();
-
-}
 
 bool glRenderWidget::glSupportsExtension(QString extname) {
 

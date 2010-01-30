@@ -28,19 +28,10 @@ public:
 
     // Events management
     virtual void timerEvent(QTimerEvent *) { update(); }
-    virtual void keyPressEvent(QKeyEvent * event );
-    virtual void mouseDoubleClickEvent ( QMouseEvent * event );
-    virtual void closeEvent ( QCloseEvent * event );
 
     // OpenGL informations
     static bool glSupportsExtension(QString extname);
     static void showGlExtensionsInformationDialog(QString iconfile = "");
-
-public slots:
-	void setFullScreen(bool on);
-
-signals:
-	void windowClosed();
 
 protected:
 

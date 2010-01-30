@@ -11,71 +11,79 @@
 #define DEFAULT_WIDTH 1024
 #define DEFAULT_HEIGHT 768
 
-#include "glRenderWidget.h"
+#include <QWidget>
+
 #include "VideoSource.h"
 #include "SourceSet.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
 
-class MainRenderWidget: public glRenderWidget {
+class RenderWidget;
 
-	Q_OBJECT
+class MainRenderWidget: public QWidget {
+
+Q_OBJECT
+
+	friend class RenderWidget;
 
 public:
-    // get singleton instance
-    static const QGLWidget *getQGLWidget();
-    static MainRenderWidget *getInstance();
-    static void deleteInstance();
+	// get singleton instance
+	static const QGLWidget *getQGLWidget();
+	static MainRenderWidget *getInstance();
+	static void deleteInstance();
 
-
-    // QGLWidget rendering
-    void paintGL();
-
-    // Management of the video sources
-    void addSource(VideoFile *vf);
+	// Management of the video sources
+	void addSource(VideoFile *vf);
 #ifdef OPEN_CV
-    void addSource(int opencvIndex);
+	void addSource(int opencvIndex);
 #endif
-    inline Source *getSource(int i) { return *_sources.begin();}
-    SourceSet::iterator getById(GLuint name);
-    bool notAtEnd(SourceSet::iterator itsource);
-    bool isValid(SourceSet::iterator itsource);
-    SourceSet::iterator changeDepth(SourceSet::iterator itsource, double newdepth);
-    inline SourceSet::iterator getBegin() { return _sources.begin(); }
-    inline SourceSet::iterator getEnd() { return _sources.end(); }
-    void removeSource(SourceSet::iterator itsource);
-    void clearSourceSet();
+	inline Source *getSource(int i) {
+		return *_sources.begin();
+	}
+	SourceSet::iterator getById(GLuint name);
+	bool notAtEnd(SourceSet::iterator itsource);
+	bool isValid(SourceSet::iterator itsource);
+	SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
+	inline SourceSet::iterator getBegin() {
+		return _sources.begin();
+	}
+	inline SourceSet::iterator getEnd() {
+		return _sources.end();
+	}
+	void removeSource(SourceSet::iterator itsource);
+	void clearSourceSet();
 
-    void setCurrentSource(SourceSet::iterator si);
-    inline SourceSet::iterator getCurrentSource() { return currentSource; }
+	void setCurrentSource(SourceSet::iterator si);
+	inline SourceSet::iterator getCurrentSource() {
+		return currentSource;
+	}
 
-    // management of the rendering
-    void setRenderingResolution(int w, int h);
-    float getRenderingAspectRatio() {return _aspectRatio;}
+	// management of the rendering
+	virtual void keyPressEvent(QKeyEvent * event);
+	virtual void mouseDoubleClickEvent(QMouseEvent * event);
+	virtual void closeEvent(QCloseEvent * event);
 
 public slots:
-    void useRenderingAspectRatio(bool on) {_useAspectRatio = on;}
+	void useRenderingAspectRatio(bool on);
+	void setFullScreen(bool on);
 
 signals:
 	void currentSourceChanged(SourceSet::iterator csi);
+	void windowClosed();
 
-    // singleton mechanism
+	// singleton mechanism
 private:
-	MainRenderWidget(QWidget *parent = 0);
+	MainRenderWidget();
 	virtual ~MainRenderWidget();
-    static MainRenderWidget *_instance;
+	static MainRenderWidget *_instance;
 
-private:
-    // the set of sources
-    SourceSet _sources;
-    SourceSet::iterator currentSource;
+protected:
+	RenderWidget *_renderwidget;
 
-    // TODO: implement the use of fbo
-    QGLFramebufferObject *_fbo;
-
-	float _aspectRatio;
-	bool _useAspectRatio;
+	// the set of sources
+	SourceSet _sources;
+	SourceSet::iterator currentSource;
 
 };
 

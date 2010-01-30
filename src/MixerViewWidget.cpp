@@ -25,7 +25,6 @@ MixerViewWidget::MixerViewWidget( QWidget * parent, const QGLWidget * shareWidge
 	minzoom = MINZOOM;
 	maxzoom = MAXZOOM;
 
-
 	setMouseTracking(true);
 }
 
@@ -94,13 +93,11 @@ void MixerViewWidget::initializeGL()
 	if (!circle)
 		circle = buildCircleList();
 
-
 }
 
 
 void MixerViewWidget::resizeGL(int w, int h)
 {
-
     glViewport(0, 0, w, h);
     viewport[2] = w;
     viewport[3] = h;

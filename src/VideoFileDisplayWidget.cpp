@@ -31,8 +31,7 @@ void VideoFileDisplayWidget::setVideo(VideoFile *f){
     if (is) {
         glEnable(GL_TEXTURE_2D);
         QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
-    }
-    else {
+    } else {
         glDisable(GL_TEXTURE_2D);
         update();
     }
@@ -51,7 +50,6 @@ void VideoFileDisplayWidget::initializeGL()
     // ugly but fast for preview
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
 
     squareDisplayList = glGenLists(1);
     glNewList(squareDisplayList, GL_COMPILE);

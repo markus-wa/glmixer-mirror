@@ -19,8 +19,7 @@ int main(int argc, char **argv)
 
     MainRenderWidget *mrw = MainRenderWidget::getInstance();
     mrw->setParent(NULL, Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-    mrw->move(100,100);
-//    mrw->setGeometry(100, 100, 1024, 768);
+    mrw->setGeometry(100, 100, 1024, 768);
     mrw->show();
 
     GLMixer glmixer_widget(mrw);
@@ -33,7 +32,6 @@ int main(int argc, char **argv)
 
     glmixer_widget.setWindowTitle(QString("GL Mixer %1").arg(GLMIXER_VERSION));
     glmixer_widget.show();
-//    glmixer_widget.on_actionOpen_activated();
 
     return a.exec();
 }

@@ -179,7 +179,7 @@ void GLMixer::on_actionOpen_activated(){
 // and to read the correct information and configuration options
 void GLMixer::controlSource(SourceSet::iterator csi){
 
-#ifndef OPEN_CV
+#ifdef OPEN_CV
 	static OpencvSource *cvs = NULL;
 	// the static pointer to opencv source keeps last reference to it when selected (controlled here)
 	// -> we should disconnect it to the play button if we change source
@@ -335,7 +335,7 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		}
 		else
 		{
-#ifndef OPEN_CV
+#ifdef OPEN_CV
 			// if it is an OpencvSource (camera)
 			cvs = dynamic_cast<OpencvSource *>(*csi);
 			if (cvs != NULL) {
