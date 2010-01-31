@@ -36,8 +36,6 @@ int main(int argc, char **argv)
 #endif
     glmixer_widget.show();
 
-    mrw->startRender();
-
     return a.exec();
 }
 
