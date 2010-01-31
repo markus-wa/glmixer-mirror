@@ -20,6 +20,7 @@ int main(int argc, char **argv)
     MainRenderWidget *mrw = MainRenderWidget::getInstance();
     mrw->setParent(NULL, Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     mrw->setGeometry(100, 100, 1024, 768);
+    mrw->setWindowTitle(QString("GL Mixer Rendering Window").arg(GLMIXER_VERSION));
     mrw->show();
 
     GLMixer glmixer_widget(mrw);

@@ -13,6 +13,7 @@
 #include "VideoFileDialog.h"
 #include "MainRenderWidget.h"
 #include "MixerViewWidget.h"
+#include "SourceDisplayWidget.h"
 
 
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), refreshTimingTimer(0)
@@ -26,9 +27,16 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     // SET central widget to MIXER VIEW
     centralLayout->removeWidget(interactionView);
     delete interactionView;
-    MixerViewWidget *tmp = new MixerViewWidget( (QWidget *)this, MainRenderWidget::getQGLWidget());
-    interactionView = (glRenderWidget*) tmp;
-    centralLayout->addWidget(interactionView, 0, 0, 1, 1);
+    interactionView = (glRenderWidget*) new MixerViewWidget( (QWidget *)this, MainRenderWidget::getQGLWidget());
+    centralLayout->addWidget(interactionView);
+
+
+    // SET prewiew widget to be Source Display Widget
+    previewPageSourceLayout->removeWidget(previewSource);
+    delete previewSource;
+    previewSource = new SourceDisplayWidget( previewPageSource, MainRenderWidget::getQGLWidget());
+    previewPageSourceLayout->addWidget(previewSource);
+
 
     // signal from source management in MainRenderWidget
     QObject::connect(MainRenderWidget::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(controlSource(SourceSet::iterator) ) );
@@ -230,7 +238,11 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 	// if we are given a valid iterator, we have a source to control
 	if ( MainRenderWidget::getInstance()->isValid(csi) ) {
 
-		// test the class of the current source ;
+		// setup preview
+		previewStackedWidget->setCurrentIndex(1);
+		previewSource->setSource (*csi);
+
+		// test the class of the current source and deal accordingly :
 
 		// if it is a VideoSource (video file)
 		VideoSource *vs = dynamic_cast<VideoSource *>(*csi);
@@ -361,12 +373,17 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 				vconfigDockWidget->setEnabled(false);
 				videoFrame->setEnabled(false);
 				timingControlFrame->setEnabled(false);
+
 			}
 #endif
 		}
 
 
 	} else { // no current source
+		// nothing to preview
+		previewStackedWidget->setCurrentIndex(0);
+		previewSource->setSource(0);
+
 		// clear the information fields
 		FileNameLineEdit->setText("");
 		CodecNameLineEdit->setText("");

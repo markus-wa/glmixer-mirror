@@ -15,6 +15,7 @@ set(MYQT_SRCS
     Source.cpp
     VideoSource.cpp
 	glRenderWidget.cpp
+	SourceDisplayWidget.cpp
     MainRenderWidget.cpp
     MixerViewWidget.cpp
     glmixer.cpp

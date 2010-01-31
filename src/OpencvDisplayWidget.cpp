@@ -101,12 +101,6 @@ OpencvDisplayWidget::~OpencvDisplayWidget() {
 }
 
 
-void OpencvDisplayWidget::timerEvent( QTimerEvent * event )
-{
-	updateGL();
-}
-
-
 void OpencvDisplayWidget::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
@@ -167,8 +161,9 @@ void OpencvDisplayWidget::paintGL()
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height,0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 		cond->wakeAll();
 		mutex->unlock();
+
+		glCallList(squareDisplayList);
 	}
 
-	glCallList(squareDisplayList);
 }
 

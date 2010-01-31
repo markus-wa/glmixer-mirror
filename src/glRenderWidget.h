@@ -24,10 +24,10 @@ public:
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
     virtual void paintGL();
-    void setBackgroundColor(float r, float g, float b);
+    void setBackgroundColor(const QColor &c);
 
     // Events management
-    virtual void timerEvent(QTimerEvent *) { update(); }
+    virtual void timerEvent(QTimerEvent *) { if (isVisible()) update(); }
 
     // OpenGL informations
     static bool glSupportsExtension(QString extname);

@@ -73,11 +73,12 @@ void glRenderWidget::initializeGL()
 }
 
 
-void glRenderWidget::setBackgroundColor(float r, float g, float b){
+void glRenderWidget::setBackgroundColor(const QColor &c){
 
     makeCurrent();
 
-    glClearColor( CLAMP(r, 0.0, 1.0), CLAMP(g, 0.0, 1.0), CLAMP(b, 0.0, 1.0), 1.0 );
+    //glClearColor( CLAMP(r, 0.0, 1.0), CLAMP(g, 0.0, 1.0), CLAMP(b, 0.0, 1.0), 1.0 );
+    qglClearColor(c);
 }
 
 void glRenderWidget::resizeGL(int w, int h)

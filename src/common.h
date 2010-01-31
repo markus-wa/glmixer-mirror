@@ -8,8 +8,8 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
-#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+#define MINI(a, b)  (((a) < (b)) ? (a) : (b))
+#define MAXI(a, b)  (((a) > (b)) ? (a) : (b))
 #define ABS(a)	   (((a) < 0) ? -(a) : (a))
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define EPSILON 0.00001

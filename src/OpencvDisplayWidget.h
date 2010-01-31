@@ -33,7 +33,6 @@ public:
     virtual void resizeGL(int w, int h);
 
     void setCamera(int camindex);
-    void timerEvent( QTimerEvent * event );
 
 protected:
 	CvCapture* capture;

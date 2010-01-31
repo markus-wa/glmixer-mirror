@@ -88,7 +88,7 @@ void MixerViewWidget::initializeGL()
     viewport[2] = this->width();
     viewport[3] = this->height();
 
-	setBackgroundColor(0.2, 0.2, 0.2);
+	setBackgroundColor( QColor(52,52,52) );
 
 	if (!circle)
 		circle = buildCircleList();
