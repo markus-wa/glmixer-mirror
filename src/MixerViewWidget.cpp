@@ -5,7 +5,7 @@
  *      Author: bh
  */
 
-#include <MixerViewWidget.moc>
+#include "MixerViewWidget.moc"
 
 #include "MainRenderWidget.h"
 
@@ -200,6 +200,12 @@ void MixerViewWidget::wheelEvent ( QWheelEvent * event ){
 
 	event->accept();
 }
+
+void MixerViewWidget::zoomIn() {setZoom(zoom + ( 2.f * zoom * minzoom) / maxzoom);}
+void MixerViewWidget::zoomOut() {setZoom(zoom -  ( 2.f * zoom * minzoom) / maxzoom);}
+void MixerViewWidget::zoomReset() {setZoom(DEFAULTZOOM);}
+void MixerViewWidget::zoomBestFit() {}
+
 
 void MixerViewWidget::keyPressEvent ( QKeyEvent * event ){
 

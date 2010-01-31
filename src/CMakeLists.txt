@@ -18,6 +18,7 @@ set(MYQT_SRCS
 	SourceDisplayWidget.cpp
     MainRenderWidget.cpp
     MixerViewWidget.cpp
+    GeometryViewWidget.cpp
     glmixer.cpp
     main.cpp
 )

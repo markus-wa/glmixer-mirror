@@ -388,6 +388,8 @@ int VideoFile::getPlaySpeed(){
 		return SPEED_DOUBLE;
 	if (play_speed - 3 < 0.1 )
 		return SPEED_TRIPLE;
+
+	return SPEED_NORMAL;
 }
 
 void VideoFile::thread_terminated() {

@@ -8,7 +8,7 @@
 #ifndef MIXERVIEWWIDGET_H_
 #define MIXERVIEWWIDGET_H_
 
-#include <glRenderWidget.h>
+#include "glRenderWidget.h"
 #include "View.h"
 
 class MixerViewWidget: public glRenderWidget, View {
@@ -16,7 +16,7 @@ class MixerViewWidget: public glRenderWidget, View {
 	Q_OBJECT
 
 public:
-	MixerViewWidget(QWidget * parent, const QGLWidget * shareWidget);
+	MixerViewWidget(QWidget * parent, const QGLWidget * shareWidget = 0);
 	virtual ~MixerViewWidget();
 
     virtual void paintGL();
@@ -30,6 +30,11 @@ public:
 
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
+public slots:
+	void zoomIn();
+	void zoomOut();
+	void zoomReset();
+	void zoomBestFit();
 
 private:
 

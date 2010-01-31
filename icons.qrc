@@ -1,6 +1,7 @@
 <RCC>
   <qresource prefix="glmixer" >
     <file>icons/fileimport.png</file>
+    <file>icons/depth.png</file>
     <file>icons/manipulation.png</file>
     <file>icons/mixer.png</file>
     <file>icons/process-stop.png</file>
