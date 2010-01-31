@@ -19,8 +19,6 @@ GLuint MixerViewWidget::circle = 0;
 MixerViewWidget::MixerViewWidget( QWidget * parent, const QGLWidget * shareWidget)
 	: glRenderWidget(parent, shareWidget)
 {
-	this->startTimer(16);
-
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
 	maxzoom = MAXZOOM;

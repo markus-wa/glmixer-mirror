@@ -14,7 +14,6 @@
 class SourceDisplayWidget: public glRenderWidget {
 public:
 	SourceDisplayWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0);
-	virtual ~SourceDisplayWidget();
 
     virtual void initializeGL();
     virtual void paintGL();

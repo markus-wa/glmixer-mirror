@@ -26,15 +26,17 @@ public:
     virtual void paintGL();
     void setBackgroundColor(const QColor &c);
 
-    // Events management
-    virtual void timerEvent(QTimerEvent *) { if (isVisible()) update(); }
+    // Update events management
+    virtual void timerEvent( QTimerEvent *) { update(); }
+    virtual void showEvent ( QShowEvent * event ) { QGLWidget::showEvent(event); timer = startTimer(16);}
+    virtual void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event);  killTimer(timer);}
 
     // OpenGL informations
     static bool glSupportsExtension(QString extname);
     static void showGlExtensionsInformationDialog(QString iconfile = "");
 
 protected:
-
+    int timer;
     static QStringList listofextensions;
 };
 

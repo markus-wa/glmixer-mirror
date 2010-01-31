@@ -12,13 +12,6 @@
 SourceDisplayWidget::SourceDisplayWidget(QWidget *parent, const QGLWidget * shareWidget) : glRenderWidget(parent, shareWidget), s(0)
 {
 
-	// update at 50Hz
-	startTimer(20);
-}
-
-SourceDisplayWidget::~SourceDisplayWidget()
-{
-
 }
 
 void SourceDisplayWidget::initializeGL()

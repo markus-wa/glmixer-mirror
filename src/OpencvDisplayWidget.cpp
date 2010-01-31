@@ -50,7 +50,6 @@ OpencvDisplayWidget::OpencvDisplayWidget(QWidget *parent)
 	thread = new OpencvThread(this);
     Q_CHECK_PTR(thread);
 
-	startTimer(20);
 }
 
 void OpencvDisplayWidget::setCamera(int camindex)

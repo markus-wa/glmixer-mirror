@@ -148,7 +148,6 @@ MainRenderWidget::MainRenderWidget() :
 	verticalLayout->addWidget(_renderwidget);
 
 	_renderwidget->setParent(this);
-	_renderwidget->startTimer(16);
 
 	currentSource = getEnd();
 }
