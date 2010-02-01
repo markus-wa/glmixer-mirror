@@ -133,7 +133,7 @@ MainRenderWidget *MainRenderWidget::getInstance() {
 void MainRenderWidget::deleteInstance() {
 
 	if (_instance != 0)
-		delete _instance;
+		_instance->close();
 }
 
 MainRenderWidget::MainRenderWidget() :
@@ -161,6 +161,8 @@ void MainRenderWidget::addSource(VideoFile *vf) {
 
 	// create a source appropriate for this videofile
 	VideoSource *s = new VideoSource(vf, (QGLWidget *) _renderwidget);
+	// ensure we display first frame (not done automatically by signal as it should...)
+	s->updateFrame(-1);
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
 

@@ -68,11 +68,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 }
 
 GLMixer::~GLMixer() {
-
-    delete refreshTimingTimer;
-
 	MainRenderWidget::getInstance()->deleteInstance();
-
 }
 
 
