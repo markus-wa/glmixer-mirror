@@ -18,12 +18,12 @@ int main(int argc, char **argv)
     }
 
     MainRenderWidget *mrw = MainRenderWidget::getInstance();
-    mrw->setParent(NULL, Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    mrw->setParent(NULL, Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
     mrw->setGeometry(100, 100, 1024, 768);
     mrw->setWindowTitle(QString("GL Mixer Rendering Window"));
     mrw->show();
 
-    GLMixer glmixer_widget(mrw);
+    GLMixer glmixer_widget;
 
 #ifdef __APPLE__
     glmixer_widget.setStyleSheet(QString::fromUtf8("font: 11pt \"Lucida Grande\";\n"));
