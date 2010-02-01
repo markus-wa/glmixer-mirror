@@ -76,6 +76,14 @@ void CameraDialog::on_tabWidget_currentChanged(int tabID){
 	}
 }
 
+
+void CameraDialog::on_opencvRefreshButton_clicked(){
+#ifdef OPEN_CV
+	autodetectOpencvCameras();
+	openCVpreview->setCamera(currentCameraIndex);
+#endif
+}
+
 #ifdef OPEN_CV
 void CameraDialog::autodetectOpencvCameras(){
 
@@ -100,6 +108,7 @@ void CameraDialog::autodetectOpencvCameras(){
         opencvComboBox->setEnabled(true);
 	}
 	else {
+		currentCameraIndex = -1;
 		opencvComboBox->setEnabled(false);
 	}
 }

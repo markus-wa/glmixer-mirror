@@ -31,6 +31,7 @@ class CameraDialog : public QDialog, Ui_CameraDialog
 	public slots:
 
 		void on_tabWidget_currentChanged(int tabID);
+		void on_opencvRefreshButton_clicked();
 		void autodetectFirewireCameras();
 		void accept();
 
