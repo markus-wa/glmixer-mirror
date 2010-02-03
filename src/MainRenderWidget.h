@@ -33,7 +33,9 @@ public:
 	static MainRenderWidget *getInstance();
 	static void deleteInstance();
 
-	// Management of the video sources
+	/**
+	* Management of the video sources
+	**/
 	void addSource(VideoFile *vf);
 #ifdef OPEN_CV
 	void addSource(int opencvIndex);
@@ -59,10 +61,24 @@ public:
 		return currentSource;
 	}
 
-	// management of the rendering
+	/**
+	 * management of the rendering
+	 */
 	virtual void keyPressEvent(QKeyEvent * event);
 	virtual void mouseDoubleClickEvent(QMouseEvent * event);
 	virtual void closeEvent(QCloseEvent * event);
+
+	/**
+	 * Interaction with the other views
+	 */
+	void setRenderingResolution(int width, int height);
+	float getRenderingAspectRatio();
+
+	static GLuint border_thin_shadow, border_large_shadow;
+	static GLuint border_thin, border_large, border_scale;
+	static GLuint frame_selection, frame_screen;
+	static GLuint quad_texured, quad_half_textured, quad_black;
+	static GLuint circle_mixing;
 
 public slots:
 	void useRenderingAspectRatio(bool on);
@@ -72,7 +88,9 @@ signals:
 	void currentSourceChanged(SourceSet::iterator csi);
 	void windowClosed();
 
-	// singleton mechanism
+	/**
+	 * singleton mechanism
+	 */
 private:
 	MainRenderWidget();
 	virtual ~MainRenderWidget();

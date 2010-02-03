@@ -43,7 +43,7 @@
        <bool>true</bool>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="pageMixingView">
        <property name="sizePolicy">
@@ -120,8 +120,11 @@
            </item>
            <item>
             <widget class="QToolButton" name="toolButtonMixReset">
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
              <property name="styleSheet">
-              <string>background-color: rgba(129, 129, 129, 0);</string>
+              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
              </property>
              <property name="text">
               <string>...</string>
@@ -135,7 +138,7 @@
            <item>
             <widget class="QToolButton" name="toolButtonMixPlus">
              <property name="styleSheet">
-              <string>background-color: rgba(129, 129, 129, 0);</string>
+              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
              </property>
              <property name="text">
               <string>...</string>
@@ -144,12 +147,15 @@
               <iconset resource="../icons.qrc">
                <normaloff>:/glmixer/icons/zoom-in.png</normaloff>:/glmixer/icons/zoom-in.png</iconset>
              </property>
+             <property name="autoRepeat">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QToolButton" name="toolButtonMixMinus">
              <property name="styleSheet">
-              <string>background-color: rgba(129, 129, 129, 0);</string>
+              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
              </property>
              <property name="text">
               <string>...</string>
@@ -158,12 +164,15 @@
               <iconset resource="../icons.qrc">
                <normaloff>:/glmixer/icons/zoom-out.png</normaloff>:/glmixer/icons/zoom-out.png</iconset>
              </property>
+             <property name="autoRepeat">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QToolButton" name="toolButtonMixFit">
              <property name="styleSheet">
-              <string>background-color: rgba(129, 129, 129, 0);</string>
+              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
              </property>
              <property name="text">
               <string>...</string>
@@ -196,7 +205,7 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <layout class="QHBoxLayout" name="geometryViewLayout">
         <property name="spacing">
          <number>0</number>
         </property>
@@ -230,6 +239,9 @@
            <property name="rightMargin">
             <number>0</number>
            </property>
+           <property name="bottomMargin">
+            <number>7</number>
+           </property>
            <item>
             <widget class="QLabel" name="label_11">
              <property name="toolTip">
@@ -258,6 +270,9 @@
            </item>
            <item>
             <widget class="QToolButton" name="toolButtonGeoReset">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+             </property>
              <property name="text">
               <string>...</string>
              </property>
@@ -269,6 +284,9 @@
            </item>
            <item>
             <widget class="QToolButton" name="toolButtonGeoPlus">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+             </property>
              <property name="text">
               <string>...</string>
              </property>
@@ -276,10 +294,16 @@
               <iconset resource="../icons.qrc">
                <normaloff>:/glmixer/icons/zoom-in.png</normaloff>:/glmixer/icons/zoom-in.png</iconset>
              </property>
+             <property name="autoRepeat">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QToolButton" name="toolButtonGeoMinus">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+             </property>
              <property name="text">
               <string>...</string>
              </property>
@@ -287,10 +311,16 @@
               <iconset resource="../icons.qrc">
                <normaloff>:/glmixer/icons/zoom-out.png</normaloff>:/glmixer/icons/zoom-out.png</iconset>
              </property>
+             <property name="autoRepeat">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QToolButton" name="toolButtonGeoFit">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+             </property>
              <property name="text">
               <string>...</string>
              </property>
@@ -611,7 +641,7 @@ the video will pause or loop.</string>
     <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>C</string>
+    <string>Control</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
@@ -1304,7 +1334,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>0</y>
           <width>207</width>
-          <height>125</height>
+          <height>192</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1413,8 +1443,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>207</width>
-          <height>125</height>
+          <width>100</width>
+          <height>30</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1782,6 +1812,9 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <property name="text">
     <string>Source Preview</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
   </action>
   <action name="actionZoomIn">
    <property name="icon">
@@ -1855,6 +1888,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
  <resources>
   <include location="../icons.qrc"/>
   <include location="../textures.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -2044,8 +2078,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <y>149</y>
     </hint>
     <hint type="destinationlabel">
-     <x>485</x>
-     <y>386</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>
@@ -2060,8 +2094,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <y>121</y>
     </hint>
     <hint type="destinationlabel">
-     <x>39</x>
-     <y>127</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>
@@ -2076,8 +2110,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <y>97</y>
     </hint>
     <hint type="destinationlabel">
-     <x>35</x>
-     <y>101</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>
@@ -2092,8 +2126,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <y>67</y>
     </hint>
     <hint type="destinationlabel">
-     <x>59</x>
-     <y>71</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>

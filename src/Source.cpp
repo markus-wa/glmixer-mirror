@@ -8,12 +8,13 @@
  
 #include "Source.h"
 #include "glRenderWidget.h"
+#include "MainRenderWidget.h"
 
 GLuint Source::lastid = 1;
-GLuint Source::squareDisplayList = 0;
-GLuint Source::halfDisplayList = 0;
-GLuint Source::selectDisplayList = 0;
-GLuint Source::lineDisplayList[2] =  { 0, 0 };
+//GLuint Source::squareDisplayList = 0;
+//GLuint Source::halfDisplayList = 0;
+//GLuint Source::selectDisplayList = 0;
+//GLuint Source::lineDisplayList[2] =  { 0, 0 };
 
 Source::Source(QGLWidget *context) :
 	glcontext(context), x(0.0), y(0.0), z(0.0), alphax(0.0), alphay(0.0),
@@ -43,18 +44,20 @@ Source::Source(QGLWidget *context) :
 	// TODO : use fbo in MainRenderWidget using a different attachment point per source
 	//attachmentPoint = GL_COLOR_ATTACHMENT0_EXT;
 
-	// create display list if never created
-	if (!squareDisplayList)
-		squareDisplayList = buildQuadList();
-	if (!halfDisplayList)
-		halfDisplayList = buildHalfList();
-	if (!selectDisplayList)
-		selectDisplayList = buildSelectList();
+//	// create display list if never created
+//	if (!squareDisplayList)
+//		squareDisplayList = buildQuadList();
+//	if (!halfDisplayList)
+//		halfDisplayList = buildHalfList();
+//	if (!selectDisplayList)
+//		selectDisplayList = buildSelectList();
+//
+//	if (lineDisplayList[0] == 0){
+//		lineDisplayList[0] = buildLineList();
+//		lineDisplayList[1] = lineDisplayList[0] + 1;
+//	}
 
-	if (lineDisplayList[0] == 0){
-		lineDisplayList[0] = buildLineList();
-		lineDisplayList[1] = lineDisplayList[0] + 1;
-	}
+
 
 	// set attributes and children
 	dom.setAttribute("id", id);
@@ -117,17 +120,12 @@ void Source::setAlphaCoordinates(double x, double y, double max) {
 }
 
 
-void Source::draw(bool withalpha, bool withborder, GLenum mode) const {
+void Source::draw(bool withalpha, GLenum mode) const {
     // set id in select mode, avoid texturing if not rendering.
     if (mode == GL_SELECT)
         glLoadName(id);
     else {
-        if (withborder) {
-            if (active)
-                glCallList(lineDisplayList[1]);
-            else
-                glCallList(lineDisplayList[0]);
-        }
+
         glBindTexture(GL_TEXTURE_2D, textureIndex);
         // ensure alpha channel is modulated
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -137,228 +135,8 @@ void Source::draw(bool withalpha, bool withborder, GLenum mode) const {
 
     }
     // draw
-    glCallList(squareDisplayList);
+    glCallList(MainRenderWidget::quad_texured);
 }
 
-void Source::drawHalf() const {
-	glCallList(halfDisplayList);
-}
-
-
-void Source::drawSelect() const {
-	glCallList(selectDisplayList);
-}
-
-/**
- * Build a display list of a textured QUAD and returns its id
- **/
-GLuint Source::buildHalfList() {
-
-    GLuint id = glGenLists(1);
-    glNewList(id, GL_COMPILE);
-
-
-    glBegin(GL_QUADS); // begin drawing a grid
-
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    // Front Face (note that the texture's corners have to match the quad's corners)
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-
-    int I = 8, J = 6;
-    float x = 0.f, y = 0.f, u = 0.f, v = 0.f;
-    float dx = 2.f / (float)I, dy = 2.f / (float)J, du = 1.f / (float)I, dv = 1.f / (float)J;
-    for (int i = 0; i < I; ++i)
-    	for (int j = 0; j < J; ++j)
-    		if ( (i+j)%2 == 0 ) {
-    			u = (float) i * du;
-    			v = 1.f - (float) j * dv;
-    			x = (float) i * dx -1.0;
-    			y = (float) j * dy -1.0;
-    		    glTexCoord2f(u, v);
-    		    glVertex3f(x, y, 0.0f); // Bottom Left
-    		    glTexCoord2f(u + du, v);
-    		    glVertex3f(x + dx, y, 0.0f); // Bottom Right
-    		    glTexCoord2f(u + du, v - dv);
-    		    glVertex3f(x + dx, y + dy, 0.0f); // Top Right
-    		    glTexCoord2f(u, v - dv);
-    		    glVertex3f(x, y + dy, 0.0f); // Top Left
-    	    }
-
-    glEnd();
-
-//    glBegin(GL_TRIANGLES); // begin drawing a triangle
-//
-//    glColor4f(1.0, 1.0, 1.0, 1.0);
-//    // Front Face (note that the texture's corners have to match the quad's corners)
-//    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-//
-//    glTexCoord2f(0.0f, 1.0f);
-//    glVertex3d(-1.0, -1.0, 0.0); // Bottom Left
-//    glTexCoord2f(1.0f, 1.0f);
-//    glVertex3d(1.0, -1.0, 0.0); // Bottom Right
-//    glTexCoord2f(1.0f, 0.0f);
-//    glVertex3d(1.0, 1.0, 0.0); // Top Right
-//
-//    glEnd();
-
-    glEndList();
-    return id;
-}
-
-/**
- * Build a display lists for the line borders and returns its id
- **/
-GLuint Source::buildSelectList() {
-
-    GLuint base = glGenLists(1);
-
-    // selected
-    glNewList(base, GL_COMPILE);
-
-    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_TEXTURE_2D);
-
-    glLineWidth(3.0);
-    glColor4f(0.2, 0.80, 0.2, 1.0);
-
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3d(-1.1 , -1.1 , 0.0); // Bottom Left
-    glVertex3d(1.1 , -1.1 , 0.0); // Bottom Right
-    glVertex3d(1.1 , 1.1 , 0.0); // Top Right
-    glVertex3d(-1.1 , 1.1 , 0.0); // Top Left
-    glEnd();
-
-    glPopAttrib();
-
-    glEndList();
-
-    return base;
-}
-
-
-/**
- * Build a display list of a textured QUAD and returns its id
- **/
-GLuint Source::buildQuadList() {
-
-    GLuint id = glGenLists(1);
-    glNewList(id, GL_COMPILE);
-
-    glBegin(GL_QUADS); // begin drawing a square
-
-    // Front Face (note that the texture's corners have to match the quad's corners)
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-
-    glEnd();
-
-    glEndList();
-    return id;
-}
-
-/**
- * Build 2 display lists for the line borders and shadows
- **/
-GLuint Source::buildLineList() {
-
-    GLuint texid = glcontext->bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D);
-
-    GLuint base = glGenLists(2);
-    glListBase(base);
-
-    // default
-    glNewList(base, GL_COMPILE);
-
-    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-
-    glPushMatrix();
-    glTranslatef(0.05, -0.05, 0.1);
-    glScalef(1.2, 1.2, 1.0);
-    glBegin(GL_QUADS); // begin drawing a square
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(1.f, 1.f, 0.0f); // Top Right
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-1.f, 1.f, 0.0f); // Top Left
-    glEnd();
-    glPopMatrix();
-
-    glDisable(GL_TEXTURE_2D);
-    glLineWidth(1.0);
-    glColor4f(0.9, 0.9, 0.0, 0.7);
-
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
-    glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
-    glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
-    glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
-    glEnd();
-
-    glPopAttrib();
-    glEndList();
-
-    // over
-    glNewList(base + 1, GL_COMPILE);
-
-    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-
-    glPushMatrix();
-    glTranslatef(0.15, -0.13, 0.1);
-    glScalef(1.15, 1.15, 1.0);
-    glBegin(GL_QUADS); // begin drawing a square
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(1.f, 1.f, 0.0f); // Top Right
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-1.f, 1.f, 0.0f); // Top Left
-    glEnd();
-    glPopMatrix();
-
-    glDisable(GL_TEXTURE_2D);
-    glLineWidth(3.0);
-    glColor4f(0.9, 0.9, 0.0, 0.7);
-
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
-    glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
-    glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
-    glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
-    glEnd();
-
-    glPopAttrib();
-
-    glEndList();
-
-    return base;
-}
 
 

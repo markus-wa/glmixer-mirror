@@ -7,23 +7,24 @@
 
 #include "MixerViewWidget.moc"
 
+#include "common.h"
 #include "MainRenderWidget.h"
 
 #define MINZOOM 0.04
 #define MAXZOOM 1.0
 #define DEFAULTZOOM 0.1
-#define CIRCLE_SIZE 7.0
 
-GLuint MixerViewWidget::circle = 0;
+//GLuint MixerViewWidget::circle = 0;
 
 MixerViewWidget::MixerViewWidget( QWidget * parent, const QGLWidget * shareWidget)
-	: glRenderWidget(parent, shareWidget)
+	: glRenderWidget(parent, shareWidget), currentAction(NONE)
 {
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
 	maxzoom = MAXZOOM;
 
 	setMouseTracking(true);
+	setFocusPolicy(Qt::ClickFocus);
 }
 
 MixerViewWidget::~MixerViewWidget() {
@@ -39,7 +40,7 @@ void MixerViewWidget::paintGL()
     glScalef(zoom, zoom, zoom);
 
     // First the circles and other background stuff
-    glCallList(circle);
+    glCallList(MainRenderWidget::circle_mixing);
 
     // and the selection connection lines
     glDisable(GL_TEXTURE_2D);
@@ -59,8 +60,14 @@ void MixerViewWidget::paintGL()
 		glPushMatrix();
 		glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		glScalef( SOURCE_UNIT * (*its)->getAspectRatio(),  SOURCE_UNIT, 1.f);
-		(*its)->draw(true, true);
-		(*its)->drawHalf();
+
+		if ((*its)->isActive())
+			glCallList(MainRenderWidget::border_large_shadow);
+		else
+			glCallList(MainRenderWidget::border_thin_shadow);
+
+		(*its)->draw(true);
+		glCallList(MainRenderWidget::quad_half_textured);
 		glPopMatrix();
 
 	}
@@ -70,7 +77,7 @@ void MixerViewWidget::paintGL()
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
         glScalef( SOURCE_UNIT * (*its)->getAspectRatio(), SOURCE_UNIT, 1.f);
-		(*its)->drawSelect();
+		glCallList(MainRenderWidget::frame_selection);
         glPopMatrix();
 
     }
@@ -87,9 +94,6 @@ void MixerViewWidget::initializeGL()
     viewport[3] = this->height();
 
 	setBackgroundColor( QColor(52,52,52) );
-
-	if (!circle)
-		circle = buildCircleList();
 
 }
 
@@ -116,6 +120,26 @@ void MixerViewWidget::resizeGL(int w, int h)
 }
 
 
+
+void MixerViewWidget::setAction(actionType a){
+
+	currentAction = a;
+
+	switch(a) {
+	case OVER:
+		setCursor(Qt::OpenHandCursor);
+		break;
+	case GRAB:
+		setCursor(Qt::ClosedHandCursor);
+		break;
+	case SELECT:
+		setCursor(Qt::PointingHandCursor);
+		break;
+	default:
+		setCursor(Qt::ArrowCursor);
+	}
+}
+
 void MixerViewWidget::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
@@ -129,21 +153,24 @@ void MixerViewWidget::mousePressEvent(QMouseEvent *event)
     	// if a source icon was cliked
         if ( MainRenderWidget::getInstance()->notAtEnd(cliked) ) {
         	// if CTRL button modifier pressed, add clicked to selection
-			if ( QApplication::keyboardModifiers () == Qt::ControlModifier) {
+			if ( currentAction != GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
+				setAction(SELECT);
 				if ( selection.find(*cliked) == selection.end())
 					selection.insert( *cliked );
 				else
 					selection.erase( *cliked );
 			}
-			else // not in selection (CTRL) mode, then just set the current active source
+			else // not in selection (SELECT) action mode, then just set the current active source
 			{
 				MainRenderWidget::getInstance()->setCurrentSource( cliked );
 				// ready for grabbing the current source
-				setCursor(Qt::OpenHandCursor);
+				setAction(GRAB);
 			}
-		} else
+		} else {
 			// set current to none (end of list)
 			MainRenderWidget::getInstance()->setCurrentSource( MainRenderWidget::getInstance()->getEnd() );
+			setAction(NONE);
+		}
 
     } else if (event->buttons() & Qt::RightButton) {
     	// TODO context menu
@@ -159,10 +186,10 @@ void MixerViewWidget::mouseMoveEvent(QMouseEvent *event)
     lastClicPos = event->pos();
 
     if (event->buttons() & Qt::LeftButton) {
-
     	SourceSet::iterator cs = MainRenderWidget::getInstance()->getCurrentSource();
         if ( MainRenderWidget::getInstance()->notAtEnd(cs)) {
 
+        	setAction(GRAB);
             if ( find_if( selection.begin(), selection.end(), hasName( (*cs)->getId()) ) != selection.end() ){
                 for(SourceSet::iterator  its = selection.begin(); its != selection.end(); its++) {
                     grabSource(its, event->x(), viewport[3] - event->y(), dx, dy);
@@ -177,10 +204,13 @@ void MixerViewWidget::mouseMoveEvent(QMouseEvent *event)
 
     	SourceSet::iterator over = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 		 // selection mode with CTRL modifier
-		if ( MainRenderWidget::getInstance()->notAtEnd(over) && QApplication::keyboardModifiers () == Qt::ControlModifier) {
-			setCursor(Qt::PointingHandCursor);
-		} else
-			setCursor(Qt::ArrowCursor);
+		if ( MainRenderWidget::getInstance()->notAtEnd(over))
+			if (QApplication::keyboardModifiers () == Qt::ControlModifier)
+				setAction(SELECT);
+			else
+				setAction(OVER);
+		else
+			setAction(NONE);
 
     }
 
@@ -190,12 +220,17 @@ void MixerViewWidget::mouseMoveEvent(QMouseEvent *event)
 
 void MixerViewWidget::mouseReleaseEvent ( QMouseEvent * event ){
 
-	setCursor(Qt::ArrowCursor);
+	if (currentAction == GRAB )
+		setAction(OVER);
+	else
+		setAction(currentAction);
+
 	event->accept();
 }
 
 void MixerViewWidget::wheelEvent ( QWheelEvent * event ){
 
+	setAction(NONE);
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
 	event->accept();
@@ -209,8 +244,23 @@ void MixerViewWidget::zoomBestFit() {}
 
 void MixerViewWidget::keyPressEvent ( QKeyEvent * event ){
 
+	if (currentAction == OVER )
+		setAction(SELECT);
+	else
+		setAction(currentAction);
 
-
+	switch (event->key()) {
+		case Qt::Key_Left:
+		 break;
+		case Qt::Key_Right:
+		 break;
+		case Qt::Key_Down:
+		 break;
+		case Qt::Key_Up:
+		 break;
+		default:
+		 QGLWidget::keyPressEvent(event);
+	}
 }
 
 //void MixerViewWidget::setCurrentSource(SourceSet::iterator  si){
@@ -258,7 +308,7 @@ SourceSet::iterator  MixerViewWidget::getSourceAtCoordinates(int mouseX, int mou
         glPushMatrix();
         glTranslatef( (*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
         glScalef( SOURCE_UNIT * (*its)->getAspectRatio(),  SOURCE_UNIT, 1.f);
-        (*its)->draw(false, false, GL_SELECT);
+        (*its)->draw(false, GL_SELECT);
         glPopMatrix();
     }
 
@@ -307,47 +357,3 @@ void MixerViewWidget::grabSource(SourceSet::iterator s, int x, int y, int dx, in
 
 
 
-
-
-GLuint MixerViewWidget::buildCircleList() {
-
-    GLuint id = glGenLists(1);
-    GLUquadricObj *quadObj = gluNewQuadric();
-
-    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/circle.png")), GL_TEXTURE_2D);
-
-    glNewList(id, GL_COMPILE);
-
-    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);
-
-    glPushMatrix();
-    glTranslatef(0.0, 0.0, MAX_DEPTH_LAYER - 1.0);
-
-    glDisable(GL_TEXTURE_2D);
-    glColor4f(0.7, 0.7, 0.7, 1.0);
-    gluDisk(quadObj, 0.01  * SOURCE_UNIT, (CIRCLE_SIZE + 0.09) * SOURCE_UNIT, 40, 40);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-
-    glTranslatef(0.0, 0.0, 1.0);
-    glBegin(GL_QUADS); // begin drawing a square
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex3d(-CIRCLE_SIZE * SOURCE_UNIT, -CIRCLE_SIZE * SOURCE_UNIT, 0.0); // Bottom Left
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex3d(CIRCLE_SIZE * SOURCE_UNIT, -CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Bottom Right
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex3d(CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Top Right
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex3d(-CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Top Left
-    glEnd();
-
-    glPopMatrix();
-    glPopAttrib();
-    glEndList();
-
-    return id;
-}

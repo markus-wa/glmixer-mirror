@@ -12,9 +12,43 @@
 #include "View.h"
 
 class GeometryViewWidget: public glRenderWidget, public View {
+
+	Q_OBJECT
+
 public:
+
+    typedef enum {NONE = 0, MOVE, SCALE, ROTATE } actionType;
+
 	GeometryViewWidget(QWidget * parent, const QGLWidget * shareWidget = 0);
 	virtual ~GeometryViewWidget();
+
+    virtual void paintGL();
+    virtual void initializeGL();
+    virtual void resizeGL(int w, int h);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mouseReleaseEvent ( QMouseEvent * event );
+    void wheelEvent ( QWheelEvent * event );
+    void keyPressEvent ( QKeyEvent * event );
+
+    // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
+
+public slots:
+	void zoomIn();
+	void zoomOut();
+	void zoomReset();
+	void zoomBestFit();
+
+private:
+
+    SourceSet::iterator  getSourceAtCoordinates(int mouseX, int mouseY);
+    char getSourceQuadrant(SourceSet::iterator s, int mouseX, int mouseY);
+    void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
+    void scaleSource(SourceSet::iterator s, int x, int y, int dx, int dy);
+
+    char quadrant;
+    actionType currentAction;
+    QPoint lastClicPos;
 };
 
 #endif /* GEOMETRYVIEWWIDGET_H_ */

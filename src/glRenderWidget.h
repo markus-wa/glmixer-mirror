@@ -29,7 +29,7 @@ public:
     // Update events management
     virtual void timerEvent( QTimerEvent *) { update(); }
     virtual void showEvent ( QShowEvent * event ) { QGLWidget::showEvent(event); timer = startTimer(16);}
-    virtual void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event);  killTimer(timer);}
+    virtual void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); if(timer>0) killTimer(timer);}
 
     // OpenGL informations
     static bool glSupportsExtension(QString extname);

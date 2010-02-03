@@ -24,12 +24,19 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     actionCamera->setEnabled(false);
 #endif
 
-    // SET central widget to MIXER VIEW
+    // SET MIXER VIEW
     mixingViewLayout->removeWidget(mixingView);
     delete mixingView;
     mixingView = new MixerViewWidget( (QWidget *)this, MainRenderWidget::getQGLWidget());
     mixingViewLayout->addWidget(mixingView);
+    // activate this view by default
     on_actionMixingView_activated();
+
+    // SET GEOMETRY VIEW
+    geometryViewLayout->removeWidget(geometryView);
+    delete geometryView;
+    geometryView = new GeometryViewWidget( (QWidget *)this, MainRenderWidget::getQGLWidget());
+    geometryViewLayout->addWidget(geometryView);
 
 
     // SET prewiew widget to be Source Display Widget
@@ -116,8 +123,10 @@ void GLMixer::displayErrorMessage(QString msg){
 
 void GLMixer::on_actionMixingView_activated(){
 
-	// connect menu actions to mixing view
-    // QObject::connect(actionZoomIn, SIGNAL(activated()), this, SLOT(close()));
+	QObject::connect(actionZoomIn, SIGNAL(activated()), geometryView, SLOT(zoomIn()));
+	QObject::connect(actionZoomOut, SIGNAL(activated()), geometryView, SLOT(zoomOut()));
+	QObject::connect(actionZoomReset, SIGNAL(activated()), geometryView, SLOT(zoomReset()));
+	QObject::connect(actionZoomBestFit, SIGNAL(activated()), geometryView, SLOT(zoomBestFit()));
 
 	stackedWidget->setCurrentIndex(0);
 
@@ -138,6 +147,10 @@ void GLMixer::on_actionGeometryView_activated(){
 
 	stackedWidget->setCurrentIndex(1);
 
+	QObject::connect(actionZoomIn, SIGNAL(activated()), geometryView, SLOT(zoomIn()));
+	QObject::connect(actionZoomOut, SIGNAL(activated()), geometryView, SLOT(zoomOut()));
+	QObject::connect(actionZoomReset, SIGNAL(activated()), geometryView, SLOT(zoomReset()));
+	QObject::connect(actionZoomBestFit, SIGNAL(activated()), geometryView, SLOT(zoomBestFit()));
 }
 
 

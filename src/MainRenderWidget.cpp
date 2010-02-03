@@ -7,18 +7,26 @@
 
 #include "MainRenderWidget.moc"
 
+#include "common.h"
 #include "glRenderWidget.h"
 #include "OpencvSource.h"
 #include <algorithm>
 
+
 // static members
 MainRenderWidget *MainRenderWidget::_instance = 0;
+
+GLuint MainRenderWidget::border_thin_shadow = 0, MainRenderWidget::border_large_shadow = 0;
+GLuint MainRenderWidget::border_thin = 0, MainRenderWidget::border_large = 0, MainRenderWidget::border_scale = 0;
+GLuint MainRenderWidget::quad_texured = 0, MainRenderWidget::quad_half_textured = 0, MainRenderWidget::quad_black = 0;
+GLuint MainRenderWidget::frame_selection = 0, MainRenderWidget::frame_screen = 0;
+GLuint MainRenderWidget::circle_mixing = 0;
 
 class RenderWidget: public glRenderWidget {
 
 public:
 	RenderWidget(MainRenderWidget *mainrenderwidget) :
-		glRenderWidget(0), mrw(mainrenderwidget), _fbo(NULL),
+		glRenderWidget(0), mrw(mainrenderwidget), _fbo(NULL), w(0), h(0),
 				_aspectRatio(1.0), _useAspectRatio(true) {
 		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
 			qWarning(
@@ -30,36 +38,64 @@ public:
 
 	// QGLWidget rendering
 	void paintGL();
+	void initializeGL();
 
-	void setRenderingResolution(int w, int h);
-
-	inline void useRenderingAspectRatio(bool on) {
-		_useAspectRatio = on;
-	}
-	inline float getRenderingAspectRatio() {
-		return _aspectRatio;
-	}
-
-private:
 	MainRenderWidget *mrw;
 	// TODO: implement the use of fbo
 	QGLFramebufferObject *_fbo;
 
+	int w,h;
 	float _aspectRatio;
 	bool _useAspectRatio;
 
+
+	// utility
+    GLuint buildHalfList();
+    GLuint buildSelectList();
+    GLuint buildLineList();
+    GLuint buildQuadList();
+    GLuint buildCircleList();
+    GLuint buildFrameList();
+    GLuint buildBlackList();
+    GLuint buildBordersList();
+
 };
 
-void RenderWidget::setRenderingResolution(int w, int h) {
 
-	_aspectRatio = (float) w / (float) h;
+void RenderWidget::initializeGL()
+{
+    glRenderWidget::initializeGL();
 
-	makeCurrent();
+    if ( !MainRenderWidget::border_thin_shadow ) {
+    	MainRenderWidget::border_thin_shadow = buildLineList();
+    	MainRenderWidget::border_large_shadow = MainRenderWidget::border_thin_shadow + 1;
+    }
+	if (!MainRenderWidget::quad_texured)
+		MainRenderWidget::quad_texured = buildQuadList();
+	if (!MainRenderWidget::quad_half_textured)
+		MainRenderWidget::quad_half_textured = buildHalfList();
+	if (!MainRenderWidget::frame_selection)
+		MainRenderWidget::frame_selection = buildSelectList();
+	if (!MainRenderWidget::circle_mixing)
+		MainRenderWidget::circle_mixing = buildCircleList();
+	if (!MainRenderWidget::quad_black)
+		MainRenderWidget::quad_black = buildBlackList();
+	if (!MainRenderWidget::frame_screen)
+		MainRenderWidget::frame_screen = buildFrameList();
+	if (!MainRenderWidget::border_thin) {
+		MainRenderWidget::border_thin = buildBordersList();
+		MainRenderWidget::border_large = MainRenderWidget::border_thin + 1;
+		MainRenderWidget::border_scale = MainRenderWidget::border_thin + 2;
+	}
 
-	if (_fbo)
-		delete _fbo;
-
-	_fbo = new QGLFramebufferObject(w, h);
+	qDebug("MainRenderWidget::quad_texured %d", MainRenderWidget::quad_texured);
+	qDebug("MainRenderWidget::quad_half_textured %d", MainRenderWidget::quad_half_textured);
+	qDebug("MainRenderWidget::frame_selection %d", MainRenderWidget::frame_selection);
+	qDebug("MainRenderWidget::circle_mixing %d", MainRenderWidget::circle_mixing);
+	qDebug("MainRenderWidget::quad_black %d", MainRenderWidget::quad_black);
+	qDebug("MainRenderWidget::frame_screen %d", MainRenderWidget::frame_screen);
+	qDebug("MainRenderWidget::border_thin %d", MainRenderWidget::border_thin);
+	qDebug("MainRenderWidget::border_large %d", MainRenderWidget::border_large);
 
 }
 
@@ -77,8 +113,7 @@ void RenderWidget::paintGL() {
 	//	  5 pop modelview
 
 
-	for (SourceSet::iterator its = mrw->_sources.begin(); its
-			!= mrw->_sources.end(); its++) {
+	for (SourceSet::iterator its = mrw->_sources.begin(); its != mrw->_sources.end(); its++) {
 		// steps 1 and 2 :
 		(*its)->update();
 
@@ -140,7 +175,7 @@ MainRenderWidget::MainRenderWidget() :
 	QWidget(0) {
 
 	_renderwidget = new RenderWidget(this);
-	_renderwidget->setRenderingResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+	setRenderingResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
 	QVBoxLayout *verticalLayout = new QVBoxLayout(this);
 	verticalLayout->setSpacing(0);
@@ -155,6 +190,38 @@ MainRenderWidget::MainRenderWidget() :
 MainRenderWidget::~MainRenderWidget() {
 
 	clearSourceSet();
+}
+
+
+void MainRenderWidget::setRenderingResolution(int width, int height){
+
+	if (_renderwidget) {
+		_renderwidget->w = width;
+		_renderwidget->h = height;
+		_renderwidget->_aspectRatio = (float) width / (float) height;
+
+		_renderwidget->makeCurrent();
+
+		if (_renderwidget->_fbo)
+			delete _renderwidget->_fbo;
+
+		_renderwidget->_fbo = new QGLFramebufferObject(_renderwidget->w,_renderwidget->h);
+	}
+}
+
+float MainRenderWidget::getRenderingAspectRatio(){
+
+	if (_renderwidget && _renderwidget->_useAspectRatio)
+		return _renderwidget->_aspectRatio;
+	else
+		return ( (float) width() / (float) height() );
+}
+
+void MainRenderWidget::useRenderingAspectRatio(bool on) {
+
+	if (_renderwidget)
+		_renderwidget->_useAspectRatio = on;
+
 }
 
 void MainRenderWidget::addSource(VideoFile *vf) {
@@ -242,10 +309,6 @@ SourceSet::iterator MainRenderWidget::getById(GLuint name) {
 	return std::find_if(_sources.begin(), _sources.end(), hasName(name));
 }
 
-void MainRenderWidget::useRenderingAspectRatio(bool on) {
-	_renderwidget->useRenderingAspectRatio(on);
-
-}
 
 void MainRenderWidget::setFullScreen(bool on) {
 
@@ -323,3 +386,454 @@ void MainRenderWidget::closeEvent(QCloseEvent * event) {
 
 // etc.. till GL_COLOR_ATTACHMENT15_EXT
 
+
+
+
+/**
+ * Build a display list of a textured QUAD and returns its id
+ **/
+GLuint RenderWidget::buildHalfList() {
+
+    GLuint id = glGenLists(1);
+    glNewList(id, GL_COMPILE);
+
+
+    glBegin(GL_QUADS); // begin drawing a grid
+
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    // Front Face (note that the texture's corners have to match the quad's corners)
+    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+
+    int I = 8, J = 6;
+    float x = 0.f, y = 0.f, u = 0.f, v = 0.f;
+    float dx = 2.f / (float)I, dy = 2.f / (float)J, du = 1.f / (float)I, dv = 1.f / (float)J;
+    for (int i = 0; i < I; ++i)
+    	for (int j = 0; j < J; ++j)
+    		if ( (i+j)%2 == 0 ) {
+    			u = (float) i * du;
+    			v = 1.f - (float) j * dv;
+    			x = (float) i * dx -1.0;
+    			y = (float) j * dy -1.0;
+    		    glTexCoord2f(u, v);
+    		    glVertex3f(x, y, 0.0f); // Bottom Left
+    		    glTexCoord2f(u + du, v);
+    		    glVertex3f(x + dx, y, 0.0f); // Bottom Right
+    		    glTexCoord2f(u + du, v - dv);
+    		    glVertex3f(x + dx, y + dy, 0.0f); // Top Right
+    		    glTexCoord2f(u, v - dv);
+    		    glVertex3f(x, y + dy, 0.0f); // Top Left
+    	    }
+
+    glEnd();
+
+//    glBegin(GL_TRIANGLES); // begin drawing a triangle
+//
+//    glColor4f(1.0, 1.0, 1.0, 1.0);
+//    // Front Face (note that the texture's corners have to match the quad's corners)
+//    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+//
+//    glTexCoord2f(0.0f, 1.0f);
+//    glVertex3d(-1.0, -1.0, 0.0); // Bottom Left
+//    glTexCoord2f(1.0f, 1.0f);
+//    glVertex3d(1.0, -1.0, 0.0); // Bottom Right
+//    glTexCoord2f(1.0f, 0.0f);
+//    glVertex3d(1.0, 1.0, 0.0); // Top Right
+//
+//    glEnd();
+
+    glEndList();
+    return id;
+}
+
+/**
+ * Build a display lists for the line borders and returns its id
+ **/
+GLuint RenderWidget::buildSelectList() {
+
+    GLuint base = glGenLists(1);
+
+    // selected
+    glNewList(base, GL_COMPILE);
+
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_TEXTURE_2D);
+
+    glLineWidth(3.0);
+    glColor4f(0.2, 0.80, 0.2, 1.0);
+
+    glBegin(GL_LINE_LOOP); // begin drawing a square
+    glVertex3d(-1.1 , -1.1 , 0.0); // Bottom Left
+    glVertex3d(1.1 , -1.1 , 0.0); // Bottom Right
+    glVertex3d(1.1 , 1.1 , 0.0); // Top Right
+    glVertex3d(-1.1 , 1.1 , 0.0); // Top Left
+    glEnd();
+
+    glPopAttrib();
+
+    glEndList();
+
+    return base;
+}
+
+
+/**
+ * Build a display list of a textured QUAD and returns its id
+ **/
+GLuint RenderWidget::buildQuadList() {
+
+    GLuint id = glGenLists(1);
+    glNewList(id, GL_COMPILE);
+
+    glBegin(GL_QUADS); // begin drawing a square
+
+    // Front Face (note that the texture's corners have to match the quad's corners)
+    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+
+    glEnd();
+
+    glEndList();
+    return id;
+}
+
+/**
+ * Build 2 display lists for the line borders and shadows
+ **/
+GLuint RenderWidget::buildLineList() {
+
+    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D);
+
+    GLuint base = glGenLists(2);
+    glListBase(base);
+
+    // default
+    glNewList(base, GL_COMPILE);
+
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+
+    glPushMatrix();
+    glTranslatef(0.05, -0.05, 0.1);
+    glScalef(1.2, 1.2, 1.0);
+    glBegin(GL_QUADS); // begin drawing a square
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(1.f, 1.f, 0.0f); // Top Right
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+    glEnd();
+    glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
+    glLineWidth(1.0);
+    glColor4f(0.9, 0.9, 0.0, 0.7);
+
+    glBegin(GL_LINE_LOOP); // begin drawing a square
+    glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
+    glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
+    glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
+    glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
+    glEnd();
+
+    glPopAttrib();
+    glEndList();
+
+    // over
+    glNewList(base + 1, GL_COMPILE);
+
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+
+    glPushMatrix();
+    glTranslatef(0.15, -0.13, 0.1);
+    glScalef(1.15, 1.15, 1.0);
+    glBegin(GL_QUADS); // begin drawing a square
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(1.f, 1.f, 0.0f); // Top Right
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+    glEnd();
+    glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
+    glLineWidth(3.0);
+    glColor4f(0.9, 0.9, 0.0, 0.7);
+
+    glBegin(GL_LINE_LOOP); // begin drawing a square
+    glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
+    glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
+    glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
+    glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
+    glEnd();
+
+    glPopAttrib();
+
+    glEndList();
+
+    return base;
+}
+
+
+
+
+GLuint RenderWidget::buildCircleList() {
+
+    GLuint id = glGenLists(1);
+    GLUquadricObj *quadObj = gluNewQuadric();
+
+    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/circle.png")), GL_TEXTURE_2D);
+
+    glNewList(id, GL_COMPILE);
+
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);
+
+    glPushMatrix();
+    glTranslatef(0.0, 0.0, MAX_DEPTH_LAYER - 1.0);
+
+    glDisable(GL_TEXTURE_2D);
+    glColor4f(0.7, 0.7, 0.7, 1.0);
+    gluDisk(quadObj, 0.01  * SOURCE_UNIT, (CIRCLE_SIZE + 0.09) * SOURCE_UNIT, 40, 40);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+
+    glTranslatef(0.0, 0.0, 1.0);
+    glBegin(GL_QUADS); // begin drawing a square
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex3d(-CIRCLE_SIZE * SOURCE_UNIT, -CIRCLE_SIZE * SOURCE_UNIT, 0.0); // Bottom Left
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex3d(CIRCLE_SIZE * SOURCE_UNIT, -CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Bottom Right
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex3d(CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Top Right
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex3d(-CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Top Left
+    glEnd();
+
+    glPopMatrix();
+    glPopAttrib();
+    glEndList();
+
+    return id;
+}
+
+
+/**
+ * Build a display list of a black QUAD and returns its id
+ **/
+GLuint RenderWidget::buildBlackList() {
+
+    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow.png")), GL_TEXTURE_2D);
+
+    GLuint id = glGenLists(1);
+    glNewList(id, GL_COMPILE);
+
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+
+    glPushMatrix();
+        glTranslatef(0.1 * SOURCE_UNIT, -0.2 * SOURCE_UNIT, 0.1);
+        glScalef(1.2 * SOURCE_UNIT, 1.2 * SOURCE_UNIT, 1.0);
+        glBegin(GL_QUADS); // begin drawing a square
+            glTexCoord2f(0.0f, 1.0f);
+            glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+            glTexCoord2f(1.0f, 1.0f);
+            glVertex3f(1.f, -1.f, 0.0f);  // Bottom Right
+            glTexCoord2f(1.0f, 0.0f);
+            glVertex3f(1.f, 1.f, 0.0f);   // Top Right
+            glTexCoord2f(0.0f, 0.0f);
+            glVertex3f(-1.f, 1.f, 0.0f);  // Top Left
+        glEnd();
+    glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glColor4f(0.f, 0.f, 0.f, 1.f);
+    glBegin(GL_QUADS); // begin drawing a square
+    // Front Face
+    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+        glVertex3f(-1.0f* SOURCE_UNIT, -1.0f* SOURCE_UNIT, 0.0f); // Bottom Left
+        glVertex3f(1.0f* SOURCE_UNIT, -1.0f* SOURCE_UNIT, 0.0f); // Bottom Right
+        glVertex3f(1.0f* SOURCE_UNIT, 1.0f* SOURCE_UNIT, 0.0f); // Top Right
+        glVertex3f(-1.0f* SOURCE_UNIT, 1.0f* SOURCE_UNIT, 0.0f); // Top Left
+    glEnd();
+
+    glPopAttrib();
+
+    glEndList();
+    return id;
+}
+
+/**
+ * Build a display list of the front line border of the render area and returns its id
+ **/
+GLuint RenderWidget::buildFrameList() {
+
+    GLuint base = glGenLists(1);
+    glListBase(base);
+
+    // default
+    glNewList(base, GL_COMPILE);
+
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT  | GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glDisable(GL_TEXTURE_2D);
+    glLineWidth(5.0);
+    glColor4f(0.9, 0.2, 0.9, 0.7);
+
+    glBegin(GL_LINE_LOOP); // begin drawing a square
+    glVertex3f(-1.01f* SOURCE_UNIT, -1.01f* SOURCE_UNIT, 0.0f); // Bottom Left
+    glVertex3f(1.01f* SOURCE_UNIT, -1.01f* SOURCE_UNIT, 0.0f); // Bottom Right
+    glVertex3f(1.01f* SOURCE_UNIT, 1.01f* SOURCE_UNIT, 0.0f); // Top Right
+    glVertex3f(-1.01f* SOURCE_UNIT, 1.01f* SOURCE_UNIT, 0.0f); // Top Left
+    glEnd();
+
+    glPopAttrib();
+    glEndList();
+
+    return base;
+}
+
+/**
+ * Build 3 display lists for the line borders of sources and returns the base id
+ **/
+GLuint RenderWidget::buildBordersList() {
+
+    GLuint base = glGenLists(3);
+    glListBase(base);
+
+    // default
+    glNewList(base, GL_COMPILE);
+
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glDisable(GL_TEXTURE_2D);
+    glLineWidth(1.0);
+    glColor4f(0.9, 0.9, 0.0, 0.7);
+
+    glBegin(GL_LINE_LOOP); // begin drawing a square
+    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+    glEnd();
+
+    glPopAttrib();
+    glEndList();
+
+    // over
+    glNewList(base+1, GL_COMPILE);
+
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glDisable(GL_TEXTURE_2D);
+    glColor4f(0.9, 0.9, 0.0, 0.7);
+
+    glLineWidth(3.0);
+    glBegin(GL_LINE_LOOP); // begin drawing a square
+    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+    glEnd();
+
+    glLineWidth(1.0);
+    glBegin(GL_LINES); // begin drawing a square
+//    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+    glVertex3f(-0.80f, -1.0f, 0.0f);
+    glVertex3f(-0.80f, -0.80f, 0.0f);
+    glVertex3f(-0.80f, -0.80f, 0.0f);
+    glVertex3f(-1.0f, -0.80f, 0.0f);
+
+//    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+    glVertex3f(1.0f, -0.80f, 0.0f);
+    glVertex3f(0.80f, -0.80f, 0.0f);
+    glVertex3f(0.80f, -0.80f, 0.0f);
+    glVertex3f(0.80f, -1.0f, 0.0f);
+
+//    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+    glVertex3f(0.80f, 1.0f, 0.0f);
+    glVertex3f(0.80f, 0.80f, 0.0f);
+    glVertex3f(0.80f, 0.80f, 0.0f);
+    glVertex3f(1.0f, 0.80f, 0.0f);
+
+//    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+    glVertex3f(-0.80f, 1.0f, 0.0f);
+    glVertex3f(-0.80f, 0.80f, 0.0f);
+    glVertex3f(-0.80f, 0.80f, 0.0f);
+    glVertex3f(-1.0f, 0.80f, 0.0f);
+
+    glEnd();
+
+    glPopAttrib();
+
+    glEndList();
+
+    // selected
+    glNewList(base+2, GL_COMPILE);
+
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_TEXTURE_2D);
+
+    glLineWidth(3.0);
+    glColor4f(0.9, 0.0, 0.0, 1.0);
+
+    glBegin(GL_LINE_LOOP); // begin drawing a square
+    glVertex3f(-1.1f, -1.1f, 0.0f); // Bottom Left
+    glVertex3f(1.1f, -1.1f, 0.0f); // Bottom Right
+    glVertex3f(1.1f, 1.1f, 0.0f); // Top Right
+    glVertex3f(-1.1f, 1.1f, 0.0f); // Top Left
+    glEnd();
+
+    glPopAttrib();
+
+    glEndList();
+
+    return base;
+}

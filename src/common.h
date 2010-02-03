@@ -29,6 +29,14 @@
 #endif
 
 
+#define SOURCE_UNIT 1000.0
+#define CIRCLE_SIZE 7.0
+#define SELECTBUFSIZE 64
+#define MIN_DEPTH_LAYER 0.0
+#define MAX_DEPTH_LAYER -15.0
+#define MIN_SCALE 0.31
+#define MAX_SCALE 5.0
+
 // #include <cmath>
 // #include <string>
 // #include <iostream>

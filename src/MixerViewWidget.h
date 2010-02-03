@@ -16,6 +16,9 @@ class MixerViewWidget: public glRenderWidget, View {
 	Q_OBJECT
 
 public:
+
+    typedef enum {NONE = 0, OVER, GRAB, SELECT } actionType;
+
 	MixerViewWidget(QWidget * parent, const QGLWidget * shareWidget = 0);
 	virtual ~MixerViewWidget();
 
@@ -41,9 +44,13 @@ private:
     SourceSet::iterator  getSourceAtCoordinates(int mouseX, int mouseY);
     void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
 
-    static GLuint circle;
-    GLuint buildCircleList();
+//    static GLuint circle;
+//    GLuint buildCircleList();
+
+    actionType currentAction;
     QPoint lastClicPos;
+
+    void setAction(actionType a);
 
 };
 
