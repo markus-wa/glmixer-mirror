@@ -45,6 +45,7 @@ private:
     char getSourceQuadrant(SourceSet::iterator s, int mouseX, int mouseY);
     void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
     void scaleSource(SourceSet::iterator s, int x, int y, int dx, int dy);
+    void panningBy(int x, int y, int dx, int dy);
 
     char quadrant;
     actionType currentAction;

@@ -21,6 +21,8 @@ GeometryViewWidget::GeometryViewWidget(QWidget * parent, const QGLWidget * share
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
 	maxzoom = MAXZOOM;
+	maxpanx = SOURCE_UNIT*MAXZOOM*2.0;
+	maxpany = SOURCE_UNIT*MAXZOOM*2.0;
 
 	setMouseTracking(true);
 }
@@ -38,7 +40,7 @@ void GeometryViewWidget::paintGL()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glScalef(zoom * MainRenderWidget::getInstance()->getRenderingAspectRatio(), zoom, zoom);
-
+    glTranslatef(getPanningX(), getPanningY(), 0.0);
 
     // first the black background (as the rendering black clear color) with shadow
     glCallList(MainRenderWidget::quad_black);
@@ -108,8 +110,11 @@ void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 
+	if (event->buttons() & Qt::MidButton) {
+		setCursor(Qt::SizeAllCursor);
+	}
 	// if at least one source icon was clicked (and fill-in the selection of sources under mouse)
-    if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
     	// get the top most clicked source
     	SourceSet::iterator clicked = selection.begin();
@@ -135,7 +140,7 @@ void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
 					setCursor(Qt::SizeBDiagCursor);
 			} else  {
 				currentAction = GeometryViewWidget::MOVE;
-				setCursor(Qt::SizeAllCursor);
+				setCursor(Qt::ClosedHandCursor);
 			}
     	}
     	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
@@ -155,13 +160,7 @@ void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
 				// set this newly clicked source as the current one
     			MainRenderWidget::getInstance()->setCurrentSource( (*clicked)->getId() );
     		}
-
     	}
-
-
-			// if
-
-
     } else
 		// set current to none (end of list)
 		MainRenderWidget::getInstance()->setCurrentSource( MainRenderWidget::getInstance()->getEnd() );
@@ -175,30 +174,36 @@ void GeometryViewWidget::mouseMoveEvent(QMouseEvent *event)
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
-    if (event->buttons() & Qt::LeftButton) {
+//    // if mouse not out of the window
+//    if (lastClicPos.x()>viewport[0] && lastClicPos.x()<viewport[2] && lastClicPos.y()>viewport[1] && lastClicPos.y()<viewport[3]  ) {
+		// MIDDLE button ; panning
+		if (event->buttons() & Qt::MidButton) {
 
-    	SourceSet::iterator cs = MainRenderWidget::getInstance()->getCurrentSource();
-        if ( MainRenderWidget::getInstance()->notAtEnd(cs)) {
+			panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 
-        	if (currentAction == GeometryViewWidget::SCALE)
-//				scaleSource(x, y, event->motion.xrel, -event->motion.yrel);
-				scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
-			else if (currentAction == GeometryViewWidget::MOVE)
-				//grabSource(x, y, event->motion.xrel, -event->motion.yrel);
-				grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+		}
+		// LEFT button : MOVE or SCALE the current source
+		else if (event->buttons() & Qt::LeftButton) {
+			// keep the iterator of the current source under the shoulder ; it will be used
+			SourceSet::iterator cs = MainRenderWidget::getInstance()->getCurrentSource();
+			if ( MainRenderWidget::getInstance()->notAtEnd(cs)) {
+				// manipulate the current source according to the operation detected when clicking
+				if (currentAction == GeometryViewWidget::SCALE)
+					scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+				else if (currentAction == GeometryViewWidget::MOVE)
+					grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+
+			}
+		} else if (event->buttons() & Qt::RightButton) {
+
+		} else  { // mouse over (no buttons)
+
+		//	SourceSet::iterator over = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 
 
-        }
-    } else if (event->buttons() & Qt::RightButton) {
+		}
 
-    } else  { // mouse over (no buttons)
-
-    //	SourceSet::iterator over = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
-
-
-    }
-
-
+//    }
 	event->accept();
 }
 
@@ -212,12 +217,20 @@ void GeometryViewWidget::wheelEvent ( QWheelEvent * event ){
 
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glScalef(zoom * MainRenderWidget::getInstance()->getRenderingAspectRatio(), zoom, zoom);
+    glTranslatef(getPanningX(), getPanningY(), 0.0);
+
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+
 	event->accept();
 }
 
 void GeometryViewWidget::zoomIn() {setZoom(zoom + ( 2.f * zoom * minzoom) / maxzoom);}
 void GeometryViewWidget::zoomOut() {setZoom(zoom -  ( 2.f * zoom * minzoom) / maxzoom);}
-void GeometryViewWidget::zoomReset() {setZoom(DEFAULTZOOM);}
+void GeometryViewWidget::zoomReset() {setZoom(DEFAULTZOOM); setPanningX(0); setPanningY(0);}
 void GeometryViewWidget::zoomBestFit() {}
 
 
@@ -283,6 +296,25 @@ bool GeometryViewWidget::getSourcesAtCoordinates(int mouseX, int mouseY) {
     }
 
     return !selection.empty();
+}
+
+
+/**
+ *
+ **/
+void GeometryViewWidget::panningBy(int x, int y, int dx, int dy) {
+
+    double bx, by, bz; // before movement
+    double ax, ay, az; // after  movement
+
+    gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+            0.0, modelview, projection, viewport, &bx, &by, &bz);
+    gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
+            modelview, projection, viewport, &ax, &ay, &az);
+
+    // apply panning
+    setPanningX(getPanningX() + ax - bx);
+    setPanningY(getPanningY() + ay - by);
 }
 
 /**
