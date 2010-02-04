@@ -21,8 +21,11 @@ public:
 	//    Source(Source *clone, double newdepth = MIN_DEPTH_LAYER);
 	virtual ~Source();
 
-	virtual void update() = 0;
+	virtual void update(){};
 
+	bool operator==(Source s2){
+		return ( id == s2.id );
+	}
 
     void draw(bool withalpha = true, GLenum mode = GL_RENDER) const;
 
@@ -106,6 +109,7 @@ protected:
 	// identity and properties
 	GLuint id;
 	QDomElement dom;
+	bool active;
 
 	// GL Stuff
 	QGLWidget *glcontext;
@@ -118,19 +122,9 @@ protected:
 	GLfloat texalpha;
 	GLfloat texcolor;
 
-	// state
-	bool active;
-
 	// statics
 	static GLuint lastid;
-//	static GLuint squareDisplayList, halfDisplayList, selectDisplayList;
-//	static GLuint lineDisplayList[2];
-//
-//	// utility
-//    GLuint buildHalfList();
-//    GLuint buildSelectList();
-//    GLuint buildLineList();
-//    GLuint buildQuadList();
+
 };
 
 #endif /* SOURCE_H_ */

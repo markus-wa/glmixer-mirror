@@ -11,10 +11,6 @@
 #include "MainRenderWidget.h"
 
 GLuint Source::lastid = 1;
-//GLuint Source::squareDisplayList = 0;
-//GLuint Source::halfDisplayList = 0;
-//GLuint Source::selectDisplayList = 0;
-//GLuint Source::lineDisplayList[2] =  { 0, 0 };
 
 Source::Source(QGLWidget *context) :
 	glcontext(context), x(0.0), y(0.0), z(0.0), alphax(0.0), alphay(0.0),
@@ -29,7 +25,7 @@ Source::Source(QGLWidget *context) :
 	scaley = SOURCE_UNIT;
 
 	// TODO do not use ids for depth
-	z = -(double) id;
+	z = MAX_DEPTH_LAYER + (double) id;
 
 	if (!context)
 		// TODO : through exception
@@ -44,28 +40,13 @@ Source::Source(QGLWidget *context) :
 	// TODO : use fbo in MainRenderWidget using a different attachment point per source
 	//attachmentPoint = GL_COLOR_ATTACHMENT0_EXT;
 
-//	// create display list if never created
-//	if (!squareDisplayList)
-//		squareDisplayList = buildQuadList();
-//	if (!halfDisplayList)
-//		halfDisplayList = buildHalfList();
-//	if (!selectDisplayList)
-//		selectDisplayList = buildSelectList();
-//
-//	if (lineDisplayList[0] == 0){
-//		lineDisplayList[0] = buildLineList();
-//		lineDisplayList[1] = lineDisplayList[0] + 1;
-//	}
-
-
-
 	// set attributes and children
 	dom.setAttribute("id", id);
 	QDomElement coordinates;
 	coordinates.setAttribute("x", x);
 	coordinates.setAttribute("y", y);
 	coordinates.setAttribute("z", z);
-	dom.appendChild(coordinates);
+//	dom.appendChild(coordinates);
 
 }
 

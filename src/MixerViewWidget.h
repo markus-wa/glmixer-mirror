@@ -44,9 +44,6 @@ private:
     SourceSet::iterator  getSourceAtCoordinates(int mouseX, int mouseY);
     void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
 
-//    static GLuint circle;
-//    GLuint buildCircleList();
-
     actionType currentAction;
     QPoint lastClicPos;
 

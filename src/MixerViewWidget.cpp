@@ -14,8 +14,6 @@
 #define MAXZOOM 1.0
 #define DEFAULTZOOM 0.1
 
-//GLuint MixerViewWidget::circle = 0;
-
 MixerViewWidget::MixerViewWidget( QWidget * parent, const QGLWidget * shareWidget)
 	: glRenderWidget(parent, shareWidget), currentAction(NONE)
 {
@@ -144,8 +142,6 @@ void MixerViewWidget::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
-//	qDebug ("LastClic X %d y %d", lastClicPos.x(), lastClicPos.y());
-
     if (event->buttons() & Qt::LeftButton) {
     	// What was cliked ?
     	SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
@@ -262,19 +258,6 @@ void MixerViewWidget::keyPressEvent ( QKeyEvent * event ){
 		 QGLWidget::keyPressEvent(event);
 	}
 }
-
-//void MixerViewWidget::setCurrentSource(SourceSet::iterator  si){
-//
-//    if ( MainRenderWidget::getInstance()->notAtEnd(currentSource) )
-//         (*currentSource)->activate(false);
-//
-//	currentSource = si;
-//	emit currentSourceChanged(currentSource);
-//
-//    if ( MainRenderWidget::getInstance()->notAtEnd(currentSource) )
-//		(*currentSource)->activate(true);
-//
-//}
 
 SourceSet::iterator  MixerViewWidget::getSourceAtCoordinates(int mouseX, int mouseY) {
 

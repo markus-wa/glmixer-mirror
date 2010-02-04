@@ -88,15 +88,6 @@ void RenderWidget::initializeGL()
 		MainRenderWidget::border_scale = MainRenderWidget::border_thin + 2;
 	}
 
-	qDebug("MainRenderWidget::quad_texured %d", MainRenderWidget::quad_texured);
-	qDebug("MainRenderWidget::quad_half_textured %d", MainRenderWidget::quad_half_textured);
-	qDebug("MainRenderWidget::frame_selection %d", MainRenderWidget::frame_selection);
-	qDebug("MainRenderWidget::circle_mixing %d", MainRenderWidget::circle_mixing);
-	qDebug("MainRenderWidget::quad_black %d", MainRenderWidget::quad_black);
-	qDebug("MainRenderWidget::frame_screen %d", MainRenderWidget::frame_screen);
-	qDebug("MainRenderWidget::border_thin %d", MainRenderWidget::border_thin);
-	qDebug("MainRenderWidget::border_large %d", MainRenderWidget::border_large);
-
 }
 
 void RenderWidget::paintGL() {
@@ -287,6 +278,11 @@ void MainRenderWidget::setCurrentSource(SourceSet::iterator si) {
 		if (notAtEnd(currentSource))
 			(*currentSource)->activate(true);
 	}
+}
+
+
+void MainRenderWidget::setCurrentSource(GLuint name) {
+	setCurrentSource( getById(name) );
 }
 
 SourceSet::iterator MainRenderWidget::changeDepth(SourceSet::iterator itsource,

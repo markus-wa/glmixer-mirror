@@ -8,6 +8,7 @@
 #include "GeometryViewWidget.moc"
 
 #include "MainRenderWidget.h"
+#include <algorithm>
 
 #define MINZOOM 0.1
 #define MAXZOOM 3.0
@@ -106,19 +107,26 @@ void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
-//	qDebug ("LastClic X %d y %d", lastClicPos.x(), lastClicPos.y());
 
-    if (event->buttons() & Qt::LeftButton) {
-    	// What was cliked ?
-    	SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
+	// if at least one source icon was clicked (and fill-in the selection of sources under mouse)
+    if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
-    	// if a source icon was cliked
-        if ( MainRenderWidget::getInstance()->notAtEnd(cliked) ) {
+    	// get the top most clicked source
+    	SourceSet::iterator clicked = selection.begin();
 
-			MainRenderWidget::getInstance()->setCurrentSource( cliked );
+    	// for LEFT button clic : manipulate only the top most or the newly clicked
+    	if (event->buttons() & Qt::LeftButton) {
 
-			quadrant = getSourceQuadrant(cliked, event->x(), viewport[3] - event->y());
+    		// if there was no current source, its simple : just take the top most source clicked now
+    		// OR
+			// if the currently active source is NOT in the set of clicked sources,
+			if ( MainRenderWidget::getInstance()->getCurrentSource() == MainRenderWidget::getInstance()->getEnd()
+					|| std::find_if(selection.begin(), selection.end(), hasName((*MainRenderWidget::getInstance()->getCurrentSource())->getId())) ==  selection.end())
+    			//  make the top most source clicked now the newly current one
+    			MainRenderWidget::getInstance()->setCurrentSource( (*clicked)->getId() );
 
+			// now manipulate the current one.
+    		quadrant = getSourceQuadrant(MainRenderWidget::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
 			if (quadrant > 0) {
 				currentAction = GeometryViewWidget::SCALE;
 				if ( quadrant % 2 )
@@ -129,15 +137,34 @@ void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
 				currentAction = GeometryViewWidget::MOVE;
 				setCursor(Qt::SizeAllCursor);
 			}
+    	}
+    	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
+    	else if (event->buttons() & Qt::RightButton) {
+
+    		// if there is no source selected, select the top most
+    		if ( MainRenderWidget::getInstance()->getCurrentSource() == MainRenderWidget::getInstance()->getEnd() )
+    			MainRenderWidget::getInstance()->setCurrentSource( (*clicked)->getId() );
+    		// else, try to take another one bellow it
+    		else {
+    			// find where the current source is in the selection
+    			clicked = std::find_if(selection.begin(), selection.end(), hasName((*MainRenderWidget::getInstance()->getCurrentSource())->getId()));
+    			// decrement the clicked iterator forward in the selection (and jump back to end when at begining)
+    			if ( clicked == selection.begin() )
+    				clicked = selection.end();
+				clicked--;
+				// set this newly clicked source as the current one
+    			MainRenderWidget::getInstance()->setCurrentSource( (*clicked)->getId() );
+    		}
+
+    	}
 
 
-		} else
-			// set current to none (end of list)
-			MainRenderWidget::getInstance()->setCurrentSource( MainRenderWidget::getInstance()->getEnd() );
+			// if
 
-    } else if (event->buttons() & Qt::RightButton) {
-    	// TODO context menu
-    }
+
+    } else
+		// set current to none (end of list)
+		MainRenderWidget::getInstance()->setCurrentSource( MainRenderWidget::getInstance()->getEnd() );
 
 	event->accept();
 }
@@ -166,7 +193,7 @@ void GeometryViewWidget::mouseMoveEvent(QMouseEvent *event)
 
     } else  { // mouse over (no buttons)
 
-    	SourceSet::iterator over = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
+    //	SourceSet::iterator over = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 
 
     }
@@ -201,11 +228,13 @@ void GeometryViewWidget::keyPressEvent ( QKeyEvent * event ){
 }
 
 
-SourceSet::iterator GeometryViewWidget::getSourceAtCoordinates(int mouseX, int mouseY) {
+bool GeometryViewWidget::getSourcesAtCoordinates(int mouseX, int mouseY) {
 
 	// TODO : really needed?
 	makeCurrent();
 
+	// prepare variables
+	selection.clear();
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
     GLint hits = 0;
 
@@ -248,13 +277,12 @@ SourceSet::iterator GeometryViewWidget::getSourceAtCoordinates(int mouseX, int m
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
-    if (hits != 0) {
-        // select the top most
-        return MainRenderWidget::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3]);
-    } else {
-        return MainRenderWidget::getInstance()->getEnd();
+    while (hits != 0) {
+    	selection.insert( *(MainRenderWidget::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
+    	hits--;
     }
 
+    return !selection.empty();
 }
 
 /**

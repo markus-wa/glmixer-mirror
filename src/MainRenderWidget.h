@@ -57,6 +57,7 @@ public:
 	void clearSourceSet();
 
 	void setCurrentSource(SourceSet::iterator si);
+	void setCurrentSource(GLuint name);
 	inline SourceSet::iterator getCurrentSource() {
 		return currentSource;
 	}

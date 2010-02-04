@@ -41,7 +41,7 @@ public slots:
 
 private:
 
-    SourceSet::iterator  getSourceAtCoordinates(int mouseX, int mouseY);
+    bool getSourcesAtCoordinates(int mouseX, int mouseY);
     char getSourceQuadrant(SourceSet::iterator s, int mouseX, int mouseY);
     void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
     void scaleSource(SourceSet::iterator s, int x, int y, int dx, int dy);
