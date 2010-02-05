@@ -12,8 +12,8 @@
 
 GLuint Source::lastid = 1;
 
-Source::Source(QGLWidget *context) :
-	glcontext(context), x(0.0), y(0.0), z(0.0), alphax(0.0), alphay(0.0),
+Source::Source(QGLWidget *context, double depth) :
+	glcontext(context), x(0.0), y(0.0), z(depth), alphax(0.0), alphay(0.0),
 			texalpha(1.0), texcolor(1.0) {
 	// give it a unique identifying name
 	// TODO CHANGE the way ids are used
@@ -23,9 +23,6 @@ Source::Source(QGLWidget *context) :
 	aspectratio = 1.0;
 	scalex = aspectratio * SOURCE_UNIT;
 	scaley = SOURCE_UNIT;
-
-	// TODO do not use ids for depth
-	z = MAX_DEPTH_LAYER + (double) id;
 
 	if (!context)
 		// TODO : through exception

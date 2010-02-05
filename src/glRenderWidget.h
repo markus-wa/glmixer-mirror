@@ -28,15 +28,21 @@ public:
 
     // Update events management
     virtual void timerEvent( QTimerEvent *) { update(); }
-    virtual void showEvent ( QShowEvent * event ) { QGLWidget::showEvent(event); timer = startTimer(16);}
+    virtual void showEvent ( QShowEvent * event ) { QGLWidget::showEvent(event); timer = startTimer(period);}
     virtual void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); if(timer>0) killTimer(timer);}
 
     // OpenGL informations
     static bool glSupportsExtension(QString extname);
     static void showGlExtensionsInformationDialog(QString iconfile = "");
 
+public slots:
+    inline void setUpdatePeriod(int miliseconds) {
+    	period = miliseconds;
+		if (timer)  { killTimer(timer); timer = startTimer(period); }
+    }
+
 protected:
-    int timer;
+    int timer, period;
     static QStringList listofextensions;
 };
 

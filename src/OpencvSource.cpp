@@ -46,7 +46,7 @@ void CameraThread::run(){
 	}
 }
 
-OpencvSource::OpencvSource(int opencvIndex, QGLWidget *context) : Source(context), frameChanged(false), framerate(0.0)
+OpencvSource::OpencvSource(int opencvIndex, QGLWidget *context, double d) : Source(context, d), frameChanged(false), framerate(0.0)
 {
 
 	opencvCameraIndex = opencvIndex;

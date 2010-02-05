@@ -17,7 +17,7 @@ class Source {
 
 public:
 
-	Source(QGLWidget *context);
+	Source(QGLWidget *context, double depth);
 	//    Source(Source *clone, double newdepth = MIN_DEPTH_LAYER);
 	virtual ~Source();
 

@@ -16,7 +16,7 @@
 QStringList glRenderWidget::listofextensions;
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget)
-: QGLWidget(QGLFormat(QGL::AlphaChannel), parent, shareWidget), timer(-1)
+: QGLWidget(QGLFormat(QGL::AlphaChannel), parent, shareWidget), timer(-1), period(16)
 
 {
 	if (!format().depth())

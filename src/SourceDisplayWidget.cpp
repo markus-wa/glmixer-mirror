@@ -7,11 +7,11 @@
 
 #include <QPalette>
 
-#include <SourceDisplayWidget.h>
+#include "SourceDisplayWidget.h"
 
 SourceDisplayWidget::SourceDisplayWidget(QWidget *parent, const QGLWidget * shareWidget) : glRenderWidget(parent, shareWidget), s(0)
 {
-
+	period = 50;
 }
 
 void SourceDisplayWidget::initializeGL()

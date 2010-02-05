@@ -44,6 +44,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     delete previewSource;
     previewSource = new SourceDisplayWidget( previewPageSource, MainRenderWidget::getQGLWidget());
     previewPageSourceLayout->addWidget(previewSource);
+    QObject::connect(previewSpeedSlider, SIGNAL(valueChanged(int)), previewSource, SLOT(setUpdatePeriod(int)));
 
 
     // signal from source management in MainRenderWidget

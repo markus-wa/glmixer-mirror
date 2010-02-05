@@ -1,6 +1,6 @@
 project(glmixer) # the name of your project
 
-set(GLMIXER_VERSION "0.3")
+set(GLMIXER_VERSION "0.4")
 
 cmake_minimum_required(VERSION 2.6.0)
 

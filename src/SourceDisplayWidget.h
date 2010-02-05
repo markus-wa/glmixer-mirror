@@ -8,10 +8,11 @@
 #ifndef SOURCEDISPLAYWIDGET_H_
 #define SOURCEDISPLAYWIDGET_H_
 
-#include <glRenderWidget.h>
+#include "glRenderWidget.h"
 #include "Source.h"
 
 class SourceDisplayWidget: public glRenderWidget {
+
 public:
 	SourceDisplayWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0);
 

@@ -10,7 +10,7 @@
 #include "MainRenderWidget.h"
 
 
-VideoSource::VideoSource(VideoFile *f, QGLWidget *context) : QObject(), Source(context),
+VideoSource::VideoSource(VideoFile *f, QGLWidget *context, double d) : QObject(), Source(context, d),
 		is(f),  bufferChanged(true)
 {
 
