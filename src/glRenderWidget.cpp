@@ -99,6 +99,8 @@ void glRenderWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 

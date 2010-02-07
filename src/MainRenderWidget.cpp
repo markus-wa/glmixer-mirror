@@ -93,8 +93,6 @@ void RenderWidget::initializeGL()
 void RenderWidget::paintGL() {
 	glRenderWidget::paintGL();
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 	//  loop with only 1 texture bind per source
 	// setup rendering projection for mixer view
 	// init modelview for render of square texture in full viewport
