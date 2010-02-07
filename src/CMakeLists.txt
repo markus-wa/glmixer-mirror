@@ -23,15 +23,15 @@ set(MYQT_SRCS
     main.cpp
 )
 
+set(MYQT_RCS
+    ../icons.qrc
+    ../textures.qrc
+)
+
 set(MYQT_UIS
     glmixer.ui
     VideoFileDialog.ui
     CameraDialog.ui
-)
-
-set(MYQT_RCS
-    ../icons.qrc
-    ../textures.qrc
 )
 
 

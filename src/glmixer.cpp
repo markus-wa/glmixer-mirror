@@ -38,18 +38,15 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     geometryView = new GeometryViewWidget( (QWidget *)this, MainRenderWidget::getQGLWidget());
     geometryViewLayout->addWidget(geometryView);
 
-
     // SET prewiew widget to be Source Display Widget
     previewPageSourceLayout->removeWidget(previewSource);
     delete previewSource;
     previewSource = new SourceDisplayWidget( previewPageSource, MainRenderWidget::getQGLWidget());
-
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     sizePolicy.setHeightForWidth(previewSource->sizePolicy().hasHeightForWidth());
     previewSource->setSizePolicy(sizePolicy);
     previewPageSourceLayout->addWidget(previewSource);
     QObject::connect(previewSpeedSlider, SIGNAL(valueChanged(int)), previewSource, SLOT(setUpdatePeriod(int)));
-
 
     // signal from source management in MainRenderWidget
     QObject::connect(MainRenderWidget::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(controlSource(SourceSet::iterator) ) );

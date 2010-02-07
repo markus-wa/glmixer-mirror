@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>942</width>
-    <height>739</height>
+    <height>751</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1062,11 +1062,12 @@ p, li { white-space: pre-wrap; }
              </property>
              <property name="styleSheet">
               <string> QToolButton { /* all types of tool button */
-     border: 1px solid #8f8f91;
-     border-radius: 3px;
+     border: 2px solid #8f8f91;
+     border-radius: 6px;
  }
  QToolButton:checked {
-     background-color: rgb(188, 188, 188)
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #8f8f91, stop: 1 #f6f7fa);
  }</string>
              </property>
              <property name="text">
@@ -1477,7 +1478,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>0</y>
           <width>207</width>
-          <height>108</height>
+          <height>106</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1587,7 +1588,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
           <x>0</x>
           <y>0</y>
           <width>207</width>
-          <height>108</height>
+          <height>88</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1680,6 +1681,37 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
+  <widget class="QToolBar" name="fileToolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionOpen"/>
+   <addaction name="actionCamera"/>
+   <addaction name="separator"/>
+   <addaction name="actionNew_Session"/>
+   <addaction name="actionLoad_Session"/>
+   <addaction name="actionSave_Session"/>
+  </widget>
+  <widget class="QToolBar" name="viewToolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionMixingView"/>
+   <addaction name="actionGeometryView"/>
+   <addaction name="actionDepthView"/>
+  </widget>
   <action name="actionOpen">
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -1695,7 +1727,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
   <action name="actionQuit">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/fileclose.png</normaloff>:/glmixer/icons/fileclose.png</iconset>
+     <normaloff>:/glmixer/icons/system-shutdown.png</normaloff>:/glmixer/icons/system-shutdown.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Quit</string>
@@ -1763,7 +1795,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
   <action name="actionOpenGL_extensions">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
+     <normaloff>:/glmixer/icons/3d.png</normaloff>:/glmixer/icons/3d.png</iconset>
    </property>
    <property name="text">
     <string>OpenGL extensions</string>
@@ -1774,8 +1806,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
-     <normaloff>:/glv/icons/display.png</normaloff>:/glv/icons/display.png</iconset>
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
    </property>
    <property name="text">
     <string>Full screen</string>
@@ -1841,6 +1873,10 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
   </action>
   <action name="actionNew_Session">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/filenew.png</normaloff>:/glmixer/icons/filenew.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;New Session</string>
    </property>
@@ -1875,7 +1911,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
   <action name="actionCamera">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/camera-web.png</normaloff>:/glmixer/icons/camera-web.png</iconset>
+     <normaloff>:/glmixer/icons/camera.png</normaloff>:/glmixer/icons/camera.png</iconset>
    </property>
    <property name="text">
     <string>Open &amp;Device (camera)</string>
@@ -1895,7 +1931,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/media-shuffle.png</normaloff>:/glmixer/icons/media-shuffle.png</iconset>
+     <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
    </property>
    <property name="text">
     <string>Source Preview</string>

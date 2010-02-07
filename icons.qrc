@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="glmixer" >
+    <file>icons/3d.png</file>
     <file>icons/glmixer.png</file>
     <file>icons/fileimport.png</file>
     <file>icons/depth.png</file>
@@ -7,10 +8,6 @@
     <file>icons/mixer.png</file>
     <file>icons/process-stop.png</file>
     <file>icons/view-refresh.png</file>
-    <file>icons/applications-utilities.png</file>
-    <file>icons/camera-photo.png</file>
-    <file>icons/camera-video.png</file>
-    <file>icons/camera-web.png</file>
     <file>icons/display.png</file>
     <file>icons/media-shuffle.png</file>
     <file>icons/media-repeat.png</file>
@@ -36,6 +33,11 @@
     <file>icons/filesave.png</file>
     <file>icons/fileopen.png</file>
     <file>icons/fileclose.png</file>
-    <file>icons/apply.png</file>
+    <file>icons/edit-copy.png</file>
+    <file>icons/edit-cut.png</file>
+    <file>icons/camera.png</file>
+    <file>icons/filenew.png</file>
+    <file>icons/system-shutdown.png</file>
+    <file>icons/eog-image-collection.png</file>
   </qresource>
 </RCC>
