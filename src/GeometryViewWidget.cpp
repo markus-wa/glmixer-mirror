@@ -37,8 +37,6 @@ void GeometryViewWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
     glScalef(zoom * MainRenderWidget::getInstance()->getRenderingAspectRatio(), zoom, zoom);
     glTranslatef(getPanningX(), getPanningY(), 0.0);
 

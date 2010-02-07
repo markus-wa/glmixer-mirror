@@ -33,8 +33,6 @@ void MixerViewWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
     glScalef(zoom, zoom, zoom);
 
     // First the circles and other background stuff
