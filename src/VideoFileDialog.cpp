@@ -40,6 +40,7 @@ VideoFileDialog::VideoFileDialog( QWidget * parent, const QString & caption, con
     QObject::connect(this, SIGNAL(currentChanged ( const QString & )), preview, SLOT(showFilePreview(const QString &)));
     QObject::connect(preview, SIGNAL(error(QString)), this, SIGNAL(error(QString)));
 
+    setFileMode(QFileDialog::ExistingFiles);
 }
 
 VideoFileDialog::~VideoFileDialog() {

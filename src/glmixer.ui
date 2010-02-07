@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../icons.qrc">
-    <normaloff>:/glmixer/icons/media-shuffle.png</normaloff>:/glmixer/icons/media-shuffle.png</iconset>
+    <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -1610,7 +1610,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionCamera"/>
@@ -1619,7 +1619,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
     <widget class="QMenu" name="menuTool_Bar">
      <property name="title">
@@ -1659,7 +1659,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionFormats_and_Codecs"/>
     <addaction name="actionOpenGL_extensions"/>
@@ -1669,7 +1669,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
-     <string>Session</string>
+     <string>&amp;Session</string>
     </property>
     <addaction name="actionNew_Session"/>
     <addaction name="actionLoad_Session"/>
@@ -1686,7 +1686,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
    </property>
    <property name="text">
-    <string>Open Movie or Image</string>
+    <string>&amp;Open movie or image</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -1698,7 +1698,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <normaloff>:/glmixer/icons/fileclose.png</normaloff>:/glmixer/icons/fileclose.png</iconset>
    </property>
    <property name="text">
-    <string>Quit</string>
+    <string>&amp;Quit</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -1710,7 +1710,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
    </property>
    <property name="text">
-    <string>Supported Formats and Codecs</string>
+    <string>FFMPEG Formats and Codecs</string>
    </property>
   </action>
   <action name="actionSource_Information">
@@ -1766,7 +1766,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
    </property>
    <property name="text">
-    <string>Supported OpenGL extensions</string>
+    <string>OpenGL extensions</string>
    </property>
   </action>
   <action name="actionFullscreen">
@@ -1798,10 +1798,10 @@ Uncheck to have frames continuously following the slider when moved.</string>
   <action name="actionAbout">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/info.png</normaloff>:/glmixer/icons/info.png</iconset>
+     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
    </property>
    <property name="text">
-    <string>About glmixer</string>
+    <string>About GLMixer</string>
    </property>
   </action>
   <action name="actionMixingView">
@@ -1842,7 +1842,10 @@ Uncheck to have frames continuously following the slider when moved.</string>
   </action>
   <action name="actionNew_Session">
    <property name="text">
-    <string>New Session</string>
+    <string>&amp;New Session</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+N</string>
    </property>
   </action>
   <action name="actionLoad_Session">
@@ -1853,6 +1856,9 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <property name="text">
     <string>Load Session</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
+   </property>
   </action>
   <action name="actionSave_Session">
    <property name="icon">
@@ -1862,6 +1868,9 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <property name="text">
     <string>Save Session</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
   </action>
   <action name="actionCamera">
    <property name="icon">
@@ -1869,7 +1878,10 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <normaloff>:/glmixer/icons/camera-web.png</normaloff>:/glmixer/icons/camera-web.png</iconset>
    </property>
    <property name="text">
-    <string>Open Camera device</string>
+    <string>Open &amp;Device (camera)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="actionConfigure_Render">
@@ -1941,6 +1953,10 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
   </action>
   <action name="actionAbout_Qt">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/info.png</normaloff>:/glmixer/icons/info.png</iconset>
+   </property>
    <property name="text">
     <string>About Qt</string>
    </property>
@@ -1972,7 +1988,6 @@ Uncheck to have frames continuously following the slider when moved.</string>
  <resources>
   <include location="../icons.qrc"/>
   <include location="../textures.qrc"/>
-  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

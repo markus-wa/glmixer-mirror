@@ -43,6 +43,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     previewPageSourceLayout->removeWidget(previewSource);
     delete previewSource;
     previewSource = new SourceDisplayWidget( previewPageSource, MainRenderWidget::getQGLWidget());
+
+    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    sizePolicy.setHeightForWidth(previewSource->sizePolicy().hasHeightForWidth());
+    previewSource->setSizePolicy(sizePolicy);
     previewPageSourceLayout->addWidget(previewSource);
     QObject::connect(previewSpeedSlider, SIGNAL(valueChanged(int)), previewSource, SLOT(setUpdatePeriod(int)));
 
@@ -155,67 +159,56 @@ void GLMixer::on_actionGeometryView_activated(){
 }
 
 
-
-QString GLMixer::OpenVideo(VideoFile **is) {
-    QString fileName = QString();
-    static QDir d = QDir::home();
-    bool customsize = false;
-
-
-#ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
-    static VideoFileDialog *mfd = NULL;
-
-    if (!mfd) {
-    	mfd = new VideoFileDialog(this, "Open a video or a picture", d.absolutePath());
-    	mfd->setModal(false);
-    	QObject::connect(mfd, SIGNAL(error(QString)), this, SLOT(displayErrorMessage(QString)));
-    }
-
-    QStringList fileNames;
-    if (mfd->exec())
-        fileNames = mfd->selectedFiles();
-
-    if (!fileNames.empty())
-        fileName = fileNames.first();
-
-    customsize = mfd->customSizeChecked();
-#else
-    fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
-                                                    d.absolutePath(),
-                                                    tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
-
-    d.setPath(fileName);
-#endif
-
-
-    if ( !fileName.isEmpty() && QFileInfo(fileName).isFile() ) {
-
-        if ( !customsize && (glRenderWidget::glSupportsExtension("GL_EXT_texture_non_power_of_two") || glRenderWidget::glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
-            *is = new VideoFile(this);
-        else
-//            *is = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB24);
-        *is = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB32);
-
-    }
-
-    return fileName;
-}
-
 void GLMixer::on_actionOpen_activated(){
 
     VideoFile *newSourceVideoFile = NULL;
-    QString fileName = OpenVideo(&newSourceVideoFile);
+	static QDir d = QDir::home();
+	bool customsize = false;
+	QStringList fileNames;
 
-    if (newSourceVideoFile){
-        // forward error messages to display
-        QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayErrorMessage(QString)));
-        QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), statusbar, SLOT(showMessage(QString)));
-        // can we open the file ?
-        if ( newSourceVideoFile->open(fileName) ) {
-        	// create the source as it is a valid video file (this also set it to be the current source)
-        	MainRenderWidget::getInstance()->addSource(newSourceVideoFile);
-        }
-    }
+
+#ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
+	static VideoFileDialog *mfd = NULL;
+
+	if (!mfd) {
+		mfd = new VideoFileDialog(this, "Open a video or a picture", d.absolutePath());
+		mfd->setModal(false);
+		QObject::connect(mfd, SIGNAL(error(QString)), this, SLOT(displayErrorMessage(QString)));
+	}
+
+	if (mfd->exec())
+		fileNames = mfd->selectedFiles();
+
+	customsize = mfd->customSizeChecked();
+#else
+	fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"),
+													d.absolutePath(),
+													tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
+
+	d.setPath(fileName);
+#endif
+
+	QStringListIterator fileNamesIt(fileNames);
+	while (fileNamesIt.hasNext()){
+
+		if ( !customsize && (glRenderWidget::glSupportsExtension("GL_EXT_texture_non_power_of_two") || glRenderWidget::glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
+			newSourceVideoFile = new VideoFile(this);
+		else
+			//newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB24);
+			newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB32);
+
+		// if the video file was created successfully
+		if (newSourceVideoFile){
+			// forward error messages to display
+			QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayErrorMessage(QString)));
+			QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), statusbar, SLOT(showMessage(QString)));
+			// can we open the file ?
+			if ( newSourceVideoFile->open( fileNamesIt.next() ) ) {
+				// create the source as it is a valid video file (this also set it to be the current source)
+				MainRenderWidget::getInstance()->addSource(newSourceVideoFile);
+			}
+		}
+	}
 
 }
 
@@ -634,12 +627,12 @@ void GLMixer::updateMarks (){
 
 void GLMixer::on_actionAbout_activated(){
 
-	QString msg = QString("GLMixer : OpenGL Video Mixer for live mix\n\n");
-	msg.append(QString("Author:     \tBruno Herbelin\n"));
-	msg.append(QString("Contact:    \tbruno.herbelin@gmail.com\n"));
-	msg.append(QString("License:    \tGPL\n"));
-	msg.append(QString("Version:    \t%1\n").arg(GLMIXER_VERSION));
-	msg.append("\nGlMixer is a video mixing software WITHOUT sound.\nIt is in early stage of development ;)...");
+	QString msg = QString("GLMixer : Graphic Live Mixer\n\n");
+	msg.append(QString("Author:   \tBruno Herbelin\n"));
+	msg.append(QString("Contact:  \tbruno.herbelin@gmail.com\n"));
+	msg.append(QString("License:  \tGPL\n"));
+	msg.append(QString("Version:  \t%1\n").arg(GLMIXER_VERSION));
+	msg.append(tr("\nGLMixer is a video mixing software for live performance.\nCheck http://code.google.com/p/glmixer/ for more info."));
 	QMessageBox::information(this, "About GlMixer", msg, QMessageBox::Ok, QMessageBox::Ok);
 
 }

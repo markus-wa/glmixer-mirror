@@ -24,7 +24,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
     public:
         GLMixer ( QWidget *parent = 0 );
         ~GLMixer();
-        QString OpenVideo(VideoFile **);
+
         void closeEvent ( QCloseEvent * event );
 
 
@@ -45,6 +45,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         void on_actionAbout_activated();
         void on_actionMixingView_activated();
         void on_actionGeometryView_activated();
+        void on_actionAbout_Qt_activated() { QApplication::aboutQt (); }
 
 	// GUI interaction
         void updateRefreshTimerState();

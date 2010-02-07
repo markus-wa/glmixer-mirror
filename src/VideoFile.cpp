@@ -38,6 +38,7 @@ extern "C" {
 #include <QtGui/QLabel>
 #include <QtGui/QVBoxLayout>
 #include <QThread>
+#include <QFileInfo>
 
 class ParsingThread: public QThread {
 public:
@@ -418,10 +419,17 @@ const VideoPicture *VideoFile::getPictureAtIndex(int index) const {
 bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
 
     AVFormatContext *_pFormatCtx;
-    filename = file;
 
     // tells everybody we are set !
     emit info(tr("Opening %1...").arg(filename) );
+
+    // Check file
+    filename = file;
+    if (!QFileInfo(filename).isFile()){
+        emit error(tr("Error opening %1:\nFile does not exist.").arg(file));
+    	return false;
+    }
+
 
     int err = av_open_input_file(&_pFormatCtx, getFileName(), NULL, 0, NULL);
     if (err < 0) {
