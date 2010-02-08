@@ -146,13 +146,16 @@ void MixerViewWidget::mousePressEvent(QMouseEvent *event)
 
     	// if a source icon was cliked
         if ( MainRenderWidget::getInstance()->notAtEnd(cliked) ) {
+
         	// if CTRL button modifier pressed, add clicked to selection
 			if ( currentAction != GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
 				setAction(SELECT);
-				if ( selection.find(*cliked) == selection.end())
-					selection.insert( *cliked );
-				else
+
+				if ( selection.count(*cliked) > 0)
 					selection.erase( *cliked );
+				else
+					selection.insert( *cliked );
+
 			}
 			else // not in selection (SELECT) action mode, then just set the current active source
 			{

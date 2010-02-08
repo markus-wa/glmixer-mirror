@@ -107,7 +107,6 @@ void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
-
 	if (event->buttons() & Qt::MidButton) {
 		setCursor(Qt::SizeAllCursor);
 	}
@@ -124,7 +123,8 @@ void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
     		// OR
 			// if the currently active source is NOT in the set of clicked sources,
 			if ( MainRenderWidget::getInstance()->getCurrentSource() == MainRenderWidget::getInstance()->getEnd()
-					|| std::find_if(selection.begin(), selection.end(), hasName((*MainRenderWidget::getInstance()->getCurrentSource())->getId())) ==  selection.end())
+//					|| std::find_if(selection.begin(), selection.end(), hasName((*MainRenderWidget::getInstance()->getCurrentSource())->getId())) ==  selection.end())
+				|| selection.count(*MainRenderWidget::getInstance()->getCurrentSource() ) == 0 )
     			//  make the top most source clicked now the newly current one
     			MainRenderWidget::getInstance()->setCurrentSource( (*clicked)->getId() );
 
@@ -150,11 +150,13 @@ void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
     		// else, try to take another one bellow it
     		else {
     			// find where the current source is in the selection
-    			clicked = std::find_if(selection.begin(), selection.end(), hasName((*MainRenderWidget::getInstance()->getCurrentSource())->getId()));
+//    			clicked = std::find_if(selection.begin(), selection.end(), hasName((*MainRenderWidget::getInstance()->getCurrentSource())->getId()));
+    			clicked = selection.find(*MainRenderWidget::getInstance()->getCurrentSource()) ;
     			// decrement the clicked iterator forward in the selection (and jump back to end when at begining)
     			if ( clicked == selection.begin() )
     				clicked = selection.end();
 				clicked--;
+
 				// set this newly clicked source as the current one
     			MainRenderWidget::getInstance()->setCurrentSource( (*clicked)->getId() );
     		}

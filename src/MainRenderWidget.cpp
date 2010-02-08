@@ -217,7 +217,7 @@ void MainRenderWidget::useRenderingAspectRatio(bool on) {
 
 void MainRenderWidget::addSource(VideoFile *vf) {
 
-	double d = (_sources.empty()) ? 0.0 : (*_sources.begin())->getDepth() + 1.0;
+	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 	// create a source appropriate for this videofile
 	VideoSource *s = new VideoSource(vf, (QGLWidget *) _renderwidget, d);
 	// ensure we display first frame (not done automatically by signal as it should...)
@@ -230,7 +230,7 @@ void MainRenderWidget::addSource(VideoFile *vf) {
 #ifdef OPEN_CV
 void MainRenderWidget::addSource(int opencvIndex) {
 
-	double d = (_sources.empty()) ? 0.0 : (*_sources.begin())->getDepth() + 1.0;
+	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 	OpencvSource *s =
 			new OpencvSource(opencvIndex, (QGLWidget *) _renderwidget, d);
 
