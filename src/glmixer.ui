@@ -30,322 +30,136 @@
    <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_6">
+   <layout class="QHBoxLayout" name="centralViewLayout">
     <property name="spacing">
      <number>0</number>
     </property>
     <property name="margin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <item>
-     <widget class="QStackedWidget" name="stackedWidget">
-      <property name="autoFillBackground">
-       <bool>true</bool>
+     <widget class="QFrame" name="viewControlBar">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <property name="currentIndex">
-       <number>1</number>
+      <property name="styleSheet">
+       <string>background-color:  rgba(52,52,52, 255);</string>
       </property>
-      <widget class="QWidget" name="pageMixingView">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_7">
+       <property name="leftMargin">
+        <number>3</number>
        </property>
-       <layout class="QHBoxLayout" name="mixingViewLayout">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="margin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QFrame" name="frame">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string>background-color:  rgba(52,52,52, 255);</string>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Plain</enum>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_6">
-           <property name="leftMargin">
-            <number>3</number>
-           </property>
-           <property name="topMargin">
-            <number>10</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>7</number>
-           </property>
-           <item>
-            <widget class="QLabel" name="label_10">
-             <property name="toolTip">
-              <string>Mixing View</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="pixmap">
-              <pixmap resource="../icons.qrc">:/glmixer/icons/mixer.png</pixmap>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QToolButton" name="toolButtonMixReset">
-             <property name="autoFillBackground">
-              <bool>false</bool>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../icons.qrc">
-               <normaloff>:/glmixer/icons/zoom-original.png</normaloff>:/glmixer/icons/zoom-original.png</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QToolButton" name="toolButtonMixPlus">
-             <property name="styleSheet">
-              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../icons.qrc">
-               <normaloff>:/glmixer/icons/zoom-in.png</normaloff>:/glmixer/icons/zoom-in.png</iconset>
-             </property>
-             <property name="autoRepeat">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QToolButton" name="toolButtonMixMinus">
-             <property name="styleSheet">
-              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../icons.qrc">
-               <normaloff>:/glmixer/icons/zoom-out.png</normaloff>:/glmixer/icons/zoom-out.png</iconset>
-             </property>
-             <property name="autoRepeat">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QToolButton" name="toolButtonMixFit">
-             <property name="styleSheet">
-              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../icons.qrc">
-               <normaloff>:/glmixer/icons/zoom-fit-best.png</normaloff>:/glmixer/icons/zoom-fit-best.png</iconset>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="MixerViewWidget" name="mixingView" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="pageGeometryView">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+       <property name="topMargin">
+        <number>10</number>
        </property>
-       <layout class="QHBoxLayout" name="geometryViewLayout">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="margin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QFrame" name="frame_2">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="styleSheet">
-           <string>background-color:  rgba(52,52,52, 255);</string>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Plain</enum>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_7">
-           <property name="leftMargin">
-            <number>3</number>
-           </property>
-           <property name="topMargin">
-            <number>10</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>7</number>
-           </property>
-           <item>
-            <widget class="QLabel" name="label_11">
-             <property name="toolTip">
-              <string>Geometry View</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="pixmap">
-              <pixmap resource="../icons.qrc">:/glmixer/icons/manipulation.png</pixmap>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QToolButton" name="toolButtonGeoReset">
-             <property name="styleSheet">
-              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../icons.qrc">
-               <normaloff>:/glmixer/icons/zoom-original.png</normaloff>:/glmixer/icons/zoom-original.png</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QToolButton" name="toolButtonGeoPlus">
-             <property name="styleSheet">
-              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../icons.qrc">
-               <normaloff>:/glmixer/icons/zoom-in.png</normaloff>:/glmixer/icons/zoom-in.png</iconset>
-             </property>
-             <property name="autoRepeat">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QToolButton" name="toolButtonGeoMinus">
-             <property name="styleSheet">
-              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../icons.qrc">
-               <normaloff>:/glmixer/icons/zoom-out.png</normaloff>:/glmixer/icons/zoom-out.png</iconset>
-             </property>
-             <property name="autoRepeat">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QToolButton" name="toolButtonGeoFit">
-             <property name="styleSheet">
-              <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../icons.qrc">
-               <normaloff>:/glmixer/icons/zoom-fit-best.png</normaloff>:/glmixer/icons/zoom-fit-best.png</iconset>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="GeometryViewWidget" name="geometryView" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>7</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="viewIcon">
+         <property name="toolTip">
+          <string>Geometry View</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="../icons.qrc">:/glmixer/icons/manipulation.png</pixmap>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonZoomReset">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/zoom-original.png</normaloff>:/glmixer/icons/zoom-original.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonZoomPlus">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/zoom-in.png</normaloff>:/glmixer/icons/zoom-in.png</iconset>
+         </property>
+         <property name="autoRepeat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonZoomMinus">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/zoom-out.png</normaloff>:/glmixer/icons/zoom-out.png</iconset>
+         </property>
+         <property name="autoRepeat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonZoomFit">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/zoom-fit-best.png</normaloff>:/glmixer/icons/zoom-fit-best.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
+    </item>
+    <item>
+     <widget class="QGLWidget" name="mainRendering" native="true"/>
     </item>
    </layout>
   </widget>
@@ -356,6 +170,10 @@
      <width>147</width>
      <height>150</height>
     </size>
+   </property>
+   <property name="windowIcon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
    </property>
    <property name="toolTip">
     <string>Preview of the currently selected source</string>
@@ -386,7 +204,7 @@
      <item>
       <widget class="QStackedWidget" name="previewStackedWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="previewPageNothing">
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -515,11 +333,11 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout">
-     <property name="margin">
-      <number>5</number>
-     </property>
      <property name="verticalSpacing">
       <number>4</number>
+     </property>
+     <property name="margin">
+      <number>5</number>
      </property>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
@@ -772,7 +590,7 @@ the video will pause or loop.</string>
    </property>
    <property name="windowIcon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
+     <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
    </property>
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
@@ -1477,8 +1295,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>207</width>
-          <height>106</height>
+          <width>189</width>
+          <height>125</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1587,8 +1405,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>207</width>
-          <height>88</height>
+          <width>189</width>
+          <height>125</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1606,7 +1424,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <x>0</x>
      <y>0</y>
      <width>942</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1634,6 +1452,10 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <widget class="QMenu" name="menuRendering_Window">
      <property name="title">
       <string>Rendering Window</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../icons.qrc">
+       <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
      </property>
      <addaction name="actionFullscreen"/>
      <addaction name="actionKeep_aspect_ratio"/>
@@ -1931,10 +1753,10 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
+     <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
    </property>
    <property name="text">
-    <string>Source Preview</string>
+    <string>Rendering Preview</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
@@ -2000,30 +1822,25 @@ Uncheck to have frames continuously following the slider when moved.</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SourceDisplayWidget</class>
+   <class>QGLWidget</class>
    <extends>QWidget</extends>
-   <header>SourceDisplayWidget.h</header>
+   <header location="global">QGLWidget</header>
    <container>1</container>
    <slots>
     <slot>changeUpdatePeriod(int)</slot>
    </slots>
   </customwidget>
   <customwidget>
-   <class>MixerViewWidget</class>
+   <class>SourceDisplayWidget</class>
    <extends>QWidget</extends>
-   <header>MixerViewWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>GeometryViewWidget</class>
-   <extends>QWidget</extends>
-   <header>GeometryViewWidget.h</header>
+   <header>SourceDisplayWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
   <include location="../icons.qrc"/>
   <include location="../textures.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -2203,71 +2020,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </hints>
   </connection>
   <connection>
-   <sender>toolButtonMixFit</sender>
-   <signal>pressed()</signal>
-   <receiver>actionZoomBestFit</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>15</x>
-     <y>46</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButtonMixMinus</sender>
-   <signal>pressed()</signal>
-   <receiver>actionZoomOut</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>13</x>
-     <y>43</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButtonMixPlus</sender>
-   <signal>pressed()</signal>
-   <receiver>actionZoomIn</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>21</x>
-     <y>40</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButtonMixReset</sender>
-   <signal>pressed()</signal>
-   <receiver>actionZoomReset</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>13</x>
-     <y>37</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButtonGeoFit</sender>
+   <sender>toolButtonZoomFit</sender>
    <signal>pressed()</signal>
    <receiver>actionZoomBestFit</receiver>
    <slot>trigger()</slot>
@@ -2283,7 +2036,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </hints>
   </connection>
   <connection>
-   <sender>toolButtonGeoMinus</sender>
+   <sender>toolButtonZoomMinus</sender>
    <signal>pressed()</signal>
    <receiver>actionZoomOut</receiver>
    <slot>trigger()</slot>
@@ -2299,7 +2052,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </hints>
   </connection>
   <connection>
-   <sender>toolButtonGeoPlus</sender>
+   <sender>toolButtonZoomPlus</sender>
    <signal>pressed()</signal>
    <receiver>actionZoomIn</receiver>
    <slot>trigger()</slot>
@@ -2315,7 +2068,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </hints>
   </connection>
   <connection>
-   <sender>toolButtonGeoReset</sender>
+   <sender>toolButtonZoomReset</sender>
    <signal>pressed()</signal>
    <receiver>actionZoomReset</receiver>
    <slot>trigger()</slot>

@@ -1,5 +1,5 @@
 /*
- * GeometryViewWidget.h
+ * GeometryView.h
  *
  *  Created on: Jan 31, 2010
  *      Author: bh
@@ -8,34 +8,28 @@
 #ifndef GEOMETRYVIEWWIDGET_H_
 #define GEOMETRYVIEWWIDGET_H_
 
-#include "glRenderWidget.h"
 #include "View.h"
 
-class GeometryViewWidget: public glRenderWidget, public View {
+class GeometryView:  public View {
 
-	Q_OBJECT
 
 public:
 
     typedef enum {NONE = 0, MOVE, SCALE, ROTATE } actionType;
 
-	GeometryViewWidget(QWidget * parent, const QGLWidget * shareWidget = 0);
-	virtual ~GeometryViewWidget();
+	GeometryView();
+	virtual ~GeometryView();
 
-    virtual void paintGL();
-    virtual void initializeGL();
-    virtual void resizeGL(int w, int h);
+    virtual void paint();
+    virtual void reset();
+    virtual void resize(int w, int h);
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent ( QMouseEvent * event );
     void wheelEvent ( QWheelEvent * event );
     void keyPressEvent ( QKeyEvent * event );
-
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
-public slots:
-	void zoomIn();
-	void zoomOut();
 	void zoomReset();
 	void zoomBestFit();
 
@@ -49,7 +43,6 @@ private:
 
     char quadrant;
     actionType currentAction;
-    QPoint lastClicPos;
 };
 
 #endif /* GEOMETRYVIEWWIDGET_H_ */

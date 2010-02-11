@@ -1,13 +1,14 @@
 /*
- * GeometryViewWidget.cpp
+ * GeometryView.cpp
  *
  *  Created on: Jan 31, 2010
  *      Author: bh
  */
 
-#include "GeometryViewWidget.moc"
+#include "GeometryView.h"
 
-#include "MainRenderWidget.h"
+#include "RenderingManager.h"
+#include "OutputRenderWindow.h"
 #include <algorithm>
 
 #define MINZOOM 0.1
@@ -15,8 +16,7 @@
 #define DEFAULTZOOM 0.5
 
 
-GeometryViewWidget::GeometryViewWidget(QWidget * parent, const QGLWidget * shareWidget)
-	: glRenderWidget(parent, shareWidget), quadrant(0), currentAction(NONE)
+GeometryView::GeometryView() : View(), quadrant(0), currentAction(NONE)
 {
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
@@ -24,64 +24,103 @@ GeometryViewWidget::GeometryViewWidget(QWidget * parent, const QGLWidget * share
 	maxpanx = SOURCE_UNIT*MAXZOOM*2.0;
 	maxpany = SOURCE_UNIT*MAXZOOM*2.0;
 
-	setMouseTracking(true);
+    icon.load(QString::fromUtf8(":/glmixer/icons/manipulation.png"));
 }
 
 
-GeometryViewWidget::~GeometryViewWidget() {
+GeometryView::~GeometryView() {
 	// TODO Auto-generated destructor stub
 }
 
 
-void GeometryViewWidget::paintGL()
+void GeometryView::paint()
 {
-	glRenderWidget::paintGL();
-
-    glScalef(zoom * MainRenderWidget::getInstance()->getRenderingAspectRatio(), zoom, zoom);
-    glTranslatef(getPanningX(), getPanningY(), 0.0);
-
     // first the black background (as the rendering black clear color) with shadow
-    glCallList(MainRenderWidget::quad_black);
+    glCallList(RenderingManager::quad_black);
 
+    bool first = true;
     // then the icons of the sources (reversed depth order)
-	for(SourceSet::iterator  its = MainRenderWidget::getInstance()->getBegin(); its != MainRenderWidget::getInstance()->getEnd(); its++) {
+	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-        glPushMatrix();
+		//
+		// 1. Render it into current view
+		//
         // place and scale
+        glPushMatrix();
         glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
         glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
-        // draw border if active
-        if ((*its)->isActive())
-            glCallList(MainRenderWidget::border_large);
-        else
-            glCallList(MainRenderWidget::border_thin);
 
+		// bind the source texture and update its content
+		(*its)->update();
         (*its)->draw();
 
+        // draw border if active
+        if ((*its)->isActive())
+            glCallList(RenderingManager::border_large);
+        else
+            glCallList(RenderingManager::border_thin);
+
         glPopMatrix();
+
+		//
+		// 2. Render it into FBO
+		//
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+
+		glViewport(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
+
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
+		// render to the framebuffer object
+		RenderingManager::getInstance()->bindFrameBuffer();
+		{
+			if (first) {
+			    glClearColor(0.0, 0.0, 0.0, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT);
+				first = false;
+			}
+
+		    // Blending Function For transparency Based On Source Alpha Value
+		    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+			glTranslated((*its)->getX(), (*its)->getY(), 0.0);
+			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+
+	        (*its)->draw();
+		}
+		RenderingManager::getInstance()->releaseFrameBuffer();
+
+		// pop the projection matrix and GL state back for rendering the current view
+		// to the actual widget
+		glPopAttrib();
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
 
     }
 
     // last the frame thing
-    glCallList(MainRenderWidget::frame_screen);
+    glCallList(RenderingManager::frame_screen);
 
 }
 
 
-void GeometryViewWidget::initializeGL()
+void GeometryView::reset()
 {
-    glRenderWidget::initializeGL();
-
-    viewport[0] = 0;
-    viewport[1] = 0;
-    viewport[2] = this->width();
-    viewport[3] = this->height();
-
-	setBackgroundColor( QColor(52,52,52) );
+    glScalef(zoom * OutputRenderWindow::getInstance()->getAspectRatio(), zoom, zoom);
+    glTranslatef(getPanningX(), getPanningY(), 0.0);
 }
 
 
-void GeometryViewWidget::resizeGL(int w, int h)
+void GeometryView::resize(int w, int h)
 {
     glViewport(0, 0, w, h);
     viewport[2] = w;
@@ -96,19 +135,16 @@ void GeometryViewWidget::resizeGL(int w, int h)
      else
          glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -1.0, 100.0);
 
-    glGetDoublev(GL_PROJECTION_MATRIX, projection);
-
-    glMatrixMode(GL_MODELVIEW);
-    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    refreshMatrices();
 }
 
 
-void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
+void GeometryView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
 	if (event->buttons() & Qt::MidButton) {
-		setCursor(Qt::SizeAllCursor);
+		RenderingManager::getQGLWidget()->setCursor(Qt::SizeAllCursor);
 	}
 	// if at least one source icon was clicked (and fill-in the selection of sources under mouse)
 	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
@@ -122,53 +158,50 @@ void GeometryViewWidget::mousePressEvent(QMouseEvent *event)
     		// if there was no current source, its simple : just take the top most source clicked now
     		// OR
 			// if the currently active source is NOT in the set of clicked sources,
-			if ( MainRenderWidget::getInstance()->getCurrentSource() == MainRenderWidget::getInstance()->getEnd()
-//					|| std::find_if(selection.begin(), selection.end(), hasName((*MainRenderWidget::getInstance()->getCurrentSource())->getId())) ==  selection.end())
-				|| selection.count(*MainRenderWidget::getInstance()->getCurrentSource() ) == 0 )
+			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd()
+				|| selection.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
     			//  make the top most source clicked now the newly current one
-    			MainRenderWidget::getInstance()->setCurrentSource( (*clicked)->getId() );
+    			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
 
 			// now manipulate the current one.
-    		quadrant = getSourceQuadrant(MainRenderWidget::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
+    		quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
 			if (quadrant > 0) {
-				currentAction = GeometryViewWidget::SCALE;
+				currentAction = GeometryView::SCALE;
 				if ( quadrant % 2 )
-					setCursor(Qt::SizeFDiagCursor);
+					RenderingManager::getQGLWidget()->setCursor(Qt::SizeFDiagCursor);
 				else
-					setCursor(Qt::SizeBDiagCursor);
+					RenderingManager::getQGLWidget()->setCursor(Qt::SizeBDiagCursor);
 			} else  {
-				currentAction = GeometryViewWidget::MOVE;
-				setCursor(Qt::ClosedHandCursor);
+				currentAction = GeometryView::MOVE;
+				RenderingManager::getQGLWidget()->setCursor(Qt::ClosedHandCursor);
 			}
     	}
     	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
     	else if (event->buttons() & Qt::RightButton) {
 
     		// if there is no source selected, select the top most
-    		if ( MainRenderWidget::getInstance()->getCurrentSource() == MainRenderWidget::getInstance()->getEnd() )
-    			MainRenderWidget::getInstance()->setCurrentSource( (*clicked)->getId() );
+    		if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd() )
+    			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
     		// else, try to take another one bellow it
     		else {
     			// find where the current source is in the selection
-//    			clicked = std::find_if(selection.begin(), selection.end(), hasName((*MainRenderWidget::getInstance()->getCurrentSource())->getId()));
-    			clicked = selection.find(*MainRenderWidget::getInstance()->getCurrentSource()) ;
+    			clicked = selection.find(*RenderingManager::getInstance()->getCurrentSource()) ;
     			// decrement the clicked iterator forward in the selection (and jump back to end when at begining)
     			if ( clicked == selection.begin() )
     				clicked = selection.end();
 				clicked--;
 
 				// set this newly clicked source as the current one
-    			MainRenderWidget::getInstance()->setCurrentSource( (*clicked)->getId() );
+    			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
     		}
     	}
     } else
 		// set current to none (end of list)
-		MainRenderWidget::getInstance()->setCurrentSource( MainRenderWidget::getInstance()->getEnd() );
+		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
 
-	event->accept();
 }
 
-void GeometryViewWidget::mouseMoveEvent(QMouseEvent *event)
+void GeometryView::mouseMoveEvent(QMouseEvent *event)
 {
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
@@ -185,12 +218,12 @@ void GeometryViewWidget::mouseMoveEvent(QMouseEvent *event)
 		// LEFT button : MOVE or SCALE the current source
 		else if (event->buttons() & Qt::LeftButton) {
 			// keep the iterator of the current source under the shoulder ; it will be used
-			SourceSet::iterator cs = MainRenderWidget::getInstance()->getCurrentSource();
-			if ( MainRenderWidget::getInstance()->notAtEnd(cs)) {
+			SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+			if ( RenderingManager::getInstance()->notAtEnd(cs)) {
 				// manipulate the current source according to the operation detected when clicking
-				if (currentAction == GeometryViewWidget::SCALE)
+				if (currentAction == GeometryView::SCALE)
 					scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
-				else if (currentAction == GeometryViewWidget::MOVE)
+				else if (currentAction == GeometryView::MOVE)
 					grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
 
 			}
@@ -204,47 +237,31 @@ void GeometryViewWidget::mouseMoveEvent(QMouseEvent *event)
 		}
 
 //    }
-	event->accept();
 }
 
-void GeometryViewWidget::mouseReleaseEvent ( QMouseEvent * event ){
+void GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
 
-	setCursor(Qt::ArrowCursor);
-	event->accept();
+	RenderingManager::getQGLWidget()->setCursor(Qt::ArrowCursor);
 }
 
-void GeometryViewWidget::wheelEvent ( QWheelEvent * event ){
+void GeometryView::wheelEvent ( QWheelEvent * event ){
 
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glScalef(zoom * MainRenderWidget::getInstance()->getRenderingAspectRatio(), zoom, zoom);
-    glTranslatef(getPanningX(), getPanningY(), 0.0);
-
-    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
-
-	event->accept();
 }
 
-void GeometryViewWidget::zoomIn() {setZoom(zoom + ( 2.f * zoom * minzoom) / maxzoom);}
-void GeometryViewWidget::zoomOut() {setZoom(zoom -  ( 2.f * zoom * minzoom) / maxzoom);}
-void GeometryViewWidget::zoomReset() {setZoom(DEFAULTZOOM); setPanningX(0); setPanningY(0);}
-void GeometryViewWidget::zoomBestFit() {}
+void GeometryView::zoomReset() {setZoom(DEFAULTZOOM); setPanningX(0); setPanningY(0);}
+void GeometryView::zoomBestFit() {}
 
 
-void GeometryViewWidget::keyPressEvent ( QKeyEvent * event ){
+void GeometryView::keyPressEvent ( QKeyEvent * event ){
 
 
 
 }
 
 
-bool GeometryViewWidget::getSourcesAtCoordinates(int mouseX, int mouseY) {
-
-	// TODO : really needed?
-	makeCurrent();
+bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 
 	// prepare variables
 	selection.clear();
@@ -269,9 +286,8 @@ bool GeometryViewWidget::getSourcesAtCoordinates(int mouseX, int mouseY) {
 
     // rendering for select mode
     glMatrixMode(GL_MODELVIEW);
-    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 
-	for(SourceSet::iterator  its = MainRenderWidget::getInstance()->getBegin(); its != MainRenderWidget::getInstance()->getEnd(); its++) {
+	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
         glPushMatrix();
         // place and scale
         glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
@@ -291,7 +307,7 @@ bool GeometryViewWidget::getSourcesAtCoordinates(int mouseX, int mouseY) {
     glMatrixMode(GL_MODELVIEW);
 
     while (hits != 0) {
-    	selection.insert( *(MainRenderWidget::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
+    	selection.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
     	hits--;
     }
 
@@ -302,7 +318,7 @@ bool GeometryViewWidget::getSourcesAtCoordinates(int mouseX, int mouseY) {
 /**
  *
  **/
-void GeometryViewWidget::panningBy(int x, int y, int dx, int dy) {
+void GeometryView::panningBy(int x, int y, int dx, int dy) {
 
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement
@@ -320,7 +336,7 @@ void GeometryViewWidget::panningBy(int x, int y, int dx, int dy) {
 /**
  *
  **/
-void GeometryViewWidget::grabSource(SourceSet::iterator currentSource, int x, int y, int dx, int dy) {
+void GeometryView::grabSource(SourceSet::iterator currentSource, int x, int y, int dx, int dy) {
 
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement
@@ -341,7 +357,7 @@ void GeometryViewWidget::grabSource(SourceSet::iterator currentSource, int x, in
 /**
  *
  **/
-void GeometryViewWidget::scaleSource(SourceSet::iterator currentSource, int X, int Y, int dx, int dy) {
+void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, int dx, int dy) {
 
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement
@@ -399,7 +415,7 @@ void GeometryViewWidget::scaleSource(SourceSet::iterator currentSource, int X, i
 /**
  *
  **/
-char GeometryViewWidget::getSourceQuadrant(SourceSet::iterator currentSource, int X, int Y) {
+char GeometryView::getSourceQuadrant(SourceSet::iterator currentSource, int X, int Y) {
     //      ax
     //      ^
     //  ----|----
@@ -426,18 +442,6 @@ char GeometryViewWidget::getSourceQuadrant(SourceSet::iterator currentSource, in
         quadrant = 2;
     else if  (( x < ax - 0.8*w) && ( y > ay + 0.8*h ) ) // LEFT TOP
         quadrant = 3;
-
-//    if ( ax > x) { // RIGHT
-//        if (ay < y) // BOTTOM
-//            quadrant = 3;
-//        else
-//            quadrant = 2;
-//    } else {
-//        if (ay < y) // BOTTOM
-//            quadrant = 4;
-//        else
-//            quadrant = 1;
-//    }
 
     return quadrant;
 }

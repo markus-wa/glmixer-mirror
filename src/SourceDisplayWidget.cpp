@@ -9,7 +9,7 @@
 
 #include "SourceDisplayWidget.h"
 
-SourceDisplayWidget::SourceDisplayWidget(QWidget *parent, const QGLWidget * shareWidget) : glRenderWidget(parent, shareWidget), s(0)
+SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent), s(0)
 {
 	period = 50;
 }
@@ -37,7 +37,11 @@ void SourceDisplayWidget::paintGL()
 		else
 			glScalef( SOURCE_UNIT * aspectRatio / windowaspectratio, SOURCE_UNIT, 1.f);
 
-		s->draw();
+//		s->draw();
+
+		// todo : DRAW FBO
+
+
 		glPopMatrix();
 	}
 }

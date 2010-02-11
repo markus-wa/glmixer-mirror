@@ -26,7 +26,7 @@ class OpencvSource: public QObject, public Source {
 
     Q_OBJECT
 
-    friend class MainRenderWidget;
+    friend class RenderingManager;
     friend class CameraThread;
 
 public:

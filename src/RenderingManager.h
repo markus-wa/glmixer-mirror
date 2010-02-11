@@ -1,5 +1,5 @@
 /*
- * MixRenderWidget.h
+ * RenderingManager
  *
  *  Created on: 3 nov. 2009
  *      Author: herbelin
@@ -12,29 +12,33 @@
 #define DEFAULT_HEIGHT 768
 
 #include <QWidget>
+#include <QGLFramebufferObject>
 
-#include "VideoSource.h"
+
 #include "SourceSet.h"
-#ifdef OPEN_CV
-#include "OpencvSource.h"
-#endif
 
+class VideoFile;
 class RenderWidget;
 
-class MainRenderWidget: public QWidget {
+class RenderingManager: public QObject {
 
 Q_OBJECT
 
 	friend class RenderWidget;
+	friend class Source;
+	friend class MixerView;
+	friend class GeometryView;
+	friend class OutputRenderWindow;
 
 public:
-	// get singleton instance
-	static const QGLWidget *getQGLWidget();
-	static MainRenderWidget *getInstance();
-	static void deleteInstance();
+	/**
+	 * singleton mechanism
+	 */
+	static QGLWidget *getQGLWidget();
+	static RenderingManager *getInstance();
 
 	/**
-	* Management of the video sources
+	* Management of the sources
 	**/
 	void addSource(VideoFile *vf);
 #ifdef OPEN_CV
@@ -55,7 +59,6 @@ public:
 	}
 	void removeSource(SourceSet::iterator itsource);
 	void clearSourceSet();
-
 	void setCurrentSource(SourceSet::iterator si);
 	void setCurrentSource(GLuint name);
 	inline SourceSet::iterator getCurrentSource() {
@@ -63,46 +66,52 @@ public:
 	}
 
 	/**
-	 * management of the rendering
+	 * management of the manipulation views
 	 */
-	virtual void keyPressEvent(QKeyEvent * event);
-	virtual void mouseDoubleClickEvent(QMouseEvent * event);
-	virtual void closeEvent(QCloseEvent * event);
+	typedef enum {NONE = 0, MIXING=1, GEOMETRY=2, DEPTH=3 } viewMode;
+	void setViewMode(viewMode mode);
+	QPixmap getViewIcon();
 
 	/**
-	 * Interaction with the other views
+	 * management of the rendering
 	 */
-	void setRenderingResolution(int width, int height);
-	float getRenderingAspectRatio();
+	void setFrameBufferResolution(int width, int height);
+	void bindFrameBuffer();
+	void releaseFrameBuffer();
+	GLuint getFrameBufferTexture();
+	float getFrameBufferAspectRatio();
+	int getFrameBufferWidth();
+	int getFrameBufferHeight();
 
+
+public slots:
+	void zoomIn();
+	void zoomOut();
+	void zoomReset();
+	void zoomBestFit();
+
+signals:
+	void currentSourceChanged(SourceSet::iterator csi);
+
+private:
+	RenderingManager();
+	virtual ~RenderingManager();
+	static RenderingManager *_instance;
+
+protected:
+	RenderWidget *_renderwidget;
+	QGLFramebufferObject *_fbo;
+
+	// the set of sources
+	SourceSet _sources;
+	SourceSet::iterator currentSource;
+
+	// all the display lists
 	static GLuint border_thin_shadow, border_large_shadow;
 	static GLuint border_thin, border_large, border_scale;
 	static GLuint frame_selection, frame_screen;
 	static GLuint quad_texured, quad_half_textured, quad_black;
 	static GLuint circle_mixing;
-
-public slots:
-	void useRenderingAspectRatio(bool on);
-	void setFullScreen(bool on);
-
-signals:
-	void currentSourceChanged(SourceSet::iterator csi);
-	void windowClosed();
-
-	/**
-	 * singleton mechanism
-	 */
-private:
-	MainRenderWidget();
-	virtual ~MainRenderWidget();
-	static MainRenderWidget *_instance;
-
-protected:
-	RenderWidget *_renderwidget;
-
-	// the set of sources
-	SourceSet _sources;
-	SourceSet::iterator currentSource;
 
 };
 

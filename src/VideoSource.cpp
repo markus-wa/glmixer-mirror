@@ -7,7 +7,7 @@
 
 #include "VideoSource.moc"
 
-#include "MainRenderWidget.h"
+#include "RenderingManager.h"
 
 
 VideoSource::VideoSource(VideoFile *f, QGLWidget *context, double d) : QObject(), Source(context, d),
@@ -34,16 +34,15 @@ VideoSource::~VideoSource() {
 // only MixRenderWidget can call this
 void VideoSource::update(){
 
+	glBindTexture(GL_TEXTURE_2D, textureIndex);
+
     // update texture
     if (is && bufferChanged) {
 
         const VideoPicture *vp = is->getPictureAtIndex(bufferIndex);
         if (vp && vp->isAllocated()) {
 
-//        	glcontext->makeCurrent();
-
         	// update the texture
-            glBindTexture(GL_TEXTURE_2D, textureIndex);
             if ( vp->getFormat() == PIX_FMT_RGBA)
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  vp->getWidth(),
                          vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
@@ -53,33 +52,9 @@ void VideoSource::update(){
                          vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
                          vp->getBuffer() );
 
-            // prepare rendering to fbo : straight projection
-//            glPushMatrix(); //GL_MODELVIEW
-//            glLoadIdentity();
-//            glPushAttrib(GL_VIEWPORT_BIT);
-//            glViewport(0, 0, fbo->size().width(), fbo->size().height());
-//            glMatrixMode(GL_PROJECTION);
-//            glPushMatrix();
-//            glLoadIdentity();
-//            gluOrtho2D(-UNIT, UNIT, -UNIT, UNIT);
-//
-//            // now we render to fbo
-//            fbo->bind();
-//            glClear(GL_COLOR_BUFFER_BIT);
-//    		  glCallList(squareDisplayList);
-//            fbo->release();
-//
-//            // retrieve context back
-//            glPopMatrix();
-//            glPopAttrib();
-//            glMatrixMode(GL_MODELVIEW);
-//            glPopMatrix();
-
-
         }
         bufferChanged = false;
     }
-
 }
 
 void VideoSource::updateFrame (int i)

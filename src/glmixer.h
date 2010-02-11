@@ -11,7 +11,7 @@
 #include "ui_glmixer.h"
 
 #include "VideoFileDisplayWidget.h"
-#include "MainRenderWidget.h"
+#include "RenderingManager.h"
 #include "VideoFile.h"
 
 /**

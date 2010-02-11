@@ -15,8 +15,8 @@
 
 QStringList glRenderWidget::listofextensions;
 
-glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget)
-: QGLWidget(QGLFormat(QGL::AlphaChannel), parent, shareWidget), timer(-1), period(16)
+glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
+: QGLWidget(QGLFormat(QGL::AlphaChannel), parent, shareWidget, f), timer(-1), period(16)
 
 {
 	if (!format().depth())
@@ -33,6 +33,11 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget)
 	  QString allextensions = QString( (char *) glGetString(GL_EXTENSIONS));
 	  listofextensions = allextensions.split(" ", QString::SkipEmptyParts);
 	}
+
+	fpsTime_.start();
+	fpsCounter_		= 0;
+	f_p_s_		= 0.0;
+	fpsString_		= tr("%1Hz", "Frames per seconds, in Hertz").arg("?");
 
 	update();
 }
@@ -55,6 +60,10 @@ void glRenderWidget::initializeGL()
     glEnable(GL_TEXTURE_2D);
     // Pure texture color (no lighting)
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+    // ensure alpha channel is modulated
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 
     // Turn blending on
     glEnable(GL_BLEND);
@@ -101,8 +110,38 @@ void glRenderWidget::paintGL()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+	// FPS computation
+	if (++fpsCounter_ == 20)
+	{
+		f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
+		fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
+		fpsCounter_ = 0;
+	}
+
+	displayFPS();
 }
 
+
+
+void glRenderWidget::showEvent ( QShowEvent * event ) {
+	QGLWidget::showEvent(event);
+	if(timer == -1)
+		timer = startTimer(period);
+}
+
+void glRenderWidget::hideEvent ( QHideEvent * event ) {
+	QGLWidget::hideEvent(event);
+	if(timer > 0) {
+		killTimer(timer);
+		timer = -1;
+	}
+}
+
+void glRenderWidget::displayFPS()
+{
+	renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
+}
 
 bool glRenderWidget::glSupportsExtension(QString extname) {
 

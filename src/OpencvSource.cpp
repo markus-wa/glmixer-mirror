@@ -35,8 +35,10 @@ void CameraThread::run(){
 
 		cvs->mutex->lock();
 		if (!cvs->frameChanged) {
-			cvs->frame = cvQueryFrame( cvs->capture );
-			cvs->frameChanged = true;
+			if (cvGrabFrame( cvs->capture )){
+				cvs->frame = cvRetrieveFrame( cvs->capture );
+				cvs->frameChanged = true;
+			}
 			cvs->cond->wait(cvs->mutex);
 		}
 		cvs->mutex->unlock();
@@ -115,10 +117,11 @@ bool OpencvSource::isRunning(){
 
 void OpencvSource::update(){
 
+	glBindTexture(GL_TEXTURE_2D, textureIndex);
+
 	if( frameChanged )
 	{
     	// update the texture
-        glBindTexture(GL_TEXTURE_2D, textureIndex);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 		mutex->lock();

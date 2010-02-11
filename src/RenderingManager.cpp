@@ -1,36 +1,48 @@
 /*
- * MixRenderWidget.cpp
+ * RenderingManager.cpp
  *
  *  Created on: 3 nov. 2009
  *      Author: herbelin
  */
 
-#include "MainRenderWidget.moc"
+#include "RenderingManager.moc"
 
 #include "common.h"
 #include "glRenderWidget.h"
+#include "View.h"
+#include "MixerView.h"
+#include "GeometryView.h"
+#include "VideoSource.h"
+#ifdef OPEN_CV
 #include "OpencvSource.h"
+#endif
+
 #include <algorithm>
 
 
 // static members
-MainRenderWidget *MainRenderWidget::_instance = 0;
+RenderingManager *RenderingManager::_instance = 0;
 
-GLuint MainRenderWidget::border_thin_shadow = 0, MainRenderWidget::border_large_shadow = 0;
-GLuint MainRenderWidget::border_thin = 0, MainRenderWidget::border_large = 0, MainRenderWidget::border_scale = 0;
-GLuint MainRenderWidget::quad_texured = 0, MainRenderWidget::quad_half_textured = 0, MainRenderWidget::quad_black = 0;
-GLuint MainRenderWidget::frame_selection = 0, MainRenderWidget::frame_screen = 0;
-GLuint MainRenderWidget::circle_mixing = 0;
+GLuint RenderingManager::border_thin_shadow = 0, RenderingManager::border_large_shadow = 0;
+GLuint RenderingManager::border_thin = 0, RenderingManager::border_large = 0, RenderingManager::border_scale = 0;
+GLuint RenderingManager::quad_texured = 0, RenderingManager::quad_half_textured = 0, RenderingManager::quad_black = 0;
+GLuint RenderingManager::frame_selection = 0, RenderingManager::frame_screen = 0;
+GLuint RenderingManager::circle_mixing = 0;
 
 class RenderWidget: public glRenderWidget {
 
+	friend class RenderingManager;
+
 public:
-	RenderWidget(MainRenderWidget *mainrenderwidget) :
-		glRenderWidget(0), mrw(mainrenderwidget), _fbo(NULL), w(0), h(0),
-				_aspectRatio(1.0), _useAspectRatio(true) {
-		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-			qWarning(
-					"Frame Buffer Objects not supported on this graphics hardware");
+	RenderWidget() :glRenderWidget() {
+
+		setMouseTracking(true);
+		setFocusPolicy(Qt::ClickFocus);
+
+		noView = new View;
+		mixingManipulationView = new MixerView;
+		geometryManipulationView = new GeometryView;
+		currentManipulationView = noView;
 	}
 
 	~RenderWidget() {
@@ -39,16 +51,18 @@ public:
 	// QGLWidget rendering
 	void paintGL();
 	void initializeGL();
+	void resizeGL(int w, int h);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mouseReleaseEvent ( QMouseEvent * event );
+    void wheelEvent ( QWheelEvent * event );
+    void keyPressEvent ( QKeyEvent * event );
 
-	MainRenderWidget *mrw;
-	// TODO: implement the use of fbo
-	QGLFramebufferObject *_fbo;
-
-	int w,h;
-	float _aspectRatio;
-	bool _useAspectRatio;
+    // keep updating even if hidden
+    void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); }
 
 
+protected:
 	// utility
     GLuint buildHalfList();
     GLuint buildSelectList();
@@ -59,6 +73,9 @@ public:
     GLuint buildBlackList();
     GLuint buildBordersList();
 
+	View *currentManipulationView, *noView;
+	MixerView *mixingManipulationView;
+	GeometryView *geometryManipulationView;
 };
 
 
@@ -66,156 +83,179 @@ void RenderWidget::initializeGL()
 {
     glRenderWidget::initializeGL();
 
-    if ( !MainRenderWidget::border_thin_shadow ) {
-    	MainRenderWidget::border_thin_shadow = buildLineList();
-    	MainRenderWidget::border_large_shadow = MainRenderWidget::border_thin_shadow + 1;
+	setBackgroundColor( QColor(52,52,52) );
+
+
+    if ( !RenderingManager::border_thin_shadow ) {
+    	RenderingManager::border_thin_shadow = buildLineList();
+    	RenderingManager::border_large_shadow = RenderingManager::border_thin_shadow + 1;
     }
-	if (!MainRenderWidget::quad_texured)
-		MainRenderWidget::quad_texured = buildQuadList();
-	if (!MainRenderWidget::quad_half_textured)
-		MainRenderWidget::quad_half_textured = buildHalfList();
-	if (!MainRenderWidget::frame_selection)
-		MainRenderWidget::frame_selection = buildSelectList();
-	if (!MainRenderWidget::circle_mixing)
-		MainRenderWidget::circle_mixing = buildCircleList();
-	if (!MainRenderWidget::quad_black)
-		MainRenderWidget::quad_black = buildBlackList();
-	if (!MainRenderWidget::frame_screen)
-		MainRenderWidget::frame_screen = buildFrameList();
-	if (!MainRenderWidget::border_thin) {
-		MainRenderWidget::border_thin = buildBordersList();
-		MainRenderWidget::border_large = MainRenderWidget::border_thin + 1;
-		MainRenderWidget::border_scale = MainRenderWidget::border_thin + 2;
+	if (!RenderingManager::quad_texured)
+		RenderingManager::quad_texured = buildQuadList();
+	if (!RenderingManager::quad_half_textured)
+		RenderingManager::quad_half_textured = buildHalfList();
+	if (!RenderingManager::frame_selection)
+		RenderingManager::frame_selection = buildSelectList();
+	if (!RenderingManager::circle_mixing)
+		RenderingManager::circle_mixing = buildCircleList();
+	if (!RenderingManager::quad_black)
+		RenderingManager::quad_black = buildBlackList();
+	if (!RenderingManager::frame_screen)
+		RenderingManager::frame_screen = buildFrameList();
+	if (!RenderingManager::border_thin) {
+		RenderingManager::border_thin = buildBordersList();
+		RenderingManager::border_large = RenderingManager::border_thin + 1;
+		RenderingManager::border_scale = RenderingManager::border_thin + 2;
 	}
+
+	 //TODO use glRectf instead of lame LINELOOP  http://linux.die.net/man/3/glrectf
 
 }
 
-void RenderWidget::paintGL() {
-	glRenderWidget::paintGL();
+/**
+ *  REDIRECT every calls to the current view implementation
+ */
 
-	//  loop with only 1 texture bind per source
-	// setup rendering projection for mixer view
-	// init modelview for render of square texture in full viewport
-	// for each source
-	//    1 bind texture for this source ; update from videoFile if source has changed
-	//    2 render square in fbo (may push/modify/pop the projection matrix)
-	//    3 push modelview and apply source transforms
-	//	  4 render square in current context
-	//	  5 pop modelview
-
-
-	for (SourceSet::iterator its = mrw->_sources.begin(); its != mrw->_sources.end(); its++) {
-		// steps 1 and 2 :
-		(*its)->update();
-
-		// step 3
-
-
-		// step 4
-		glPushMatrix();
-		if (_useAspectRatio) {
-			float windowaspectratio = (float) width() / (float) height();
-			if (windowaspectratio < _aspectRatio)
-				glScalef(1.f, windowaspectratio / _aspectRatio, 1.f);
-			else
-				glScalef(_aspectRatio / windowaspectratio, 1.f, 1.f);
-		}
-
-		glTranslated((*its)->getX(), (*its)->getY(), 0.0);
-		glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
-		(*its)->draw();
-
-		glPopMatrix();
-
-	}
-
-	// TODO; create a specific fbo for the render source.
-	// code to render the ouput of the window into fbo
-
-	//        fbo->bind();
-	//        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	//        glBindTexture(GL_TEXTURE_2D, _s->textureIndex);
-	//		glCallList(VideoSource::squareDisplayList);
-	//        fbo->release();
-
-
-	// TODO: implement the use of fbo for rendered output
+void RenderWidget::resizeGL(int w, int h){
+	currentManipulationView->resize(w,h);
+}
+void RenderWidget::paintGL(){
+    glRenderWidget::paintGL();
+	currentManipulationView->reset();
+	currentManipulationView->paint();
+}
+void RenderWidget::mousePressEvent(QMouseEvent *event){
+	makeCurrent();
+	currentManipulationView->mousePressEvent(event);
+	event->accept();
+}
+void RenderWidget::mouseMoveEvent(QMouseEvent *event){
+	makeCurrent();
+	currentManipulationView->mouseMoveEvent(event);
+	event->accept();
+}
+void RenderWidget::mouseReleaseEvent ( QMouseEvent * event ){
+	makeCurrent();
+	currentManipulationView->mouseReleaseEvent(event);
+	event->accept();
+}
+void RenderWidget::wheelEvent ( QWheelEvent * event ){
+	makeCurrent();
+	currentManipulationView->wheelEvent(event);
+	event->accept();
+}
+void RenderWidget::keyPressEvent ( QKeyEvent * event ){
+	currentManipulationView->keyPressEvent(event);
+	event->accept();
 }
 
-const QGLWidget *MainRenderWidget::getQGLWidget() {
+void RenderingManager::setViewMode(viewMode mode){
+
+	switch (mode) {
+	case MIXING:
+		_renderwidget->currentManipulationView = (View *) _renderwidget->mixingManipulationView;
+		break;
+	case GEOMETRY:
+		_renderwidget->currentManipulationView = (View *) _renderwidget->geometryManipulationView;
+		break;
+	case NONE:
+	default:
+		_renderwidget->currentManipulationView = _renderwidget->noView;
+	}
+
+	// update view to match with the changes in modelview and projection matrices (e.g. resized widget)
+	_renderwidget->makeCurrent();
+	_renderwidget->currentManipulationView->resize(_renderwidget->width(), _renderwidget->height());
+
+}
+
+
+QPixmap RenderingManager::getViewIcon(){
+
+	return _renderwidget->currentManipulationView->getIcon();
+}
+
+QGLWidget *RenderingManager::getQGLWidget() {
 
 	return (QGLWidget *) getInstance()->_renderwidget;
 }
 
-MainRenderWidget *MainRenderWidget::getInstance() {
+RenderingManager *RenderingManager::getInstance() {
 
 	if (_instance == 0) {
-		_instance = new MainRenderWidget();
+		_instance = new RenderingManager;
+
+		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+			qWarning("Frame Buffer Objects not supported on this graphics hardware");
 	}
 
 	return _instance;
 }
 
-void MainRenderWidget::deleteInstance() {
 
-	if (_instance != 0)
-		_instance->close();
-}
+RenderingManager::RenderingManager() :
+	QObject(), _fbo(NULL) {
 
-MainRenderWidget::MainRenderWidget() :
-	QWidget(0) {
+	_renderwidget = new RenderWidget;
 
-	_renderwidget = new RenderWidget(this);
-	setRenderingResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-
-	QVBoxLayout *verticalLayout = new QVBoxLayout(this);
-	verticalLayout->setSpacing(0);
-	verticalLayout->setContentsMargins(0, 0, 0, 0);
-	verticalLayout->addWidget(_renderwidget);
-
-	_renderwidget->setParent(this);
+	setFrameBufferResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
 	currentSource = getEnd();
 }
 
-MainRenderWidget::~MainRenderWidget() {
+RenderingManager::~RenderingManager() {
 
+	if (_renderwidget != 0)
+		delete _renderwidget;
 	clearSourceSet();
 }
 
 
-void MainRenderWidget::setRenderingResolution(int width, int height){
+void RenderingManager::setFrameBufferResolution(int width, int height){
 
-	if (_renderwidget) {
-		_renderwidget->w = width;
-		_renderwidget->h = height;
-		_renderwidget->_aspectRatio = (float) width / (float) height;
+	if (_fbo)
+		delete _fbo;
 
-		_renderwidget->makeCurrent();
-
-		if (_renderwidget->_fbo)
-			delete _renderwidget->_fbo;
-
-		_renderwidget->_fbo = new QGLFramebufferObject(_renderwidget->w,_renderwidget->h);
-	}
-}
-
-float MainRenderWidget::getRenderingAspectRatio(){
-
-	if (_renderwidget && _renderwidget->_useAspectRatio)
-		return _renderwidget->_aspectRatio;
-	else
-		return ( (float) width() / (float) height() );
-}
-
-void MainRenderWidget::useRenderingAspectRatio(bool on) {
-
-	if (_renderwidget)
-		_renderwidget->_useAspectRatio = on;
+	_fbo = new QGLFramebufferObject(width,height);
 
 }
 
-void MainRenderWidget::addSource(VideoFile *vf) {
+float RenderingManager::getFrameBufferAspectRatio(){
+
+	return ( (float) _fbo->width() / (float) _fbo->height() );
+}
+
+
+void RenderingManager::bindFrameBuffer(){
+	_fbo->bind();
+}
+void RenderingManager::releaseFrameBuffer(){
+	_fbo->release();
+}
+GLuint RenderingManager::getFrameBufferTexture(){
+	return _fbo->texture();
+}
+int RenderingManager::getFrameBufferWidth(){
+	return _fbo->width();
+}
+int RenderingManager::getFrameBufferHeight(){
+	return _fbo->height();
+}
+
+void RenderingManager::zoomIn() {
+	_renderwidget->currentManipulationView->zoomIn();
+}
+void RenderingManager::zoomOut() {
+	_renderwidget->currentManipulationView->zoomOut();
+}
+void RenderingManager::zoomReset() {
+	_renderwidget->currentManipulationView->zoomReset();
+}
+void RenderingManager::zoomBestFit() {
+	_renderwidget->currentManipulationView->zoomBestFit();
+}
+
+void RenderingManager::addSource(VideoFile *vf) {
 
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 	// create a source appropriate for this videofile
@@ -228,7 +268,7 @@ void MainRenderWidget::addSource(VideoFile *vf) {
 }
 
 #ifdef OPEN_CV
-void MainRenderWidget::addSource(int opencvIndex) {
+void RenderingManager::addSource(int opencvIndex) {
 
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 	OpencvSource *s =
@@ -240,7 +280,7 @@ void MainRenderWidget::addSource(int opencvIndex) {
 }
 #endif
 
-void MainRenderWidget::removeSource(SourceSet::iterator itsource) {
+void RenderingManager::removeSource(SourceSet::iterator itsource) {
 
 	if (itsource != _sources.end()) {
 		delete (*itsource);
@@ -249,17 +289,17 @@ void MainRenderWidget::removeSource(SourceSet::iterator itsource) {
 
 }
 
-void MainRenderWidget::clearSourceSet() {
+void RenderingManager::clearSourceSet() {
 	// TODO does it work?
 	for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its++)
 		removeSource(its);
 }
 
-bool MainRenderWidget::notAtEnd(SourceSet::iterator itsource) {
+bool RenderingManager::notAtEnd(SourceSet::iterator itsource) {
 	return (itsource != _sources.end());
 }
 
-bool MainRenderWidget::isValid(SourceSet::iterator itsource) {
+bool RenderingManager::isValid(SourceSet::iterator itsource) {
 
 	if (notAtEnd(itsource))
 		return (_sources.find(*itsource) != _sources.end());
@@ -267,7 +307,7 @@ bool MainRenderWidget::isValid(SourceSet::iterator itsource) {
 		return false;
 }
 
-void MainRenderWidget::setCurrentSource(SourceSet::iterator si) {
+void RenderingManager::setCurrentSource(SourceSet::iterator si) {
 
 	if (si != currentSource) {
 		if (notAtEnd(currentSource))
@@ -283,11 +323,11 @@ void MainRenderWidget::setCurrentSource(SourceSet::iterator si) {
 }
 
 
-void MainRenderWidget::setCurrentSource(GLuint name) {
+void RenderingManager::setCurrentSource(GLuint name) {
 	setCurrentSource( getById(name) );
 }
 
-SourceSet::iterator MainRenderWidget::changeDepth(SourceSet::iterator itsource,
+SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
 		double newdepth) {
 	// TODO : implement
 
@@ -302,64 +342,12 @@ SourceSet::iterator MainRenderWidget::changeDepth(SourceSet::iterator itsource,
 	return itsource;
 }
 
-SourceSet::iterator MainRenderWidget::getById(GLuint name) {
+SourceSet::iterator RenderingManager::getById(GLuint name) {
 
 	return std::find_if(_sources.begin(), _sources.end(), hasName(name));
 }
 
 
-void MainRenderWidget::setFullScreen(bool on) {
-
-	// this is valid only for WINDOW widgets
-	if (windowFlags() & Qt::Window) {
-
-		// if ask fullscreen and already fullscreen
-		if (on && (windowState() & Qt::WindowFullScreen))
-			return;
-
-		// if ask NOT fullscreen and already NOT fullscreen
-		if (!on && !(windowState() & Qt::WindowFullScreen))
-			return;
-
-		// other cases ; need to switch fullscreen <-> not fullscreen
-		setWindowState(windowState() ^ Qt::WindowFullScreen);
-		update();
-	}
-
-}
-
-void MainRenderWidget::mouseDoubleClickEvent(QMouseEvent * event) {
-
-	// switch fullscreen / window
-	if (windowFlags() & Qt::Window) {
-		setWindowState(windowState() ^ Qt::WindowFullScreen);
-		update();
-	}
-}
-
-void MainRenderWidget::keyPressEvent(QKeyEvent * event) {
-
-	switch (event->key()) {
-	case Qt::Key_Escape:
-		setFullScreen(false);
-		break;
-	case Qt::Key_Enter:
-	case Qt::Key_Space:
-		setFullScreen(true);
-		break;
-	default:
-		QWidget::keyPressEvent(event);
-	}
-
-	event->accept();
-}
-
-void MainRenderWidget::closeEvent(QCloseEvent * event) {
-
-	emit windowClosed();
-	event->accept();
-
-}
 
 // code to select rendering texture target:
 

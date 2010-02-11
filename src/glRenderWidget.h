@@ -17,19 +17,22 @@ class glRenderWidget  : public QGLWidget
     Q_OBJECT
 
 public:
-	glRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0);
+	glRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
 	virtual ~glRenderWidget();
 
-    // OpenGL implementation
+    // QGLWidget implementation
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
     virtual void paintGL();
-    void setBackgroundColor(const QColor &c);
 
     // Update events management
     virtual void timerEvent( QTimerEvent *) { update(); }
-    virtual void showEvent ( QShowEvent * event ) { QGLWidget::showEvent(event); timer = startTimer(period);}
-    virtual void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); if(timer>0) killTimer(timer);}
+    virtual void showEvent ( QShowEvent * event );
+    virtual void hideEvent ( QHideEvent * event );
+
+    // cosmetics
+    void displayFPS();
+    void setBackgroundColor(const QColor &c);
 
     // OpenGL informations
     static bool glSupportsExtension(QString extname);
@@ -38,12 +41,18 @@ public:
 public slots:
     inline void setUpdatePeriod(int miliseconds) {
     	period = miliseconds;
-		if (timer)  { killTimer(timer); timer = startTimer(period); }
+		if (timer > 0)  { killTimer(timer); timer = startTimer(period); }
     }
 
 protected:
     int timer, period;
     static QStringList listofextensions;
+
+	// F P S    d i s p l a y
+	QTime fpsTime_;
+	unsigned int fpsCounter_;
+	QString fpsString_;
+	float f_p_s_;
 };
 
 #endif /* GLRENDERWIDGET_H_ */

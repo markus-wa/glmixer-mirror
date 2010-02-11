@@ -16,7 +16,7 @@ class VideoSource : public QObject, public Source {
 
     Q_OBJECT
 
-    friend class MainRenderWidget;
+    friend class RenderingManager;
 
     // only MainRenderWidget can create a source (need its GL context)
 protected:

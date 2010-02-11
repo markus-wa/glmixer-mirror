@@ -21,7 +21,7 @@ public:
 	//    Source(Source *clone, double newdepth = MIN_DEPTH_LAYER);
 	virtual ~Source();
 
-	virtual void update(){};
+	virtual void update(){ };
 
 	bool operator==(Source s2){
 		return ( id == s2.id );

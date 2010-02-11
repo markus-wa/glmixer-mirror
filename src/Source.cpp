@@ -8,7 +8,7 @@
  
 #include "Source.h"
 #include "glRenderWidget.h"
-#include "MainRenderWidget.h"
+#include "RenderingManager.h"
 
 GLuint Source::lastid = 1;
 
@@ -33,9 +33,6 @@ Source::Source(QGLWidget *context, double depth) :
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	// TODO : use fbo in MainRenderWidget using a different attachment point per source
-	//attachmentPoint = GL_COLOR_ATTACHMENT0_EXT;
 
 	// set attributes and children
 	dom.setAttribute("id", id);
@@ -103,17 +100,11 @@ void Source::draw(bool withalpha, GLenum mode) const {
     if (mode == GL_SELECT)
         glLoadName(id);
     else {
-
-        glBindTexture(GL_TEXTURE_2D, textureIndex);
-        // ensure alpha channel is modulated
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		// set transparency
 		glColor4f(texcolor, texcolor, texcolor, withalpha ? texalpha : 1.0);
-
     }
     // draw
-    glCallList(MainRenderWidget::quad_texured);
+    glCallList(RenderingManager::quad_texured);
 }
 
 

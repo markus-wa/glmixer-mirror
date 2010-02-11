@@ -11,9 +11,14 @@
 
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
-#include "MainRenderWidget.h"
-#include "MixerViewWidget.h"
+#include "RenderingManager.h"
+#include "OutputRenderWindow.h"
+#include "MixerView.h"
 #include "SourceDisplayWidget.h"
+#include "VideoSource.h"
+#ifdef OPEN_CV
+#include "OpencvSource.h"
+#endif
 
 
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), refreshTimingTimer(0)
@@ -24,24 +29,20 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     actionCamera->setEnabled(false);
 #endif
 
-    // SET MIXER VIEW
-    mixingViewLayout->removeWidget(mixingView);
-    delete mixingView;
-    mixingView = new MixerViewWidget( (QWidget *)this, MainRenderWidget::getQGLWidget());
-    mixingViewLayout->addWidget(mixingView);
-    // activate this view by default
-    on_actionMixingView_activated();
+    centralViewLayout->removeWidget(mainRendering);
+	delete mainRendering;
+	mainRendering = RenderingManager::getQGLWidget();
+	mainRendering->setParent(centralwidget);
+	centralViewLayout->addWidget(mainRendering);
+	// activate this view by default
+	on_actionMixingView_activated();
+//	on_actionGeometryView_activated();
 
-    // SET GEOMETRY VIEW
-    geometryViewLayout->removeWidget(geometryView);
-    delete geometryView;
-    geometryView = new GeometryViewWidget( (QWidget *)this, MainRenderWidget::getQGLWidget());
-    geometryViewLayout->addWidget(geometryView);
 
     // SET prewiew widget to be Source Display Widget
     previewPageSourceLayout->removeWidget(previewSource);
     delete previewSource;
-    previewSource = new SourceDisplayWidget( previewPageSource, MainRenderWidget::getQGLWidget());
+    previewSource = new SourceDisplayWidget( previewPageSource );
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     sizePolicy.setHeightForWidth(previewSource->sizePolicy().hasHeightForWidth());
     previewSource->setSizePolicy(sizePolicy);
@@ -49,14 +50,18 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(previewSpeedSlider, SIGNAL(valueChanged(int)), previewSource, SLOT(setUpdatePeriod(int)));
 
     // signal from source management in MainRenderWidget
-    QObject::connect(MainRenderWidget::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(controlSource(SourceSet::iterator) ) );
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(controlSource(SourceSet::iterator) ) );
 
     // QUIT event
     QObject::connect(actionQuit, SIGNAL(activated()), this, SLOT(close()));
 
-    // Signals between GUI and VideoFileDisplay widget
-    QObject::connect(actionKeep_aspect_ratio, SIGNAL(toggled(bool)), MainRenderWidget::getInstance(), SLOT(useRenderingAspectRatio(bool)));
-    QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), MainRenderWidget::getInstance(), SLOT(setFullScreen(bool)));
+    // Signals between GUI and output window
+    QObject::connect(actionKeep_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useRenderingAspectRatio(bool)));
+    QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
+	QObject::connect(actionZoomIn, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(zoomIn()));
+	QObject::connect(actionZoomOut, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(zoomOut()));
+	QObject::connect(actionZoomReset, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(zoomReset()));
+	QObject::connect(actionZoomBestFit, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(zoomBestFit()));
 
     // Init state
     vcontrolDockWidget->setEnabled(false);
@@ -77,12 +82,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 }
 
 GLMixer::~GLMixer() {
-	MainRenderWidget::getInstance()->deleteInstance();
+
 }
 
 
 void GLMixer::closeEvent ( QCloseEvent * event ){
-	MainRenderWidget::getInstance()->close();
+	OutputRenderWindow::getInstance()->close();
 	event->accept();
 }
 
@@ -125,34 +130,14 @@ void GLMixer::displayErrorMessage(QString msg){
 
 void GLMixer::on_actionMixingView_activated(){
 
-	QObject::connect(actionZoomIn, SIGNAL(activated()), geometryView, SLOT(zoomIn()));
-	QObject::connect(actionZoomOut, SIGNAL(activated()), geometryView, SLOT(zoomOut()));
-	QObject::connect(actionZoomReset, SIGNAL(activated()), geometryView, SLOT(zoomReset()));
-	QObject::connect(actionZoomBestFit, SIGNAL(activated()), geometryView, SLOT(zoomBestFit()));
-
-	stackedWidget->setCurrentIndex(0);
-
-	QObject::connect(actionZoomIn, SIGNAL(activated()), mixingView, SLOT(zoomIn()));
-	QObject::connect(actionZoomOut, SIGNAL(activated()), mixingView, SLOT(zoomOut()));
-	QObject::connect(actionZoomReset, SIGNAL(activated()), mixingView, SLOT(zoomReset()));
-	QObject::connect(actionZoomBestFit, SIGNAL(activated()), mixingView, SLOT(zoomBestFit()));
-
+	RenderingManager::getInstance()->setViewMode(RenderingManager::MIXING);
+	viewIcon->setPixmap(RenderingManager::getInstance()->getViewIcon());
 }
 
 void GLMixer::on_actionGeometryView_activated(){
 
-
-	QObject::disconnect(actionZoomIn, SIGNAL(activated()), mixingView, SLOT(zoomIn()));
-	QObject::disconnect(actionZoomOut, SIGNAL(activated()), mixingView, SLOT(zoomOut()));
-	QObject::disconnect(actionZoomReset, SIGNAL(activated()), mixingView, SLOT(zoomReset()));
-	QObject::disconnect(actionZoomBestFit, SIGNAL(activated()), mixingView, SLOT(zoomBestFit()));
-
-	stackedWidget->setCurrentIndex(1);
-
-	QObject::connect(actionZoomIn, SIGNAL(activated()), geometryView, SLOT(zoomIn()));
-	QObject::connect(actionZoomOut, SIGNAL(activated()), geometryView, SLOT(zoomOut()));
-	QObject::connect(actionZoomReset, SIGNAL(activated()), geometryView, SLOT(zoomReset()));
-	QObject::connect(actionZoomBestFit, SIGNAL(activated()), geometryView, SLOT(zoomBestFit()));
+	RenderingManager::getInstance()->setViewMode(RenderingManager::GEOMETRY);
+	viewIcon->setPixmap(RenderingManager::getInstance()->getViewIcon());
 }
 
 
@@ -202,7 +187,7 @@ void GLMixer::on_actionOpen_activated(){
 			// can we open the file ?
 			if ( newSourceVideoFile->open( fileNamesIt.next() ) ) {
 				// create the source as it is a valid video file (this also set it to be the current source)
-				MainRenderWidget::getInstance()->addSource(newSourceVideoFile);
+				RenderingManager::getInstance()->addSource(newSourceVideoFile);
 			}
 		}
 	}
@@ -264,7 +249,7 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 	}
 
 	// if we are given a valid iterator, we have a source to control
-	if ( MainRenderWidget::getInstance()->isValid(csi) ) {
+	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
 		// setup preview
 		previewStackedWidget->setCurrentIndex(1);
@@ -446,7 +431,7 @@ void GLMixer::on_actionCamera_activated()
 #ifdef OPEN_CV
 		if (cd.getDriver() == CameraDialog::OPENCV_CAMERA && cd.indexOpencvCamera() >= 0)
 		{
-			MainRenderWidget::getInstance()->addSource(cd.indexOpencvCamera());
+			RenderingManager::getInstance()->addSource(cd.indexOpencvCamera());
 			statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()) );
 		}
 #endif
