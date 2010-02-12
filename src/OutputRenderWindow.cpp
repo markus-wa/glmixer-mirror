@@ -77,13 +77,13 @@ void OutputRenderWindow::resizeGL(int w, int h)
 
 void OutputRenderWindow::paintGL() {
 
+	glRenderWidget::paintGL();
+	
 #if QT_VERSION >= 0x040600
 	if (QGLFramebufferObject::hasOpenGLFramebufferBlit () )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 		if (_useAspectRatio) {
-		
-			glClear(GL_COLOR_BUFFER_BIT);
 			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
 			if (_aspectRatio < renderingAspectRatio)
 				QGLFramebufferObject::blitFramebuffer ( 0, QRect( QPoint( 0, (height() - (int) ( (float) width() / renderingAspectRatio)) / 2 ), QSize(width(), (int) ( (float) width() / renderingAspectRatio))), 
@@ -101,7 +101,6 @@ void OutputRenderWindow::paintGL() {
 #endif
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
-		glRenderWidget::paintGL();
 
 		if (_useAspectRatio) {
 			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
