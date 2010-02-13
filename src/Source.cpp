@@ -7,8 +7,7 @@
 
  
 #include "Source.h"
-#include "glRenderWidget.h"
-#include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 
 GLuint Source::lastid = 1;
 
@@ -104,7 +103,7 @@ void Source::draw(bool withalpha, GLenum mode) const {
 		glColor4f(texcolor, texcolor, texcolor, withalpha ? texalpha : 1.0);
     }
     // draw
-    glCallList(RenderingManager::quad_texured);
+    glCallList(ViewRenderWidget::quad_texured);
 }
 
 

@@ -22,7 +22,6 @@ public:
     // OpenGL implementation
     void initializeGL();
     void paintGL();
-    void resizeGL(int w, int h);
     virtual void showEvent ( QShowEvent * event ) { QGLWidget::showEvent(event);}
 
 

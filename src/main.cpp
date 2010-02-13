@@ -7,16 +7,38 @@
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 
+#include <iostream>
+
+ void GLMixerMessageOutput(QtMsgType type, const char *msg)
+ {
+     switch (type) {
+     case QtDebugMsg:
+         std::cerr<<"Debug: "<<msg<<std::endl;
+         break;
+     case QtWarningMsg:
+         std::cerr<<"Warning: "<<msg<<std::endl;
+         QMessageBox::warning(0, "GLMixer Warning", QString(msg));
+         break;
+     case QtCriticalMsg:
+         std::cerr<<"Critical: "<<msg<<std::endl;
+         QMessageBox::critical(0, "GLMixer Critical Information", QString(msg));
+         abort();
+         break;
+     case QtFatalMsg:
+         std::cerr<<"Fatal: "<<msg<<std::endl;
+         QMessageBox::critical(0, "GLMixer Fatal Error", QString(msg));
+         abort();
+     }
+ }
+
 int main(int argc, char **argv)
 {
+    qInstallMsgHandler(GLMixerMessageOutput);
     QApplication a(argc, argv);
     a.setApplicationName("GLMixer");
 
-    if (!QGLFormat::hasOpenGL() ) {
-    	QMessageBox::critical(0, "OpenGL is needed",
-                 "This system does not support OpenGL and this program cannot work without it.");
-        return -1;
-    }
+    if (!QGLFormat::hasOpenGL() )
+    	qCritical("This system does not support OpenGL and this program cannot work without it.");
 
 	// 1. The rendering Manager
     RenderingManager *mrw = RenderingManager::getInstance();

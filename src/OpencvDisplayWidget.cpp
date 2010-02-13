@@ -100,18 +100,6 @@ OpencvDisplayWidget::~OpencvDisplayWidget() {
 }
 
 
-void OpencvDisplayWidget::resizeGL(int w, int h)
-{
-    glViewport(0, 0, w, h);
-
-    // Setup specific projection and view for this window
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-1, 1, -1, 1);
-
-    glMatrixMode(GL_MODELVIEW);
-}
-
 void OpencvDisplayWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();

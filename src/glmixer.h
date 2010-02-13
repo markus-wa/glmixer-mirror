@@ -42,6 +42,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         void on_frameSlider_sliderMoved (int);
         void on_frameSlider_actionTriggered (int);
         void on_actionShow_frames_toggled(bool);
+        void on_actionShowFPS_toggled(bool);
         void on_actionAbout_activated();
         void on_actionMixingView_activated();
         void on_actionGeometryView_activated();

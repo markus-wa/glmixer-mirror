@@ -11,6 +11,7 @@
 
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
+#include "ViewRenderWidget.h"
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 #include "MixerView.h"
@@ -31,7 +32,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     centralViewLayout->removeWidget(mainRendering);
 	delete mainRendering;
-	mainRendering = RenderingManager::getQGLWidget();
+	mainRendering = (QGLWidget *)  RenderingManager::getRenderingWidget();
 	mainRendering->setParent(centralwidget);
 	centralViewLayout->addWidget(mainRendering);
 	// activate this view by default
@@ -39,15 +40,18 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 //	on_actionGeometryView_activated();
 
 
-    // SET prewiew widget to be Source Display Widget
-    previewPageSourceLayout->removeWidget(previewSource);
-    delete previewSource;
-    previewSource = new SourceDisplayWidget( previewPageSource );
-    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    sizePolicy.setHeightForWidth(previewSource->sizePolicy().hasHeightForWidth());
-    previewSource->setSizePolicy(sizePolicy);
-    previewPageSourceLayout->addWidget(previewSource);
-    QObject::connect(previewSpeedSlider, SIGNAL(valueChanged(int)), previewSource, SLOT(setUpdatePeriod(int)));
+    // SET prewiew widget
+	OutputRenderWidget *outputpreview = new OutputRenderWidget(previewContent, mainRendering);
+	previewLayout->addWidget(outputpreview);
+
+//    previewPageSourceLayout->removeWidget(previewSource);
+//    delete previewSource;
+//    previewSource = new SourceDisplayWidget( previewPageSource );
+//    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//    sizePolicy.setHeightForWidth(previewSource->sizePolicy().hasHeightForWidth());
+//    previewSource->setSizePolicy(sizePolicy);
+//    previewPageSourceLayout->addWidget(previewSource);
+//    QObject::connect(previewSpeedSlider, SIGNAL(valueChanged(int)), previewSource, SLOT(setUpdatePeriod(int)));
 
     // signal from source management in MainRenderWidget
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(controlSource(SourceSet::iterator) ) );
@@ -58,10 +62,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     // Signals between GUI and output window
     QObject::connect(actionKeep_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useRenderingAspectRatio(bool)));
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
-	QObject::connect(actionZoomIn, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(zoomIn()));
-	QObject::connect(actionZoomOut, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(zoomOut()));
-	QObject::connect(actionZoomReset, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(zoomReset()));
-	QObject::connect(actionZoomBestFit, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(zoomBestFit()));
+	QObject::connect(actionZoomIn, SIGNAL(activated()), RenderingManager::getRenderingWidget(), SLOT(zoomIn()));
+	QObject::connect(actionZoomOut, SIGNAL(activated()), RenderingManager::getRenderingWidget(), SLOT(zoomOut()));
+	QObject::connect(actionZoomReset, SIGNAL(activated()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
+	QObject::connect(actionZoomBestFit, SIGNAL(activated()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
 
     // Init state
     vcontrolDockWidget->setEnabled(false);
@@ -115,29 +119,26 @@ void GLMixer::on_actionOpenGL_extensions_activated(){
 
 void GLMixer::displayLogMessage(QString msg){
 
-//    QMessageBox::information(this, "glv Log", msg, QMessageBox::Ok, QMessageBox::Ok);
-    qDebug("Log %s", msg.toLatin1().data());
-
+    qDebug("Log %s", qPrintable(msg));
 }
 
 
 void GLMixer::displayErrorMessage(QString msg){
 
-    QMessageBox::critical(this, "glv error", msg, QMessageBox::Ok, QMessageBox::Ok);
-
+    qWarning("Warning %s", qPrintable(msg));
 }
 
 
 void GLMixer::on_actionMixingView_activated(){
 
-	RenderingManager::getInstance()->setViewMode(RenderingManager::MIXING);
-	viewIcon->setPixmap(RenderingManager::getInstance()->getViewIcon());
+	RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::MIXING);
+	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
 }
 
 void GLMixer::on_actionGeometryView_activated(){
 
-	RenderingManager::getInstance()->setViewMode(RenderingManager::GEOMETRY);
-	viewIcon->setPixmap(RenderingManager::getInstance()->getViewIcon());
+	RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::GEOMETRY);
+	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
 }
 
 
@@ -154,6 +155,7 @@ void GLMixer::on_actionOpen_activated(){
 
 	if (!mfd) {
 		mfd = new VideoFileDialog(this, "Open a video or a picture", d.absolutePath());
+	    Q_CHECK_PTR(mfd);
 		mfd->setModal(false);
 		QObject::connect(mfd, SIGNAL(error(QString)), this, SLOT(displayErrorMessage(QString)));
 	}
@@ -178,6 +180,8 @@ void GLMixer::on_actionOpen_activated(){
 		else
 			//newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB24);
 			newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB32);
+
+	    Q_CHECK_PTR(newSourceVideoFile);
 
 		// if the video file was created successfully
 		if (newSourceVideoFile){
@@ -252,8 +256,8 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
 		// setup preview
-		previewStackedWidget->setCurrentIndex(1);
-		previewSource->setSource (*csi);
+//		previewStackedWidget->setCurrentIndex(1);
+//		previewSource->setSource (*csi);
 
 		// test the class of the current source and deal accordingly :
 
@@ -394,8 +398,8 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 
 	} else { // no current source
 		// nothing to preview
-		previewStackedWidget->setCurrentIndex(0);
-		previewSource->setSource(0);
+//		previewStackedWidget->setCurrentIndex(0);
+//		previewSource->setSource(0);
 
 		// clear the information fields
 		FileNameLineEdit->setText("");
@@ -606,6 +610,11 @@ void GLMixer::updateMarks (){
 
 }
 
+
+void GLMixer::on_actionShowFPS_toggled(bool on){
+
+	glRenderWidget::showFramerate(on);
+}
 
 void GLMixer::on_actionAbout_activated(){
 

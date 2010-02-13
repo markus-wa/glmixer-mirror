@@ -8,8 +8,9 @@
 #include <QPalette>
 
 #include "SourceDisplayWidget.h"
+#include "RenderingManager.h"
 
-SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent), s(0)
+SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()), s(0)
 {
 	period = 50;
 }
@@ -37,10 +38,9 @@ void SourceDisplayWidget::paintGL()
 		else
 			glScalef( SOURCE_UNIT * aspectRatio / windowaspectratio, SOURCE_UNIT, 1.f);
 
-//		s->draw();
 
-		// todo : DRAW FBO
-
+		glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
+		s->draw();
 
 		glPopMatrix();
 	}

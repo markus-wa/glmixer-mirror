@@ -17,7 +17,6 @@ public:
     typedef enum {NONE = 0, OVER, GRAB, SELECT } actionType;
 
 	MixerView();
-	virtual ~MixerView();
 
     virtual void paint();
     virtual void reset();

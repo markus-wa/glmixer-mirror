@@ -11,30 +11,23 @@
 #define DEFAULT_WIDTH 1024
 #define DEFAULT_HEIGHT 768
 
-#include <QWidget>
+#include <QObject>
 #include <QGLFramebufferObject>
 
-
+#include "ViewRenderWidget.h"
 #include "SourceSet.h"
 
 class VideoFile;
-class RenderWidget;
 
 class RenderingManager: public QObject {
 
-Q_OBJECT
-
-	friend class RenderWidget;
-	friend class Source;
-	friend class MixerView;
-	friend class GeometryView;
-	friend class OutputRenderWindow;
+	Q_OBJECT
 
 public:
 	/**
 	 * singleton mechanism
 	 */
-	static QGLWidget *getQGLWidget();
+	static ViewRenderWidget *getRenderingWidget();
 	static RenderingManager *getInstance();
 
 	/**
@@ -66,29 +59,17 @@ public:
 	}
 
 	/**
-	 * management of the manipulation views
-	 */
-	typedef enum {NONE = 0, MIXING=1, GEOMETRY=2, DEPTH=3 } viewMode;
-	void setViewMode(viewMode mode);
-	QPixmap getViewIcon();
-
-	/**
 	 * management of the rendering
 	 */
 	void setFrameBufferResolution(int width, int height);
 	void bindFrameBuffer();
 	void releaseFrameBuffer();
 	GLuint getFrameBufferTexture();
+	GLuint getFrameBufferHandle();
 	float getFrameBufferAspectRatio();
 	int getFrameBufferWidth();
 	int getFrameBufferHeight();
 
-
-public slots:
-	void zoomIn();
-	void zoomOut();
-	void zoomReset();
-	void zoomBestFit();
 
 signals:
 	void currentSourceChanged(SourceSet::iterator csi);
@@ -99,19 +80,12 @@ private:
 	static RenderingManager *_instance;
 
 protected:
-	RenderWidget *_renderwidget;
+	ViewRenderWidget *_renderwidget;
 	QGLFramebufferObject *_fbo;
 
 	// the set of sources
 	SourceSet _sources;
 	SourceSet::iterator currentSource;
-
-	// all the display lists
-	static GLuint border_thin_shadow, border_large_shadow;
-	static GLuint border_thin, border_large, border_scale;
-	static GLuint frame_selection, frame_screen;
-	static GLuint quad_texured, quad_half_textured, quad_black;
-	static GLuint circle_mixing;
 
 };
 

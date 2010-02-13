@@ -9,24 +9,24 @@
 
 #include "common.h"
 #include "glRenderWidget.moc"
-#include "Source.h"
 
 
+bool glRenderWidget::showFps_ = false;
 
 QStringList glRenderWidget::listofextensions;
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
-: QGLWidget(QGLFormat(QGL::AlphaChannel), parent, shareWidget, f), timer(-1), period(16)
+: QGLWidget(QGLFormat(QGL::AlphaChannel), parent, shareWidget, f), aspectRatio(1.0), timer(-1), period(16)
 
 {
 	if (!format().depth())
-	  qWarning("Could not get depth buffer; results will be suboptimal");
+	  qCritical("Could not get depth buffer; cannot perform OpenGL rendering.");
 	if (!format().rgba())
-	  qWarning("Could not set rgba buffer; results will be suboptimal");
+	  qCritical("Could not set rgba buffer; cannot perform OpenGL rendering.");
 	if (!format().directRendering())
-	  qWarning("Could not set direct rendering; results will be suboptimal");
+	  qWarning("Could not set direct rendering; rendering will be slow.");
 	if (!format().doubleBuffer())
-	  qWarning("Could not set double buffering; results will be suboptimal");
+	  qWarning("Could not set double buffering; rendering will be slow.");
 
 	if (listofextensions.isEmpty()) {
 	  makeCurrent();
@@ -35,9 +35,9 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 	}
 
 	fpsTime_.start();
-	fpsCounter_		= 0;
+	fpsCounter_	= 0;
 	f_p_s_		= 0.0;
-	fpsString_		= tr("%1Hz", "Frames per seconds, in Hertz").arg("?");
+	fpsString_	= tr("%1Hz", "Frames per seconds, in Hertz").arg("?");
 
 	update();
 }
@@ -70,7 +70,6 @@ void glRenderWidget::initializeGL()
 
     // Blending Function For transparency Based On Source Alpha Value
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // ANTIALIASING
     glEnable(GL_LINE_SMOOTH);
@@ -85,19 +84,18 @@ void glRenderWidget::initializeGL()
 void glRenderWidget::setBackgroundColor(const QColor &c){
 
     makeCurrent();
-
-    //glClearColor( CLAMP(r, 0.0, 1.0), CLAMP(g, 0.0, 1.0), CLAMP(b, 0.0, 1.0), 1.0 );
     qglClearColor(c);
 }
 
 void glRenderWidget::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
+	aspectRatio = (float) w / (float) h;
 
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
+    gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
 
     glMatrixMode(GL_MODELVIEW);
 	
@@ -111,15 +109,17 @@ void glRenderWidget::paintGL()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-	// FPS computation
-	if (++fpsCounter_ == 20)
-	{
-		f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
-		fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
-		fpsCounter_ = 0;
-	}
+	if (showFps_) {
+		// FPS computation
+		if (++fpsCounter_ == 20)
+		{
+			f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
+			fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
+			fpsCounter_ = 0;
+		}
 
-	displayFPS();
+		displayFPS();
+	} 
 }
 
 

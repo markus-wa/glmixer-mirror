@@ -1241,7 +1241,7 @@ void VideoFile::PacketQueue::flush() {
     mutex->unlock();
 
     if (!put(flush_pkt)) {
-        qWarning("Couldn't queue flush packet.");
+        qWarning("VideoFile::PacketQueue::flush() : Couldn't queue flush packet.");
     }
 
 }

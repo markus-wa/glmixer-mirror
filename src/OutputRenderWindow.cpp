@@ -11,34 +11,38 @@
 #include <QGLFramebufferObject>
 
 
-OutputRenderWindow::OutputRenderWindow() : glRenderWidget(0, RenderingManager::getQGLWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint), 
-	_aspectRatio(1.0), _useAspectRatio(true) {
-
-	if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-		qCritical("Frame Buffer Objects not supported on this graphics hardware; ");
-
-}
-
-
-
-OutputRenderWindow::~OutputRenderWindow() {
-
+extern "C" {
+	extern void glBindFramebufferEXT(GLenum target, GLuint framebuffer);
+	extern void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 }
 
 
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
+bool OutputRenderWidget::blit = false;
 
-OutputRenderWindow *OutputRenderWindow::getInstance() {
+OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
+		useAspectRatio(true){
 
-	if (_instance == 0) {
-		_instance = new OutputRenderWindow;
-	}
+	if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+		qCritical("Frame Buffer Objects not supported on this graphics hardware; ");
 
-	return _instance;
+    if (glSupportsExtension("GL_EXT_framebuffer_blit"))
+    	blit = true;
+    else
+    	qWarning("GL_EXT_framebuffer_blit not supported ; rendering will be sub-optimal.");
 }
 
-void OutputRenderWindow::initializeGL()
-{
+
+float OutputRenderWidget::getAspectRatio(){
+
+	if (useAspectRatio)
+		return RenderingManager::getInstance()->getFrameBufferAspectRatio();
+	else
+		return aspectRatio;
+}
+
+void OutputRenderWidget::initializeGL() {
+
     // Enables smooth color shading
     glShadeModel(GL_FLAT);
 
@@ -54,70 +58,80 @@ void OutputRenderWindow::initializeGL()
     // Turn blending off
     glDisable(GL_BLEND);
 
-    // setup default background color to black
-    glClearColor(0.0, 0.0, 0.0, 1.0f);
-	
+	setBackgroundColor(palette().color(QPalette::Window));
 }
 
-void OutputRenderWindow::resizeGL(int w, int h)
+
+void OutputRenderWidget::paintGL()
 {
-    glViewport(0, 0, w, h);
-	_aspectRatio = (float) w / (float) h;
-
-    // Setup specific projection and view for this window
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-1.0, 1.0, 1.0, -1.0);
-
-    glMatrixMode(GL_MODELVIEW);
-
-	update();
-}
-
-
-void OutputRenderWindow::paintGL() {
-
 	glRenderWidget::paintGL();
-	
-#if QT_VERSION >= 0x040600
-	if (QGLFramebufferObject::hasOpenGLFramebufferBlit () )
+
+	if ( blit )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-		if (_useAspectRatio) {
+	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, RenderingManager::getInstance()->getFrameBufferHandle());
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+
+		if (useAspectRatio) {
 			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
-			if (_aspectRatio < renderingAspectRatio)
-				QGLFramebufferObject::blitFramebuffer ( 0, QRect( QPoint( 0, (height() - (int) ( (float) width() / renderingAspectRatio)) / 2 ), QSize(width(), (int) ( (float) width() / renderingAspectRatio))), 
-				RenderingManager::getInstance()->_fbo, QRect(QPoint(0,0), RenderingManager::getInstance()->_fbo->size() ) ) ;
-	
-			else
-				QGLFramebufferObject::blitFramebuffer ( 0, QRect(QPoint( (width() - (int) ( (float) height() * renderingAspectRatio )) /2,0), QSize((int) ( (float) height() * renderingAspectRatio), height())), 
-				RenderingManager::getInstance()->_fbo, QRect(QPoint(0,0), RenderingManager::getInstance()->_fbo->size() ) ) ;
+			if (aspectRatio < renderingAspectRatio) {
+				int h = int( (float) width() / renderingAspectRatio);
+				glBlitFramebufferEXT(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
+			                         0, (height() - h) / 2, width(),  (height() + h) / 2,
+			                             GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			} else {
+				int w = int( (float) height() * renderingAspectRatio );
+			    glBlitFramebufferEXT(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
+			    		             (width() - w) / 2, 0, (width() + w) / 2, height(),
+			                         GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			}
 		}
 		else
-			QGLFramebufferObject::blitFramebuffer ( 0, QRect(QPoint(0,0), size()), RenderingManager::getInstance()->_fbo, QRect(QPoint(0,0), RenderingManager::getInstance()->_fbo->size() ) ) ;
+			glBlitFramebufferEXT(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
+			                             0, 0, width(), height(),
+			                             GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	}
-	else 
-#endif
+	else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
-
-		if (_useAspectRatio) {
+		if (useAspectRatio) {
 			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
-			if (_aspectRatio < renderingAspectRatio)
-				glScalef(1.f, _aspectRatio / renderingAspectRatio, 1.f);
+			if (aspectRatio < renderingAspectRatio)
+				glScalef(1.f, aspectRatio / renderingAspectRatio, 1.f);
 			else
-				glScalef(renderingAspectRatio / _aspectRatio, 1.f, 1.f);
+				glScalef(renderingAspectRatio / aspectRatio, 1.f, 1.f);
 		}
 
 		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
-		glCallList(RenderingManager::quad_texured);
+		glCallList(ViewRenderWidget::quad_texured);
 	}
-
-
-    displayFPS();
 }
 
+
+
+OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint) {
+
+
+}
+
+OutputRenderWindow *OutputRenderWindow::getInstance() {
+
+	if (_instance == 0) {
+		_instance = new OutputRenderWindow;
+	    Q_CHECK_PTR(_instance);
+	}
+
+	return _instance;
+}
+
+void OutputRenderWindow::initializeGL()
+{
+	OutputRenderWidget::initializeGL();
+
+    // setup default background color to black
+    glClearColor(0.0, 0.0, 0.0, 1.0f);
+}
 
 
 void OutputRenderWindow::setFullScreen(bool on) {
@@ -176,14 +190,25 @@ void OutputRenderWindow::closeEvent(QCloseEvent * event) {
 
 void OutputRenderWindow::useRenderingAspectRatio(bool on) {
 
-	_useAspectRatio = on;
-
+	useAspectRatio = on;
 }
 
-float OutputRenderWindow::getAspectRatio(){
 
-	if (_useAspectRatio)
-		return RenderingManager::getInstance()->getFrameBufferAspectRatio();
-	else
-		return _aspectRatio;
-}
+
+//if (QGLFramebufferObject::hasOpenGLFramebufferBlit () )
+//// use the accelerated GL_EXT_framebuffer_blit if available
+//{
+//	if (_useAspectRatio) {
+//		float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
+//		if (aspectRatio < renderingAspectRatio)
+//			QGLFramebufferObject::blitFramebuffer ( 0, QRect( QPoint( 0, (height() - (int) ( (float) width() / renderingAspectRatio)) / 2 ), QSize(width(), (int) ( (float) width() / renderingAspectRatio))),
+//			RenderingManager::getInstance()->_fbo, QRect(QPoint(0,0), RenderingManager::getInstance()->_fbo->size() ) ) ;
+//
+//		else
+//			QGLFramebufferObject::blitFramebuffer ( 0, QRect(QPoint( (width() - (int) ( (float) height() * renderingAspectRatio )) /2,0), QSize((int) ( (float) height() * renderingAspectRatio), height())),
+//			RenderingManager::getInstance()->_fbo, QRect(QPoint(0,0), RenderingManager::getInstance()->_fbo->size() ) ) ;
+//	}
+//	else
+//		QGLFramebufferObject::blitFramebuffer ( 0, QRect(QPoint(0,0), size()), RenderingManager::getInstance()->_fbo, QRect(QPoint(0,0), RenderingManager::getInstance()->_fbo->size() ) ) ;
+//
+//}

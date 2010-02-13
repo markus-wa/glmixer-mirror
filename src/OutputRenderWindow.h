@@ -10,7 +10,22 @@
 
 #include "glRenderWidget.h"
 
-class OutputRenderWindow : public glRenderWidget {
+class OutputRenderWidget: public glRenderWidget {
+
+public:
+	OutputRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
+
+    virtual void initializeGL();
+    virtual void paintGL();
+
+	float getAspectRatio();
+
+protected:
+    static bool blit;
+	bool useAspectRatio;
+};
+
+class OutputRenderWindow : public OutputRenderWidget {
 
 	Q_OBJECT
 
@@ -18,17 +33,12 @@ public:
 	// get singleton instance
 	static OutputRenderWindow *getInstance();
 
-	// QGLWidget rendering
-	void paintGL();
-	void initializeGL();
-	void resizeGL(int w, int h);
+    virtual void initializeGL();
 
 	// events handling
 	virtual void keyPressEvent(QKeyEvent * event);
 	virtual void mouseDoubleClickEvent(QMouseEvent * event);
 	virtual void closeEvent(QCloseEvent * event);
-
-	float getAspectRatio();
 
 public slots:
 	void useRenderingAspectRatio(bool on);
@@ -42,13 +52,7 @@ signals:
 	 */
 private:
 	OutputRenderWindow();
-	virtual ~OutputRenderWindow();
 	static OutputRenderWindow *_instance;
-
-	float _aspectRatio;
-	bool _useAspectRatio;
-	GLuint quad_texured;
-	
 
 };
 

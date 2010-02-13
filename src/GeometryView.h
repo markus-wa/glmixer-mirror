@@ -18,7 +18,6 @@ public:
     typedef enum {NONE = 0, MOVE, SCALE, ROTATE } actionType;
 
 	GeometryView();
-	virtual ~GeometryView();
 
     virtual void paint();
     virtual void reset();

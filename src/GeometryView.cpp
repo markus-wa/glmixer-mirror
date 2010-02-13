@@ -28,15 +28,10 @@ GeometryView::GeometryView() : View(), quadrant(0), currentAction(NONE)
 }
 
 
-GeometryView::~GeometryView() {
-	// TODO Auto-generated destructor stub
-}
-
-
 void GeometryView::paint()
 {
     // first the black background (as the rendering black clear color) with shadow
-    glCallList(RenderingManager::quad_black);
+    glCallList(ViewRenderWidget::quad_black);
 
     bool first = true;
     // then the icons of the sources (reversed depth order)
@@ -52,13 +47,16 @@ void GeometryView::paint()
 
 		// bind the source texture and update its content
 		(*its)->update();
+
+	    // Blending Function For transparency Based On Source Alpha Value
+	    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         (*its)->draw();
 
         // draw border if active
         if ((*its)->isActive())
-            glCallList(RenderingManager::border_large);
+            glCallList(ViewRenderWidget::border_large);
         else
-            glCallList(RenderingManager::border_thin);
+            glCallList(ViewRenderWidget::border_thin);
 
         glPopMatrix();
 
@@ -66,11 +64,11 @@ void GeometryView::paint()
 		// 2. Render it into FBO
 		//
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
 
 		glViewport(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());
+
 		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
 		glLoadIdentity();
 		gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
 
@@ -108,7 +106,7 @@ void GeometryView::paint()
     }
 
     // last the frame thing
-    glCallList(RenderingManager::frame_screen);
+    glCallList(ViewRenderWidget::frame_screen);
 
 }
 
@@ -131,9 +129,9 @@ void GeometryView::resize(int w, int h)
     glLoadIdentity();
 
     if (w > h)
-         glOrtho(-SOURCE_UNIT* (double) w / (double) h, SOURCE_UNIT*(double) w / (double) h, -SOURCE_UNIT, SOURCE_UNIT, -1.0, 100.0);
+         glOrtho(-SOURCE_UNIT* (double) w / (double) h, SOURCE_UNIT*(double) w / (double) h, -SOURCE_UNIT, SOURCE_UNIT, -50.0, 10.0);
      else
-         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -1.0, 100.0);
+         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -50.0, 10.0);
 
     refreshMatrices();
 }
@@ -144,7 +142,7 @@ void GeometryView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	if (event->buttons() & Qt::MidButton) {
-		RenderingManager::getQGLWidget()->setCursor(Qt::SizeAllCursor);
+		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
 	}
 	// if at least one source icon was clicked (and fill-in the selection of sources under mouse)
 	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
@@ -168,12 +166,12 @@ void GeometryView::mousePressEvent(QMouseEvent *event)
 			if (quadrant > 0) {
 				currentAction = GeometryView::SCALE;
 				if ( quadrant % 2 )
-					RenderingManager::getQGLWidget()->setCursor(Qt::SizeFDiagCursor);
+					RenderingManager::getRenderingWidget()->setCursor(Qt::SizeFDiagCursor);
 				else
-					RenderingManager::getQGLWidget()->setCursor(Qt::SizeBDiagCursor);
+					RenderingManager::getRenderingWidget()->setCursor(Qt::SizeBDiagCursor);
 			} else  {
 				currentAction = GeometryView::MOVE;
-				RenderingManager::getQGLWidget()->setCursor(Qt::ClosedHandCursor);
+				RenderingManager::getRenderingWidget()->setCursor(Qt::ClosedHandCursor);
 			}
     	}
     	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
@@ -241,7 +239,7 @@ void GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 void GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
 
-	RenderingManager::getQGLWidget()->setCursor(Qt::ArrowCursor);
+	RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
 }
 
 void GeometryView::wheelEvent ( QWheelEvent * event ){

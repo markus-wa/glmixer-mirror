@@ -35,6 +35,7 @@ public:
     void setBackgroundColor(const QColor &c);
 
     // OpenGL informations
+	static void showFramerate(bool on) { showFps_ = on; }
     static bool glSupportsExtension(QString extname);
     static void showGlExtensionsInformationDialog(QString iconfile = "");
 
@@ -45,6 +46,8 @@ public slots:
     }
 
 protected:
+
+	float aspectRatio;
     int timer, period;
     static QStringList listofextensions;
 
@@ -53,6 +56,7 @@ protected:
 	unsigned int fpsCounter_;
 	QString fpsString_;
 	float f_p_s_;
+	static bool showFps_;
 };
 
 #endif /* GLRENDERWIDGET_H_ */

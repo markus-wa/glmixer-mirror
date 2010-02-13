@@ -30,7 +30,6 @@ public:
     // OpenGL implementation
     virtual void initializeGL();
     virtual void paintGL();
-    virtual void resizeGL(int w, int h);
 
     void setCamera(int camindex);
 

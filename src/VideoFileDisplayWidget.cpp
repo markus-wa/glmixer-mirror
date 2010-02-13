@@ -103,18 +103,6 @@ void VideoFileDisplayWidget::updateFrame (int i)
 }
 
 
-void VideoFileDisplayWidget::resizeGL(int w, int h)
-{
-    glViewport(0, 0, w, h);
-
-    // Setup specific projection and view for this window
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-1, 1, -1, 1);
-
-    glMatrixMode(GL_MODELVIEW);
-}
-
 void VideoFileDisplayWidget::paintGL()
 {
 	glRenderWidget::paintGL();

@@ -21,6 +21,7 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
     QObject::connect(opencvComboBox, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
 
 	openCVpreview = new OpencvDisplayWidget(this);
+    Q_CHECK_PTR(openCVpreview);
 	openCVpreview->setFixedSize(200, 150);
 	verticalLayout_2->insertWidget(1, openCVpreview);
 

@@ -62,6 +62,8 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
         else
             is = new VideoFile(this);
 
+        Q_CHECK_PTR(is);
+
         // transfer error signal
         QObject::connect(is, SIGNAL(error(QString)), this, SIGNAL(error(QString)));
 

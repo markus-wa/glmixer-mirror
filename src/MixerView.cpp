@@ -23,15 +23,11 @@ MixerView::MixerView() : View(), currentAction(NONE)
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
 }
 
-MixerView::~MixerView() {
-
-}
-
 void MixerView::paint()
 {
 
     // First the circles and other background stuff
-    glCallList(RenderingManager::circle_mixing);
+    glCallList(ViewRenderWidget::circle_mixing);
 
     // and the selection connection lines
     glDisable(GL_TEXTURE_2D);
@@ -57,22 +53,27 @@ void MixerView::paint()
 		glScalef( SOURCE_UNIT * (*its)->getAspectRatio(),  SOURCE_UNIT, 1.f);
 
 		if ((*its)->isActive())
-			glCallList(RenderingManager::border_large_shadow);
+			glCallList(ViewRenderWidget::border_large_shadow);
 		else
-			glCallList(RenderingManager::border_thin_shadow);
+			glCallList(ViewRenderWidget::border_thin_shadow);
 
 		// bind the source texture and update its content
 		(*its)->update();
+
 		// draw surface
 		(*its)->draw();
-		glCallList(RenderingManager::quad_half_textured);
+
+		// draw stippled version of the source on top
+		glCallList(ViewRenderWidget::quad_half_textured);
+
 		glPopMatrix();
 
 
 		//
 		// 2. Render it into FBO
 		//
-		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
+
 		glViewport(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());
 
 		glMatrixMode(GL_PROJECTION);
@@ -118,7 +119,7 @@ void MixerView::paint()
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
         glScalef( SOURCE_UNIT * (*its)->getAspectRatio(), SOURCE_UNIT, 1.f);
-		glCallList(RenderingManager::frame_selection);
+		glCallList(ViewRenderWidget::frame_selection);
         glPopMatrix();
 
     }
@@ -144,9 +145,9 @@ void MixerView::resize(int w, int h)
     glLoadIdentity();
 
     if (w > h)
-         glOrtho(-SOURCE_UNIT* (double) w / (double) h, SOURCE_UNIT*(double) w / (double) h, -SOURCE_UNIT, SOURCE_UNIT, -1.0, 100.0);
+         glOrtho(-SOURCE_UNIT* (double) w / (double) h, SOURCE_UNIT*(double) w / (double) h, -SOURCE_UNIT, SOURCE_UNIT, -50.0, 10.0);
      else
-         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -1.0, 100.0);
+         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -50.0, 10.0);
 
     refreshMatrices();
 }
@@ -159,16 +160,16 @@ void MixerView::setAction(actionType a){
 
 	switch(a) {
 	case OVER:
-		RenderingManager::getQGLWidget()->setCursor(Qt::OpenHandCursor);
+		RenderingManager::getRenderingWidget()->setCursor(Qt::OpenHandCursor);
 		break;
 	case GRAB:
-		RenderingManager::getQGLWidget()->setCursor(Qt::ClosedHandCursor);
+		RenderingManager::getRenderingWidget()->setCursor(Qt::ClosedHandCursor);
 		break;
 	case SELECT:
-		RenderingManager::getQGLWidget()->setCursor(Qt::PointingHandCursor);
+		RenderingManager::getRenderingWidget()->setCursor(Qt::PointingHandCursor);
 		break;
 	default:
-		RenderingManager::getQGLWidget()->setCursor(Qt::ArrowCursor);
+		RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
 	}
 }
 
