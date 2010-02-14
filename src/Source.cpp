@@ -94,6 +94,12 @@ void Source::setAlphaCoordinates(double x, double y, double max) {
 }
 
 
+void Source::resetPositionAndScale() {
+	scalex = SOURCE_UNIT;
+	scaley = SOURCE_UNIT;
+	x = y = 0;
+}
+
 void Source::draw(bool withalpha, GLenum mode) const {
     // set id in select mode, avoid texturing if not rendering.
     if (mode == GL_SELECT)

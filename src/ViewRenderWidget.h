@@ -38,6 +38,7 @@ public:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent ( QMouseEvent * event );
+    void mouseDoubleClickEvent ( QMouseEvent * event );
     void wheelEvent ( QWheelEvent * event );
     void keyPressEvent ( QKeyEvent * event );
     void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); }  // keep updating even if hidden

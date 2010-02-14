@@ -139,6 +139,12 @@ void ViewRenderWidget::mouseReleaseEvent ( QMouseEvent * event ){
 	currentManipulationView->mouseReleaseEvent(event);
 	event->accept();
 }
+void ViewRenderWidget::mouseDoubleClickEvent ( QMouseEvent * event ){
+	makeCurrent();
+	currentManipulationView->mouseDoubleClickEvent(event);
+	event->accept();
+}
+
 void ViewRenderWidget::wheelEvent ( QWheelEvent * event ){
 	makeCurrent();
 	currentManipulationView->wheelEvent(event);

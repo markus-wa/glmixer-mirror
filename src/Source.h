@@ -44,10 +44,6 @@ public:
 	}
 
 	// OpenGL access
-	inline GLuint getFboAttachmentPoint() {
-		return attachmentPoint;
-	}
-
 	inline GLuint getTextureIndex() {
 		return textureIndex;
 	}
@@ -102,6 +98,7 @@ public:
 	}
 	void scaleBy(GLfloat fx, GLfloat fy);
 	void setAlphaCoordinates(GLdouble x, GLdouble y, GLdouble max);
+	void resetPositionAndScale();
 
 
 protected:
@@ -114,7 +111,6 @@ protected:
 	// GL Stuff
 	QGLWidget *glcontext;
 	GLuint textureIndex;
-	GLenum attachmentPoint;
 	GLdouble x, y, z;
 	GLdouble scalex, scaley;
 	GLdouble alphax, alphay;

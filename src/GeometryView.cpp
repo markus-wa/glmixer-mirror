@@ -248,15 +248,24 @@ void GeometryView::wheelEvent ( QWheelEvent * event ){
 
 }
 
-void GeometryView::zoomReset() {setZoom(DEFAULTZOOM); setPanningX(0); setPanningY(0);}
-void GeometryView::zoomBestFit() {}
+
+void GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 
-void GeometryView::keyPressEvent ( QKeyEvent * event ){
+	// for LEFT double button clic : expand the current source to the rendering area
+	if ( (event->buttons() & Qt::LeftButton) && getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
+		if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()){
 
+			(*RenderingManager::getInstance()->getCurrentSource())->resetPositionAndScale();
+		}
+
+	}
 
 }
+
+void GeometryView::zoomReset() {setZoom(DEFAULTZOOM); setPanningX(0); setPanningY(0);}
+void GeometryView::zoomBestFit() {}
 
 
 bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
