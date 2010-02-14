@@ -11,11 +11,13 @@
 #define DEFAULT_WIDTH 1024
 #define DEFAULT_HEIGHT 768
 
-#include <QObject>
-#include <QGLFramebufferObject>
-
+#include "common.h"
 #include "ViewRenderWidget.h"
 #include "SourceSet.h"
+
+#include <QObject>
+
+class QGLFramebufferObject;
 
 class VideoFile;
 

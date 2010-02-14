@@ -7,7 +7,6 @@
 
 #include <QApplication>
 
-#include "glmixer.moc"
 
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
@@ -20,7 +19,9 @@
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
+#include "VideoFileDisplayWidget.h"
 
+#include "glmixer.moc"
 
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), refreshTimingTimer(0)
 {

@@ -16,6 +16,7 @@
 #endif
 
 #include <algorithm>
+#include <QGLFramebufferObject>
 
 
 // static members
@@ -118,6 +119,11 @@ void RenderingManager::updatePreviousFrame(){
 	if (RenderingManager::blit)
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
+#if QT_VERSION >= 0x040600
+
+		QGLFramebufferObject::blitFramebuffer ( previousframe_fbo, QRect(QPoint(0,previousframe_fbo->height()), QPoint(previousframe_fbo->width(),0)), _fbo, QRect(QPoint(0,0), _fbo->size() ) ) ;
+
+#else
 	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, _fbo->handle());
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
 
@@ -126,7 +132,7 @@ void RenderingManager::updatePreviousFrame(){
 							GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	    glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
-
+#endif
 	}
 	else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
@@ -245,7 +251,12 @@ void RenderingManager::addCaptureSource(){
 	// create the texture from the capture
 	if (capture.isNull())
 		capture = _fbo->toImage();
+		
+#if QT_VERSION >= 0x040600
+	GLuint textureIndex = _renderwidget->bindTexture (capture, GL_TEXTURE_2D, GL_RGBA, QGLContext::LinearFilteringBindOption | QGLContext::MipmapBindOption);
+#else
 	GLuint textureIndex = _renderwidget->bindTexture (capture);
+#endif
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;

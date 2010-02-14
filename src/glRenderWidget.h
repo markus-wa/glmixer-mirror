@@ -8,9 +8,8 @@
 #ifndef GLRENDERWIDGET_H_
 #define GLRENDERWIDGET_H_
 
-
+#include "common.h"
 #include <QStringList>
-#include <QtOpenGL>
 
 class glRenderWidget  : public QGLWidget
 {

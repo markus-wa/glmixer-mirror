@@ -8,6 +8,7 @@
 #include <QPalette>
 
 #include "SourceDisplayWidget.h"
+#include "Source.h"
 #include "RenderingManager.h"
 
 SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()), s(0)

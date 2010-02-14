@@ -3,6 +3,8 @@
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
 #include <QString>
+
+#include "common.h"
 #include "glmixer.h"
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"

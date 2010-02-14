@@ -22,25 +22,36 @@
 // #include <tchar.h>
 // #endif
 
-//#if defined(__WIN32__)
-//#include <GL/gl.h>
-//#include <GL/glu.h>
-//#include <GL/glext.h>
-//#endif
 
-#include <QGLWidget>
+#if defined(__WIN32__)
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+#endif
+
+#if QT_VERSION < 0x040600
+
+#ifndef GL_EXT_framebuffer_blit
+#define GL_READ_FRAMEBUFFER_EXT           0x8CA8
+#define GL_DRAW_FRAMEBUFFER_EXT           0x8CA9
+#define GL_DRAW_FRAMEBUFFER_BINDING_EXT   GL_FRAMEBUFFER_BINDING_EXT
+#define GL_READ_FRAMEBUFFER_BINDING_EXT   0x8CAA
 
 extern "C" {
 	extern void glBindFramebufferEXT(GLenum target, GLuint framebuffer);
 	extern void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 }
+#endif
 
+#endif
+
+#include <QtOpenGL>
 
 #define SOURCE_UNIT 1000.0
 #define CIRCLE_SIZE 7.0
 #define SELECTBUFSIZE 64
 #define MIN_DEPTH_LAYER 0.0
-#define MAX_DEPTH_LAYER -15.0
+#define MAX_DEPTH_LAYER 150.0
 #define MIN_SCALE 0.31
 #define MAX_SCALE 5.0
 

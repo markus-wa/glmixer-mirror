@@ -8,7 +8,6 @@
 #ifndef SOURCE_H_
 #define SOURCE_H_
 
-#include <QtOpenGL>
 #include <QDomElement>
 
 #include "common.h"

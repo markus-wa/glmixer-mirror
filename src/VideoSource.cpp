@@ -7,6 +7,7 @@
 
 #include "VideoSource.moc"
 
+#include "VideoFile.h"
 #include "RenderingManager.h"
 
 

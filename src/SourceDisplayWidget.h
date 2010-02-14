@@ -9,7 +9,8 @@
 #define SOURCEDISPLAYWIDGET_H_
 
 #include "glRenderWidget.h"
-#include "Source.h"
+
+class Source;
 
 class SourceDisplayWidget: public glRenderWidget {
 

@@ -8,9 +8,12 @@
 #ifndef VIDEOSOURCE_H_
 #define VIDEOSOURCE_H_
 
-#include <QtOpenGL>
-#include "VideoFile.h"
+#include <QObject>
+
+#include "common.h"
 #include "Source.h"
+
+class VideoFile;
 
 class VideoSource : public QObject, public Source {
 

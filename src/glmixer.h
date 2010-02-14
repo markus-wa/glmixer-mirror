@@ -10,9 +10,8 @@
 
 #include "ui_glmixer.h"
 
-#include "VideoFileDisplayWidget.h"
-#include "RenderingManager.h"
 #include "VideoFile.h"
+#include "SourceSet.h"
 
 /**
     @author Bruno Herbelin <bruno.herbelin@gmail.com>
