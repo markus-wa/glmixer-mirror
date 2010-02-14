@@ -8,10 +8,8 @@
 #include "RenderingManager.moc"
 
 #include "common.h"
-//#include "glRenderWidget.h"
-//#include "View.h"
-//#include "MixerView.h"
-//#include "GeometryView.h"
+
+#include "RenderingSource.h"
 #include "VideoSource.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
@@ -22,8 +20,7 @@
 
 // static members
 RenderingManager *RenderingManager::_instance = 0;
-
-
+bool RenderingManager::blit = false;
 
 
 ViewRenderWidget *RenderingManager::getRenderingWidget() {
@@ -34,6 +31,15 @@ ViewRenderWidget *RenderingManager::getRenderingWidget() {
 RenderingManager *RenderingManager::getInstance() {
 
 	if (_instance == 0){
+
+		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+			qCritical("*** ERROR ***\n\nOpenGL Frame Buffer Objects are not supported on this graphics hardware; the program cannot operate properly.\n\nExiting...");
+
+	    if (glRenderWidget::glSupportsExtension("GL_EXT_framebuffer_blit"))
+	    	RenderingManager::blit = true;
+	    else
+	    	qWarning("** WARNING **\n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware.\n\nRendering speed be sub-optimal but all should work properly.");
+
 		_instance = new RenderingManager;
 	    Q_CHECK_PTR(_instance);
 	}
@@ -43,7 +49,7 @@ RenderingManager *RenderingManager::getInstance() {
 
 
 RenderingManager::RenderingManager() :
-	QObject(), _fbo(NULL) {
+	QObject(), _fbo(NULL), previousframe_fbo(NULL), countRenderingSource(0) {
 
 	_renderwidget = new ViewRenderWidget;
     Q_CHECK_PTR(_renderwidget);
@@ -67,16 +73,13 @@ RenderingManager::~RenderingManager() {
 
 void RenderingManager::setFrameBufferResolution(int width, int height){
 
-	if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-		qCritical("Frame Buffer Objects not supported on this graphics hardware");
-	else {
-		if (_fbo)
-			delete _fbo;
+	if (_fbo)
+		delete _fbo;
 
-		_renderwidget->makeCurrent();
-		_fbo = new QGLFramebufferObject(width,height);
-	    Q_CHECK_PTR(_fbo);
-	}
+	_renderwidget->makeCurrent();
+	_fbo = new QGLFramebufferObject(width,height);
+	Q_CHECK_PTR(_fbo);
+
 }
 
 float RenderingManager::getFrameBufferAspectRatio(){
@@ -85,12 +88,6 @@ float RenderingManager::getFrameBufferAspectRatio(){
 }
 
 
-void RenderingManager::bindFrameBuffer(){
-	_fbo->bind();
-}
-void RenderingManager::releaseFrameBuffer(){
-	_fbo->release();
-}
 GLuint RenderingManager::getFrameBufferTexture(){
 	return _fbo->texture();
 }
@@ -104,11 +101,136 @@ int RenderingManager::getFrameBufferHeight(){
 	return _fbo->height();
 }
 
+
+void RenderingManager::updatePreviousFrame(){
+
+	if ( !previousframe_fbo )
+		return;
+
+	if (RenderingManager::blit)
+	// use the accelerated GL_EXT_framebuffer_blit if available
+	{
+	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, _fbo->handle());
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
+
+		glBlitFramebufferEXT(0, _fbo->height(), _fbo->width(), 0,
+							0, 0, previousframe_fbo->width(), previousframe_fbo->height(),
+							GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	    glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+
+	}
+	else
+	// 	Draw quad with fbo texture in a more basic OpenGL way
+	{
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
+
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
+	    glColor4f(1.0, 1.0, 1.0, 1.0);
+
+		// render to the frame buffer object
+		previousframe_fbo->bind();
+		glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+
+		glCallList(ViewRenderWidget::quad_texured);
+		previousframe_fbo->release();
+
+		// pop the projection matrix and GL state back for rendering the current view
+		// to the actual widget
+		glPopAttrib();
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
+
+}
+
+void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource, bool clearfirst){
+
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	glViewport(0, 0, _fbo->width(), _fbo->height());
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	// render to the frame buffer object
+	_fbo->bind();
+	{
+		if (clearfirst) {
+		    glClearColor(0.0, 0.0, 0.0, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
+
+	    // Blending Function For transparency Based On Source Alpha Value
+	    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+		glTranslated((*itsource)->getX(), (*itsource)->getY(), 0.0);
+		glScaled((*itsource)->getScaleX(), (*itsource)->getScaleY(), 1.f);
+
+        (*itsource)->draw();
+	}
+	_fbo->release();
+
+	// pop the projection matrix and GL state back for rendering the current view
+	// to the actual widget
+	glPopAttrib();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+}
+
+void RenderingManager::addSource() {
+
+	// create the previous frame (frame buffer object) if needed
+	if (!previousframe_fbo) {
+		previousframe_fbo = new QGLFramebufferObject(_fbo->width(),_fbo->height());
+	}
+
+	// place it forward
+	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
+
+	// create a source appropriate for this videofile
+	RenderingSource *s = new RenderingSource(previousframe_fbo->texture(), d);
+    Q_CHECK_PTR(s);
+
+	// set the last created source to be current
+	setCurrentSource(_sources.insert((Source *) s));
+}
+
 void RenderingManager::addSource(VideoFile *vf) {
 
+	// create the texture for this source
+	GLuint textureIndex;
+	_renderwidget->makeCurrent();
+	glGenTextures(1, &textureIndex);
+	glBindTexture(GL_TEXTURE_2D, textureIndex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
+
 	// create a source appropriate for this videofile
-	VideoSource *s = new VideoSource(vf, (QGLWidget *) _renderwidget, d);
+	VideoSource *s = new VideoSource(vf, textureIndex, d);
     Q_CHECK_PTR(s);
 	// ensure we display first frame (not done automatically by signal as it should...)
 	s->updateFrame(-1);
@@ -120,8 +242,19 @@ void RenderingManager::addSource(VideoFile *vf) {
 #ifdef OPEN_CV
 void RenderingManager::addSource(int opencvIndex) {
 
+	// create the texture for this source
+	GLuint textureIndex;
+	_renderwidget->makeCurrent();
+	glGenTextures(1, &textureIndex);
+	glBindTexture(GL_TEXTURE_2D, textureIndex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
-	OpencvSource *s = new OpencvSource(opencvIndex, (QGLWidget *) _renderwidget, d);
+
+	// create the OpenCV source
+	OpencvSource *s = new OpencvSource(opencvIndex, textureIndex, d);
     Q_CHECK_PTR(s);
 
 	// set the last created source to be current
@@ -136,6 +269,12 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 		_sources.erase(itsource);
 	}
 
+	// TODO : disable update of previous frame if all the RenderingSources are deleted
+	if (countRenderingSource <= 0){
+		if (previousframe_fbo)
+			delete previousframe_fbo;
+		previousframe_fbo = 0;
+	}
 }
 
 void RenderingManager::clearSourceSet() {

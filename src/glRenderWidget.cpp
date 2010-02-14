@@ -20,13 +20,13 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 
 {
 	if (!format().depth())
-	  qCritical("Could not get depth buffer; cannot perform OpenGL rendering.");
+	  qCritical("*** ERROR ***\n\nOpenGL Could not get depth buffer; cannot perform OpenGL rendering.");
 	if (!format().rgba())
-	  qCritical("Could not set rgba buffer; cannot perform OpenGL rendering.");
+	  qCritical("*** ERROR ***\n\nOpenGL Could not set RGBA buffer; cannot perform OpenGL rendering.");
 	if (!format().directRendering())
-	  qWarning("Could not set direct rendering; rendering will be slow.");
+	  qWarning("** WARNING **\n\nOpenGL Could not set direct rendering; rendering will be slow.");
 	if (!format().doubleBuffer())
-	  qWarning("Could not set double buffering; rendering will be slow.");
+	  qWarning("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
 
 	if (listofextensions.isEmpty()) {
 	  makeCurrent();

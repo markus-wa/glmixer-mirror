@@ -444,6 +444,15 @@ void GLMixer::on_actionCamera_activated()
 
 }
 
+
+void GLMixer::on_actionRenderingSource_activated(){
+
+	// TODO popup a question dialog 'are u sure'
+
+	RenderingManager::getInstance()->addSource();
+	statusbar->showMessage( tr("Source created with the rendering output content.") );
+}
+
 void GLMixer::on_actionShow_frames_toggled(bool on){
 
 	if (selectedSourceVideoFile) {

@@ -63,51 +63,15 @@ void GeometryView::paint()
 		//
 		// 2. Render it into FBO
 		//
-		glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-		glViewport(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());
-
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
-
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-
-		// render to the framebuffer object
-		RenderingManager::getInstance()->bindFrameBuffer();
-		{
-			if (first) {
-			    glClearColor(0.0, 0.0, 0.0, 1.0f);
-				glClear(GL_COLOR_BUFFER_BIT);
-				first = false;
-			}
-
-		    // Blending Function For transparency Based On Source Alpha Value
-		    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-			glTranslated((*its)->getX(), (*its)->getY(), 0.0);
-			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
-
-	        (*its)->draw();
-		}
-		RenderingManager::getInstance()->releaseFrameBuffer();
-
-		// pop the projection matrix and GL state back for rendering the current view
-		// to the actual widget
-		glPopAttrib();
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
+        RenderingManager::getInstance()->renderToFrameBuffer(its, first);
+        first = false;
 
     }
 
     // last the frame thing
     glCallList(ViewRenderWidget::frame_screen);
 
+    RenderingManager::getInstance()->updatePreviousFrame();
 }
 
 

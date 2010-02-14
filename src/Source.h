@@ -17,7 +17,7 @@ class Source {
 
 public:
 
-	Source(QGLWidget *context, double depth);
+	Source(GLuint texture, double depth);
 	//    Source(Source *clone, double newdepth = MIN_DEPTH_LAYER);
 	virtual ~Source();
 
@@ -109,7 +109,6 @@ protected:
 	bool active;
 
 	// GL Stuff
-	QGLWidget *glcontext;
 	GLuint textureIndex;
 	GLdouble x, y, z;
 	GLdouble scalex, scaley;

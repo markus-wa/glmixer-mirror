@@ -22,11 +22,18 @@
 // #include <tchar.h>
 // #endif
 
-#if defined(__WIN32__)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
-#endif
+//#if defined(__WIN32__)
+//#include <GL/gl.h>
+//#include <GL/glu.h>
+//#include <GL/glext.h>
+//#endif
+
+#include <QGLWidget>
+
+extern "C" {
+	extern void glBindFramebufferEXT(GLenum target, GLuint framebuffer);
+	extern void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+}
 
 
 #define SOURCE_UNIT 1000.0

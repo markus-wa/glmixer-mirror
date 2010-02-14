@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     a.setApplicationName("GLMixer");
 
     if (!QGLFormat::hasOpenGL() )
-    	qCritical("This system does not support OpenGL and this program cannot work without it.");
+    	qCritical("*** ERROR ***\n\nThis system does not support OpenGL and this program cannot work without it.");
 
 	// 1. The rendering Manager
     RenderingManager *mrw = RenderingManager::getInstance();

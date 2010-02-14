@@ -10,7 +10,7 @@
 #include "RenderingManager.h"
 
 
-VideoSource::VideoSource(VideoFile *f, QGLWidget *context, double d) : QObject(), Source(context, d),
+VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), Source(texture, d),
 		is(f),  bufferChanged(true)
 {
 
@@ -21,6 +21,7 @@ VideoSource::VideoSource(VideoFile *f, QGLWidget *context, double d) : QObject()
     }
     // TODO : else through exception
 
+    resetPositionAndScale();
 }
 
 VideoSource::~VideoSource() {
@@ -31,7 +32,7 @@ VideoSource::~VideoSource() {
 
 
 
-// only MixRenderWidget can call this
+// only Rendering Manager can call this
 void VideoSource::update(){
 
 	glBindTexture(GL_TEXTURE_2D, textureIndex);

@@ -8,30 +8,17 @@
  
 #include "Source.h"
 #include "ViewRenderWidget.h"
+#include "OutputRenderWindow.h"
 
 GLuint Source::lastid = 1;
 
-Source::Source(QGLWidget *context, double depth) :
-	glcontext(context), x(0.0), y(0.0), z(depth), alphax(0.0), alphay(0.0),
-			texalpha(1.0), texcolor(1.0) {
+Source::Source(GLuint texture, double depth) :
+		textureIndex(texture), x(0.0), y(0.0), z(depth), scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
+			aspectratio(1.0), texalpha(1.0), texcolor(1.0) {
+
 	// give it a unique identifying name
 	// TODO CHANGE the way ids are used
 	id = lastid++;
-
-	// TODO read aspect ratio from image in VideoFile
-	aspectratio = 1.0;
-	scalex = aspectratio * SOURCE_UNIT;
-	scaley = SOURCE_UNIT;
-
-	if (!context)
-		// TODO : through exception
-		return;
-	glcontext->makeCurrent();
-
-	glGenTextures(1, &textureIndex);
-	glBindTexture(GL_TEXTURE_2D, textureIndex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// set attributes and children
 	dom.setAttribute("id", id);
@@ -86,7 +73,7 @@ void Source::setAlphaCoordinates(double x, double y, double max) {
 
 	// Compute distance to the center
 	double d = ((x * x) + (y * y)) / (SOURCE_UNIT * SOURCE_UNIT * max * max); // QUADRATIC
-	// adjust alpha acording to distance to center
+	// adjust alpha according to distance to center
 	if (d < 1.0)
 		texalpha = 1.0 - d;
 	else
@@ -97,6 +84,13 @@ void Source::setAlphaCoordinates(double x, double y, double max) {
 void Source::resetPositionAndScale() {
 	scalex = SOURCE_UNIT;
 	scaley = SOURCE_UNIT;
+
+	float renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+	if (aspectratio < renderingAspectRatio)
+		scalex *= aspectratio / renderingAspectRatio;
+	else
+		scaley *= renderingAspectRatio / aspectratio;
+
 	x = y = 0;
 }
 

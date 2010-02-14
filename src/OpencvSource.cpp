@@ -48,7 +48,7 @@ void CameraThread::run(){
 	}
 }
 
-OpencvSource::OpencvSource(int opencvIndex, QGLWidget *context, double d) : Source(context, d), frameChanged(false), framerate(0.0)
+OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(texture, d), frameChanged(false), framerate(0.0)
 {
 
 	opencvCameraIndex = opencvIndex;
@@ -61,6 +61,8 @@ OpencvSource::OpencvSource(int opencvIndex, QGLWidget *context, double d) : Sour
 	width = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
 	height = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
 	aspectratio = (float)width / (float)height;
+
+	resetPositionAndScale();
 
 	// create thread
 	mutex = new QMutex;

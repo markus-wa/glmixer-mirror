@@ -23,6 +23,9 @@ class RenderingManager: public QObject {
 
 	Q_OBJECT
 
+	friend class RenderingSource;
+	friend class OutputRenderWidget;
+
 public:
 	/**
 	 * singleton mechanism
@@ -33,6 +36,7 @@ public:
 	/**
 	* Management of the sources
 	**/
+	void addSource();
 	void addSource(VideoFile *vf);
 #ifdef OPEN_CV
 	void addSource(int opencvIndex);
@@ -62,13 +66,13 @@ public:
 	 * management of the rendering
 	 */
 	void setFrameBufferResolution(int width, int height);
-	void bindFrameBuffer();
-	void releaseFrameBuffer();
+	void renderToFrameBuffer(SourceSet::iterator itsource, bool clearfirst);
 	GLuint getFrameBufferTexture();
 	GLuint getFrameBufferHandle();
 	float getFrameBufferAspectRatio();
 	int getFrameBufferWidth();
 	int getFrameBufferHeight();
+	void updatePreviousFrame();
 
 
 signals:
@@ -82,6 +86,9 @@ private:
 protected:
 	ViewRenderWidget *_renderwidget;
 	QGLFramebufferObject *_fbo;
+	QGLFramebufferObject *previousframe_fbo;
+	int countRenderingSource;
+    static bool blit;
 
 	// the set of sources
 	SourceSet _sources;

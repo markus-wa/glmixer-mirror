@@ -21,7 +21,6 @@ public:
 	float getAspectRatio();
 
 protected:
-    static bool blit;
 	bool useAspectRatio;
 };
 

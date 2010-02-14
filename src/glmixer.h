@@ -33,6 +33,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
     // menu and actions
 		void on_actionOpen_activated();
 		void on_actionCamera_activated();
+		void on_actionRenderingSource_activated();
         void on_actionFormats_and_Codecs_activated();
         void on_actionOpenGL_extensions_activated();
         void on_markInSlider_sliderReleased ();

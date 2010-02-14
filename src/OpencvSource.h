@@ -41,7 +41,7 @@ public slots:
 
 protected:
     // only MainRenderWidget can create a source (need its GL context)
-	OpencvSource(int opencvIndex, QGLWidget *context, double d);
+	OpencvSource(int opencvIndex, GLuint texture, double d);
 	virtual ~OpencvSource();
 
 	void update();

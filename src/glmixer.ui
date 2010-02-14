@@ -1182,7 +1182,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>0</y>
           <width>207</width>
-          <height>106</height>
+          <height>170</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1292,7 +1292,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
           <x>0</x>
           <y>0</y>
           <width>207</width>
-          <height>88</height>
+          <height>170</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1346,7 +1346,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <addaction name="actionFullscreen"/>
      <addaction name="actionKeep_aspect_ratio"/>
      <addaction name="actionShowFPS"/>
-     <addaction name="actionConfigure_Render"/>
+     <addaction name="actionRenderingSource"/>
     </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
@@ -1402,6 +1402,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </attribute>
    <addaction name="actionOpen"/>
    <addaction name="actionCamera"/>
+   <addaction name="actionRenderingSource"/>
    <addaction name="separator"/>
    <addaction name="actionNew_Session"/>
    <addaction name="actionLoad_Session"/>
@@ -1629,9 +1630,13 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <string>Ctrl+D</string>
    </property>
   </action>
-  <action name="actionConfigure_Render">
+  <action name="actionRenderingSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
+   </property>
    <property name="text">
-    <string>Configure</string>
+    <string>Insert as source</string>
    </property>
   </action>
   <action name="actionSource_Preview">

@@ -5,31 +5,19 @@
  *      Author: bh
  */
 
+#include "common.h"
 #include "OutputRenderWindow.moc"
 #include "RenderingManager.h"
 
 #include <QGLFramebufferObject>
 
 
-extern "C" {
-	extern void glBindFramebufferEXT(GLenum target, GLuint framebuffer);
-	extern void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-}
-
 
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
-bool OutputRenderWidget::blit = false;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
 		useAspectRatio(true){
 
-	if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-		qCritical("Frame Buffer Objects not supported on this graphics hardware; ");
-
-    if (glSupportsExtension("GL_EXT_framebuffer_blit"))
-    	blit = true;
-    else
-    	qWarning("GL_EXT_framebuffer_blit not supported ; rendering will be sub-optimal.");
 }
 
 
@@ -66,7 +54,7 @@ void OutputRenderWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
-	if ( blit )
+	if ( RenderingManager::blit )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, RenderingManager::getInstance()->getFrameBufferHandle());
