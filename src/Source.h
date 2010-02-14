@@ -21,7 +21,9 @@ public:
 	//    Source(Source *clone, double newdepth = MIN_DEPTH_LAYER);
 	virtual ~Source();
 
-	virtual void update(){ };
+	virtual void update() {
+    	glBindTexture(GL_TEXTURE_2D, textureIndex);
+    }
 
 	bool operator==(Source s2){
 		return ( id == s2.id );
@@ -76,6 +78,9 @@ public:
 	}
 
 	// sets
+	inline void setAspectRatio(GLdouble ar) {
+		aspectratio = ar;
+	}
 	inline void setX(GLdouble v) {
 		x = v;
 	}
@@ -98,7 +103,7 @@ public:
 	}
 	void scaleBy(GLfloat fx, GLfloat fy);
 	void setAlphaCoordinates(GLdouble x, GLdouble y, GLdouble max);
-	void resetPositionAndScale();
+	void resetScale();
 
 
 protected:

@@ -1317,8 +1317,9 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionOpen"/>
-    <addaction name="actionCamera"/>
+    <addaction name="actionNew_Session"/>
+    <addaction name="actionLoad_Session"/>
+    <addaction name="actionSave_Session"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -1337,7 +1338,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
     </widget>
     <widget class="QMenu" name="menuRendering_Window">
      <property name="title">
-      <string>Rendering Window</string>
+      <string>Output Window</string>
      </property>
      <property name="icon">
       <iconset resource="../icons.qrc">
@@ -1346,7 +1347,6 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <addaction name="actionFullscreen"/>
      <addaction name="actionKeep_aspect_ratio"/>
      <addaction name="actionShowFPS"/>
-     <addaction name="actionRenderingSource"/>
     </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
@@ -1363,6 +1363,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <addaction name="menuZoom"/>
     <addaction name="separator"/>
     <addaction name="menuRendering_Window"/>
+    <addaction name="actionCapture"/>
+    <addaction name="actionSaveCapture"/>
     <addaction name="separator"/>
     <addaction name="menuTool_Bar"/>
     <addaction name="actionShow_frames"/>
@@ -1379,11 +1381,12 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
-     <string>&amp;Session</string>
+     <string>&amp;Sources</string>
     </property>
-    <addaction name="actionNew_Session"/>
-    <addaction name="actionLoad_Session"/>
-    <addaction name="actionSave_Session"/>
+    <addaction name="actionMediaSource"/>
+    <addaction name="actionCameraSource"/>
+    <addaction name="actionRenderingSource"/>
+    <addaction name="actionCaptureSource"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSession"/>
@@ -1400,9 +1403,10 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionOpen"/>
-   <addaction name="actionCamera"/>
+   <addaction name="actionMediaSource"/>
+   <addaction name="actionCameraSource"/>
    <addaction name="actionRenderingSource"/>
+   <addaction name="actionCaptureSource"/>
    <addaction name="separator"/>
    <addaction name="actionNew_Session"/>
    <addaction name="actionLoad_Session"/>
@@ -1422,16 +1426,19 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <addaction name="actionGeometryView"/>
    <addaction name="actionDepthView"/>
   </widget>
-  <action name="actionOpen">
+  <action name="actionMediaSource">
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Open Files</string>
+    <string>Add sources from &amp;Media Files</string>
+   </property>
+   <property name="toolTip">
+    <string>Open multiple media Files and create a new sources for each</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+O</string>
+    <string>Ctrl+M</string>
    </property>
   </action>
   <action name="actionQuit">
@@ -1554,6 +1561,9 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <property name="text">
     <string>Mixing view</string>
    </property>
+   <property name="toolTip">
+    <string>Switch to mixing view</string>
+   </property>
    <property name="shortcut">
     <string>F1</string>
    </property>
@@ -1565,6 +1575,9 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
    <property name="text">
     <string>Geometry view</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch to geometry view</string>
    </property>
    <property name="shortcut">
     <string>F2</string>
@@ -1578,6 +1591,9 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <property name="text">
     <string>Depth view</string>
    </property>
+   <property name="toolTip">
+    <string>Switch to depth view</string>
+   </property>
    <property name="shortcut">
     <string>F3</string>
    </property>
@@ -1590,8 +1606,11 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <property name="text">
     <string>&amp;New Session</string>
    </property>
+   <property name="toolTip">
+    <string>Start a new Session</string>
+   </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+N</string>
+    <string>Ctrl+N</string>
    </property>
   </action>
   <action name="actionLoad_Session">
@@ -1602,8 +1621,11 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <property name="text">
     <string>Load Session</string>
    </property>
+   <property name="toolTip">
+    <string>Load a session</string>
+   </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+L</string>
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="actionSave_Session">
@@ -1614,17 +1636,23 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <property name="text">
     <string>Save Session</string>
    </property>
+   <property name="toolTip">
+    <string>Save current session</string>
+   </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
+    <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionCamera">
+  <action name="actionCameraSource">
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/camera.png</normaloff>:/glmixer/icons/camera.png</iconset>
    </property>
    <property name="text">
-    <string>Open &amp;Device (camera)</string>
+    <string>Add source from &amp;Device (camera)</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a camera device and create a live source</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
@@ -1633,10 +1661,16 @@ Uncheck to have frames continuously following the slider when moved.</string>
   <action name="actionRenderingSource">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
+     <normaloff>:/glmixer/icons/display-source.png</normaloff>:/glmixer/icons/display-source.png</iconset>
    </property>
    <property name="text">
-    <string>Insert as source</string>
+    <string>Add loopback from &amp;Rendering</string>
+   </property>
+   <property name="toolTip">
+    <string>Insert rendering window as a source</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
   <action name="actionSource_Preview">
@@ -1725,6 +1759,42 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <string>Ctrl+Shift+F</string>
    </property>
   </action>
+  <action name="actionCapture">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/photo.png</normaloff>:/glmixer/icons/photo.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Capture output</string>
+   </property>
+   <property name="toolTip">
+    <string>Take a screenshot of the current rendering.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionCaptureSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/photo-source.png</normaloff>:/glmixer/icons/photo-source.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paste output capture</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="actionSaveCapture">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/photo-save.png</normaloff>:/glmixer/icons/photo-save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save output capture as...</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -1740,9 +1810,6 @@ Uncheck to have frames continuously following the slider when moved.</string>
  <resources>
   <include location="../icons.qrc"/>
   <include location="../textures.qrc"/>
-  <include location="../icons.qrc"/>
-  <include location="../icons.qrc"/>
-  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

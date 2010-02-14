@@ -21,7 +21,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
     }
     // TODO : else through exception
 
-    resetPositionAndScale();
+    resetScale();
 }
 
 VideoSource::~VideoSource() {
@@ -35,7 +35,7 @@ VideoSource::~VideoSource() {
 // only Rendering Manager can call this
 void VideoSource::update(){
 
-	glBindTexture(GL_TEXTURE_2D, textureIndex);
+	Source::update();
 
     // update texture
     if (is && bufferChanged) {

@@ -81,7 +81,7 @@ void Source::setAlphaCoordinates(double x, double y, double max) {
 }
 
 
-void Source::resetPositionAndScale() {
+void Source::resetScale() {
 	scalex = SOURCE_UNIT;
 	scaley = SOURCE_UNIT;
 
@@ -90,8 +90,6 @@ void Source::resetPositionAndScale() {
 		scalex *= aspectratio / renderingAspectRatio;
 	else
 		scaley *= renderingAspectRatio / aspectratio;
-
-	x = y = 0;
 }
 
 void Source::draw(bool withalpha, GLenum mode) const {

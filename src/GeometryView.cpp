@@ -221,7 +221,7 @@ void GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 		if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()){
 
-			(*RenderingManager::getInstance()->getCurrentSource())->resetPositionAndScale();
+			(*RenderingManager::getInstance()->getCurrentSource())->resetScale();
 		}
 
 	}

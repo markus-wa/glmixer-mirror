@@ -36,10 +36,11 @@ public:
 	/**
 	* Management of the sources
 	**/
-	void addSource();
-	void addSource(VideoFile *vf);
+	void addRenderingSource();
+	void addCaptureSource();
+	void addMediaSource(VideoFile *vf);
 #ifdef OPEN_CV
-	void addSource(int opencvIndex);
+	void addOpencvSource(int opencvIndex);
 #endif
 	inline Source *getSource(int i) {
 		return *_sources.begin();
@@ -55,7 +56,6 @@ public:
 		return _sources.end();
 	}
 	void removeSource(SourceSet::iterator itsource);
-	void clearSourceSet();
 	void setCurrentSource(SourceSet::iterator si);
 	void setCurrentSource(GLuint name);
 	inline SourceSet::iterator getCurrentSource() {
@@ -75,6 +75,12 @@ public:
 	void updatePreviousFrame();
 
 
+public slots:
+	void setPreviousFrameDelay(int delay) { previousframe_delay = CLAMP(delay,1,1000);}
+	void clearSourceSet();
+	void captureFrameBuffer();
+	void saveCapturedFrameBuffer(QString filename);
+
 signals:
 	void currentSourceChanged(SourceSet::iterator csi);
 
@@ -84,11 +90,15 @@ private:
 	static RenderingManager *_instance;
 
 protected:
+	// the rendering area
 	ViewRenderWidget *_renderwidget;
+
+	// the frame buffer
 	QGLFramebufferObject *_fbo;
 	QGLFramebufferObject *previousframe_fbo;
-	int countRenderingSource;
+	int countRenderingSource, previousframe_index, previousframe_delay;
     static bool blit;
+    QImage capture;
 
 	// the set of sources
 	SourceSet _sources;

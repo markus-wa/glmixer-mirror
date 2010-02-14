@@ -28,10 +28,6 @@ protected:
 		RenderingManager::getInstance()->countRenderingSource--;
 	}
 
-    void update() {
-    	glBindTexture(GL_TEXTURE_2D, textureIndex);
-    }
-
 };
 
 #endif /* RENDERINGSOURCE_H_ */

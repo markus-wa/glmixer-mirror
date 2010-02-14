@@ -62,7 +62,7 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	height = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
 	aspectratio = (float)width / (float)height;
 
-	resetPositionAndScale();
+	resetScale();
 
 	// create thread
 	mutex = new QMutex;
@@ -119,7 +119,7 @@ bool OpencvSource::isRunning(){
 
 void OpencvSource::update(){
 
-	glBindTexture(GL_TEXTURE_2D, textureIndex);
+	Source::update();
 
 	if( frameChanged )
 	{

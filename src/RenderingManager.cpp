@@ -49,7 +49,7 @@ RenderingManager *RenderingManager::getInstance() {
 
 
 RenderingManager::RenderingManager() :
-	QObject(), _fbo(NULL), previousframe_fbo(NULL), countRenderingSource(0) {
+	QObject(), _fbo(NULL), previousframe_fbo(NULL), countRenderingSource(0), previousframe_index(0), previousframe_delay(1) {
 
 	_renderwidget = new ViewRenderWidget;
     Q_CHECK_PTR(_renderwidget);
@@ -106,6 +106,14 @@ void RenderingManager::updatePreviousFrame(){
 
 	if ( !previousframe_fbo )
 		return;
+
+	previousframe_index++;
+
+	if ( previousframe_index % previousframe_delay)
+		return;
+	else
+		previousframe_index = 0;
+
 
 	if (RenderingManager::blit)
 	// use the accelerated GL_EXT_framebuffer_blit if available
@@ -198,8 +206,23 @@ void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource, bool cl
 	glPopMatrix();
 }
 
-void RenderingManager::addSource() {
 
+void RenderingManager::captureFrameBuffer(){
+
+	_renderwidget->makeCurrent();
+	capture = _fbo->toImage();
+}
+
+void RenderingManager::saveCapturedFrameBuffer(QString filename){
+
+	if (!capture.save(filename))
+		qWarning("** Warning **\n\nCould not save file %s.", qPrintable(filename));
+
+}
+
+void RenderingManager::addRenderingSource() {
+
+	_renderwidget->makeCurrent();
 	// create the previous frame (frame buffer object) if needed
 	if (!previousframe_fbo) {
 		previousframe_fbo = new QGLFramebufferObject(_fbo->width(),_fbo->height());
@@ -216,7 +239,29 @@ void RenderingManager::addSource() {
 	setCurrentSource(_sources.insert((Source *) s));
 }
 
-void RenderingManager::addSource(VideoFile *vf) {
+void RenderingManager::addCaptureSource(){
+
+	_renderwidget->makeCurrent();
+	// create the texture from the capture
+	if (capture.isNull())
+		capture = _fbo->toImage();
+	GLuint textureIndex = _renderwidget->bindTexture (capture);
+
+	// place it forward
+	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
+
+	// create a source appropriate for this videofile
+	Source *s = new Source(textureIndex, d);
+    Q_CHECK_PTR(s);
+
+    s->setAspectRatio( double(capture.width()) / double(capture.height()) );
+
+	// set the last created source to be current
+	setCurrentSource(_sources.insert((Source *) s));
+
+}
+
+void RenderingManager::addMediaSource(VideoFile *vf) {
 
 	// create the texture for this source
 	GLuint textureIndex;
@@ -240,7 +285,7 @@ void RenderingManager::addSource(VideoFile *vf) {
 }
 
 #ifdef OPEN_CV
-void RenderingManager::addSource(int opencvIndex) {
+void RenderingManager::addOpencvSource(int opencvIndex) {
 
 	// create the texture for this source
 	GLuint textureIndex;
@@ -269,7 +314,7 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 		_sources.erase(itsource);
 	}
 
-	// TODO : disable update of previous frame if all the RenderingSources are deleted
+	// Disable update of previous frame if all the RenderingSources are deleted
 	if (countRenderingSource <= 0){
 		if (previousframe_fbo)
 			delete previousframe_fbo;

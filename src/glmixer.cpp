@@ -39,19 +39,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	on_actionMixingView_activated();
 //	on_actionGeometryView_activated();
 
+	QObject::connect(actionCapture, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(captureFrameBuffer()));
 
     // SET prewiew widget
 	OutputRenderWidget *outputpreview = new OutputRenderWidget(previewContent, mainRendering);
 	previewLayout->addWidget(outputpreview);
-
-//    previewPageSourceLayout->removeWidget(previewSource);
-//    delete previewSource;
-//    previewSource = new SourceDisplayWidget( previewPageSource );
-//    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-//    sizePolicy.setHeightForWidth(previewSource->sizePolicy().hasHeightForWidth());
-//    previewSource->setSizePolicy(sizePolicy);
-//    previewPageSourceLayout->addWidget(previewSource);
-//    QObject::connect(previewSpeedSlider, SIGNAL(valueChanged(int)), previewSource, SLOT(setUpdatePeriod(int)));
 
     // signal from source management in MainRenderWidget
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(controlSource(SourceSet::iterator) ) );
@@ -142,7 +134,7 @@ void GLMixer::on_actionGeometryView_activated(){
 }
 
 
-void GLMixer::on_actionOpen_activated(){
+void GLMixer::on_actionMediaSource_activated(){
 
     VideoFile *newSourceVideoFile = NULL;
 	static QDir d = QDir::home();
@@ -191,7 +183,7 @@ void GLMixer::on_actionOpen_activated(){
 			// can we open the file ?
 			if ( newSourceVideoFile->open( fileNamesIt.next() ) ) {
 				// create the source as it is a valid video file (this also set it to be the current source)
-				RenderingManager::getInstance()->addSource(newSourceVideoFile);
+				RenderingManager::getInstance()->addMediaSource(newSourceVideoFile);
 			}
 		}
 	}
@@ -421,7 +413,7 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 
 }
 
-void GLMixer::on_actionCamera_activated()
+void GLMixer::on_actionCameraSource_activated()
 {
 
 //	MainRenderWidget::getInstance()->addSource(0);
@@ -435,7 +427,7 @@ void GLMixer::on_actionCamera_activated()
 #ifdef OPEN_CV
 		if (cd.getDriver() == CameraDialog::OPENCV_CAMERA && cd.indexOpencvCamera() >= 0)
 		{
-			RenderingManager::getInstance()->addSource(cd.indexOpencvCamera());
+			RenderingManager::getInstance()->addOpencvSource(cd.indexOpencvCamera());
 			statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()) );
 		}
 #endif
@@ -449,8 +441,27 @@ void GLMixer::on_actionRenderingSource_activated(){
 
 	// TODO popup a question dialog 'are u sure'
 
-	RenderingManager::getInstance()->addSource();
-	statusbar->showMessage( tr("Source created with the rendering output content.") );
+	RenderingManager::getInstance()->addRenderingSource();
+	statusbar->showMessage( tr("Source created with the rendering output loopback.") );
+}
+
+
+void GLMixer::on_actionCaptureSource_activated(){
+
+	RenderingManager::getInstance()->addCaptureSource();
+	statusbar->showMessage( tr("Source created with the last output capture.") );
+}
+
+void GLMixer::on_actionSaveCapture_activated(){
+
+	QString filename;
+	static QDir cd = QDir::home();
+
+	filename = QFileDialog::getSaveFileName ( this, tr("Save capture image"), cd.absolutePath(),  tr("Images (*.png *.xpm *.jpg)"));
+	cd.setPath(filename);
+
+	if (!filename.isEmpty())
+		RenderingManager::getInstance()->saveCapturedFrameBuffer(filename);
 }
 
 void GLMixer::on_actionShow_frames_toggled(bool on){

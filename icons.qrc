@@ -38,6 +38,10 @@
     <file>icons/camera.png</file>
     <file>icons/filenew.png</file>
     <file>icons/system-shutdown.png</file>
-    <file>icons/eog-image-collection.png</file>
+    <file>icons/photo-save.png</file>
+    <file>icons/photo-source.png</file>
+    <file>icons/photo.png</file>
+    <file>icons/display-source.png</file>
+    <file>icons/image-collection.png</file>
   </qresource>
 </RCC>
