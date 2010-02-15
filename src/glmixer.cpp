@@ -688,7 +688,14 @@ void GLMixer::on_actionAbout_activated(){
 	msg.append(QString("Author:   \tBruno Herbelin\n"));
 	msg.append(QString("Contact:  \tbruno.herbelin@gmail.com\n"));
 	msg.append(QString("License:  \tGPL\n"));
-	msg.append(QString("Version:  \t%1\n").arg(GLMIXER_VERSION));
+	
+#ifdef GLMIXER_VERSION
+    msg.append(QString("Version:  \t%1\n").arg(GLMIXER_VERSION));
+#endif
+#ifdef GLMIXER_REVISION
+    msg.append(QString("Revision: \t%1\n").arg(GLMIXER_REVISION));
+#endif
+	
 	msg.append(tr("\nGLMixer is a video mixing software for live performance.\nCheck http://code.google.com/p/glmixer/ for more info."));
 	QMessageBox::information(this, "About GlMixer", msg, QMessageBox::Ok, QMessageBox::Ok);
 

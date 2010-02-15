@@ -55,7 +55,9 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef GLMIXER_VERSION
-    glmixer_widget.setWindowTitle(QString("GL Mixer %1").arg(GLMIXER_VERSION));
+#ifdef GLMIXER_REVISION
+    glmixer_widget.setWindowTitle(QString("GL Mixer %1 rev-%2").arg(GLMIXER_VERSION).arg(GLMIXER_REVISION));
+#endif
 #endif
 
 	// 3. The output rendering window ; the rendering manager widget has to be existing
