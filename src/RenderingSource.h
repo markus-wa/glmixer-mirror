@@ -23,7 +23,7 @@ protected:
 		aspectratio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
 	}
 
-	~RenderingSource() {
+	virtual ~RenderingSource() {
 		// decrement the counter of rendering sources
 		RenderingManager::getInstance()->countRenderingSource--;
 	}

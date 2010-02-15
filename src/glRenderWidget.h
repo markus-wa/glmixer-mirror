@@ -31,6 +31,7 @@ public:
 
     // cosmetics
     void displayFPS();
+	float getFPS() { return f_p_s_; }
     void setBackgroundColor(const QColor &c);
 
     // OpenGL informations

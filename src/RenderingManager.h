@@ -75,6 +75,7 @@ public:
 	int getFrameBufferWidth();
 	int getFrameBufferHeight();
 	void updatePreviousFrame();
+	int getPreviousFrameDelay() { return previousframe_delay; }
 
 
 public slots:

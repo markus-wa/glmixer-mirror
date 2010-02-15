@@ -15,6 +15,7 @@
 #include "OutputRenderWindow.h"
 #include "MixerView.h"
 #include "SourceDisplayWidget.h"
+#include "RenderingSource.h"
 #include "VideoSource.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
@@ -353,41 +354,85 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 					markOutLineEdit->setText( "-" );
 				}
 	        }
-
+			return;
 		}
-		else
-		{
+
 #ifdef OPEN_CV
-			// if it is an OpencvSource (camera)
-			cvs = dynamic_cast<OpencvSource *>(*csi);
-			if (cvs != NULL) {
-				// fill in the information panel
-				vinfoDockWidget->setEnabled(true);
-				FileNameLineEdit->setText(QString("USB Camera %1").arg(cvs->getOpencvCameraIndex()));
-				CodecNameLineEdit->setText("OpenCV drivers");
-				widthLineEdit->setText( QString("%1").arg(cvs->getFrameWidth()));
-				heightLineEdit->setText( QString("%1").arg(cvs->getFrameHeight()));
-				framerateLineEdit->setText(QString().setNum(cvs->getFrameRate(),'f',1));
-				endLineEdit->setText("-");
-				timeLineEdit->setText("-");
-				markInLineEdit->setText("-");
-				markOutLineEdit->setText("-");
+		// if it is an OpencvSource (camera)
+		cvs = dynamic_cast<OpencvSource *>(*csi);
+		if (cvs != NULL) {
+			// fill in the information panel
+			vinfoDockWidget->setEnabled(true);
+			FileNameLineEdit->setText(QString("USB Camera %1").arg(cvs->getOpencvCameraIndex()));
+			CodecNameLineEdit->setText("OpenCV drivers");
+			widthLineEdit->setText( QString("%1").arg(cvs->getFrameWidth()));
+			heightLineEdit->setText( QString("%1").arg(cvs->getFrameHeight()));
+			framerateLineEdit->setText(QString().setNum(cvs->getFrameRate(),'f',1));
+			endLineEdit->setText("-");
+			timeLineEdit->setText("-");
+			markInLineEdit->setText("-");
+			markOutLineEdit->setText("-");
 
-				// we can play/stop  it
-				vcontrolDockWidget->setEnabled(true);
-				startButton->setChecked( cvs->isRunning() );
-				startButton->setEnabled( true );
-	            QObject::connect(startButton, SIGNAL(toggled(bool)), cvs, SLOT(play(bool)));
+			// we can play/stop  it
+			vcontrolDockWidget->setEnabled(true);
+			startButton->setChecked( cvs->isRunning() );
+			startButton->setEnabled( true );
+			QObject::connect(startButton, SIGNAL(toggled(bool)), cvs, SLOT(play(bool)));
 
-				// we can't configure it
-				vconfigDockWidget->setEnabled(false);
-				videoFrame->setEnabled(false);
-				timingControlFrame->setEnabled(false);
-
-			}
-#endif
+			// we can't configure it
+			vconfigDockWidget->setEnabled(false);
+			videoFrame->setEnabled(false);
+			timingControlFrame->setEnabled(false);
+			return;
 		}
+#endif
+		// if it is an OpencvSource (camera)
+		RenderingSource *crs = dynamic_cast<RenderingSource *>(*csi);
+		if (crs != NULL) {
+			// fill in the information panel
+			vinfoDockWidget->setEnabled(true);
+			FileNameLineEdit->setText(QString("Rendering loopback"));
+			if (glRenderWidget::glSupportsExtension("GL_EXT_framebuffer_blit"))
+				CodecNameLineEdit->setText("framebuffer_blit");
+			else
+				CodecNameLineEdit->setText("framebuffer");
+			widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
+			heightLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferHeight()));
+			framerateLineEdit->setText(QString().setNum(RenderingManager::getRenderingWidget()->getFPS() / float(RenderingManager::getInstance()->getPreviousFrameDelay()),'f',1));
+			endLineEdit->setText("-");
+			timeLineEdit->setText("-");
+			markInLineEdit->setText("-");
+			markOutLineEdit->setText("-");
 
+			// we cannot play/stop  nor configure
+			vcontrolDockWidget->setEnabled(false);
+			startButton->setEnabled( false );
+			vconfigDockWidget->setEnabled(false);
+			videoFrame->setEnabled(false);
+			timingControlFrame->setEnabled(false);
+			return;
+		}
+		
+		// it is a basic  Source
+		// fill in the information panel
+		vinfoDockWidget->setEnabled(true);
+		FileNameLineEdit->setText(QString("Captured Image"));
+		CodecNameLineEdit->setText("framebuffer");
+		widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
+		heightLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferHeight()));
+		framerateLineEdit->setText("-");
+		endLineEdit->setText("-");
+		timeLineEdit->setText("-");
+		markInLineEdit->setText("-");
+		markOutLineEdit->setText("-");
+
+		// we cannot play/stop  nor configure
+		vcontrolDockWidget->setEnabled(false);
+		startButton->setEnabled( false );
+		vconfigDockWidget->setEnabled(false);
+		videoFrame->setEnabled(false);
+		timingControlFrame->setEnabled(false);
+		return;
 
 	} else { // no current source
 		// nothing to preview
