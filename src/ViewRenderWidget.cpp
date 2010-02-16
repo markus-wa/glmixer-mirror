@@ -156,18 +156,22 @@ void ViewRenderWidget::keyPressEvent ( QKeyEvent * event ){
 }
 
 void ViewRenderWidget::zoomIn() {
+	makeCurrent();
 	currentManipulationView->zoomIn();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
 }
 void ViewRenderWidget::zoomOut() {
+	makeCurrent();
 	currentManipulationView->zoomOut();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
 }
 void ViewRenderWidget::zoomReset() {
+	makeCurrent();
 	currentManipulationView->zoomReset();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
 }
 void ViewRenderWidget::zoomBestFit() {
+	makeCurrent();
 	currentManipulationView->zoomBestFit();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
 }

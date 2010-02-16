@@ -174,7 +174,11 @@ void MixerView::mousePressEvent(QMouseEvent *event)
 
     } else if (event->buttons() & Qt::RightButton) {
     	// TODO context menu
+    } else if (event->buttons() & Qt::MidButton) {
+    	// almost a wheel action ; middle mouse = best zoom fit
+        zoomBestFit();
     }
+
 
 }
 
@@ -232,8 +236,42 @@ void MixerView::wheelEvent ( QWheelEvent * event ){
 
 }
 
-void MixerView::zoomReset() {setZoom(DEFAULTZOOM);}
-void MixerView::zoomBestFit() {}
+void MixerView::zoomReset() {
+	setZoom(DEFAULTZOOM);
+}
+
+void MixerView::zoomBestFit() {
+
+	// nothing to do if there is no source
+	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
+		zoomReset();
+		return;
+	}
+
+	// 1. compute bounding box of every sources
+	double extend = 0.0;
+    double x_min = 0, x_max = 0, y_min = 0, y_max = 0;
+	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+		x_min = MINI (x_min, (*its)->getAlphaX());
+		x_max = MAXI (x_max, (*its)->getAlphaX());
+		y_min = MINI (y_min, (*its)->getAlphaY());
+		y_max = MAXI (y_max, (*its)->getAlphaY());
+	}
+	// what is the max coordinate of all?
+	extend = MAXI( MAXI( ABS(x_min), ABS(x_max)), MAXI( ABS(y_min), ABS(y_max)));
+	// add a margin
+	extend += 1.3 * SOURCE_UNIT;
+
+	// 2. get the extend of the area covered in the viewport
+    double LLcorner[3];
+    double URcorner[3];
+    gluUnProject(0,0,0, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
+    gluUnProject(viewport[2], viewport[3], 0, modelview, projection, viewport, URcorner, URcorner+1, URcorner+2);
+
+	// 3. compute zoom factor to fit to the boundaries
+	setZoom( zoom * ( MAXI( ABS(LLcorner[1]), ABS(URcorner[1]) ) ) / extend );
+
+}
 
 
 void MixerView::keyPressEvent ( QKeyEvent * event ){
