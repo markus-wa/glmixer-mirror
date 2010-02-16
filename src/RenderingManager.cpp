@@ -10,6 +10,7 @@
 #include "common.h"
 
 #include "RenderingSource.h"
+#include "VideoFile.h"
 #include "VideoSource.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
@@ -253,10 +254,14 @@ void RenderingManager::addCaptureSource(){
 		capture = _fbo->toImage();
 		
 #if QT_VERSION >= 0x040600
+	// with Qt implementation of blitting of FBO, the y is flipped ; avoid this here on the texture
 	GLuint textureIndex = _renderwidget->bindTexture (capture, GL_TEXTURE_2D, GL_RGBA, QGLContext::LinearFilteringBindOption | QGLContext::MipmapBindOption);
 #else
 	GLuint textureIndex = _renderwidget->bindTexture (capture);
 #endif
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
@@ -278,9 +283,6 @@ void RenderingManager::addMediaSource(VideoFile *vf) {
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
 	glGenTextures(1, &textureIndex);
-	glBindTexture(GL_TEXTURE_2D, textureIndex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
@@ -288,8 +290,6 @@ void RenderingManager::addMediaSource(VideoFile *vf) {
 	// create a source appropriate for this videofile
 	VideoSource *s = new VideoSource(vf, textureIndex, d);
     Q_CHECK_PTR(s);
-	// ensure we display first frame (not done automatically by signal as it should...)
-	s->updateFrame(-1);
 
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
@@ -302,9 +302,6 @@ void RenderingManager::addOpencvSource(int opencvIndex) {
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
 	glGenTextures(1, &textureIndex);
-	glBindTexture(GL_TEXTURE_2D, textureIndex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;

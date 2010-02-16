@@ -64,6 +64,13 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 
 	resetScale();
 
+	// fill in first frame
+	glBindTexture(GL_TEXTURE_2D, textureIndex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	frame = cvQueryFrame( capture );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height,0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+
 	// create thread
 	mutex = new QMutex;
     Q_CHECK_PTR(mutex);
@@ -128,7 +135,7 @@ void OpencvSource::update(){
 
 		mutex->lock();
 		frameChanged = false;
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height,0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frame->width, frame->height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 		cond->wakeAll();
 		mutex->unlock();
 	}

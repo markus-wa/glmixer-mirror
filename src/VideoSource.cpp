@@ -19,6 +19,25 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
         QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
 
         aspectratio = is->getStreamAspectRatio();
+
+    	glBindTexture(GL_TEXTURE_2D, textureIndex);
+    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    	// fills in the first frame
+        const VideoPicture *vp = is->getPictureAtIndex(-1);
+        if (vp && vp->isAllocated()) {
+
+        	// fill in the texture
+    		if ( vp->getFormat() == PIX_FMT_RGBA)
+    			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  vp->getWidth(),
+    					 vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+    					 vp->getBuffer() );
+    		else
+    			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,  vp->getWidth(),
+    					 vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+    					 vp->getBuffer() );
+        }
     }
     // TODO : else through exception
 
@@ -44,15 +63,19 @@ void VideoSource::update(){
         const VideoPicture *vp = is->getPictureAtIndex(bufferIndex);
         if (vp && vp->isAllocated()) {
 
-        	// update the texture
+            // Animated textures
+            // If you want to use an animated texture, perhaps live video textures,
+            // don't use glTexImage2D to repeatedly change the texture.
+            // Use glTexSubImage2D or glTexCopyTexSubImage2D.
             if ( vp->getFormat() == PIX_FMT_RGBA)
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  vp->getWidth(),
-                         vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+            	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,  vp->getWidth(),
+                         vp->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE,
                          vp->getBuffer() );
             else
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,  vp->getWidth(),
-                         vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+            	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,  vp->getWidth(),
+                         vp->getHeight(), GL_RGB, GL_UNSIGNED_BYTE,
                          vp->getBuffer() );
+
 
         }
         bufferChanged = false;

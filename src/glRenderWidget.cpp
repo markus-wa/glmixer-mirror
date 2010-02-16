@@ -49,17 +49,21 @@ glRenderWidget::~glRenderWidget() {
 
 void glRenderWidget::initializeGL()
 {
-    // Enables smooth color shading
+    // Set flat color shading without dithering
     glShadeModel(GL_FLAT);
+    glDisable(GL_DITHER);
 
     // disable depth and lighting by default
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
+    glDisable(GL_NORMALIZE);
 
     // Enables texturing
     glEnable(GL_TEXTURE_2D);
     // Pure texture color (no lighting)
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    // This hint can improve the speed of texturing when perspective- correct texture coordinate interpolation isn't needed
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
     // ensure alpha channel is modulated
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);

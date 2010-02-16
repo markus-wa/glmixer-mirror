@@ -39,6 +39,8 @@ void OutputRenderWidget::initializeGL() {
 
     // Enables texturing
     glEnable(GL_TEXTURE_2D);
+    // This hint can improve the speed of texturing when perspective- correct texture coordinate interpolation isn't needed
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     // Pure texture color (no lighting)
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
