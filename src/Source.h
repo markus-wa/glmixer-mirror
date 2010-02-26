@@ -18,7 +18,7 @@ class Source {
 public:
 
 	Source(GLuint texture, double depth);
-	//    Source(Source *clone, double newdepth = MIN_DEPTH_LAYER);
+	Source(Source *clone, double newdepth);
 	virtual ~Source();
 
 	virtual void update() {

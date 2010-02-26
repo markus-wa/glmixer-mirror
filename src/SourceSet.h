@@ -21,9 +21,17 @@ struct Source_distance_comp
         return (a->getDepth() < b->getDepth());
     }
 };
-
-
 typedef std::multiset<Source*, Source_distance_comp> SourceSet;
+
+struct Source_distance_reverse_comp
+{
+    bool operator () (Source *a, Source *b) const
+    {
+        //Sort Furthest to Closest
+        return (a->getDepth() > b->getDepth());
+    }
+};
+typedef std::multiset<Source*, Source_distance_reverse_comp> reverseSourceSet;
 
 struct hasName: public std::unary_function<Source*, bool>
 {

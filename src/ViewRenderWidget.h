@@ -14,6 +14,7 @@
 class View;
 class MixerView;
 class GeometryView;
+class LayersView;
 
 class ViewRenderWidget: public glRenderWidget {
 
@@ -23,6 +24,7 @@ class ViewRenderWidget: public glRenderWidget {
 	friend class Source;
 	friend class MixerView;
 	friend class GeometryView;
+	friend class LayersView;
 	friend class OutputRenderWidget;
 
 public:
@@ -46,7 +48,7 @@ public:
 	/**
 	 * management of the manipulation views
 	 */
-	typedef enum {NONE = 0, MIXING=1, GEOMETRY=2, DEPTH=3 } viewMode;
+	typedef enum {NONE = 0, MIXING=1, GEOMETRY=2, LAYER=3 } viewMode;
 	void setViewMode(viewMode mode);
 	QPixmap getViewIcon();
 
@@ -90,6 +92,7 @@ private:
 	View *currentManipulationView, *noView;
 	MixerView *mixingManipulationView;
 	GeometryView *geometryManipulationView;
+	LayersView *layersManipulationView;
 
 	// M e s s a g e s
 	QString message;

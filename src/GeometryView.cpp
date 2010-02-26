@@ -93,9 +93,9 @@ void GeometryView::resize(int w, int h)
     glLoadIdentity();
 
     if (w > h)
-         glOrtho(-SOURCE_UNIT* (double) w / (double) h, SOURCE_UNIT*(double) w / (double) h, -SOURCE_UNIT, SOURCE_UNIT, -50.0, 10.0);
+         glOrtho(-SOURCE_UNIT* (double) w / (double) h, SOURCE_UNIT*(double) w / (double) h, -SOURCE_UNIT, SOURCE_UNIT, -MAX_DEPTH_LAYER, 10.0);
      else
-         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -50.0, 10.0);
+         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -MAX_DEPTH_LAYER, 10.0);
 
     refreshMatrices();
 }
@@ -108,7 +108,7 @@ void GeometryView::mousePressEvent(QMouseEvent *event)
 	if (event->buttons() & Qt::MidButton) {
 		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
 	}
-	// if at least one source icon was clicked (and fill-in the selection of sources under mouse)
+	// if at least one source icon was clicked
 	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
     	// get the top most clicked source

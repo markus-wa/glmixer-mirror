@@ -135,6 +135,12 @@ void GLMixer::on_actionGeometryView_activated(){
 }
 
 
+void GLMixer::on_actionLayersView_activated(){
+
+	RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::LAYER);
+	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
+}
+
 void GLMixer::on_actionMediaSource_activated(){
 
     VideoFile *newSourceVideoFile = NULL;

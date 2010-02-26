@@ -49,6 +49,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         void on_actionAbout_activated();
         void on_actionMixingView_activated();
         void on_actionGeometryView_activated();
+        void on_actionLayersView_activated();
         void on_actionAbout_Qt_activated() { QApplication::aboutQt (); }
 
 	// GUI interaction

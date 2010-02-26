@@ -945,8 +945,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>259</width>
-          <height>448</height>
+          <width>102</width>
+          <height>206</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1193,8 +1193,8 @@ the video will pause or loop.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>259</width>
-          <height>448</height>
+          <width>207</width>
+          <height>106</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1303,8 +1303,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>259</width>
-          <height>448</height>
+          <width>300</width>
+          <height>411</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1615,7 +1615,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <x>0</x>
      <y>0</y>
      <width>1338</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1664,7 +1664,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
     </widget>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
-    <addaction name="actionDepthView"/>
+    <addaction name="actionLayersView"/>
     <addaction name="menuZoom"/>
     <addaction name="separator"/>
     <addaction name="menuRendering_Window"/>
@@ -1729,7 +1729,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </attribute>
    <addaction name="actionMixingView"/>
    <addaction name="actionGeometryView"/>
-   <addaction name="actionDepthView"/>
+   <addaction name="actionLayersView"/>
   </widget>
   <action name="actionMediaSource">
    <property name="icon">
@@ -1888,16 +1888,16 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <string>F2</string>
    </property>
   </action>
-  <action name="actionDepthView">
+  <action name="actionLayersView">
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/depth.png</normaloff>:/glmixer/icons/depth.png</iconset>
    </property>
    <property name="text">
-    <string>Depth view</string>
+    <string>Layers view</string>
    </property>
    <property name="toolTip">
-    <string>Switch to depth view</string>
+    <string>Switch to layers view</string>
    </property>
    <property name="shortcut">
     <string>F3</string>

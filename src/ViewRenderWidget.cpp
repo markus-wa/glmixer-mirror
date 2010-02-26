@@ -10,6 +10,7 @@
 #include "View.h"
 #include "MixerView.h"
 #include "GeometryView.h"
+#include "LayersView.h"
 
 GLuint ViewRenderWidget::border_thin_shadow = 0, ViewRenderWidget::border_large_shadow = 0;
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0, ViewRenderWidget::border_scale = 0;
@@ -29,6 +30,8 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget() {
     Q_CHECK_PTR(mixingManipulationView);
 	geometryManipulationView = new GeometryView;
     Q_CHECK_PTR(geometryManipulationView);
+	layersManipulationView = new LayersView;
+    Q_CHECK_PTR(layersManipulationView);
 	currentManipulationView = noView;
 
 	displayMessage = false;
@@ -89,6 +92,10 @@ void ViewRenderWidget::setViewMode(viewMode mode){
 	case GEOMETRY:
 		currentManipulationView = (View *) geometryManipulationView;
 		showMessage("Geometry View");
+		break;
+	case LAYER:
+		currentManipulationView = (View *) layersManipulationView;
+		showMessage("Layers View");
 		break;
 	case NONE:
 	default:

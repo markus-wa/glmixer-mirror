@@ -44,6 +44,7 @@ public:
 #ifdef OPEN_CV
 	void addOpencvSource(int opencvIndex);
 #endif
+	// TODO :
 	inline Source *getSource(int i) {
 		return *_sources.begin();
 	}

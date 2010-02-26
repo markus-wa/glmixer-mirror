@@ -15,8 +15,7 @@ class View {
 
 public:
 	View() :
-		zoom(0), minzoom(0), maxzoom(0), panx(0), maxpanx(0), pany(0), maxpany(
-				0) {
+		zoom(0), minzoom(0), maxzoom(0), panx(0), maxpanx(0), pany(0), maxpany(0), panz(0), maxpanz(0) {
 		viewport[0] = 0;
 		viewport[1] = 0;
 		viewport[2] = 0;
@@ -77,6 +76,13 @@ public:
 	inline float getPanningY() {
 		return pany;
 	}
+	inline void setPanningZ(float z) {
+		panz = CLAMP(z, - maxpanz, maxpanz);
+		refreshMatrices();
+	}
+	inline float getPanningZ() {
+		return panz;
+	}
 
 	inline void refreshMatrices() {
 		glMatrixMode(GL_PROJECTION);
@@ -93,13 +99,13 @@ public:
 
 protected:
 	float zoom, minzoom, maxzoom;
-	float panx, maxpanx, pany, maxpany;
+	float panx, maxpanx, pany, maxpany, panz, maxpanz;
 
 	GLint viewport[4];
 	GLdouble projection[16];
 	GLdouble modelview[16];
 
-	SourceSet selection;
+	reverseSourceSet selection;
 	QPoint lastClicPos;
 	QPixmap icon;
 };

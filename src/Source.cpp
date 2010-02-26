@@ -23,10 +23,9 @@ Source::Source(GLuint texture, double depth) :
 	blend_eq = GL_FUNC_ADD;
 
 	// give it a unique identifying name
-	// TODO CHANGE the way ids are used
 	id = lastid++;
 
-	// set attributes and children
+	// TODO set attributes and children
 	dom.setAttribute("id", id);
 	QDomElement coordinates;
 	coordinates.setAttribute("x", x);
@@ -42,29 +41,33 @@ Source::~Source() {
 	glDeleteTextures(1, &textureIndex);
 }
 
-//
-//Source::Source(Source *clone, double d) {
-//
-//    // clone everything
-//    id = clone->id;
-//    x = clone->x;
-//    y = clone->y;
-//    scalex = clone->scalex;
-//    scaley = clone->scaley;
-//    alphax = clone->alphax;
-//    alphay = clone->alphay;
-//    aspectratio = clone->aspectratio;
-//    texalpha = clone->texalpha;
-//    texcolor = clone->texcolor;
-//    active = clone->active;
-//
-//    // new depth (if in correct value range)
-//    if (d > MIN_DEPTH_LAYER && d < MAX_DEPTH_LAYER)
-//        z = d;
-//    else
-//        z = clone->z;
-//
-//}
+
+Source::Source(Source *clone, double d) {
+
+    // clone everything
+    id = clone->id;
+    x = clone->x;
+    y = clone->y;
+    scalex = clone->scalex;
+    scaley = clone->scaley;
+    alphax = clone->alphax;
+    alphay = clone->alphay;
+    aspectratio = clone->aspectratio;
+    texalpha = clone->texalpha;
+    texcolor = clone->texcolor;
+    active = clone->active;
+    textureIndex = clone->textureIndex;
+	source_blend  = clone->source_blend;
+	destination_blend = clone->destination_blend;
+	blend_eq = clone->blend_eq;
+
+    // new depth (if in correct value range)
+    if (d > MIN_DEPTH_LAYER && d < MAX_DEPTH_LAYER)
+        z = d;
+    else
+        z = clone->z;
+
+}
 
 void Source::scaleBy(float fx, float fy) {
 	scalex *= fx;
