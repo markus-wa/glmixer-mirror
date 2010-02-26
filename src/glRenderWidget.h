@@ -9,7 +9,6 @@
 #define GLRENDERWIDGET_H_
 
 #include "common.h"
-#include <QStringList>
 
 class glRenderWidget  : public QGLWidget
 {
@@ -36,7 +35,6 @@ public:
 
     // OpenGL informations
 	static void showFramerate(bool on) { showFps_ = on; }
-    static bool glSupportsExtension(QString extname);
     static void showGlExtensionsInformationDialog(QString iconfile = "");
 
 public slots:
@@ -49,7 +47,6 @@ protected:
 
 	float aspectRatio;
     int timer, period;
-    static QStringList listofextensions;
 
 	// F P S    d i s p l a y
 	QTime fpsTime_;

@@ -58,25 +58,8 @@ void OutputRenderWidget::paintGL()
 	if ( RenderingManager::blit )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-#if QT_VERSION >= 0x040600
-		if (useAspectRatio) {
-		
-			glClear(GL_COLOR_BUFFER_BIT);
-			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
-			if (aspectRatio < renderingAspectRatio)
-				QGLFramebufferObject::blitFramebuffer ( 0, QRect( QPoint( 0, (height() - (int) ( (float) width() / renderingAspectRatio)) / 2 ), QSize(width(), (int) ( (float) width() / renderingAspectRatio))), 
-				RenderingManager::getInstance()->_fbo, QRect(QPoint(0,0), RenderingManager::getInstance()->_fbo->size() ) ) ;
-	
-			else
-				QGLFramebufferObject::blitFramebuffer ( 0, QRect(QPoint( (width() - (int) ( (float) height() * renderingAspectRatio )) /2,0), QSize((int) ( (float) height() * renderingAspectRatio), height())), 
-				RenderingManager::getInstance()->_fbo, QRect(QPoint(0,0), RenderingManager::getInstance()->_fbo->size() ) ) ;
-		}
-		else
-			QGLFramebufferObject::blitFramebuffer ( 0, QRect(QPoint(0,0), size()), RenderingManager::getInstance()->_fbo, QRect(QPoint(0,0), RenderingManager::getInstance()->_fbo->size() ) ) ;
-
-#else
-	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, RenderingManager::getInstance()->getFrameBufferHandle());
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
 
 		if (useAspectRatio) {
 			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
@@ -96,7 +79,6 @@ void OutputRenderWidget::paintGL()
 			glBlitFramebufferEXT(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
 			                             0, 0, width(), height(),
 			                             GL_COLOR_BUFFER_BIT, GL_NEAREST);
-#endif
 	}
 	else
 	// 	Draw quad with fbo texture in a more basic OpenGL way

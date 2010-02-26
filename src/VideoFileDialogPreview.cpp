@@ -9,6 +9,7 @@
 #include <QLayout>
 #include <QLabel>
 
+#include "common.h"
 #include "VideoFileDialogPreview.moc"
 
 VideoFileDialogPreview::VideoFileDialogPreview(QWidget *parent) : QWidget(parent) {
@@ -16,7 +17,7 @@ VideoFileDialogPreview::VideoFileDialogPreview(QWidget *parent) : QWidget(parent
     setupUi(this);
     is = NULL;
 
-    if ( VideoFileDisplayWidget::glSupportsExtension("GL_EXT_texture_non_power_of_two") || VideoFileDisplayWidget::glSupportsExtension("GL_ARB_texture_non_power_of_two") )
+    if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") )
         customSizeCheckBox->setEnabled(true);
     else {
         customSizeCheckBox->setChecked(true);

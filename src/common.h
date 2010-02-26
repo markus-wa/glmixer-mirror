@@ -15,35 +15,27 @@
 #define EPSILON 0.00001
 #define FRAME_DURATION 15
 
-// Header Files and directives for Microsoft Windows
-// #ifdef WIN32
-// #define WIN32_LEAN_AND_MEAN
-// #include <windows.h>
-// #include <tchar.h>
-// #endif
-
-
 #if defined(__WIN32__)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <GL/glew.h>
 #endif
 
 #include <QtOpenGL>
 
-#if QT_VERSION < 0x040600
+bool glSupportsExtension(QString extname);
+QStringList glSupportedExtensions();
 
-#ifndef GL_EXT_framebuffer_blit
-#define GL_READ_FRAMEBUFFER_EXT           0x8CA8
-#define GL_DRAW_FRAMEBUFFER_EXT           0x8CA9
-#define GL_DRAW_FRAMEBUFFER_BINDING_EXT   GL_FRAMEBUFFER_BINDING_EXT
-#define GL_READ_FRAMEBUFFER_BINDING_EXT   0x8CAA
-#endif
 
+#ifndef GLEWAPI
+/* ------------------------ GL_EXT_framebuffer_blit ------------------------ */
+
+#ifdef GL_EXT_framebuffer_blit
 extern "C" {
 	extern void glBindFramebufferEXT(GLenum target, GLuint framebuffer);
 	extern void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 }
+#endif /* GL_EXT_framebuffer_blit */
 
 #endif
 

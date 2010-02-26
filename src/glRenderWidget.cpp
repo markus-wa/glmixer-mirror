@@ -12,8 +12,8 @@
 
 
 bool glRenderWidget::showFps_ = false;
-
-QStringList glRenderWidget::listofextensions;
+//
+//QStringList glRenderWidget::listofextensions;
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
 : QGLWidget(QGLFormat(QGL::AlphaChannel), parent, shareWidget, f), aspectRatio(1.0), timer(-1), period(16)
@@ -28,11 +28,6 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 	if (!format().doubleBuffer())
 	  qWarning("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
 
-	if (listofextensions.isEmpty()) {
-	  makeCurrent();
-	  QString allextensions = QString( (char *) glGetString(GL_EXTENSIONS));
-	  listofextensions = allextensions.split(" ", QString::SkipEmptyParts);
-	}
 
 	fpsTime_.start();
 	fpsCounter_	= 0;
@@ -55,6 +50,7 @@ void glRenderWidget::initializeGL()
 
     // disable depth and lighting by default
     glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
     glDisable(GL_LIGHTING);
     glDisable(GL_NORMALIZE);
 
@@ -73,7 +69,8 @@ void glRenderWidget::initializeGL()
     glEnable(GL_BLEND);
 
     // Blending Function For transparency Based On Source Alpha Value
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
 
     // ANTIALIASING
     glEnable(GL_LINE_SMOOTH);
@@ -147,17 +144,6 @@ void glRenderWidget::displayFPS()
 	renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
 }
 
-bool glRenderWidget::glSupportsExtension(QString extname) {
-
-    if (listofextensions.isEmpty()) {
-    	glRenderWidget *tmp = new glRenderWidget();
-        delete tmp;
-    }
-
-    return listofextensions.contains(extname, Qt::CaseInsensitive);
-}
-
-
 
 void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
 
@@ -192,11 +178,7 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
     openglExtensionsDialog->setWindowTitle(tr("OpenGL Extensions"));
     label->setText(tr("Supported OpenGL extensions:"));
 
-    if (listofextensions.isEmpty()) {
-    	glRenderWidget *tmp = new glRenderWidget();
-        delete tmp;
-    }
-    QAbstractItemModel *model = new QStringListModel(listofextensions);
+    QAbstractItemModel *model = new QStringListModel(glSupportedExtensions());
     extensionsListView->setModel(model);
 
     QObject::connect(buttonBox, SIGNAL(accepted()), openglExtensionsDialog, SLOT(accept()));

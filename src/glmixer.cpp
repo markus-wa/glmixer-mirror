@@ -63,11 +63,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // Init state
     vcontrolDockWidget->setEnabled(false);
-    vinfoDockWidget->setEnabled(false);
-    vconfigDockWidget->setEnabled(false);
+    sourceDockWidget->setEnabled(false);
 
     // TODO : Qt application config
-//    vinfoDockWidget->setVisible(false);
+//    sourceDockWidget->setVisible(false);
 //    vconfigDockWidget->setVisible(false);
 
     // Timer to update sliders and counters
@@ -169,7 +168,7 @@ void GLMixer::on_actionMediaSource_activated(){
 	QStringListIterator fileNamesIt(fileNames);
 	while (fileNamesIt.hasNext()){
 
-		if ( !customsize && (glRenderWidget::glSupportsExtension("GL_EXT_texture_non_power_of_two") || glRenderWidget::glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
+		if ( !customsize && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
 			newSourceVideoFile = new VideoFile(this);
 		else
 			//newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB24);
@@ -209,9 +208,16 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 	}
 #endif
 
-	// whatever happens, we will drop the control on the current video source
+	// whatever happens, we will drop the control on the current source
 	//   (this slot is called by MainRenderWidget through signal currentSourceChanged
 	//    which is sent ONLY when the current source is changed)
+
+    QObject::disconnect(dstBlendcomboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(blendingChanged()));
+    QObject::disconnect(eqBlendcomboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(blendingChanged()));
+    QObject::disconnect(baseRSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
+    QObject::disconnect(baseGSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
+    QObject::disconnect(baseBSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
+
 	if (selectedSourceVideoFile) {
 
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
@@ -252,6 +258,54 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		// setup preview
 //		previewStackedWidget->setCurrentIndex(1);
 //		previewSource->setSource (*csi);
+
+		// adjust the mixing properties GUI
+		blendingPresetsComboBox->setCurrentIndex(6);
+		if ((*csi)->getBlendEquation() == GL_FUNC_ADD) {
+			if ((*csi)->getBlendFuncDestination() == GL_DST_ALPHA)
+				blendingPresetsComboBox->setCurrentIndex(0);
+			else if ((*csi)->getBlendFuncDestination() == GL_ONE)
+						blendingPresetsComboBox->setCurrentIndex(2);
+			else if ((*csi)->getBlendFuncDestination() == GL_ONE_MINUS_SRC_ALPHA)
+						blendingPresetsComboBox->setCurrentIndex(4);
+		} else if ((*csi)->getBlendEquation() == GL_FUNC_REVERSE_SUBTRACT) {
+			if ((*csi)->getBlendFuncDestination() == GL_DST_ALPHA)
+				blendingPresetsComboBox->setCurrentIndex(1);
+			else if ((*csi)->getBlendFuncDestination() == GL_ONE)
+						blendingPresetsComboBox->setCurrentIndex(3);
+			else if ((*csi)->getBlendFuncDestination() == GL_SRC_ALPHA)
+						blendingPresetsComboBox->setCurrentIndex(5);
+		}
+		switch ( (*csi)->getBlendFuncDestination() ) {
+			case GL_ZERO: dstBlendcomboBox->setCurrentIndex(0); break;
+			case GL_ONE: dstBlendcomboBox->setCurrentIndex(1); break;
+			case GL_SRC_COLOR: dstBlendcomboBox->setCurrentIndex(2); break;
+			case GL_ONE_MINUS_SRC_COLOR: dstBlendcomboBox->setCurrentIndex(3); break;
+			case GL_DST_COLOR: dstBlendcomboBox->setCurrentIndex(4); break;
+			case GL_ONE_MINUS_DST_COLOR: dstBlendcomboBox->setCurrentIndex(5); break;
+			case GL_SRC_ALPHA: dstBlendcomboBox->setCurrentIndex(6);  break;
+			case GL_ONE_MINUS_SRC_ALPHA: dstBlendcomboBox->setCurrentIndex(7);  break;
+			case GL_DST_ALPHA: dstBlendcomboBox->setCurrentIndex(8); break;
+			case GL_ONE_MINUS_DST_ALPHA: dstBlendcomboBox->setCurrentIndex(9); break;
+		}
+		switch ( (*csi)->getBlendEquation() ) {
+			case GL_FUNC_ADD: eqBlendcomboBox->setCurrentIndex(0); break;
+			case GL_FUNC_SUBTRACT: eqBlendcomboBox->setCurrentIndex(1); break;
+			case GL_FUNC_REVERSE_SUBTRACT: eqBlendcomboBox->setCurrentIndex(2); break;
+			case GL_MIN: eqBlendcomboBox->setCurrentIndex(3); break;
+			case GL_MAX: eqBlendcomboBox->setCurrentIndex(4); break;
+		}
+
+        QObject::connect(dstBlendcomboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(blendingChanged()));
+        QObject::connect(eqBlendcomboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(blendingChanged()));
+
+        QColor c = (*csi)->getColor();
+        baseRSpinBox->setValue(c.redF());
+        baseGSpinBox->setValue(c.greenF());
+        baseBSpinBox->setValue(c.blueF());
+        QObject::connect(baseRSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
+        QObject::connect(baseGSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
+        QObject::connect(baseBSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
 
 		// test the class of the current source and deal accordingly :
 
@@ -305,7 +359,7 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), this, SLOT(updateRefreshTimerState()));
 
 	            // Fill in information
-				vinfoDockWidget->setEnabled(true);
+				sourceDockWidget->setEnabled(true);
 				FileNameLineEdit->setText(selectedSourceVideoFile->getFileName());
 				CodecNameLineEdit->setText(selectedSourceVideoFile->getCodecName());
 				// display size (special case when power of two dimensions are generated
@@ -326,8 +380,6 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 					vcontrolDockWidget->setEnabled(true);
 					startButton->setEnabled( true );
 
-					// and we can configure it
-					vconfigDockWidget->setEnabled(true);
 					// restore config
 					selectedSourceVideoFile->setOptionRestartToMarkIn( restartWhereStoppedCheckBox->isChecked());
 					selectedSourceVideoFile->setOptionRevertToBlackWhenStop( resetToBlackCheckBox->isChecked());
@@ -344,9 +396,6 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 					vcontrolDockWidget->setEnabled(false);
 					startButton->setEnabled( false );
 
-					// we can't configure it
-					vconfigDockWidget->setEnabled(false);
-
 					// display info (even if one frame only)
 					endLineEdit->setText( tr("%1 frame").arg( selectedSourceVideoFile->getEnd()) );
 					timeLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getBegin()) );
@@ -362,7 +411,7 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		cvs = dynamic_cast<OpencvSource *>(*csi);
 		if (cvs != NULL) {
 			// fill in the information panel
-			vinfoDockWidget->setEnabled(true);
+			sourceDockWidget->setEnabled(true);
 			FileNameLineEdit->setText(QString("USB Camera %1").arg(cvs->getOpencvCameraIndex()));
 			CodecNameLineEdit->setText("OpenCV drivers");
 			widthLineEdit->setText( QString("%1").arg(cvs->getFrameWidth()));
@@ -380,7 +429,6 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 			QObject::connect(startButton, SIGNAL(toggled(bool)), cvs, SLOT(play(bool)));
 
 			// we can't configure it
-			vconfigDockWidget->setEnabled(false);
 			videoFrame->setEnabled(false);
 			timingControlFrame->setEnabled(false);
 			return;
@@ -390,9 +438,9 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		RenderingSource *crs = dynamic_cast<RenderingSource *>(*csi);
 		if (crs != NULL) {
 			// fill in the information panel
-			vinfoDockWidget->setEnabled(true);
+			sourceDockWidget->setEnabled(true);
 			FileNameLineEdit->setText(QString("Rendering loopback"));
-			if (glRenderWidget::glSupportsExtension("GL_EXT_framebuffer_blit"))
+			if (glSupportsExtension("GL_EXT_framebuffer_blit"))
 				CodecNameLineEdit->setText("framebuffer_blit");
 			else
 				CodecNameLineEdit->setText("framebuffer");
@@ -407,7 +455,6 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 			// we cannot play/stop  nor configure
 			vcontrolDockWidget->setEnabled(false);
 			startButton->setEnabled( false );
-			vconfigDockWidget->setEnabled(false);
 			videoFrame->setEnabled(false);
 			timingControlFrame->setEnabled(false);
 			return;
@@ -415,7 +462,7 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		
 		// it is a basic  Source
 		// fill in the information panel
-		vinfoDockWidget->setEnabled(true);
+		sourceDockWidget->setEnabled(true);
 		FileNameLineEdit->setText(QString("Captured Image"));
 		CodecNameLineEdit->setText("framebuffer");
 		widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
@@ -429,7 +476,6 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		// we cannot play/stop  nor configure
 		vcontrolDockWidget->setEnabled(false);
 		startButton->setEnabled( false );
-		vconfigDockWidget->setEnabled(false);
 		videoFrame->setEnabled(false);
 		timingControlFrame->setEnabled(false);
 		return;
@@ -452,9 +498,9 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 
 		// disable panel widgets
 		vcontrolDockWidget->setEnabled(false);
-		vinfoDockWidget->setEnabled(false);
-		vconfigDockWidget->setEnabled(false);
+		sourceDockWidget->setEnabled(false);
 		startButton->setEnabled( false );
+
 	}
 
 }
@@ -698,6 +744,93 @@ void GLMixer::on_actionAbout_activated(){
 	
 	msg.append(tr("\nGLMixer is a video mixing software for live performance.\nCheck http://code.google.com/p/glmixer/ for more info."));
 	QMessageBox::information(this, "About GlMixer", msg, QMessageBox::Ok, QMessageBox::Ok);
+
+}
+
+void GLMixer::colorsChanged(){
+
+	if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
+		(*RenderingManager::getInstance()->getCurrentSource())->setColor( QColor::fromRgbF (baseRSpinBox->value(), baseGSpinBox->value(), baseBSpinBox->value() ) );
+	}
+}
+
+void  GLMixer::on_blendingPresetsComboBox_currentIndexChanged(int presetIndex){
+
+
+	expertBlendingOptionsBox->setEnabled(false);
+	switch ( presetIndex ) {
+		case 0:
+			dstBlendcomboBox->setCurrentIndex(8);
+			eqBlendcomboBox->setCurrentIndex(0);
+			break;
+		case 1:
+			dstBlendcomboBox->setCurrentIndex(8);
+			eqBlendcomboBox->setCurrentIndex(2);
+			break;
+		case 2:
+			dstBlendcomboBox->setCurrentIndex(1);
+			eqBlendcomboBox->setCurrentIndex(0);
+			break;
+		case 3:
+			dstBlendcomboBox->setCurrentIndex(1);
+			eqBlendcomboBox->setCurrentIndex(2);
+			break;
+		case 4:
+			dstBlendcomboBox->setCurrentIndex(7);
+			eqBlendcomboBox->setCurrentIndex(0);
+			break;
+		case 5:
+			dstBlendcomboBox->setCurrentIndex(6);
+			eqBlendcomboBox->setCurrentIndex(2);
+			break;
+		case 6:
+			expertBlendingOptionsBox->setEnabled(true);
+			break;
+		}
+
+}
+
+void GLMixer::blendingChanged(){
+
+	GLenum sfactor = GL_SRC_ALPHA, dfactor = GL_DST_ALPHA, eq = GL_FUNC_ADD;
+
+	switch ( dstBlendcomboBox->currentIndex() ) {
+	case 0:
+		dfactor = GL_ZERO; break;
+	case 1:
+		dfactor = GL_ONE; break;
+	case 2:
+		dfactor = GL_SRC_COLOR; break;
+	case 3:
+		dfactor = GL_ONE_MINUS_SRC_COLOR; break;
+	case 4:
+		dfactor = GL_DST_COLOR; break;
+	case 5:
+		dfactor = GL_ONE_MINUS_DST_COLOR; break;
+	case 6:
+		dfactor = GL_SRC_ALPHA; break;
+	case 7:
+		dfactor = GL_ONE_MINUS_SRC_ALPHA; break;
+	case 8:
+		dfactor = GL_DST_ALPHA; break;
+	case 9:
+		dfactor = GL_ONE_MINUS_DST_ALPHA; break;
+	}
+	switch ( eqBlendcomboBox->currentIndex() ) {
+	case 0:
+		eq = GL_FUNC_ADD; break;
+	case 1:
+		eq = GL_FUNC_SUBTRACT; break;
+	case 2:
+		eq = GL_FUNC_REVERSE_SUBTRACT; break;
+	case 3:
+		eq = GL_MIN; break;
+	case 4:
+		eq = GL_MAX; break;
+	}
+
+	if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd())
+		(*RenderingManager::getInstance()->getCurrentSource())->setBlendFuncAndEquation(sfactor, dfactor, eq);
 
 }
 

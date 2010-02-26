@@ -210,6 +210,10 @@ GLuint ViewRenderWidget::buildHalfList_fine() {
     GLuint id = glGenLists(1);
     glNewList(id, GL_COMPILE);
 
+    //    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+
     glEnable (GL_POLYGON_STIPPLE);
     glPolygonStipple (halftone);
 
@@ -369,6 +373,7 @@ GLuint ViewRenderWidget::buildSelectList() {
 
 //    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
     glDisable(GL_TEXTURE_2D);
 
     glLineWidth(3.0);
@@ -432,13 +437,6 @@ GLuint ViewRenderWidget::buildLineList() {
     // default
     glNewList(base, GL_COMPILE);
 
-//    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
-//    glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-//    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-//    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
     glPushMatrix();
@@ -469,18 +467,12 @@ GLuint ViewRenderWidget::buildLineList() {
 
     glEnable(GL_TEXTURE_2D);
 
-//    glPopAttrib();
     glEndList();
 
     // over
     glNewList(base + 1, GL_COMPILE);
 
-//    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
 
-//    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-//    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
     glPushMatrix();
@@ -510,7 +502,6 @@ GLuint ViewRenderWidget::buildLineList() {
     glEnd();
 
     glEnable(GL_TEXTURE_2D);
-//    glPopAttrib();
 
     glEndList();
 
@@ -540,6 +531,7 @@ GLuint ViewRenderWidget::buildCircleList() {
 
 //    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
@@ -590,6 +582,7 @@ GLuint ViewRenderWidget::buildBlackList() {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
@@ -630,6 +623,7 @@ GLuint ViewRenderWidget::buildFrameList() {
 
 //    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
 
     glDisable(GL_TEXTURE_2D);
     glLineWidth(5.0);
@@ -664,6 +658,7 @@ GLuint ViewRenderWidget::buildBordersList() {
 
 //    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
 
     glDisable(GL_TEXTURE_2D);
     glLineWidth(1.0);
@@ -688,6 +683,7 @@ GLuint ViewRenderWidget::buildBordersList() {
 
 //    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
 
     glDisable(GL_TEXTURE_2D);
     glColor4f(0.9, 0.9, 0.0, 0.7);
@@ -740,6 +736,7 @@ GLuint ViewRenderWidget::buildBordersList() {
 
 //    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
     glDisable(GL_TEXTURE_2D);
 
     glLineWidth(3.0);

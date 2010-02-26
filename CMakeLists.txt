@@ -109,7 +109,7 @@ else (OPENGL_FOUND)
 endif (OPENGL_FOUND)
 
 if (WIN32)
-  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} -lws2_32 )
+  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} -lws2_32 -lglew32 )
 endif (WIN32)
 
 if (ZLIB_FOUND)

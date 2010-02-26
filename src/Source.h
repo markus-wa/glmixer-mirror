@@ -9,6 +9,7 @@
 #define SOURCE_H_
 
 #include <QDomElement>
+#include <QColor>
 
 #include "common.h"
 
@@ -29,6 +30,7 @@ public:
 	}
 
     void draw(bool withalpha = true, GLenum mode = GL_RENDER) const;
+	void blend() const;
 
 	// manipulation
 	inline GLuint getId() const {
@@ -75,6 +77,21 @@ public:
 	inline GLfloat getAlpha() const {
 		return texalpha;
 	}
+	inline QColor getColor() const {
+		return texcolor;
+	}
+//	inline QColor getBlendColor() const {
+//		return blendcolor;
+//	}
+	inline GLenum getBlendEquation() const {
+		return blend_eq;
+	}
+	inline GLenum getBlendFuncSource() const {
+		return source_blend;
+	}
+	inline GLenum getBlendFuncDestination() const {
+		return destination_blend;
+	}
 
 	// sets
 	inline void setAspectRatio(GLdouble ar) {
@@ -100,6 +117,17 @@ public:
 		scalex = sx;
 		scaley = sy;
 	}
+	inline void setColor(QColor c) {
+		texcolor = c;
+	}
+//	inline void setBlendColor(QColor c) {
+//		blendcolor = c;
+//	}
+	inline void setBlendFuncAndEquation(GLenum sfactor, GLenum dfactor, GLenum eq) {
+		source_blend = sfactor;
+		destination_blend = dfactor;
+		blend_eq = eq;
+	}
 	void scaleBy(GLfloat fx, GLfloat fy);
 	void setAlphaCoordinates(GLdouble x, GLdouble y, GLdouble max);
 	void resetScale();
@@ -119,7 +147,10 @@ protected:
 	GLdouble alphax, alphay;
 	GLdouble aspectratio;
 	GLfloat texalpha;
-	GLfloat texcolor;
+	QColor texcolor;
+//	QColor blendcolor;
+	GLenum source_blend, destination_blend;
+	GLenum blend_eq;
 
 	// statics
 	static GLuint lastid;

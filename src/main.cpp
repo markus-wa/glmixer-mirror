@@ -11,27 +11,38 @@
 
 #include <iostream>
 
- void GLMixerMessageOutput(QtMsgType type, const char *msg)
- {
-     switch (type) {
-     case QtDebugMsg:
-         std::cerr<<"Debug: "<<msg<<std::endl;
-         break;
-     case QtWarningMsg:
-         std::cerr<<"Warning: "<<msg<<std::endl;
-         QMessageBox::warning(0, "GLMixer Warning", QString(msg));
-         break;
-     case QtCriticalMsg:
-         std::cerr<<"Critical: "<<msg<<std::endl;
-         QMessageBox::critical(0, "GLMixer Critical Information", QString(msg));
-         abort();
-         break;
-     case QtFatalMsg:
-         std::cerr<<"Fatal: "<<msg<<std::endl;
-         QMessageBox::critical(0, "GLMixer Fatal Error", QString(msg));
-         abort();
-     }
- }
+QStringList listofextensions;
+
+
+void GLMixerMessageOutput(QtMsgType type, const char *msg)
+{
+	 switch (type) {
+	 case QtDebugMsg:
+		 std::cerr<<"Debug: "<<msg<<std::endl;
+		 break;
+	 case QtWarningMsg:
+		 std::cerr<<"Warning: "<<msg<<std::endl;
+		 QMessageBox::warning(0, "GLMixer Warning", QString(msg));
+		 break;
+	 case QtCriticalMsg:
+		 std::cerr<<"Critical: "<<msg<<std::endl;
+		 QMessageBox::critical(0, "GLMixer Critical Information", QString(msg));
+		 abort();
+		 break;
+	 case QtFatalMsg:
+		 std::cerr<<"Fatal: "<<msg<<std::endl;
+		 QMessageBox::critical(0, "GLMixer Fatal Error", QString(msg));
+		 abort();
+	 }
+}
+
+bool glSupportsExtension(QString extname) {
+    return listofextensions.contains(extname, Qt::CaseInsensitive);
+}
+
+QStringList glSupportedExtensions() {
+	return listofextensions;
+}
 
 int main(int argc, char **argv)
 {
@@ -41,6 +52,15 @@ int main(int argc, char **argv)
 
     if (!QGLFormat::hasOpenGL() )
     	qCritical("*** ERROR ***\n\nThis system does not support OpenGL and this program cannot work without it.");
+
+    QGLWidget *glw = new QGLWidget();
+    glw->makeCurrent();
+#ifdef GLEWAPI
+    glewInit();
+#endif
+	QString allextensions = QString( (char *) glGetString(GL_EXTENSIONS));
+	listofextensions = allextensions.split(" ", QString::SkipEmptyParts);
+	delete glw;
 
 	// 1. The rendering Manager
     RenderingManager *mrw = RenderingManager::getInstance();

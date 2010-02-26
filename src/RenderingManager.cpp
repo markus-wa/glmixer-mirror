@@ -37,7 +37,7 @@ RenderingManager *RenderingManager::getInstance() {
 		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
 			qCritical("*** ERROR ***\n\nOpenGL Frame Buffer Objects are not supported on this graphics hardware; the program cannot operate properly.\n\nExiting...");
 
-	    if (glRenderWidget::glSupportsExtension("GL_EXT_framebuffer_blit"))
+		if (glSupportsExtension("GL_EXT_framebuffer_blit"))
 	    	RenderingManager::blit = true;
 	    else
 	    	qWarning("** WARNING **\n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware.\n\nRendering speed be sub-optimal but all should work properly.");
@@ -120,20 +120,14 @@ void RenderingManager::updatePreviousFrame(){
 	if (RenderingManager::blit)
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-#if QT_VERSION >= 0x040600
-
-		QGLFramebufferObject::blitFramebuffer ( previousframe_fbo, QRect(QPoint(0,previousframe_fbo->height()), QPoint(previousframe_fbo->width(),0)), _fbo, QRect(QPoint(0,0), _fbo->size() ) ) ;
-
-#else
-	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, _fbo->handle());
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
+	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER, _fbo->handle());
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
 
 		glBlitFramebufferEXT(0, _fbo->height(), _fbo->width(), 0,
 							0, 0, previousframe_fbo->width(), previousframe_fbo->height(),
 							GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-	    glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
-#endif
+	    glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
 	}
 	else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
@@ -194,12 +188,10 @@ void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource, bool cl
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
-	    // Blending Function For transparency Based On Source Alpha Value
-	    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
 		glTranslated((*itsource)->getX(), (*itsource)->getY(), 0.0);
 		glScaled((*itsource)->getScaleX(), (*itsource)->getScaleY(), 1.f);
 
+        (*itsource)->blend();
         (*itsource)->draw();
 	}
 	_fbo->release();
@@ -253,13 +245,12 @@ void RenderingManager::addCaptureSource(){
 	if (capture.isNull())
 		capture = _fbo->toImage();
 		
-#if QT_VERSION >= 0x040600
-	// with Qt implementation of blitting of FBO, the y is flipped ; avoid this here on the texture
-	GLuint textureIndex = _renderwidget->bindTexture (capture, GL_TEXTURE_2D, GL_RGBA, QGLContext::LinearFilteringBindOption | QGLContext::MipmapBindOption);
-#else
+	// in QT 4.6 implementation of blitting of FBO, the y is flipped ; avoid this here on the texture
+#if QT_VERSION < 0x040600
 	GLuint textureIndex = _renderwidget->bindTexture (capture);
+#else
+	GLuint textureIndex = _renderwidget->bindTexture (capture, GL_TEXTURE_2D, GL_RGBA, QGLContext::LinearFilteringBindOption | QGLContext::MipmapBindOption);
 #endif
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
@@ -290,6 +281,8 @@ void RenderingManager::addMediaSource(VideoFile *vf) {
 	// create a source appropriate for this videofile
 	VideoSource *s = new VideoSource(vf, textureIndex, d);
     Q_CHECK_PTR(s);
+
+    s->updateFrame(-1);
 
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
@@ -355,8 +348,7 @@ void RenderingManager::setCurrentSource(SourceSet::iterator si) {
 			(*currentSource)->activate(false);
 
 		currentSource = si;
-		emit
-		currentSourceChanged(currentSource);
+		emit currentSourceChanged(currentSource);
 
 		if (notAtEnd(currentSource))
 			(*currentSource)->activate(true);

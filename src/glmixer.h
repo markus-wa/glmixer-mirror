@@ -30,6 +30,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
     public slots:
 
     // menu and actions
+		void on_blendingPresetsComboBox_currentIndexChanged(int);
 		void on_actionMediaSource_activated();
 		void on_actionCameraSource_activated();
 		void on_actionRenderingSource_activated();
@@ -58,8 +59,10 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         void displayLogMessage(QString msg);
         void displayErrorMessage(QString msg);
 
-	// source information
+	// source config
         void controlSource(SourceSet::iterator csi);
+        void blendingChanged();
+        void colorsChanged();
 
     private:
 

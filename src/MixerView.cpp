@@ -51,6 +51,9 @@ void MixerView::paint()
 		glPushMatrix();
 		glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		glScalef( SOURCE_UNIT * (*its)->getAspectRatio(),  SOURCE_UNIT, 1.f);
+		// standard transparency blending
+	    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	    glBlendEquation(GL_FUNC_ADD);
 
 		if ((*its)->isActive())
 			glCallList(ViewRenderWidget::border_large_shadow);
@@ -60,7 +63,7 @@ void MixerView::paint()
 		// bind the source texture and update its content
 		(*its)->update();
 
-		// draw surface
+		// draw surface (do not set blending from source)
 		(*its)->draw();
 
 		// draw stippled version of the source on top

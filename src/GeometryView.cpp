@@ -48,8 +48,8 @@ void GeometryView::paint()
 		// bind the source texture and update its content
 		(*its)->update();
 
-	    // Blending Function For transparency Based On Source Alpha Value
-	    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	    // Blending Function For mixing like in the rendering window
+        (*its)->blend();
         (*its)->draw();
 
         // draw border if active

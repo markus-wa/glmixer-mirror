@@ -14,7 +14,13 @@ GLuint Source::lastid = 1;
 
 Source::Source(GLuint texture, double depth) :
 		textureIndex(texture), x(0.0), y(0.0), z(depth), scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-			aspectratio(1.0), texalpha(1.0), texcolor(1.0) {
+			aspectratio(1.0), texalpha(1.0) {
+
+	texcolor = Qt::white;
+//	blendcolor = Qt::white;
+	source_blend = GL_SRC_ALPHA;
+	destination_blend =  GL_DST_ALPHA;
+	blend_eq = GL_FUNC_ADD;
 
 	// give it a unique identifying name
 	// TODO CHANGE the way ids are used
@@ -97,12 +103,17 @@ void Source::draw(bool withalpha, GLenum mode) const {
     if (mode == GL_SELECT)
         glLoadName(id);
     else {
-		// set transparency
-		glColor4f(texcolor, texcolor, texcolor, withalpha ? texalpha : 1.0);
+		// set transparency and color
+		glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(), withalpha ? texalpha : 1.0);
     }
     // draw
     glCallList(ViewRenderWidget::quad_texured);
 }
 
+void Source::blend() const {
+//	glBlendColor(blendcolor.redF(), blendcolor.greenF(), blendcolor.blueF(), blendcolor.alphaF());
+	glBlendEquation(blend_eq);
+	glBlendFunc(source_blend, destination_blend);
+}
 
 
