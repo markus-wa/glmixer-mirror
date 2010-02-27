@@ -16,7 +16,7 @@ GLuint ViewRenderWidget::border_thin_shadow = 0, ViewRenderWidget::border_large_
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0, ViewRenderWidget::border_scale = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_black = 0;
 GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0;
-GLuint ViewRenderWidget::circle_mixing = 0;
+GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0;
 GLuint ViewRenderWidget::quad_half_textured = 0, ViewRenderWidget::quad_stipped_textured[] = {0,0,0,0};
 
 ViewRenderWidget::ViewRenderWidget() :glRenderWidget() {
@@ -68,6 +68,8 @@ void ViewRenderWidget::initializeGL()
 		frame_selection = buildSelectList();
 	if (!circle_mixing)
 		circle_mixing = buildCircleList();
+	if (!layerbg)
+		layerbg = buildLayerbgList();
 	if (!quad_black)
 		quad_black = buildBlackList();
 	if (!frame_screen)
@@ -557,6 +559,53 @@ GLuint ViewRenderWidget::buildCircleList() {
 
     glPopMatrix();
 //    glPopAttrib();
+    glEndList();
+
+    return id;
+}
+
+
+
+GLuint ViewRenderWidget::buildLayerbgList() {
+
+    GLuint id = glGenLists(1);
+
+    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/layerbg.png")), GL_TEXTURE_2D);
+
+    glNewList(id, GL_COMPILE);
+
+//    glMatrixMode(GL_PROJECTION);
+//    glPushMatrix();
+//    glLoadIdentity();
+//    glOrtho(-1, 1, -1, 1, -MAX_DEPTH_LAYER, 10.0);
+//
+//
+//    glMatrixMode(GL_MODELVIEW);
+//    glPushMatrix();
+//    glLoadIdentity();
+//    glTranslatef(0.0, 0.0, 0.0);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glBlendEquation(GL_FUNC_ADD);
+
+    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_QUADS); // begin drawing a square
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex3d(-5.0, 0.0, - 30.0); // Bottom Left
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex3d( 5.0, 0.0, - 30.0); // Bottom Right
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex3d( 5.0,0.0,   30.0); // Top Right
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex3d( -5.0, 0.0, 30.0); // Top Left
+    glEnd();
+
+//    glMatrixMode(GL_PROJECTION);
+//    glPopMatrix();
+//    glMatrixMode(GL_MODELVIEW);
+//    glPopMatrix();
     glEndList();
 
     return id;

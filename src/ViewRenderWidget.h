@@ -71,7 +71,7 @@ protected:
 	static GLuint border_thin, border_large, border_scale;
 	static GLuint frame_selection, frame_screen;
 	static GLuint quad_texured, quad_half_textured, quad_black;
-	static GLuint circle_mixing;
+	static GLuint circle_mixing, layerbg;
 	static GLuint quad_stipped_textured[4];
 
 	// utility to build the display lists
@@ -83,6 +83,7 @@ protected:
     GLuint buildLineList();
     GLuint buildQuadList();
     GLuint buildCircleList();
+    GLuint buildLayerbgList();
     GLuint buildFrameList();
     GLuint buildBlackList();
     GLuint buildBordersList();

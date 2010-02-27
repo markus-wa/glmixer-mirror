@@ -11,11 +11,11 @@
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 
-#define MINZOOM 0.5
-#define MAXZOOM 3.0
-#define DEFAULTZOOM 1.0
+#define MINZOOM 5.0
+#define MAXZOOM 20.0
+#define DEFAULTZOOM 10.0
 
-LayersView::LayersView(): lookatdistance(6.0) {
+LayersView::LayersView(): lookatdistance(4.0) {
 
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
@@ -31,6 +31,9 @@ LayersView::LayersView(): lookatdistance(6.0) {
 void LayersView::paint()
 {
     // First the background stuff
+
+    glCallList(ViewRenderWidget::layerbg);
+
 	glPushMatrix();
 	glScalef(OutputRenderWindow::getInstance()->getAspectRatio() / SOURCE_UNIT, 1.0 / SOURCE_UNIT, 1.0 / SOURCE_UNIT);
     glCallList(ViewRenderWidget::quad_black);
@@ -81,8 +84,8 @@ void LayersView::paint()
 
 void LayersView::reset()
 {
-    gluLookAt(lookatdistance, lookatdistance, lookatdistance+5.0, 0.0, 0.0, 5.0, 0.0, 1.0, 0.0);
-    glScalef(zoom, zoom, zoom);
+    gluLookAt(lookatdistance, lookatdistance, lookatdistance + zoom, 0.0, 0.0, zoom, 0.0, 1.0, 0.0);
+//    glScalef(zoom, zoom, zoom);
     glTranslatef(getPanningX(), getPanningY(), getPanningZ());
 
 }
@@ -97,7 +100,7 @@ void LayersView::resize(int w, int h)
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(50.0f, (float)  viewport[2] / (float)  viewport[3], 0.1f, lookatdistance * 3.0f);
+    gluPerspective(50.0f, (float)  viewport[2] / (float)  viewport[3], 0.1f, lookatdistance * 10.0f);
 
     refreshMatrices();
 }
@@ -149,6 +152,9 @@ void LayersView::mouseMoveEvent(QMouseEvent *event)
 
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 
+	} else {
+		// No button : on mouse over
+
 	}
 }
 
@@ -166,6 +172,9 @@ void LayersView::wheelEvent ( QWheelEvent * event ){
 
 void LayersView::zoomReset() {
 	setZoom(DEFAULTZOOM);
+	setPanningX(0.0);
+	setPanningY(0.0);
+	setPanningZ(0.0);
 }
 
 void LayersView::zoomBestFit() {
@@ -223,7 +232,6 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
         glScalef((*its)->getAspectRatio(), 1.0, 1.0);
         (*its)->draw(false, GL_SELECT);
         glPopMatrix();
-        qDebug ("draw %d ", (*its)->getId());
     }
 
     // compute picking . return to rendering mode
@@ -237,7 +245,6 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     glMatrixMode(GL_MODELVIEW);
 
     while (hits != 0) {
-        qDebug ("hit  %d ", selectBuf[ (hits-1) * 4 + 3]);
     	selection.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
     	hits--;
     }
