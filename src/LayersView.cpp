@@ -107,7 +107,7 @@ void LayersView::resize(int w, int h)
 
 
 
-void LayersView::mousePressEvent(QMouseEvent *event)
+bool LayersView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
@@ -139,9 +139,10 @@ void LayersView::mousePressEvent(QMouseEvent *event)
 		// set current to none (end of list)
 		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
 
+	return true;
 }
 
-void LayersView::mouseMoveEvent(QMouseEvent *event)
+bool LayersView::mouseMoveEvent(QMouseEvent *event)
 {
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
@@ -156,18 +157,22 @@ void LayersView::mouseMoveEvent(QMouseEvent *event)
 		// No button : on mouse over
 
 	}
+
+	return true;
 }
 
-void LayersView::mouseReleaseEvent ( QMouseEvent * event ){
+bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
 	RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
 
+	return true;
 }
 
-void LayersView::wheelEvent ( QWheelEvent * event ){
+bool LayersView::wheelEvent ( QWheelEvent * event ){
 
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
+	return true;
 }
 
 void LayersView::zoomReset() {
@@ -184,18 +189,20 @@ void LayersView::zoomBestFit() {
 }
 
 
-void LayersView::keyPressEvent ( QKeyEvent * event ){
+bool LayersView::keyPressEvent ( QKeyEvent * event ){
 
 
 	switch (event->key()) {
 		case Qt::Key_Left:
-		 break;
+			return true;
 		case Qt::Key_Right:
-		 break;
+			return true;
 		case Qt::Key_Down:
-		 break;
+			return true;
 		case Qt::Key_Up:
-		 break;
+			return true;
+		default:
+			return false;
 	}
 }
 

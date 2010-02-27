@@ -54,9 +54,9 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	opencvCameraIndex = opencvIndex;
 	capture = cvCreateCameraCapture(opencvCameraIndex);
     Q_CHECK_PTR(capture);
-//	if (!capture) {
-//		// TODO Through exception
-//	}
+	if (!capture) {
+		qCritical("*** ERROR ***\nCould not access camera %d with OpenCV drivers.", opencvCameraIndex);
+	}
 
 	width = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
 	height = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);

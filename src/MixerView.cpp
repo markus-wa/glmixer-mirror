@@ -142,7 +142,7 @@ void MixerView::setAction(actionType a){
 	}
 }
 
-void MixerView::mousePressEvent(QMouseEvent *event)
+bool MixerView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
@@ -182,10 +182,10 @@ void MixerView::mousePressEvent(QMouseEvent *event)
         zoomBestFit();
     }
 
-
+	return true;
 }
 
-void MixerView::mouseMoveEvent(QMouseEvent *event)
+bool MixerView::mouseMoveEvent(QMouseEvent *event)
 {
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
@@ -221,22 +221,25 @@ void MixerView::mouseMoveEvent(QMouseEvent *event)
 
     }
 
+	return true;
 }
 
-void MixerView::mouseReleaseEvent ( QMouseEvent * event ){
+bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
 
 	if (currentAction == GRAB )
 		setAction(OVER);
 	else
 		setAction(currentAction);
 
+	return true;
 }
 
-void MixerView::wheelEvent ( QWheelEvent * event ){
+bool MixerView::wheelEvent ( QWheelEvent * event ){
 
 	setAction(NONE);
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
+	return true;
 }
 
 void MixerView::zoomReset() {
@@ -277,7 +280,7 @@ void MixerView::zoomBestFit() {
 }
 
 
-void MixerView::keyPressEvent ( QKeyEvent * event ){
+bool MixerView::keyPressEvent ( QKeyEvent * event ){
 
 	if (currentAction == OVER )
 		setAction(SELECT);
@@ -286,13 +289,15 @@ void MixerView::keyPressEvent ( QKeyEvent * event ){
 
 	switch (event->key()) {
 		case Qt::Key_Left:
-		 break;
+			return true;
 		case Qt::Key_Right:
-		 break;
+			return true;
 		case Qt::Key_Down:
-		 break;
+			return true;
 		case Qt::Key_Up:
-		 break;
+			return true;
+		default:
+			return false;
 	}
 }
 

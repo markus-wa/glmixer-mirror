@@ -30,17 +30,23 @@ public:
 	}
 	virtual void resize(int w, int h) {
 	}
-	virtual void mousePressEvent(QMouseEvent *event) {
+	virtual bool mousePressEvent(QMouseEvent *event) {
+		return false;
 	}
-	virtual void mouseMoveEvent(QMouseEvent *event) {
+	virtual bool mouseMoveEvent(QMouseEvent *event) {
+		return false;
 	}
-	virtual void mouseReleaseEvent(QMouseEvent * event) {
+	virtual bool mouseReleaseEvent(QMouseEvent * event) {
+		return false;
 	}
-	virtual void mouseDoubleClickEvent(QMouseEvent * event) {
+	virtual bool mouseDoubleClickEvent(QMouseEvent * event) {
+		return false;
 	}
-	virtual void wheelEvent(QWheelEvent * event) {
+	virtual bool wheelEvent(QWheelEvent * event) {
+		return false;
 	}
-	virtual void keyPressEvent(QKeyEvent * event) {
+	virtual bool keyPressEvent(QKeyEvent * event) {
+		return false;
 	}
 
 	virtual void zoomIn() {

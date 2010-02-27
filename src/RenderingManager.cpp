@@ -10,6 +10,8 @@
 #include "common.h"
 
 #include "RenderingSource.h"
+#include "CloneSource.h"
+#include "AlgorithmSource.h"
 #include "VideoFile.h"
 #include "VideoSource.h"
 #ifdef OPEN_CV
@@ -308,7 +310,46 @@ void RenderingManager::addOpencvSource(int opencvIndex) {
 }
 #endif
 
+
+void RenderingManager::addAlgorithmSource(int type) {
+
+	// create the texture for this source
+	GLuint textureIndex;
+	_renderwidget->makeCurrent();
+	glGenTextures(1, &textureIndex);
+
+	// place it forward
+	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
+
+	// create a source appropriate for this videofile
+	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, d);
+    Q_CHECK_PTR(s);
+
+	// set the last created source to be current
+	setCurrentSource(_sources.insert((Source *) s));
+}
+
+
+void RenderingManager::addCloneSource(Source *s) {
+
+	// place it forward
+	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
+
+	// create a source appropriate for this videofile
+	CloneSource *clone = new CloneSource(s, d);
+    Q_CHECK_PTR(clone);
+
+	// set the last created source to be current
+	setCurrentSource(_sources.insert((Source *) clone));
+}
+
 void RenderingManager::removeSource(SourceSet::iterator itsource) {
+
+
+	if (itsource == currentSource) {
+		currentSource = _sources.end();
+		emit currentSourceChanged(currentSource);
+	}
 
 	if (itsource != _sources.end()) {
 		delete (*itsource);
@@ -321,6 +362,7 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 			delete previousframe_fbo;
 		previousframe_fbo = 0;
 	}
+
 }
 
 void RenderingManager::clearSourceSet() {

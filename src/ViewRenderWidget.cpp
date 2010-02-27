@@ -135,33 +135,34 @@ void ViewRenderWidget::paintGL(){
 }
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event){
 	makeCurrent();
-	currentManipulationView->mousePressEvent(event);
-	event->accept();
+	if (!currentManipulationView->mousePressEvent(event))
+		QWidget::mousePressEvent(event);
 }
 void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event){
 	makeCurrent();
-	currentManipulationView->mouseMoveEvent(event);
-	event->accept();
+	if (!currentManipulationView->mouseMoveEvent(event))
+		QWidget::mouseMoveEvent(event);
 }
 void ViewRenderWidget::mouseReleaseEvent ( QMouseEvent * event ){
 	makeCurrent();
-	currentManipulationView->mouseReleaseEvent(event);
-	event->accept();
+	if (!currentManipulationView->mouseReleaseEvent(event) )
+		QWidget::mouseReleaseEvent(event);
 }
 void ViewRenderWidget::mouseDoubleClickEvent ( QMouseEvent * event ){
 	makeCurrent();
-	currentManipulationView->mouseDoubleClickEvent(event);
-	event->accept();
+	if(!currentManipulationView->mouseDoubleClickEvent(event))
+		QWidget::mouseDoubleClickEvent(event);
 }
 
 void ViewRenderWidget::wheelEvent ( QWheelEvent * event ){
 	makeCurrent();
-	currentManipulationView->wheelEvent(event);
-	event->accept();
+	if(!currentManipulationView->wheelEvent(event))
+		QWidget::wheelEvent(event);
 }
 void ViewRenderWidget::keyPressEvent ( QKeyEvent * event ){
-	currentManipulationView->keyPressEvent(event);
-	event->accept();
+	makeCurrent();
+	if (!currentManipulationView->keyPressEvent(event))
+		QWidget::keyPressEvent(event);
 }
 
 void ViewRenderWidget::zoomIn() {

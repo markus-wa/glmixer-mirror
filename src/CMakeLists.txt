@@ -15,6 +15,7 @@ set(MYQT_SRCS
     VideoFile.cpp
     Source.cpp
     VideoSource.cpp
+    AlgorithmSource.cpp
 	SourceDisplayWidget.cpp
     MixerView.cpp
     GeometryView.cpp

@@ -44,10 +44,13 @@ public:
 #ifdef OPEN_CV
 	void addOpencvSource(int opencvIndex);
 #endif
+	void addAlgorithmSource(int type);
+	void addCloneSource(Source *s);
+
 	// TODO :
-	inline Source *getSource(int i) {
-		return *_sources.begin();
-	}
+//	inline Source *getSource(int i) {
+//		return *_sources.begin();
+//	}
 	SourceSet::iterator getById(GLuint name);
 	bool notAtEnd(SourceSet::iterator itsource);
 	bool isValid(SourceSet::iterator itsource);

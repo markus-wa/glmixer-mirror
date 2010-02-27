@@ -258,9 +258,12 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		selectedSourceVideoFile = NULL;
 	}
 
+	actionDeleteSource->setEnabled(false);
+
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
+		actionDeleteSource->setEnabled(true);
 		// setup preview
 //		previewStackedWidget->setCurrentIndex(1);
 //		previewSource->setSource (*csi);
@@ -535,6 +538,15 @@ void GLMixer::on_actionCameraSource_activated()
 }
 
 
+void GLMixer::on_actionAlgorithmSource_activated(){
+
+	// TODO popup a question dialog to select the type of algorithm
+
+	RenderingManager::getInstance()->addAlgorithmSource(0);
+	statusbar->showMessage( tr("Source created with the algorithm ***.") );
+}
+
+
 void GLMixer::on_actionRenderingSource_activated(){
 
 	// TODO popup a question dialog 'are u sure'
@@ -544,11 +556,31 @@ void GLMixer::on_actionRenderingSource_activated(){
 }
 
 
+void GLMixer::on_actionCloneSource_activated(){
+
+	// TODO popup a question dialog 'are u sure'
+
+	RenderingManager::getInstance()->addCloneSource( *RenderingManager::getInstance()->getCurrentSource());
+	statusbar->showMessage( tr("The current source has been cloned.") );
+}
+
+
 void GLMixer::on_actionCaptureSource_activated(){
 
 	RenderingManager::getInstance()->addCaptureSource();
 	statusbar->showMessage( tr("Source created with the last output capture.") );
 }
+
+
+void GLMixer::on_actionDeleteSource_activated(){
+
+	if ( RenderingManager::getInstance()->isValid(RenderingManager::getInstance()->getCurrentSource()) ) {
+
+		// TODO popup a question dialog 'are u sure'
+		RenderingManager::getInstance()->removeSource(RenderingManager::getInstance()->getCurrentSource());
+	}
+}
+
 
 void GLMixer::on_actionSaveCapture_activated(){
 

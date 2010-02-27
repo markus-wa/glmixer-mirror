@@ -35,6 +35,9 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
 		void on_actionCameraSource_activated();
 		void on_actionRenderingSource_activated();
 		void on_actionCaptureSource_activated();
+		void on_actionAlgorithmSource_activated();
+		void on_actionCloneSource_activated();
+		void on_actionDeleteSource_activated();
 		void on_actionSaveCapture_activated();
         void on_actionFormats_and_Codecs_activated();
         void on_actionOpenGL_extensions_activated();

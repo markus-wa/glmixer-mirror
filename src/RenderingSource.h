@@ -8,7 +8,7 @@
 #ifndef RENDERINGSOURCE_H_
 #define RENDERINGSOURCE_H_
 
-#include <Source.h>
+#include "Source.h"
 #include "RenderingManager.h"
 
 class RenderingSource: public Source {

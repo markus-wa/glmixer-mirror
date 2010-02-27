@@ -101,7 +101,7 @@ void GeometryView::resize(int w, int h)
 }
 
 
-void GeometryView::mousePressEvent(QMouseEvent *event)
+bool GeometryView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
@@ -161,9 +161,10 @@ void GeometryView::mousePressEvent(QMouseEvent *event)
 		// set current to none (end of list)
 		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
 
+	return true;
 }
 
-void GeometryView::mouseMoveEvent(QMouseEvent *event)
+bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 {
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
@@ -199,21 +200,28 @@ void GeometryView::mouseMoveEvent(QMouseEvent *event)
 		}
 
 //    }
+	return true;
 }
 
-void GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
+bool GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
 
 	RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
+
+
+    // TODO : enforces minimal size ; check that the rescaling did not go bellow the limits and fix it
+
+	return true;
 }
 
-void GeometryView::wheelEvent ( QWheelEvent * event ){
+bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
+	return true;
 }
 
 
-void GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
+bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 
 	// for LEFT double button clic : expand the current source to the rendering area
@@ -226,6 +234,7 @@ void GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 	}
 
+	return true;
 }
 
 void GeometryView::zoomReset() {setZoom(DEFAULTZOOM); setPanningX(0); setPanningY(0);}
@@ -336,8 +345,8 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
     // make proportionnal scaling
 
     gluUnProject((GLdouble) (X - dx), (GLdouble) (Y - dy),
-            0.0, modelview, projection, viewport, &bx, &by, &bz);
-    gluUnProject((GLdouble) X, (GLdouble) Y, 0.0,
+            1.0, modelview, projection, viewport, &bx, &by, &bz);
+    gluUnProject((GLdouble) X, (GLdouble) Y, 1.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
 
@@ -349,7 +358,8 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
     double xp = x, yp = y;
 
     if ( quadrant == 2 || quadrant == 3) {  // RIGHT
-        if ( ax > x ) { // prevent change of quadrant
+       // if ( ax > x )
+        { // prevent change of quadrant
             sx = (ax - x + w) / ( bx - x + w);
             xp = x + w * (sx - 1.0);
         }
@@ -360,10 +370,11 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
         }
     }
     // enforces minimal size
-    if (w < (MIN_SCALE * (*currentSource)->getAspectRatio()) && sx < 1.0){ sx=1.0; xp=x; }
+//    if (w < (MIN_SCALE * (*currentSource)->getAspectRatio()) && sx < 1.0){ sx=1.0; xp=x; }
 
     if ( quadrant < 3 ){                    // TOP
-        if ( ay > y ) { // prevent change of quadrant
+       // if ( ay > y )
+        { // prevent change of quadrant
             sy = (ay - y + h) / ( by - y + h);
             yp = y + h * (sy - 1.0);
         }
@@ -374,7 +385,7 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
         }
     }
     // enforces minimal size
-    if (h < MIN_SCALE && sy < 1.0){ sy=1.0; yp=y; }
+//    if (h < MIN_SCALE && sy < 1.0){ sy=1.0; yp=y; }
 
     (*currentSource)->scaleBy(sx, sy);
     (*currentSource)->moveTo(xp, yp);

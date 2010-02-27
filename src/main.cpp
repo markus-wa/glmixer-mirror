@@ -70,8 +70,6 @@ int main(int argc, char **argv)
 
 #ifdef __APPLE__
     glmixer_widget.setStyleSheet(QString::fromUtf8("font: 11pt \"Lucida Grande\";\n"));
-#else
-    glmixer_widget.setStyleSheet(QString::fromUtf8("font: 9pt \"Bitstream Vera Sans\";\n"));
 #endif
 
 #ifdef GLMIXER_VERSION
