@@ -20,7 +20,7 @@ Subversion_GET_REVISION(${PROJECT_SOURCE_DIR} ProgramRevision)
 MESSAGE(STATUS "Revision is ${ProgramRevision}")
 # ----------------------------------------------------------------------
 				
-set(GLMIXER_VERSION "0.5")
+set(GLMIXER_VERSION "0.6")
 
 # Expose CMAKE_INCLUDE_PATH and CMAKE_LIBARY_PATH to the GUI so users
 # may set these values without needing to manipulate the environment.

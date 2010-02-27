@@ -3,5 +3,6 @@
     <file>textures/circle.png</file>
     <file>textures/shadow.png</file>
     <file>textures/shadow_corner.png</file>
+    <file>textures/layerbg.png</file>
   </qresource>
 </RCC>
