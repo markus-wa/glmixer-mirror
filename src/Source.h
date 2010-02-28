@@ -129,6 +129,7 @@ public:
 		blend_eq = eq;
 	}
 	void scaleBy(GLfloat fx, GLfloat fy);
+	void clampScale();
 	void setAlphaCoordinates(GLdouble x, GLdouble y, GLdouble max);
 	void resetScale();
 

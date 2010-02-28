@@ -207,8 +207,11 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
 
 	RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
 
+    // enforces minimal size ; check that the rescaling did not go bellow the limits and fix it
+	if ( RenderingManager::getInstance()->notAtEnd( RenderingManager::getInstance()->getCurrentSource()) ) {
+		(*RenderingManager::getInstance()->getCurrentSource())->clampScale();
+	}
 
-    // TODO : enforces minimal size ; check that the rescaling did not go bellow the limits and fix it
 
 	return true;
 }
@@ -350,9 +353,9 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
             modelview, projection, viewport, &ax, &ay, &az);
 
 
-    double w = (*currentSource)->getScaleX();
+    double w = ((*currentSource)->getScaleX());
     double x = (*currentSource)->getX();
-    double h = (*currentSource)->getScaleY();
+    double h = ((*currentSource)->getScaleY());
     double y = (*currentSource)->getY();
     double sx = 1.0, sy = 1.0;
     double xp = x, yp = y;
@@ -364,13 +367,12 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
             xp = x + w * (sx - 1.0);
         }
     } else {                                // LEFT
-        if ( ax < x ) { // prevent change of quadrant
+//        if ( ax < x )
+        { // prevent change of quadrant
             sx = (ax - x - w) / ( bx - x - w);
             xp = x - w * (sx - 1.0);
         }
     }
-    // enforces minimal size
-//    if (w < (MIN_SCALE * (*currentSource)->getAspectRatio()) && sx < 1.0){ sx=1.0; xp=x; }
 
     if ( quadrant < 3 ){                    // TOP
        // if ( ay > y )
@@ -379,18 +381,15 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
             yp = y + h * (sy - 1.0);
         }
     } else {                                // BOTTOM
-        if ( ay < y ) { // prevent change of quadrant
+//        if ( ay < y )
+        { // prevent change of quadrant
             sy = (ay - y - h) / ( by - y - h);
             yp = y - h * (sy - 1.0);
         }
     }
-    // enforces minimal size
-//    if (h < MIN_SCALE && sy < 1.0){ sy=1.0; yp=y; }
 
     (*currentSource)->scaleBy(sx, sy);
     (*currentSource)->moveTo(xp, yp);
-
-
 }
 
 
@@ -411,19 +410,23 @@ char GeometryView::getSourceQuadrant(SourceSet::iterator currentSource, int X, i
     gluUnProject((GLdouble) X, (GLdouble) Y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
-    double w = (*currentSource)->getScaleX();
+    double w = ((*currentSource)->getScaleX());
     double x = (*currentSource)->getX();
-    double h = (*currentSource)->getScaleY();
+    double h = ((*currentSource)->getScaleY());
     double y = (*currentSource)->getY();
 
-    if (( x > ax + 0.8*w ) && ( y < ay - 0.8*h) ) // RIGHT BOTTOM
-        quadrant = 1;
-    else if  (( x > ax + 0.8*w) && ( y > ay + 0.8*h ) ) // RIGHT TOP
-        quadrant = 4;
-    else if  (( x < ax - 0.8*w) && ( y < ay - 0.8*h) ) // LEFT BOTTOM
-        quadrant = 2;
-    else if  (( x < ax - 0.8*w) && ( y > ay + 0.8*h ) ) // LEFT TOP
-        quadrant = 3;
+    if (( x > ax + 0.8 * ABS(w) ) && ( y < ay - 0.8 * ABS(h) ) ) // RIGHT BOTTOM
+//        quadrant = 1;
+        quadrant = h > 0 ? (w > 0 ? (1) : (2)) : (w > 0 ? (4) : (3));
+    else if  (( x > ax + 0.8 * ABS(w)) && ( y > ay + 0.8 * ABS(h) ) ) // RIGHT TOP
+//        quadrant = 4;
+        quadrant = h > 0 ? (w > 0 ? (4) : (3)) : (w > 0 ? (1) : (2));
+    else if  (( x < ax - 0.8 * ABS(w)) && ( y < ay - 0.8 * ABS(h) ) ) // LEFT BOTTOM
+//        quadrant = 2;
+    	quadrant = h > 0 ? (w > 0 ? (2) : (1)) : (w > 0 ? (3) : (4));
+    else if  (( x < ax - 0.8 * ABS(w)) && ( y > ay + 0.8 * ABS(h) ) ) // LEFT TOP
+//        quadrant = 3;
+    	quadrant = h > 0 ? (w > 0 ? (3) : (4)) : (w > 0 ? (2) : (1));
 
     return quadrant;
 }

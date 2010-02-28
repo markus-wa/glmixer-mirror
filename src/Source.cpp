@@ -74,6 +74,12 @@ void Source::scaleBy(float fx, float fy) {
 	scaley *= fy;
 }
 
+void Source::clampScale(){
+
+	scalex = (scalex > 0 ? 1.0 : -1.0) *  CLAMP( ABS(scalex), MIN_SCALE, MAX_SCALE);
+	scaley = (scaley > 0 ? 1.0 : -1.0) *  CLAMP( ABS(scaley), MIN_SCALE, MAX_SCALE);
+}
+
 void Source::setAlphaCoordinates(double x, double y, double max) {
 
 	// set new alpha coordinates

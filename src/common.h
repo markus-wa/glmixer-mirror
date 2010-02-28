@@ -46,7 +46,7 @@ extern "C" {
 #define MIN_DEPTH_LAYER 0.0
 #define MAX_DEPTH_LAYER 150.0
 #define MIN_SCALE 0.31
-#define MAX_SCALE 5.0
+#define MAX_SCALE 100.0
 
 // #include <cmath>
 // #include <string>
