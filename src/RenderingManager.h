@@ -45,7 +45,7 @@ public:
 	void addOpencvSource(int opencvIndex);
 #endif
 	void addAlgorithmSource(int type);
-	void addCloneSource(Source *s);
+	void addCloneSource(SourceSet::iterator sit);
 
 	// TODO :
 //	inline Source *getSource(int i) {

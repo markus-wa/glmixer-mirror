@@ -5,8 +5,7 @@
  *      Author: bh
  */
 
- 
-#include "Source.h"
+#include "SourceSet.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 
@@ -33,39 +32,41 @@ Source::Source(GLuint texture, double depth) :
 	coordinates.setAttribute("z", z);
 //	dom.appendChild(coordinates);
 
+	clones = new SourceList;
 }
 
 
 Source::~Source() {
 
-	glDeleteTextures(1, &textureIndex);
+	delete clones;
 }
 
 
-Source::Source(Source *clone, double d) {
+Source::Source(Source *duplicate, double d) {
 
-    // clone everything
-    id = clone->id;
-    x = clone->x;
-    y = clone->y;
-    scalex = clone->scalex;
-    scaley = clone->scaley;
-    alphax = clone->alphax;
-    alphay = clone->alphay;
-    aspectratio = clone->aspectratio;
-    texalpha = clone->texalpha;
-    texcolor = clone->texcolor;
-    active = clone->active;
-    textureIndex = clone->textureIndex;
-	source_blend  = clone->source_blend;
-	destination_blend = clone->destination_blend;
-	blend_eq = clone->blend_eq;
+    // duplicate everything
+    id = duplicate->id;
+    x = duplicate->x;
+    y = duplicate->y;
+    scalex = duplicate->scalex;
+    scaley = duplicate->scaley;
+    alphax = duplicate->alphax;
+    alphay = duplicate->alphay;
+    aspectratio = duplicate->aspectratio;
+    texalpha = duplicate->texalpha;
+    texcolor = duplicate->texcolor;
+    active = duplicate->active;
+    textureIndex = duplicate->textureIndex;
+	source_blend  = duplicate->source_blend;
+	destination_blend = duplicate->destination_blend;
+	blend_eq = duplicate->blend_eq;
+	clones = duplicate->clones;
 
     // new depth (if in correct value range)
     if (d > MIN_DEPTH_LAYER && d < MAX_DEPTH_LAYER)
         z = d;
     else
-        z = clone->z;
+        z = duplicate->z;
 
 }
 

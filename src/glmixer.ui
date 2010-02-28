@@ -947,8 +947,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>300</width>
-          <height>518</height>
+          <width>107</width>
+          <height>190</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1195,8 +1195,8 @@ the video will pause or loop.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>300</width>
-          <height>518</height>
+          <width>158</width>
+          <height>104</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1314,8 +1314,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>300</width>
-          <height>511</height>
+          <width>256</width>
+          <height>486</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1715,7 +1715,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <x>0</x>
      <y>0</y>
      <width>1338</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2232,6 +2232,9 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
   </action>
   <action name="actionCloneSource">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/copy-source.png</normaloff>:/glmixer/icons/copy-source.png</iconset>
@@ -2266,6 +2269,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
  <resources>
   <include location="../icons.qrc"/>
   <include location="../textures.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

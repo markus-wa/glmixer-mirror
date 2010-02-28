@@ -8,17 +8,21 @@
 #ifndef SOURCE_H_
 #define SOURCE_H_
 
+#include <vector>
 #include <QDomElement>
 #include <QColor>
 
 #include "common.h"
+
+class Source;
+typedef std::vector<Source *> SourceList;
 
 class Source {
 
 public:
 
 	Source(GLuint texture, double depth);
-	Source(Source *clone, double newdepth);
+	Source(Source *duplicate, double newdepth);
 	virtual ~Source();
 
 	virtual void update() {
@@ -133,6 +137,7 @@ public:
 	void setAlphaCoordinates(GLdouble x, GLdouble y, GLdouble max);
 	void resetScale();
 
+	inline SourceList *getClones() const { return clones; }
 
 protected:
 
@@ -140,6 +145,7 @@ protected:
 	GLuint id;
 	QDomElement dom;
 	bool active;
+	SourceList *clones;
 
 	// GL Stuff
 	GLuint textureIndex;

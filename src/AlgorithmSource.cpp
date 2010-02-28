@@ -27,6 +27,9 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int 
 
 AlgorithmSource::~AlgorithmSource() {
 	delete [] buffer;
+
+	// free the OpenGL texture
+	glDeleteTextures(1, &textureIndex);
 }
 
 void AlgorithmSource::initBuffer(){

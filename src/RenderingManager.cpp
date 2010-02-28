@@ -330,13 +330,13 @@ void RenderingManager::addAlgorithmSource(int type) {
 }
 
 
-void RenderingManager::addCloneSource(Source *s) {
+void RenderingManager::addCloneSource(SourceSet::iterator sit) {
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 
 	// create a source appropriate for this videofile
-	CloneSource *clone = new CloneSource(s, d);
+	CloneSource *clone = new CloneSource(sit, d);
     Q_CHECK_PTR(clone);
 
 	// set the last created source to be current
@@ -345,15 +345,20 @@ void RenderingManager::addCloneSource(Source *s) {
 
 void RenderingManager::removeSource(SourceSet::iterator itsource) {
 
-
+	// if we are removing the current source, ensure it is not the current one anymore
 	if (itsource == currentSource) {
 		currentSource = _sources.end();
 		emit currentSourceChanged(currentSource);
 	}
 
 	if (itsource != _sources.end()) {
-		delete (*itsource);
+		// first remove every clone of the source to be removed
+		for (SourceList::iterator clone = (*itsource)->getClones()->begin(); clone < (*itsource)->getClones()->end(); clone = (*itsource)->getClones()->begin()) {
+			removeSource( getById( (*clone)->getId() ) );
+		}
+		// then remove the source itself
 		_sources.erase(itsource);
+		delete (*itsource);
 	}
 
 	// Disable update of previous frame if all the RenderingSources are deleted

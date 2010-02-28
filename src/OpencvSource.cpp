@@ -96,6 +96,8 @@ OpencvSource::~OpencvSource() {
 	if (capture)
 		cvReleaseCapture(&capture);
 
+	// free the OpenGL texture
+	glDeleteTextures(1, &textureIndex);
 }
 
 

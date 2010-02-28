@@ -258,12 +258,11 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		selectedSourceVideoFile = NULL;
 	}
 
-	actionDeleteSource->setEnabled(false);
-
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
 		actionDeleteSource->setEnabled(true);
+		actionCloneSource->setEnabled(true);
 		// setup preview
 //		previewStackedWidget->setCurrentIndex(1);
 //		previewSource->setSource (*csi);
@@ -490,6 +489,10 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 		return;
 
 	} else { // no current source
+
+		actionDeleteSource->setEnabled(false);
+		actionCloneSource->setEnabled(false);
+
 		// nothing to preview
 //		previewStackedWidget->setCurrentIndex(0);
 //		previewSource->setSource(0);
@@ -560,8 +563,10 @@ void GLMixer::on_actionCloneSource_activated(){
 
 	// TODO popup a question dialog 'are u sure'
 
-	RenderingManager::getInstance()->addCloneSource( *RenderingManager::getInstance()->getCurrentSource());
-	statusbar->showMessage( tr("The current source has been cloned.") );
+	if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
+		RenderingManager::getInstance()->addCloneSource( RenderingManager::getInstance()->getCurrentSource());
+		statusbar->showMessage( tr("The current source has been cloned.") );
+	}
 }
 
 
@@ -576,8 +581,16 @@ void GLMixer::on_actionDeleteSource_activated(){
 
 	if ( RenderingManager::getInstance()->isValid(RenderingManager::getInstance()->getCurrentSource()) ) {
 
-		// TODO popup a question dialog 'are u sure'
-		RenderingManager::getInstance()->removeSource(RenderingManager::getInstance()->getCurrentSource());
+		int numclones = (*RenderingManager::getInstance()->getCurrentSource())->getClones()->size();
+		// popup a question dialog 'are u sure' if there are clones attached;
+		if ( numclones ){
+			QString msg = tr("This source was cloned %1 times; all these clones will be removed with this source if you confirm the removal.").arg(numclones);
+			if ( QMessageBox::question(this,"Are you sure?", msg, QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Ok)
+				numclones = 0;
+		}
+
+		if ( !numclones )
+			RenderingManager::getInstance()->removeSource(RenderingManager::getInstance()->getCurrentSource());
 	}
 }
 

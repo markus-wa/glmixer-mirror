@@ -48,6 +48,9 @@ VideoSource::~VideoSource() {
 
     if (is)
     	delete is;
+
+	// free the OpenGL texture
+	glDeleteTextures(1, &textureIndex);
 }
 
 
