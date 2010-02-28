@@ -30,10 +30,10 @@ class OpencvSource: public QObject, public Source {
     friend class CameraThread;
 
 public:
-    inline int getOpencvCameraIndex() { return opencvCameraIndex; }
-	inline int getFrameWidth() {return width;}
-	inline int getFrameHeight() {return height;}
-	inline double getFrameRate() { return framerate;}
+    inline int getOpencvCameraIndex() const { return opencvCameraIndex; }
+	inline int getFrameWidth() const { return width; }
+	inline int getFrameHeight() const { return height; }
+	inline double getFrameRate() const { return framerate; }
 	bool isRunning();
 
 public slots:

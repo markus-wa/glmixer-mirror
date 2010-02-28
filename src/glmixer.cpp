@@ -10,12 +10,15 @@
 
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
+#include "AlgorithmSelectionDialog.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 #include "MixerView.h"
 #include "SourceDisplayWidget.h"
 #include "RenderingSource.h"
+#include "AlgorithmSource.h"
+#include "CloneSource.h"
 #include "VideoSource.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
@@ -442,16 +445,16 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 			return;
 		}
 #endif
-		// if it is an OpencvSource (camera)
+		// if it is an loopback rendering source
 		RenderingSource *crs = dynamic_cast<RenderingSource *>(*csi);
 		if (crs != NULL) {
 			// fill in the information panel
 			sourceDockWidget->setEnabled(true);
 			FileNameLineEdit->setText(QString("Rendering loopback"));
 			if (glSupportsExtension("GL_EXT_framebuffer_blit"))
-				CodecNameLineEdit->setText("framebuffer_blit");
+				CodecNameLineEdit->setText("High speed blitted frame buffer");
 			else
-				CodecNameLineEdit->setText("framebuffer");
+				CodecNameLineEdit->setText("frame buffer");
 			widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
 			heightLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferHeight()));
 			framerateLineEdit->setText(QString().setNum(RenderingManager::getRenderingWidget()->getFPS() / float(RenderingManager::getInstance()->getPreviousFrameDelay()),'f',1));
@@ -468,11 +471,57 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 			return;
 		}
 		
+		// if it is an Algorithm source
+		AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(*csi);
+		if (as != NULL) {
+			// fill in the information panel
+			sourceDockWidget->setEnabled(true);
+			FileNameLineEdit->setText(QString("Algorithm generated"));
+			CodecNameLineEdit->setText( AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()));
+			widthLineEdit->setText( QString("%1").arg(as->getFrameWidth()));
+			heightLineEdit->setText( QString("%1").arg(as->getFrameHeight()));
+			framerateLineEdit->setText(QString().setNum(as->getFrameRate(),'f',1));
+			endLineEdit->setText("-");
+			timeLineEdit->setText("-");
+			markInLineEdit->setText("-");
+			markOutLineEdit->setText("-");
+
+			// we cannot play/stop  nor configure
+			vcontrolDockWidget->setEnabled(false);
+			startButton->setEnabled( false );
+			videoFrame->setEnabled(false);
+			timingControlFrame->setEnabled(false);
+			return;
+		}
+
+		// if it is a clone of a source
+		CloneSource *cs = dynamic_cast<CloneSource *>(*csi);
+		if (cs != NULL) {
+			// fill in the information panel
+			sourceDockWidget->setEnabled(true);
+			FileNameLineEdit->setText(QString("Clone of another source"));
+			CodecNameLineEdit->setText("RGBA frame buffer");
+			widthLineEdit->setText("-");
+			heightLineEdit->setText("-");
+			framerateLineEdit->setText("-");
+			endLineEdit->setText("-");
+			timeLineEdit->setText("-");
+			markInLineEdit->setText("-");
+			markOutLineEdit->setText("-");
+
+			// we cannot play/stop  nor configure
+			vcontrolDockWidget->setEnabled(false);
+			startButton->setEnabled( false );
+			videoFrame->setEnabled(false);
+			timingControlFrame->setEnabled(false);
+			return;
+		}
+
 		// it is a basic  Source
 		// fill in the information panel
 		sourceDockWidget->setEnabled(true);
-		FileNameLineEdit->setText(QString("Captured Image"));
-		CodecNameLineEdit->setText("framebuffer");
+		FileNameLineEdit->setText(QString("Image"));
+		CodecNameLineEdit->setText("RGBA frame buffer");
 		widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
 		heightLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferHeight()));
 		framerateLineEdit->setText("-");
@@ -543,10 +592,14 @@ void GLMixer::on_actionCameraSource_activated()
 
 void GLMixer::on_actionAlgorithmSource_activated(){
 
-	// TODO popup a question dialog to select the type of algorithm
+	// popup a question dialog to select the type of algorithm
+	AlgorithmSelectionDialog asd(this);
+	asd.setModal(false);
 
-	RenderingManager::getInstance()->addAlgorithmSource(0);
-	statusbar->showMessage( tr("Source created with the algorithm ***.") );
+	if (asd.exec() == QDialog::Accepted) {
+		RenderingManager::getInstance()->addAlgorithmSource(0);
+		statusbar->showMessage( tr("Source created with the algorithm ***.") );
+	}
 }
 
 
@@ -585,7 +638,7 @@ void GLMixer::on_actionDeleteSource_activated(){
 		// popup a question dialog 'are u sure' if there are clones attached;
 		if ( numclones ){
 			QString msg = tr("This source was cloned %1 times; all these clones will be removed with this source if you confirm the removal.").arg(numclones);
-			if ( QMessageBox::question(this,"Are you sure?", msg, QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Ok)
+			if ( QMessageBox::question(this,"Are you sure?", msg, QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
 				numclones = 0;
 		}
 

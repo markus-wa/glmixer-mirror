@@ -947,8 +947,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>107</width>
-          <height>190</height>
+          <width>256</width>
+          <height>486</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1195,8 +1195,8 @@ the video will pause or loop.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>158</width>
-          <height>104</height>
+          <width>256</width>
+          <height>486</height>
          </rect>
         </property>
         <attribute name="label">
@@ -2192,7 +2192,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <string>&amp;Capture output</string>
    </property>
    <property name="toolTip">
-    <string>Take a screenshot of the current rendering.</string>
+    <string>Take a screenshot of the current rendering output.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>

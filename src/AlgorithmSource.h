@@ -22,14 +22,25 @@ protected:
 
 	void update();
 
+public:
+
+	typedef enum {FLAT = 0, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, WATER} algorithmType;
+
+    inline algorithmType getAlgorithmType() const { return algotype; }
+	inline int getFrameWidth() const { return width; }
+	inline int getFrameHeight() const { return height; }
+	inline double getFrameRate() const { return framerate; }
+
+	static QString getAlgorithmDescription(algorithmType t);
+
 private:
 
 	void initBuffer();
 
-	typedef enum {FLAT = 0, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, WATER} algorithmType;
 	algorithmType algotype;
 	unsigned char *buffer;
 	int width, height;
+	double framerate;
 };
 
 #endif /* ALGORITHMSOURCE_H_ */

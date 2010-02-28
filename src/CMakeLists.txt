@@ -16,6 +16,7 @@ set(MYQT_SRCS
     Source.cpp
     VideoSource.cpp
     AlgorithmSource.cpp
+    AlgorithmSelectionDialog.cpp
 	SourceDisplayWidget.cpp
     MixerView.cpp
     GeometryView.cpp
@@ -36,6 +37,7 @@ set(MYQT_UIS
     glmixer.ui
     VideoFileDialog.ui
     CameraDialog.ui
+    AlgorithmSelectionDialog.ui
 )
 
 
