@@ -34,6 +34,7 @@ public:
 	 */
 	static ViewRenderWidget *getRenderingWidget();
 	static RenderingManager *getInstance();
+	static void deleteInstance();
 
 	/**
 	* Management of the sources
@@ -44,7 +45,7 @@ public:
 #ifdef OPEN_CV
 	void addOpencvSource(int opencvIndex);
 #endif
-	void addAlgorithmSource(int type);
+	void addAlgorithmSource(int type, int w, int h, int p);
 	void addCloneSource(SourceSet::iterator sit);
 
 	// TODO :
@@ -72,6 +73,7 @@ public:
 	 * management of the rendering
 	 */
 	void setFrameBufferResolution(int width, int height);
+	void clearFrameBuffer();
 	void renderToFrameBuffer(SourceSet::iterator itsource, bool clearfirst);
 	GLuint getFrameBufferTexture();
 	GLuint getFrameBufferHandle();

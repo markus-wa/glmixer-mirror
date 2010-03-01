@@ -22,7 +22,6 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
 
 	openCVpreview = new OpencvDisplayWidget(this);
     Q_CHECK_PTR(openCVpreview);
-	openCVpreview->setFixedSize(200, 150);
 	verticalLayout_2->insertWidget(1, openCVpreview);
 
 	autodetectOpencvCameras();

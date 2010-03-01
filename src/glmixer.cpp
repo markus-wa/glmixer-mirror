@@ -83,6 +83,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 GLMixer::~GLMixer() {
 
+
+	RenderingManager::deleteInstance();
 }
 
 
@@ -569,8 +571,6 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 void GLMixer::on_actionCameraSource_activated()
 {
 
-//	MainRenderWidget::getInstance()->addSource(0);
-
 	CameraDialog cd(this);
 	cd.setModal(false);
 
@@ -580,8 +580,23 @@ void GLMixer::on_actionCameraSource_activated()
 #ifdef OPEN_CV
 		if (cd.getDriver() == CameraDialog::OPENCV_CAMERA && cd.indexOpencvCamera() >= 0)
 		{
-			RenderingManager::getInstance()->addOpencvSource(cd.indexOpencvCamera());
-			statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()) );
+			SourceSet::iterator sit = RenderingManager::getInstance()->getBegin();
+			// check for the existence of an opencv source which would already be on this same index
+			for ( ; RenderingManager::getInstance()->notAtEnd(sit); sit++){
+				OpencvSource *cvs = dynamic_cast<OpencvSource *>(*sit);
+				if (cvs && cvs->getOpencvCameraIndex() == cd.indexOpencvCamera())
+					break;
+			}
+			// if we find one, just clone the source
+			if ( RenderingManager::getInstance()->notAtEnd(sit)) {
+				RenderingManager::getInstance()->addCloneSource(sit);
+				statusbar->showMessage( tr("Clone created of the source with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()) );
+			}
+			//else create a new opencv source :
+			else {
+				RenderingManager::getInstance()->addOpencvSource(cd.indexOpencvCamera());
+				statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()) );
+			}
 		}
 #endif
 
@@ -597,7 +612,7 @@ void GLMixer::on_actionAlgorithmSource_activated(){
 	asd.setModal(false);
 
 	if (asd.exec() == QDialog::Accepted) {
-		RenderingManager::getInstance()->addAlgorithmSource(0);
+		RenderingManager::getInstance()->addAlgorithmSource(asd.getSelectedAlgorithmIndex(), asd.getSelectedWidth(), asd.getSelectedHeight(), asd.getUpdatePeriod());
 		statusbar->showMessage( tr("Source created with the algorithm ***.") );
 	}
 }

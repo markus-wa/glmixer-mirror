@@ -74,6 +74,8 @@ void LayersView::paint()
         first = false;
 
 	}
+	if (first)
+		RenderingManager::getInstance()->clearFrameBuffer();
 
     // Then the foreground
 

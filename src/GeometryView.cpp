@@ -67,6 +67,8 @@ void GeometryView::paint()
         first = false;
 
     }
+	if (first)
+		RenderingManager::getInstance()->clearFrameBuffer();
 
     // last the frame thing
     glCallList(ViewRenderWidget::frame_screen);

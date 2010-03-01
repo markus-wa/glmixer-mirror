@@ -11,36 +11,52 @@
 #include "Source.h"
 #include "RenderingManager.h"
 
-class AlgorithmSource: public Source {
+class AlgorithmThread;
+class QMutex;
+class QWaitCondition;
+
+class AlgorithmSource: public QObject, public Source {
+
+    Q_OBJECT
 
 	friend class RenderingManager;
-
-    // only RenderingManager can create a source
-protected:
-	AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256);
-	~AlgorithmSource();
-
-	void update();
+    friend class AlgorithmThread;
 
 public:
 
 	typedef enum {FLAT = 0, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, WATER} algorithmType;
+	static QString getAlgorithmDescription(algorithmType t);
 
     inline algorithmType getAlgorithmType() const { return algotype; }
 	inline int getFrameWidth() const { return width; }
 	inline int getFrameHeight() const { return height; }
 	inline double getFrameRate() const { return framerate; }
+	bool isRunning();
 
-	static QString getAlgorithmDescription(algorithmType t);
+public slots:
+	void play(bool on);
+	void setPeriodicity(unsigned long u_seconds) {period = u_seconds;}
 
-private:
+    // only RenderingManager can create a source
+protected:
+	AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256, unsigned long p= 0);
+	~AlgorithmSource();
+
+	void update();
 
 	void initBuffer();
 
 	algorithmType algotype;
 	unsigned char *buffer;
 	int width, height;
+	unsigned long period;
 	double framerate;
+    bool frameChanged;
+
+    AlgorithmThread *thread;
+    QMutex *mutex;
+    QWaitCondition *cond;
+
 };
 
 #endif /* ALGORITHMSOURCE_H_ */

@@ -5,7 +5,7 @@
  *      Author: bh
  */
 
-#include <OpencvSource.moc>
+#include "OpencvSource.moc"
 
 #include <QThread>
 #include <QTime>
@@ -43,8 +43,12 @@ void CameraThread::run(){
 		}
 		cvs->mutex->unlock();
 
-		if ( ++f == 100 )  // hundred frames to average the frame rate
+
+		if ( ++f == 100 ) { // hundred frames to average the frame rate {
 			cvs->framerate = 100000.0 / (double) t.elapsed();
+			t.restart();
+			f = 0;
+		}
 	}
 }
 
@@ -84,11 +88,9 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 
 OpencvSource::~OpencvSource() {
 
-	thread->end = true;
-	mutex->lock();
-	cond->wakeAll();
-	mutex->unlock();
-    thread->wait(500);
+	qDebug("OpencvSource::~OpencvSource");
+
+	play(false);
 	delete thread;
 	delete cond;
 	delete mutex;
@@ -98,6 +100,9 @@ OpencvSource::~OpencvSource() {
 
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);
+
+
+	qDebug("OpencvSource::~OpencvSource done");
 }
 
 

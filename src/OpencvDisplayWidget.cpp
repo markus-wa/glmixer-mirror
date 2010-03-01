@@ -29,10 +29,12 @@ void OpencvThread::run(){
 
 	while (!end) {
 		cvs->mutex->lock();
-	    Q_CHECK_PTR(cvs->capture);
 		if (!cvs->frameChanged) {
-			cvs->frame = cvQueryFrame( cvs->capture );
-			cvs->frameChanged = true;
+		    Q_CHECK_PTR(cvs->capture);
+			if (cvGrabFrame( cvs->capture )){
+				cvs->frame = cvRetrieveFrame( cvs->capture );
+				cvs->frameChanged = true;
+			}
 			cvs->cond->wait(cvs->mutex);
 		}
 		cvs->mutex->unlock();
@@ -54,24 +56,24 @@ OpencvDisplayWidget::OpencvDisplayWidget(QWidget *parent)
 
 void OpencvDisplayWidget::setCamera(int camindex)
 {
-	if (camindex < 0) {  // stop
+	if (!thread->end) {
 		thread->end = true;
 		mutex->lock();
 		cond->wakeAll();
-	    frameChanged = false;
+		frameChanged = false;
 		mutex->unlock();
-	    thread->wait(500);
-		if (capture) {
-			cvReleaseCapture(&capture);
-			capture = NULL;
-		}
+		thread->wait(500);
+	}
 
-	} else { // start
+	if (capture) {
+		cvReleaseCapture(&capture);
+		capture = NULL;
+	}
 
-		if (capture)
-			cvReleaseCapture(&capture);
+	if (camindex >= 0){
 		capture  = cvCreateCameraCapture(camindex);
 	    Q_CHECK_PTR(capture);
+		frameChanged = false;
 		thread->end = false;
 		thread->start();
 	}
@@ -89,9 +91,12 @@ OpencvDisplayWidget::~OpencvDisplayWidget() {
 	delete mutex;
 
 	// release former capture if we had one (changing camera index)
-	if (capture)
-		cvReleaseCapture(&capture);
-
+	if (capture){
+		// TODO ; NOT releasing capture for the case when a source with the same capture is already running ;
+		// releasing here will also release the source's capture and stop it (we don't want that).
+		// As not releasing a capture does not seem to hurt, i just don't do it. Its bad, i know..
+//		cvReleaseCapture(&capture);
+	}
     if (squareDisplayList){
         makeCurrent();
         glDeleteLists(squareDisplayList, 1);
@@ -110,6 +115,7 @@ void OpencvDisplayWidget::initializeGL()
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     squareDisplayList = glGenLists(1);
     glNewList(squareDisplayList, GL_COMPILE);
@@ -131,17 +137,15 @@ void OpencvDisplayWidget::initializeGL()
     }
     glEndList();
 
+    glDisable(GL_BLEND);
+	setBackgroundColor(palette().color(QPalette::Base));
 }
 
 void OpencvDisplayWidget::paintGL()
 {
-	glRenderWidget::paintGL();
-
 	if( frameChanged )
 	{
-    	// update the texture
-        glBindTexture(GL_TEXTURE_2D, textureIndex);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	    glRenderWidget::paintGL();
 
 		mutex->lock();
 		frameChanged = false;
@@ -149,8 +153,13 @@ void OpencvDisplayWidget::paintGL()
 		cond->wakeAll();
 		mutex->unlock();
 
+		float renderingAspectRatio = float(frame->width) / float(frame->height);
+		if (aspectRatio < renderingAspectRatio)
+			glScalef(1.f, aspectRatio / renderingAspectRatio, 1.f);
+		else
+			glScalef(renderingAspectRatio / aspectRatio, 1.f, 1.f);
+
 		glCallList(squareDisplayList);
 	}
-
 }
 

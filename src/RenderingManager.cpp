@@ -51,6 +51,10 @@ RenderingManager *RenderingManager::getInstance() {
 	return _instance;
 }
 
+void RenderingManager::deleteInstance() {
+	if (_instance != 0)
+		delete _instance;
+}
 
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), previousframe_fbo(NULL), countRenderingSource(0), previousframe_index(0), previousframe_delay(1) {
@@ -167,9 +171,20 @@ void RenderingManager::updatePreviousFrame(){
 
 }
 
+void RenderingManager::clearFrameBuffer(){
+	_fbo->bind();
+	{
+		glPushAttrib(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.0, 0.0, 0.0, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glPopAttrib();
+	}
+	_fbo->release();
+}
+
 void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource, bool clearfirst){
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
 	glViewport(0, 0, _fbo->width(), _fbo->height());
 
@@ -311,7 +326,7 @@ void RenderingManager::addOpencvSource(int opencvIndex) {
 #endif
 
 
-void RenderingManager::addAlgorithmSource(int type) {
+void RenderingManager::addAlgorithmSource(int type, int w, int h, int p) {
 
 	// create the texture for this source
 	GLuint textureIndex;
@@ -322,7 +337,7 @@ void RenderingManager::addAlgorithmSource(int type) {
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 
 	// create a source appropriate for this videofile
-	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, d);
+	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, d, w, h, p);
     Q_CHECK_PTR(s);
 
 	// set the last created source to be current
@@ -372,6 +387,8 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 
 void RenderingManager::clearSourceSet() {
 	// TODO does it work?
+
+	qDebug("RenderingManager::clearSourceSet");
 	for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its++)
 		removeSource(its);
 }

@@ -80,6 +80,9 @@ void MixerView::paint()
 
 	}
 
+	if (first)
+		RenderingManager::getInstance()->clearFrameBuffer();
+
     // Then the selection outlines
     for(SourceSet::iterator  its = selection.begin(); its != selection.end(); its++) {
         glPushMatrix();
