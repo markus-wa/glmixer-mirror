@@ -6,26 +6,29 @@
  */
 
 #include "CameraDialog.moc"
-#include "OpencvDisplayWidget.h"
+#include "Source.h"
+#include "SourceDisplayWidget.h"
 
-#include <QtGui/QComboBox>
+#ifdef OPEN_CV
+#include "OpencvSource.h"
+#endif
 
-CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent), currentDriver(UNKNOWN)
+//#include <QtGui/QComboBox>
+
+CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent), currentDriver(UNKNOWN), s(0)
 {
 
     setupUi(this);
 
+    preview = new SourceDisplayWidget(this);
+    verticalLayout->insertWidget(1, preview);
 
 #ifdef OPEN_CV
     currentCameraIndex = -1;
     QObject::connect(opencvComboBox, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
 
-	openCVpreview = new OpencvDisplayWidget(this);
-    Q_CHECK_PTR(openCVpreview);
-	verticalLayout_2->insertWidget(1, openCVpreview);
-
 	autodetectOpencvCameras();
-
+// TODO : ifnot def opencv, disable tab
 #endif
 
     tabWidget->setCurrentIndex ( startTabIndex );
@@ -34,57 +37,72 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
 }
 
 CameraDialog::~CameraDialog() {
-#ifdef OPEN_CV
-	if (openCVpreview)
-		delete openCVpreview;
-#endif
+	delete preview;
+	//	if (s)
+	//		delete s;
 }
 
 CameraDialog::driver CameraDialog::getDriver(){
 	return currentDriver;
 }
 
-void CameraDialog::accept(){
 
-#ifdef OPEN_CV
-	if (openCVpreview) {
-		delete openCVpreview;
-		openCVpreview = 0;
+void CameraDialog::createSource(){
+
+	if(s) {
+		preview->setSource(0);
+		// this deletes the texture in the preview
+		delete s;
+		s = 0;
 	}
-#endif
 
-	QDialog::accept();
+	switch (currentDriver) {
+	case OPENCV_CAMERA:
+#ifdef OPEN_CV
+		if (currentCameraIndex >= 0)
+			s = (Source *) new OpencvSource(currentCameraIndex, preview->getNewTextureIndex(), 0);
+#endif
+		break;
+	case FIREWIRE_CAMERA:
+		break;
+	case UNKNOWN:
+	default:
+		break;
+	}
+
+	// apply the source to the preview
+	if (s)
+		preview->setSource(s);
 }
 
 void CameraDialog::on_tabWidget_currentChanged(int tabID){
 
 	if (tabID == 0) { // OpenCV
-#ifdef OPEN_CV
 		currentDriver = OPENCV_CAMERA;
-		openCVpreview->setCamera(currentCameraIndex);
-#endif
 	}
-
-
-	if (tabID == 1) { // Firewire
-
-#ifdef OPEN_CV
-		// delete the opencvDisplayWidget ?
-		 openCVpreview->setCamera(-1);
-#endif
+	else if (tabID == 1) { // Firewire
 		currentDriver = FIREWIRE_CAMERA;
 	}
+
+	createSource();
 }
 
+void CameraDialog::accept(){
+
+	preview->setSource(0);
+	if (s)
+		delete s;
+
+	QDialog::accept();
+}
+
+#ifdef OPEN_CV
 
 void CameraDialog::on_opencvRefreshButton_clicked(){
-#ifdef OPEN_CV
 	autodetectOpencvCameras();
-	openCVpreview->setCamera(currentCameraIndex);
-#endif
+	createSource();
 }
 
-#ifdef OPEN_CV
 void CameraDialog::autodetectOpencvCameras(){
 
 	// clear the list of cameras
@@ -117,8 +135,8 @@ void CameraDialog::setOpencvCamera(int i){
 
 	currentCameraIndex = i;
 
-	// create the OpencvDisplayWidget
-	openCVpreview->setCamera(currentCameraIndex);
+	// create the source
+	createSource();
 }
 
 #endif

@@ -69,13 +69,14 @@ RenderingManager::RenderingManager() :
 
 RenderingManager::~RenderingManager() {
 
-	if (_renderwidget != 0)
-		delete _renderwidget;
+//	clearSourceSet();
 
-	if (_fbo)
-		delete _fbo;
+//	if (_renderwidget != 0)
+//		delete _renderwidget;
+//
+//	if (_fbo)
+//		delete _fbo;
 
-	clearSourceSet();
 }
 
 
@@ -382,13 +383,10 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 			delete previousframe_fbo;
 		previousframe_fbo = 0;
 	}
-
 }
 
 void RenderingManager::clearSourceSet() {
-	// TODO does it work?
 
-	qDebug("RenderingManager::clearSourceSet");
 	for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its++)
 		removeSource(its);
 }

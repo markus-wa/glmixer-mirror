@@ -12,8 +12,12 @@
 #include "ui_CameraDialog.h"
 
 #ifdef OPEN_CV
-#include "OpencvDisplayWidget.h"
+//#include "OpencvDisplayWidget.h"
+class OpencvSource;
 #endif
+
+class Source;
+class SourceDisplayWidget;
 
 class CameraDialog : public QDialog, Ui_CameraDialog
 {
@@ -31,22 +35,27 @@ class CameraDialog : public QDialog, Ui_CameraDialog
 	public slots:
 
 		void on_tabWidget_currentChanged(int tabID);
-		void on_opencvRefreshButton_clicked();
 		void autodetectFirewireCameras();
 		void accept();
 
 #ifdef OPEN_CV
-		void autodetectOpencvCameras();
 		void setOpencvCamera(int i);
-		inline int indexOpencvCamera() {return currentCameraIndex;}
+		void on_opencvRefreshButton_clicked();
+
+	public:
+		void autodetectOpencvCameras();
+		inline int indexOpencvCamera() const {return currentCameraIndex;}
 
 	private:
 		int currentCameraIndex;
-		OpencvDisplayWidget *openCVpreview;
 #endif
 
 	private:
 		driver currentDriver;
+		Source *s;
+		SourceDisplayWidget *preview;
+
+		void createSource();
 };
 
 #endif /* CAMERADIALOG_H_ */

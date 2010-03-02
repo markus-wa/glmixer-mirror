@@ -7,14 +7,16 @@
 
 #include <QPalette>
 
-#include "SourceDisplayWidget.h"
+#include "SourceDisplayWidget.moc"
 #include "Source.h"
 #include "RenderingManager.h"
 
 SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()), s(0)
 {
-	period = 50;
+	// setup for 50Hz
+	period = 20;
 }
+
 
 void SourceDisplayWidget::initializeGL()
 {
@@ -30,20 +32,29 @@ void SourceDisplayWidget::paintGL()
 	glRenderWidget::paintGL();
 
 	if (s) {
+		// update the texture of the source
+		s->update();
 
+		// paint it with respect of its aspect ratio
 		glPushMatrix();
 		float aspectRatio = s->getAspectRatio();
 		float windowaspectratio = (float) width() / (float) height();
 		if (windowaspectratio < aspectRatio)
-			glScalef(SOURCE_UNIT, SOURCE_UNIT * windowaspectratio / aspectRatio, 1.f);
+			glScalef(1.0, windowaspectratio / aspectRatio, 1.f);
 		else
-			glScalef( SOURCE_UNIT * aspectRatio / windowaspectratio, SOURCE_UNIT, 1.f);
+			glScalef( aspectRatio / windowaspectratio, 1.0, 1.f);
 
-
-		glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
 		s->draw();
 
 		glPopMatrix();
 	}
+}
+
+
+int SourceDisplayWidget::getNewTextureIndex() {
+    GLuint textureIndex;
+	makeCurrent();
+	glGenTextures(1, &textureIndex);
+	return textureIndex;
 }
 

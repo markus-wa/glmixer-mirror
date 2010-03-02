@@ -11,6 +11,9 @@
 #include <QDialog>
 #include "ui_AlgorithmSelectionDialog.h"
 
+class AlgorithmSource;
+class SourceDisplayWidget;
+
 class AlgorithmSelectionDialog  : public QDialog, Ui_AlgorithmSelectionDialog
 {
     Q_OBJECT
@@ -31,7 +34,13 @@ public slots:
 	void on_frequencySlider_valueChanged(int v);
 	void on_widthSpinBox_valueChanged(int w);
 	void on_heightSpinBox_valueChanged(int h);
-	void accept();
+	void on_presetsSizeComboBox_currentIndexChanged(int preset);
+
+private:
+	AlgorithmSource *s;
+	SourceDisplayWidget *preview;
+
+	void createSource();
 };
 
 #endif /* ALGORITHMSELECTIONDIALOG_H_ */

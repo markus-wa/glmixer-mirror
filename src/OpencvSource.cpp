@@ -88,21 +88,17 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 
 OpencvSource::~OpencvSource() {
 
-	qDebug("OpencvSource::~OpencvSource");
-
 	play(false);
-	delete thread;
 	delete cond;
 	delete mutex;
+	delete thread;
 
-	if (capture)
-		cvReleaseCapture(&capture);
+	// should delete, but ...
+//	if (capture)
+//		cvReleaseCapture(&capture);
 
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);
-
-
-	qDebug("OpencvSource::~OpencvSource done");
 }
 
 

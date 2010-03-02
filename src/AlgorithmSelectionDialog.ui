@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>351</width>
-    <height>417</height>
+    <width>328</width>
+    <height>386</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,6 +20,12 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="title">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
       <string>Choose an algorithm:</string>
      </property>
@@ -60,17 +66,13 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="previewWidget" native="true">
+    <widget class="QGroupBox" name="sizeGroupBox">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Dimensions</string>
      </property>
@@ -81,6 +83,86 @@
       <property name="bottomMargin">
        <number>3</number>
       </property>
+      <item>
+       <widget class="QComboBox" name="presetsSizeComboBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <item>
+         <property name="text">
+          <string>Custom</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2 x 2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>8 x 8</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>16 x 16</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>32 x 32</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>64 x 64</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>128 x 128</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>256 x 256</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>320 x 240  (QVGA)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>640 x 480  (VGA)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>720 x 480  (NTSC)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>768 x 576  (PAL)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>800 x 600  (SVGA)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>1024 x 768 (XGA)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
       <item>
        <widget class="QLabel" name="w">
         <property name="text">
@@ -126,6 +208,12 @@
    </item>
    <item>
     <widget class="QGroupBox" name="customUpdateFrequency">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="title">
       <string>Custom update frequency</string>
      </property>

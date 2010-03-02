@@ -31,16 +31,16 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
 
     // menu and actions
 		void on_blendingPresetsComboBox_currentIndexChanged(int);
-		void on_actionMediaSource_activated();
-		void on_actionCameraSource_activated();
-		void on_actionRenderingSource_activated();
-		void on_actionCaptureSource_activated();
-		void on_actionAlgorithmSource_activated();
-		void on_actionCloneSource_activated();
-		void on_actionDeleteSource_activated();
-		void on_actionSaveCapture_activated();
-        void on_actionFormats_and_Codecs_activated();
-        void on_actionOpenGL_extensions_activated();
+		void on_actionMediaSource_triggered();
+		void on_actionCameraSource_triggered();
+		void on_actionRenderingSource_triggered();
+		void on_actionCaptureSource_triggered();
+		void on_actionAlgorithmSource_triggered();
+		void on_actionCloneSource_triggered();
+		void on_actionDeleteSource_triggered();
+		void on_actionSaveCapture_triggered();
+        void on_actionFormats_and_Codecs_triggered();
+        void on_actionOpenGL_extensions_triggered();
         void on_markInSlider_sliderReleased ();
         void on_markOutSlider_sliderReleased ();
         void on_frameSlider_sliderPressed ();
@@ -49,11 +49,12 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         void on_frameSlider_actionTriggered (int);
         void on_actionShow_frames_toggled(bool);
         void on_actionShowFPS_toggled(bool);
-        void on_actionAbout_activated();
-        void on_actionMixingView_activated();
-        void on_actionGeometryView_activated();
-        void on_actionLayersView_activated();
-        void on_actionAbout_Qt_activated() { QApplication::aboutQt (); }
+        void on_actionAbout_triggered();
+        void on_actionMixingView_triggered();
+        void on_actionGeometryView_triggered();
+        void on_actionLayersView_triggered();
+        void on_actionAbout_Qt_triggered() { QApplication::aboutQt (); }
+        void on_actionNew_Session_triggered();
 
 	// GUI interaction
         void updateRefreshTimerState();
@@ -64,7 +65,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         void displayErrorMessage(QString msg);
 
 	// source config
-        void controlSource(SourceSet::iterator csi);
+        void connectSource(SourceSet::iterator csi);
         void blendingChanged();
         void colorsChanged();
 

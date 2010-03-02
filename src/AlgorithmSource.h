@@ -19,6 +19,7 @@ class AlgorithmSource: public QObject, public Source {
 
     Q_OBJECT
 
+    friend class AlgorithmSelectionDialog;
 	friend class RenderingManager;
     friend class AlgorithmThread;
 

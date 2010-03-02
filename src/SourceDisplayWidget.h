@@ -14,12 +14,16 @@ class Source;
 
 class SourceDisplayWidget: public glRenderWidget {
 
+    Q_OBJECT
+
 public:
 	SourceDisplayWidget(QWidget *parent = 0);
 
     virtual void initializeGL();
     virtual void paintGL();
 	inline void setSource(Source *sourceptr) { s = sourceptr;}
+
+	int getNewTextureIndex();
 
 private:
     Source *s;

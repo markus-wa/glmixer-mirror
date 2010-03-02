@@ -41,28 +41,28 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	mainRendering->setParent(centralwidget);
 	centralViewLayout->addWidget(mainRendering);
 	// activate this view by default
-	on_actionMixingView_activated();
-//	on_actionGeometryView_activated();
+	on_actionMixingView_triggered();
+//	on_actionGeometryView_triggered();
 
-	QObject::connect(actionCapture, SIGNAL(activated()), RenderingManager::getInstance(), SLOT(captureFrameBuffer()));
+	QObject::connect(actionCapture, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(captureFrameBuffer()));
 
     // SET prewiew widget
 	OutputRenderWidget *outputpreview = new OutputRenderWidget(previewContent, mainRendering);
 	previewLayout->addWidget(outputpreview);
 
     // signal from source management in MainRenderWidget
-    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(controlSource(SourceSet::iterator) ) );
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(connectSource(SourceSet::iterator) ) );
 
     // QUIT event
-    QObject::connect(actionQuit, SIGNAL(activated()), this, SLOT(close()));
+    QObject::connect(actionQuit, SIGNAL(triggered()), this, SLOT(close()));
 
     // Signals between GUI and output window
     QObject::connect(actionKeep_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useRenderingAspectRatio(bool)));
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
-	QObject::connect(actionZoomIn, SIGNAL(activated()), RenderingManager::getRenderingWidget(), SLOT(zoomIn()));
-	QObject::connect(actionZoomOut, SIGNAL(activated()), RenderingManager::getRenderingWidget(), SLOT(zoomOut()));
-	QObject::connect(actionZoomReset, SIGNAL(activated()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
-	QObject::connect(actionZoomBestFit, SIGNAL(activated()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
+	QObject::connect(actionZoomIn, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomIn()));
+	QObject::connect(actionZoomOut, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomOut()));
+	QObject::connect(actionZoomReset, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
+	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
 
     // Init state
     vcontrolDockWidget->setEnabled(false);
@@ -83,7 +83,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 GLMixer::~GLMixer() {
 
-
 	RenderingManager::deleteInstance();
 }
 
@@ -102,13 +101,13 @@ void GLMixer::updateRefreshTimerState(){
 
 }
 
-void GLMixer::on_actionFormats_and_Codecs_activated(){
+void GLMixer::on_actionFormats_and_Codecs_triggered(){
 
     VideoFile::displayFormatsCodecsInformation(QString::fromUtf8(":/glmixer/icons/video.png"));
 
 }
 
-void GLMixer::on_actionOpenGL_extensions_activated(){
+void GLMixer::on_actionOpenGL_extensions_triggered(){
 
     glRenderWidget::showGlExtensionsInformationDialog(QString::fromUtf8(":/glmixer/icons/display.png"));
 
@@ -127,26 +126,26 @@ void GLMixer::displayErrorMessage(QString msg){
 }
 
 
-void GLMixer::on_actionMixingView_activated(){
+void GLMixer::on_actionMixingView_triggered(){
 
 	RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::MIXING);
 	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
 }
 
-void GLMixer::on_actionGeometryView_activated(){
+void GLMixer::on_actionGeometryView_triggered(){
 
 	RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::GEOMETRY);
 	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
 }
 
 
-void GLMixer::on_actionLayersView_activated(){
+void GLMixer::on_actionLayersView_triggered(){
 
 	RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::LAYER);
 	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
 }
 
-void GLMixer::on_actionMediaSource_activated(){
+void GLMixer::on_actionMediaSource_triggered(){
 
     VideoFile *newSourceVideoFile = NULL;
 	static QDir d = QDir::home();
@@ -206,7 +205,7 @@ void GLMixer::on_actionMediaSource_activated(){
 // method called when a source is made current (either after loading, either after clicking on it).
 // The goal is to have the GUI display the current state of the video file to be able to control the video playback
 // and to read the correct information and configuration options
-void GLMixer::controlSource(SourceSet::iterator csi){
+void GLMixer::connectSource(SourceSet::iterator csi){
 
 #ifdef OPEN_CV
 	static OpencvSource *cvs = NULL;
@@ -568,7 +567,7 @@ void GLMixer::controlSource(SourceSet::iterator csi){
 
 }
 
-void GLMixer::on_actionCameraSource_activated()
+void GLMixer::on_actionCameraSource_triggered()
 {
 
 	CameraDialog cd(this);
@@ -605,7 +604,7 @@ void GLMixer::on_actionCameraSource_activated()
 }
 
 
-void GLMixer::on_actionAlgorithmSource_activated(){
+void GLMixer::on_actionAlgorithmSource_triggered(){
 
 	// popup a question dialog to select the type of algorithm
 	AlgorithmSelectionDialog asd(this);
@@ -618,7 +617,7 @@ void GLMixer::on_actionAlgorithmSource_activated(){
 }
 
 
-void GLMixer::on_actionRenderingSource_activated(){
+void GLMixer::on_actionRenderingSource_triggered(){
 
 	// TODO popup a question dialog 'are u sure'
 
@@ -627,7 +626,7 @@ void GLMixer::on_actionRenderingSource_activated(){
 }
 
 
-void GLMixer::on_actionCloneSource_activated(){
+void GLMixer::on_actionCloneSource_triggered(){
 
 	// TODO popup a question dialog 'are u sure'
 
@@ -638,14 +637,14 @@ void GLMixer::on_actionCloneSource_activated(){
 }
 
 
-void GLMixer::on_actionCaptureSource_activated(){
+void GLMixer::on_actionCaptureSource_triggered(){
 
 	RenderingManager::getInstance()->addCaptureSource();
 	statusbar->showMessage( tr("Source created with the last output capture.") );
 }
 
 
-void GLMixer::on_actionDeleteSource_activated(){
+void GLMixer::on_actionDeleteSource_triggered(){
 
 	if ( RenderingManager::getInstance()->isValid(RenderingManager::getInstance()->getCurrentSource()) ) {
 
@@ -663,7 +662,7 @@ void GLMixer::on_actionDeleteSource_activated(){
 }
 
 
-void GLMixer::on_actionSaveCapture_activated(){
+void GLMixer::on_actionSaveCapture_triggered(){
 
 	QString filename;
 	static QDir cd = QDir::home();
@@ -847,7 +846,7 @@ void GLMixer::on_actionShowFPS_toggled(bool on){
 	glRenderWidget::showFramerate(on);
 }
 
-void GLMixer::on_actionAbout_activated(){
+void GLMixer::on_actionAbout_triggered(){
 
 	QString msg = QString("GLMixer : Graphic Live Mixer\n\n");
 	msg.append(QString("Author:   \tBruno Herbelin\n"));
@@ -951,5 +950,11 @@ void GLMixer::blendingChanged(){
 	if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd())
 		(*RenderingManager::getInstance()->getCurrentSource())->setBlendFuncAndEquation(sfactor, dfactor, eq);
 
+}
+
+
+void GLMixer::on_actionNew_Session_triggered(){
+
+	RenderingManager::getInstance()->clearSourceSet();
 }
 
