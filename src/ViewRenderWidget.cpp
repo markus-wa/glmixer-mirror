@@ -218,10 +218,6 @@ GLuint ViewRenderWidget::buildHalfList_fine() {
     GLuint id = glGenLists(1);
     glNewList(id, GL_COMPILE);
 
-    //    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
-
     glEnable (GL_POLYGON_STIPPLE);
     glPolygonStipple (halftone);
 

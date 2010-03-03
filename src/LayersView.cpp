@@ -54,7 +54,6 @@ void LayersView::paint()
 		// 1. Render it into current view
 		//
 
-
 		glPushMatrix();
 
 		if ((*its)->isActive()) {
@@ -77,8 +76,13 @@ void LayersView::paint()
 		// bind the source texture and update its content
 		(*its)->update();
 
+	    // Blending Function For mixing like in the rendering window
+        (*its)->blend();
 		// draw surface (do not set blending from source)
 		(*its)->draw();
+
+		// draw stippled version of the source on top
+		glCallList(ViewRenderWidget::quad_half_textured);
 
 		glPopMatrix();
 
@@ -87,6 +91,10 @@ void LayersView::paint()
 		//
         RenderingManager::getInstance()->renderToFrameBuffer(its, first);
         first = false;
+
+        // back to blending for the rest
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
 
 	}
 	if (first)
