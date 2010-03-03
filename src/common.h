@@ -44,7 +44,7 @@ extern "C" {
 #define CIRCLE_SIZE 7.0
 #define SELECTBUFSIZE 64
 #define MIN_DEPTH_LAYER 0.0
-#define MAX_DEPTH_LAYER 150.0
+#define MAX_DEPTH_LAYER 30.0
 #define MIN_SCALE 0.31
 #define MAX_SCALE 100.0
 

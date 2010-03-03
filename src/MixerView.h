@@ -14,8 +14,6 @@ class MixerView: public View {
 
 public:
 
-    typedef enum {NONE = 0, OVER, GRAB, SELECT } actionType;
-
 	MixerView();
 
     virtual void paint();
@@ -36,8 +34,8 @@ private:
     SourceSet::iterator  getSourceAtCoordinates(int mouseX, int mouseY);
     void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
 
+    typedef enum {NONE = 0, OVER, GRAB, SELECT } actionType;
     actionType currentAction;
-
     void setAction(actionType a);
 
 };

@@ -15,6 +15,8 @@ Source::Source(GLuint texture, double depth) :
 		textureIndex(texture), x(0.0), y(0.0), z(depth), scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			aspectratio(1.0), texalpha(1.0) {
 
+	z = CLAMP(z, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+
 	texcolor = Qt::white;
 //	blendcolor = Qt::white;
 	source_blend = GL_SRC_ALPHA;
@@ -41,34 +43,31 @@ Source::~Source() {
 	delete clones;
 }
 
-
-Source::Source(Source *duplicate, double d) {
-
-    // duplicate everything
-    id = duplicate->id;
-    x = duplicate->x;
-    y = duplicate->y;
-    scalex = duplicate->scalex;
-    scaley = duplicate->scaley;
-    alphax = duplicate->alphax;
-    alphay = duplicate->alphay;
-    aspectratio = duplicate->aspectratio;
-    texalpha = duplicate->texalpha;
-    texcolor = duplicate->texcolor;
-    active = duplicate->active;
-    textureIndex = duplicate->textureIndex;
-	source_blend  = duplicate->source_blend;
-	destination_blend = duplicate->destination_blend;
-	blend_eq = duplicate->blend_eq;
-	clones = duplicate->clones;
-
-    // new depth (if in correct value range)
-    if (d > MIN_DEPTH_LAYER && d < MAX_DEPTH_LAYER)
-        z = d;
-    else
-        z = duplicate->z;
-
-}
+//
+//Source::Source(Source *duplicate, double d) {
+//
+//    // duplicate everything
+//    id = duplicate->id;
+//    active = duplicate->active;
+//	clones = duplicate->clones;
+//    textureIndex = duplicate->textureIndex;
+//    x = duplicate->x;
+//    y = duplicate->y;
+//    scalex = duplicate->scalex;
+//    scaley = duplicate->scaley;
+//    alphax = duplicate->alphax;
+//    alphay = duplicate->alphay;
+//    aspectratio = duplicate->aspectratio;
+//    texalpha = duplicate->texalpha;
+//    texcolor = duplicate->texcolor;
+//	source_blend  = duplicate->source_blend;
+//	destination_blend = duplicate->destination_blend;
+//	blend_eq = duplicate->blend_eq;
+//
+//    // except the new depth (if in correct value range)
+//	z = CLAMP(d, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+//
+//}
 
 void Source::scaleBy(float fx, float fy) {
 	scalex *= fx;

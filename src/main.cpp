@@ -46,7 +46,7 @@ QStringList glSupportedExtensions() {
 
 int main(int argc, char **argv)
 {
-    qInstallMsgHandler(GLMixerMessageOutput);
+ //   qInstallMsgHandler(GLMixerMessageOutput);
     QApplication a(argc, argv);
     a.setApplicationName("GLMixer");
 

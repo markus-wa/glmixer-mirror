@@ -22,7 +22,7 @@ class Source {
 public:
 
 	Source(GLuint texture, double depth);
-	Source(Source *duplicate, double newdepth);
+//	Source(Source *duplicate, double newdepth);
 	virtual ~Source();
 
 	virtual void update() {
@@ -106,6 +106,9 @@ public:
 	}
 	inline void setY(GLdouble v) {
 		y = v;
+	}
+	inline void setDepth(GLdouble v) {
+		z = CLAMP(v, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 	}
 	inline void setScaleX(GLdouble v) {
 		scalex = v;

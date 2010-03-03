@@ -34,7 +34,7 @@ void MixerView::paint()
     glLineWidth(3.0);
     glColor4f(0.2, 0.80, 0.2, 1.0);
     glBegin(GL_LINE_LOOP);
-    for(SourceSet::iterator  its = selection.begin(); its != selection.end(); its++) {
+    for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
         glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
     }
     glEnd();
@@ -84,7 +84,7 @@ void MixerView::paint()
 		RenderingManager::getInstance()->clearFrameBuffer();
 
     // Then the selection outlines
-    for(SourceSet::iterator  its = selection.begin(); its != selection.end(); its++) {
+    for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
         glScalef( SOURCE_UNIT * (*its)->getAspectRatio(), SOURCE_UNIT, 1.f);
@@ -160,10 +160,10 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 			if ( currentAction != GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
 				setAction(SELECT);
 
-				if ( selection.count(*cliked) > 0)
-					selection.erase( *cliked );
+				if ( selectedSources.count(*cliked) > 0)
+					selectedSources.erase( *cliked );
 				else
-					selection.insert( *cliked );
+					selectedSources.insert( *cliked );
 
 			}
 			else // not in selection (SELECT) action mode, then just set the current active source
@@ -200,8 +200,8 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
         	setAction(GRAB);
 			//            if ( find_if( selection.begin(), selection.end(), hasName( (*cs)->getId()) ) != selection.end() ){
-			if ( selection.count(*cs) > 0 ){
-                for(SourceSet::iterator  its = selection.begin(); its != selection.end(); its++) {
+			if ( selectedSources.count(*cs) > 0 ){
+                for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
                     grabSource(its, event->x(), viewport[3] - event->y(), dx, dy);
                 }
             }

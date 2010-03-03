@@ -12,17 +12,21 @@
 #include "OutputRenderWindow.h"
 
 #define MINZOOM 5.0
-#define MAXZOOM 20.0
-#define DEFAULTZOOM 10.0
+#define DEFAULTZOOM 7.0
+#define MAXDISPLACEMENT 1.6
+#define MIN_LOOKAT 3.0
+#define MAX_LOOKAT 9.0
+#define DEFAULT_LOOKAT 4.0
 
-LayersView::LayersView(): lookatdistance(4.0) {
+LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), currentSourceDisplacement(0), deltazoom(0) {
 
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
-	maxzoom = MAXZOOM;
-	maxpanx = SOURCE_UNIT*MAXZOOM*20.0;
-	maxpany = SOURCE_UNIT*MAXZOOM*20.0;
-	maxpanz = SOURCE_UNIT*MAXZOOM*20.0;
+	maxzoom = MAX_DEPTH_LAYER;
+	maxpanx = lookatdistance;
+	maxpany = lookatdistance;
+	maxpanz = lookatdistance;
+	zoomReset();
 
 	icon.load(QString::fromUtf8(":/glmixer/icons/depth.png"));
 }
@@ -49,21 +53,32 @@ void LayersView::paint()
 		//
 		// 1. Render it into current view
 		//
+
+
 		glPushMatrix();
-        glTranslatef(0.0, 0.0,  1.0 +(*its)->getDepth());
+
+		if ((*its)->isActive()) {
+			// animated displacement
+			if (currentSourceDisplacement < MAXDISPLACEMENT)
+				currentSourceDisplacement += ( MAXDISPLACEMENT + 0.1 - currentSourceDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFPS();
+			glTranslatef( currentSourceDisplacement, 0.0,  1.0 +(*its)->getDepth());
+
+		} else
+			glTranslatef( 0.0, 0.0,  1.0 +(*its)->getDepth());
+
         glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+
+        // draw border if active
+        if ((*its)->isActive())
+            glCallList(ViewRenderWidget::border_large_shadow);
+        else
+            glCallList(ViewRenderWidget::border_thin_shadow);
 
 		// bind the source texture and update its content
 		(*its)->update();
 
 		// draw surface (do not set blending from source)
 		(*its)->draw();
-
-        // draw border if active
-        if ((*its)->isActive())
-            glCallList(ViewRenderWidget::border_large);
-        else
-            glCallList(ViewRenderWidget::border_thin);
 
 		glPopMatrix();
 
@@ -77,8 +92,6 @@ void LayersView::paint()
 	if (first)
 		RenderingManager::getInstance()->clearFrameBuffer();
 
-    // Then the foreground
-
 
     RenderingManager::getInstance()->updatePreviousFrame();
 }
@@ -86,9 +99,8 @@ void LayersView::paint()
 
 void LayersView::reset()
 {
-    gluLookAt(lookatdistance, lookatdistance, lookatdistance + zoom, 0.0, 0.0, zoom, 0.0, 1.0, 0.0);
-//    glScalef(zoom, zoom, zoom);
     glTranslatef(getPanningX(), getPanningY(), getPanningZ());
+    gluLookAt(lookatdistance, lookatdistance, lookatdistance + zoom, 0.0, 0.0, zoom, 0.0, 1.0, 0.0);
 
 }
 
@@ -108,6 +120,21 @@ void LayersView::resize(int w, int h)
 }
 
 
+void LayersView::setAction(actionType a){
+
+	currentAction = a;
+
+	switch(a) {
+	case OVER:
+		RenderingManager::getRenderingWidget()->setCursor(Qt::OpenHandCursor);
+		break;
+	case GRAB:
+		RenderingManager::getRenderingWidget()->setCursor(Qt::ClosedHandCursor);
+		break;
+	default:
+		RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
+	}
+}
 
 bool LayersView::mousePressEvent(QMouseEvent *event)
 {
@@ -121,15 +148,18 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
     	// get the top most clicked source
-    	SourceSet::iterator clicked = selection.begin();
+    	SourceSet::iterator clicked = clickedSources.begin();
 
     	// for LEFT button clic : manipulate only the top most or the newly clicked
     	if (event->buttons() & Qt::LeftButton) {
 
 			//  make the top most source clicked now the newly current one
-			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
-
-			// now manipulate the current one.
+			if (RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() )) {
+				// now manipulate the current one.
+				currentSourceDisplacement = 0;
+				// ready for grabbing the current source
+				setAction(GRAB);
+			}
 
     	}
     	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
@@ -137,9 +167,11 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 
 
     	}
-    } else
+    } else {
 		// set current to none (end of list)
 		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+		setAction(NONE);
+    }
 
 	return true;
 }
@@ -152,12 +184,25 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 
 	// MIDDLE button ; rotation
 	if (event->buttons() & Qt::MidButton) {
-
+		// move the view
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 
-	} else {
-		// No button : on mouse over
+	} else if (event->buttons() & Qt::LeftButton) {
 
+		// keep the iterator of the current source under the shoulder ; it will be used
+		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+			// move the source in depth
+			grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+			// ready for grabbing the current source
+			setAction(GRAB);
+		}
+	} else  { // mouse over (no buttons)
+
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
+			setAction(OVER);
+		else
+			setAction(NONE);
 	}
 
 	return true;
@@ -165,23 +210,39 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 
 bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
-	RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
+	if (currentAction == GRAB )
+		setAction(OVER);
+	else
+		setAction(currentAction);
 
 	return true;
 }
 
 bool LayersView::wheelEvent ( QWheelEvent * event ){
 
-	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
+	float previous = zoom;
+	setZoom (zoom - ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
+
+	if (currentAction == GRAB ) {
+		deltazoom = zoom - previous;
+		// simulate a grab with no mouse movement but a deltazoom :
+		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+		if ( RenderingManager::getInstance()->notAtEnd(cs))
+			grabSource(cs, 0,0,0,0);
+		// reset deltazoom
+		deltazoom = 0;
+	}
 
 	return true;
 }
 
 void LayersView::zoomReset() {
+
 	setZoom(DEFAULTZOOM);
-	setPanningX(0.0);
+	setPanningX(-2.0);
 	setPanningY(0.0);
 	setPanningZ(0.0);
+
 }
 
 void LayersView::zoomBestFit() {
@@ -211,7 +272,7 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
 bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 
 	// prepare variables
-	selection.clear();
+	clickedSources.clear();
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
     GLint hits = 0;
 
@@ -237,7 +298,7 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
         glPushMatrix();
         // place and scale
-        glTranslatef(0.0, 0.0,  1.0 +(*its)->getDepth());
+        glTranslatef((*its)->isActive() ? currentSourceDisplacement : 0.0, 0.0,  1.0 +(*its)->getDepth());
         glScalef((*its)->getAspectRatio(), 1.0, 1.0);
         (*its)->draw(false, GL_SELECT);
         glPopMatrix();
@@ -254,11 +315,51 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     glMatrixMode(GL_MODELVIEW);
 
     while (hits != 0) {
-    	selection.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
+    	clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
     	hits--;
     }
 
-    return !selection.empty();
+    return !clickedSources.empty();
+}
+
+/**
+ *
+ **/
+void LayersView::grabSource(SourceSet::iterator currentSource, int x, int y, int dx, int dy) {
+
+    // feedback rendering to determine a depth
+    GLfloat feedbuffer[4];
+    glFeedbackBuffer(4, GL_3D, feedbuffer);
+    (void) glRenderMode(GL_FEEDBACK);
+
+    // Fake rendering of point (0,0,0)
+    glBegin(GL_POINTS);
+    glVertex3f(0.0, 0.0, lookatdistance);
+    glEnd();
+
+	double bx, by, bz; // before movement
+	double ax, ay, az; // after  movement
+    // we can make the un-projection if we got the 4 values we need :
+    if (glRenderMode(GL_RENDER) == 4) {
+		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+				feedbuffer[3], modelview, projection, viewport, &bx, &by, &bz);
+		gluUnProject((GLdouble) x, (GLdouble) y, feedbuffer[3],
+				modelview, projection, viewport, &ax, &ay, &az);
+
+    } else {
+		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+				1.0, modelview, projection, viewport, &bx, &by, &bz);
+		gluUnProject((GLdouble) x, (GLdouble) y, 1.0,
+				modelview, projection, viewport, &ax, &ay, &az);
+    }
+
+    // (az-bz) is the depth change caused by the mouse mouvement
+    // deltazoom is the depth change due to zooming in/out while grabbing
+	currentSource = RenderingManager::getInstance()->changeDepth(currentSource, (*currentSource)->getDepth() +  az - bz  +  deltazoom);
+
+	// we need to set current again
+	RenderingManager::getInstance()->setCurrentSource(currentSource);
+
 }
 
 /**
@@ -276,24 +377,31 @@ void LayersView::panningBy(int x, int y, int dx, int dy) {
 
     // Fake rendering of point (0,0,0)
     glBegin(GL_POINTS);
-    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(0, 0, lookatdistance);
     glEnd();
 
+	double bx, by, bz; // before movement
+	double ax, ay, az; // after  movement
     // we can make the un-projection if we got the 4 values we need :
     if (glRenderMode(GL_RENDER) == 4) {
-        double bx, by, bz; // before movement
-        double ax, ay, az; // after  movement
-
 		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
 				feedbuffer[3], modelview, projection, viewport, &bx, &by, &bz);
 		gluUnProject((GLdouble) x, (GLdouble) y, feedbuffer[3],
 				modelview, projection, viewport, &ax, &ay, &az);
 
-		// apply panning
-		setPanningX(getPanningX() + ax - bx);
-		setPanningY(getPanningY() + ay - by);
-		setPanningZ(getPanningZ() + az - bz);
+    } else {
+		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+				1.0, modelview, projection, viewport, &bx, &by, &bz);
+		gluUnProject((GLdouble) x, (GLdouble) y, 1.0,
+				modelview, projection, viewport, &ax, &ay, &az);
     }
+	// apply panning
+	setPanningX(getPanningX() + ax - bx);
+	setPanningY(getPanningY() + ay - by);
+	setPanningZ(getPanningZ() + az - bz);
+
+	lookatdistance = CLAMP( lookatdistance + az - bz, MIN_LOOKAT, MAX_LOOKAT);
+
 }
 
 

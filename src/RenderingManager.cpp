@@ -69,13 +69,13 @@ RenderingManager::RenderingManager() :
 
 RenderingManager::~RenderingManager() {
 
-//	clearSourceSet();
+	clearSourceSet();
 
-//	if (_renderwidget != 0)
-//		delete _renderwidget;
-//
-//	if (_fbo)
-//		delete _fbo;
+	if (_renderwidget != 0)
+		delete _renderwidget;
+
+	if (_fbo)
+		delete _fbo;
 
 }
 
@@ -403,7 +403,7 @@ bool RenderingManager::isValid(SourceSet::iterator itsource) {
 		return false;
 }
 
-void RenderingManager::setCurrentSource(SourceSet::iterator si) {
+bool RenderingManager::setCurrentSource(SourceSet::iterator si) {
 
 	if (si != currentSource) {
 		if (notAtEnd(currentSource))
@@ -414,24 +414,27 @@ void RenderingManager::setCurrentSource(SourceSet::iterator si) {
 
 		if (notAtEnd(currentSource))
 			(*currentSource)->activate(true);
+
+		return true;
 	}
+	return false;
 }
 
 
-void RenderingManager::setCurrentSource(GLuint name) {
-	setCurrentSource( getById(name) );
+bool RenderingManager::setCurrentSource(GLuint name) {
+
+	return setCurrentSource( getById(name) );
 }
 
-SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
-		double newdepth) {
-	// TODO : implement
+SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource, double newdepth) {
 
 	if (itsource != _sources.end()) {
-		//        Source *tmp = new Source(*itsource, newdepth);
-		//
-		//        // sort again the set by depth: this is done by removing the element and adding a clone
-		//        _sources->erase(itsource);
-		//        return (_sources->insert(tmp));
+		Source *tmp = (*itsource);
+		// sort again the set by depth: this is done by removing the element and adding it again after changing its depth
+		_sources.erase(itsource);
+		tmp->setDepth(newdepth);
+
+		return (_sources.insert(tmp));
 	}
 
 	return itsource;

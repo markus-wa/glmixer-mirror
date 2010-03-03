@@ -63,8 +63,8 @@ public:
 		return _sources.end();
 	}
 	void removeSource(SourceSet::iterator itsource);
-	void setCurrentSource(SourceSet::iterator si);
-	void setCurrentSource(GLuint name);
+	bool setCurrentSource(SourceSet::iterator si);
+	bool setCurrentSource(GLuint name);
 	inline SourceSet::iterator getCurrentSource() {
 		return currentSource;
 	}

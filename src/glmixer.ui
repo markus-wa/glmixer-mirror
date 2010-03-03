@@ -2270,6 +2270,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
   <include location="../icons.qrc"/>
   <include location="../textures.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

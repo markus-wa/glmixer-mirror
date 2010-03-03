@@ -16,11 +16,9 @@ bool glRenderWidget::showFps_ = false;
 //QStringList glRenderWidget::listofextensions;
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
-: QGLWidget(QGLFormat(QGL::AlphaChannel), parent, shareWidget, f), aspectRatio(1.0), timer(-1), period(16)
+: QGLWidget(QGLFormat(QGL::AlphaChannel | QGL::NoDepthBuffer), parent, shareWidget, f), aspectRatio(1.0), timer(-1), period(16)
 
 {
-	if (!format().depth())
-	  qCritical("*** ERROR ***\n\nOpenGL Could not get depth buffer; cannot perform OpenGL rendering.");
 	if (!format().rgba())
 	  qCritical("*** ERROR ***\n\nOpenGL Could not set RGBA buffer; cannot perform OpenGL rendering.");
 	if (!format().directRendering())
@@ -110,15 +108,15 @@ void glRenderWidget::paintGL()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-	if (showFps_) {
-		// FPS computation
-		if (++fpsCounter_ == 20)
-		{
-			f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
-			fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
-			fpsCounter_ = 0;
-		}
+	// FPS computation
+	if (++fpsCounter_ == 20)
+	{
+		f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
+		fpsCounter_ = 0;
+	}
 
+	if (showFps_) {
+		fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
 		displayFPS();
 	} 
 }

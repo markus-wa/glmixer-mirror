@@ -11,7 +11,9 @@
 #include "View.h"
 
 class LayersView: public View {
+
 public:
+
 	LayersView();
 
     virtual void paint();
@@ -30,9 +32,16 @@ public:
 
 private:
     float lookatdistance;
+    float currentSourceDisplacement;
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY);
+    void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy);
+
+    typedef enum {NONE = 0, OVER, GRAB } actionType;
+    actionType currentAction;
+    void setAction(actionType a);
+    float deltazoom;
 };
 
 #endif /* LAYERSVIEW_H_ */

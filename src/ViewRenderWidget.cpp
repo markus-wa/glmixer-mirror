@@ -80,8 +80,6 @@ void ViewRenderWidget::initializeGL()
 		border_scale = border_thin + 2;
 	}
 
-	 //TODO use glRectf instead of lame LINELOOP  http://linux.die.net/man/3/glrectf
-
 }
 
 void ViewRenderWidget::setViewMode(viewMode mode){
@@ -571,42 +569,37 @@ GLuint ViewRenderWidget::buildLayerbgList() {
 
     GLuint id = glGenLists(1);
 
-    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/layerbg.png")), GL_TEXTURE_2D);
+//    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/layerbg.png")), GL_TEXTURE_2D);
 
     glNewList(id, GL_COMPILE);
 
-//    glMatrixMode(GL_PROJECTION);
-//    glPushMatrix();
-//    glLoadIdentity();
-//    glOrtho(-1, 1, -1, 1, -MAX_DEPTH_LAYER, 10.0);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+//    glBlendEquation(GL_FUNC_ADD);
 //
+//    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 //
-//    glMatrixMode(GL_MODELVIEW);
-//    glPushMatrix();
-//    glLoadIdentity();
-//    glTranslatef(0.0, 0.0, 0.0);
+//    glColor3f(1.0, 1.0, 1.0);
+//    glBegin(GL_QUADS); // begin drawing a square
+//        glTexCoord2f(0.0f, 0.0f);
+//        glVertex3d(-5.0, 0.0, - 30.0); // Bottom Left
+//        glTexCoord2f(1.0f, 0.0f);
+//        glVertex3d( 5.0, 0.0, - 30.0); // Bottom Right
+//        glTexCoord2f(1.0f, 1.0f);
+//        glVertex3d( 5.0,0.0,   30.0); // Top Right
+//        glTexCoord2f(0.0f, 1.0f);
+//        glVertex3d( -5.0, 0.0, 30.0); // Top Left
+//    glEnd();
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glBlendEquation(GL_FUNC_ADD);
-
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-
-    glColor3f(1.0, 1.0, 1.0);
-    glBegin(GL_QUADS); // begin drawing a square
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex3d(-5.0, 0.0, - 30.0); // Bottom Left
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex3d( 5.0, 0.0, - 30.0); // Bottom Right
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex3d( 5.0,0.0,   30.0); // Top Right
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex3d( -5.0, 0.0, 30.0); // Top Left
+    glDisable(GL_TEXTURE_2D);
+    glColor4f(0.6, 0.6, 0.6, 1.0);
+    glLineWidth(0.7);
+    glBegin(GL_LINES);
+    for (float i = -4.0; i < 6.0; i += CLAMP( ABS(i)/2.f , 0.01, 5.0)) {
+    	glVertex3f(i - 1.3, -1.1 + exp(-10 * (i+0.2)), 0.0);
+    	glVertex3f(i - 1.3, -1.1 + exp(-10 * (i+0.2)), 31.0);
+    }
     glEnd();
 
-//    glMatrixMode(GL_PROJECTION);
-//    glPopMatrix();
-//    glMatrixMode(GL_MODELVIEW);
-//    glPopMatrix();
     glEndList();
 
     return id;

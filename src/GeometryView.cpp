@@ -114,7 +114,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
     	// get the top most clicked source
-    	SourceSet::iterator clicked = selection.begin();
+    	SourceSet::iterator clicked = clickedSources.begin();
 
     	// for LEFT button clic : manipulate only the top most or the newly clicked
     	if (event->buttons() & Qt::LeftButton) {
@@ -123,7 +123,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
     		// OR
 			// if the currently active source is NOT in the set of clicked sources,
 			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd()
-				|| selection.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
+				|| clickedSources.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
     			//  make the top most source clicked now the newly current one
     			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
 
@@ -148,11 +148,11 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
     			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
     		// else, try to take another one bellow it
     		else {
-    			// find where the current source is in the selection
-    			clicked = selection.find(*RenderingManager::getInstance()->getCurrentSource()) ;
-    			// decrement the clicked iterator forward in the selection (and jump back to end when at begining)
-    			if ( clicked == selection.begin() )
-    				clicked = selection.end();
+    			// find where the current source is in the clickedSources
+    			clicked = clickedSources.find(*RenderingManager::getInstance()->getCurrentSource()) ;
+    			// decrement the clicked iterator forward in the clickedSources (and jump back to end when at begining)
+    			if ( clicked == clickedSources.begin() )
+    				clicked = clickedSources.end();
 				clicked--;
 
 				// set this newly clicked source as the current one
@@ -192,7 +192,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 					grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
 
 			}
-		} else if (event->buttons() & Qt::RightButton) {
+//		} else if (event->buttons() & Qt::RightButton) {
 
 		} else  { // mouse over (no buttons)
 
@@ -249,7 +249,7 @@ void GeometryView::zoomBestFit() {}
 bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 
 	// prepare variables
-	selection.clear();
+	clickedSources.clear();
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
     GLint hits = 0;
 
@@ -292,11 +292,11 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     glMatrixMode(GL_MODELVIEW);
 
     while (hits != 0) {
-    	selection.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
+    	clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
     	hits--;
     }
 
-    return !selection.empty();
+    return !clickedSources.empty();
 }
 
 
