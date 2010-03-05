@@ -300,8 +300,6 @@ void RenderingManager::addMediaSource(VideoFile *vf) {
 	VideoSource *s = new VideoSource(vf, textureIndex, d);
     Q_CHECK_PTR(s);
 
-    s->updateFrame(-1);
-
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
 }

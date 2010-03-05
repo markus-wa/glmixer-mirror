@@ -11,14 +11,17 @@
 
 #include "common.h"
 #include "VideoFileDialogPreview.moc"
+#include "VideoFileDialog.h"
 
 VideoFileDialogPreview::VideoFileDialogPreview(QWidget *parent) : QWidget(parent) {
 
     setupUi(this);
     is = NULL;
 
-    if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") )
+    if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ){
         customSizeCheckBox->setEnabled(true);
+        customSizeCheckBox->setChecked(VideoFileDialog::configCustomSize());
+    }
     else {
         customSizeCheckBox->setChecked(true);
         customSizeCheckBox->setEnabled(false);
@@ -58,7 +61,7 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
     if ( fi.isFile() && isVisible() ) {
 
         if ( customSizeCheckBox->isChecked() )
-            //  non-power of two supporting hardware;
+            //  non-power of two supporting hardware or custom size choosen;
             is = new VideoFile(this, true);
         else
             is = new VideoFile(this);
@@ -112,5 +115,8 @@ void VideoFileDialogPreview::on_customSizeCheckBox_toggled(bool on){
     if (is && is->isOpen())
         showFilePreview(is->getFileName());
 
+    VideoFileDialog::configSetCustomSize(on);
+
 }
+
 

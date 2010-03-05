@@ -55,6 +55,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         void on_actionLayersView_triggered();
         void on_actionAbout_Qt_triggered() { QApplication::aboutQt (); }
         void on_actionNew_Session_triggered();
+        void on_preFilteringBox_toggled(bool);
 
 	// GUI interaction
         void updateRefreshTimerState();

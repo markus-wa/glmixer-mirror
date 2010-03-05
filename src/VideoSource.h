@@ -12,8 +12,8 @@
 
 #include "common.h"
 #include "Source.h"
-
-class VideoFile;
+#include "VideoFile.h"
+//class VideoFile;
 
 class VideoSource : public QObject, public Source {
 
@@ -29,14 +29,16 @@ protected:
 
 public slots:
     void updateFrame (int i);
+    void applyFilter();
 
 public:
     inline VideoFile *getVideoFile() { return is; }
 
 private:
     VideoFile *is;
+    VideoPicture copy;
 
-    bool bufferChanged;
+    bool bufferChanged, copyChanged;
     int bufferIndex;
 
 };

@@ -1190,125 +1190,6 @@ the video will pause or loop.</string>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="pageVideoFileConfig">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>256</width>
-          <height>486</height>
-         </rect>
-        </property>
-        <attribute name="label">
-         <string>Video Playback</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="spacing">
-          <number>6</number>
-         </property>
-         <property name="leftMargin">
-          <number>3</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>3</number>
-         </property>
-         <property name="bottomMargin">
-          <number>6</number>
-         </property>
-         <item>
-          <widget class="QCheckBox" name="dirtySeekCheckBox">
-           <property name="toolTip">
-            <string>Allow to jump in-between full frames (MPEG).
-This produces ugly incomplete frames
-but is more precise in time..</string>
-           </property>
-           <property name="text">
-            <string>Allow seek dirty frames</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="restartWhereStoppedCheckBox">
-           <property name="toolTip">
-            <string>Check to go to mark IN position when pressing stop.
-Uncheck to stay on the same frame when pressing stop.</string>
-           </property>
-           <property name="text">
-            <string>Replay at mark IN</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="widget" native="true">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <layout class="QHBoxLayout">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <property name="leftMargin">
-             <number>20</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QCheckBox" name="resetToBlackCheckBox">
-              <property name="toolTip">
-               <string>Check to clear to black when stopped,
-Uncheck to display the restart frame when stopped.</string>
-              </property>
-              <property name="text">
-               <string>Stop to black</string>
-              </property>
-              <property name="tristate">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="jumpSeekSliderCheckBox">
-           <property name="toolTip">
-            <string>Check to jump to target frame only when releasing the video slider.
-Uncheck to have frames continuously following the slider when moved.</string>
-           </property>
-           <property name="text">
-            <string>Jump only on slider release</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer>
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>169</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-        <zorder>restartWhereStoppedCheckBox</zorder>
-        <zorder>jumpSeekSliderCheckBox</zorder>
-        <zorder>widget</zorder>
-        <zorder>dirtySeekCheckBox</zorder>
-       </widget>
        <widget class="QWidget" name="pageSourceConfig">
         <property name="geometry">
          <rect>
@@ -1698,6 +1579,253 @@ Uncheck to have frames continuously following the slider when moved.</string>
             <size>
              <width>231</width>
              <height>72</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="pageVideoFileConfig">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>256</width>
+          <height>486</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>Media file options</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <property name="leftMargin">
+          <number>3</number>
+         </property>
+         <property name="topMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>3</number>
+         </property>
+         <property name="bottomMargin">
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QGroupBox" name="preFilteringBox">
+           <property name="title">
+            <string>Pre-filtering</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Brightness</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="brightnessValueLabel">
+              <property name="text">
+               <string>0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QSlider" name="brightnessSlider">
+              <property name="minimum">
+               <number>-100</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_11">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Contrast</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="contrastValueLabel">
+              <property name="text">
+               <string>0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0" colspan="2">
+             <widget class="QSlider" name="contrastSlider">
+              <property name="minimum">
+               <number>-100</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_16">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Saturation</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QLabel" name="saturationValueLabel">
+              <property name="text">
+               <string>0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0" colspan="2">
+             <widget class="QSlider" name="saturationSlider">
+              <property name="minimum">
+               <number>-100</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBox_4">
+           <property name="title">
+            <string>Jump and seek</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_9">
+            <item>
+             <widget class="QCheckBox" name="dirtySeekCheckBox">
+              <property name="toolTip">
+               <string>Allow to jump in-between full frames (MPEG).
+This produces ugly incomplete frames
+but is more precise in time..</string>
+              </property>
+              <property name="text">
+               <string>Allow seek dirty frames</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="restartWhereStoppedCheckBox">
+              <property name="toolTip">
+               <string>Check to go to mark IN position when pressing stop.
+Uncheck to stay on the same frame when pressing stop.</string>
+              </property>
+              <property name="text">
+               <string>Replay at mark IN</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="widget" native="true">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <layout class="QHBoxLayout">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="leftMargin">
+                <number>20</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QCheckBox" name="resetToBlackCheckBox">
+                 <property name="toolTip">
+                  <string>Check to clear to black when stopped,
+Uncheck to display the restart frame when stopped.</string>
+                 </property>
+                 <property name="text">
+                  <string>Stop to black</string>
+                 </property>
+                 <property name="tristate">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="jumpSeekSliderCheckBox">
+              <property name="toolTip">
+               <string>Check to jump to target frame only when releasing the video slider.
+Uncheck to have frames continuously following the slider when moved.</string>
+              </property>
+              <property name="text">
+               <string>Jump only on slider release</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>169</height>
             </size>
            </property>
           </spacer>
@@ -2271,6 +2399,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
   <include location="../textures.qrc"/>
   <include location="../icons.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -2280,12 +2409,12 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>175</x>
-     <y>945</y>
+     <x>155</x>
+     <y>939</y>
     </hint>
     <hint type="destinationlabel">
-     <x>261</x>
-     <y>945</y>
+     <x>241</x>
+     <y>941</y>
     </hint>
    </hints>
   </connection>
@@ -2296,12 +2425,12 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>261</x>
-     <y>945</y>
+     <x>241</x>
+     <y>941</y>
     </hint>
     <hint type="destinationlabel">
-     <x>175</x>
-     <y>945</y>
+     <x>155</x>
+     <y>939</y>
     </hint>
    </hints>
   </connection>
@@ -2317,7 +2446,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
     </hint>
     <hint type="destinationlabel">
      <x>437</x>
-     <y>953</y>
+     <y>949</y>
     </hint>
    </hints>
   </connection>
@@ -2329,7 +2458,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <hints>
     <hint type="sourcelabel">
      <x>437</x>
-     <y>953</y>
+     <y>949</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -2376,12 +2505,12 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1330</x>
-     <y>480</y>
+     <x>1320</x>
+     <y>615</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1330</x>
-     <y>508</y>
+     <x>1320</x>
+     <y>638</y>
     </hint>
    </hints>
   </connection>
@@ -2440,8 +2569,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>22</x>
-     <y>833</y>
+     <x>23</x>
+     <y>831</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -2456,8 +2585,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>22</x>
-     <y>810</y>
+     <x>23</x>
+     <y>806</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -2473,7 +2602,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <hints>
     <hint type="sourcelabel">
      <x>23</x>
-     <y>786</y>
+     <y>781</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -2488,8 +2617,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>blendingChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1275</x>
-     <y>628</y>
+     <x>1316</x>
+     <y>492</y>
     </hint>
     <hint type="destinationlabel">
      <x>1344</x>
@@ -2504,8 +2633,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>blendingChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1258</x>
-     <y>652</y>
+     <x>1316</x>
+     <y>518</y>
     </hint>
     <hint type="destinationlabel">
      <x>1346</x>
@@ -2520,8 +2649,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>colorsChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1162</x>
-     <y>506</y>
+     <x>1192</x>
+     <y>392</y>
     </hint>
     <hint type="destinationlabel">
      <x>1346</x>
@@ -2536,8 +2665,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>colorsChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1243</x>
-     <y>506</y>
+     <x>1259</x>
+     <y>392</y>
     </hint>
     <hint type="destinationlabel">
      <x>1339</x>
@@ -2552,8 +2681,8 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>colorsChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1323</x>
-     <y>506</y>
+     <x>1325</x>
+     <y>392</y>
     </hint>
     <hint type="destinationlabel">
      <x>1345</x>
@@ -2568,12 +2697,60 @@ Uncheck to have frames continuously following the slider when moved.</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1114</x>
-     <y>802</y>
+     <x>1320</x>
+     <y>650</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1130</x>
-     <y>817</y>
+     <x>1320</x>
+     <y>679</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>brightnessSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>brightnessValueLabel</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1246</x>
+     <y>434</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1312</x>
+     <y>412</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>contrastSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>contrastValueLabel</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1264</x>
+     <y>481</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1308</x>
+     <y>457</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>saturationSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>saturationValueLabel</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1280</x>
+     <y>521</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1310</x>
+     <y>503</y>
     </hint>
    </hints>
   </connection>

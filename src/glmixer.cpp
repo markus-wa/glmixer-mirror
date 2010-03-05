@@ -146,27 +146,20 @@ void GLMixer::on_actionLayersView_triggered(){
 }
 
 void GLMixer::on_actionMediaSource_triggered(){
-
-    VideoFile *newSourceVideoFile = NULL;
+	// remember the folder
 	static QDir d = QDir::home();
-	bool customsize = false;
 	QStringList fileNames;
 
-
 #ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
-	static VideoFileDialog *mfd = NULL;
 
-	if (!mfd) {
-		mfd = new VideoFileDialog(this, "Open a video or a picture", d.absolutePath());
-	    Q_CHECK_PTR(mfd);
-		mfd->setModal(false);
-		QObject::connect(mfd, SIGNAL(error(QString)), this, SLOT(displayErrorMessage(QString)));
-	}
+	VideoFileDialog mfd(this, "Open a video or a picture", d.absolutePath());
 
-	if (mfd->exec())
-		fileNames = mfd->selectedFiles();
+	if (mfd.exec())
+		fileNames = mfd.selectedFiles();
 
-	customsize = mfd->customSizeChecked();
+	if (!mfd.selectedFiles().empty())
+		d.setPath(mfd.selectedFiles().first());
+
 #else
 	fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"),
 													d.absolutePath(),
@@ -178,7 +171,9 @@ void GLMixer::on_actionMediaSource_triggered(){
 	QStringListIterator fileNamesIt(fileNames);
 	while (fileNamesIt.hasNext()){
 
-		if ( !customsize && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
+	    VideoFile *newSourceVideoFile = NULL;
+
+		if ( !VideoFileDialog::configCustomSize() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
 			newSourceVideoFile = new VideoFile(this);
 		else
 			//newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB24);
@@ -246,6 +241,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         QObject::disconnect(resetToBlackCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRevertToBlackWhenStop(bool)));
         QObject::disconnect(restartWhereStoppedCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRestartToMarkIn(bool)));
 
+        QObject::disconnect(brightnessSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setBrightness(int)));
+        QObject::disconnect(contrastSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setContrast(int)));
+        QObject::disconnect(saturationSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setSaturation(int)));
+
         QObject::disconnect(seekBackwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBackward()));
         QObject::disconnect(seekForwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekForward()));
         QObject::disconnect(seekBeginButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBegin()));
@@ -265,8 +264,11 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
+		sourceDockWidget->setEnabled(true);
 		actionDeleteSource->setEnabled(true);
 		actionCloneSource->setEnabled(true);
+		pageVideoFileConfig->setEnabled(false);
+
 		// setup preview
 //		previewStackedWidget->setCurrentIndex(1);
 //		previewSource->setSource (*csi);
@@ -339,6 +341,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 				dirtySeekCheckBox->setChecked(selectedSourceVideoFile->getOptionAllowDirtySeek());
 				resetToBlackCheckBox->setChecked(selectedSourceVideoFile->getOptionRevertToBlackWhenStop());
 				restartWhereStoppedCheckBox->setChecked(selectedSourceVideoFile->getOptionRestartToMarkIn());
+				brightnessSlider->setValue(selectedSourceVideoFile->getBrightness());
+				contrastSlider->setValue(selectedSourceVideoFile->getContrast());
+				saturationSlider->setValue(selectedSourceVideoFile->getSaturation());
+				preFilteringBox->setChecked( !( selectedSourceVideoFile->getBrightness() == 0 && selectedSourceVideoFile->getContrast() == 0 && selectedSourceVideoFile->getSaturation() == 0 ) );
 
 	            // CONTROL signals from GUI to VideoFile
 	            QObject::connect(startButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(play(bool)));
@@ -357,6 +363,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	            QObject::connect(resetMarkInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkIn()));
 	            QObject::connect(resetMarkOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkOut()));
 
+	            QObject::connect(brightnessSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setBrightness(int)));
+	            QObject::connect(contrastSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setContrast(int)));
+	            QObject::connect(saturationSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setSaturation(int)));
+
 	            // DISPLAY consistency from VideoFile to GUI
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), startButton, SLOT(setChecked(bool)));
@@ -371,7 +381,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), this, SLOT(updateRefreshTimerState()));
 
 	            // Fill in information
-				sourceDockWidget->setEnabled(true);
 				FileNameLineEdit->setText(selectedSourceVideoFile->getFileName());
 				CodecNameLineEdit->setText(selectedSourceVideoFile->getCodecName());
 				// display size (special case when power of two dimensions are generated
@@ -414,6 +423,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 					markInLineEdit->setText( "-" );
 					markOutLineEdit->setText( "-" );
 				}
+				pageVideoFileConfig->setEnabled(true);
 	        }
 			return;
 		}
@@ -423,7 +433,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		cvs = dynamic_cast<OpencvSource *>(*csi);
 		if (cvs != NULL) {
 			// fill in the information panel
-			sourceDockWidget->setEnabled(true);
 			FileNameLineEdit->setText(QString("USB Camera %1").arg(cvs->getOpencvCameraIndex()));
 			CodecNameLineEdit->setText("OpenCV drivers");
 			widthLineEdit->setText( QString("%1").arg(cvs->getFrameWidth()));
@@ -450,7 +459,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		RenderingSource *crs = dynamic_cast<RenderingSource *>(*csi);
 		if (crs != NULL) {
 			// fill in the information panel
-			sourceDockWidget->setEnabled(true);
 			FileNameLineEdit->setText(QString("Rendering loopback"));
 			if (glSupportsExtension("GL_EXT_framebuffer_blit"))
 				CodecNameLineEdit->setText("High speed blitted frame buffer");
@@ -476,7 +484,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(*csi);
 		if (as != NULL) {
 			// fill in the information panel
-			sourceDockWidget->setEnabled(true);
 			FileNameLineEdit->setText(QString("Algorithm generated"));
 			CodecNameLineEdit->setText( AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()));
 			widthLineEdit->setText( QString("%1").arg(as->getFrameWidth()));
@@ -499,7 +506,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		CloneSource *cs = dynamic_cast<CloneSource *>(*csi);
 		if (cs != NULL) {
 			// fill in the information panel
-			sourceDockWidget->setEnabled(true);
 			FileNameLineEdit->setText(QString("Clone of another source"));
 			CodecNameLineEdit->setText("RGBA frame buffer");
 			widthLineEdit->setText("-");
@@ -520,7 +526,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 		// it is a basic  Source
 		// fill in the information panel
-		sourceDockWidget->setEnabled(true);
 		FileNameLineEdit->setText(QString("Image"));
 		CodecNameLineEdit->setText("RGBA frame buffer");
 		widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
@@ -956,5 +961,15 @@ void GLMixer::blendingChanged(){
 void GLMixer::on_actionNew_Session_triggered(){
 
 	RenderingManager::getInstance()->clearSourceSet();
+}
+
+
+void GLMixer::on_preFilteringBox_toggled(bool on){
+
+	if ( !on ){
+		brightnessSlider->setValue(0);
+		contrastSlider->setValue(0);
+		saturationSlider->setValue(0);
+	}
 }
 

@@ -29,7 +29,7 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 
 	fpsTime_.start();
 	fpsCounter_	= 0;
-	f_p_s_		= 0.0;
+	f_p_s_		= 1 / period;
 	fpsString_	= tr("%1Hz", "Frames per seconds, in Hertz").arg("?");
 
 	update();
@@ -139,6 +139,7 @@ void glRenderWidget::hideEvent ( QHideEvent * event ) {
 
 void glRenderWidget::displayFPS()
 {
+	qglColor(Qt::darkGreen);
 	renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
 }
 

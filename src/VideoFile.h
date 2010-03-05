@@ -51,18 +51,23 @@ class VideoPicture {
     bool allocated;
     double pts;
     enum PixelFormat pixelformat;
+    SwsContext *img_converter;
 public:
 
-    VideoPicture() :
-        rgb(NULL), width(0), height(0), allocated(false), pts(0.0) {
-    }
-
+    VideoPicture();
     ~VideoPicture();
     /**
-     *  Copy operator
+     *  Copy operator ; uses ffmpeg software converter
      *  if target is already allocated, it should have the same dimensions
      */
     VideoPicture& operator=(VideoPicture const &original);
+    /**
+     * specifies the parameters of the ffmpeg software converter used by the copy operator
+     * Then, each time you copy of this Video Picture FROM another VideoPicture, it will use
+     * the corresponding brightness, contrast and saturation.
+     * Set all to Zero to have no modification of the original
+     */
+    void setCopyFiltering(int brightness = 0, int contrast = 0, int saturation = 0);
     /**
      * Allocate the frame (w x h pixels) and resets to black.
      *
@@ -488,6 +493,21 @@ public:
      * @param vf Pointer to a VideoFile which will become 'master'
      */
     void synchroniseWithVideo(VideoFile *vf);
+    /**
+     * Returns the strengh of the brightness filter applied on the video
+     * @return value between [-100, 100]
+     */
+    int getBrightness();
+    /**
+     * Returns the strengh of the contrast filter applied on the video
+     * @return value between [-100, 100]
+     */
+    int getContrast();
+    /**
+     * Returns the strengh of the saturation filter applied on the video
+     * @return value between [-100, 100]
+     */
+    int getSaturation();
 
 signals:
     /**
@@ -526,6 +546,11 @@ signals:
      * @param msg Error message
      */
     void error(QString msg);
+    /**
+     * Signal emmited when the pre-filtering has changed (brightness, contrast or saturation)
+     *
+     */
+    void prefilteringChanged();
 
 public slots:
     /**
@@ -726,6 +751,22 @@ public slots:
     	return (resetPicture == &blackPicture);
     }
 
+    /**
+     * Specify the strengh of the brightness filter applied on the video
+     * @param b value between [-100, 100], 0 for no effect (original colors)
+     */
+    void setBrightness(int b);
+    /**
+     * Specify the strengh of the contrast filter applied on the video
+     * @param c value between [-100, 100], 0 for no effect (original colors)
+     */
+    void setContrast(int c);
+    /**
+     * Specify the strengh of the saturation filter applied on the video.
+     * @param s value between [-100, 100], 0 for no effect (original colors)
+     */
+    void setSaturation(int s);
+
 protected slots:
     /**
      * Slot called from an internal timer synchronized on the video time code.
@@ -751,7 +792,6 @@ protected:
         QWaitCondition *cond;
 
     public:
-
         PacketQueue();
         ~PacketQueue();
 
@@ -766,7 +806,6 @@ protected:
     // internal methods
     double get_clock();
     void reset();
-    void parse_decode_update(int64_t t);
     void fill_first_frame(bool);
     int stream_component_open(AVFormatContext *);
     double synchronize_video(AVFrame *src_frame, double pts);

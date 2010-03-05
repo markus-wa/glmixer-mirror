@@ -67,6 +67,13 @@ private:
     VideoFile *is;
 };
 
+
+VideoPicture::VideoPicture() :
+		rgb(NULL), width(0), height(0), allocated(false), pts(0.0) {
+
+	img_converter = NULL;
+}
+
 bool VideoPicture::allocate(int w, int h, enum PixelFormat format) {
 
     // if we already have one, make another
@@ -84,7 +91,6 @@ bool VideoPicture::allocate(int w, int h, enum PixelFormat format) {
 
     // Determine required buffer size and allocate buffer
     int numBytes = avpicture_get_size(pixelformat, width, height);
-//    uint8_t *buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
     uint8_t *buffer = static_cast<uint8_t*>(av_mallocz(numBytes + FF_INPUT_BUFFER_PADDING_SIZE));
 
     Q_CHECK_PTR(buffer);
@@ -98,11 +104,16 @@ bool VideoPicture::allocate(int w, int h, enum PixelFormat format) {
         // setup the Video Picture buffer
         if (rgb != NULL) {
             avpicture_fill( reinterpret_cast<AVPicture*>(rgb), buffer, pixelformat, width, height);
-            allocated = true;
+			allocated = true;
         } else
             return false;
+
     } else
         return false;
+
+	// a software converter to apply brightness & contrast filters
+	// TODO ; extend height instead of reduce  (allocate more)
+	img_converter = sws_getContext(width, height, pixelformat, width-1, height-1, pixelformat, SWS_POINT, NULL, NULL, NULL);
 
     return true;
 }
@@ -119,14 +130,39 @@ VideoPicture::~VideoPicture() {
 VideoPicture& VideoPicture::operator=(VideoPicture const &original) {
     if (!allocated)
         allocate(original.width, original.height, original.pixelformat);
+
     if (allocated && original.allocated && width == original.width && height == original.height && pixelformat == original.pixelformat) {
-        int numBytes = avpicture_get_size(pixelformat, width, height);
-        for (int i=0; i<numBytes; ++i)
-            rgb->data[0][i] = original.rgb->data[0][i];
-        pts = original.pts;
+    	if (!img_converter) {
+    		// no converter ? just copy;
+			int numBytes = avpicture_get_size(pixelformat, width, height);
+			for (int i=0; i<numBytes; ++i)
+				rgb->data[0][i] = original.rgb->data[0][i];
+			pts = original.pts;
+    	} else
+			// apply the modified converter to copy
+			sws_scale(img_converter, original.rgb->data, original.rgb->linesize, 0, height, rgb->data, rgb->linesize);
     }
     return *this;
 }
+
+
+void VideoPicture::setCopyFiltering(int b, int c, int s){
+	// Modify the sws converter used internally
+	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+
+	if (!img_converter)
+			return;
+
+	// TODO check b c s
+	if ( s >= -100 && s <= 100 &&  -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+		// ok, can modify the converter
+        brightness = (( b <<16) + 50)/100;
+        contrast = ((( c +100)<<16) + 50)/100;
+		saturation = ((( s +100)<<16) + 50)/100;
+		sws_setColorspaceDetails(img_converter, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+	}
+}
+
 
 void VideoPicture::saveToPPM(QString filename) const {
 
@@ -178,7 +214,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
     videoStream = -1;
     video_st = NULL;
     pFormatCtx = NULL;
-    img_convert_ctx = NULL;
     img_convert_ctx = NULL;
     resetPicture = NULL;
 
@@ -323,7 +358,7 @@ void VideoFile::start() {
 
         if (!pause_video) {
             // unpause
-            pause_video = true; // hack bacause otherwise pause() does nothing...
+            pause_video = true; // hack because otherwise pause() does nothing...
             pause(false);
             pause_video_last = false;
         }
@@ -576,12 +611,12 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
 
 
 void VideoFile::fill_first_frame(bool seek) {
-    AVPacket pkt1, *packet = &pkt1;
+    AVPacket pkt1;
+    AVPacket *packet = &pkt1;
     int frameFinished = 0;
 
-    if (seek) {
+    if (seek)
         av_seek_frame(pFormatCtx, videoStream, mark_in, AVSEEK_FLAG_BACKWARD);
-    }
 
     while (!frameFinished) {
         if (av_read_frame(pFormatCtx, packet) != 0)
@@ -592,18 +627,17 @@ void VideoFile::fill_first_frame(bool seek) {
         AVFrame *pFrame = avcodec_alloc_frame();
         Q_CHECK_PTR(pFrame);
         // if we can decode it
-
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
         if (avcodec_decode_video2(video_st->codec, pFrame, &frameFinished, packet) >= 0) {
 #else
         if ( avcodec_decode_video(video_st->codec, pFrame, &frameFinished, packet->data, packet->size) >= 0) {
 #endif
             // and if the frame is finished (should be in one shot for video stream)
-            if (frameFinished) {
+        	if (frameFinished) {
                 // convert it to the firtPicture
                 sws_scale(img_convert_ctx, pFrame->data, pFrame->linesize, 0, video_st->codec->height,
                             firstPicture.rgb->data, firstPicture.rgb->linesize);
-            }
+        	}
         }
         // free frame
         av_free(pFrame);
@@ -614,6 +648,7 @@ void VideoFile::fill_first_frame(bool seek) {
     if(seek)
         avcodec_flush_buffers(video_st->codec);
 }
+
 
 int VideoFile::stream_component_open(AVFormatContext *pFCtx) {
 
@@ -694,6 +729,10 @@ void VideoFile::video_refresh_timer() {
 			// knowing the delay (in seconds), we can schedule the next display (in ms)
 			if (!pause_video && !is_synchronized)
 				ptimer->start((int) (actual_delay * 1000 + 0.5));
+
+//			// if we just paused on this frame, keep it as reference
+//			else
+//				vp->setReferenceFrame();
 
             /* update queue for next picture at the read index */
             if (++pictq_rindex == VIDEO_PICTURE_QUEUE_SIZE)
@@ -870,7 +909,7 @@ void ParsingThread::run() {
             int flags = 0;
             if (is->seek_any)
                 flags |= AVSEEK_FLAG_ANY;
-            if (is->seek_pos < is->getCurrentFrameTime() || is->seek_backward)
+            if (is->seek_pos <= is->getCurrentFrameTime() || is->seek_backward)
                 flags |= AVSEEK_FLAG_BACKWARD;
 
             if (av_seek_frame(is->pFormatCtx, is->videoStream, is->seek_pos, flags) < 0) {
@@ -1404,76 +1443,167 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile) {
 }
 
 
-void VideoFile::parse_decode_update(int64_t pos)
-{
-    // seek mode when paused; do the seek now and get the picture immedialtely.
-    AVPacket pkt1, *packet = &pkt1;
-    AVPacket pkt2, *f = &pkt2;
-    int frameFinished = 0;
-    double pts = 0.0;
 
-    // create an empty frame to hold the packets.
-    AVFrame *pFrame = avcodec_alloc_frame();
-    Q_CHECK_PTR(pFrame);
+int VideoFile::getBrightness(){
+    int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
 
-    av_read_play(pFormatCtx);
+    if ( -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
 
-    // seek to position
-    // TODO adjust flag?
-    if ( av_seek_frame(pFormatCtx, videoStream, pos, 0) < 0 )
-        return;
-    // seek succeeded ; we'll have to flush buffers
-    videoq.flush();
-
-    // read frame
-    while (!frameFinished) {
-
-        // no need to continue if can't read packet
-        if (av_read_frame(pFormatCtx, packet) != 0)
-            break;
-
-        // not a video packet ? no problemo, we just try again...
-        if (packet->stream_index != videoStream)
-            continue;
-
-        // empty flush packet
-        videoq.get(f, 0);
-        avcodec_flush_buffers(video_st->codec);
-
-        // if we can decode it, we will convert it to a picture
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-        if (avcodec_decode_video2(video_st->codec, pFrame, &frameFinished, packet) >= 0) {
-#else
-        if ( avcodec_decode_video(video_st->codec, pFrame, &frameFinished, packet->data, packet->size) >= 0) {
-#endif
-            // no need to continue if frame don't have a time stamp
-            if (packet->dts == (int64_t) AV_NOPTS_VALUE)
-                break;
-            // ok, got a time stamp; compute the frame pts
-            pts = packet->dts * av_q2d(video_st->time_base) / play_speed;
-
-            // and if the frame is finished (should be in one shot for video stream)
-            if (frameFinished) {
-                // sync the pts
-                pts = synchronize_video(pFrame, pts);
-                // queue picture
-                queue_picture(pFrame, pts);
-                // update it immediately
-                // BHBN ; why manual update when its supposed to be with timer?
-                //video_refresh_timer();
-
-            }
-        }
+        return (((brightness*100) + (1<<15))>>16);
     }
+    else return 0;
 
-    // inverse   av_read_play(pFormatCtx);
-    av_read_pause(pFormatCtx);
+}
+int VideoFile::getContrast(){
+    int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
 
-    // free packet
-    av_free_packet( packet);
+    if ( -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
 
-    // free frame
-    av_free(pFrame);
+        return ((((contrast  *100) + (1<<15))>>16) - 100);
+    }
+    else return 0;
+
+}
+int VideoFile::getSaturation(){
+    int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+
+    if ( -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+
+        return ((((saturation*100) + (1<<15))>>16) - 100);
+    }
+    else return 0;
 }
 
+//void VideoPicture::setReferenceFrameBrightness(int b){
+//
+//	// Modify the sws converter used internally to modify the reference frame into rgb current frame
+//	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+//	if ( b >= -100 && b <= 100 &&  -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+//		// ok, can modify the converter
+//        brightness = (( b <<16) + 50)/100;
+//		sws_setColorspaceDetails(img_converter, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+//		// apply the modified converter to the reference frame ; the output is in the current rgb buffer
+//		sws_scale(img_converter, tmp->data, tmp->linesize, 0, height, rgb->data, rgb->linesize);
+//	}
+//}
+
+void VideoFile::setBrightness(int b){
+
+//	// for single frame media, only modify the reset picture
+//	if( getEnd() == 1){
+//		resetPicture->setReferenceFrameBrightness(b);
+//		emit frameReady(-1);
+//
+//	} else { // for movies, we modify the sws converter for future frames
+
+		int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+		if ( b >= -100 && b <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+			// ok, got all the details, modify one:
+	        brightness = (( b <<16) + 50)/100;
+			// apply it
+			sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+		}
+		// now, the question is ; is the movie active (frames are updated) ?
+		// if yes, nothing to do ; the next frame will be applied the filter next time
+		// if no, we shall modify the VideoPicture which is already displayed
+//		if (isRunning() && isPaused()){
+//		}
+//	}
+	emit prefilteringChanged();
+}
+
+//void VideoPicture::setReferenceFrameContrast(int c){
+//
+//	// Modify the sws converter used internally to modify the reference frame into rgb current frame
+//	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+//	if ( c >= -100 && c <= 100 &&  -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+//		// ok, can modify the converter
+//        contrast   = ((( c +100)<<16) + 50)/100;
+//		sws_setColorspaceDetails(img_converter, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+//		// apply the modified converter to the reference frame ; the output is in the current rgb buffer
+//		sws_scale(img_converter, tmp->data, tmp->linesize, 0, height, rgb->data, rgb->linesize);
+//	}
+//}
+
+
+void VideoFile::setContrast(int c){
+
+//	// for single frame media, only modify the reset picture
+//	if( getEnd() == 1){
+//		resetPicture->setReferenceFrameContrast(c);
+//		emit frameReady(-1);
+//
+//	} else { // for movies, we modify the sws converter for future frames
+
+		int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+		if ( c >= -100 && c <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+			// ok, got all the details, modify one:
+	        contrast   = ((( c +100)<<16) + 50)/100;
+			// apply it
+			sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+		}
+		// now, the question is ; is the movie active (frames are updated) ?
+		// if yes, nothing to do ; the next frame will be created with the new filter
+		// if no, we shall modify the VideoPicture which is already displayed
+//		if (isRunning() && isPaused()){
+//		}
+//	}
+
+	emit prefilteringChanged();
+}
+
+//void VideoPicture::setReferenceFrameSaturation(int s){
+//
+//	// Modify the sws converter used internally to modify the reference frame into rgb current frame
+//	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+//	if ( s >= -100 && s <= 100 &&  -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+//		// ok, can modify the converter
+//		saturation = ((( s +100)<<16) + 50)/100;
+//		sws_setColorspaceDetails(img_converter, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+//		// apply the modified converter to the reference frame ; the output is in the current rgb buffer
+//		sws_scale(img_converter, tmp->data, tmp->linesize, 0, height, rgb->data, rgb->linesize);
+//	}
+//}
+
+
+void VideoFile::setSaturation(int s){
+
+//	// for single frame media, only modify the reset picture
+//	if( getEnd() == 1){
+//		resetPicture->setReferenceFrameSaturation(s);
+//		emit frameReady(-1);
+//
+//	} else { // for movies, we modify the sws converter for future frames
+
+		int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+		if ( s >= -100 && s <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+			// ok, got all the details, modify one:
+			saturation = ((( s +100)<<16) + 50)/100;
+			// apply it
+			sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+		}
+		// now, the question is ; is the movie active (frames are updated) ?
+		// if yes, nothing to do ; the next frame will be applied the filter next time
+		// if no, we shall modify the VideoPicture which is already displayed
+//		if ( !isRunning() ){
+//			// does not work
+//			if (pictq_rindex == -1)
+//				resetPicture->setReferenceFrameSaturation(s);
+//			else {
+//				int i = pictq_rindex == 0 ? VIDEO_PICTURE_QUEUE_SIZE : pictq_rindex - 1;
+//				pictq[i].setReferenceFrameSaturation(s);
+//
+//			}
+//			emit frameReady(pictq_rindex);
+//
+//		} else if (isPaused() || !isRunning()){
+//		    int i = pictq_rindex == 0 ? VIDEO_PICTURE_QUEUE_SIZE : pictq_rindex - 1;
+//
+//			pictq[i].setReferenceFrameSaturation(s);
+//			emit frameReady(i);
+//		}
+//	}
+
+	emit prefilteringChanged();
+}
 
