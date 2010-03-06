@@ -90,7 +90,7 @@ bool VideoPicture::allocate(int w, int h, enum PixelFormat format) {
     pixelformat = format;
 
     // Determine required buffer size and allocate buffer
-    int numBytes = avpicture_get_size(pixelformat, width, height);
+    int numBytes = avpicture_get_size(pixelformat, width, height+1);
     uint8_t *buffer = static_cast<uint8_t*>(av_mallocz(numBytes + FF_INPUT_BUFFER_PADDING_SIZE));
 
     Q_CHECK_PTR(buffer);
@@ -103,7 +103,7 @@ bool VideoPicture::allocate(int w, int h, enum PixelFormat format) {
         rgb = avcodec_alloc_frame();
         // setup the Video Picture buffer
         if (rgb != NULL) {
-            avpicture_fill( reinterpret_cast<AVPicture*>(rgb), buffer, pixelformat, width, height);
+            avpicture_fill( reinterpret_cast<AVPicture*>(rgb), buffer, pixelformat, width, height+1);
 			allocated = true;
         } else
             return false;
@@ -112,8 +112,11 @@ bool VideoPicture::allocate(int w, int h, enum PixelFormat format) {
         return false;
 
 	// a software converter to apply brightness & contrast filters
-	// TODO ; extend height instead of reduce  (allocate more)
-	img_converter = sws_getContext(width, height, pixelformat, width-1, height-1, pixelformat, SWS_POINT, NULL, NULL, NULL);
+	img_converter = sws_getContext(width, height+1, pixelformat, width, height, pixelformat, SWS_POINT, NULL, NULL, NULL);
+	// NB: when both dimensions and formats are equal, a copy converter is automatically selected by libswscale (optimal choice)
+	// but here, we DO want to process the pixels with the swscale to apply filtering. So, the trick is to consider an extra line
+	// (allocated) in the src frame so that the destination height is not the same.
+	// The copy operator takes it into account by NOT copying it (srcSliceY =1)
 
     return true;
 }
@@ -139,22 +142,21 @@ VideoPicture& VideoPicture::operator=(VideoPicture const &original) {
 				rgb->data[0][i] = original.rgb->data[0][i];
 			pts = original.pts;
     	} else
-			// apply the modified converter to copy
-			sws_scale(img_converter, original.rgb->data, original.rgb->linesize, 0, height, rgb->data, rgb->linesize);
+			// apply the modified converter to copy (with the srcSliceY = 1 to avoid extra line)
+			sws_scale(img_converter, original.rgb->data, original.rgb->linesize, 1, height, rgb->data, rgb->linesize);
     }
     return *this;
 }
 
 
 void VideoPicture::setCopyFiltering(int b, int c, int s){
+	// check values
+	if ( !img_converter || ( b < -100 && b > 100) || ( c < -100 && c > 100) || ( s < -100 && s > 100) )
+		return;
+
 	// Modify the sws converter used internally
 	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-
-	if (!img_converter)
-			return;
-
-	// TODO check b c s
-	if ( s >= -100 && s <= 100 &&  -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+	if ( -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
 		// ok, can modify the converter
         brightness = (( b <<16) + 50)/100;
         contrast = ((( c +100)<<16) + 50)/100;
@@ -1474,135 +1476,45 @@ int VideoFile::getSaturation(){
     else return 0;
 }
 
-//void VideoPicture::setReferenceFrameBrightness(int b){
-//
-//	// Modify the sws converter used internally to modify the reference frame into rgb current frame
-//	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-//	if ( b >= -100 && b <= 100 &&  -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
-//		// ok, can modify the converter
-//        brightness = (( b <<16) + 50)/100;
-//		sws_setColorspaceDetails(img_converter, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-//		// apply the modified converter to the reference frame ; the output is in the current rgb buffer
-//		sws_scale(img_converter, tmp->data, tmp->linesize, 0, height, rgb->data, rgb->linesize);
-//	}
-//}
 
 void VideoFile::setBrightness(int b){
 
-//	// for single frame media, only modify the reset picture
-//	if( getEnd() == 1){
-//		resetPicture->setReferenceFrameBrightness(b);
-//		emit frameReady(-1);
-//
-//	} else { // for movies, we modify the sws converter for future frames
+	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+	if ( b >= -100 && b <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+		// ok, got all the details, modify one:
+		brightness = (( b <<16) + 50)/100;
+		// apply it
+		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+	}
 
-		int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-		if ( b >= -100 && b <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
-			// ok, got all the details, modify one:
-	        brightness = (( b <<16) + 50)/100;
-			// apply it
-			sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-		}
-		// now, the question is ; is the movie active (frames are updated) ?
-		// if yes, nothing to do ; the next frame will be applied the filter next time
-		// if no, we shall modify the VideoPicture which is already displayed
-//		if (isRunning() && isPaused()){
-//		}
-//	}
 	emit prefilteringChanged();
 }
-
-//void VideoPicture::setReferenceFrameContrast(int c){
-//
-//	// Modify the sws converter used internally to modify the reference frame into rgb current frame
-//	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-//	if ( c >= -100 && c <= 100 &&  -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
-//		// ok, can modify the converter
-//        contrast   = ((( c +100)<<16) + 50)/100;
-//		sws_setColorspaceDetails(img_converter, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-//		// apply the modified converter to the reference frame ; the output is in the current rgb buffer
-//		sws_scale(img_converter, tmp->data, tmp->linesize, 0, height, rgb->data, rgb->linesize);
-//	}
-//}
 
 
 void VideoFile::setContrast(int c){
 
-//	// for single frame media, only modify the reset picture
-//	if( getEnd() == 1){
-//		resetPicture->setReferenceFrameContrast(c);
-//		emit frameReady(-1);
-//
-//	} else { // for movies, we modify the sws converter for future frames
-
-		int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-		if ( c >= -100 && c <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
-			// ok, got all the details, modify one:
-	        contrast   = ((( c +100)<<16) + 50)/100;
-			// apply it
-			sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-		}
-		// now, the question is ; is the movie active (frames are updated) ?
-		// if yes, nothing to do ; the next frame will be created with the new filter
-		// if no, we shall modify the VideoPicture which is already displayed
-//		if (isRunning() && isPaused()){
-//		}
-//	}
+	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+	if ( c >= -100 && c <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+		// ok, got all the details, modify one:
+		contrast   = ((( c +100)<<16) + 50)/100;
+		// apply it
+		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+	}
 
 	emit prefilteringChanged();
 }
 
-//void VideoPicture::setReferenceFrameSaturation(int s){
-//
-//	// Modify the sws converter used internally to modify the reference frame into rgb current frame
-//	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-//	if ( s >= -100 && s <= 100 &&  -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
-//		// ok, can modify the converter
-//		saturation = ((( s +100)<<16) + 50)/100;
-//		sws_setColorspaceDetails(img_converter, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-//		// apply the modified converter to the reference frame ; the output is in the current rgb buffer
-//		sws_scale(img_converter, tmp->data, tmp->linesize, 0, height, rgb->data, rgb->linesize);
-//	}
-//}
 
 
 void VideoFile::setSaturation(int s){
 
-//	// for single frame media, only modify the reset picture
-//	if( getEnd() == 1){
-//		resetPicture->setReferenceFrameSaturation(s);
-//		emit frameReady(-1);
-//
-//	} else { // for movies, we modify the sws converter for future frames
-
-		int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-		if ( s >= -100 && s <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
-			// ok, got all the details, modify one:
-			saturation = ((( s +100)<<16) + 50)/100;
-			// apply it
-			sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-		}
-		// now, the question is ; is the movie active (frames are updated) ?
-		// if yes, nothing to do ; the next frame will be applied the filter next time
-		// if no, we shall modify the VideoPicture which is already displayed
-//		if ( !isRunning() ){
-//			// does not work
-//			if (pictq_rindex == -1)
-//				resetPicture->setReferenceFrameSaturation(s);
-//			else {
-//				int i = pictq_rindex == 0 ? VIDEO_PICTURE_QUEUE_SIZE : pictq_rindex - 1;
-//				pictq[i].setReferenceFrameSaturation(s);
-//
-//			}
-//			emit frameReady(pictq_rindex);
-//
-//		} else if (isPaused() || !isRunning()){
-//		    int i = pictq_rindex == 0 ? VIDEO_PICTURE_QUEUE_SIZE : pictq_rindex - 1;
-//
-//			pictq[i].setReferenceFrameSaturation(s);
-//			emit frameReady(i);
-//		}
-//	}
+	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
+	if ( s >= -100 && s <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+		// ok, got all the details, modify one:
+		saturation = ((( s +100)<<16) + 50)/100;
+		// apply it
+		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+	}
 
 	emit prefilteringChanged();
 }

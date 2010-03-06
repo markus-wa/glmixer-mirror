@@ -68,13 +68,12 @@ int main(int argc, char **argv)
 	// 2. The application GUI : it integrates the Rendering Manager QGLWidget
     GLMixer glmixer_widget;
 
-#ifdef __APPLE__
-    glmixer_widget.setStyleSheet(QString::fromUtf8("font: 11pt \"Lucida Grande\";\n"));
-#endif
 
 #ifdef GLMIXER_VERSION
 #ifdef GLMIXER_REVISION
-    glmixer_widget.setWindowTitle(QString("GL Mixer %1 rev-%2").arg(GLMIXER_VERSION).arg(GLMIXER_REVISION));
+    glmixer_widget.setWindowTitle(QString("GL Mixer %1-%2").arg(GLMIXER_VERSION).arg(GLMIXER_REVISION));
+#else
+    glmixer_widget.setWindowTitle(QString("GL Mixer %1").arg(GLMIXER_VERSION));
 #endif
 #endif
 

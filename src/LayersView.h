@@ -41,7 +41,6 @@ private:
     typedef enum {NONE = 0, OVER, GRAB } actionType;
     actionType currentAction;
     void setAction(actionType a);
-    float deltazoom;
 };
 
 #endif /* LAYERSVIEW_H_ */

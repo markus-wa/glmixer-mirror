@@ -19,6 +19,8 @@ MixerView::MixerView() : View(), currentAction(NONE)
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
 	maxzoom = MAXZOOM;
+	maxpanx = SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
+	maxpany = SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
 }
@@ -102,6 +104,7 @@ void MixerView::reset()
 {
 
     glScalef(zoom, zoom, zoom);
+    glTranslatef(getPanningX(), getPanningY(), 0.0);
 
 }
 
@@ -149,7 +152,11 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
-    if (event->buttons() & Qt::LeftButton) {
+	if (event->buttons() & Qt::MidButton) {
+		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
+	}
+	// if at least one source icon was clicked
+	else if (event->buttons() & Qt::LeftButton) {
     	// What was cliked ?
     	SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 
@@ -188,13 +195,31 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	return true;
 }
 
+bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
+
+
+	// for LEFT double button clic : pan the view to zoom on this source
+	if ( (event->buttons() & Qt::LeftButton) /*&& getSourceAtCoordinates(event->x(), viewport[3] - event->y()) */) {
+
+
+
+	}
+
+	return true;
+}
+
+
 bool MixerView::mouseMoveEvent(QMouseEvent *event)
 {
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
-    if (event->buttons() & Qt::LeftButton) {
+	if (event->buttons() & Qt::MidButton) {
+
+		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
+
+	} else if (event->buttons() & Qt::LeftButton) {
     	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
         if ( RenderingManager::getInstance()->notAtEnd(cs)) {
 
@@ -239,37 +264,51 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
 
 bool MixerView::wheelEvent ( QWheelEvent * event ){
 
-	setAction(NONE);
+
+	float previous = zoom;
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
+
+	if (currentAction == GRAB ) {
+		deltazoom = 1.0 - (zoom / previous);
+		// simulate a grab with no mouse movement but a deltazoom :
+		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+		if ( RenderingManager::getInstance()->notAtEnd(cs))
+			grabSource(cs, event->x(), (viewport[3] - event->y()), 0, 0);
+		// reset deltazoom
+		deltazoom = 0;
+	}
+	else
+		setAction(NONE);
 
 	return true;
 }
 
 void MixerView::zoomReset() {
 	setZoom(DEFAULTZOOM);
+	setPanningX(0); setPanningY(0);
 }
 
 void MixerView::zoomBestFit() {
 
+	zoomReset();
+
 	// nothing to do if there is no source
-	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
-		zoomReset();
+	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd())
 		return;
-	}
 
 	// 1. compute bounding box of every sources
 	double extend = 0.0;
     double x_min = 0, x_max = 0, y_min = 0, y_max = 0;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-		x_min = MINI (x_min, (*its)->getAlphaX());
-		x_max = MAXI (x_max, (*its)->getAlphaX());
-		y_min = MINI (y_min, (*its)->getAlphaY());
-		y_max = MAXI (y_max, (*its)->getAlphaY());
+		x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
+		x_max = MAXI (x_max, (*its)->getAlphaX() + SOURCE_UNIT * (*its)->getAspectRatio());
+		y_min = MINI (y_min, (*its)->getAlphaY() - SOURCE_UNIT);
+		y_max = MAXI (y_max, (*its)->getAlphaY() + SOURCE_UNIT);
 	}
 	// what is the max coordinate of all?
 	extend = MAXI( MAXI( ABS(x_min), ABS(x_max)), MAXI( ABS(y_min), ABS(y_max)));
 	// add a margin
-	extend += 1.3 * SOURCE_UNIT;
+//	extend += 1.3 * SOURCE_UNIT;
 
 	// 2. get the extend of the area covered in the viewport
     double LLcorner[3];
@@ -278,8 +317,7 @@ void MixerView::zoomBestFit() {
     gluUnProject(viewport[2], viewport[3], 0, modelview, projection, viewport, URcorner, URcorner+1, URcorner+2);
 
 	// 3. compute zoom factor to fit to the boundaries
-	setZoom( zoom * ( MAXI( ABS(LLcorner[1]), ABS(URcorner[1]) ) ) / extend );
-
+	setZoom( zoom * ( MAXI( MAXI( ABS(LLcorner[0]), ABS(URcorner[0])), MAXI( ABS(LLcorner[1]), ABS(URcorner[1])) ) ) / extend );
 }
 
 
@@ -368,12 +406,31 @@ void MixerView::grabSource(SourceSet::iterator s, int x, int y, int dx, int dy) 
     gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
-    double ix = (*s)->getAlphaX() + ax - bx;
-    double iy = (*s)->getAlphaY() + ay - by;
+    double ix = (*s)->getAlphaX() + (ax - bx) + (ax + getPanningX()) * deltazoom;
+    double iy = (*s)->getAlphaY() + (ay - by) + (ay + getPanningY()) * deltazoom;
 
     // move icon
     (*s)->setAlphaCoordinates( ix, iy, CIRCLE_SIZE);
 
+}
+
+
+/**
+ *
+ **/
+void MixerView::panningBy(int x, int y, int dx, int dy) {
+
+    double bx, by, bz; // before movement
+    double ax, ay, az; // after  movement
+
+    gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+            0.0, modelview, projection, viewport, &bx, &by, &bz);
+    gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
+            modelview, projection, viewport, &ax, &ay, &az);
+
+    // apply panning
+    setPanningX(getPanningX() + ax - bx);
+    setPanningY(getPanningY() + ay - by);
 }
 
 

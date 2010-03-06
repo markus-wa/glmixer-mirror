@@ -17,7 +17,9 @@ ENDMACRO(Subversion_GET_REVISION)
 
 MESSAGE(STATUS "Calling ${SVN_EXECUTABLE}")
 Subversion_GET_REVISION(${PROJECT_SOURCE_DIR} ProgramRevision)
+IF(ProgramRevision)
 MESSAGE(STATUS "Revision is ${ProgramRevision}")
+ENDIF(ProgramRevision)
 # ----------------------------------------------------------------------
 				
 set(GLMIXER_VERSION "0.6")
@@ -44,7 +46,11 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION} -DGLMIXER_REVISION=${ProgramRevision}" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION}" )
+
+IF(ProgramRevision)
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${ProgramRevision}" )
+ENDIF(ProgramRevision)
 
 if( APPLE )
 	set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.4" )

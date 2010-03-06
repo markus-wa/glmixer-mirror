@@ -15,7 +15,7 @@ class View {
 
 public:
 	View() :
-		zoom(0), minzoom(0), maxzoom(0), panx(0), maxpanx(0), pany(0), maxpany(0), panz(0), maxpanz(0) {
+		zoom(0), minzoom(0), maxzoom(0), deltazoom(0), panx(0), maxpanx(0), pany(0), maxpany(0), panz(0), maxpanz(0) {
 		viewport[0] = 0;
 		viewport[1] = 0;
 		viewport[2] = 0;
@@ -104,7 +104,7 @@ public:
 	}
 
 protected:
-	float zoom, minzoom, maxzoom;
+	float zoom, minzoom, maxzoom, deltazoom;
 	float panx, maxpanx, pany, maxpany, panz, maxpanz;
 
 	GLint viewport[4];

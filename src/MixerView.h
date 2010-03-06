@@ -22,6 +22,7 @@ public:
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent ( QMouseEvent * event );
+    bool mouseDoubleClickEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
     bool keyPressEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
@@ -33,6 +34,7 @@ private:
 
     SourceSet::iterator  getSourceAtCoordinates(int mouseX, int mouseY);
     void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
+    void panningBy(int x, int y, int dx, int dy) ;
 
     typedef enum {NONE = 0, OVER, GRAB, SELECT } actionType;
     actionType currentAction;

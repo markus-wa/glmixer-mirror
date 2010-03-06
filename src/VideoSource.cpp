@@ -27,6 +27,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
 
     	// fills in the first frame
         const VideoPicture *vp = is->getPictureAtIndex(-1);
+		copy = *vp;
         if (vp && vp->isAllocated()) {
 
         	// fill in the texture
@@ -73,7 +74,6 @@ void VideoSource::update(){
 		if (copyChanged) {
 			copy = *vp;
 			vp = &copy;
-	        copyChanged = false;
 		}
 		// is the picture good ?
         if (vp && vp->isAllocated()) {
@@ -96,7 +96,15 @@ void VideoSource::updateFrame (int i)
 {
 	bufferChanged = true;
 	bufferIndex = i;
+    copyChanged = false;
 }
+
+// TODO : this implementation is not exact. The problem is that it applies the copy filtering on top of the
+// already filtered frame produced in the VideoFile; so the visual effect is not correct when applying the effect
+// on a video file when paused. To change this, one should keep a copy of the original frame WITHOUT filtering, which
+// would require to make it EXTRA (double conversion) and take much more CPU time.
+// So, this 'not working' compromise seems reasonnable comparatively to the important loss of performance
+// But maybe a smarter solution can be found...
 
 void VideoSource::applyFilter(){
 
@@ -108,10 +116,10 @@ void VideoSource::applyFilter(){
 		// request to change the buffer from the new copy
 		bufferChanged = copyChanged = true;
 	}
-//	else {
+	else {
 		// else do nothing special; wait for next frame
 		// except if the video file is paused
-
-//	}
+		copyChanged = false;
+	}
 }
 

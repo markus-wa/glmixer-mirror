@@ -494,17 +494,17 @@ public:
      */
     void synchroniseWithVideo(VideoFile *vf);
     /**
-     * Returns the strengh of the brightness filter applied on the video
+     * Returns the strength of the brightness filter applied on the video
      * @return value between [-100, 100]
      */
     int getBrightness();
     /**
-     * Returns the strengh of the contrast filter applied on the video
+     * Returns the strength of the contrast filter applied on the video
      * @return value between [-100, 100]
      */
     int getContrast();
     /**
-     * Returns the strengh of the saturation filter applied on the video
+     * Returns the strength of the saturation filter applied on the video
      * @return value between [-100, 100]
      */
     int getSaturation();
@@ -752,17 +752,17 @@ public slots:
     }
 
     /**
-     * Specify the strengh of the brightness filter applied on the video
+     * Specify the strength of the brightness filter applied on the video
      * @param b value between [-100, 100], 0 for no effect (original colors)
      */
     void setBrightness(int b);
     /**
-     * Specify the strengh of the contrast filter applied on the video
+     * Specify the strength of the contrast filter applied on the video
      * @param c value between [-100, 100], 0 for no effect (original colors)
      */
     void setContrast(int c);
     /**
-     * Specify the strengh of the saturation filter applied on the video.
+     * Specify the strength of the saturation filter applied on the video.
      * @param s value between [-100, 100], 0 for no effect (original colors)
      */
     void setSaturation(int s);

@@ -18,7 +18,7 @@
 #define MAX_LOOKAT 9.0
 #define DEFAULT_LOOKAT 4.0
 
-LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), currentSourceDisplacement(0), deltazoom(0) {
+LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), currentSourceDisplacement(0) {
 
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
@@ -228,6 +228,10 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
 bool LayersView::wheelEvent ( QWheelEvent * event ){
 
+    int dx = event->x() - lastClicPos.x();
+    int dy = lastClicPos.y() - event->y();
+    lastClicPos = event->pos();
+
 	float previous = zoom;
 	setZoom (zoom - ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
@@ -236,7 +240,7 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 		// simulate a grab with no mouse movement but a deltazoom :
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 		if ( RenderingManager::getInstance()->notAtEnd(cs))
-			grabSource(cs, 0,0,0,0);
+			grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
 		// reset deltazoom
 		deltazoom = 0;
 	}
