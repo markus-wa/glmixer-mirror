@@ -230,7 +230,6 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
         if ( RenderingManager::getInstance()->notAtEnd(cs)) {
 
         	setAction(GRAB);
-			//            if ( find_if( selection.begin(), selection.end(), hasName( (*cs)->getId()) ) != selection.end() ){
 			if ( selectedSources.count(*cs) > 0 ){
                 for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
                     grabSource(its, event->x(), viewport[3] - event->y(), dx, dy);

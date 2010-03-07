@@ -10,6 +10,11 @@
 #include "SourceDisplayWidget.h"
 #include "AlgorithmSource.h"
 
+
+int AlgorithmSelectionDialog::_algo = 1;
+int AlgorithmSelectionDialog::_width = 0, AlgorithmSelectionDialog::_height = 0, AlgorithmSelectionDialog::_preset = 8;
+unsigned long AlgorithmSelectionDialog::_update = 0;
+
 AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(parent), s(0), preview(0){
 
     setupUi(this);
@@ -17,13 +22,33 @@ AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(pa
     preview = new SourceDisplayWidget(this);
     verticalLayout->insertWidget(1, preview);
 
-	createSource();
+    // recall choices
+    presetsSizeComboBox->setCurrentIndex(_preset);
+    if (_preset == 0) {
+		heightSpinBox->setValue(_height);
+		widthSpinBox->setValue(_width);
+    }
+    // create source with selected algo
+    AlgorithmComboBox->setCurrentIndex(_algo);
+	// change update
+    if (_update != 0){
+    	customUpdateFrequency->setChecked(true);
+    	frequencySlider->setValue(_update);
+    } else
+    	customUpdateFrequency->setChecked(false);
 }
 
 AlgorithmSelectionDialog::~AlgorithmSelectionDialog() {
 	delete preview;
 	if (s)
 		delete s;
+
+	// remember choices
+	_preset = presetsSizeComboBox->currentIndex();
+	_width = getSelectedWidth();
+	_height = getSelectedHeight();
+	_algo = getSelectedAlgorithmIndex();
+	_update = customUpdateFrequency->isChecked() ? frequencySlider->value() : 0;
 }
 
 void AlgorithmSelectionDialog::createSource(){
@@ -53,7 +78,10 @@ void AlgorithmSelectionDialog::on_frequencySlider_valueChanged(int v){
 
 void  AlgorithmSelectionDialog::on_customUpdateFrequency_toggled(bool flag){
 
-	s->setPeriodicity(0);
+	if (flag)
+		s->setPeriodicity(getUpdatePeriod());
+	else
+		frequencySlider->setValue(0);
 }
 
 void  AlgorithmSelectionDialog::on_widthSpinBox_valueChanged(int w){

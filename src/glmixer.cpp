@@ -39,6 +39,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     menuToolBars->addAction(previewDockWidget->toggleViewAction());
     menuToolBars->addAction(sourceDockWidget->toggleViewAction());
     menuToolBars->addAction(vcontrolDockWidget->toggleViewAction());
+    menuToolBars->addSeparator();
+    menuToolBars->addAction(sourceToolBar->toggleViewAction());
+    menuToolBars->addAction(viewToolBar->toggleViewAction());
+    menuToolBars->addAction(FileToolBar->toggleViewAction());
+
 
     // set the central widget
     centralViewLayout->removeWidget(mainRendering);

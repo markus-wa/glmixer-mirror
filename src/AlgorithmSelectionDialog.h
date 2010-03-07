@@ -41,6 +41,9 @@ private:
 	SourceDisplayWidget *preview;
 
 	void createSource();
+
+	static int _algo, _width, _height, _preset;
+	static unsigned long _update;
 };
 
 #endif /* ALGORITHMSELECTIONDIALOG_H_ */
