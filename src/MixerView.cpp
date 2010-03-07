@@ -102,10 +102,8 @@ void MixerView::paint()
 
 void MixerView::reset()
 {
-
     glScalef(zoom, zoom, zoom);
     glTranslatef(getPanningX(), getPanningY(), 0.0);
-
 }
 
 
@@ -187,6 +185,14 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 
     } else if (event->buttons() & Qt::RightButton) {
     	// TODO context menu
+
+	    double LLcorner[3];
+	    gluUnProject(event->x(), viewport[3] - event->y(), 1, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
+
+		qDebug (" %f %f  ", LLcorner[0], LLcorner[1]);
+
+
+
     } else if (event->buttons() & Qt::MidButton) {
     	// almost a wheel action ; middle mouse = best zoom fit
         zoomBestFit();
@@ -290,34 +296,39 @@ void MixerView::zoomReset() {
 
 void MixerView::zoomBestFit() {
 
-	zoomReset();
-
 	// nothing to do if there is no source
 	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd())
 		return;
 
 	// 1. compute bounding box of every sources
-	double extend = 0.0;
-    double x_min = 0, x_max = 0, y_min = 0, y_max = 0;
+    double x_min = 10000, x_max = -10000, y_min = 10000, y_max = -10000;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 		x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
 		x_max = MAXI (x_max, (*its)->getAlphaX() + SOURCE_UNIT * (*its)->getAspectRatio());
-		y_min = MINI (y_min, (*its)->getAlphaY() - SOURCE_UNIT);
-		y_max = MAXI (y_max, (*its)->getAlphaY() + SOURCE_UNIT);
+		y_min = MINI (y_min, (*its)->getAlphaY() - SOURCE_UNIT );
+		y_max = MAXI (y_max, (*its)->getAlphaY() + SOURCE_UNIT );
 	}
-	// what is the max coordinate of all?
-	extend = MAXI( MAXI( ABS(x_min), ABS(x_max)), MAXI( ABS(y_min), ABS(y_max)));
-	// add a margin
-//	extend += 1.3 * SOURCE_UNIT;
 
-	// 2. get the extend of the area covered in the viewport
+	// 2. Apply the panning to the new center
+	setPanningX	( -( x_min + ABS(x_max - x_min)/ 2.0 ) );
+	setPanningY	( -( y_min + ABS(y_max - y_min)/ 2.0 )  );
+
+	// 2. get the extend of the area covered in the viewport (the matrices has been updated just above)
     double LLcorner[3];
     double URcorner[3];
-    gluUnProject(0,0,0, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
-    gluUnProject(viewport[2], viewport[3], 0, modelview, projection, viewport, URcorner, URcorner+1, URcorner+2);
+    gluUnProject(viewport[0], viewport[1], 1, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
+    gluUnProject(viewport[2], viewport[3], 1, modelview, projection, viewport, URcorner, URcorner+1, URcorner+2);
 
 	// 3. compute zoom factor to fit to the boundaries
-	setZoom( zoom * ( MAXI( MAXI( ABS(LLcorner[0]), ABS(URcorner[0])), MAXI( ABS(LLcorner[1]), ABS(URcorner[1])) ) ) / extend );
+    // initial value = a margin scale of 5%
+    double scale = 0.95;
+    // depending on the axis having the largest extend
+    if ( ABS(x_max-x_min) > ABS(y_max-y_min))
+    	scale *= ABS(URcorner[0]-LLcorner[0]) / ABS(x_max-x_min);
+    else
+    	scale *= ABS(URcorner[1]-LLcorner[1]) / ABS(y_max-y_min);
+    // apply the scaling
+	setZoom( zoom * scale );
 }
 
 
@@ -406,8 +417,11 @@ void MixerView::grabSource(SourceSet::iterator s, int x, int y, int dx, int dy) 
     gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
-    double ix = (*s)->getAlphaX() + (ax - bx) + (ax + getPanningX()) * deltazoom;
-    double iy = (*s)->getAlphaY() + (ay - by) + (ay + getPanningY()) * deltazoom;
+    ax += (ax + getPanningX()) * deltazoom;
+    ay += (ay + getPanningY()) * deltazoom;
+
+    double ix = (*s)->getAlphaX() + ax - bx;
+    double iy = (*s)->getAlphaY() + ay - by;
 
     // move icon
     (*s)->setAlphaCoordinates( ix, iy, CIRCLE_SIZE);

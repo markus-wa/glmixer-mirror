@@ -947,8 +947,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>256</width>
-          <height>486</height>
+          <width>227</width>
+          <height>511</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1195,8 +1195,8 @@ the video will pause or loop.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>256</width>
-          <height>486</height>
+          <width>260</width>
+          <height>495</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1590,8 +1590,8 @@ the video will pause or loop.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>256</width>
-          <height>486</height>
+          <width>227</width>
+          <height>511</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1843,7 +1843,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <x>0</x>
      <y>0</y>
      <width>1338</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1860,14 +1860,10 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <widget class="QMenu" name="menuTool_Bar">
+    <widget class="QMenu" name="menuToolBars">
      <property name="title">
       <string>Toolbars</string>
      </property>
-     <addaction name="actionMediaControl"/>
-     <addaction name="actionSourceConfiguration"/>
-     <addaction name="actionPreview"/>
-     <addaction name="actionRenderingConfiguration"/>
     </widget>
     <widget class="QMenu" name="menuRendering_Window">
      <property name="title">
@@ -1899,7 +1895,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <addaction name="actionCapture"/>
     <addaction name="actionSaveCapture"/>
     <addaction name="separator"/>
-    <addaction name="menuTool_Bar"/>
+    <addaction name="menuToolBars"/>
     <addaction name="actionShow_frames"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -2009,45 +2005,6 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
    <property name="text">
     <string>FFMPEG Formats and Codecs</string>
-   </property>
-  </action>
-  <action name="actionRenderingConfiguration">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/tools.png</normaloff>:/glmixer/icons/tools.png</iconset>
-   </property>
-   <property name="text">
-    <string>Rendering configuration</string>
-   </property>
-  </action>
-  <action name="actionMediaControl">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
-   </property>
-   <property name="text">
-    <string>Media control</string>
-   </property>
-  </action>
-  <action name="actionSourceConfiguration">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/preferences.png</normaloff>:/glmixer/icons/preferences.png</iconset>
-   </property>
-   <property name="text">
-    <string>Current source configuration</string>
    </property>
   </action>
   <action name="actionShow_frames">
@@ -2223,21 +2180,6 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
-   </property>
-  </action>
-  <action name="actionPreview">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
-   </property>
-   <property name="text">
-    <string>Preview output</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+P</string>
    </property>
   </action>
   <action name="actionZoomIn">
@@ -2435,70 +2377,6 @@ Uncheck to have frames continuously following the slider when moved.</string>
    </hints>
   </connection>
   <connection>
-   <sender>actionMediaControl</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>vcontrolDockWidget</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>437</x>
-     <y>949</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>vcontrolDockWidget</sender>
-   <signal>visibilityChanged(bool)</signal>
-   <receiver>actionMediaControl</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>437</x>
-     <y>949</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionSourceConfiguration</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>sourceDockWidget</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1337</x>
-     <y>777</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>sourceDockWidget</sender>
-   <signal>visibilityChanged(bool)</signal>
-   <receiver>actionSourceConfiguration</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1337</x>
-     <y>777</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>restartWhereStoppedCheckBox</sender>
    <signal>toggled(bool)</signal>
    <receiver>widget</receiver>
@@ -2511,38 +2389,6 @@ Uncheck to have frames continuously following the slider when moved.</string>
     <hint type="destinationlabel">
      <x>1320</x>
      <y>638</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionPreview</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>previewDockWidget</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1337</x>
-     <y>255</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>previewDockWidget</sender>
-   <signal>visibilityChanged(bool)</signal>
-   <receiver>actionPreview</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1337</x>
-     <y>255</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
     </hint>
    </hints>
   </connection>

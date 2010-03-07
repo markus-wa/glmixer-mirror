@@ -259,8 +259,22 @@ void LayersView::zoomReset() {
 
 void LayersView::zoomBestFit() {
 
+	// nothing to do if there is no source
+	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
+		zoomReset();
+		return;
+	}
 
+	// Compute bounding depths of every sources
+    double z_min = 10000, z_max = -10000;
+	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+		z_min = MINI (z_min, (*its)->getDepth());
+		z_max = MAXI (z_max, (*its)->getDepth());
+	}
 
+	setZoom	( z_max );
+
+	// TODO : LayersView::zoomBestFit() also adjust panning
 }
 
 

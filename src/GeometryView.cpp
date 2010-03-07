@@ -172,36 +172,34 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
-//    // if mouse not out of the window
-//    if (lastClicPos.x()>viewport[0] && lastClicPos.x()<viewport[2] && lastClicPos.y()>viewport[1] && lastClicPos.y()<viewport[3]  ) {
-		// MIDDLE button ; panning
-		if (event->buttons() & Qt::MidButton) {
+	// MIDDLE button ; panning
+	if (event->buttons() & Qt::MidButton) {
 
-			panningBy(event->x(), viewport[3] - event->y(), dx, dy);
+		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
+
+	}
+	// LEFT button : MOVE or SCALE the current source
+	else if (event->buttons() & Qt::LeftButton) {
+		// keep the iterator of the current source under the shoulder ; it will be used
+		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+			// manipulate the current source according to the operation detected when clicking
+			if (currentAction == GeometryView::SCALE)
+				scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+			else if (currentAction == GeometryView::MOVE)
+				grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
 
 		}
-		// LEFT button : MOVE or SCALE the current source
-		else if (event->buttons() & Qt::LeftButton) {
-			// keep the iterator of the current source under the shoulder ; it will be used
-			SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-			if ( RenderingManager::getInstance()->notAtEnd(cs)) {
-				// manipulate the current source according to the operation detected when clicking
-				if (currentAction == GeometryView::SCALE)
-					scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
-				else if (currentAction == GeometryView::MOVE)
-					grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
-
-			}
 //		} else if (event->buttons() & Qt::RightButton) {
 
-		} else  { // mouse over (no buttons)
 
-		//	SourceSet::iterator over = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
+	} else  { // mouse over (no buttons)
+
+	//	SourceSet::iterator over = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 
 
-		}
+	}
 
-//    }
 	return true;
 }
 
@@ -214,13 +212,33 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
 		(*RenderingManager::getInstance()->getCurrentSource())->clampScale();
 	}
 
-
+	currentAction = GeometryView::NONE;
 	return true;
 }
 
 bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
+
+	float previous = zoom;
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
+
+	if (currentAction == GeometryView::SCALE || currentAction == GeometryView::MOVE ){
+		deltazoom = 1.0 - (zoom / previous);
+		// keep the iterator of the current source under the shoulder ; it will be used
+		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+			// manipulate the current source according to the operation detected when clicking
+			if (currentAction == GeometryView::SCALE)
+				scaleSource(cs, event->x(), viewport[3] - event->y(), 0, 0);
+			else if (currentAction == GeometryView::MOVE)
+				grabSource(cs, event->x(), viewport[3] - event->y(), 0, 0);
+
+		}
+		// reset deltazoom
+		deltazoom = 0;
+	}
+
+
 
 	return true;
 }
@@ -243,7 +261,47 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 }
 
 void GeometryView::zoomReset() {setZoom(DEFAULTZOOM); setPanningX(0); setPanningY(0);}
-void GeometryView::zoomBestFit() {}
+void GeometryView::zoomBestFit() {
+
+//	refreshMatrices();
+
+	// nothing to do if there is no source
+	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
+		zoomReset();
+		return;
+	}
+
+	// 1. compute bounding box of every sources
+    double x_min = 10000, x_max = -10000, y_min = 10000, y_max = -10000;
+	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+		x_min = MINI (x_min, (*its)->getX() - (*its)->getScaleX());
+		x_max = MAXI (x_max, (*its)->getX() + (*its)->getScaleX());
+		y_min = MINI (y_min, (*its)->getY() - (*its)->getScaleY());
+		y_max = MAXI (y_max, (*its)->getY() + (*its)->getScaleY());
+	}
+
+	// 2. Apply the panning to the new center
+	setPanningX	( -( x_min + ABS(x_max - x_min)/ 2.0 ) );
+	setPanningY	( -( y_min + ABS(y_max - y_min)/ 2.0 )  );
+
+	// 2. get the extend of the area covered in the viewport (the matrices have been updated just above)
+    double LLcorner[3];
+    double URcorner[3];
+    gluUnProject(viewport[0], viewport[1], 1, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
+    gluUnProject(viewport[2], viewport[3], 1, modelview, projection, viewport, URcorner, URcorner+1, URcorner+2);
+
+	// 3. compute zoom factor to fit to the boundaries
+    // initial value = a margin scale of 5%
+    double scale = 0.95;
+    // depending on the axis having the largest extend
+    if ( ABS(x_max-x_min) > ABS(y_max-y_min))
+    	scale *= ABS(URcorner[0]-LLcorner[0]) / ABS(x_max-x_min);
+    else
+    	scale *= ABS(URcorner[1]-LLcorner[1]) / ABS(y_max-y_min);
+    // apply the scaling
+	setZoom( zoom * scale );
+
+}
 
 
 bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
@@ -331,8 +389,11 @@ void GeometryView::grabSource(SourceSet::iterator currentSource, int x, int y, i
     gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
-    double ix = (*currentSource)->getX() + ax - bx;
-    double iy = (*currentSource)->getY() + ay - by;
+    ax += (ax + getPanningX()) * deltazoom;
+    ay += (ay + getPanningY()) * deltazoom;
+
+    double ix = (*currentSource)->getX() + (ax - bx);
+    double iy = (*currentSource)->getY() + (ay - by);
 
     // move source
     (*currentSource)->moveTo(ix, iy);
@@ -362,32 +423,23 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
     double sx = 1.0, sy = 1.0;
     double xp = x, yp = y;
 
+    ax += (ax + getPanningX()) * deltazoom;
+    ay += (ay + getPanningY()) * deltazoom;
+
     if ( quadrant == 2 || quadrant == 3) {  // RIGHT
-       // if ( ax > x )
-        { // prevent change of quadrant
             sx = (ax - x + w) / ( bx - x + w);
             xp = x + w * (sx - 1.0);
-        }
     } else {                                // LEFT
-//        if ( ax < x )
-        { // prevent change of quadrant
             sx = (ax - x - w) / ( bx - x - w);
             xp = x - w * (sx - 1.0);
-        }
     }
 
     if ( quadrant < 3 ){                    // TOP
-       // if ( ay > y )
-        { // prevent change of quadrant
             sy = (ay - y + h) / ( by - y + h);
             yp = y + h * (sy - 1.0);
-        }
     } else {                                // BOTTOM
-//        if ( ay < y )
-        { // prevent change of quadrant
             sy = (ay - y - h) / ( by - y - h);
             yp = y - h * (sy - 1.0);
-        }
     }
 
     (*currentSource)->scaleBy(sx, sy);

@@ -35,6 +35,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     actionCamera->setEnabled(false);
 #endif
 
+    // add the show/hide menu items for the dock widgets
+    menuToolBars->addAction(previewDockWidget->toggleViewAction());
+    menuToolBars->addAction(sourceDockWidget->toggleViewAction());
+    menuToolBars->addAction(vcontrolDockWidget->toggleViewAction());
+
+    // set the central widget
     centralViewLayout->removeWidget(mainRendering);
 	delete mainRendering;
 	mainRendering = (QGLWidget *)  RenderingManager::getRenderingWidget();
