@@ -17,6 +17,7 @@ OutputRenderWindow *OutputRenderWindow::_instance = 0;
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
 		useAspectRatio(true){
 
+	setCursor(Qt::BlankCursor);
 }
 
 

@@ -207,7 +207,12 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 	// for LEFT double button clic : pan the view to zoom on this source
 	if ( (event->buttons() & Qt::LeftButton) /*&& getSourceAtCoordinates(event->x(), viewport[3] - event->y()) */) {
 
+		SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
+		if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
+			// reset the source
 
+		} else
+			zoomBestFit();
 
 	}
 
@@ -296,8 +301,10 @@ void MixerView::zoomReset() {
 void MixerView::zoomBestFit() {
 
 	// nothing to do if there is no source
-	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd())
+	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
+		zoomReset();
 		return;
+	}
 
 	// 1. compute bounding box of every sources
     double x_min = 10000, x_max = -10000, y_min = 10000, y_max = -10000;
@@ -312,13 +319,13 @@ void MixerView::zoomBestFit() {
 	setPanningX	( -( x_min + ABS(x_max - x_min)/ 2.0 ) );
 	setPanningY	( -( y_min + ABS(y_max - y_min)/ 2.0 )  );
 
-	// 2. get the extend of the area covered in the viewport (the matrices has been updated just above)
+	// 3. get the extend of the area covered in the viewport (the matrices have been updated just above)
     double LLcorner[3];
     double URcorner[3];
-    gluUnProject(viewport[0], viewport[1], 1, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
-    gluUnProject(viewport[2], viewport[3], 1, modelview, projection, viewport, URcorner, URcorner+1, URcorner+2);
+    gluUnProject(viewport[0], viewport[1], 0, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
+    gluUnProject(viewport[2], viewport[3], 0, modelview, projection, viewport, URcorner, URcorner+1, URcorner+2);
 
-	// 3. compute zoom factor to fit to the boundaries
+	// 4. compute zoom factor to fit to the boundaries
     // initial value = a margin scale of 5%
     double scale = 0.95;
     // depending on the axis having the largest extend

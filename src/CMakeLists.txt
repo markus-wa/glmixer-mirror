@@ -21,6 +21,7 @@ set(MYQT_SRCS
     MixerView.cpp
     GeometryView.cpp
     LayersView.cpp
+    SelectionView.cpp
 	ViewRenderWidget.cpp
     RenderingManager.cpp
 	OutputRenderWindow.cpp

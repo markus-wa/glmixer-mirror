@@ -249,7 +249,7 @@ p, li { white-space: pre-wrap; }
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents_2">
+   <widget class="QWidget" name="vcontrolDockWidgetContents">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="margin">
       <number>4</number>
@@ -926,7 +926,7 @@ p, li { white-space: pre-wrap; }
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="QWidget" name="sourcedockWidget">
+   <widget class="QWidget" name="sourceDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <property name="spacing">
       <number>4</number>
@@ -947,8 +947,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>227</width>
-          <height>511</height>
+          <width>178</width>
+          <height>486</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1195,8 +1195,8 @@ the video will pause or loop.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>260</width>
-          <height>495</height>
+          <width>237</width>
+          <height>469</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1590,8 +1590,8 @@ the video will pause or loop.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>227</width>
-          <height>511</height>
+          <width>178</width>
+          <height>486</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1843,7 +1843,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <x>0</x>
      <y>0</y>
      <width>1338</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2345,6 +2345,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
  <resources>
   <include location="../icons.qrc"/>
   <include location="../textures.qrc"/>
+  <include location="../icons.qrc"/>
   <include location="../icons.qrc"/>
   <include location="../icons.qrc"/>
   <include location="../icons.qrc"/>

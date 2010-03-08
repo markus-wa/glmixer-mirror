@@ -253,17 +253,21 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 		if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()){
 
 			(*RenderingManager::getInstance()->getCurrentSource())->resetScale();
-		}
+		} else
+			zoomBestFit();
 
 	}
 
 	return true;
 }
 
-void GeometryView::zoomReset() {setZoom(DEFAULTZOOM); setPanningX(0); setPanningY(0);}
-void GeometryView::zoomBestFit() {
+void GeometryView::zoomReset() {
+	setZoom(DEFAULTZOOM);
+	setPanningX(0);
+	setPanningY(0);
+}
 
-//	refreshMatrices();
+void GeometryView::zoomBestFit() {
 
 	// nothing to do if there is no source
 	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
@@ -284,13 +288,13 @@ void GeometryView::zoomBestFit() {
 	setPanningX	( -( x_min + ABS(x_max - x_min)/ 2.0 ) );
 	setPanningY	( -( y_min + ABS(y_max - y_min)/ 2.0 )  );
 
-	// 2. get the extend of the area covered in the viewport (the matrices have been updated just above)
+	// 3. get the extend of the area covered in the viewport (the matrices have been updated just above)
     double LLcorner[3];
     double URcorner[3];
     gluUnProject(viewport[0], viewport[1], 1, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
     gluUnProject(viewport[2], viewport[3], 1, modelview, projection, viewport, URcorner, URcorner+1, URcorner+2);
 
-	// 3. compute zoom factor to fit to the boundaries
+	// 4. compute zoom factor to fit to the boundaries
     // initial value = a margin scale of 5%
     double scale = 0.95;
     // depending on the axis having the largest extend

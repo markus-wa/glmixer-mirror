@@ -11,9 +11,9 @@
 #include "AlgorithmSource.h"
 
 
-int AlgorithmSelectionDialog::_algo = 1;
+int AlgorithmSelectionDialog::_algo = 1, AlgorithmSelectionDialog::_variability = 30;
 int AlgorithmSelectionDialog::_width = 0, AlgorithmSelectionDialog::_height = 0, AlgorithmSelectionDialog::_preset = 8;
-unsigned long AlgorithmSelectionDialog::_update = 0;
+unsigned long AlgorithmSelectionDialog::_update = 40;
 
 AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(parent), s(0), preview(0){
 
@@ -28,14 +28,12 @@ AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(pa
 		heightSpinBox->setValue(_height);
 		widthSpinBox->setValue(_width);
     }
+    variabilitySlider->setValue(_variability);
     // create source with selected algo
     AlgorithmComboBox->setCurrentIndex(_algo);
 	// change update
-    if (_update != 0){
-    	customUpdateFrequency->setChecked(true);
-    	frequencySlider->setValue(_update);
-    } else
-    	customUpdateFrequency->setChecked(false);
+	frequencySlider->setValue(_update);
+	customUpdateFrequency->setChecked(_update != 60);
 }
 
 AlgorithmSelectionDialog::~AlgorithmSelectionDialog() {
@@ -48,19 +46,21 @@ AlgorithmSelectionDialog::~AlgorithmSelectionDialog() {
 	_width = getSelectedWidth();
 	_height = getSelectedHeight();
 	_algo = getSelectedAlgorithmIndex();
-	_update = customUpdateFrequency->isChecked() ? frequencySlider->value() : 0;
+	_update = frequencySlider->value();
+	_variability = variabilitySlider->value();
 }
 
 void AlgorithmSelectionDialog::createSource(){
 
 	if(s) {
+		// remove source from preview: this deletes the texture in the preview
 		preview->setSource(0);
-		// this deletes the texture in the preview
+		// delete the source:
 		delete s;
 	}
 
 	// create a new source with a new texture index and the new parameters
-	s = new AlgorithmSource(AlgorithmComboBox->currentIndex(), preview->getNewTextureIndex(), 0, widthSpinBox->value(), heightSpinBox->value(), getUpdatePeriod());
+	s = new AlgorithmSource(AlgorithmComboBox->currentIndex(), preview->getNewTextureIndex(), 0, widthSpinBox->value(), heightSpinBox->value(), getSelectedVariability(), getUpdatePeriod());
 
 	// apply the source to the preview
 	preview->setSource(s);
@@ -75,13 +75,15 @@ void AlgorithmSelectionDialog::on_frequencySlider_valueChanged(int v){
 	s->setPeriodicity(getUpdatePeriod());
 }
 
+void AlgorithmSelectionDialog::on_variabilitySlider_valueChanged(int v){
+	s->setVariability( double ( v ) / 100.0);
+}
+
 
 void  AlgorithmSelectionDialog::on_customUpdateFrequency_toggled(bool flag){
 
-	if (flag)
-		s->setPeriodicity(getUpdatePeriod());
-	else
-		frequencySlider->setValue(0);
+	if (!flag)
+		frequencySlider->setValue(60);
 }
 
 void  AlgorithmSelectionDialog::on_widthSpinBox_valueChanged(int w){
@@ -166,6 +168,13 @@ int AlgorithmSelectionDialog::getSelectedAlgorithmIndex(){
 	return AlgorithmComboBox->currentIndex();
 }
 
+
+double AlgorithmSelectionDialog::getSelectedVariability(){
+
+	return double(variabilitySlider->value()) / 100.0;
+}
+
+
 int AlgorithmSelectionDialog::getSelectedWidth(){
 
 	return widthSpinBox->value();
@@ -179,9 +188,7 @@ int AlgorithmSelectionDialog::getSelectedHeight(){
 
 unsigned long  AlgorithmSelectionDialog::getUpdatePeriod(){
 
-	if (customUpdateFrequency->isChecked()) {
-		return (unsigned long) ( 1000000.f / float(frequencySlider->value()));
-	} else
-		return 0;
+	return (unsigned long) ( 1000000.f / float(frequencySlider->value()));
+
 }
 

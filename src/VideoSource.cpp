@@ -10,10 +10,24 @@
 #include "VideoFile.h"
 #include "RenderingManager.h"
 
+GLuint videoSourceIconIndex = 0;
 
 VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), Source(texture, d),
 		is(f),  bufferChanged(false), copyChanged(false), bufferIndex(-1)
 {
+
+    if (videoSourceIconIndex == 0) {
+
+    	glGenTextures(1, &videoSourceIconIndex);
+    	glBindTexture(GL_TEXTURE_2D, videoSourceIconIndex);
+    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    	QImage p( ":/glmixer/icons/video.png" );
+    	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  p.width(), p. height(),
+    	    		  0, GL_RGBA, GL_UNSIGNED_BYTE, p.bits() );
+    }
+
+    iconIndex = videoSourceIconIndex;
 
     if (is) {
         QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
@@ -43,6 +57,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
     }
     else
     	qWarning("** WARNING **\nThe media source could not be created properly. Remove it and retry.");
+
 
 
     resetScale();

@@ -151,7 +151,7 @@ protected:
 	SourceList *clones;
 
 	// GL Stuff
-	GLuint textureIndex;
+	GLuint textureIndex, iconIndex;
 	GLdouble x, y, z;
 	GLdouble scalex, scaley;
 	GLdouble alphax, alphay;

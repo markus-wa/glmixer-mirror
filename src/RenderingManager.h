@@ -45,10 +45,10 @@ public:
 #ifdef OPEN_CV
 	void addOpencvSource(int opencvIndex);
 #endif
-	void addAlgorithmSource(int type, int w, int h, int p);
+	void addAlgorithmSource(int type, int w, int h, double v, int p);
 	void addCloneSource(SourceSet::iterator sit);
 
-	// TODO :
+	// TODO ? :
 //	inline Source *getSource(int i) {
 //		return *_sources.begin();
 //	}

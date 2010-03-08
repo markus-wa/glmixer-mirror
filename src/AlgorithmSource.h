@@ -25,8 +25,8 @@ class AlgorithmSource: public QObject, public Source {
 
 public:
 
-	typedef enum {FLAT = 0, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, WATER} algorithmType;
-	static QString getAlgorithmDescription(algorithmType t);
+	typedef enum {FLAT = 0, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, TURBULENCE} algorithmType;
+	static QString getAlgorithmDescription(int t);
 
     inline algorithmType getAlgorithmType() const { return algotype; }
 	inline int getFrameWidth() const { return width; }
@@ -37,10 +37,11 @@ public:
 public slots:
 	void play(bool on);
 	void setPeriodicity(unsigned long u_seconds) {period = u_seconds;}
+	void setVariability(double v) { variability = v; }
 
     // only RenderingManager can create a source
 protected:
-	AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256, unsigned long p= 0);
+	AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256, double v = 1.0, unsigned long p= 16666);
 	~AlgorithmSource();
 
 	void update();
@@ -53,6 +54,8 @@ protected:
 	unsigned long period;
 	double framerate;
     bool frameChanged;
+    double vertical, horizontal;
+    double variability;
 
     AlgorithmThread *thread;
     QMutex *mutex;

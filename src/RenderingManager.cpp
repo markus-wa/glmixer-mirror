@@ -325,7 +325,7 @@ void RenderingManager::addOpencvSource(int opencvIndex) {
 #endif
 
 
-void RenderingManager::addAlgorithmSource(int type, int w, int h, int p) {
+void RenderingManager::addAlgorithmSource(int type, int w, int h, double v, int p) {
 
 	// create the texture for this source
 	GLuint textureIndex;
@@ -336,7 +336,7 @@ void RenderingManager::addAlgorithmSource(int type, int w, int h, int p) {
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 
 	// create a source appropriate for this videofile
-	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, d, w, h, p);
+	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, d, w, h, v, p);
     Q_CHECK_PTR(s);
 
 	// set the last created source to be current

@@ -60,7 +60,7 @@
      </item>
      <item>
       <property name="text">
-       <string>Water effect               (pseudo water surface reflections)</string>
+       <string>Turbulences                (Perlin turbulence)</string>
       </property>
      </item>
     </widget>
@@ -207,6 +207,54 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>Frame variability</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QSlider" name="variabilitySlider">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="pageStep">
+         <number>10</number>
+        </property>
+        <property name="value">
+         <number>50</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="variability">
+        <property name="text">
+         <string>100</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="fps_2">
+        <property name="text">
+         <string>%</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="customUpdateFrequency">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -283,8 +331,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>257</x>
-     <y>286</y>
+     <x>266</x>
+     <y>351</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -299,8 +347,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>286</y>
+     <x>318</x>
+     <y>351</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -315,12 +363,28 @@
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>239</x>
-     <y>236</y>
+     <x>258</x>
+     <y>293</y>
     </hint>
     <hint type="destinationlabel">
-     <x>302</x>
-     <y>235</y>
+     <x>287</x>
+     <y>293</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>variabilitySlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>variability</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>235</x>
+     <y>214</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>280</x>
+     <y>210</y>
     </hint>
    </hints>
   </connection>

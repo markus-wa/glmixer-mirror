@@ -76,8 +76,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
 
     // Init state
-    vcontrolDockWidget->setEnabled(false);
-    sourceDockWidget->setEnabled(false);
+    vcontrolDockWidgetContents->setEnabled(false);
+    sourceDockWidgetContents->setEnabled(false);
 
     // TODO : Qt application config
 //    sourceDockWidget->setVisible(false);
@@ -275,7 +275,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
-		sourceDockWidget->setEnabled(true);
+		sourceDockWidgetContents->setEnabled(true);
 		actionDeleteSource->setEnabled(true);
 		actionCloneSource->setEnabled(true);
 		pageVideoFileConfig->setEnabled(false);
@@ -409,7 +409,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 				// is there more than one frame ?
 				if ( selectedSourceVideoFile->getEnd() > 1 ) {
 					// yes, its a video, we can control it
-					vcontrolDockWidget->setEnabled(true);
+					vcontrolDockWidgetContents->setEnabled(true);
 					startButton->setEnabled( true );
 
 					// restore config
@@ -425,7 +425,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 				} else {
 					// no, its a picture, we can't control it
-					vcontrolDockWidget->setEnabled(false);
+					vcontrolDockWidgetContents->setEnabled(false);
 					startButton->setEnabled( false );
 
 					// display info (even if one frame only)
@@ -455,7 +455,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 			markOutLineEdit->setText("-");
 
 			// we can play/stop  it
-			vcontrolDockWidget->setEnabled(true);
+			vcontrolDockWidgetContents->setEnabled(true);
 			startButton->setChecked( cvs->isRunning() );
 			startButton->setEnabled( true );
 			QObject::connect(startButton, SIGNAL(toggled(bool)), cvs, SLOT(play(bool)));
@@ -484,7 +484,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 			markOutLineEdit->setText("-");
 
 			// we cannot play/stop  nor configure
-			vcontrolDockWidget->setEnabled(false);
+			vcontrolDockWidgetContents->setEnabled(false);
 			startButton->setEnabled( false );
 			videoFrame->setEnabled(false);
 			timingControlFrame->setEnabled(false);
@@ -506,7 +506,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 			markOutLineEdit->setText("-");
 
 			// we cannot play/stop  nor configure
-			vcontrolDockWidget->setEnabled(false);
+			vcontrolDockWidgetContents->setEnabled(false);
 			startButton->setEnabled( false );
 			videoFrame->setEnabled(false);
 			timingControlFrame->setEnabled(false);
@@ -528,7 +528,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 			markOutLineEdit->setText("-");
 
 			// we cannot play/stop  nor configure
-			vcontrolDockWidget->setEnabled(false);
+			vcontrolDockWidgetContents->setEnabled(false);
 			startButton->setEnabled( false );
 			videoFrame->setEnabled(false);
 			timingControlFrame->setEnabled(false);
@@ -548,7 +548,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		markOutLineEdit->setText("-");
 
 		// we cannot play/stop  nor configure
-		vcontrolDockWidget->setEnabled(false);
+		vcontrolDockWidgetContents->setEnabled(false);
 		startButton->setEnabled( false );
 		videoFrame->setEnabled(false);
 		timingControlFrame->setEnabled(false);
@@ -575,8 +575,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		markOutLineEdit->setText("");
 
 		// disable panel widgets
-		vcontrolDockWidget->setEnabled(false);
-		sourceDockWidget->setEnabled(false);
+		vcontrolDockWidgetContents->setEnabled(false);
+		sourceDockWidgetContents->setEnabled(false);
 		startButton->setEnabled( false );
 
 	}
@@ -627,8 +627,8 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 	asd.setModal(false);
 
 	if (asd.exec() == QDialog::Accepted) {
-		RenderingManager::getInstance()->addAlgorithmSource(asd.getSelectedAlgorithmIndex(), asd.getSelectedWidth(), asd.getSelectedHeight(), asd.getUpdatePeriod());
-		statusbar->showMessage( tr("Source created with the algorithm ***.") );
+		RenderingManager::getInstance()->addAlgorithmSource(asd.getSelectedAlgorithmIndex(), asd.getSelectedWidth(), asd.getSelectedHeight(), asd.getSelectedVariability(), asd.getUpdatePeriod());
+		statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd.getSelectedAlgorithmIndex())) );
 	}
 }
 
