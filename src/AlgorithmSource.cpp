@@ -252,6 +252,7 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int 
 
 AlgorithmSource::~AlgorithmSource() {
 
+	// end the update thread
 	thread->end = true;
 	mutex->lock();
 	cond->wakeAll();
@@ -261,7 +262,9 @@ AlgorithmSource::~AlgorithmSource() {
 	delete cond;
 	delete mutex;
 
-	delete [] buffer;
+	// delete picture buffer
+	if (buffer)
+		delete [] buffer;
 
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);

@@ -22,7 +22,7 @@ MESSAGE(STATUS "Revision is ${ProgramRevision}")
 ENDIF(ProgramRevision)
 # ----------------------------------------------------------------------
 				
-set(GLMIXER_VERSION "0.6")
+set(GLMIXER_VERSION "0.7")
 
 # Expose CMAKE_INCLUDE_PATH and CMAKE_LIBARY_PATH to the GUI so users
 # may set these values without needing to manipulate the environment.

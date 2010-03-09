@@ -365,11 +365,13 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 		emit currentSourceChanged(currentSource);
 	}
 
-	if (itsource != _sources.end()) {
-		// first remove every clone of the source to be removed
-		for (SourceList::iterator clone = (*itsource)->getClones()->begin(); clone < (*itsource)->getClones()->end(); clone = (*itsource)->getClones()->begin()) {
-			removeSource( getById( (*clone)->getId() ) );
-		}
+	if (itsource != _sources.end() ) {
+		CloneSource *cs = dynamic_cast<CloneSource *>(*itsource);
+		if (cs == NULL)
+			// first remove every clone of the source to be removed (if it is not a clone already)
+			for (SourceList::iterator clone = (*itsource)->getClones()->begin(); clone < (*itsource)->getClones()->end(); clone = (*itsource)->getClones()->begin()) {
+				removeSource( getById( (*clone)->getId() ) );
+			}
 		// then remove the source itself
 		_sources.erase(itsource);
 		delete (*itsource);
@@ -385,7 +387,7 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 
 void RenderingManager::clearSourceSet() {
 
-	for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its++)
+	for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its = _sources.begin())
 		removeSource(its);
 }
 
