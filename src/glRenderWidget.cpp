@@ -48,6 +48,7 @@ void glRenderWidget::initializeGL()
 
     // disable depth and lighting by default
     glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
 	glDepthMask(GL_FALSE);
     glDisable(GL_LIGHTING);
     glDisable(GL_NORMALIZE);

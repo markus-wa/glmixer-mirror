@@ -45,6 +45,8 @@ void VideoFileDisplayWidget::initializeGL()
 
 //    cubeTexture = bindTexture(QImage("./cubelogo.png"));
     glGenTextures(1, &textureIndex);
+	GLclampf lowpriority = 0.1;
+	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     // ugly but fast for preview

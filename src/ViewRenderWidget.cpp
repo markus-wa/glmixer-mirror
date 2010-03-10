@@ -435,6 +435,9 @@ GLuint ViewRenderWidget::buildLineList() {
 
     GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D);
 
+	GLclampf highpriority = 1.0;
+	glPrioritizeTextures(1, &texid, &highpriority);
+
     GLuint base = glGenLists(2);
     glListBase(base);
 
@@ -518,27 +521,35 @@ GLuint ViewRenderWidget::buildLineList() {
 GLuint ViewRenderWidget::buildCircleList() {
 
     GLuint id = glGenLists(1);
-    GLUquadricObj *quadObj = gluNewQuadric();
+//    GLUquadricObj *quadObj = gluNewQuadric();
 
-    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/circle.png")), GL_TEXTURE_2D);
+    GLuint texid = 0; //bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/circle.png")), GL_TEXTURE_2D);
+	glGenTextures(1, &texid);
+	glBindTexture(GL_TEXTURE_2D, texid);
+	QImage p( ":/glmixer/textures/circle.png" );
+	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	GLclampf highpriority = 1.0;
+	glPrioritizeTextures(1, &texid, &highpriority);
 
     glNewList(id, GL_COMPILE);
-
-//    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);
 
     glPushMatrix();
     glTranslatef(0.0, 0.0, - 1.0);
 
-    glDisable(GL_TEXTURE_2D);
-    glColor4f(0.7, 0.7, 0.7, 1.0);
-    gluDisk(quadObj, 0.01  * SOURCE_UNIT, (CIRCLE_SIZE + 0.09) * SOURCE_UNIT, 40, 40);
+//    glDisable(GL_TEXTURE_2D);
+//    glColor4f(0.7, 0.7, 0.7, 1.0);
+//    gluDisk(quadObj, 0.01  * SOURCE_UNIT, (CIRCLE_SIZE + 0.09) * SOURCE_UNIT, 60, 40);
 
-//    glEnable(GL_BLEND);
+    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+
+    glColor4f(0.6, 0.6, 0.6, 1.0);
 
     glTranslatef(0.0, 0.0, 1.0);
     glBegin(GL_QUADS); // begin drawing a square
@@ -552,8 +563,19 @@ GLuint ViewRenderWidget::buildCircleList() {
         glVertex3d(-CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Top Left
     glEnd();
 
+    glDisable(GL_TEXTURE_2D);
+
+    glColor4f(0.6, 0.6, 0.6, 1.0);
+    glLineWidth(3.0);
+
+    glBegin(GL_LINE_LOOP);
+    for (float i = 0; i < 2.0 * M_PI; i+= 0.05)
+    	glVertex3f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE  * SOURCE_UNIT * sin(i),0);
+    glEnd();
+
+    glEnable(GL_TEXTURE_2D);
+
     glPopMatrix();
-//    glPopAttrib();
     glEndList();
 
     return id;
@@ -607,12 +629,20 @@ GLuint ViewRenderWidget::buildLayerbgList() {
  **/
 GLuint ViewRenderWidget::buildBlackList() {
 
-    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow.png")), GL_TEXTURE_2D);
+    GLuint texid = 0; // bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow.png")), GL_TEXTURE_2D);
+
+    // generate the texture with optimal performance ;
+	glGenTextures(1, &texid);
+	glBindTexture(GL_TEXTURE_2D, texid);
+	QImage p( ":/glmixer/textures/shadow.png" );
+	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	GLclampf highpriority = 1.0;
+	glPrioritizeTextures(1, &texid, &highpriority);
 
     GLuint id = glGenLists(1);
     glNewList(id, GL_COMPILE);
-
-//    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
 
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
@@ -632,9 +662,11 @@ GLuint ViewRenderWidget::buildBlackList() {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
+    glColor4f(0.f, 0.f, 0.f, 0.8f);
+
     glPushMatrix();
-        glTranslatef(0.1 * SOURCE_UNIT, -0.2 * SOURCE_UNIT, 0.1);
-        glScalef(1.2 * SOURCE_UNIT, 1.2 * SOURCE_UNIT, 1.0);
+        glTranslatef(0.02 * SOURCE_UNIT, -0.1 * SOURCE_UNIT, 0.1);
+        glScalef(1.5 * SOURCE_UNIT, 1.5 * SOURCE_UNIT, 1.0);
         glBegin(GL_QUADS); // begin drawing a square
             glTexCoord2f(0.0f, 1.0f);
             glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left

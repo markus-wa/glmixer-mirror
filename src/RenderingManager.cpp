@@ -268,11 +268,17 @@ void RenderingManager::addCaptureSource(){
 	// in QT 4.6 implementation of blitting of FBO, the y is flipped ; avoid this here on the texture
 #if QT_VERSION < 0x040600
 	GLuint textureIndex = _renderwidget->bindTexture (capture);
-#else
-	GLuint textureIndex = _renderwidget->bindTexture (capture, GL_TEXTURE_2D, GL_RGBA, QGLContext::LinearFilteringBindOption | QGLContext::MipmapBindOption);
-#endif
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+#else
+	GLuint textureIndex = _renderwidget->bindTexture (capture, GL_TEXTURE_2D, GL_RGBA, QGLContext::LinearFilteringBindOption | QGLContext::MipmapBindOption);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+#endif
+
+	// optimize texture access
+	GLclampf highpriority = 1.0;
+	glPrioritizeTextures(1, &textureIndex, &highpriority);
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
@@ -294,6 +300,8 @@ void RenderingManager::addMediaSource(VideoFile *vf) {
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
 	glGenTextures(1, &textureIndex);
+	GLclampf lowpriority = 0.1;
+	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
@@ -313,6 +321,8 @@ void RenderingManager::addOpencvSource(int opencvIndex) {
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
 	glGenTextures(1, &textureIndex);
+	GLclampf lowpriority = 0.1;
+	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
@@ -333,6 +343,8 @@ void RenderingManager::addAlgorithmSource(int type, int w, int h, double v, int 
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
 	glGenTextures(1, &textureIndex);
+	GLclampf lowpriority = 0.1;
+	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
