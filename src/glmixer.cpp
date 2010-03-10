@@ -890,7 +890,6 @@ void GLMixer::colorsChanged(){
 
 void  GLMixer::on_blendingPresetsComboBox_currentIndexChanged(int presetIndex){
 
-
 	expertBlendingOptionsBox->setEnabled(false);
 	switch ( presetIndex ) {
 		case 0:
@@ -914,14 +913,9 @@ void  GLMixer::on_blendingPresetsComboBox_currentIndexChanged(int presetIndex){
 			eqBlendcomboBox->setCurrentIndex(0);
 			break;
 		case 5:
-			dstBlendcomboBox->setCurrentIndex(6);
-			eqBlendcomboBox->setCurrentIndex(2);
-			break;
-		case 6:
 			expertBlendingOptionsBox->setEnabled(true);
 			break;
 		}
-
 }
 
 void GLMixer::blendingChanged(){

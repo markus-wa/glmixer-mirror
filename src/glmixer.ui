@@ -936,19 +936,22 @@ p, li { white-space: pre-wrap; }
      </property>
      <item>
       <widget class="QToolBox" name="sourceToolBox">
+       <property name="toolTip">
+        <string>Read general information about the source.</string>
+       </property>
        <property name="styleSheet">
         <string/>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="pageSourceInfo">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>178</width>
-          <height>486</height>
+          <width>300</width>
+          <height>511</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1195,8 +1198,8 @@ the video will pause or loop.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>237</width>
-          <height>469</height>
+          <width>300</width>
+          <height>511</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1220,6 +1223,9 @@ the video will pause or loop.</string>
          </property>
          <item>
           <widget class="QGroupBox" name="groupBox">
+           <property name="toolTip">
+            <string>Set the coloring of the source.</string>
+           </property>
            <property name="title">
             <string>Base color</string>
            </property>
@@ -1326,6 +1332,9 @@ the video will pause or loop.</string>
          </item>
          <item>
           <widget class="QGroupBox" name="groupBox_2">
+           <property name="toolTip">
+            <string>Set the way the blending (mixing) of pixels is done.</string>
+           </property>
            <property name="title">
             <string>Blending</string>
            </property>
@@ -1347,6 +1356,9 @@ the video will pause or loop.</string>
             </property>
             <item>
              <widget class="QComboBox" name="blendingPresetsComboBox">
+              <property name="toolTip">
+               <string>Select a preset of the blending possibilities.</string>
+              </property>
               <item>
                <property name="text">
                 <string extracomment="Color mixing dependent of the underlying layers.">Soft color mix (default)</string>
@@ -1374,11 +1386,6 @@ the video will pause or loop.</string>
               </item>
               <item>
                <property name="text">
-                <string extracomment="Darker colors form a transparent mask (bright colors hide the underlying layers).">Color Mask</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
                 <string>Custom (expert options)</string>
                </property>
               </item>
@@ -1388,6 +1395,9 @@ the video will pause or loop.</string>
              <widget class="QGroupBox" name="expertBlendingOptionsBox">
               <property name="enabled">
                <bool>false</bool>
+              </property>
+              <property name="toolTip">
+               <string>Specify the blending in an advance way (may introduce artefacts).</string>
               </property>
               <property name="title">
                <string>Expert blending options</string>
@@ -1519,6 +1529,9 @@ the video will pause or loop.</string>
          </item>
          <item>
           <widget class="QGroupBox" name="groupBox_3">
+           <property name="toolTip">
+            <string>Set a transparency mask to give a shape to the source.</string>
+           </property>
            <property name="title">
             <string>Masking</string>
            </property>
@@ -1590,8 +1603,8 @@ the video will pause or loop.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>178</width>
-          <height>486</height>
+          <width>300</width>
+          <height>511</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1615,6 +1628,10 @@ the video will pause or loop.</string>
          </property>
          <item>
           <widget class="QGroupBox" name="preFilteringBox">
+           <property name="toolTip">
+            <string>Specify the parameters of the pre-filtering
+of media sources (movies or images)</string>
+           </property>
            <property name="title">
             <string>Pre-filtering</string>
            </property>
@@ -1738,6 +1755,9 @@ the video will pause or loop.</string>
          </item>
          <item>
           <widget class="QGroupBox" name="groupBox_4">
+           <property name="toolTip">
+            <string>Specific details on how a movie file is read.</string>
+           </property>
            <property name="title">
             <string>Jump and seek</string>
            </property>
@@ -1843,7 +1863,7 @@ Uncheck to have frames continuously following the slider when moved.</string>
      <x>0</x>
      <y>0</y>
      <width>1338</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

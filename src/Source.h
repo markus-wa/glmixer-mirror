@@ -22,7 +22,6 @@ class Source {
 public:
 
 	Source(GLuint texture, double depth);
-//	Source(Source *duplicate, double newdepth);
 	virtual ~Source();
 
 	virtual void update() {
@@ -49,6 +48,10 @@ public:
 	inline void activate(bool flag) {
 		active = flag;
 	}
+	inline bool isCulled() const {
+		return culled;
+	}
+	void testCulling();
 
 	// OpenGL access
 	inline GLuint getTextureIndex() {
@@ -147,7 +150,7 @@ protected:
 	// identity and properties
 	GLuint id;
 	QDomElement dom;
-	bool active;
+	bool active, culled;
 	SourceList *clones;
 
 	// GL Stuff

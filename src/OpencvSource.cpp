@@ -93,9 +93,9 @@ OpencvSource::~OpencvSource() {
 	delete mutex;
 	delete thread;
 
-	// should delete, but ...
-//	if (capture)
-//		cvReleaseCapture(&capture);
+	// should delete
+	if (capture)
+		cvReleaseCapture(&capture);
 
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);

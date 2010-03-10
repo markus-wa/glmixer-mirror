@@ -47,6 +47,8 @@ void GeometryView::paint()
 
 		// bind the source texture and update its content
 		(*its)->update();
+		// test for culling
+        (*its)->testCulling();
 
 	    // Blending Function For mixing like in the rendering window
         (*its)->blend();

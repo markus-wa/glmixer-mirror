@@ -206,11 +206,13 @@ void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource, bool cl
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
-		glTranslated((*itsource)->getX(), (*itsource)->getY(), 0.0);
-		glScaled((*itsource)->getScaleX(), (*itsource)->getScaleY(), 1.f);
+		if ( !(*itsource)->isCulled()  && (*itsource)->getAlpha() > 0.0 ) {
+			glTranslated((*itsource)->getX(), (*itsource)->getY(), 0.0);
+			glScaled((*itsource)->getScaleX(), (*itsource)->getScaleY(), 1.f);
 
-        (*itsource)->blend();
-        (*itsource)->draw();
+			(*itsource)->blend();
+			(*itsource)->draw();
+		}
 	}
 	_fbo->release();
 

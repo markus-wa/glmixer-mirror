@@ -12,7 +12,7 @@
 GLuint Source::lastid = 1;
 
 Source::Source(GLuint texture, double depth) :
-		textureIndex(texture), x(0.0), y(0.0), z(depth), scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
+		active(false), culled(false), textureIndex(texture), x(0.0), y(0.0), z(depth), scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			aspectratio(1.0), texalpha(1.0) {
 
 	z = CLAMP(z, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
@@ -43,31 +43,27 @@ Source::~Source() {
 	delete clones;
 }
 
-//
+// TODO ; do we need a copy constructor ?
 //Source::Source(Source *duplicate, double d) {
 //
-//    // duplicate everything
-//    id = duplicate->id;
-//    active = duplicate->active;
-//	clones = duplicate->clones;
-//    textureIndex = duplicate->textureIndex;
-//    x = duplicate->x;
-//    y = duplicate->y;
-//    scalex = duplicate->scalex;
-//    scaley = duplicate->scaley;
-//    alphax = duplicate->alphax;
-//    alphay = duplicate->alphay;
-//    aspectratio = duplicate->aspectratio;
-//    texalpha = duplicate->texalpha;
-//    texcolor = duplicate->texcolor;
-//	source_blend  = duplicate->source_blend;
-//	destination_blend = duplicate->destination_blend;
-//	blend_eq = duplicate->blend_eq;
-//
-//    // except the new depth (if in correct value range)
-//	z = CLAMP(d, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
-//
 //}
+
+void Source::testCulling(){
+
+	// if all coordinates of center are between viewport limits, it is obviously visible
+	if ( x > -SOURCE_UNIT && x < SOURCE_UNIT && y > -SOURCE_UNIT && y < SOURCE_UNIT )
+		culled = false;
+	else {
+		// not obviously visible
+		// but it might still be parly visible if the distance from the center to the borders is less than the width
+		if ( ( x + ABS(scalex) < -SOURCE_UNIT ) || ( x - ABS(scalex) > SOURCE_UNIT ) )
+			culled = true;
+		else if ( ( y + ABS(scaley) < -SOURCE_UNIT ) || ( y - ABS(scaley) > SOURCE_UNIT ) )
+			culled = true;
+		else
+			culled = false;
+	}
+}
 
 void Source::scaleBy(float fx, float fy) {
 	scalex *= fx;
