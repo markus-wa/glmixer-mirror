@@ -8,6 +8,7 @@
 #include "common.h"
 #include "OutputRenderWindow.moc"
 #include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 
 #include <QGLFramebufferObject>
 

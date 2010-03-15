@@ -9,6 +9,7 @@
 
 #include "common.h"
 #include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 
 #define MINZOOM 0.04
 #define MAXZOOM 1.0

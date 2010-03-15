@@ -7,6 +7,9 @@
 
 #include "AlgorithmSource.moc"
 
+
+AlgorithmSource::RTTI AlgorithmSource::type = Source::ALGORITHM_SOURCE;
+
 #define PERLIN_WIDTH 128
 #define PERLIN_HEIGHT 128
 

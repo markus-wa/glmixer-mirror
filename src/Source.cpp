@@ -9,7 +9,11 @@
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 
+#include <QtProperty>
+#include <QtVariantPropertyManager>
+
 GLuint Source::lastid = 1;
+Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 
 Source::Source(GLuint texture, double depth) :
 		active(false), culled(false), textureIndex(texture), x(0.0), y(0.0), z(depth), scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
@@ -18,7 +22,6 @@ Source::Source(GLuint texture, double depth) :
 	z = CLAMP(z, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 
 	texcolor = Qt::white;
-//	blendcolor = Qt::white;
 	source_blend = GL_SRC_ALPHA;
 	destination_blend =  GL_DST_ALPHA;
 	blend_eq = GL_FUNC_ADD;
@@ -26,12 +29,15 @@ Source::Source(GLuint texture, double depth) :
 	// give it a unique identifying name
 	id = lastid++;
 
+	// no property initially
+	property = 0;
+
 	// TODO set attributes and children
-	dom.setAttribute("id", id);
-	QDomElement coordinates;
-	coordinates.setAttribute("x", x);
-	coordinates.setAttribute("y", y);
-	coordinates.setAttribute("z", z);
+//	dom.setAttribute("id", id);
+//	QDomElement coordinates;
+//	coordinates.setAttribute("x", x);
+//	coordinates.setAttribute("y", y);
+//	coordinates.setAttribute("z", z);
 //	dom.appendChild(coordinates);
 
 	clones = new SourceList;
@@ -48,6 +54,18 @@ Source::~Source() {
 //
 //}
 
+
+void Source::setProperty(QtProperty *p) {
+	property = p;
+
+    QList<QtProperty *> list = property->subProperties();
+    QListIterator<QtProperty *> it(list);
+    while (it.hasNext()) {
+    	QtProperty *tmp = it.next();
+		idToProperty[tmp->propertyName()] = tmp;
+    }
+}
+
 void Source::testCulling(){
 
 	// if all coordinates of center are between viewport limits, it is obviously visible
@@ -63,6 +81,18 @@ void Source::testCulling(){
 		else
 			culled = false;
 	}
+}
+
+void Source::moveTo(GLdouble posx, GLdouble posy) {
+	x = posx;
+	y = posy;
+
+	idToProperty["Position"]->setModified(true);
+}
+
+void Source::setScale(GLdouble sx, GLdouble sy) {
+	scalex = sx;
+	scaley = sy;
 }
 
 void Source::scaleBy(float fx, float fy) {
@@ -101,6 +131,11 @@ void Source::resetScale() {
 		scalex *= aspectratio / renderingAspectRatio;
 	else
 		scaley *= renderingAspectRatio / aspectratio;
+}
+
+void Source::setColor(QColor c) {
+	texcolor = c;
+	idToProperty["Color"]->setModified(true);
 }
 
 void Source::draw(bool withalpha, GLenum mode) const {

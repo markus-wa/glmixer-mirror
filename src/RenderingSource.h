@@ -15,6 +15,11 @@ class RenderingSource: public Source {
 
 	friend class RenderingManager;
 
+public:
+
+	static RTTI type;
+	RTTI rtti() const { return type; }
+
     // only RenderingManager can create a source
 protected:
 	RenderingSource(GLuint texture, double d): Source(texture, d) {

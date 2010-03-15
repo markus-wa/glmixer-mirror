@@ -8,6 +8,7 @@
 #include "GeometryView.h"
 
 #include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 #include <algorithm>
 
@@ -30,6 +31,30 @@ GeometryView::GeometryView() : View(), quadrant(0), currentAction(NONE)
 
 void GeometryView::paint()
 {
+	        GLubyte invertTable[256][4];// Inverted color table
+	        for(int i = 0; i < 255; i++)
+	            {
+	            invertTable[i][0] = (GLubyte)(255 - i);
+	            invertTable[i][1] = (GLubyte)(255 - i);
+	            invertTable[i][2] = (GLubyte)(255 - i);
+	            invertTable[i][3] = (GLubyte)(255 - i);
+	            }
+	        static GLfloat lumMat[16] = { 0.30f, 0.30f, 0.30f, 0.0f,
+	                                      0.59f, 0.59f, 0.59f, 0.0f,
+	                                      0.11f, 0.11f, 0.11f, 0.0f,
+	                                      0.0f,  0.0f,  0.0f,  1.0f };
+
+	        static GLfloat mSharpen[3][3] = {  // Sharpen convolution kernel
+	             {0.0f, .4f, 0.0f},
+	             {0.4f, 0.4f, 0.4f },
+	             {0.0f, 0.4f, 0.0f }};
+
+	        static GLfloat mEmboss[3][3] = {   // Emboss convolution kernel
+	            { -2.0f, -1.0f, 0.0f },
+	            { -1.0f, 1.0f, 1.0f },
+	            { 0.0f, 1.0f, 2.0f }};
+
+
     // first the black background (as the rendering black clear color) with shadow
     glCallList(ViewRenderWidget::quad_black);
 
@@ -40,6 +65,36 @@ void GeometryView::paint()
 		//
 		// 1. Render it into current view
 		//
+//
+//        glColorTable(GL_COLOR_TABLE, GL_RGBA, 256, GL_RGBA, GL_UNSIGNED_BYTE, invertTable);
+//        glEnable(GL_COLOR_TABLE);
+//
+//        glPixelTransferf(GL_RED_SCALE, 1.8f);
+//        glPixelTransferf(GL_GREEN_SCALE, 1.8f);
+//        glPixelTransferf(GL_BLUE_SCALE, 1.8f);
+//
+//        glPixelTransferf(GL_RED_BIAS, -0.45f);
+//        glPixelTransferf(GL_GREEN_BIAS, -0.45f);
+//        glPixelTransferf(GL_BLUE_BIAS, 0.45f);
+
+//        glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3, GL_LUMINANCE, GL_FLOAT, mSharpen);
+//        glEnable(GL_CONVOLUTION_2D);
+//        glMatrixMode(GL_COLOR);
+//        glScalef(0.5f, 0.5f, 0.5f);
+//        glMatrixMode(GL_MODELVIEW);
+
+//        glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3, GL_LUMINANCE, GL_FLOAT, mEmboss);
+//        glEnable(GL_CONVOLUTION_2D);
+
+		// BW
+//        glMatrixMode(GL_COLOR);
+//        glLoadMatrixf(lumMat);
+//        glMatrixMode(GL_MODELVIEW);
+
+//		glMatrixMode(GL_COLOR);
+//		glScalef(1.5f, 1.5f, 1.5f);
+//		glMatrixMode(GL_MODELVIEW);
+
         // place and scale
         glPushMatrix();
         glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
@@ -49,6 +104,9 @@ void GeometryView::paint()
 		(*its)->update();
 		// test for culling
         (*its)->testCulling();
+
+
+
 
 	    // Blending Function For mixing like in the rendering window
         (*its)->blend();
@@ -67,6 +125,21 @@ void GeometryView::paint()
 		//
         RenderingManager::getInstance()->renderToFrameBuffer(its, first);
         first = false;
+
+        // Reset everyting to default
+//        glDisable(GL_COLOR_TABLE);
+//        glMatrixMode(GL_COLOR);
+//        glLoadIdentity();
+//
+//        glMatrixMode(GL_MODELVIEW);
+//        glDisable(GL_CONVOLUTION_2D);
+////        glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
+//        glPixelTransferf(GL_RED_SCALE, 1.0f);
+//        glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+//        glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+//        glPixelTransferf(GL_RED_BIAS, 0.0f);
+//        glPixelTransferf(GL_GREEN_BIAS, 0.0f);
+//        glPixelTransferf(GL_BLUE_BIAS, 0.0f);
 
     }
 	if (first)

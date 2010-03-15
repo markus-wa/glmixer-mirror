@@ -58,7 +58,7 @@ void glRenderWidget::initializeGL()
     // Pure texture color (no lighting)
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     // This hint can improve the speed of texturing when perspective- correct texture coordinate interpolation isn't needed
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+
 
     // ensure alpha channel is modulated
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -74,6 +74,7 @@ void glRenderWidget::initializeGL()
     // ANTIALIASING
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
     // setup default background color to black
     glClearColor(0.0, 0.0, 0.0, 1.0f);

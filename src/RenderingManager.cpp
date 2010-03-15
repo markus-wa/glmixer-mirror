@@ -10,7 +10,13 @@
 #include "common.h"
 
 #include "RenderingSource.h"
+RenderingSource::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
+
 #include "CloneSource.h"
+CloneSource::RTTI CloneSource::type = Source::CLONE_SOURCE;
+
+#include "ViewRenderWidget.h"
+#include "SourcePropertyBrowser.h"
 #include "AlgorithmSource.h"
 #include "VideoFile.h"
 #include "VideoSource.h"
@@ -30,6 +36,12 @@ bool RenderingManager::blit = false;
 ViewRenderWidget *RenderingManager::getRenderingWidget() {
 
 	return getInstance()->_renderwidget;
+}
+
+
+SourcePropertyBrowser *RenderingManager::getPropertyBrowserWidget() {
+
+	return getInstance()->_propertyBrowser;
 }
 
 RenderingManager *RenderingManager::getInstance() {
@@ -62,9 +74,12 @@ RenderingManager::RenderingManager() :
 	_renderwidget = new ViewRenderWidget;
     Q_CHECK_PTR(_renderwidget);
 
+    _propertyBrowser = new SourcePropertyBrowser;
+    Q_CHECK_PTR(_propertyBrowser);
+
 	setFrameBufferResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
-	currentSource = getEnd();
+	_currentSource = getEnd();
 }
 
 RenderingManager::~RenderingManager() {
@@ -310,6 +325,9 @@ void RenderingManager::addMediaSource(VideoFile *vf) {
 	VideoSource *s = new VideoSource(vf, textureIndex, d);
     Q_CHECK_PTR(s);
 
+    // create the properties
+    _propertyBrowser->createProperty((Source *) s);
+
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
 }
@@ -374,9 +392,9 @@ void RenderingManager::addCloneSource(SourceSet::iterator sit) {
 void RenderingManager::removeSource(SourceSet::iterator itsource) {
 
 	// if we are removing the current source, ensure it is not the current one anymore
-	if (itsource == currentSource) {
-		currentSource = _sources.end();
-		emit currentSourceChanged(currentSource);
+	if (itsource == _currentSource) {
+		_currentSource = _sources.end();
+		emit currentSourceChanged(_currentSource);
 	}
 
 	if (itsource != _sources.end() ) {
@@ -419,15 +437,15 @@ bool RenderingManager::isValid(SourceSet::iterator itsource) {
 
 bool RenderingManager::setCurrentSource(SourceSet::iterator si) {
 
-	if (si != currentSource) {
-		if (notAtEnd(currentSource))
-			(*currentSource)->activate(false);
+	if (si != _currentSource) {
+		if (notAtEnd(_currentSource))
+			(*_currentSource)->activate(false);
 
-		currentSource = si;
-		emit currentSourceChanged(currentSource);
+		_currentSource = si;
+		emit currentSourceChanged(_currentSource);
 
-		if (notAtEnd(currentSource))
-			(*currentSource)->activate(true);
+		if (notAtEnd(_currentSource))
+			(*_currentSource)->activate(true);
 
 		return true;
 	}

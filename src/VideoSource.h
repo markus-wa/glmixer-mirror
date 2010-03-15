@@ -32,6 +32,9 @@ public slots:
     void applyFilter();
 
 public:
+	static RTTI type;
+	RTTI rtti() const { return type; }
+
     inline VideoFile *getVideoFile() { return is; }
 
 private:

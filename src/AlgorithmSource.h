@@ -25,6 +25,9 @@ class AlgorithmSource: public QObject, public Source {
 
 public:
 
+	static RTTI type;
+	RTTI rtti() const { return type; }
+
 	typedef enum {FLAT = 0, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, TURBULENCE} algorithmType;
 	static QString getAlgorithmDescription(int t);
 

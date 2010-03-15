@@ -9,6 +9,7 @@
 
 #include "common.h"
 #include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 
 #define MINZOOM 5.0

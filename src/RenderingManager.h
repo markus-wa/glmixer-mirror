@@ -12,13 +12,14 @@
 #define DEFAULT_HEIGHT 768
 
 #include "common.h"
-#include "ViewRenderWidget.h"
 #include "SourceSet.h"
+
+class ViewRenderWidget;
+class SourcePropertyBrowser;
 
 #include <QObject>
 
 class QGLFramebufferObject;
-
 class VideoFile;
 
 class RenderingManager: public QObject {
@@ -33,6 +34,7 @@ public:
 	 * singleton mechanism
 	 */
 	static ViewRenderWidget *getRenderingWidget();
+	static SourcePropertyBrowser *getPropertyBrowserWidget();
 	static RenderingManager *getInstance();
 	static void deleteInstance();
 
@@ -66,7 +68,7 @@ public:
 	bool setCurrentSource(SourceSet::iterator si);
 	bool setCurrentSource(GLuint name);
 	inline SourceSet::iterator getCurrentSource() {
-		return currentSource;
+		return _currentSource;
 	}
 
 	/**
@@ -101,6 +103,7 @@ private:
 protected:
 	// the rendering area
 	ViewRenderWidget *_renderwidget;
+    class SourcePropertyBrowser *_propertyBrowser;
 
 	// the frame buffer
 	QGLFramebufferObject *_fbo;
@@ -111,7 +114,7 @@ protected:
 
 	// the set of sources
 	SourceSet _sources;
-	SourceSet::iterator currentSource;
+	SourceSet::iterator _currentSource;
 
 };
 

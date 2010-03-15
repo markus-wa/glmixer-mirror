@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="glmixer" >
+    <file>icons/options.png</file>
     <file>icons/copy-source.png</file>
     <file>icons/computer.png</file>
     <file>icons/3d.png</file>

@@ -31,6 +31,10 @@ class OpencvSource: public QObject, public Source {
     friend class CameraThread;
 
 public:
+
+	static RTTI type;
+	RTTI rtti() const { return type; }
+
     inline int getOpencvCameraIndex() const { return opencvCameraIndex; }
 	inline int getFrameWidth() const { return width; }
 	inline int getFrameHeight() const { return height; }

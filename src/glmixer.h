@@ -30,7 +30,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
     public slots:
 
     // menu and actions
-		void on_blendingPresetsComboBox_currentIndexChanged(int);
+//		void on_blendingPresetsComboBox_currentIndexChanged(int);
 		void on_actionMediaSource_triggered();
 		void on_actionCameraSource_triggered();
 		void on_actionRenderingSource_triggered();
@@ -55,7 +55,7 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
         void on_actionLayersView_triggered();
         void on_actionAbout_Qt_triggered() { QApplication::aboutQt (); }
         void on_actionNew_Session_triggered();
-        void on_preFilteringBox_toggled(bool);
+//        void on_preFilteringBox_toggled(bool);
 
 	// GUI interaction
         void updateRefreshTimerState();
@@ -67,12 +67,14 @@ class  GLMixer: public QMainWindow, private Ui::GLMixer
 
 	// source config
         void connectSource(SourceSet::iterator csi);
-        void blendingChanged();
-        void colorsChanged();
+//        void sourceBlendingChanged();
+//        void sourceBlendingMaskChanged();
+//        void sourceLevelsChanged();
+//        void sourceColoringChanged();
+//        void sourceFilterChanged();
 
     private:
 
-//        videoFileDisplayWidget *videowidget;
         VideoFile *selectedSourceVideoFile;
 
         QTimer *refreshTimingTimer;

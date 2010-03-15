@@ -11,6 +11,7 @@
 #include "MixerView.h"
 #include "GeometryView.h"
 #include "LayersView.h"
+#include "RenderingManager.h"
 
 GLuint ViewRenderWidget::border_thin_shadow = 0, ViewRenderWidget::border_large_shadow = 0;
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0, ViewRenderWidget::border_scale = 0;
@@ -121,6 +122,7 @@ QPixmap ViewRenderWidget::getViewIcon(){
 void ViewRenderWidget::resizeGL(int w, int h){
 	currentManipulationView->resize(w,h);
 }
+
 void ViewRenderWidget::paintGL(){
     glRenderWidget::paintGL();
 	currentManipulationView->reset();
@@ -131,21 +133,27 @@ void ViewRenderWidget::paintGL(){
 		renderText(20, int(3.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), message, QFont());
 	}
 }
+
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event){
 	makeCurrent();
 	if (!currentManipulationView->mousePressEvent(event))
 		QWidget::mousePressEvent(event);
 }
+
 void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event){
 	makeCurrent();
 	if (!currentManipulationView->mouseMoveEvent(event))
 		QWidget::mouseMoveEvent(event);
+	else
+		emit sourceModified( RenderingManager::getInstance()->getCurrentSource() );
 }
+
 void ViewRenderWidget::mouseReleaseEvent ( QMouseEvent * event ){
 	makeCurrent();
 	if (!currentManipulationView->mouseReleaseEvent(event) )
 		QWidget::mouseReleaseEvent(event);
 }
+
 void ViewRenderWidget::mouseDoubleClickEvent ( QMouseEvent * event ){
 	makeCurrent();
 	if(!currentManipulationView->mouseDoubleClickEvent(event))
@@ -157,6 +165,7 @@ void ViewRenderWidget::wheelEvent ( QWheelEvent * event ){
 	if(!currentManipulationView->wheelEvent(event))
 		QWidget::wheelEvent(event);
 }
+
 void ViewRenderWidget::keyPressEvent ( QKeyEvent * event ){
 	makeCurrent();
 	if (!currentManipulationView->keyPressEvent(event))
@@ -168,16 +177,19 @@ void ViewRenderWidget::zoomIn() {
 	currentManipulationView->zoomIn();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
 }
+
 void ViewRenderWidget::zoomOut() {
 	makeCurrent();
 	currentManipulationView->zoomOut();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
 }
+
 void ViewRenderWidget::zoomReset() {
 	makeCurrent();
 	currentManipulationView->zoomReset();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
 }
+
 void ViewRenderWidget::zoomBestFit() {
 	makeCurrent();
 	currentManipulationView->zoomBestFit();
@@ -521,7 +533,7 @@ GLuint ViewRenderWidget::buildLineList() {
 GLuint ViewRenderWidget::buildCircleList() {
 
     GLuint id = glGenLists(1);
-//    GLUquadricObj *quadObj = gluNewQuadric();
+    GLUquadricObj *quadObj = gluNewQuadric();
 
     GLuint texid = 0; //bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/circle.png")), GL_TEXTURE_2D);
 	glGenTextures(1, &texid);
@@ -538,38 +550,25 @@ GLuint ViewRenderWidget::buildCircleList() {
     glPushMatrix();
     glTranslatef(0.0, 0.0, - 1.0);
 
-//    glDisable(GL_TEXTURE_2D);
-//    glColor4f(0.7, 0.7, 0.7, 1.0);
-//    gluDisk(quadObj, 0.01  * SOURCE_UNIT, (CIRCLE_SIZE + 0.09) * SOURCE_UNIT, 60, 40);
+    glDisable(GL_BLEND);
+    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    gluQuadricTexture(quadObj, GL_TRUE);
+    gluDisk(quadObj, 0.0, CIRCLE_SIZE * SOURCE_UNIT, 50, 3);
+
+    glDisable(GL_TEXTURE_2D);
+
+    // blended antialiasing
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
 
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-
     glColor4f(0.6, 0.6, 0.6, 1.0);
-
-    glTranslatef(0.0, 0.0, 1.0);
-    glBegin(GL_QUADS); // begin drawing a square
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex3d(-CIRCLE_SIZE * SOURCE_UNIT, -CIRCLE_SIZE * SOURCE_UNIT, 0.0); // Bottom Left
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex3d(CIRCLE_SIZE * SOURCE_UNIT, -CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Bottom Right
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex3d(CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Top Right
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex3d(-CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT, 0.0f); // Top Left
-    glEnd();
-
-    glDisable(GL_TEXTURE_2D);
-
-    glColor4f(0.6, 0.6, 0.6, 1.0);
-    glLineWidth(3.0);
+    glLineWidth(5.0);
 
     glBegin(GL_LINE_LOOP);
-    for (float i = 0; i < 2.0 * M_PI; i+= 0.05)
+    for (float i = 0; i < 2.0 * M_PI; i+= 0.07)
     	glVertex3f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE  * SOURCE_UNIT * sin(i),0);
     glEnd();
 
@@ -697,15 +696,14 @@ GLuint ViewRenderWidget::buildFrameList() {
     // default
     glNewList(base, GL_COMPILE);
 
-//    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT  | GL_COLOR_BUFFER_BIT);
-
-//    glEnable(GL_BLEND);
+    // blended antialiasing
+    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
 
     glDisable(GL_TEXTURE_2D);
     glLineWidth(5.0);
-    glColor4f(0.9, 0.2, 0.9, 0.7);
+    glColor4f(0.85, 0.15, 0.85, 1.0);
 
     glBegin(GL_LINE_LOOP); // begin drawing a square
     glVertex3f(-1.01f* SOURCE_UNIT, -1.01f* SOURCE_UNIT, 0.0f); // Bottom Left
@@ -714,7 +712,6 @@ GLuint ViewRenderWidget::buildFrameList() {
     glVertex3f(-1.01f* SOURCE_UNIT, 1.01f* SOURCE_UNIT, 0.0f); // Top Left
     glEnd();
 
-//    glPopAttrib();
     glEnable(GL_TEXTURE_2D);
     glEndList();
 

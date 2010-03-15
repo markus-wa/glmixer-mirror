@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "glRenderWidget.h"
+#include "SourceSet.h"
 
 class View;
 class MixerView;
@@ -52,6 +53,8 @@ public:
 	void setViewMode(viewMode mode);
 	QPixmap getViewIcon();
 
+Q_SIGNALS:
+	void sourceModified(SourceSet::iterator);
 
 public slots:
 	void zoomIn();

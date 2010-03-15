@@ -24,6 +24,7 @@
 #include "OpencvSource.h"
 #endif
 #include "VideoFileDisplayWidget.h"
+#include "SourcePropertyBrowser.h"
 
 #include "glmixer.moc"
 
@@ -44,27 +45,34 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     menuToolBars->addAction(viewToolBar->toggleViewAction());
     menuToolBars->addAction(FileToolBar->toggleViewAction());
 
-
-    // set the central widget
+    // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
 	delete mainRendering;
 	mainRendering = (QGLWidget *)  RenderingManager::getRenderingWidget();
 	mainRendering->setParent(centralwidget);
 	centralViewLayout->addWidget(mainRendering);
-	// activate this view by default
+	// TODO : activate the default view read from preferences
 	on_actionMixingView_triggered();
 //	on_actionGeometryView_triggered();
 
+	// Setup the property browser
+	SourcePropertyBrowser *propertyBrowser = RenderingManager::getPropertyBrowserWidget();
+	propertyBrowser->setParent(sourceDockWidgetContents);
+	sourceDockWidgetContentsLayout->addWidget(propertyBrowser);
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), propertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
+
+    QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(sourceModified(SourceSet::iterator)), propertyBrowser, SLOT(updateProperties(SourceSet::iterator) ) );
+
+
+    // Create preview widget
+	OutputRenderWidget *outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
+	previewDockWidgetContentsLayout->addWidget(outputpreview);
+
+    // signals for source management with RenderingManager
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(connectSource(SourceSet::iterator) ) );
 	QObject::connect(actionCapture, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(captureFrameBuffer()));
 
-    // SET prewiew widget
-	OutputRenderWidget *outputpreview = new OutputRenderWidget(previewContent, mainRendering);
-	previewLayout->addWidget(outputpreview);
-
-    // signal from source management in MainRenderWidget
-    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(connectSource(SourceSet::iterator) ) );
-
-    // QUIT event
+	// QUIT event
     QObject::connect(actionQuit, SIGNAL(triggered()), this, SLOT(close()));
 
     // Signals between GUI and output window
@@ -75,15 +83,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionZoomReset, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
 	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
 
-    // Init state
+    // Initial state
     vcontrolDockWidgetContents->setEnabled(false);
     sourceDockWidgetContents->setEnabled(false);
 
-    // TODO : Qt application config
-//    sourceDockWidget->setVisible(false);
-//    vconfigDockWidget->setVisible(false);
-
-    // Timer to update sliders and counters
+    // a Timer to update sliders and counters
     refreshTimingTimer = new QTimer(this);
     Q_CHECK_PTR(refreshTimingTimer);
     refreshTimingTimer->setInterval(150);
@@ -228,11 +232,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	//   (this slot is called by MainRenderWidget through signal currentSourceChanged
 	//    which is sent ONLY when the current source is changed)
 
-    QObject::disconnect(dstBlendcomboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(blendingChanged()));
-    QObject::disconnect(eqBlendcomboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(blendingChanged()));
-    QObject::disconnect(baseRSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
-    QObject::disconnect(baseGSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
-    QObject::disconnect(baseBSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
+
 
 	if (selectedSourceVideoFile) {
 
@@ -251,10 +251,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         QObject::disconnect(dirtySeekCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionAllowDirtySeek(bool)));
         QObject::disconnect(resetToBlackCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRevertToBlackWhenStop(bool)));
         QObject::disconnect(restartWhereStoppedCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRestartToMarkIn(bool)));
-
-        QObject::disconnect(brightnessSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setBrightness(int)));
-        QObject::disconnect(contrastSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setContrast(int)));
-        QObject::disconnect(saturationSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setSaturation(int)));
 
         QObject::disconnect(seekBackwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBackward()));
         QObject::disconnect(seekForwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekForward()));
@@ -278,65 +274,17 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		sourceDockWidgetContents->setEnabled(true);
 		actionDeleteSource->setEnabled(true);
 		actionCloneSource->setEnabled(true);
-		pageVideoFileConfig->setEnabled(false);
+//		pageVideoFileConfig->setEnabled(false);
 
 		// setup preview
-//		previewStackedWidget->setCurrentIndex(1);
-//		previewSource->setSource (*csi);
 
 		// adjust the mixing properties GUI
-		blendingPresetsComboBox->setCurrentIndex(6);
-		if ((*csi)->getBlendEquation() == GL_FUNC_ADD) {
-			if ((*csi)->getBlendFuncDestination() == GL_DST_ALPHA)
-				blendingPresetsComboBox->setCurrentIndex(0);
-			else if ((*csi)->getBlendFuncDestination() == GL_ONE)
-						blendingPresetsComboBox->setCurrentIndex(2);
-			else if ((*csi)->getBlendFuncDestination() == GL_ONE_MINUS_SRC_ALPHA)
-						blendingPresetsComboBox->setCurrentIndex(4);
-		} else if ((*csi)->getBlendEquation() == GL_FUNC_REVERSE_SUBTRACT) {
-			if ((*csi)->getBlendFuncDestination() == GL_DST_ALPHA)
-				blendingPresetsComboBox->setCurrentIndex(1);
-			else if ((*csi)->getBlendFuncDestination() == GL_ONE)
-						blendingPresetsComboBox->setCurrentIndex(3);
-			else if ((*csi)->getBlendFuncDestination() == GL_SRC_ALPHA)
-						blendingPresetsComboBox->setCurrentIndex(5);
-		}
-		switch ( (*csi)->getBlendFuncDestination() ) {
-			case GL_ZERO: dstBlendcomboBox->setCurrentIndex(0); break;
-			case GL_ONE: dstBlendcomboBox->setCurrentIndex(1); break;
-			case GL_SRC_COLOR: dstBlendcomboBox->setCurrentIndex(2); break;
-			case GL_ONE_MINUS_SRC_COLOR: dstBlendcomboBox->setCurrentIndex(3); break;
-			case GL_DST_COLOR: dstBlendcomboBox->setCurrentIndex(4); break;
-			case GL_ONE_MINUS_DST_COLOR: dstBlendcomboBox->setCurrentIndex(5); break;
-			case GL_SRC_ALPHA: dstBlendcomboBox->setCurrentIndex(6);  break;
-			case GL_ONE_MINUS_SRC_ALPHA: dstBlendcomboBox->setCurrentIndex(7);  break;
-			case GL_DST_ALPHA: dstBlendcomboBox->setCurrentIndex(8); break;
-			case GL_ONE_MINUS_DST_ALPHA: dstBlendcomboBox->setCurrentIndex(9); break;
-		}
-		switch ( (*csi)->getBlendEquation() ) {
-			case GL_FUNC_ADD: eqBlendcomboBox->setCurrentIndex(0); break;
-			case GL_FUNC_SUBTRACT: eqBlendcomboBox->setCurrentIndex(1); break;
-			case GL_FUNC_REVERSE_SUBTRACT: eqBlendcomboBox->setCurrentIndex(2); break;
-			case GL_MIN: eqBlendcomboBox->setCurrentIndex(3); break;
-			case GL_MAX: eqBlendcomboBox->setCurrentIndex(4); break;
-		}
-
-        QObject::connect(dstBlendcomboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(blendingChanged()));
-        QObject::connect(eqBlendcomboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(blendingChanged()));
-
-        QColor c = (*csi)->getColor();
-        baseRSpinBox->setValue(c.redF());
-        baseGSpinBox->setValue(c.greenF());
-        baseBSpinBox->setValue(c.blueF());
-        QObject::connect(baseRSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
-        QObject::connect(baseGSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
-        QObject::connect(baseBSpinBox, SIGNAL(valueChanged(double)), this, SLOT(colorsChanged()));
 
 		// test the class of the current source and deal accordingly :
 
 		// if it is a VideoSource (video file)
-		VideoSource *vs = dynamic_cast<VideoSource *>(*csi);
-		if (vs != NULL) {
+		if ( (*csi)->rtti() == Source::VIDEO_SOURCE ) {
+			VideoSource *vs = dynamic_cast<VideoSource *>(*csi);
 
 			// get the pointer to the video to control
 	        selectedSourceVideoFile = vs->getVideoFile();
@@ -352,10 +300,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 				dirtySeekCheckBox->setChecked(selectedSourceVideoFile->getOptionAllowDirtySeek());
 				resetToBlackCheckBox->setChecked(selectedSourceVideoFile->getOptionRevertToBlackWhenStop());
 				restartWhereStoppedCheckBox->setChecked(selectedSourceVideoFile->getOptionRestartToMarkIn());
-				brightnessSlider->setValue(selectedSourceVideoFile->getBrightness());
-				contrastSlider->setValue(selectedSourceVideoFile->getContrast());
-				saturationSlider->setValue(selectedSourceVideoFile->getSaturation());
-				preFilteringBox->setChecked( !( selectedSourceVideoFile->getBrightness() == 0 && selectedSourceVideoFile->getContrast() == 0 && selectedSourceVideoFile->getSaturation() == 0 ) );
 
 	            // CONTROL signals from GUI to VideoFile
 	            QObject::connect(startButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(play(bool)));
@@ -374,10 +318,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	            QObject::connect(resetMarkInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkIn()));
 	            QObject::connect(resetMarkOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkOut()));
 
-	            QObject::connect(brightnessSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setBrightness(int)));
-	            QObject::connect(contrastSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setContrast(int)));
-	            QObject::connect(saturationSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setSaturation(int)));
-
 	            // DISPLAY consistency from VideoFile to GUI
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), startButton, SLOT(setChecked(bool)));
@@ -392,17 +332,17 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), this, SLOT(updateRefreshTimerState()));
 
 	            // Fill in information
-				FileNameLineEdit->setText(selectedSourceVideoFile->getFileName());
-				CodecNameLineEdit->setText(selectedSourceVideoFile->getCodecName());
-				// display size (special case when power of two dimensions are generated
-				if (selectedSourceVideoFile->getStreamFrameWidth() != selectedSourceVideoFile->getFrameWidth() || selectedSourceVideoFile->getStreamFrameHeight() != selectedSourceVideoFile->getFrameHeight()) {
-					widthLineEdit->setText( QString("%1 (%2)").arg(selectedSourceVideoFile->getStreamFrameWidth()).arg(selectedSourceVideoFile->getFrameWidth()));
-					heightLineEdit->setText( QString("%1 (%2)").arg(selectedSourceVideoFile->getStreamFrameHeight()).arg(selectedSourceVideoFile->getFrameHeight()));
-				} else {
-					widthLineEdit->setText( QString("%1").arg(selectedSourceVideoFile->getFrameWidth()));
-					heightLineEdit->setText( QString("%1").arg(selectedSourceVideoFile->getFrameHeight()));
-				}
-				framerateLineEdit->setText(QString().setNum(selectedSourceVideoFile->getFrameRate(),'f',2));
+//				FileNameLineEdit->setText(selectedSourceVideoFile->getFileName());
+//				CodecNameLineEdit->setText(selectedSourceVideoFile->getCodecName());
+//				// display size (special case when power of two dimensions are generated
+//				if (selectedSourceVideoFile->getStreamFrameWidth() != selectedSourceVideoFile->getFrameWidth() || selectedSourceVideoFile->getStreamFrameHeight() != selectedSourceVideoFile->getFrameHeight()) {
+//					widthLineEdit->setText( QString("%1 (%2)").arg(selectedSourceVideoFile->getStreamFrameWidth()).arg(selectedSourceVideoFile->getFrameWidth()));
+//					heightLineEdit->setText( QString("%1 (%2)").arg(selectedSourceVideoFile->getStreamFrameHeight()).arg(selectedSourceVideoFile->getFrameHeight()));
+//				} else {
+//					widthLineEdit->setText( QString("%1").arg(selectedSourceVideoFile->getFrameWidth()));
+//					heightLineEdit->setText( QString("%1").arg(selectedSourceVideoFile->getFrameHeight()));
+//				}
+//				framerateLineEdit->setText(QString().setNum(selectedSourceVideoFile->getFrameRate(),'f',2));
 				videoLoopButton->setChecked(selectedSourceVideoFile->isLoop());
 				playSpeedBox->setCurrentIndex(selectedSourceVideoFile->getPlaySpeed());
 
@@ -410,6 +350,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 				if ( selectedSourceVideoFile->getEnd() > 1 ) {
 					// yes, its a video, we can control it
 					vcontrolDockWidgetContents->setEnabled(true);
+					vcontrolDockWidgetOptions->setEnabled(true);
 					startButton->setEnabled( true );
 
 					// restore config
@@ -429,30 +370,29 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 					startButton->setEnabled( false );
 
 					// display info (even if one frame only)
-					endLineEdit->setText( tr("%1 frame").arg( selectedSourceVideoFile->getEnd()) );
-					timeLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getBegin()) );
-					markInLineEdit->setText( "-" );
-					markOutLineEdit->setText( "-" );
+//					endLineEdit->setText( tr("%1 frame").arg( selectedSourceVideoFile->getEnd()) );
+//					timeLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getBegin()) );
+//					markInLineEdit->setText( "-" );
+//					markOutLineEdit->setText( "-" );
 				}
-				pageVideoFileConfig->setEnabled(true);
 	        }
 			return;
 		}
 
 #ifdef OPEN_CV
 		// if it is an OpencvSource (camera)
-		cvs = dynamic_cast<OpencvSource *>(*csi);
-		if (cvs != NULL) {
+		if ( (*csi)->rtti() == Source::CAMERA_SOURCE ) {
+			cvs = dynamic_cast<OpencvSource *>(*csi);
 			// fill in the information panel
-			FileNameLineEdit->setText(QString("USB Camera %1").arg(cvs->getOpencvCameraIndex()));
-			CodecNameLineEdit->setText("OpenCV drivers");
-			widthLineEdit->setText( QString("%1").arg(cvs->getFrameWidth()));
-			heightLineEdit->setText( QString("%1").arg(cvs->getFrameHeight()));
-			framerateLineEdit->setText(QString().setNum(cvs->getFrameRate(),'f',1));
-			endLineEdit->setText("-");
-			timeLineEdit->setText("-");
-			markInLineEdit->setText("-");
-			markOutLineEdit->setText("-");
+//			FileNameLineEdit->setText(QString("USB Camera %1").arg(cvs->getOpencvCameraIndex()));
+//			CodecNameLineEdit->setText("OpenCV drivers");
+//			widthLineEdit->setText( QString("%1").arg(cvs->getFrameWidth()));
+//			heightLineEdit->setText( QString("%1").arg(cvs->getFrameHeight()));
+//			framerateLineEdit->setText(QString().setNum(cvs->getFrameRate(),'f',1));
+//			endLineEdit->setText("-");
+//			timeLineEdit->setText("-");
+//			markInLineEdit->setText("-");
+//			markOutLineEdit->setText("-");
 
 			// we can play/stop  it
 			vcontrolDockWidgetContents->setEnabled(true);
@@ -463,25 +403,27 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 			// we can't configure it
 			videoFrame->setEnabled(false);
 			timingControlFrame->setEnabled(false);
+			vcontrolDockWidgetOptions->setEnabled(false);
 			return;
 		}
 #endif
 		// if it is an loopback rendering source
-		RenderingSource *crs = dynamic_cast<RenderingSource *>(*csi);
-		if (crs != NULL) {
+		if ( (*csi)->rtti() == Source::RENDERING_SOURCE ) {
+//			RenderingSource *crs = dynamic_cast<RenderingSource *>(*csi);
+
 			// fill in the information panel
-			FileNameLineEdit->setText(QString("Rendering loopback"));
-			if (glSupportsExtension("GL_EXT_framebuffer_blit"))
-				CodecNameLineEdit->setText("High speed blitted frame buffer");
-			else
-				CodecNameLineEdit->setText("frame buffer");
-			widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
-			heightLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferHeight()));
-			framerateLineEdit->setText(QString().setNum(RenderingManager::getRenderingWidget()->getFPS() / float(RenderingManager::getInstance()->getPreviousFrameDelay()),'f',1));
-			endLineEdit->setText("-");
-			timeLineEdit->setText("-");
-			markInLineEdit->setText("-");
-			markOutLineEdit->setText("-");
+//			FileNameLineEdit->setText(QString("Rendering loopback"));
+//			if (glSupportsExtension("GL_EXT_framebuffer_blit"))
+//				CodecNameLineEdit->setText("High speed blitted frame buffer");
+//			else
+//				CodecNameLineEdit->setText("frame buffer");
+//			widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
+//			heightLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferHeight()));
+//			framerateLineEdit->setText(QString().setNum(RenderingManager::getRenderingWidget()->getFPS() / float(RenderingManager::getInstance()->getPreviousFrameDelay()),'f',1));
+//			endLineEdit->setText("-");
+//			timeLineEdit->setText("-");
+//			markInLineEdit->setText("-");
+//			markOutLineEdit->setText("-");
 
 			// we cannot play/stop  nor configure
 			vcontrolDockWidgetContents->setEnabled(false);
@@ -492,18 +434,18 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		}
 		
 		// if it is an Algorithm source
-		AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(*csi);
-		if (as != NULL) {
+//		AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(*csi);
+		if ( (*csi)->rtti() == Source::ALGORITHM_SOURCE ) {
 			// fill in the information panel
-			FileNameLineEdit->setText(QString("Algorithm generated"));
-			CodecNameLineEdit->setText( AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()));
-			widthLineEdit->setText( QString("%1").arg(as->getFrameWidth()));
-			heightLineEdit->setText( QString("%1").arg(as->getFrameHeight()));
-			framerateLineEdit->setText(QString().setNum(as->getFrameRate(),'f',1));
-			endLineEdit->setText("-");
-			timeLineEdit->setText("-");
-			markInLineEdit->setText("-");
-			markOutLineEdit->setText("-");
+//			FileNameLineEdit->setText(QString("Algorithm generated"));
+//			CodecNameLineEdit->setText( AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()));
+//			widthLineEdit->setText( QString("%1").arg(as->getFrameWidth()));
+//			heightLineEdit->setText( QString("%1").arg(as->getFrameHeight()));
+//			framerateLineEdit->setText(QString().setNum(as->getFrameRate(),'f',1));
+//			endLineEdit->setText("-");
+//			timeLineEdit->setText("-");
+//			markInLineEdit->setText("-");
+//			markOutLineEdit->setText("-");
 
 			// we cannot play/stop  nor configure
 			vcontrolDockWidgetContents->setEnabled(false);
@@ -514,18 +456,18 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		}
 
 		// if it is a clone of a source
-		CloneSource *cs = dynamic_cast<CloneSource *>(*csi);
-		if (cs != NULL) {
+//		CloneSource *cs = dynamic_cast<CloneSource *>(*csi);
+		if ( (*csi)->rtti() == Source::CLONE_SOURCE  ) {
 			// fill in the information panel
-			FileNameLineEdit->setText(QString("Clone of another source"));
-			CodecNameLineEdit->setText("RGBA frame buffer");
-			widthLineEdit->setText("-");
-			heightLineEdit->setText("-");
-			framerateLineEdit->setText("-");
-			endLineEdit->setText("-");
-			timeLineEdit->setText("-");
-			markInLineEdit->setText("-");
-			markOutLineEdit->setText("-");
+//			FileNameLineEdit->setText(QString("Clone of another source"));
+//			CodecNameLineEdit->setText("RGBA frame buffer");
+//			widthLineEdit->setText("-");
+//			heightLineEdit->setText("-");
+//			framerateLineEdit->setText("-");
+//			endLineEdit->setText("-");
+//			timeLineEdit->setText("-");
+//			markInLineEdit->setText("-");
+//			markOutLineEdit->setText("-");
 
 			// we cannot play/stop  nor configure
 			vcontrolDockWidgetContents->setEnabled(false);
@@ -537,15 +479,15 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 		// it is a basic  Source
 		// fill in the information panel
-		FileNameLineEdit->setText(QString("Image"));
-		CodecNameLineEdit->setText("RGBA frame buffer");
-		widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
-		heightLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferHeight()));
-		framerateLineEdit->setText("-");
-		endLineEdit->setText("-");
-		timeLineEdit->setText("-");
-		markInLineEdit->setText("-");
-		markOutLineEdit->setText("-");
+//		FileNameLineEdit->setText(QString("Image"));
+//		CodecNameLineEdit->setText("RGBA frame buffer");
+//		widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
+//		heightLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferHeight()));
+//		framerateLineEdit->setText("-");
+//		endLineEdit->setText("-");
+//		timeLineEdit->setText("-");
+//		markInLineEdit->setText("-");
+//		markOutLineEdit->setText("-");
 
 		// we cannot play/stop  nor configure
 		vcontrolDockWidgetContents->setEnabled(false);
@@ -560,19 +502,17 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		actionCloneSource->setEnabled(false);
 
 		// nothing to preview
-//		previewStackedWidget->setCurrentIndex(0);
-//		previewSource->setSource(0);
 
-		// clear the information fields
-		FileNameLineEdit->setText("");
-		CodecNameLineEdit->setText("");
-		framerateLineEdit->setText("");
-		widthLineEdit->setText("");
-		heightLineEdit->setText("");
-		endLineEdit->setText("");
-		timeLineEdit->setText("");
-		markInLineEdit->setText("");
-		markOutLineEdit->setText("");
+//		// clear the information fields
+//		FileNameLineEdit->setText("");
+//		CodecNameLineEdit->setText("");
+//		framerateLineEdit->setText("");
+//		widthLineEdit->setText("");
+//		heightLineEdit->setText("");
+//		endLineEdit->setText("");
+//		timeLineEdit->setText("");
+//		markInLineEdit->setText("");
+//		markOutLineEdit->setText("");
 
 		// disable panel widgets
 		vcontrolDockWidgetContents->setEnabled(false);
@@ -693,13 +633,14 @@ void GLMixer::on_actionSaveCapture_triggered(){
 void GLMixer::on_actionShow_frames_toggled(bool on){
 
 	if (selectedSourceVideoFile) {
-		if (on){
-			endLineEdit->setText( tr("%1 frames").arg(selectedSourceVideoFile->getEnd()) );
-			timeLineEdit->setText( tr("frame %1").arg(selectedSourceVideoFile->getBegin()) );
-		} else {
-			endLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getEnd()) );
-			timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getBegin()) );
-		}
+//		if (on){
+//			endLineEdit->setText( tr("%1 frames").arg(selectedSourceVideoFile->getEnd()) );
+//			timeLineEdit->setText( tr("frame %1").arg(selectedSourceVideoFile->getBegin()) );
+//		} else {
+//			endLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getEnd()) );
+//			timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getBegin()) );
+//		}
+		// TODO : update property marks
 		updateMarks();
 	}
 }
@@ -846,14 +787,14 @@ void GLMixer::updateMarks (){
     markInSlider->setValue(i_percent);
     markOutSlider->setValue(o_percent);
 
-    if (actionShow_frames->isChecked()) {
-        markInLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getMarkIn() ));
-        markOutLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getMarkOut() ));
-    } else {
-        markInLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame( selectedSourceVideoFile->getMarkIn() ));
-        markOutLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame( selectedSourceVideoFile->getMarkOut() ));
-    }
-
+//    if (actionShow_frames->isChecked()) {
+//        markInLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getMarkIn() ));
+//        markOutLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getMarkOut() ));
+//    } else {
+//        markInLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame( selectedSourceVideoFile->getMarkIn() ));
+//        markOutLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame( selectedSourceVideoFile->getMarkOut() ));
+//    }
+    // todo update property for marks in / out
 }
 
 
@@ -880,87 +821,87 @@ void GLMixer::on_actionAbout_triggered(){
 	QMessageBox::information(this, "About GlMixer", msg, QMessageBox::Ok, QMessageBox::Ok);
 
 }
-
-void GLMixer::colorsChanged(){
-
-	if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
-		(*RenderingManager::getInstance()->getCurrentSource())->setColor( QColor::fromRgbF (baseRSpinBox->value(), baseGSpinBox->value(), baseBSpinBox->value() ) );
-	}
-}
-
-void  GLMixer::on_blendingPresetsComboBox_currentIndexChanged(int presetIndex){
-
-	expertBlendingOptionsBox->setEnabled(false);
-	switch ( presetIndex ) {
-		case 0:
-			dstBlendcomboBox->setCurrentIndex(8);
-			eqBlendcomboBox->setCurrentIndex(0);
-			break;
-		case 1:
-			dstBlendcomboBox->setCurrentIndex(8);
-			eqBlendcomboBox->setCurrentIndex(2);
-			break;
-		case 2:
-			dstBlendcomboBox->setCurrentIndex(1);
-			eqBlendcomboBox->setCurrentIndex(0);
-			break;
-		case 3:
-			dstBlendcomboBox->setCurrentIndex(1);
-			eqBlendcomboBox->setCurrentIndex(2);
-			break;
-		case 4:
-			dstBlendcomboBox->setCurrentIndex(7);
-			eqBlendcomboBox->setCurrentIndex(0);
-			break;
-		case 5:
-			expertBlendingOptionsBox->setEnabled(true);
-			break;
-		}
-}
-
-void GLMixer::blendingChanged(){
-
-	GLenum sfactor = GL_SRC_ALPHA, dfactor = GL_DST_ALPHA, eq = GL_FUNC_ADD;
-
-	switch ( dstBlendcomboBox->currentIndex() ) {
-	case 0:
-		dfactor = GL_ZERO; break;
-	case 1:
-		dfactor = GL_ONE; break;
-	case 2:
-		dfactor = GL_SRC_COLOR; break;
-	case 3:
-		dfactor = GL_ONE_MINUS_SRC_COLOR; break;
-	case 4:
-		dfactor = GL_DST_COLOR; break;
-	case 5:
-		dfactor = GL_ONE_MINUS_DST_COLOR; break;
-	case 6:
-		dfactor = GL_SRC_ALPHA; break;
-	case 7:
-		dfactor = GL_ONE_MINUS_SRC_ALPHA; break;
-	case 8:
-		dfactor = GL_DST_ALPHA; break;
-	case 9:
-		dfactor = GL_ONE_MINUS_DST_ALPHA; break;
-	}
-	switch ( eqBlendcomboBox->currentIndex() ) {
-	case 0:
-		eq = GL_FUNC_ADD; break;
-	case 1:
-		eq = GL_FUNC_SUBTRACT; break;
-	case 2:
-		eq = GL_FUNC_REVERSE_SUBTRACT; break;
-	case 3:
-		eq = GL_MIN; break;
-	case 4:
-		eq = GL_MAX; break;
-	}
-
-	if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd())
-		(*RenderingManager::getInstance()->getCurrentSource())->setBlendFuncAndEquation(sfactor, dfactor, eq);
-
-}
+//
+//void GLMixer::sourceColoringChanged(){
+//
+//	if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
+//		(*RenderingManager::getInstance()->getCurrentSource())->setColor( QColor::fromRgbF (baseRSpinBox->value(), baseGSpinBox->value(), baseBSpinBox->value() ) );
+//	}
+//}
+//
+//void  GLMixer::on_blendingPresetsComboBox_currentIndexChanged(int presetIndex){
+//
+//	expertBlendingOptionsBox->setEnabled(false);
+//	switch ( presetIndex ) {
+//		case 0:
+//			dstBlendcomboBox->setCurrentIndex(8);
+//			eqBlendcomboBox->setCurrentIndex(0);
+//			break;
+//		case 1:
+//			dstBlendcomboBox->setCurrentIndex(8);
+//			eqBlendcomboBox->setCurrentIndex(2);
+//			break;
+//		case 2:
+//			dstBlendcomboBox->setCurrentIndex(1);
+//			eqBlendcomboBox->setCurrentIndex(0);
+//			break;
+//		case 3:
+//			dstBlendcomboBox->setCurrentIndex(1);
+//			eqBlendcomboBox->setCurrentIndex(2);
+//			break;
+//		case 4:
+//			dstBlendcomboBox->setCurrentIndex(7);
+//			eqBlendcomboBox->setCurrentIndex(0);
+//			break;
+//		case 5:
+//			expertBlendingOptionsBox->setEnabled(true);
+//			break;
+//		}
+//}
+//
+//void GLMixer::sourceBlendingChanged(){
+//
+//	GLenum sfactor = GL_SRC_ALPHA, dfactor = GL_DST_ALPHA, eq = GL_FUNC_ADD;
+//
+//	switch ( dstBlendcomboBox->currentIndex() ) {
+//	case 0:
+//		dfactor = GL_ZERO; break;
+//	case 1:
+//		dfactor = GL_ONE; break;
+//	case 2:
+//		dfactor = GL_SRC_COLOR; break;
+//	case 3:
+//		dfactor = GL_ONE_MINUS_SRC_COLOR; break;
+//	case 4:
+//		dfactor = GL_DST_COLOR; break;
+//	case 5:
+//		dfactor = GL_ONE_MINUS_DST_COLOR; break;
+//	case 6:
+//		dfactor = GL_SRC_ALPHA; break;
+//	case 7:
+//		dfactor = GL_ONE_MINUS_SRC_ALPHA; break;
+//	case 8:
+//		dfactor = GL_DST_ALPHA; break;
+//	case 9:
+//		dfactor = GL_ONE_MINUS_DST_ALPHA; break;
+//	}
+//	switch ( eqBlendcomboBox->currentIndex() ) {
+//	case 0:
+//		eq = GL_FUNC_ADD; break;
+//	case 1:
+//		eq = GL_FUNC_SUBTRACT; break;
+//	case 2:
+//		eq = GL_FUNC_REVERSE_SUBTRACT; break;
+//	case 3:
+//		eq = GL_MIN; break;
+//	case 4:
+//		eq = GL_MAX; break;
+//	}
+//
+//	if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd())
+//		(*RenderingManager::getInstance()->getCurrentSource())->setBlendFuncAndEquation(sfactor, dfactor, eq);
+//
+//}
 
 
 void GLMixer::on_actionNew_Session_triggered(){
@@ -968,13 +909,17 @@ void GLMixer::on_actionNew_Session_triggered(){
 	RenderingManager::getInstance()->clearSourceSet();
 }
 
-
-void GLMixer::on_preFilteringBox_toggled(bool on){
-
-	if ( !on ){
-		brightnessSlider->setValue(0);
-		contrastSlider->setValue(0);
-		saturationSlider->setValue(0);
-	}
-}
-
+//
+//void GLMixer::on_preFilteringBox_toggled(bool on){
+//
+//	if ( !on ){
+//		brightnessSlider->setValue(0);
+//		contrastSlider->setValue(0);
+//		saturationSlider->setValue(0);
+//	}
+//}
+//
+//
+//void GLMixer::sourceBlendingMaskChanged(){}
+//void GLMixer::sourceLevelsChanged(){}
+//void GLMixer::sourceFilterChanged(){}

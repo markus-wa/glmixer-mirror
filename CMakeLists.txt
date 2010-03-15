@@ -190,4 +190,7 @@ set( GLMIXER_LIBRARIES   ${AVFORMAT_LIBRARY}
 
 						
 # tell cmake to process CMakeLists.txt in that subdirectory
+
+add_subdirectory(libQtProperty)
+
 add_subdirectory(src)

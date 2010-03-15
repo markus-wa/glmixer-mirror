@@ -11,8 +11,11 @@
 #include <vector>
 #include <QDomElement>
 #include <QColor>
+#include <QtCore/QMap>
 
 #include "common.h"
+
+class QtProperty;
 
 class Source;
 typedef std::vector<Source *> SourceList;
@@ -23,24 +26,33 @@ public:
 
 	Source(GLuint texture, double depth);
 	virtual ~Source();
-
-	virtual void update() {
-    	glBindTexture(GL_TEXTURE_2D, textureIndex);
-    }
-
 	bool operator==(Source s2){
 		return ( id == s2.id );
 	}
 
-    void draw(bool withalpha = true, GLenum mode = GL_RENDER) const;
-	void blend() const;
+	typedef enum { SIMPLE_SOURCE = 0, CLONE_SOURCE, VIDEO_SOURCE, CAMERA_SOURCE, ALGORITHM_SOURCE, RENDERING_SOURCE } RTTI;
+	static RTTI type;
+	virtual RTTI rtti() const { return type; }
 
-	// manipulation
+	/**
+	 *  Rendering
+	 */
+
+	virtual void update() {
+    	glBindTexture(GL_TEXTURE_2D, textureIndex);
+    }
+	void blend() const;
+    void draw(bool withalpha = true, GLenum mode = GL_RENDER) const;
+	// OpenGL access
+	inline GLuint getTextureIndex() {
+		return textureIndex;
+	}
+
+	/**
+	 * Manipulation
+	 */
 	inline GLuint getId() const {
 		return id;
-	}
-	inline GLdouble getDepth() const {
-		return z;
 	}
 	inline bool isActive() const {
 		return active;
@@ -48,17 +60,16 @@ public:
 	inline void activate(bool flag) {
 		active = flag;
 	}
-	inline bool isCulled() const {
-		return culled;
+	inline QtProperty *getProperty() const {
+		return property;
 	}
-	void testCulling();
+	void setProperty(QtProperty *p);
+	inline SourceList *getClones() const { return clones; }
 
-	// OpenGL access
-	inline GLuint getTextureIndex() {
-		return textureIndex;
-	}
 
-	//  Geometry
+	/**
+	 *  Geometry and deformation
+	 */
 	// gets
 	inline GLdouble getAspectRatio() const {
 		return aspectratio;
@@ -69,35 +80,14 @@ public:
 	inline GLdouble getY() const {
 		return y;
 	}
+	inline GLdouble getDepth() const {
+		return z;
+	}
 	inline GLdouble getScaleX() const {
 		return scalex;
 	}
 	inline GLdouble getScaleY() const {
 		return scaley;
-	}
-	inline GLdouble getAlphaX() const {
-		return alphax;
-	}
-	inline GLdouble getAlphaY() const {
-		return alphay;
-	}
-	inline GLfloat getAlpha() const {
-		return texalpha;
-	}
-	inline QColor getColor() const {
-		return texcolor;
-	}
-//	inline QColor getBlendColor() const {
-//		return blendcolor;
-//	}
-	inline GLenum getBlendEquation() const {
-		return blend_eq;
-	}
-	inline GLenum getBlendFuncSource() const {
-		return source_blend;
-	}
-	inline GLenum getBlendFuncDestination() const {
-		return destination_blend;
 	}
 
 	// sets
@@ -119,37 +109,65 @@ public:
 	inline void setScaleY(GLdouble v) {
 		scaley = v;
 	}
-	inline void moveTo(GLdouble posx, GLdouble posy) {
-		x = posx;
-		y = posy;
+	void moveTo(GLdouble posx, GLdouble posy);
+	void setScale(GLdouble sx, GLdouble sy);
+	void scaleBy(GLfloat fx, GLfloat fy);
+	void clampScale();
+	void resetScale();
+
+
+	inline bool isCulled() const {
+		return culled;
 	}
-	inline void setScale(GLdouble sx, GLdouble sy) {
-		scalex = sx;
-		scaley = sy;
+	void testCulling();
+
+
+	/**
+	 * Blending
+	 */
+	void setAlphaCoordinates(GLdouble x, GLdouble y, GLdouble max);
+
+	inline GLdouble getAlphaX() const {
+		return alphax;
 	}
-	inline void setColor(QColor c) {
-		texcolor = c;
+	inline GLdouble getAlphaY() const {
+		return alphay;
 	}
-//	inline void setBlendColor(QColor c) {
-//		blendcolor = c;
-//	}
+	inline GLfloat getAlpha() const {
+		return texalpha;
+	}
+	inline QColor getColor() const {
+		return texcolor;
+	}
+	inline GLenum getBlendEquation() const {
+		return blend_eq;
+	}
+	inline GLenum getBlendFuncSource() const {
+		return source_blend;
+	}
+	inline GLenum getBlendFuncDestination() const {
+		return destination_blend;
+	}
 	inline void setBlendFuncAndEquation(GLenum sfactor, GLenum dfactor, GLenum eq) {
 		source_blend = sfactor;
 		destination_blend = dfactor;
 		blend_eq = eq;
 	}
-	void scaleBy(GLfloat fx, GLfloat fy);
-	void clampScale();
-	void setAlphaCoordinates(GLdouble x, GLdouble y, GLdouble max);
-	void resetScale();
 
-	inline SourceList *getClones() const { return clones; }
+	/**
+	 * Coloring, image processing
+	 */
+
+	void setColor(QColor c);
+
+	typedef enum { SHARPEN, BLUR, EDGE, EMBOSS } convolutionType;
+	convolutionType convolution;
 
 protected:
 
 	// identity and properties
 	GLuint id;
-	QDomElement dom;
+//	QDomElement dom;
 	bool active, culled;
 	SourceList *clones;
 
@@ -161,12 +179,24 @@ protected:
 	GLdouble aspectratio;
 	GLfloat texalpha;
 	QColor texcolor;
-//	QColor blendcolor;
 	GLenum source_blend, destination_blend;
 	GLenum blend_eq;
 
-	// statics
+	// if should be set to GL_NEAREST
+	bool pixelated;
+	// apply the Luminance matrix
+	bool greyscale;
+	// if should inversion matrix on color table
+	bool invertcolors;
+	// if a color or processing has been changed, it needs to be updated
+	bool needs_update;
+
+	// id counter
 	static GLuint lastid;
+
+	// the root of the property tree used to display and alter the source informations
+	QtProperty *property;
+    QMap<QString, QtProperty *> idToProperty;
 
 };
 
