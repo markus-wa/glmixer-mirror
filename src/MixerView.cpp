@@ -243,8 +243,10 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
             }
             else
                 grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+
+			return true;
         }
-    } else if (event->buttons() & Qt::RightButton) {
+//    } else if (event->buttons() & Qt::RightButton) {
 
     } else  { // mouse over (no buttons)
 
@@ -260,7 +262,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
     }
 
-	return true;
+	return false;
 }
 
 bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
@@ -431,7 +433,7 @@ void MixerView::grabSource(SourceSet::iterator s, int x, int y, int dx, int dy) 
     double iy = (*s)->getAlphaY() + ay - by;
 
     // move icon
-    (*s)->setAlphaCoordinates( ix, iy, CIRCLE_SIZE);
+    (*s)->setAlphaCoordinates( ix, iy );
 
 }
 

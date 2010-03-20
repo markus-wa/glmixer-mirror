@@ -74,11 +74,11 @@ void LayersView::paint()
         else
             glCallList(ViewRenderWidget::border_thin_shadow);
 
+	    // Blending Function For mixing like in the rendering window
+        (*its)->startBlendingSection();
 		// bind the source texture and update its content
 		(*its)->update();
 
-	    // Blending Function For mixing like in the rendering window
-        (*its)->blend();
 		// draw surface (do not set blending from source)
 		(*its)->draw();
 
@@ -93,9 +93,8 @@ void LayersView::paint()
         RenderingManager::getInstance()->renderToFrameBuffer(its, first);
         first = false;
 
-        // back to blending for the rest
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendEquation(GL_FUNC_ADD);
+        // back to default blending for the rest
+        (*its)->endBlendingSection();
 
 	}
 	if (first)

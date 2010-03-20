@@ -68,8 +68,6 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	height = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
 	aspectratio = (float)width / (float)height;
 
-	resetScale();
-
 	// fill in first frame
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

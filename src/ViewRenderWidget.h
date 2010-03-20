@@ -54,7 +54,9 @@ public:
 	QPixmap getViewIcon();
 
 Q_SIGNALS:
-	void sourceModified(SourceSet::iterator);
+	void sourceMixingModified();
+	void sourceGeometryModified();
+	void sourceLayerModified();
 
 public slots:
 	void zoomIn();

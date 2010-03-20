@@ -144,8 +144,15 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event){
 	makeCurrent();
 	if (!currentManipulationView->mouseMoveEvent(event))
 		QWidget::mouseMoveEvent(event);
-	else
-		emit sourceModified( RenderingManager::getInstance()->getCurrentSource() );
+	else {
+		if ( currentManipulationView == mixingManipulationView )
+			emit sourceMixingModified();
+		else if ( currentManipulationView == geometryManipulationView )
+			emit sourceGeometryModified();
+		else if ( currentManipulationView == layersManipulationView )
+			emit sourceLayerModified();
+
+	}
 }
 
 void ViewRenderWidget::mouseReleaseEvent ( QMouseEvent * event ){
@@ -158,6 +165,8 @@ void ViewRenderWidget::mouseDoubleClickEvent ( QMouseEvent * event ){
 	makeCurrent();
 	if(!currentManipulationView->mouseDoubleClickEvent(event))
 		QWidget::mouseDoubleClickEvent(event);
+//	else
+//		emit sourceModified( RenderingManager::getInstance()->getCurrentSource() );
 }
 
 void ViewRenderWidget::wheelEvent ( QWheelEvent * event ){
@@ -705,11 +714,25 @@ GLuint ViewRenderWidget::buildFrameList() {
     glLineWidth(5.0);
     glColor4f(0.85, 0.15, 0.85, 1.0);
 
-    glBegin(GL_LINE_LOOP); // begin drawing a square
+    glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
+
     glVertex3f(-1.01f* SOURCE_UNIT, -1.01f* SOURCE_UNIT, 0.0f); // Bottom Left
+    glVertex3f(0.0f, -1.01f* SOURCE_UNIT, 0.0f);
+    glVertex3f(0.0f, -1.05f* SOURCE_UNIT, 0.0f);
+    glVertex3f(0.0f, -1.01f* SOURCE_UNIT, 0.0f);
     glVertex3f(1.01f* SOURCE_UNIT, -1.01f* SOURCE_UNIT, 0.0f); // Bottom Right
+    glVertex3f(1.01f* SOURCE_UNIT, 0.0f, 0.0f);
+    glVertex3f(1.05f* SOURCE_UNIT, 0.0f, 0.0f);
+    glVertex3f(1.01f* SOURCE_UNIT, 0.0f, 0.0f);
     glVertex3f(1.01f* SOURCE_UNIT, 1.01f* SOURCE_UNIT, 0.0f); // Top Right
+    glVertex3f(0.0f, 1.01f* SOURCE_UNIT, 0.0f);
+    glVertex3f(0.0f, 1.05f* SOURCE_UNIT, 0.0f);
+    glVertex3f(0.0f, 1.01f* SOURCE_UNIT, 0.0f);
     glVertex3f(-1.01f* SOURCE_UNIT, 1.01f* SOURCE_UNIT, 0.0f); // Top Left
+    glVertex3f(-1.01f* SOURCE_UNIT, 0.0f, 0.0f);
+    glVertex3f(-1.05f* SOURCE_UNIT, 0.0f, 0.0f);
+    glVertex3f(-1.01f* SOURCE_UNIT, 0.0f, 0.0f);
+
     glEnd();
 
     glEnable(GL_TEXTURE_2D);

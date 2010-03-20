@@ -59,9 +59,6 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
     else
     	qWarning("** WARNING **\nThe media source could not be created properly. Remove it and retry.");
 
-
-
-    resetScale();
 }
 
 VideoSource::~VideoSource() {

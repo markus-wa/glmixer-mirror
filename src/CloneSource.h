@@ -22,6 +22,9 @@ public:
 	static RTTI type;
 	RTTI rtti() const { return type; }
 
+	QString getOriginalName() { return original->getName(); }
+	GLuint getOriginalId() { return original->getId(); }
+
     // only RenderingManager can create a source
 protected:
 	CloneSource(SourceSet::iterator sit, double d): Source((*sit)->getTextureIndex(), d), original(*sit) {
@@ -39,6 +42,7 @@ protected:
 		if (exist != original->getClones()->end())
 			original->getClones()->erase(exist);
 	}
+
 
 private:
 	Source *original;

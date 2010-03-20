@@ -225,7 +225,7 @@ void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource, bool cl
 			glTranslated((*itsource)->getX(), (*itsource)->getY(), 0.0);
 			glScaled((*itsource)->getScaleX(), (*itsource)->getScaleY(), 1.f);
 
-			(*itsource)->blend();
+			(*itsource)->startBlendingSection();
 			(*itsource)->draw();
 		}
 	}
@@ -269,6 +269,9 @@ void RenderingManager::addRenderingSource() {
 	RenderingSource *s = new RenderingSource(previousframe_fbo->texture(), d);
     Q_CHECK_PTR(s);
 
+    // create the properties
+//    _propertyBrowser->createProperty((Source *) s);
+
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
 }
@@ -301,8 +304,10 @@ void RenderingManager::addCaptureSource(){
 	// create a source appropriate for this videofile
 	Source *s = new Source(textureIndex, d);
     Q_CHECK_PTR(s);
-
     s->setAspectRatio( double(capture.width()) / double(capture.height()) );
+
+    // create the properties
+//    _propertyBrowser->createProperty((Source *) s);
 
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
@@ -326,7 +331,10 @@ void RenderingManager::addMediaSource(VideoFile *vf) {
     Q_CHECK_PTR(s);
 
     // create the properties
-    _propertyBrowser->createProperty((Source *) s);
+//    _propertyBrowser->createProperty((Source *) s);
+
+    // scale the source to match the media size
+    s->resetScale();
 
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
@@ -348,6 +356,12 @@ void RenderingManager::addOpencvSource(int opencvIndex) {
 	// create the OpenCV source
 	OpencvSource *s = new OpencvSource(opencvIndex, textureIndex, d);
     Q_CHECK_PTR(s);
+
+    // create the properties
+//    _propertyBrowser->createProperty((Source *) s);
+
+    // scale the source to match the media size
+    s->resetScale();
 
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
@@ -371,6 +385,9 @@ void RenderingManager::addAlgorithmSource(int type, int w, int h, double v, int 
 	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, d, w, h, v, p);
     Q_CHECK_PTR(s);
 
+    // create the properties
+//    _propertyBrowser->createProperty((Source *) s);
+
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) s));
 }
@@ -384,6 +401,9 @@ void RenderingManager::addCloneSource(SourceSet::iterator sit) {
 	// create a source appropriate for this videofile
 	CloneSource *clone = new CloneSource(sit, d);
     Q_CHECK_PTR(clone);
+
+    // create the properties
+//    _propertyBrowser->createProperty((Source *) clone);
 
 	// set the last created source to be current
 	setCurrentSource(_sources.insert((Source *) clone));
