@@ -34,13 +34,16 @@ void MixerView::paint()
 
     // and the selection connection lines
     glDisable(GL_TEXTURE_2D);
-    glLineWidth(3.0);
+    glLineStipple(1, 0x9999);
+    glEnable(GL_LINE_STIPPLE);
+    glLineWidth(2.0);
     glColor4f(0.2, 0.80, 0.2, 1.0);
     glBegin(GL_LINE_LOOP);
     for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
         glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
     }
     glEnd();
+    glDisable(GL_LINE_STIPPLE);
 
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
@@ -181,18 +184,10 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 		} else {
 			// set current to none (end of list)
 			RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+			// clear selection
+			selectedSources.clear();
 			setAction(NONE);
 		}
-
-    } else if (event->buttons() & Qt::RightButton) {
-    	// TODO context menu
-
-	    double LLcorner[3];
-	    gluUnProject(event->x(), viewport[3] - event->y(), 1, modelview, projection, viewport, LLcorner, LLcorner+1, LLcorner+2);
-
-		qDebug (" %f %f  ", LLcorner[0], LLcorner[1]);
-
-
 
     } else if (event->buttons() & Qt::MidButton) {
     	// almost a wheel action ; middle mouse = best zoom fit
@@ -210,7 +205,14 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 		SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 		if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
-			// reset the source
+
+			// if the clicked source is in the selection
+			if ( selectedSources.count(*cliked) > 0) {
+			// TODO ; create a group from the selection
+			}
+			// else add it to the selection
+			else
+				selectedSources.insert( *cliked );
 
 		} else
 			zoomBestFit();
@@ -232,21 +234,36 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 
 	} else if (event->buttons() & Qt::LeftButton) {
-    	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-        if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+
+    	SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
+    	// if a source icon was cliked
+        if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
 
         	setAction(GRAB);
-			if ( selectedSources.count(*cs) > 0 ){
-                for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
-                    grabSource(its, event->x(), viewport[3] - event->y(), dx, dy);
-                }
-            }
-            else
-                grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+			if ( selectedSources.count(*cliked) > 0 ){
+				for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
+					grabSource(its, event->x(), viewport[3] - event->y(), dx, dy);
+				}
+			}
+			else
+				grabSource(cliked, event->x(), viewport[3] - event->y(), dx, dy);
 
 			return true;
         }
-//    } else if (event->buttons() & Qt::RightButton) {
+
+    } else if (event->buttons() & Qt::RightButton) {
+
+    	// RIGHT clic on a source ; change its alpha, but do not make it current
+    	SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
+    	// if a source icon was cliked
+        if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
+
+        	//  move it individually, even if in a group
+        	setAction(GRAB);
+			grabSource(cliked, event->x(), viewport[3] - event->y(), dx, dy);
+
+			return true;
+        }
 
     } else  { // mouse over (no buttons)
 

@@ -9,6 +9,7 @@
 #define SOURCESET_H_
 
 #include <set>
+#include <deque>
 
 #include "Source.h"
 
@@ -27,7 +28,7 @@ struct Source_distance_reverse_comp
 {
     bool operator () (Source *a, Source *b) const
     {
-        //Sort Furthest to Closest
+        //Sort Closest to Furthest
         return (a->getDepth() > b->getDepth());
     }
 };
@@ -63,5 +64,7 @@ private:
 
 };
 
+
+typedef std::deque<SourceSet> SourceSetArray;
 
 #endif /* SOURCESET_H_ */

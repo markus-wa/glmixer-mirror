@@ -394,15 +394,15 @@ GLuint ViewRenderWidget::buildSelectList() {
     // selected
     glNewList(base, GL_COMPILE);
 
-//    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT);
-
-//    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
     glDisable(GL_TEXTURE_2D);
 
-    glLineWidth(3.0);
+    glLineWidth(2.0);
     glColor4f(0.2, 0.80, 0.2, 1.0);
+
+    glLineStipple(1, 0x9999);
+    glEnable(GL_LINE_STIPPLE);
 
     glBegin(GL_LINE_LOOP); // begin drawing a square
     glVertex3d(-1.1 , -1.1 , 0.0); // Bottom Left
@@ -411,8 +411,8 @@ GLuint ViewRenderWidget::buildSelectList() {
     glVertex3d(-1.1 , 1.1 , 0.0); // Top Left
     glEnd();
 
-//    glPopAttrib();
 
+    glDisable(GL_LINE_STIPPLE);
     glEnable(GL_TEXTURE_2D);
 
     glEndList();

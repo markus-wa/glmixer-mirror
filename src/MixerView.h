@@ -40,6 +40,9 @@ private:
     actionType currentAction;
     void setAction(actionType a);
 
+    // creation of groups from set of selection
+	SourceSetArray groupSources;
+	QList<QColor> groupColor;
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */
