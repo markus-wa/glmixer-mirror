@@ -104,10 +104,12 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
                 heightLineEdit->setText( QString("%1").arg(is->getFrameHeight()));
             }
             previewWidget->setFixedWidth( previewWidget->height() * is->getStreamAspectRatio() );
+            gridLayout->update();
         }
 
 
     }
+
 }
 
 void VideoFileDialogPreview::on_customSizeCheckBox_toggled(bool on){
