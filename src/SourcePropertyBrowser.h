@@ -35,7 +35,7 @@ public slots:
     void updateLayerProperties();
 
     // Update the source when an action is performed on a property in the browser
-    // This concerns every properties editable INSIDE the browser
+    // This concerns every properties editable in the browser
     void valueChanged(QtProperty *property, const QColor &value);
     void valueChanged(QtProperty *property, const QPointF &value);
     void valueChanged(QtProperty *property, int value);
@@ -59,11 +59,10 @@ private:
 
 	// property tree
     QtProperty *root;
-	// the lists of properties
+	// utility lists of properties
     QMap<Source::RTTI, QtProperty *> rttiToProperty;
     QMap<QString, QtProperty *> idToProperty;
     QMap<QString, bool> idToExpanded;
-
 
     void createPropertyTree();
     void updatePropertyTree(Source *s);
@@ -75,7 +74,6 @@ private:
 	class QScrollArea *propertyGroupArea;
 	class QtTreePropertyBrowser *propertyTreeEditor;
 	class QtGroupBoxPropertyBrowser *propertyGroupEditor;
-
 
     // managers for different data types
     class QtGroupPropertyManager *groupManager;

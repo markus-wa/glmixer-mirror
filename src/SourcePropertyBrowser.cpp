@@ -52,11 +52,8 @@ QMap<int, QPair<int, int> > presetBlending;
 
 SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent), root(0) {
 
-
-
 	layout = new QVBoxLayout(this);
 	layout->setObjectName(QString::fromUtf8("verticalLayout"));
-
 
 	// property Group Box
 	propertyGroupEditor = new QtGroupBoxPropertyBrowser(this);
@@ -95,20 +92,6 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent)
 
     // use the managers to create the property tree
 	createPropertyTree();
-
-    // connect the managers to the corresponding value change
-    connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
-                this, SLOT(valueChanged(QtProperty *, double)));
-    connect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
-                this, SLOT(valueChanged(QtProperty *, const QString &)));
-    connect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
-                this, SLOT(valueChanged(QtProperty *, const QColor &)));
-    connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)),
-                this, SLOT(valueChanged(QtProperty *, const QPointF &)));
-    connect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
-                this, SLOT(enumChanged(QtProperty *, int)));
-    connect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
-                this, SLOT(valueChanged(QtProperty *, int)));
 
     // specify the factory for each of the property managers
     QtDoubleSpinBoxFactory *doubleSpinBoxFactory = new QtDoubleSpinBoxFactory(this);    // for double
@@ -285,7 +268,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		// Frames size special case when power of two dimensions are generated
 		property = sizeManager->addProperty( QLatin1String("[Converted size]") );
 		idToProperty[property->propertyName()] = property;
-		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
+//		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 
 		// Frame rate
 		QtProperty *fr = infoManager->addProperty( QLatin1String("[Frame rate]") );
@@ -370,83 +353,113 @@ void SourcePropertyBrowser::createPropertyTree(){
 
 void SourcePropertyBrowser::updatePropertyTree(Source *s){
 
-	stringManager->setValue(idToProperty["Name"], s->getName() );
-	pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
-	pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
-	doubleManager->setValue(idToProperty["Depth"], s->getDepth() );
-	doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
-	enumManager->setValue(idToProperty["Blending"], presetBlending.key( qMakePair( glblendToEnum[s->getBlendFuncDestination()], glequationToEnum[s->getBlendEquation()] ) ) );
-	enumManager->setValue(idToProperty["Destination"], glblendToEnum[ s->getBlendFuncDestination() ]);
-	enumManager->setValue(idToProperty["Equation"], glequationToEnum[ s->getBlendEquation() ]);
-	colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
-	boolManager->setValue(idToProperty["Greyscale"], s->isGreyscale());
-	boolManager->setValue(idToProperty["Color Invert"], s->isInvertcolors());
-	enumManager->setValue(idToProperty["Filter"], (int) s->getConvolution());
-	// TODO :
-	intManager->setValue(idToProperty["Brightness"], 0 );
-	intManager->setValue(idToProperty["Contrast"], 0 );
-	infoManager->setValue(idToProperty["[Aspect ratio]"], QString::number(s->getAspectRatio()) );
+    // connect the managers to the corresponding value change
+    disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
+                this, SLOT(valueChanged(QtProperty *, double)));
+    disconnect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
+                this, SLOT(valueChanged(QtProperty *, const QString &)));
+    disconnect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
+                this, SLOT(valueChanged(QtProperty *, const QColor &)));
+    disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)),
+                this, SLOT(valueChanged(QtProperty *, const QPointF &)));
+    disconnect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
+                this, SLOT(enumChanged(QtProperty *, int)));
+    disconnect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
+                this, SLOT(valueChanged(QtProperty *, int)));
 
-	if (s->rtti() == Source::VIDEO_SOURCE) {
-		infoManager->setValue(idToProperty["[Type]"], QLatin1String("Media file") );
+	if (s) {
+		stringManager->setValue(idToProperty["Name"], s->getName() );
+		pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
+		pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
+		doubleManager->setValue(idToProperty["Depth"], s->getDepth() );
+		doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
+		enumManager->setValue(idToProperty["Blending"], presetBlending.key( qMakePair( glblendToEnum[s->getBlendFuncDestination()], glequationToEnum[s->getBlendEquation()] ) ) );
+		enumManager->setValue(idToProperty["Destination"], glblendToEnum[ s->getBlendFuncDestination() ]);
+		enumManager->setValue(idToProperty["Equation"], glequationToEnum[ s->getBlendEquation() ]);
+		colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
+		boolManager->setValue(idToProperty["Greyscale"], s->isGreyscale());
+		boolManager->setValue(idToProperty["Color Invert"], s->isInvertcolors());
+		enumManager->setValue(idToProperty["Filter"], (int) s->getConvolution());
+		// TODO :
+		intManager->setValue(idToProperty["Brightness"], 0 );
+		intManager->setValue(idToProperty["Contrast"], 0 );
+		infoManager->setValue(idToProperty["[Aspect ratio]"], QString::number(s->getAspectRatio()) );
 
-		VideoSource *vs = dynamic_cast<VideoSource *>(s);
-		VideoFile *vf = vs->getVideoFile();
-		infoManager->setValue(idToProperty["[File name]"], QLatin1String(vf->getFileName()) );
-		infoManager->setValue(idToProperty["[Codec]"], vf->getCodecName() );
-		sizeManager->setValue(idToProperty["[Frames size]"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
-		// Frames size special case when power of two dimensions are generated
-		sizeManager->setValue(idToProperty["[Converted size]"], QSize(vf->getFrameWidth(),vf->getFrameHeight()) );
-		if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight())
-			idToProperty["[Converted size]"]->setEnabled(true);
-		else
-			idToProperty["[Converted size]"]->setEnabled(false);
-		infoManager->setValue(idToProperty["[Frame rate]"], QString::number( vf->getFrameRate() ) + QString(" fps") );
-		infoManager->setValue(idToProperty["[Duration]"], QString::number( vf->getDuration() ) + QString(" s") );
-		intManager->setValue(idToProperty["[Pre-Brightness]"], vf->getBrightness() );
-		intManager->setValue(idToProperty["[Pre-Contrast]"], vf->getContrast() );
-		intManager->setValue(idToProperty["[Pre-Saturation]"], vf->getSaturation() );
+		if (s->rtti() == Source::VIDEO_SOURCE) {
+			infoManager->setValue(idToProperty["[Type]"], QLatin1String("Media file") );
+
+			VideoSource *vs = dynamic_cast<VideoSource *>(s);
+			VideoFile *vf = vs->getVideoFile();
+			infoManager->setValue(idToProperty["[File name]"], QLatin1String(vf->getFileName()) );
+			infoManager->setValue(idToProperty["[Codec]"], vf->getCodecName() );
+			sizeManager->setValue(idToProperty["[Frames size]"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
+			// Frames size special case when power of two dimensions are generated
+			sizeManager->setValue(idToProperty["[Converted size]"], QSize(vf->getFrameWidth(),vf->getFrameHeight()) );
+			if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight()) {
+				if ( !rttiToProperty[Source::VIDEO_SOURCE]->subProperties().contains(idToProperty["[Converted size]"]))
+					rttiToProperty[Source::VIDEO_SOURCE]->insertSubProperty(idToProperty["[Converted size]"], idToProperty["[Frames size]"]);
+			} else {
+				if ( rttiToProperty[Source::VIDEO_SOURCE]->subProperties().contains(idToProperty["[Converted size]"]))
+					rttiToProperty[Source::VIDEO_SOURCE]->removeSubProperty(idToProperty["[Converted size]"]);
+			}
+			infoManager->setValue(idToProperty["[Frame rate]"], QString::number( vf->getFrameRate() ) + QString(" fps") );
+			infoManager->setValue(idToProperty["[Duration]"], QString::number( vf->getDuration() ) + QString(" s") );
+			intManager->setValue(idToProperty["[Pre-Brightness]"], vf->getBrightness() );
+			intManager->setValue(idToProperty["[Pre-Contrast]"], vf->getContrast() );
+			intManager->setValue(idToProperty["[Pre-Saturation]"], vf->getSaturation() );
+		}
+		else if (s->rtti() == Source::CAMERA_SOURCE) {
+
+			infoManager->setValue(idToProperty["[Type]"], QLatin1String("Camera device") );
+			OpencvSource *cvs = dynamic_cast<OpencvSource *>(s);
+			infoManager->setValue(idToProperty["[Identifier]"], QString("OpenCV Camera %1").arg(cvs->getOpencvCameraIndex()) );
+			sizeManager->setValue(idToProperty["[Frames size]"], QSize(cvs->getFrameWidth(), cvs->getFrameHeight()) );
+			infoManager->setValue(idToProperty["[Frame rate]"], QString::number( cvs->getFrameRate() ) + QString(" fps") );
+		}
+		else if (s->rtti() == Source::RENDERING_SOURCE) {
+
+			infoManager->setValue(idToProperty["[Type]"], QLatin1String("Rendering loop-back") );
+			if (glSupportsExtension("GL_EXT_framebuffer_blit"))
+				infoManager->setValue(idToProperty["[Rendering mechanism]"], "Blit to frame buffer object" );
+			else
+				infoManager->setValue(idToProperty["[Rendering mechanism]"], "Draw to frame buffer object" );
+			sizeManager->setValue(idToProperty["[Frames size]"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
+			infoManager->setValue(idToProperty["[Frame rate]"], QString::number( RenderingManager::getRenderingWidget()->getFPS() / float(RenderingManager::getInstance()->getPreviousFrameDelay()) ) + QString(" fps") );
+		}
+		else if (s->rtti() == Source::ALGORITHM_SOURCE) {
+
+			infoManager->setValue(idToProperty["[Type]"], QLatin1String("Algorithm") );
+			AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(s);
+			infoManager->setValue(idToProperty["[Algorithm]"], AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()) );
+			sizeManager->setValue(idToProperty["[Frames size]"], QSize(as->getFrameWidth(), as->getFrameHeight()) );
+			infoManager->setValue(idToProperty["[Frame rate]"], QString::number(as->getFrameRate() ) + QString(" fps"));
+		}
+		else if (s->rtti() == Source::CLONE_SOURCE) {
+
+			infoManager->setValue(idToProperty["[Type]"], QLatin1String("Clone") );
+			CloneSource *cs = dynamic_cast<CloneSource *>(s);
+			infoManager->setValue(idToProperty["[Clone of]"], cs->getOriginalName() );
+
+		}
+		else {
+			infoManager->setValue(idToProperty["[Type]"], QLatin1String("Captured image") );
+			sizeManager->setValue(idToProperty["[Frames size]"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
+		}
+
+	    // reconnect the managers to the corresponding value change
+	    connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
+	                this, SLOT(valueChanged(QtProperty *, double)));
+	    connect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
+	                this, SLOT(valueChanged(QtProperty *, const QString &)));
+	    connect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
+	                this, SLOT(valueChanged(QtProperty *, const QColor &)));
+	    connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)),
+	                this, SLOT(valueChanged(QtProperty *, const QPointF &)));
+	    connect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
+	                this, SLOT(enumChanged(QtProperty *, int)));
+	    connect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
+	                this, SLOT(valueChanged(QtProperty *, int)));
 	}
-	else if (s->rtti() == Source::CAMERA_SOURCE) {
-
-		infoManager->setValue(idToProperty["[Type]"], QLatin1String("Camera device") );
-		OpencvSource *cvs = dynamic_cast<OpencvSource *>(s);
-		infoManager->setValue(idToProperty["[Identifier]"], QString("OpenCV Camera %1").arg(cvs->getOpencvCameraIndex()) );
-		sizeManager->setValue(idToProperty["[Frames size]"], QSize(cvs->getFrameWidth(), cvs->getFrameHeight()) );
-		infoManager->setValue(idToProperty["[Frame rate]"], QString::number( cvs->getFrameRate() ) + QString(" fps") );
-	}
-	else if (s->rtti() == Source::RENDERING_SOURCE) {
-
-		infoManager->setValue(idToProperty["[Type]"], QLatin1String("Rendering loop-back") );
-		if (glSupportsExtension("GL_EXT_framebuffer_blit"))
-			infoManager->setValue(idToProperty["[Rendering mechanism]"], "Blit to frame buffer object" );
-		else
-			infoManager->setValue(idToProperty["[Rendering mechanism]"], "Draw to frame buffer object" );
-		sizeManager->setValue(idToProperty["[Frames size]"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
-		infoManager->setValue(idToProperty["[Frame rate]"], QString::number( RenderingManager::getRenderingWidget()->getFPS() / float(RenderingManager::getInstance()->getPreviousFrameDelay()) ) + QString(" fps") );
-	}
-	else if (s->rtti() == Source::ALGORITHM_SOURCE) {
-
-		infoManager->setValue(idToProperty["[Type]"], QLatin1String("Algorithm") );
-		AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(s);
-		infoManager->setValue(idToProperty["[Algorithm]"], AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()) );
-		sizeManager->setValue(idToProperty["[Frames size]"], QSize(as->getFrameWidth(), as->getFrameHeight()) );
-		infoManager->setValue(idToProperty["[Frame rate]"], QString::number(as->getFrameRate() ) + QString(" fps"));
-	}
-	else if (s->rtti() == Source::CLONE_SOURCE) {
-
-		infoManager->setValue(idToProperty["[Type]"], QLatin1String("Clone") );
-		CloneSource *cs = dynamic_cast<CloneSource *>(s);
-		infoManager->setValue(idToProperty["[Clone of]"], cs->getOriginalName() );
-
-//		qDebug("Source %d (%s) is clone of %d", cs->getId(), qPrintable(cs->getName()), (cs->getOriginalId())  );
-//		qDebug("Source %d is %s", cs->getOriginalId(), qPrintable(cs->getOriginalName()) );
-	}
-	else {
-		infoManager->setValue(idToProperty["[Type]"], QLatin1String("Captured image") );
-		sizeManager->setValue(idToProperty["[Frames size]"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
-	}
-
 }
 
 void SourcePropertyBrowser::showProperties(SourceSet::iterator csi){
@@ -521,31 +534,8 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QString &va
 		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
 
 		if ( property == idToProperty["Name"] ) {
-
-//			qDebug("name of Source %d is %s", currentItem->getId(), qPrintable(currentItem->getName()) );
-
 			currentItem->setName(value);
-
-
-//			qDebug("name of Source %d is %s", currentItem->getId(), qPrintable(currentItem->getName()) );
-
-//			// update subproperty in clones
-//			for (SourceList::iterator c = currentItem->getClones()->begin(); c != currentItem->getClones()->end(); c++){
-//				QList<QtProperty *> list = (*c)->getProperty()->subProperties();
-//			    QListIterator<QtProperty *> it(list);
-//			    while (it.hasNext()) {
-//			    	QtProperty *p = it.next();
-//			    	if ( p->propertyName() == QString("Clone properties") ) {
-//						CloneSource *cs = dynamic_cast<CloneSource *>(currentItem);
-//						if (cs)
-//							infoManager->setValue(p->subProperties().first(), cs->getOriginalName() );
-//					}
-//			    }
-//			}
-
-
 		}
-
     }
 }
 
@@ -555,17 +545,14 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QPointF &va
     if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
 		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
 
-		if ( !property->isModified() ) {
-			if ( property == idToProperty["Position"] ) {
-				currentItem->setX( value.x() * SOURCE_UNIT);
-				currentItem->setY( value.y() * SOURCE_UNIT);
-			}
-			else if ( property == idToProperty["Scale"] ) {
-				currentItem->setScaleX( value.x() * SOURCE_UNIT );
-				currentItem->setScaleY( value.y() * SOURCE_UNIT);
-			}
-		} else
-			property->setModified(false);
+		if ( property == idToProperty["Position"] ) {
+			currentItem->setX( value.x() * SOURCE_UNIT);
+			currentItem->setY( value.y() * SOURCE_UNIT);
+		}
+		else if ( property == idToProperty["Scale"] ) {
+			currentItem->setScaleX( value.x() * SOURCE_UNIT );
+			currentItem->setScaleY( value.y() * SOURCE_UNIT);
+		}
     }
 }
 
@@ -578,7 +565,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &val
 		if ( property == idToProperty["Color"] ) {
 			currentItem->setColor(value);
 		}
-
     }
 }
 
@@ -586,18 +572,23 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &val
 void SourcePropertyBrowser::valueChanged(QtProperty *property, double value){
 
     if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
 
-		if ( !property->isModified() ) {
-			if ( property == idToProperty["Depth"] ) {
-				currentItem->setDepth(value);
-			}
-			else if ( property == idToProperty["Alpha"] ) {
-				currentItem->setAlpha(value);
-			}
+		if ( property == idToProperty["Depth"] ) {
+			// ask the rendering manager to change the depth of the source
+			SourceSet::iterator c = RenderingManager::getInstance()->changeDepth(RenderingManager::getInstance()->getCurrentSource(), value);
+			// we need to set current again (the list changed)
+			RenderingManager::getInstance()->setCurrentSource(c);
+
+			// forces the update of the value, without calling valueChanded again.
+			disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
+			doubleManager->setValue(idToProperty["Depth"], (*c)->getDepth() );
+			connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 		}
-		else
-			property->setModified(false);
+		else if ( property == idToProperty["Alpha"] ) {
+			Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+			currentItem->setAlpha(value);
+		}
+
     }
 }
 
@@ -659,8 +650,10 @@ void SourcePropertyBrowser::updateMixingProperties(){
 
     if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
 		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
-		idToProperty["Alpha"]->setModified(true);
+
+	    disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 		doubleManager->setValue(idToProperty["Alpha"], currentItem->getAlpha() );
+		connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
     }
 }
 
@@ -669,20 +662,22 @@ void SourcePropertyBrowser::updateGeometryProperties(){
 
     if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
 		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
-		idToProperty["Position"]->setModified(true);
-		idToProperty["Scale"]->setModified(true);
+
+	    disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
 		pointManager->setValue(idToProperty["Position"], QPointF( currentItem->getX() / SOURCE_UNIT, currentItem->getY() / SOURCE_UNIT));
 		pointManager->setValue(idToProperty["Scale"], QPointF( currentItem->getScaleX() / SOURCE_UNIT, currentItem->getScaleY() / SOURCE_UNIT));
+	    connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
     }
-
 }
 
 void SourcePropertyBrowser::updateLayerProperties(){
 
     if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
 		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
-		idToProperty["Depth"]->setModified(true);
+
+	    disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 		doubleManager->setValue(idToProperty["Depth"], currentItem->getDepth() );
+		connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
     }
 }
 

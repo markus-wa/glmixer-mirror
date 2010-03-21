@@ -22,6 +22,8 @@ typedef std::vector<Source *> SourceList;
 
 class Source {
 
+	friend class RenderingManager;
+
 public:
 
 	Source(GLuint texture, double depth);
@@ -72,12 +74,6 @@ public:
 		return name;
 	}
 	void setName(QString n);
-//	// returns the pointer to the Property tree holding descriptions of the source
-//	inline QtProperty *getProperty() const {
-//		return property;
-//	}
-//	// sets the pointer to the Property tree holding descriptions of the source
-//	void setProperty(QtProperty *p);
 
 	// returns the list of clones of this source (used to delete them)
 	inline SourceList *getClones() const { return clones; }
@@ -122,7 +118,6 @@ public:
 	inline void setScaleY(GLdouble v) {
 		scaley = v;
 	}
-	void setDepth(GLdouble v);
 	void moveTo(GLdouble posx, GLdouble posy);
 	void setScale(GLdouble sx, GLdouble sy);
 	void scaleBy(GLfloat fx, GLfloat fy);
@@ -135,6 +130,11 @@ public:
 	}
 	void testCulling();
 
+protected:
+	// special case for depth; should only be modified by Rendering Manager
+	void setDepth(GLdouble v);
+
+public:
 
 	/**
 	 * Blending

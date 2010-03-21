@@ -42,11 +42,26 @@ struct hasName: public std::unary_function<Source*, bool>
 
     hasName(GLuint n) : _n(n) { }
 
+
 private:
     GLuint _n;
 
 };
 
+struct isCloseTo: public std::unary_function<Source*, bool>
+{
+    bool operator()(const Source* elem) const
+    {
+       return ( ABS(elem->getDepth() - _d) < DEPTH_EPSILON );
+    }
+
+    isCloseTo(GLdouble d) : _d(d) { }
+
+
+private:
+    GLdouble _d;
+
+};
 
 
 #endif /* SOURCESET_H_ */

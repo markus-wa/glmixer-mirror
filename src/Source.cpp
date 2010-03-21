@@ -30,9 +30,6 @@ Source::Source(GLuint texture, double depth) :
 	id = lastid++;
 	name = QString ("Source %1").arg(id);
 
-	// no property initially
-//	property = 0;
-
 	// TODO set attributes and children
 //	dom.setAttribute("id", id);
 //	QDomElement coordinates;
@@ -58,20 +55,8 @@ Source::~Source() {
 
 void Source::setName(QString n) {
 	name = n;
-
-//	idToProperty["Name"]->setModified(true);
 }
 
-//void Source::setProperty(QtProperty *p) {
-//	property = p;
-//
-//    QList<QtProperty *> list = property->subProperties();
-//    QListIterator<QtProperty *> it(list);
-//    while (it.hasNext()) {
-//    	QtProperty *tmp = it.next();
-//		idToProperty[tmp->propertyName()] = tmp;
-//    }
-//}
 
 void Source::testCulling(){
 
@@ -93,37 +78,27 @@ void Source::testCulling(){
 
 void Source::setDepth(GLdouble v) {
 	z = CLAMP(v, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
-
-//	idToProperty["Depth"]->setModified(true);
 }
 
 void Source::moveTo(GLdouble posx, GLdouble posy) {
 	x = posx;
 	y = posy;
-
-//	idToProperty["Position"]->setModified(true);
 }
 
 void Source::setScale(GLdouble sx, GLdouble sy) {
 	scalex = sx;
 	scaley = sy;
-
-//	idToProperty["Scale"]->setModified(true);
 }
 
 void Source::scaleBy(float fx, float fy) {
 	scalex *= fx;
 	scaley *= fy;
-
-//	idToProperty["Scale"]->setModified(true);
 }
 
 void Source::clampScale(){
 
 	scalex = (scalex > 0 ? 1.0 : -1.0) *  CLAMP( ABS(scalex), MIN_SCALE, MAX_SCALE);
 	scaley = (scaley > 0 ? 1.0 : -1.0) *  CLAMP( ABS(scaley), MIN_SCALE, MAX_SCALE);
-
-//	idToProperty["Scale"]->setModified(true);
 }
 
 void Source::setAlphaCoordinates(double x, double y) {
@@ -140,7 +115,6 @@ void Source::setAlphaCoordinates(double x, double y) {
 	else
 		texalpha = 0.0;
 
-//	idToProperty["Alpha"]->setModified(true);
 }
 
 
@@ -175,14 +149,10 @@ void Source::resetScale() {
 		scalex *= aspectratio / renderingAspectRatio;
 	else
 		scaley *= renderingAspectRatio / aspectratio;
-
-//	idToProperty["Scale"]->setModified(true);
 }
 
 void Source::setColor(QColor c) {
 	texcolor = c;
-	// no need to inform the property browser ; it is (for now) the only one changing the color.
-//	idToProperty["Color"]->setModified(true);
 }
 
 void Source::draw(bool withalpha, GLenum mode) const {

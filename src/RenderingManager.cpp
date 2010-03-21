@@ -481,11 +481,30 @@ bool RenderingManager::setCurrentSource(GLuint name) {
 SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource, double newdepth) {
 
 	if (itsource != _sources.end()) {
+		// verify that the depth value is not already taken, or too close to, and adjust in case.
+		SourceSet::iterator sb, se;
+		double depthinc = 0.0;
+		if ( newdepth < (*itsource)->getDepth() ) {
+			sb = _sources.begin();
+			se = itsource;
+			depthinc = -DEPTH_EPSILON;
+		} else {
+			sb = itsource;
+			sb++;
+			se = _sources.end();
+			depthinc = DEPTH_EPSILON;
+		}
+		while ( std::find_if( sb, se, isCloseTo(newdepth) ) !=  se ){
+			newdepth += depthinc;
+		}
+
+		// remember pointer to the source
 		Source *tmp = (*itsource);
 		// sort again the set by depth: this is done by removing the element and adding it again after changing its depth
 		_sources.erase(itsource);
+		// change the source internal depth value
 		tmp->setDepth(newdepth);
-
+		// re-insert the source into the sorted list ; it will be placed according to its new depth
 		return (_sources.insert(tmp));
 	}
 

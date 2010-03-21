@@ -50,10 +50,7 @@ public:
 	void addAlgorithmSource(int type, int w, int h, double v, int p);
 	void addCloneSource(SourceSet::iterator sit);
 
-	// TODO ? :
-//	inline Source *getSource(int i) {
-//		return *_sources.begin();
-//	}
+
 	SourceSet::iterator getById(GLuint name);
 	bool notAtEnd(SourceSet::iterator itsource);
 	bool isValid(SourceSet::iterator itsource);
