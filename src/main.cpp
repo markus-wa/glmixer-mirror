@@ -46,16 +46,17 @@ QStringList glSupportedExtensions() {
 
 int main(int argc, char **argv)
 {
- //   qInstallMsgHandler(GLMixerMessageOutput);
+    qInstallMsgHandler(GLMixerMessageOutput);
     QApplication a(argc, argv);
     a.setApplicationName("GLMixer");
 
-    // add local lib directory as library path (Qt Plugins)
+#ifdef __APPLE__
+    // add local bundled lib directory as library path (Qt Plugins)
     QDir dir(QApplication::applicationDirPath());
 	dir.cdUp();
 	dir.cd("lib");
 	QApplication::setLibraryPaths(QStringList(dir.absolutePath()));
-
+#endif
 
     if (!QGLFormat::hasOpenGL() )
     	qCritical("*** ERROR ***\n\nThis system does not support OpenGL and this program cannot work without it.");

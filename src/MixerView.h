@@ -42,7 +42,7 @@ private:
 
     // creation of groups from set of selection
 	SourceSetArray groupSources;
-	QList<QColor> groupColor;
+	QMap<SourceSetArray::iterator, QColor> groupColor;
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */

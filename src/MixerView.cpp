@@ -45,6 +45,16 @@ void MixerView::paint()
     glEnd();
     glDisable(GL_LINE_STIPPLE);
 
+    glLineWidth(3.0);
+    for(SourceSetArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+    	glColor4f(groupColor[itss].redF(), groupColor[itss].greenF(),groupColor[itss].blueF(), 0.9);
+        glBegin(GL_LINE_LOOP);
+        for(SourceSet::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+            glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
+        }
+        glEnd();
+    }
+
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
     glEnable(GL_TEXTURE_2D);
@@ -169,10 +179,18 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 			if ( currentAction != GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
 				setAction(SELECT);
 
-				if ( selectedSources.count(*cliked) > 0)
-					selectedSources.erase( *cliked );
-				else
-					selectedSources.insert( *cliked );
+	        	SourceSetArray::iterator itss = groupSources.begin();
+	            for(; itss != groupSources.end(); itss++) {
+	            	if ( (*itss).count(*cliked) > 0 )
+	            		break;
+	            }
+	        	if ( itss == groupSources.end() ) {
+
+					if ( selectedSources.count(*cliked) > 0)
+						selectedSources.erase( *cliked );
+					else
+						selectedSources.insert( *cliked );
+	        	}
 
 			}
 			else // not in selection (SELECT) action mode, then just set the current active source
@@ -206,14 +224,26 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 		SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 		if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
 
-			// if the clicked source is in the selection
-			if ( selectedSources.count(*cliked) > 0) {
-			// TODO ; create a group from the selection
-			}
-			// else add it to the selection
-			else
-				selectedSources.insert( *cliked );
-
+        	SourceSetArray::iterator itss = groupSources.begin();
+            for(; itss != groupSources.end(); itss++) {
+            	if ( (*itss).count(*cliked) > 0 )
+            		break;
+            }
+        	if ( itss != groupSources.end() ) {
+        		selectedSources = SourceSet(*itss);
+        		groupSources.erase(itss);
+        	} else {
+				// if the clicked source is in the selection
+				if ( selectedSources.count(*cliked) > 0 && selectedSources.size()>1 ) {
+					//  create a group from the selection
+					groupSources.push_front(SourceSet(selectedSources));
+					groupColor[groupSources.begin()] = QColor::fromHsv ( random()%180 + 179, 250, 250);
+					selectedSources.clear();
+				}
+				// else add it to the selection
+				else
+					selectedSources.insert( *cliked );
+        	}
 		} else
 			zoomBestFit();
 
@@ -240,7 +270,17 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
         if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
 
         	setAction(GRAB);
-			if ( selectedSources.count(*cliked) > 0 ){
+
+        	SourceSetArray::iterator itss = groupSources.begin();
+            for(; itss != groupSources.end(); itss++) {
+            	if ( (*itss).count(*cliked) > 0 )
+            		break;
+            }
+        	if ( itss != groupSources.end() ) {
+				for(SourceSet::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+					grabSource(its, event->x(), viewport[3] - event->y(), dx, dy);
+				}
+        	} else if ( selectedSources.count(*cliked) > 0 ){
 				for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
 					grabSource(its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
