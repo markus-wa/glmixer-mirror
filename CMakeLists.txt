@@ -52,10 +52,10 @@ IF(ProgramRevision)
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${ProgramRevision}" )
 ENDIF(ProgramRevision)
 
-if( APPLE )
-	set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.4" )
-        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.4" )
-endif( APPLE )
+#if( APPLE )
+#	set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.5" )
+#        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.4" )
+#endif( APPLE )
 
 # find the dependency libraries
 
@@ -188,6 +188,8 @@ set( GLMIXER_LIBRARIES   ${AVFORMAT_LIBRARY}
                         ${EXTRA_LIBRARIES} )
 
 
+
+include(${CMAKE_SOURCE_DIR}/macros.cmake)
 						
 # tell cmake to process CMakeLists.txt in that subdirectory
 

@@ -50,6 +50,13 @@ int main(int argc, char **argv)
     QApplication a(argc, argv);
     a.setApplicationName("GLMixer");
 
+    // add local lib directory as library path (Qt Plugins)
+    QDir dir(QApplication::applicationDirPath());
+	dir.cdUp();
+	dir.cd("lib");
+	QApplication::setLibraryPaths(QStringList(dir.absolutePath()));
+
+
     if (!QGLFormat::hasOpenGL() )
     	qCritical("*** ERROR ***\n\nThis system does not support OpenGL and this program cannot work without it.");
 
