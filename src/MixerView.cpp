@@ -4,6 +4,7 @@
  *  Created on: Nov 9, 2009
  *      Author: bh
  */
+#include <algorithm>
 
 #include "MixerView.h"
 
@@ -37,7 +38,7 @@ void MixerView::paint()
     glLineStipple(1, 0x9999);
     glEnable(GL_LINE_STIPPLE);
     glLineWidth(2.0);
-    glColor4f(0.2, 0.80, 0.2, 1.0);
+    glColor4f(0.2, 0.8, 0.2, 1.0);
     glBegin(GL_LINE_LOOP);
     for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
         glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
@@ -46,10 +47,10 @@ void MixerView::paint()
     glDisable(GL_LINE_STIPPLE);
 
     glLineWidth(3.0);
-    for(SourceSetArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+    for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
     	glColor4f(groupColor[itss].redF(), groupColor[itss].greenF(),groupColor[itss].blueF(), 0.9);
         glBegin(GL_LINE_LOOP);
-        for(SourceSet::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+        for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
             glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
         }
         glEnd();
@@ -100,7 +101,7 @@ void MixerView::paint()
 		RenderingManager::getInstance()->clearFrameBuffer();
 
     // Then the selection outlines
-    for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
+    for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
         glScalef( SOURCE_UNIT * (*its)->getAspectRatio(), SOURCE_UNIT, 1.f);
@@ -109,6 +110,22 @@ void MixerView::paint()
 
     }
 
+
+	// The rectangle for selection
+    if ( currentAction == RECTANGLE) {
+		glDisable(GL_TEXTURE_2D);
+		glColor4f(0.3, 0.8, 0.3, 0.1);
+		glRectdv(rectangleStart, rectangleEnd);
+		glLineWidth(0.5);
+		glColor4f(0.3, 0.8, 0.3, 0.5);
+	    glBegin(GL_LINE_LOOP);
+		glVertex3d(rectangleStart[0], rectangleStart[1], 0.0);
+		glVertex3d(rectangleEnd[0], rectangleStart[1], 0.0);
+		glVertex3d(rectangleEnd[0], rectangleEnd[1], 0.0);
+		glVertex3d(rectangleStart[0], rectangleEnd[1], 0.0);
+	    glEnd();
+		glEnable(GL_TEXTURE_2D);
+    }
 
     RenderingManager::getInstance()->updatePreviousFrame();
 }
@@ -137,6 +154,9 @@ void MixerView::resize(int w, int h)
          glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -MAX_DEPTH_LAYER, 10.0);
 
     refreshMatrices();
+
+    // just in case ; after a resize or a switch to this view, reset the pointer to last cliked source.
+    cliked = 0;
 }
 
 
@@ -163,39 +183,33 @@ void MixerView::setAction(actionType a){
 bool MixerView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
+	// What was cliked ?
+	cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 
 	if (event->buttons() & Qt::MidButton) {
 		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
 	}
 	// if at least one source icon was clicked
-	else if (event->buttons() & Qt::LeftButton) {
-    	// What was cliked ?
-    	SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
+	else  if (event->buttons() & Qt::LeftButton) {
 
     	// if a source icon was cliked
-        if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
+        if ( cliked ) {
 
         	// if CTRL button modifier pressed, add clicked to selection
 			if ( currentAction != GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
 				setAction(SELECT);
 
-	        	SourceSetArray::iterator itss = groupSources.begin();
-	            for(; itss != groupSources.end(); itss++) {
-	            	if ( (*itss).count(*cliked) > 0 )
-	            		break;
-	            }
-	        	if ( itss == groupSources.end() ) {
-
-					if ( selectedSources.count(*cliked) > 0)
-						selectedSources.erase( *cliked );
+	        	if ( !isInAGroup(cliked) ) {
+					if ( selectedSources.count(cliked) > 0)
+						selectedSources.erase( cliked );
 					else
-						selectedSources.insert( *cliked );
+						selectedSources.insert( cliked );
 	        	}
 
 			}
 			else // not in selection (SELECT) action mode, then just set the current active source
 			{
-				RenderingManager::getInstance()->setCurrentSource( cliked );
+				RenderingManager::getInstance()->setCurrentSource( cliked->getId() );
 				// ready for grabbing the current source
 				setAction(GRAB);
 			}
@@ -205,6 +219,10 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 			// clear selection
 			selectedSources.clear();
 			setAction(NONE);
+			// remember coordinates of clic
+			double dumm;
+		    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleStart, rectangleStart+1, &dumm);
+
 		}
 
     } else if (event->buttons() & Qt::MidButton) {
@@ -221,28 +239,29 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 	// for LEFT double button clic : pan the view to zoom on this source
 	if ( (event->buttons() & Qt::LeftButton) /*&& getSourceAtCoordinates(event->x(), viewport[3] - event->y()) */) {
 
-		SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
-		if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
+		cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
+		if ( cliked ) {
 
-        	SourceSetArray::iterator itss = groupSources.begin();
+        	SourceListArray::iterator itss = groupSources.begin();
             for(; itss != groupSources.end(); itss++) {
-            	if ( (*itss).count(*cliked) > 0 )
+            	if ( (*itss).count(cliked) > 0 )
             		break;
             }
         	if ( itss != groupSources.end() ) {
-        		selectedSources = SourceSet(*itss);
+        		selectedSources = SourceList(*itss);
         		groupSources.erase(itss);
+        		// TODO erase the color from the groupColor map
         	} else {
 				// if the clicked source is in the selection
-				if ( selectedSources.count(*cliked) > 0 && selectedSources.size()>1 ) {
+				if ( selectedSources.count(cliked) > 0 && selectedSources.size() > 1 ) {
 					//  create a group from the selection
-					groupSources.push_front(SourceSet(selectedSources));
-					groupColor[groupSources.begin()] = QColor::fromHsv ( random()%180 + 179, 250, 250);
+					groupSources.push_front(SourceList(selectedSources));
+					groupColor[groupSources.begin()] = QColor::fromHsv ( rand()%180 + 179, 250, 250);
 					selectedSources.clear();
 				}
 				// else add it to the selection
 				else
-					selectedSources.insert( *cliked );
+					selectedSources.insert( cliked );
         	}
 		} else
 			zoomBestFit();
@@ -265,38 +284,66 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
 	} else if (event->buttons() & Qt::LeftButton) {
 
-    	SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
-    	// if a source icon was cliked
-        if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
-
-        	setAction(GRAB);
-
-        	SourceSetArray::iterator itss = groupSources.begin();
-            for(; itss != groupSources.end(); itss++) {
-            	if ( (*itss).count(*cliked) > 0 )
+        if ( currentAction == GRAB )
+        {
+        	SourceListArray::iterator itss;
+            for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+            	if ( (*itss).count(cliked) > 0 )
             		break;
             }
         	if ( itss != groupSources.end() ) {
-				for(SourceSet::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-					grabSource(its, event->x(), viewport[3] - event->y(), dx, dy);
+				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
-        	} else if ( selectedSources.count(*cliked) > 0 ){
-				for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
-					grabSource(its, event->x(), viewport[3] - event->y(), dx, dy);
+        	} else if ( selectedSources.count(cliked) > 0 ){
+				for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
+					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
 			}
 			else
 				grabSource(cliked, event->x(), viewport[3] - event->y(), dx, dy);
 
 			return true;
+
+        } else {
+
+        	setAction(RECTANGLE);
+			// set coordinate of end of rectangle selection
+			double dumm;
+		    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleEnd, rectangleEnd+1, &dumm);
+
+		    // loop over every sources to check if it is in the rectangle area
+		    SourceList rectSources;
+		    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+		    {
+		    	if ((*its)->getAlphaX() > MINI(rectangleStart[0], rectangleEnd[0]) &&
+		    		(*its)->getAlphaX() < MAXI(rectangleStart[0], rectangleEnd[0]) &&
+		    		(*its)->getAlphaY() > MINI(rectangleStart[1], rectangleEnd[1]) &&
+		    		(*its)->getAlphaY() < MAXI(rectangleStart[1], rectangleEnd[1]) ){
+		    		rectSources.insert(*its);
+		    	}
+		    }
+
+			SourceList result;
+			for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+				result.erase (result.begin (), result.end ());
+				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
+				// if the group is fully inside the rectangle selection
+				if ( (*itss).size() != result.size() ) {
+	        		// ensure none of the group source remain in the selection
+					result.erase (result.begin (), result.end ());
+					std::set_difference(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+					rectSources = SourceList(result);
+				}
+			}
+
+			selectedSources = SourceList(rectSources);
         }
 
     } else if (event->buttons() & Qt::RightButton) {
 
     	// RIGHT clic on a source ; change its alpha, but do not make it current
-    	SourceSet::iterator cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
-    	// if a source icon was cliked
-        if ( RenderingManager::getInstance()->notAtEnd(cliked) ) {
+        if ( cliked ) {
 
         	//  move it individually, even if in a group
         	setAction(GRAB);
@@ -307,9 +354,8 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
     } else  { // mouse over (no buttons)
 
-    	SourceSet::iterator over = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 		 // selection mode with CTRL modifier
-		if ( RenderingManager::getInstance()->notAtEnd(over))
+		if ( getSourceAtCoordinates(event->x(), viewport[3] - event->y()) != 0 )
 			if (QApplication::keyboardModifiers () == Qt::ControlModifier)
 				setAction(SELECT);
 			else
@@ -326,7 +372,38 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
 
 	if (currentAction == GRAB )
 		setAction(OVER);
-	else
+	else if (currentAction == RECTANGLE ){
+
+		// set coordinate of end of rectangle selection
+		double dumm;
+	    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleEnd, rectangleEnd+1, &dumm);
+
+	    // loop over every sources to check if it is in the rectangle area
+	    SourceList rectSources;
+	    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+	    {
+	    	if ((*its)->getAlphaX() > MINI(rectangleStart[0], rectangleEnd[0]) &&
+	    		(*its)->getAlphaX() < MAXI(rectangleStart[0], rectangleEnd[0]) &&
+	    		(*its)->getAlphaY() > MINI(rectangleStart[1], rectangleEnd[1]) &&
+	    		(*its)->getAlphaY() < MAXI(rectangleStart[1], rectangleEnd[1]) ){
+	    		rectSources.insert(*its);
+	    	}
+	    }
+
+		SourceList result;
+		for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end();) {
+			result.erase (result.begin (), result.end ());
+			std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
+			// if the group is fully inside the rectangle selection
+			if ( (*itss).size() == result.size() )
+				itss = groupSources.erase( itss );
+			else
+				itss++;
+		}
+
+
+		setAction(NONE);
+	} else
 		setAction(currentAction);
 
 	return true;
@@ -343,7 +420,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event ){
 		// simulate a grab with no mouse movement but a deltazoom :
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 		if ( RenderingManager::getInstance()->notAtEnd(cs))
-			grabSource(cs, event->x(), (viewport[3] - event->y()), 0, 0);
+			grabSource(*cs, event->x(), (viewport[3] - event->y()), 0, 0);
 		// reset deltazoom
 		deltazoom = 0;
 	}
@@ -419,7 +496,7 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 	}
 }
 
-SourceSet::iterator  MixerView::getSourceAtCoordinates(int mouseX, int mouseY) {
+Source *MixerView::getSourceAtCoordinates(int mouseX, int mouseY) {
 
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
     GLint hits = 0;
@@ -463,9 +540,9 @@ SourceSet::iterator  MixerView::getSourceAtCoordinates(int mouseX, int mouseY) {
 
     if (hits != 0) {
         // select the top most
-        return RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3]);
+        return * (RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3]) );
     } else {
-        return RenderingManager::getInstance()->getEnd();
+        return 0;
     }
 
 }
@@ -473,7 +550,10 @@ SourceSet::iterator  MixerView::getSourceAtCoordinates(int mouseX, int mouseY) {
 /**
  *
  **/
-void MixerView::grabSource(SourceSet::iterator s, int x, int y, int dx, int dy) {
+void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
+
+	if (!s)
+		return;
 
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement
@@ -486,12 +566,11 @@ void MixerView::grabSource(SourceSet::iterator s, int x, int y, int dx, int dy) 
     ax += (ax + getPanningX()) * deltazoom;
     ay += (ay + getPanningY()) * deltazoom;
 
-    double ix = (*s)->getAlphaX() + ax - bx;
-    double iy = (*s)->getAlphaY() + ay - by;
+    double ix = s->getAlphaX() + ax - bx;
+    double iy = s->getAlphaY() + ay - by;
 
     // move icon
-    (*s)->setAlphaCoordinates( ix, iy );
-
+    s->setAlphaCoordinates( ix, iy );
 }
 
 
@@ -515,3 +594,12 @@ void MixerView::panningBy(int x, int y, int dx, int dy) {
 
 
 
+bool MixerView::isInAGroup(Source *s){
+
+	SourceListArray::iterator itss = groupSources.begin();
+    for(; itss != groupSources.end(); itss++) {
+    	if ( (*itss).count(s) > 0 )
+    		break;
+    }
+	return ( itss != groupSources.end() );
+}

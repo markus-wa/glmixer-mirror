@@ -111,7 +111,7 @@ protected:
 	GLdouble projection[16];
 	GLdouble modelview[16];
 
-	SourceSet selectedSources;
+	SourceList selectedSources;
 	reverseSourceSet clickedSources;
 	QPoint lastClicPos;
 	QPixmap icon;

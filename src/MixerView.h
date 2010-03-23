@@ -32,17 +32,20 @@ public:
 
 private:
 
-    SourceSet::iterator  getSourceAtCoordinates(int mouseX, int mouseY);
-    void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
+	Source *cliked;
+    Source *getSourceAtCoordinates(int mouseX, int mouseY);
+    void grabSource(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy) ;
 
-    typedef enum {NONE = 0, OVER, GRAB, SELECT } actionType;
+    typedef enum {NONE = 0, OVER, GRAB, SELECT, RECTANGLE } actionType;
     actionType currentAction;
+	GLdouble rectangleStart[2], rectangleEnd[2];
     void setAction(actionType a);
 
     // creation of groups from set of selection
-	SourceSetArray groupSources;
-	QMap<SourceSetArray::iterator, QColor> groupColor;
+	SourceListArray groupSources;
+    bool isInAGroup(Source *);
+	QMap<SourceListArray::iterator, QColor> groupColor;
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */

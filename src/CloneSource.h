@@ -33,14 +33,16 @@ protected:
 		if (tmp)
 			original = tmp->original;
 		// add this clone to the list of clones into the original source
-		original->getClones()->push_back((Source*) this);
+		std::pair<SourceList::iterator,bool> ret;
+		ret = original->getClones()->insert((Source *) this);
+
+		// TODO : Throw exception if (!ret.second)
+
 		aspectratio = original->getAspectRatio();
 	}
 
 	~CloneSource() {
-		SourceList::iterator exist = std::find( original->getClones()->begin(), original->getClones()->end(), (Source*) this);
-		if (exist != original->getClones()->end())
-			original->getClones()->erase(exist);
+		original->getClones()->erase((Source*) this);
 	}
 
 

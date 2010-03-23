@@ -273,7 +273,10 @@ void RenderingManager::addRenderingSource() {
 //    _propertyBrowser->createProperty((Source *) s);
 
 	// set the last created source to be current
-	setCurrentSource(_sources.insert((Source *) s));
+	std::pair<SourceSet::iterator,bool> ret;
+	ret = _sources.insert((Source *) s);
+	if (ret.second)
+		setCurrentSource(ret.first);
 }
 
 void RenderingManager::addCaptureSource(){
@@ -306,11 +309,11 @@ void RenderingManager::addCaptureSource(){
     Q_CHECK_PTR(s);
     s->setAspectRatio( double(capture.width()) / double(capture.height()) );
 
-    // create the properties
-//    _propertyBrowser->createProperty((Source *) s);
-
 	// set the last created source to be current
-	setCurrentSource(_sources.insert((Source *) s));
+	std::pair<SourceSet::iterator,bool> ret;
+	ret = _sources.insert((Source *) s);
+	if (ret.second)
+		setCurrentSource(ret.first);
 
 }
 
@@ -330,14 +333,14 @@ void RenderingManager::addMediaSource(VideoFile *vf) {
 	VideoSource *s = new VideoSource(vf, textureIndex, d);
     Q_CHECK_PTR(s);
 
-    // create the properties
-//    _propertyBrowser->createProperty((Source *) s);
-
     // scale the source to match the media size
     s->resetScale();
 
 	// set the last created source to be current
-	setCurrentSource(_sources.insert((Source *) s));
+	std::pair<SourceSet::iterator,bool> ret;
+	ret = _sources.insert((Source *) s);
+	if (ret.second)
+		setCurrentSource(ret.first);
 }
 
 #ifdef OPEN_CV
@@ -357,14 +360,14 @@ void RenderingManager::addOpencvSource(int opencvIndex) {
 	OpencvSource *s = new OpencvSource(opencvIndex, textureIndex, d);
     Q_CHECK_PTR(s);
 
-    // create the properties
-//    _propertyBrowser->createProperty((Source *) s);
-
     // scale the source to match the media size
     s->resetScale();
 
 	// set the last created source to be current
-	setCurrentSource(_sources.insert((Source *) s));
+	std::pair<SourceSet::iterator,bool> ret;
+	ret = _sources.insert((Source *) s);
+	if (ret.second)
+		setCurrentSource(ret.first);
 }
 #endif
 
@@ -385,11 +388,11 @@ void RenderingManager::addAlgorithmSource(int type, int w, int h, double v, int 
 	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, d, w, h, v, p);
     Q_CHECK_PTR(s);
 
-    // create the properties
-//    _propertyBrowser->createProperty((Source *) s);
-
 	// set the last created source to be current
-	setCurrentSource(_sources.insert((Source *) s));
+	std::pair<SourceSet::iterator,bool> ret;
+	ret = _sources.insert((Source *) s);
+	if (ret.second)
+		setCurrentSource(ret.first);
 }
 
 
@@ -402,11 +405,11 @@ void RenderingManager::addCloneSource(SourceSet::iterator sit) {
 	CloneSource *clone = new CloneSource(sit, d);
     Q_CHECK_PTR(clone);
 
-    // create the properties
-//    _propertyBrowser->createProperty((Source *) clone);
-
 	// set the last created source to be current
-	setCurrentSource(_sources.insert((Source *) clone));
+	std::pair<SourceSet::iterator,bool> ret;
+	ret = _sources.insert((Source *) clone);
+	if (ret.second)
+		setCurrentSource(ret.first);
 }
 
 void RenderingManager::removeSource(SourceSet::iterator itsource) {
@@ -421,7 +424,7 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 		CloneSource *cs = dynamic_cast<CloneSource *>(*itsource);
 		if (cs == NULL)
 			// first remove every clone of the source to be removed (if it is not a clone already)
-			for (SourceList::iterator clone = (*itsource)->getClones()->begin(); clone < (*itsource)->getClones()->end(); clone = (*itsource)->getClones()->begin()) {
+			for (SourceList::iterator clone = (*itsource)->getClones()->begin(); clone != (*itsource)->getClones()->end(); clone = (*itsource)->getClones()->begin()) {
 				removeSource( getById( (*clone)->getId() ) );
 			}
 		// then remove the source itself
@@ -505,10 +508,15 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource, 
 		// change the source internal depth value
 		tmp->setDepth(newdepth);
 		// re-insert the source into the sorted list ; it will be placed according to its new depth
-		return (_sources.insert(tmp));
+		std::pair<SourceSet::iterator,bool> ret;
+		ret = _sources.insert(tmp);
+		if (ret.second)
+			return (ret.first);
+		else
+			return (_sources.end());
 	}
 
-	return itsource;
+	return _sources.end();
 }
 
 SourceSet::iterator RenderingManager::getById(GLuint name) {

@@ -8,7 +8,7 @@
 #ifndef SOURCE_H_
 #define SOURCE_H_
 
-#include <vector>
+#include <set>
 #include <QDomElement>
 #include <QColor>
 #include <QtCore/QMap>
@@ -18,7 +18,10 @@
 class QtProperty;
 
 class Source;
-typedef std::vector<Source *> SourceList;
+//struct Source_id_comp;
+//typedef std::set<Source *, Source_id_comp> SourceList;
+typedef std::set<Source *> SourceList;
+
 
 class Source {
 
@@ -217,10 +220,17 @@ protected:
 	// id counter
 	static GLuint lastid;
 
-//	// the root of the property tree used to display and alter the source informations
-//	QtProperty *property;
-//    QMap<QString, QtProperty *> idToProperty;
 
 };
+
+//
+//struct Source_id_comp
+//{
+//    inline bool operator () (Source *a, Source *b) const
+//    {
+//        return (a->getId() < b->getId());
+//    }
+//};
+
 
 #endif /* SOURCE_H_ */
