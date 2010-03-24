@@ -33,7 +33,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     setupUi ( this );
 
 #ifndef OPEN_CV
-    actionCamera->setEnabled(false);
+    actionCameraSource->setEnabled(false);
 #endif
 
     // add the show/hide menu items for the dock widgets

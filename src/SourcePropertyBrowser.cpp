@@ -301,6 +301,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(prefilterItem);
 
 
+#ifdef OPEN_CV
 	rttiToProperty[Source::CAMERA_SOURCE] = groupManager->addProperty( QLatin1String("Camera properties"));
 
 		// Identifier
@@ -311,7 +312,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(fs);
 		// Frame rate
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(fr);
-
+#endif
 
 	rttiToProperty[Source::RENDERING_SOURCE] = groupManager->addProperty( QLatin1String("Render loop-back properties"));
 
@@ -408,6 +409,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			intManager->setValue(idToProperty["[Pre-Contrast]"], vf->getContrast() );
 			intManager->setValue(idToProperty["[Pre-Saturation]"], vf->getSaturation() );
 		}
+#ifdef OPEN_CV
 		else if (s->rtti() == Source::CAMERA_SOURCE) {
 
 			infoManager->setValue(idToProperty["[Type]"], QLatin1String("Camera device") );
@@ -416,6 +418,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			sizeManager->setValue(idToProperty["[Frames size]"], QSize(cvs->getFrameWidth(), cvs->getFrameHeight()) );
 			infoManager->setValue(idToProperty["[Frame rate]"], QString::number( cvs->getFrameRate() ) + QString(" fps") );
 		}
+#endif
 		else if (s->rtti() == Source::RENDERING_SOURCE) {
 
 			infoManager->setValue(idToProperty["[Type]"], QLatin1String("Rendering loop-back") );
