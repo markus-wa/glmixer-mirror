@@ -69,6 +69,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     // Create preview widget
 	OutputRenderWidget *outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
 	previewDockWidgetContentsLayout->addWidget(outputpreview);
+	outputpreview->setCursor(Qt::ArrowCursor);
 
     // signals for source management with RenderingManager
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(connectSource(SourceSet::iterator) ) );

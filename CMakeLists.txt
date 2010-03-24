@@ -75,7 +75,7 @@ find_package( openjpeg QUIET)
 find_package( vorbis QUIET)
 find_package( mp3lame QUIET)
 find_package( faac QUIET)
-find_package( faad QUIET)
+find_package( faad QUIET) 
 
 find_package( OpenCV QUIET)
 

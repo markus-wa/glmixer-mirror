@@ -165,8 +165,10 @@ void ViewRenderWidget::mouseDoubleClickEvent ( QMouseEvent * event ){
 	makeCurrent();
 	if(!currentManipulationView->mouseDoubleClickEvent(event))
 		QWidget::mouseDoubleClickEvent(event);
-//	else
-//		emit sourceModified( RenderingManager::getInstance()->getCurrentSource() );
+	else {
+		if ( currentManipulationView == geometryManipulationView )
+			emit sourceGeometryModified();
+	}
 }
 
 void ViewRenderWidget::wheelEvent ( QWheelEvent * event ){
