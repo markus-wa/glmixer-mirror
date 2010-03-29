@@ -54,7 +54,7 @@ void CameraThread::run(){
 	}
 }
 
-OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(texture, d), frameChanged(false), framerate(0.0)
+OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(texture, d), framerate(0.0)
 {
 
 	opencvCameraIndex = opencvIndex;

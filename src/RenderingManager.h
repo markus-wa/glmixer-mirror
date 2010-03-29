@@ -108,6 +108,7 @@ protected:
 	int countRenderingSource, previousframe_index, previousframe_delay;
     static bool blit;
     QImage capture;
+    QColor clearColor;
 
 	// the set of sources
 	SourceSet _sources;

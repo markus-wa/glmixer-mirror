@@ -54,7 +54,6 @@ protected:
 	int opencvCameraIndex;
 	CvCapture* capture;
 	int width, height;
-    bool frameChanged;
 	double framerate;
     IplImage *frame;
 

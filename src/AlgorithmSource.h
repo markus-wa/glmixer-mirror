@@ -56,7 +56,6 @@ protected:
 	int width, height;
 	unsigned long period;
 	double framerate;
-    bool frameChanged;
     double vertical, horizontal;
     double variability;
 

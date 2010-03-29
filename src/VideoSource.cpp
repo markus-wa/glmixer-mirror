@@ -14,7 +14,7 @@ GLuint videoSourceIconIndex = 0;
 VideoSource::RTTI VideoSource::type = Source::VIDEO_SOURCE;
 
 VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), Source(texture, d),
-		is(f),  bufferChanged(false), copyChanged(false), bufferIndex(-1)
+		is(f), copyChanged(false), bufferIndex(-1)
 {
 
     if (videoSourceIconIndex == 0) {
@@ -78,7 +78,7 @@ void VideoSource::update(){
 	Source::update();
 
     // update texture
-    if (is && bufferChanged) {
+    if (is && frameChanged) {
 
         const VideoPicture *vp = is->getPictureAtIndex(bufferIndex);
 
@@ -101,13 +101,13 @@ void VideoSource::update(){
                          vp->getBuffer() );
         }
         // shouldn't update next time unless requested
-        bufferChanged = false;
+        frameChanged = false;
     }
 }
 
 void VideoSource::updateFrame (int i)
 {
-	bufferChanged = true;
+	frameChanged = true;
 	bufferIndex = i;
     copyChanged = false;
 }
@@ -127,7 +127,7 @@ void VideoSource::applyFilter(){
 	// if the source is still on the original frame
 	if (bufferIndex == -1 || !is->isRunning() || is->isPaused()) {
 		// request to change the buffer from the new copy
-		bufferChanged = copyChanged = true;
+		frameChanged = copyChanged = true;
 	}
 	else {
 		// else do nothing special; wait for next frame

@@ -80,6 +80,8 @@ RenderingManager::RenderingManager() :
 	setFrameBufferResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
 	_currentSource = getEnd();
+
+	clearColor = QColor(Qt::black);
 }
 
 RenderingManager::~RenderingManager() {
@@ -191,7 +193,7 @@ void RenderingManager::clearFrameBuffer(){
 	_fbo->bind();
 	{
 		glPushAttrib(GL_COLOR_BUFFER_BIT);
-		glClearColor(0.0, 0.0, 0.0, 1.0f);
+		glClearColor(clearColor.redF(), clearColor.greenF(), clearColor.blueF(), 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glPopAttrib();
 	}
@@ -217,7 +219,7 @@ void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource, bool cl
 	_fbo->bind();
 	{
 		if (clearfirst) {
-		    glClearColor(0.0, 0.0, 0.0, 1.0f);
+			glClearColor(clearColor.redF(), clearColor.greenF(), clearColor.blueF(), 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
@@ -225,7 +227,7 @@ void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource, bool cl
 			glTranslated((*itsource)->getX(), (*itsource)->getY(), 0.0);
 			glScaled((*itsource)->getScaleX(), (*itsource)->getScaleY(), 1.f);
 
-			(*itsource)->startBlendingSection();
+			(*itsource)->blend();
 			(*itsource)->draw();
 		}
 	}
@@ -268,9 +270,6 @@ void RenderingManager::addRenderingSource() {
 	// create a source appropriate for this videofile
 	RenderingSource *s = new RenderingSource(previousframe_fbo->texture(), d);
     Q_CHECK_PTR(s);
-
-    // create the properties
-//    _propertyBrowser->createProperty((Source *) s);
 
 	// set the last created source to be current
 	std::pair<SourceSet::iterator,bool> ret;

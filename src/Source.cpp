@@ -16,15 +16,19 @@ GLuint Source::lastid = 1;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 
 Source::Source(GLuint texture, double depth) :
-		active(false), culled(false), textureIndex(texture), x(0.0), y(0.0), z(depth), scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-			aspectratio(1.0), texalpha(1.0), pixelated(false), greyscale(false), invertcolors(false), convolution(NONE) {
+		active(false), culled(false), frameChanged(false), textureIndex(texture), maskTextureIndex(0), iconIndex(0),
+		x(0.0), y(0.0), z(depth), scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
+		aspectratio(1.0), texalpha(1.0), pixelated(false), greyscale(false), invertcolors(false), convolution(NONE),
+		brightness(0), contrast(0) {
 
 	z = CLAMP(z, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 
 	texcolor = Qt::white;
 	source_blend = GL_SRC_ALPHA;
-	destination_blend =  GL_DST_ALPHA;
+	destination_blend =  GL_ONE;
 	blend_eq = GL_FUNC_ADD;
+
+	mask_type = Source::NO_MASK;
 
 	// give it a unique identifying name
 	id = lastid++;
@@ -432,19 +436,59 @@ static GLfloat lumMat[16] = { 0.30f, 0.30f, 0.30f, 0.0f,
                               0.0f,  0.0f,  0.0f,  1.0f };
 // Sharpen convolution kernel
 static GLfloat mSharpen[3][3] = {
-     {0.0f, .4f, 0.0f},
-     {0.4f, 0.4f, 0.4f },
-     {0.0f, 0.4f, 0.0f }};
+     {0.0f, -1.0f, 0.0f},
+     {-1.0f, 5.0f, -1.0f },
+     {0.0f, -1.0f, 0.0f }};
+// Blur convolution kernel
+static GLfloat mBlur[3][3] = {
+     {1.0f, 1.0f, 1.0f},
+     {1.0f, 2.0f, 1.f },
+     {1.0f, 1.f, 1.0f }};
+// Blur convolution kernel
+static GLfloat mEdge[3][3] = {
+     {1.0f, 1.0f, 1.0f},
+     {1.0f, -8.0, 1.0f },
+     {1.0f, 1.0f, 1.0f }};
+//static GLfloat mEdge[3][3] = {
+//     {0.0f, 1.0f, 0.0f},
+//     {1.0f, -4.0, 1.0f },
+//     {0.0f, 1.0f, 0.0f }};
 // Emboss convolution kernel
 static GLfloat mEmboss[3][3] = {
     { -2.0f, -1.0f, 0.0f },
     { -1.0f, 1.0f, 1.0f },
     { 0.0f, 1.0f, 2.0f }};
 
-void Source::startBlendingSection() const {
+void Source::update() {
 
-	glBlendEquation(blend_eq);
-	glBlendFunc(source_blend, destination_blend);
+	glBindTexture(GL_TEXTURE_2D, textureIndex);
+
+}
+
+
+void Source::startEffectsSection() const {
+
+
+	if ( convolution != NONE ) {
+
+		if ( convolution == SHARPEN ){
+			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3, GL_LUMINANCE, GL_FLOAT, mSharpen);
+			glEnable(GL_CONVOLUTION_2D);
+		} else if (convolution == BLUR ) {
+			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3, GL_LUMINANCE, GL_FLOAT, mBlur);
+			glEnable(GL_CONVOLUTION_2D);
+			glMatrixMode(GL_COLOR);
+			glScalef(0.1, 0.1, 0.1);
+			glMatrixMode(GL_MODELVIEW);
+		} else if (convolution == EMBOSS ) {
+			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3, GL_LUMINANCE, GL_FLOAT, mEmboss);
+			glEnable(GL_CONVOLUTION_2D);
+		} else if (convolution == EDGE ) {
+			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3, GL_LUMINANCE, GL_FLOAT, mEdge);
+			glEnable(GL_CONVOLUTION_2D);
+		}
+
+	}
 
 	if (greyscale){
 		glMatrixMode(GL_COLOR);
@@ -454,35 +498,116 @@ void Source::startBlendingSection() const {
 
 	if (invertcolors) {
 
+		glColorTable(GL_COLOR_TABLE, GL_RGBA, 256, GL_RGBA, GL_UNSIGNED_BYTE, invertTable);
+		glEnable(GL_COLOR_TABLE);
 
 	}
+	if (brightness != 0){
+		glMatrixMode(GL_COLOR);
+		float b = float (brightness) / 100.f + 1.f;
+		glScalef(b,b,b);
+		glMatrixMode(GL_MODELVIEW);
 
-	if ( convolution != NONE ) {
+//		glPixelTransferf(GL_RED_SCALE, b);
+//		glPixelTransferf(GL_GREEN_SCALE, b);
+//		glPixelTransferf(GL_BLUE_SCALE, b);
+//
+//		b = float (brightness) / -50.f;
+//		glPixelTransferf(GL_RED_BIAS, b);
+//		glPixelTransferf(GL_GREEN_BIAS, b);
+//		glPixelTransferf(GL_BLUE_BIAS, b);
 
 	}
 
 }
 
-void Source::endBlendingSection() const {
+void Source::endEffectsSection() const {
+	// standard transparency blending
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
-
-	if (greyscale){
+	if ( convolution != NONE ) {
 		glMatrixMode(GL_COLOR);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
+		glDisable(GL_CONVOLUTION_2D);
+	}
+
+	if (greyscale || brightness != 0){
+		glMatrixMode(GL_COLOR);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+
+		// contrast
+//		glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
+//		glPixelTransferf(GL_RED_SCALE, 1.0f);
+//		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+//		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+//		glPixelTransferf(GL_RED_BIAS, 0.0f);
+//		glPixelTransferf(GL_GREEN_BIAS, 0.0f);
+//		glPixelTransferf(GL_BLUE_BIAS, 0.0f);
 	}
 
 	if (invertcolors) {
-
-
+		glDisable(GL_COLOR_TABLE);
 	}
 
-	if ( convolution != NONE ) {
-
+	if (mask_type != Source::NO_MASK){
+		glActiveTexture(GL_TEXTURE1);
+		glDisable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE0);
 	}
 
 }
 
+void Source::blend() const {
 
+	glBlendEquation(blend_eq);
+	glBlendFunc(source_blend, destination_blend);
+
+	if (mask_type != Source::NO_MASK){
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, maskTextureIndex);
+
+		glEnable(GL_TEXTURE_2D);
+//		glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+//		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_BLEND);
+
+		glActiveTexture(GL_TEXTURE0);
+	}
+}
+
+
+void Source::setMask(maskType t, GLuint texture){
+
+	mask_type = t;
+
+	switch (t) {
+	case Source::ROUNDCORNER_MASK:
+		maskTextureIndex = ViewRenderWidget::mask_textures[0];
+		break;
+	case Source::CIRCLE_MASK:
+		maskTextureIndex = ViewRenderWidget::mask_textures[1];
+		break;
+	case Source::GRADIENT_CIRCLE_MASK:
+		maskTextureIndex = ViewRenderWidget::mask_textures[2];
+		break;
+	case Source::GRADIENT_SQUARE_MASK:
+		maskTextureIndex = ViewRenderWidget::mask_textures[3];
+		break;
+	case Source::GRADIENT_LATERAL_MASK:
+		maskTextureIndex = ViewRenderWidget::mask_textures[4];
+		break;
+	case Source::GRADIENT_DIAGONAL_MASK:
+		maskTextureIndex = ViewRenderWidget::mask_textures[5];
+		break;
+	case Source::CUSTOM_MASK:
+		if (texture != 0)
+			maskTextureIndex = texture;
+	default:
+	case Source::NO_MASK:
+		mask_type = Source::NO_MASK;
+	}
+
+}

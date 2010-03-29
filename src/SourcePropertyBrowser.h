@@ -38,6 +38,7 @@ public slots:
     // This concerns every properties editable in the browser
     void valueChanged(QtProperty *property, const QColor &value);
     void valueChanged(QtProperty *property, const QPointF &value);
+    void valueChanged(QtProperty *property, bool value);
     void valueChanged(QtProperty *property, int value);
     void enumChanged(QtProperty *property, int value);
 	void valueChanged(QtProperty *property, double value);

@@ -36,7 +36,8 @@ LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), currentSourceDisplacem
 void LayersView::paint()
 {
     // First the background stuff
-
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
     glCallList(ViewRenderWidget::layerbg);
 
 	glPushMatrix();
@@ -75,11 +76,12 @@ void LayersView::paint()
             glCallList(ViewRenderWidget::border_thin_shadow);
 
 	    // Blending Function For mixing like in the rendering window
-        (*its)->startBlendingSection();
+        (*its)->startEffectsSection();
 		// bind the source texture and update its content
 		(*its)->update();
 
 		// draw surface (do not set blending from source)
+		(*its)->blend();
 		(*its)->draw();
 
 		// draw stippled version of the source on top
@@ -94,7 +96,7 @@ void LayersView::paint()
         first = false;
 
         // back to default blending for the rest
-        (*its)->endBlendingSection();
+        (*its)->endEffectsSection();
 
 	}
 	if (first)

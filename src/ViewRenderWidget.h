@@ -78,6 +78,7 @@ protected:
 	static GLuint quad_texured, quad_half_textured, quad_black;
 	static GLuint circle_mixing, layerbg;
 	static GLuint quad_stipped_textured[4];
+	static GLuint mask_textures[8];
 
 	// utility to build the display lists
     GLuint buildHalfList_fine();
@@ -86,7 +87,7 @@ protected:
     GLuint buildHalfList_triangle();
     GLuint buildSelectList();
     GLuint buildLineList();
-    GLuint buildQuadList();
+    GLuint buildTexturedQuadList();
     GLuint buildCircleList();
     GLuint buildLayerbgList();
     GLuint buildFrameList();

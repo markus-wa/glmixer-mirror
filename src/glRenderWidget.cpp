@@ -54,6 +54,7 @@ void glRenderWidget::initializeGL()
     glDisable(GL_NORMALIZE);
 
     // Enables texturing
+	glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
     // Pure texture color (no lighting)
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -61,8 +62,8 @@ void glRenderWidget::initializeGL()
 
 
     // ensure alpha channel is modulated
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+//    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+//	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 
     // Turn blending on
     glEnable(GL_BLEND);

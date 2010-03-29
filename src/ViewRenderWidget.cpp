@@ -19,6 +19,7 @@ GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_black = 0;
 GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0;
 GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0;
 GLuint ViewRenderWidget::quad_half_textured = 0, ViewRenderWidget::quad_stipped_textured[] = {0,0,0,0};
+GLuint ViewRenderWidget::mask_textures[] = {0,0,0,0,0,0,0,0};
 
 ViewRenderWidget::ViewRenderWidget() :glRenderWidget() {
 
@@ -57,7 +58,7 @@ void ViewRenderWidget::initializeGL()
     	border_large_shadow = border_thin_shadow + 1;
     }
 	if (!quad_texured)
-		quad_texured = buildQuadList();
+		quad_texured = buildTexturedQuadList();
 	if (!quad_half_textured){
 		quad_stipped_textured[0] = buildHalfList_fine();
 		quad_stipped_textured[1] = buildHalfList_gross();
@@ -79,6 +80,30 @@ void ViewRenderWidget::initializeGL()
 		border_thin = buildBordersList();
 		border_large = border_thin + 1;
 		border_scale = border_thin + 2;
+	}
+
+	if (!mask_textures[0]) {
+		glActiveTexture(GL_TEXTURE1);
+		glEnable(GL_TEXTURE_2D);
+		mask_textures[0] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_roundcorner.png")), GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		mask_textures[1] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_circle.png")), GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		mask_textures[2] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_linear_circle.png")), GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		mask_textures[3] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_linear_square.png")), GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+
+		glDisable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE0);
 	}
 
 }
@@ -426,7 +451,7 @@ GLuint ViewRenderWidget::buildSelectList() {
 /**
  * Build a display list of a textured QUAD and returns its id
  **/
-GLuint ViewRenderWidget::buildQuadList() {
+GLuint ViewRenderWidget::buildTexturedQuadList() {
 
     GLuint id = glGenLists(1);
     glNewList(id, GL_COMPILE);
@@ -436,13 +461,21 @@ GLuint ViewRenderWidget::buildQuadList() {
     // Front Face (note that the texture's corners have to match the quad's corners)
     glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
-    glTexCoord2f(0.0f, 1.0f);
+//    glTexCoord2f(0.0f, 1.0f);
+    glMultiTexCoord2f(GL_TEXTURE0, 0.f, 1.f);
+    glMultiTexCoord2f(GL_TEXTURE1, 0.f, 1.f);
     glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glTexCoord2f(1.0f, 1.0f);
+//    glTexCoord2f(1.0f, 1.0f);
+    glMultiTexCoord2f(GL_TEXTURE0, 1.f, 1.f);
+    glMultiTexCoord2f(GL_TEXTURE1, 1.f, 1.f);
     glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glTexCoord2f(1.0f, 0.0f);
+//    glTexCoord2f(1.0f, 0.0f);
+    glMultiTexCoord2f(GL_TEXTURE0, 1.f, 0.f);
+    glMultiTexCoord2f(GL_TEXTURE1, 1.f, 0.f);
     glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glTexCoord2f(0.0f, 0.0f);
+//    glTexCoord2f(0.0f, 0.0f);
+    glMultiTexCoord2f(GL_TEXTURE0, 0.f, 0.f);
+    glMultiTexCoord2f(GL_TEXTURE1, 0.f, 0.f);
     glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
 
     glEnd();
@@ -856,3 +889,4 @@ GLuint ViewRenderWidget::buildBordersList() {
 
     return base;
 }
+

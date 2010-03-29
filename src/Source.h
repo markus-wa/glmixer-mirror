@@ -44,12 +44,13 @@ public:
 	 */
 	// to be called in the OpenGL loop to bind the source texture before drawing
 	// In subclasses of Source, the texture content is also updated
-	virtual void update() {
-    	glBindTexture(GL_TEXTURE_2D, textureIndex);
-    }
+	virtual void update();
+	// Request update
+	inline void requestUpdate() { frameChanged = true; }
+	void blend() const;
 	// to be called in the OpenGL loop before drawing if the source shall be blended
-	void startBlendingSection() const;
-	void endBlendingSection() const;
+	void startEffectsSection() const;
+	void endEffectsSection() const;
 
 	// to be called in the OpenGL loop to draw this source
     void draw(bool withalpha = true, GLenum mode = GL_RENDER) const;
@@ -172,18 +173,28 @@ public:
 	inline void setBlendEquation(GLenum eq) {
 		blend_eq = eq;
 	}
+
+	typedef enum { NO_MASK, ROUNDCORNER_MASK, CIRCLE_MASK, GRADIENT_CIRCLE_MASK, GRADIENT_SQUARE_MASK, GRADIENT_LATERAL_MASK, GRADIENT_DIAGONAL_MASK, CUSTOM_MASK } maskType;
+	void setMask(maskType t, GLuint texture = 0);
+	int getMask() { return (int) mask_type; }
+
+
 	/**
 	 * Coloring, image processing
 	 */
-
+	// set canvas color
 	void setColor(QColor c);
-
+	// Adjust brightness factor
+	inline void setBrightness(int b) { brightness = b; }
+	inline int getBrightness() const { return brightness; }
+	// Switch to greyscale
 	inline void setGreyscale(bool on) { greyscale = on;}
 	inline bool isGreyscale() const { return greyscale; }
+	// Switch to color inverted
 	inline void setInvertcolors(bool on) { invertcolors = on;}
 	inline bool isInvertcolors() const { return invertcolors; }
-
-	typedef enum { NONE, SHARPEN, BLUR, EDGE, EMBOSS } convolutionType;
+	// select a filter
+	typedef enum { NONE, BLUR, SHARPEN, EDGE, EMBOSS } convolutionType;
 	inline void setConvolution( convolutionType c) { convolution = c; }
 	inline convolutionType getConvolution() const { return convolution; }
 
@@ -192,11 +203,11 @@ protected:
 	// identity and properties
 	GLuint id;
 	QString name;
-	bool active, culled;
+	bool active, culled, frameChanged;
 	SourceList *clones;
 
 	// GL Stuff
-	GLuint textureIndex, iconIndex;
+	GLuint textureIndex, maskTextureIndex, iconIndex;
 	GLdouble x, y, z;
 	GLdouble scalex, scaley;
 	GLdouble alphax, alphay;
@@ -205,6 +216,7 @@ protected:
 	QColor texcolor;
 	GLenum source_blend, destination_blend;
 	GLenum blend_eq;
+	maskType mask_type;
 
 	// if should be set to GL_NEAREST
 	bool pixelated;
@@ -214,8 +226,8 @@ protected:
 	bool invertcolors;
 	// which convolution filter to apply?
 	convolutionType convolution;
-	// if a color or processing has been changed, it needs to be updated
-	bool needs_update;
+	// Brightness
+	int brightness, contrast;
 
 	// id counter
 	static GLuint lastid;

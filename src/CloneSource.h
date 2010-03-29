@@ -22,8 +22,8 @@ public:
 	static RTTI type;
 	RTTI rtti() const { return type; }
 
-	QString getOriginalName() { return original->getName(); }
-	GLuint getOriginalId() { return original->getId(); }
+	inline QString getOriginalName() { return original->getName(); }
+	inline GLuint getOriginalId() { return original->getId(); }
 
     // only RenderingManager can create a source
 protected:
@@ -35,7 +35,6 @@ protected:
 		// add this clone to the list of clones into the original source
 		std::pair<SourceList::iterator,bool> ret;
 		ret = original->getClones()->insert((Source *) this);
-
 		// TODO : Throw exception if (!ret.second)
 
 		aspectratio = original->getAspectRatio();

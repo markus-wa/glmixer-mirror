@@ -1494,7 +1494,7 @@ void VideoFile::setBrightness(int b){
 void VideoFile::setContrast(int c){
 
 	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-	if ( c >= -100 && c <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+	if ( c >= -99 && c <= 100 &&  -1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
 		// ok, got all the details, modify one:
 		contrast   = ((( c +100)<<16) + 50)/100;
 		// apply it

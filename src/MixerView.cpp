@@ -68,14 +68,14 @@ void MixerView::paint()
 		glPushMatrix();
 		glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		glScalef( SOURCE_UNIT * (*its)->getAspectRatio(),  SOURCE_UNIT, 1.f);
-		// standard transparency blending
-	    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	    glBlendEquation(GL_FUNC_ADD);
 
 		if ((*its)->isActive())
 			glCallList(ViewRenderWidget::border_large_shadow);
 		else
 			glCallList(ViewRenderWidget::border_thin_shadow);
+
+	    // Blending Function For mixing like in the rendering window
+        (*its)->startEffectsSection();
 
 		// bind the source texture and update its content
 		(*its)->update();
@@ -94,6 +94,9 @@ void MixerView::paint()
 		//
         RenderingManager::getInstance()->renderToFrameBuffer(its, first);
         first = false;
+
+        // back to default blending for the rest
+        (*its)->endEffectsSection();
 
 	}
 
@@ -400,7 +403,6 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
 			else
 				itss++;
 		}
-
 
 		setAction(NONE);
 	} else

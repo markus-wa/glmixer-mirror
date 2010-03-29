@@ -35,13 +35,13 @@ public:
 	static RTTI type;
 	RTTI rtti() const { return type; }
 
-    inline VideoFile *getVideoFile() { return is; }
+    inline VideoFile *getVideoFile() const { return is; }
 
 private:
     VideoFile *is;
     VideoPicture copy;
 
-    bool bufferChanged, copyChanged;
+    bool copyChanged;
     int bufferIndex;
 
 };
