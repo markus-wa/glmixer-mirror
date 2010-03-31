@@ -414,7 +414,9 @@ void QtGroupBoxPropertyBrowserPrivate::updateItem(WidgetItem *item)
     QtProperty *property = m_itemToIndex[item]->property();
     if (item->groupBox) {
         QFont font = item->groupBox->font();
-        font.setUnderline(property->isModified());
+        font.setBold(property->isModified());
+        // bhbn
+        font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->groupBox->setFont(font);
         item->groupBox->setTitle(property->propertyName());
         item->groupBox->setToolTip(property->toolTip());
@@ -424,7 +426,9 @@ void QtGroupBoxPropertyBrowserPrivate::updateItem(WidgetItem *item)
     }
     if (item->label) {
         QFont font = item->label->font();
-        font.setUnderline(property->isModified());
+        font.setBold(property->isModified());
+        // bhbn
+        font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->label->setFont(font);
         item->label->setText(property->propertyName());
         item->label->setToolTip(property->toolTip());
@@ -434,14 +438,18 @@ void QtGroupBoxPropertyBrowserPrivate::updateItem(WidgetItem *item)
     }
     if (item->widgetLabel) {
         QFont font = item->widgetLabel->font();
-        font.setUnderline(false);
+        font.setBold(false);
+        // bhbn
+        font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->widgetLabel->setFont(font);
         item->widgetLabel->setText(property->valueText());
         item->widgetLabel->setEnabled(property->isEnabled());
     }
     if (item->widget) {
         QFont font = item->widget->font();
-        font.setUnderline(false);
+        font.setBold(false);
+        // bhbn
+        font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->widget->setFont(font);
         item->widget->setEnabled(property->isEnabled());
         item->widget->setToolTip(property->valueText());

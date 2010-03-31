@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 class QtPropertyPrivate
 {
 public:
-    QtPropertyPrivate(QtAbstractPropertyManager *manager) : m_enabled(true), m_modified(false), m_manager(manager) {}
+    QtPropertyPrivate(QtAbstractPropertyManager *manager) : m_enabled(true), m_modified(false), m_italics(false), m_manager(manager) {}
     QtProperty *q_ptr;
 
     QSet<QtProperty *> m_parentItems;
@@ -73,6 +73,9 @@ public:
     QString m_name;
     bool m_enabled;
     bool m_modified;
+
+    // BHBN
+    bool m_italics;
 
     QtAbstractPropertyManager * const m_manager;
 };
@@ -387,6 +390,23 @@ void QtProperty::setModified(bool modified)
     d_ptr->m_modified = modified;
     propertyChanged();
 }
+/*!
+    Specifies if the property QFont::Style should be QFont::StyleItalic or not (QFont::StyleNormal).
+
+*/
+void QtProperty::setItalics(bool italics)
+{
+    if (d_ptr->m_italics == italics)
+        return;
+
+    d_ptr->m_italics = italics;
+    propertyChanged();
+}
+
+
+bool QtProperty::isItalics() { return d_ptr->m_italics; }
+
+
 
 /*!
     Appends the given \a property to this property's subproperties.

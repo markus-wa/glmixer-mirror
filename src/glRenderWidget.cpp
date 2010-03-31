@@ -56,14 +56,12 @@ void glRenderWidget::initializeGL()
     // Enables texturing
 	glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
+
+    // ensure alpha channel is modulated ; otherwise the source is not mixed by its alpha channel
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
     // Pure texture color (no lighting)
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    // This hint can improve the speed of texturing when perspective- correct texture coordinate interpolation isn't needed
-
-
-    // ensure alpha channel is modulated
-//    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-//	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
 
     // Turn blending on
     glEnable(GL_BLEND);
@@ -118,9 +116,9 @@ void glRenderWidget::paintGL()
 		fpsCounter_ = 0;
 	}
 
-	if (showFps_) {
+	if (showFps_ || f_p_s_ < 25) {
 		fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
-		displayFPS();
+		displayFPS( f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red) );
 	} 
 }
 
@@ -140,9 +138,9 @@ void glRenderWidget::hideEvent ( QHideEvent * event ) {
 	}
 }
 
-void glRenderWidget::displayFPS()
+void glRenderWidget::displayFPS(Qt::GlobalColor c)
 {
-	qglColor(Qt::darkGreen);
+	qglColor(c);
 	renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
 }
 

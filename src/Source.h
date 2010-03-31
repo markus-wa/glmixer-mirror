@@ -174,7 +174,7 @@ public:
 		blend_eq = eq;
 	}
 
-	typedef enum { NO_MASK, ROUNDCORNER_MASK, CIRCLE_MASK, GRADIENT_CIRCLE_MASK, GRADIENT_SQUARE_MASK, GRADIENT_LATERAL_MASK, GRADIENT_DIAGONAL_MASK, CUSTOM_MASK } maskType;
+	typedef enum { NO_MASK, ROUNDCORNER_MASK, CIRCLE_MASK, GRADIENT_CIRCLE_MASK, GRADIENT_SQUARE_MASK, CUSTOM_MASK } maskType;
 	void setMask(maskType t, GLuint texture = 0);
 	int getMask() { return (int) mask_type; }
 

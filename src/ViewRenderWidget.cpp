@@ -88,19 +88,23 @@ void ViewRenderWidget::initializeGL()
 		mask_textures[0] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_roundcorner.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_BLEND);
+		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_COMBINE);
 		mask_textures[1] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_BLEND);
+		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_COMBINE);
 		mask_textures[2] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_linear_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_BLEND);
+		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_COMBINE);
 		mask_textures[3] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_linear_square.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_BLEND);
+		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_COMBINE);
 
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
@@ -461,19 +465,15 @@ GLuint ViewRenderWidget::buildTexturedQuadList() {
     // Front Face (note that the texture's corners have to match the quad's corners)
     glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
-//    glTexCoord2f(0.0f, 1.0f);
     glMultiTexCoord2f(GL_TEXTURE0, 0.f, 1.f);
     glMultiTexCoord2f(GL_TEXTURE1, 0.f, 1.f);
     glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-//    glTexCoord2f(1.0f, 1.0f);
     glMultiTexCoord2f(GL_TEXTURE0, 1.f, 1.f);
     glMultiTexCoord2f(GL_TEXTURE1, 1.f, 1.f);
     glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-//    glTexCoord2f(1.0f, 0.0f);
     glMultiTexCoord2f(GL_TEXTURE0, 1.f, 0.f);
     glMultiTexCoord2f(GL_TEXTURE1, 1.f, 0.f);
     glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-//    glTexCoord2f(0.0f, 0.0f);
     glMultiTexCoord2f(GL_TEXTURE0, 0.f, 0.f);
     glMultiTexCoord2f(GL_TEXTURE1, 0.f, 0.f);
     glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left

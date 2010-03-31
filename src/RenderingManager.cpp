@@ -285,12 +285,12 @@ void RenderingManager::addCaptureSource(){
 	if (capture.isNull())
 		capture = _fbo->toImage();
 		
-	// in QT 4.6 implementation of blitting of FBO, the y is flipped ; avoid this here on the texture
 #if QT_VERSION < 0x040600
 	GLuint textureIndex = _renderwidget->bindTexture (capture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 #else
+	// in QT implementation of blitting of FBO, the y is flipped ; avoid this here on the texture
 	GLuint textureIndex = _renderwidget->bindTexture (capture, GL_TEXTURE_2D, GL_RGBA, QGLContext::LinearFilteringBindOption | QGLContext::MipmapBindOption);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );

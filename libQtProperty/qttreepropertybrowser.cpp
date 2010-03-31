@@ -608,6 +608,11 @@ void QtTreePropertyBrowserPrivate::updateItem(QTreeWidgetItem *item)
     item->setStatusTip(0, property->statusTip());
     item->setWhatsThis(0, property->whatsThis());
     item->setText(0, property->propertyName());
+    // bhbn
+    QFont f = item->font(0);
+    f.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
+    item->setFont(0, f);
+
     bool wasEnabled = item->flags() & Qt::ItemIsEnabled;
     bool isEnabled = wasEnabled;
     if (property->isEnabled()) {
@@ -626,6 +631,7 @@ void QtTreePropertyBrowserPrivate::updateItem(QTreeWidgetItem *item)
             disableItem(item);
     }
     m_treeWidget->viewport()->update();
+
 }
 
 QColor QtTreePropertyBrowserPrivate::calculatedBackgroundColor(QtBrowserItem *item) const
@@ -951,8 +957,9 @@ void QtTreePropertyBrowser::setBackgroundColor(QtBrowserItem *item, const QColor
 {
     if (!d_ptr->m_indexToItem.contains(item))
         return;
-    if (color.isValid())
+    if (color.isValid()) {
         d_ptr->m_indexToBackgroundColor[item] = color;
+    }
     else
         d_ptr->m_indexToBackgroundColor.remove(item);
     d_ptr->m_treeWidget->viewport()->update();

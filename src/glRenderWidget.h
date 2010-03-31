@@ -29,7 +29,7 @@ public:
     virtual void hideEvent ( QHideEvent * event );
 
     // cosmetics
-    void displayFPS();
+    void displayFPS(Qt::GlobalColor);
 	float getFPS() { return f_p_s_; }
     void setBackgroundColor(const QColor &c);
 

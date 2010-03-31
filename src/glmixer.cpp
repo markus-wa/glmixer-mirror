@@ -183,7 +183,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 													d.absolutePath(),
 													tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
 
-	d.setPath(fileName);
+	d.setPath(fileNames.first());
 #endif
 
 	QStringListIterator fileNamesIt(fileNames);

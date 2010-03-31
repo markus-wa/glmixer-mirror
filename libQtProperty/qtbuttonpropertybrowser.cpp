@@ -469,7 +469,9 @@ void QtButtonPropertyBrowserPrivate::updateItem(WidgetItem *item)
     QtProperty *property = m_itemToIndex[item]->property();
     if (item->button) {
         QFont font = item->button->font();
-        font.setUnderline(property->isModified());
+        font.setBold(property->isModified());
+        // bhbn
+        font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->button->setFont(font);
         item->button->setText(property->propertyName());
         item->button->setToolTip(property->toolTip());
@@ -479,7 +481,9 @@ void QtButtonPropertyBrowserPrivate::updateItem(WidgetItem *item)
     }
     if (item->label) {
         QFont font = item->label->font();
-        font.setUnderline(property->isModified());
+        font.setBold(property->isModified());
+        // bhbn
+        font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->label->setFont(font);
         item->label->setText(property->propertyName());
         item->label->setToolTip(property->toolTip());
@@ -489,7 +493,9 @@ void QtButtonPropertyBrowserPrivate::updateItem(WidgetItem *item)
     }
     if (item->widgetLabel) {
         QFont font = item->widgetLabel->font();
-        font.setUnderline(false);
+        font.setBold(false);
+        // bhbn
+        font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->widgetLabel->setFont(font);
         item->widgetLabel->setText(property->valueText());
         item->widgetLabel->setToolTip(property->valueText());
@@ -497,7 +503,9 @@ void QtButtonPropertyBrowserPrivate::updateItem(WidgetItem *item)
     }
     if (item->widget) {
         QFont font = item->widget->font();
-        font.setUnderline(false);
+        font.setBold(false);
+        // bhbn
+        font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->widget->setFont(font);
         item->widget->setEnabled(property->isEnabled());
         item->widget->setToolTip(property->valueText());

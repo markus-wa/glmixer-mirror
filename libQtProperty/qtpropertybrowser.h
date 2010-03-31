@@ -102,6 +102,10 @@ public:
     void setEnabled(bool enable);
     void setModified(bool modified);
 
+    // BHBN
+    void setItalics(bool italics);
+    bool isItalics();
+
     void addSubProperty(QtProperty *property);
     void insertSubProperty(QtProperty *property, QtProperty *afterProperty);
     void removeSubProperty(QtProperty *property);

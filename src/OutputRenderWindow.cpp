@@ -55,7 +55,8 @@ void OutputRenderWidget::initializeGL() {
 
 void OutputRenderWidget::paintGL()
 {
-	glRenderWidget::paintGL();
+	 // do NOT display fps : //	glRenderWidget::paintGL();
+    glClear(GL_COLOR_BUFFER_BIT);
 
 	if ( RenderingManager::blit )
 	// use the accelerated GL_EXT_framebuffer_blit if available
@@ -85,6 +86,9 @@ void OutputRenderWidget::paintGL()
 	else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
 		if (useAspectRatio) {
 			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
 			if (aspectRatio < renderingAspectRatio)
