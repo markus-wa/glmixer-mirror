@@ -10,10 +10,11 @@
 #include "common.h"
 
 #include "RenderingSource.h"
-RenderingSource::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
-
+Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "CloneSource.h"
-CloneSource::RTTI CloneSource::type = Source::CLONE_SOURCE;
+Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
+#include "CaptureSource.h"
+Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 
 #include "ViewRenderWidget.h"
 #include "SourcePropertyBrowser.h"
@@ -280,33 +281,24 @@ void RenderingManager::addRenderingSource() {
 
 void RenderingManager::addCaptureSource(){
 
+	// create the texture for this source
+	GLuint textureIndex;
 	_renderwidget->makeCurrent();
-	// create the texture from the capture
-	if (capture.isNull())
-		capture = _fbo->toImage();
-		
-#if QT_VERSION < 0x040600
-	GLuint textureIndex = _renderwidget->bindTexture (capture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-#else
-	// in QT implementation of blitting of FBO, the y is flipped ; avoid this here on the texture
-	GLuint textureIndex = _renderwidget->bindTexture (capture, GL_TEXTURE_2D, GL_RGBA, QGLContext::LinearFilteringBindOption | QGLContext::MipmapBindOption);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-#endif
-
-	// optimize texture access
+	glGenTextures(1, &textureIndex);
+	// high priority means low variability
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &textureIndex, &highpriority);
+
+	// get the screen capture
+	if (capture.isNull())
+		capture = _fbo->toImage();
 
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 
 	// create a source appropriate for this videofile
-	Source *s = new Source(textureIndex, d);
+	CaptureSource *s = new CaptureSource(capture, textureIndex, d);
     Q_CHECK_PTR(s);
-    s->setAspectRatio( double(capture.width()) / double(capture.height()) );
 
 	// set the last created source to be current
 	std::pair<SourceSet::iterator,bool> ret;
@@ -322,6 +314,7 @@ void RenderingManager::addMediaSource(VideoFile *vf) {
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
 	glGenTextures(1, &textureIndex);
+	// low priority means high variability
 	GLclampf lowpriority = 0.1;
 	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 

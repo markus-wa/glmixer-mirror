@@ -11,7 +11,7 @@
 #include "RenderingManager.h"
 
 GLuint videoSourceIconIndex = 0;
-VideoSource::RTTI VideoSource::type = Source::VIDEO_SOURCE;
+Source::RTTI VideoSource::type = Source::VIDEO_SOURCE;
 
 VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), Source(texture, d),
 		is(f), copyChanged(false), bufferIndex(-1)

@@ -35,7 +35,7 @@ public:
 		return ( id == s2.id );
 	}
 
-	typedef enum { SIMPLE_SOURCE = 0, CLONE_SOURCE, VIDEO_SOURCE, CAMERA_SOURCE, ALGORITHM_SOURCE, RENDERING_SOURCE } RTTI;
+	typedef enum { SIMPLE_SOURCE = 0, CLONE_SOURCE, VIDEO_SOURCE, CAMERA_SOURCE, ALGORITHM_SOURCE, RENDERING_SOURCE, CAPTURE_SOURCE } RTTI;
 	static RTTI type;
 	virtual RTTI rtti() const { return type; }
 

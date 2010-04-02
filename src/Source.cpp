@@ -271,7 +271,6 @@ static GLfloat mEmboss[3][3] = {
 
 void Source::update() {
 
-//	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 
 }

@@ -36,6 +36,7 @@
 #include "ViewRenderWidget.h"
 #include "RenderingSource.h"
 #include "AlgorithmSource.h"
+#include "CaptureSource.h"
 #include "CloneSource.h"
 #include "VideoSource.h"
 #ifdef OPEN_CV
@@ -367,11 +368,9 @@ void SourcePropertyBrowser::createPropertyTree(){
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::CLONE_SOURCE]->addSubProperty(property);
 
-	rttiToProperty[Source::SIMPLE_SOURCE] = groupManager->addProperty( QLatin1String("Rendering capture properties"));
-
+	rttiToProperty[Source::CAPTURE_SOURCE] = groupManager->addProperty( QLatin1String("Rendering capture properties"));
 		// Frames size
-		rttiToProperty[Source::SIMPLE_SOURCE]->addSubProperty(fs);
-
+		rttiToProperty[Source::CAPTURE_SOURCE]->addSubProperty(fs);
 
 }
 
@@ -489,9 +488,10 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 				CloneSource *cs = dynamic_cast<CloneSource *>(s);
 				infoManager->setValue(idToProperty["Clone of"], cs->getOriginalName() );
 			}
-			else {
+			else if (s->rtti() == Source::CAPTURE_SOURCE) {
 				infoManager->setValue(idToProperty["Type"], QLatin1String("Captured image") );
-				sizeManager->setValue(idToProperty["Frames size"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
+				CaptureSource *cs = dynamic_cast<CaptureSource *>(s);
+				sizeManager->setValue(idToProperty["Frames size"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
 			}
 		}
 	    // reconnect the managers to the corresponding value change

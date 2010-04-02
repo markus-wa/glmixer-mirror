@@ -7,7 +7,7 @@
 
 #include "OpencvSource.moc"
 
-OpencvSource::RTTI OpencvSource::type = Source::CAMERA_SOURCE;
+Source::RTTI OpencvSource::type = Source::CAMERA_SOURCE;
 
 #include <QThread>
 #include <QTime>
