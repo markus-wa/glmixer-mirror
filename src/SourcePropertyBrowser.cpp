@@ -219,7 +219,8 @@ void SourcePropertyBrowser::createPropertyTree(){
 	property = enumManager->addProperty("Mask");
 	idToProperty[property->propertyName()] = property;
 	enumNames.clear();
-	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Custom file";
+//	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Custom file";
+	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient";
 	enumManager->setEnumNames(property, enumNames);
     QMap<int, QIcon> enumIcons;
     enumIcons[0] = QIcon();
@@ -308,26 +309,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 
-//		// pre filtering options (brightness, contrast, etc.)
-//		QtProperty *prefilterItem = groupManager->addProperty( QLatin1String("Pre-filtering"));
-//
-//		// Brightness
-//		property = intManager->addProperty( QLatin1String("Brightness") );
-//		idToProperty[QString("pre-") + property->propertyName()] = property;
-//		intManager->setRange(property, -100, 100);
-//		prefilterItem->addSubProperty(property);
-//		// Contrast
-//		property = intManager->addProperty( QLatin1String("Contrast") );
-//		idToProperty[QString("pre-") + property->propertyName()] = property;
-//		intManager->setRange(property, -100, 100);
-//		prefilterItem->addSubProperty(property);
-//		// Saturation
-//		property = intManager->addProperty( QLatin1String("Saturation") );
-//		idToProperty[QString("pre-") + property->propertyName()] = property;
-//		intManager->setRange(property, -100, 100);
-//		prefilterItem->addSubProperty(property);
-//
-//		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(prefilterItem);
 
 #ifdef OPEN_CV
 	rttiToProperty[Source::CAMERA_SOURCE] = groupManager->addProperty( QLatin1String("Camera properties"));
@@ -367,6 +348,16 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(fs);
 		// Frame rate
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(fr);
+		// Variability
+		property = intManager->addProperty( QLatin1String("Variability") );
+		idToProperty[property->propertyName()] = property;
+		intManager->setRange(property, 0, 100);
+		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(property);
+		// Periodicity
+		property = intManager->addProperty( QLatin1String("Update frequency") );
+		idToProperty[property->propertyName()] = property;
+		intManager->setRange(property, 1, 60);
+		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(property);
 
 	rttiToProperty[Source::CLONE_SOURCE] = groupManager->addProperty( QLatin1String("Clone properties"));
 
@@ -485,6 +476,10 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 				infoManager->setValue(idToProperty["Algorithm"], AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()) );
 				sizeManager->setValue(idToProperty["Frames size"], QSize(as->getFrameWidth(), as->getFrameHeight()) );
 				infoManager->setValue(idToProperty["Frame rate"], QString::number(as->getFrameRate() ) + QString(" fps"));
+
+				intManager->setValue(idToProperty["Variability"], int ( as->getVariability() * 100.0 ) );
+				intManager->setValue(idToProperty["Update frequency"], int ( 1000000.0 / double(as->getPeriodicity()) ) );
+
 			}
 			else if (s->rtti() == Source::CLONE_SOURCE) {
 
@@ -677,25 +672,44 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 					vs->getVideoFile()->setBrightness(value);
 			} else
 				currentItem->setBrightness(value);
-
+			// request update frame (in case the source is static, stopped, paused, etc)
+			currentItem->requestUpdate();
 		} else if ( property == idToProperty["Contrast"] ) {
+			// use pre-filter filtering if we can on video source
 			if (currentItem->rtti() == Source::VIDEO_SOURCE) {
 				VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
 				if (vs != 0)
 					vs->getVideoFile()->setContrast(value);
 			}
-//			else
-//			currentItem->setContrast(value);
+			else
+				currentItem->setContrast(value);
+			// request update frame (in case the source is static, stopped, paused, etc)
+			currentItem->requestUpdate();
 		} else if ( property == idToProperty["Saturation"] ) {
-
+			// use pre-filter filtering on video source
 			if (currentItem->rtti() == Source::VIDEO_SOURCE) {
 				VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
 				if (vs != 0)
 					vs->getVideoFile()->setSaturation(value);
+				// request update frame (in case the source is static, stopped, paused, etc)
+				currentItem->requestUpdate();
+			}
+		}
+		else if ( property == idToProperty["Variability"] ) {
+			Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+			if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
+				AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
+				as->setVariability( double(value) / 100.0);
+			}
+		}
+		else if ( property == idToProperty["Update frequency"] ) {
+			Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+			if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
+				AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
+				as->setPeriodicity( (unsigned long) ( 1000000.0 / double(value) ) );
 			}
 		}
 
-		currentItem->requestUpdate();
     }
 }
 
@@ -738,15 +752,15 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 		}
 		else if ( property == idToProperty["Mask"] ) {
 
-			if ( (Source::maskType) value == Source::CUSTOM_MASK ) {
-				static QDir d = QDir::home();
-				qDebug("CUSTOM MASK");
-				QString fileName = QFileDialog::getOpenFileName(0, tr("Open File"), d.absolutePath(),
-															   tr("Image (*.png *.tif *.tiff *.gif *.tga)"));
-				if (!fileName.isEmpty()) {
-					d.setPath(fileName);
-				}
-			} else
+//			if ( (Source::maskType) value == Source::CUSTOM_MASK ) {
+//				static QDir d = QDir::home();
+//				qDebug("CUSTOM MASK");
+//				QString fileName = QFileDialog::getOpenFileName(0, tr("Open File"), d.absolutePath(),
+//															   tr("Image (*.png *.tif *.tiff *.gif *.tga)"));
+//				if (!fileName.isEmpty()) {
+//					d.setPath(fileName);
+//				}
+//			} else
 				currentItem->setMask( (Source::maskType) value );
 
 		}

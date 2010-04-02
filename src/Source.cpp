@@ -311,21 +311,24 @@ void Source::startEffectsSection() const {
 		glEnable(GL_COLOR_TABLE);
 
 	}
+
 	if (brightness != 0){
 		glMatrixMode(GL_COLOR);
 		float b = float (brightness) / 100.f + 1.f;
 		glScalef(b,b,b);
 		glMatrixMode(GL_MODELVIEW);
+	}
 
-//		glPixelTransferf(GL_RED_SCALE, b);
-//		glPixelTransferf(GL_GREEN_SCALE, b);
-//		glPixelTransferf(GL_BLUE_SCALE, b);
-//
-//		b = float (brightness) / -50.f;
-//		glPixelTransferf(GL_RED_BIAS, b);
-//		glPixelTransferf(GL_GREEN_BIAS, b);
-//		glPixelTransferf(GL_BLUE_BIAS, b);
+	if (contrast != 0){
+		float b = float (contrast) / 100.f +1.f;
+		glPixelTransferf(GL_RED_SCALE, b);
+		glPixelTransferf(GL_GREEN_SCALE, b);
+		glPixelTransferf(GL_BLUE_SCALE, b);
 
+		b = float (contrast) / -50.f;
+		glPixelTransferf(GL_RED_BIAS, b);
+		glPixelTransferf(GL_GREEN_BIAS, b);
+		glPixelTransferf(GL_BLUE_BIAS, b);
 	}
 
 }
@@ -347,15 +350,16 @@ void Source::endEffectsSection() const {
 		glMatrixMode(GL_COLOR);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
+	}
 
-		// contrast
-//		glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
-//		glPixelTransferf(GL_RED_SCALE, 1.0f);
-//		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
-//		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
-//		glPixelTransferf(GL_RED_BIAS, 0.0f);
-//		glPixelTransferf(GL_GREEN_BIAS, 0.0f);
-//		glPixelTransferf(GL_BLUE_BIAS, 0.0f);
+	if (contrast != 0){
+		glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
+		glPixelTransferf(GL_RED_SCALE, 1.0f);
+		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+		glPixelTransferf(GL_RED_BIAS, 0.0f);
+		glPixelTransferf(GL_GREEN_BIAS, 0.0f);
+		glPixelTransferf(GL_BLUE_BIAS, 0.0f);
 	}
 
 	if (invertcolors) {
@@ -381,6 +385,7 @@ void Source::blend() const {
 		// select and enable the texture corresponding to the mask
 		glBindTexture(GL_TEXTURE_2D, maskTextureIndex);
 		glEnable(GL_TEXTURE_2D);
+
 		// back to texture 0 for the following
 		glActiveTexture(GL_TEXTURE0);
 	}

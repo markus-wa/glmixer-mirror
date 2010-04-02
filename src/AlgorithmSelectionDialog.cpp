@@ -188,7 +188,7 @@ int AlgorithmSelectionDialog::getSelectedHeight(){
 
 unsigned long  AlgorithmSelectionDialog::getUpdatePeriod(){
 
-	return (unsigned long) ( 1000000.f / float(frequencySlider->value()));
+	return (unsigned long) ( 1000000.0 / double(frequencySlider->value()));
 
 }
 

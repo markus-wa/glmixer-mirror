@@ -32,6 +32,8 @@ public:
 	static QString getAlgorithmDescription(int t);
 
     inline algorithmType getAlgorithmType() const { return algotype; }
+	inline double getVariability() const { return variability; }
+	inline unsigned long getPeriodicity() const { return period; }
 	inline int getFrameWidth() const { return width; }
 	inline int getFrameHeight() const { return height; }
 	inline double getFrameRate() const { return framerate; }
@@ -40,7 +42,7 @@ public:
 public slots:
 	void play(bool on);
 	void setPeriodicity(unsigned long u_seconds) {period = u_seconds;}
-	void setVariability(double v) { variability = v; }
+	void setVariability(double v) { variability = CLAMP(v, 0.0, 1.0); }
 
     // only RenderingManager can create a source
 protected:

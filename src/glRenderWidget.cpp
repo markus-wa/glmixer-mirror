@@ -116,7 +116,7 @@ void glRenderWidget::paintGL()
 		fpsCounter_ = 0;
 	}
 
-	if (showFps_ || f_p_s_ < 25) {
+	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) ) {
 		fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
 		displayFPS( f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red) );
 	} 

@@ -506,6 +506,13 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource, 
 		_sources.erase(itsource);
 		// change the source internal depth value
 		tmp->setDepth(newdepth);
+
+		if (newdepth < 0) {
+			// if request to place the source in a negative depth, shift all sources forward
+			for (SourceSet::iterator it = _sources.begin(); it != _sources.end(); it++)
+				(*it)->setDepth( (*it)->getDepth() -newdepth );
+		}
+
 		// re-insert the source into the sorted list ; it will be placed according to its new depth
 		std::pair<SourceSet::iterator,bool> ret;
 		ret = _sources.insert(tmp);

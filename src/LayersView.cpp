@@ -383,7 +383,8 @@ void LayersView::grabSource(SourceSet::iterator currentSource, int x, int y, int
 
     // (az-bz) is the depth change caused by the mouse mouvement
     // deltazoom is the depth change due to zooming in/out while grabbing
-	currentSource = RenderingManager::getInstance()->changeDepth(currentSource, (*currentSource)->getDepth() +  az - bz  +  deltazoom);
+    double newdepth =  (*currentSource)->getDepth() +  az - bz  +  deltazoom;
+	currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
 
 	// we need to set current again
 	RenderingManager::getInstance()->setCurrentSource(currentSource);

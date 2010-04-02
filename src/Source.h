@@ -187,6 +187,9 @@ public:
 	// Adjust brightness factor
 	inline void setBrightness(int b) { brightness = b; }
 	inline int getBrightness() const { return brightness; }
+	// Adjust contrast factor
+	inline void setContrast(int b) { contrast = b; }
+	inline int getContrast() const { return contrast; }
 	// Switch to greyscale
 	inline void setGreyscale(bool on) { greyscale = on;}
 	inline bool isGreyscale() const { return greyscale; }
@@ -226,7 +229,7 @@ protected:
 	bool invertcolors;
 	// which convolution filter to apply?
 	convolutionType convolution;
-	// Brightness
+	// Brightness & contrast
 	int brightness, contrast;
 
 	// id counter
