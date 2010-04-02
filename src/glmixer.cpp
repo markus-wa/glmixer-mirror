@@ -681,7 +681,7 @@ void GLMixer::updateMarks (){
 
 void GLMixer::on_actionShowFPS_toggled(bool on){
 
-	glRenderWidget::showFramerate(on);
+	RenderingManager::getRenderingWidget()->showFramerate(on);
 }
 
 void GLMixer::on_actionAbout_triggered(){

@@ -29,12 +29,9 @@ public:
     virtual void hideEvent ( QHideEvent * event );
 
     // cosmetics
-    void displayFPS(Qt::GlobalColor);
-	float getFPS() { return f_p_s_; }
     void setBackgroundColor(const QColor &c);
 
     // OpenGL informations
-	static void showFramerate(bool on) { showFps_ = on; }
     static void showGlExtensionsInformationDialog(QString iconfile = "");
 
 public slots:
@@ -48,12 +45,6 @@ protected:
 	float aspectRatio;
     int timer, period;
 
-	// F P S    d i s p l a y
-	QTime fpsTime_;
-	unsigned int fpsCounter_;
-	QString fpsString_;
-	float f_p_s_;
-	static bool showFps_;
 };
 
 #endif /* GLRENDERWIDGET_H_ */

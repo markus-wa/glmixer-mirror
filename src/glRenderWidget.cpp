@@ -10,8 +10,6 @@
 #include "common.h"
 #include "glRenderWidget.moc"
 
-
-bool glRenderWidget::showFps_ = false;
 //
 //QStringList glRenderWidget::listofextensions;
 
@@ -26,11 +24,6 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 	if (!format().doubleBuffer())
 	  qWarning("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
 
-
-	fpsTime_.start();
-	fpsCounter_	= 0;
-	f_p_s_		= 1 / period;
-	fpsString_	= tr("%1Hz", "Frames per seconds, in Hertz").arg("?");
 
 	update();
 }
@@ -108,17 +101,6 @@ void glRenderWidget::paintGL()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-	// FPS computation
-	if (++fpsCounter_ == 20)
-	{
-		f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
-		fpsCounter_ = 0;
-	}
-
-	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) ) {
-		fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
-		displayFPS( f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red) );
-	} 
 }
 
 
@@ -136,13 +118,6 @@ void glRenderWidget::hideEvent ( QHideEvent * event ) {
 		timer = -1;
 	}
 }
-
-void glRenderWidget::displayFPS(Qt::GlobalColor c)
-{
-	qglColor(c);
-	renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
-}
-
 
 void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
 

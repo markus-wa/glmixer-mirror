@@ -46,6 +46,10 @@ public:
     void keyPressEvent ( QKeyEvent * event );
     void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); }  // keep updating even if hidden
 
+    void displayFPS(Qt::GlobalColor);
+	float getFPS() { return f_p_s_; }
+	void showFramerate(bool on) { showFps_ = on; }
+
 	/**
 	 * management of the manipulation views
 	 */
@@ -106,6 +110,12 @@ private:
 	bool displayMessage;
 	QTimer messageTimer;
 
+	// F P S    d i s p l a y
+	QTime fpsTime_;
+	unsigned int fpsCounter_;
+	QString fpsString_;
+	float f_p_s_;
+	bool showFps_;
 };
 
 #endif /* VIEWRENDERWIDGET_H_ */

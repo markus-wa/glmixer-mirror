@@ -21,7 +21,7 @@ GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0;
 GLuint ViewRenderWidget::quad_half_textured = 0, ViewRenderWidget::quad_stipped_textured[] = {0,0,0,0};
 GLuint ViewRenderWidget::mask_textures[] = {0,0,0,0,0,0,0,0};
 
-ViewRenderWidget::ViewRenderWidget() :glRenderWidget() {
+ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 
 	setMouseTracking(true);
 	setFocusPolicy(Qt::ClickFocus);
@@ -39,6 +39,12 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget() {
 	displayMessage = false;
 	connect(&messageTimer, SIGNAL(timeout()), SLOT(hideMessage()));
 	messageTimer.setSingleShot(true);
+
+	fpsTime_.start();
+	fpsCounter_	= 0;
+	f_p_s_		= 1 / period;
+	fpsString_	= tr("%1Hz", "Frames per seconds, in Hertz").arg("?");
+
 }
 
 ViewRenderWidget::~ViewRenderWidget() {
@@ -165,7 +171,27 @@ void ViewRenderWidget::paintGL(){
 	    glColor4f(0.8, 0.80, 0.2, 1.0);
 		renderText(20, int(3.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), message, QFont());
 	}
+
+	// FPS computation
+	if (++fpsCounter_ == 20) {
+		f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
+		fpsCounter_ = 0;
+	}
+
+	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) ) {
+		fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
+		displayFPS( f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red) );
+	}
 }
+
+
+void ViewRenderWidget::displayFPS(Qt::GlobalColor c)
+{
+	qglColor(c);
+	renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
+}
+
+
 
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event){
 	makeCurrent();

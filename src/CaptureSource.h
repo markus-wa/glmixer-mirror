@@ -46,6 +46,7 @@ public:
         	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,  _capture.width(),
                      _capture.height(), GL_BGRA, GL_UNSIGNED_BYTE,
                      _capture.bits() );
+        	frameChanged = false;
 		}
 	}
 
