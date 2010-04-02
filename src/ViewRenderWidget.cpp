@@ -494,6 +494,7 @@ GLuint ViewRenderWidget::buildTexturedQuadList() {
 GLuint ViewRenderWidget::buildLineList() {
 
     GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D);
+    GLuint texid2 = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow_corner_selected.png")), GL_TEXTURE_2D);
 
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &texid, &highpriority);
@@ -507,8 +508,7 @@ GLuint ViewRenderWidget::buildLineList() {
     glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
     glPushMatrix();
-    glTranslatef(0.05, -0.05, 0.1);
-    glScalef(1.2, 1.2, 1.0);
+    glScalef(1.25, 1.25, 1.0);
     glBegin(GL_QUADS); // begin drawing a square
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
@@ -540,11 +540,10 @@ GLuint ViewRenderWidget::buildLineList() {
     glNewList(base + 1, GL_COMPILE);
 
 
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+    glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
 
     glPushMatrix();
-    glTranslatef(0.15, -0.13, 0.1);
-    glScalef(1.15, 1.15, 1.0);
+    glScalef(1.25, 1.25, 1.0);
     glBegin(GL_QUADS); // begin drawing a square
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left

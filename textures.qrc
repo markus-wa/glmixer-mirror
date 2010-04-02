@@ -3,6 +3,7 @@
     <file>textures/circle.png</file>
     <file>textures/shadow.png</file>
     <file>textures/shadow_corner.png</file>
+    <file>textures/shadow_corner_selected.png</file>
     <file>textures/layerbg.png</file>
     <file>textures/mask_circle.png</file>
     <file>textures/mask_roundcorner.png</file>
