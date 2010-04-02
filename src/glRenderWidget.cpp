@@ -60,8 +60,7 @@ void glRenderWidget::initializeGL()
     // ensure alpha channel is modulated ; otherwise the source is not mixed by its alpha channel
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-    // Pure texture color (no lighting)
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
 
     // Turn blending on
     glEnable(GL_BLEND);

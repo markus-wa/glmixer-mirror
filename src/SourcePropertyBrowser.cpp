@@ -256,16 +256,19 @@ void SourcePropertyBrowser::createPropertyTree(){
 	property = intManager->addProperty( QLatin1String("Brightness") );
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
+	intManager->setSingleStep(property, 10);
 	root->addSubProperty(property);
 	// Contrast
 	property = intManager->addProperty( QLatin1String("Contrast") );
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
+	intManager->setSingleStep(property, 10);
 	root->addSubProperty(property);
 	// Saturation
 	property = intManager->addProperty( QLatin1String("Saturation") );
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
+	intManager->setSingleStep(property, 10);
 	root->addSubProperty(property);
 	// AspectRatio
 	property = infoManager->addProperty("Aspect ratio");
@@ -408,6 +411,10 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		enumManager->setValue(idToProperty["Filter"], (int) s->getConvolution());
 		infoManager->setValue(idToProperty["Aspect ratio"], QString::number(s->getAspectRatio()) );
 
+		idToProperty["Greyscale"]->setEnabled(true);
+		idToProperty["Color Invert"]->setEnabled(true);
+		idToProperty["Filter"]->setEnabled(true);
+
 
 		if (s->rtti() == Source::VIDEO_SOURCE) {
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Media file") );
@@ -441,8 +448,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			idToProperty["Brightness"]->setEnabled(true);
 			intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
 			idToProperty["Contrast"]->setEnabled(true);
-			// TODO : contrast generic solution ?
-			intManager->setValue(idToProperty["Contrast"], 0 );
+			intManager->setValue(idToProperty["Contrast"], s->getContrast() );
 			idToProperty["Saturation"]->setEnabled(false);
 			intManager->setValue(idToProperty["Saturation"], 0 );
 
@@ -459,6 +465,10 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			if (s->rtti() == Source::RENDERING_SOURCE) {
 
 				idToProperty["Brightness"]->setEnabled(false);
+				idToProperty["Contrast"]->setEnabled(false);
+				idToProperty["Greyscale"]->setEnabled(false);
+				idToProperty["Color Invert"]->setEnabled(false);
+				idToProperty["Filter"]->setEnabled(false);
 
 				infoManager->setValue(idToProperty["Type"], QLatin1String("Rendering loop-back") );
 				if (glSupportsExtension("GL_EXT_framebuffer_blit"))
@@ -483,6 +493,10 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			else if (s->rtti() == Source::CLONE_SOURCE) {
 
 				idToProperty["Brightness"]->setEnabled(false);
+				idToProperty["Contrast"]->setEnabled(false);
+				idToProperty["Greyscale"]->setEnabled(false);
+				idToProperty["Color Invert"]->setEnabled(false);
+				idToProperty["Filter"]->setEnabled(false);
 
 				infoManager->setValue(idToProperty["Type"], QLatin1String("Clone") );
 				CloneSource *cs = dynamic_cast<CloneSource *>(s);

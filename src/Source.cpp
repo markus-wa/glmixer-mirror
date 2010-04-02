@@ -259,10 +259,6 @@ static GLfloat mEdge[3][3] = {
      {1.0f, 1.0f, 1.0f},
      {1.0f, -8.0, 1.0f },
      {1.0f, 1.0f, 1.0f }};
-//static GLfloat mEdge[3][3] = {
-//     {0.0f, 1.0f, 0.0f},
-//     {1.0f, -4.0, 1.0f },
-//     {0.0f, 1.0f, 0.0f }};
 // Emboss convolution kernel
 static GLfloat mEmboss[3][3] = {
     { -2.0f, -1.0f, 0.0f },
@@ -312,10 +308,10 @@ void Source::startEffectsSection() const {
 	}
 
 	if (brightness != 0){
-		glMatrixMode(GL_COLOR);
-		float b = float (brightness) / 100.f + 1.f;
-		glScalef(b,b,b);
-		glMatrixMode(GL_MODELVIEW);
+		float b = float (brightness) / 100.f;
+		glPixelTransferf(GL_RED_BIAS, b);
+		glPixelTransferf(GL_GREEN_BIAS, b);
+		glPixelTransferf(GL_BLUE_BIAS, b);
 	}
 
 	if (contrast != 0){
@@ -323,11 +319,6 @@ void Source::startEffectsSection() const {
 		glPixelTransferf(GL_RED_SCALE, b);
 		glPixelTransferf(GL_GREEN_SCALE, b);
 		glPixelTransferf(GL_BLUE_SCALE, b);
-
-		b = float (contrast) / -50.f;
-		glPixelTransferf(GL_RED_BIAS, b);
-		glPixelTransferf(GL_GREEN_BIAS, b);
-		glPixelTransferf(GL_BLUE_BIAS, b);
 	}
 
 }
@@ -345,20 +336,23 @@ void Source::endEffectsSection() const {
 		glDisable(GL_CONVOLUTION_2D);
 	}
 
-	if (greyscale || brightness != 0){
+	if (greyscale){
 		glMatrixMode(GL_COLOR);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
 	}
 
-	if (contrast != 0){
-		glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
-		glPixelTransferf(GL_RED_SCALE, 1.0f);
-		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
-		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+	if (brightness != 0){
 		glPixelTransferf(GL_RED_BIAS, 0.0f);
 		glPixelTransferf(GL_GREEN_BIAS, 0.0f);
 		glPixelTransferf(GL_BLUE_BIAS, 0.0f);
+	}
+
+	if (contrast != 0){
+//		glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
+		glPixelTransferf(GL_RED_SCALE, 1.0f);
+		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
 	}
 
 	if (invertcolors) {

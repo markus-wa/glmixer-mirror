@@ -28,7 +28,7 @@ protected:
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _capture.width(), _capture. height(),
-						  0, GL_RGBA, GL_UNSIGNED_BYTE, _capture.bits() );
+						  0, GL_BGRA, GL_UNSIGNED_BYTE, _capture.bits() );
 
 			aspectratio = double(_capture.width()) / double(_capture.height());
 		}
@@ -44,7 +44,7 @@ public:
 		Source::update();
 		if (frameChanged) {
         	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,  _capture.width(),
-                     _capture.height(), GL_RGBA, GL_UNSIGNED_BYTE,
+                     _capture.height(), GL_BGRA, GL_UNSIGNED_BYTE,
                      _capture.bits() );
 		}
 	}
