@@ -21,8 +21,6 @@ class SourcePropertyBrowser  : public QWidget {
 
 public:
 	SourcePropertyBrowser(QWidget *parent = 0);
-	virtual ~SourcePropertyBrowser();
-
 
 public slots:
 	// Shows the properties in the browser for the given source (iterator in the Manager list)
@@ -33,6 +31,7 @@ public slots:
     void updateMixingProperties();
     void updateGeometryProperties();
     void updateLayerProperties();
+    void updateMarksProperties(bool showFrames);
 
     // Update the source when an action is performed on a property in the browser
     // This concerns every properties editable in the browser

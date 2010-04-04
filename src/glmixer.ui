@@ -35,7 +35,7 @@
      <number>0</number>
     </property>
     <property name="margin">
-     <number>2</number>
+     <number>0</number>
     </property>
     <item>
      <widget class="QFrame" name="viewControlBar">
@@ -1105,7 +1105,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>1049</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1137,7 +1137,6 @@ p, li { white-space: pre-wrap; }
      </property>
      <addaction name="actionFullscreen"/>
      <addaction name="actionKeep_aspect_ratio"/>
-     <addaction name="actionShowFPS"/>
     </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
@@ -1151,11 +1150,10 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
     <addaction name="actionLayersView"/>
+    <addaction name="actionShowFPS"/>
     <addaction name="menuZoom"/>
     <addaction name="separator"/>
     <addaction name="menuRendering_Window"/>
-    <addaction name="actionCapture"/>
-    <addaction name="actionSaveCapture"/>
     <addaction name="separator"/>
     <addaction name="menuToolBars"/>
     <addaction name="actionShow_frames"/>
@@ -1541,7 +1539,7 @@ p, li { white-space: pre-wrap; }
     <string>Add source from output capture</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+V</string>
+    <string>Ctrl+C</string>
    </property>
   </action>
   <action name="actionSaveCapture">
@@ -1607,6 +1605,7 @@ p, li { white-space: pre-wrap; }
  <resources>
   <include location="../icons.qrc"/>
   <include location="../textures.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -42,7 +42,7 @@ public:
 	* Management of the sources
 	**/
 	void addRenderingSource();
-	void addCaptureSource();
+	void addCaptureSource(QImage img);
 	void addMediaSource(VideoFile *vf);
 #ifdef OPEN_CV
 	void addOpencvSource(int opencvIndex);
@@ -82,12 +82,11 @@ public:
 	void updatePreviousFrame();
 	int getPreviousFrameDelay() { return previousframe_delay; }
 
+	QImage captureFrameBuffer();
 
 public slots:
 	void setPreviousFrameDelay(int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 	void clearSourceSet();
-	void captureFrameBuffer();
-	void saveCapturedFrameBuffer(QString filename);
 
 signals:
 	void currentSourceChanged(SourceSet::iterator csi);
@@ -107,7 +106,6 @@ protected:
 	QGLFramebufferObject *previousframe_fbo;
 	int countRenderingSource, previousframe_index, previousframe_delay;
     static bool blit;
-    QImage capture;
     QColor clearColor;
 
 	// the set of sources

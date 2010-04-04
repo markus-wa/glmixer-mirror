@@ -34,14 +34,6 @@ Source::Source(GLuint texture, double depth) :
 	id = lastid++;
 	name = QString ("Source %1").arg(id);
 
-	// TODO set attributes and children
-//	dom.setAttribute("id", id);
-//	QDomElement coordinates;
-//	coordinates.setAttribute("x", x);
-//	coordinates.setAttribute("y", y);
-//	coordinates.setAttribute("z", z);
-//	dom.appendChild(coordinates);
-
 	clones = new SourceList;
 }
 

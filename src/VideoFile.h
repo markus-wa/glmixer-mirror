@@ -383,13 +383,7 @@ public:
      *
      * @return frame rate in Hertz (frames per second), 0 if no video is opened.
      */
-    inline float getFrameRate() const {
-
-        if (video_st && video_st->r_frame_rate.den > 0)
-            return ((float) (video_st->r_frame_rate.num )/ (float) video_st->r_frame_rate.den);
-        else
-            return 0;
-    }
+    float getFrameRate() const;
     /**
      * Get the duration of the VideoFile in seconds.
      *
@@ -473,6 +467,13 @@ public:
      * @return a string in 'hh:mm:ss.ms' format
      */
     QString getTimeFromFrame(int64_t t) const;
+    /**
+     * Gives a string for human readable display of frame (e.g. "frame: 125") from a stream time-base value (frames).
+     *
+     * @param t a time in stream time base (usually frame number)
+     * @return a string in 'frame: f' format
+     */
+    QString getExactFrameFromFrame(int64_t t) const;
     /**
      * Gives a value in stream time-base (frames) from a given string in a human readable time format (hh:mm:ss.ms).
      *

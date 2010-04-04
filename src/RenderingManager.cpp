@@ -243,20 +243,6 @@ void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource, bool cl
 	glPopMatrix();
 }
 
-
-void RenderingManager::captureFrameBuffer(){
-
-	_renderwidget->makeCurrent();
-	capture = _fbo->toImage();
-}
-
-void RenderingManager::saveCapturedFrameBuffer(QString filename){
-
-	if (!capture.save(filename))
-		qWarning("** Warning **\n\nCould not save file %s.", qPrintable(filename));
-
-}
-
 void RenderingManager::addRenderingSource() {
 
 	_renderwidget->makeCurrent();
@@ -279,7 +265,13 @@ void RenderingManager::addRenderingSource() {
 		setCurrentSource(ret.first);
 }
 
-void RenderingManager::addCaptureSource(){
+QImage RenderingManager::captureFrameBuffer(){
+
+	_renderwidget->makeCurrent();
+	return _fbo->toImage();
+}
+
+void RenderingManager::addCaptureSource(QImage img){
 
 	// create the texture for this source
 	GLuint textureIndex;
@@ -289,15 +281,11 @@ void RenderingManager::addCaptureSource(){
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &textureIndex, &highpriority);
 
-	// get the screen capture
-	if (capture.isNull())
-		capture = _fbo->toImage();
-
 	// place it forward
 	double d = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 
 	// create a source appropriate for this videofile
-	CaptureSource *s = new CaptureSource(capture, textureIndex, d);
+	CaptureSource *s = new CaptureSource(img, textureIndex, d);
     Q_CHECK_PTR(s);
 
 	// set the last created source to be current

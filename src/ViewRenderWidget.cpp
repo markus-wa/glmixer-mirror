@@ -48,7 +48,13 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 }
 
 ViewRenderWidget::~ViewRenderWidget() {
-	// TODO Auto-generated destructor stub
+
+	if (mixingManipulationView)
+		delete mixingManipulationView;
+	if (geometryManipulationView)
+		delete geometryManipulationView;
+	if (layersManipulationView)
+		delete layersManipulationView;
 }
 
 

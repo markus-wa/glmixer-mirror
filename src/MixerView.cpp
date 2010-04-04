@@ -252,8 +252,9 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
             }
         	if ( itss != groupSources.end() ) {
         		selectedSources = SourceList(*itss);
+        		// erase group and its color
+        		groupColor.remove(itss);
         		groupSources.erase(itss);
-        		// TODO erase the color from the groupColor map
         	} else {
 				// if the clicked source is in the selection
 				if ( selectedSources.count(cliked) > 0 && selectedSources.size() > 1 ) {

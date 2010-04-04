@@ -64,6 +64,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(sourceMixingModified()), propertyBrowser, SLOT(updateMixingProperties() ) );
     QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(sourceGeometryModified()), propertyBrowser, SLOT(updateGeometryProperties() ) );
     QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(sourceLayerModified()), propertyBrowser, SLOT(updateLayerProperties() ) );
+    QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
 
 
     // Create preview widget
@@ -73,7 +74,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // signals for source management with RenderingManager
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(connectSource(SourceSet::iterator) ) );
-	QObject::connect(actionCapture, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(captureFrameBuffer()));
 
 	// QUIT event
     QObject::connect(actionQuit, SIGNAL(triggered()), this, SLOT(close()));
@@ -234,9 +234,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	// whatever happens, we will drop the control on the current source
 	//   (this slot is called by MainRenderWidget through signal currentSourceChanged
 	//    which is sent ONLY when the current source is changed)
-
-
-
 	if (selectedSourceVideoFile) {
 
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
@@ -277,12 +274,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		sourceDockWidgetContents->setEnabled(true);
 		actionDeleteSource->setEnabled(true);
 		actionCloneSource->setEnabled(true);
-//		pageVideoFileConfig->setEnabled(false);
 
-		// setup preview
+		// TODO: setup preview
 
 		// test the class of the current source and deal accordingly :
-
 		// if it is a VideoSource (video file)
 		if ( (*csi)->rtti() == Source::VIDEO_SOURCE ) {
 			VideoSource *vs = dynamic_cast<VideoSource *>(*csi);
@@ -385,11 +380,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	} else {
 		// it is a basic  Source
 		// fill in the information panel
-//		FileNameLineEdit->setText(QString("Image"));
-//		CodecNameLineEdit->setText("RGBA frame buffer");
-//		widthLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferWidth()));
-//		heightLineEdit->setText( QString("%1").arg(RenderingManager::getInstance()->getFrameBufferHeight()));
 
+		// TODO : play works on algo source
 
 		actionDeleteSource->setEnabled(false);
 		actionCloneSource->setEnabled(false);
@@ -474,10 +466,68 @@ void GLMixer::on_actionCloneSource_triggered(){
 }
 
 
+CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent), img(capture) {
+	QVBoxLayout *verticalLayout;
+	QLabel *Question, *Display;
+	QDialogButtonBox *DecisionButtonBox;
+	setObjectName(QString::fromUtf8("CaptureDialog"));
+	resize(300, 179);
+	setWindowTitle(tr( "Output window capture"));
+	verticalLayout = new QVBoxLayout(this);
+	verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+	Question = new QLabel(this);
+	Question->setObjectName(QString::fromUtf8("Question"));
+	QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+	sizePolicy.setHorizontalStretch(0);
+	sizePolicy.setVerticalStretch(0);
+	sizePolicy.setHeightForWidth(Question->sizePolicy().hasHeightForWidth());
+	Question->setSizePolicy(sizePolicy);
+	Question->setText(tr("Create a source with this image ?"));
+	verticalLayout->addWidget(Question);
+
+	Display = new QLabel(this);
+	Display->setObjectName(QString::fromUtf8("Display"));
+	Display->setPixmap(QPixmap::fromImage(img).scaledToWidth(300));
+	verticalLayout->addWidget(Display);
+
+	DecisionButtonBox = new QDialogButtonBox(this);
+	DecisionButtonBox->setObjectName(QString::fromUtf8("DecisionButtonBox"));
+	DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+	QPushButton *save =  DecisionButtonBox->addButton ( "Save as..", QDialogButtonBox::ActionRole );
+	QObject::connect(save, SIGNAL(clicked()), this, SLOT(saveImage()));
+
+	verticalLayout->addWidget(DecisionButtonBox);
+	QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
+	QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
+}
+
+
+void CaptureDialog::saveImage() {
+	QString filename;
+	static QDir cd = QDir::home();
+
+	filename = QFileDialog::getSaveFileName ( this, tr("Save captured image"), cd.absolutePath(),  tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
+	cd.setPath(filename);
+
+	if (!filename.isEmpty())
+		if (!img.save(filename))
+			qWarning("** Warning **\n\nCould not save file %s.", qPrintable(filename));
+}
+
+
 void GLMixer::on_actionCaptureSource_triggered(){
 
-	RenderingManager::getInstance()->addCaptureSource();
-	statusbar->showMessage( tr("Source created with the last output capture.") );
+	// capture screen
+	QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
+
+	// display and request action with this capture
+	CaptureDialog cd(this, capture);
+	cd.setModal(false);
+
+	if (cd.exec() == QDialog::Accepted) {
+		RenderingManager::getInstance()->addCaptureSource(capture);
+		statusbar->showMessage( tr("Source created with the last output capture.") );
+	}
 }
 
 
@@ -498,31 +548,11 @@ void GLMixer::on_actionDeleteSource_triggered(){
 	}
 }
 
-
-void GLMixer::on_actionSaveCapture_triggered(){
-
-	QString filename;
-	static QDir cd = QDir::home();
-
-	filename = QFileDialog::getSaveFileName ( this, tr("Save capture image"), cd.absolutePath(),  tr("Images (*.png *.xpm *.jpg)"));
-	cd.setPath(filename);
-
-	if (!filename.isEmpty())
-		RenderingManager::getInstance()->saveCapturedFrameBuffer(filename);
-}
-
 void GLMixer::on_actionShow_frames_toggled(bool on){
 
 	if (selectedSourceVideoFile) {
-//		if (on){
-//			endLineEdit->setText( tr("%1 frames").arg(selectedSourceVideoFile->getEnd()) );
-//			timeLineEdit->setText( tr("frame %1").arg(selectedSourceVideoFile->getBegin()) );
-//		} else {
-//			endLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getEnd()) );
-//			timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getBegin()) );
-//		}
-		// TODO : update property marks
-		updateMarks();
+	    // update property for marks in / out
+	    emit sourceMarksModified(on);
 	}
 }
 
@@ -550,7 +580,7 @@ void GLMixer::refreshTiming(){
         frameSlider->setValue(f_percent);
 
         if (actionShow_frames->isChecked())
-            timeLineEdit->setText( tr("frame %1").arg(selectedSourceVideoFile->getCurrentFrameTime()) );
+            timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
         else
             timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
     }
@@ -597,7 +627,7 @@ void GLMixer::on_frameSlider_sliderMoved (int v){
 
     // cosmetics to show the time of the frame (refreshTiming disabled)
     if (actionShow_frames->isChecked())
-        timeLineEdit->setText( tr("frame %1").arg(pos) );
+        timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(pos) );
     else
         timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(pos) );
 }
@@ -634,19 +664,6 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
 
 }
 
-// OLD CODE for embeding / disembeding a widget : maybe to use for multiple views
-//	if (on) {
-//		centralLayout->removeWidget(videowidget);
-//		videowidget->setParent(NULL, Qt::Window);  // You may want other widget flags/positions...
-//		videowidget->show();
-//		videowidget->move(100,100);
-//	}	else {
-//		videowidget->setWindowState (Qt::WindowNoState);
-//		videowidget->setParent(centralwidget, Qt::Widget);
-//		centralLayout->addWidget(videowidget, 0, 0, 1, 1);
-//	}
-
-
 
 void GLMixer::pauseAfterFrame (){
 
@@ -662,20 +679,15 @@ void GLMixer::pauseAfterFrame (){
 
 void GLMixer::updateMarks (){
 
+	// adjust the marking sliders according to the source marks in and out
     int i_percent = (int) ( (double)( selectedSourceVideoFile->getMarkIn() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
     int o_percent = (int) ( (double)( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
 
     markInSlider->setValue(i_percent);
     markOutSlider->setValue(o_percent);
 
-//    if (actionShow_frames->isChecked()) {
-//        markInLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getMarkIn() ));
-//        markOutLineEdit->setText( tr("frame %1").arg( selectedSourceVideoFile->getMarkOut() ));
-//    } else {
-//        markInLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame( selectedSourceVideoFile->getMarkIn() ));
-//        markOutLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame( selectedSourceVideoFile->getMarkOut() ));
-//    }
-    // todo update property for marks in / out
+    // update property for marks in / out
+    emit sourceMarksModified(actionShow_frames->isChecked());
 }
 
 
@@ -708,5 +720,6 @@ void GLMixer::on_actionNew_Session_triggered(){
 
 	RenderingManager::getInstance()->clearSourceSet();
 }
+
 
 

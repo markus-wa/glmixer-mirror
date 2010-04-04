@@ -9,7 +9,6 @@
 #define SOURCE_H_
 
 #include <set>
-#include <QDomElement>
 #include <QColor>
 #include <QtCore/QMap>
 
@@ -18,26 +17,47 @@
 class QtProperty;
 
 class Source;
-//struct Source_id_comp;
-//typedef std::set<Source *, Source_id_comp> SourceList;
 typedef std::set<Source *> SourceList;
 
-
+/**
+ * Base class for every source mixed in GLMixer.
+ *
+ * A source is holding a texture index, all the geometric and mixing attributes, and the corresponding drawing methods.
+ * Every sources shall be instanciated by the rendering manager; this is because the creation and manipulation of sources
+ * requires an active opengl context; this is the task of the rendering manager to call source methods after having made
+ * an opengl context current.
+ *
+ *
+ */
 class Source {
 
 	friend class RenderingManager;
 
-public:
-
+protected:
+	/*
+	 *
+	 */
 	Source(GLuint texture, double depth);
+
+public:
 	virtual ~Source();
-	bool operator==(Source s2){
-		return ( id == s2.id );
+	bool operator==(Source s2) {
+		return (id == s2.id);
 	}
 
-	typedef enum { SIMPLE_SOURCE = 0, CLONE_SOURCE, VIDEO_SOURCE, CAMERA_SOURCE, ALGORITHM_SOURCE, RENDERING_SOURCE, CAPTURE_SOURCE } RTTI;
+	typedef enum {
+		SIMPLE_SOURCE = 0,
+		CLONE_SOURCE,
+		VIDEO_SOURCE,
+		CAMERA_SOURCE,
+		ALGORITHM_SOURCE,
+		RENDERING_SOURCE,
+		CAPTURE_SOURCE
+	} RTTI;
 	static RTTI type;
-	virtual RTTI rtti() const { return type; }
+	virtual RTTI rtti() const {
+		return type;
+	}
 
 	/**
 	 *  Rendering
@@ -46,14 +66,16 @@ public:
 	// In subclasses of Source, the texture content is also updated
 	virtual void update();
 	// Request update
-	inline void requestUpdate() { frameChanged = true; }
+	inline void requestUpdate() {
+		frameChanged = true;
+	}
 	void blend() const;
 	// to be called in the OpenGL loop before drawing if the source shall be blended
 	void startEffectsSection() const;
 	void endEffectsSection() const;
 
 	// to be called in the OpenGL loop to draw this source
-    void draw(bool withalpha = true, GLenum mode = GL_RENDER) const;
+	void draw(bool withalpha = true, GLenum mode = GL_RENDER) const;
 	// OpenGL access to the texture index
 	inline GLuint getTextureIndex() {
 		return textureIndex;
@@ -80,8 +102,9 @@ public:
 	void setName(QString n);
 
 	// returns the list of clones of this source (used to delete them)
-	inline SourceList *getClones() const { return clones; }
-
+	inline SourceList *getClones() const {
+		return clones;
+	}
 
 	/**
 	 *  Geometry and deformation
@@ -128,7 +151,6 @@ public:
 	void clampScale();
 	void resetScale();
 
-
 	inline bool isCulled() const {
 		return culled;
 	}
@@ -174,10 +196,18 @@ public:
 		blend_eq = eq;
 	}
 
-	typedef enum { NO_MASK, ROUNDCORNER_MASK, CIRCLE_MASK, GRADIENT_CIRCLE_MASK, GRADIENT_SQUARE_MASK, CUSTOM_MASK } maskType;
+	typedef enum {
+		NO_MASK,
+		ROUNDCORNER_MASK,
+		CIRCLE_MASK,
+		GRADIENT_CIRCLE_MASK,
+		GRADIENT_SQUARE_MASK,
+		CUSTOM_MASK
+	} maskType;
 	void setMask(maskType t, GLuint texture = 0);
-	int getMask() { return (int) mask_type; }
-
+	int getMask() {
+		return (int) mask_type;
+	}
 
 	/**
 	 * Coloring, image processing
@@ -185,21 +215,43 @@ public:
 	// set canvas color
 	void setColor(QColor c);
 	// Adjust brightness factor
-	inline void setBrightness(int b) { brightness = b; }
-	inline int getBrightness() const { return brightness; }
+	inline void setBrightness(int b) {
+		brightness = b;
+	}
+	inline int getBrightness() const {
+		return brightness;
+	}
 	// Adjust contrast factor
-	inline void setContrast(int b) { contrast = b; }
-	inline int getContrast() const { return contrast; }
+	inline void setContrast(int b) {
+		contrast = b;
+	}
+	inline int getContrast() const {
+		return contrast;
+	}
 	// Switch to greyscale
-	inline void setGreyscale(bool on) { greyscale = on;}
-	inline bool isGreyscale() const { return greyscale; }
+	inline void setGreyscale(bool on) {
+		greyscale = on;
+	}
+	inline bool isGreyscale() const {
+		return greyscale;
+	}
 	// Switch to color inverted
-	inline void setInvertcolors(bool on) { invertcolors = on;}
-	inline bool isInvertcolors() const { return invertcolors; }
+	inline void setInvertcolors(bool on) {
+		invertcolors = on;
+	}
+	inline bool isInvertcolors() const {
+		return invertcolors;
+	}
 	// select a filter
-	typedef enum { NONE, BLUR, SHARPEN, EDGE, EMBOSS } convolutionType;
-	inline void setConvolution( convolutionType c) { convolution = c; }
-	inline convolutionType getConvolution() const { return convolution; }
+	typedef enum {
+		NONE, BLUR, SHARPEN, EDGE, EMBOSS
+	} convolutionType;
+	inline void setConvolution(convolutionType c) {
+		convolution = c;
+	}
+	inline convolutionType getConvolution() const {
+		return convolution;
+	}
 
 protected:
 
@@ -235,17 +287,6 @@ protected:
 	// id counter
 	static GLuint lastid;
 
-
 };
-
-//
-//struct Source_id_comp
-//{
-//    inline bool operator () (Source *a, Source *b) const
-//    {
-//        return (a->getId() < b->getId());
-//    }
-//};
-
 
 #endif /* SOURCE_H_ */

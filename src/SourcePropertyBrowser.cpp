@@ -124,15 +124,11 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent)
 
 }
 
-SourcePropertyBrowser::~SourcePropertyBrowser() {
-	// TODO delete properties of root and of rtti map
-}
-
 
 
 void SourcePropertyBrowser::createPropertyTree(){
 
-	// we will need these:
+	// we will need these for the correspondance between comboBox and GLenums:
 	glblendToEnum[GL_ZERO] = 0; enumToGlblend[0] = GL_ZERO;
 	glblendToEnum[GL_ONE] = 1; enumToGlblend[1] = GL_ONE;
 	glblendToEnum[GL_SRC_COLOR] = 2; enumToGlblend[2] = GL_SRC_COLOR;
@@ -143,13 +139,12 @@ void SourcePropertyBrowser::createPropertyTree(){
 	glblendToEnum[GL_ONE_MINUS_SRC_ALPHA] = 7; enumToGlblend[7] = GL_ONE_MINUS_SRC_ALPHA;
 	glblendToEnum[GL_DST_ALPHA] = 8; enumToGlblend[8] = GL_DST_ALPHA;
 	glblendToEnum[GL_ONE_MINUS_DST_ALPHA] = 9; enumToGlblend[9] = GL_ONE_MINUS_DST_ALPHA;
-
 	glequationToEnum[GL_FUNC_ADD] = 0; enumToGlequation[0] = GL_FUNC_ADD;
 	glequationToEnum[GL_FUNC_SUBTRACT] = 1; enumToGlequation[1] = GL_FUNC_SUBTRACT;
 	glequationToEnum[GL_FUNC_REVERSE_SUBTRACT] = 2; enumToGlequation[2] = GL_FUNC_REVERSE_SUBTRACT;
 	glequationToEnum[GL_MIN] = 3; enumToGlequation[3] = GL_MIN;
 	glequationToEnum[GL_MAX] = 4; enumToGlequation[4] = GL_MAX;
-
+	// the comboBox presents of combinations
 	presetBlending[1] = qMakePair( 1, 0 );
 	presetBlending[2] = qMakePair( 1, 2 );
 	presetBlending[3] = qMakePair( 8, 0 );
@@ -231,7 +226,6 @@ void SourcePropertyBrowser::createPropertyTree(){
     enumIcons[4] = QIcon(":/glmixer/textures/mask_linear_square.png");
     enumIcons[5] = QIcon(":/glmixer/icons/fileopen.png");
     enumManager->setEnumIcons(property, enumIcons);
-
 	root->addSubProperty(property);
 	// Color
 	property = colorManager->addProperty("Color");
@@ -309,6 +303,16 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(fr);
 		// Duration
 		property = infoManager->addProperty( QLatin1String("Duration") );
+		property->setItalics(true);
+		idToProperty[property->propertyName()] = property;
+		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
+		// mark IN
+		property = infoManager->addProperty( QLatin1String("Mark in") );
+		property->setItalics(true);
+		idToProperty[property->propertyName()] = property;
+		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
+		// mark OUT
+		property = infoManager->addProperty( QLatin1String("Mark out") );
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
@@ -434,7 +438,10 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 					rttiToProperty[Source::VIDEO_SOURCE]->removeSubProperty(idToProperty["Converted size"]);
 			}
 			infoManager->setValue(idToProperty["Frame rate"], QString::number( vf->getFrameRate() ) + QString(" fps") );
-			infoManager->setValue(idToProperty["Duration"], QString::number( vf->getDuration() ) + QString(" s") );
+//			infoManager->setValue(idToProperty["Duration"], QString::number( vf->getDuration() ) + QString(" s") );
+			infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
+			infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
+			infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
 
 			// Enable all filters for video file and read the current values
 			idToProperty["Brightness"]->setEnabled(true);
@@ -815,6 +822,29 @@ void SourcePropertyBrowser::updateLayerProperties(){
 	    disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 		doubleManager->setValue(idToProperty["Depth"], currentItem->getDepth() );
 		connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
+    }
+}
+
+void SourcePropertyBrowser::updateMarksProperties(bool showFrames){
+
+    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
+		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+
+		if (currentItem->rtti() == Source::VIDEO_SOURCE) {
+			VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
+			if (vs != 0) {
+				VideoFile *vf = vs->getVideoFile();
+				if (showFrames) {
+					infoManager->setValue(idToProperty["Duration"], vf->getExactFrameFromFrame(vf->getEnd()) );
+					infoManager->setValue(idToProperty["Mark in"],  vf->getExactFrameFromFrame(vf->getMarkIn()) );
+					infoManager->setValue(idToProperty["Mark out"], vf->getExactFrameFromFrame(vf->getMarkOut()) );
+				} else {
+					infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
+					infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
+					infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
+				}
+			}
+		}
     }
 }
 

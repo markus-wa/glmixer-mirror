@@ -545,21 +545,6 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     else
     	targetFormat = PIX_FMT_RGB24;
 
-//    if (video_st->codec->pix_fmt == PIX_FMT_RGB32)
-//    	qDebug("source format PIX_FMT_RGB32");
-//    if (video_st->codec->pix_fmt == PIX_FMT_RGB24)
-//    	qDebug("source format PIX_FMT_RGB24");
-//    if (video_st->codec->pix_fmt == PIX_FMT_RGBA)
-//    	qDebug("source format PIX_FMT_RGBA");
-//
-//
-//    if (targetFormat == PIX_FMT_RGB32)
-//    	qDebug("target format PIX_FMT_RGB32");
-//    if (targetFormat == PIX_FMT_RGB24)
-//    	qDebug("target format PIX_FMT_RGB24");
-//    if (targetFormat == PIX_FMT_RGBA)
-//    	qDebug("target format PIX_FMT_RGBA");
-
 
     /* allocate the buffers */
     for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i) {
@@ -606,7 +591,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     emit running(!quit);
 
     // tells everybody we are set !
-    emit info(tr("File %1 opened (%2 frames).").arg(filename).arg(getEnd()));
+    emit info(tr("File %1 opened (%2 frames).").arg(filename).arg(getExactFrameFromFrame(getEnd())));
 
     return true;
 }
@@ -760,6 +745,16 @@ int64_t VideoFile::getCurrentFrameTime() const {
     return ((int64_t)(play_speed * video_current_pts / av_q2d(video_st->time_base)));
 }
 
+float VideoFile::getFrameRate() const {
+
+    if (video_st && video_st->avg_frame_rate.den > 0)
+        return ((float) (video_st->avg_frame_rate.num )/ (float) video_st->avg_frame_rate.den);
+    else if (video_st && video_st->r_frame_rate.den > 0)
+        return ((float) (video_st->r_frame_rate.num )/ (float) video_st->r_frame_rate.den);
+    else
+        return 0;
+}
+
 void VideoFile::setOptionAllowDirtySeek(bool dirty) {
 
     seek_any = dirty;
@@ -806,15 +801,25 @@ void VideoFile::seekByFrames(int64_t ss) {
 
 QString VideoFile::getTimeFromFrame(int64_t t) const {
 
-    double time = (double) t * av_q2d(video_st->time_base) / play_speed;
+    double time = (double) (t- video_st->start_time) * av_q2d(video_st->time_base) / play_speed;
     int s = (int) time;
     time -= s;
     int h = s / 3600;
     int m = (s % 3600) / 60;
     s = (s % 3600) % 60;
     int ds = (int) (time * 100.0);
-    return QString("%1h %2m %3.%4s").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0')).arg(ds, 2, 10, QChar(
-                '0'));
+    return QString("%1h %2m %3.%4s").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
+}
+
+
+QString VideoFile::getExactFrameFromFrame(int64_t t) const {
+
+	if ( video_st->nb_frames > 0 )
+		return QString("Frame: %1").arg( int ( video_st->nb_frames * double(t - video_st->start_time) / double(video_st->duration) ) );
+	else {
+		return QString("Frame: %1").arg( int ( float (t - video_st->start_time) / getFrameRate()) );
+	}
+
 }
 
 int64_t VideoFile::getFrameFromTime(QString t) const {

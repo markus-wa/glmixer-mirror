@@ -14,72 +14,78 @@
 #include "SourceSet.h"
 
 /**
-    @author Bruno Herbelin <bruno.herbelin@gmail.com>
-*/
-class  GLMixer: public QMainWindow, private Ui::GLMixer
-{
-        Q_OBJECT
 
-    public:
-        GLMixer ( QWidget *parent = 0 );
-        ~GLMixer();
+ */
+class GLMixer: public QMainWindow, private Ui::GLMixer {
 
-        void closeEvent ( QCloseEvent * event );
+Q_OBJECT
 
+public:
+	GLMixer(QWidget *parent = 0);
+	~GLMixer();
 
-    public slots:
+	void closeEvent(QCloseEvent * event);
 
-    // menu and actions
-//		void on_blendingPresetsComboBox_currentIndexChanged(int);
-		void on_actionMediaSource_triggered();
-		void on_actionCameraSource_triggered();
-		void on_actionRenderingSource_triggered();
-		void on_actionCaptureSource_triggered();
-		void on_actionAlgorithmSource_triggered();
-		void on_actionCloneSource_triggered();
-		void on_actionDeleteSource_triggered();
-		void on_actionSaveCapture_triggered();
-        void on_actionFormats_and_Codecs_triggered();
-        void on_actionOpenGL_extensions_triggered();
-        void on_markInSlider_sliderReleased ();
-        void on_markOutSlider_sliderReleased ();
-        void on_frameSlider_sliderPressed ();
-        void on_frameSlider_sliderReleased ();
-        void on_frameSlider_sliderMoved (int);
-        void on_frameSlider_actionTriggered (int);
-        void on_actionShow_frames_toggled(bool);
-        void on_actionShowFPS_toggled(bool);
-        void on_actionAbout_triggered();
-        void on_actionMixingView_triggered();
-        void on_actionGeometryView_triggered();
-        void on_actionLayersView_triggered();
-        void on_actionAbout_Qt_triggered() { QApplication::aboutQt (); }
-        void on_actionNew_Session_triggered();
-//        void on_preFilteringBox_toggled(bool);
+public Q_SLOTS:
+
+	// menu and actions
+	void on_actionMediaSource_triggered();
+	void on_actionCameraSource_triggered();
+	void on_actionRenderingSource_triggered();
+	void on_actionCaptureSource_triggered();
+	void on_actionAlgorithmSource_triggered();
+	void on_actionCloneSource_triggered();
+	void on_actionDeleteSource_triggered();
+	void on_actionFormats_and_Codecs_triggered();
+	void on_actionOpenGL_extensions_triggered();
+	void on_markInSlider_sliderReleased();
+	void on_markOutSlider_sliderReleased();
+	void on_frameSlider_sliderPressed();
+	void on_frameSlider_sliderReleased();
+	void on_frameSlider_sliderMoved(int);
+	void on_frameSlider_actionTriggered(int);
+	void on_actionShow_frames_toggled(bool);
+	void on_actionShowFPS_toggled(bool);
+	void on_actionAbout_triggered();
+	void on_actionMixingView_triggered();
+	void on_actionGeometryView_triggered();
+	void on_actionLayersView_triggered();
+	void on_actionAbout_Qt_triggered() {
+		QApplication::aboutQt();
+	}
+	void on_actionNew_Session_triggered();
 
 	// GUI interaction
-        void updateRefreshTimerState();
-        void updateMarks();
-        void pauseAfterFrame();
-        void refreshTiming();
-        void displayLogMessage(QString msg);
-        void displayErrorMessage(QString msg);
+	void updateRefreshTimerState();
+	void updateMarks();
+	void pauseAfterFrame();
+	void refreshTiming();
+	void displayLogMessage(QString msg);
+	void displayErrorMessage(QString msg);
 
 	// source config
-        void connectSource(SourceSet::iterator csi);
-//        void sourceBlendingChanged();
-//        void sourceBlendingMaskChanged();
-//        void sourceLevelsChanged();
-//        void sourceColoringChanged();
-//        void sourceFilterChanged();
+	void connectSource(SourceSet::iterator csi);
 
-    private:
+Q_SIGNALS:
+	void sourceMarksModified(bool);
 
-        VideoFile *selectedSourceVideoFile;
+private:
 
-        QTimer *refreshTimingTimer;
-        bool waspaused;
-        bool skipNextRefresh;
+	VideoFile *selectedSourceVideoFile;
+
+	QTimer *refreshTimingTimer;
+	bool waspaused;
+	bool skipNextRefresh;
+};
+
+class CaptureDialog: public QDialog {
+	Q_OBJECT
+
+	QImage img;
+public:
+	CaptureDialog(QWidget *parent, QImage capture);
+public Q_SLOTS:
+	void saveImage();
 };
 
 #endif /* GLV_H_ */

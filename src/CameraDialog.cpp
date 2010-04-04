@@ -28,7 +28,9 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
     QObject::connect(opencvComboBox, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
 
 	autodetectOpencvCameras();
-// TODO : ifnot def opencv, disable tab
+	//	ifnot def opencv, disable tab
+	startTabIndex = 1;
+	tabWidget->setTabEnabled(0, false);
 #endif
 
     tabWidget->setCurrentIndex ( startTabIndex );
