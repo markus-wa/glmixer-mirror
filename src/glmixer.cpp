@@ -68,7 +68,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 
     // Create preview widget
-	OutputRenderWidget *outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
+    OutputRenderWidget *outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
 	previewDockWidgetContentsLayout->addWidget(outputpreview);
 	outputpreview->setCursor(Qt::ArrowCursor);
 
@@ -79,8 +79,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(actionQuit, SIGNAL(triggered()), this, SLOT(close()));
 
     // Signals between GUI and output window
-    QObject::connect(actionKeep_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useRenderingAspectRatio(bool)));
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
+	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useFreeAspectRatio(bool)));
+	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized(bool)), outputpreview, SLOT(useFreeAspectRatio(bool)));
+
+	// Signals between GUI and rendering widget
+	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(refresh()));
 	QObject::connect(actionZoomIn, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomIn()));
 	QObject::connect(actionZoomOut, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomOut()));
 	QObject::connect(actionZoomReset, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
@@ -96,7 +100,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     refreshTimingTimer->setInterval(150);
     QObject::connect(refreshTimingTimer, SIGNAL(timeout()), this, SLOT(refreshTiming()));
     QObject::connect(vcontrolDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(updateRefreshTimerState()));
-
 }
 
 GLMixer::~GLMixer() {
@@ -116,19 +119,16 @@ void GLMixer::updateRefreshTimerState(){
         refreshTimingTimer->start();
     else
         refreshTimingTimer->stop();
-
 }
 
 void GLMixer::on_actionFormats_and_Codecs_triggered(){
 
     VideoFile::displayFormatsCodecsInformation(QString::fromUtf8(":/glmixer/icons/video.png"));
-
 }
 
 void GLMixer::on_actionOpenGL_extensions_triggered(){
 
     glRenderWidget::showGlExtensionsInformationDialog(QString::fromUtf8(":/glmixer/icons/display.png"));
-
 }
 
 

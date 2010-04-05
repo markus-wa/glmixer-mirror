@@ -34,7 +34,7 @@ public:
     // OpenGL informations
     static void showGlExtensionsInformationDialog(QString iconfile = "");
 
-public slots:
+public Q_SLOTS:
     inline void setUpdatePeriod(int miliseconds) {
     	period = miliseconds;
 		if (timer > 0)  { killTimer(timer); timer = startTimer(period); }

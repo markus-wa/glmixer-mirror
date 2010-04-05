@@ -8,8 +8,8 @@
 #ifndef MAINRENDERWIDGET_H_
 #define MAINRENDERWIDGET_H_
 
-#define DEFAULT_WIDTH 1024
-#define DEFAULT_HEIGHT 768
+#define DEFAULT_WIDTH 960
+#define DEFAULT_HEIGHT 600
 
 #include "common.h"
 #include "SourceSet.h"
@@ -84,11 +84,11 @@ public:
 
 	QImage captureFrameBuffer();
 
-public slots:
+public Q_SLOTS:
 	void setPreviousFrameDelay(int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 	void clearSourceSet();
 
-signals:
+Q_SIGNALS:
 	void currentSourceChanged(SourceSet::iterator csi);
 
 private:

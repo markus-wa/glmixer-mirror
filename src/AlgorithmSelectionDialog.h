@@ -28,7 +28,7 @@ public:
 	double getSelectedVariability();
 	unsigned long  getUpdatePeriod();
 
-public slots:
+public Q_SLOTS:
 
 	void on_AlgorithmComboBox_currentIndexChanged(int algo);
 	void on_customUpdateFrequency_toggled(bool flag);

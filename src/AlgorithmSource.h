@@ -39,7 +39,7 @@ public:
 	inline double getFrameRate() const { return framerate; }
 	bool isRunning();
 
-public slots:
+public Q_SLOTS:
 	void play(bool on);
 	void setPeriodicity(unsigned long u_seconds) {period = u_seconds;}
 	void setVariability(double v) { variability = CLAMP(v, 0.0, 1.0); }

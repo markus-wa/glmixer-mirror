@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 	// 3. The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow *orw = OutputRenderWindow::getInstance();
     orw->setGeometry(100, 100, mrw->getFrameBufferWidth(), mrw->getFrameBufferHeight());
-    orw->setWindowTitle(QString("GL Mixer Rendering Window"));
+    orw->setWindowTitle(QString("GL Mixer Output Window"));
     orw->show();
 	
 	// 4. show the GUI in front

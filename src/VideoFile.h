@@ -553,7 +553,7 @@ signals:
      */
     void prefilteringChanged();
 
-public slots:
+public Q_SLOTS:
     /**
      * Opens the file and reads first frame.
      *
@@ -768,7 +768,7 @@ public slots:
      */
     void setSaturation(int s);
 
-protected slots:
+protected Q_SLOTS:
     /**
      * Slot called from an internal timer synchronized on the video time code.
      */

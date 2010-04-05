@@ -158,7 +158,7 @@ void MixerView::resize(int w, int h)
 
     refreshMatrices();
 
-    // just in case ; after a resize or a switch to this view, reset the pointer to last cliked source.
+    // just in case ; after a resize or a switch to this view, reset the pointer of last cliked source.
     cliked = 0;
 }
 

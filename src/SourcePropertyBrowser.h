@@ -43,7 +43,7 @@ public slots:
 	void valueChanged(QtProperty *property, double value);
 	void valueChanged(QtProperty *property, const QString &value);
 
-    // force recursive expanding or collapsing of the property tree items
+    // force expanding or collapsing of the property tree items
     void setGlobalExpandState(bool expanded);
     // utility slot for expanding all tree items
     void expandAll() { setGlobalExpandState(true); }

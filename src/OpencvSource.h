@@ -41,7 +41,7 @@ public:
 	inline double getFrameRate() const { return framerate; }
 	bool isRunning();
 
-public slots:
+public Q_SLOTS:
 	void play(bool on);
 
 protected:

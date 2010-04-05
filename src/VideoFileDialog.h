@@ -35,7 +35,7 @@ public:
     }
 
 
-public slots:
+public Q_SLOTS:
     void setPreviewVisible(bool visible);
     void rememberFilter(const QString &);
 

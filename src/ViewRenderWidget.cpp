@@ -165,7 +165,13 @@ QPixmap ViewRenderWidget::getViewIcon(){
  */
 
 void ViewRenderWidget::resizeGL(int w, int h){
+
 	currentManipulationView->resize(w,h);
+}
+
+void ViewRenderWidget::refresh() {
+
+	currentManipulationView->resize(width(),height());
 }
 
 void ViewRenderWidget::paintGL(){

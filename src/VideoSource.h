@@ -27,7 +27,7 @@ protected:
 	virtual ~VideoSource();
     void update();
 
-public slots:
+public Q_SLOTS:
     void updateFrame (int i);
     void applyFilter();
 

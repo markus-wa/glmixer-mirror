@@ -12,16 +12,23 @@
 
 class OutputRenderWidget: public glRenderWidget {
 
+	Q_OBJECT
+
 public:
 	OutputRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
 
     virtual void initializeGL();
     virtual void paintGL();
+    virtual void resizeGL(int w, int h);
 
 	float getAspectRatio();
 
+public Q_SLOTS:
+	void useFreeAspectRatio(bool on);
+
 protected:
-	bool useAspectRatio;
+	bool useAspectRatio, useWindowAspectRatio;
+	int rx, ry, rw, rh;
 };
 
 class OutputRenderWindow : public OutputRenderWidget {
@@ -32,19 +39,20 @@ public:
 	// get singleton instance
 	static OutputRenderWindow *getInstance();
 
-    virtual void initializeGL();
+    void initializeGL();
+    void resizeGL(int w, int h);
 
 	// events handling
-	virtual void keyPressEvent(QKeyEvent * event);
-	virtual void mouseDoubleClickEvent(QMouseEvent * event);
-	virtual void closeEvent(QCloseEvent * event);
+	void keyPressEvent(QKeyEvent * event);
+	void mouseDoubleClickEvent(QMouseEvent * event);
+	void closeEvent(QCloseEvent * event);
 
-public slots:
-	void useRenderingAspectRatio(bool on);
+public Q_SLOTS:
 	void setFullScreen(bool on);
 
-signals:
+Q_SIGNALS:
 	void windowClosed();
+	void resized(bool);
 
 	/**
 	 * singleton mechanism

@@ -37,7 +37,7 @@ public:
 	 */
 	void paintGL();
 	void initializeGL();
-	void resizeGL(int w, int h);
+	void resizeGL(int w = 0, int h = 0);
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent ( QMouseEvent * event );
@@ -62,12 +62,12 @@ Q_SIGNALS:
 	void sourceGeometryModified();
 	void sourceLayerModified();
 
-public slots:
+public Q_SLOTS:
 	void zoomIn();
 	void zoomOut();
 	void zoomReset();
 	void zoomBestFit();
-
+	void refresh();
 	void showMessage(QString s);
 	void hideMessage() { displayMessage = false; }
 

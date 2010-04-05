@@ -1135,8 +1135,9 @@ p, li { white-space: pre-wrap; }
       <iconset resource="../icons.qrc">
        <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
      </property>
+     <addaction name="actionRendering_resolution_2"/>
      <addaction name="actionFullscreen"/>
-     <addaction name="actionKeep_aspect_ratio"/>
+     <addaction name="actionFree_aspect_ratio"/>
     </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
@@ -1147,13 +1148,13 @@ p, li { white-space: pre-wrap; }
      <addaction name="actionZoomOut"/>
      <addaction name="actionZoomBestFit"/>
     </widget>
+    <addaction name="menuRendering_Window"/>
+    <addaction name="separator"/>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
     <addaction name="actionLayersView"/>
     <addaction name="actionShowFPS"/>
     <addaction name="menuZoom"/>
-    <addaction name="separator"/>
-    <addaction name="menuRendering_Window"/>
     <addaction name="separator"/>
     <addaction name="menuToolBars"/>
     <addaction name="actionShow_frames"/>
@@ -1293,10 +1294,6 @@ p, li { white-space: pre-wrap; }
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
-   </property>
    <property name="text">
     <string>Full screen</string>
    </property>
@@ -1304,15 +1301,15 @@ p, li { white-space: pre-wrap; }
     <string>Ctrl+F</string>
    </property>
   </action>
-  <action name="actionKeep_aspect_ratio">
+  <action name="actionFree_aspect_ratio">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
-    <string>Keep aspect ratio</string>
+    <string>Free aspect ratio</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -1590,6 +1587,40 @@ p, li { white-space: pre-wrap; }
     <string>Backspace</string>
    </property>
   </action>
+  <action name="action640_x_480">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>640 x 480 (VGA)</string>
+   </property>
+  </action>
+  <action name="action800_x_600">
+   <property name="text">
+    <string>800 x 600 (SVGA)</string>
+   </property>
+  </action>
+  <action name="action1024_x_748">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>1024 x 748 (XGA)</string>
+   </property>
+  </action>
+  <action name="action1400_x_1050">
+   <property name="text">
+    <string>1400 x 1050 (SXGA+)</string>
+   </property>
+  </action>
+  <action name="actionRendering_resolution_2">
+   <property name="text">
+    <string>Change rendering resolution</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -1606,6 +1637,10 @@ p, li { white-space: pre-wrap; }
   <include location="../icons.qrc"/>
   <include location="../textures.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../icons.qrc"/>
+  <include location="../icons.qrc"/>
+  <include location="../icons.qrc"/>
+  <include location="C:/Documents and Settings/Herbelin/.designer/icons.qrc"/>
  </resources>
  <connections>
   <connection>

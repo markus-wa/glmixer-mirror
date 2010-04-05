@@ -32,7 +32,7 @@ class CameraDialog : public QDialog, Ui_CameraDialog
 
 		driver getDriver();
 
-	public slots:
+	public Q_SLOTS:
 
 		void on_tabWidget_currentChanged(int tabID);
 		void autodetectFirewireCameras();
