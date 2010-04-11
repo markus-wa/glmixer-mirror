@@ -54,7 +54,7 @@ void GeometryView::paint()
             glCallList(ViewRenderWidget::border_thin);
 
 	    // Blending Function For mixing like in the rendering window
-        (*its)->startEffectsSection();
+        (*its)->beginEffectsSection();
 		// bind the source texture and update its content
 		(*its)->update();
 		// test for culling

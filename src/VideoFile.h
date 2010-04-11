@@ -328,6 +328,14 @@ public:
         return codecname;
     }
     /**
+     *  Get if the frames are converted to power-of-two dimensions.
+     *
+     *  @return true if the video file was created with the 'power of two' option.
+     */
+    inline bool getPowerOfTwoConversion() const {
+        return powerOfTwo;
+    }
+    /**
      *  Get the width of the produced frames.
      *
      *  Dimensions of frames were either specified when creating the VideoFile, either read from the file when opened.

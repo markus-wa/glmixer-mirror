@@ -231,21 +231,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 	property = colorManager->addProperty("Color");
 	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
-	// Greyscale on/off
-	property = boolManager->addProperty("Greyscale");
-	idToProperty[property->propertyName()] = property;
-	root->addSubProperty(property);
-	// Invert color on/off
-	property = boolManager->addProperty("Color Invert");
-	idToProperty[property->propertyName()] = property;
-	root->addSubProperty(property);
-	// enum list of filters
-	property = enumManager->addProperty("Filter");
-	idToProperty[property->propertyName()] = property;
-	enumNames.clear();
-	enumNames << "None" << "Blur" << "Sharpen" << "Edge detect" << "Emboss";
-	enumManager->setEnumNames(property, enumNames);
-	root->addSubProperty(property);
 	// Brightness
 	property = intManager->addProperty( QLatin1String("Brightness") );
 	idToProperty[property->propertyName()] = property;
@@ -263,6 +248,24 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
 	intManager->setSingleStep(property, 10);
+	root->addSubProperty(property);
+	// enum list of color tables
+	property = enumManager->addProperty("Color table");
+	idToProperty[property->propertyName()] = property;
+	enumNames.clear();
+	enumNames << "None" << "16 colors" << "8 colors" << "4 colors" << "2 colors" << "Invert";
+	enumManager->setEnumNames(property, enumNames);
+	root->addSubProperty(property);
+	// enum list of filters
+	property = enumManager->addProperty("Filter");
+	idToProperty[property->propertyName()] = property;
+	enumNames.clear();
+	enumNames << "None" << "Blur" << "Sharpen" << "Emboss" << "Edge detect";
+	enumManager->setEnumNames(property, enumNames);
+	root->addSubProperty(property);
+	// Pixelated on/off
+	property = boolManager->addProperty("Pixelated");
+	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
 	// AspectRatio
 	property = infoManager->addProperty("Aspect ratio");
@@ -410,13 +413,20 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		enumManager->setValue(idToProperty["Equation"], glequationToEnum[ s->getBlendEquation() ]);
 		enumManager->setValue(idToProperty["Mask"], s->getMask());
 		colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
-		boolManager->setValue(idToProperty["Greyscale"], s->isGreyscale());
-		boolManager->setValue(idToProperty["Color Invert"], s->isInvertcolors());
+		intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
+		intManager->setValue(idToProperty["Contrast"], s->getContrast() );
+		intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
+		boolManager->setValue(idToProperty["Pixelated"], s->isPixelated());
+		enumManager->setValue(idToProperty["Color table"], (int) s->getColorTable());
 		enumManager->setValue(idToProperty["Filter"], (int) s->getConvolution());
 		infoManager->setValue(idToProperty["Aspect ratio"], QString::number(s->getAspectRatio()) );
 
-		idToProperty["Greyscale"]->setEnabled(true);
-		idToProperty["Color Invert"]->setEnabled(true);
+		// Enable filtering by default
+		idToProperty["Brightness"]->setEnabled(true);
+		idToProperty["Contrast"]->setEnabled(true);
+		idToProperty["Saturation"]->setEnabled(true);
+		idToProperty["Pixelated"]->setEnabled(true);
+		idToProperty["Color table"]->setEnabled(true);
 		idToProperty["Filter"]->setEnabled(true);
 
 
@@ -438,83 +448,67 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 					rttiToProperty[Source::VIDEO_SOURCE]->removeSubProperty(idToProperty["Converted size"]);
 			}
 			infoManager->setValue(idToProperty["Frame rate"], QString::number( vf->getFrameRate() ) + QString(" fps") );
-//			infoManager->setValue(idToProperty["Duration"], QString::number( vf->getDuration() ) + QString(" s") );
 			infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
 			infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
 			infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
 
-			// Enable all filters for video file and read the current values
-			idToProperty["Brightness"]->setEnabled(true);
-			intManager->setValue(idToProperty["Brightness"] , vf->getBrightness() );
-			idToProperty["Contrast"]->setEnabled(true);
-			intManager->setValue(idToProperty["Contrast"], vf->getContrast() );
-			idToProperty["Saturation"]->setEnabled(true);
-			intManager->setValue(idToProperty["Saturation"], vf->getSaturation() );
-		} else {
-			// Enable only the generic source filtering
-			idToProperty["Brightness"]->setEnabled(true);
-			intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
-			idToProperty["Contrast"]->setEnabled(true);
-			intManager->setValue(idToProperty["Contrast"], s->getContrast() );
-			idToProperty["Saturation"]->setEnabled(false);
-			intManager->setValue(idToProperty["Saturation"], 0 );
-
+		} else
 #ifdef OPEN_CV
-			if (s->rtti() == Source::CAMERA_SOURCE) {
+		if (s->rtti() == Source::CAMERA_SOURCE) {
 
-				infoManager->setValue(idToProperty["Type"], QLatin1String("Camera device") );
-				OpencvSource *cvs = dynamic_cast<OpencvSource *>(s);
-				infoManager->setValue(idToProperty["Identifier"], QString("OpenCV Camera %1").arg(cvs->getOpencvCameraIndex()) );
-				sizeManager->setValue(idToProperty["Frames size"], QSize(cvs->getFrameWidth(), cvs->getFrameHeight()) );
-				infoManager->setValue(idToProperty["Frame rate"], QString::number( cvs->getFrameRate() ) + QString(" fps") );
-			}
+			infoManager->setValue(idToProperty["Type"], QLatin1String("Camera device") );
+			OpencvSource *cvs = dynamic_cast<OpencvSource *>(s);
+			infoManager->setValue(idToProperty["Identifier"], QString("OpenCV Camera %1").arg(cvs->getOpencvCameraIndex()) );
+			sizeManager->setValue(idToProperty["Frames size"], QSize(cvs->getFrameWidth(), cvs->getFrameHeight()) );
+			infoManager->setValue(idToProperty["Frame rate"], QString::number( cvs->getFrameRate() ) + QString(" fps") );
+		} else
 #endif
-			if (s->rtti() == Source::RENDERING_SOURCE) {
+		if (s->rtti() == Source::RENDERING_SOURCE) {
+			// disable filtering for rendering source
+			idToProperty["Brightness"]->setEnabled(false);
+			idToProperty["Contrast"]->setEnabled(false);
+			idToProperty["Pixelated"]->setEnabled(false);
+			idToProperty["Color table"]->setEnabled(false);
+			idToProperty["Filter"]->setEnabled(false);
 
-				idToProperty["Brightness"]->setEnabled(false);
-				idToProperty["Contrast"]->setEnabled(false);
-				idToProperty["Greyscale"]->setEnabled(false);
-				idToProperty["Color Invert"]->setEnabled(false);
-				idToProperty["Filter"]->setEnabled(false);
+			infoManager->setValue(idToProperty["Type"], QLatin1String("Rendering loop-back") );
+			if (glSupportsExtension("GL_EXT_framebuffer_blit"))
+				infoManager->setValue(idToProperty["Rendering mechanism"], "Blit to frame buffer object" );
+			else
+				infoManager->setValue(idToProperty["Rendering mechanism"], "Draw to frame buffer object" );
+			sizeManager->setValue(idToProperty["Frames size"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
+			infoManager->setValue(idToProperty["Frame rate"], QString::number( RenderingManager::getRenderingWidget()->getFPS() / float(RenderingManager::getInstance()->getPreviousFrameDelay()) ) + QString(" fps") );
+		} else
+		if (s->rtti() == Source::ALGORITHM_SOURCE) {
 
-				infoManager->setValue(idToProperty["Type"], QLatin1String("Rendering loop-back") );
-				if (glSupportsExtension("GL_EXT_framebuffer_blit"))
-					infoManager->setValue(idToProperty["Rendering mechanism"], "Blit to frame buffer object" );
-				else
-					infoManager->setValue(idToProperty["Rendering mechanism"], "Draw to frame buffer object" );
-				sizeManager->setValue(idToProperty["Frames size"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
-				infoManager->setValue(idToProperty["Frame rate"], QString::number( RenderingManager::getRenderingWidget()->getFPS() / float(RenderingManager::getInstance()->getPreviousFrameDelay()) ) + QString(" fps") );
-			}
-			else if (s->rtti() == Source::ALGORITHM_SOURCE) {
+			infoManager->setValue(idToProperty["Type"], QLatin1String("Algorithm") );
+			AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(s);
+			infoManager->setValue(idToProperty["Algorithm"], AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()) );
+			sizeManager->setValue(idToProperty["Frames size"], QSize(as->getFrameWidth(), as->getFrameHeight()) );
+			infoManager->setValue(idToProperty["Frame rate"], QString::number(as->getFrameRate() ) + QString(" fps"));
 
-				infoManager->setValue(idToProperty["Type"], QLatin1String("Algorithm") );
-				AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(s);
-				infoManager->setValue(idToProperty["Algorithm"], AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()) );
-				sizeManager->setValue(idToProperty["Frames size"], QSize(as->getFrameWidth(), as->getFrameHeight()) );
-				infoManager->setValue(idToProperty["Frame rate"], QString::number(as->getFrameRate() ) + QString(" fps"));
+			intManager->setValue(idToProperty["Variability"], int ( as->getVariability() * 100.0 ) );
+			intManager->setValue(idToProperty["Update frequency"], int ( 1000000.0 / double(as->getPeriodicity()) ) );
 
-				intManager->setValue(idToProperty["Variability"], int ( as->getVariability() * 100.0 ) );
-				intManager->setValue(idToProperty["Update frequency"], int ( 1000000.0 / double(as->getPeriodicity()) ) );
+		} else
+		if (s->rtti() == Source::CLONE_SOURCE) {
+			// disable filtering for clone source
+			idToProperty["Brightness"]->setEnabled(false);
+			idToProperty["Contrast"]->setEnabled(false);
+			idToProperty["Pixelated"]->setEnabled(false);
+			idToProperty["Color table"]->setEnabled(false);
+			idToProperty["Filter"]->setEnabled(false);
 
-			}
-			else if (s->rtti() == Source::CLONE_SOURCE) {
-
-				idToProperty["Brightness"]->setEnabled(false);
-				idToProperty["Contrast"]->setEnabled(false);
-				idToProperty["Greyscale"]->setEnabled(false);
-				idToProperty["Color Invert"]->setEnabled(false);
-				idToProperty["Filter"]->setEnabled(false);
-
-				infoManager->setValue(idToProperty["Type"], QLatin1String("Clone") );
-				CloneSource *cs = dynamic_cast<CloneSource *>(s);
-				infoManager->setValue(idToProperty["Clone of"], cs->getOriginalName() );
-			}
-			else if (s->rtti() == Source::CAPTURE_SOURCE) {
-				infoManager->setValue(idToProperty["Type"], QLatin1String("Captured image") );
-				CaptureSource *cs = dynamic_cast<CaptureSource *>(s);
-				sizeManager->setValue(idToProperty["Frames size"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
-			}
+			infoManager->setValue(idToProperty["Type"], QLatin1String("Clone") );
+			CloneSource *cs = dynamic_cast<CloneSource *>(s);
+			infoManager->setValue(idToProperty["Clone of"], cs->getOriginalName() );
+		} else
+		if (s->rtti() == Source::CAPTURE_SOURCE) {
+			infoManager->setValue(idToProperty["Type"], QLatin1String("Captured image") );
+			CaptureSource *cs = dynamic_cast<CaptureSource *>(s);
+			sizeManager->setValue(idToProperty["Frames size"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
 		}
+
 	    // reconnect the managers to the corresponding value change
 	    connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
 	                this, SLOT(valueChanged(QtProperty *, double)));
@@ -668,13 +662,9 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
     if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
 		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
 
-		if ( property == idToProperty["Greyscale"] ) {
-			currentItem->setGreyscale(value);
-		} else if ( property == idToProperty["Color Invert"] ) {
-			currentItem->setInvertcolors(value);
+		if ( property == idToProperty["Pixelated"] ) {
+			currentItem->setPixelated(value);
 		}
-		// indicate that this change affects performance
-		property->setModified(value);
 		// update the current frame
 		currentItem->requestUpdate();
     }
@@ -686,45 +676,27 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
 
 		if ( property == idToProperty["Brightness"] ) {
-			// use pre-filter filtering if we can on video source
-			if (currentItem->rtti() == Source::VIDEO_SOURCE) {
-				VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
-				if (vs != 0)
-					vs->getVideoFile()->setBrightness(value);
-			} else
-				currentItem->setBrightness(value);
+			currentItem->setBrightness(value);
 			// request update frame (in case the source is static, stopped, paused, etc)
 			currentItem->requestUpdate();
-		} else if ( property == idToProperty["Contrast"] ) {
-			// use pre-filter filtering if we can on video source
-			if (currentItem->rtti() == Source::VIDEO_SOURCE) {
-				VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
-				if (vs != 0)
-					vs->getVideoFile()->setContrast(value);
-			}
-			else
-				currentItem->setContrast(value);
+		}
+		else if ( property == idToProperty["Contrast"] ) {
+			currentItem->setContrast(value);
 			// request update frame (in case the source is static, stopped, paused, etc)
 			currentItem->requestUpdate();
-		} else if ( property == idToProperty["Saturation"] ) {
-			// use pre-filter filtering on video source
-			if (currentItem->rtti() == Source::VIDEO_SOURCE) {
-				VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
-				if (vs != 0)
-					vs->getVideoFile()->setSaturation(value);
-				// request update frame (in case the source is static, stopped, paused, etc)
-				currentItem->requestUpdate();
-			}
+		}
+		else if ( property == idToProperty["Saturation"] ) {
+			currentItem->setSaturation(value);
+			// request update frame (in case the source is static, stopped, paused, etc)
+			currentItem->requestUpdate();
 		}
 		else if ( property == idToProperty["Variability"] ) {
-			Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
 			if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
 				AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
 				as->setVariability( double(value) / 100.0);
 			}
 		}
 		else if ( property == idToProperty["Update frequency"] ) {
-			Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
 			if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
 				AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
 				as->setPeriodicity( (unsigned long) ( 1000000.0 / double(value) ) );
@@ -771,8 +743,21 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 				property->setModified(true);
 
 		}
+		else if ( property == idToProperty["Color table"] ) {
+
+			currentItem->setColorTable( (Source::colorTableType) value );
+			currentItem->requestUpdate();
+
+			// indicate that this change affects performance
+			if (value == 0)
+				property->setModified(false);
+			else
+				property->setModified(true);
+
+		}
 		else if ( property == idToProperty["Mask"] ) {
 
+// TODO : implement custom file mask
 //			if ( (Source::maskType) value == Source::CUSTOM_MASK ) {
 //				static QDir d = QDir::home();
 //				qDebug("CUSTOM MASK");

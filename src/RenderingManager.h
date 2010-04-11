@@ -18,6 +18,7 @@ class ViewRenderWidget;
 class SourcePropertyBrowser;
 
 #include <QObject>
+#include <QDomElement>
 
 class QGLFramebufferObject;
 class VideoFile;
@@ -41,17 +42,18 @@ public:
 	/**
 	* Management of the sources
 	**/
-	void addRenderingSource();
-	void addCaptureSource(QImage img);
-	void addMediaSource(VideoFile *vf);
+	Source *addRenderingSource(double depth = -1.0);
+	Source *addCaptureSource(QImage img, double depth = -1.0);
+	Source *addMediaSource(VideoFile *vf, double depth = -1.0);
 #ifdef OPEN_CV
-	void addOpencvSource(int opencvIndex);
+	Source *addOpencvSource(int opencvIndex, double depth = -1.0);
 #endif
-	void addAlgorithmSource(int type, int w, int h, double v, int p);
-	void addCloneSource(SourceSet::iterator sit);
+	Source *addAlgorithmSource(int type, int w, int h, double v, int p, double depth = -1.0);
+	Source *addCloneSource(SourceSet::iterator sit, double depth = -1.0);
 
 
-	SourceSet::iterator getById(GLuint name);
+	SourceSet::iterator getById(GLuint id);
+	SourceSet::iterator getByName(QString name);
 	bool notAtEnd(SourceSet::iterator itsource);
 	bool isValid(SourceSet::iterator itsource);
 	SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
@@ -83,6 +85,12 @@ public:
 	int getPreviousFrameDelay() { return previousframe_delay; }
 
 	QImage captureFrameBuffer();
+
+	/**
+	 * save and load configuration
+	 */
+	QDomElement getConfiguration(QDomDocument &doc);
+	void addConfiguration(QDomElement xmlconfig);
 
 public Q_SLOTS:
 	void setPreviousFrameDelay(int delay) { previousframe_delay = CLAMP(delay,1,1000);}

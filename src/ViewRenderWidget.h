@@ -8,6 +8,8 @@
 #ifndef VIEWRENDERWIDGET_H_
 #define VIEWRENDERWIDGET_H_
 
+#include <QDomElement>
+
 #include "common.h"
 #include "glRenderWidget.h"
 #include "SourceSet.h"
@@ -57,12 +59,20 @@ public:
 	void setViewMode(viewMode mode);
 	QPixmap getViewIcon();
 
+	/**
+	 * save and load configuration
+	 */
+	QDomElement getConfiguration(QDomDocument &doc);
+	void setConfiguration(QDomElement xmlconfig);
+
 Q_SIGNALS:
 	void sourceMixingModified();
 	void sourceGeometryModified();
 	void sourceLayerModified();
 
 public Q_SLOTS:
+
+	void clear();
 	void zoomIn();
 	void zoomOut();
 	void zoomReset();

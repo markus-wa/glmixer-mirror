@@ -28,6 +28,8 @@ public:
 
 public Q_SLOTS:
 
+	void setTitle();
+
 	// menu and actions
 	void on_actionMediaSource_triggered();
 	void on_actionCameraSource_triggered();
@@ -54,6 +56,10 @@ public Q_SLOTS:
 		QApplication::aboutQt();
 	}
 	void on_actionNew_Session_triggered();
+	void on_actionSave_Session_triggered();
+	void on_actionSave_Session_as_triggered();
+	void on_actionLoad_Session_triggered();
+	void on_actionAppend_Session_triggered();
 
 	// GUI interaction
 	void updateRefreshTimerState();
@@ -70,7 +76,7 @@ Q_SIGNALS:
 	void sourceMarksModified(bool);
 
 private:
-
+	QString currentStageFileName;
 	VideoFile *selectedSourceVideoFile;
 
 	QTimer *refreshTimingTimer;

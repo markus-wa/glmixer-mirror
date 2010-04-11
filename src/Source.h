@@ -45,6 +45,7 @@ public:
 		return (id == s2.id);
 	}
 
+	// Run-Time Type Information
 	typedef enum {
 		SIMPLE_SOURCE = 0,
 		CLONE_SOURCE,
@@ -65,13 +66,15 @@ public:
 	// to be called in the OpenGL loop to bind the source texture before drawing
 	// In subclasses of Source, the texture content is also updated
 	virtual void update();
-	// Request update
+	// Request update explicitly (e.g. after changing a filter)
 	inline void requestUpdate() {
 		frameChanged = true;
 	}
-	void blend() const;
+	// apply the blending (including mask)
 	// to be called in the OpenGL loop before drawing if the source shall be blended
-	void startEffectsSection() const;
+	void blend() const;
+	// begin and end the section which applies the various effects (convolution, color tables, etc).
+	void beginEffectsSection() const;
 	void endEffectsSection() const;
 
 	// to be called in the OpenGL loop to draw this source
@@ -215,36 +218,55 @@ public:
 	// set canvas color
 	void setColor(QColor c);
 	// Adjust brightness factor
-	inline void setBrightness(int b) {
+	inline virtual void setBrightness(int b) {
 		brightness = b;
 	}
-	inline int getBrightness() const {
+	inline virtual int getBrightness() const {
 		return brightness;
 	}
 	// Adjust contrast factor
-	inline void setContrast(int b) {
-		contrast = b;
+	inline virtual void setContrast(int c) {
+		contrast = c;
 	}
-	inline int getContrast() const {
+	inline virtual int getContrast() const {
 		return contrast;
 	}
-	// Switch to greyscale
-	inline void setGreyscale(bool on) {
-		greyscale = on;
+	// Adjust saturation factor
+	virtual void setSaturation(int s);
+	inline virtual int getSaturation() const {
+		return saturation;
 	}
-	inline bool isGreyscale() const {
-		return greyscale;
+	// display pixelated ?
+	inline void setPixelated(bool on) {
+		pixelated = on;
 	}
-	// Switch to color inverted
-	inline void setInvertcolors(bool on) {
-		invertcolors = on;
+	inline bool isPixelated() const {
+		return pixelated;
 	}
-	inline bool isInvertcolors() const {
-		return invertcolors;
+
+	// select a color table
+	typedef enum {
+		NO_COLORTABLE,
+		COLOR_16_COLORTABLE,
+		COLOR_8_COLORTABLE,
+		COLOR_4_COLORTABLE,
+		COLOR_2_COLORTABLE,
+		INVERT_COLORTABLE
+	} colorTableType;
+	inline void setColorTable(colorTableType c) {
+		colorTable = c;
 	}
+	inline colorTableType getColorTable() const {
+		return colorTable;
+	}
+
 	// select a filter
 	typedef enum {
-		NONE, BLUR, SHARPEN, EDGE, EMBOSS
+		NO_CONVOLUTION,
+		BLUR_CONVOLUTION,
+		SHARPEN_CONVOLUTION,
+		EMBOSS_CONVOLUTION,
+		EDGE_CONVOLUTION
 	} convolutionType;
 	inline void setConvolution(convolutionType c) {
 		convolution = c;
@@ -271,22 +293,22 @@ protected:
 	QColor texcolor;
 	GLenum source_blend, destination_blend;
 	GLenum blend_eq;
-	maskType mask_type;
 
 	// if should be set to GL_NEAREST
 	bool pixelated;
-	// apply the Luminance matrix
-	bool greyscale;
-	// if should inversion matrix on color table
-	bool invertcolors;
 	// which convolution filter to apply?
 	convolutionType convolution;
-	// Brightness & contrast
-	int brightness, contrast;
+	// which color table to apply?
+	colorTableType colorTable;
+	// which mask to use ?
+	maskType mask_type;
+	// Brightness, contrast and saturation
+	int brightness, contrast, saturation;
+	GLfloat saturationMatrix[16];
 
-	// id counter
+	// statics
 	static GLuint lastid;
-
+	static bool imaging_extension;
 };
 
 #endif /* SOURCE_H_ */

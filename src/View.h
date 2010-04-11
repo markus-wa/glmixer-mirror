@@ -58,6 +58,11 @@ public:
 	}
 	virtual void zoomReset() {
 	}
+	virtual void clear() {
+		zoomReset();
+		selectedSources.clear();
+		clickedSources.clear();
+	}
 	virtual void zoomBestFit() {
 	}
 	inline void setZoom(float z) {

@@ -17,7 +17,6 @@
 
 CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent), currentDriver(UNKNOWN), s(0)
 {
-
     setupUi(this);
 
     preview = new SourceDisplayWidget(this);
@@ -28,6 +27,7 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
     QObject::connect(opencvComboBox, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
 
 	autodetectOpencvCameras();
+#else
 	//	ifnot def opencv, disable tab
 	startTabIndex = 1;
 	tabWidget->setTabEnabled(0, false);
@@ -61,8 +61,12 @@ void CameraDialog::createSource(){
 	switch (currentDriver) {
 	case OPENCV_CAMERA:
 #ifdef OPEN_CV
-		if (currentCameraIndex >= 0)
-			s = (Source *) new OpencvSource(currentCameraIndex, preview->getNewTextureIndex(), 0);
+		try {
+			if (currentCameraIndex >= 0)
+				s = (Source *) new OpencvSource(currentCameraIndex, preview->getNewTextureIndex(), 0);
+		} catch (NoCameraIndexException){
+			s = 0;
+		}
 #endif
 		break;
 	case FIREWIRE_CAMERA:

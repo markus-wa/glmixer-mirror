@@ -76,14 +76,7 @@ int main(int argc, char **argv)
 	// 2. The application GUI : it integrates the Rendering Manager QGLWidget
     GLMixer glmixer_widget;
 
-
-#ifdef GLMIXER_VERSION
-#ifdef GLMIXER_REVISION
-    glmixer_widget.setWindowTitle(QString("GL Mixer %1-%2").arg(GLMIXER_VERSION).arg(GLMIXER_REVISION));
-#else
-    glmixer_widget.setWindowTitle(QString("GL Mixer %1").arg(GLMIXER_VERSION));
-#endif
-#endif
+    glmixer_widget.setTitle();
 
 	// 3. The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow *orw = OutputRenderWindow::getInstance();

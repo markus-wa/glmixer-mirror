@@ -37,6 +37,28 @@ public:
 
     inline VideoFile *getVideoFile() const { return is; }
 
+	// Adjust brightness factor
+	inline void setBrightness(int b) {
+		is->setBrightness(b);
+	}
+	inline int getBrightness() const {
+		return is->getBrightness();
+	}
+	// Adjust contrast factor
+	inline void setContrast(int c) {
+		is->setContrast(c);
+	}
+	inline int getContrast() const {
+		return is->getContrast();
+	}
+	// Adjust saturation factor
+	inline void setSaturation(int s) {
+		is->setSaturation(s);
+	}
+	inline int getSaturation() const {
+		return is->getSaturation();
+	}
+
 private:
     VideoFile *is;
     VideoPicture copy;

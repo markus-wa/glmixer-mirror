@@ -75,7 +75,7 @@ void MixerView::paint()
 			glCallList(ViewRenderWidget::border_thin_shadow);
 
 	    // Blending Function For mixing like in the rendering window
-        (*its)->startEffectsSection();
+        (*its)->beginEffectsSection();
 
 		// bind the source texture and update its content
 		(*its)->update();
@@ -133,6 +133,15 @@ void MixerView::paint()
     RenderingManager::getInstance()->updatePreviousFrame();
 }
 
+
+
+void MixerView::clear(){
+
+	View::clear();
+
+	groupSources.clear();
+	groupColor.clear();
+}
 
 void MixerView::reset()
 {

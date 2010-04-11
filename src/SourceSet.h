@@ -36,18 +36,34 @@ struct Source_distance_reverse_comp
 };
 typedef std::set<Source*, Source_distance_reverse_comp> reverseSourceSet;
 
+struct hasId: public std::unary_function<Source*, bool>
+{
+    inline bool operator()(const Source* elem) const
+    {
+       return elem->getId() == _id;
+    }
+
+    hasId(GLuint id) : _id(id) { }
+
+
+private:
+    GLuint _id;
+
+};
+
+
 struct hasName: public std::unary_function<Source*, bool>
 {
     inline bool operator()(const Source* elem) const
     {
-       return elem->getId() == _n;
+       return elem->getName() == _n;
     }
 
-    hasName(GLuint n) : _n(n) { }
+    hasName(QString n) : _n(n) { }
 
 
 private:
-    GLuint _n;
+    QString _n;
 
 };
 

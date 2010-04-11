@@ -40,11 +40,11 @@ void CameraThread::run(){
 			if (cvGrabFrame( cvs->capture )){
 				cvs->frame = cvRetrieveFrame( cvs->capture );
 				cvs->frameChanged = true;
-			}
+			} else
+				end = true;
 			cvs->cond->wait(cvs->mutex);
 		}
 		cvs->mutex->unlock();
-
 
 		if ( ++f == 100 ) { // hundred frames to average the frame rate {
 			cvs->framerate = 100000.0 / (double) t.elapsed();
@@ -59,9 +59,8 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 
 	opencvCameraIndex = opencvIndex;
 	capture = cvCreateCameraCapture(opencvCameraIndex);
-    Q_CHECK_PTR(capture);
 	if (!capture) {
-		qCritical("*** ERROR ***\nCould not access camera %d with OpenCV drivers.", opencvCameraIndex);
+		throw NoCameraIndexException();
 	}
 
 	width = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);

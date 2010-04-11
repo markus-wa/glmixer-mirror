@@ -1114,7 +1114,9 @@ p, li { white-space: pre-wrap; }
     </property>
     <addaction name="actionNew_Session"/>
     <addaction name="actionLoad_Session"/>
+    <addaction name="actionAppend_Session"/>
     <addaction name="actionSave_Session"/>
+    <addaction name="actionSave_Session_as"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -1135,7 +1137,6 @@ p, li { white-space: pre-wrap; }
       <iconset resource="../icons.qrc">
        <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
      </property>
-     <addaction name="actionRendering_resolution_2"/>
      <addaction name="actionFullscreen"/>
      <addaction name="actionFree_aspect_ratio"/>
     </widget>
@@ -1372,7 +1373,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/filenew.png</normaloff>:/glmixer/icons/filenew.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New Session</string>
+    <string>&amp;New session</string>
    </property>
    <property name="toolTip">
     <string>Start a new Session</string>
@@ -1387,7 +1388,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
    </property>
    <property name="text">
-    <string>Load Session</string>
+    <string>Load session</string>
    </property>
    <property name="toolTip">
     <string>Load a session</string>
@@ -1402,7 +1403,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/filesave.png</normaloff>:/glmixer/icons/filesave.png</iconset>
    </property>
    <property name="text">
-    <string>Save Session</string>
+    <string>Save session</string>
    </property>
    <property name="toolTip">
     <string>Save current session</string>
@@ -1621,6 +1622,22 @@ p, li { white-space: pre-wrap; }
     <string>Change rendering resolution</string>
    </property>
   </action>
+  <action name="actionAppend_Session">
+   <property name="text">
+    <string>Append session</string>
+   </property>
+  </action>
+  <action name="actionSave_Session_as">
+   <property name="text">
+    <string>Save session as...</string>
+   </property>
+   <property name="iconText">
+    <string>Save session under another name</string>
+   </property>
+   <property name="toolTip">
+    <string>Save session under another name</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -1640,7 +1657,8 @@ p, li { white-space: pre-wrap; }
   <include location="../icons.qrc"/>
   <include location="../icons.qrc"/>
   <include location="../icons.qrc"/>
-  <include location="C:/Documents and Settings/Herbelin/.designer/icons.qrc"/>
+  <include location="../icons.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

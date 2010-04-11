@@ -16,11 +16,17 @@
 
 #include <cv.h>
 #include <highgui.h>
+#include <stdexcept>
 
 #include <QMutex>
 #include <QWaitCondition>
 
 class CameraThread;
+
+struct NoCameraIndexException : public std::runtime_error
+{
+	NoCameraIndexException() : std::runtime_error("OpenCV camera index unavailable.") {}
+};
 
 class OpencvSource: public QObject, public Source {
 

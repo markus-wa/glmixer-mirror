@@ -76,7 +76,7 @@ void LayersView::paint()
             glCallList(ViewRenderWidget::border_thin_shadow);
 
 	    // Blending Function For mixing like in the rendering window
-        (*its)->startEffectsSection();
+        (*its)->beginEffectsSection();
 		// bind the source texture and update its content
 		(*its)->update();
 
@@ -109,6 +109,7 @@ void LayersView::paint()
 
 void LayersView::reset()
 {
+	lookatdistance = DEFAULT_LOOKAT;
     glTranslatef(getPanningX(), getPanningY(), getPanningZ());
     gluLookAt(lookatdistance, lookatdistance, lookatdistance + zoom, 0.0, 0.0, zoom, 0.0, 1.0, 0.0);
 

@@ -27,6 +27,7 @@ public:
     bool keyPressEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
+    void clear();
 	void zoomReset();
 	void zoomBestFit();
 

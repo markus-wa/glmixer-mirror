@@ -278,6 +278,14 @@ void ViewRenderWidget::zoomBestFit() {
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
 }
 
+void ViewRenderWidget::clear(){
+
+	// clear all views
+	mixingManipulationView->clear();
+	geometryManipulationView->clear();
+	layersManipulationView->clear();
+}
+
 void ViewRenderWidget::showMessage(QString s) {
 	if (displayMessage)
 		messageTimer.stop();
@@ -285,6 +293,34 @@ void ViewRenderWidget::showMessage(QString s) {
 	messageTimer.start(1000);
 	displayMessage = true;
 }
+
+
+/**
+ * save and load configuration
+ */
+QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc){
+	QDomElement config = doc.createElement("Views");
+
+	QDomElement mix = doc.createElement("View");
+	mix.setAttribute("name", "Mixing");
+	config.appendChild(mix);
+
+	QDomElement geom = doc.createElement("View");
+	geom.setAttribute("name", "Geometry");
+	config.appendChild(geom);
+
+	QDomElement depth = doc.createElement("View");
+	depth.setAttribute("name", "Depth");
+	config.appendChild(depth);
+
+	return config;
+}
+
+void ViewRenderWidget::setConfiguration(QDomElement xmlconfig){
+
+
+}
+
 
 /**
  * Build a display list of a textured QUAD and returns its id
