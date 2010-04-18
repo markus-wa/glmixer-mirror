@@ -175,21 +175,23 @@ void ViewRenderWidget::refresh() {
 }
 
 void ViewRenderWidget::paintGL(){
+	// background clear
     glRenderWidget::paintGL();
-	currentManipulationView->reset();
+    // apply modelview transformations from zoom and panning
+    currentManipulationView->setModelview();
+    // draw the view
 	currentManipulationView->paint();
-
+	// HUD : display message
 	if (displayMessage){
 	    glColor4f(0.8, 0.80, 0.2, 1.0);
 		renderText(20, int(3.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), message, QFont());
 	}
-
 	// FPS computation
 	if (++fpsCounter_ == 20) {
 		f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
 		fpsCounter_ = 0;
 	}
-
+	// HUD display of framerate
 	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) ) {
 		fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
 		displayFPS( f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red) );
@@ -203,26 +205,50 @@ void ViewRenderWidget::displayFPS(Qt::GlobalColor c)
 	renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
 }
 
-
-
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event){
+
 	makeCurrent();
-	if (!currentManipulationView->mousePressEvent(event))
-		QWidget::mousePressEvent(event);
+	// inform the view of the mouse press event
+	if (!currentManipulationView->mousePressEvent(event)) {
+
+		// if there is something to drop, inform the rendering manager that it can drop the source at the clic coordinates
+		if( RenderingManager::getInstance()->getSourceBasketTop() ){
+
+			// depending on the view, ask the rendering manager to drop the source with the user parameters
+			if ( currentManipulationView == mixingManipulationView ) {
+				double ax = 0.0, ay = 0.0;
+				mixingManipulationView->alphaCoordinatesFromMouse(event->x(), event->y(), &ax, &ay);
+				emit sourceMixingDrop(ax, ay);
+			} else if ( currentManipulationView == geometryManipulationView ) {
+				double x = 0.0, y = 0.0;
+				geometryManipulationView->coordinatesFromMouse(event->x(), event->y(), &x, &y);
+				emit sourceGeometryDrop(x, y);
+			} else if ( currentManipulationView == layersManipulationView ) {
+				double d = 0.0, dumm;
+				layersManipulationView->unProjectDepth(event->x(), event->y(), 0.0, 0.0, &d, &dumm);
+				emit sourceLayerDrop(d);
+			}
+		} else
+			// the mouse press was not treated ; forward it
+			QWidget::mousePressEvent(event);
+	}
 }
 
 void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event){
+
 	makeCurrent();
+	// if nothing is changed by mouseMoveEvent
 	if (!currentManipulationView->mouseMoveEvent(event))
+		// use the default mouse event
 		QWidget::mouseMoveEvent(event);
 	else {
+		// the view 'mouseMoveEvent' returns true ; there was something changed!
 		if ( currentManipulationView == mixingManipulationView )
 			emit sourceMixingModified();
 		else if ( currentManipulationView == geometryManipulationView )
 			emit sourceGeometryModified();
 		else if ( currentManipulationView == layersManipulationView )
 			emit sourceLayerModified();
-
 	}
 }
 
@@ -257,33 +283,35 @@ void ViewRenderWidget::keyPressEvent ( QKeyEvent * event ){
 void ViewRenderWidget::zoomIn() {
 	makeCurrent();
 	currentManipulationView->zoomIn();
-	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
+	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::zoomOut() {
 	makeCurrent();
 	currentManipulationView->zoomOut();
-	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
+	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::zoomReset() {
 	makeCurrent();
 	currentManipulationView->zoomReset();
-	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
+	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::zoomBestFit() {
 	makeCurrent();
 	currentManipulationView->zoomBestFit();
-	showMessage(QString("%1 \%").arg(currentManipulationView->getZoom(), 0, 'f', 1));
+	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
 }
 
-void ViewRenderWidget::clear(){
+void ViewRenderWidget::clearViews(){
 
 	// clear all views
 	mixingManipulationView->clear();
 	geometryManipulationView->clear();
 	layersManipulationView->clear();
+
+	refresh();
 }
 
 void ViewRenderWidget::showMessage(QString s) {

@@ -21,16 +21,18 @@
 #include <GL/glew.h>
 #endif
 
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+
 #include <QtOpenGL>
 
-bool glSupportsExtension(QString extname);
-QStringList glSupportedExtensions();
 
 
 #ifndef GLEWAPI
 /* ------------------------ GL_EXT_framebuffer_blit ------------------------ */
-
-//#ifndef GL_EXT_framebuffer_blit
+#ifndef GL_EXT_framebuffer_blit
 
 #define GL_READ_FRAMEBUFFER           0x8CA8
 #define GL_DRAW_FRAMEBUFFER           0x8CA9
@@ -39,9 +41,13 @@ extern "C" {
 	extern void glBindFramebufferEXT(GLenum target, GLuint framebuffer);
 	extern void glBlitFramebufferEXT(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 }
-//#endif /* GL_EXT_framebuffer_blit */
-
+#endif /* GL_EXT_framebuffer_blit */
 #endif
+
+
+
+bool glSupportsExtension(QString extname);
+QStringList glSupportedExtensions();
 
 
 #define SOURCE_UNIT 10.0
@@ -57,7 +63,7 @@ extern "C" {
 // #include <string>
 // #include <iostream>
 // #include <sstream>
-// #include <stdexcept>
+#include <stdexcept>
 
 
 #endif /*  COMMON_H_ */

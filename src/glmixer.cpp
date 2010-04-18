@@ -5,6 +5,8 @@
  *      Author: bh
  */
 
+#define XML_GLM_VERSION "0.2"
+
 #include <QApplication>
 #include <QDomDocument>
 
@@ -49,7 +51,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
 	delete mainRendering;
-	mainRendering = (QGLWidget *)  RenderingManager::getRenderingWidget();
+	mainRendering = (QGLWidget *) RenderingManager::getRenderingWidget();
 	mainRendering->setParent(centralwidget);
 	centralViewLayout->addWidget(mainRendering);
 	// TODO : activate the default view read from preferences
@@ -60,13 +62,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	SourcePropertyBrowser *propertyBrowser = RenderingManager::getPropertyBrowserWidget();
 	propertyBrowser->setParent(sourceDockWidgetContents);
 	sourceDockWidgetContentsLayout->addWidget(propertyBrowser);
-    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), propertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
-
-    QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(sourceMixingModified()), propertyBrowser, SLOT(updateMixingProperties() ) );
-    QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(sourceGeometryModified()), propertyBrowser, SLOT(updateGeometryProperties() ) );
-    QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(sourceLayerModified()), propertyBrowser, SLOT(updateLayerProperties() ) );
     QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
-
 
     // Create preview widget
     OutputRenderWidget *outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
@@ -110,6 +106,7 @@ GLMixer::~GLMixer() {
 
 
 void GLMixer::closeEvent ( QCloseEvent * event ){
+
 	OutputRenderWindow::getInstance()->close();
 	event->accept();
 }
@@ -208,15 +205,21 @@ void GLMixer::on_actionMediaSource_triggered(){
 			QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), statusbar, SLOT(showMessage(QString)));
 			// can we open the file ?
 			if ( newSourceVideoFile->open( filename ) ) {
+				Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
 				// create the source as it is a valid video file (this also set it to be the current source)
-				if (RenderingManager::getInstance()->addMediaSource(newSourceVideoFile) )
-					statusbar->showMessage( tr("Source created with file %1").arg( filename ) );
-				else
-			        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create source."));
+				if ( s ) {
+					RenderingManager::getInstance()->addSourceToBasket(s);
+				} else {
+			        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create media source."));
+			        delete newSourceVideoFile;
+				}
+			} else {
+				QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not open %1.").arg(filename));
 			}
 		}
-	}
 
+	}
+	statusbar->showMessage( tr("%1 media source(s) created; you can now drop them.").arg( fileNames.size() ), 3000 );
 }
 
 
@@ -401,8 +404,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 }
 
-void GLMixer::on_actionCameraSource_triggered()
-{
+void GLMixer::on_actionCameraSource_triggered() {
 
 	CameraDialog cd(this);
 	cd.setModal(false);
@@ -422,17 +424,21 @@ void GLMixer::on_actionCameraSource_triggered()
 			}
 			// if we find one, just clone the source
 			if ( RenderingManager::getInstance()->notAtEnd(sit)) {
-				if ( RenderingManager::getInstance()->addCloneSource(sit) )
-					statusbar->showMessage( tr("Clone created of the source with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()) );
-				else
-			        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create source."));
+				Source *s = RenderingManager::getInstance()->newCloneSource(sit);
+				if ( s ) {
+					RenderingManager::getInstance()->addSourceToBasket(s);
+					statusbar->showMessage( tr("Clone created of the source with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()), 3000 );
+				} else
+			        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create clone source."));
 			}
 			//else create a new opencv source :
 			else {
-				if (RenderingManager::getInstance()->addOpencvSource(cd.indexOpencvCamera()) )
-					statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()) );
-				else
-			        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create source."));
+				Source *s = RenderingManager::getInstance()->newOpencvSource(cd.indexOpencvCamera());
+				if ( s ) {
+					RenderingManager::getInstance()->addSourceToBasket(s);
+					statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()), 3000 );
+				} else
+			        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create OpenCV source."));
 			}
 		}
 #endif
@@ -449,10 +455,13 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 	asd.setModal(false);
 
 	if (asd.exec() == QDialog::Accepted) {
-		if ( RenderingManager::getInstance()->addAlgorithmSource(asd.getSelectedAlgorithmIndex(), asd.getSelectedWidth(), asd.getSelectedHeight(), asd.getSelectedVariability(), asd.getUpdatePeriod()) )
-			statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd.getSelectedAlgorithmIndex())) );
-		else
-	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create source."));
+		Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd.getSelectedAlgorithmIndex(),
+					asd.getSelectedWidth(), asd.getSelectedHeight(), asd.getSelectedVariability(), asd.getUpdatePeriod());
+		if ( s ){
+			RenderingManager::getInstance()->addSourceToBasket(s);
+			statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd.getSelectedAlgorithmIndex())), 3000 );
+		} else
+	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create algorithm source."));
 	}
 }
 
@@ -460,28 +469,31 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 void GLMixer::on_actionRenderingSource_triggered(){
 
 	// TODO popup a question dialog 'are u sure'
-
-	if (RenderingManager::getInstance()->addRenderingSource())
-		statusbar->showMessage( tr("Source created with the rendering output loopback.") );
-	else
-        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create source."));
+	Source *s = RenderingManager::getInstance()->newRenderingSource();
+	if ( s ){
+		RenderingManager::getInstance()->addSourceToBasket(s);
+		statusbar->showMessage( tr("Source created with the rendering output loopback."), 3000 );
+	}else
+        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create rendering source."));
 }
 
 
 void GLMixer::on_actionCloneSource_triggered(){
 
 	// TODO popup a question dialog 'are u sure'
-
 	if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		if (RenderingManager::getInstance()->addCloneSource( RenderingManager::getInstance()->getCurrentSource()) )
-			statusbar->showMessage( tr("The current source has been cloned.") );
-		else
-	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create source."));
+		Source *s = RenderingManager::getInstance()->newCloneSource( RenderingManager::getInstance()->getCurrentSource());
+		if ( s ) {
+			RenderingManager::getInstance()->addSourceToBasket(s);
+			statusbar->showMessage( tr("The current source has been cloned."), 3000);
+		} else
+	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create clone source."));
 	}
 }
 
 
 CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent), img(capture) {
+
 	QVBoxLayout *verticalLayout;
 	QLabel *Question, *Display;
 	QDialogButtonBox *DecisionButtonBox;
@@ -518,6 +530,7 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent),
 
 
 void CaptureDialog::saveImage() {
+
 	QString filename;
 	static QDir cd = QDir::home();
 
@@ -540,10 +553,12 @@ void GLMixer::on_actionCaptureSource_triggered(){
 	cd.setModal(false);
 
 	if (cd.exec() == QDialog::Accepted) {
-		if ( RenderingManager::getInstance()->addCaptureSource(capture) )
-			statusbar->showMessage( tr("Source created with the last output capture.") );
-		else
-	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create source."));
+		Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
+		if ( s ){
+			RenderingManager::getInstance()->addSourceToBasket(s);
+			statusbar->showMessage( tr("Source created with a capture of the output."), 3000 );
+		} else
+	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create capture source."));
 	}
 }
 
@@ -652,7 +667,6 @@ void GLMixer::on_frameSlider_sliderMoved (int v){
 
 void GLMixer::on_frameSlider_actionTriggered (int a) {
 
-
     switch (a) {
         case QAbstractSlider::SliderMove: // wheel
         case QAbstractSlider::SliderSingleStepAdd :
@@ -733,9 +747,10 @@ void GLMixer::on_actionAbout_triggered(){
 }
 
 
-void GLMixer::setTitle(){
+void GLMixer::changeWindowTitle(){
 
-	QString session = currentStageFileName.isNull() ? "unsaved session" : currentStageFileName;
+	//	Trick to get only the filename from the full path for every platform ; use the QDir class
+	QString session = currentStageFileName.isNull() ? "unsaved session" : QDir(currentStageFileName).dirName();
 
 #ifdef GLMIXER_VERSION
 #ifdef GLMIXER_REVISION
@@ -746,14 +761,17 @@ void GLMixer::setTitle(){
 #else
      setWindowTitle(QString("GL Mixer -- %2").arg(session));
 #endif
+
+
+	actionAppend_Session->setEnabled(!currentStageFileName.isNull());
 }
 
 void GLMixer::on_actionNew_Session_triggered(){
 
 	currentStageFileName = QString();
-	setTitle();
+	changeWindowTitle();
 	RenderingManager::getInstance()->clearSourceSet();
-	RenderingManager::getRenderingWidget()->clear();
+	RenderingManager::getRenderingWidget()->clearViews();
 }
 
 
@@ -764,7 +782,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 	else {
 
 		QFile file(currentStageFileName);
-		if (!file.open(QFile::WriteOnly | QFile::Text)) {
+		if (!file.open(QFile::WriteOnly | QFile::Text) ) {
 			QMessageBox::warning(this, tr("GLMixer session save"),tr("Cannot write file %1:\n%2.").arg(currentStageFileName).arg(file.errorString()));
 			return;
 		}
@@ -775,7 +793,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 		doc.appendChild(instr);
 
 		QDomElement root = doc.createElement("GLMixer");
-		root.setAttribute("version", "0.1");
+		root.setAttribute("version", XML_GLM_VERSION);
 
 		QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc);
 		root.appendChild(renderConfig);
@@ -786,7 +804,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 		doc.appendChild(root);
 		doc.save(out, 4);
 
-		setTitle();
+		changeWindowTitle();
 		statusbar->showMessage( tr("File %1 saved.").arg( currentStageFileName ) );
 	}
 }
@@ -794,9 +812,13 @@ void GLMixer::on_actionSave_Session_triggered(){
 void GLMixer::on_actionSave_Session_as_triggered(){
 
     QString fileName = QString("session.glm");
-	fileName = QFileDialog::getSaveFileName(this, tr("Save session File"),QDir::currentPath(),tr("GLMixer Files (*.glm)"));
+	fileName = QFileDialog::getSaveFileName(this, tr("Save session File"),QDir::currentPath(),tr("GLMixer workspace (*.glm)"));
     if (fileName.isEmpty())
         return;
+
+    // add the extension if not already
+    if (fileName.split('.').last() != "glm")
+    	fileName.append(".glm");
 
 	// now we got a filename, save the file:
 	currentStageFileName = fileName;
@@ -810,7 +832,7 @@ void GLMixer::on_actionLoad_Session_triggered(){
     int errorLine;
     int errorColumn;
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open session file"), QDir::currentPath(), tr("GLMixer Files (*.glm)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open session file"), QDir::currentPath(), tr("GLMixer workspace (*.glm)"));
      if (fileName.isEmpty())
          return;
 
@@ -821,28 +843,36 @@ void GLMixer::on_actionLoad_Session_triggered(){
      }
 
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
-        QMessageBox::warning(this, tr("GLMixer session opens"),tr("Parse error at line %1, column %2:\n%3").arg(errorLine).arg(errorColumn).arg(errorStr));
+        QMessageBox::warning(this, tr("GLMixer session opens"),tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(fileName).arg(errorLine).arg(errorColumn).arg(errorStr));
         return;
     }
 
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
-        QMessageBox::warning(this, tr("GLMixer session open"),  tr("The file is not a GLMixer session file."));
+        QMessageBox::warning(this, tr("GLMixer session open"),  tr("The file %1 is not a GLMixer session file.").arg(fileName));
         return;
-    } else if (root.hasAttribute("version") && root.attribute("version") != "0.1") {
-        QMessageBox::warning(this, tr("GLMixer session open"), tr("The version of this GLMixer session file is not 0.1."));
+    } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
+        QMessageBox::warning(this, tr("GLMixer session open"), tr("The version of the GLMixer session file %1 is not %2.").arg(fileName).arg(XML_GLM_VERSION));
         return;
     }
 
+    // read all the content to make sure the file is correct :
     QDomElement srcconfig = root.firstChildElement("SourceList");
-	RenderingManager::getInstance()->clearSourceSet();
-    RenderingManager::getInstance()->addConfiguration(srcconfig);
-
+    if (srcconfig.isNull())
+    	return;
     QDomElement vconfig = root.firstChildElement("Views");
+    if (vconfig.isNull())
+    	return;
+
+    // if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
+    on_actionNew_Session_triggered();
+    RenderingManager::getInstance()->addConfiguration(srcconfig);
     RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
 
+    // confirm the loading of the file
 	currentStageFileName = fileName;
-	setTitle();
+	changeWindowTitle();
+	statusbar->showMessage( tr("File %1 loaded.").arg( currentStageFileName ) );
 }
 
 
@@ -853,31 +883,39 @@ void GLMixer::on_actionAppend_Session_triggered(){
     int errorLine;
     int errorColumn;
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), QDir::currentPath(), tr("GLMixer Files (*.glm)"));
-	if (fileName.isEmpty())
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), QDir::currentPath(), tr("GLMixer workspace (*.glm)"));
+	if ( fileName.isEmpty() )
 		return;
 
-     QFile file(fileName);
-     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-         QMessageBox::warning(this, tr("GLMixer session append"), tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
-         return;
-     }
+	QFile file(fileName);
+	if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
+		QMessageBox::warning(this, tr("GLMixer session append"), tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
+		return;
+	}
 
-    if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
-        QMessageBox::warning(this, tr("GLMixer session append"), tr("Parse error at line %1, column %2:\n%3").arg(errorLine).arg(errorColumn).arg(errorStr));
-        return;
+    if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) ) {
+		QMessageBox::warning(this, tr("GLMixer session append"), tr("Parse error at line %1, column %2:\n%3").arg(errorLine).arg(errorColumn).arg(errorStr));
+		return;
     }
 
     QDomElement root = doc.documentElement();
-    if (root.tagName() != "GLMixer") {
+    if ( root.tagName() != "GLMixer" ) {
         QMessageBox::warning(this, tr("GLMixer session append"),  tr("The file is not a GLMixer session file."));
         return;
-    } else if (root.hasAttribute("version") && root.attribute("version") != "0.1") {
-        QMessageBox::warning(this, tr("GLMixer session append"), tr("The version of this GLMixer session file is not 0.1."));
+    } else if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION ) {
+        QMessageBox::warning(this, tr("GLMixer session append"), tr("The version of this GLMixer session file is not %2.").arg(XML_GLM_VERSION));
         return;
     }
 
+    // read the content of the source list to make sure the file is correct :
     QDomElement srcconfig = root.firstChildElement("SourceList");
+    if ( srcconfig.isNull() )
+    	return;
+
+    // if we got up to here, it should be fine
     RenderingManager::getInstance()->addConfiguration(srcconfig);
 
+    // confirm the loading of the file
+	statusbar->showMessage( tr("File %1 appended to %2.").arg( fileName ).arg( currentStageFileName ) );
 }
+

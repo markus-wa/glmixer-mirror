@@ -26,6 +26,7 @@ protected:
 		// increment the counter of rendering sources
 		RenderingManager::getInstance()->countRenderingSource++;
 		aspectratio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
+		name.prepend("render");
 	}
 
 	virtual ~RenderingSource() {

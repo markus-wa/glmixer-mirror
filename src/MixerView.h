@@ -16,9 +16,9 @@ public:
 
 	MixerView();
 
-    virtual void paint();
-    virtual void reset();
-    virtual void resize(int w, int h);
+    void paint();
+    void setModelview();
+    void resize(int w, int h);
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent ( QMouseEvent * event );
@@ -27,9 +27,11 @@ public:
     bool keyPressEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
-    void clear();
+	void clear();
 	void zoomReset();
 	void zoomBestFit();
+
+	void alphaCoordinatesFromMouse(int mouseX, int mouseY, double *alphaX, double *alphaY);
 
 private:
 

@@ -33,7 +33,8 @@ Source::Source(GLuint texture, double depth) :
 
 	// give it a unique identifying name
 	id = lastid++;
-	name = QString("Source %1").arg(id);
+//	name = QString("Source %1").arg(id);
+	name = QString("Source");
 
 	clones = new SourceList;
 }
@@ -143,8 +144,8 @@ void Source::resetScale() {
 	scalex = SOURCE_UNIT;
 	scaley = SOURCE_UNIT;
 
-	float renderingAspectRatio =
-			OutputRenderWindow::getInstance()->getAspectRatio();
+	float renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+
 	if (aspectratio < renderingAspectRatio)
 		scalex *= aspectratio / renderingAspectRatio;
 	else

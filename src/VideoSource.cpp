@@ -34,6 +34,9 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
         QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
 
         aspectratio = is->getStreamAspectRatio();
+        // give it the name of the file (without path and extension)
+		name = QDir(is->getFileName()).dirName().split(".").first();
+
 		QObject::connect(is, SIGNAL(prefilteringChanged()), this, SLOT(applyFilter()));
 
     	glBindTexture(GL_TEXTURE_2D, textureIndex);

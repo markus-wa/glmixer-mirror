@@ -16,9 +16,9 @@ public:
 
 	LayersView();
 
-    virtual void paint();
-    virtual void reset();
-    virtual void resize(int w, int h);
+    void paint();
+    void setModelview();
+    void resize(int w, int h);
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent ( QMouseEvent * event );
@@ -29,6 +29,7 @@ public:
 	void zoomReset();
 	void zoomBestFit();
 
+    void unProjectDepth(int x, int y, int dx, int dy, double *depth, double *depthBeforeDelta);
 
 private:
     float lookatdistance;

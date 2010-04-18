@@ -231,7 +231,8 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int 
 
 	algotype = CLAMP(AlgorithmSource::algorithmType(type), AlgorithmSource::FLAT, AlgorithmSource::TURBULENCE);
 
-	aspectratio = (float)width / (float)height;
+	aspectratio = double(w) / double(h);
+	name.prepend("algo");
 
 	// allocate and initialize the buffer
 	initBuffer();

@@ -33,6 +33,15 @@ LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), currentSourceDisplacem
 }
 
 
+void LayersView::setModelview()
+{
+
+    glTranslatef(getPanningX(), getPanningY(), getPanningZ());
+    gluLookAt(lookatdistance, lookatdistance, lookatdistance + zoom, 0.0, 0.0, zoom, 0.0, 1.0, 0.0);
+}
+
+
+
 void LayersView::paint()
 {
     // First the background stuff
@@ -99,22 +108,37 @@ void LayersView::paint()
         (*its)->endEffectsSection();
 
 	}
+	// if no source was rendered, clear to black
 	if (first)
 		RenderingManager::getInstance()->clearFrameBuffer();
 
 
+    // the source dropping icon
+    Source *s = RenderingManager::getInstance()->getSourceBasketTop();
+    if ( s ){
+    	double depth = 0.0, dumm = 0.0;
+    	unProjectDepth(lastClicPos.x(), lastClicPos.y(), 0.0, 0.0, &depth, &dumm);
+
+		glPushMatrix();
+		currentSourceDisplacement = MAXDISPLACEMENT;
+		glTranslated( currentSourceDisplacement, 0.0, 1.0 + depth);
+			glPushMatrix();
+			glTranslated( s->getAspectRatio(), -0.9, 0.0);
+	        glScalef(0.1, 0.1, 1.0);
+			for (int i = 1; i < RenderingManager::getInstance()->getSourceBasketSize(); ++i ) {
+				glTranslated( 2.1, 0.0, 0.0);
+				glCallList(ViewRenderWidget::border_thin);
+			}
+			glPopMatrix();
+        glScalef(s->getAspectRatio(), 1.0, 1.0);
+		glCallList(ViewRenderWidget::border_thin);
+		glPopMatrix();
+    }
+
+
+	// fill-in the loopback buffer
     RenderingManager::getInstance()->updatePreviousFrame();
 }
-
-
-void LayersView::reset()
-{
-	lookatdistance = DEFAULT_LOOKAT;
-    glTranslatef(getPanningX(), getPanningY(), getPanningZ());
-    gluLookAt(lookatdistance, lookatdistance, lookatdistance + zoom, 0.0, 0.0, zoom, 0.0, 1.0, 0.0);
-
-}
-
 
 void LayersView::resize(int w, int h)
 {
@@ -151,9 +175,15 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
-
+	// MIDDLE BUTTON ; panning cursor
 	if (event->buttons() & Qt::MidButton) {
 		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
+	}
+	// DRoP MODE ; explicitly do nothing
+	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		// don't interpret other mouse events in drop mode
+		return false;
 	}
 	// if at least one source icon was clicked
 	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
@@ -196,15 +226,23 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 	// MIDDLE button ; rotation
 	if (event->buttons() & Qt::MidButton) {
 		// move the view
-		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
+		panningBy(event->x(), event->y(), dx, dy);
+	}
+	// DROP MODE : avoid other actions
+	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 
-	} else if (event->buttons() & Qt::LeftButton) {
+		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		// don't interpret mouse events in drop mode
+		return false;
+	}
+	// LEFT BUTTON : grab
+	else if (event->buttons() & Qt::LeftButton) {
 
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
 			// move the source in depth
-			grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+			grabSource(cs, event->x(), event->y(), dx, dy);
 			// ready for grabbing the current source
 			setAction(GRAB);
 		}
@@ -221,7 +259,9 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 
 bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
-	if (currentAction == GRAB )
+	if ( RenderingManager::getInstance()->getSourceBasketTop() )
+			RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+	else if (currentAction == GRAB )
 		setAction(OVER);
 	else
 		setAction(currentAction);
@@ -238,12 +278,12 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 	float previous = zoom;
 	setZoom (zoom - ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
-	if (currentAction == GRAB ) {
+	if (currentAction == GRAB) {
 		deltazoom = zoom - previous;
 		// simulate a grab with no mouse movement but a deltazoom :
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 		if ( RenderingManager::getInstance()->notAtEnd(cs))
-			grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+			grabSource(cs, event->x(), event->y(), dx, dy);
 		// reset deltazoom
 		deltazoom = 0;
 	}
@@ -253,6 +293,7 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 
 void LayersView::zoomReset() {
 
+	lookatdistance = DEFAULT_LOOKAT;
 	setZoom(DEFAULTZOOM);
 	setPanningX(-2.0);
 	setPanningY(0.0);
@@ -351,10 +392,14 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     return !clickedSources.empty();
 }
 
-/**
- *
- **/
-void LayersView::grabSource(SourceSet::iterator currentSource, int x, int y, int dx, int dy) {
+
+void LayersView::unProjectDepth(int x, int y, int dx, int dy, double *depth, double *depthBeforeDelta){
+
+	// Y correction between Qt and OpenGL coordinates
+	y = viewport[3] - y;
+
+	// in a perspective, we need to know the pseudo depth of the object of interest in order
+	// to use gluUnproject ; this is obtained by a quick pseudo rendering in FEEDBACK mode
 
     // feedback rendering to determine a depth
     GLfloat feedbuffer[4];
@@ -363,24 +408,41 @@ void LayersView::grabSource(SourceSet::iterator currentSource, int x, int y, int
 
     // Fake rendering of point (0,0,0)
     glBegin(GL_POINTS);
-    glVertex3f(0.0, 0.0, lookatdistance);
+    glVertex3f(0, 0, zoom);
     glEnd();
 
-	double bx, by, bz; // before movement
-	double ax, ay, az; // after  movement
+    // dummy vars
+	double bx, by, ax, ay;
+
     // we can make the un-projection if we got the 4 values we need :
     if (glRenderMode(GL_RENDER) == 4) {
 		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
-				feedbuffer[3], modelview, projection, viewport, &bx, &by, &bz);
+				feedbuffer[3], modelview, projection, viewport, &bx, &by, depthBeforeDelta);
 		gluUnProject((GLdouble) x, (GLdouble) y, feedbuffer[3],
-				modelview, projection, viewport, &ax, &ay, &az);
+				modelview, projection, viewport, &ax, &ay, depth);
 
-    } else {
-		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
-				1.0, modelview, projection, viewport, &bx, &by, &bz);
-		gluUnProject((GLdouble) x, (GLdouble) y, 1.0,
-				modelview, projection, viewport, &ax, &ay, &az);
     }
+    // otherwise compute with a depth of 1.0 (this not correct but should never happen)
+    else {
+
+    	qDebug("beurk");
+		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+				1.0, modelview, projection, viewport, &bx, &by, depthBeforeDelta);
+		gluUnProject((GLdouble) x, (GLdouble) y, 1.0,
+				modelview, projection, viewport, &ax, &ay, depth);
+    }
+
+}
+
+/**
+ *
+ **/
+void LayersView::grabSource(SourceSet::iterator currentSource, int x, int y, int dx, int dy) {
+
+	double bz = 0.0; // depth before delta movement
+	double az = 0.0; // depth at current x and y
+
+	unProjectDepth(x, y, dx, dy, &az, &bz);
 
     // (az-bz) is the depth change caused by the mouse mouvement
     // deltazoom is the depth change due to zooming in/out while grabbing
@@ -397,8 +459,8 @@ void LayersView::grabSource(SourceSet::iterator currentSource, int x, int y, int
  **/
 void LayersView::panningBy(int x, int y, int dx, int dy) {
 
-	// in a perspective, we need to know the pseudo depth of the object of interest in order
-	// to use gluUnproject ; this is obtained by a quick pseudo rendering in FEEDBACK mode
+	// Y correction between Qt and OpenGL coordinates
+	y = viewport[3] - y;
 
     // feedback rendering to determine a depth
     GLfloat feedbuffer[4];
@@ -410,8 +472,9 @@ void LayersView::panningBy(int x, int y, int dx, int dy) {
     glVertex3f(0, 0, lookatdistance);
     glEnd();
 
-	double bx, by, bz; // before movement
-	double ax, ay, az; // after  movement
+    // dummy vars
+	double bx, by, ax, ay, bz, az;
+
     // we can make the un-projection if we got the 4 values we need :
     if (glRenderMode(GL_RENDER) == 4) {
 		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
@@ -419,17 +482,21 @@ void LayersView::panningBy(int x, int y, int dx, int dy) {
 		gluUnProject((GLdouble) x, (GLdouble) y, feedbuffer[3],
 				modelview, projection, viewport, &ax, &ay, &az);
 
-    } else {
+    }
+    // otherwise compute with a depth of 1.0 (this not correct but should never happen)
+    else {
 		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
 				1.0, modelview, projection, viewport, &bx, &by, &bz);
 		gluUnProject((GLdouble) x, (GLdouble) y, 1.0,
 				modelview, projection, viewport, &ax, &ay, &az);
     }
+
 	// apply panning
 	setPanningX(getPanningX() + ax - bx);
 	setPanningY(getPanningY() + ay - by);
 	setPanningZ(getPanningZ() + az - bz);
 
+	// adjust the looking distance when panning in the Z axis (diagonal)
 	lookatdistance = CLAMP( lookatdistance + az - bz, MIN_LOOKAT, MAX_LOOKAT);
 
 }

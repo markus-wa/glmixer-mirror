@@ -66,6 +66,7 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	width = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
 	height = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
 	aspectratio = (float)width / (float)height;
+	name.prepend("opencv");
 
 	// fill in first frame
 	glBindTexture(GL_TEXTURE_2D, textureIndex);

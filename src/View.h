@@ -15,7 +15,8 @@ class View {
 
 public:
 	View() :
-		zoom(0), minzoom(0), maxzoom(0), deltazoom(0), panx(0), maxpanx(0), pany(0), maxpany(0), panz(0), maxpanz(0) {
+		zoom(0), minzoom(0), maxzoom(0), deltazoom(0), panx(0), maxpanx(0),
+		pany(0), maxpany(0), panz(0), maxpanz(0) {
 		viewport[0] = 0;
 		viewport[1] = 0;
 		viewport[2] = 0;
@@ -23,10 +24,9 @@ public:
 	}
 	virtual ~View() {
 	}
-
-	virtual void paint() {
+	virtual void setModelview() {
 	}
-	virtual void reset() {
+	virtual void paint() {
 	}
 	virtual void resize(int w, int h) {
 	}
@@ -48,7 +48,6 @@ public:
 	virtual bool keyPressEvent(QKeyEvent * event) {
 		return false;
 	}
-
 	virtual void zoomIn() {
 		setZoom(zoom + (2.f * zoom * minzoom) / maxzoom);
 	}
@@ -58,11 +57,6 @@ public:
 	}
 	virtual void zoomReset() {
 	}
-	virtual void clear() {
-		zoomReset();
-		selectedSources.clear();
-		clickedSources.clear();
-	}
 	virtual void zoomBestFit() {
 	}
 	inline void setZoom(float z) {
@@ -70,6 +64,9 @@ public:
 		refreshMatrices();
 	}
 	inline float getZoom() {
+		return ( zoom );
+	}
+	inline float getZoomPercent() {
 		return ( (zoom - minzoom) * 100.f / (maxzoom - minzoom) );
 	}
 
@@ -100,12 +97,18 @@ public:
 		glGetDoublev(GL_PROJECTION_MATRIX, projection);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		reset();
+		setModelview();
 		glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 	}
 
 	inline QPixmap getIcon() {
 		return icon;
+	}
+
+	virtual void clear() {
+		zoomReset();
+		selectedSources.clear();
+		clickedSources.clear();
 	}
 
 protected:
@@ -120,6 +123,7 @@ protected:
 	reverseSourceSet clickedSources;
 	QPoint lastClicPos;
 	QPixmap icon;
+
 };
 
 #endif /* VIEW_H_ */

@@ -29,6 +29,12 @@ GeometryView::GeometryView() : View(), quadrant(0), currentAction(NONE)
 }
 
 
+void GeometryView::setModelview()
+{
+    glScalef(zoom * OutputRenderWindow::getInstance()->getAspectRatio(), zoom, zoom);
+    glTranslatef(getPanningX(), getPanningY(), 0.0);
+}
+
 void GeometryView::paint()
 {
     // first the black background (as the rendering black clear color) with shadow
@@ -76,20 +82,36 @@ void GeometryView::paint()
         (*its)->endEffectsSection();
 
     }
+	// if no source was rendered, clear to black
 	if (first)
 		RenderingManager::getInstance()->clearFrameBuffer();
 
     // last the frame thing
     glCallList(ViewRenderWidget::frame_screen);
 
+
+    // the source dropping icon
+    Source *s = RenderingManager::getInstance()->getSourceBasketTop();
+    if ( s ){
+    	double ax, ay, az; // mouse cursor in rendering coordinates:
+		gluUnProject( GLdouble (lastClicPos.x()), GLdouble (viewport[3] - lastClicPos.y()), 0.0,
+				modelview, projection, viewport, &ax, &ay, &az);
+		glPushMatrix();
+		glTranslated( ax, ay, az);
+			glPushMatrix();
+			glTranslated( s->getScaleX() - 1.0, -s->getScaleY() + 1.0, 0.0);
+			for (int i = 1; i < RenderingManager::getInstance()->getSourceBasketSize(); ++i ) {
+				glTranslated(  2.1, 0.0, 0.0);
+				glCallList(ViewRenderWidget::border_thin);
+			}
+			glPopMatrix();
+		glScalef( s->getScaleX(), s->getScaleY(), 1.f);
+		glCallList(ViewRenderWidget::border_thin);
+		glPopMatrix();
+    }
+
+	// fill-in the loopback buffer
     RenderingManager::getInstance()->updatePreviousFrame();
-}
-
-
-void GeometryView::reset()
-{
-    glScalef(zoom * OutputRenderWindow::getInstance()->getAspectRatio(), zoom, zoom);
-    glTranslatef(getPanningX(), getPanningY(), 0.0);
 }
 
 
@@ -119,8 +141,12 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	if (event->buttons() & Qt::MidButton) {
 		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
 	}
-	// if at least one source icon was clicked
-	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		// don't interpret other mouse events in drop mode
+		return false;
+	}
+	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
 
     	// get the top most clicked source
     	SourceSet::iterator clicked = clickedSources.begin();
@@ -187,6 +213,14 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 
 	}
+	// DROP MODE ; show a question mark cursor and avoid other actions
+	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+
+		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		// don't interpret mouse events in drop mode
+		return false;
+
+	}
 	// LEFT button : MOVE or SCALE the current source
 	else if (event->buttons() & Qt::LeftButton) {
 		// keep the iterator of the current source under the shoulder ; it will be used
@@ -215,7 +249,11 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 bool GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
 
-	RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
+
+	if ( RenderingManager::getInstance()->getSourceBasketTop() )
+		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+	else
+		RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
 
     // enforces minimal size ; check that the rescaling did not go bellow the limits and fix it
 	if ( RenderingManager::getInstance()->notAtEnd( RenderingManager::getInstance()->getCurrentSource()) ) {
@@ -389,6 +427,17 @@ void GeometryView::panningBy(int x, int y, int dx, int dy) {
     setPanningX(getPanningX() + ax - bx);
     setPanningY(getPanningY() + ay - by);
 }
+
+
+void GeometryView::coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y){
+
+	double dum;
+
+	gluUnProject((GLdouble) mouseX, (GLdouble) (viewport[3] - mouseY), 0.0,
+	            modelview, projection, viewport, X, Y, &dum);
+
+}
+
 
 /**
  *

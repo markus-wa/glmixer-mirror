@@ -70,9 +70,13 @@ Q_SIGNALS:
 	void sourceGeometryModified();
 	void sourceLayerModified();
 
+	void sourceMixingDrop(double, double);
+	void sourceGeometryDrop(double, double);
+	void sourceLayerDrop(double);
+
 public Q_SLOTS:
 
-	void clear();
+	void clearViews();
 	void zoomIn();
 	void zoomOut();
 	void zoomReset();
@@ -80,7 +84,6 @@ public Q_SLOTS:
 	void refresh();
 	void showMessage(QString s);
 	void hideMessage() { displayMessage = false; }
-
 	void setStipplingMode(int m) { quad_half_textured = quad_stipped_textured[CLAMP(m, 0, 3)]; }
 
 protected:

@@ -31,6 +31,7 @@ protected:
 						  0, GL_BGRA, GL_UNSIGNED_BYTE, _capture.bits() );
 
 			aspectratio = double(_capture.width()) / double(_capture.height());
+			name.prepend("capture");
 		}
 	}
 

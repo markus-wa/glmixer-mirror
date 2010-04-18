@@ -53,7 +53,7 @@ void OutputRenderWidget::initializeGL() {
     // Turn blending off
     glDisable(GL_BLEND);
 
-	if ( RenderingManager::blit )
+	if ( RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
@@ -67,7 +67,7 @@ void OutputRenderWidget::resizeGL(int w, int h)
 {
 	glRenderWidget::resizeGL(w, h);
 
-	if ( RenderingManager::blit ) {
+	if ( RenderingManager::blit_fbo_extension ) {
 		if (useAspectRatio) {
 			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
 			if (aspectRatio < renderingAspectRatio) {
@@ -148,7 +148,7 @@ void OutputRenderWidget::paintGL()
 	 // do NOT display fps : //	glRenderWidget::paintGL();
     glClear(GL_COLOR_BUFFER_BIT);
 
-	if ( RenderingManager::blit )
+	if ( RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 //	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());

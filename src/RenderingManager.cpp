@@ -30,7 +30,7 @@ Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 
 // static members
 RenderingManager *RenderingManager::_instance = 0;
-bool RenderingManager::blit = false;
+bool RenderingManager::blit_fbo_extension = false;
 
 ViewRenderWidget *RenderingManager::getRenderingWidget() {
 
@@ -51,7 +51,7 @@ RenderingManager *RenderingManager::getInstance() {
 					"\n\nThe program cannot operate properly.\n\nExiting...");
 
 		if (glSupportsExtension("GL_EXT_framebuffer_blit"))
-			RenderingManager::blit = true;
+			RenderingManager::blit_fbo_extension = true;
 		else
 			qWarning( "** WARNING **\n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware."
 					"\n\nRendering speed be sub-optimal but all should work properly.");
@@ -84,6 +84,16 @@ RenderingManager::RenderingManager() :
 
 	_propertyBrowser = new SourcePropertyBrowser;
 	Q_CHECK_PTR(_propertyBrowser);
+
+    QObject::connect(this, SIGNAL(currentSourceChanged(SourceSet::iterator)), _propertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
+
+    QObject::connect(_renderwidget, SIGNAL(sourceMixingModified()), _propertyBrowser, SLOT(updateMixingProperties() ) );
+    QObject::connect(_renderwidget, SIGNAL(sourceGeometryModified()), _propertyBrowser, SLOT(updateGeometryProperties() ) );
+    QObject::connect(_renderwidget, SIGNAL(sourceLayerModified()), _propertyBrowser, SLOT(updateLayerProperties() ) );
+
+    QObject::connect(_renderwidget, SIGNAL(sourceMixingDrop(double,double)), this, SLOT(dropSourceWithAlpha(double, double) ) );
+    QObject::connect(_renderwidget, SIGNAL(sourceGeometryDrop(double,double)), this, SLOT(dropSourceWithCoordinates(double, double)) );
+    QObject::connect(_renderwidget, SIGNAL(sourceLayerDrop(double)), this, SLOT(dropSourceWithDepth(double)) );
 
 	setFrameBufferResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
@@ -138,17 +148,21 @@ void RenderingManager::updatePreviousFrame() {
 	if (!previousframe_fbo)
 		return;
 
-	previousframe_index++;
+	// TODO: implement the GUI for selecting frame delay
+//	previousframe_index++;
+//
+//	if (previousframe_index % previousframe_delay)
+//		return;
+//	else
+//		previousframe_index = 0;
 
-	if (previousframe_index % previousframe_delay)
-		return;
-	else
-		previousframe_index = 0;
-
-	if (RenderingManager::blit)
+	if (RenderingManager::blit_fbo_extension)
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 		glBindFramebufferEXT(GL_READ_FRAMEBUFFER, _fbo->handle());
+
+		// TODO : Can we draw in different texture buffer so we can keep an history of
+		// several frames, and each loopback source could use a different one
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
 
 		glBlitFramebufferEXT(0, _fbo->height(), _fbo->width(), 0, 0, 0,
@@ -249,7 +263,7 @@ void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource,
 	glPopMatrix();
 }
 
-Source *RenderingManager::addRenderingSource(double depth) {
+Source *RenderingManager::newRenderingSource(double depth) {
 
 	_renderwidget->makeCurrent();
 	// create the previous frame (frame buffer object) if needed
@@ -258,19 +272,9 @@ Source *RenderingManager::addRenderingSource(double depth) {
 				_fbo->height());
 	}
 
-	if (depth < 0)
-		// place it forward
-		depth = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
-
 	// create a source appropriate for this videofile
-	RenderingSource *s = new RenderingSource(previousframe_fbo->texture(), depth);
+	RenderingSource *s = new RenderingSource(previousframe_fbo->texture(), getAvailableDepthFrom(depth));
 	Q_CHECK_PTR(s);
-
-	// set the last created source to be current
-	std::pair<SourceSet::iterator, bool> ret;
-	ret = _sources.insert((Source *) s);
-	if (ret.second)
-		setCurrentSource(ret.first);
 
 	return ( (Source *) s );
 }
@@ -281,7 +285,7 @@ QImage RenderingManager::captureFrameBuffer() {
 	return _fbo->toImage();
 }
 
-Source *RenderingManager::addCaptureSource(QImage img, double depth) {
+Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 
 	// create the texture for this source
 	GLuint textureIndex;
@@ -291,25 +295,14 @@ Source *RenderingManager::addCaptureSource(QImage img, double depth) {
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &textureIndex, &highpriority);
 
-	if (depth < 0)
-		// place it forward
-		depth  = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth()
-			+ 1.0;
-
 	// create a source appropriate for this videofile
-	CaptureSource *s = new CaptureSource(img, textureIndex, depth);
+	CaptureSource *s = new CaptureSource(img, textureIndex, getAvailableDepthFrom(depth));
 	Q_CHECK_PTR(s);
-
-	// set the last created source to be current
-	std::pair<SourceSet::iterator, bool> ret;
-	ret = _sources.insert((Source *) s);
-	if (ret.second)
-		setCurrentSource(ret.first);
 
 	return ( (Source *) s );
 }
 
-Source *RenderingManager::addMediaSource(VideoFile *vf, double depth) {
+Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 
 	// create the texture for this source
 	GLuint textureIndex;
@@ -319,29 +312,18 @@ Source *RenderingManager::addMediaSource(VideoFile *vf, double depth) {
 	GLclampf lowpriority = 0.1;
 	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
-	if (depth < 0)
-		// place it forward
-		depth  = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth()
-			+ 1.0;
-
 	// create a source appropriate for this videofile
-	VideoSource *s = new VideoSource(vf, textureIndex, depth);
+	VideoSource *s = new VideoSource(vf, textureIndex, getAvailableDepthFrom(depth) );
 	Q_CHECK_PTR(s);
 
 	// scale the source to match the media size
 	s->resetScale();
 
-	// set the last created source to be current
-	std::pair<SourceSet::iterator, bool> ret;
-	ret = _sources.insert((Source *) s);
-	if (ret.second)
-		setCurrentSource(ret.first);
-
 	return ( (Source *) s );
 }
 
 #ifdef OPEN_CV
-Source *RenderingManager::addOpencvSource(int opencvIndex, double depth) {
+Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 
 	GLuint textureIndex;
 	OpencvSource *s = 0;
@@ -354,12 +336,9 @@ Source *RenderingManager::addOpencvSource(int opencvIndex, double depth) {
 		GLclampf lowpriority = 0.1;
 
 		glPrioritizeTextures(1, &textureIndex, &lowpriority);
-		if (depth < 0)
-			// place it forward
-			depth  = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
 
 		// try to create the opencv source
-		s = new OpencvSource(opencvIndex, textureIndex, depth);
+		s = new OpencvSource(opencvIndex, textureIndex, getAvailableDepthFrom(depth));
 
 	} catch (NoCameraIndexException){
 
@@ -372,17 +351,11 @@ Source *RenderingManager::addOpencvSource(int opencvIndex, double depth) {
 	// scale the source to match the media size
 	s->resetScale();
 
-	// set the last created source to be current
-	std::pair<SourceSet::iterator, bool> ret;
-	ret = _sources.insert((Source *) s);
-	if (ret.second)
-		setCurrentSource(ret.first);
-
 	return ( (Source *) s );
 }
 #endif
 
-Source *RenderingManager::addAlgorithmSource(int type, int w, int h, double v,
+Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 		int p, double depth) {
 
 	// create the texture for this source
@@ -392,41 +365,117 @@ Source *RenderingManager::addAlgorithmSource(int type, int w, int h, double v,
 	GLclampf lowpriority = 0.1;
 	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
-	if (depth < 0)
-		// place it forward
-		depth  = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
-
 	// create a source appropriate for this videofile
-	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, depth, w, h, v, p);
+	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p);
 	Q_CHECK_PTR(s);
 
-	// set the last created source to be current
-	std::pair<SourceSet::iterator, bool> ret;
-	ret = _sources.insert((Source *) s);
-	if (ret.second)
-		setCurrentSource(ret.first);
+	// scale the source to match the media size
+	s->resetScale();
 
 	return ( (Source *) s );
 }
 
-Source *RenderingManager::addCloneSource(SourceSet::iterator sit, double depth) {
-
-	if (depth < 0)
-		// place it forward
-		depth  = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth()
-			+ 1.0;
+Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) {
 
 	// create a source appropriate for this videofile
-	CloneSource *clone = new CloneSource(sit, depth);
-	Q_CHECK_PTR(clone);
+	CloneSource *s = new CloneSource(sit, getAvailableDepthFrom(depth));
+	Q_CHECK_PTR(s);
 
-	// set the last created source to be current
-	std::pair<SourceSet::iterator, bool> ret;
-	ret = _sources.insert((Source *) clone);
-	if (ret.second)
-		setCurrentSource(ret.first);
+	// scale the source to match the media size
+	s->resetScale();
 
-	return ( (Source *) clone );
+	return ( (Source *) s );
+}
+
+void RenderingManager::insertSource(Source *s){
+
+	if (s) {
+		// replace the source name by another available one based on the original name
+		s->setName(getAvailableNameFrom(s->getName()));
+
+		// set the last created source to be current
+		std::pair<SourceSet::iterator, bool> ret;
+		ret = _sources.insert(s);
+		if (ret.second)
+			setCurrentSource(ret.first);
+		else {
+			delete s;
+	        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not insert source into the stack."));
+		}
+	}
+}
+
+void RenderingManager::addSourceToBasket(Source *s){
+
+	// add the source into the basket
+	dropBasket.insert(s);
+	// select no source
+	setCurrentSource( getEnd() );
+}
+
+int RenderingManager::getSourceBasketSize(){
+
+	return int (dropBasket.size());
+}
+
+Source *RenderingManager::getSourceBasketTop(){
+
+	if (dropBasket.empty())
+		return 0;
+	else
+		return (*dropBasket.begin());
+}
+
+void RenderingManager::dropSourceWithAlpha(double alphax, double alphay){
+
+	// nothing to drop ?
+	if (dropBasket.empty())
+		return;
+	// get the pointer to the source at the top of the list
+	Source *top = *dropBasket.begin();
+	// apply the modifications
+	top->setAlphaCoordinates(alphax, alphay);
+	// insert the source
+	insertSource(top);
+	// remove from the basket
+	dropBasket.erase(top);
+
+}
+
+void RenderingManager::dropSourceWithCoordinates(double x, double y){
+
+	// nothing to drop ?
+	if (dropBasket.empty())
+		return;
+
+	// get the pointer to the source at the top of the list
+	Source *top = *dropBasket.begin();
+	// apply the modifications
+	top->setX(x);
+	top->setY(y);
+	// insert the source
+	insertSource(top);
+	// remove from the basket
+	dropBasket.erase(dropBasket.begin());
+
+}
+
+void RenderingManager::dropSourceWithDepth(double depth){
+
+	// nothing to drop ?
+	if (dropBasket.empty())
+		return;
+
+	// get the pointer to the source at the top of the list
+	Source *top = *dropBasket.begin();
+	// apply the modifications
+	// TODO ; check validity of depth
+	top->setDepth(depth);
+	// insert the source
+	insertSource(top);
+	// remove from the basket
+	dropBasket.erase(dropBasket.begin());
+
 }
 
 void RenderingManager::removeSource(SourceSet::iterator itsource) {
@@ -461,9 +510,12 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 
 void RenderingManager::clearSourceSet() {
 
-	for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its
-			= _sources.begin())
+	// clear the list of sources
+	for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its = _sources.begin())
 		removeSource(its);
+
+	// reset the id counter
+	Source::lastid = 1;
 }
 
 bool RenderingManager::notAtEnd(SourceSet::iterator itsource) {
@@ -499,6 +551,46 @@ bool RenderingManager::setCurrentSource(SourceSet::iterator si) {
 bool RenderingManager::setCurrentSource(GLuint name) {
 
 	return setCurrentSource(getById(name));
+}
+
+QString RenderingManager::getAvailableNameFrom(QString name){
+
+	// start with a tentative name and assume it is NOT ok
+	QString tentativeName = name;
+	bool isok = false;
+	int countbad = 2;
+	// try to find the name in the list; it is still not ok if it exists
+	while (!isok) {
+		if ( isValid( getByName(tentativeName) ) ){
+			// modify the tentative name and keep trying
+			tentativeName = name + QString("-%1").arg(countbad++);
+		} else
+			isok = true;
+	}
+	// finally the tentative name is ok
+	return tentativeName;
+}
+
+double RenderingManager::getAvailableDepthFrom(double depth){
+
+	double tentativeDepth = depth;
+
+	// place it at the front if no depth is provided (default argument = -1)
+	if (tentativeDepth < 0)
+		tentativeDepth  = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
+
+	tentativeDepth += dropBasket.size();
+
+	// try to find a source at this depth in the list; it is not ok if it exists
+	bool isok = false;
+	while (!isok) {
+		if ( isValid( std::find_if(_sources.begin(), _sources.end(), isCloseTo(tentativeDepth)) ) ){
+			tentativeDepth += DEPTH_EPSILON;
+		} else
+			isok = true;
+	}
+	// finally the tentative depth is ok
+	return tentativeDepth;
 }
 
 SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
@@ -605,7 +697,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 		filter.setAttribute("Brightness", (*its)->getBrightness());
 		filter.setAttribute("Contrast", (*its)->getContrast());
 		filter.setAttribute("Pixelated", (*its)->isPixelated());
-		filter.setAttribute("Color table", (*its)->getColorTable());
+		filter.setAttribute("ColorTable", (*its)->getColorTable());
 		filter.setAttribute("Convolution", (*its)->getConvolution());
 		sourceElem.appendChild(filter);
 
@@ -693,7 +785,7 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 	newsource->setBrightness( tmp.attribute("Brightness").toInt() );
 	newsource->setContrast( tmp.attribute("Contrast").toInt() );
 	newsource->setPixelated( tmp.attribute("Pixelated").toInt() );
-	newsource->setColorTable( (Source::colorTableType) tmp.attribute("Color table").toInt() );
+	newsource->setColorTable( (Source::colorTableType) tmp.attribute("ColorTable").toInt() );
 	newsource->setConvolution( (Source::convolutionType) tmp.attribute("Convolution").toInt() );
 }
 
@@ -703,15 +795,16 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 
 	QDomElement child = xmlconfig.firstChildElement("Source");
 	while (!child.isNull()) {
-
+		// pointer for new source
 		Source *newsource = 0;
-
-		// create the source according to its specific type information
+		// read the depth where the source should be created
 		double depth = child.firstChildElement("Depth").attribute("Z").toDouble();
 
+		// get the type of the source to create
 		QDomElement t = child.firstChildElement("TypeSpecific");
 		Source::RTTI type = (Source::RTTI) t.attribute("type").toInt();
 
+		// create the source according to its specific type information
 		if (type == Source::VIDEO_SOURCE ){
 			// read the tags specific for a video source
 			QDomElement Filename = t.firstChildElement("Filename");
@@ -730,7 +823,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 				// can we open the file ?
 				if ( newSourceVideoFile->open( Filename.text(), marks.attribute("In").toLong(), marks.attribute("Out").toLong() ) ) {
 					// create the source as it is a valid video file (this also set it to be the current source)
-					newsource = RenderingManager::getInstance()->addMediaSource(newSourceVideoFile, depth);
+					newsource = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile, depth);
 					if (!newsource)
 				        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create media source %1. ").arg(child.attribute("name")));
 				}
@@ -739,7 +832,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 		} else if ( type == Source::CAMERA_SOURCE ) {
 			QDomElement camera = t.firstChildElement("CameraIndex");
 
-			newsource = RenderingManager::getInstance()->addOpencvSource( camera.text().toInt(), depth);
+			newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
 			if (!newsource)
 		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create camera source %1 with devide index %2. ").arg(child.attribute("name")).arg(camera.text()));
 
@@ -750,7 +843,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 			QDomElement Frame = t.firstChildElement("Frame");
 			QDomElement Update = t.firstChildElement("Update");
 
-			newsource = RenderingManager::getInstance()->addAlgorithmSource(Algorithm.text().toInt(),
+			newsource = RenderingManager::getInstance()->newAlgorithmSource(Algorithm.text().toInt(),
 					Frame.attribute("Width").toInt(), Frame.attribute("Height").toInt(),
 					Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), depth);
 			if (!newsource)
@@ -759,7 +852,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 
 		} else if ( type == Source::RENDERING_SOURCE) {
 			// no tags specific for a rendering source
-			newsource = RenderingManager::getInstance()->addRenderingSource(depth);
+			newsource = RenderingManager::getInstance()->newRenderingSource(depth);
 			if (!newsource)
 		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create rendering loopback source %1. ").arg(child.attribute("name")));
 
@@ -768,10 +861,13 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 			clones.push_back(child);
 		}
 
-		// Apply parameters to the created source
-		if (newsource)
-			applySourceConfig(newsource, child);
 
+		if (newsource) {
+			// Apply parameters to the created source
+			applySourceConfig(newsource, child);
+			// insert the source in the scene
+			insertSource(newsource);
+		}
 		child = child.nextSiblingElement();
 	}
 
@@ -788,18 +884,19 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 		// find the source which name is f.text()
     	SourceSet::iterator cloneof =  getByName(f.text());
     	if (isValid(cloneof)) {
-    		clonesource = RenderingManager::getInstance()->addCloneSource(cloneof, depth);
-			// Apply parameters to the created source
-    		if (clonesource)
+    		clonesource = RenderingManager::getInstance()->newCloneSource(cloneof, depth);
+    		if (clonesource) {
+    			// Apply parameters to the created source
     			applySourceConfig(clonesource, c);
-    		else
+    			// insert the source in the scene
+    			insertSource(clonesource);
+    		}else
     	        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create clone source %1.").arg(c.attribute("name")));
     	} else {
-    		QMessageBox::warning(0, tr("GLMixer session append"), tr("The source '%1' cannot be the clone of '%2' ; no such source.").arg(c.attribute("name")).arg(f.text()));
+    		QMessageBox::warning(0, tr("GLMixer create source"), tr("The source '%1' cannot be the clone of '%2' ; no such source.").arg(c.attribute("name")).arg(f.text()));
     	}
     }
 
-	// TODO ; uniform brightness & contrast inferface for video sources
 
 }
 

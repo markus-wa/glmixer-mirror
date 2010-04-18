@@ -42,20 +42,24 @@ public:
 	/**
 	* Management of the sources
 	**/
-	Source *addRenderingSource(double depth = -1.0);
-	Source *addCaptureSource(QImage img, double depth = -1.0);
-	Source *addMediaSource(VideoFile *vf, double depth = -1.0);
+	// create source per type :
+	Source *newRenderingSource(double depth = -1.0);
+	Source *newCaptureSource(QImage img, double depth = -1.0);
+	Source *newMediaSource(VideoFile *vf, double depth = -1.0);
 #ifdef OPEN_CV
-	Source *addOpencvSource(int opencvIndex, double depth = -1.0);
+	Source *newOpencvSource(int opencvIndex, double depth = -1.0);
 #endif
-	Source *addAlgorithmSource(int type, int w, int h, double v, int p, double depth = -1.0);
-	Source *addCloneSource(SourceSet::iterator sit, double depth = -1.0);
-
+	Source *newAlgorithmSource(int type, int w, int h, double v, int p, double depth = -1.0);
+	Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
+	// insert the source into the scene
+	void insertSource(Source *s);
 
 	SourceSet::iterator getById(GLuint id);
 	SourceSet::iterator getByName(QString name);
 	bool notAtEnd(SourceSet::iterator itsource);
 	bool isValid(SourceSet::iterator itsource);
+	QString getAvailableNameFrom(QString name);
+	double getAvailableDepthFrom(double depth = -1);
 	SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
 	inline SourceSet::iterator getBegin() {
 		return _sources.begin();
@@ -69,6 +73,10 @@ public:
 	inline SourceSet::iterator getCurrentSource() {
 		return _currentSource;
 	}
+
+	void addSourceToBasket(Source *s);
+	int getSourceBasketSize();
+	Source *getSourceBasketTop();
 
 	/**
 	 * management of the rendering
@@ -96,6 +104,10 @@ public Q_SLOTS:
 	void setPreviousFrameDelay(int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 	void clearSourceSet();
 
+	void dropSourceWithAlpha(double alphax, double alphay);
+	void dropSourceWithCoordinates(double x, double y);
+	void dropSourceWithDepth(double depth);
+
 Q_SIGNALS:
 	void currentSourceChanged(SourceSet::iterator csi);
 
@@ -113,12 +125,13 @@ protected:
 	QGLFramebufferObject *_fbo;
 	QGLFramebufferObject *previousframe_fbo;
 	int countRenderingSource, previousframe_index, previousframe_delay;
-    static bool blit;
+    static bool blit_fbo_extension;
     QColor clearColor;
 
 	// the set of sources
 	SourceSet _sources;
 	SourceSet::iterator _currentSource;
+	SourceList dropBasket;
 
 };
 

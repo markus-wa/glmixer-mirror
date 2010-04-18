@@ -28,7 +28,7 @@ public:
 
 public Q_SLOTS:
 
-	void setTitle();
+	void changeWindowTitle();
 
 	// menu and actions
 	void on_actionMediaSource_triggered();

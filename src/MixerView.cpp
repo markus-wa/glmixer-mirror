@@ -27,9 +27,15 @@ MixerView::MixerView() : View(), currentAction(NONE)
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
 }
 
+void MixerView::setModelview()
+{
+    glScalef(zoom, zoom, zoom);
+    glTranslatef(getPanningX(), getPanningY(), 0.0);
+
+}
+
 void MixerView::paint()
 {
-
     // First the circles and other background stuff
     glCallList(ViewRenderWidget::circle_mixing);
 
@@ -46,6 +52,7 @@ void MixerView::paint()
     glEnd();
     glDisable(GL_LINE_STIPPLE);
 
+    // the groups
     glLineWidth(3.0);
     for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
     	glColor4f(groupColor[itss].redF(), groupColor[itss].greenF(),groupColor[itss].blueF(), 0.9);
@@ -100,6 +107,7 @@ void MixerView::paint()
 
 	}
 
+	// if no source was rendered, clear to black
 	if (first)
 		RenderingManager::getInstance()->clearFrameBuffer();
 
@@ -112,7 +120,6 @@ void MixerView::paint()
         glPopMatrix();
 
     }
-
 
 	// The rectangle for selection
     if ( currentAction == RECTANGLE) {
@@ -130,23 +137,39 @@ void MixerView::paint()
 		glEnable(GL_TEXTURE_2D);
     }
 
+    // the source dropping icon
+	Source *s = RenderingManager::getInstance()->getSourceBasketTop();
+    if ( s ){
+    	double ax, ay, az; // mouse cursor in rendering coordinates:
+		gluUnProject(GLdouble (lastClicPos.x()), GLdouble (viewport[3] - lastClicPos.y()), 0.0,
+				modelview, projection, viewport, &ax, &ay, &az);
+		glPushMatrix();
+		glTranslated( ax, ay, az);
+			glPushMatrix();
+			glTranslated( SOURCE_UNIT * s->getAspectRatio() + 1.0, - SOURCE_UNIT + 1.0, 0.0);
+			for (int i = 1; i < RenderingManager::getInstance()->getSourceBasketSize(); ++i ) {
+				glTranslated(  2.1, 0.0, 0.0);
+				glCallList(ViewRenderWidget::border_thin);
+			}
+			glPopMatrix();
+		glScalef( SOURCE_UNIT * s->getAspectRatio(), SOURCE_UNIT, 1.f);
+		glCallList(ViewRenderWidget::border_large_shadow);
+		glPopMatrix();
+    }
+
+	// fill-in the loopback buffer
     RenderingManager::getInstance()->updatePreviousFrame();
 }
 
 
 
-void MixerView::clear(){
-
+void MixerView::clear()
+{
 	View::clear();
 
 	groupSources.clear();
 	groupColor.clear();
-}
 
-void MixerView::reset()
-{
-    glScalef(zoom, zoom, zoom);
-    glTranslatef(getPanningX(), getPanningY(), 0.0);
 }
 
 
@@ -198,10 +221,18 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	// What was cliked ?
 	cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 
+	// MIDDLE BUTTON ; panning cursor
 	if (event->buttons() & Qt::MidButton) {
+		// priority to panning of the view (even in drop mode)
 		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
 	}
-	// if at least one source icon was clicked
+	// DRoP MODE ; explicitly do nothing
+	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		// don't interpret other mouse events in drop mode
+		return false;
+	}
+	// LEFT BUTTON ; initiate action
 	else  if (event->buttons() & Qt::LeftButton) {
 
     	// if a source icon was cliked
@@ -237,10 +268,11 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 
 		}
 
-    } else if (event->buttons() & Qt::MidButton) {
-    	// almost a wheel action ; middle mouse = best zoom fit
-        zoomBestFit();
     }
+//	else if (event->buttons() & Qt::MidButton) {
+//    	// almost a wheel action ; middle mouse = best zoom fit
+//        zoomBestFit();
+//    }
 
 	return true;
 }
@@ -291,11 +323,23 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
+    // MIDDLE button ; panning
 	if (event->buttons() & Qt::MidButton) {
 
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
+		return false;
 
-	} else if (event->buttons() & Qt::LeftButton) {
+	}
+	// DROP MODE : avoid other actions
+	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+
+		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		// don't interpret mouse events in drop mode
+		return false;
+
+	}
+	// LEFT BUTTON : grab or draw a selection rectangle
+	else if (event->buttons() & Qt::LeftButton) {
 
         if ( currentAction == GRAB )
         {
@@ -353,7 +397,9 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 			selectedSources = SourceList(rectSources);
         }
 
-    } else if (event->buttons() & Qt::RightButton) {
+    }
+	// RIGHT BUTTON : special (non-selection) modification
+	else if (event->buttons() & Qt::RightButton) {
 
     	// RIGHT clic on a source ; change its alpha, but do not make it current
         if ( cliked ) {
@@ -365,10 +411,11 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 			return true;
         }
 
-    } else  { // mouse over (no buttons)
-
-		 // selection mode with CTRL modifier
+    }
+	// NO BUTTON : show a mouse-over cursor
+	else  {
 		if ( getSourceAtCoordinates(event->x(), viewport[3] - event->y()) != 0 )
+			// selection mode with CTRL modifier
 			if (QApplication::keyboardModifiers () == Qt::ControlModifier)
 				setAction(SELECT);
 			else
@@ -383,7 +430,9 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
 bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
 
-	if (currentAction == GRAB )
+	if ( RenderingManager::getInstance()->getSourceBasketTop() )
+		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+	else if (currentAction == GRAB )
 		setAction(OVER);
 	else if (currentAction == RECTANGLE ){
 
@@ -585,6 +634,15 @@ void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
     s->setAlphaCoordinates( ix, iy );
 }
 
+
+void MixerView::alphaCoordinatesFromMouse(int mouseX, int mouseY, double *alphaX, double *alphaY){
+
+	double dum;
+
+	gluUnProject((GLdouble) mouseX, (GLdouble) (viewport[3] - mouseY), 0.0,
+	            modelview, projection, viewport, alphaX, alphaY, &dum);
+
+}
 
 /**
  *

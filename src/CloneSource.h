@@ -38,6 +38,7 @@ protected:
 		// TODO : Throw exception if (!ret.second)
 
 		aspectratio = original->getAspectRatio();
+		name.prepend("clone");
 	}
 
 	~CloneSource() {
