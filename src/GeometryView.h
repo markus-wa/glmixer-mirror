@@ -44,6 +44,7 @@ private:
     void panningBy(int x, int y, int dx, int dy);
 
     char quadrant;
+    GLuint borderType;
     actionType currentAction;
 };
 

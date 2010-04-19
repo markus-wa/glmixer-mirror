@@ -141,7 +141,7 @@ void MixerView::paint()
 	Source *s = RenderingManager::getInstance()->getSourceBasketTop();
     if ( s ){
     	double ax, ay, az; // mouse cursor in rendering coordinates:
-		gluUnProject(GLdouble (lastClicPos.x()), GLdouble (viewport[3] - lastClicPos.y()), 0.0,
+		gluUnProject(GLdouble (lastClicPos.x()), GLdouble (viewport[3] - lastClicPos.y()), 1.0,
 				modelview, projection, viewport, &ax, &ay, &az);
 		glPushMatrix();
 		glTranslated( ax, ay, az);
@@ -280,7 +280,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 
-	// for LEFT double button clic : pan the view to zoom on this source
+	// for LEFT double button clic alrernate group / selection
 	if ( (event->buttons() & Qt::LeftButton) /*&& getSourceAtCoordinates(event->x(), viewport[3] - event->y()) */) {
 
 		cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
