@@ -159,17 +159,17 @@ void RenderingManager::updatePreviousFrame() {
 	if (RenderingManager::blit_fbo_extension)
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER, _fbo->handle());
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, _fbo->handle());
 
 		// TODO : Can we draw in different texture buffer so we can keep an history of
 		// several frames, and each loopback source could use a different one
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
 
 		glBlitFramebufferEXT(0, _fbo->height(), _fbo->width(), 0, 0, 0,
 				previousframe_fbo->width(), previousframe_fbo->height(),
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
@@ -722,6 +722,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 
 			// TODO  : saturation, if not generic in source, 'isPowerOfTwo'
 
+#ifdef OPEN_CV
 		} else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
 			OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
 
@@ -729,7 +730,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 			QDomText id = doc.createTextNode(QString::number(cs->getOpencvCameraIndex()));
 			f.appendChild(id);
 			specific.appendChild(f);
-
+#endif
 		} else if ((*its)->rtti() == Source::ALGORITHM_SOURCE) {
 			AlgorithmSource *as = dynamic_cast<AlgorithmSource *> (*its);
 
@@ -829,13 +830,14 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 				}
 			}
 
+#ifdef OPEN_CV
 		} else if ( type == Source::CAMERA_SOURCE ) {
 			QDomElement camera = t.firstChildElement("CameraIndex");
 
 			newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
 			if (!newsource)
 		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create camera source %1 with devide index %2. ").arg(child.attribute("name")).arg(camera.text()));
-
+#endif
 
 		} else if ( type == Source::ALGORITHM_SOURCE) {
 			// read the tags specific for an algorithm source

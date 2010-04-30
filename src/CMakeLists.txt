@@ -123,6 +123,9 @@ glmixer_install_qt4_framework(QtSvg
   APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
   DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 )
+
+
+
 # QT Plugins
 GLMIXER_INSTALL_DYLIB(libqjpeg.dylib
   TARGET bundle NAME libqjpeg.dylib
