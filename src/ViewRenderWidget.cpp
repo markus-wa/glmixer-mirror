@@ -37,6 +37,7 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
     Q_CHECK_PTR(layersManipulationView);
 	currentManipulationView = noView;
 
+	// opengl HID display
 	displayMessage = false;
 	connect(&messageTimer, SIGNAL(timeout()), SLOT(hideMessage()));
 	messageTimer.setSingleShot(true);
@@ -45,6 +46,11 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 	fpsCounter_	= 0;
 	f_p_s_		= 1 / period;
 	fpsString_	= tr("%1Hz", "Frames per seconds, in Hertz").arg("?");
+
+	// qt context menu
+	setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenu(const QPoint &)));
+
 
 }
 
@@ -156,6 +162,18 @@ void ViewRenderWidget::setViewMode(viewMode mode){
 
 }
 
+
+void ViewRenderWidget::contextMenu(const QPoint &pos){
+
+    static QMenu *menu = 0;
+    if (!menu) {
+    	menu = new QMenu;
+    	menu->addAction(tr("Reset zoom"), this, SLOT(zoomReset()));
+    	menu->addAction(tr("Best fit zoom"), this, SLOT(zoomBestFit()));
+    }
+    menu->exec(mapToGlobal(pos));
+
+}
 
 QPixmap ViewRenderWidget::getViewIcon(){
 

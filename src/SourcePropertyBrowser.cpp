@@ -836,8 +836,11 @@ void SourcePropertyBrowser::updateMarksProperties(bool showFrames){
 
 void SourcePropertyBrowser::ctxMenuGroup(const QPoint &pos){
 
-    QMenu *menu = new QMenu;
-    menu->addAction(tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
+    static QMenu *menu = 0;
+    if (!menu) {
+    	menu = new QMenu;
+    	menu->addAction(tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
+    }
     menu->exec(mapToGlobal(pos));
 
 }
@@ -845,10 +848,14 @@ void SourcePropertyBrowser::ctxMenuGroup(const QPoint &pos){
 
 void SourcePropertyBrowser::ctxMenuTree(const QPoint &pos){
 
-    QMenu *menu = new QMenu;
-    menu->addAction(tr("Expand All"), this, SLOT(expandAll()));
-    menu->addAction(tr("Collapse All"), this, SLOT(collapseAll()));
-    menu->addAction(tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
+    static QMenu *menu = 0;
+    if (!menu) {
+    	menu = new QMenu;
+        menu->addAction(tr("Expand All"), this, SLOT(expandAll()));
+        menu->addAction(tr("Collapse All"), this, SLOT(collapseAll()));
+        menu->addAction(tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
+    }
+
     menu->exec(mapToGlobal(pos));
 
 }

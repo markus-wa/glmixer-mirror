@@ -85,6 +85,7 @@ public Q_SLOTS:
 	void showMessage(QString s);
 	void hideMessage() { displayMessage = false; }
 	void setStipplingMode(int m) { quad_half_textured = quad_stipped_textured[CLAMP(m, 0, 3)]; }
+	void contextMenu(const QPoint &);
 
 protected:
 

@@ -56,8 +56,8 @@ void OutputRenderWidget::initializeGL() {
 	if ( RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, RenderingManager::getInstance()->getFrameBufferHandle());
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+	    glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 
 	setBackgroundColor(palette().color(QPalette::Window));

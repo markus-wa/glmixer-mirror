@@ -747,9 +747,10 @@ int64_t VideoFile::getCurrentFrameTime() const {
 
 float VideoFile::getFrameRate() const {
 
-    if (video_st && video_st->avg_frame_rate.den > 0)
-        return ((float) (video_st->avg_frame_rate.num )/ (float) video_st->avg_frame_rate.den);
-    else if (video_st && video_st->r_frame_rate.den > 0)
+//    if (video_st && video_st->avg_frame_rate.den > 0)
+//        return ((float) (video_st->avg_frame_rate.num )/ (float) video_st->avg_frame_rate.den);
+//    else
+	if (video_st && video_st->r_frame_rate.den > 0)
         return ((float) (video_st->r_frame_rate.num )/ (float) video_st->r_frame_rate.den);
     else
         return 0;

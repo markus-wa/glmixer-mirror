@@ -16,6 +16,129 @@
 #define MAXZOOM 3.0
 #define DEFAULTZOOM 0.5
 
+static char * rotate_top_right[] = {
+"25 25 3 1",
+" 	c None",
+".	c #000000",
+"+	c #FFFFFF",
+"                         ",
+"                         ",
+"       +                 ",
+"      +.+                ",
+"     +..+                ",
+"    +...+                ",
+"   +....++++             ",
+"  +.........++           ",
+"  +...........+          ",
+"   +....+++....+         ",
+"    +...+  ++...+        ",
+"     +..+    +...+       ",
+"      +.+     +..+       ",
+"       +      +...+      ",
+"               +..+      ",
+"               +..+      ",
+"            ++++..++++   ",
+"           +..........+  ",
+"            +........+   ",
+"             +......+    ",
+"              +....+     ",
+"               +..+      ",
+"                ++       ",
+"                         ",
+"                         "};
+
+static char * rotate_top_left[] = {
+"25 25 3 1",
+" 	c None",
+".	c #000000",
+"+	c #FFFFFF",
+"                         ",
+"                         ",
+"                 +       ",
+"                +.+      ",
+"                +..+     ",
+"                +...+    ",
+"             ++++....+   ",
+"           ++.........+  ",
+"          +...........+  ",
+"         +....+++....+   ",
+"        +...++  +...+    ",
+"       +...+    +..+     ",
+"       +..+     +.+      ",
+"      +...+      +       ",
+"      +..+               ",
+"      +..+               ",
+"   ++++..++++            ",
+"  +..........+           ",
+"   +........+            ",
+"    +......+             ",
+"     +....+              ",
+"      +..+               ",
+"       ++                ",
+"                         ",
+"                         "};
+
+static char * rotate_bot_left[] = {
+"25 25 3 1",
+" 	c None",
+".	c #000000",
+"+	c #FFFFFF",
+"                         ",
+"                         ",
+"       ++                ",
+"      +..+               ",
+"     +....+              ",
+"    +......+             ",
+"   +........+            ",
+"  +..........+           ",
+"   ++++..++++            ",
+"      +..+               ",
+"      +..+               ",
+"      +...+      +       ",
+"       +..+     +.+      ",
+"       +...+    +..+     ",
+"        +...++  +...+    ",
+"         +....+++....+   ",
+"          +...........+  ",
+"           ++.........+  ",
+"             ++++....+   ",
+"                +...+    ",
+"                +..+     ",
+"                +.+      ",
+"                 +       ",
+"                         ",
+"                         "};
+
+static char * rotate_bot_right[] = {
+"25 25 3 1",
+" 	c None",
+".	c #000000",
+"+	c #FFFFFF",
+"                         ",
+"                         ",
+"                ++       ",
+"               +..+      ",
+"              +....+     ",
+"             +......+    ",
+"            +........+   ",
+"           +..........+  ",
+"            ++++..++++   ",
+"               +..+      ",
+"               +..+      ",
+"       +      +...+      ",
+"      +.+     +..+       ",
+"     +..+    +...+       ",
+"    +...+  ++...+        ",
+"   +....+++....+         ",
+"  +...........+          ",
+"  +.........++           ",
+"   +....++++             ",
+"    +...+                ",
+"     +..+                ",
+"      +.+                ",
+"       +                 ",
+"                         ",
+"                         "};
 
 GeometryView::GeometryView() : View(), quadrant(0), currentAction(NONE)
 {
@@ -200,6 +323,11 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
 bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 {
+	static QCursor rotTopRightCursor = QCursor( QPixmap(rotate_top_right) );
+	static QCursor rotTopLeftCursor = QCursor( QPixmap(rotate_top_left) );
+	static QCursor rotBottomRightCursor = QCursor( QPixmap(rotate_bot_right) );
+	static QCursor rotBottomLeftCursor = QCursor( QPixmap(rotate_bot_left) );
+
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
@@ -232,7 +360,10 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		}
 		return true;
 
-//		} else if (event->buttons() & Qt::RightButton) {
+	} else if (event->buttons() & Qt::RightButton) {
+
+
+		RenderingManager::getRenderingWidget()->setCursor(rotBottomLeftCursor);
 
 	} else  { // mouse over (no buttons)
 
