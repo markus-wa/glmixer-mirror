@@ -1,5 +1,13 @@
 <RCC>
-  <qresource prefix="glmixer" >
+  <qresource prefix="glmixer">
+    <file>icons/normal-cursor.png</file>
+    <file>icons/cursor-dsplit.png</file>
+    <file>icons/cursor-openhand.png</file>
+    <file>icons/cursor-rotateall.png</file>
+    <file>icons/cursor-sizeall.png</file>
+    <file>icons/curve-cursor.png</file>
+    <file>icons/spring-cursor.png</file>
+    <file>icons/delay-cursor.png</file>
     <file>icons/options.png</file>
     <file>icons/copy-source.png</file>
     <file>icons/computer.png</file>
