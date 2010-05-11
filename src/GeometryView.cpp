@@ -16,130 +16,6 @@
 #define MAXZOOM 3.0
 #define DEFAULTZOOM 0.5
 
-static char * rotate_top_right[] = {
-"25 25 3 1",
-" 	c None",
-".	c #000000",
-"+	c #FFFFFF",
-"                         ",
-"                         ",
-"       +                 ",
-"      +.+                ",
-"     +..+                ",
-"    +...+                ",
-"   +....++++             ",
-"  +.........++           ",
-"  +...........+          ",
-"   +....+++....+         ",
-"    +...+  ++...+        ",
-"     +..+    +...+       ",
-"      +.+     +..+       ",
-"       +      +...+      ",
-"               +..+      ",
-"               +..+      ",
-"            ++++..++++   ",
-"           +..........+  ",
-"            +........+   ",
-"             +......+    ",
-"              +....+     ",
-"               +..+      ",
-"                ++       ",
-"                         ",
-"                         "};
-
-static char * rotate_top_left[] = {
-"25 25 3 1",
-" 	c None",
-".	c #000000",
-"+	c #FFFFFF",
-"                         ",
-"                         ",
-"                 +       ",
-"                +.+      ",
-"                +..+     ",
-"                +...+    ",
-"             ++++....+   ",
-"           ++.........+  ",
-"          +...........+  ",
-"         +....+++....+   ",
-"        +...++  +...+    ",
-"       +...+    +..+     ",
-"       +..+     +.+      ",
-"      +...+      +       ",
-"      +..+               ",
-"      +..+               ",
-"   ++++..++++            ",
-"  +..........+           ",
-"   +........+            ",
-"    +......+             ",
-"     +....+              ",
-"      +..+               ",
-"       ++                ",
-"                         ",
-"                         "};
-
-static char * rotate_bot_left[] = {
-"25 25 3 1",
-" 	c None",
-".	c #000000",
-"+	c #FFFFFF",
-"                         ",
-"                         ",
-"       ++                ",
-"      +..+               ",
-"     +....+              ",
-"    +......+             ",
-"   +........+            ",
-"  +..........+           ",
-"   ++++..++++            ",
-"      +..+               ",
-"      +..+               ",
-"      +...+      +       ",
-"       +..+     +.+      ",
-"       +...+    +..+     ",
-"        +...++  +...+    ",
-"         +....+++....+   ",
-"          +...........+  ",
-"           ++.........+  ",
-"             ++++....+   ",
-"                +...+    ",
-"                +..+     ",
-"                +.+      ",
-"                 +       ",
-"                         ",
-"                         "};
-
-static char * rotate_bot_right[] = {
-"25 25 3 1",
-" 	c None",
-".	c #000000",
-"+	c #FFFFFF",
-"                         ",
-"                         ",
-"                ++       ",
-"               +..+      ",
-"              +....+     ",
-"             +......+    ",
-"            +........+   ",
-"           +..........+  ",
-"            ++++..++++   ",
-"               +..+      ",
-"               +..+      ",
-"       +      +...+      ",
-"      +.+     +..+       ",
-"     +..+    +...+       ",
-"    +...+  ++...+        ",
-"   +....+++....+         ",
-"  +...........+          ",
-"  +.........++           ",
-"   +....++++             ",
-"    +...+                ",
-"     +..+                ",
-"      +.+                ",
-"       +                 ",
-"                         ",
-"                         "};
-
 GeometryView::GeometryView() : View(), quadrant(0), currentAction(NONE)
 {
 	zoom = DEFAULTZOOM;
@@ -264,10 +140,10 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	if (event->buttons() & Qt::MidButton) {
-		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
 	}
 	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret other mouse events in drop mode
 		return false;
 	}
@@ -292,7 +168,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 				currentAction = GeometryView::SCALE;
 			} else  {
 				currentAction = GeometryView::MOVE;
-				RenderingManager::getRenderingWidget()->setCursor(Qt::ClosedHandCursor);
+				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 			}
     	}
     	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
@@ -323,10 +199,6 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
 bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 {
-	static QCursor rotTopRightCursor = QCursor( QPixmap(rotate_top_right) );
-	static QCursor rotTopLeftCursor = QCursor( QPixmap(rotate_top_left) );
-	static QCursor rotBottomRightCursor = QCursor( QPixmap(rotate_bot_right) );
-	static QCursor rotBottomLeftCursor = QCursor( QPixmap(rotate_bot_left) );
 
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
@@ -341,7 +213,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	// DROP MODE ; show a question mark cursor and avoid other actions
 	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 
-		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret mouse events in drop mode
 		return false;
 
@@ -363,7 +235,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	} else if (event->buttons() & Qt::RightButton) {
 
 
-		RenderingManager::getRenderingWidget()->setCursor(rotBottomLeftCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_BOTTOM_LEFT);
 
 	} else  { // mouse over (no buttons)
 
@@ -374,12 +246,12 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 				borderType = ViewRenderWidget::border_scale;
 				// choose the cursor diagonal according to the clicked quadrant
 				if ( quadrant % 2 )
-					RenderingManager::getRenderingWidget()->setCursor(Qt::SizeFDiagCursor);
+					RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
 				else
-					RenderingManager::getRenderingWidget()->setCursor(Qt::SizeBDiagCursor);
+					RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_B);
 			} else {
 				borderType = ViewRenderWidget::border_large;
-				RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
+				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
 			}
 		}
 	}
@@ -391,9 +263,9 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
 
 
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
-		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 	else
-		RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
 
     // enforces minimal size ; check that the rescaling did not go bellow the limits and fix it
 	if ( RenderingManager::getInstance()->notAtEnd( RenderingManager::getInstance()->getCurrentSource()) ) {
@@ -427,7 +299,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 	} else {
 		// do not show action indication (as it is likely to become invalid with view change)
 		borderType = ViewRenderWidget::border_large;
-		RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
 	}
 
 
@@ -452,6 +324,23 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 	return true;
 }
+
+
+//bool GeometryView::keyPressEvent ( QKeyEvent * event ){
+//
+//	switch (event->key()) {
+//		case Qt::Key_Left:
+//			return true;
+//		case Qt::Key_Right:
+//			return true;
+//		case Qt::Key_Down:
+//			return true;
+//		case Qt::Key_Up:
+//			return true;
+//		default:
+//			return false;
+//	}
+//}
 
 void GeometryView::zoomReset() {
 	setZoom(DEFAULTZOOM);

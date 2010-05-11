@@ -26,6 +26,7 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 
 	setMouseTracking(true);
 	setFocusPolicy(Qt::ClickFocus);
+	setMouseCursor(MOUSE_ARROW);
 
 	noView = new View;
     Q_CHECK_PTR(noView);
@@ -52,6 +53,7 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 	connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenu(const QPoint &)));
 
 
+	installEventFilter(this);
 }
 
 ViewRenderWidget::~ViewRenderWidget() {
@@ -299,6 +301,26 @@ void ViewRenderWidget::keyPressEvent ( QKeyEvent * event ){
 	if (!currentManipulationView->keyPressEvent(event))
 		QWidget::keyPressEvent(event);
 }
+
+
+bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event){
+
+     if (event->type() == QEvent::KeyPress) {
+         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+         if (keyEvent->key() == Qt::Key_Tab) {
+
+        	if (keyEvent->modifiers() & Qt::ControlModifier)
+     			RenderingManager::getInstance()->setCurrentPrevious();
+        	else
+        		RenderingManager::getInstance()->setCurrentNext();
+
+ 			return true;
+         }
+     }
+
+     return false;
+ }
+
 
 void ViewRenderWidget::zoomIn() {
 	makeCurrent();
@@ -1056,5 +1078,419 @@ GLuint ViewRenderWidget::buildBordersList() {
     glEndList();
 
     return base;
+}
+
+
+
+static char * rotate_top_right[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"                         ",
+"                         ",
+"       +                 ",
+"      +.+                ",
+"     +..+                ",
+"    +...+                ",
+"   +....++++             ",
+"  +.........++           ",
+"  +...........+          ",
+"   +....+++....+         ",
+"    +...+  ++...+        ",
+"     +..+    +...+       ",
+"      +.+     +..+       ",
+"       +      +...+      ",
+"               +..+      ",
+"               +..+      ",
+"            ++++..++++   ",
+"           +..........+  ",
+"            +........+   ",
+"             +......+    ",
+"              +....+     ",
+"               +..+      ",
+"                ++       ",
+"                         ",
+"                         "};
+
+static char * rotate_top_left[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"                         ",
+"                         ",
+"                 +       ",
+"                +.+      ",
+"                +..+     ",
+"                +...+    ",
+"             ++++....+   ",
+"           ++.........+  ",
+"          +...........+  ",
+"         +....+++....+   ",
+"        +...++  +...+    ",
+"       +...+    +..+     ",
+"       +..+     +.+      ",
+"      +...+      +       ",
+"      +..+               ",
+"      +..+               ",
+"   ++++..++++            ",
+"  +..........+           ",
+"   +........+            ",
+"    +......+             ",
+"     +....+              ",
+"      +..+               ",
+"       ++                ",
+"                         ",
+"                         "};
+
+static char * rotate_bot_left[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"                         ",
+"                         ",
+"       ++                ",
+"      +..+               ",
+"     +....+              ",
+"    +......+             ",
+"   +........+            ",
+"  +..........+           ",
+"   ++++..++++            ",
+"      +..+               ",
+"      +..+               ",
+"      +...+      +       ",
+"       +..+     +.+      ",
+"       +...+    +..+     ",
+"        +...++  +...+    ",
+"         +....+++....+   ",
+"          +...........+  ",
+"           ++.........+  ",
+"             ++++....+   ",
+"                +...+    ",
+"                +..+     ",
+"                +.+      ",
+"                 +       ",
+"                         ",
+"                         "};
+
+static char * rotate_bot_right[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"                         ",
+"                         ",
+"                ++       ",
+"               +..+      ",
+"              +....+     ",
+"             +......+    ",
+"            +........+   ",
+"           +..........+  ",
+"            ++++..++++   ",
+"               +..+      ",
+"               +..+      ",
+"       +      +...+      ",
+"      +.+     +..+       ",
+"     +..+    +...+       ",
+"    +...+  ++...+        ",
+"   +....+++....+         ",
+"  +...........+          ",
+"  +.........++           ",
+"   +....++++             ",
+"    +...+                ",
+"     +..+                ",
+"      +.+                ",
+"       +                 ",
+"                         ",
+"                         "};
+
+static char * cursor_arrow_xpm[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"                         ",
+"                         ",
+"       +                 ",
+"       ++                ",
+"       +.+               ",
+"       +..+              ",
+"       +...+             ",
+"       +....+            ",
+"       +.....+           ",
+"       +......+          ",
+"       +.......+         ",
+"       +........+        ",
+"       +.........+       ",
+"       +......+++++      ",
+"       +...+..+          ",
+"       +..++..+          ",
+"       +.+  +..+         ",
+"       ++   +..+         ",
+"       +     +..+        ",
+"             +..+        ",
+"              +..+       ",
+"              +..+       ",
+"               ++        ",
+"                         ",
+"                         "};
+
+static char * cursor_openhand_xpm[] = {
+"16 16 3 1",
+" 	g None",
+".	g #000000",
+"+	g #EEEEEE",
+"       ..       ",
+"   .. .++...    ",
+"  .++..++.++.   ",
+"  .++..++.++. . ",
+"   .++.++.++..+.",
+"   .++.++.++.++.",
+" .. .+++++++.++.",
+".++..++++++++++.",
+".+++.+++++++++. ",
+" .++++++++++++. ",
+"  .+++++++++++. ",
+"  .++++++++++.  ",
+"   .+++++++++.  ",
+"    .+++++++.   ",
+"     .++++++.   ",
+"                "};
+
+static char * cursor_closedhand_xpm[] = {
+"16 16 3 1",
+" 	g None",
+".	g #000000",
+"+	g #EEEEEE",
+"                ",
+"                ",
+"                ",
+"    .. .. ..    ",
+"   .++.++.++..  ",
+"   .++++++++.+. ",
+"    .+++++++++. ",
+"   ..+++++++++. ",
+"  .+++++++++++. ",
+"  .++++++++++.  ",
+"   .+++++++++.  ",
+"    .+++++++.   ",
+"     .++++++.   ",
+"     .++++++.   ",
+"                ",
+"                "};
+
+static char * cursor_sizef_xpm[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"                         ",
+"                         ",
+"                         ",
+"                         ",
+"    +++++++++            ",
+"    +.......+            ",
+"    +......+             ",
+"    +.....+              ",
+"    +.....+              ",
+"    +......+             ",
+"    +..++...+            ",
+"    +.+  +...+           ",
+"    ++    +...+    ++    ",
+"           +...+  +.+    ",
+"            +...++..+    ",
+"             +......+    ",
+"              +.....+    ",
+"              +.....+    ",
+"             +......+    ",
+"            +.......+    ",
+"            +++++++++    ",
+"                         ",
+"                         ",
+"                         ",
+"                         "};
+
+static char * cursor_sizeb_xpm[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"                         ",
+"                         ",
+"                         ",
+"                         ",
+"            +++++++++    ",
+"            +.......+    ",
+"             +......+    ",
+"              +.....+    ",
+"              +.....+    ",
+"             +......+    ",
+"            +...++..+    ",
+"           +...+  +.+    ",
+"    ++    +...+    ++    ",
+"    +.+  +...+           ",
+"    +..++...+            ",
+"    +......+             ",
+"    +.....+              ",
+"    +.....+              ",
+"    +......+             ",
+"    +.......+            ",
+"    +++++++++            ",
+"                         ",
+"                         ",
+"                         ",
+"                         "};
+
+static char * cursor_question_xpm[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"+                        ",
+"++          .......      ",
+"+.+        .+++++++.     ",
+"+..+      .++....+++.    ",
+"+...+    .+++.  .+++.    ",
+"+....+   .+++.  .+++.    ",
+"+.....+  .+++.  .+++.    ",
+"+......+ .+++.  .+++.    ",
+"+.......+ ...  .+++.     ",
+"+........+    .+++.      ",
+"+.....+++++  .+++.       ",
+"+..+..+      .+++.       ",
+"+.+ +..+     .+++.       ",
+"++  +..+     .+++.       ",
+"+    +..+    .....       ",
+"     +..+    .+++.       ",
+"      +..+   .+++.       ",
+"      +..+   .....       ",
+"       ++                ",
+"                         ",
+"                         ",
+"                         ",
+"                         ",
+"                         ",
+"                         "};
+
+static char * cursor_sizeall_xpm[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"                         ",
+"           ++            ",
+"          +..+           ",
+"         +....+          ",
+"        +......+         ",
+"       +........+        ",
+"        +++..+++         ",
+"     +    +..+    +      ",
+"    +.+   +..+   +.+     ",
+"   +..+   +..+   +..+    ",
+"  +...+++++..+++++...+   ",
+" +....................+  ",
+" +....................+  ",
+"  +...+++++..+++++...+   ",
+"   +..+   +..+   +..+    ",
+"    +.+   +..+   +.+     ",
+"     +    +..+    +      ",
+"        +++..+++         ",
+"       +........+        ",
+"        +......+         ",
+"         +....+          ",
+"          +..+           ",
+"           ++            ",
+"                         ",
+"                         "};
+
+static char * cursor_hand_xpm[] = {
+"25 25 3 1",
+" 	c None",
+".	c #EEEEEE",
+"+	c #000000",
+"         ..              ",
+"        .++.             ",
+"        +..+             ",
+"        +..+             ",
+"        +..+             ",
+"        +..+             ",
+"        +..+             ",
+"        +..+++           ",
+"        +..+..+++        ",
+"        +..+..+..++      ",
+"     ++ +..+..+..+.+     ",
+"    +..++..+..+..+.+     ",
+"    +...+..........+     ",
+"     +.............+     ",
+"      +............+     ",
+"      +............+     ",
+"       +..........+      ",
+"       +..........+      ",
+"        +........+       ",
+"        +........+       ",
+"        ++++++++++       ",
+"        ++++++++++       ",
+"        ++++++++++       ",
+"                         ",
+"                         "};
+
+void ViewRenderWidget::setMouseCursor(mouseCursor c){
+
+	// create QCursors for each pixmap
+	static QCursor arrowCursor = QCursor( QPixmap(cursor_arrow_xpm), 8, 3 );
+	static QCursor handOpenCursor = QCursor( QPixmap(cursor_openhand_xpm), 8, 8 );
+	static QCursor handCloseCursor = QCursor( QPixmap(cursor_closedhand_xpm), 8, 8 );
+	static QCursor scaleBCursor = QCursor( QPixmap(cursor_sizeb_xpm), 12, 12 );
+	static QCursor scaleFCursor = QCursor( QPixmap(cursor_sizef_xpm), 12, 12 );
+	static QCursor rotTopRightCursor = QCursor( QPixmap(rotate_top_right), 12, 12 );
+	static QCursor rotTopLeftCursor = QCursor( QPixmap(rotate_top_left), 12, 12 );
+	static QCursor rotBottomRightCursor = QCursor( QPixmap(rotate_bot_right), 12, 12 );
+	static QCursor rotBottomLeftCursor = QCursor( QPixmap(rotate_bot_left), 12, 12 );
+	static QCursor questionCursor = QCursor( QPixmap(cursor_question_xpm), 1, 1 );
+	static QCursor sizeallCursor = QCursor( QPixmap(cursor_sizeall_xpm), 12, 12 );
+	static QCursor handIndexCursor = QCursor( QPixmap(cursor_hand_xpm), 10, 1 );
+
+	switch (c) {
+	case MOUSE_HAND_OPEN:
+		setCursor(handOpenCursor);
+		break;
+	case MOUSE_HAND_CLOSED:
+		setCursor(handCloseCursor);
+		break;
+	case MOUSE_SCALE_B:
+		setCursor(scaleBCursor);
+		break;
+	case MOUSE_SCALE_F:
+		setCursor(scaleFCursor);
+		break;
+	case MOUSE_ROT_BOTTOM_LEFT:
+		setCursor(rotBottomLeftCursor);
+		break;
+	case MOUSE_ROT_BOTTOM_RIGHT:
+		setCursor(rotBottomRightCursor);
+		break;
+	case MOUSE_ROT_TOP_LEFT :
+		setCursor(rotTopLeftCursor);
+		break;
+	case MOUSE_ROT_TOP_RIGHT :
+		setCursor(rotTopRightCursor);
+		break;
+	case MOUSE_QUESTION :
+		setCursor(questionCursor);
+		break;
+	case MOUSE_SIZEALL :
+		setCursor(sizeallCursor);
+		break;
+	case MOUSE_HAND_INDEX :
+		setCursor(handIndexCursor);
+		break;
+	default:
+	case MOUSE_ARROW:
+		setCursor(arrowCursor);
+
+	}
+
 }
 

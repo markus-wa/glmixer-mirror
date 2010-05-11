@@ -537,8 +537,7 @@ bool RenderingManager::setCurrentSource(SourceSet::iterator si) {
 			(*_currentSource)->activate(false);
 
 		_currentSource = si;
-		emit
-		currentSourceChanged(_currentSource);
+		emit currentSourceChanged(_currentSource);
 
 		if (notAtEnd(_currentSource))
 			(*_currentSource)->activate(true);
@@ -552,6 +551,40 @@ bool RenderingManager::setCurrentSource(GLuint name) {
 
 	return setCurrentSource(getById(name));
 }
+
+
+void RenderingManager::setCurrentNext(){
+
+	if (!_sources.empty() && _currentSource != _sources.end()) {
+		// deactivate current
+		(*_currentSource)->activate(false);
+		// increment to next source
+		_currentSource++;
+		// loop to begin if at end
+		if (_currentSource == _sources.end())
+			_currentSource = _sources.begin();
+
+		emit currentSourceChanged(_currentSource);
+		(*_currentSource)->activate(true);
+	}
+}
+
+void RenderingManager::setCurrentPrevious(){
+
+	if (!_sources.empty() && _currentSource != _sources.end()) {
+		// deactivate current
+		(*_currentSource)->activate(false);
+
+		// decrement to next source
+		if (_currentSource == _sources.begin())
+			_currentSource = _sources.end();
+		_currentSource--;
+
+		emit currentSourceChanged(_currentSource);
+		(*_currentSource)->activate(true);
+	}
+}
+
 
 QString RenderingManager::getAvailableNameFrom(QString name){
 

@@ -27,6 +27,8 @@ public:
     bool mouseReleaseEvent ( QMouseEvent * event );
     bool mouseDoubleClickEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
+//    bool keyPressEvent ( QKeyEvent * event );
+
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
 	void zoomReset();

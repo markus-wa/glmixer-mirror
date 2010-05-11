@@ -202,16 +202,16 @@ void MixerView::setAction(actionType a){
 
 	switch(a) {
 	case OVER:
-		RenderingManager::getRenderingWidget()->setCursor(Qt::OpenHandCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
 		break;
 	case GRAB:
-		RenderingManager::getRenderingWidget()->setCursor(Qt::ClosedHandCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		break;
 	case SELECT:
-		RenderingManager::getRenderingWidget()->setCursor(Qt::PointingHandCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
 		break;
 	default:
-		RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
 	}
 }
 
@@ -224,11 +224,11 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	// MIDDLE BUTTON ; panning cursor
 	if (event->buttons() & Qt::MidButton) {
 		// priority to panning of the view (even in drop mode)
-		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
 	}
 	// DRoP MODE ; explicitly do nothing
 	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret other mouse events in drop mode
 		return false;
 	}
@@ -333,7 +333,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	// DROP MODE : avoid other actions
 	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 
-		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret mouse events in drop mode
 		return false;
 
@@ -431,7 +431,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
 
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
-		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 	else if (currentAction == GRAB )
 		setAction(OVER);
 	else if (currentAction == RECTANGLE ){
@@ -536,26 +536,27 @@ void MixerView::zoomBestFit() {
 }
 
 
-bool MixerView::keyPressEvent ( QKeyEvent * event ){
+//bool MixerView::keyPressEvent ( QKeyEvent * event ){
+//
+//	if (currentAction == OVER )
+//		setAction(SELECT);
+//	else
+//		setAction(currentAction);
+//
+//	switch (event->key()) {
+//		case Qt::Key_Left:
+//			return true;
+//		case Qt::Key_Right:
+//			return true;
+//		case Qt::Key_Down:
+//			return true;
+//		case Qt::Key_Up:
+//			return true;
+//		default:
+//			return false;
+//	}
+//}
 
-	if (currentAction == OVER )
-		setAction(SELECT);
-	else
-		setAction(currentAction);
-
-	switch (event->key()) {
-		case Qt::Key_Left:
-			return true;
-		case Qt::Key_Right:
-			return true;
-		case Qt::Key_Down:
-			return true;
-		case Qt::Key_Up:
-			return true;
-		default:
-			return false;
-	}
-}
 
 Source *MixerView::getSourceAtCoordinates(int mouseX, int mouseY) {
 

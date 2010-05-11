@@ -73,6 +73,8 @@ public:
 	inline SourceSet::iterator getCurrentSource() {
 		return _currentSource;
 	}
+	void setCurrentNext();
+	void setCurrentPrevious();
 
 	void addSourceToBasket(Source *s);
 	int getSourceBasketSize();

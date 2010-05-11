@@ -1200,7 +1200,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionCloneSource"/>
     <addaction name="separator"/>
     <addaction name="actionSelect_Next"/>
-    <addaction name="actionSelect_Former"/>
+    <addaction name="actionSelect_Previous"/>
     <addaction name="actionDeleteSource"/>
    </widget>
    <widget class="QMenu" name="menuAction">
@@ -1443,13 +1443,13 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
    </property>
    <property name="text">
-    <string>Load session</string>
+    <string>Open session</string>
    </property>
    <property name="toolTip">
     <string>Load a session</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+L</string>
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionSave_Session">
@@ -1473,7 +1473,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/camera.png</normaloff>:/glmixer/icons/camera.png</iconset>
    </property>
    <property name="text">
-    <string>Add source from &amp;Device (camera)</string>
+    <string>Add source from &amp;Device</string>
    </property>
    <property name="toolTip">
     <string>Open a camera device and create a live source</string>
@@ -1506,7 +1506,7 @@ p, li { white-space: pre-wrap; }
     <string>Zoom in</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl++</string>
+    <string>PgUp</string>
    </property>
   </action>
   <action name="actionZoomOut">
@@ -1518,7 +1518,7 @@ p, li { white-space: pre-wrap; }
     <string>Zoom out</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+-</string>
+    <string>PgDown</string>
    </property>
   </action>
   <action name="actionZoomReset">
@@ -1530,7 +1530,7 @@ p, li { white-space: pre-wrap; }
     <string>Zoom reset</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Space</string>
+    <string>Home</string>
    </property>
   </action>
   <action name="actionZoomBestFit">
@@ -1542,7 +1542,7 @@ p, li { white-space: pre-wrap; }
     <string>Zoom best fit</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Home</string>
+    <string>End</string>
    </property>
   </action>
   <action name="actionAbout_Qt">
@@ -1568,40 +1568,16 @@ p, li { white-space: pre-wrap; }
     <string>Ctrl+Shift+F</string>
    </property>
   </action>
-  <action name="actionCapture">
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/photo.png</normaloff>:/glmixer/icons/photo.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Capture output</string>
-   </property>
-   <property name="toolTip">
-    <string>Take a screenshot of the current rendering output.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+C</string>
-   </property>
-  </action>
   <action name="actionCaptureSource">
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/photo-source.png</normaloff>:/glmixer/icons/photo-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add source from output capture</string>
+    <string>Add source from screen Capture</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
-   </property>
-  </action>
-  <action name="actionSaveCapture">
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/photo-save.png</normaloff>:/glmixer/icons/photo-save.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save output capture as...</string>
    </property>
   </action>
   <action name="actionAlgorithmSource">
@@ -1643,40 +1619,6 @@ p, li { white-space: pre-wrap; }
     <string>Backspace</string>
    </property>
   </action>
-  <action name="action640_x_480">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>640 x 480 (VGA)</string>
-   </property>
-  </action>
-  <action name="action800_x_600">
-   <property name="text">
-    <string>800 x 600 (SVGA)</string>
-   </property>
-  </action>
-  <action name="action1024_x_748">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>1024 x 748 (XGA)</string>
-   </property>
-  </action>
-  <action name="action1400_x_1050">
-   <property name="text">
-    <string>1400 x 1050 (SXGA+)</string>
-   </property>
-  </action>
-  <action name="actionRendering_resolution_2">
-   <property name="text">
-    <string>Change rendering resolution</string>
-   </property>
-  </action>
   <action name="actionAppend_Session">
    <property name="enabled">
     <bool>false</bool>
@@ -1699,7 +1641,8 @@ p, li { white-space: pre-wrap; }
   <action name="actionGrab">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/cursor-openhand.png</normaloff>:/glmixer/icons/cursor-openhand.png</iconset>
+     <normaloff>:/glmixer/icons/cursor-openhand.png</normaloff>
+     <disabledoff>:/glmixer/icons/cursor-openhand_off.png</disabledoff>:/glmixer/icons/cursor-openhand.png</iconset>
    </property>
    <property name="text">
     <string>Grab</string>
@@ -1717,7 +1660,8 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/cursor-sizeall.png</normaloff>:/glmixer/icons/cursor-sizeall.png</iconset>
+     <normaloff>:/glmixer/icons/cursor-sizeall.png</normaloff>
+     <disabledoff>:/glmixer/icons/cursor-sizeall_off.png</disabledoff>:/glmixer/icons/cursor-sizeall.png</iconset>
    </property>
    <property name="text">
     <string>Scale</string>
@@ -1735,7 +1679,8 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/cursor-rotateall.png</normaloff>:/glmixer/icons/cursor-rotateall.png</iconset>
+     <normaloff>:/glmixer/icons/cursor-rotateall.png</normaloff>
+     <disabledoff>:/glmixer/icons/cursor-rotateall_off.png</disabledoff>:/glmixer/icons/cursor-rotateall.png</iconset>
    </property>
    <property name="text">
     <string>Rotate</string>
@@ -1753,13 +1698,14 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/cursor-dsplit.png</normaloff>:/glmixer/icons/cursor-dsplit.png</iconset>
+     <normaloff>:/glmixer/icons/cursor-dsplit.png</normaloff>
+     <disabledoff>:/glmixer/icons/cursor-dsplit_off.png</disabledoff>:/glmixer/icons/cursor-dsplit.png</iconset>
    </property>
    <property name="text">
-    <string>Split</string>
+    <string>Cut</string>
    </property>
    <property name="toolTip">
-    <string>Split tool</string>
+    <string>Cutting tool</string>
    </property>
    <property name="shortcut">
     <string>C</string>
@@ -1775,6 +1721,9 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionSpring_cursor">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/spring-cursor.png</normaloff>:/glmixer/icons/spring-cursor.png</iconset>
@@ -1787,6 +1736,9 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionDelay_cursor">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/delay-cursor.png</normaloff>:/glmixer/icons/delay-cursor.png</iconset>
@@ -1799,6 +1751,9 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionCurve_cursor">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/curve-cursor.png</normaloff>:/glmixer/icons/curve-cursor.png</iconset>
@@ -1814,10 +1769,16 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Select Next</string>
    </property>
+   <property name="toolTip">
+    <string>Select next source; [TAB]</string>
+   </property>
   </action>
-  <action name="actionSelect_Former">
+  <action name="actionSelect_Previous">
    <property name="text">
-    <string>Select Former</string>
+    <string>Select Previous</string>
+   </property>
+   <property name="toolTip">
+    <string>Select previousr source; [CTRL][TAB]</string>
    </property>
   </action>
  </widget>

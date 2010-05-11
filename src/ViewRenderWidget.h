@@ -19,6 +19,7 @@ class MixerView;
 class GeometryView;
 class LayersView;
 
+
 class ViewRenderWidget: public glRenderWidget {
 
 	Q_OBJECT
@@ -46,6 +47,7 @@ public:
     void mouseDoubleClickEvent ( QMouseEvent * event );
     void wheelEvent ( QWheelEvent * event );
     void keyPressEvent ( QKeyEvent * event );
+    bool eventFilter(QObject *object, QEvent *event);
     void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); }  // keep updating even if hidden
 
     void displayFPS(Qt::GlobalColor);
@@ -58,6 +60,8 @@ public:
 	typedef enum {NONE = 0, MIXING=1, GEOMETRY=2, LAYER=3 } viewMode;
 	void setViewMode(viewMode mode);
 	QPixmap getViewIcon();
+	typedef enum {MOUSE_ARROW = 0, MOUSE_HAND_OPEN, MOUSE_HAND_CLOSED, MOUSE_SCALE_F, MOUSE_SCALE_B, MOUSE_ROT_TOP_RIGHT, MOUSE_ROT_TOP_LEFT, MOUSE_ROT_BOTTOM_RIGHT, MOUSE_ROT_BOTTOM_LEFT, MOUSE_QUESTION, MOUSE_SIZEALL, MOUSE_HAND_INDEX} mouseCursor;
+	void setMouseCursor(mouseCursor c);
 
 	/**
 	 * save and load configuration

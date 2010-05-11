@@ -575,10 +575,28 @@ void GLMixer::on_actionDeleteSource_triggered(){
 				numclones = 0;
 		}
 
-		if ( !numclones )
+		if ( !numclones ){
+			QString d = (*RenderingManager::getInstance()->getCurrentSource())->getName();
 			RenderingManager::getInstance()->removeSource(RenderingManager::getInstance()->getCurrentSource());
+			statusbar->showMessage( tr("Source %1 deleted.").arg( d ), 3000 );
+		}
 	}
 }
+
+
+void GLMixer::on_actionSelect_Next_triggered(){
+
+	RenderingManager::getInstance()->setCurrentNext();
+	statusbar->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
+}
+
+void GLMixer::on_actionSelect_Previous_triggered(){
+
+	RenderingManager::getInstance()->setCurrentPrevious();
+	statusbar->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
+
+}
+
 
 void GLMixer::on_actionShow_frames_toggled(bool on){
 
@@ -918,4 +936,5 @@ void GLMixer::on_actionAppend_Session_triggered(){
     // confirm the loading of the file
 	statusbar->showMessage( tr("File %1 appended to %2.").arg( fileName ).arg( currentStageFileName ) );
 }
+
 

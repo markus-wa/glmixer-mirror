@@ -161,13 +161,13 @@ void LayersView::setAction(actionType a){
 
 	switch(a) {
 	case OVER:
-		RenderingManager::getRenderingWidget()->setCursor(Qt::OpenHandCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
 		break;
 	case GRAB:
-		RenderingManager::getRenderingWidget()->setCursor(Qt::ClosedHandCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		break;
 	default:
-		RenderingManager::getRenderingWidget()->setCursor(Qt::ArrowCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
 	}
 }
 
@@ -177,11 +177,11 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 
 	// MIDDLE BUTTON ; panning cursor
 	if (event->buttons() & Qt::MidButton) {
-		RenderingManager::getRenderingWidget()->setCursor(Qt::SizeAllCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
 	}
 	// DRoP MODE ; explicitly do nothing
 	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret other mouse events in drop mode
 		return false;
 	}
@@ -231,7 +231,7 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 	// DROP MODE : avoid other actions
 	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 
-		RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret mouse events in drop mode
 		return false;
 	}
@@ -260,7 +260,7 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
-			RenderingManager::getRenderingWidget()->setCursor(Qt::WhatsThisCursor);
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 	else if (currentAction == GRAB )
 		setAction(OVER);
 	else
