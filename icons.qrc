@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/delete.png</file>
+    <file>icons/previous.png</file>
+    <file>icons/next.png</file>
     <file>icons/cursor-dsplit_off.png</file>
     <file>icons/cursor-openhand_off.png</file>
     <file>icons/cursor-rotateall_off.png</file>

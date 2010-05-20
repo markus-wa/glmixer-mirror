@@ -9,5 +9,6 @@
     <file>textures/mask_roundcorner.png</file>
     <file>textures/mask_linear_circle.png</file>
     <file>textures/mask_linear_square.png</file>
+    <file>textures/catalog_bg.png</file> 
   </qresource>
 </RCC>
