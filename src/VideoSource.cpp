@@ -58,6 +58,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
     					 vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
     					 vp->getBuffer() );
         }
+        is->play(true);
     }
     else
     	qWarning("** WARNING **\nThe media source could not be created properly. Remove it and retry.");

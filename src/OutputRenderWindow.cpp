@@ -151,9 +151,11 @@ void OutputRenderWidget::paintGL()
 	if ( RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-//	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
-//		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
+		// select FIRST texture attachment as source
+	    glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
 
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		glBlitFramebufferEXT(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
 									 rx, ry, rw, rh,
 									 GL_COLOR_BUFFER_BIT, GL_NEAREST);

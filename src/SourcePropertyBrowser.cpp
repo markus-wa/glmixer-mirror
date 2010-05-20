@@ -319,6 +319,11 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
+		// logs
+		property = infoManager->addProperty( QLatin1String("Errors log") );
+		property->setItalics(true);
+		idToProperty[property->propertyName()] = property;
+		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 
 
 #ifdef OPEN_CV
@@ -451,6 +456,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
 			infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
 			infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
+			infoManager->setValue(idToProperty["Errors log"], vf->getLogs() );
 
 		} else
 #ifdef OPEN_CV

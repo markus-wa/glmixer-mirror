@@ -79,6 +79,7 @@ public:
 
 	// to be called in the OpenGL loop to draw this source
 	void draw(bool withalpha = true, GLenum mode = GL_RENDER) const;
+
 	// OpenGL access to the texture index
 	inline GLuint getTextureIndex() {
 		return textureIndex;

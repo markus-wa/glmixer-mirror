@@ -280,6 +280,10 @@ VideoFile::~VideoFile() {
 }
 
 
+void VideoFile::sendInfo(QString m){
+	emit info( QString("%1 : %2").arg(filename).arg(m) );
+}
+
 void VideoFile::synchroniseWithVideo(VideoFile *vf){
 
     if (ptimer)
@@ -332,6 +336,9 @@ void VideoFile::stop() {
         /* say if we are running or not */
         emit running(!quit);
         emit info(tr("%1 stopped.").arg(filename));
+
+        // clear logs (should be done sometime; when stopped is good as logs are used to explain a crash during play)
+        logmessage.clear();
     }
 
 }
@@ -409,7 +416,6 @@ void VideoFile::setPlaySpeed(int playspeed) {
         play_speed = 1.0;
     }
 
-    logmessage += tr("Playing speed set to %2.\n").arg(play_speed);
 }
 
 int VideoFile::getPlaySpeed(){
@@ -435,7 +441,7 @@ void VideoFile::thread_terminated() {
     // recieved this message while 'quit' was not requested ?
     if (!quit) {
         //  this means an error occured...
-        emit error(tr("Error reading %1 !\n\nLogs;\n%2Decoding interupted. ").arg(filename).arg(logmessage));
+        emit error(tr("Error reading %1 !\n\nLogs;\n%2Decoding interrupted. ").arg(filename).arg(logmessage));
 
         // stop properly if possible
         stop();
@@ -652,7 +658,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx) {
     }
 
     if (stream_index < 0 || stream_index >= (int) pFCtx->nb_streams) {
-        emit error(tr("Error openning %1:\nNot a video or image file.").arg(filename));
+        emit error(tr("Error opening %1:\nNot a video or image file.").arg(filename));
         return -1;
     }
 
@@ -899,8 +905,6 @@ void ParsingThread::run() {
     AVPacket pkt1, *packet = &pkt1;
     bool eof = false;
 
-    is->logmessage += tr("ParsingThread:: run.\n");
-
     while (is && !is->quit) {
 
         if (is->pause_video != is->pause_video_last) {
@@ -922,10 +926,11 @@ void ParsingThread::run() {
 
             if (av_seek_frame(is->pFormatCtx, is->videoStream, is->seek_pos, flags) < 0) {
                 is->logmessage += tr("ParsingThread:: Seeking error.\n");
-                qDebug("Error seeking to %d", (int) is->seek_pos);
+                is->sendInfo( tr("Could not seek to this exact frame (%1); jumping where I can!").arg(is->seek_pos));
             } else {
                 // seek succeeded ; we'll have to flush buffers
-                is->videoq.flush();
+            	if (!is->videoq.flush())
+            		is->logmessage += tr("ParsingThread:: Flushing error.\n");
             }
             is->seek_backward = false;
             is->seek_req = false;
@@ -962,6 +967,7 @@ void ParsingThread::run() {
             if (url_ferror(is->pFormatCtx->pb)) {
                 // error ; exit
                 is->logmessage += tr("ParsingThread:: Couldn't read frame.\n");
+                is->sendInfo( tr("Could not read frame.") );
                 break;
             }
             /* no error; just wait a bit for the end of the packet and continue*/
@@ -985,9 +991,9 @@ void ParsingThread::run() {
     }
 
     // request flushing of the video queue (this will end the decoding thread)
-    is->videoq.flush();
+	if (!is->videoq.flush())
+		is->logmessage += tr("ParsingThread:: Flushing error at end.\n");
 
-    is->logmessage += tr("ParsingThread:: ended.\n");
 }
 
 void VideoFile::queue_picture(AVFrame *pFrame, double pts) {
@@ -1071,7 +1077,7 @@ void DecodingThread::run() {
     AVFrame *pFrame = avcodec_alloc_frame();
     Q_CHECK_PTR(pFrame);
 
-    is->logmessage += tr("DecodingThread:: run.\n");
+//    is->logmessage += tr("DecodingThread:: run.\n");
 
     while (is) {
         // sleep a bit if paused
@@ -1091,7 +1097,6 @@ void DecodingThread::run() {
         // special case of flush packet
         if (is->videoq.isFlush(packet)) {
             // means we have to flush buffers
-            is->logmessage += tr("DecodingThread:: Flushing the buffers.\n");
             avcodec_flush_buffers(is->video_st->codec);
             continue;
         }
@@ -1143,7 +1148,7 @@ void DecodingThread::run() {
     // free the locally allocated variable
     av_free(pFrame);
 
-    is->logmessage += tr("DecodingThread:: ended.\n");
+//    is->logmessage += tr("DecodingThread:: ended.\n");
 }
 
 void VideoFile::pause(bool pause) {
@@ -1270,7 +1275,7 @@ VideoFile::PacketQueue::PacketQueue() {
     Q_CHECK_PTR(cond);
 }
 
-void VideoFile::PacketQueue::flush() {
+bool VideoFile::PacketQueue::flush() {
     AVPacketList *pkt, *pkt1;
 
     mutex->lock();
@@ -1287,10 +1292,7 @@ void VideoFile::PacketQueue::flush() {
 
     mutex->unlock();
 
-    if (!put(flush_pkt)) {
-        qDebug("* DEBUG *\n\nVideoFile::PacketQueue::flush() : Couldn't queue flush packet.");
-    }
-
+    return put(flush_pkt);
 }
 
 bool VideoFile::PacketQueue::isFlush(AVPacket *pkt) {

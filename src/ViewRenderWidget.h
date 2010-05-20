@@ -18,7 +18,7 @@ class View;
 class MixerView;
 class GeometryView;
 class LayersView;
-
+class CatalogView;
 
 class ViewRenderWidget: public glRenderWidget {
 
@@ -29,6 +29,7 @@ class ViewRenderWidget: public glRenderWidget {
 	friend class MixerView;
 	friend class GeometryView;
 	friend class LayersView;
+	friend class CatalogView;
 	friend class OutputRenderWidget;
 
 public:
@@ -50,6 +51,9 @@ public:
     bool eventFilter(QObject *object, QEvent *event);
     void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); }  // keep updating even if hidden
 
+    /**
+     * Specific methods
+     */
     void displayFPS(Qt::GlobalColor);
 	float getFPS() { return f_p_s_; }
 	void showFramerate(bool on) { showFps_ = on; }
@@ -90,6 +94,7 @@ public Q_SLOTS:
 	void hideMessage() { displayMessage = false; }
 	void setStipplingMode(int m) { quad_half_textured = quad_stipped_textured[CLAMP(m, 0, 3)]; }
 	void contextMenu(const QPoint &);
+	void setCatalogVisible(bool on);
 
 protected:
 
@@ -98,7 +103,7 @@ protected:
 	static GLuint border_thin, border_large, border_scale, border_rotate;
 	static GLuint frame_selection, frame_screen;
 	static GLuint quad_texured, quad_half_textured, quad_black;
-	static GLuint circle_mixing, layerbg;
+	static GLuint circle_mixing, layerbg, catalogbg;
 	static GLuint quad_stipped_textured[4];
 	static GLuint mask_textures[8];
 
@@ -112,6 +117,7 @@ protected:
     GLuint buildTexturedQuadList();
     GLuint buildCircleList();
     GLuint buildLayerbgList();
+    GLuint buildCatalogbgList();
     GLuint buildFrameList();
     GLuint buildBlackList();
     GLuint buildBordersList();
@@ -122,6 +128,7 @@ private:
 	MixerView *mixingManipulationView;
 	GeometryView *geometryManipulationView;
 	LayersView *layersManipulationView;
+	CatalogView *catalogView;
 
 	// M e s s a g e s
 	QString message;

@@ -68,8 +68,8 @@ public Q_SLOTS:
 	void updateMarks();
 	void pauseAfterFrame();
 	void refreshTiming();
-	void displayLogMessage(QString msg);
-	void displayErrorMessage(QString msg);
+	void displayInfoMessage(QString msg);
+	void displayWarningMessage(QString msg);
 
 	// source config
 	void connectSource(SourceSet::iterator csi);

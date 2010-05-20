@@ -11,6 +11,8 @@
 #include "common.h"
 #include "SourceSet.h"
 
+class CatalogView;
+
 class View {
 
 public:
@@ -25,10 +27,12 @@ public:
 	virtual ~View() {
 	}
 	virtual void setModelview() {
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 	}
 	virtual void paint() {
 	}
-	virtual void resize(int w, int h) {
+	virtual void resize(int w = -1, int h = -1) {
 	}
 	virtual bool mousePressEvent(QMouseEvent *event) {
 		return false;
@@ -61,7 +65,7 @@ public:
 	}
 	inline void setZoom(float z) {
 		zoom = CLAMP(z, minzoom, maxzoom);
-		refreshMatrices();
+		setModelview();
 	}
 	inline float getZoom() {
 		return ( zoom );
@@ -72,33 +76,24 @@ public:
 
 	inline void setPanningX(float x) {
 		panx = CLAMP(x, - maxpanx, maxpanx);
-		refreshMatrices();
+		setModelview();
 	}
 	inline float getPanningX() {
 		return panx;
 	}
 	inline void setPanningY(float y) {
 		pany = CLAMP(y, - maxpany, maxpany);
-		refreshMatrices();
+		setModelview();
 	}
 	inline float getPanningY() {
 		return pany;
 	}
 	inline void setPanningZ(float z) {
 		panz = CLAMP(z, - maxpanz, maxpanz);
-		refreshMatrices();
+		setModelview();
 	}
 	inline float getPanningZ() {
 		return panz;
-	}
-
-	inline void refreshMatrices() {
-		glMatrixMode(GL_PROJECTION);
-		glGetDoublev(GL_PROJECTION_MATRIX, projection);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		setModelview();
-		glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 	}
 
 	inline QPixmap getIcon() {

@@ -43,10 +43,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     menuToolBars->addAction(previewDockWidget->toggleViewAction());
     menuToolBars->addAction(sourceDockWidget->toggleViewAction());
     menuToolBars->addAction(vcontrolDockWidget->toggleViewAction());
+    menuToolBars->addAction(cursorDockWidget->toggleViewAction());
     menuToolBars->addSeparator();
     menuToolBars->addAction(sourceToolBar->toggleViewAction());
     menuToolBars->addAction(viewToolBar->toggleViewAction());
-    menuToolBars->addAction(FileToolBar->toggleViewAction());
+    menuToolBars->addAction(fileToolBar->toggleViewAction());
+    menuToolBars->addAction(toolsToolBar->toggleViewAction());
 
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
@@ -79,6 +81,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
 	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useFreeAspectRatio(bool)));
 	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized(bool)), outputpreview, SLOT(useFreeAspectRatio(bool)));
+	QObject::connect(actionShow_Catalog, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setCatalogVisible(bool)));
+
 
 	// Signals between GUI and rendering widget
 	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(refresh()));
@@ -130,15 +134,15 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
 }
 
 
-void GLMixer::displayLogMessage(QString msg){
+void GLMixer::displayInfoMessage(QString msg){
 
-    qDebug("Log %s", qPrintable(msg));
+	statusbar->showMessage( msg, 3000 );
 }
 
 
-void GLMixer::displayErrorMessage(QString msg){
+void GLMixer::displayWarningMessage(QString msg){
 
-    qWarning("Warning %s", qPrintable(msg));
+	QMessageBox::warning(0, "GLMixer Warning", QString(msg));
 }
 
 
@@ -201,8 +205,8 @@ void GLMixer::on_actionMediaSource_triggered(){
 		// if the video file was created successfully
 		if (newSourceVideoFile){
 			// forward error messages to display
-			QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayErrorMessage(QString)));
-			QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), statusbar, SLOT(showMessage(QString)));
+			QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
+			QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
 			// can we open the file ?
 			if ( newSourceVideoFile->open( filename ) ) {
 				Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
@@ -327,8 +331,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), startButton, SLOT(setChecked(bool)));
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), videoFrame, SLOT(setEnabled(bool)));
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), timingControlFrame, SLOT(setEnabled(bool)));
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayErrorMessage(QString)));
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(info(QString)), statusbar, SLOT(showMessage(QString)));
+	            QObject::connect(selectedSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
+	            QObject::connect(selectedSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
 
 	            // Consistency and update timer control from VideoFile
 	            QObject::connect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
@@ -586,14 +590,14 @@ void GLMixer::on_actionDeleteSource_triggered(){
 
 void GLMixer::on_actionSelect_Next_triggered(){
 
-	RenderingManager::getInstance()->setCurrentNext();
-	statusbar->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
+	if (RenderingManager::getInstance()->setCurrentNext())
+		statusbar->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
 }
 
 void GLMixer::on_actionSelect_Previous_triggered(){
 
-	RenderingManager::getInstance()->setCurrentPrevious();
-	statusbar->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
+	if (RenderingManager::getInstance()->setCurrentPrevious())
+		statusbar->showMessage( tr("Source %1 selected.").arg( (*RenderingManager::getInstance()->getCurrentSource())->getName() ), 3000 );
 
 }
 
@@ -823,7 +827,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 		doc.save(out, 4);
 
 		changeWindowTitle();
-		statusbar->showMessage( tr("File %1 saved.").arg( currentStageFileName ) );
+		statusbar->showMessage( tr("File %1 saved.").arg( currentStageFileName ), 3000 );
 	}
 }
 
@@ -890,7 +894,7 @@ void GLMixer::on_actionLoad_Session_triggered(){
     // confirm the loading of the file
 	currentStageFileName = fileName;
 	changeWindowTitle();
-	statusbar->showMessage( tr("File %1 loaded.").arg( currentStageFileName ) );
+	statusbar->showMessage( tr("File %1 loaded.").arg( currentStageFileName ), 3000 );
 }
 
 
@@ -934,7 +938,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
     RenderingManager::getInstance()->addConfiguration(srcconfig);
 
     // confirm the loading of the file
-	statusbar->showMessage( tr("File %1 appended to %2.").arg( fileName ).arg( currentStageFileName ) );
+	statusbar->showMessage( tr("File %1 appended to %2.").arg( fileName ).arg( currentStageFileName ), 3000 );
 }
 
 

@@ -17,6 +17,8 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 
 #include "ViewRenderWidget.h"
+#include "CatalogView.h"
+
 #include "SourcePropertyBrowser.h"
 #include "AlgorithmSource.h"
 #include "VideoFile.h"
@@ -116,12 +118,32 @@ RenderingManager::~RenderingManager() {
 
 void RenderingManager::setFrameBufferResolution(int width, int height) {
 
-	if (_fbo)
-		delete _fbo;
-
 	_renderwidget->makeCurrent();
+
+	if (_fbo) {
+		delete _fbo;
+		glDeleteTextures(1, &_fboCatalogTexture);
+	}
+
+	// create an fbo (with internal automatic first texture attachment)
 	_fbo = new QGLFramebufferObject(width, height);
 	Q_CHECK_PTR(_fbo);
+
+
+	// create second attachment texture for FBO
+	_fbo->bind();
+    glGenTextures(1, &_fboCatalogTexture);
+    glBindTexture(GL_TEXTURE_2D, _fboCatalogTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _fbo->width(), _fbo->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _fboCatalogTexture, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    _fbo->release();
 
 }
 
@@ -132,6 +154,9 @@ float RenderingManager::getFrameBufferAspectRatio() {
 
 GLuint RenderingManager::getFrameBufferTexture() {
 	return _fbo->texture();
+}
+GLuint RenderingManager::getCatalogTexture() {
+	return _fboCatalogTexture;
 }
 GLuint RenderingManager::getFrameBufferHandle() {
 	return _fbo->handle();
@@ -159,24 +184,23 @@ void RenderingManager::updatePreviousFrame() {
 	if (RenderingManager::blit_fbo_extension)
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, _fbo->handle());
+		glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, _fbo->handle());
 
 		// TODO : Can we draw in different texture buffer so we can keep an history of
 		// several frames, and each loopback source could use a different one
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
 
-		glBlitFramebufferEXT(0, _fbo->height(), _fbo->width(), 0, 0, 0,
+		glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
 				previousframe_fbo->width(), previousframe_fbo->height(),
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER_EXT, 0);
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-		glViewport(0, 0, previousframe_fbo->width(),
-				previousframe_fbo->height());
+		glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
 
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
@@ -207,20 +231,8 @@ void RenderingManager::updatePreviousFrame() {
 
 }
 
-void RenderingManager::clearFrameBuffer() {
-	_fbo->bind();
-	{
-		glPushAttrib(GL_COLOR_BUFFER_BIT);
-		glClearColor(clearColor.redF(), clearColor.greenF(),
-				clearColor.blueF(), 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glPopAttrib();
-	}
-	_fbo->release();
-}
 
-void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource,
-		bool clearfirst) {
+void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
@@ -238,19 +250,48 @@ void RenderingManager::renderToFrameBuffer(SourceSet::iterator itsource,
 	// render to the frame buffer object
 	_fbo->bind();
 	{
+		//
+		// 1. Draw into first texture attachment; the final output rendering
+		//
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
 		if (clearfirst) {
-			glClearColor(clearColor.redF(), clearColor.greenF(),
-					clearColor.blueF(), 1.0f);
+			glClearColor(clearColor.redF(), clearColor.greenF(), clearColor.blueF(), 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
-		if (!(*itsource)->isCulled() && (*itsource)->getAlpha() > 0.0) {
-			glTranslated((*itsource)->getX(), (*itsource)->getY(), 0.0);
-			glScaled((*itsource)->getScaleX(), (*itsource)->getScaleY(), 1.f);
+		if (source) {
+			// draw the source only if not culled and alpha not null
+			if (!source->isCulled() && source->getAlpha() > 0.0) {
+				glTranslated(source->getX(), source->getY(), 0.0);
+				glScaled(source->getScaleX(), source->getScaleY(), 1.f);
 
-			(*itsource)->blend();
-			(*itsource)->draw();
+				source->blend();
+				source->draw();
+			}
+			// in any case, always end the effect
+			source->endEffectsSection();
 		}
+
+		//
+		// 2. Draw into second texture  attachment ; the catalog (if visible)
+		//
+		if (_renderwidget->catalogView->visible()) {
+			glDrawBuffer(GL_COLOR_ATTACHMENT1);
+
+			glLoadIdentity();
+			static int indexSource = 0;
+			if (clearfirst) {
+				// Clear Catalog view
+				_renderwidget->catalogView->clear();
+				indexSource = 0;
+			}
+			// Draw this source into the catalog
+			_renderwidget->catalogView->drawSource( source, indexSource++);
+
+		}
+
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	}
 	_fbo->release();
 
@@ -268,8 +309,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
 	_renderwidget->makeCurrent();
 	// create the previous frame (frame buffer object) if needed
 	if (!previousframe_fbo) {
-		previousframe_fbo = new QGLFramebufferObject(_fbo->width(),
-				_fbo->height());
+		previousframe_fbo = new QGLFramebufferObject(_fbo->width(), _fbo->height());
 	}
 
 	// create a source appropriate for this videofile
@@ -553,36 +593,49 @@ bool RenderingManager::setCurrentSource(GLuint name) {
 }
 
 
-void RenderingManager::setCurrentNext(){
+bool RenderingManager::setCurrentNext(){
 
-	if (!_sources.empty() && _currentSource != _sources.end()) {
-		// deactivate current
-		(*_currentSource)->activate(false);
-		// increment to next source
-		_currentSource++;
-		// loop to begin if at end
-		if (_currentSource == _sources.end())
+	if (_sources.empty() )
+		return false;
+	else  {
+		if (_currentSource != _sources.end()) {
+
+			// deactivate current
+			(*_currentSource)->activate(false);
+			// increment to next source
+			_currentSource++;
+			// loop to begin if at end
+			if (_currentSource == _sources.end())
+				_currentSource = _sources.begin();
+		} else
 			_currentSource = _sources.begin();
-
-		emit currentSourceChanged(_currentSource);
-		(*_currentSource)->activate(true);
 	}
+
+	emit currentSourceChanged(_currentSource);
+	(*_currentSource)->activate(true);
+	return true;
 }
 
-void RenderingManager::setCurrentPrevious(){
+bool RenderingManager::setCurrentPrevious(){
 
-	if (!_sources.empty() && _currentSource != _sources.end()) {
-		// deactivate current
-		(*_currentSource)->activate(false);
+	if (_sources.empty() )
+		return false;
+	else {
+		if (_currentSource != _sources.end()) {
+			// deactivate current
+			(*_currentSource)->activate(false);
 
-		// decrement to next source
-		if (_currentSource == _sources.begin())
-			_currentSource = _sources.end();
-		_currentSource--;
-
-		emit currentSourceChanged(_currentSource);
-		(*_currentSource)->activate(true);
+			// if at the beginning, go to the end
+			if (_currentSource == _sources.begin())
+				_currentSource = _sources.end();
+		}
 	}
+
+	// decrement to previous source
+	_currentSource--;
+	emit currentSourceChanged(_currentSource);
+	(*_currentSource)->activate(true);
+	return true;
 }
 
 

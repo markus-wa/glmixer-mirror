@@ -18,7 +18,7 @@ public:
 
     void paint();
     void setModelview();
-    void resize(int w, int h);
+    void resize(int w = -1, int h = -1);
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent ( QMouseEvent * event );

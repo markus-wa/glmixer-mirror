@@ -29,6 +29,7 @@ class RenderingManager: public QObject {
 
 	friend class RenderingSource;
 	friend class OutputRenderWidget;
+	friend class ViewRenderWidget;
 
 public:
 	/**
@@ -73,8 +74,8 @@ public:
 	inline SourceSet::iterator getCurrentSource() {
 		return _currentSource;
 	}
-	void setCurrentNext();
-	void setCurrentPrevious();
+	bool setCurrentNext();
+	bool setCurrentPrevious();
 
 	void addSourceToBasket(Source *s);
 	int getSourceBasketSize();
@@ -84,9 +85,9 @@ public:
 	 * management of the rendering
 	 */
 	void setFrameBufferResolution(int width, int height);
-	void clearFrameBuffer();
-	void renderToFrameBuffer(SourceSet::iterator itsource, bool clearfirst);
+	void renderToFrameBuffer(Source *source, bool clearfirst);
 	GLuint getFrameBufferTexture();
+	GLuint getCatalogTexture();
 	GLuint getFrameBufferHandle();
 	float getFrameBufferAspectRatio();
 	int getFrameBufferWidth();
@@ -103,7 +104,10 @@ public:
 	void addConfiguration(QDomElement xmlconfig);
 
 public Q_SLOTS:
+
+	void setClearColor(QColor c) { clearColor = c; }
 	void setPreviousFrameDelay(int delay) { previousframe_delay = CLAMP(delay,1,1000);}
+
 	void clearSourceSet();
 
 	void dropSourceWithAlpha(double alphax, double alphay);
@@ -125,6 +129,7 @@ protected:
 
 	// the frame buffer
 	QGLFramebufferObject *_fbo;
+	GLuint _fboCatalogTexture;
 	QGLFramebufferObject *previousframe_fbo;
 	int countRenderingSource, previousframe_index, previousframe_delay;
     static bool blit_fbo_extension;

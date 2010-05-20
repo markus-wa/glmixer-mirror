@@ -32,8 +32,10 @@ GeometryView::GeometryView() : View(), quadrant(0), currentAction(NONE)
 
 void GeometryView::setModelview()
 {
+	View::setModelview();
     glScalef(zoom * OutputRenderWindow::getInstance()->getAspectRatio(), zoom, zoom);
     glTranslatef(getPanningX(), getPanningY(), 0.0);
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 }
 
 void GeometryView::paint()
@@ -70,22 +72,21 @@ void GeometryView::paint()
 		(*its)->blend();
         (*its)->draw();
 
-
         glPopMatrix();
 
 		//
 		// 2. Render it into FBO
 		//
-        RenderingManager::getInstance()->renderToFrameBuffer(its, first);
+        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
         first = false;
 
-        // back to default effect for the rest
-        (*its)->endEffectsSection();
-
     }
-	// if no source was rendered, clear to black
+	// if no source was rendered, clear anyway
 	if (first)
-		RenderingManager::getInstance()->clearFrameBuffer();
+		RenderingManager::getInstance()->renderToFrameBuffer(0, first);
+	else
+		// fill-in the loopback buffer
+		RenderingManager::getInstance()->updatePreviousFrame();
 
     // last the frame thing
     glCallList(ViewRenderWidget::frame_screen);
@@ -111,27 +112,27 @@ void GeometryView::paint()
 		glPopMatrix();
     }
 
-	// fill-in the loopback buffer
-    RenderingManager::getInstance()->updatePreviousFrame();
 }
 
 
 void GeometryView::resize(int w, int h)
 {
-    glViewport(0, 0, w, h);
-    viewport[2] = w;
-    viewport[3] = h;
+	if (w > 0 && h > 0) {
+		viewport[2] = w;
+		viewport[3] = h;
+	}
+	glViewport(0, 0, viewport[2], viewport[3]);
 
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
     if (w > h)
-         glOrtho(-SOURCE_UNIT* (double) w / (double) h, SOURCE_UNIT*(double) w / (double) h, -SOURCE_UNIT, SOURCE_UNIT, -MAX_DEPTH_LAYER, 10.0);
+         glOrtho(-SOURCE_UNIT* (double) viewport[2] / (double) viewport[3], SOURCE_UNIT*(double) viewport[2] / (double) viewport[3], -SOURCE_UNIT, SOURCE_UNIT, -MAX_DEPTH_LAYER, 10.0);
      else
-         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -MAX_DEPTH_LAYER, 10.0);
+         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) viewport[3] / (double) viewport[2], SOURCE_UNIT*(double) viewport[3] / (double) viewport[2], -MAX_DEPTH_LAYER, 10.0);
 
-    refreshMatrices();
+	glGetDoublev(GL_PROJECTION_MATRIX, projection);
 }
 
 

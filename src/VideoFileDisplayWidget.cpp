@@ -110,8 +110,8 @@ void VideoFileDisplayWidget::paintGL()
 	glRenderWidget::paintGL();
 
 	if (is) {
-		glPushMatrix();
-
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 		if (useVideoAspectRatio) {
 			float windowaspectratio = (float) width() / (float) height();
 			if ( windowaspectratio < is->getStreamAspectRatio())
@@ -121,7 +121,6 @@ void VideoFileDisplayWidget::paintGL()
 		}
 
 		glCallList(squareDisplayList);
-		glPopMatrix();
 	}
 }
 

@@ -35,9 +35,10 @@ LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), currentSourceDisplacem
 
 void LayersView::setModelview()
 {
-
+	View::setModelview();
     glTranslatef(getPanningX(), getPanningY(), getPanningZ());
     gluLookAt(lookatdistance, lookatdistance, lookatdistance + zoom, 0.0, 0.0, zoom, 0.0, 1.0, 0.0);
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 }
 
 
@@ -101,16 +102,16 @@ void LayersView::paint()
 		//
 		// 2. Render it into FBO
 		//
-        RenderingManager::getInstance()->renderToFrameBuffer(its, first);
+        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
         first = false;
 
-        // back to default blending for the rest
-        (*its)->endEffectsSection();
-
 	}
-	// if no source was rendered, clear to black
+	// if no source was rendered, clear anyway
 	if (first)
-		RenderingManager::getInstance()->clearFrameBuffer();
+		RenderingManager::getInstance()->renderToFrameBuffer(0, first);
+	else
+		// fill-in the loopback buffer
+	    RenderingManager::getInstance()->updatePreviousFrame();
 
 
     // the source dropping icon
@@ -136,22 +137,23 @@ void LayersView::paint()
     }
 
 
-	// fill-in the loopback buffer
-    RenderingManager::getInstance()->updatePreviousFrame();
 }
 
 void LayersView::resize(int w, int h)
 {
-    glViewport(0, 0, w, h);
-    viewport[2] = w;
-    viewport[3] = h;
+	if (w > 0 && h > 0) {
+		viewport[2] = w;
+		viewport[3] = h;
+	}
+	glViewport(0, 0, viewport[2], viewport[3]);
 
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(50.0f, (float)  viewport[2] / (float)  viewport[3], 0.1f, lookatdistance * 10.0f);
 
-    refreshMatrices();
+	glGetDoublev(GL_PROJECTION_MATRIX, projection);
+
 }
 
 

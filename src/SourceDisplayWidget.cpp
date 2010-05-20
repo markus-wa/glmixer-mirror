@@ -32,11 +32,13 @@ void SourceDisplayWidget::paintGL()
 	glRenderWidget::paintGL();
 
 	if (s) {
+
+	    glMatrixMode(GL_MODELVIEW);
+	    glLoadIdentity();
 		// update the texture of the source
 		s->update();
 
 		// paint it with respect of its aspect ratio
-		glPushMatrix();
 		float aspectRatio = s->getAspectRatio();
 		float windowaspectratio = (float) width() / (float) height();
 		if (windowaspectratio < aspectRatio)
@@ -45,8 +47,6 @@ void SourceDisplayWidget::paintGL()
 			glScalef( aspectRatio / windowaspectratio, 1.0, 1.f);
 
 		s->draw();
-
-		glPopMatrix();
 	}
 }
 

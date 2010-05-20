@@ -517,8 +517,13 @@ public:
      * @return value between [-100, 100]
      */
     int getSaturation();
+    /**
+     * Returns logs of ffmpeg decoding.
+     * @return QString text
+     */
+    QString getLogs() { return logmessage; }
 
-signals:
+Q_SIGNALS:
     /**
      * Signal emmited when a new VideoPicture is ready;
      *
@@ -806,7 +811,7 @@ protected:
 
         bool get(AVPacket *pkt, bool block);
         bool put(AVPacket *pkt);
-        void flush();
+        bool flush();
         bool isFlush(AVPacket *pkt);
         bool isFull();
 
@@ -820,6 +825,7 @@ protected:
     double synchronize_video(AVFrame *src_frame, double pts);
     void queue_picture(AVFrame *pFrame, double pts);
     static int roundPowerOfTwo(int v);
+    void sendInfo(QString m);
 
     // Video and general information
     QString filename;

@@ -12,13 +12,14 @@
 #include "GeometryView.h"
 #include "LayersView.h"
 #include "RenderingManager.h"
+#include "CatalogView.h"
 
 GLuint ViewRenderWidget::border_thin_shadow = 0, ViewRenderWidget::border_large_shadow = 0;
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
 GLuint ViewRenderWidget::border_rotate = 0, ViewRenderWidget::border_scale = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_black = 0;
 GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0;
-GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0;
+GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0, ViewRenderWidget::catalogbg = 0;
 GLuint ViewRenderWidget::quad_half_textured = 0, ViewRenderWidget::quad_stipped_textured[] = {0,0,0,0};
 GLuint ViewRenderWidget::mask_textures[] = {0,0,0,0,0,0,0,0};
 
@@ -28,6 +29,7 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 	setFocusPolicy(Qt::ClickFocus);
 	setMouseCursor(MOUSE_ARROW);
 
+	// create the main views
 	noView = new View;
     Q_CHECK_PTR(noView);
 	mixingManipulationView = new MixerView;
@@ -37,6 +39,10 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 	layersManipulationView = new LayersView;
     Q_CHECK_PTR(layersManipulationView);
 	currentManipulationView = noView;
+
+	// create the selection view
+	catalogView = new CatalogView;
+    Q_CHECK_PTR(catalogView);
 
 	// opengl HID display
 	displayMessage = false;
@@ -58,12 +64,16 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 
 ViewRenderWidget::~ViewRenderWidget() {
 
+	if (noView)
+		delete noView;
 	if (mixingManipulationView)
 		delete mixingManipulationView;
 	if (geometryManipulationView)
 		delete geometryManipulationView;
 	if (layersManipulationView)
 		delete layersManipulationView;
+	if (catalogView)
+		delete catalogView;
 }
 
 
@@ -93,6 +103,8 @@ void ViewRenderWidget::initializeGL()
 		circle_mixing = buildCircleList();
 	if (!layerbg)
 		layerbg = buildLayerbgList();
+	if (!catalogbg)
+		catalogbg = buildCatalogbgList();
 	if (!quad_black)
 		quad_black = buildBlackList();
 	if (!frame_screen)
@@ -160,10 +172,16 @@ void ViewRenderWidget::setViewMode(viewMode mode){
 
 	// update view to match with the changes in modelview and projection matrices (e.g. resized widget)
 	makeCurrent();
-	currentManipulationView->resize(width(), height());
+	refresh();
 
 }
 
+
+void ViewRenderWidget::setCatalogVisible(bool on){
+
+	catalogView->setVisible(on);
+
+}
 
 void ViewRenderWidget::contextMenu(const QPoint &pos){
 
@@ -188,21 +206,43 @@ QPixmap ViewRenderWidget::getViewIcon(){
 
 void ViewRenderWidget::resizeGL(int w, int h){
 
-	currentManipulationView->resize(w,h);
+	// modify catalog view
+//	catalogView->resize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());
+	catalogView->resize(w, h);
+
+	// resize the view taking
+	currentManipulationView->resize(w, h);
 }
 
 void ViewRenderWidget::refresh() {
 
-	currentManipulationView->resize(width(),height());
+	// default resize ; will refresh everything
+	currentManipulationView->resize(width(), height());
 }
 
-void ViewRenderWidget::paintGL(){
+void ViewRenderWidget::paintGL()
+{
+	//
+	// 1. The view
+	//
 	// background clear
     glRenderWidget::paintGL();
+
     // apply modelview transformations from zoom and panning
     currentManipulationView->setModelview();
     // draw the view
 	currentManipulationView->paint();
+
+	//
+	// 2. The catalog view with transparency
+	//
+	if (catalogView->visible()){
+		catalogView->paint();
+	}
+
+	//
+	// 3. The extra information
+	//
 	// HUD : display message
 	if (displayMessage){
 	    glColor4f(0.8, 0.80, 0.2, 1.0);
@@ -221,15 +261,20 @@ void ViewRenderWidget::paintGL(){
 }
 
 
+
 void ViewRenderWidget::displayFPS(Qt::GlobalColor c)
 {
 	qglColor(c);
 	renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
 }
 
-void ViewRenderWidget::mousePressEvent(QMouseEvent *event){
-
+void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
+{
 	makeCurrent();
+
+	if (catalogView->mousePressEvent(event))
+		return;
+
 	// inform the view of the mouse press event
 	if (!currentManipulationView->mousePressEvent(event)) {
 
@@ -251,19 +296,23 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event){
 				emit sourceLayerDrop(d);
 			}
 		} else
-			// the mouse press was not treated ; forward it
-			QWidget::mousePressEvent(event);
+		// the mouse press was not treated ; forward it
+		QWidget::mousePressEvent(event);
 	}
+
 }
 
-void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event){
-
+void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
+{
 	makeCurrent();
-	// if nothing is changed by mouseMoveEvent
+
+	if (catalogView->mouseMoveEvent(event))
+		return;
+
 	if (!currentManipulationView->mouseMoveEvent(event))
-		// use the default mouse event
+		// the mouse press was not treated ; forward it
 		QWidget::mouseMoveEvent(event);
-	else {
+	else{
 		// the view 'mouseMoveEvent' returns true ; there was something changed!
 		if ( currentManipulationView == mixingManipulationView )
 			emit sourceMixingModified();
@@ -272,32 +321,51 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event){
 		else if ( currentManipulationView == layersManipulationView )
 			emit sourceLayerModified();
 	}
+
 }
 
-void ViewRenderWidget::mouseReleaseEvent ( QMouseEvent * event ){
+void ViewRenderWidget::mouseReleaseEvent ( QMouseEvent * event )
+{
 	makeCurrent();
+
+	if (catalogView->mouseReleaseEvent(event))
+		return;
+
 	if (!currentManipulationView->mouseReleaseEvent(event) )
 		QWidget::mouseReleaseEvent(event);
 }
 
-void ViewRenderWidget::mouseDoubleClickEvent ( QMouseEvent * event ){
+void ViewRenderWidget::mouseDoubleClickEvent ( QMouseEvent * event )
+{
 	makeCurrent();
+
+	if (catalogView->mouseDoubleClickEvent(event))
+		return;
+
 	if(!currentManipulationView->mouseDoubleClickEvent(event))
 		QWidget::mouseDoubleClickEvent(event);
 	else {
+		// special case ; double clic changes geometry
 		if ( currentManipulationView == geometryManipulationView )
 			emit sourceGeometryModified();
 	}
 }
 
-void ViewRenderWidget::wheelEvent ( QWheelEvent * event ){
+void ViewRenderWidget::wheelEvent ( QWheelEvent * event )
+{
 	makeCurrent();
+
+	if (catalogView->wheelEvent(event))
+		return;
+
 	if(!currentManipulationView->wheelEvent(event))
 		QWidget::wheelEvent(event);
 }
 
-void ViewRenderWidget::keyPressEvent ( QKeyEvent * event ){
+void ViewRenderWidget::keyPressEvent ( QKeyEvent * event )
+{
 	makeCurrent();
+
 	if (!currentManipulationView->keyPressEvent(event))
 		QWidget::keyPressEvent(event);
 }
@@ -305,17 +373,18 @@ void ViewRenderWidget::keyPressEvent ( QKeyEvent * event ){
 
 bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event){
 
-     if (event->type() == QEvent::KeyPress) {
-         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-         if (keyEvent->key() == Qt::Key_Tab) {
+     if (object == (QObject *)(this)  && event->type() == QEvent::KeyPress) {
 
-        	if (keyEvent->modifiers() & Qt::ControlModifier)
-     			RenderingManager::getInstance()->setCurrentPrevious();
-        	else
-        		RenderingManager::getInstance()->setCurrentNext();
+		 QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+		 if (keyEvent->key() == Qt::Key_Tab) {
 
- 			return true;
-         }
+			if (keyEvent->modifiers() & Qt::ControlModifier)
+				RenderingManager::getInstance()->setCurrentPrevious();
+			else
+				RenderingManager::getInstance()->setCurrentNext();
+			return true;
+
+		 }
      }
 
      return false;
@@ -325,6 +394,7 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event){
 void ViewRenderWidget::zoomIn() {
 	makeCurrent();
 	currentManipulationView->zoomIn();
+
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
 }
 
@@ -807,6 +877,39 @@ GLuint ViewRenderWidget::buildLayerbgList() {
     	glVertex3f(i - 1.3, -1.1 + exp(-10 * (i+0.2)), 31.0);
     }
     glEnd();
+
+    glEndList();
+
+    return id;
+}
+
+
+
+GLuint ViewRenderWidget::buildCatalogbgList() {
+
+    GLuint id = glGenLists(1);
+
+    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/catalog_bg.png")), GL_TEXTURE_2D);
+
+    glNewList(id, GL_COMPILE);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glBlendEquation(GL_FUNC_ADD);
+
+    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture
+
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_QUADS); // begin drawing a square
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex2d( -SOURCE_UNIT, -SOURCE_UNIT); // Bottom Left
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex2d( 0.0, -SOURCE_UNIT); // Bottom Right
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex2d( 0.0, SOURCE_UNIT); // Top Right
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex2d( -SOURCE_UNIT, SOURCE_UNIT); // Top Left
+    glEnd();
+
 
     glEndList();
 

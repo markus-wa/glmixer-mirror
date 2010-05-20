@@ -11,6 +11,7 @@
 #include "common.h"
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
+#include "CatalogView.h"
 
 #define MINZOOM 0.04
 #define MAXZOOM 1.0
@@ -29,14 +30,15 @@ MixerView::MixerView() : View(), currentAction(NONE)
 
 void MixerView::setModelview()
 {
+	View::setModelview();
     glScalef(zoom, zoom, zoom);
     glTranslatef(getPanningX(), getPanningY(), 0.0);
-
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 }
 
 void MixerView::paint()
 {
-    // First the circles and other background stuff
+    // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing);
 
     // and the selection connection lines
@@ -87,7 +89,7 @@ void MixerView::paint()
 		// bind the source texture and update its content
 		(*its)->update();
 
-		// draw surface (do not set blending from source)
+		// draw surface
 		(*its)->draw();
 
 		// draw stippled version of the source on top
@@ -95,21 +97,20 @@ void MixerView::paint()
 
 		glPopMatrix();
 
-
 		//
 		// 2. Render it into FBO
 		//
-        RenderingManager::getInstance()->renderToFrameBuffer(its, first);
+        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
         first = false;
-
-        // back to default blending for the rest
-        (*its)->endEffectsSection();
 
 	}
 
-	// if no source was rendered, clear to black
+	// if no source was rendered, clear anyway
 	if (first)
-		RenderingManager::getInstance()->clearFrameBuffer();
+		RenderingManager::getInstance()->renderToFrameBuffer(0, first);
+	else
+		// fill-in the loopback buffer
+	    RenderingManager::getInstance()->updatePreviousFrame();
 
     // Then the selection outlines
     for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
@@ -157,8 +158,6 @@ void MixerView::paint()
 		glPopMatrix();
     }
 
-	// fill-in the loopback buffer
-    RenderingManager::getInstance()->updatePreviousFrame();
 }
 
 
@@ -175,20 +174,22 @@ void MixerView::clear()
 
 void MixerView::resize(int w, int h)
 {
-    glViewport(0, 0, w, h);
-    viewport[2] = w;
-    viewport[3] = h;
+	if ( w > 0 && h > 0) {
+		viewport[2] = w;
+		viewport[3] = h;
+	}
+	glViewport(0, 0, viewport[2], viewport[3]);
 
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    if (w > h)
-         glOrtho(-SOURCE_UNIT* (double) w / (double) h, SOURCE_UNIT*(double) w / (double) h, -SOURCE_UNIT, SOURCE_UNIT, -MAX_DEPTH_LAYER, 10.0);
+    if (viewport[2] > viewport[3])
+         glOrtho(-SOURCE_UNIT* (double) viewport[2] / (double) viewport[3], SOURCE_UNIT*(double) viewport[2] / (double) viewport[3], -SOURCE_UNIT, SOURCE_UNIT, -MAX_DEPTH_LAYER, 10.0);
      else
-         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) h / (double) w, SOURCE_UNIT*(double) h / (double) w, -MAX_DEPTH_LAYER, 10.0);
+         glOrtho(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT*(double) viewport[3] / (double) viewport[2], SOURCE_UNIT*(double) viewport[3] / (double) viewport[2], -MAX_DEPTH_LAYER, 10.0);
 
-    refreshMatrices();
+	glGetDoublev(GL_PROJECTION_MATRIX, projection);
 
     // just in case ; after a resize or a switch to this view, reset the pointer of last cliked source.
     cliked = 0;
@@ -471,7 +472,6 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
 }
 
 bool MixerView::wheelEvent ( QWheelEvent * event ){
-
 
 	float previous = zoom;
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
