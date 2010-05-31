@@ -36,8 +36,7 @@ public:
 
 private:
 
-	Source *cliked;
-    Source *getSourceAtCoordinates(int mouseX, int mouseY);
+    bool getSourcesAtCoordinates(int mouseX, int mouseY);
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy) ;
 

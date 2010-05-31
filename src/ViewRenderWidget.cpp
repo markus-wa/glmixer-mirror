@@ -19,15 +19,12 @@ GLuint ViewRenderWidget::border_thin_shadow = 0,
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
 GLuint ViewRenderWidget::border_rotate = 0, ViewRenderWidget::border_scale = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_black = 0;
-GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen =
-		0;
+GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0;
 GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0,
 		ViewRenderWidget::catalogbg = 0;
 GLuint ViewRenderWidget::quad_half_textured = 0,
-		ViewRenderWidget::quad_stipped_textured[] =
-		{ 0, 0, 0, 0 };
-GLuint ViewRenderWidget::mask_textures[] =
-{ 0, 0, 0, 0, 0, 0, 0, 0 };
+		ViewRenderWidget::quad_stipped_textured[] = { 0, 0, 0, 0 };
+GLuint ViewRenderWidget::mask_textures[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 GLuint ViewRenderWidget::fading = 0;
 
 ViewRenderWidget::ViewRenderWidget() :
@@ -60,7 +57,7 @@ ViewRenderWidget::ViewRenderWidget() :
 
 	fpsTime_.start();
 	fpsCounter_ = 0;
-	f_p_s_ = 1 / period;
+	f_p_s_ = 1000.0 / period;
 
 	// qt context menu
 	setContextMenuPolicy(Qt::CustomContextMenu);
@@ -72,7 +69,6 @@ ViewRenderWidget::ViewRenderWidget() :
 
 ViewRenderWidget::~ViewRenderWidget()
 {
-
 	if (noView)
 		delete noView;
 	if (mixingManipulationView)
@@ -266,7 +262,10 @@ void ViewRenderWidget::paintGL()
 
 	// draw a semi-transparent overlay if view should be faded
 	if (faded)
+	{
 		glCallList(ViewRenderWidget::fading);
+		setMouseCursor(MOUSE_ARROW);
+	}
 
 	//
 	// 2. The catalog view with transparency

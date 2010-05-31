@@ -193,8 +193,6 @@ void MixerView::resize(int w, int h)
 
 	glGetDoublev(GL_PROJECTION_MATRIX, projection);
 
-    // just in case ; after a resize or a switch to this view, reset the pointer of last cliked source.
-    cliked = 0;
 }
 
 
@@ -221,8 +219,6 @@ void MixerView::setAction(actionType a){
 bool MixerView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
-	// What was cliked ?
-	cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
 
 	// MIDDLE BUTTON ; panning cursor
 	if (event->buttons() & Qt::MidButton) {
@@ -236,62 +232,64 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 		return false;
 	}
 	// LEFT BUTTON ; initiate action
-	else  if (event->buttons() & Qt::LeftButton) {
+//	else  if (event->buttons() & Qt::LeftButton) {
+	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
+
+    	// get the top most clicked source
+    	Source *clicked = *clickedSources.begin();
 
     	// if a source icon was cliked
-        if ( cliked ) {
+        if ( clicked ) {
 
         	// if CTRL button modifier pressed, add clicked to selection
 			if ( currentAction != GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
 				setAction(SELECT);
 
-	        	if ( !isInAGroup(cliked) ) {
-					if ( selectedSources.count(cliked) > 0)
-						selectedSources.erase( cliked );
+	        	if ( !isInAGroup(clicked) ) {
+					if ( selectedSources.count(clicked) > 0)
+						selectedSources.erase( clicked );
 					else
-						selectedSources.insert( cliked );
+						selectedSources.insert( clicked );
 	        	}
 
 			}
 			else // not in selection (SELECT) action mode, then just set the current active source
 			{
-				RenderingManager::getInstance()->setCurrentSource( cliked->getId() );
+				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 				// ready for grabbing the current source
 				setAction(GRAB);
 			}
-		} else {
-			// set current to none (end of list)
-			RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
-			// clear selection
-			selectedSources.clear();
-			setAction(NONE);
-			// remember coordinates of clic
-			double dumm;
-		    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleStart, rectangleStart+1, &dumm);
-
 		}
 
-    }
-//	else if (event->buttons() & Qt::MidButton) {
-//    	// almost a wheel action ; middle mouse = best zoom fit
-//        zoomBestFit();
-//    }
+    } else // clic in background
+    {
+		// set current to none (end of list)
+		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+		// clear selection
+		selectedSources.clear();
+		setAction(NONE);
+		// remember coordinates of clic
+		double dumm;
+	    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleStart, rectangleStart+1, &dumm);
+
+	}
 
 	return true;
 }
 
 bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
-
 	// for LEFT double button clic alrernate group / selection
 	if ( (event->buttons() & Qt::LeftButton) /*&& getSourceAtCoordinates(event->x(), viewport[3] - event->y()) */) {
 
-		cliked = getSourceAtCoordinates(event->x(), viewport[3] - event->y());
-		if ( cliked ) {
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+
+	    	// get the top most clicked source
+	    	Source *clicked = *clickedSources.begin();
 
         	SourceListArray::iterator itss = groupSources.begin();
             for(; itss != groupSources.end(); itss++) {
-            	if ( (*itss).count(cliked) > 0 )
+            	if ( (*itss).count(clicked) > 0 )
             		break;
             }
         	if ( itss != groupSources.end() ) {
@@ -301,7 +299,7 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
         		groupSources.erase(itss);
         	} else {
 				// if the clicked source is in the selection
-				if ( selectedSources.count(cliked) > 0 && selectedSources.size() > 1 ) {
+				if ( selectedSources.count(clicked) > 0 && selectedSources.size() > 1 ) {
 					//  create a group from the selection
 					groupSources.push_front(SourceList(selectedSources));
 					groupColor[groupSources.begin()] = QColor::fromHsv ( rand()%180 + 179, 250, 250);
@@ -309,10 +307,11 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 				}
 				// else add it to the selection
 				else
-					selectedSources.insert( cliked );
+					selectedSources.insert( clicked );
         	}
-		} else
-			zoomBestFit();
+		}
+//		else  // double clic in background
+//			zoomBestFit();
 
 	}
 
@@ -325,6 +324,13 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
+
+	// get the top most clicked source, if there is
+	static Source *clicked = 0;
+	if (!clickedSources.empty())
+		clicked = *clickedSources.begin();
+	else
+		clicked = 0;
 
     // MIDDLE button ; panning
 	if (event->buttons() & Qt::MidButton) {
@@ -344,26 +350,24 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	// LEFT BUTTON : grab or draw a selection rectangle
 	else if (event->buttons() & Qt::LeftButton) {
 
-        if ( currentAction == GRAB )
+        if ( clicked && currentAction == GRAB )
         {
         	SourceListArray::iterator itss;
             for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-            	if ( (*itss).count(cliked) > 0 )
+            	if ( (*itss).count(clicked) > 0 )
             		break;
             }
         	if ( itss != groupSources.end() ) {
 				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
 					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
-        	} else if ( selectedSources.count(cliked) > 0 ){
+        	} else if ( selectedSources.count(clicked) > 0 ){
 				for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
 					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
 			}
 			else
-				grabSource(cliked, event->x(), viewport[3] - event->y(), dx, dy);
-
-			return true;
+				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 
         } else {
 
@@ -399,17 +403,17 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
 			selectedSources = SourceList(rectSources);
         }
+		return true;
 
     }
 	// RIGHT BUTTON : special (non-selection) modification
 	else if (event->buttons() & Qt::RightButton) {
 
     	// RIGHT clic on a source ; change its alpha, but do not make it current
-        if ( cliked ) {
-
+        if ( clicked ) {
         	//  move it individually, even if in a group
         	setAction(GRAB);
-			grabSource(cliked, event->x(), viewport[3] - event->y(), dx, dy);
+			grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 
 			return true;
         }
@@ -417,7 +421,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     }
 	// NO BUTTON : show a mouse-over cursor
 	else  {
-		if ( getSourceAtCoordinates(event->x(), viewport[3] - event->y()) != 0 )
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
 			// selection mode with CTRL modifier
 			if (QApplication::keyboardModifiers () == Qt::ControlModifier)
 				setAction(SELECT);
@@ -559,9 +563,10 @@ void MixerView::zoomBestFit() {
 //	}
 //}
 
+bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 
-Source *MixerView::getSourceAtCoordinates(int mouseX, int mouseY) {
-
+	// prepare variables
+	clickedSources.clear();
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
     GLint hits = 0;
 
@@ -602,12 +607,19 @@ Source *MixerView::getSourceAtCoordinates(int mouseX, int mouseY) {
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
-    if (hits != 0) {
-        // select the top most
-        return * (RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3]) );
-    } else {
-        return 0;
+    while (hits != 0) {
+    	clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
+    	hits--;
     }
+
+    return !clickedSources.empty();
+
+//    if (hits != 0) {
+//        // select the top most
+//        return * (RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3]) );
+//    } else {
+//        return 0;
+//    }
 
 }
 
