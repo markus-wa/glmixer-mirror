@@ -56,6 +56,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	mainRendering = (QGLWidget *) RenderingManager::getRenderingWidget();
 	mainRendering->setParent(centralwidget);
 	centralViewLayout->addWidget(mainRendering);
+	// share menus as context menus of the main view
+	RenderingManager::getRenderingWidget()->setViewContextMenu(menuZoom);
+	RenderingManager::getRenderingWidget()->setCatalogContextMenu(menuCatalog);
+
 	// TODO : activate the default view read from preferences
 	on_actionMixingView_triggered();
 //	on_actionGeometryView_triggered();
@@ -82,6 +86,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useFreeAspectRatio(bool)));
 	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized(bool)), outputpreview, SLOT(useFreeAspectRatio(bool)));
 	QObject::connect(actionShow_Catalog, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setCatalogVisible(bool)));
+	// group the menu items of the catalog sizes ;
+	QActionGroup *catalogActionGroup = new QActionGroup(this);
+	catalogActionGroup->addAction(actionCatalogSmall);
+	catalogActionGroup->addAction(actionCatalogMedium);
+	catalogActionGroup->addAction(actionCatalogLarge);
+	QObject::connect(actionCatalogSmall, SIGNAL(changed()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeSmall()));
+	QObject::connect(actionCatalogMedium, SIGNAL(changed()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeMedium()));
+	QObject::connect(actionCatalogLarge, SIGNAL(changed()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeLarge()));
 
 
 	// Signals between GUI and rendering widget
@@ -940,5 +952,4 @@ void GLMixer::on_actionAppend_Session_triggered(){
     // confirm the loading of the file
 	statusbar->showMessage( tr("File %1 appended to %2.").arg( fileName ).arg( currentStageFileName ), 3000 );
 }
-
 

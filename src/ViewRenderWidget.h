@@ -54,9 +54,11 @@ public:
     /**
      * Specific methods
      */
-    void displayFPS(Qt::GlobalColor);
+    void displayFPS();
 	float getFPS() { return f_p_s_; }
 	void showFramerate(bool on) { showFps_ = on; }
+	void setViewContextMenu(QMenu *m) { viewMenu = m; }
+	void setCatalogContextMenu(QMenu *m) { catalogMenu = m; }
 
 	/**
 	 * management of the manipulation views
@@ -91,10 +93,14 @@ public Q_SLOTS:
 	void zoomBestFit();
 	void refresh();
 	void showMessage(QString s);
-	void hideMessage() { displayMessage = false; }
-	void setStipplingMode(int m) { quad_half_textured = quad_stipped_textured[CLAMP(m, 0, 3)]; }
+	inline void hideMessage() { displayMessage = false; }
+	inline void setStipplingMode(int m) { quad_half_textured = quad_stipped_textured[CLAMP(m, 0, 3)]; }
 	void contextMenu(const QPoint &);
-	void setCatalogVisible(bool on);
+	void setCatalogVisible(bool on = false);
+	void setCatalogSizeSmall();
+	void setCatalogSizeMedium();
+	void setCatalogSizeLarge();
+	inline void setFaded(bool on) { faded = on; }
 
 protected:
 
@@ -106,6 +112,7 @@ protected:
 	static GLuint circle_mixing, layerbg, catalogbg;
 	static GLuint quad_stipped_textured[4];
 	static GLuint mask_textures[8];
+	static GLuint fading;
 
 	// utility to build the display lists
     GLuint buildHalfList_fine();
@@ -121,6 +128,7 @@ protected:
     GLuint buildFrameList();
     GLuint buildBlackList();
     GLuint buildBordersList();
+    GLuint buildFadingList();
 
 private:
     // V i e w s
@@ -134,11 +142,12 @@ private:
 	QString message;
 	bool displayMessage;
 	QTimer messageTimer;
+	bool faded;
+	QMenu *viewMenu, *catalogMenu;
 
 	// F P S    d i s p l a y
 	QTime fpsTime_;
 	unsigned int fpsCounter_;
-	QString fpsString_;
 	float f_p_s_;
 	bool showFps_;
 };

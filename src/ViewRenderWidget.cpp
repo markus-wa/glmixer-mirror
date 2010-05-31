@@ -14,16 +14,25 @@
 #include "RenderingManager.h"
 #include "CatalogView.h"
 
-GLuint ViewRenderWidget::border_thin_shadow = 0, ViewRenderWidget::border_large_shadow = 0;
+GLuint ViewRenderWidget::border_thin_shadow = 0,
+		ViewRenderWidget::border_large_shadow = 0;
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
 GLuint ViewRenderWidget::border_rotate = 0, ViewRenderWidget::border_scale = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_black = 0;
-GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0;
-GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0, ViewRenderWidget::catalogbg = 0;
-GLuint ViewRenderWidget::quad_half_textured = 0, ViewRenderWidget::quad_stipped_textured[] = {0,0,0,0};
-GLuint ViewRenderWidget::mask_textures[] = {0,0,0,0,0,0,0,0};
+GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen =
+		0;
+GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0,
+		ViewRenderWidget::catalogbg = 0;
+GLuint ViewRenderWidget::quad_half_textured = 0,
+		ViewRenderWidget::quad_stipped_textured[] =
+		{ 0, 0, 0, 0 };
+GLuint ViewRenderWidget::mask_textures[] =
+{ 0, 0, 0, 0, 0, 0, 0, 0 };
+GLuint ViewRenderWidget::fading = 0;
 
-ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
+ViewRenderWidget::ViewRenderWidget() :
+	glRenderWidget(), faded(false), viewMenu(0), catalogMenu(0), showFps_(0)
+{
 
 	setMouseTracking(true);
 	setFocusPolicy(Qt::ClickFocus);
@@ -31,18 +40,18 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 
 	// create the main views
 	noView = new View;
-    Q_CHECK_PTR(noView);
+	Q_CHECK_PTR(noView);
 	mixingManipulationView = new MixerView;
-    Q_CHECK_PTR(mixingManipulationView);
+	Q_CHECK_PTR(mixingManipulationView);
 	geometryManipulationView = new GeometryView;
-    Q_CHECK_PTR(geometryManipulationView);
+	Q_CHECK_PTR(geometryManipulationView);
 	layersManipulationView = new LayersView;
-    Q_CHECK_PTR(layersManipulationView);
+	Q_CHECK_PTR(layersManipulationView);
 	currentManipulationView = noView;
 
 	// create the selection view
 	catalogView = new CatalogView;
-    Q_CHECK_PTR(catalogView);
+	Q_CHECK_PTR(catalogView);
 
 	// opengl HID display
 	displayMessage = false;
@@ -50,19 +59,19 @@ ViewRenderWidget::ViewRenderWidget() :glRenderWidget(), showFps_(0) {
 	messageTimer.setSingleShot(true);
 
 	fpsTime_.start();
-	fpsCounter_	= 0;
-	f_p_s_		= 1 / period;
-	fpsString_	= tr("%1Hz", "Frames per seconds, in Hertz").arg("?");
+	fpsCounter_ = 0;
+	f_p_s_ = 1 / period;
 
 	// qt context menu
 	setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(contextMenu(const QPoint &)));
-
+	connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this,
+			SLOT(contextMenu(const QPoint &)));
 
 	installEventFilter(this);
 }
 
-ViewRenderWidget::~ViewRenderWidget() {
+ViewRenderWidget::~ViewRenderWidget()
+{
 
 	if (noView)
 		delete noView;
@@ -76,21 +85,21 @@ ViewRenderWidget::~ViewRenderWidget() {
 		delete catalogView;
 }
 
-
 void ViewRenderWidget::initializeGL()
 {
-    glRenderWidget::initializeGL();
+	glRenderWidget::initializeGL();
 
-	setBackgroundColor( QColor(52,52,52) );
+	setBackgroundColor(QColor(52, 52, 52));
 
-
-    if ( !border_thin_shadow ) {
-    	border_thin_shadow = buildLineList();
-    	border_large_shadow = border_thin_shadow + 1;
-    }
+	if (!border_thin_shadow)
+	{
+		border_thin_shadow = buildLineList();
+		border_large_shadow = border_thin_shadow + 1;
+	}
 	if (!quad_texured)
 		quad_texured = buildTexturedQuadList();
-	if (!quad_half_textured){
+	if (!quad_half_textured)
+	{
 		quad_stipped_textured[0] = buildHalfList_fine();
 		quad_stipped_textured[1] = buildHalfList_gross();
 		quad_stipped_textured[2] = buildHalfList_checkerboard();
@@ -109,40 +118,48 @@ void ViewRenderWidget::initializeGL()
 		quad_black = buildBlackList();
 	if (!frame_screen)
 		frame_screen = buildFrameList();
-	if (!border_thin) {
+	if (!border_thin)
+	{
 		border_thin = buildBordersList();
 		border_large = border_thin + 1;
 		border_scale = border_thin + 2;
 		border_rotate = border_thin + 3;
 	}
+	if (!fading)
+		fading = buildFadingList();
 
-	if (!mask_textures[0]) {
+	if (!mask_textures[0])
+	{
 		glActiveTexture(GL_TEXTURE1);
 		glEnable(GL_TEXTURE_2D);
-		mask_textures[0] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_roundcorner.png")), GL_TEXTURE_2D);
+		mask_textures[0] = bindTexture(QPixmap(QString::fromUtf8(
+				":/glmixer/textures/mask_roundcorner.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		mask_textures[1] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_circle.png")), GL_TEXTURE_2D);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+		mask_textures[1] = bindTexture(QPixmap(QString::fromUtf8(
+				":/glmixer/textures/mask_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		mask_textures[2] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_linear_circle.png")), GL_TEXTURE_2D);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+		mask_textures[2] = bindTexture(QPixmap(QString::fromUtf8(
+				":/glmixer/textures/mask_linear_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		mask_textures[3] = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/mask_linear_square.png")), GL_TEXTURE_2D);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+		mask_textures[3] = bindTexture(QPixmap(QString::fromUtf8(
+				":/glmixer/textures/mask_linear_square.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
 
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
@@ -150,9 +167,10 @@ void ViewRenderWidget::initializeGL()
 
 }
 
-void ViewRenderWidget::setViewMode(viewMode mode){
-
-	switch (mode) {
+void ViewRenderWidget::setViewMode(viewMode mode)
+{
+	switch (mode)
+	{
 	case MIXING:
 		currentManipulationView = (View *) mixingManipulationView;
 		showMessage("Mixing View");
@@ -173,30 +191,43 @@ void ViewRenderWidget::setViewMode(viewMode mode){
 	// update view to match with the changes in modelview and projection matrices (e.g. resized widget)
 	makeCurrent();
 	refresh();
-
 }
 
-
-void ViewRenderWidget::setCatalogVisible(bool on){
-
+void ViewRenderWidget::setCatalogVisible(bool on)
+{
 	catalogView->setVisible(on);
-
 }
 
-void ViewRenderWidget::contextMenu(const QPoint &pos){
-
-    static QMenu *menu = 0;
-    if (!menu) {
-    	menu = new QMenu;
-    	menu->addAction(tr("Reset zoom"), this, SLOT(zoomReset()));
-    	menu->addAction(tr("Best fit zoom"), this, SLOT(zoomBestFit()));
-    }
-    menu->exec(mapToGlobal(pos));
-
+void ViewRenderWidget::setCatalogSizeSmall()
+{
+	catalogView->setSize(CatalogView::SMALL);
 }
 
-QPixmap ViewRenderWidget::getViewIcon(){
+void ViewRenderWidget::setCatalogSizeMedium()
+{
+	catalogView->setSize(CatalogView::MEDIUM);
+}
 
+void ViewRenderWidget::setCatalogSizeLarge()
+{
+	catalogView->setSize(CatalogView::LARGE);
+}
+
+void ViewRenderWidget::contextMenu(const QPoint &pos)
+{
+
+	if (catalogView->isInside(pos) && catalogMenu)
+	{
+		catalogMenu->exec(mapToGlobal(pos));
+	}
+	else if (viewMenu && currentManipulationView->noSourceClicked())
+	{
+		viewMenu->exec(mapToGlobal(pos));
+	}
+}
+
+QPixmap ViewRenderWidget::getViewIcon()
+{
 	return currentManipulationView->getIcon();
 }
 
@@ -204,18 +235,17 @@ QPixmap ViewRenderWidget::getViewIcon(){
  *  REDIRECT every calls to the current view implementation
  */
 
-void ViewRenderWidget::resizeGL(int w, int h){
-
+void ViewRenderWidget::resizeGL(int w, int h)
+{
 	// modify catalog view
-//	catalogView->resize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight());
 	catalogView->resize(w, h);
 
 	// resize the view taking
 	currentManipulationView->resize(w, h);
 }
 
-void ViewRenderWidget::refresh() {
-
+void ViewRenderWidget::refresh()
+{
 	// default resize ; will refresh everything
 	currentManipulationView->resize(width(), height());
 }
@@ -226,46 +256,51 @@ void ViewRenderWidget::paintGL()
 	// 1. The view
 	//
 	// background clear
-    glRenderWidget::paintGL();
+	glRenderWidget::paintGL();
 
-    // apply modelview transformations from zoom and panning
-    currentManipulationView->setModelview();
-    // draw the view
+	// apply modelview transformations from zoom and panning only when requested
+	if (currentManipulationView->isModified())
+		currentManipulationView->setModelview();
+	// draw the view
 	currentManipulationView->paint();
+
+	// draw a semi-transparent overlay if view should be faded
+	if (faded)
+		glCallList(ViewRenderWidget::fading);
 
 	//
 	// 2. The catalog view with transparency
 	//
-	if (catalogView->visible()){
+	if (catalogView->visible())
 		catalogView->paint();
-	}
 
 	//
 	// 3. The extra information
 	//
 	// HUD : display message
-	if (displayMessage){
-	    glColor4f(0.8, 0.80, 0.2, 1.0);
-		renderText(20, int(3.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), message, QFont());
+	if (displayMessage)
+	{
+		glColor4f(0.8, 0.80, 0.2, 1.0);
+		QGLWidget::renderText(20, int(3.5*((QApplication::font().pixelSize()>0) ? QApplication::font().pixelSize() : QApplication::font().pointSize())),
+				message, QFont());
 	}
 	// FPS computation
-	if (++fpsCounter_ == 20) {
+	if (++fpsCounter_ == 20)
+	{
 		f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
 		fpsCounter_ = 0;
 	}
-	// HUD display of framerate
-	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) ) {
-		fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0)?1:0));
-		displayFPS( f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red) );
-	}
+	// HUD display of framerate (on request or if FPS is dangerously slow)
+	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) )
+		displayFPS();
 }
 
-
-
-void ViewRenderWidget::displayFPS(Qt::GlobalColor c)
+void ViewRenderWidget::displayFPS()
 {
-	qglColor(c);
-	renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
+	QString fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_,
+			0, 'f', ((f_p_s_ < 10.0) ? 1 : 0));
+	qglColor(f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red));
+	QGLWidget::renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
 }
 
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
@@ -276,28 +311,39 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 		return;
 
 	// inform the view of the mouse press event
-	if (!currentManipulationView->mousePressEvent(event)) {
+	if (!currentManipulationView->mousePressEvent(event))
+	{
 
 		// if there is something to drop, inform the rendering manager that it can drop the source at the clic coordinates
-		if( RenderingManager::getInstance()->getSourceBasketTop() ){
+		if (RenderingManager::getInstance()->getSourceBasketTop())
+		{
 
 			// depending on the view, ask the rendering manager to drop the source with the user parameters
-			if ( currentManipulationView == mixingManipulationView ) {
+			if (currentManipulationView == mixingManipulationView)
+			{
 				double ax = 0.0, ay = 0.0;
-				mixingManipulationView->alphaCoordinatesFromMouse(event->x(), event->y(), &ax, &ay);
+				mixingManipulationView->alphaCoordinatesFromMouse(event->x(),
+						event->y(), &ax, &ay);
 				emit sourceMixingDrop(ax, ay);
-			} else if ( currentManipulationView == geometryManipulationView ) {
+			}
+			else if (currentManipulationView == geometryManipulationView)
+			{
 				double x = 0.0, y = 0.0;
-				geometryManipulationView->coordinatesFromMouse(event->x(), event->y(), &x, &y);
+				geometryManipulationView->coordinatesFromMouse(event->x(),
+						event->y(), &x, &y);
 				emit sourceGeometryDrop(x, y);
-			} else if ( currentManipulationView == layersManipulationView ) {
+			}
+			else if (currentManipulationView == layersManipulationView)
+			{
 				double d = 0.0, dumm;
-				layersManipulationView->unProjectDepth(event->x(), event->y(), 0.0, 0.0, &d, &dumm);
+				layersManipulationView->unProjectDepth(event->x(), event->y(),
+						0.0, 0.0, &d, &dumm);
 				emit sourceLayerDrop(d);
 			}
-		} else
-		// the mouse press was not treated ; forward it
-		QWidget::mousePressEvent(event);
+		}
+		else
+			// the mouse press was not treated ; forward it
+			QWidget::mousePressEvent(event);
 	}
 
 }
@@ -306,63 +352,68 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	makeCurrent();
 
-	if (catalogView->mouseMoveEvent(event))
+	if (event->buttons() == Qt::NoButton && catalogView->mouseMoveEvent(event))
+	{
+		setFaded(true);
 		return;
+	}
+	else
+		setFaded(false);
 
 	if (!currentManipulationView->mouseMoveEvent(event))
 		// the mouse press was not treated ; forward it
 		QWidget::mouseMoveEvent(event);
-	else{
-		// the view 'mouseMoveEvent' returns true ; there was something changed!
-		if ( currentManipulationView == mixingManipulationView )
+	else
+	{   // the view 'mouseMoveEvent' returns true ; there was something changed!
+		if (currentManipulationView == mixingManipulationView)
 			emit sourceMixingModified();
-		else if ( currentManipulationView == geometryManipulationView )
+		else if (currentManipulationView == geometryManipulationView)
 			emit sourceGeometryModified();
-		else if ( currentManipulationView == layersManipulationView )
+		else if (currentManipulationView == layersManipulationView)
 			emit sourceLayerModified();
 	}
 
 }
 
-void ViewRenderWidget::mouseReleaseEvent ( QMouseEvent * event )
+void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
 {
 	makeCurrent();
 
 	if (catalogView->mouseReleaseEvent(event))
 		return;
 
-	if (!currentManipulationView->mouseReleaseEvent(event) )
+	if (!currentManipulationView->mouseReleaseEvent(event))
 		QWidget::mouseReleaseEvent(event);
 }
 
-void ViewRenderWidget::mouseDoubleClickEvent ( QMouseEvent * event )
+void ViewRenderWidget::mouseDoubleClickEvent(QMouseEvent * event)
 {
 	makeCurrent();
 
 	if (catalogView->mouseDoubleClickEvent(event))
 		return;
 
-	if(!currentManipulationView->mouseDoubleClickEvent(event))
+	if (!currentManipulationView->mouseDoubleClickEvent(event))
 		QWidget::mouseDoubleClickEvent(event);
-	else {
-		// special case ; double clic changes geometry
-		if ( currentManipulationView == geometryManipulationView )
+	else
+	{   // special case ; double clic changes geometry
+		if (currentManipulationView == geometryManipulationView)
 			emit sourceGeometryModified();
 	}
 }
 
-void ViewRenderWidget::wheelEvent ( QWheelEvent * event )
+void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 {
 	makeCurrent();
 
 	if (catalogView->wheelEvent(event))
 		return;
 
-	if(!currentManipulationView->wheelEvent(event))
+	if (!currentManipulationView->wheelEvent(event))
 		QWidget::wheelEvent(event);
 }
 
-void ViewRenderWidget::keyPressEvent ( QKeyEvent * event )
+void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
 {
 	makeCurrent();
 
@@ -370,54 +421,55 @@ void ViewRenderWidget::keyPressEvent ( QKeyEvent * event )
 		QWidget::keyPressEvent(event);
 }
 
-
-bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event){
-
-     if (object == (QObject *)(this)  && event->type() == QEvent::KeyPress) {
-
-		 QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-		 if (keyEvent->key() == Qt::Key_Tab) {
-
+bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
+{
+	if (object == (QObject *) (this) && event->type() == QEvent::KeyPress)
+	{
+		QKeyEvent *keyEvent = static_cast<QKeyEvent *> (event);
+		if (keyEvent->key() == Qt::Key_Tab)
+		{
 			if (keyEvent->modifiers() & Qt::ControlModifier)
 				RenderingManager::getInstance()->setCurrentPrevious();
 			else
 				RenderingManager::getInstance()->setCurrentNext();
 			return true;
+		}
+	}
 
-		 }
-     }
+	return false;
+}
 
-     return false;
- }
-
-
-void ViewRenderWidget::zoomIn() {
+void ViewRenderWidget::zoomIn()
+{
 	makeCurrent();
 	currentManipulationView->zoomIn();
 
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
 }
 
-void ViewRenderWidget::zoomOut() {
+void ViewRenderWidget::zoomOut()
+{
 	makeCurrent();
 	currentManipulationView->zoomOut();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
 }
 
-void ViewRenderWidget::zoomReset() {
+void ViewRenderWidget::zoomReset()
+{
 	makeCurrent();
 	currentManipulationView->zoomReset();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
 }
 
-void ViewRenderWidget::zoomBestFit() {
+void ViewRenderWidget::zoomBestFit()
+{
 	makeCurrent();
 	currentManipulationView->zoomBestFit();
 	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
 }
 
-void ViewRenderWidget::clearViews(){
-
+void ViewRenderWidget::clearViews()
+{
 	// clear all views
 	mixingManipulationView->clear();
 	geometryManipulationView->clear();
@@ -426,7 +478,8 @@ void ViewRenderWidget::clearViews(){
 	refresh();
 }
 
-void ViewRenderWidget::showMessage(QString s) {
+void ViewRenderWidget::showMessage(QString s)
+{
 	if (displayMessage)
 		messageTimer.stop();
 	message = s;
@@ -434,11 +487,11 @@ void ViewRenderWidget::showMessage(QString s) {
 	displayMessage = true;
 }
 
-
 /**
  * save and load configuration
  */
-QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc){
+QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
+{
 	QDomElement config = doc.createElement("Views");
 
 	QDomElement mix = doc.createElement("View");
@@ -456,1106 +509,921 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc){
 	return config;
 }
 
-void ViewRenderWidget::setConfiguration(QDomElement xmlconfig){
-
+void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
+{
 
 }
-
 
 /**
  * Build a display list of a textured QUAD and returns its id
  **/
-GLuint ViewRenderWidget::buildHalfList_fine() {
+GLuint ViewRenderWidget::buildHalfList_fine()
+{
+	GLubyte halftone[] =
+	{ 0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA,
+			0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55,
+			0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA,
+			0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0x55,
+			0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA,
+			0xAA, 0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55,
+			0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 0xAA,
+			0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA,
+			0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55,
+			0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA,
+			0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55 };
 
-    GLubyte halftone[] = {
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-    	    0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55};
+	GLuint id = glGenLists(1);
+	glNewList(id, GL_COMPILE);
 
-    GLuint id = glGenLists(1);
-    glNewList(id, GL_COMPILE);
-
-    glEnable (GL_POLYGON_STIPPLE);
-    glPolygonStipple (halftone);
+	glEnable(GL_POLYGON_STIPPLE);
+	glPolygonStipple(halftone);
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 
-    glBegin(GL_QUADS); // begin drawing a square
+	glBegin(GL_QUADS); // begin drawing a square
 
-    // Front Face (note that the texture's corners have to match the quad's corners)
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+	// Front Face (note that the texture's corners have to match the quad's corners)
+	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
 
-    glEnd();
+	glEnd();
 
-    glDisable (GL_POLYGON_STIPPLE);
+	glDisable(GL_POLYGON_STIPPLE);
 
-    glEndList();
-    return id;
+	glEndList();
+	return id;
 }
 
-GLuint ViewRenderWidget::buildHalfList_gross() {
+GLuint ViewRenderWidget::buildHalfList_gross()
+{
+	GLubyte halftone[] =
+	{ 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
+			0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33,
+			0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+			0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xCC,
+			0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
+			0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+			0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC,
+			0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33,
+			0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+			0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC,
+			0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
+			0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC };
 
-    GLubyte halftone[] = {
-    	    0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
-    	    0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC,
-    	    0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
-    	    0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC,
-    	    0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
-    	    0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC,
-    	    0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
-    	    0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC,
-    	    0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
-    	    0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC,
-    	    0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
-    	    0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC,
-    	    0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
-    	    0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC,
-    	    0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
-    	    0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC};
+	GLuint id = glGenLists(1);
+	glNewList(id, GL_COMPILE);
 
-    GLuint id = glGenLists(1);
-    glNewList(id, GL_COMPILE);
-
-    glEnable (GL_POLYGON_STIPPLE);
-    glPolygonStipple (halftone);
-
+	glEnable(GL_POLYGON_STIPPLE);
+	glPolygonStipple(halftone);
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 
-    glBegin(GL_QUADS); // begin drawing a square
+	glBegin(GL_QUADS); // begin drawing a square
 
-    // Front Face (note that the texture's corners have to match the quad's corners)
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+	// Front Face (note that the texture's corners have to match the quad's corners)
+	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
 
-    glEnd();
+	glEnd();
 
-    glDisable (GL_POLYGON_STIPPLE);
+	glDisable(GL_POLYGON_STIPPLE);
 
-    glEndList();
-    return id;
+	glEndList();
+	return id;
 }
 
+GLuint ViewRenderWidget::buildHalfList_checkerboard()
+{
+	GLuint id = glGenLists(1);
+	glNewList(id, GL_COMPILE);
 
-GLuint ViewRenderWidget::buildHalfList_checkerboard() {
-
-    GLuint id = glGenLists(1);
-    glNewList(id, GL_COMPILE);
-
-    // NON transparent
+	// NON transparent
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 
-    // Front Face (note that the texture's corners have to match the quad's corners)
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+	// Front Face (note that the texture's corners have to match the quad's corners)
+	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
-    glBegin(GL_QUADS); // begin drawing a grid
+	glBegin(GL_QUADS); // begin drawing a grid
 
-    int I = 8, J = 6;
-    float x = 0.f, y = 0.f, u = 0.f, v = 0.f;
-    float dx = 2.f / (float)I, dy = 2.f / (float)J, du = 1.f / (float)I, dv = 1.f / (float)J;
-    for (int i = 0; i < I; ++i)
-    	for (int j = 0; j < J; ++j)
-    		if ( (i+j)%2 == 0 ) {
-    			u = (float) i * du;
-    			v = 1.f - (float) j * dv;
-    			x = (float) i * dx -1.0;
-    			y = (float) j * dy -1.0;
-    		    glTexCoord2f(u, v);
-    		    glVertex3f(x, y, 0.0f); // Bottom Left
-    		    glTexCoord2f(u + du, v);
-    		    glVertex3f(x + dx, y, 0.0f); // Bottom Right
-    		    glTexCoord2f(u + du, v - dv);
-    		    glVertex3f(x + dx, y + dy, 0.0f); // Top Right
-    		    glTexCoord2f(u, v - dv);
-    		    glVertex3f(x, y + dy, 0.0f); // Top Left
-    	    }
+	int I = 8, J = 6;
+	float x = 0.f, y = 0.f, u = 0.f, v = 0.f;
+	float dx = 2.f / (float) I, dy = 2.f / (float) J, du = 1.f / (float) I, dv =
+			1.f / (float) J;
+	for (int i = 0; i < I; ++i)
+		for (int j = 0; j < J; ++j)
+			if ((i + j) % 2 == 0)
+			{
+				u = (float) i * du;
+				v = 1.f - (float) j * dv;
+				x = (float) i * dx - 1.0;
+				y = (float) j * dy - 1.0;
+				glTexCoord2f(u, v);
+				glVertex3f(x, y, 0.0f); // Bottom Left
+				glTexCoord2f(u + du, v);
+				glVertex3f(x + dx, y, 0.0f); // Bottom Right
+				glTexCoord2f(u + du, v - dv);
+				glVertex3f(x + dx, y + dy, 0.0f); // Top Right
+				glTexCoord2f(u, v - dv);
+				glVertex3f(x, y + dy, 0.0f); // Top Left
+			}
 
-    glEnd();
+	glEnd();
 
-    glEndList();
-    return id;
+	glEndList();
+	return id;
 }
 
-GLuint ViewRenderWidget::buildHalfList_triangle() {
-
-    GLuint id = glGenLists(1);
-    glNewList(id, GL_COMPILE);
+GLuint ViewRenderWidget::buildHalfList_triangle()
+{
+	GLuint id = glGenLists(1);
+	glNewList(id, GL_COMPILE);
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 
-    glBegin(GL_TRIANGLES); // begin drawing a triangle
+	glBegin(GL_TRIANGLES); // begin drawing a triangle
 
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    // Front Face (note that the texture's corners have to match the quad's corners)
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+	// Front Face (note that the texture's corners have to match the quad's corners)
+	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3d(-1.0, -1.0, 0.0); // Bottom Left
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3d(1.0, -1.0, 0.0); // Bottom Right
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3d(1.0, 1.0, 0.0); // Top Right
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex3d(-1.0, -1.0, 0.0); // Bottom Left
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3d(1.0, -1.0, 0.0); // Bottom Right
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex3d(1.0, 1.0, 0.0); // Top Right
 
-    glEnd();
+	glEnd();
 
-    glEndList();
-    return id;
+	glEndList();
+	return id;
 }
-
 
 /**
  * Build a display lists for the line borders and returns its id
  **/
-GLuint ViewRenderWidget::buildSelectList() {
+GLuint ViewRenderWidget::buildSelectList()
+{
+	GLuint base = glGenLists(1);
 
-    GLuint base = glGenLists(1);
+	// selected
+	glNewList(base, GL_COMPILE);
 
-    // selected
-    glNewList(base, GL_COMPILE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+	glDisable(GL_TEXTURE_2D);
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
-    glDisable(GL_TEXTURE_2D);
+	glLineWidth(2.0);
+	glColor4f(0.2, 0.80, 0.2, 1.0);
 
-    glLineWidth(2.0);
-    glColor4f(0.2, 0.80, 0.2, 1.0);
+	glLineStipple(1, 0x9999);
+	glEnable(GL_LINE_STIPPLE);
 
-    glLineStipple(1, 0x9999);
-    glEnable(GL_LINE_STIPPLE);
+	glBegin(GL_LINE_LOOP); // begin drawing a square
+	glVertex3d(-1.1, -1.1, 0.0); // Bottom Left
+	glVertex3d(1.1, -1.1, 0.0); // Bottom Right
+	glVertex3d(1.1, 1.1, 0.0); // Top Right
+	glVertex3d(-1.1, 1.1, 0.0); // Top Left
+	glEnd();
 
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3d(-1.1 , -1.1 , 0.0); // Bottom Left
-    glVertex3d(1.1 , -1.1 , 0.0); // Bottom Right
-    glVertex3d(1.1 , 1.1 , 0.0); // Top Right
-    glVertex3d(-1.1 , 1.1 , 0.0); // Top Left
-    glEnd();
+	glDisable(GL_LINE_STIPPLE);
+	glEnable(GL_TEXTURE_2D);
 
+	glEndList();
 
-    glDisable(GL_LINE_STIPPLE);
-    glEnable(GL_TEXTURE_2D);
-
-    glEndList();
-
-    return base;
+	return base;
 }
-
 
 /**
  * Build a display list of a textured QUAD and returns its id
  **/
-GLuint ViewRenderWidget::buildTexturedQuadList() {
+GLuint ViewRenderWidget::buildTexturedQuadList()
+{
+	GLuint id = glGenLists(1);
+	glNewList(id, GL_COMPILE);
 
-    GLuint id = glGenLists(1);
-    glNewList(id, GL_COMPILE);
+	glBegin(GL_QUADS); // begin drawing a square
 
-    glBegin(GL_QUADS); // begin drawing a square
+	// Front Face (note that the texture's corners have to match the quad's corners)
+	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
-    // Front Face (note that the texture's corners have to match the quad's corners)
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+	glMultiTexCoord2f(GL_TEXTURE0, 0.f, 1.f);
+	glMultiTexCoord2f(GL_TEXTURE1, 0.f, 1.f);
+	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glMultiTexCoord2f(GL_TEXTURE0, 1.f, 1.f);
+	glMultiTexCoord2f(GL_TEXTURE1, 1.f, 1.f);
+	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glMultiTexCoord2f(GL_TEXTURE0, 1.f, 0.f);
+	glMultiTexCoord2f(GL_TEXTURE1, 1.f, 0.f);
+	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glMultiTexCoord2f(GL_TEXTURE0, 0.f, 0.f);
+	glMultiTexCoord2f(GL_TEXTURE1, 0.f, 0.f);
+	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
 
-    glMultiTexCoord2f(GL_TEXTURE0, 0.f, 1.f);
-    glMultiTexCoord2f(GL_TEXTURE1, 0.f, 1.f);
-    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glMultiTexCoord2f(GL_TEXTURE0, 1.f, 1.f);
-    glMultiTexCoord2f(GL_TEXTURE1, 1.f, 1.f);
-    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glMultiTexCoord2f(GL_TEXTURE0, 1.f, 0.f);
-    glMultiTexCoord2f(GL_TEXTURE1, 1.f, 0.f);
-    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glMultiTexCoord2f(GL_TEXTURE0, 0.f, 0.f);
-    glMultiTexCoord2f(GL_TEXTURE1, 0.f, 0.f);
-    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glEnd();
 
-    glEnd();
-
-    glEndList();
-    return id;
+	glEndList();
+	return id;
 }
 
 /**
  * Build 2 display lists for the line borders and shadows
  **/
-GLuint ViewRenderWidget::buildLineList() {
-
-    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D);
-    GLuint texid2 = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow_corner_selected.png")), GL_TEXTURE_2D);
+GLuint ViewRenderWidget::buildLineList()
+{
+	GLuint texid = bindTexture(QPixmap(QString::fromUtf8(
+			":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D);
+	GLuint texid2 = bindTexture(QPixmap(QString::fromUtf8(
+			":/glmixer/textures/shadow_corner_selected.png")), GL_TEXTURE_2D);
 
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &texid, &highpriority);
 
-    GLuint base = glGenLists(2);
-    glListBase(base);
+	GLuint base = glGenLists(2);
+	glListBase(base);
 
-    // default
-    glNewList(base, GL_COMPILE);
+	// default
+	glNewList(base, GL_COMPILE);
 
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
-    glPushMatrix();
-    glScalef(1.25, 1.25, 1.0);
-    glBegin(GL_QUADS); // begin drawing a square
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(1.f, 1.f, 0.0f); // Top Right
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-1.f, 1.f, 0.0f); // Top Left
-    glEnd();
-    glPopMatrix();
+	glPushMatrix();
+	glScalef(1.25, 1.25, 1.0);
+	glBegin(GL_QUADS); // begin drawing a square
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3f(1.f, 1.f, 0.0f); // Top Right
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+	glEnd();
+	glPopMatrix();
 
-    glDisable(GL_TEXTURE_2D);
-    glLineWidth(1.0);
-    glColor4f(0.9, 0.9, 0.0, 0.7);
+	glDisable(GL_TEXTURE_2D);
+	glLineWidth(1.0);
+	glColor4f(0.9, 0.9, 0.0, 0.7);
 
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
-    glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
-    glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
-    glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
-    glEnd();
+	glBegin(GL_LINE_LOOP); // begin drawing a square
+	glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
+	glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
+	glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
+	glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
+	glEnd();
 
-    glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);
 
-    glEndList();
+	glEndList();
 
-    // over
-    glNewList(base + 1, GL_COMPILE);
+	// over
+	glNewList(base + 1, GL_COMPILE);
 
+	glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
 
-    glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
+	glPushMatrix();
+	glScalef(1.25, 1.25, 1.0);
+	glBegin(GL_QUADS); // begin drawing a square
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3f(1.f, 1.f, 0.0f); // Top Right
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+	glEnd();
+	glPopMatrix();
 
-    glPushMatrix();
-    glScalef(1.25, 1.25, 1.0);
-    glBegin(GL_QUADS); // begin drawing a square
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(1.f, 1.f, 0.0f); // Top Right
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-1.f, 1.f, 0.0f); // Top Left
-    glEnd();
-    glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	glLineWidth(3.0);
+	glColor4f(0.9, 0.9, 0.0, 0.7);
 
-    glDisable(GL_TEXTURE_2D);
-    glLineWidth(3.0);
-    glColor4f(0.9, 0.9, 0.0, 0.7);
+	glBegin(GL_LINE_LOOP); // begin drawing a square
+	glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
+	glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
+	glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
+	glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
+	glEnd();
 
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
-    glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
-    glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
-    glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
-    glEnd();
+	glEnable(GL_TEXTURE_2D);
 
-    glEnable(GL_TEXTURE_2D);
+	glEndList();
 
-    glEndList();
-
-    return base;
+	return base;
 }
 
+GLuint ViewRenderWidget::buildCircleList()
+{
+	GLuint id = glGenLists(1);
+	GLUquadricObj *quadObj = gluNewQuadric();
 
-
-
-GLuint ViewRenderWidget::buildCircleList() {
-
-    GLuint id = glGenLists(1);
-    GLUquadricObj *quadObj = gluNewQuadric();
-
-    GLuint texid = 0; //bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/circle.png")), GL_TEXTURE_2D);
+	GLuint texid = 0; //bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/circle.png")), GL_TEXTURE_2D);
 	glGenTextures(1, &texid);
 	glBindTexture(GL_TEXTURE_2D, texid);
-	QImage p( ":/glmixer/textures/circle.png" );
-	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	QImage p(":/glmixer/textures/circle.png");
+	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(),
+			p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+			GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+			GL_LINEAR_MIPMAP_LINEAR);
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &texid, &highpriority);
 
-    glNewList(id, GL_COMPILE);
+	glNewList(id, GL_COMPILE);
 
-    glPushMatrix();
-    glTranslatef(0.0, 0.0, - 1.0);
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, -1.0);
 
-    glDisable(GL_BLEND);
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+	glDisable(GL_BLEND);
+	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    gluQuadricTexture(quadObj, GL_TRUE);
-    gluDisk(quadObj, 0.0, CIRCLE_SIZE * SOURCE_UNIT, 50, 3);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+	gluQuadricTexture(quadObj, GL_TRUE);
+	gluDisk(quadObj, 0.0, CIRCLE_SIZE * SOURCE_UNIT, 50, 3);
 
-    glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_2D);
 
-    // blended antialiasing
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
+	// blended antialiasing
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
-    glColor4f(0.6, 0.6, 0.6, 1.0);
-    glLineWidth(5.0);
+	glColor4f(0.6, 0.6, 0.6, 1.0);
+	glLineWidth(5.0);
 
-    glBegin(GL_LINE_LOOP);
-    for (float i = 0; i < 2.0 * M_PI; i+= 0.07)
-    	glVertex3f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE  * SOURCE_UNIT * sin(i),0);
-    glEnd();
+	glBegin(GL_LINE_LOOP);
+	for (float i = 0; i < 2.0 * M_PI; i += 0.07)
+		glVertex3f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE
+				* SOURCE_UNIT * sin(i), 0);
+	glEnd();
 
-    glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);
 
-    glPopMatrix();
-    glEndList();
+	glPopMatrix();
+	glEndList();
 
-    return id;
+	return id;
 }
 
+GLuint ViewRenderWidget::buildLayerbgList()
+{
+	GLuint id = glGenLists(1);
 
+	glNewList(id, GL_COMPILE);
 
-GLuint ViewRenderWidget::buildLayerbgList() {
+	glDisable(GL_TEXTURE_2D);
+	glColor4f(0.6, 0.6, 0.6, 1.0);
+	glLineWidth(0.7);
+	glBegin(GL_LINES);
+	for (float i = -4.0; i < 6.0; i += CLAMP( ABS(i)/2.f , 0.01, 5.0))
+	{
+		glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 0.0);
+		glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 31.0);
+	}
+	glEnd();
 
-    GLuint id = glGenLists(1);
+	glEndList();
 
-//    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/layerbg.png")), GL_TEXTURE_2D);
-
-    glNewList(id, GL_COMPILE);
-
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//    glBlendEquation(GL_FUNC_ADD);
-//
-//    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-//
-//    glColor3f(1.0, 1.0, 1.0);
-//    glBegin(GL_QUADS); // begin drawing a square
-//        glTexCoord2f(0.0f, 0.0f);
-//        glVertex3d(-5.0, 0.0, - 30.0); // Bottom Left
-//        glTexCoord2f(1.0f, 0.0f);
-//        glVertex3d( 5.0, 0.0, - 30.0); // Bottom Right
-//        glTexCoord2f(1.0f, 1.0f);
-//        glVertex3d( 5.0,0.0,   30.0); // Top Right
-//        glTexCoord2f(0.0f, 1.0f);
-//        glVertex3d( -5.0, 0.0, 30.0); // Top Left
-//    glEnd();
-
-    glDisable(GL_TEXTURE_2D);
-    glColor4f(0.6, 0.6, 0.6, 1.0);
-    glLineWidth(0.7);
-    glBegin(GL_LINES);
-    for (float i = -4.0; i < 6.0; i += CLAMP( ABS(i)/2.f , 0.01, 5.0)) {
-    	glVertex3f(i - 1.3, -1.1 + exp(-10 * (i+0.2)), 0.0);
-    	glVertex3f(i - 1.3, -1.1 + exp(-10 * (i+0.2)), 31.0);
-    }
-    glEnd();
-
-    glEndList();
-
-    return id;
+	return id;
 }
 
+GLuint ViewRenderWidget::buildCatalogbgList()
+{
+	GLuint id = glGenLists(1);
 
+	GLuint texid = bindTexture(QPixmap(QString::fromUtf8(
+			":/glmixer/textures/catalog_bg.png")), GL_TEXTURE_2D);
 
-GLuint ViewRenderWidget::buildCatalogbgList() {
+	glNewList(id, GL_COMPILE);
 
-    GLuint id = glGenLists(1);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glBlendEquation(GL_FUNC_ADD);
 
-    GLuint texid = bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/catalog_bg.png")), GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture
 
-    glNewList(id, GL_COMPILE);
+	glColor3f(1.0, 1.0, 1.0);
+	glBegin(GL_QUADS); // begin drawing a square
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex2d(-SOURCE_UNIT, -SOURCE_UNIT); // Bottom Left
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex2d(0.0, -SOURCE_UNIT); // Bottom Right
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex2d(0.0, SOURCE_UNIT); // Top Right
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex2d(-SOURCE_UNIT, SOURCE_UNIT); // Top Left
+	glEnd();
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glBlendEquation(GL_FUNC_ADD);
+	glEndList();
 
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture
-
-    glColor3f(1.0, 1.0, 1.0);
-    glBegin(GL_QUADS); // begin drawing a square
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2d( -SOURCE_UNIT, -SOURCE_UNIT); // Bottom Left
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex2d( 0.0, -SOURCE_UNIT); // Bottom Right
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex2d( 0.0, SOURCE_UNIT); // Top Right
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex2d( -SOURCE_UNIT, SOURCE_UNIT); // Top Left
-    glEnd();
-
-
-    glEndList();
-
-    return id;
+	return id;
 }
-
 
 /**
  * Build a display list of a black QUAD and returns its id
  **/
-GLuint ViewRenderWidget::buildBlackList() {
+GLuint ViewRenderWidget::buildBlackList()
+{
+	GLuint texid = 0; // bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow.png")), GL_TEXTURE_2D);
 
-    GLuint texid = 0; // bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow.png")), GL_TEXTURE_2D);
-
-    // generate the texture with optimal performance ;
+	// generate the texture with optimal performance ;
 	glGenTextures(1, &texid);
 	glBindTexture(GL_TEXTURE_2D, texid);
-	QImage p( ":/glmixer/textures/shadow.png" );
+	QImage p(":/glmixer/textures/shadow.png");
 	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &texid, &highpriority);
 
-    GLuint id = glGenLists(1);
-    glNewList(id, GL_COMPILE);
+	GLuint id = glGenLists(1);
+	glNewList(id, GL_COMPILE);
 
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
-    glColor4f(0.f, 0.f, 0.f, 1.f);
-    glBegin(GL_QUADS); // begin drawing a square
-    // Front Face
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-        glVertex3f(-1.0f* SOURCE_UNIT, -1.0f* SOURCE_UNIT, 0.0f); // Bottom Left
-        glVertex3f(1.0f* SOURCE_UNIT, -1.0f* SOURCE_UNIT, 0.0f); // Bottom Right
-        glVertex3f(1.0f* SOURCE_UNIT, 1.0f* SOURCE_UNIT, 0.0f); // Top Right
-        glVertex3f(-1.0f* SOURCE_UNIT, 1.0f* SOURCE_UNIT, 0.0f); // Top Left
-    glEnd();
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+	glColor4f(0.f, 0.f, 0.f, 1.f);
+	glBegin(GL_QUADS); // begin drawing a square
+		// Front Face
+		glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+		glVertex3f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Left
+		glVertex3f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Right
+		glVertex3f(1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Right
+		glVertex3f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Left
+	glEnd();
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
-    glColor4f(0.f, 0.f, 0.f, 0.8f);
+	glColor4f(0.f, 0.f, 0.f, 0.8f);
 
-    glPushMatrix();
-        glTranslatef(0.02 * SOURCE_UNIT, -0.1 * SOURCE_UNIT, 0.1);
-        glScalef(1.5 * SOURCE_UNIT, 1.5 * SOURCE_UNIT, 1.0);
-        glBegin(GL_QUADS); // begin drawing a square
-            glTexCoord2f(0.0f, 1.0f);
-            glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-            glTexCoord2f(1.0f, 1.0f);
-            glVertex3f(1.f, -1.f, 0.0f);  // Bottom Right
-            glTexCoord2f(1.0f, 0.0f);
-            glVertex3f(1.f, 1.f, 0.0f);   // Top Right
-            glTexCoord2f(0.0f, 0.0f);
-            glVertex3f(-1.f, 1.f, 0.0f);  // Top Left
-        glEnd();
-    glPopMatrix();
+	glPushMatrix();
+		glTranslatef(0.02 * SOURCE_UNIT, -0.1 * SOURCE_UNIT, 0.1);
+		glScalef(1.5 * SOURCE_UNIT, 1.5 * SOURCE_UNIT, 1.0);
+		glBegin(GL_QUADS); // begin drawing a square
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(1.f, 1.f, 0.0f); // Top Right
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+		glEnd();
+	glPopMatrix();
 
-
-//    glPopAttrib();
-
-    glEndList();
-    return id;
+	glEndList();
+	return id;
 }
 
 /**
  * Build a display list of the front line border of the render area and returns its id
  **/
-GLuint ViewRenderWidget::buildFrameList() {
+GLuint ViewRenderWidget::buildFrameList()
+{
+	GLuint base = glGenLists(1);
+	glListBase(base);
 
-    GLuint base = glGenLists(1);
-    glListBase(base);
+	// default
+	glNewList(base, GL_COMPILE);
 
-    // default
-    glNewList(base, GL_COMPILE);
+	// blended antialiasing
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
-    // blended antialiasing
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
+	glDisable(GL_TEXTURE_2D);
+	glLineWidth(5.0);
+	glColor4f(0.85, 0.15, 0.85, 1.0);
 
-    glDisable(GL_TEXTURE_2D);
-    glLineWidth(5.0);
-    glColor4f(0.85, 0.15, 0.85, 1.0);
+	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
+		glVertex3f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT, 0.0f); // Bottom Left
+		glVertex3f(0.0f, -1.01f * SOURCE_UNIT, 0.0f);
+		glVertex3f(0.0f, -1.05f * SOURCE_UNIT, 0.0f);
+		glVertex3f(0.0f, -1.01f * SOURCE_UNIT, 0.0f);
+		glVertex3f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT, 0.0f); // Bottom Right
+		glVertex3f(1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(1.05f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT, 0.0f); // Top Right
+		glVertex3f(0.0f, 1.01f * SOURCE_UNIT, 0.0f);
+		glVertex3f(0.0f, 1.05f * SOURCE_UNIT, 0.0f);
+		glVertex3f(0.0f, 1.01f * SOURCE_UNIT, 0.0f);
+		glVertex3f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT, 0.0f); // Top Left
+		glVertex3f(-1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(-1.05f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(-1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+	glEnd();
 
-    glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
+	glEnable(GL_TEXTURE_2D);
+	glEndList();
 
-    glVertex3f(-1.01f* SOURCE_UNIT, -1.01f* SOURCE_UNIT, 0.0f); // Bottom Left
-    glVertex3f(0.0f, -1.01f* SOURCE_UNIT, 0.0f);
-    glVertex3f(0.0f, -1.05f* SOURCE_UNIT, 0.0f);
-    glVertex3f(0.0f, -1.01f* SOURCE_UNIT, 0.0f);
-    glVertex3f(1.01f* SOURCE_UNIT, -1.01f* SOURCE_UNIT, 0.0f); // Bottom Right
-    glVertex3f(1.01f* SOURCE_UNIT, 0.0f, 0.0f);
-    glVertex3f(1.05f* SOURCE_UNIT, 0.0f, 0.0f);
-    glVertex3f(1.01f* SOURCE_UNIT, 0.0f, 0.0f);
-    glVertex3f(1.01f* SOURCE_UNIT, 1.01f* SOURCE_UNIT, 0.0f); // Top Right
-    glVertex3f(0.0f, 1.01f* SOURCE_UNIT, 0.0f);
-    glVertex3f(0.0f, 1.05f* SOURCE_UNIT, 0.0f);
-    glVertex3f(0.0f, 1.01f* SOURCE_UNIT, 0.0f);
-    glVertex3f(-1.01f* SOURCE_UNIT, 1.01f* SOURCE_UNIT, 0.0f); // Top Left
-    glVertex3f(-1.01f* SOURCE_UNIT, 0.0f, 0.0f);
-    glVertex3f(-1.05f* SOURCE_UNIT, 0.0f, 0.0f);
-    glVertex3f(-1.01f* SOURCE_UNIT, 0.0f, 0.0f);
-
-    glEnd();
-
-    glEnable(GL_TEXTURE_2D);
-    glEndList();
-
-    return base;
+	return base;
 }
 
 /**
  * Build 3 display lists for the line borders of sources and returns the base id
  **/
-GLuint ViewRenderWidget::buildBordersList() {
+GLuint ViewRenderWidget::buildBordersList()
+{
+	GLuint base = glGenLists(4);
+	glListBase(base);
 
-    GLuint base = glGenLists(4);
-    glListBase(base);
+	// default
+	glNewList(base, GL_COMPILE);
 
-    // default
-    glNewList(base, GL_COMPILE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
+	glDisable(GL_TEXTURE_2D);
+	glLineWidth(1.0);
+	glColor4f(0.9, 0.9, 0.0, 0.7);
 
-    glDisable(GL_TEXTURE_2D);
-    glLineWidth(1.0);
-    glColor4f(0.9, 0.9, 0.0, 0.7);
+	glBegin(GL_LINE_LOOP); // begin drawing a square
+	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glEnd();
 
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-    glEnd();
+	glEnable(GL_TEXTURE_2D);
+	glEndList();
 
-    glEnable(GL_TEXTURE_2D);
-    glEndList();
+	// selected (no action)
+	glNewList(base + 1, GL_COMPILE);
 
-    // selected (no action)
-    glNewList(base+1, GL_COMPILE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
+	glDisable(GL_TEXTURE_2D);
+	glColor4f(0.9, 0.9, 0.0, 0.8);
 
-    glDisable(GL_TEXTURE_2D);
-    glColor4f(0.9, 0.9, 0.0, 0.7);
+	// draw the bold border
+	glLineWidth(3.0);
+	glBegin(GL_LINE_LOOP); // begin drawing a square
+	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glEnd();
 
-    // draw the bold border
-    glLineWidth(3.0);
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-    glEnd();
+	glEnd();
 
-    glEnd();
+	glEnable(GL_TEXTURE_2D);
 
-    glEnable(GL_TEXTURE_2D);
+	glEndList();
 
-    glEndList();
+	// selected for SCALE
+	glNewList(base + 2, GL_COMPILE);
 
-    // selected for SCALE
-    glNewList(base+2, GL_COMPILE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
+	glDisable(GL_TEXTURE_2D);
+	glColor4f(0.9, 0.9, 0.0, 0.9);
 
-    glDisable(GL_TEXTURE_2D);
-    glColor4f(0.9, 0.9, 0.0, 0.7);
+	// draw the bold border
+	glLineWidth(4.0);
+	glBegin(GL_LINE_LOOP); // begin drawing a square
+	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glEnd();
 
-    // draw the bold border
-    glLineWidth(3.0);
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-    glEnd();
+	glLineWidth(1.0);
+	glBegin(GL_LINES); // begin drawing a square
+	//    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glVertex3f(-BORDER_SIZE, -1.0f, 0.0f);
+	glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
+	glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
+	glVertex3f(-1.0f, -BORDER_SIZE, 0.0f);
 
-    glLineWidth(1.0);
-    glBegin(GL_LINES); // begin drawing a square
-//    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glVertex3f(-BORDER_SIZE, -1.0f, 0.0f);
-    glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
-    glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
-    glVertex3f(-1.0f, -BORDER_SIZE, 0.0f);
+	//    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glVertex3f(1.0f, -BORDER_SIZE, 0.0f);
+	glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
+	glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
+	glVertex3f(BORDER_SIZE, -1.0f, 0.0f);
 
-//    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glVertex3f(1.0f, -BORDER_SIZE, 0.0f);
-    glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
-    glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
-    glVertex3f(BORDER_SIZE, -1.0f, 0.0f);
+	//    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glVertex3f(BORDER_SIZE, 1.0f, 0.0f);
+	glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
+	glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
+	glVertex3f(1.0f, BORDER_SIZE, 0.0f);
 
-//    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glVertex3f(BORDER_SIZE, 1.0f, 0.0f);
-    glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
-    glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
-    glVertex3f(1.0f, BORDER_SIZE, 0.0f);
+	//    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glVertex3f(-BORDER_SIZE, 1.0f, 0.0f);
+	glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
+	glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
+	glVertex3f(-1.0f, BORDER_SIZE, 0.0f);
 
-//    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-    glVertex3f(-BORDER_SIZE, 1.0f, 0.0f);
-    glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
-    glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
-    glVertex3f(-1.0f, BORDER_SIZE, 0.0f);
+	glEnd();
 
-    glEnd();
+	glEnable(GL_TEXTURE_2D);
 
-    glEnable(GL_TEXTURE_2D);
+	glEndList();
 
-    glEndList();
+	// selected for ROTATE
+	glNewList(base + 3, GL_COMPILE);
 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
-    // selected for ROTATE
-    glNewList(base+3, GL_COMPILE);
+	glDisable(GL_TEXTURE_2D);
+	glColor4f(0.9, 0.9, 0.0, 0.9);
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
+	// draw the bold border
+	glLineWidth(3.0);
+	glBegin(GL_LINE_LOOP); // begin drawing a square
+	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glEnd();
 
-    glDisable(GL_TEXTURE_2D);
-    glColor4f(0.9, 0.9, 0.0, 0.7);
+	// draw  the corners
+	glLineWidth(1.0);
+	glBegin(GL_LINES); // begin drawing a square
+	//    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glVertex3f(-BORDER_SIZE, -1.0f, 0.0f);
+	glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
+	glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
+	glVertex3f(-1.0f, -BORDER_SIZE, 0.0f);
 
-    // draw the bold border
-    glLineWidth(3.0);
-    glBegin(GL_LINE_LOOP); // begin drawing a square
-    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-    glEnd();
+	//    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glVertex3f(1.0f, -BORDER_SIZE, 0.0f);
+	glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
+	glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
+	glVertex3f(BORDER_SIZE, -1.0f, 0.0f);
 
-    // draw  the corners
-    glLineWidth(1.0);
-    glBegin(GL_LINES); // begin drawing a square
-//    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-    glVertex3f(-BORDER_SIZE, -1.0f, 0.0f);
-    glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
-    glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
-    glVertex3f(-1.0f, -BORDER_SIZE, 0.0f);
+	//    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glVertex3f(BORDER_SIZE, 1.0f, 0.0f);
+	glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
+	glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
+	glVertex3f(1.0f, BORDER_SIZE, 0.0f);
 
-//    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-    glVertex3f(1.0f, -BORDER_SIZE, 0.0f);
-    glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
-    glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
-    glVertex3f(BORDER_SIZE, -1.0f, 0.0f);
+	//    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glVertex3f(-BORDER_SIZE, 1.0f, 0.0f);
+	glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
+	glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
+	glVertex3f(-1.0f, BORDER_SIZE, 0.0f);
 
-//    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-    glVertex3f(BORDER_SIZE, 1.0f, 0.0f);
-    glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
-    glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
-    glVertex3f(1.0f, BORDER_SIZE, 0.0f);
+	glEnd();
 
-//    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-    glVertex3f(-BORDER_SIZE, 1.0f, 0.0f);
-    glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
-    glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
-    glVertex3f(-1.0f, BORDER_SIZE, 0.0f);
+	glEnable(GL_TEXTURE_2D);
 
-    glEnd();
+	glEndList();
 
-    glEnable(GL_TEXTURE_2D);
-
-    glEndList();
-
-    return base;
+	return base;
 }
 
+GLuint ViewRenderWidget::buildFadingList()
+{
 
+	GLuint id = glGenLists(1);
 
-static char * rotate_top_right[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"                         ",
-"                         ",
-"       +                 ",
-"      +.+                ",
-"     +..+                ",
-"    +...+                ",
-"   +....++++             ",
-"  +.........++           ",
-"  +...........+          ",
-"   +....+++....+         ",
-"    +...+  ++...+        ",
-"     +..+    +...+       ",
-"      +.+     +..+       ",
-"       +      +...+      ",
-"               +..+      ",
-"               +..+      ",
-"            ++++..++++   ",
-"           +..........+  ",
-"            +........+   ",
-"             +......+    ",
-"              +....+     ",
-"               +..+      ",
-"                ++       ",
-"                         ",
-"                         "};
+	glNewList(id, GL_COMPILE);
 
-static char * rotate_top_left[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"                         ",
-"                         ",
-"                 +       ",
-"                +.+      ",
-"                +..+     ",
-"                +...+    ",
-"             ++++....+   ",
-"           ++.........+  ",
-"          +...........+  ",
-"         +....+++....+   ",
-"        +...++  +...+    ",
-"       +...+    +..+     ",
-"       +..+     +.+      ",
-"      +...+      +       ",
-"      +..+               ",
-"      +..+               ",
-"   ++++..++++            ",
-"  +..........+           ",
-"   +........+            ",
-"    +......+             ",
-"     +....+              ",
-"      +..+               ",
-"       ++                ",
-"                         ",
-"                         "};
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D(-1, 1, -1, 1);
 
-static char * rotate_bot_left[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"                         ",
-"                         ",
-"       ++                ",
-"      +..+               ",
-"     +....+              ",
-"    +......+             ",
-"   +........+            ",
-"  +..........+           ",
-"   ++++..++++            ",
-"      +..+               ",
-"      +..+               ",
-"      +...+      +       ",
-"       +..+     +.+      ",
-"       +...+    +..+     ",
-"        +...++  +...+    ",
-"         +....+++....+   ",
-"          +...........+  ",
-"           ++.........+  ",
-"             ++++....+   ",
-"                +...+    ",
-"                +..+     ",
-"                +.+      ",
-"                 +       ",
-"                         ",
-"                         "};
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
 
-static char * rotate_bot_right[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"                         ",
-"                         ",
-"                ++       ",
-"               +..+      ",
-"              +....+     ",
-"             +......+    ",
-"            +........+   ",
-"           +..........+  ",
-"            ++++..++++   ",
-"               +..+      ",
-"               +..+      ",
-"       +      +...+      ",
-"      +.+     +..+       ",
-"     +..+    +...+       ",
-"    +...+  ++...+        ",
-"   +....+++....+         ",
-"  +...........+          ",
-"  +.........++           ",
-"   +....++++             ",
-"    +...+                ",
-"     +..+                ",
-"      +.+                ",
-"       +                 ",
-"                         ",
-"                         "};
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+	glDisable(GL_TEXTURE_2D);
+	glColor4f(0.1, 0.1, 0.1, 0.5);
+	glRectf(-1, -1, 1, 1);
+	glEnable(GL_TEXTURE_2D);
 
-static char * cursor_arrow_xpm[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"                         ",
-"                         ",
-"       +                 ",
-"       ++                ",
-"       +.+               ",
-"       +..+              ",
-"       +...+             ",
-"       +....+            ",
-"       +.....+           ",
-"       +......+          ",
-"       +.......+         ",
-"       +........+        ",
-"       +.........+       ",
-"       +......+++++      ",
-"       +...+..+          ",
-"       +..++..+          ",
-"       +.+  +..+         ",
-"       ++   +..+         ",
-"       +     +..+        ",
-"             +..+        ",
-"              +..+       ",
-"              +..+       ",
-"               ++        ",
-"                         ",
-"                         "};
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
 
-static char * cursor_openhand_xpm[] = {
-"16 16 3 1",
-" 	g None",
-".	g #000000",
-"+	g #EEEEEE",
-"       ..       ",
-"   .. .++...    ",
-"  .++..++.++.   ",
-"  .++..++.++. . ",
-"   .++.++.++..+.",
-"   .++.++.++.++.",
-" .. .+++++++.++.",
-".++..++++++++++.",
-".+++.+++++++++. ",
-" .++++++++++++. ",
-"  .+++++++++++. ",
-"  .++++++++++.  ",
-"   .+++++++++.  ",
-"    .+++++++.   ",
-"     .++++++.   ",
-"                "};
+	glEndList();
 
-static char * cursor_closedhand_xpm[] = {
-"16 16 3 1",
-" 	g None",
-".	g #000000",
-"+	g #EEEEEE",
-"                ",
-"                ",
-"                ",
-"    .. .. ..    ",
-"   .++.++.++..  ",
-"   .++++++++.+. ",
-"    .+++++++++. ",
-"   ..+++++++++. ",
-"  .+++++++++++. ",
-"  .++++++++++.  ",
-"   .+++++++++.  ",
-"    .+++++++.   ",
-"     .++++++.   ",
-"     .++++++.   ",
-"                ",
-"                "};
+	return id;
+}
 
-static char * cursor_sizef_xpm[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"                         ",
-"                         ",
-"                         ",
-"                         ",
-"    +++++++++            ",
-"    +.......+            ",
-"    +......+             ",
-"    +.....+              ",
-"    +.....+              ",
-"    +......+             ",
-"    +..++...+            ",
-"    +.+  +...+           ",
-"    ++    +...+    ++    ",
-"           +...+  +.+    ",
-"            +...++..+    ",
-"             +......+    ",
-"              +.....+    ",
-"              +.....+    ",
-"             +......+    ",
-"            +.......+    ",
-"            +++++++++    ",
-"                         ",
-"                         ",
-"                         ",
-"                         "};
+static char * rotate_top_right[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"                         ", "                         ",
+		"       +                 ", "      +.+                ",
+		"     +..+                ", "    +...+                ",
+		"   +....++++             ", "  +.........++           ",
+		"  +...........+          ", "   +....+++....+         ",
+		"    +...+  ++...+        ", "     +..+    +...+       ",
+		"      +.+     +..+       ", "       +      +...+      ",
+		"               +..+      ", "               +..+      ",
+		"            ++++..++++   ", "           +..........+  ",
+		"            +........+   ", "             +......+    ",
+		"              +....+     ", "               +..+      ",
+		"                ++       ", "                         ",
+		"                         " };
 
-static char * cursor_sizeb_xpm[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"                         ",
-"                         ",
-"                         ",
-"                         ",
-"            +++++++++    ",
-"            +.......+    ",
-"             +......+    ",
-"              +.....+    ",
-"              +.....+    ",
-"             +......+    ",
-"            +...++..+    ",
-"           +...+  +.+    ",
-"    ++    +...+    ++    ",
-"    +.+  +...+           ",
-"    +..++...+            ",
-"    +......+             ",
-"    +.....+              ",
-"    +.....+              ",
-"    +......+             ",
-"    +.......+            ",
-"    +++++++++            ",
-"                         ",
-"                         ",
-"                         ",
-"                         "};
+static char * rotate_top_left[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"                         ", "                         ",
+		"                 +       ", "                +.+      ",
+		"                +..+     ", "                +...+    ",
+		"             ++++....+   ", "           ++.........+  ",
+		"          +...........+  ", "         +....+++....+   ",
+		"        +...++  +...+    ", "       +...+    +..+     ",
+		"       +..+     +.+      ", "      +...+      +       ",
+		"      +..+               ", "      +..+               ",
+		"   ++++..++++            ", "  +..........+           ",
+		"   +........+            ", "    +......+             ",
+		"     +....+              ", "      +..+               ",
+		"       ++                ", "                         ",
+		"                         " };
 
-static char * cursor_question_xpm[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"+                        ",
-"++          .......      ",
-"+.+        .+++++++.     ",
-"+..+      .++....+++.    ",
-"+...+    .+++.  .+++.    ",
-"+....+   .+++.  .+++.    ",
-"+.....+  .+++.  .+++.    ",
-"+......+ .+++.  .+++.    ",
-"+.......+ ...  .+++.     ",
-"+........+    .+++.      ",
-"+.....+++++  .+++.       ",
-"+..+..+      .+++.       ",
-"+.+ +..+     .+++.       ",
-"++  +..+     .+++.       ",
-"+    +..+    .....       ",
-"     +..+    .+++.       ",
-"      +..+   .+++.       ",
-"      +..+   .....       ",
-"       ++                ",
-"                         ",
-"                         ",
-"                         ",
-"                         ",
-"                         ",
-"                         "};
+static char * rotate_bot_left[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"                         ", "                         ",
+		"       ++                ", "      +..+               ",
+		"     +....+              ", "    +......+             ",
+		"   +........+            ", "  +..........+           ",
+		"   ++++..++++            ", "      +..+               ",
+		"      +..+               ", "      +...+      +       ",
+		"       +..+     +.+      ", "       +...+    +..+     ",
+		"        +...++  +...+    ", "         +....+++....+   ",
+		"          +...........+  ", "           ++.........+  ",
+		"             ++++....+   ", "                +...+    ",
+		"                +..+     ", "                +.+      ",
+		"                 +       ", "                         ",
+		"                         " };
 
-static char * cursor_sizeall_xpm[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"                         ",
-"           ++            ",
-"          +..+           ",
-"         +....+          ",
-"        +......+         ",
-"       +........+        ",
-"        +++..+++         ",
-"     +    +..+    +      ",
-"    +.+   +..+   +.+     ",
-"   +..+   +..+   +..+    ",
-"  +...+++++..+++++...+   ",
-" +....................+  ",
-" +....................+  ",
-"  +...+++++..+++++...+   ",
-"   +..+   +..+   +..+    ",
-"    +.+   +..+   +.+     ",
-"     +    +..+    +      ",
-"        +++..+++         ",
-"       +........+        ",
-"        +......+         ",
-"         +....+          ",
-"          +..+           ",
-"           ++            ",
-"                         ",
-"                         "};
+static char * rotate_bot_right[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"                         ", "                         ",
+		"                ++       ", "               +..+      ",
+		"              +....+     ", "             +......+    ",
+		"            +........+   ", "           +..........+  ",
+		"            ++++..++++   ", "               +..+      ",
+		"               +..+      ", "       +      +...+      ",
+		"      +.+     +..+       ", "     +..+    +...+       ",
+		"    +...+  ++...+        ", "   +....+++....+         ",
+		"  +...........+          ", "  +.........++           ",
+		"   +....++++             ", "    +...+                ",
+		"     +..+                ", "      +.+                ",
+		"       +                 ", "                         ",
+		"                         " };
 
-static char * cursor_hand_xpm[] = {
-"25 25 3 1",
-" 	c None",
-".	c #EEEEEE",
-"+	c #000000",
-"         ..              ",
-"        .++.             ",
-"        +..+             ",
-"        +..+             ",
-"        +..+             ",
-"        +..+             ",
-"        +..+             ",
-"        +..+++           ",
-"        +..+..+++        ",
-"        +..+..+..++      ",
-"     ++ +..+..+..+.+     ",
-"    +..++..+..+..+.+     ",
-"    +...+..........+     ",
-"     +.............+     ",
-"      +............+     ",
-"      +............+     ",
-"       +..........+      ",
-"       +..........+      ",
-"        +........+       ",
-"        +........+       ",
-"        ++++++++++       ",
-"        ++++++++++       ",
-"        ++++++++++       ",
-"                         ",
-"                         "};
+static char * cursor_arrow_xpm[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"                         ", "                         ",
+		"       +                 ", "       ++                ",
+		"       +.+               ", "       +..+              ",
+		"       +...+             ", "       +....+            ",
+		"       +.....+           ", "       +......+          ",
+		"       +.......+         ", "       +........+        ",
+		"       +.........+       ", "       +......+++++      ",
+		"       +...+..+          ", "       +..++..+          ",
+		"       +.+  +..+         ", "       ++   +..+         ",
+		"       +     +..+        ", "             +..+        ",
+		"              +..+       ", "              +..+       ",
+		"               ++        ", "                         ",
+		"                         " };
 
-void ViewRenderWidget::setMouseCursor(mouseCursor c){
+static char * cursor_openhand_xpm[] =
+{ "16 16 3 1", " 	g None", ".	g #000000", "+	g #EEEEEE", "       ..       ",
+		"   .. .++...    ", "  .++..++.++.   ", "  .++..++.++. . ",
+		"   .++.++.++..+.", "   .++.++.++.++.", " .. .+++++++.++.",
+		".++..++++++++++.", ".+++.+++++++++. ", " .++++++++++++. ",
+		"  .+++++++++++. ", "  .++++++++++.  ", "   .+++++++++.  ",
+		"    .+++++++.   ", "     .++++++.   ", "                " };
 
+static char * cursor_closedhand_xpm[] =
+{ "16 16 3 1", " 	g None", ".	g #000000", "+	g #EEEEEE", "                ",
+		"                ", "                ", "    .. .. ..    ",
+		"   .++.++.++..  ", "   .++++++++.+. ", "    .+++++++++. ",
+		"   ..+++++++++. ", "  .+++++++++++. ", "  .++++++++++.  ",
+		"   .+++++++++.  ", "    .+++++++.   ", "     .++++++.   ",
+		"     .++++++.   ", "                ", "                " };
+
+static char * cursor_sizef_xpm[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"                         ", "                         ",
+		"                         ", "                         ",
+		"    +++++++++            ", "    +.......+            ",
+		"    +......+             ", "    +.....+              ",
+		"    +.....+              ", "    +......+             ",
+		"    +..++...+            ", "    +.+  +...+           ",
+		"    ++    +...+    ++    ", "           +...+  +.+    ",
+		"            +...++..+    ", "             +......+    ",
+		"              +.....+    ", "              +.....+    ",
+		"             +......+    ", "            +.......+    ",
+		"            +++++++++    ", "                         ",
+		"                         ", "                         ",
+		"                         " };
+
+static char * cursor_sizeb_xpm[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"                         ", "                         ",
+		"                         ", "                         ",
+		"            +++++++++    ", "            +.......+    ",
+		"             +......+    ", "              +.....+    ",
+		"              +.....+    ", "             +......+    ",
+		"            +...++..+    ", "           +...+  +.+    ",
+		"    ++    +...+    ++    ", "    +.+  +...+           ",
+		"    +..++...+            ", "    +......+             ",
+		"    +.....+              ", "    +.....+              ",
+		"    +......+             ", "    +.......+            ",
+		"    +++++++++            ", "                         ",
+		"                         ", "                         ",
+		"                         " };
+
+static char * cursor_question_xpm[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"+                        ", "++          .......      ",
+		"+.+        .+++++++.     ", "+..+      .++....+++.    ",
+		"+...+    .+++.  .+++.    ", "+....+   .+++.  .+++.    ",
+		"+.....+  .+++.  .+++.    ", "+......+ .+++.  .+++.    ",
+		"+.......+ ...  .+++.     ", "+........+    .+++.      ",
+		"+.....+++++  .+++.       ", "+..+..+      .+++.       ",
+		"+.+ +..+     .+++.       ", "++  +..+     .+++.       ",
+		"+    +..+    .....       ", "     +..+    .+++.       ",
+		"      +..+   .+++.       ", "      +..+   .....       ",
+		"       ++                ", "                         ",
+		"                         ", "                         ",
+		"                         ", "                         ",
+		"                         " };
+
+static char * cursor_sizeall_xpm[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"                         ", "           ++            ",
+		"          +..+           ", "         +....+          ",
+		"        +......+         ", "       +........+        ",
+		"        +++..+++         ", "     +    +..+    +      ",
+		"    +.+   +..+   +.+     ", "   +..+   +..+   +..+    ",
+		"  +...+++++..+++++...+   ", " +....................+  ",
+		" +....................+  ", "  +...+++++..+++++...+   ",
+		"   +..+   +..+   +..+    ", "    +.+   +..+   +.+     ",
+		"     +    +..+    +      ", "        +++..+++         ",
+		"       +........+        ", "        +......+         ",
+		"         +....+          ", "          +..+           ",
+		"           ++            ", "                         ",
+		"                         " };
+
+static char * cursor_hand_xpm[] =
+{ "25 25 3 1", " 	c None", ".	c #EEEEEE", "+	c #000000",
+		"         ..              ", "        .++.             ",
+		"        +..+             ", "        +..+             ",
+		"        +..+             ", "        +..+             ",
+		"        +..+             ", "        +..+++           ",
+		"        +..+..+++        ", "        +..+..+..++      ",
+		"     ++ +..+..+..+.+     ", "    +..++..+..+..+.+     ",
+		"    +...+..........+     ", "     +.............+     ",
+		"      +............+     ", "      +............+     ",
+		"       +..........+      ", "       +..........+      ",
+		"        +........+       ", "        +........+       ",
+		"        ++++++++++       ", "        ++++++++++       ",
+		"        ++++++++++       ", "                         ",
+		"                         " };
+
+void ViewRenderWidget::setMouseCursor(mouseCursor c)
+{
 	// create QCursors for each pixmap
-	static QCursor arrowCursor = QCursor( QPixmap(cursor_arrow_xpm), 8, 3 );
-	static QCursor handOpenCursor = QCursor( QPixmap(cursor_openhand_xpm), 8, 8 );
-	static QCursor handCloseCursor = QCursor( QPixmap(cursor_closedhand_xpm), 8, 8 );
-	static QCursor scaleBCursor = QCursor( QPixmap(cursor_sizeb_xpm), 12, 12 );
-	static QCursor scaleFCursor = QCursor( QPixmap(cursor_sizef_xpm), 12, 12 );
-	static QCursor rotTopRightCursor = QCursor( QPixmap(rotate_top_right), 12, 12 );
-	static QCursor rotTopLeftCursor = QCursor( QPixmap(rotate_top_left), 12, 12 );
-	static QCursor rotBottomRightCursor = QCursor( QPixmap(rotate_bot_right), 12, 12 );
-	static QCursor rotBottomLeftCursor = QCursor( QPixmap(rotate_bot_left), 12, 12 );
-	static QCursor questionCursor = QCursor( QPixmap(cursor_question_xpm), 1, 1 );
-	static QCursor sizeallCursor = QCursor( QPixmap(cursor_sizeall_xpm), 12, 12 );
-	static QCursor handIndexCursor = QCursor( QPixmap(cursor_hand_xpm), 10, 1 );
+	static QCursor arrowCursor = QCursor(QPixmap(cursor_arrow_xpm), 8, 3);
+	static QCursor handOpenCursor = QCursor(QPixmap(cursor_openhand_xpm), 8, 8);
+	static QCursor handCloseCursor = QCursor(QPixmap(cursor_closedhand_xpm), 8, 8);
+	static QCursor scaleBCursor = QCursor(QPixmap(cursor_sizeb_xpm), 12, 12);
+	static QCursor scaleFCursor = QCursor(QPixmap(cursor_sizef_xpm), 12, 12);
+	static QCursor rotTopRightCursor = QCursor(QPixmap(rotate_top_right), 12, 12);
+	static QCursor rotTopLeftCursor = QCursor(QPixmap(rotate_top_left), 12, 12);
+	static QCursor rotBottomRightCursor = QCursor(QPixmap(rotate_bot_right), 12, 12);
+	static QCursor rotBottomLeftCursor = QCursor(QPixmap(rotate_bot_left), 12, 12);
+	static QCursor questionCursor = QCursor(QPixmap(cursor_question_xpm), 1, 1);
+	static QCursor sizeallCursor = QCursor(QPixmap(cursor_sizeall_xpm), 12, 12);
+	static QCursor handIndexCursor = QCursor(QPixmap(cursor_hand_xpm), 10, 1);
 
-	switch (c) {
+	switch (c)
+	{
 	case MOUSE_HAND_OPEN:
 		setCursor(handOpenCursor);
 		break;
@@ -1574,26 +1442,24 @@ void ViewRenderWidget::setMouseCursor(mouseCursor c){
 	case MOUSE_ROT_BOTTOM_RIGHT:
 		setCursor(rotBottomRightCursor);
 		break;
-	case MOUSE_ROT_TOP_LEFT :
+	case MOUSE_ROT_TOP_LEFT:
 		setCursor(rotTopLeftCursor);
 		break;
-	case MOUSE_ROT_TOP_RIGHT :
+	case MOUSE_ROT_TOP_RIGHT:
 		setCursor(rotTopRightCursor);
 		break;
-	case MOUSE_QUESTION :
+	case MOUSE_QUESTION:
 		setCursor(questionCursor);
 		break;
-	case MOUSE_SIZEALL :
+	case MOUSE_SIZEALL:
 		setCursor(sizeallCursor);
 		break;
-	case MOUSE_HAND_INDEX :
+	case MOUSE_HAND_INDEX:
 		setCursor(handIndexCursor);
 		break;
 	default:
 	case MOUSE_ARROW:
 		setCursor(arrowCursor);
-
 	}
-
 }
 

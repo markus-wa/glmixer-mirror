@@ -117,6 +117,8 @@ void GeometryView::paint()
 
 void GeometryView::resize(int w, int h)
 {
+	View::resize(w, h);
+
 	if (w > 0 && h > 0) {
 		viewport[2] = w;
 		viewport[3] = h;

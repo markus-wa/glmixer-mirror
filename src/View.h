@@ -18,7 +18,7 @@ class View {
 public:
 	View() :
 		zoom(0), minzoom(0), maxzoom(0), deltazoom(0), panx(0), maxpanx(0),
-		pany(0), maxpany(0), panz(0), maxpanz(0) {
+		pany(0), maxpany(0), panz(0), maxpanz(0), modified(true) {
 		viewport[0] = 0;
 		viewport[1] = 0;
 		viewport[2] = 0;
@@ -29,10 +29,12 @@ public:
 	virtual void setModelview() {
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
+		modified = false;
 	}
 	virtual void paint() {
 	}
-	virtual void resize(int w = -1, int h = -1) {
+	virtual void resize(int w, int h) {
+		modified = true;
 	}
 	virtual bool mousePressEvent(QMouseEvent *event) {
 		return false;
@@ -66,6 +68,7 @@ public:
 	inline void setZoom(float z) {
 		zoom = CLAMP(z, minzoom, maxzoom);
 		setModelview();
+		modified = true;
 	}
 	inline float getZoom() {
 		return ( zoom );
@@ -77,6 +80,7 @@ public:
 	inline void setPanningX(float x) {
 		panx = CLAMP(x, - maxpanx, maxpanx);
 		setModelview();
+		modified = true;
 	}
 	inline float getPanningX() {
 		return panx;
@@ -84,6 +88,7 @@ public:
 	inline void setPanningY(float y) {
 		pany = CLAMP(y, - maxpany, maxpany);
 		setModelview();
+		modified = true;
 	}
 	inline float getPanningY() {
 		return pany;
@@ -91,6 +96,7 @@ public:
 	inline void setPanningZ(float z) {
 		panz = CLAMP(z, - maxpanz, maxpanz);
 		setModelview();
+		modified = true;
 	}
 	inline float getPanningZ() {
 		return panz;
@@ -106,9 +112,14 @@ public:
 		clickedSources.clear();
 	}
 
+	bool isModified() { return modified; }
+
+	bool noSourceClicked() { return clickedSources.empty(); }
+
 protected:
 	float zoom, minzoom, maxzoom, deltazoom;
 	float panx, maxpanx, pany, maxpany, panz, maxpanz;
+	bool modified;
 
 	GLint viewport[4];
 	GLdouble projection[16];

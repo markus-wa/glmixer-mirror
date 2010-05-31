@@ -17,13 +17,16 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 : QGLWidget(QGLFormat(QGL::AlphaChannel | QGL::NoDepthBuffer), parent, shareWidget, f), aspectRatio(1.0), timer(-1), period(17)
 
 {
-	if (!format().rgba())
-	  qCritical("*** ERROR ***\n\nOpenGL Could not set RGBA buffer; cannot perform OpenGL rendering.");
-	if (!format().directRendering())
-	  qWarning("** WARNING **\n\nOpenGL Could not set direct rendering; rendering will be slow.");
-	if (!format().doubleBuffer())
-	  qWarning("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
-
+	static bool testDone = false;
+	if (!testDone) {
+		if (!format().rgba())
+		  qCritical("*** ERROR ***\n\nOpenGL Could not set RGBA buffer; cannot perform OpenGL rendering.");
+		if (!format().directRendering())
+		  qWarning("** WARNING **\n\nOpenGL Could not set direct rendering; rendering will be slow.");
+		if (!format().doubleBuffer())
+		  qWarning("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
+		testDone = true;
+	}
 
 	update();
 }

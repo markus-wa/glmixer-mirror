@@ -10,9 +10,21 @@
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
 
-CatalogView::CatalogView() : View(), _visible(true), _size(100), _height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0) {
+CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0) {
 
+	_size[SMALL] = 60.0;
+	_iconSize[SMALL] = 23.0;
+	_largeIconSize[SMALL] = 26.0;
 
+	_size[MEDIUM] = 100.0;
+	_iconSize[MEDIUM] = 38.0;
+	_largeIconSize[MEDIUM] = 42.0;
+
+	_size[LARGE] = 150.0;
+	_iconSize[LARGE] = 58.0;
+	_largeIconSize[LARGE] = 70.0;
+
+	_currentSize = MEDIUM;
 }
 
 CatalogView::~CatalogView() {
@@ -30,16 +42,16 @@ void CatalogView::resize(int w, int h) {
 	// TODO : switch depending on side (top, bottom, left, right..)
 
 	// compute viewport considering width
-	viewport[0] = viewport[2] - _size;
+	viewport[0] = viewport[2] - _size[_currentSize];
 	viewport[1] = 0;
 
 	h_unit = 2.0 * SOURCE_UNIT / double(RenderingManager::getInstance()->getFrameBufferWidth());
 	v_unit = 2.0 * SOURCE_UNIT / double(RenderingManager::getInstance()->getFrameBufferHeight());
 }
 
-void CatalogView::setSize(int s){
+void CatalogView::setSize(catalogSize s){
 
-	_size = s;
+	_currentSize = s;
 	resize();
 }
 
@@ -65,7 +77,6 @@ void CatalogView::clear() {
 	glPushAttrib(GL_COLOR_BUFFER_BIT);
 
 	glClearColor( 1.0, 1.0, 1.0, 0.0);
-//	glClearColor( 0.2, 0.2, 0.2, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// TODO : make a displaylist
@@ -78,9 +89,9 @@ void CatalogView::clear() {
 	glColor4f(0.6, 0.6, 0.6, 0.6);
     glDisable(GL_TEXTURE_2D);
 
-    float bl_x = -SOURCE_UNIT + 0.3 * float(_size) * h_unit;
+    float bl_x = -SOURCE_UNIT + 0.3 * _size[_currentSize] * h_unit;
     float bl_y = -SOURCE_UNIT + ( 2.0 * SOURCE_UNIT - _height) - 0.5;
-    float tr_x = -SOURCE_UNIT + float(_size) * h_unit;
+    float tr_x = -SOURCE_UNIT + _size[_currentSize] * h_unit;
     float tr_y = SOURCE_UNIT;
     glRectf( bl_x, bl_y, tr_x, tr_y);
 
@@ -113,21 +124,24 @@ void CatalogView::drawSource(Source *s, int index){
 	if (s) {
 		// target 60 pixels wide icons (height depending on aspect ratio)
 		// each source is a quad [-1 +1]
-		double swidth_pixels = 40.0 * h_unit;
-		double sheight_pixels = 40.0 / s->getAspectRatio() * v_unit;
+		double swidth_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) * h_unit;
+		double sheight_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize])	 / s->getAspectRatio() * v_unit;
 
 		// increment y height by the height of this source + margin
-		_height += 2.0 * sheight_pixels + 10 * v_unit;
+		_height += 2.0 * sheight_pixels + 0.1 * _size[_currentSize] * v_unit;
 
 		// place the icon at center of width, and vertically spaced
-		glTranslatef( -SOURCE_UNIT + float(_size / 2) * h_unit, SOURCE_UNIT - _height + sheight_pixels, 0.0);
+		glTranslatef( -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - _height + sheight_pixels, 0.0);
+		if (s->isActive())
+			glTranslatef( (_iconSize[_currentSize] -_largeIconSize[_currentSize]) * h_unit , 0.0, 0.0);
 		glScalef( swidth_pixels, -sheight_pixels, 1.f);
 
 	    glDisable(GL_BLEND);
-		// draw source texture and border
+		// draw source texture (without shading)
 		s->draw(false);
 	    glEnable(GL_BLEND);
 
+	    // draw source border
 		glScalef( 1.05, 1.05, 1.0);
 		if (s->isActive())
 			glCallList(ViewRenderWidget::border_large);
@@ -149,8 +163,7 @@ void CatalogView::paint() {
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT  | GL_VIEWPORT_BIT);
 
-//	glViewport(viewport[0],viewport[1],_size, viewport[3]);
-	glViewport(viewport[0],viewport[1],_size, RenderingManager::getInstance()->getFrameBufferHeight());
+	glViewport(viewport[0],viewport[1],_size[_currentSize], RenderingManager::getInstance()->getFrameBufferHeight());
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -167,6 +180,8 @@ void CatalogView::paint() {
     glBlendEquation(GL_FUNC_ADD);
 
 	// draw the texture rendered with fbo during rendering
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getCatalogTexture());
 
     glBegin(GL_QUADS); // begin drawing a square
@@ -176,9 +191,9 @@ void CatalogView::paint() {
 
     glTexCoord2d(0.0, 1.0);
     glVertex2f(-SOURCE_UNIT, SOURCE_UNIT); // Bottom Left
-    glTexCoord2d( double(_size) / double(RenderingManager::getInstance()->getFrameBufferWidth()), 1.0);
+    glTexCoord2d( _size[_currentSize] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 1.0);
     glVertex2f( SOURCE_UNIT, SOURCE_UNIT); // Bottom Right
-    glTexCoord2d( double(_size) / double(RenderingManager::getInstance()->getFrameBufferWidth()), 0.0);
+    glTexCoord2d( _size[_currentSize] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 0.0);
     glVertex2f( SOURCE_UNIT, -SOURCE_UNIT); // Top Right
     glTexCoord2d(0.0, 0.0);
     glVertex2f(-SOURCE_UNIT, -SOURCE_UNIT); // Top Left
@@ -194,9 +209,19 @@ void CatalogView::paint() {
 }
 
 
+
+bool CatalogView::isInside(const QPoint &pos){
+
+	if (_visible && pos.x() > viewport[0] && (viewport[3] - pos.y()) < (int)(_height / v_unit) + 10 )
+		return true;
+
+	return false;
+}
+
 bool CatalogView::mousePressEvent(QMouseEvent *event)
 {
-	if (_visible && event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 ) {
+//	if (_visible && event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 ) {
+	if ( isInside(event->pos()) ) {
 
 		// TODO: left clic = select source
 
@@ -205,15 +230,12 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
 		return true;
 	}
 
-
-	// TODO: right clic context menu : choose border (top, bottom, left, right)
-
 	return false;
 }
 
 bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
-	if (_visible && event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 ) {
+	if (isInside(event->pos()) ) {
 		return true;
 	}
 
@@ -223,20 +245,26 @@ bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 {
-	if (_visible) {
-		if ( event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 )
-			_alpha = 1.0;
-		else
-			_alpha = 0.6;
+//	if (_visible) {
+//		if ( event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 ) {
+//			_alpha = 1.0;
+//			return true;
+//		} else
+//	}
+
+	if (isInside(event->pos())) {
+		_alpha = 1.0;
+		return true;
 	}
 
+	_alpha = 0.6;
 	return false;
 }
 
 
 bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {
-	if (_visible && event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 ) {
+	if (isInside(event->pos()) ) {
 		return true;
 	}
 
@@ -246,7 +274,7 @@ bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 
 bool CatalogView::wheelEvent ( QWheelEvent * event )
 {
-	if (_visible && event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 ) {
+	if (isInside(event->pos())) {
 		return true;
 	}
 

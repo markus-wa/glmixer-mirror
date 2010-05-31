@@ -1163,8 +1163,22 @@ p, li { white-space: pre-wrap; }
      <addaction name="actionZoomOut"/>
      <addaction name="actionZoomBestFit"/>
     </widget>
+    <widget class="QMenu" name="menuCatalog">
+     <property name="title">
+      <string>Catalog</string>
+     </property>
+     <addaction name="actionShow_Catalog"/>
+     <addaction name="separator"/>
+     <addaction name="actionCatalogSmall"/>
+     <addaction name="actionCatalogMedium"/>
+     <addaction name="actionCatalogLarge"/>
+    </widget>
+    <widget class="QMenu" name="menuType_Here">
+     <property name="title">
+      <string>Type Here</string>
+     </property>
+    </widget>
     <addaction name="menuRendering_Window"/>
-    <addaction name="actionShow_Catalog"/>
     <addaction name="separator"/>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
@@ -1172,8 +1186,10 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionShowFPS"/>
     <addaction name="menuZoom"/>
     <addaction name="separator"/>
+    <addaction name="menuCatalog"/>
     <addaction name="menuToolBars"/>
     <addaction name="actionShow_frames"/>
+    <addaction name="menuType_Here"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1818,10 +1834,37 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/image-collection.png</normaloff>:/glmixer/icons/image-collection.png</iconset>
    </property>
    <property name="text">
-    <string>Show Catalog</string>
+    <string>Show</string>
    </property>
    <property name="toolTip">
     <string>Shows a catalog of all source on the side of the current view.</string>
+   </property>
+  </action>
+  <action name="actionCatalogSmall">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Small</string>
+   </property>
+  </action>
+  <action name="actionCatalogMedium">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Medium</string>
+   </property>
+  </action>
+  <action name="actionCatalogLarge">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Large</string>
    </property>
   </action>
  </widget>

@@ -116,15 +116,15 @@ void OutputRenderWidget::resizeGL(int w, int h)
 		if (useAspectRatio) {
 			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
 			if (aspectRatio < renderingAspectRatio)
-				glScalef(1.f, aspectRatio / renderingAspectRatio, 1.f);
+				glScalef(1.f, -aspectRatio / renderingAspectRatio, 1.f);
 			else
-				glScalef(renderingAspectRatio / aspectRatio, 1.f, 1.f);
+				glScalef(renderingAspectRatio / aspectRatio, -1.f, 1.f);
 		} else if (useWindowAspectRatio) {
 			float windowAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
 			if (aspectRatio < windowAspectRatio)
-				glScalef(1.f, aspectRatio / windowAspectRatio, 1.f);
+				glScalef(1.f, -aspectRatio / windowAspectRatio, 1.f);
 			else
-				glScalef(windowAspectRatio / aspectRatio, 1.f, 1.f);
+				glScalef(windowAspectRatio / aspectRatio, -1.f, 1.f);
 		}
 	}
 }

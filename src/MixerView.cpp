@@ -31,9 +31,9 @@ MixerView::MixerView() : View(), currentAction(NONE)
 void MixerView::setModelview()
 {
 	View::setModelview();
-    glScalef(zoom, zoom, zoom);
-    glTranslatef(getPanningX(), getPanningY(), 0.0);
-    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+	glScalef(zoom, zoom, zoom);
+	glTranslatef(getPanningX(), getPanningY(), 0.0);
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 }
 
 void MixerView::paint()
@@ -174,6 +174,8 @@ void MixerView::clear()
 
 void MixerView::resize(int w, int h)
 {
+	View::resize(w, h);
+
 	if ( w > 0 && h > 0) {
 		viewport[2] = w;
 		viewport[3] = h;
