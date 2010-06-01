@@ -34,6 +34,7 @@
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), refreshTimingTimer(0)
 {
     setupUi ( this );
+    setAcceptDrops ( true );
 
 #ifndef OPEN_CV
     actionCameraSource->setEnabled(false);
@@ -859,16 +860,21 @@ void GLMixer::on_actionSave_Session_as_triggered(){
 	on_actionSave_Session_triggered();
 }
 
-void GLMixer::on_actionLoad_Session_triggered(){
+void GLMixer::on_actionLoad_Session_triggered()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open session file"), QDir::currentPath(), tr("GLMixer workspace (*.glm)"));
+     if (fileName.isEmpty())
+         return;
 
+     openSessionFile(fileName);
+}
+
+void GLMixer::openSessionFile(QString fileName)
+{
 	QDomDocument doc;
     QString errorStr;
     int errorLine;
     int errorColumn;
-
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open session file"), QDir::currentPath(), tr("GLMixer workspace (*.glm)"));
-     if (fileName.isEmpty())
-         return;
 
      QFile file(fileName);
      if (!file.open(QFile::ReadOnly | QFile::Text)) {
@@ -952,4 +958,59 @@ void GLMixer::on_actionAppend_Session_triggered(){
     // confirm the loading of the file
 	statusbar->showMessage( tr("File %1 appended to %2.").arg( fileName ).arg( currentStageFileName ), 3000 );
 }
+
+//! [dragEnterEvent() function]
+void GLMixer::dragEnterEvent(QDragEnterEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void GLMixer::dragMoveEvent(QDragMoveEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void GLMixer::dropEvent(QDropEvent *event)
+{
+    const QMimeData *mimeData = event->mimeData();
+
+	if (mimeData->hasUrls()) {
+		QList<QUrl> urlList = mimeData->urls();
+		QString text;
+		for (int i = 0; i < urlList.size() && i < 32; ++i) {
+			QString filename = urlList.at(i).path();
+
+		    VideoFile *newSourceVideoFile  = new VideoFile(this);
+		    Q_CHECK_PTR(newSourceVideoFile);
+
+			// if the video file was created successfully
+			if (newSourceVideoFile){
+				// forward error messages to display
+				QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
+				QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
+				// can we open the file ?
+				if ( newSourceVideoFile->open( filename ) ) {
+					Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
+					// create the source as it is a valid video file (this also set it to be the current source)
+					if ( s ) {
+						RenderingManager::getInstance()->addSourceToBasket(s);
+					} else {
+				        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create media source."));
+				        delete newSourceVideoFile;
+					}
+				} else {
+					QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not open %1.").arg(filename));
+				}
+			}
+		}
+	}
+
+    event->acceptProposedAction();
+}
+
+void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    event->accept();
+}
+
 

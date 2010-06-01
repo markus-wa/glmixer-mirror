@@ -87,6 +87,12 @@ int main(int argc, char **argv)
 	// 4. show the GUI in front
     glmixer_widget.show();
     
+    QStringList params = a.arguments();
+    if ( params.count() > 1) {
+    	// try to read a file with the first argument
+    	glmixer_widget.openSessionFile(params[1]);
+    }
+
 	return a.exec();
 }
 

@@ -25,6 +25,7 @@ public:
 	~GLMixer();
 
 	void closeEvent(QCloseEvent * event);
+	void openSessionFile(QString filename);
 
 public Q_SLOTS:
 
@@ -76,6 +77,12 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void sourceMarksModified(bool);
+
+protected:
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dragMoveEvent(QDragMoveEvent *event);
+    void dragLeaveEvent(QDragLeaveEvent *event);
+    void dropEvent(QDropEvent *event);
 
 private:
 	QString currentStageFileName;
