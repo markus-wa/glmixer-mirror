@@ -977,8 +977,11 @@ void GLMixer::dropEvent(QDropEvent *event)
 	if (mimeData->hasUrls()) {
 		QList<QUrl> urlList = mimeData->urls();
 		QString text;
-		for (int i = 0; i < urlList.size() && i < 32; ++i) {
-			QString filename = urlList.at(i).path();
+		// arbitrary limitation in the amount of drops allowed
+		if (urlList.size() > 30)
+			QMessageBox::warning(this, tr("GLMixer create source"), tr("Cannot drop more than 30 files at a time."));
+		for (int i = 0; i < urlList.size() && i < 30; ++i) {
+			QString filename = urlList.at(i).toLocalFile();
 
 		    VideoFile *newSourceVideoFile  = new VideoFile(this);
 		    Q_CHECK_PTR(newSourceVideoFile);
