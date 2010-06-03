@@ -814,7 +814,7 @@ protected:
         bool flush();
         bool isFlush(AVPacket *pkt);
         bool isFull();
-
+        bool isEmpty() { return size == 0; }
     };
 
     // internal methods

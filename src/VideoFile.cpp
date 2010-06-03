@@ -531,7 +531,11 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     if (markOut == 0)
         mark_out = getEnd();  // default to end of file
     else
-        setMarkOut(markOut);  // this emits makringChanged signal
+    	mark_out = qBound(mark_in, markOut, getEnd());
+
+    // emit that marking changed only once
+    if (markIn != 0 || markOut != 0)
+    	emit markingChanged();
 
     // init picture size
     if (targetWidth == 0 || targetHeight == 0) {
@@ -822,11 +826,9 @@ QString VideoFile::getTimeFromFrame(int64_t t) const {
 QString VideoFile::getExactFrameFromFrame(int64_t t) const {
 
 	if ( video_st->nb_frames > 0 )
-		return QString("Frame: %1").arg( int ( video_st->nb_frames * double(t - video_st->start_time) / double(video_st->duration) ) );
-	else {
-		return QString("Frame: %1").arg( int ( float (t - video_st->start_time) / getFrameRate()) );
-	}
-
+		return (QString("Frame: %1").arg( (int)( video_st->nb_frames * double(t - video_st->start_time) / double(video_st->duration) ) ) );
+	 else
+		return (QString("Frame: %1").arg( (int)( float (t - video_st->start_time) / getFrameRate()) ));
 }
 
 int64_t VideoFile::getFrameFromTime(QString t) const {
@@ -847,7 +849,7 @@ int64_t VideoFile::getFrameFromTime(QString t) const {
 }
 
 int64_t VideoFile::getBegin() const {
-    return ((video_st && video_st->start_time != AV_NOPTS_VALUE) ? video_st->start_time : 0);
+    return ((video_st && video_st->start_time != (int64_t) AV_NOPTS_VALUE) ? video_st->start_time : 0);
 }
 
 double VideoFile::getDuration() const {
@@ -859,7 +861,7 @@ int64_t VideoFile::getEnd() const {
 
     int64_t e = 0;
     if (video_st) {
-        if ( video_st->duration != AV_NOPTS_VALUE)
+        if ( video_st->duration != (int64_t) AV_NOPTS_VALUE)
             e = video_st->duration;
         else
             e = (int64_t) ( getDuration() * video_st->time_base.den / video_st->time_base.num );
@@ -926,12 +928,12 @@ void ParsingThread::run() {
 
             if (av_seek_frame(is->pFormatCtx, is->videoStream, is->seek_pos, flags) < 0) {
                 is->logmessage += tr("ParsingThread:: Seeking error.\n");
-                is->sendInfo( tr("Could not seek to this exact frame (%1); jumping where I can!").arg(is->seek_pos));
-            } else {
-                // seek succeeded ; we'll have to flush buffers
-            	if (!is->videoq.flush())
-            		is->logmessage += tr("ParsingThread:: Flushing error.\n");
+                is->sendInfo( tr("Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos));
             }
+			// after seek,  we'll have to flush buffers
+			if (!is->videoq.flush())
+				is->logmessage += tr("ParsingThread:: Flushing error.\n");
+
             is->seek_backward = false;
             is->seek_req = false;
             eof = false;
@@ -1072,8 +1074,8 @@ void DecodingThread::run() {
     AVPacket pkt1;
     AVPacket *packet = &pkt1;
     int len1 = 0, frameFinished = 0;
-    double pts = 0.0;
-    int64_t dts = 0;
+    double pts = 0.0;					// Presentation time stamp
+    int64_t dts = 0;					// Decoding time stamp
     AVFrame *pFrame = avcodec_alloc_frame();
     Q_CHECK_PTR(pFrame);
 
@@ -1123,7 +1125,7 @@ void DecodingThread::run() {
         //            }
 
         // test if this is the last frame
-        if (dts >= is->mark_out - 1) {
+        if (dts >= is->mark_out || is->videoq.isEmpty()) {
             if (!is->loop_video)
                 is->pause(true);
             else {
