@@ -145,6 +145,12 @@ void RenderingManager::setFrameBufferResolution(int width, int height) {
     glBindTexture(GL_TEXTURE_2D, 0);
     _fbo->release();
 
+    // store viewport info
+    _renderwidget->renderView->viewport[0] = 0;
+    _renderwidget->renderView->viewport[1] = 0;
+    _renderwidget->renderView->viewport[2] = _fbo->width();
+    _renderwidget->renderView->viewport[3] = _fbo->height();
+
 }
 
 float RenderingManager::getFrameBufferAspectRatio() {
@@ -236,16 +242,15 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
-	glViewport(0, 0, _fbo->width(), _fbo->height());
+	glViewport(0, 0, _renderwidget->renderView->viewport[2], _renderwidget->renderView->viewport[3]);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
-	glLoadIdentity();
-	gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
+	glLoadMatrixd(_renderwidget->renderView->projection);
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glLoadIdentity();
+	glLoadMatrixd(_renderwidget->renderView->modelview);
 
 	// render to the frame buffer object
 	_fbo->bind();
@@ -253,7 +258,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 		//
 		// 1. Draw into first texture attachment; the final output rendering
 		//
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+//		glDrawBuffer(GL_COLOR_ATTACHMENT0); // no need to specify default
 
 		if (clearfirst) {
 			glClearColor(clearColor.redF(), clearColor.greenF(), clearColor.blueF(), 1.0f);
@@ -289,9 +294,9 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 			// Draw this source into the catalog
 			_renderwidget->catalogView->drawSource( source, indexSource++);
 
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		}
 
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	}
 	_fbo->release();
 

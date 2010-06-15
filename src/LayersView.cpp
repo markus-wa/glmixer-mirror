@@ -79,18 +79,22 @@ void LayersView::paint()
 
         glScalef((*its)->getAspectRatio(), 1.0, 1.0);
 
+    	// standard transparency blending
+    	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    	glBlendEquation(GL_FUNC_ADD);
+
         // draw border if active
         if ((*its)->isActive())
             glCallList(ViewRenderWidget::border_large_shadow);
         else
             glCallList(ViewRenderWidget::border_thin_shadow);
 
-	    // Blending Function For mixing like in the rendering window
+	    // Blending Function for mixing like in the rendering window
         (*its)->beginEffectsSection();
 		// bind the source texture and update its content
 		(*its)->update();
 
-		// draw surface (do not set blending from source)
+		// draw surface
 		(*its)->blend();
 		(*its)->draw();
 
@@ -142,11 +146,6 @@ void LayersView::paint()
 void LayersView::resize(int w, int h)
 {
 	View::resize(w, h);
-
-	if (w > 0 && h > 0) {
-		viewport[2] = w;
-		viewport[3] = h;
-	}
 	glViewport(0, 0, viewport[2], viewport[3]);
 
     // Setup specific projection and view for this window

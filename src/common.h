@@ -58,7 +58,7 @@ QStringList glSupportedExtensions();
 #define MIN_SCALE 0.31
 #define MAX_SCALE 100.0
 #define DEPTH_EPSILON 0.1
-#define BORDER_SIZE 0.8
+#define BORDER_SIZE 0.7
 
 // #include <cmath>
 // #include <string>

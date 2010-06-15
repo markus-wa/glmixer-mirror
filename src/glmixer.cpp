@@ -179,23 +179,21 @@ void GLMixer::on_actionLayersView_triggered(){
 }
 
 void GLMixer::on_actionMediaSource_triggered(){
-	// remember the folder
-	static QDir d = QDir::home();
+
 	QStringList fileNames;
 
 #ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
 
-	VideoFileDialog mfd(this, "Open a video or a picture", d.absolutePath());
+	static VideoFileDialog *mfd = 0;
+	if (!mfd)
+		mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
 
-	if (mfd.exec())
-		fileNames = mfd.selectedFiles();
-
-	if (!mfd.selectedFiles().empty())
-		d.setPath(mfd.selectedFiles().first());
+	if (mfd->exec())
+		fileNames = mfd->selectedFiles();
 
 #else
 	fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"),
-													d.absolutePath(),
+													QDir::currentPath(),
 													tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
 
 	d.setPath(fileNames.first());
@@ -468,15 +466,18 @@ void GLMixer::on_actionCameraSource_triggered() {
 void GLMixer::on_actionAlgorithmSource_triggered(){
 
 	// popup a question dialog to select the type of algorithm
-	AlgorithmSelectionDialog asd(this);
-	asd.setModal(false);
+	static AlgorithmSelectionDialog *asd = 0;
+	if (!asd) {
+		asd = new AlgorithmSelectionDialog(this);
+		asd->setModal(false);
+	}
 
-	if (asd.exec() == QDialog::Accepted) {
-		Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd.getSelectedAlgorithmIndex(),
-					asd.getSelectedWidth(), asd.getSelectedHeight(), asd.getSelectedVariability(), asd.getUpdatePeriod());
+	if (asd->exec() == QDialog::Accepted) {
+		Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(),
+					asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod());
 		if ( s ){
 			RenderingManager::getInstance()->addSourceToBasket(s);
-			statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd.getSelectedAlgorithmIndex())), 3000 );
+			statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
 		} else
 	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create algorithm source."));
 	}
@@ -546,17 +547,16 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent),
 }
 
 
-void CaptureDialog::saveImage() {
+void CaptureDialog::saveImage()
+{
+	filename = QFileDialog::getSaveFileName ( this, tr("Save captured image"), filename,  tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
 
-	QString filename;
-	static QDir cd = QDir::home();
-
-	filename = QFileDialog::getSaveFileName ( this, tr("Save captured image"), cd.absolutePath(),  tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
-	cd.setPath(filename);
-
-	if (!filename.isEmpty())
+	if (!filename.isEmpty()) {
 		if (!img.save(filename))
 			qWarning("** Warning **\n\nCould not save file %s.", qPrintable(filename));
+		filename = QDir::fromNativeSeparators(filename);
+		filename.resize( filename.lastIndexOf('/') );
+	}
 }
 
 
@@ -567,7 +567,6 @@ void GLMixer::on_actionCaptureSource_triggered(){
 
 	// display and request action with this capture
 	CaptureDialog cd(this, capture);
-	cd.setModal(false);
 
 	if (cd.exec() == QDialog::Accepted) {
 		Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
@@ -801,8 +800,35 @@ void GLMixer::changeWindowTitle(){
 	actionAppend_Session->setEnabled(!currentStageFileName.isNull());
 }
 
-void GLMixer::on_actionNew_Session_triggered(){
+void GLMixer::on_actionNew_Session_triggered()
+{
+	// inform the user that data might be lost
+	int ret = QMessageBox::Discard;
 
+	if (!currentStageFileName.isNull()) {
+		 QMessageBox msgBox;
+		 msgBox.setText("The session may have been modified.");
+		 msgBox.setInformativeText("Do you want to save your changes?");
+		 msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
+		 msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+		 msgBox.setDefaultButton(QMessageBox::Save);
+		 ret = msgBox.exec();
+	}
+	// react according to user's answer
+	switch (ret) {
+	   case QMessageBox::Save:
+		   // Save was clicked
+		   on_actionSave_Session_triggered();
+		   break;
+	   case QMessageBox::Cancel:
+		   // Cancel was clicked
+		   return;
+	   case QMessageBox::Discard:
+	   default:
+		   // keep on to create new session
+		   break;
+	}
+	// make a new session
 	currentStageFileName = QString();
 	changeWindowTitle();
 	RenderingManager::getInstance()->clearSourceSet();
@@ -846,8 +872,10 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 void GLMixer::on_actionSave_Session_as_triggered(){
 
-    QString fileName = QString("session.glm");
-	fileName = QFileDialog::getSaveFileName(this, tr("Save session File"),QDir::currentPath(),tr("GLMixer workspace (*.glm)"));
+	QString fileName = QDir::fromNativeSeparators(currentStageFileName);
+	fileName.resize( fileName.lastIndexOf('/') );
+
+	fileName = QFileDialog::getSaveFileName(this, tr("Save session File"), fileName, tr("GLMixer workspace (*.glm)"));
     if (fileName.isEmpty())
         return;
 
@@ -862,8 +890,11 @@ void GLMixer::on_actionSave_Session_as_triggered(){
 
 void GLMixer::on_actionLoad_Session_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open session file"), QDir::currentPath(), tr("GLMixer workspace (*.glm)"));
-     if (fileName.isEmpty())
+	QString fileName = QDir::fromNativeSeparators(currentStageFileName);
+	fileName.resize( fileName.lastIndexOf('/') );
+
+    fileName = QFileDialog::getOpenFileName(this, tr("Open session file"), fileName, tr("GLMixer workspace (*.glm)"));
+    if (fileName.isEmpty())
          return;
 
      openSessionFile(fileName);
@@ -923,7 +954,10 @@ void GLMixer::on_actionAppend_Session_triggered(){
     int errorLine;
     int errorColumn;
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), QDir::currentPath(), tr("GLMixer workspace (*.glm)"));
+    QString fileName = QDir::fromNativeSeparators(currentStageFileName);
+    fileName.resize( fileName.lastIndexOf('/') );
+
+    fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), fileName, tr("GLMixer workspace (*.glm)"));
 	if ( fileName.isEmpty() )
 		return;
 
@@ -959,7 +993,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
 	statusbar->showMessage( tr("File %1 appended to %2.").arg( fileName ).arg( currentStageFileName ), 3000 );
 }
 
-//! [dragEnterEvent() function]
+
 void GLMixer::dragEnterEvent(QDragEnterEvent *event)
 {
     event->acceptProposedAction();

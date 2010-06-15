@@ -132,6 +132,12 @@ public:
 	inline GLdouble getScaleY() const {
 		return scaley;
 	}
+	inline GLdouble getCenterX() const {
+		return centerx;
+	}
+	inline GLdouble getCenterY() const {
+		return centery;
+	}
 
 	// sets
 	inline void setAspectRatio(GLdouble ar) {
@@ -289,6 +295,7 @@ protected:
 	GLdouble x, y, z;
 	GLdouble scalex, scaley;
 	GLdouble alphax, alphay;
+	GLdouble centerx, centery, rotangle, rothandle;
 	GLdouble aspectratio;
 	GLfloat texalpha;
 	QColor texcolor;

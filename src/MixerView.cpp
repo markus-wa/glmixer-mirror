@@ -22,8 +22,8 @@ MixerView::MixerView() : View(), currentAction(NONE)
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
 	maxzoom = MAXZOOM;
-	maxpanx = SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
-	maxpany = SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
+	maxpanx = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
+	maxpany = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
 }
@@ -78,6 +78,10 @@ void MixerView::paint()
 		glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		glScalef( SOURCE_UNIT * (*its)->getAspectRatio(),  SOURCE_UNIT, 1.f);
 
+    	// standard transparency blending
+    	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    	glBlendEquation(GL_FUNC_ADD);
+
 		if ((*its)->isActive())
 			glCallList(ViewRenderWidget::border_large_shadow);
 		else
@@ -102,7 +106,6 @@ void MixerView::paint()
 		//
         RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
         first = false;
-
 	}
 
 	// if no source was rendered, clear anyway
@@ -175,11 +178,6 @@ void MixerView::clear()
 void MixerView::resize(int w, int h)
 {
 	View::resize(w, h);
-
-	if ( w > 0 && h > 0) {
-		viewport[2] = w;
-		viewport[3] = h;
-	}
 	glViewport(0, 0, viewport[2], viewport[3]);
 
     // Setup specific projection and view for this window
@@ -209,6 +207,7 @@ void MixerView::setAction(actionType a){
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		break;
 	case SELECT:
+	case RECTANGLE:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
 		break;
 	default:
@@ -337,7 +336,6 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 		return false;
-
 	}
 	// DROP MODE : avoid other actions
 	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
@@ -345,7 +343,6 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret mouse events in drop mode
 		return false;
-
 	}
 	// LEFT BUTTON : grab or draw a selection rectangle
 	else if (event->buttons() & Qt::LeftButton) {
@@ -435,8 +432,8 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	return false;
 }
 
-bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
-
+bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
+{
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 	else if (currentAction == GRAB )
@@ -477,8 +474,8 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event ){
 	return true;
 }
 
-bool MixerView::wheelEvent ( QWheelEvent * event ){
-
+bool MixerView::wheelEvent ( QWheelEvent * event )
+{
 	float previous = zoom;
 	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
@@ -497,13 +494,14 @@ bool MixerView::wheelEvent ( QWheelEvent * event ){
 	return true;
 }
 
-void MixerView::zoomReset() {
+void MixerView::zoomReset()
+{
 	setZoom(DEFAULTZOOM);
 	setPanningX(0); setPanningY(0);
 }
 
-void MixerView::zoomBestFit() {
-
+void MixerView::zoomBestFit()
+{
 	// nothing to do if there is no source
 	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
 		zoomReset();
@@ -613,13 +611,6 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     }
 
     return !clickedSources.empty();
-
-//    if (hits != 0) {
-//        // select the top most
-//        return * (RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3]) );
-//    } else {
-//        return 0;
-//    }
 
 }
 

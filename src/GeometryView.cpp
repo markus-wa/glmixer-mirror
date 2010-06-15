@@ -50,16 +50,39 @@ void GeometryView::paint()
 		//
 		// 1. Render it into current view
 		//
-
         // place and scale
         glPushMatrix();
         glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
         glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
-        // draw border if active // before draw ? ?
-        if ((*its)->isActive())
+        // draw border and handles if active
+        if ((*its)->isActive()) {
             glCallList(borderType);
-        else
+            glColor4f(0.9, 0.9, 0.0, 0.9);
+
+        	glDisable(GL_TEXTURE_2D);
+            glPointSize(10.0);
+            glBegin(GL_POINTS);
+            glVertex2d((*its)->getCenterX(), (*its)->getCenterY());
+            glEnd();
+            glPointSize(20.0);
+            glBegin(GL_POINTS);
+            glVertex2d((*its)->getCenterX() + 1.2, (*its)->getCenterY());
+            glEnd();
+
+            glBegin(GL_LINES);
+            glVertex2d((*its)->getCenterX(), (*its)->getCenterY());
+            glVertex2d((*its)->getCenterX() + 1.2, (*its)->getCenterY());
+            glEnd();
+
+            glPointSize(16.0);
+            glColor4f(0.0, 0.0, 0.0, 1.0);
+            glBegin(GL_POINTS);
+            glVertex2d((*its)->getCenterX() + 1.2, (*its)->getCenterY());
+            glEnd();
+        	glEnable(GL_TEXTURE_2D);
+
+        } else
             glCallList(ViewRenderWidget::border_thin);
 
 	    // Blending Function For mixing like in the rendering window
@@ -118,11 +141,6 @@ void GeometryView::paint()
 void GeometryView::resize(int w, int h)
 {
 	View::resize(w, h);
-
-	if (w > 0 && h > 0) {
-		viewport[2] = w;
-		viewport[3] = h;
-	}
 	glViewport(0, 0, viewport[2], viewport[3]);
 
     // Setup specific projection and view for this window

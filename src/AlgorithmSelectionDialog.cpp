@@ -134,26 +134,30 @@ void AlgorithmSelectionDialog::on_presetsSizeComboBox_currentIndexChanged(int pr
 			widthSpinBox->setValue(256);
 			break;
 		case 8:
+			widthSpinBox->setValue(160);
+			heightSpinBox->setValue(120);
+			break;
+		case 9:
 			widthSpinBox->setValue(320);
 			heightSpinBox->setValue(240);
 			break;
-		case 9:
+		case 10:
 			widthSpinBox->setValue(640);
 			heightSpinBox->setValue(480);
 			break;
-		case 10:
+		case 11:
 			widthSpinBox->setValue(720);
 			heightSpinBox->setValue(480);
 			break;
-		case 11:
+		case 12:
 			widthSpinBox->setValue(768);
 			heightSpinBox->setValue(576);
 			break;
-		case 12:
+		case 13:
 			widthSpinBox->setValue(800);
 			heightSpinBox->setValue(600);
 			break;
-		case 13:
+		case 14:
 			widthSpinBox->setValue(1024);
 			heightSpinBox->setValue(768);
 			break;
@@ -188,7 +192,10 @@ int AlgorithmSelectionDialog::getSelectedHeight(){
 
 unsigned long  AlgorithmSelectionDialog::getUpdatePeriod(){
 
-	return (unsigned long) ( 1000000.0 / double(frequencySlider->value()));
+	if (!customUpdateFrequency->isChecked())
+		return 0;
+	else
+		return (unsigned long) ( 1000000.0 / double(frequencySlider->value()));
 
 }
 

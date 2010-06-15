@@ -36,15 +36,15 @@ ViewRenderWidget::ViewRenderWidget() :
 	setMouseCursor(MOUSE_ARROW);
 
 	// create the main views
-	noView = new View;
-	Q_CHECK_PTR(noView);
+	renderView = new View;
+	Q_CHECK_PTR(renderView);
 	mixingManipulationView = new MixerView;
 	Q_CHECK_PTR(mixingManipulationView);
 	geometryManipulationView = new GeometryView;
 	Q_CHECK_PTR(geometryManipulationView);
 	layersManipulationView = new LayersView;
 	Q_CHECK_PTR(layersManipulationView);
-	currentManipulationView = noView;
+	currentManipulationView = renderView;
 
 	// create the selection view
 	catalogView = new CatalogView;
@@ -69,8 +69,8 @@ ViewRenderWidget::ViewRenderWidget() :
 
 ViewRenderWidget::~ViewRenderWidget()
 {
-	if (noView)
-		delete noView;
+	if (renderView)
+		delete renderView;
 	if (mixingManipulationView)
 		delete mixingManipulationView;
 	if (geometryManipulationView)
@@ -161,6 +161,18 @@ void ViewRenderWidget::initializeGL()
 		glActiveTexture(GL_TEXTURE0);
 	}
 
+	// store render View matrices
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
+	glGetDoublev(GL_PROJECTION_MATRIX, renderView->projection);
+	glGetDoublev(GL_PROJECTION_MATRIX, catalogView->projection);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glGetDoublev(GL_PROJECTION_MATRIX, renderView->modelview);
+	glGetDoublev(GL_PROJECTION_MATRIX, catalogView->modelview);
+
 }
 
 void ViewRenderWidget::setViewMode(viewMode mode)
@@ -181,7 +193,7 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 		break;
 	case NONE:
 	default:
-		currentManipulationView = noView;
+		currentManipulationView = renderView;
 	}
 
 	// update view to match with the changes in modelview and projection matrices (e.g. resized widget)
@@ -436,6 +448,14 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 	}
 
 	return false;
+}
+
+void ViewRenderWidget::leaveEvent ( QEvent * event ){
+
+	setFaded(false);
+	catalogView->setTransparent(true);
+
+	QWidget::leaveEvent(event);
 }
 
 void ViewRenderWidget::zoomIn()
@@ -874,6 +894,10 @@ GLuint ViewRenderWidget::buildCircleList()
 		glVertex3f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE
 				* SOURCE_UNIT * sin(i), 0);
 	glEnd();
+
+	//limbo
+	glColor4f(0.1, 0.1, 0.1, 0.8);
+	gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT * 3.0, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 50, 3);
 
 	glEnable(GL_TEXTURE_2D);
 

@@ -50,6 +50,7 @@ public:
     void keyPressEvent ( QKeyEvent * event );
     bool eventFilter(QObject *object, QEvent *event);
     void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); }  // keep updating even if hidden
+    void leaveEvent ( QEvent * event );
 
     /**
      * Specific methods
@@ -132,7 +133,7 @@ protected:
 
 private:
     // V i e w s
-	View *currentManipulationView, *noView;
+	View *currentManipulationView, *renderView;
 	MixerView *mixingManipulationView;
 	GeometryView *geometryManipulationView;
 	LayersView *layersManipulationView;

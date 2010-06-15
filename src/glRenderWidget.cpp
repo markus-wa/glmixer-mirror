@@ -67,7 +67,9 @@ void glRenderWidget::initializeGL()
 
     // ANTIALIASING
     glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_POINT_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
     // setup default background color to black

@@ -32,11 +32,13 @@ public:
 	// Specific implementation
 	void setVisible(bool on);
 	bool visible() { return _visible;}
-//	int size() { return _size; }
-	void drawSource(Source *s, int index);
-
+	void setTransparent(bool on) { _alpha = on ? 0.5 : 1.0; }
 	typedef enum { SMALL = 0, MEDIUM = 1, LARGE = 2 } catalogSize;
 	void setSize(catalogSize s);
+
+	// drawing
+	void drawSource(Source *s, int index);
+
 
 private:
 	bool _visible;
@@ -44,7 +46,8 @@ private:
 	catalogSize _currentSize;
 	double _height, h_unit, v_unit;
 	float _alpha;
-
+	int first_index, last_index;
+	double _clicX, _clicY;
 };
 
 #endif /* SELECTIONVIEW_H_ */

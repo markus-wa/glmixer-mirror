@@ -97,6 +97,7 @@ class CaptureDialog: public QDialog {
 	Q_OBJECT
 
 	QImage img;
+	QString filename;
 public:
 	CaptureDialog(QWidget *parent, QImage capture);
 public Q_SLOTS:

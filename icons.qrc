@@ -41,6 +41,8 @@
     <file>icons/media-skip-backward.png</file>
     <file>icons/media-seek-forward.png</file>
     <file>icons/media-seek-backward.png</file>
+    <file>icons/media-frame-forward.png</file>
+    <file>icons/media-frame-backward.png</file>
     <file>icons/media-playback-stop.png</file>
     <file>icons/media-playback-start.png</file>
     <file>icons/media-playback-pause.png</file>

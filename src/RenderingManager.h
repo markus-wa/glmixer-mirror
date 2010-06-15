@@ -29,7 +29,6 @@ class RenderingManager: public QObject {
 
 	friend class RenderingSource;
 	friend class OutputRenderWidget;
-	friend class ViewRenderWidget;
 
 public:
 	/**

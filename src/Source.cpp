@@ -20,6 +20,7 @@ Source::Source(GLuint texture, double depth) :
 	active(false), culled(false), frameChanged(false), textureIndex(texture),
 			maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
+			centerx(0.0), centery(0.0), rotangle(0.0), rothandle(SOURCE_UNIT * 2.0),
 			aspectratio(1.0), texalpha(1.0), pixelated(false),
 			convolution(NO_CONVOLUTION), colorTable(NO_COLORTABLE), mask_type(NO_MASK),
 			brightness(0), contrast(0),	saturation(0) {
@@ -306,8 +307,8 @@ void Source::beginEffectsSection() const {
 void Source::endEffectsSection() const {
 
 	// standard transparency blending
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
+//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//	glBlendEquation(GL_FUNC_ADD);
 
 	if (brightness != 0) {
 		glPixelTransferf(GL_RED_BIAS, 0.0f);

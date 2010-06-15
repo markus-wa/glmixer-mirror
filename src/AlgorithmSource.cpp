@@ -212,10 +212,8 @@ void AlgorithmThread::run(){
 		}
 		as->mutex->unlock();
 
-		if (as->period > 0){
-			// wait for the period duration before updating next frame
-			usleep(as->period);
-		}
+		// wait for the period duration before updating next frame
+		usleep(as->period);
 
 		if ( ++f == 100 ) { // hundred frames to average the frame rate {
 			as->framerate = 100000.0 / (double) t.elapsed();
@@ -242,6 +240,10 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,0, GL_BGRA, GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+
+	// if no period given, set to default 60Hz
+	if (period <= 0)
+		period = 17000;
 
 	// create thread
 	mutex = new QMutex;

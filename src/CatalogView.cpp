@@ -10,8 +10,9 @@
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
 
-CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0) {
-
+CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
+							first_index(0), last_index(0)
+{
 	_size[SMALL] = 60.0;
 	_iconSize[SMALL] = 23.0;
 	_largeIconSize[SMALL] = 26.0;
@@ -33,12 +34,7 @@ CatalogView::~CatalogView() {
 
 void CatalogView::resize(int w, int h) {
 
-	if ( w > 0 && h > 0) {
-		viewport[2] = w;
-		viewport[3] = h;
-
-	}
-
+	View::resize(w, h);
 	// TODO : switch depending on side (top, bottom, left, right..)
 
 	// compute viewport considering width
@@ -76,16 +72,11 @@ void CatalogView::clear() {
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT);
 
+	// clear to transparent
 	glClearColor( 1.0, 1.0, 1.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	// TODO : make a displaylist
-
-//	glTranslatef( -SOURCE_UNIT + float(_size) * h_unit, 0.0, 0.0 );
-//	glScalef( float(_size) / float(viewport[2]), 1.0, 1.0 );
-//    glCallList(ViewRenderWidget::catalogbg);
-
-
+	// draw the catalog gb and its frame
 	glColor4f(0.6, 0.6, 0.6, 0.6);
     glDisable(GL_TEXTURE_2D);
 
@@ -95,7 +86,7 @@ void CatalogView::clear() {
     float tr_y = SOURCE_UNIT;
     glRectf( bl_x, bl_y, tr_x, tr_y);
 
-	glColor4f(0.8, 0.8, 0.8, 0.9);
+	glColor4f(0.8, 0.8, 0.8, 1.0);
 	glLineWidth(2);
     glBegin(GL_LINE_LOOP); // begin drawing a square
 
@@ -111,8 +102,8 @@ void CatalogView::clear() {
 	glPopAttrib();
 }
 
-void CatalogView::drawSource(Source *s, int index){
-
+void CatalogView::drawSource(Source *s, int index)
+{
 	// Drawing a source is rendering a quad with the source texture in the catalog bar.
 	// This method is called by the rendering manager with a viewport covering the fbo
 	// and a projection matrix set to gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
@@ -125,10 +116,28 @@ void CatalogView::drawSource(Source *s, int index){
 		// target 60 pixels wide icons (height depending on aspect ratio)
 		// each source is a quad [-1 +1]
 		double swidth_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) * h_unit;
-		double sheight_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize])	 / s->getAspectRatio() * v_unit;
+		double sheight_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) / s->getAspectRatio() * v_unit;
 
 		// increment y height by the height of this source + margin
-		_height += 2.0 * sheight_pixels + 0.1 * _size[_currentSize] * v_unit;
+		double height = _height + 2.0 * sheight_pixels + 0.1 * _size[_currentSize] * v_unit;
+
+		// if getting out of available drawing area, skip this source and draw arrow instead
+		if (height > 2.0 * SOURCE_UNIT) {
+			glColor4f(0.8, 0.8, 0.8, 0.6);
+			glTranslatef( -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
+		    glDisable(GL_TEXTURE_2D);
+		    glLineWidth(2);
+		    glBegin(GL_LINE_LOOP); // begin drawing a square
+				glVertex2f(0.0, 0.50); //
+				glVertex2f(0.50, 1.0); //
+				glVertex2f(-0.50, 1.0); //
+		    glEnd();
+		    glEnable(GL_TEXTURE_2D);
+
+			return;
+		}
+
+		_height = height;
 
 		// place the icon at center of width, and vertically spaced
 		glTranslatef( -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - _height + sheight_pixels, 0.0);
@@ -141,6 +150,29 @@ void CatalogView::drawSource(Source *s, int index){
 		s->draw(false);
 	    glEnable(GL_BLEND);
 
+		// was it clicked ?
+//		if ( ABS(_clicX) > 0.1 || ABS(_clicY) > 0.1 ) {
+//			//if ( )
+//
+//			_clicX /= SOURCE_UNIT;
+//			_clicY /= SOURCE_UNIT;
+//			qDebug("clic at %f %f", _clicX, _clicY);
+//
+//			double px = -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5;
+//			double py = SOURCE_UNIT - _height + sheight_pixels;
+//
+//
+//			qDebug("s    at %f %f", px, py);
+//			qDebug("        %f %f", swidth_pixels, sheight_pixels);
+//
+//			if ( ABS( _clicX - px) <  swidth_pixels && ABS( _clicY - py) < sheight_pixels ) {
+//				s->activate(true);
+//
+//				// done with click
+//				_clicX = _clicY = 0.0;
+//			}
+//		}
+
 	    // draw source border
 		glScalef( 1.05, 1.05, 1.0);
 		if (s->isActive())
@@ -148,8 +180,9 @@ void CatalogView::drawSource(Source *s, int index){
 		else
 			glCallList(ViewRenderWidget::border_thin);
 
-		// TODO: store in map the coordinates of source per index
+
 	}
+
 }
 
 
@@ -180,8 +213,6 @@ void CatalogView::paint() {
     glBlendEquation(GL_FUNC_ADD);
 
 	// draw the texture rendered with fbo during rendering
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getCatalogTexture());
 
     glBegin(GL_QUADS); // begin drawing a square
@@ -223,9 +254,8 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
 //	if (_visible && event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 ) {
 	if ( isInside(event->pos()) ) {
 
-		// TODO: left clic = select source
-
-		// TODO: right clic = context menu [ change size (tiny, normal, big), show top, show botton ]
+		GLdouble z;
+		gluUnProject((double)event->x(), (double)event->y(), 0.0, modelview, projection, viewport, &_clicX, &_clicY, &z);
 
 		return true;
 	}
@@ -253,11 +283,11 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 //	}
 
 	if (isInside(event->pos())) {
-		_alpha = 1.0;
+		setTransparent(false);
 		return true;
 	}
 
-	_alpha = 0.6;
+	setTransparent(true);
 	return false;
 }
 
