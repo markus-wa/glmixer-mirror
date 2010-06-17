@@ -151,27 +151,25 @@ void CatalogView::drawSource(Source *s, int index)
 	    glEnable(GL_BLEND);
 
 		// was it clicked ?
-//		if ( ABS(_clicX) > 0.1 || ABS(_clicY) > 0.1 ) {
-//			//if ( )
-//
-//			_clicX /= SOURCE_UNIT;
-//			_clicY /= SOURCE_UNIT;
-//			qDebug("clic at %f %f", _clicX, _clicY);
-//
-//			double px = -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5;
-//			double py = SOURCE_UNIT - _height + sheight_pixels;
-//
-//
-//			qDebug("s    at %f %f", px, py);
-//			qDebug("        %f %f", swidth_pixels, sheight_pixels);
-//
-//			if ( ABS( _clicX - px) <  swidth_pixels && ABS( _clicY - py) < sheight_pixels ) {
-//				s->activate(true);
-//
-//				// done with click
-//				_clicX = _clicY = 0.0;
-//			}
-//		}
+		if ( ABS(_clicX) > 0.1 || ABS(_clicY) > 0.1 ) {
+			//if ( )
+
+			qDebug("clic at %f %f", _clicX, _clicY);
+
+			double px = -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5;
+			double py = SOURCE_UNIT - _height + sheight_pixels;
+
+
+			qDebug("s    at %f %f", px, py);
+			qDebug("        %f %f", swidth_pixels, sheight_pixels);
+
+			if ( ABS( _clicX - px) <  swidth_pixels && ABS( _clicY - py) < sheight_pixels ) {
+
+				RenderingManager::getInstance()->setCurrentSource(s->getId());
+				// done with click
+				_clicX = _clicY = 0.0;
+			}
+		}
 
 	    // draw source border
 		glScalef( 1.05, 1.05, 1.0);
@@ -295,6 +293,9 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {
 	if (isInside(event->pos()) ) {
+
+
+		_clicX = _clicY = 0.0;
 		return true;
 	}
 

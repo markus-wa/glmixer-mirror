@@ -243,6 +243,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
 	glViewport(0, 0, _renderwidget->renderView->viewport[2], _renderwidget->renderView->viewport[3]);
+//	glViewport(0, 0, _fbo->width(), _fbo->height());
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();

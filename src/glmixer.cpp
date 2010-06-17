@@ -587,7 +587,7 @@ void GLMixer::on_actionDeleteSource_triggered(){
 		// popup a question dialog 'are u sure' if there are clones attached;
 		if ( numclones ){
 			QString msg = tr("This source was cloned %1 times; all these clones will be removed with this source if you confirm the removal.").arg(numclones);
-			if ( QMessageBox::question(this,"Are you sure?", msg, QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
+			if ( QMessageBox::question(this," Are you sure?", msg, QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
 				numclones = 0;
 		}
 

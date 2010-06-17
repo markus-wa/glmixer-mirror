@@ -170,8 +170,8 @@ void ViewRenderWidget::initializeGL()
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glGetDoublev(GL_PROJECTION_MATRIX, renderView->modelview);
-	glGetDoublev(GL_PROJECTION_MATRIX, catalogView->modelview);
+	glGetDoublev(GL_MODELVIEW_MATRIX, renderView->modelview);
+	glGetDoublev(GL_MODELVIEW_MATRIX, catalogView->modelview);
 
 }
 
