@@ -141,7 +141,7 @@ void RenderingManager::setFrameBufferResolution(int width, int height) {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _fboCatalogTexture, 0);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_2D, _fboCatalogTexture, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
     _fbo->release();
 
@@ -190,17 +190,17 @@ void RenderingManager::updatePreviousFrame() {
 	if (RenderingManager::blit_fbo_extension)
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-		glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, _fbo->handle());
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, _fbo->handle());
 
 		// TODO : Can we draw in different texture buffer so we can keep an history of
 		// several frames, and each loopback source could use a different one
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
 
-		glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
+		glBlitFramebufferEXT(0, _fbo->height(), _fbo->width(), 0, 0, 0,
 				previousframe_fbo->width(), previousframe_fbo->height(),
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER_EXT, 0);
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
@@ -283,7 +283,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 		// 2. Draw into second texture  attachment ; the catalog (if visible)
 		//
 		if (_renderwidget->catalogView->visible()) {
-			glDrawBuffer(GL_COLOR_ATTACHMENT1);
+			glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
 
 			glLoadIdentity();
 			static int indexSource = 0;
@@ -295,7 +295,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 			// Draw this source into the catalog
 			_renderwidget->catalogView->drawSource( source, indexSource++);
 
-			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 		}
 
 	}

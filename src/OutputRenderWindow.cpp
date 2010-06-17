@@ -56,8 +56,8 @@ void OutputRenderWidget::initializeGL() {
 	if ( RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-	    glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
 	}
 
 	setBackgroundColor(palette().color(QPalette::Window));
@@ -152,10 +152,10 @@ void OutputRenderWidget::paintGL()
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 		// select FIRST texture attachment as source
-	    glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
-		glReadBuffer(GL_COLOR_ATTACHMENT0);
+	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
+		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
 		glBlitFramebufferEXT(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
 									 rx, ry, rw, rh,
 									 GL_COLOR_BUFFER_BIT, GL_NEAREST);
