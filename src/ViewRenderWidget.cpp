@@ -933,16 +933,15 @@ GLuint ViewRenderWidget::buildCatalogbgList()
 {
 	GLuint id = glGenLists(1);
 
-	GLuint texid = bindTexture(QPixmap(QString::fromUtf8(
-			":/glmixer/textures/catalog_bg.png")), GL_TEXTURE_2D);
+//	GLuint texid = bindTexture(QPixmap(QString::fromUtf8(
+//			":/glmixer/textures/catalog_bg.png")), GL_TEXTURE_2D);
 
 	glNewList(id, GL_COMPILE);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glBlendEquation(GL_FUNC_ADD);
 
-	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture
-
+//	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture
 	glColor3f(1.0, 1.0, 1.0);
 	glBegin(GL_QUADS); // begin drawing a square
 	glTexCoord2f(0.0f, 0.0f);

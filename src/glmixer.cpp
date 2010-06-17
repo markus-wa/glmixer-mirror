@@ -96,7 +96,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionCatalogMedium, SIGNAL(changed()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeMedium()));
 	QObject::connect(actionCatalogLarge, SIGNAL(changed()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeLarge()));
 
-
 	// Signals between GUI and rendering widget
 	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(refresh()));
 	QObject::connect(actionZoomIn, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomIn()));

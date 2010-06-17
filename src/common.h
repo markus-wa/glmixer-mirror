@@ -32,10 +32,10 @@
 #define GL_READ_FRAMEBUFFER           0x8CA8
 #define GL_DRAW_FRAMEBUFFER           0x8CA9
 
-extern "C" {
-	extern void glBindFramebuffer(GLenum target, GLuint framebuffer);
-	extern void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-}
+//extern "C" {
+//	extern void glBindFramebuffer(GLenum target, GLuint framebuffer);
+//	extern void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+//}
 
 #else
 #include <GL/gl.h>
@@ -45,10 +45,8 @@ extern "C" {
 
 #include <QtOpenGL>
 
-
 bool glSupportsExtension(QString extname);
 QStringList glSupportedExtensions();
-
 
 #define SOURCE_UNIT 10.0
 #define CIRCLE_SIZE 7.0

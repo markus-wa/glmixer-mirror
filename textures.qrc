@@ -1,14 +1,13 @@
 <RCC>
-  <qresource prefix="glmixer" >
-    <file>textures/circle.png</file>
-    <file>textures/shadow.png</file>
-    <file>textures/shadow_corner.png</file>
-    <file>textures/shadow_corner_selected.png</file>
-    <file>textures/layerbg.png</file>
-    <file>textures/mask_circle.png</file>
-    <file>textures/mask_roundcorner.png</file>
-    <file>textures/mask_linear_circle.png</file>
-    <file>textures/mask_linear_square.png</file>
-    <file>textures/catalog_bg.png</file> 
-  </qresource>
+    <qresource prefix="/glmixer">
+        <file>textures/circle.png</file>
+        <file>textures/shadow.png</file>
+        <file>textures/shadow_corner.png</file>
+        <file>textures/shadow_corner_selected.png</file>
+        <file>textures/layerbg.png</file>
+        <file>textures/mask_circle.png</file>
+        <file>textures/mask_roundcorner.png</file>
+        <file>textures/mask_linear_circle.png</file>
+        <file>textures/mask_linear_square.png</file>
+    </qresource> 
 </RCC>
