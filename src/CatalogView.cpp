@@ -159,7 +159,7 @@ void CatalogView::drawSource(Source *s, int index)
 			double px = -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5;
 			double py = SOURCE_UNIT - _height + sheight_pixels;
 
-
+//
 			qDebug("s    at %f %f", px, py);
 			qDebug("        %f %f", swidth_pixels, sheight_pixels);
 
@@ -194,8 +194,11 @@ void CatalogView::paint() {
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT  | GL_VIEWPORT_BIT);
 
+	// draw only in the area of the screen covered by the catalog
 	glViewport(viewport[0],viewport[1],_size[_currentSize], RenderingManager::getInstance()->getFrameBufferHeight());
 
+	// use a standard ortho projection to paint the quad with catalog
+	// (use SOURCE_UNIT width to match drawing scale in the fbo texture, but not necessary)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
@@ -215,9 +218,9 @@ void CatalogView::paint() {
 
     glBegin(GL_QUADS); // begin drawing a square
 
-    // Front Face (note that the texture's corners have to match the quad's corners)
     glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
+    // specific texture coordinates to take only the section corresponding to the catalog
     glTexCoord2d(0.0, 1.0);
     glVertex2f(-SOURCE_UNIT, SOURCE_UNIT); // Bottom Left
     glTexCoord2d( _size[_currentSize] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 1.0);
@@ -249,11 +252,10 @@ bool CatalogView::isInside(const QPoint &pos){
 
 bool CatalogView::mousePressEvent(QMouseEvent *event)
 {
-//	if (_visible && event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 ) {
 	if ( isInside(event->pos()) ) {
-
+		// get coordinates of clic in object space
 		GLdouble z;
-		gluUnProject((double)event->x(), (double)event->y(), 0.0, modelview, projection, viewport, &_clicX, &_clicY, &z);
+		gluUnProject((double)event->x(), (double)event->y(), 1.0, modelview, projection, viewport, &_clicX, &_clicY, &z);
 
 		return true;
 	}
@@ -273,13 +275,6 @@ bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 {
-//	if (_visible) {
-//		if ( event->x() > viewport[0] && (viewport[3] - event->y()) < (int)(_height / v_unit) + 10 ) {
-//			_alpha = 1.0;
-//			return true;
-//		} else
-//	}
-
 	if (isInside(event->pos())) {
 		setTransparent(false);
 		return true;
@@ -293,7 +288,6 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {
 	if (isInside(event->pos()) ) {
-
 
 		_clicX = _clicY = 0.0;
 		return true;
