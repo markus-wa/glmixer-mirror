@@ -316,8 +316,8 @@ public:
      *
      *  @return const pointer to a char array containing the string file name. String is empty if file was not opened.
      */
-    inline const char *getFileName() const {
-        return filename.toUtf8().data();
+    inline QString getFileName() const {
+        return filename;
     }
     /**
      *  Get the name of the codec of the file opened.

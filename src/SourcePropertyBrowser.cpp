@@ -454,7 +454,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 
 			VideoSource *vs = dynamic_cast<VideoSource *>(s);
 			VideoFile *vf = vs->getVideoFile();
-			infoManager->setValue(idToProperty["File name"], QLatin1String(vf->getFileName()) );
+			infoManager->setValue(idToProperty["File name"], vf->getFileName() );
 			infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
 			sizeManager->setValue(idToProperty["Frames size"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
 			// Frames size special case when power of two dimensions are generated
