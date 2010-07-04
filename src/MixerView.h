@@ -40,9 +40,6 @@ private:
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy) ;
 
-    typedef enum {NONE = 0, OVER, GRAB, SELECT, RECTANGLE } actionType;
-    actionType currentAction;
-	GLdouble rectangleStart[2], rectangleEnd[2];
     void setAction(actionType a);
 
     // creation of groups from set of selection

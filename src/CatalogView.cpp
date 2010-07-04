@@ -9,9 +9,10 @@
 #include "CatalogView.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
+#include "OutputRenderWindow.h"
 
 CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
-							first_index(0), last_index(0)
+							first_index(0), last_index(0), _clicX(0.0), _clicY(0.0)
 {
 	_size[SMALL] = 60.0;
 	_iconSize[SMALL] = 23.0;
@@ -41,7 +42,7 @@ void CatalogView::resize(int w, int h) {
 	viewport[0] = viewport[2] - _size[_currentSize];
 	viewport[1] = 0;
 
-	h_unit = 2.0 * SOURCE_UNIT / double(RenderingManager::getInstance()->getFrameBufferWidth());
+	h_unit = 2.0 * SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio() / double(RenderingManager::getInstance()->getFrameBufferWidth());
 	v_unit = 2.0 * SOURCE_UNIT / double(RenderingManager::getInstance()->getFrameBufferHeight());
 }
 
@@ -80,9 +81,10 @@ void CatalogView::clear() {
 	glColor4f(0.6, 0.6, 0.6, 0.6);
     glDisable(GL_TEXTURE_2D);
 
-    float bl_x = -SOURCE_UNIT + 0.3 * _size[_currentSize] * h_unit;
+	_width = SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio();
+    float bl_x = -_width + 0.3 * _size[_currentSize] * h_unit;
     float bl_y = -SOURCE_UNIT + ( 2.0 * SOURCE_UNIT - _height) - 0.5;
-    float tr_x = -SOURCE_UNIT + _size[_currentSize] * h_unit;
+    float tr_x = -_width + _size[_currentSize] * h_unit;
     float tr_y = SOURCE_UNIT;
     glRectf( bl_x, bl_y, tr_x, tr_y);
 
@@ -106,7 +108,8 @@ void CatalogView::drawSource(Source *s, int index)
 {
 	// Drawing a source is rendering a quad with the source texture in the catalog bar.
 	// This method is called by the rendering manager with a viewport covering the fbo
-	// and a projection matrix set to gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
+	// and a projection matrix set to
+	// gluOrtho2D(-SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), -SOURCE_UNIT, SOURCE_UNIT);
 
 	// reset height to 0 at first icon
 	if (index == 0)
@@ -124,7 +127,7 @@ void CatalogView::drawSource(Source *s, int index)
 		// if getting out of available drawing area, skip this source and draw arrow instead
 		if (height > 2.0 * SOURCE_UNIT) {
 			glColor4f(0.8, 0.8, 0.8, 0.6);
-			glTranslatef( -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
+			glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
 		    glDisable(GL_TEXTURE_2D);
 		    glLineWidth(2);
 		    glBegin(GL_LINE_LOOP); // begin drawing a square
@@ -140,7 +143,7 @@ void CatalogView::drawSource(Source *s, int index)
 		_height = height;
 
 		// place the icon at center of width, and vertically spaced
-		glTranslatef( -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - _height + sheight_pixels, 0.0);
+		glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - _height + sheight_pixels, 0.0);
 		if (s->isActive())
 			glTranslatef( (_iconSize[_currentSize] -_largeIconSize[_currentSize]) * h_unit , 0.0, 0.0);
 		glScalef( swidth_pixels, -sheight_pixels, 1.f);
@@ -156,7 +159,7 @@ void CatalogView::drawSource(Source *s, int index)
 
 			qDebug("clic at %f %f", _clicX, _clicY);
 
-			double px = -SOURCE_UNIT + _size[_currentSize] * h_unit * 0.5;
+			double px = -_width + _size[_currentSize] * h_unit * 0.5;
 			double py = SOURCE_UNIT - _height + sheight_pixels;
 
 //

@@ -16,15 +16,16 @@
 #define MAXZOOM 3.0
 #define DEFAULTZOOM 0.5
 
-GeometryView::GeometryView() : View(), quadrant(0), currentAction(NONE)
+GeometryView::GeometryView() : View(), quadrant(0), currentTool(MOVE)
 {
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
 	maxzoom = MAXZOOM;
 	maxpanx = SOURCE_UNIT*MAXZOOM*2.0;
 	maxpany = SOURCE_UNIT*MAXZOOM*2.0;
+	currentAction = View::NONE;
 
-	borderType = ViewRenderWidget::border_large;
+//	borderType = ViewRenderWidget::border_large;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/manipulation.png"));
 }
@@ -33,7 +34,7 @@ GeometryView::GeometryView() : View(), quadrant(0), currentAction(NONE)
 void GeometryView::setModelview()
 {
 	View::setModelview();
-    glScalef(zoom * OutputRenderWindow::getInstance()->getAspectRatio(), zoom, zoom);
+    glScalef(zoom, zoom, zoom);
     glTranslatef(getPanningX(), getPanningY(), 0.0);
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 }
@@ -41,48 +42,27 @@ void GeometryView::setModelview()
 void GeometryView::paint()
 {
     // first the black background (as the rendering black clear color) with shadow
+	glPushMatrix();
+    glScalef( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
     glCallList(ViewRenderWidget::quad_black);
+    glPopMatrix();
 
     bool first = true;
     // then the icons of the sources (reversed depth order)
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-
 		//
 		// 1. Render it into current view
 		//
         // place and scale
         glPushMatrix();
         glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
+        glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
         glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
         // draw border and handles if active
-        if ((*its)->isActive()) {
-            glCallList(borderType);
-            glColor4f(0.9, 0.9, 0.0, 0.9);
-
-//        	glDisable(GL_TEXTURE_2D);
-//            glPointSize(10.0);
-//            glBegin(GL_POINTS);
-//            glVertex2d((*its)->getCenterX(), (*its)->getCenterY());
-//            glEnd();
-//            glPointSize(20.0);
-//            glBegin(GL_POINTS);
-//            glVertex2d((*its)->getCenterX() + 1.2, (*its)->getCenterY());
-//            glEnd();
-//
-//            glBegin(GL_LINES);
-//            glVertex2d((*its)->getCenterX(), (*its)->getCenterY());
-//            glVertex2d((*its)->getCenterX() + 1.2, (*its)->getCenterY());
-//            glEnd();
-//
-//            glPointSize(16.0);
-//            glColor4f(0.0, 0.0, 0.0, 1.0);
-//            glBegin(GL_POINTS);
-//            glVertex2d((*its)->getCenterX() + 1.2, (*its)->getCenterY());
-//            glEnd();
-//        	glEnable(GL_TEXTURE_2D);
-
-        } else
+        if ((*its)->isActive())
+            glCallList(ViewRenderWidget::border_large);
+        else
             glCallList(ViewRenderWidget::border_thin);
 
 	    // Blending Function For mixing like in the rendering window
@@ -112,7 +92,10 @@ void GeometryView::paint()
 		RenderingManager::getInstance()->updatePreviousFrame();
 
     // last the frame thing
+	glPushMatrix();
+    glScalef( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
     glCallList(ViewRenderWidget::frame_screen);
+    glPopMatrix();
 
 
     // the source dropping icon
@@ -135,6 +118,15 @@ void GeometryView::paint()
 		glPopMatrix();
     }
 
+//    if (currentAction == View::TOOL) {
+//		glDisable(GL_TEXTURE_2D);
+//		glPointSize(10.0);
+//		glColor3d(1.0, 0.0, 0.0);
+//		glBegin(GL_LINES);
+//		glVertex2d(tmp[0], tmp[1]);
+//		glVertex2d(tmp[2], tmp[3]);
+//		glEnd();
+//    }
 }
 
 
@@ -184,13 +176,15 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
     			//  make the top most source clicked now the newly current one
     			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
 
-			// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
-			if (quadrant > 0) {
-				currentAction = GeometryView::SCALE;
-			} else  {
-				currentAction = GeometryView::MOVE;
-				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
-			}
+//			// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
+//			if (quadrant > 0) {
+//				currentAction = GeometryView::SCALE;
+//			} else  {
+//				currentAction = GeometryView::TOOL;
+//				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
+//			}
+			setAction(View::TOOL);
+
     	}
     	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
     	else if (event->buttons() & Qt::RightButton) {
@@ -209,6 +203,8 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
 				// set this newly clicked source as the current one
     			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
+    			// update quadrant to match newly current source
+    			quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
     		}
     	}
     } else
@@ -239,42 +235,64 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 
 	}
-	// LEFT button : MOVE or SCALE the current source
+	// LEFT button : use TOOL on the current source
 	else if (event->buttons() & Qt::LeftButton) {
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+		if ( RenderingManager::getInstance()->notAtEnd(cs) && currentAction == View::TOOL) {
 			// manipulate the current source according to the operation detected when clicking
-			if (currentAction == GeometryView::SCALE)
-				scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
-			else if (currentAction == GeometryView::MOVE)
+			if (currentTool == SCALE)
+				scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+			else if (currentTool == MOVE)
 				grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
-
+			else if (currentTool == ROTATE) {
+				rotateSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+//				quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
+				setTool(currentTool);
+			}
 		}
 		return true;
 
 	} else if (event->buttons() & Qt::RightButton) {
 
-
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_BOTTOM_LEFT);
+		// TODO : implement right-move = action on a single element of the selection group
 
 	} else  { // mouse over (no buttons)
 
-		if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
-			// determine the action ; it depends on the area clicked (4 corners are quadrants).
-			quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
-			if (quadrant > 0) {
-				borderType = ViewRenderWidget::border_scale;
-				// choose the cursor diagonal according to the clicked quadrant
-				if ( quadrant % 2 )
-					RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
-				else
-					RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_B);
-			} else {
-				borderType = ViewRenderWidget::border_large;
-				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
-			}
-		}
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+
+    		// if there was no current source
+    		// OR
+			// if the currently active source is NOT in the set of sources under the cursor,
+			// THEN
+			// use the top most source for quadrant computation
+			// ELSE
+			// use the current source for quadrant computation
+			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd()
+				|| clickedSources.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
+				quadrant = getSourceQuadrant(clickedSources.begin(), event->x(), viewport[3] - event->y());
+			else
+				quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
+			setAction(OVER);
+		} else
+			setAction(NONE);
+
+//		if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
+			// determine the quadrant ; it depends on the area clicked (4 corners are quadrants).
+//			quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
+//			if (quadrant > 0) {
+//				borderType = ViewRenderWidget::border_scale;
+//				// choose the cursor diagonal according to the clicked quadrant
+//				if ( quadrant % 2 )
+//					RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
+//				else
+//					RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_B);
+//			} else {
+//				borderType = ViewRenderWidget::border_large;
+//				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+//			}
+//
+//		}
 	}
 
 	return false;
@@ -282,18 +300,20 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 bool GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
 
-
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-	else
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+	else {
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
+			setAction(OVER);
+		else
+			setAction(NONE);
+	}
 
     // enforces minimal size ; check that the rescaling did not go bellow the limits and fix it
 	if ( RenderingManager::getInstance()->notAtEnd( RenderingManager::getInstance()->getCurrentSource()) ) {
 		(*RenderingManager::getInstance()->getCurrentSource())->clampScale();
 	}
 
-	currentAction = GeometryView::NONE;
 	return true;
 }
 
@@ -301,26 +321,32 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
 
 	float previous = zoom;
-	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
+	if (QApplication::keyboardModifiers () == Qt::ControlModifier)
+		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
+	else
+		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
-	if (currentAction == GeometryView::SCALE || currentAction == GeometryView::MOVE ){
+	if (currentAction == View::TOOL ){
 		deltazoom = 1.0 - (zoom / previous);
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+		if ( RenderingManager::getInstance()->notAtEnd(cs) && currentAction == View::TOOL) {
 			// manipulate the current source according to the operation detected when clicking
-			if (currentAction == GeometryView::SCALE)
-				scaleSource(cs, event->x(), viewport[3] - event->y(), 0, 0);
-			else if (currentAction == GeometryView::MOVE)
+			if (currentTool == SCALE)
+				scaleSource(cs, event->x(), viewport[3] - event->y(), 0, 0, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+			else if (currentTool == MOVE)
 				grabSource(cs, event->x(), viewport[3] - event->y(), 0, 0);
+			else if (currentTool == ROTATE)
+				rotateSource(cs, event->x(), viewport[3] - event->y(), 0, 0, QApplication::keyboardModifiers () == Qt::ShiftModifier);
 
 		}
 		// reset deltazoom
 		deltazoom = 0;
 	} else {
 		// do not show action indication (as it is likely to become invalid with view change)
-		borderType = ViewRenderWidget::border_large;
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+//		borderType = ViewRenderWidget::border_large;
+//		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+		setAction(View::NONE);
 	}
 
 
@@ -362,6 +388,62 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 //			return false;
 //	}
 //}
+
+void GeometryView::setTool(toolType t)
+{
+	currentTool = t;
+
+	switch (currentTool) {
+	case SCALE:
+		if ( quadrant % 2 )
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
+		else
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_B);
+		break;
+	case ROTATE:
+		// TODO : adapt cursor to quadrant
+		switch (quadrant) {
+		case 1:
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_TOP_LEFT);
+			break;
+		case 2:
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_TOP_RIGHT);
+			break;
+		case 3:
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_BOTTOM_RIGHT);
+			break;
+		default:
+		case 4:
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_BOTTOM_LEFT);
+		}
+
+		break;
+	case CROP:
+		// TODO implement crop
+		break;
+	default:
+	case MOVE:
+		if (currentAction == TOOL)
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
+		else
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
+	}
+}
+
+void GeometryView::setAction(actionType a){
+
+	View::setAction(a);
+
+	switch(a) {
+	case View::OVER:
+	case View::TOOL:
+		setTool(currentTool);
+		break;
+	default:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+	}
+}
+
 
 void GeometryView::zoomReset() {
 	setZoom(DEFAULTZOOM);
@@ -440,7 +522,8 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
         glPushMatrix();
         // place and scale
         glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
-        glScaled( (*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+        glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
+        glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
         (*its)->draw(false, GL_SELECT);
         glPopMatrix();
     }
@@ -498,71 +581,194 @@ void GeometryView::coordinatesFromMouse(int mouseX, int mouseY, double *X, doubl
  **/
 void GeometryView::grabSource(SourceSet::iterator currentSource, int x, int y, int dx, int dy) {
 
-    double bx, by, bz; // before movement
-    double ax, ay, az; // after  movement
+	double dum;
+    double bx, by; // before movement
+    double ax, ay; // after  movement
 
     gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
-            0.0, modelview, projection, viewport, &bx, &by, &bz);
+            0.0, modelview, projection, viewport, &bx, &by, &dum);
     gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
-            modelview, projection, viewport, &ax, &ay, &az);
+            modelview, projection, viewport, &ax, &ay, &dum);
 
+	// take into account movement of the cursor due to zoom with scroll wheel
     ax += (ax + getPanningX()) * deltazoom;
     ay += (ay + getPanningY()) * deltazoom;
 
-    double ix = (*currentSource)->getX() + (ax - bx);
-    double iy = (*currentSource)->getY() + (ay - by);
+    ax = (*currentSource)->getX() + (ax - bx);
+    ay = (*currentSource)->getY() + (ay - by);
 
     // move source
-    (*currentSource)->moveTo(ix, iy);
+    (*currentSource)->moveTo(ax, ay);
 
 }
 
 /**
+ * Scaling the source
+ *
+ * it looks easy, BUT :
+ * - i didn't want a scaling from the center, but a scaling which grabs to the opposite corner (which should remain in place)
+ * - with rotation, its a bit tricky to adjust the scaling factor
+ *
+ * This implementation ensures that a point clicked on the source is "grabbed" by the cursor
+ * and remains attached to the mouse.
+ * This is not garanteed anymore when the 'option' flag is on because then it preserves the
+ * aspect ration of the source.
  *
  **/
-void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, int dx, int dy) {
+void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, int dx, int dy, bool option) {
 
-    double bx, by, bz; // before movement
-    double ax, ay, az; // after  movement
+	double dum;
+    double bx, by; // before movement
+    double ax, ay; // after  movement
 
-    // make proportionnal scaling
+    // get clic coordinates in Geometry view coordinate system
+	gluUnProject((GLdouble) (X - dx), (GLdouble) (Y - dy),
+			1.0, modelview, projection, viewport, &bx, &by, &dum);
+	gluUnProject((GLdouble) X, (GLdouble) Y, 1.0,
+			modelview, projection, viewport, &ax, &ay, &dum);
 
-    gluUnProject((GLdouble) (X - dx), (GLdouble) (Y - dy),
-            1.0, modelview, projection, viewport, &bx, &by, &bz);
-    gluUnProject((GLdouble) X, (GLdouble) Y, 1.0,
-            modelview, projection, viewport, &ax, &ay, &az);
-
+	// take into account movement of the cursor due to zoom with scroll wheel
+	ax += (ax + getPanningX()) * deltazoom;
+	ay += (ay + getPanningY()) * deltazoom;
 
     double w = ((*currentSource)->getScaleX());
     double x = (*currentSource)->getX();
     double h = ((*currentSource)->getScaleY());
     double y = (*currentSource)->getY();
+    double cosa = cos(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    double sina = sin(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+
+    // convert to vectors ( source center -> clic position)
+	ax -= x; ay -= y;
+	bx -= x; by -= y;
+
+	// rotate to compute scaling into the source orientation
+	dum = ax * cosa - ay * sina;
+	ay = ay  * cosa + ax * sina;
+	ax = dum;
+
+	dum = bx * cosa - by * sina;
+	by = by  * cosa + bx * sina;
+	bx = dum;
+
+	// Scaling, according to the quadrant in which we clicked
     double sx = 1.0, sy = 1.0;
-    double xp = x, yp = y;
 
-    ax += (ax + getPanningX()) * deltazoom;
-    ay += (ay + getPanningY()) * deltazoom;
+	if ( quadrant == 1 || quadrant == 4)   // LEFT
+		w = -w;
+	sx = (ax + w) / (bx + w);
+	ax = w * (sx - 1.0);
 
-    if ( quadrant == 2 || quadrant == 3) {  // RIGHT
-            sx = (ax - x + w) / ( bx - x + w);
-            xp = x + w * (sx - 1.0);
-    } else {                                // LEFT
-            sx = (ax - x - w) / ( bx - x - w);
-            xp = x - w * (sx - 1.0);
-    }
+	if ( quadrant > 2 )					  // BOTTOM
+		h = -h;
+	sy = option ? sx : (ay + h) / (by + h);  // proportional scaling if option is ON
+	ay = h * (sy - 1.0);
 
-    if ( quadrant < 3 ){                    // TOP
-            sy = (ay - y + h) / ( by - y + h);
-            yp = y + h * (sy - 1.0);
-    } else {                                // BOTTOM
-            sy = (ay - y - h) / ( by - y - h);
-            yp = y - h * (sy - 1.0);
-    }
+    // reverse rotation to apply scaling and shift in the world reference
+    cosa = cos((*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    sina = sin((*currentSource)->getRotationAngle() / 180.0 * M_PI);
+
+	dum = ax * cosa - ay * sina;
+	ay = ay  * cosa + ax * sina;
+	ax = dum;
 
     (*currentSource)->scaleBy(sx, sy);
-    (*currentSource)->moveTo(xp, yp);
+    (*currentSource)->moveTo(x + ax, y + ay);
 }
 
+// in case i want to implement it : center scaling
+
+//double x = (*currentSource)->getX();
+//double y = (*currentSource)->getY();
+//double cosa = cos(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+//double sina = sin(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+//
+//// convert to vectors ( source center -> clic position)
+//ax -= x; ay -= y;
+//bx -= x; by -= y;
+//
+//// rotate to compute scaling into the source orientation
+//dum = ax * cosa - ay * sina;
+//ay = ay  * cosa + ax * sina;
+//ax = dum;
+//
+//dum = bx * cosa - by * sina;
+//by = by  * cosa + bx * sina;
+//bx = dum;
+//
+//// Scaling
+//(*currentSource)->scaleBy(ax/bx, ay/by);
+
+/**
+ * Rotation of the source
+ *
+ * Like for scaling, this implementation ensures that a point clicked on the source is "grabbed" by the cursor
+ * and remains attached to the mouse.
+ * This is not garanteed anymore when the 'option' flag is on because then it preserves the
+ * scale of the source.
+ *
+ **/
+void GeometryView::rotateSource(SourceSet::iterator currentSource, int X, int Y, int dx, int dy, bool option) {
+
+	double dum;
+    double bx, by; // before movement
+    double ax, ay; // after  movement
+
+    gluUnProject((GLdouble) (X - dx), (GLdouble) (Y - dy),
+            0.0, modelview, projection, viewport, &bx, &by, &dum);
+    gluUnProject((GLdouble) X, (GLdouble) Y, 0.0,
+            modelview, projection, viewport, &ax, &ay, &dum);
+
+	// take into account movement of the cursor due to zoom with scroll wheel
+	ax += (ax + getPanningX()) * deltazoom;
+	ay += (ay + getPanningY()) * deltazoom;
+
+    // convert to vectors ( source center -> clic position)
+    double x = (*currentSource)->getX();
+    double y = (*currentSource)->getY();
+	ax -= x; ay -= y;
+	bx -= x; by -= y;
+
+	// scale (center scaling) if option is OFF
+	if (!option) {
+		// compute scaling according to distances change
+		dum = sqrt(ax * ax + ay * ay) / sqrt(bx * bx + by * by);
+		// Scaling
+	    (*currentSource)->scaleBy(dum, dum);
+	}
+
+	// compute angle between before and after
+	ax = atan(ax/ay) * 180.0 / M_PI;
+	bx = atan(bx/by) * 180.0 / M_PI;
+	// special case of opposing angles around 180
+	dum = (bx * ax) > 0 ? bx - ax : SIGN(ax) * (bx + ax);
+
+	// incremental relative rotation
+	dum += (*currentSource)->getRotationAngle() + 360.0;
+	// modulo 360
+	dum -= (double)( (int) dum / 360 ) * 360.0;
+
+	(*currentSource)->setRotationAngle( ABS(dum) );
+
+}
+
+// QT implementation
+//    // center of rotation
+//    QPointF center((*currentSource)->getX(), (*currentSource)->getY());
+//    // what's the angle between lines drawn before and after movement?
+//    QLineF linea(center, QPointF(ax, ay));
+//    QLineF lineb(center, QPointF(bx, by));
+//    double angle = linea.angle(lineb);
+//    // correction of rotation direction
+//    if ( (linea.dx() > 0 && linea.dy() < lineb.dy()) || (linea.dx() < 0 && linea.dy() > lineb.dy()) ||
+//    		(linea.dy() > 0 && linea.dx() > lineb.dx()) || (linea.dy() < 0 && linea.dx() < lineb.dx()) )
+//        angle = 360.0 - angle;
+//
+//    // incremental relative rotation
+//    angle += (*currentSource)->getRotationAngle();
+//    // modulo 360
+//    angle -= (double)( (int) angle / 360 ) * 360.0;
+//	(*currentSource)->setRotationAngle(angle);
 
 /**
  *
@@ -581,24 +787,20 @@ char GeometryView::getSourceQuadrant(SourceSet::iterator currentSource, int X, i
     gluUnProject((GLdouble) X, (GLdouble) Y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
-    double w = ((*currentSource)->getScaleX());
-    double x = (*currentSource)->getX();
-    double h = ((*currentSource)->getScaleY());
-    double y = (*currentSource)->getY();
+    // vector (source center -> cursor position)
+    ax -= (*currentSource)->getX();
+    ay -= (*currentSource)->getY();
+    // quadrant is relative to source orientation
+    double cosa = cos(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    double sina = sin(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+	double x = ax * cosa - ay * sina;
+	double y = ay * cosa + ax * sina;
 
-    // exclude mouse cursors out of the area
-    if ( ABS(x - ax) > ABS(w)  || ABS(y - ay) > ABS(h))
-    	return 0;
-
-    // compute the quadrant code : this is tricky as scales can be negative !
-    if (( x > ax + BORDER_SIZE * ABS(w) ) && ( y < ay - BORDER_SIZE * ABS(h) ) ) // RIGHT BOTTOM
-        quadrant = h > 0 ? (w > 0 ? (1) : (2)) : (w > 0 ? (4) : (3));
-    else if  (( x > ax + BORDER_SIZE * ABS(w)) && ( y > ay + BORDER_SIZE * ABS(h) ) ) // RIGHT TOP
-        quadrant = h > 0 ? (w > 0 ? (4) : (3)) : (w > 0 ? (1) : (2));
-    else if  (( x < ax - BORDER_SIZE * ABS(w)) && ( y < ay - BORDER_SIZE * ABS(h) ) ) // LEFT BOTTOM
-    	quadrant = h > 0 ? (w > 0 ? (2) : (1)) : (w > 0 ? (3) : (4));
-    else if  (( x < ax - BORDER_SIZE * ABS(w)) && ( y > ay + BORDER_SIZE * ABS(h) ) ) // LEFT TOP
-    	quadrant = h > 0 ? (w > 0 ? (3) : (4)) : (w > 0 ? (2) : (1));
+    if (x > 0) {
+    	quadrant = (y > 0) ? 2 : 3;
+    } else {
+    	quadrant = (y > 0) ? 1 : 4;
+    }
 
     return quadrant;
 }

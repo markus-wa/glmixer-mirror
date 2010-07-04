@@ -66,11 +66,10 @@ void Source::testCulling() {
 		// but it might still be parly visible if the distance from the center to the borders is less than the width
 		if ((x + ABS(scalex) < -SOURCE_UNIT) || (x - ABS(scalex) > SOURCE_UNIT))
 			culled = true;
-		else if ((y + ABS(scaley) < -SOURCE_UNIT) || (y - ABS(scaley)
-				> SOURCE_UNIT))
+		else if ((y + ABS(scaley) < -SOURCE_UNIT) || (y - ABS(scaley) > SOURCE_UNIT))
 			culled = true;
-		else
-			culled = false;
+			else
+				culled = false;
 	}
 }
 
@@ -142,15 +141,17 @@ void Source::setAlpha(GLfloat a) {
 }
 
 void Source::resetScale() {
-	scalex = SOURCE_UNIT;
+	scalex = SOURCE_UNIT * aspectratio;
 	scaley = SOURCE_UNIT;
 
-	float renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+//	float renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+//
+//	if (aspectratio < renderingAspectRatio)
+//		scalex *= aspectratio / renderingAspectRatio;
+//	else
+//		scaley *= renderingAspectRatio / aspectratio;
 
-	if (aspectratio < renderingAspectRatio)
-		scalex *= aspectratio / renderingAspectRatio;
-	else
-		scaley *= renderingAspectRatio / aspectratio;
+
 }
 
 void Source::setColor(QColor c) {

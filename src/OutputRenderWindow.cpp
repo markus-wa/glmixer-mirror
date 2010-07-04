@@ -45,7 +45,7 @@ void OutputRenderWidget::initializeGL() {
 
     // Enables texturing
     glEnable(GL_TEXTURE_2D);
-    // This hint can improve the speed of texturing when perspective- correct texture coordinate interpolation isn't needed
+    // This hint can improve the speed of texturing when perspective-correct texture coordinate interpolation isn't needed
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     // Pure texture color (no lighting)
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -68,34 +68,37 @@ void OutputRenderWidget::resizeGL(int w, int h)
 	glRenderWidget::resizeGL(w, h);
 
 	if ( RenderingManager::blit_fbo_extension ) {
-		if (useAspectRatio) {
+		// respect the aspect ratio of the rendering manager
+		if ( useAspectRatio ) {
 			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
 			if (aspectRatio < renderingAspectRatio) {
-				int nh = int( float(w) / renderingAspectRatio);
+				int nh = (int)( float(w) / renderingAspectRatio);
 				rx = 0;
 				ry = (h - nh) / 2;
 				rw = w;
 				rh = (h + nh) / 2;
 
 			} else {
-				int nw = int( float(h) * renderingAspectRatio );
+				int nw = (int)( float(h) * renderingAspectRatio );
 				rx = (w - nw) / 2;
 				ry = 0;
 				rw = (w + nw) / 2;
 				rh = h;
 			}
 		}
+		// the option 'free aspect ratio' is on ; use the window dimensions
+		// (only valid for window, not widget)
 		else if ( useWindowAspectRatio ) {
 			float windowAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
 			if ( aspectRatio < windowAspectRatio) {
-				int nh = int( float(w) / windowAspectRatio);
+				int nh = (int)( float(w) / windowAspectRatio);
 				rx = 0;
 				ry = (h - nh) / 2;
 				rw = w;
 				rh = (h + nh) / 2;
 
 			} else {
-				int nw = int( float(h) * windowAspectRatio );
+				int nw = (int)( float(h) * windowAspectRatio );
 				rx = (w - nw) / 2;
 				ry = 0;
 				rw = (w + nw) / 2;
@@ -134,6 +137,9 @@ void OutputRenderWindow::resizeGL(int w, int h)
 {
 	OutputRenderWidget::resizeGL(w, h);
 	emit resized(!useAspectRatio);
+
+	if (!useAspectRatio)
+		RenderingManager::getInstance()->getRenderingWidget()->refresh();
 }
 
 void OutputRenderWidget::useFreeAspectRatio(bool on) {
@@ -210,7 +216,6 @@ void OutputRenderWindow::setFullScreen(bool on) {
 		setWindowState(windowState() ^ Qt::WindowFullScreen);
 		update();
 	}
-
 }
 
 void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent * event) {
@@ -238,11 +243,11 @@ void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {
 
 	event->accept();
 }
-
-void OutputRenderWindow::closeEvent(QCloseEvent * event) {
-
-	emit windowClosed();
-	event->accept();
-
-}
+//
+//void OutputRenderWindow::closeEvent(QCloseEvent * event) {
+//
+//	emit windowClosed();
+//	event->accept();
+//
+//}
 

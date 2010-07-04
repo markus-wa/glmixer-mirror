@@ -5,7 +5,7 @@
  *      Author: bh
  */
 
-#define XML_GLM_VERSION "0.2"
+#define XML_GLM_VERSION "0.3"
 
 #include <QApplication>
 #include <QDomDocument>
@@ -51,6 +51,26 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     menuToolBars->addAction(fileToolBar->toggleViewAction());
     menuToolBars->addAction(toolsToolBar->toggleViewAction());
 
+	QActionGroup *viewActions = new QActionGroup(this);
+    viewActions->addAction(actionMixingView);
+    viewActions->addAction(actionGeometryView);
+    viewActions->addAction(actionLayersView);
+    QObject::connect(viewActions, SIGNAL(triggered(QAction *)), this, SLOT(setView(QAction *) ) );
+
+	QActionGroup *toolActions = new QActionGroup(this);
+	toolActions->addAction(actionToolGrab);
+	toolActions->addAction(actionToolScale);
+	toolActions->addAction(actionToolRotate);
+	toolActions->addAction(actionToolCut);
+    QObject::connect(toolActions, SIGNAL(triggered(QAction *)), this, SLOT(setTool(QAction *) ) );
+
+	QActionGroup *cursorActions = new QActionGroup(this);
+	cursorActions->addAction(actionCursorNormal);
+	cursorActions->addAction(actionCursorSpring);
+	cursorActions->addAction(actionCursorDelay);
+	cursorActions->addAction(actionCursorCurve);
+    QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
+
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
 	delete mainRendering;
@@ -62,8 +82,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	RenderingManager::getRenderingWidget()->setCatalogContextMenu(menuCatalog);
 
 	// TODO : activate the default view read from preferences
-	on_actionMixingView_triggered();
-//	on_actionGeometryView_triggered();
+	setView(actionMixingView);
 
 	// Setup the property browser
 	SourcePropertyBrowser *propertyBrowser = RenderingManager::getPropertyBrowserWidget();
@@ -86,6 +105,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
 	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useFreeAspectRatio(bool)));
 	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized(bool)), outputpreview, SLOT(useFreeAspectRatio(bool)));
+	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized(bool)), RenderingManager::getRenderingWidget(), SLOT(refresh()));
 	QObject::connect(actionShow_Catalog, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setCatalogVisible(bool)));
 	// group the menu items of the catalog sizes ;
 	QActionGroup *catalogActionGroup = new QActionGroup(this);
@@ -158,23 +178,51 @@ void GLMixer::displayWarningMessage(QString msg){
 }
 
 
-void GLMixer::on_actionMixingView_triggered(){
+void GLMixer::setView(QAction *a){
 
-	RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::MIXING);
+	if (a == actionMixingView)
+		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::MIXING);
+	else if (a == actionGeometryView)
+		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::GEOMETRY);
+	else if (a == actionLayersView)
+		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::LAYER);
+
 	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
+
+	switch ( RenderingManager::getRenderingWidget()->getToolMode() ){
+	case ViewRenderWidget::TOOL_SCALE:
+		actionToolScale->trigger();
+		break;
+	case ViewRenderWidget::TOOL_ROTATE:
+		actionToolRotate->trigger();
+		break;
+	case ViewRenderWidget::TOOL_CUT:
+		actionToolCut->trigger();
+		break;
+	default:
+	case ViewRenderWidget::TOOL_GRAB:
+		actionToolGrab->trigger();
+		break;
+	}
 }
 
-void GLMixer::on_actionGeometryView_triggered(){
+void GLMixer::setTool(QAction *a){
 
-	RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::GEOMETRY);
-	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
+	if (a == actionToolGrab)
+		RenderingManager::getRenderingWidget()->setToolMode(ViewRenderWidget::TOOL_GRAB);
+	else if (a == actionToolScale)
+		RenderingManager::getRenderingWidget()->setToolMode(ViewRenderWidget::TOOL_SCALE);
+	else if (a == actionToolRotate)
+		RenderingManager::getRenderingWidget()->setToolMode(ViewRenderWidget::TOOL_ROTATE);
+	else if (a == actionToolCut)
+		RenderingManager::getRenderingWidget()->setToolMode(ViewRenderWidget::TOOL_CUT);
+
 }
 
 
-void GLMixer::on_actionLayersView_triggered(){
+void GLMixer::setCursor(QAction *a){
 
-	RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::LAYER);
-	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
+
 }
 
 void GLMixer::on_actionMediaSource_triggered(){
@@ -913,7 +961,7 @@ void GLMixer::openSessionFile(QString fileName)
      }
 
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
-        QMessageBox::warning(this, tr("GLMixer session opens"),tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(fileName).arg(errorLine).arg(errorColumn).arg(errorStr));
+        QMessageBox::warning(this, tr("GLMixer session open"),tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(fileName).arg(errorLine).arg(errorColumn).arg(errorStr));
         return;
     }
 
@@ -991,7 +1039,6 @@ void GLMixer::on_actionAppend_Session_triggered(){
     // confirm the loading of the file
 	statusbar->showMessage( tr("File %1 appended to %2.").arg( fileName ).arg( currentStageFileName ), 3000 );
 }
-
 
 void GLMixer::dragEnterEvent(QDragEnterEvent *event)
 {

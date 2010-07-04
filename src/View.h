@@ -99,6 +99,11 @@ public:
 	virtual bool keyPressEvent(QKeyEvent * event) {
 		return false;
 	}
+
+    typedef enum {NONE = 0, OVER, TOOL, SELECT, RECTANGLE } actionType;
+    void setAction(actionType a){
+    		currentAction = a;
+    }
 	/**
 	 *
 	 */
@@ -216,6 +221,8 @@ protected:
 	QPoint lastClicPos;
 	QPixmap icon;
 
+    actionType currentAction;
+	GLdouble rectangleStart[2], rectangleEnd[2];
 };
 
 #endif /* VIEW_H_ */

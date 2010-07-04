@@ -44,7 +44,7 @@ private:
 	bool _visible;
 	double _size[3], _iconSize[3], _largeIconSize[3];
 	catalogSize _currentSize;
-	double _height, h_unit, v_unit;
+	double _width, _height, h_unit, v_unit;
 	float _alpha;
 	int first_index, last_index;
 	double _clicX, _clicY;

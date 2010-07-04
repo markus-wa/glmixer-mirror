@@ -28,6 +28,7 @@ LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), currentSourceDisplacem
 	maxpany = lookatdistance;
 	maxpanz = lookatdistance;
 	zoomReset();
+	currentAction = View::NONE;
 
 	icon.load(QString::fromUtf8(":/glmixer/icons/depth.png"));
 }
@@ -160,13 +161,13 @@ void LayersView::resize(int w, int h)
 
 void LayersView::setAction(actionType a){
 
-	currentAction = a;
+	View::setAction(a);
 
 	switch(a) {
 	case OVER:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
 		break;
-	case GRAB:
+	case TOOL:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		break;
 	default:
@@ -202,7 +203,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 				// now manipulate the current one.
 				currentSourceDisplacement = 0;
 				// ready for grabbing the current source
-				setAction(GRAB);
+				setAction(TOOL);
 			}
 
     	}
@@ -247,7 +248,7 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 			// move the source in depth
 			grabSource(cs, event->x(), event->y(), dx, dy);
 			// ready for grabbing the current source
-			setAction(GRAB);
+			setAction(TOOL);
 		}
 	} else  { // mouse over (no buttons)
 
@@ -264,7 +265,7 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-	else if (currentAction == GRAB )
+	else if (currentAction == TOOL )
 		setAction(OVER);
 	else
 		setAction(currentAction);
@@ -279,9 +280,13 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
     lastClicPos = event->pos();
 
 	float previous = zoom;
-	setZoom (zoom - ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
-	if (currentAction == GRAB) {
+	if (QApplication::keyboardModifiers () == Qt::ControlModifier)
+		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (60.0 * maxzoom) );
+	else
+		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
+
+	if (currentAction == TOOL) {
 		deltazoom = zoom - previous;
 		// simulate a grab with no mouse movement but a deltazoom :
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
@@ -427,8 +432,6 @@ void LayersView::unProjectDepth(int x, int y, int dx, int dy, double *depth, dou
     }
     // otherwise compute with a depth of 1.0 (this not correct but should never happen)
     else {
-
-    	qDebug("beurk");
 		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
 				1.0, modelview, projection, viewport, &bx, &by, depthBeforeDelta);
 		gluUnProject((GLdouble) x, (GLdouble) y, 1.0,

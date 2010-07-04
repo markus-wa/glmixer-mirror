@@ -17,13 +17,14 @@
 #define MAXZOOM 1.0
 #define DEFAULTZOOM 0.1
 
-MixerView::MixerView() : View(), currentAction(NONE)
+MixerView::MixerView() : View()
 {
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
 	maxzoom = MAXZOOM;
 	maxpanx = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	maxpany = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
+	currentAction = View::NONE;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
 }
@@ -197,13 +198,13 @@ void MixerView::resize(int w, int h)
 
 void MixerView::setAction(actionType a){
 
-	currentAction = a;
+	View::setAction(a);
 
 	switch(a) {
 	case OVER:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
 		break;
-	case GRAB:
+	case TOOL:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		break;
 	case SELECT:
@@ -241,7 +242,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
         if ( clicked ) {
 
         	// if CTRL button modifier pressed, add clicked to selection
-			if ( currentAction != GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
+			if ( currentAction != TOOL && QApplication::keyboardModifiers () == Qt::ControlModifier) {
 				setAction(SELECT);
 
 	        	if ( !isInAGroup(clicked) ) {
@@ -256,7 +257,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 			{
 				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 				// ready for grabbing the current source
-				setAction(GRAB);
+				setAction(TOOL);
 			}
 		}
 
@@ -347,7 +348,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	// LEFT BUTTON : grab or draw a selection rectangle
 	else if (event->buttons() & Qt::LeftButton) {
 
-        if ( clicked && currentAction == GRAB )
+        if ( clicked && currentAction == TOOL )
         {
         	SourceListArray::iterator itss;
             for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
@@ -409,7 +410,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     	// RIGHT clic on a source ; change its alpha, but do not make it current
         if ( clicked ) {
         	//  move it individually, even if in a group
-        	setAction(GRAB);
+        	setAction(TOOL);
 			grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 
 			return true;
@@ -436,7 +437,7 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 {
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-	else if (currentAction == GRAB )
+	else if (currentAction == TOOL )
 		setAction(OVER);
 	else if (currentAction == RECTANGLE ){
 
@@ -477,9 +478,13 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 bool MixerView::wheelEvent ( QWheelEvent * event )
 {
 	float previous = zoom;
-	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
-	if (currentAction == GRAB ) {
+	if (QApplication::keyboardModifiers () == Qt::ControlModifier)
+		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
+	else
+		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
+
+	if (currentAction == TOOL ) {
 		deltazoom = 1.0 - (zoom / previous);
 		// simulate a grab with no mouse movement but a deltazoom :
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();

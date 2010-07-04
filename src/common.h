@@ -11,6 +11,7 @@
 #define MINI(a, b)  (((a) < (b)) ? (a) : (b))
 #define MAXI(a, b)  (((a) > (b)) ? (a) : (b))
 #define ABS(a)	   (((a) < 0) ? -(a) : (a))
+#define SIGN(a)	   (((a) < 0) ? -1 : 1)
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define EPSILON 0.00001
 #define FRAME_DURATION 15
@@ -49,7 +50,7 @@ bool glSupportsExtension(QString extname);
 QStringList glSupportedExtensions();
 
 #define SOURCE_UNIT 10.0
-#define CIRCLE_SIZE 7.0
+#define CIRCLE_SIZE 8.0
 #define SELECTBUFSIZE 64
 #define MIN_DEPTH_LAYER 0.0
 #define MAX_DEPTH_LAYER 30.0

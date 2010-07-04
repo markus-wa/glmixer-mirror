@@ -171,6 +171,18 @@ void SourcePropertyBrowser::createPropertyTree(){
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
 	root->addSubProperty(property);
+	// Rotation center
+	property = pointManager->addProperty("Rotation center");
+	idToProperty[property->propertyName()] = property;
+	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
+	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
+	root->addSubProperty(property);
+	// Rotation angle
+	property = doubleManager->addProperty("Angle");
+	idToProperty[property->propertyName()] = property;
+	doubleManager->setRange(property, 0, 360);
+	doubleManager->setSingleStep(property, 10.0);
+	root->addSubProperty(property);
 	// Scale
 	property = pointManager->addProperty("Scale");
 	idToProperty[property->propertyName()] = property;
@@ -410,6 +422,8 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 	if (s) {
 		stringManager->setValue(idToProperty["Name"], s->getName() );
 		pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
+		pointManager->setValue(idToProperty["Rotation center"], QPointF( s->getCenterX() / SOURCE_UNIT, s->getCenterY() / SOURCE_UNIT));
+		doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
 		pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
 		doubleManager->setValue(idToProperty["Depth"], s->getDepth() );
 		doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
@@ -620,6 +634,10 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QPointF &va
 			currentItem->setX( value.x() * SOURCE_UNIT);
 			currentItem->setY( value.y() * SOURCE_UNIT);
 		}
+		else if ( property == idToProperty["Rotation center"] ) {
+			currentItem->setCenterX( value.x() * SOURCE_UNIT );
+			currentItem->setCenterY( value.y() * SOURCE_UNIT);
+		}
 		else if ( property == idToProperty["Scale"] ) {
 			currentItem->setScaleX( value.x() * SOURCE_UNIT );
 			currentItem->setScaleY( value.y() * SOURCE_UNIT);
@@ -654,6 +672,10 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, double value){
 			disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 			doubleManager->setValue(idToProperty["Depth"], (*c)->getDepth() );
 			connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
+		}
+		else if ( property == idToProperty["Angle"] ) {
+			Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+			currentItem->setRotationAngle(value);
 		}
 		else if ( property == idToProperty["Alpha"] ) {
 			Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
@@ -801,6 +823,8 @@ void SourcePropertyBrowser::updateGeometryProperties(){
 	    disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
 		pointManager->setValue(idToProperty["Position"], QPointF( currentItem->getX() / SOURCE_UNIT, currentItem->getY() / SOURCE_UNIT));
 		pointManager->setValue(idToProperty["Scale"], QPointF( currentItem->getScaleX() / SOURCE_UNIT, currentItem->getScaleY() / SOURCE_UNIT));
+		doubleManager->setValue(idToProperty["Angle"], currentItem->getRotationAngle());
+
 	    connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
     }
 }

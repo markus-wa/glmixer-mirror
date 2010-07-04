@@ -39,8 +39,6 @@ private:
     void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy);
 
-    typedef enum {NONE = 0, OVER, GRAB } actionType;
-    actionType currentAction;
     void setAction(actionType a);
 };
 

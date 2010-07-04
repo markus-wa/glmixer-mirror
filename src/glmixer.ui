@@ -1278,15 +1278,15 @@ p, li { white-space: pre-wrap; }
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionGrab"/>
-    <addaction name="actionScale"/>
-    <addaction name="actionRotate"/>
-    <addaction name="actionSplit"/>
+    <addaction name="actionToolGrab"/>
+    <addaction name="actionToolScale"/>
+    <addaction name="actionToolRotate"/>
+    <addaction name="actionToolCut"/>
     <addaction name="separator"/>
-    <addaction name="actionNormal_cursor"/>
-    <addaction name="actionSpring_cursor"/>
-    <addaction name="actionDelay_cursor"/>
-    <addaction name="actionCurve_cursor"/>
+    <addaction name="actionCursorNormal"/>
+    <addaction name="actionCursorSpring"/>
+    <addaction name="actionCursorDelay"/>
+    <addaction name="actionCursorCurve"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSession"/>
@@ -1355,15 +1355,15 @@ p, li { white-space: pre-wrap; }
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionGrab"/>
-   <addaction name="actionScale"/>
-   <addaction name="actionRotate"/>
-   <addaction name="actionSplit"/>
+   <addaction name="actionToolGrab"/>
+   <addaction name="actionToolScale"/>
+   <addaction name="actionToolRotate"/>
+   <addaction name="actionToolCut"/>
    <addaction name="separator"/>
-   <addaction name="actionNormal_cursor"/>
-   <addaction name="actionSpring_cursor"/>
-   <addaction name="actionDelay_cursor"/>
-   <addaction name="actionCurve_cursor"/>
+   <addaction name="actionCursorNormal"/>
+   <addaction name="actionCursorSpring"/>
+   <addaction name="actionCursorDelay"/>
+   <addaction name="actionCursorCurve"/>
   </widget>
   <widget class="QDockWidget" name="cursorDockWidget">
    <property name="windowIcon">
@@ -1469,6 +1469,12 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionMixingView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/mixer.png</normaloff>:/glmixer/icons/mixer.png</iconset>
@@ -1484,6 +1490,9 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionGeometryView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/manipulation.png</normaloff>:/glmixer/icons/manipulation.png</iconset>
@@ -1499,6 +1508,9 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionLayersView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/depth.png</normaloff>:/glmixer/icons/depth.png</iconset>
@@ -1729,7 +1741,13 @@ p, li { white-space: pre-wrap; }
     <string>Save session under another name</string>
    </property>
   </action>
-  <action name="actionGrab">
+  <action name="actionToolGrab">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/cursor-openhand.png</normaloff>
@@ -1745,7 +1763,10 @@ p, li { white-space: pre-wrap; }
     <string>G</string>
    </property>
   </action>
-  <action name="actionScale">
+  <action name="actionToolScale">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -1764,7 +1785,10 @@ p, li { white-space: pre-wrap; }
     <string>S</string>
    </property>
   </action>
-  <action name="actionRotate">
+  <action name="actionToolRotate">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -1783,7 +1807,10 @@ p, li { white-space: pre-wrap; }
     <string>R</string>
    </property>
   </action>
-  <action name="actionSplit">
+  <action name="actionToolCut">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -1802,7 +1829,13 @@ p, li { white-space: pre-wrap; }
     <string>C</string>
    </property>
   </action>
-  <action name="actionNormal_cursor">
+  <action name="actionCursorNormal">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/normal-cursor.png</normaloff>:/glmixer/icons/normal-cursor.png</iconset>
@@ -1811,7 +1844,10 @@ p, li { white-space: pre-wrap; }
     <string>Normal cursor</string>
    </property>
   </action>
-  <action name="actionSpring_cursor">
+  <action name="actionCursorSpring">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -1826,7 +1862,10 @@ p, li { white-space: pre-wrap; }
     <string>Spring cursor; smooth cursor movement with physics</string>
    </property>
   </action>
-  <action name="actionDelay_cursor">
+  <action name="actionCursorDelay">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -1841,7 +1880,10 @@ p, li { white-space: pre-wrap; }
     <string>Delay cursor: smooth cursor movement with ease-in and ease out</string>
    </property>
   </action>
-  <action name="actionCurve_cursor">
+  <action name="actionCursorCurve">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -2083,6 +2125,38 @@ p, li { white-space: pre-wrap; }
     <hint type="destinationlabel">
      <x>180</x>
      <y>785</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionGeometryView</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionToolScale</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionGeometryView</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionToolRotate</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>

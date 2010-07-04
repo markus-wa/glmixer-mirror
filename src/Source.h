@@ -138,6 +138,9 @@ public:
 	inline GLdouble getCenterY() const {
 		return centery;
 	}
+	inline GLdouble getRotationAngle() const {
+		return rotangle;
+	}
 
 	// sets
 	inline void setAspectRatio(GLdouble ar) {
@@ -154,6 +157,15 @@ public:
 	}
 	inline void setScaleY(GLdouble v) {
 		scaley = v;
+	}
+	inline void setCenterX(GLdouble v) {
+		centerx = v;
+	}
+	inline void setCenterY(GLdouble v) {
+		centery = v;
+	}
+	inline void setRotationAngle(GLdouble v) {
+		rotangle = v;
 	}
 	void moveTo(GLdouble posx, GLdouble posy);
 	void setScale(GLdouble sx, GLdouble sy);

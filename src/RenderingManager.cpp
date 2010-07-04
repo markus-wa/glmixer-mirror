@@ -64,7 +64,6 @@ RenderingManager *RenderingManager::getInstance() {
 					"\n\nSeveral image processing operations will not work (brigthness, contrast, filters, etc.).");
 		}
 
-
 		_instance = new RenderingManager;
 		Q_CHECK_PTR(_instance);
 	}
@@ -270,6 +269,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 			// draw the source only if not culled and alpha not null
 			if (!source->isCulled() && source->getAlpha() > 0.0) {
 				glTranslated(source->getX(), source->getY(), 0.0);
+		        glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
 				glScaled(source->getScaleX(), source->getScaleY(), 1.f);
 
 				source->blend();
@@ -759,6 +759,15 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 		pos.setAttribute("Y", (*its)->getY());
 		sourceElem.appendChild(pos);
 
+		QDomElement rot = doc.createElement("Center");
+		rot.setAttribute("X", (*its)->getCenterX());
+		rot.setAttribute("Y", (*its)->getCenterY());
+		sourceElem.appendChild(rot);
+
+		QDomElement a = doc.createElement("Angle");
+		a.setAttribute("A", (*its)->getRotationAngle());
+		sourceElem.appendChild(a);
+
 		QDomElement scale = doc.createElement("Scale");
 		scale.setAttribute("X", (*its)->getScaleX());
 		scale.setAttribute("Y", (*its)->getScaleY());
@@ -864,6 +873,9 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 	newsource->setName( child.attribute("name") );
 	newsource->setX( child.firstChildElement("Position").attribute("X").toDouble() );
 	newsource->setY( child.firstChildElement("Position").attribute("Y").toDouble() );
+	newsource->setCenterX( child.firstChildElement("Center").attribute("X").toDouble() );
+	newsource->setCenterY( child.firstChildElement("Center").attribute("Y").toDouble() );
+	newsource->setRotationAngle( child.firstChildElement("Angle").attribute("A").toDouble() );
 	newsource->setScaleX( child.firstChildElement("Scale").attribute("X").toDouble() );
 	newsource->setScaleY( child.firstChildElement("Scale").attribute("Y").toDouble() );
 	tmp = child.firstChildElement("Alpha");

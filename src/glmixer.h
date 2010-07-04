@@ -50,9 +50,6 @@ public Q_SLOTS:
 	void on_actionShow_frames_toggled(bool);
 	void on_actionShowFPS_toggled(bool);
 	void on_actionAbout_triggered();
-	void on_actionMixingView_triggered();
-	void on_actionGeometryView_triggered();
-	void on_actionLayersView_triggered();
 	void on_actionAbout_Qt_triggered() {
 		QApplication::aboutQt();
 	}
@@ -65,6 +62,9 @@ public Q_SLOTS:
 	void on_actionSelect_Previous_triggered();
 
 	// GUI interaction
+	void setView(QAction *a);
+	void setTool(QAction *a);
+	void setCursor(QAction *a);
 	void updateRefreshTimerState();
 	void updateMarks();
 	void pauseAfterFrame();

@@ -12,6 +12,7 @@
 #include "GeometryView.h"
 #include "LayersView.h"
 #include "RenderingManager.h"
+#include "OutputRenderWindow.h"
 #include "CatalogView.h"
 
 GLuint ViewRenderWidget::border_thin_shadow = 0,
@@ -164,7 +165,7 @@ void ViewRenderWidget::initializeGL()
 	// store render View matrices
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
+	gluOrtho2D(-SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), -SOURCE_UNIT, SOURCE_UNIT);
 	glGetDoublev(GL_PROJECTION_MATRIX, renderView->projection);
 	glGetDoublev(GL_PROJECTION_MATRIX, catalogView->projection);
 
@@ -239,6 +240,23 @@ QPixmap ViewRenderWidget::getViewIcon()
 	return currentManipulationView->getIcon();
 }
 
+void ViewRenderWidget::setToolMode(toolMode m){
+
+	if (currentManipulationView == (View *) geometryManipulationView) {
+		geometryManipulationView->setTool( (GeometryView::toolType) m );
+	}
+
+}
+
+ViewRenderWidget::toolMode ViewRenderWidget::getToolMode(){
+
+	if (currentManipulationView == (View *) geometryManipulationView) {
+		return (ViewRenderWidget::toolMode) geometryManipulationView->getTool();
+	}
+	else
+		return ViewRenderWidget::TOOL_GRAB;
+}
+
 /**
  *  REDIRECT every calls to the current view implementation
  */
@@ -254,6 +272,13 @@ void ViewRenderWidget::resizeGL(int w, int h)
 
 void ViewRenderWidget::refresh()
 {
+	// store render View matrices
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(-SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), -SOURCE_UNIT, SOURCE_UNIT);
+	glGetDoublev(GL_PROJECTION_MATRIX, renderView->projection);
+	glGetDoublev(GL_PROJECTION_MATRIX, catalogView->projection);
+
 	// default resize ; will refresh everything
 	currentManipulationView->resize(width(), height());
 }
@@ -432,6 +457,12 @@ void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
 		QWidget::keyPressEvent(event);
 }
 
+/**
+ * Tab key switches to the next source, CTRl-Tab the previous.
+ *
+ * NB: I wanted SHIFT-Tab for the previous, but this event is captured
+ * by the main application.
+ */
 bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 {
 	if (object == (QObject *) (this) && event->type() == QEvent::KeyPress)
@@ -447,7 +478,8 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 		}
 	}
 
-	return false;
+	// standard event processing
+	 return QWidget::eventFilter(object, event);
 }
 
 void ViewRenderWidget::leaveEvent ( QEvent * event ){
