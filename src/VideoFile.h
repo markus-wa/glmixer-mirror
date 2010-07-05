@@ -26,7 +26,12 @@ extern "C" {
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
  */
-#define SEEK_STEP 0.05
+#define SEEK_STEP 0.1
+/**
+ * During decoding, the thread sleep for a little while in case there is an error or nothing to do.
+ * 100 miliseconds is the default. The lower the more busy the CPU will be.
+ */
+#define SLEEP_DELAY 100
 
 /**
  * Frames of a VideoFile are decoded and converted to VideoPictures.

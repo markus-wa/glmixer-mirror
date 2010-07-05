@@ -378,6 +378,11 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	            QObject::connect(seekBackwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBackward()));
 	            QObject::connect(seekForwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekForward()));
 	            QObject::connect(seekBeginButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBegin()));
+	            QObject::connect(seekBackwardButton, SIGNAL(clicked()), this, SLOT(unpauseBeforeSeek()));
+	            QObject::connect(seekForwardButton, SIGNAL(clicked()), this, SLOT(unpauseBeforeSeek()));
+	            QObject::connect(seekBeginButton, SIGNAL(clicked()), this, SLOT(unpauseBeforeSeek()));
+
+
 	            QObject::connect(videoLoopButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setLoop(bool)));
 	            QObject::connect(markInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkIn()));
 	            QObject::connect(markOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkOut()));
@@ -720,13 +725,6 @@ void  GLMixer::on_frameSlider_sliderReleased (){
 }
 
 void GLMixer::on_frameSlider_sliderMoved (int v){
-
-    // disconnect the button from the VideoFile signal ; this way when we'll unpause bellow, the button will keep its state
-    QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-
-    // the trick; call a method when the frame will be ready!
-    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
-
     // compute where we should jump to
     double percent = (double)(v)/ (double)frameSlider->maximum();
     int64_t pos = (int64_t) ( selectedSourceVideoFile->getEnd()  * percent );
@@ -734,6 +732,12 @@ void GLMixer::on_frameSlider_sliderMoved (int v){
 
     // request seek ; we need to have the VideoFile process running to go there
     selectedSourceVideoFile->seekToPosition(pos);
+
+    // disconnect the button from the VideoFile signal ; this way when we'll unpause bellow, the button will keep its state
+    QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
+
+    // the trick; call a method when the frame will be ready!
+    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
 
     // let the VideoFile run till it displays the frame seeked
     selectedSourceVideoFile->pause(false);
@@ -743,6 +747,57 @@ void GLMixer::on_frameSlider_sliderMoved (int v){
         timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(pos) );
     else
         timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(pos) );
+
+}
+
+
+void GLMixer::pauseAfterFrame (){
+
+	selectedSourceVideoFile->pause(true);
+
+	// do not keep calling pause method for each frame !
+	QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
+	// reconnect the pause button
+	QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
+
+
+}
+
+void GLMixer::unpauseBeforeSeek() {
+
+    // disconnect the button from the VideoFile signal ; this way when we'll unpause bellow, the button will keep its state
+    QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
+
+    // the trick; call a method when the frame will be ready!
+    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
+
+    // let the VideoFile run till it displays the frame seeked
+    selectedSourceVideoFile->pause(false);
+
+}
+
+void GLMixer::pauseAfterSeek (){
+
+	static int frameCounter = 0;
+
+	// if the button 'Pause' is checked, we shall go back to pause once
+	// we'll have displayed the seeked frame
+	if (pauseButton->isChecked()) {
+
+		// make sure we display all the pictures in the queue
+		if (++frameCounter < VIDEO_PICTURE_QUEUE_SIZE)
+			return;
+
+		selectedSourceVideoFile->pause(true);
+		frameCounter = 0;
+
+		refreshTiming();
+	}
+
+	// do not keep calling pause method for each frame !
+	QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
+	// reconnect the pause button
+	QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
 }
 
 
@@ -757,9 +812,9 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
             // avoid jump in slider (due to timer refresh of the slider position from movie values)
             skipNextRefresh = true;
 
-            if (pauseButton->isChecked())
+            if (pauseButton->isChecked()) {
                 on_frameSlider_sliderMoved (frameSlider->sliderPosition ());
-            else{
+            } else {
                 // compute where we should jump to
                 double percent = (double)(frameSlider->sliderPosition ())/ (double)frameSlider->maximum();
                 int64_t pos = (int64_t) ( selectedSourceVideoFile->getEnd()  * percent );
@@ -776,17 +831,6 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
 
 }
 
-
-void GLMixer::pauseAfterFrame (){
-
-	selectedSourceVideoFile->pause(true);
-
-    // do not keep calling pause method for each frame !
-    QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
-    // reconnect the pause button
-    QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-
-}
 
 
 void GLMixer::updateMarks (){

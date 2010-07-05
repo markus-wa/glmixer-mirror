@@ -67,7 +67,9 @@ public Q_SLOTS:
 	void setCursor(QAction *a);
 	void updateRefreshTimerState();
 	void updateMarks();
+	void unpauseBeforeSeek();
 	void pauseAfterFrame();
+	void pauseAfterSeek();
 	void refreshTiming();
 	void displayInfoMessage(QString msg);
 	void displayWarningMessage(QString msg);

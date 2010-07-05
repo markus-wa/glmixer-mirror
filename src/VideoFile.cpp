@@ -725,7 +725,7 @@ void VideoFile::video_refresh_timer() {
 
 			// knowing the delay (in seconds), we can schedule the next display (in ms)
 			if (!pause_video && !is_synchronized)
-				ptimer->start((int) (actual_delay * 1000 + 0.5));
+				ptimer->start((int) (actual_delay * 1000.0 + 0.5)); // round up
 
 //			// if we just paused on this frame, keep it as reference
 //			else
@@ -787,6 +787,7 @@ void VideoFile::seekToPosition(int64_t t) {
         seek_pos = qBound(getBegin(), t, getEnd());
         seek_req = true;
     }
+
 }
 
 void VideoFile::seekBySeconds(double ss) {
@@ -859,15 +860,14 @@ double VideoFile::getDuration() const {
 
 int64_t VideoFile::getEnd() const {
 
-    int64_t e = 0;
-    if (video_st) {
-        if ( video_st->duration != (int64_t) AV_NOPTS_VALUE)
-            e = video_st->duration;
-        else
-            e = (int64_t) ( getDuration() * video_st->time_base.den / video_st->time_base.num );
-    }
+    if (!video_st)
+    	return 0;
 
-    return e;
+	if ( video_st->duration != (int64_t) AV_NOPTS_VALUE)
+		return video_st->duration;
+
+	return (int64_t) ( getDuration() * video_st->time_base.den / video_st->time_base.num );
+
 }
 
 void VideoFile::setMarkIn(int64_t t) {
@@ -937,11 +937,12 @@ void ParsingThread::run() {
             is->seek_backward = false;
             is->seek_req = false;
             eof = false;
+
         }
 
         /* if the queue is full, no need to read more */
         if (is->videoq.isFull()) {
-            msleep(10);
+            msleep(SLEEP_DELAY);
             continue;
         }
 
@@ -973,7 +974,7 @@ void ParsingThread::run() {
                 break;
             }
             /* no error; just wait a bit for the end of the packet and continue*/
-            msleep(100);
+            msleep(SLEEP_DELAY);
             continue;
         }
 
@@ -990,7 +991,7 @@ void ParsingThread::run() {
             av_free_packet(packet);
         }
 
-    }
+    } // quit
 
     // request flushing of the video queue (this will end the decoding thread)
 	if (!is->videoq.flush())
@@ -1084,7 +1085,7 @@ void DecodingThread::run() {
     while (is) {
         // sleep a bit if paused
         if (is->pause_video && !is->quit) {
-            msleep(100);
+            msleep(SLEEP_DELAY);
             continue;
         }
 
@@ -1100,6 +1101,7 @@ void DecodingThread::run() {
         if (is->videoq.isFlush(packet)) {
             // means we have to flush buffers
             avcodec_flush_buffers(is->video_st->codec);
+            // go on to next packet
             continue;
         }
 
@@ -1128,9 +1130,8 @@ void DecodingThread::run() {
         if (dts >= is->mark_out || is->videoq.isEmpty()) {
             if (!is->loop_video)
                 is->pause(true);
-            else {
+            else
                 is->seekToPosition(is->mark_in);
-            }
         }
         // compute presentation time stamp
         //        pts = dts * av_q2d(is->video_st->time_base);
@@ -1145,6 +1146,7 @@ void DecodingThread::run() {
 
         // packet was decoded, can be removed
         av_free_packet(packet);
+
     }
 
     // free the locally allocated variable
