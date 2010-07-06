@@ -128,14 +128,13 @@ void VideoSource::applyFilter(){
 	// modify the filtering for the copy
 	copy.setCopyFiltering(is->getBrightness(), is->getContrast(), is->getSaturation());
 
-	// if the source is still on the original frame
+	// if the source is still on the original frame or the video file is paused
 	if (bufferIndex == -1 || !is->isRunning() || is->isPaused()) {
 		// request to change the buffer from the new copy
 		frameChanged = copyChanged = true;
 	}
 	else {
-		// else do nothing special; wait for next frame
-		// except if the video file is paused
+		// else do nothing special; wait for next frame to apply filter
 		copyChanged = false;
 	}
 }

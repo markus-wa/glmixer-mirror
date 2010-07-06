@@ -250,6 +250,13 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
 
     // reset
     reset();
+
+    // init clock
+    last_time = av_gettime();
+    last_virtual_time = 0;
+    video_current_pts_time = last_time;
+    frame_timer = (double) (video_current_pts_time) / (double) AV_TIME_BASE;
+    frame_last_delay = 40e-3; // 40 ms
 }
 
 VideoFile::~VideoFile() {
@@ -306,12 +313,6 @@ void VideoFile::reset() {
     seek_pos = 0;
     seek_req = false;
 
-    // init clock
-    last_time = av_gettime();
-    last_virtual_time = 0;
-    video_current_pts_time = last_time;
-    frame_timer = (double) (video_current_pts_time) / (double) AV_TIME_BASE;
-    frame_last_delay = 40e-3; // 40 ms
 
 }
 
@@ -357,9 +358,9 @@ void VideoFile::start() {
             seek_backward = true;
             // restart where we where
             seekToPosition(mark_stop);
-        } else
+        }
         // restart at beginning
-        if (mark_in > getBegin()) {
+        else if (mark_in > getBegin()) {
             // enforces seek to the frame before ; it is needed because we may miss the good frame
             seek_backward = true;
             seekToPosition(mark_in);
@@ -777,6 +778,7 @@ void VideoFile::setOptionRevertToBlackWhenStop(bool black) {
         resetPicture = &blackPicture;
     else
         resetPicture = &firstPicture;
+    // if the option is toggled while being stopped, then we should show the black frame now!
     if (quit)
         emit frameReady(-1);
 }

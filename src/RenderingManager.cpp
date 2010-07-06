@@ -461,7 +461,7 @@ void RenderingManager::addSourceToBasket(Source *s){
 
 int RenderingManager::getSourceBasketSize(){
 
-	return int (dropBasket.size());
+	return (int) (dropBasket.size());
 }
 
 Source *RenderingManager::getSourceBasketTop(){
@@ -515,7 +515,6 @@ void RenderingManager::dropSourceWithDepth(double depth){
 	// get the pointer to the source at the top of the list
 	Source *top = *dropBasket.begin();
 	// apply the modifications
-	// TODO ; check validity of depth
 	top->setDepth(depth);
 	// insert the source
 	insertSource(top);
@@ -797,6 +796,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 		QDomElement filter = doc.createElement("Filter");
 		filter.setAttribute("Brightness", (*its)->getBrightness());
 		filter.setAttribute("Contrast", (*its)->getContrast());
+		filter.setAttribute("Saturation", (*its)->getSaturation());
 		filter.setAttribute("Pixelated", (*its)->isPixelated());
 		filter.setAttribute("ColorTable", (*its)->getColorTable());
 		filter.setAttribute("Convolution", (*its)->getConvolution());
@@ -821,8 +821,6 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 			m.setAttribute("Out", vf->getMarkOut());
 			specific.appendChild(m);
 
-			// TODO  : saturation, if not generic in source, 'isPowerOfTwo'
-
 #ifdef OPEN_CV
 		} else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
 			OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
@@ -840,7 +838,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 			f.appendChild(algo);
 			specific.appendChild(f);
 
-			// TODO : turbulence width and creation width are not the same
+			// get size
 			QDomElement s = doc.createElement("Frame");
 			s.setAttribute("Width", as->getFrameWidth());
 			s.setAttribute("Height", as->getFrameHeight());
@@ -889,6 +887,7 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 	tmp = child.firstChildElement("Filter");
 	newsource->setBrightness( tmp.attribute("Brightness").toInt() );
 	newsource->setContrast( tmp.attribute("Contrast").toInt() );
+	newsource->setSaturation( tmp.attribute("Saturation").toInt() );
 	newsource->setPixelated( tmp.attribute("Pixelated").toInt() );
 	newsource->setColorTable( (Source::colorTableType) tmp.attribute("ColorTable").toInt() );
 	newsource->setConvolution( (Source::convolutionType) tmp.attribute("Convolution").toInt() );
@@ -923,8 +922,6 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 				newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB32);
 			// if the video file was created successfully
 			if (newSourceVideoFile){
-				// TODO : forward error messages to display
-				// QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayErrorMessage(QString)));
 				// can we open the file ?
 				if ( newSourceVideoFile->open( Filename.text(), marks.attribute("In").toLong(), marks.attribute("Out").toLong() ) ) {
 					// create the source as it is a valid video file (this also set it to be the current source)
@@ -932,7 +929,14 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 					if (!newsource)
 				        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create media source %1. ").arg(child.attribute("name")));
 				}
+				else
+					QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not open media file %1. ").arg(Filename.text()));
 			}
+			else
+				QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not allocate memory for media source %1. ").arg(child.attribute("name")));
+
+
+
 
 #ifdef OPEN_CV
 		} else if ( type == Source::CAMERA_SOURCE ) {
@@ -953,14 +957,14 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 					Frame.attribute("Width").toInt(), Frame.attribute("Height").toInt(),
 					Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), depth);
 			if (!newsource)
-		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create algorithem source %1. ").arg(child.attribute("name")));
+		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create algorithm source %1. ").arg(child.attribute("name")));
 
 
 		} else if ( type == Source::RENDERING_SOURCE) {
 			// no tags specific for a rendering source
 			newsource = RenderingManager::getInstance()->newRenderingSource(depth);
 			if (!newsource)
-		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create rendering loopback source %1. ").arg(child.attribute("name")));
+		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create rendering loop-back source %1. ").arg(child.attribute("name")));
 
 		} else if ( type == Source::CLONE_SOURCE) {
 			// remember the node of the sources to clone

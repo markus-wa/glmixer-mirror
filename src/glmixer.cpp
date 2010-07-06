@@ -301,6 +301,15 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	}
 #endif
 
+	static AlgorithmSource *as = NULL;
+	// the static pointer to algorithm source keeps last reference to it when selected (controlled here)
+	// -> we should disconnect it to the play button if we change source
+	if (as) {
+        QObject::disconnect(startButton, SIGNAL(toggled(bool)), as, SLOT(play(bool)));
+        // clear it for next time
+        as = NULL;
+	}
+
 	// whatever happens, we will drop the control on the current source
 	//   (this slot is called by MainRenderWidget through signal currentSourceChanged
 	//    which is sent ONLY when the current source is changed)
@@ -345,7 +354,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		actionDeleteSource->setEnabled(true);
 		actionCloneSource->setEnabled(true);
 
-		// TODO: setup preview
+		// TODO: show a preview of the source ?
 
 		// test the class of the current source and deal accordingly :
 		// if it is a VideoSource (video file)
@@ -413,9 +422,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 					startButton->setEnabled( true );
 
 					// restore config
-					selectedSourceVideoFile->setOptionRestartToMarkIn( restartWhereStoppedCheckBox->isChecked());
-					selectedSourceVideoFile->setOptionRevertToBlackWhenStop( resetToBlackCheckBox->isChecked());
-					selectedSourceVideoFile->setOptionAllowDirtySeek(dirtySeekCheckBox->isChecked());
+					restartWhereStoppedCheckBox->setChecked(selectedSourceVideoFile->getOptionRestartToMarkIn());
+					resetToBlackCheckBox->setChecked(selectedSourceVideoFile->getOptionRevertToBlackWhenStop());
+					dirtySeekCheckBox->setChecked(selectedSourceVideoFile->getOptionAllowDirtySeek());
 
 					// display info (time or frames)
 					on_actionShow_frames_toggled(actionShow_frames->isChecked());
@@ -450,23 +459,35 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		}
 #endif
 
+		if ( (*csi)->rtti() == Source::ALGORITHM_SOURCE ) {
+			as = dynamic_cast<AlgorithmSource *>(*csi);
+			// we can play/stop  it
+			vcontrolDockWidgetContents->setEnabled(true);
+			startButton->setChecked( as->isRunning() );
+			startButton->setEnabled( true );
+			QObject::connect(startButton, SIGNAL(toggled(bool)), as, SLOT(play(bool)));
+
+			// we can't configure it
+			videoFrame->setEnabled(false);
+			timingControlFrame->setEnabled(false);
+			vcontrolDockWidgetOptions->setEnabled(false);
+			return;
+		}
+
+		vcontrolDockWidgetContents->setEnabled(false);
 		startButton->setEnabled( false );
 
-	} else {
-		// it is a basic  Source
-		// fill in the information panel
 
-		// TODO : play works on algo source
+	} else {
+		// it is not a valid source
+		// disable panel widgets
 
 		actionDeleteSource->setEnabled(false);
 		actionCloneSource->setEnabled(false);
-
-		// nothing to preview
-		// disable panel widgets
 		vcontrolDockWidgetContents->setEnabled(false);
-		sourceDockWidgetContents->setEnabled(false);
 		startButton->setEnabled( false );
 
+		sourceDockWidgetContents->setEnabled(false);
 	}
 
 }
@@ -538,7 +559,6 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 
 void GLMixer::on_actionRenderingSource_triggered(){
 
-	// TODO popup a question dialog 'are u sure'
 	Source *s = RenderingManager::getInstance()->newRenderingSource();
 	if ( s ){
 		RenderingManager::getInstance()->addSourceToBasket(s);
@@ -550,7 +570,6 @@ void GLMixer::on_actionRenderingSource_triggered(){
 
 void GLMixer::on_actionCloneSource_triggered(){
 
-	// TODO popup a question dialog 'are u sure'
 	if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
 		Source *s = RenderingManager::getInstance()->newCloneSource( RenderingManager::getInstance()->getCurrentSource());
 		if ( s ) {

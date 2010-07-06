@@ -34,9 +34,9 @@ public:
     inline algorithmType getAlgorithmType() const { return algotype; }
 	inline double getVariability() const { return variability; }
 	inline unsigned long getPeriodicity() const { return period; }
-	inline int getFrameWidth() const { return width; }
-	inline int getFrameHeight() const { return height; }
 	inline double getFrameRate() const { return framerate; }
+	int getFrameWidth() const;
+	int getFrameHeight() const;
 	bool isRunning();
 
 public Q_SLOTS:

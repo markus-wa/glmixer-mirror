@@ -345,6 +345,19 @@ void AlgorithmSource::update(){
 
 }
 
+int AlgorithmSource::getFrameWidth() const {
+
+	if (algotype == TURBULENCE || algotype == PERLIN_BW_NOISE || algotype == PERLIN_COLOR_NOISE)
+		return (int) (horizontal * 1000.0);
+	return width;
+}
+
+int AlgorithmSource::getFrameHeight() const {
+
+	if (algotype == TURBULENCE || algotype == PERLIN_BW_NOISE || algotype == PERLIN_COLOR_NOISE)
+		return (int) (vertical * 1000.0);
+	return height;
+}
 
 QString AlgorithmSource::getAlgorithmDescription(int t) {
 
