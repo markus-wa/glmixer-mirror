@@ -5,7 +5,7 @@
  *      Author: bh
  */
 
-#define XML_GLM_VERSION "0.3"
+#define XML_GLM_VERSION "0.4"
 
 #include <QApplication>
 #include <QDomDocument>
@@ -431,6 +431,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 					// restart slider timer
 					updateRefreshTimerState();
+					updateMarks();
 
 				} else {
 					// no, its a picture, we can't control it

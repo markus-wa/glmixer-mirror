@@ -821,6 +821,17 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 			m.setAttribute("Out", vf->getMarkOut());
 			specific.appendChild(m);
 
+			QDomElement p = doc.createElement("Play");
+			p.setAttribute("Speed", vf->getPlaySpeed());
+			p.setAttribute("Loop", vf->isLoop());
+			specific.appendChild(p);
+
+			QDomElement o = doc.createElement("Options");
+			o.setAttribute("AllowDirtySeek", vf->getOptionAllowDirtySeek());
+			o.setAttribute("RestartToMarkIn", vf->getOptionRestartToMarkIn());
+			o.setAttribute("RevertToBlackWhenStop", vf->getOptionRevertToBlackWhenStop());
+			specific.appendChild(o);
+
 #ifdef OPEN_CV
 		} else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
 			OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
@@ -928,9 +939,20 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 					newsource = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile, depth);
 					if (!newsource)
 				        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create media source %1. ").arg(child.attribute("name")));
+					else {
+						// all is good ! we can apply specific parameters to the video file
+						QDomElement play = t.firstChildElement("Play");
+						newSourceVideoFile->setPlaySpeed(play.attribute("Speed").toInt());
+						newSourceVideoFile->setLoop(play.attribute("Loop").toInt());
+						QDomElement options = t.firstChildElement("Options");
+						newSourceVideoFile->setOptionAllowDirtySeek(options.attribute("AllowDirtySeek").toInt());
+						newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn").toInt());
+						newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop").toInt());
+					}
 				}
 				else
 					QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not open media file %1. ").arg(Filename.text()));
+
 			}
 			else
 				QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not allocate memory for media source %1. ").arg(child.attribute("name")));
