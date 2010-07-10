@@ -770,6 +770,23 @@ void GLMixer::on_frameSlider_sliderMoved (int v){
 
 }
 
+void GLMixer::on_frameForwardButton_clicked(){
+
+    // disconnect the button from the VideoFile signal ; this way when we'll unpause bellow, the button will keep its state
+    QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
+
+    // the trick; call a method when the frame will be ready!
+    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
+
+    // let the VideoFile run till it displays 1 frame
+    selectedSourceVideoFile->pause(false);
+
+    // cosmetics to show the time of the frame (refreshTiming disabled)
+    if (actionShow_frames->isChecked())
+        timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
+    else
+        timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
+}
 
 void GLMixer::pauseAfterFrame (){
 
@@ -779,8 +796,6 @@ void GLMixer::pauseAfterFrame (){
 	QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
 	// reconnect the pause button
 	QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-
-
 }
 
 void GLMixer::unpauseBeforeSeek() {
@@ -805,7 +820,7 @@ void GLMixer::pauseAfterSeek (){
 	if (pauseButton->isChecked()) {
 
 		// make sure we display all the pictures in the queue
-		if (++frameCounter < VIDEO_PICTURE_QUEUE_SIZE)
+		if (frameCounter++ <= VIDEO_PICTURE_QUEUE_SIZE)
 			return;
 
 		selectedSourceVideoFile->pause(true);

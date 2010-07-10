@@ -534,6 +534,8 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     else
     	mark_out = qBound(mark_in, markOut, getEnd());
 
+//    video_st->nb_frames = getEnd() - getBegin();
+
     // emit that marking changed only once
     if (markIn != 0 || markOut != 0)
     	emit markingChanged();
@@ -603,6 +605,18 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
 
     // tells everybody we are set !
     emit info(tr("File %1 opened (%2 frames).").arg(filename).arg(getExactFrameFromFrame(getEnd())));
+
+
+    // BHBN
+    qDebug("getBegin() %d",getBegin());
+    qDebug("getEnd() %d",getEnd());
+
+    qDebug("getDuration() %f",getDuration());
+    qDebug("getFrameRate() %f", getFrameRate());
+
+    qDebug("video_st->duration %d",video_st->duration);
+    qDebug("         first_dts %d", video_st->first_dts);
+
 
     return true;
 }
@@ -756,15 +770,15 @@ int64_t VideoFile::getCurrentFrameTime() const {
     return ((int64_t)(play_speed * video_current_pts / av_q2d(video_st->time_base)));
 }
 
-float VideoFile::getFrameRate() const {
+double VideoFile::getFrameRate() const {
 
-//    if (video_st && video_st->avg_frame_rate.den > 0)
-//        return ((float) (video_st->avg_frame_rate.num )/ (float) video_st->avg_frame_rate.den);
+//    if (video_st && video_st->avg_frame_rate.den > 0) // never true !!!
+//        return ((double) (video_st->avg_frame_rate.num )/ (double) video_st->avg_frame_rate.den);
 //    else
 	if (video_st && video_st->r_frame_rate.den > 0)
-        return ((float) (video_st->r_frame_rate.num )/ (float) video_st->r_frame_rate.den);
+        return ((double) av_q2d(video_st->r_frame_rate) );
     else
-        return 0;
+        return 1.0;
 }
 
 void VideoFile::setOptionAllowDirtySeek(bool dirty) {
@@ -831,7 +845,8 @@ QString VideoFile::getExactFrameFromFrame(int64_t t) const {
 	if ( video_st->nb_frames > 0 )
 		return (QString("Frame: %1").arg( (int)( video_st->nb_frames * double(t - video_st->start_time) / double(video_st->duration) ) ) );
 	 else
-		return (QString("Frame: %1").arg( (int)( float (t - video_st->start_time) / getFrameRate()) ));
+		return (QString("Frame: %1").arg( (int)( double (t - video_st->start_time) / getFrameRate()) ));
+
 }
 
 int64_t VideoFile::getFrameFromTime(QString t) const {
@@ -866,7 +881,7 @@ int64_t VideoFile::getEnd() const {
     	return 0;
 
 	if ( video_st->duration != (int64_t) AV_NOPTS_VALUE)
-		return video_st->duration;
+		return video_st->duration + getBegin();
 
 	return (int64_t) ( getDuration() * video_st->time_base.den / video_st->time_base.num );
 
@@ -883,8 +898,8 @@ void VideoFile::setMarkOut(int64_t t) {
 }
 
 
-float VideoFile::getStreamAspectRatio() const {
-    float aspect_ratio = 0;
+double VideoFile::getStreamAspectRatio() const {
+    double aspect_ratio = 0;
 
     if (video_st->sample_aspect_ratio.num)
         aspect_ratio = av_q2d(video_st->sample_aspect_ratio);
@@ -894,7 +909,7 @@ float VideoFile::getStreamAspectRatio() const {
         aspect_ratio = 0;
     if (aspect_ratio <= 0.0)
         aspect_ratio = 1.0;
-    aspect_ratio *= (float)video_st->codec->width / video_st->codec->height;
+    aspect_ratio *= (double)video_st->codec->width / video_st->codec->height;
 
     return aspect_ratio;
 }

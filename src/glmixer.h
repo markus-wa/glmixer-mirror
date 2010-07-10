@@ -43,6 +43,7 @@ public Q_SLOTS:
 	void on_actionOpenGL_extensions_triggered();
 	void on_markInSlider_sliderReleased();
 	void on_markOutSlider_sliderReleased();
+	void on_frameForwardButton_clicked();
 	void on_frameSlider_sliderPressed();
 	void on_frameSlider_sliderReleased();
 	void on_frameSlider_sliderMoved(int);

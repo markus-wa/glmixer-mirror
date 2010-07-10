@@ -387,7 +387,7 @@ public:
      *
      * @return Aspect ratio of the video.
      */
-    float getStreamAspectRatio() const;
+    double getStreamAspectRatio() const;
     /**
      * Get the frame rate of the movie file opened.
      *
@@ -396,7 +396,7 @@ public:
      *
      * @return frame rate in Hertz (frames per second), 0 if no video is opened.
      */
-    float getFrameRate() const;
+    double getFrameRate() const;
     /**
      * Get the duration of the VideoFile in seconds.
      *
