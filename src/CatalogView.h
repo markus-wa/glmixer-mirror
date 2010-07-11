@@ -35,6 +35,7 @@ public:
 	void setTransparent(bool on) { _alpha = on ? 0.5 : 1.0; }
 	typedef enum { SMALL = 0, MEDIUM = 1, LARGE = 2 } catalogSize;
 	void setSize(catalogSize s);
+	catalogSize getSize() { return _currentSize; }
 
 	// drawing
 	void drawSource(Source *s, int index);

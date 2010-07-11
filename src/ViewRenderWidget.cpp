@@ -180,19 +180,19 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 {
 	switch (mode)
 	{
-	case MIXING:
+	case ViewRenderWidget::MIXING:
 		currentManipulationView = (View *) mixingManipulationView;
 		showMessage("Mixing View");
 		break;
-	case GEOMETRY:
+	case ViewRenderWidget::GEOMETRY:
 		currentManipulationView = (View *) geometryManipulationView;
 		showMessage("Geometry View");
 		break;
-	case LAYER:
+	case ViewRenderWidget::LAYER:
 		currentManipulationView = (View *) layersManipulationView;
 		showMessage("Layers View");
 		break;
-	case NONE:
+	case ViewRenderWidget::NONE:
 	default:
 		currentManipulationView = renderView;
 	}
@@ -545,23 +545,87 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 {
 	QDomElement config = doc.createElement("Views");
 
+	if (currentManipulationView == mixingManipulationView)
+		config.setAttribute("current", ViewRenderWidget::MIXING);
+	else if (currentManipulationView == geometryManipulationView)
+		config.setAttribute("current", ViewRenderWidget::GEOMETRY);
+	else if (currentManipulationView == layersManipulationView)
+		config.setAttribute("current", ViewRenderWidget::LAYER);
+
 	QDomElement mix = doc.createElement("View");
 	mix.setAttribute("name", "Mixing");
 	config.appendChild(mix);
+	{
+		QDomElement z = doc.createElement("Zoom");
+		z.setAttribute("value", mixingManipulationView->getZoom());
+		mix.appendChild(z);
+
+		QDomElement pos = doc.createElement("Panning");
+		pos.setAttribute("X", mixingManipulationView->getPanningX());
+		pos.setAttribute("Y", mixingManipulationView->getPanningY());
+		mix.appendChild(pos);
+	}
 
 	QDomElement geom = doc.createElement("View");
 	geom.setAttribute("name", "Geometry");
 	config.appendChild(geom);
+	{
+		QDomElement z = doc.createElement("Zoom");
+		z.setAttribute("value", geometryManipulationView->getZoom());
+		geom.appendChild(z);
+
+		QDomElement pos = doc.createElement("Panning");
+		pos.setAttribute("X", geometryManipulationView->getPanningX());
+		pos.setAttribute("Y", geometryManipulationView->getPanningY());
+		geom.appendChild(pos);
+	}
 
 	QDomElement depth = doc.createElement("View");
 	depth.setAttribute("name", "Depth");
 	config.appendChild(depth);
+	{
+		QDomElement z = doc.createElement("Zoom");
+		z.setAttribute("value", layersManipulationView->getZoom());
+		depth.appendChild(z);
+
+		QDomElement pos = doc.createElement("Panning");
+		pos.setAttribute("X", layersManipulationView->getPanningX());
+		pos.setAttribute("Y", layersManipulationView->getPanningY());
+		depth.appendChild(pos);
+	}
+
+	QDomElement catalog = doc.createElement("Catalog");
+	config.appendChild(catalog);
+	catalog.setAttribute("visible", catalogView->visible());
+	QDomElement s = doc.createElement("Parameters");
+	s.setAttribute("catalogSize", catalogView->getSize());
+	catalog.appendChild(s);
 
 	return config;
 }
 
 void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 {
+
+	QDomElement child = xmlconfig.firstChildElement("View");
+	while (!child.isNull()) {
+		if (child.attribute("name") == "Mixing") {
+			mixingManipulationView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
+			mixingManipulationView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
+			mixingManipulationView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
+		}
+		if (child.attribute("name") == "Geometry") {
+			geometryManipulationView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
+			geometryManipulationView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
+			geometryManipulationView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
+		}
+		if (child.attribute("name") == "Depth") {
+			layersManipulationView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
+			layersManipulationView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
+			layersManipulationView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
+		}
+		child = child.nextSiblingElement();
+	}
 
 }
 

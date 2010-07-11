@@ -12,6 +12,7 @@
 
 #include "VideoFile.h"
 #include "SourceSet.h"
+#include "VideoFileDialog.h"
 
 /**
 
@@ -90,10 +91,15 @@ protected:
 private:
 	QString currentStageFileName;
 	VideoFile *selectedSourceVideoFile;
+	VideoFileDialog *mfd;
 
 	QTimer *refreshTimingTimer;
 	bool waspaused;
 	bool skipNextRefresh;
+
+	QSettings settings;
+	void readSettings();
+	void saveSettings();
 };
 
 class CaptureDialog: public QDialog {

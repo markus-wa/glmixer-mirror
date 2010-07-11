@@ -1167,6 +1167,8 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionSave_Session"/>
     <addaction name="actionSave_Session_as"/>
     <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -1269,6 +1271,9 @@ p, li { white-space: pre-wrap; }
    <property name="windowTitle">
     <string>Sources actions </string>
    </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -1290,6 +1295,9 @@ p, li { white-space: pre-wrap; }
    <property name="windowTitle">
     <string>View selection</string>
    </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -1306,6 +1314,9 @@ p, li { white-space: pre-wrap; }
    <property name="windowTitle">
     <string>File actions</string>
    </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -1319,6 +1330,9 @@ p, li { white-space: pre-wrap; }
   <widget class="QToolBar" name="toolsToolBar">
    <property name="windowTitle">
     <string>Tools selection</string>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -1936,6 +1950,15 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Large</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/preferences.png</normaloff>:/glmixer/icons/preferences.png</iconset>
+   </property>
+   <property name="text">
+    <string>Preferences</string>
    </property>
   </action>
  </widget>

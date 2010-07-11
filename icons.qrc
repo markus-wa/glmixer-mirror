@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/question.png</file>
     <file>icons/delete.png</file>
     <file>icons/previous.png</file>
     <file>icons/next.png</file>

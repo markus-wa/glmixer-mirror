@@ -608,14 +608,14 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
 
 
     // BHBN
-    qDebug("getBegin() %d",getBegin());
-    qDebug("getEnd() %d",getEnd());
-
-    qDebug("getDuration() %f",getDuration());
-    qDebug("getFrameRate() %f", getFrameRate());
-
-    qDebug("video_st->duration %d",video_st->duration);
-    qDebug("         first_dts %d", video_st->first_dts);
+//    qDebug("getBegin() %d",getBegin());
+//    qDebug("getEnd() %d",getEnd());
+//
+//    qDebug("getDuration() %f",getDuration());
+//    qDebug("getFrameRate() %f", getFrameRate());
+//
+//    qDebug("video_st->duration %d",video_st->duration);
+//    qDebug("         first_dts %d", video_st->first_dts);
 
 
     return true;

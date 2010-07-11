@@ -21,23 +21,10 @@ public:
     VideoFileDialog( QWidget * parent = 0, const QString & caption = QString(), const QString & directory = QString(), const QString & filter = QString() );
     ~VideoFileDialog();
 
-    static bool configPreviewVisible() {
-        return _configPreviewVisible;
-    }
-    static void configSetPreviewVisible(bool visible) {
-        _configPreviewVisible = visible;
-    }
-    static bool configCustomSize() {
-        return _configCustomSize;
-    }
-    static void configSetCustomSize(bool c) {
-        _configCustomSize = c;
-    }
-
+    bool configCustomSize();
 
 public Q_SLOTS:
     void setPreviewVisible(bool visible);
-    void rememberFilter(const QString &);
 
 signals:
     /**
@@ -53,9 +40,6 @@ private:
 
     VideoFileDialogPreview *preview;
     QCheckBox *pv;
-
-    static bool _configPreviewVisible, _configCustomSize;
-    static QString _filterSelected;
 
 };
 

@@ -22,7 +22,6 @@ void GLMixerMessageOutput(QtMsgType type, const char *msg)
 		 break;
 	 case QtWarningMsg:
 		 std::cerr<<"Warning: "<<msg<<std::endl;
-		 QMessageBox::warning(0, "GLMixer Warning", QString(msg));
 		 break;
 	 case QtCriticalMsg:
 		 std::cerr<<"Critical: "<<msg<<std::endl;
@@ -48,7 +47,11 @@ int main(int argc, char **argv)
 {
     qInstallMsgHandler(GLMixerMessageOutput);
     QApplication a(argc, argv);
-    a.setApplicationName("GLMixer");
+
+    QCoreApplication::setOrganizationName("glmixer");
+    QCoreApplication::setOrganizationDomain("bhbn.free.fr");
+    QCoreApplication::setApplicationName("GLMixer");
+
 
 #ifdef __APPLE__
     // add local bundled lib directory as library path (Qt Plugins)

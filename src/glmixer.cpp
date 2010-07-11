@@ -5,7 +5,7 @@
  *      Author: bh
  */
 
-#define XML_GLM_VERSION "0.4"
+#define XML_GLM_VERSION "0.5"
 
 #include <QApplication>
 #include <QDomDocument>
@@ -28,6 +28,7 @@
 #endif
 #include "VideoFileDisplayWidget.h"
 #include "SourcePropertyBrowser.h"
+#include "CatalogView.h"
 
 #include "glmixer.moc"
 
@@ -90,6 +91,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	sourceDockWidgetContentsLayout->addWidget(propertyBrowser);
     QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
 
+    // Setup Video file dialog
+    mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
+
     // Create preview widget
     OutputRenderWidget *outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
 	previewDockWidgetContentsLayout->addWidget(outputpreview);
@@ -112,9 +116,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	catalogActionGroup->addAction(actionCatalogSmall);
 	catalogActionGroup->addAction(actionCatalogMedium);
 	catalogActionGroup->addAction(actionCatalogLarge);
-	QObject::connect(actionCatalogSmall, SIGNAL(changed()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeSmall()));
-	QObject::connect(actionCatalogMedium, SIGNAL(changed()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeMedium()));
-	QObject::connect(actionCatalogLarge, SIGNAL(changed()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeLarge()));
+	QObject::connect(actionCatalogSmall, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeSmall()));
+	QObject::connect(actionCatalogMedium, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeMedium()));
+	QObject::connect(actionCatalogLarge, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeLarge()));
 
 	// Signals between GUI and rendering widget
 	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(refresh()));
@@ -133,11 +137,15 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     refreshTimingTimer->setInterval(150);
     QObject::connect(refreshTimingTimer, SIGNAL(timeout()), this, SLOT(refreshTiming()));
     QObject::connect(vcontrolDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(updateRefreshTimerState()));
+
+    readSettings();
 }
 
 GLMixer::~GLMixer() {
 
 	RenderingManager::deleteInstance();
+
+	saveSettings();
 }
 
 
@@ -231,10 +239,6 @@ void GLMixer::on_actionMediaSource_triggered(){
 
 #ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
 
-	static VideoFileDialog *mfd = 0;
-	if (!mfd)
-		mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
-
 	if (mfd->exec())
 		fileNames = mfd->selectedFiles();
 
@@ -252,7 +256,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 	    VideoFile *newSourceVideoFile = NULL;
 	    QString filename = fileNamesIt.next();
 
-		if ( !VideoFileDialog::configCustomSize() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
+		if ( !mfd->configCustomSize() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
 			newSourceVideoFile = new VideoFile(this);
 		else
 			//newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB24);
@@ -353,8 +357,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		sourceDockWidgetContents->setEnabled(true);
 		actionDeleteSource->setEnabled(true);
 		actionCloneSource->setEnabled(true);
-
-		// TODO: show a preview of the source ?
 
 		// test the class of the current source and deal accordingly :
 		// if it is a VideoSource (video file)
@@ -998,32 +1000,53 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 void GLMixer::on_actionSave_Session_as_triggered(){
 
-	QString fileName = QDir::fromNativeSeparators(currentStageFileName);
-	fileName.resize( fileName.lastIndexOf('/') );
+    static QFileDialog *SaveSessionFileDialog = 0;
+    if (!SaveSessionFileDialog) {
+    	SaveSessionFileDialog = new QFileDialog(this);
+        SaveSessionFileDialog->restoreState(settings.value("SaveSessionFileDialog").toByteArray());
+    	SaveSessionFileDialog->setAcceptMode(QFileDialog::AcceptSave);
+    	SaveSessionFileDialog->setFileMode(QFileDialog::AnyFile);
+    	SaveSessionFileDialog->setFilter(tr("GLMixer workspace (*.glm)"));
+    	SaveSessionFileDialog->setDefaultSuffix("glm");
+    }
 
-	fileName = QFileDialog::getSaveFileName(this, tr("Save session File"), fileName, tr("GLMixer workspace (*.glm)"));
-    if (fileName.isEmpty())
-        return;
+	if (SaveSessionFileDialog->exec()) {
+	    QString fileName = SaveSessionFileDialog->selectedFiles().front();
+		// now we got a filename, save the file:
+		currentStageFileName = fileName;
+		on_actionSave_Session_triggered();
+	}
 
-    // add the extension if not already
-    if (fileName.split('.').last() != "glm")
-    	fileName.append(".glm");
-
-	// now we got a filename, save the file:
-	currentStageFileName = fileName;
-	on_actionSave_Session_triggered();
+    settings.setValue("SaveSessionFileDialog", SaveSessionFileDialog->saveState());
+    settings.sync();
 }
 
 void GLMixer::on_actionLoad_Session_triggered()
 {
-	QString fileName = QDir::fromNativeSeparators(currentStageFileName);
-	fileName.resize( fileName.lastIndexOf('/') );
+//	QString fileName = QDir::fromNativeSeparators(currentStageFileName);
+//	fileName.resize( fileName.lastIndexOf('/') );
+//
+//    fileName = QFileDialog::getOpenFileName(this, tr("Open session file"), fileName, tr("GLMixer workspace (*.glm)"));
+//    if (fileName.isEmpty())
+//         return;
+//	openSessionFile(fileName);
 
-    fileName = QFileDialog::getOpenFileName(this, tr("Open session file"), fileName, tr("GLMixer workspace (*.glm)"));
-    if (fileName.isEmpty())
-         return;
+    static QFileDialog *LoadSessionFileDialog = 0;
+    if (!LoadSessionFileDialog) {
+    	LoadSessionFileDialog = new QFileDialog(this);
+    	LoadSessionFileDialog->restoreState(settings.value("LoadSessionFileDialog").toByteArray());
+    	LoadSessionFileDialog->setAcceptMode(QFileDialog::AcceptOpen);
+    	LoadSessionFileDialog->setFileMode(QFileDialog::ExistingFile);
+    	LoadSessionFileDialog->setFilter(tr("GLMixer workspace (*.glm)"));
+    }
 
-     openSessionFile(fileName);
+	if (LoadSessionFileDialog->exec()) {
+	    QString fileName = LoadSessionFileDialog->selectedFiles().front();
+		openSessionFile(fileName);
+	}
+
+    settings.setValue("LoadSessionFileDialog", LoadSessionFileDialog->saveState());
+    settings.sync();
 }
 
 void GLMixer::openSessionFile(QString fileName)
@@ -1035,7 +1058,7 @@ void GLMixer::openSessionFile(QString fileName)
 
      QFile file(fileName);
      if (!file.open(QFile::ReadOnly | QFile::Text)) {
-         QMessageBox::warning(this, tr("GLMixer session open"), tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
+         QMessageBox::warning(this, tr("GLMixer session open"), tr("Cannot open file %1:\n\n%2.").arg(fileName).arg(file.errorString()));
          return;
      }
 
@@ -1046,30 +1069,59 @@ void GLMixer::openSessionFile(QString fileName)
 
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
-        QMessageBox::warning(this, tr("GLMixer session open"),  tr("The file %1 is not a GLMixer session file.").arg(fileName));
+        QMessageBox::critical(this, tr("GLMixer session open"),  tr("The file %1 is not a valid GLMixer session file.").arg(fileName));
         return;
     } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
-        QMessageBox::warning(this, tr("GLMixer session open"), tr("The version of the GLMixer session file %1 is not %2.").arg(fileName).arg(XML_GLM_VERSION));
-        return;
+        QMessageBox::warning(this, tr("GLMixer session open"), tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(fileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
     }
 
     // read all the content to make sure the file is correct :
     QDomElement srcconfig = root.firstChildElement("SourceList");
-    if (srcconfig.isNull())
-    	return;
+    if (!srcconfig.isNull()){
+    	// if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
+        on_actionNew_Session_triggered();
+    	RenderingManager::getInstance()->addConfiguration(srcconfig);
+        // confirm the loading of the file
+    	currentStageFileName = fileName;
+    	changeWindowTitle();
+    	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentStageFileName ), 5000 );
+    }
+
+    // less important ; the views config
     QDomElement vconfig = root.firstChildElement("Views");
-    if (vconfig.isNull())
-    	return;
+    if (!vconfig.isNull()){
 
-    // if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
-    on_actionNew_Session_triggered();
-    RenderingManager::getInstance()->addConfiguration(srcconfig);
-    RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
+    	RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
 
-    // confirm the loading of the file
-	currentStageFileName = fileName;
-	changeWindowTitle();
-	statusbar->showMessage( tr("File %1 loaded.").arg( currentStageFileName ), 3000 );
+    	// activate the view specified as 'current' in the xml config
+    	switch ( (ViewRenderWidget::viewMode) vconfig.attribute("current").toInt()){
+    	case (ViewRenderWidget::NONE):
+    	case (ViewRenderWidget::MIXING):
+    		actionMixingView->trigger();
+    		break;
+    	case (ViewRenderWidget::GEOMETRY):
+    		actionGeometryView->trigger();
+    		break;
+    	case (ViewRenderWidget::LAYER):
+    		actionLayersView->trigger();
+    		break;
+    	}
+    	// show the catalog as specified in xlm config
+    	QDomElement cat = vconfig.firstChildElement("Catalog");
+    	actionShow_Catalog->setChecked(cat.attribute("visible").toInt());
+    	switch( (CatalogView::catalogSize) (cat.firstChildElement("Parameters").attribute("catalogSize").toInt()) ){
+    	case (CatalogView::SMALL):
+    		actionCatalogSmall->trigger();
+    		break;
+    	case (CatalogView::MEDIUM):
+    		actionCatalogMedium->trigger();
+    		break;
+    	case (CatalogView::LARGE):
+    		actionCatalogLarge->trigger();
+    		break;
+    	}
+    }
+
 }
 
 
@@ -1116,7 +1168,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
     RenderingManager::getInstance()->addConfiguration(srcconfig);
 
     // confirm the loading of the file
-	statusbar->showMessage( tr("File %1 appended to %2.").arg( fileName ).arg( currentStageFileName ), 3000 );
+	statusbar->showMessage( tr("Sources from %1 appended to %2.").arg( fileName ).arg( currentStageFileName ), 3000 );
 }
 
 void GLMixer::dragEnterEvent(QDragEnterEvent *event)
@@ -1175,4 +1227,22 @@ void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
     event->accept();
 }
 
+
+void GLMixer::readSettings(){
+
+	// Main window config
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
+    vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
+    mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
+}
+
+void GLMixer::saveSettings(){
+
+	// Main window config
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
+    settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
+    settings.setValue("VideoFileDialog", mfd->saveState());
+}
 

@@ -45,12 +45,6 @@ Source::~Source() {
 	delete clones;
 }
 
-// TODO ; do we need a copy constructor ?
-//Source::Source(Source *duplicate, double d) {
-//
-//}
-
-
 void Source::setName(QString n) {
 	name = n;
 }

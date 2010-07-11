@@ -19,8 +19,8 @@ VideoFileDialogPreview::VideoFileDialogPreview(QWidget *parent) : QWidget(parent
     is = NULL;
 
     if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ){
+        customSizeCheckBox->setChecked(false);
         customSizeCheckBox->setEnabled(true);
-        customSizeCheckBox->setChecked(VideoFileDialog::configCustomSize());
     }
     else {
         customSizeCheckBox->setChecked(true);
@@ -116,9 +116,6 @@ void VideoFileDialogPreview::on_customSizeCheckBox_toggled(bool on){
 
     if (is && is->isOpen())
         showFilePreview(is->getFileName());
-
-    VideoFileDialog::configSetCustomSize(on);
-
 }
 
 

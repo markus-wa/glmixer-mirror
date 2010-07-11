@@ -401,7 +401,6 @@ void GeometryView::setTool(toolType t)
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_B);
 		break;
 	case ROTATE:
-		// TODO : adapt cursor to quadrant
 		switch (quadrant) {
 		case 1:
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_TOP_LEFT);
