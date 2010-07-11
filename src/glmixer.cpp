@@ -78,12 +78,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	mainRendering = (QGLWidget *) RenderingManager::getRenderingWidget();
 	mainRendering->setParent(centralwidget);
 	centralViewLayout->addWidget(mainRendering);
+	//activate the default view
+	setView(actionMixingView);
 	// share menus as context menus of the main view
 	RenderingManager::getRenderingWidget()->setViewContextMenu(menuZoom);
 	RenderingManager::getRenderingWidget()->setCatalogContextMenu(menuCatalog);
-
-	// TODO : activate the default view read from preferences
-	setView(actionMixingView);
 
 	// Setup the property browser
 	SourcePropertyBrowser *propertyBrowser = RenderingManager::getPropertyBrowserWidget();
@@ -182,7 +181,7 @@ void GLMixer::displayInfoMessage(QString msg){
 
 void GLMixer::displayWarningMessage(QString msg){
 
-	QMessageBox::warning(0, "GLMixer Warning", QString(msg));
+	QMessageBox::warning(0, tr("%1 Warning").arg(QCoreApplication::applicationName()), QString(msg));
 }
 
 
@@ -256,14 +255,17 @@ void GLMixer::on_actionMediaSource_triggered(){
 	    VideoFile *newSourceVideoFile = NULL;
 	    QString filename = fileNamesIt.next();
 
+#ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
 		if ( !mfd->configCustomSize() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
 			newSourceVideoFile = new VideoFile(this);
 		else
-			//newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB24);
 			newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB32);
-
+#else
+		newSourceVideoFile = new VideoFile(this);
+#endif
 	    Q_CHECK_PTR(newSourceVideoFile);
 
+	    QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
 		// if the video file was created successfully
 		if (newSourceVideoFile){
 			// forward error messages to display
@@ -276,11 +278,11 @@ void GLMixer::on_actionMediaSource_triggered(){
 				if ( s ) {
 					RenderingManager::getInstance()->addSourceToBasket(s);
 				} else {
-			        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create media source."));
+			        QMessageBox::warning(this, caption, tr("Could not create media source."));
 			        delete newSourceVideoFile;
 				}
 			} else {
-				QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not open %1.").arg(filename));
+				QMessageBox::warning(this, caption, tr("Could not open %1.").arg(filename));
 			}
 		}
 
@@ -520,7 +522,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 					RenderingManager::getInstance()->addSourceToBasket(s);
 					statusbar->showMessage( tr("Clone created of the source with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()), 3000 );
 				} else
-			        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create clone source."));
+			        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create clone source."));
 			}
 			//else create a new opencv source :
 			else {
@@ -529,7 +531,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 					RenderingManager::getInstance()->addSourceToBasket(s);
 					statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()), 3000 );
 				} else
-			        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create OpenCV source."));
+			        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create OpenCV source."));
 			}
 		}
 #endif
@@ -555,7 +557,7 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 			RenderingManager::getInstance()->addSourceToBasket(s);
 			statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
 		} else
-	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create algorithm source."));
+	        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create algorithm source."));
 	}
 }
 
@@ -567,7 +569,7 @@ void GLMixer::on_actionRenderingSource_triggered(){
 		RenderingManager::getInstance()->addSourceToBasket(s);
 		statusbar->showMessage( tr("Source created with the rendering output loopback."), 3000 );
 	}else
-        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create rendering source."));
+        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create rendering source."));
 }
 
 
@@ -579,7 +581,7 @@ void GLMixer::on_actionCloneSource_triggered(){
 			RenderingManager::getInstance()->addSourceToBasket(s);
 			statusbar->showMessage( tr("The current source has been cloned."), 3000);
 		} else
-	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create clone source."));
+	        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create clone source."));
 	}
 }
 
@@ -591,7 +593,7 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent),
 	QDialogButtonBox *DecisionButtonBox;
 	setObjectName(QString::fromUtf8("CaptureDialog"));
 	resize(300, 179);
-	setWindowTitle(tr( "Output window capture"));
+	setWindowTitle(tr( "Output capture source"));
 	verticalLayout = new QVBoxLayout(this);
 	verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
 	Question = new QLabel(this);
@@ -648,7 +650,7 @@ void GLMixer::on_actionCaptureSource_triggered(){
 			RenderingManager::getInstance()->addSourceToBasket(s);
 			statusbar->showMessage( tr("Source created with a capture of the output."), 3000 );
 		} else
-	        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create capture source."));
+	        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create capture source."));
 	}
 }
 
@@ -891,57 +893,60 @@ void GLMixer::on_actionShowFPS_toggled(bool on){
 
 void GLMixer::on_actionAbout_triggered(){
 
-	QString msg = QString("GLMixer : Graphic Live Mixer\n\n");
+	QString msg = QString("%1 :     \tGraphic Live Mixer\n\n").arg(QCoreApplication::applicationName());
 	msg.append(QString("Author:   \tBruno Herbelin\n"));
 	msg.append(QString("Contact:  \tbruno.herbelin@gmail.com\n"));
 	msg.append(QString("License:  \tGPL\n"));
+    msg.append(QString("Version:  \t%1\n").arg(QCoreApplication::applicationVersion()));
 	
-#ifdef GLMIXER_VERSION
-    msg.append(QString("Version:  \t%1\n").arg(GLMIXER_VERSION));
-#endif
 #ifdef GLMIXER_REVISION
-    msg.append(QString("Revision: \t%1\n").arg(GLMIXER_REVISION));
+    msg.append(QString("SVN:      \t%1\n").arg(GLMIXER_REVISION));
 #endif
 	
 	msg.append(tr("\nGLMixer is a video mixing software for live performance.\nCheck http://code.google.com/p/glmixer/ for more info."));
-	QMessageBox::information(this, "About GlMixer", msg, QMessageBox::Ok, QMessageBox::Ok);
+	QMessageBox::information(this, tr("About %1").arg(QCoreApplication::applicationName()), msg, QMessageBox::Ok, QMessageBox::Ok);
 
 }
 
 
 void GLMixer::changeWindowTitle(){
 
-	//	Trick to get only the filename from the full path for every platform ; use the QDir class
-	QString session = currentStageFileName.isNull() ? "unsaved session" : QDir(currentStageFileName).dirName();
+	//	session file name
+//	QString session = currentStageFileName.isNull() ? "unsaved session" : QFileInfo(currentStageFileName).fileName();
 
-#ifdef GLMIXER_VERSION
-#ifdef GLMIXER_REVISION
-     setWindowTitle(QString("GL Mixer %1-%2 -- %3").arg(GLMIXER_VERSION).arg(GLMIXER_REVISION).arg(session));
-#else
-     setWindowTitle(QString("GL Mixer %1 -- %2").arg(GLMIXER_VERSION).arg(session));
-#endif
-#else
-     setWindowTitle(QString("GL Mixer -- %2").arg(session));
-#endif
+	setWindowFilePath(currentStageFileName);
+	setWindowModified(false);
 
+//    setWindowTitle(QString("GLMixer %2 - %3[*]").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(session));
 
 	actionAppend_Session->setEnabled(!currentStageFileName.isNull());
 }
+
+//QString title = QString("Super Mixer %1 - ").arg(QApplication::applicationVersion());
+//
+////	Trick to get only the filename from the full path for every platform ; use the QDir class
+//title += currentStageFileName.isNull() ? "unsaved session" : QDir(currentStageFileName).dirName();
+//
+//
+//setWindowTitle(title);
+//
+//actionAppend_Session->setEnabled(!currentStageFileName.isNull());
 
 void GLMixer::on_actionNew_Session_triggered()
 {
 	// inform the user that data might be lost
 	int ret = QMessageBox::Discard;
 
-	if (!currentStageFileName.isNull()) {
-		 QMessageBox msgBox;
-		 msgBox.setText("The session may have been modified.");
-		 msgBox.setInformativeText("Do you want to save your changes?");
-		 msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
-		 msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-		 msgBox.setDefaultButton(QMessageBox::Save);
-		 ret = msgBox.exec();
-	}
+// TODO : implement good mechanism to know if something was changed
+//	if (!currentStageFileName.isNull()) {
+//		 QMessageBox msgBox;
+//		 msgBox.setText("The session may have been modified.");
+//		 msgBox.setInformativeText("Do you want to save your changes?");
+//		 msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
+//		 msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+//		 msgBox.setDefaultButton(QMessageBox::Save);
+//		 ret = msgBox.exec();
+//	}
 	// react according to user's answer
 	switch (ret) {
 	   case QMessageBox::Save:
@@ -972,7 +977,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 		QFile file(currentStageFileName);
 		if (!file.open(QFile::WriteOnly | QFile::Text) ) {
-			QMessageBox::warning(this, tr("GLMixer session save"),tr("Cannot write file %1:\n%2.").arg(currentStageFileName).arg(file.errorString()));
+			QMessageBox::warning(this, tr("%1 session save").arg(QCoreApplication::applicationName()), tr("Cannot write file %1:\n%2.").arg(currentStageFileName).arg(file.errorString()));
 			return;
 		}
 		QTextStream out(&file);
@@ -1057,22 +1062,23 @@ void GLMixer::openSessionFile(QString fileName)
     int errorColumn;
 
      QFile file(fileName);
+     QString caption = tr("%1 session open").arg(QCoreApplication::applicationName());
      if (!file.open(QFile::ReadOnly | QFile::Text)) {
-         QMessageBox::warning(this, tr("GLMixer session open"), tr("Cannot open file %1:\n\n%2.").arg(fileName).arg(file.errorString()));
+         QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(fileName).arg(file.errorString()));
          return;
      }
 
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
-        QMessageBox::warning(this, tr("GLMixer session open"),tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(fileName).arg(errorLine).arg(errorColumn).arg(errorStr));
+        QMessageBox::warning(this, caption, tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(fileName).arg(errorLine).arg(errorColumn).arg(errorStr));
         return;
     }
 
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
-        QMessageBox::critical(this, tr("GLMixer session open"),  tr("The file %1 is not a valid GLMixer session file.").arg(fileName));
+        QMessageBox::critical(this, caption, tr("The file %1 is not a valid GLMixer session file.").arg(fileName));
         return;
     } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
-        QMessageBox::warning(this, tr("GLMixer session open"), tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(fileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
+        QMessageBox::warning(this, caption, tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(fileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
     }
 
     // read all the content to make sure the file is correct :
@@ -1140,22 +1146,23 @@ void GLMixer::on_actionAppend_Session_triggered(){
 		return;
 
 	QFile file(fileName);
+    QString caption = tr("%1 session append").arg(QCoreApplication::applicationName());
 	if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
-		QMessageBox::warning(this, tr("GLMixer session append"), tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
+		QMessageBox::warning(this, caption, tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
 		return;
 	}
 
     if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) ) {
-		QMessageBox::warning(this, tr("GLMixer session append"), tr("Parse error at line %1, column %2:\n%3").arg(errorLine).arg(errorColumn).arg(errorStr));
+		QMessageBox::warning(this, caption, tr("Parse error at line %1, column %2:\n%3").arg(errorLine).arg(errorColumn).arg(errorStr));
 		return;
     }
 
     QDomElement root = doc.documentElement();
     if ( root.tagName() != "GLMixer" ) {
-        QMessageBox::warning(this, tr("GLMixer session append"),  tr("The file is not a GLMixer session file."));
+        QMessageBox::warning(this, caption,  tr("The file is not a GLMixer session file."));
         return;
     } else if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION ) {
-        QMessageBox::warning(this, tr("GLMixer session append"), tr("The version of this GLMixer session file is not %2.").arg(XML_GLM_VERSION));
+        QMessageBox::warning(this, caption, tr("The version of this GLMixer session file is not %2.").arg(XML_GLM_VERSION));
         return;
     }
 
@@ -1188,9 +1195,10 @@ void GLMixer::dropEvent(QDropEvent *event)
 	if (mimeData->hasUrls()) {
 		QList<QUrl> urlList = mimeData->urls();
 		QString text;
+	    QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
 		// arbitrary limitation in the amount of drops allowed
 		if (urlList.size() > 30)
-			QMessageBox::warning(this, tr("GLMixer create source"), tr("Cannot drop more than 30 files at a time."));
+			QMessageBox::warning(this, caption, tr("Cannot drop more than 30 files at a time."));
 		for (int i = 0; i < urlList.size() && i < 30; ++i) {
 			QString filename = urlList.at(i).toLocalFile();
 
@@ -1209,11 +1217,11 @@ void GLMixer::dropEvent(QDropEvent *event)
 					if ( s ) {
 						RenderingManager::getInstance()->addSourceToBasket(s);
 					} else {
-				        QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not create media source."));
+				        QMessageBox::warning(this, caption, tr("Could not create media source."));
 				        delete newSourceVideoFile;
 					}
 				} else {
-					QMessageBox::warning(this, tr("GLMixer create source"), tr("Could not open %1.").arg(filename));
+					QMessageBox::warning(this, caption, tr("Could not open %1.").arg(filename));
 				}
 			}
 		}
@@ -1229,20 +1237,22 @@ void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
 
 
 void GLMixer::readSettings(){
-
 	// Main window config
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
     vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
     mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
+    OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
 }
 
 void GLMixer::saveSettings(){
-
 	// Main window config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());
+    settings.setValue("OutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
+
+    settings.sync();
 }
 

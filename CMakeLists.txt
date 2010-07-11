@@ -42,20 +42,20 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmessage-length=0 -pipe -Wall -Wno-write-strings")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
+# force Linker to link with / without console under Windows
+IF(WIN32)
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -mingw32 -Wl,-subsystem,console")
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mingw32 -Wl,-subsystem,windows")
+ENDIF(WIN32)
+
 # turn on verbose build to enable path autodiscovery in CDT
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
-
+# defines used by preprocessor to integrate program version and SVN revision into the application
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION}" )
-
 IF(ProgramRevision)
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${ProgramRevision}" )
 ENDIF(ProgramRevision)
-
-#if( APPLE )
-#	set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.5" )
-#        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.4" )
-#endif( APPLE )
 
 # find the dependency libraries
 

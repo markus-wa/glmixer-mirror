@@ -446,7 +446,7 @@ void RenderingManager::insertSource(Source *s){
 			setCurrentSource(ret.first);
 		else {
 			delete s;
-	        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not insert source into the stack."));
+	        QMessageBox::warning(0, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not insert source into the stack."));
 		}
 	}
 }
@@ -907,6 +907,7 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 
 	QList<QDomElement> clones;
+    QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
 
 	QDomElement child = xmlconfig.firstChildElement("Source");
 	while (!child.isNull()) {
@@ -938,7 +939,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 					// create the source as it is a valid video file (this also set it to be the current source)
 					newsource = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile, depth);
 					if (!newsource)
-				        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create media source %1. ").arg(child.attribute("name")));
+				        QMessageBox::warning(0, caption, tr("Could not create media source %1. ").arg(child.attribute("name")));
 					else {
 						// all is good ! we can apply specific parameters to the video file
 						QDomElement play = t.firstChildElement("Play");
@@ -951,11 +952,11 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 					}
 				}
 				else
-					QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not open media file %1. ").arg(Filename.text()));
+					QMessageBox::warning(0, caption, tr("Could not open media file %1. ").arg(Filename.text()));
 
 			}
 			else
-				QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not allocate memory for media source %1. ").arg(child.attribute("name")));
+				QMessageBox::warning(0, caption, tr("Could not allocate memory for media source %1. ").arg(child.attribute("name")));
 
 
 
@@ -966,7 +967,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 
 			newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
 			if (!newsource)
-		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create camera source %1 with devide index %2. ").arg(child.attribute("name")).arg(camera.text()));
+		        QMessageBox::warning(0, caption, tr("Could not create camera source %1 with devide index %2. ").arg(child.attribute("name")).arg(camera.text()));
 #endif
 
 		} else if ( type == Source::ALGORITHM_SOURCE) {
@@ -979,14 +980,14 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 					Frame.attribute("Width").toInt(), Frame.attribute("Height").toInt(),
 					Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), depth);
 			if (!newsource)
-		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create algorithm source %1. ").arg(child.attribute("name")));
+		        QMessageBox::warning(0, caption, tr("Could not create algorithm source %1. ").arg(child.attribute("name")));
 
 
 		} else if ( type == Source::RENDERING_SOURCE) {
 			// no tags specific for a rendering source
 			newsource = RenderingManager::getInstance()->newRenderingSource(depth);
 			if (!newsource)
-		        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create rendering loop-back source %1. ").arg(child.attribute("name")));
+		        QMessageBox::warning(0, caption, tr("Could not create rendering loop-back source %1. ").arg(child.attribute("name")));
 
 		} else if ( type == Source::CLONE_SOURCE) {
 			// remember the node of the sources to clone
@@ -1023,9 +1024,9 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
     			// insert the source in the scene
     			insertSource(clonesource);
     		}else
-    	        QMessageBox::warning(0, tr("GLMixer create source"), tr("Could not create clone source %1.").arg(c.attribute("name")));
+    	        QMessageBox::warning(0, caption, tr("Could not create clone source %1.").arg(c.attribute("name")));
     	} else {
-    		QMessageBox::warning(0, tr("GLMixer create source"), tr("The source '%1' cannot be the clone of '%2' ; no such source.").arg(c.attribute("name")).arg(f.text()));
+    		QMessageBox::warning(0, caption, tr("The source '%1' cannot be the clone of '%2' ; no such source.").arg(c.attribute("name")).arg(f.text()));
     	}
     }
 

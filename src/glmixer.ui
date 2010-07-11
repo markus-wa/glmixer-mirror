@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string notr="true">GLMixer</string>
+   <string notr="true">Graphic Live Mixer</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../icons.qrc">
@@ -27,7 +27,7 @@
    <locale language="English" country="UnitedStates"/>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
-   <bool>true</bool>
+   <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="centralViewLayout">
@@ -198,7 +198,11 @@ p, li { white-space: pre-wrap; }
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="previewDockWidgetContents">
-    <layout class="QVBoxLayout" name="previewDockWidgetContentsLayout"/>
+    <layout class="QVBoxLayout" name="previewDockWidgetContentsLayout">
+     <property name="margin">
+      <number>2</number>
+     </property>
+    </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="vcontrolDockWidget">
@@ -1131,18 +1135,9 @@ p, li { white-space: pre-wrap; }
    <widget class="QWidget" name="sourceDockWidgetContents">
     <layout class="QVBoxLayout" name="sourceDockWidgetContentsLayout">
      <property name="spacing">
-      <number>4</number>
-     </property>
-     <property name="leftMargin">
-      <number>4</number>
-     </property>
-     <property name="topMargin">
       <number>2</number>
      </property>
-     <property name="rightMargin">
-      <number>4</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>2</number>
      </property>
     </layout>
@@ -1374,8 +1369,8 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Add source(s) from &amp;Media File(s)</string>
    </property>
-   <property name="toolTip">
-    <string>Open multiple media Files and create a new sources for each</string>
+   <property name="statusTip">
+    <string>Creates as many sources as media files loaded (images or videos)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
@@ -1388,6 +1383,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>&amp;Quit</string>
+   </property>
+   <property name="statusTip">
+    <string>Exits the application</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -1412,6 +1410,9 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Display time as frames</string>
    </property>
+   <property name="statusTip">
+    <string>Display time as frames intead of hh:mm::ss</string>
+   </property>
   </action>
   <action name="actionOpenGL_extensions">
    <property name="icon">
@@ -1429,6 +1430,9 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Full screen</string>
    </property>
+   <property name="statusTip">
+    <string>Sets the output window to fullscreen mode.</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
    </property>
@@ -1442,6 +1446,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Free aspect ratio</string>
+   </property>
+   <property name="statusTip">
+    <string>Allows to apply the aspect ratio of the output window to the rendering area </string>
    </property>
   </action>
   <action name="actionAbout">
@@ -1467,8 +1474,8 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Mixing view</string>
    </property>
-   <property name="toolTip">
-    <string>Switch to mixing view</string>
+   <property name="statusTip">
+    <string>The mixing view allows to change the transparency of the sources.</string>
    </property>
    <property name="shortcut">
     <string>F1</string>
@@ -1485,8 +1492,8 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Geometry view</string>
    </property>
-   <property name="toolTip">
-    <string>Switch to geometry view</string>
+   <property name="statusTip">
+    <string>The geometry view allows to move, scale and rotate sources.</string>
    </property>
    <property name="shortcut">
     <string>F2</string>
@@ -1503,8 +1510,8 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Layers view</string>
    </property>
-   <property name="toolTip">
-    <string>Switch to layers view</string>
+   <property name="statusTip">
+    <string>The layers view allows to organize the sources in layers.</string>
    </property>
    <property name="shortcut">
     <string>F3</string>
@@ -1519,7 +1526,10 @@ p, li { white-space: pre-wrap; }
     <string>&amp;New session</string>
    </property>
    <property name="toolTip">
-    <string>Start a new Session</string>
+    <string>New session</string>
+   </property>
+   <property name="statusTip">
+    <string>Starts a new Session</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -1531,10 +1541,13 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
    </property>
    <property name="text">
-    <string>Open session</string>
+    <string>&amp;Open session</string>
    </property>
    <property name="toolTip">
-    <string>Load a session</string>
+    <string>Open session</string>
+   </property>
+   <property name="statusTip">
+    <string>Loads a session file (*.glm)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -1546,10 +1559,13 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/filesave.png</normaloff>:/glmixer/icons/filesave.png</iconset>
    </property>
    <property name="text">
-    <string>Save session</string>
+    <string>&amp;Save session</string>
    </property>
    <property name="toolTip">
-    <string>Save current session</string>
+    <string>Save session</string>
+   </property>
+   <property name="statusTip">
+    <string>Saves current session to a file (*.glm)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -1564,7 +1580,10 @@ p, li { white-space: pre-wrap; }
     <string>Add source from &amp;Device</string>
    </property>
    <property name="toolTip">
-    <string>Open a camera device and create a live source</string>
+    <string>Add source from Device</string>
+   </property>
+   <property name="statusTip">
+    <string>Creates a live source showing frames of a connected device (e.g. webcam)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
@@ -1579,7 +1598,10 @@ p, li { white-space: pre-wrap; }
     <string>Add loopback from &amp;Rendering</string>
    </property>
    <property name="toolTip">
-    <string>Insert rendering window as a source</string>
+    <string>Add loopback from Rendering</string>
+   </property>
+   <property name="statusTip">
+    <string>Creates a new source which displays the previous rendering of the output window.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
@@ -1593,6 +1615,9 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Zoom in</string>
    </property>
+   <property name="statusTip">
+    <string>Increment the zoom of the current view</string>
+   </property>
    <property name="shortcut">
     <string>PgUp</string>
    </property>
@@ -1604,6 +1629,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Zoom out</string>
+   </property>
+   <property name="statusTip">
+    <string>Decrement the zoom of the current view</string>
    </property>
    <property name="shortcut">
     <string>PgDown</string>
@@ -1617,6 +1645,9 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Zoom reset</string>
    </property>
+   <property name="statusTip">
+    <string>Resets the zoom of the current view</string>
+   </property>
    <property name="shortcut">
     <string>Home</string>
    </property>
@@ -1628,6 +1659,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Zoom best fit</string>
+   </property>
+   <property name="statusTip">
+    <string>Computes a zoom factor which allows to see every sources of the current view</string>
    </property>
    <property name="shortcut">
     <string>End</string>
@@ -1647,10 +1681,10 @@ p, li { white-space: pre-wrap; }
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>ShowFPS</string>
+    <string>Show FPS</string>
    </property>
-   <property name="toolTip">
-    <string>Show Frames Per Seconds</string>
+   <property name="statusTip">
+    <string>Displays the update frequency in the top corner of the views.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+F</string>
@@ -1662,7 +1696,10 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/photo-source.png</normaloff>:/glmixer/icons/photo-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add source from screen Capture</string>
+    <string>Add source from output &amp;Capture</string>
+   </property>
+   <property name="statusTip">
+    <string>Creates a new source with the image of the current output window.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
@@ -1674,7 +1711,10 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/computer.png</normaloff>:/glmixer/icons/computer.png</iconset>
    </property>
    <property name="text">
-    <string>Add source Algorithm</string>
+    <string>Add source &amp;Algorithm</string>
+   </property>
+   <property name="statusTip">
+    <string>Creates a new source using algorithms to generate graphics.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
@@ -1689,7 +1729,10 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/copy-source.png</normaloff>:/glmixer/icons/copy-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add clone of current source</string>
+    <string>Clone current source</string>
+   </property>
+   <property name="statusTip">
+    <string>Creates a new source which clones the current one.</string>
    </property>
   </action>
   <action name="actionDeleteSource">
@@ -1703,6 +1746,9 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Delete current source</string>
    </property>
+   <property name="statusTip">
+    <string>Removes the current source from the pool.</string>
+   </property>
    <property name="shortcut">
     <string>Backspace</string>
    </property>
@@ -1714,16 +1760,28 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Append session</string>
    </property>
+   <property name="statusTip">
+    <string>Loads a session file and appends all its sources to the current session.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
+   </property>
   </action>
   <action name="actionSave_Session_as">
    <property name="text">
     <string>Save session as...</string>
    </property>
    <property name="iconText">
-    <string>Save session under another name</string>
+    <string>Save session as</string>
    </property>
    <property name="toolTip">
-    <string>Save session under another name</string>
+    <string>Save session as</string>
+   </property>
+   <property name="statusTip">
+    <string>Save session under another file name</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
   <action name="actionToolGrab">
@@ -1743,6 +1801,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="toolTip">
     <string>Grab tool</string>
+   </property>
+   <property name="statusTip">
+    <string>The grab tool allows to move the sources in the view.</string>
    </property>
    <property name="shortcut">
     <string>G</string>
@@ -1766,6 +1827,9 @@ p, li { white-space: pre-wrap; }
    <property name="toolTip">
     <string>Scale tool</string>
    </property>
+   <property name="statusTip">
+    <string>The scale tool allows to resize the sources in the view.</string>
+   </property>
    <property name="shortcut">
     <string>S</string>
    </property>
@@ -1787,6 +1851,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="toolTip">
     <string>Rotate tool</string>
+   </property>
+   <property name="statusTip">
+    <string>The rotate tool allows to turn the sources in the view.</string>
    </property>
    <property name="shortcut">
     <string>R</string>
@@ -1810,6 +1877,9 @@ p, li { white-space: pre-wrap; }
    <property name="toolTip">
     <string>Cutting tool</string>
    </property>
+   <property name="statusTip">
+    <string>The cut tool allows to crop the sources in the view.</string>
+   </property>
    <property name="shortcut">
     <string>C</string>
    </property>
@@ -1828,6 +1898,9 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Normal cursor</string>
    </property>
+   <property name="statusTip">
+    <string>The cursor follows the mouse (default)</string>
+   </property>
   </action>
   <action name="actionCursorSpring">
    <property name="checkable">
@@ -1844,7 +1917,10 @@ p, li { white-space: pre-wrap; }
     <string>Spring cursor</string>
    </property>
    <property name="toolTip">
-    <string>Spring cursor; smooth cursor movement with physics</string>
+    <string>Spring cursor</string>
+   </property>
+   <property name="statusTip">
+    <string>The cursor is dragged behind the mouse according to physics laws.</string>
    </property>
   </action>
   <action name="actionCursorDelay">
@@ -1862,7 +1938,10 @@ p, li { white-space: pre-wrap; }
     <string>Delay cursor</string>
    </property>
    <property name="toolTip">
-    <string>Delay cursor: smooth cursor movement with ease-in and ease out</string>
+    <string>Delay cursor</string>
+   </property>
+   <property name="statusTip">
+    <string>The cursor smoothly follows the mouse movements with ease-in and ease out</string>
    </property>
   </action>
   <action name="actionCursorCurve">
@@ -1880,7 +1959,10 @@ p, li { white-space: pre-wrap; }
     <string>Curve cursor</string>
    </property>
    <property name="toolTip">
-    <string>Curve cursor: smooth cursor movements along a curve</string>
+    <string>Curve cursor</string>
+   </property>
+   <property name="statusTip">
+    <string>The cursor follows a path drawn by the mouse.</string>
    </property>
   </action>
   <action name="actionSelect_Next">
@@ -1892,7 +1974,10 @@ p, li { white-space: pre-wrap; }
     <string>Select Next</string>
    </property>
    <property name="toolTip">
-    <string>Select next source; [TAB]</string>
+    <string>Select next source</string>
+   </property>
+   <property name="statusTip">
+    <string>Select next source (shortcut is [TAB])</string>
    </property>
   </action>
   <action name="actionSelect_Previous">
@@ -1904,7 +1989,10 @@ p, li { white-space: pre-wrap; }
     <string>Select Previous</string>
    </property>
    <property name="toolTip">
-    <string>Select previousr source; [CTRL][TAB]</string>
+    <string>Select previous source</string>
+   </property>
+   <property name="statusTip">
+    <string>Select previous source (shortcut is [CTRL][TAB])</string>
    </property>
   </action>
   <action name="actionShow_Catalog">
@@ -1919,10 +2007,10 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/image-collection.png</normaloff>:/glmixer/icons/image-collection.png</iconset>
    </property>
    <property name="text">
-    <string>Show</string>
+    <string>Show catalog</string>
    </property>
-   <property name="toolTip">
-    <string>Shows a catalog of all source on the side of the current view.</string>
+   <property name="statusTip">
+    <string>Show / hide a catalog of all sources in the current view.</string>
    </property>
   </action>
   <action name="actionCatalogSmall">
@@ -1931,6 +2019,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Small</string>
+   </property>
+   <property name="statusTip">
+    <string>Shows small previews of sources in the catalog.</string>
    </property>
   </action>
   <action name="actionCatalogMedium">
@@ -1943,6 +2034,9 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Medium</string>
    </property>
+   <property name="statusTip">
+    <string>Shows medium previews of sources in the catalog.</string>
+   </property>
   </action>
   <action name="actionCatalogLarge">
    <property name="checkable">
@@ -1950,6 +2044,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Large</string>
+   </property>
+   <property name="statusTip">
+    <string>Shows large previews of sources in the catalog.</string>
    </property>
   </action>
   <action name="actionPreferences">
@@ -1959,6 +2056,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Preferences</string>
+   </property>
+   <property name="statusTip">
+    <string>Opens the preferences dialog.</string>
    </property>
   </action>
  </widget>

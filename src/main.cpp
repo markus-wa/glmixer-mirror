@@ -25,12 +25,12 @@ void GLMixerMessageOutput(QtMsgType type, const char *msg)
 		 break;
 	 case QtCriticalMsg:
 		 std::cerr<<"Critical: "<<msg<<std::endl;
-		 QMessageBox::critical(0, "GLMixer Critical Information", QString(msg));
+		 QMessageBox::critical(0, QString("%1 Critical Information").arg(QCoreApplication::applicationName()), QString(msg));
 		 abort();
 		 break;
 	 case QtFatalMsg:
 		 std::cerr<<"Fatal: "<<msg<<std::endl;
-		 QMessageBox::critical(0, "GLMixer Fatal Error", QString(msg));
+		 QMessageBox::critical(0, QString("%1 Fatal Error").arg(QCoreApplication::applicationName()), QString(msg));
 		 abort();
 	 }
 }
@@ -48,10 +48,16 @@ int main(int argc, char **argv)
     qInstallMsgHandler(GLMixerMessageOutput);
     QApplication a(argc, argv);
 
-    QCoreApplication::setOrganizationName("glmixer");
-    QCoreApplication::setOrganizationDomain("bhbn.free.fr");
-    QCoreApplication::setApplicationName("GLMixer");
+    // -1. sets global application name ; this is used application wide (e.g. QSettings)
+    a.setOrganizationName("bhbn");
+    a.setOrganizationDomain("bhbn.free.fr");
+    a.setApplicationName("GLMixer");
 
+#ifdef GLMIXER_VERSION
+    QCoreApplication::setApplicationVersion( QString("%1").arg(GLMIXER_VERSION) );
+#else
+    QCoreApplication::setApplicationVersion( "-" );
+#endif
 
 #ifdef __APPLE__
     // add local bundled lib directory as library path (Qt Plugins)
@@ -61,9 +67,18 @@ int main(int argc, char **argv)
 	QApplication::setLibraryPaths(QStringList(dir.absolutePath()));
 #endif
 
-    if (!QGLFormat::hasOpenGL() )
-    	qCritical("*** ERROR ***\n\nThis system does not support OpenGL and this program cannot work without it.");
+    // 0. A splash screen to wait
+    QPixmap pixmap(":/glmixer/images/glmixer_splash.png");
+    QSplashScreen splash(pixmap);
+    splash.show();
+    a.processEvents();
 
+    if (!QGLFormat::hasOpenGL() ) {
+    	qCritical("*** ERROR ***\n\nThis system does not support OpenGL and this program cannot work without it.");
+    	a.processEvents();
+    }
+
+    // fill in the list of extensions by creating a dummy glwidget
     QGLWidget *glw = new QGLWidget();
     glw->makeCurrent();
 #ifdef GLEWAPI
@@ -72,30 +87,26 @@ int main(int argc, char **argv)
 	QString allextensions = QString( (char *) glGetString(GL_EXTENSIONS));
 	listofextensions = allextensions.split(" ", QString::SkipEmptyParts);
 	delete glw;
+    a.processEvents();
 
-	// 1. The rendering Manager
-    RenderingManager *mrw = RenderingManager::getInstance();
-
-	// 2. The application GUI : it integrates the Rendering Manager QGLWidget
+	// 1. The application GUI : it integrates the Rendering Manager QGLWidget
     GLMixer glmixer_widget;
 
-    glmixer_widget.changeWindowTitle();
-
-	// 3. The output rendering window ; the rendering manager widget has to be existing
-    OutputRenderWindow *orw = OutputRenderWindow::getInstance();
-    orw->setGeometry(100, 100, mrw->getFrameBufferWidth(), mrw->getFrameBufferHeight());
-    orw->setWindowTitle(QString("GL Mixer Output Window"));
-    orw->show();
+	// 2. The output rendering window ; the rendering manager widget has to be existing
+    OutputRenderWindow::getInstance()->setWindowTitle(QString("Output Window"));
+    OutputRenderWindow::getInstance()->show();
 	
-	// 4. show the GUI in front
+	// 3. show the GUI in front
     glmixer_widget.show();
-    
+
+    // 4. load eventual session file provided in argument
     QStringList params = a.arguments();
     if ( params.count() > 1) {
     	// try to read a file with the first argument
     	glmixer_widget.openSessionFile(params[1]);
     }
 
+    splash.finish(&glmixer_widget);
 	return a.exec();
 }
 

@@ -1,11 +1,12 @@
 # the next line sets up include and link directories and defines some variables that we will use.
-# you can modify the behavior by setting some variables, e.g.
-set(QT_USE_OPENGL TRUE)
-# -> this will cause cmake to include and link against the OpenGL module
 
+# this application uses QT with the following modules:
+set(QT_USE_OPENGL TRUE)
+set(QT_USE_QTOPENGL  TRUE)
+set(QT_USE_QTXML     TRUE)
+set(QT_USE_QTMAIN	 TRUE)
+# add the corresponding path to include
 include(${QT_USE_FILE})
-set(QT_USE_QTOPENGL  true)
-set(QT_USE_QTXML      true)
 
 # the variable "qtproject_SRCS" contains all .cpp files of this project
 set(MYQT_SRCS
@@ -35,6 +36,7 @@ set(MYQT_SRCS
 set(MYQT_RCS
     ../icons.qrc
     ../textures.qrc
+    ../images.qrc
 )
 
 set(MYQT_UIS
@@ -61,13 +63,9 @@ qt4_add_resources(MYQT_RCS_SRCS ${MYQT_RCS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-# this application uses qt libs
-include_directories(${QT_QTOPENGL_INCLUDE_DIR} ${QT_QTXML_INCLUDE_DIR} ${LIBQTPROPERTY_SOURCE_DIR} )
-
+# this application uses the library QtProperty
+include_directories(${LIBQTPROPERTY_SOURCE_DIR} )
 link_directories (${LIBQTPROPERTY_BINARY_DIR}) 
-
-# this application uses openGL
-include_directories(${OPENGL_INCLUDE_DIR})
 
 # tell cmake to create .moc files for all files in the variable qtproject_SRCS that require such a file.
 # note: this assumes that you use #include "header.moc" in your files
@@ -87,7 +85,7 @@ SET(MACOSX_BUNDLE_COPYRIGHT "Bruno Herbelin")
 add_executable(glmixer MACOSX_BUNDLE ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )
 
 # link the "qtproject" target against the Qt libraries. which libraries exactly, is defined by the "include(${QT_USE_FILE})" line above, which sets up this variable.
-target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${QT_QTXML_LIBRARIES} ${OPENGL_LIBRARY} ${GLMIXER_LIBRARIES})
+target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${QT_QTXML_LIBRARIES} ${GLMIXER_LIBRARIES})
 
 set(GLMIXER_APP_BUNDLE_ROOT "${CMAKE_BINARY_DIR}/src/glmixer.app/") 
 
@@ -228,8 +226,8 @@ else ( APPLE )
 # create a normal application
 add_executable(glmixer ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )
 
-# link the "qtproject" target against the Qt libraries. which libraries exactly, is defined by the "include(${QT_USE_FILE})" line above, which sets up this variable.
-target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${QT_QTXML_LIBRARIES} ${OPENGL_LIBRARY} ${GLMIXER_LIBRARIES})
+# link the "qtproject" target against the Qt libraries. 
+target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${QT_QTMAIN_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${QT_QTXML_LIBRARIES} ${GLMIXER_LIBRARIES})
 
 install(TARGETS glmixer DESTINATION bin)
 
