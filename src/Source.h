@@ -33,14 +33,9 @@ class Source {
 
 	friend class RenderingManager;
 
-protected:
-	/*
-	 *
-	 */
-	Source(GLuint texture, double depth);
-
 public:
 	virtual ~Source();
+
 	bool operator==(Source s2) {
 		return (id == s2.id);
 	}
@@ -53,7 +48,8 @@ public:
 		CAMERA_SOURCE,
 		ALGORITHM_SOURCE,
 		RENDERING_SOURCE,
-		CAPTURE_SOURCE
+		CAPTURE_SOURCE,
+		MIX_SOURCE
 	} RTTI;
 	static RTTI type;
 	virtual RTTI rtti() const {
@@ -171,18 +167,14 @@ public:
 	void setScale(GLdouble sx, GLdouble sy);
 	void scaleBy(GLfloat fx, GLfloat fy);
 	void clampScale();
-	void resetScale();
+
+	typedef enum { SCALE_DEFORM, SCALE_CROP, SCALE_FIT } scalingMode;
+	void resetScale(scalingMode sm = SCALE_CROP);
 
 	inline bool isCulled() const {
 		return culled;
 	}
 	void testCulling();
-
-protected:
-	// special case for depth; should only be modified by Rendering Manager
-	void setDepth(GLdouble v);
-
-public:
 
 	/**
 	 * Blending
@@ -294,7 +286,19 @@ public:
 		return convolution;
 	}
 
+
+
 protected:
+	/*
+	 * Constructor ; only Rendering Manager is allowed
+	 */
+	Source(GLuint texture, double depth);
+	/*
+	 * also depth should only be modified by Rendering Manager
+	 *
+	 */
+	void setDepth(GLdouble v);
+
 
 	// identity and properties
 	GLuint id;
@@ -307,7 +311,7 @@ protected:
 	GLdouble x, y, z;
 	GLdouble scalex, scaley;
 	GLdouble alphax, alphay;
-	GLdouble centerx, centery, rotangle, rothandle;
+	GLdouble centerx, centery, rotangle;
 	GLdouble aspectratio;
 	GLfloat texalpha;
 	QColor texcolor;

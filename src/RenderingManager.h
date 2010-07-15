@@ -131,7 +131,6 @@ protected:
 	GLuint _fboCatalogTexture;
 	QGLFramebufferObject *previousframe_fbo;
 	int countRenderingSource, previousframe_index, previousframe_delay;
-    static bool blit_fbo_extension;
     QColor clearColor;
 
 	// the set of sources
@@ -139,6 +138,7 @@ protected:
 	SourceSet::iterator _currentSource;
 	SourceList dropBasket;
 
+    static bool blit_fbo_extension;
 };
 
 #endif /* MAINRENDERWIDGET_H_ */

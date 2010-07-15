@@ -17,10 +17,10 @@ bool Source::imaging_extension = true;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 
 Source::Source(GLuint texture, double depth) :
-	active(false), culled(false), frameChanged(false), textureIndex(texture),
+			active(false), culled(false), frameChanged(false), textureIndex(texture),
 			maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-			centerx(0.0), centery(0.0), rotangle(0.0), rothandle(SOURCE_UNIT * 2.0),
+			centerx(0.0), centery(0.0), rotangle(0.0),
 			aspectratio(1.0), texalpha(1.0), pixelated(false),
 			convolution(NO_CONVOLUTION), colorTable(NO_COLORTABLE), mask_type(NO_MASK),
 			brightness(0), contrast(0),	saturation(0) {
@@ -134,17 +134,36 @@ void Source::setAlpha(GLfloat a) {
 	alphay = dy * da;
 }
 
-void Source::resetScale() {
-	scalex = SOURCE_UNIT * aspectratio;
+void Source::resetScale(scalingMode sm) {
+
+	scalex = SOURCE_UNIT;
 	scaley = SOURCE_UNIT;
+	float renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
 
-//	float renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
-//
-//	if (aspectratio < renderingAspectRatio)
-//		scalex *= aspectratio / renderingAspectRatio;
-//	else
-//		scaley *= renderingAspectRatio / aspectratio;
-
+	switch (sm) {
+	case Source::SCALE_FIT:
+		// keep original aspect ratio
+		scalex  *= aspectratio;
+		// if it is too large, scale it
+		if (aspectratio > renderingAspectRatio) {
+			scalex *= renderingAspectRatio / aspectratio;
+			scaley *= renderingAspectRatio / aspectratio;
+		}
+		break;
+	case Source::SCALE_DEFORM:
+		// alter aspect ratio to match the rendering area
+		scalex  *= renderingAspectRatio;
+		break;
+	default:
+	case Source::SCALE_CROP:
+		// keep original aspect ratio
+		scalex  *= aspectratio;
+		// if it is not large enough, scale it
+		if (aspectratio < renderingAspectRatio) {
+			scalex *= renderingAspectRatio / aspectratio;
+			scaley *= renderingAspectRatio / aspectratio;
+		}
+	}
 
 }
 

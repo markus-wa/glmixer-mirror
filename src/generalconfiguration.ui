@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>GeneralConfigurationDialog</class>
- <widget class="QDialog" name="GeneralConfigurationDialog">
+ <class>UserPreferencesDialog</class>
+ <widget class="QDialog" name="UserPreferencesDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GLMixer global configuration</string>
+   <string>User preferences</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../icons.qrc">
+    <normaloff>:/glmixer/icons/preferences.png</normaloff>:/glmixer/icons/preferences.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
@@ -463,12 +467,43 @@ p, li { white-space: pre-wrap; }
           <item>
            <widget class="QCheckBox" name="defaultStartPlaying">
             <property name="text">
-             <string>Automatically start playing</string>
+             <string>Sart playing immediately</string>
             </property>
             <property name="checked">
              <bool>true</bool>
             </property>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QRadioButton" name="radioButton_9">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="text">
+               <string>Scaled to fit inside (keep AR)</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_7">
+              <property name="text">
+               <string>Scaled &amp;&amp; cropped (keep AR)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_8">
+              <property name="text">
+               <string>Scaled (alter Aspect Ratio)</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -768,7 +803,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>DecisionButtonBox</sender>
    <signal>accepted()</signal>
-   <receiver>GeneralConfigurationDialog</receiver>
+   <receiver>UserPreferencesDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -784,7 +819,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>DecisionButtonBox</sender>
    <signal>rejected()</signal>
-   <receiver>GeneralConfigurationDialog</receiver>
+   <receiver>UserPreferencesDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

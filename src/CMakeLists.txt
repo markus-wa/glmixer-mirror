@@ -10,6 +10,7 @@ include(${QT_USE_FILE})
 
 # the variable "qtproject_SRCS" contains all .cpp files of this project
 set(MYQT_SRCS
+	MixSource.cpp
 	glRenderWidget.cpp
 	CameraDialog.cpp
     VideoFileDialogPreview.cpp
@@ -29,6 +30,7 @@ set(MYQT_SRCS
     RenderingManager.cpp
 	OutputRenderWindow.cpp
 	SourcePropertyBrowser.cpp
+	SpringCursor.cpp
     glmixer.cpp
     main.cpp
 )

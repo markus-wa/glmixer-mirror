@@ -14,6 +14,8 @@
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 #include "CatalogView.h"
+#include "Cursor.h"
+#include "SpringCursor.h"
 
 GLuint ViewRenderWidget::border_thin_shadow = 0,
 		ViewRenderWidget::border_large_shadow = 0;
@@ -37,19 +39,28 @@ ViewRenderWidget::ViewRenderWidget() :
 	setMouseCursor(MOUSE_ARROW);
 
 	// create the main views
-	renderView = new View;
-	Q_CHECK_PTR(renderView);
-	mixingManipulationView = new MixerView;
-	Q_CHECK_PTR(mixingManipulationView);
-	geometryManipulationView = new GeometryView;
-	Q_CHECK_PTR(geometryManipulationView);
-	layersManipulationView = new LayersView;
-	Q_CHECK_PTR(layersManipulationView);
-	currentManipulationView = renderView;
+	_renderView = new View;
+	Q_CHECK_PTR(_renderView);
+	_mixingView = new MixerView;
+	Q_CHECK_PTR(_mixingView);
+	_geometryView = new GeometryView;
+	Q_CHECK_PTR(_geometryView);
+	_layersView = new LayersView;
+	Q_CHECK_PTR(_layersView);
+	// sets the current view
+	_currentView = _renderView;
 
-	// create the selection view
-	catalogView = new CatalogView;
-	Q_CHECK_PTR(catalogView);
+	// create the catalog view
+	_catalogView = new CatalogView;
+	Q_CHECK_PTR(_catalogView);
+
+	// create the cursors
+	_normalCursor = new Cursor;
+	Q_CHECK_PTR(_normalCursor);
+	_springCursor = new SpringCursor;
+	Q_CHECK_PTR(_springCursor);
+	// sets the current cursor
+	_currentCursor = _normalCursor;
 
 	// opengl HID display
 	displayMessage = false;
@@ -70,16 +81,16 @@ ViewRenderWidget::ViewRenderWidget() :
 
 ViewRenderWidget::~ViewRenderWidget()
 {
-	if (renderView)
-		delete renderView;
-	if (mixingManipulationView)
-		delete mixingManipulationView;
-	if (geometryManipulationView)
-		delete geometryManipulationView;
-	if (layersManipulationView)
-		delete layersManipulationView;
-	if (catalogView)
-		delete catalogView;
+	if (_renderView)
+		delete _renderView;
+	if (_mixingView)
+		delete _mixingView;
+	if (_geometryView)
+		delete _geometryView;
+	if (_layersView)
+		delete _layersView;
+	if (_catalogView)
+		delete _catalogView;
 }
 
 void ViewRenderWidget::initializeGL()
@@ -166,13 +177,13 @@ void ViewRenderWidget::initializeGL()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluOrtho2D(-SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), -SOURCE_UNIT, SOURCE_UNIT);
-	glGetDoublev(GL_PROJECTION_MATRIX, renderView->projection);
-	glGetDoublev(GL_PROJECTION_MATRIX, catalogView->projection);
+	glGetDoublev(GL_PROJECTION_MATRIX, _renderView->projection);
+	glGetDoublev(GL_PROJECTION_MATRIX, _catalogView->projection);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glGetDoublev(GL_MODELVIEW_MATRIX, renderView->modelview);
-	glGetDoublev(GL_MODELVIEW_MATRIX, catalogView->modelview);
+	glGetDoublev(GL_MODELVIEW_MATRIX, _renderView->modelview);
+	glGetDoublev(GL_MODELVIEW_MATRIX, _catalogView->modelview);
 
 }
 
@@ -181,20 +192,20 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 	switch (mode)
 	{
 	case ViewRenderWidget::MIXING:
-		currentManipulationView = (View *) mixingManipulationView;
+		_currentView = (View *) _mixingView;
 		showMessage("Mixing View");
 		break;
 	case ViewRenderWidget::GEOMETRY:
-		currentManipulationView = (View *) geometryManipulationView;
+		_currentView = (View *) _geometryView;
 		showMessage("Geometry View");
 		break;
 	case ViewRenderWidget::LAYER:
-		currentManipulationView = (View *) layersManipulationView;
+		_currentView = (View *) _layersView;
 		showMessage("Layers View");
 		break;
 	case ViewRenderWidget::NONE:
 	default:
-		currentManipulationView = renderView;
+		_currentView = _renderView;
 	}
 
 	// update view to match with the changes in modelview and projection matrices (e.g. resized widget)
@@ -204,32 +215,32 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 
 void ViewRenderWidget::setCatalogVisible(bool on)
 {
-	catalogView->setVisible(on);
+	_catalogView->setVisible(on);
 }
 
 void ViewRenderWidget::setCatalogSizeSmall()
 {
-	catalogView->setSize(CatalogView::SMALL);
+	_catalogView->setSize(CatalogView::SMALL);
 }
 
 void ViewRenderWidget::setCatalogSizeMedium()
 {
-	catalogView->setSize(CatalogView::MEDIUM);
+	_catalogView->setSize(CatalogView::MEDIUM);
 }
 
 void ViewRenderWidget::setCatalogSizeLarge()
 {
-	catalogView->setSize(CatalogView::LARGE);
+	_catalogView->setSize(CatalogView::LARGE);
 }
 
 void ViewRenderWidget::contextMenu(const QPoint &pos)
 {
 
-	if (catalogView->isInside(pos) && catalogMenu)
+	if (_catalogView->isInside(pos) && catalogMenu)
 	{
 		catalogMenu->exec(mapToGlobal(pos));
 	}
-	else if (viewMenu && currentManipulationView->noSourceClicked())
+	else if (viewMenu && _currentView->noSourceClicked())
 	{
 		viewMenu->exec(mapToGlobal(pos));
 	}
@@ -237,24 +248,46 @@ void ViewRenderWidget::contextMenu(const QPoint &pos)
 
 QPixmap ViewRenderWidget::getViewIcon()
 {
-	return currentManipulationView->getIcon();
+	return _currentView->getIcon();
 }
 
 void ViewRenderWidget::setToolMode(toolMode m){
 
-	if (currentManipulationView == (View *) geometryManipulationView) {
-		geometryManipulationView->setTool( (GeometryView::toolType) m );
+	if (_currentView == (View *) _geometryView) {
+		_geometryView->setTool( (GeometryView::toolType) m );
 	}
 
 }
 
 ViewRenderWidget::toolMode ViewRenderWidget::getToolMode(){
 
-	if (currentManipulationView == (View *) geometryManipulationView) {
-		return (ViewRenderWidget::toolMode) geometryManipulationView->getTool();
+	if (_currentView == (View *) _geometryView) {
+		return (ViewRenderWidget::toolMode) _geometryView->getTool();
 	}
 	else
 		return ViewRenderWidget::TOOL_GRAB;
+}
+
+
+void ViewRenderWidget::setCursorMode(cursorMode m){
+
+	switch(m) {
+	case ViewRenderWidget::CURSOR_SPRING:
+		_currentCursor = _springCursor;
+		break;
+	default:
+	case ViewRenderWidget::CURSOR_NORMAL:
+		_currentCursor = _normalCursor;
+	}
+
+}
+
+ViewRenderWidget::cursorMode ViewRenderWidget::getCursorMode(){
+
+	if (_currentCursor == _springCursor)
+		return ViewRenderWidget::CURSOR_SPRING;
+
+	return ViewRenderWidget::CURSOR_NORMAL;
 }
 
 /**
@@ -264,10 +297,10 @@ ViewRenderWidget::toolMode ViewRenderWidget::getToolMode(){
 void ViewRenderWidget::resizeGL(int w, int h)
 {
 	// modify catalog view
-	catalogView->resize(w, h);
+	_catalogView->resize(w, h);
 
 	// resize the view taking
-	currentManipulationView->resize(w, h);
+	_currentView->resize(w, h);
 }
 
 void ViewRenderWidget::refresh()
@@ -276,11 +309,11 @@ void ViewRenderWidget::refresh()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluOrtho2D(-SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), -SOURCE_UNIT, SOURCE_UNIT);
-	glGetDoublev(GL_PROJECTION_MATRIX, renderView->projection);
-	glGetDoublev(GL_PROJECTION_MATRIX, catalogView->projection);
+	glGetDoublev(GL_PROJECTION_MATRIX, _renderView->projection);
+	glGetDoublev(GL_PROJECTION_MATRIX, _catalogView->projection);
 
 	// default resize ; will refresh everything
-	currentManipulationView->resize(width(), height());
+	_currentView->resize(width(), height());
 }
 
 void ViewRenderWidget::paintGL()
@@ -292,10 +325,10 @@ void ViewRenderWidget::paintGL()
 	glRenderWidget::paintGL();
 
 	// apply modelview transformations from zoom and panning only when requested
-	if (currentManipulationView->isModified())
-		currentManipulationView->setModelview();
+	if (_currentView->isModified())
+		_currentView->setModelview();
 	// draw the view
-	currentManipulationView->paint();
+	_currentView->paint();
 
 	// draw a semi-transparent overlay if view should be faded
 	if (faded)
@@ -305,13 +338,31 @@ void ViewRenderWidget::paintGL()
 	}
 
 	//
-	// 2. The catalog view with transparency
+	// 2. the shadow of the cursor
 	//
-	if (catalogView->visible())
-		catalogView->paint();
+	if (_currentCursor->apply(f_p_s_) ) {
+
+		_currentCursor->draw(_currentView->viewport);
+
+		if (_currentView->mouseMoveEvent( _currentCursor->getMouseMoveEvent() ))
+		{   // the view 'mouseMoveEvent' returns true ; there was something changed!
+			if (_currentView == _mixingView)
+				emit sourceMixingModified();
+			else if (_currentView == _geometryView)
+				emit sourceGeometryModified();
+			else if (_currentView == _layersView)
+				emit sourceLayerModified();
+		}
+	}
 
 	//
-	// 3. The extra information
+	// 3. The catalog view with transparency
+	//
+	if (_catalogView->visible())
+		_catalogView->paint();
+
+	//
+	// 4. The extra information
 	//
 	// HUD : display message
 	if (displayMessage)
@@ -343,11 +394,13 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 {
 	makeCurrent();
 
-	if (catalogView->mousePressEvent(event))
+	_currentCursor->update(event);
+
+	if (_catalogView->mousePressEvent(event))
 		return;
 
 	// inform the view of the mouse press event
-	if (!currentManipulationView->mousePressEvent(event))
+	if (!_currentView->mousePressEvent(event))
 	{
 
 		// if there is something to drop, inform the rendering manager that it can drop the source at the clic coordinates
@@ -355,24 +408,24 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 		{
 
 			// depending on the view, ask the rendering manager to drop the source with the user parameters
-			if (currentManipulationView == mixingManipulationView)
+			if (_currentView == _mixingView)
 			{
 				double ax = 0.0, ay = 0.0;
-				mixingManipulationView->alphaCoordinatesFromMouse(event->x(),
+				_mixingView->alphaCoordinatesFromMouse(event->x(),
 						event->y(), &ax, &ay);
 				emit sourceMixingDrop(ax, ay);
 			}
-			else if (currentManipulationView == geometryManipulationView)
+			else if (_currentView == _geometryView)
 			{
 				double x = 0.0, y = 0.0;
-				geometryManipulationView->coordinatesFromMouse(event->x(),
+				_geometryView->coordinatesFromMouse(event->x(),
 						event->y(), &x, &y);
 				emit sourceGeometryDrop(x, y);
 			}
-			else if (currentManipulationView == layersManipulationView)
+			else if (_currentView == _layersView)
 			{
 				double d = 0.0, dumm;
-				layersManipulationView->unProjectDepth(event->x(), event->y(),
+				_layersView->unProjectDepth(event->x(), event->y(),
 						0.0, 0.0, &d, &dumm);
 				emit sourceLayerDrop(d);
 			}
@@ -388,7 +441,8 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	makeCurrent();
 
-	if (event->buttons() == Qt::NoButton && catalogView->mouseMoveEvent(event))
+
+	if (event->buttons() == Qt::NoButton && _catalogView->mouseMoveEvent(event))
 	{
 		setFaded(true);
 		return;
@@ -396,18 +450,25 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 	else
 		setFaded(false);
 
-	if (!currentManipulationView->mouseMoveEvent(event))
-		// the mouse press was not treated ; forward it
-		QWidget::mouseMoveEvent(event);
-	else
-	{   // the view 'mouseMoveEvent' returns true ; there was something changed!
-		if (currentManipulationView == mixingManipulationView)
-			emit sourceMixingModified();
-		else if (currentManipulationView == geometryManipulationView)
-			emit sourceGeometryModified();
-		else if (currentManipulationView == layersManipulationView)
-			emit sourceLayerModified();
-	}
+	// if a button was pressed, a user action should be considered with the Cursor
+	if ( _currentCursor != _normalCursor)
+		_currentCursor->update(event);
+	else  // just transfer the mouse over event otherwise
+		_currentView->mouseMoveEvent(event);
+
+
+//	if (!_currentView->mouseMoveEvent(event))
+//		// the mouse press was not treated ; forward it
+//		QWidget::mouseMoveEvent(event);
+//	else
+//	{   // the view 'mouseMoveEvent' returns true ; there was something changed!
+//		if (_currentView == _mixingView)
+//			emit sourceMixingModified();
+//		else if (_currentView == _geometryView)
+//			emit sourceGeometryModified();
+//		else if (_currentView == _layersView)
+//			emit sourceLayerModified();
+//	}
 
 }
 
@@ -415,10 +476,12 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
 {
 	makeCurrent();
 
-	if (catalogView->mouseReleaseEvent(event))
+	_currentCursor->update(event);
+
+	if (_catalogView->mouseReleaseEvent(event))
 		return;
 
-	if (!currentManipulationView->mouseReleaseEvent(event))
+	if (!_currentView->mouseReleaseEvent(event))
 		QWidget::mouseReleaseEvent(event);
 }
 
@@ -426,14 +489,14 @@ void ViewRenderWidget::mouseDoubleClickEvent(QMouseEvent * event)
 {
 	makeCurrent();
 
-	if (catalogView->mouseDoubleClickEvent(event))
+	if (_catalogView->mouseDoubleClickEvent(event))
 		return;
 
-	if (!currentManipulationView->mouseDoubleClickEvent(event))
+	if (!_currentView->mouseDoubleClickEvent(event))
 		QWidget::mouseDoubleClickEvent(event);
 	else
 	{   // special case ; double clic changes geometry
-		if (currentManipulationView == geometryManipulationView)
+		if (_currentView == _geometryView)
 			emit sourceGeometryModified();
 	}
 }
@@ -442,10 +505,13 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 {
 	makeCurrent();
 
-	if (catalogView->wheelEvent(event))
+	if (_catalogView->wheelEvent(event))
 		return;
 
-	if (!currentManipulationView->wheelEvent(event))
+	if (_currentCursor->wheelEvent(event))
+		return;
+
+	if (!_currentView->wheelEvent(event))
 		QWidget::wheelEvent(event);
 }
 
@@ -453,7 +519,7 @@ void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
 {
 	makeCurrent();
 
-	if (!currentManipulationView->keyPressEvent(event))
+	if (!_currentView->keyPressEvent(event))
 		QWidget::keyPressEvent(event);
 }
 
@@ -485,7 +551,7 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 void ViewRenderWidget::leaveEvent ( QEvent * event ){
 
 	setFaded(false);
-	catalogView->setTransparent(true);
+	_catalogView->setTransparent(true);
 
 	QWidget::leaveEvent(event);
 }
@@ -493,38 +559,38 @@ void ViewRenderWidget::leaveEvent ( QEvent * event ){
 void ViewRenderWidget::zoomIn()
 {
 	makeCurrent();
-	currentManipulationView->zoomIn();
+	_currentView->zoomIn();
 
-	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
+	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::zoomOut()
 {
 	makeCurrent();
-	currentManipulationView->zoomOut();
-	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
+	_currentView->zoomOut();
+	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::zoomReset()
 {
 	makeCurrent();
-	currentManipulationView->zoomReset();
-	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
+	_currentView->zoomReset();
+	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::zoomBestFit()
 {
 	makeCurrent();
-	currentManipulationView->zoomBestFit();
-	showMessage(QString("%1 \%").arg(currentManipulationView->getZoomPercent(), 0, 'f', 1));
+	_currentView->zoomBestFit();
+	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::clearViews()
 {
 	// clear all views
-	mixingManipulationView->clear();
-	geometryManipulationView->clear();
-	layersManipulationView->clear();
+	_mixingView->clear();
+	_geometryView->clear();
+	_layersView->clear();
 
 	refresh();
 }
@@ -545,11 +611,11 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 {
 	QDomElement config = doc.createElement("Views");
 
-	if (currentManipulationView == mixingManipulationView)
+	if (_currentView == _mixingView)
 		config.setAttribute("current", ViewRenderWidget::MIXING);
-	else if (currentManipulationView == geometryManipulationView)
+	else if (_currentView == _geometryView)
 		config.setAttribute("current", ViewRenderWidget::GEOMETRY);
-	else if (currentManipulationView == layersManipulationView)
+	else if (_currentView == _layersView)
 		config.setAttribute("current", ViewRenderWidget::LAYER);
 
 	QDomElement mix = doc.createElement("View");
@@ -557,12 +623,12 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 	config.appendChild(mix);
 	{
 		QDomElement z = doc.createElement("Zoom");
-		z.setAttribute("value", mixingManipulationView->getZoom());
+		z.setAttribute("value", _mixingView->getZoom());
 		mix.appendChild(z);
 
 		QDomElement pos = doc.createElement("Panning");
-		pos.setAttribute("X", mixingManipulationView->getPanningX());
-		pos.setAttribute("Y", mixingManipulationView->getPanningY());
+		pos.setAttribute("X", _mixingView->getPanningX());
+		pos.setAttribute("Y", _mixingView->getPanningY());
 		mix.appendChild(pos);
 	}
 
@@ -571,12 +637,12 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 	config.appendChild(geom);
 	{
 		QDomElement z = doc.createElement("Zoom");
-		z.setAttribute("value", geometryManipulationView->getZoom());
+		z.setAttribute("value", _geometryView->getZoom());
 		geom.appendChild(z);
 
 		QDomElement pos = doc.createElement("Panning");
-		pos.setAttribute("X", geometryManipulationView->getPanningX());
-		pos.setAttribute("Y", geometryManipulationView->getPanningY());
+		pos.setAttribute("X", _geometryView->getPanningX());
+		pos.setAttribute("Y", _geometryView->getPanningY());
 		geom.appendChild(pos);
 	}
 
@@ -585,20 +651,20 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 	config.appendChild(depth);
 	{
 		QDomElement z = doc.createElement("Zoom");
-		z.setAttribute("value", layersManipulationView->getZoom());
+		z.setAttribute("value", _layersView->getZoom());
 		depth.appendChild(z);
 
 		QDomElement pos = doc.createElement("Panning");
-		pos.setAttribute("X", layersManipulationView->getPanningX());
-		pos.setAttribute("Y", layersManipulationView->getPanningY());
+		pos.setAttribute("X", _layersView->getPanningX());
+		pos.setAttribute("Y", _layersView->getPanningY());
 		depth.appendChild(pos);
 	}
 
 	QDomElement catalog = doc.createElement("Catalog");
 	config.appendChild(catalog);
-	catalog.setAttribute("visible", catalogView->visible());
+	catalog.setAttribute("visible", _catalogView->visible());
 	QDomElement s = doc.createElement("Parameters");
-	s.setAttribute("catalogSize", catalogView->getSize());
+	s.setAttribute("catalogSize", _catalogView->getSize());
 	catalog.appendChild(s);
 
 	return config;
@@ -610,19 +676,19 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 	QDomElement child = xmlconfig.firstChildElement("View");
 	while (!child.isNull()) {
 		if (child.attribute("name") == "Mixing") {
-			mixingManipulationView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
-			mixingManipulationView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
-			mixingManipulationView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
+			_mixingView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
+			_mixingView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
+			_mixingView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
 		}
 		if (child.attribute("name") == "Geometry") {
-			geometryManipulationView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
-			geometryManipulationView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
-			geometryManipulationView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
+			_geometryView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
+			_geometryView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
+			_geometryView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
 		}
 		if (child.attribute("name") == "Depth") {
-			layersManipulationView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
-			layersManipulationView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
-			layersManipulationView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
+			_layersView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
+			_layersView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
+			_layersView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
 		}
 		child = child.nextSiblingElement();
 	}

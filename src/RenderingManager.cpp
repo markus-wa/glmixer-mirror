@@ -145,10 +145,10 @@ void RenderingManager::setFrameBufferResolution(int width, int height) {
     _fbo->release();
 
     // store viewport info
-    _renderwidget->renderView->viewport[0] = 0;
-    _renderwidget->renderView->viewport[1] = 0;
-    _renderwidget->renderView->viewport[2] = _fbo->width();
-    _renderwidget->renderView->viewport[3] = _fbo->height();
+    _renderwidget->_renderView->viewport[0] = 0;
+    _renderwidget->_renderView->viewport[1] = 0;
+    _renderwidget->_renderView->viewport[2] = _fbo->width();
+    _renderwidget->_renderView->viewport[3] = _fbo->height();
 
 }
 
@@ -241,16 +241,16 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
-	glViewport(0, 0, _renderwidget->renderView->viewport[2], _renderwidget->renderView->viewport[3]);
+	glViewport(0, 0, _renderwidget->_renderView->viewport[2], _renderwidget->_renderView->viewport[3]);
 //	glViewport(0, 0, _fbo->width(), _fbo->height());
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
-	glLoadMatrixd(_renderwidget->renderView->projection);
+	glLoadMatrixd(_renderwidget->_renderView->projection);
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glLoadMatrixd(_renderwidget->renderView->modelview);
+	glLoadMatrixd(_renderwidget->_renderView->modelview);
 
 	// render to the frame buffer object
 	_fbo->bind();
@@ -282,18 +282,18 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 		//
 		// 2. Draw into second texture  attachment ; the catalog (if visible)
 		//
-		if (_renderwidget->catalogView->visible()) {
+		if (_renderwidget->_catalogView->visible()) {
 			glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
 
 			glLoadIdentity();
 			static int indexSource = 0;
 			if (clearfirst) {
 				// Clear Catalog view
-				_renderwidget->catalogView->clear();
+				_renderwidget->_catalogView->clear();
 				indexSource = 0;
 			}
 			// Draw this source into the catalog
-			_renderwidget->catalogView->drawSource( source, indexSource++);
+			_renderwidget->_catalogView->drawSource( source, indexSource++);
 
 			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 		}
@@ -363,7 +363,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 	Q_CHECK_PTR(s);
 
 	// scale the source to match the media size
-	s->resetScale();
+	s->resetScale(Source::SCALE_CROP);
 
 	return ( (Source *) s );
 }

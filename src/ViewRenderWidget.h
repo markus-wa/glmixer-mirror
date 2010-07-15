@@ -20,6 +20,9 @@ class GeometryView;
 class LayersView;
 class CatalogView;
 
+class Cursor;
+class SpringCursor;
+
 class ViewRenderWidget: public glRenderWidget {
 
 	Q_OBJECT
@@ -74,6 +77,11 @@ public:
 	typedef enum {TOOL_GRAB=0, TOOL_SCALE, TOOL_ROTATE, TOOL_CUT } toolMode;
 	void setToolMode(toolMode m);
 	toolMode getToolMode();
+
+	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING } cursorMode;
+	void setCursorMode(cursorMode m);
+	cursorMode getCursorMode();
+
 
 	/**
 	 * save and load configuration
@@ -138,11 +146,15 @@ protected:
 
 private:
     // V i e w s
-	View *currentManipulationView, *renderView;
-	MixerView *mixingManipulationView;
-	GeometryView *geometryManipulationView;
-	LayersView *layersManipulationView;
-	CatalogView *catalogView;
+	View *_currentView, *_renderView;
+	MixerView *_mixingView;
+	GeometryView *_geometryView;
+	LayersView *_layersView;
+	CatalogView *_catalogView;
+
+	// C u r s o r s
+	Cursor *_currentCursor, *_normalCursor;
+	SpringCursor *_springCursor;
 
 	// M e s s a g e s
 	QString message;

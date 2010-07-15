@@ -229,6 +229,10 @@ void GLMixer::setTool(QAction *a){
 
 void GLMixer::setCursor(QAction *a){
 
+	if (a == actionCursorNormal)
+		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_NORMAL);
+	else if (a == actionCursorSpring)
+		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_SPRING);
 
 }
 
