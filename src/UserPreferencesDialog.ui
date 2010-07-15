@@ -45,7 +45,7 @@
       <bool>false</bool>
      </property>
      <property name="currentRow">
-      <number>-1</number>
+      <number>0</number>
      </property>
      <item>
       <property name="text">
@@ -94,7 +94,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::RestoreDefaults|QDialogButtonBox::Save</set>
      </property>
     </widget>
    </item>
@@ -444,20 +444,36 @@ p, li { white-space: pre-wrap; }
                <property name="text">
                 <string>Rounded corners</string>
                </property>
+               <property name="icon">
+                <iconset resource="../textures.qrc">
+                 <normaloff>:/glmixer/textures/mask_roundcorner.png</normaloff>:/glmixer/textures/mask_roundcorner.png</iconset>
+               </property>
               </item>
               <item>
                <property name="text">
                 <string>Circle</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../textures.qrc">
+                 <normaloff>:/glmixer/textures/mask_circle.png</normaloff>:/glmixer/textures/mask_circle.png</iconset>
                </property>
               </item>
               <item>
                <property name="text">
                 <string>Circular gradient</string>
                </property>
+               <property name="icon">
+                <iconset resource="../textures.qrc">
+                 <normaloff>:/glmixer/textures/mask_linear_circle.png</normaloff>:/glmixer/textures/mask_linear_circle.png</iconset>
+               </property>
               </item>
               <item>
                <property name="text">
                 <string>Square gradient</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../textures.qrc">
+                 <normaloff>:/glmixer/textures/mask_linear_square.png</normaloff>:/glmixer/textures/mask_linear_square.png</iconset>
                </property>
               </item>
              </widget>
@@ -798,6 +814,7 @@ p, li { white-space: pre-wrap; }
  <resources>
   <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../textures.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -807,8 +824,8 @@ p, li { white-space: pre-wrap; }
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>234</x>
-     <y>456</y>
+     <x>241</x>
+     <y>420</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -823,8 +840,8 @@ p, li { white-space: pre-wrap; }
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>302</x>
-     <y>456</y>
+     <x>309</x>
+     <y>420</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -845,6 +862,38 @@ p, li { white-space: pre-wrap; }
     <hint type="destinationlabel">
      <x>521</x>
      <y>219</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>horizontalSlider</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>label_2</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>750</x>
+     <y>225</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>803</x>
+     <y>227</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>defaultAlpha</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>alphaValue</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>723</x>
+     <y>57</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>782</x>
+     <y>57</y>
     </hint>
    </hints>
   </connection>

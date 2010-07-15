@@ -25,7 +25,6 @@ public:
 	GLMixer(QWidget *parent = 0);
 	~GLMixer();
 
-	void closeEvent(QCloseEvent * event);
 	void openSessionFile(QString filename);
 
 public Q_SLOTS:
@@ -52,9 +51,8 @@ public Q_SLOTS:
 	void on_actionShow_frames_toggled(bool);
 	void on_actionShowFPS_toggled(bool);
 	void on_actionAbout_triggered();
-	void on_actionAbout_Qt_triggered() {
-		QApplication::aboutQt();
-	}
+	void on_actionPreferences_triggered();
+
 	void on_actionNew_Session_triggered();
 	void on_actionSave_Session_triggered();
 	void on_actionSave_Session_as_triggered();
@@ -87,6 +85,9 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event);
     void dragLeaveEvent(QDragLeaveEvent *event);
     void dropEvent(QDropEvent *event);
+	void closeEvent(QCloseEvent * event);
+
+	void setPreferences(const QByteArray & state);
 
 private:
 	QString currentStageFileName;

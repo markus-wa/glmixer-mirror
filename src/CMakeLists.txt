@@ -31,6 +31,7 @@ set(MYQT_SRCS
 	OutputRenderWindow.cpp
 	SourcePropertyBrowser.cpp
 	SpringCursor.cpp
+	UserPreferencesDialog.cpp
     glmixer.cpp
     main.cpp
 )
@@ -46,6 +47,7 @@ set(MYQT_UIS
     VideoFileDialog.ui
     CameraDialog.ui
     AlgorithmSelectionDialog.ui
+    UserPreferencesDialog.ui
 )
 
 

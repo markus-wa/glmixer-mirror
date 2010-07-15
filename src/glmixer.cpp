@@ -14,6 +14,7 @@
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
 #include "AlgorithmSelectionDialog.h"
+#include "UserPreferencesDialog.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
@@ -103,6 +104,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 	// QUIT event
     QObject::connect(actionQuit, SIGNAL(triggered()), this, SLOT(close()));
+    QObject::connect(actionAbout_Qt, SIGNAL(triggered()), QApplication::instance(), SLOT(aboutQt()));
 
     // Signals between GUI and output window
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
@@ -137,6 +139,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(refreshTimingTimer, SIGNAL(timeout()), this, SLOT(refreshTiming()));
     QObject::connect(vcontrolDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(updateRefreshTimerState()));
 
+    // recall settings from last time
     readSettings();
 }
 
@@ -1244,9 +1247,14 @@ void GLMixer::readSettings(){
 	// Main window config
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
+
+    // dialogs configs
     vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
     mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
     OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
+
+    // preferences
+    setPreferences(settings.value("UserPreferences").toByteArray());
 }
 
 void GLMixer::saveSettings(){
@@ -1258,5 +1266,28 @@ void GLMixer::saveSettings(){
     settings.setValue("OutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
 
     settings.sync();
+}
+
+
+
+void GLMixer::setPreferences(const QByteArray & state){
+
+
+}
+
+void GLMixer::on_actionPreferences_triggered(){
+
+	// popup a question dialog to select the type of algorithm
+	static UserPreferencesDialog *upd = 0;
+	if (!upd) {
+		upd = new UserPreferencesDialog(this);
+		upd->restoreState(settings.value("UserPreferences").toByteArray());
+	}
+
+	if (upd->exec() == QDialog::Accepted) {
+	    settings.setValue("UserPreferences", upd->state());
+	    setPreferences(upd->state());
+	}
+
 }
 
