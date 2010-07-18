@@ -26,7 +26,7 @@ OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareW
 }
 
 
-float OutputRenderWidget::getAspectRatio(){
+float OutputRenderWidget::getAspectRatio() const{
 
 	if (useAspectRatio)
 		return RenderingManager::getInstance()->getFrameBufferAspectRatio();
@@ -135,11 +135,12 @@ void OutputRenderWidget::resizeGL(int w, int h)
 
 void OutputRenderWindow::resizeGL(int w, int h)
 {
-	OutputRenderWidget::resizeGL(w, h);
-	emit resized(!useAspectRatio);
+	if (w == 0 || h == 0)
+		OutputRenderWidget::resizeGL(width(), height());
+	else
+		OutputRenderWidget::resizeGL(w, h);
 
-	if (!useAspectRatio)
-		RenderingManager::getInstance()->getRenderingWidget()->refresh();
+	emit resized(!useAspectRatio);
 }
 
 void OutputRenderWidget::useFreeAspectRatio(bool on) {

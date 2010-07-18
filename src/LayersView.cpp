@@ -53,7 +53,7 @@ void LayersView::paint()
 
 	glPushMatrix();
 	glScalef(OutputRenderWindow::getInstance()->getAspectRatio() / SOURCE_UNIT, 1.0 / SOURCE_UNIT, 1.0 / SOURCE_UNIT);
-    glCallList(ViewRenderWidget::quad_black);
+	glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
     glCallList(ViewRenderWidget::frame_screen);
 	glPopMatrix();
 

@@ -122,7 +122,7 @@ protected:
 	static GLuint border_thin_shadow, border_large_shadow;
 	static GLuint border_thin, border_large, border_scale, border_rotate;
 	static GLuint frame_selection, frame_screen;
-	static GLuint quad_texured, quad_half_textured, quad_black;
+	static GLuint quad_texured, quad_half_textured, quad_window[2];
 	static GLuint circle_mixing, layerbg, catalogbg;
 	static GLuint quad_stipped_textured[4];
 	static GLuint mask_textures[8];
@@ -140,7 +140,7 @@ protected:
     GLuint buildLayerbgList();
     GLuint buildCatalogbgList();
     GLuint buildFrameList();
-    GLuint buildBlackList();
+    GLuint buildWindowList(GLubyte r, GLubyte g, GLubyte b);
     GLuint buildBordersList();
     GLuint buildFadingList();
 

@@ -11,7 +11,7 @@
 #include <QDialog>
 #include "ui_UserPreferencesDialog.h"
 
-class UserPreferencesDialog : public QDialog, Ui_UserPreferencesDialog
+class UserPreferencesDialog : public QDialog, Ui::UserPreferencesDialog
 {
     Q_OBJECT
 
@@ -19,8 +19,14 @@ public:
 	UserPreferencesDialog(QWidget *parent = 0);
 	virtual ~UserPreferencesDialog();
 
-	void restoreState(const QByteArray & state);
-	QByteArray state();
+public Q_SLOTS:
+	void restoreDefaultPreferences();
+	void showPreferences(const QByteArray & state);
+	QByteArray getUserPreferences() const;
+
+private:
+	void sizeToSelection(QSize s);
+	QSize selectionToSize() const;
 
 };
 

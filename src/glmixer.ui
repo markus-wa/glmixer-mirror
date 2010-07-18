@@ -1185,6 +1185,7 @@ p, li { white-space: pre-wrap; }
      </property>
      <addaction name="actionFullscreen"/>
      <addaction name="actionFree_aspect_ratio"/>
+     <addaction name="actionWhite_background"/>
     </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
@@ -2059,6 +2060,14 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="statusTip">
     <string>Opens the preferences dialog.</string>
+   </property>
+  </action>
+  <action name="actionWhite_background">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>White background</string>
    </property>
   </action>
  </widget>

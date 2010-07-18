@@ -21,7 +21,8 @@ public:
     virtual void paintGL();
     virtual void resizeGL(int w, int h);
 
-	float getAspectRatio();
+	float getAspectRatio() const;
+	inline bool freeAspectRatio() const { return !useAspectRatio; }
 
 public Q_SLOTS:
 	void useFreeAspectRatio(bool on);
@@ -40,7 +41,7 @@ public:
 	static OutputRenderWindow *getInstance();
 
     void initializeGL();
-    void resizeGL(int w, int h);
+    void resizeGL(int w = 0, int h = 0);
 
 	// events handling
 	void keyPressEvent(QKeyEvent * event);

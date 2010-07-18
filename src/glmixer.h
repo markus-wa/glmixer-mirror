@@ -87,7 +87,8 @@ protected:
     void dropEvent(QDropEvent *event);
 	void closeEvent(QCloseEvent * event);
 
-	void setPreferences(const QByteArray & state);
+	bool restorePreferences(const QByteArray & state);
+	QByteArray getPreferences() const;
 
 private:
 	QString currentStageFileName;

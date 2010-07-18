@@ -41,10 +41,12 @@ void GeometryView::setModelview()
 
 void GeometryView::paint()
 {
+	static QColor clearColor;
+
     // first the black background (as the rendering black clear color) with shadow
 	glPushMatrix();
     glScalef( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
-    glCallList(ViewRenderWidget::quad_black);
+    glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
     glPopMatrix();
 
     bool first = true;

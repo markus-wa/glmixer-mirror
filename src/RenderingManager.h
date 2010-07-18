@@ -54,47 +54,67 @@ public:
 	// insert the source into the scene
 	void insertSource(Source *s);
 
-	SourceSet::iterator getById(GLuint id);
-	SourceSet::iterator getByName(QString name);
-	bool notAtEnd(SourceSet::iterator itsource);
-	bool isValid(SourceSet::iterator itsource);
-	QString getAvailableNameFrom(QString name);
-	double getAvailableDepthFrom(double depth = -1);
+	SourceSet::iterator getById(const GLuint id) const;
+	SourceSet::iterator getByName(const QString name) const;
+	bool notAtEnd(SourceSet::iterator itsource) const;
+	bool isValid(SourceSet::iterator itsource) const;
+	QString getAvailableNameFrom(QString name) const;
+	double getAvailableDepthFrom(double depth = -1) const;
 	SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
-	inline SourceSet::iterator getBegin() {
+	inline SourceSet::iterator getBegin()  const{
 		return _sources.begin();
 	}
-	inline SourceSet::iterator getEnd() {
+	inline SourceSet::iterator getEnd()  const{
 		return _sources.end();
 	}
 	void removeSource(SourceSet::iterator itsource);
 	bool setCurrentSource(SourceSet::iterator si);
 	bool setCurrentSource(GLuint name);
-	inline SourceSet::iterator getCurrentSource() {
+	inline SourceSet::iterator getCurrentSource()  const{
 		return _currentSource;
 	}
 	bool setCurrentNext();
 	bool setCurrentPrevious();
 
 	void addSourceToBasket(Source *s);
-	int getSourceBasketSize();
-	Source *getSourceBasketTop();
+	int getSourceBasketSize() const;
+	Source *getSourceBasketTop() const;
 
 	/**
 	 * management of the rendering
 	 */
-	void setFrameBufferResolution(int width, int height);
+	void setFrameBufferResolution(QSize size);
 	void renderToFrameBuffer(Source *source, bool clearfirst);
-	GLuint getFrameBufferTexture();
-	GLuint getCatalogTexture();
-	GLuint getFrameBufferHandle();
-	float getFrameBufferAspectRatio();
-	int getFrameBufferWidth();
-	int getFrameBufferHeight();
+	float getFrameBufferAspectRatio() const;
+	inline QSize getFrameBufferResolution() const {
+			return _fbo ? _fbo->size() : QSize(0,0);
+	}
+	inline int getFrameBufferWidth() const{
+		return _fbo ? _fbo->width() : 0;
+	}
+	inline int getFrameBufferHeight() const{
+		return _fbo ? _fbo->height() : 0;
+	}
+
+	inline GLuint getFrameBufferTexture() const{
+		return _fbo ? _fbo->texture() : 0;
+	}
+	inline GLuint getCatalogTexture() const{
+		return _fbo ? _fboCatalogTexture : 0;
+	}
+	inline GLuint getFrameBufferHandle() const{
+		return _fbo ? _fbo->handle() : 0;
+	}
+
 	void updatePreviousFrame();
-	int getPreviousFrameDelay() { return previousframe_delay; }
+	inline int getPreviousFrameDelay() const {
+		return previousframe_delay;
+	}
 
 	QImage captureFrameBuffer();
+	inline bool clearToWhite() const {
+		return clearWhite;
+	}
 
 	/**
 	 * save and load configuration
@@ -104,7 +124,7 @@ public:
 
 public Q_SLOTS:
 
-	void setClearColor(QColor c) { clearColor = c; }
+	void setClearToWhite(bool on) { clearWhite = on; }
 	void setPreviousFrameDelay(int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 
 	void clearSourceSet();
@@ -131,12 +151,15 @@ protected:
 	GLuint _fboCatalogTexture;
 	QGLFramebufferObject *previousframe_fbo;
 	int countRenderingSource, previousframe_index, previousframe_delay;
-    QColor clearColor;
+    bool clearWhite;
 
 	// the set of sources
 	SourceSet _sources;
 	SourceSet::iterator _currentSource;
 	SourceList dropBasket;
+
+	// the defaults
+	QMap<QString, QVariant> defaults;
 
     static bool blit_fbo_extension;
 };

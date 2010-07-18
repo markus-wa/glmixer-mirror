@@ -77,15 +77,17 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-	QObject(), _fbo(NULL), previousframe_fbo(NULL), countRenderingSource(0),
-			previousframe_index(0), previousframe_delay(1) {
+	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
+			previousframe_index(0), previousframe_delay(1), clearWhite(false) {
 
+	// 1. Create the view rendering widget and its catalog view
 	_renderwidget = new ViewRenderWidget;
 	Q_CHECK_PTR(_renderwidget);
 
 	_propertyBrowser = new SourcePropertyBrowser;
 	Q_CHECK_PTR(_propertyBrowser);
 
+	// 2. Connect the above view holders to events
     QObject::connect(this, SIGNAL(currentSourceChanged(SourceSet::iterator)), _propertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
 
     QObject::connect(_renderwidget, SIGNAL(sourceMixingModified()), _propertyBrowser, SLOT(updateMixingProperties() ) );
@@ -96,11 +98,11 @@ RenderingManager::RenderingManager() :
     QObject::connect(_renderwidget, SIGNAL(sourceGeometryDrop(double,double)), this, SLOT(dropSourceWithCoordinates(double, double)) );
     QObject::connect(_renderwidget, SIGNAL(sourceLayerDrop(double)), this, SLOT(dropSourceWithDepth(double)) );
 
-	setFrameBufferResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    // 3. Initialize the frame buffer
+	setFrameBufferResolution( QSize(DEFAULT_WIDTH, DEFAULT_HEIGHT) );
 
 	_currentSource = getEnd();
 
-	clearColor = QColor(Qt::black);
 }
 
 RenderingManager::~RenderingManager() {
@@ -115,7 +117,7 @@ RenderingManager::~RenderingManager() {
 
 }
 
-void RenderingManager::setFrameBufferResolution(int width, int height) {
+void RenderingManager::setFrameBufferResolution(QSize size) {
 
 	_renderwidget->makeCurrent();
 
@@ -125,7 +127,7 @@ void RenderingManager::setFrameBufferResolution(int width, int height) {
 	}
 
 	// create an fbo (with internal automatic first texture attachment)
-	_fbo = new QGLFramebufferObject(width, height);
+	_fbo = new QGLFramebufferObject(size);
 	Q_CHECK_PTR(_fbo);
 
 
@@ -152,26 +154,15 @@ void RenderingManager::setFrameBufferResolution(int width, int height) {
 
 }
 
-float RenderingManager::getFrameBufferAspectRatio() {
+
+
+
+float RenderingManager::getFrameBufferAspectRatio() const{
 
 	return ((float) _fbo->width() / (float) _fbo->height());
 }
 
-GLuint RenderingManager::getFrameBufferTexture() {
-	return _fbo->texture();
-}
-GLuint RenderingManager::getCatalogTexture() {
-	return _fboCatalogTexture;
-}
-GLuint RenderingManager::getFrameBufferHandle() {
-	return _fbo->handle();
-}
-int RenderingManager::getFrameBufferWidth() {
-	return _fbo->width();
-}
-int RenderingManager::getFrameBufferHeight() {
-	return _fbo->height();
-}
+
 
 void RenderingManager::updatePreviousFrame() {
 
@@ -261,7 +252,10 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 //		glDrawBuffer(GL_COLOR_ATTACHMENT0); // no need to specify default
 
 		if (clearfirst) {
-			glClearColor(clearColor.redF(), clearColor.greenF(), clearColor.blueF(), 1.0f);
+			if (clearWhite)
+				glClearColor(1.f, 1.f, 1.f, 1.f);
+			else
+				glClearColor(0.f, 0.f, 0.f, 1.f);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
@@ -362,7 +356,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 	VideoSource *s = new VideoSource(vf, textureIndex, getAvailableDepthFrom(depth) );
 	Q_CHECK_PTR(s);
 
-	// scale the source to match the media size
+	// scale the source to match the preferences
 	s->resetScale(Source::SCALE_CROP);
 
 	return ( (Source *) s );
@@ -459,12 +453,12 @@ void RenderingManager::addSourceToBasket(Source *s){
 	setCurrentSource( getEnd() );
 }
 
-int RenderingManager::getSourceBasketSize(){
+int RenderingManager::getSourceBasketSize() const{
 
 	return (int) (dropBasket.size());
 }
 
-Source *RenderingManager::getSourceBasketTop(){
+Source *RenderingManager::getSourceBasketTop() const{
 
 	if (dropBasket.empty())
 		return 0;
@@ -563,11 +557,11 @@ void RenderingManager::clearSourceSet() {
 	Source::lastid = 1;
 }
 
-bool RenderingManager::notAtEnd(SourceSet::iterator itsource) {
+bool RenderingManager::notAtEnd(SourceSet::iterator itsource)  const{
 	return (itsource != _sources.end());
 }
 
-bool RenderingManager::isValid(SourceSet::iterator itsource) {
+bool RenderingManager::isValid(SourceSet::iterator itsource)  const{
 
 	if (notAtEnd(itsource))
 		return (_sources.find(*itsource) != _sources.end());
@@ -644,7 +638,7 @@ bool RenderingManager::setCurrentPrevious(){
 }
 
 
-QString RenderingManager::getAvailableNameFrom(QString name){
+QString RenderingManager::getAvailableNameFrom(QString name) const{
 
 	// start with a tentative name and assume it is NOT ok
 	QString tentativeName = name;
@@ -662,7 +656,7 @@ QString RenderingManager::getAvailableNameFrom(QString name){
 	return tentativeName;
 }
 
-double RenderingManager::getAvailableDepthFrom(double depth){
+double RenderingManager::getAvailableDepthFrom(double depth) const {
 
 	double tentativeDepth = depth;
 
@@ -731,12 +725,12 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
 	return _sources.end();
 }
 
-SourceSet::iterator RenderingManager::getById(GLuint id) {
+SourceSet::iterator RenderingManager::getById(const GLuint id) const {
 
 	return std::find_if(_sources.begin(), _sources.end(), hasId(id));
 }
 
-SourceSet::iterator RenderingManager::getByName(QString name){
+SourceSet::iterator RenderingManager::getByName(const QString name) const{
 
 	return std::find_if(_sources.begin(), _sources.end(), hasName(name));
 }
@@ -1029,7 +1023,6 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
     		QMessageBox::warning(0, caption, tr("The source '%1' cannot be the clone of '%2' ; no such source.").arg(c.attribute("name")).arg(f.text()));
     	}
     }
-
 
 }
 

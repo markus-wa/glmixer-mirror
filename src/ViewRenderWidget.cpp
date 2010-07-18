@@ -21,7 +21,7 @@ GLuint ViewRenderWidget::border_thin_shadow = 0,
 		ViewRenderWidget::border_large_shadow = 0;
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
 GLuint ViewRenderWidget::border_rotate = 0, ViewRenderWidget::border_scale = 0;
-GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_black = 0;
+GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_window[] = {0, 0};
 GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0;
 GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0,
 		ViewRenderWidget::catalogbg = 0;
@@ -99,42 +99,26 @@ void ViewRenderWidget::initializeGL()
 
 	setBackgroundColor(QColor(52, 52, 52));
 
-	if (!border_thin_shadow)
-	{
-		border_thin_shadow = buildLineList();
-		border_large_shadow = border_thin_shadow + 1;
-	}
-	if (!quad_texured)
-		quad_texured = buildTexturedQuadList();
-	if (!quad_half_textured)
-	{
-		quad_stipped_textured[0] = buildHalfList_fine();
-		quad_stipped_textured[1] = buildHalfList_gross();
-		quad_stipped_textured[2] = buildHalfList_checkerboard();
-		quad_stipped_textured[3] = buildHalfList_triangle();
-		quad_half_textured = quad_stipped_textured[0];
-	}
-	if (!frame_selection)
-		frame_selection = buildSelectList();
-	if (!circle_mixing)
-		circle_mixing = buildCircleList();
-	if (!layerbg)
-		layerbg = buildLayerbgList();
-	if (!catalogbg)
-		catalogbg = buildCatalogbgList();
-	if (!quad_black)
-		quad_black = buildBlackList();
-	if (!frame_screen)
-		frame_screen = buildFrameList();
-	if (!border_thin)
-	{
-		border_thin = buildBordersList();
-		border_large = border_thin + 1;
-		border_scale = border_thin + 2;
-		border_rotate = border_thin + 3;
-	}
-	if (!fading)
-		fading = buildFadingList();
+	border_thin_shadow = buildLineList();
+	border_large_shadow = border_thin_shadow + 1;
+	quad_texured = buildTexturedQuadList();
+	quad_stipped_textured[0] = buildHalfList_fine();
+	quad_stipped_textured[1] = buildHalfList_gross();
+	quad_stipped_textured[2] = buildHalfList_checkerboard();
+	quad_stipped_textured[3] = buildHalfList_triangle();
+	quad_half_textured = quad_stipped_textured[0];
+	frame_selection = buildSelectList();
+	circle_mixing = buildCircleList();
+	layerbg = buildLayerbgList();
+	catalogbg = buildCatalogbgList();
+	quad_window[0] = buildWindowList(0, 0, 0);
+	quad_window[1] = buildWindowList(255, 255, 255);
+	frame_screen = buildFrameList();
+	border_thin = buildBordersList();
+	border_large = border_thin + 1;
+	border_scale = border_thin + 2;
+	border_rotate = border_thin + 3;
+	fading = buildFadingList();
 
 	if (!mask_textures[0])
 	{
@@ -305,6 +289,8 @@ void ViewRenderWidget::resizeGL(int w, int h)
 
 void ViewRenderWidget::refresh()
 {
+	makeCurrent();
+
 	// store render View matrices
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -690,6 +676,7 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 			_layersView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
 			_layersView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
 		}
+		// TODO xlm of catalog view
 		child = child.nextSiblingElement();
 	}
 
@@ -1086,6 +1073,7 @@ GLuint ViewRenderWidget::buildLayerbgList()
 	}
 	glEnd();
 
+	glEnable(GL_TEXTURE_2D);
 	glEndList();
 
 	return id;
@@ -1124,42 +1112,30 @@ GLuint ViewRenderWidget::buildCatalogbgList()
 /**
  * Build a display list of a black QUAD and returns its id
  **/
-GLuint ViewRenderWidget::buildBlackList()
+GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
 {
-	GLuint texid = 0; // bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow.png")), GL_TEXTURE_2D);
+	static GLuint texid = 0; // bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow.png")), GL_TEXTURE_2D);
 
-	// generate the texture with optimal performance ;
-	glGenTextures(1, &texid);
-	glBindTexture(GL_TEXTURE_2D, texid);
-	QImage p(":/glmixer/textures/shadow.png");
-	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	GLclampf highpriority = 1.0;
-	glPrioritizeTextures(1, &texid, &highpriority);
+	if (texid == 0) {
+		// generate the texture with optimal performance ;
+		glGenTextures(1, &texid);
+		glBindTexture(GL_TEXTURE_2D, texid);
+		QImage p(":/glmixer/textures/shadow.png");
+		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		GLclampf highpriority = 1.0;
+		glPrioritizeTextures(1, &texid, &highpriority);
+	}
 
 	GLuint id = glGenLists(1);
 	glNewList(id, GL_COMPILE);
 
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
-	glColor4f(0.f, 0.f, 0.f, 1.f);
-	glBegin(GL_QUADS); // begin drawing a square
-		// Front Face
-		glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-		glVertex3f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Left
-		glVertex3f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Right
-		glVertex3f(1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Right
-		glVertex3f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Left
-	glEnd();
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-
-	glColor4f(0.f, 0.f, 0.f, 0.8f);
+	glColor4ub(0, 0, 0, 200);
 
 	glPushMatrix();
 		glTranslatef(0.02 * SOURCE_UNIT, -0.1 * SOURCE_UNIT, 0.1);
@@ -1175,6 +1151,19 @@ GLuint ViewRenderWidget::buildBlackList()
 			glVertex3f(-1.f, 1.f, 0.0f); // Top Left
 		glEnd();
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
+	glColor4ub(r, g, b, 255);
+	glBegin(GL_QUADS); // begin drawing a square
+		// Front Face
+		glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+		glVertex3f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Left
+		glVertex3f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Right
+		glVertex3f(1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Right
+		glVertex3f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Left
+	glEnd();
+
+	glEnable(GL_TEXTURE_2D);
 
 	glEndList();
 	return id;

@@ -14,7 +14,7 @@
 class AlgorithmSource;
 class SourceDisplayWidget;
 
-class AlgorithmSelectionDialog  : public QDialog, Ui_AlgorithmSelectionDialog
+class AlgorithmSelectionDialog  : public QDialog, Ui::AlgorithmSelectionDialog
 {
     Q_OBJECT
 

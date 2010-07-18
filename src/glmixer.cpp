@@ -109,6 +109,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     // Signals between GUI and output window
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
 	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useFreeAspectRatio(bool)));
+	QObject::connect(actionWhite_background, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setClearToWhite(bool)));
 	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized(bool)), outputpreview, SLOT(useFreeAspectRatio(bool)));
 	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized(bool)), RenderingManager::getRenderingWidget(), SLOT(refresh()));
 	QObject::connect(actionShow_Catalog, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setCatalogVisible(bool)));
@@ -143,11 +144,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     readSettings();
 }
 
-GLMixer::~GLMixer() {
+GLMixer::~GLMixer()
+{
+	saveSettings();
 
 	RenderingManager::deleteInstance();
-
-	saveSettings();
 }
 
 
@@ -973,6 +974,9 @@ void GLMixer::on_actionNew_Session_triggered()
 	changeWindowTitle();
 	RenderingManager::getInstance()->clearSourceSet();
 	RenderingManager::getRenderingWidget()->clearViews();
+
+	actionWhite_background->setChecked(false);
+	actionFree_aspect_ratio->setChecked(false);
 }
 
 
@@ -1001,6 +1005,11 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 		QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
 		root.appendChild(viewConfig);
+
+		QDomElement rendering = doc.createElement("Rendering");
+		rendering.setAttribute("clearToWhite", (int) RenderingManager::getInstance()->clearToWhite());
+		rendering.setAttribute("freeAspectRatio", (int) OutputRenderWindow::getInstance()->freeAspectRatio());
+		root.appendChild(rendering);
 
 		doc.appendChild(root);
 		doc.save(out, 4);
@@ -1135,6 +1144,13 @@ void GLMixer::openSessionFile(QString fileName)
     	}
     }
 
+    // finally, the render config
+    QDomElement rconfig = root.firstChildElement("Rendering");
+    if (!vconfig.isNull()) {
+    	actionWhite_background->setChecked(rconfig.attribute("clearToWhite").toInt());
+		actionFree_aspect_ratio->setChecked(rconfig.attribute("freeAspectRatio").toInt());
+	}
+
 }
 
 
@@ -1244,6 +1260,7 @@ void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
 
 
 void GLMixer::readSettings(){
+
 	// Main window config
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
@@ -1254,10 +1271,11 @@ void GLMixer::readSettings(){
     OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
 
     // preferences
-    setPreferences(settings.value("UserPreferences").toByteArray());
+    restorePreferences(settings.value("UserPreferences").toByteArray());
 }
 
 void GLMixer::saveSettings(){
+
 	// Main window config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
@@ -1265,15 +1283,12 @@ void GLMixer::saveSettings(){
     settings.setValue("VideoFileDialog", mfd->saveState());
     settings.setValue("OutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
 
+    // preferences
+	settings.setValue("UserPreferences", getPreferences());
+
     settings.sync();
 }
 
-
-
-void GLMixer::setPreferences(const QByteArray & state){
-
-
-}
 
 void GLMixer::on_actionPreferences_triggered(){
 
@@ -1281,13 +1296,62 @@ void GLMixer::on_actionPreferences_triggered(){
 	static UserPreferencesDialog *upd = 0;
 	if (!upd) {
 		upd = new UserPreferencesDialog(this);
-		upd->restoreState(settings.value("UserPreferences").toByteArray());
 	}
 
+	upd->showPreferences( getPreferences() );
+
 	if (upd->exec() == QDialog::Accepted) {
-	    settings.setValue("UserPreferences", upd->state());
-	    setPreferences(upd->state());
+		restorePreferences( upd->getUserPreferences() );
 	}
 
 }
 
+
+bool GLMixer::restorePreferences(const QByteArray & state){
+
+	if (state.isEmpty())
+	        return false;
+
+	QByteArray sd = state;
+	QDataStream stream(&sd, QIODevice::ReadOnly);
+
+	const quint32 magicNumber = 0x1D9D0CB;
+    const quint16 currentMajorVersion = 1;
+	quint32 storedMagicNumber;
+    quint16 majorVersion = 0;
+	stream >> storedMagicNumber >> majorVersion;
+	if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion)
+		return false;
+
+	// a. Apply rendering size
+	QSize RenderingSize;
+	stream  >> RenderingSize;
+	if (RenderingSize != QSize(0,0)) {
+		RenderingManager::getInstance()->setFrameBufferResolution(RenderingSize);
+		OutputRenderWindow::getInstance()->resizeGL();
+	}
+//
+//	int defaultAlpha, defaultBlending, defaultMask, defaultScaling;
+//	bool autoPlay, treeView, displayTime;
+//	int renderingDelay, mixingIcon;
+//			>> defaultAlpha >> defaultBlending >> defaultMask
+//			>> autoPlay >> defaultScaling >> renderingDelay
+//			>> treeView >> displayTime >> mixingIcon;
+
+	return true;
+}
+
+QByteArray GLMixer::getPreferences() const {
+
+    QByteArray data;
+    QDataStream stream(&data, QIODevice::WriteOnly);
+    const quint32 magicNumber = 0x1D9D0CB;
+    quint16 majorVersion = 1;
+	stream << magicNumber << majorVersion;
+
+	// a. Store rendering size
+	stream << RenderingManager::getInstance()->getFrameBufferResolution();
+
+
+	return data;
+}
