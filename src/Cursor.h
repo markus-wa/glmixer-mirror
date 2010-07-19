@@ -3,6 +3,24 @@
  *
  *  Created on: Jul 13, 2010
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #ifndef CURSOR_H_
@@ -63,27 +81,7 @@ public:
 	 *
 	 */
 	virtual void draw(GLint viewport[4]) {
-		glDisable(GL_TEXTURE_2D);
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
 
-		glPointSize(10);
-		glColor4ub(13, 148, 224, 255);
-
-		glBegin(GL_POINTS);
-		glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
-		glEnd();
-
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-		glEnable(GL_TEXTURE_2D);
 	}
 
 	/**
@@ -93,6 +91,8 @@ public:
 	virtual bool wheelEvent(QWheelEvent * event) {
 		return false;
 	}
+
+	inline bool isActive() const { return active; }
 
 protected:
 	QMouseEvent *event;

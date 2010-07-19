@@ -3,6 +3,24 @@
  *
  *  Created on: Mar 14, 2010
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #ifndef SOURCEPROPERTYBROWSER_H_
@@ -25,7 +43,8 @@ public:
 public slots:
 	// Shows the properties in the browser for the given source (iterator in the Manager list)
 	// This is called every time we want to get information on a source
-	void showProperties(SourceSet::iterator source);
+	void showProperties(Source *source);
+	void showProperties(SourceSet::iterator sourceIt);
 
 	// Update the values of the property browser for the current source
     void updateMixingProperties();
@@ -55,6 +74,8 @@ public slots:
     void switchToTreeView();
     void switchToGroupView();
 
+    void setPropertyEnabled(QString propertyName, bool enabled);
+
 private:
 
 	// property tree
@@ -64,10 +85,12 @@ private:
     QMap<QString, QtProperty *> idToProperty;
     QMap<QString, bool> idToExpanded;
 
+    // the link with sources
     void createPropertyTree();
     void updatePropertyTree(Source *s);
     void addProperty(QtProperty *property);
     void updateExpandState();
+    Source *currentItem;
 
 	// the property browsers
 	class QVBoxLayout *layout;

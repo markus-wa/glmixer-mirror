@@ -3,6 +3,24 @@
  *
  *  Created on: 3 nov. 2009
  *      Author: herbelin
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #include "RenderingManager.moc"
@@ -78,7 +96,7 @@ void RenderingManager::deleteInstance() {
 
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
-			previousframe_index(0), previousframe_delay(1), clearWhite(false) {
+			previousframe_index(0), previousframe_delay(1), clearWhite(false), _scalingMode(Source::SCALE_CROP) {
 
 	// 1. Create the view rendering widget and its catalog view
 	_renderwidget = new ViewRenderWidget;
@@ -103,6 +121,8 @@ RenderingManager::RenderingManager() :
 
 	_currentSource = getEnd();
 
+	// 4. Setup the default default values ! :)
+    _defaultSource = new Source;
 }
 
 RenderingManager::~RenderingManager() {
@@ -316,6 +336,8 @@ Source *RenderingManager::newRenderingSource(double depth) {
 	RenderingSource *s = new RenderingSource(previousframe_fbo->texture(), getAvailableDepthFrom(depth));
 	Q_CHECK_PTR(s);
 
+	s->setName( _defaultSource->getName() + "Render");
+
 	return ( (Source *) s );
 }
 
@@ -339,6 +361,8 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 	CaptureSource *s = new CaptureSource(img, textureIndex, getAvailableDepthFrom(depth));
 	Q_CHECK_PTR(s);
 
+	s->setName( _defaultSource->getName() + "Capture");
+
 	return ( (Source *) s );
 }
 
@@ -356,8 +380,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 	VideoSource *s = new VideoSource(vf, textureIndex, getAvailableDepthFrom(depth) );
 	Q_CHECK_PTR(s);
 
-	// scale the source to match the preferences
-	s->resetScale(Source::SCALE_CROP);
+	s->setName( _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
 
 	return ( (Source *) s );
 }
@@ -388,8 +411,7 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 		return 0;
 	}
 
-	// scale the source to match the media size
-	s->resetScale();
+	s->setName( _defaultSource->getName() + "Opencv");
 
 	return ( (Source *) s );
 }
@@ -409,8 +431,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p);
 	Q_CHECK_PTR(s);
 
-	// scale the source to match the media size
-	s->resetScale();
+	s->setName( _defaultSource->getName() + "Algo");
 
 	return ( (Source *) s );
 }
@@ -421,8 +442,7 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 	CloneSource *s = new CloneSource(sit, getAvailableDepthFrom(depth));
 	Q_CHECK_PTR(s);
 
-	// scale the source to match the media size
-	s->resetScale();
+	s->setName( _defaultSource->getName() + "Clone");
 
 	return ( (Source *) s );
 }
@@ -449,6 +469,10 @@ void RenderingManager::addSourceToBasket(Source *s){
 
 	// add the source into the basket
 	dropBasket.insert(s);
+	// apply default parameters
+	s->copyPropertiesFrom(_defaultSource);
+	// scale the source to match the preferences
+	s->resetScale(_scalingMode);
 	// select no source
 	setCurrentSource( getEnd() );
 }

@@ -2075,7 +2075,7 @@ p, li { white-space: pre-wrap; }
   <customwidget>
    <class>QGLWidget</class>
    <extends>QWidget</extends>
-   <header location="global">QGLWidget</header>
+   <header>QGLWidget</header>
    <container>1</container>
    <slots>
     <slot>changeUpdatePeriod(int)</slot>

@@ -3,6 +3,24 @@
  *
  *  Created on: Jul 14, 2009
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #define XML_GLM_VERSION "0.5"
@@ -975,6 +993,7 @@ void GLMixer::on_actionNew_Session_triggered()
 	RenderingManager::getInstance()->clearSourceSet();
 	RenderingManager::getRenderingWidget()->clearViews();
 
+	// TODO: maybe a default for these options into the user preferences?
 	actionWhite_background->setChecked(false);
 	actionFree_aspect_ratio->setChecked(false);
 }
@@ -1330,13 +1349,14 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 		RenderingManager::getInstance()->setFrameBufferResolution(RenderingSize);
 		OutputRenderWindow::getInstance()->resizeGL();
 	}
-//
-//	int defaultAlpha, defaultBlending, defaultMask, defaultScaling;
-//	bool autoPlay, treeView, displayTime;
-//	int renderingDelay, mixingIcon;
-//			>> defaultAlpha >> defaultBlending >> defaultMask
-//			>> autoPlay >> defaultScaling >> renderingDelay
-//			>> treeView >> displayTime >> mixingIcon;
+
+	// b. Apply source preferences
+	stream >> RenderingManager::getInstance()->defaultSource();
+
+	// c. Other defaults for rendering manager
+	unsigned int sm = 0;
+	stream >> sm;
+	RenderingManager::getInstance()->setDefaultScalingMode( (Source::scalingMode) sm );
 
 	return true;
 }
@@ -1352,6 +1372,11 @@ QByteArray GLMixer::getPreferences() const {
 	// a. Store rendering size
 	stream << RenderingManager::getInstance()->getFrameBufferResolution();
 
+	// b. Store source preferences
+	stream << RenderingManager::getInstance()->defaultSource();
+
+	// c. Other defaults for rendering manager
+	stream << (unsigned int) RenderingManager::getInstance()->getDefaultScalingMode();
 
 	return data;
 }

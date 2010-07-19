@@ -3,11 +3,30 @@
  *
  *  Created on: Jun 29, 2009
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #include "SourceSet.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
+#include "RenderingManager.h"
 
 #include <QtProperty>
 #include <QtVariantPropertyManager>
@@ -16,28 +35,61 @@ GLuint Source::lastid = 1;
 bool Source::imaging_extension = true;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 
-Source::Source(GLuint texture, double depth) :
-			active(false), culled(false), frameChanged(false), textureIndex(texture),
-			maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
+Source::Source() :
+			active(false), culled(false), frameChanged(false), textureIndex(0),
+			maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(0),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			centerx(0.0), centery(0.0), rotangle(0.0),
 			aspectratio(1.0), texalpha(1.0), pixelated(false),
 			convolution(NO_CONVOLUTION), colorTable(NO_COLORTABLE), mask_type(NO_MASK),
 			brightness(0), contrast(0),	saturation(0) {
 
-	z = CLAMP(z, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+	texcolor = Qt::white;
+	source_blend = GL_SRC_ALPHA;
+	destination_blend = GL_ONE;
+	blend_eq = GL_FUNC_ADD;
+
+	// default name
+	name = QString("Source");
+
+	// give it a unique identifyer
+	id = lastid++;
+
+	clones = new SourceList;
+
+	for (int i = 0; i<15; ++i)
+		saturationMatrix[i] = 0.f;
+	saturationMatrix[15]= 1.f;
+}
+
+
+Source::Source(GLuint texture, double depth) :
+	active(false), culled(false), frameChanged(false), textureIndex(texture),
+	maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
+	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
+	centerx(0.0), centery(0.0), rotangle(0.0),
+	aspectratio(1.0), texalpha(1.0), pixelated(false),
+	convolution(NO_CONVOLUTION), colorTable(NO_COLORTABLE), mask_type(NO_MASK),
+	brightness(0), contrast(0),	saturation(0) {
 
 	texcolor = Qt::white;
 	source_blend = GL_SRC_ALPHA;
 	destination_blend = GL_ONE;
 	blend_eq = GL_FUNC_ADD;
 
-	// give it a unique identifying name
-	id = lastid++;
-//	name = QString("Source %1").arg(id);
+	// default name
 	name = QString("Source");
 
+	// give it a unique identifyer
+	id = lastid++;
+
 	clones = new SourceList;
+
+	for (int i = 0; i<15; ++i)
+		saturationMatrix[i] = 0.f;
+	saturationMatrix[15]= 1.f;
+
+	z = CLAMP(z, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 }
 
 Source::~Source() {
@@ -141,6 +193,17 @@ void Source::resetScale(scalingMode sm) {
 	float renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
 
 	switch (sm) {
+	case Source::SCALE_PIXEL:
+		{
+			double U = 1.0;
+			if (RenderingManager::getInstance()->getFrameBufferAspectRatio() > 1.0 )
+				U = (double) RenderingManager::getInstance()->getFrameBufferHeight();
+			else
+				U = (double) RenderingManager::getInstance()->getFrameBufferWidth();
+			scalex *=  (double) getFrameWidth() / U;
+			scaley *=  (double) getFrameHeight() / U;
+		}
+		break;
 	case Source::SCALE_FIT:
 		// keep original aspect ratio
 		scalex  *= aspectratio;
@@ -195,7 +258,7 @@ static GLubyte colorTable4[4][3] = { { 0, 0, 0 },  { 64, 64, 64 },  { 160, 160, 
 
 static GLubyte colorTable2[2][3] = { { 0, 0, 0 }, { 255, 255, 255 } };
 
-static GLubyte testTable[4][3] = { { 1, 1, 1 },  { 64, 64, 64 },  { 160, 160, 160 },  { 255, 255, 255 } };
+//static GLubyte testTable[4][3] = { { 1, 1, 1 },  { 64, 64, 64 },  { 160, 160, 160 },  { 255, 255, 255 } };
 
 
 // Sharpen convolution kernel
@@ -238,19 +301,19 @@ void Source::setSaturation(int sat) {
 	saturationMatrix[0] = 1.f * (1.f + s) - s * 0.3f;
 	saturationMatrix[1] = -s * 0.3f;
 	saturationMatrix[2] = -s * 0.3f;
-	saturationMatrix[3] = 0.f;
+//	saturationMatrix[3] = 0.f;
 	saturationMatrix[4] = -s * 0.59f;
 	saturationMatrix[5] = 1.f * (1.f + s) - s * 0.59f;
 	saturationMatrix[6] = -s * 0.59f;
-	saturationMatrix[7] = 0.f;
+//	saturationMatrix[7] = 0.f;
 	saturationMatrix[8] = -s * 0.11f;
 	saturationMatrix[9] = -s * 0.11f;
 	saturationMatrix[10] = 1.f * (1.f + s) - s * 0.11f;
-	saturationMatrix[11] = 0.f;
-	saturationMatrix[12] = 0.f;
-	saturationMatrix[13] = 0.f;
-	saturationMatrix[14] = 0.f;
-	saturationMatrix[15] = 1.f;
+//	saturationMatrix[11] = 0.f;
+//	saturationMatrix[12] = 0.f;
+//	saturationMatrix[13] = 0.f;
+//	saturationMatrix[14] = 0.f;
+//	saturationMatrix[15] = 1.f;
 
 }
 
@@ -411,5 +474,101 @@ void Source::setMask(maskType t, GLuint texture) {
 	case Source::NO_MASK:
 		mask_type = Source::NO_MASK;
 	}
+
+}
+
+QDataStream &operator<<(QDataStream &stream, const Source *source){
+
+    if (!source) {
+    	stream << (qint32) 0; // null source marker
+        return stream;
+    } else {
+        stream << (qint32) 1;
+        // continue ...
+    }
+
+	stream  << source->getName()
+			<< source->getX() << source->getY()
+			<< source->getCenterX() << source->getCenterY()
+			<< source->getRotationAngle()
+//			<< source->getScaleX() << source->getScaleY()
+			<< source->getAlpha()
+			<< (unsigned int) source->getBlendFuncDestination()
+			<< (unsigned int) source->getBlendEquation()
+			<< source->getMask()
+			<< source->getColor()
+			<< source->getBrightness()
+			<< source->getContrast()
+			<< source->getSaturation()
+			<< (unsigned int) source->getColorTable()
+			<< (unsigned int) source->getConvolution()
+			<< source->isPixelated();
+
+	return stream;
+}
+
+QDataStream &operator>>(QDataStream &stream, Source *source){
+
+    qint32 nullMarker;
+    stream >> nullMarker;
+    if (!nullMarker || !source) {
+        return stream; // null source
+    }
+
+	// Read and setup the source properties
+	QString stringValue;
+	unsigned int uintValue;
+	int intValue;
+	double doubleValue;
+	float floatValue;
+	QColor colorValue;
+	bool boolValue;
+
+	stream >> stringValue;  source->setName(stringValue);
+	stream >> doubleValue; 	source->setX(doubleValue);
+	stream >> doubleValue; 	source->setY(doubleValue);
+	stream >> doubleValue; 	source->setCenterX(doubleValue);
+	stream >> doubleValue; 	source->setCenterY(doubleValue);
+	stream >> doubleValue; 	source->setRotationAngle(doubleValue);
+//	stream >> doubleValue; 	source->setScaleX(doubleValue);
+//	stream >> doubleValue; 	source->setScaleY(doubleValue);
+	stream >> floatValue; 	source->setAlpha(floatValue);
+	stream >> uintValue;	source->setBlendFunc(GL_SRC_ALPHA, (GLenum) uintValue);
+	stream >> uintValue;	source->setBlendEquation(uintValue);
+	stream >> intValue;		source->setMask( (Source::maskType) intValue);
+	stream >> colorValue;	source->setColor(colorValue);
+	stream >> intValue;		source->setBrightness(intValue);
+	stream >> intValue;		source->setContrast(intValue);
+	stream >> intValue;		source->setSaturation(intValue);
+	stream >> uintValue;	source->setColorTable( (Source::colorTableType) uintValue);
+	stream >> uintValue;	source->setConvolution( (Source::convolutionType) uintValue);
+	stream >> boolValue;	source->setPixelated(boolValue);
+
+	return stream;
+}
+
+
+void Source::copyPropertiesFrom(const Source *source){
+
+	x = source->x;
+	y = source->y;
+	centerx = source->centerx;
+	centery = source->centery;
+	rotangle = source->rotangle;
+//	scalex = source->scalex;
+//	scaley = source->scaley;
+	alphax = source->alphax;
+	alphay = source->alphay;
+	texalpha = source->texalpha;
+	destination_blend = source->destination_blend;
+	blend_eq =  source->blend_eq;
+	setMask( source->mask_type );
+	texcolor = source->texcolor;
+	brightness = source->brightness;
+	contrast = source->contrast;
+	saturation = source->saturation;
+	colorTable = source->colorTable;
+	convolution = source->convolution;
+	pixelated = source->pixelated;
 
 }

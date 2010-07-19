@@ -3,6 +3,24 @@
  *
  *  Created on: Jun 29, 2009
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #ifndef SOURCE_H_
@@ -10,7 +28,8 @@
 
 #include <set>
 #include <QColor>
-#include <QtCore/QMap>
+#include <QMap>
+#include <QDataStream>
 
 #include "common.h"
 
@@ -34,6 +53,7 @@ class Source {
 	friend class RenderingManager;
 
 public:
+	Source();
 	virtual ~Source();
 
 	bool operator==(Source s2) {
@@ -168,7 +188,7 @@ public:
 	void scaleBy(GLfloat fx, GLfloat fy);
 	void clampScale();
 
-	typedef enum { SCALE_DEFORM, SCALE_CROP, SCALE_FIT } scalingMode;
+	typedef enum { SCALE_CROP= 0, SCALE_FIT, SCALE_DEFORM, SCALE_PIXEL} scalingMode;
 	void resetScale(scalingMode sm = SCALE_CROP);
 
 	inline bool isCulled() const {
@@ -219,7 +239,7 @@ public:
 		CUSTOM_MASK
 	} maskType;
 	void setMask(maskType t, GLuint texture = 0);
-	int getMask() {
+	int getMask() const {
 		return (int) mask_type;
 	}
 
@@ -286,7 +306,10 @@ public:
 		return convolution;
 	}
 
+	void copyPropertiesFrom(const Source *s);
 
+	virtual int getFrameWidth() const { return 0; }
+	virtual int getFrameHeight() const { return 0; }
 
 protected:
 	/*
@@ -334,5 +357,9 @@ protected:
 	static GLuint lastid;
 	static bool imaging_extension;
 };
+
+
+QDataStream &operator<<(QDataStream &, const Source *);
+QDataStream &operator>>(QDataStream &, Source *);
 
 #endif /* SOURCE_H_ */

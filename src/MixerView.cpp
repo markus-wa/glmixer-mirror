@@ -3,6 +3,24 @@
  *
  *  Created on: Nov 9, 2009
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 #include <algorithm>
 
@@ -321,6 +339,9 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 bool MixerView::mouseMoveEvent(QMouseEvent *event)
 {
+	if (!event)
+		return false;
+
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
@@ -367,6 +388,9 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 			else
 				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 
+
+    		return true;
+
         } else {
 
         	setAction(RECTANGLE);
@@ -400,12 +424,12 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 			}
 
 			selectedSources = SourceList(rectSources);
+			return false;
         }
-		return true;
 
     }
 	// RIGHT BUTTON : special (non-selection) modification
-	else if (event->buttons() & Qt::RightButton) {
+	if (event->buttons() & Qt::RightButton) {
 
     	// RIGHT clic on a source ; change its alpha, but do not make it current
         if ( clicked ) {
@@ -418,7 +442,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
     }
 	// NO BUTTON : show a mouse-over cursor
-	else  {
+	{
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
 			// selection mode with CTRL modifier
 			if (QApplication::keyboardModifiers () == Qt::ControlModifier)

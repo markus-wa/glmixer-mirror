@@ -3,6 +3,24 @@
  *
  *  Created on: Mar 14, 2010
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #include <SourcePropertyBrowser.moc>
@@ -51,7 +69,7 @@ QMap<int, GLenum> enumToGlequation;
 QMap<int, QPair<int, int> > presetBlending;
 
 
-SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent), root(0) {
+SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent), root(0), currentItem(0) {
 
 	layout = new QVBoxLayout(this);
 	layout->setObjectName(QString::fromUtf8("verticalLayout"));
@@ -159,26 +177,31 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// Name
 	property = stringManager->addProperty( QLatin1String("Name") );
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("A name to identify the source");
 	root->addSubProperty(property);
 	// Type (not editable)
 	property = infoManager->addProperty( QLatin1String("Type") );
 	property->setItalics(true);
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("What is shown in this source.");
 	root->addSubProperty(property);
 	// Position
 	property = pointManager->addProperty("Position");
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("X and Y coordinates of the center");
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
 	root->addSubProperty(property);
 	// Rotation center
 	property = pointManager->addProperty("Rotation center");
+	property->setToolTip("X and Y coordinates of the rotation center (relative to the center)");
 	idToProperty[property->propertyName()] = property;
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
 	root->addSubProperty(property);
 	// Rotation angle
 	property = doubleManager->addProperty("Angle");
+	property->setToolTip("Angle of rotation in degrees (counter clock wise)");
 	idToProperty[property->propertyName()] = property;
 	doubleManager->setRange(property, 0, 360);
 	doubleManager->setSingleStep(property, 10.0);
@@ -186,16 +209,19 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// Scale
 	property = pointManager->addProperty("Scale");
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("Scaling factors on X and Y");
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
 	root->addSubProperty(property);
 	// Depth
 	property = doubleManager->addProperty("Depth");
+	property->setToolTip("Depth of the layer");
 	idToProperty[property->propertyName()] = property;
 	doubleManager->setRange(property, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 	root->addSubProperty(property);
 	// Alpha
 	property = doubleManager->addProperty("Alpha");
+	property->setToolTip("Opacity (0 = transparent)");
 	idToProperty[property->propertyName()] = property;
 	doubleManager->setRange(property, 0.0, 1.0);
 	doubleManager->setSingleStep(property, 0.05);
@@ -203,6 +229,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of Destination blending func
 	QtProperty *blendingItem = enumManager->addProperty("Blending");
 	idToProperty[blendingItem->propertyName()] = blendingItem;
+	property->setToolTip("How the colors are mixed with the sources in lower layers.");
 	QStringList enumNames;
 	enumNames << "Custom" << "Color mix" << "Inverse color mix" << "Layer color mix" << "Layer inverse color mix" << "Layer opacity";
 	enumManager->setEnumNames(blendingItem, enumNames);
@@ -210,6 +237,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of Destination blending func
 	property = enumManager->addProperty("Destination");
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("OpenGL blending function for these texels (Custom only)");
 	enumNames.clear();
 	enumNames << "Zero" << "One" << "Color" << "Invert color" << "Background color" << "Invert background color" << "Alpha" << "Invert alpha" << "Background Alpha" << "Invert background Alpha";
 	enumManager->setEnumNames(property, enumNames);
@@ -217,6 +245,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of blending Equations
 	property = enumManager->addProperty("Equation");
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("OpenGL equation for blending (Custom only)");
 	enumNames.clear();
 	enumNames << "Add" << "Subtract" << "Reverse" << "Min" << "Max";
 	enumManager->setEnumNames(property, enumNames);
@@ -226,7 +255,9 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of blending masks
 	property = enumManager->addProperty("Mask");
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("Layer mask like in Gimp or Photoshop");
 	enumNames.clear();
+	// TODO implement selection of custom file mask
 //	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Custom file";
 	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient";
 	enumManager->setEnumNames(property, enumNames);
@@ -242,21 +273,25 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// Color
 	property = colorManager->addProperty("Color");
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("Base tint of the source ");
 	root->addSubProperty(property);
 	// Brightness
 	property = intManager->addProperty( QLatin1String("Brightness") );
+	property->setToolTip("Brightness (applied per pixel, CPU intensive)");
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
 	intManager->setSingleStep(property, 10);
 	root->addSubProperty(property);
 	// Contrast
 	property = intManager->addProperty( QLatin1String("Contrast") );
+	property->setToolTip("Contrast (applied per pixel, CPU intensive)");
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
 	intManager->setSingleStep(property, 10);
 	root->addSubProperty(property);
 	// Saturation
 	property = intManager->addProperty( QLatin1String("Saturation") );
+	property->setToolTip("Saturation (applied per pixel, CPU intensive)");
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
 	intManager->setSingleStep(property, 10);
@@ -264,6 +299,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of color tables
 	property = enumManager->addProperty("Color table");
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("Mapping of original pixels colors to lower colors (CPU intensive)");
 	enumNames.clear();
 	enumNames << "None" << "16 colors" << "8 colors" << "4 colors" << "2 colors" << "Invert";
 	enumManager->setEnumNames(property, enumNames);
@@ -271,16 +307,19 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of filters
 	property = enumManager->addProperty("Filter");
 	idToProperty[property->propertyName()] = property;
+	property->setToolTip("Convolution filter (applied per pixel, CPU intensive)");
 	enumNames.clear();
 	enumNames << "None" << "Blur" << "Sharpen" << "Emboss" << "Edge detect";
 	enumManager->setEnumNames(property, enumNames);
 	root->addSubProperty(property);
 	// Pixelated on/off
 	property = boolManager->addProperty("Pixelated");
+	property->setToolTip("Show square pixels when active.");
 	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
 	// AspectRatio
 	property = infoManager->addProperty("Aspect ratio");
+	property->setToolTip("Width / height ratio or original source");
 	property->setItalics(true);
 	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
@@ -401,6 +440,14 @@ void SourcePropertyBrowser::createPropertyTree(){
 
 }
 
+
+void SourcePropertyBrowser::setPropertyEnabled(QString propertyName, bool enabled){
+
+	if (idToProperty.contains(propertyName))
+		idToProperty[propertyName]->setEnabled(enabled);
+
+}
+
 void SourcePropertyBrowser::updatePropertyTree(Source *s){
 
     // connect the managers to the corresponding value change
@@ -507,8 +554,8 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			sizeManager->setValue(idToProperty["Frames size"], QSize(as->getFrameWidth(), as->getFrameHeight()) );
 			infoManager->setValue(idToProperty["Frame rate"], QString::number(as->getFrameRate() ) + QString(" fps"));
 
-			intManager->setValue(idToProperty["Variability"], int ( as->getVariability() * 100.0 ) );
-			intManager->setValue(idToProperty["Update frequency"], int ( 1000000.0 / double(as->getPeriodicity()) ) );
+			intManager->setValue(idToProperty["Variability"], (int) ( as->getVariability() * 100.0 ) );
+			intManager->setValue(idToProperty["Update frequency"], (int) ( 1000000.0 / double(as->getPeriodicity()) ) );
 
 		} else
 		if (s->rtti() == Source::CLONE_SOURCE) {
@@ -547,8 +594,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 	}
 }
 
-void SourcePropertyBrowser::showProperties(SourceSet::iterator csi){
-
+void SourcePropertyBrowser::showProperties(SourceSet::iterator sourceIt){
 	// this slot is called only when a different source is clicked (or when none is clicked)
 
 	// remember expanding state
@@ -558,10 +604,19 @@ void SourcePropertyBrowser::showProperties(SourceSet::iterator csi){
     propertyTreeEditor->clear();
     propertyGroupEditor->clear();
 
-	if ( RenderingManager::getInstance()->isValid(csi) ) {
+	if ( RenderingManager::getInstance()->isValid(sourceIt) )
+		showProperties(*sourceIt);
+	else
+		showProperties(0);
 
-		// ok, we got a valid source
-		updatePropertyTree( *csi );
+}
+
+void SourcePropertyBrowser::showProperties(Source *source) {
+
+	currentItem = source;
+	updatePropertyTree( source );
+
+	if (source) {
 
 		// show all the Properties into the browser:
 		QListIterator<QtProperty *> it(root->subProperties());
@@ -570,7 +625,8 @@ void SourcePropertyBrowser::showProperties(SourceSet::iterator csi){
 		}
 
 		// add the sub tree of the properties related to this source type
-		addProperty( rttiToProperty[ (*csi)->rtti() ] );
+		if ( rttiToProperty.contains(source->rtti()) )
+			addProperty( rttiToProperty[ source->rtti() ] );
 	}
 }
 
@@ -615,54 +671,53 @@ void SourcePropertyBrowser::setGlobalExpandState(bool expanded)
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, const QString &value){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+			return;
 
-		if ( property == idToProperty["Name"] ) {
-			currentItem->setName(value);
-		}
-    }
+	if ( property == idToProperty["Name"] ) {
+		currentItem->setName(value);
+	}
 }
 
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, const QPointF &value){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+			return;
 
-		if ( property == idToProperty["Position"] ) {
-			currentItem->setX( value.x() * SOURCE_UNIT);
-			currentItem->setY( value.y() * SOURCE_UNIT);
-		}
-		else if ( property == idToProperty["Rotation center"] ) {
-			currentItem->setCenterX( value.x() * SOURCE_UNIT );
-			currentItem->setCenterY( value.y() * SOURCE_UNIT);
-		}
-		else if ( property == idToProperty["Scale"] ) {
-			currentItem->setScaleX( value.x() * SOURCE_UNIT );
-			currentItem->setScaleY( value.y() * SOURCE_UNIT);
-		}
-    }
+	if ( property == idToProperty["Position"] ) {
+		currentItem->setX( value.x() * SOURCE_UNIT);
+		currentItem->setY( value.y() * SOURCE_UNIT);
+	}
+	else if ( property == idToProperty["Rotation center"] ) {
+		currentItem->setCenterX( value.x() * SOURCE_UNIT );
+		currentItem->setCenterY( value.y() * SOURCE_UNIT);
+	}
+	else if ( property == idToProperty["Scale"] ) {
+		currentItem->setScaleX( value.x() * SOURCE_UNIT );
+		currentItem->setScaleY( value.y() * SOURCE_UNIT);
+	}
 }
 
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &value){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+			return;
 
-		if ( property == idToProperty["Color"] ) {
-			currentItem->setColor(value);
-		}
-    }
+	if ( property == idToProperty["Color"] ) {
+		currentItem->setColor(value);
+	}
 }
 
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, double value){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
+	if (!currentItem)
+			return;
 
-		if ( property == idToProperty["Depth"] ) {
+	if ( property == idToProperty["Depth"] ) {
+		if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
 			// ask the rendering manager to change the depth of the source
 			SourceSet::iterator c = RenderingManager::getInstance()->changeDepth(RenderingManager::getInstance()->getCurrentSource(), value);
 			// we need to set current again (the list changed)
@@ -673,117 +728,111 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, double value){
 			doubleManager->setValue(idToProperty["Depth"], (*c)->getDepth() );
 			connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 		}
-		else if ( property == idToProperty["Angle"] ) {
-			Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
-			currentItem->setRotationAngle(value);
-		}
-		else if ( property == idToProperty["Alpha"] ) {
-			Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
-			currentItem->setAlpha(value);
-		}
-
-    }
+	}
+	else if ( property == idToProperty["Angle"] ) {
+		currentItem->setRotationAngle(value);
+	}
+	else if ( property == idToProperty["Alpha"] ) {
+		currentItem->setAlpha(value);
+	}
 }
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+		return;
 
-		if ( property == idToProperty["Pixelated"] ) {
-			currentItem->setPixelated(value);
-		}
+	if ( property == idToProperty["Pixelated"] ) {
+		currentItem->setPixelated(value);
 		// update the current frame
 		currentItem->requestUpdate();
-    }
+	}
 }
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+			return;
 
-		if ( property == idToProperty["Brightness"] ) {
-			currentItem->setBrightness(value);
-			// request update frame (in case the source is static, stopped, paused, etc)
-			currentItem->requestUpdate();
+	if ( property == idToProperty["Brightness"] ) {
+		currentItem->setBrightness(value);
+		// request update frame (in case the source is static, stopped, paused, etc)
+		currentItem->requestUpdate();
+	}
+	else if ( property == idToProperty["Contrast"] ) {
+		currentItem->setContrast(value);
+		// request update frame (in case the source is static, stopped, paused, etc)
+		currentItem->requestUpdate();
+	}
+	else if ( property == idToProperty["Saturation"] ) {
+		currentItem->setSaturation(value);
+		// request update frame (in case the source is static, stopped, paused, etc)
+		currentItem->requestUpdate();
+	}
+	else if ( property == idToProperty["Variability"] ) {
+		if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
+			AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
+			as->setVariability( double(value) / 100.0);
 		}
-		else if ( property == idToProperty["Contrast"] ) {
-			currentItem->setContrast(value);
-			// request update frame (in case the source is static, stopped, paused, etc)
-			currentItem->requestUpdate();
+	}
+	else if ( property == idToProperty["Update frequency"] ) {
+		if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
+			AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
+			as->setPeriodicity( (unsigned long) ( 1000000.0 / double(value) ) );
 		}
-		else if ( property == idToProperty["Saturation"] ) {
-			currentItem->setSaturation(value);
-			// request update frame (in case the source is static, stopped, paused, etc)
-			currentItem->requestUpdate();
-		}
-		else if ( property == idToProperty["Variability"] ) {
-			if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
-				AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
-				as->setVariability( double(value) / 100.0);
-			}
-		}
-		else if ( property == idToProperty["Update frequency"] ) {
-			if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
-				AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
-				as->setPeriodicity( (unsigned long) ( 1000000.0 / double(value) ) );
-			}
-		}
-
-    }
+	}
 }
 
 void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+			return;
 
-		if ( property == idToProperty["Blending"] ) {
+	if ( property == idToProperty["Blending"] ) {
 
-			if ( value != 0) {
-				currentItem->setBlendFunc(GL_SRC_ALPHA, enumToGlblend[ presetBlending[value].first ] );
-				currentItem->setBlendEquation( enumToGlequation[ presetBlending[value].second ] );
-				enumManager->setValue(idToProperty["Destination"], glblendToEnum[ currentItem->getBlendFuncDestination() ]);
-				enumManager->setValue(idToProperty["Equation"], glequationToEnum[ currentItem->getBlendEquation() ]);
-			}
-			idToProperty["Destination"]->setEnabled(value == 0);
-			idToProperty["Equation"]->setEnabled(value == 0);
-
+		if ( value != 0) {
+			currentItem->setBlendFunc(GL_SRC_ALPHA, enumToGlblend[ presetBlending[value].first ] );
+			currentItem->setBlendEquation( enumToGlequation[ presetBlending[value].second ] );
+			enumManager->setValue(idToProperty["Destination"], glblendToEnum[ currentItem->getBlendFuncDestination() ]);
+			enumManager->setValue(idToProperty["Equation"], glequationToEnum[ currentItem->getBlendEquation() ]);
 		}
-		else if ( property == idToProperty["Destination"] ) {
+		idToProperty["Destination"]->setEnabled(value == 0);
+		idToProperty["Equation"]->setEnabled(value == 0);
 
-			currentItem->setBlendFunc(GL_SRC_ALPHA, enumToGlblend[value]);
-		}
-		else if ( property == idToProperty["Equation"] ) {
+	}
+	else if ( property == idToProperty["Destination"] ) {
 
-			currentItem->setBlendEquation(enumToGlequation[value]);
-		}
-		else if ( property == idToProperty["Filter"] ) {
+		currentItem->setBlendFunc(GL_SRC_ALPHA, enumToGlblend[value]);
+	}
+	else if ( property == idToProperty["Equation"] ) {
 
-			currentItem->setConvolution( (Source::convolutionType) value );
-			currentItem->requestUpdate();
+		currentItem->setBlendEquation(enumToGlequation[value]);
+	}
+	else if ( property == idToProperty["Filter"] ) {
 
-			// indicate that this change affects performance
-			if (value == 0)
-				property->setModified(false);
-			else
-				property->setModified(true);
+		currentItem->setConvolution( (Source::convolutionType) value );
+		currentItem->requestUpdate();
 
-		}
-		else if ( property == idToProperty["Color table"] ) {
+		// indicate that this change affects performance
+		if (value == 0)
+			property->setModified(false);
+		else
+			property->setModified(true);
 
-			currentItem->setColorTable( (Source::colorTableType) value );
-			currentItem->requestUpdate();
+	}
+	else if ( property == idToProperty["Color table"] ) {
 
-			// indicate that this change affects performance
-			if (value == 0)
-				property->setModified(false);
-			else
-				property->setModified(true);
+		currentItem->setColorTable( (Source::colorTableType) value );
+		currentItem->requestUpdate();
 
-		}
-		else if ( property == idToProperty["Mask"] ) {
+		// indicate that this change affects performance
+		if (value == 0)
+			property->setModified(false);
+		else
+			property->setModified(true);
+
+	}
+	else if ( property == idToProperty["Mask"] ) {
 
 // TODO : implement custom file mask
 //			if ( (Source::maskType) value == Source::CUSTOM_MASK ) {
@@ -795,72 +844,66 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 //					d.setPath(fileName);
 //				}
 //			} else
-				currentItem->setMask( (Source::maskType) value );
+			currentItem->setMask( (Source::maskType) value );
 
-		}
-
-    }
+	}
 }
 
 
 void SourcePropertyBrowser::updateMixingProperties(){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+		return;
 
-	    disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
-		doubleManager->setValue(idToProperty["Alpha"], currentItem->getAlpha() );
-		connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
-    }
+	disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
+	doubleManager->setValue(idToProperty["Alpha"], currentItem->getAlpha() );
+	connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 }
 
 
 void SourcePropertyBrowser::updateGeometryProperties(){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+			return;
 
-	    disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
-		pointManager->setValue(idToProperty["Position"], QPointF( currentItem->getX() / SOURCE_UNIT, currentItem->getY() / SOURCE_UNIT));
-		pointManager->setValue(idToProperty["Scale"], QPointF( currentItem->getScaleX() / SOURCE_UNIT, currentItem->getScaleY() / SOURCE_UNIT));
-		doubleManager->setValue(idToProperty["Angle"], currentItem->getRotationAngle());
+	disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
+	pointManager->setValue(idToProperty["Position"], QPointF( currentItem->getX() / SOURCE_UNIT, currentItem->getY() / SOURCE_UNIT));
+	pointManager->setValue(idToProperty["Scale"], QPointF( currentItem->getScaleX() / SOURCE_UNIT, currentItem->getScaleY() / SOURCE_UNIT));
+	doubleManager->setValue(idToProperty["Angle"], currentItem->getRotationAngle());
 
-	    connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
-    }
+	connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
 }
 
 void SourcePropertyBrowser::updateLayerProperties(){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+			return;
 
-	    disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
-		doubleManager->setValue(idToProperty["Depth"], currentItem->getDepth() );
-		connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
-    }
+	disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
+	doubleManager->setValue(idToProperty["Depth"], currentItem->getDepth() );
+	connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 }
 
 void SourcePropertyBrowser::updateMarksProperties(bool showFrames){
 
-    if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *currentItem = *RenderingManager::getInstance()->getCurrentSource();
+	if (!currentItem)
+			return;
 
-		if (currentItem->rtti() == Source::VIDEO_SOURCE) {
-			VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
-			if (vs != 0) {
-				VideoFile *vf = vs->getVideoFile();
-				if (showFrames) {
-					infoManager->setValue(idToProperty["Duration"], vf->getExactFrameFromFrame(vf->getEnd()) );
-					infoManager->setValue(idToProperty["Mark in"],  vf->getExactFrameFromFrame(vf->getMarkIn()) );
-					infoManager->setValue(idToProperty["Mark out"], vf->getExactFrameFromFrame(vf->getMarkOut()) );
-				} else {
-					infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
-					infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
-					infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
-				}
+	if (currentItem->rtti() == Source::VIDEO_SOURCE) {
+		VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
+		if (vs != 0) {
+			VideoFile *vf = vs->getVideoFile();
+			if (showFrames) {
+				infoManager->setValue(idToProperty["Duration"], vf->getExactFrameFromFrame(vf->getEnd()) );
+				infoManager->setValue(idToProperty["Mark in"],  vf->getExactFrameFromFrame(vf->getMarkIn()) );
+				infoManager->setValue(idToProperty["Mark out"], vf->getExactFrameFromFrame(vf->getMarkOut()) );
+			} else {
+				infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
+				infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
+				infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
 			}
 		}
-    }
+	}
 }
 
 
@@ -872,7 +915,6 @@ void SourcePropertyBrowser::ctxMenuGroup(const QPoint &pos){
     	menu->addAction(tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
     }
     menu->exec(mapToGlobal(pos));
-
 }
 
 
@@ -887,7 +929,6 @@ void SourcePropertyBrowser::ctxMenuTree(const QPoint &pos){
     }
 
     menu->exec(mapToGlobal(pos));
-
 }
 
 void SourcePropertyBrowser::switchToTreeView(){

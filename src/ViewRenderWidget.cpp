@@ -3,6 +3,24 @@
  *
  *  Created on: Feb 13, 2010
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #include "ViewRenderWidget.moc"
@@ -331,7 +349,8 @@ void ViewRenderWidget::paintGL()
 		_currentCursor->draw(_currentView->viewport);
 
 		if (_currentView->mouseMoveEvent( _currentCursor->getMouseMoveEvent() ))
-		{   // the view 'mouseMoveEvent' returns true ; there was something changed!
+		{
+			// the view 'mouseMoveEvent' returns true ; there was something changed!
 			if (_currentView == _mixingView)
 				emit sourceMixingModified();
 			else if (_currentView == _geometryView)
@@ -354,7 +373,7 @@ void ViewRenderWidget::paintGL()
 	if (displayMessage)
 	{
 		glColor4f(0.8, 0.80, 0.2, 1.0);
-		QGLWidget::renderText(20, int(3.5*((QApplication::font().pixelSize()>0) ? QApplication::font().pixelSize() : QApplication::font().pointSize())),
+		QGLWidget::renderText(20, (int)(3.5*((QApplication::font().pixelSize()>0) ? QApplication::font().pixelSize() : QApplication::font().pointSize())),
 				message, QFont());
 	}
 	// FPS computation
@@ -373,7 +392,7 @@ void ViewRenderWidget::displayFPS()
 	QString fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_,
 			0, 'f', ((f_p_s_ < 10.0) ? 1 : 0));
 	qglColor(f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red));
-	QGLWidget::renderText(10, int(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
+	QGLWidget::renderText(10, (int)(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
 }
 
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
@@ -436,16 +455,18 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 	else
 		setFaded(false);
 
-	// if a button was pressed, a user action should be considered with the Cursor
-	if ( _currentCursor != _normalCursor)
+//	// if there is a source to drop, direct cursor
+//	if ( RenderingManager::getInstance()->getSourceBasketTop() )
+//		_currentView->mouseMoveEvent(event);
+//	// else, indirect cursor
+//	else
+
+
+	if (_currentCursor->isActive())
 		_currentCursor->update(event);
-	else  // just transfer the mouse over event otherwise
+	else
 		_currentView->mouseMoveEvent(event);
 
-
-//	if (!_currentView->mouseMoveEvent(event))
-//		// the mouse press was not treated ; forward it
-//		QWidget::mouseMoveEvent(event);
 //	else
 //	{   // the view 'mouseMoveEvent' returns true ; there was something changed!
 //		if (_currentView == _mixingView)

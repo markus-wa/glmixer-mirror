@@ -3,22 +3,56 @@
  *
  *  Created on: Jul 16, 2010
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #include "UserPreferencesDialog.moc"
+
+#include "Source.h"
 
 UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 {
     setupUi(this);
 
+    defaultSource = new Source;
+    defaultProperties->showProperties(defaultSource);
+    defaultProperties->setPropertyEnabled("Type", false);
+    defaultProperties->setPropertyEnabled("Scale", false);
+    defaultProperties->setPropertyEnabled("Depth", false);
+    defaultProperties->setPropertyEnabled("Aspect ratio", false);
 }
 
 UserPreferencesDialog::~UserPreferencesDialog()
 {
-	// TODO Auto-generated destructor stub
+	delete defaultSource;
 }
 
 void UserPreferencesDialog::restoreDefaultPreferences() {
+
+	r640x480->setChecked(true);
+
+	if(defaultSource)
+		delete defaultSource;
+
+	defaultSource = new Source;
+    defaultProperties->showProperties(defaultSource);
 
 }
 
@@ -38,18 +72,19 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion)
 		return;
 
+	// a. Read and show the rendering size selected
 	QSize RenderingSize;
-	int defaultAlpha, defaultBlending, defaultMask, defaultScaling;
-	bool autoPlay, treeView, displayTime;
-	int renderingDelay, mixingIcon;
-
 	stream  >> RenderingSize;
-//			>> defaultAlpha >> defaultBlending >> defaultMask
-//			>> autoPlay >> defaultScaling >> renderingDelay
-//			>> treeView >> displayTime >> mixingIcon;
-
 	sizeToSelection(RenderingSize);
 
+	// b. Read and setup the default source properties
+	stream >> defaultSource;
+    defaultProperties->showProperties(defaultSource);
+
+	// c. Default scaling mode
+    unsigned int sm;
+    stream >> sm;
+    scalingModeSelection->setCurrentIndex(sm);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -60,14 +95,14 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     quint16 majorVersion = 1;
 	stream << magicNumber << majorVersion;
 
+	// a. write the rendering size selected
 	stream << selectionToSize();
 
-//    e.g.
-//           << frameGeometry()
-//           << normalGeometry()
-//           << qint32(QApplication::desktop()->screenNumber(this))
-//           << quint8(windowState() & Qt::WindowMaximized)
-//           << quint8(windowState() & Qt::WindowFullScreen);
+	// b. Write the default source properties
+	stream 	<< defaultSource;
+
+	// c. Default scaling mode
+	stream << scalingModeSelection->currentIndex();
 
 	return data;
 }

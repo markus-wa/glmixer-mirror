@@ -3,13 +3,31 @@
  *
  *  Created on: 3 nov. 2009
  *      Author: herbelin
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2010 Bruno Herbelin
+ *
  */
 
 #ifndef MAINRENDERWIDGET_H_
 #define MAINRENDERWIDGET_H_
 
-#define DEFAULT_WIDTH 960
-#define DEFAULT_HEIGHT 600
+#define DEFAULT_WIDTH 640
+#define DEFAULT_HEIGHT 480
 
 #include "common.h"
 #include "SourceSet.h"
@@ -121,6 +139,9 @@ public:
 	 */
 	QDomElement getConfiguration(QDomDocument &doc);
 	void addConfiguration(QDomElement xmlconfig);
+	inline Source *defaultSource() { return _defaultSource; }
+	inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
+	inline void setDefaultScalingMode(Source::scalingMode sm) { _scalingMode = sm; }
 
 public Q_SLOTS:
 
@@ -157,9 +178,8 @@ protected:
 	SourceSet _sources;
 	SourceSet::iterator _currentSource;
 	SourceList dropBasket;
-
-	// the defaults
-	QMap<QString, QVariant> defaults;
+	Source *_defaultSource;
+	Source::scalingMode _scalingMode;
 
     static bool blit_fbo_extension;
 };
