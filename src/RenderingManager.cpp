@@ -96,7 +96,8 @@ void RenderingManager::deleteInstance() {
 
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
-			previousframe_index(0), previousframe_delay(1), clearWhite(false), _scalingMode(Source::SCALE_CROP) {
+			previousframe_index(0), previousframe_delay(1), clearWhite(false),
+			_scalingMode(Source::SCALE_CROP), _playOnDrop(true) {
 
 	// 1. Create the view rendering widget and its catalog view
 	_renderwidget = new ViewRenderWidget;
@@ -456,9 +457,10 @@ void RenderingManager::insertSource(Source *s){
 		// set the last created source to be current
 		std::pair<SourceSet::iterator, bool> ret;
 		ret = _sources.insert(s);
-		if (ret.second)
+		if (ret.second) {
 			setCurrentSource(ret.first);
-		else {
+			s->play(_playOnDrop);
+		} else {
 			delete s;
 	        QMessageBox::warning(0, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not insert source into the stack."));
 		}
@@ -620,19 +622,18 @@ bool RenderingManager::setCurrentNext(){
 
 	if (_sources.empty() )
 		return false;
-	else  {
-		if (_currentSource != _sources.end()) {
 
-			// deactivate current
-			(*_currentSource)->activate(false);
-			// increment to next source
-			_currentSource++;
-			// loop to begin if at end
-			if (_currentSource == _sources.end())
-				_currentSource = _sources.begin();
-		} else
+	if (_currentSource != _sources.end()) {
+
+		// deactivate current
+		(*_currentSource)->activate(false);
+		// increment to next source
+		_currentSource++;
+		// loop to begin if at end
+		if (_currentSource == _sources.end())
 			_currentSource = _sources.begin();
-	}
+	} else
+		_currentSource = _sources.begin();
 
 	emit currentSourceChanged(_currentSource);
 	(*_currentSource)->activate(true);
@@ -643,15 +644,14 @@ bool RenderingManager::setCurrentPrevious(){
 
 	if (_sources.empty() )
 		return false;
-	else {
-		if (_currentSource != _sources.end()) {
-			// deactivate current
-			(*_currentSource)->activate(false);
 
-			// if at the beginning, go to the end
-			if (_currentSource == _sources.begin())
-				_currentSource = _sources.end();
-		}
+	if (_currentSource != _sources.end()) {
+		// deactivate current
+		(*_currentSource)->activate(false);
+
+		// if at the beginning, go to the end
+		if (_currentSource == _sources.begin())
+			_currentSource = _sources.end();
 	}
 
 	// decrement to previous source

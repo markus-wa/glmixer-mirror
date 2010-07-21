@@ -91,6 +91,18 @@ VideoSource::~VideoSource() {
 }
 
 
+bool VideoSource::isPlayable() const {
+	return (is->getEnd() > 1);
+}
+
+bool VideoSource::isPlaying() const {
+	return is->isRunning();
+}
+
+void VideoSource::play(bool on){
+
+	is->play(on);
+}
 
 // only Rendering Manager can call this
 void VideoSource::update(){

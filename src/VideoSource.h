@@ -46,12 +46,14 @@ protected:
     void update();
 
 public Q_SLOTS:
+	void play(bool on);
     void updateFrame (int i);
     void applyFilter();
 
 public:
-	static RTTI type;
 	RTTI rtti() const { return type; }
+	bool isPlayable() const;
+	bool isPlaying() const;
 
     inline VideoFile *getVideoFile() const { return is; }
 
@@ -81,6 +83,9 @@ public:
 	int getFrameHeight() const { return is->getFrameHeight(); }
 
 private:
+
+	static RTTI type;
+
     VideoFile *is;
     VideoPicture copy;
 

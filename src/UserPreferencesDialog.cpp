@@ -46,14 +46,27 @@ UserPreferencesDialog::~UserPreferencesDialog()
 
 void UserPreferencesDialog::restoreDefaultPreferences() {
 
-	r640x480->setChecked(true);
+	if (stackedPreferences->currentWidget() == PageRendering)
+		r640x480->setChecked(true);
 
-	if(defaultSource)
-		delete defaultSource;
 
-	defaultSource = new Source;
-    defaultProperties->showProperties(defaultSource);
+	if (stackedPreferences->currentWidget() == PageSources) {
+		if(defaultSource)
+			delete defaultSource;
+		defaultSource = new Source;
+		defaultProperties->showProperties(defaultSource);
 
+		defaultStartPlaying->setChecked(true);
+		scalingModeSelection->setCurrentIndex(0);
+		numberOfFramesRendering->setValue(0);
+	}
+
+
+	if (stackedPreferences->currentWidget() == PageInterface){
+		mixIcon_FINE->setChecked(true);
+		propertyView_TREE->setChecked(true);
+		defaultDisplayTimeFrame->setChecked(false);
+	}
 }
 
 void UserPreferencesDialog::showPreferences(const QByteArray & state){
@@ -85,6 +98,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     unsigned int sm;
     stream >> sm;
     scalingModeSelection->setCurrentIndex(sm);
+
+    // d. DefaultPlayOnDrop
+    bool DefaultPlayOnDrop;
+    stream >> DefaultPlayOnDrop;
+    defaultStartPlaying->setChecked(DefaultPlayOnDrop);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -103,6 +121,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
 	// c. Default scaling mode
 	stream << scalingModeSelection->currentIndex();
+
+	// d. defaultStartPlaying
+	stream << defaultStartPlaying->isChecked();
 
 	return data;
 }

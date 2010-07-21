@@ -34,6 +34,7 @@
 GLuint Source::lastid = 1;
 bool Source::imaging_extension = true;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
+bool Source::playable = false;
 
 Source::Source() :
 			active(false), culled(false), frameChanged(false), textureIndex(0),
@@ -64,7 +65,7 @@ Source::Source() :
 
 
 Source::Source(GLuint texture, double depth) :
-	active(false), culled(false), frameChanged(false), textureIndex(texture),
+	active(false), culled(false), frameChanged(true), textureIndex(texture),
 	maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
 	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 	centerx(0.0), centery(0.0), rotangle(0.0),

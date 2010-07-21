@@ -56,14 +56,14 @@ class OpencvSource: public QObject, public Source {
 
 public:
 
-	static RTTI type;
 	RTTI rtti() const { return type; }
+	bool isPlayable() const { return playable; }
+	bool isPlaying() const;
 
     inline int getOpencvCameraIndex() const { return opencvCameraIndex; }
 	inline double getFrameRate() const { return framerate; }
 	int getFrameWidth() const { return width; }
 	int getFrameHeight() const { return height; }
-	bool isRunning();
 
 public Q_SLOTS:
 	void play(bool on);
@@ -72,6 +72,9 @@ protected:
     // only MainRenderWidget can create a source (need its GL context)
 	OpencvSource(int opencvIndex, GLuint texture, double d);
 	virtual ~OpencvSource();
+
+	static RTTI type;
+	static bool playable;
 
 	void update();
 

@@ -26,6 +26,7 @@
 #include "OpencvSource.moc"
 
 Source::RTTI OpencvSource::type = Source::CAMERA_SOURCE;
+bool OpencvSource::playable = true;
 
 #include <QThread>
 #include <QTime>
@@ -121,24 +122,23 @@ OpencvSource::~OpencvSource() {
 
 void OpencvSource::play(bool on){
 
+	if ( isPlaying() == on )
+		return;
+
 	if ( on ) { // start play
-		if (! isRunning() ) {
-			thread->end = false;
-			thread->start();
-		}
+		thread->end = false;
+		thread->start();
 	} else { // stop play
-		if ( isRunning() ) {
-			thread->end = true;
-			mutex->lock();
-			cond->wakeAll();
-		    frameChanged = false;
-			mutex->unlock();
-		    thread->wait(500);
-		}
+		thread->end = true;
+		mutex->lock();
+		cond->wakeAll();
+		frameChanged = false;
+		mutex->unlock();
+		thread->wait(500);
 	}
 }
 
-bool OpencvSource::isRunning(){
+bool OpencvSource::isPlaying() const{
 
 	return !thread->end;
 

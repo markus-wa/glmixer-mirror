@@ -26,13 +26,13 @@
 #include "AlgorithmSource.moc"
 
 Source::RTTI AlgorithmSource::type = Source::ALGORITHM_SOURCE;
+bool AlgorithmSource::playable = true;
 
 #define PERLIN_WIDTH 128
 #define PERLIN_HEIGHT 128
 
 #include <limits>
 #include <iostream>
-//#include <ctime>
 
 #include <QMutex>
 #include <QWaitCondition>
@@ -133,8 +133,6 @@ class AlgorithmThread: public QThread {
 public:
 	AlgorithmThread(AlgorithmSource *source) :
         QThread(), as(source), end(false) {
-    }
-    ~AlgorithmThread() {
     }
 
     void run();
@@ -295,25 +293,24 @@ AlgorithmSource::~AlgorithmSource() {
 
 void AlgorithmSource::play(bool on){
 
+	if ( isPlaying() == on )
+		return;
+
 	if ( on ) { // start play
-		if (! isRunning() ) {
-			thread->end = false;
-			thread->start();
-		}
+		thread->end = false;
+		thread->start();
 	} else { // stop play
-		if ( isRunning() ) {
-			thread->end = true;
-			mutex->lock();
-			cond->wakeAll();
-		    frameChanged = false;
-			mutex->unlock();
-		    thread->wait(500);
-		}
+		thread->end = true;
+		mutex->lock();
+		cond->wakeAll();
+		frameChanged = false;
+		mutex->unlock();
+		thread->wait(500);
 	}
 }
 
 
-bool AlgorithmSource::isRunning(){
+bool AlgorithmSource::isPlaying() const {
 
 	return !thread->end;
 

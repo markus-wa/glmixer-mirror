@@ -43,8 +43,9 @@ class AlgorithmSource: public QObject, public Source {
 
 public:
 
-	static RTTI type;
 	RTTI rtti() const { return type; }
+	bool isPlayable() const { return playable; }
+	bool isPlaying() const;
 
 	typedef enum {FLAT = 0, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, TURBULENCE} algorithmType;
 	static QString getAlgorithmDescription(int t);
@@ -55,7 +56,6 @@ public:
 	inline double getFrameRate() const { return framerate; }
 	int getFrameWidth() const;
 	int getFrameHeight() const;
-	bool isRunning();
 
 public Q_SLOTS:
 	void play(bool on);
@@ -67,6 +67,8 @@ protected:
 	AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256, double v = 1.0, unsigned long p= 16666);
 	~AlgorithmSource();
 
+	static RTTI type;
+	static bool playable;
 	void update();
 
 	void initBuffer();

@@ -71,10 +71,10 @@ public:
 		CAPTURE_SOURCE,
 		MIX_SOURCE
 	} RTTI;
-	static RTTI type;
-	virtual RTTI rtti() const {
-		return type;
-	}
+	virtual RTTI rtti() const { return type; }
+	virtual bool isPlayable() const { return playable; }
+	virtual bool isPlaying() const { return false; }
+	virtual void play(bool on) {}
 
 	/**
 	 *  Rendering
@@ -322,6 +322,9 @@ protected:
 	 */
 	void setDepth(GLdouble v);
 
+	// RTTI
+	static RTTI type;
+	static bool playable;
 
 	// identity and properties
 	GLuint id;

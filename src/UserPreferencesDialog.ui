@@ -89,11 +89,11 @@
     </widget>
    </item>
    <item row="0" column="1">
-    <widget class="QStackedWidget" name="stackedWidget">
+    <widget class="QStackedWidget" name="stackedPreferences">
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="stackedWidgetPage1">
+     <widget class="QWidget" name="PageRendering">
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
         <layout class="QGridLayout" name="gridLayout">
@@ -316,7 +316,7 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="stackedWidgetPage2">
+     <widget class="QWidget" name="PageSources">
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
         <widget class="QLabel" name="label_4">
@@ -437,7 +437,7 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="stackedWidgetPage3">
+     <widget class="QWidget" name="PageInterface">
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QGroupBox" name="groupBox_2">
@@ -682,7 +682,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>listWidget</sender>
    <signal>currentRowChanged(int)</signal>
-   <receiver>stackedWidget</receiver>
+   <receiver>stackedPreferences</receiver>
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">

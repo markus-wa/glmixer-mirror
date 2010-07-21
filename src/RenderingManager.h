@@ -142,6 +142,8 @@ public:
 	inline Source *defaultSource() { return _defaultSource; }
 	inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
 	inline void setDefaultScalingMode(Source::scalingMode sm) { _scalingMode = sm; }
+	inline bool getDefaultPlayOnDrop() const { return _playOnDrop; }
+	inline void setDefaultPlayOnDrop(bool on){ _playOnDrop = on; }
 
 public Q_SLOTS:
 
@@ -180,6 +182,7 @@ protected:
 	SourceList dropBasket;
 	Source *_defaultSource;
 	Source::scalingMode _scalingMode;
+	bool _playOnDrop;
 
     static bool blit_fbo_extension;
 };

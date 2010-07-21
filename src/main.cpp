@@ -38,7 +38,7 @@ void GLMixerMessageOutput(QtMsgType type, const char *msg)
 {
 	 switch (type) {
 	 case QtDebugMsg:
-		 std::cerr<<"Debug: "<<msg<<std::endl;
+		 std::cerr<<"Info: "<<msg<<std::endl;
 		 break;
 	 case QtWarningMsg:
 		 std::cerr<<"Warning: "<<msg<<std::endl;
@@ -74,9 +74,9 @@ int main(int argc, char **argv)
     a.setApplicationName("GLMixer");
 
 #ifdef GLMIXER_VERSION
-    QCoreApplication::setApplicationVersion( QString("%1").arg(GLMIXER_VERSION) );
+    a.setApplicationVersion( QString("%1").arg(GLMIXER_VERSION) );
 #else
-    QCoreApplication::setApplicationVersion( "-" );
+    a.setApplicationVersion( "Beta" );
 #endif
 
 #ifdef __APPLE__
@@ -111,6 +111,7 @@ int main(int argc, char **argv)
 
 	// 1. The application GUI : it integrates the Rendering Manager QGLWidget
     GLMixer glmixer_widget;
+    glmixer_widget.setWindowTitle(a.applicationName());
 
 	// 2. The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow::getInstance()->setWindowTitle(QString("Output Window"));
@@ -125,8 +126,8 @@ int main(int argc, char **argv)
     	// try to read a file with the first argument
     	glmixer_widget.openSessionFile(params[1]);
     }
-
     splash.finish(&glmixer_widget);
-	return a.exec();
+
+    return a.exec();
 }
 

@@ -231,7 +231,7 @@ else ( APPLE )
 add_executable(glmixer ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )
 
 # link the "qtproject" target against the Qt libraries. 
-target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${QT_QTMAIN_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${QT_QTXML_LIBRARIES} ${GLMIXER_LIBRARIES})
+target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
 
 install(TARGETS glmixer DESTINATION bin)
 

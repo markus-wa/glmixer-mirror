@@ -322,24 +322,26 @@ void GLMixer::on_actionMediaSource_triggered(){
 // and to read the correct information and configuration options
 void GLMixer::connectSource(SourceSet::iterator csi){
 
-#ifdef OPEN_CV
-	static OpencvSource *cvs = NULL;
-	// the static pointer to opencv source keeps last reference to it when selected (controlled here)
-	// -> we should disconnect it to the play button if we change source
-	if (cvs) {
-        QObject::disconnect(startButton, SIGNAL(toggled(bool)), cvs, SLOT(play(bool)));
-        // clear it for next time
-        cvs = NULL;
-	}
-#endif
+	static Source *playableSelection = NULL;
 
-	static AlgorithmSource *as = NULL;
-	// the static pointer to algorithm source keeps last reference to it when selected (controlled here)
-	// -> we should disconnect it to the play button if we change source
-	if (as) {
-        QObject::disconnect(startButton, SIGNAL(toggled(bool)), as, SLOT(play(bool)));
-        // clear it for next time
-        as = NULL;
+	if (playableSelection != NULL) {
+
+		switch (playableSelection->rtti()){
+		case Source::ALGORITHM_SOURCE:
+			QObject::disconnect(startButton, SIGNAL(toggled(bool)), dynamic_cast<AlgorithmSource *>(playableSelection), SLOT(play(bool)));
+			break;
+		case Source::CAMERA_SOURCE:
+			QObject::disconnect(startButton, SIGNAL(toggled(bool)), dynamic_cast<OpencvSource *>(playableSelection), SLOT(play(bool)));
+			break;
+		case Source::VIDEO_SOURCE:
+			QObject::disconnect(startButton, SIGNAL(toggled(bool)), dynamic_cast<VideoSource *>(playableSelection), SLOT(play(bool)));
+			break;
+		default:
+			break;
+		}
+
+		// clear it for next time
+		playableSelection = NULL;
 	}
 
 	// whatever happens, we will drop the control on the current source
@@ -348,7 +350,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	if (selectedSourceVideoFile) {
 
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-        QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), startButton, SLOT(setChecked(bool)));
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), videoFrame, SLOT(setEnabled(bool)));
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), timingControlFrame, SLOT(setEnabled(bool)));
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
@@ -356,7 +357,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), this, SLOT(updateRefreshTimerState()));
 
 		// disconnect control buttons
-        QObject::disconnect(startButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(play(bool)));
         QObject::disconnect(pauseButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(pause(bool)));
         QObject::disconnect(playSpeedBox, SIGNAL(currentIndexChanged(int)), selectedSourceVideoFile, SLOT(setPlaySpeed(int)));
         QObject::disconnect(dirtySeekCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionAllowDirtySeek(bool)));
@@ -382,79 +382,92 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
+		// enable properties and actions on the current valid source
 		sourceDockWidgetContents->setEnabled(true);
 		actionDeleteSource->setEnabled(true);
 		actionCloneSource->setEnabled(true);
 
-		// test the class of the current source and deal accordingly :
-		// if it is a VideoSource (video file)
-		if ( (*csi)->rtti() == Source::VIDEO_SOURCE ) {
-			VideoSource *vs = dynamic_cast<VideoSource *>(*csi);
-
-			// get the pointer to the video to control
-	        selectedSourceVideoFile = vs->getVideoFile();
-
-	        // control this video if it is valid
-	        if (selectedSourceVideoFile){
-
-	        	// setup GUI button states to match the current state of the videofile; do it before connecting slots to avoid re-emiting signals
-				startButton->setChecked( selectedSourceVideoFile->isRunning() );
-				pauseButton->setChecked( selectedSourceVideoFile->isPaused());
-				videoFrame->setEnabled(selectedSourceVideoFile->isRunning());
-				timingControlFrame->setEnabled(selectedSourceVideoFile->isRunning());
-				dirtySeekCheckBox->setChecked(selectedSourceVideoFile->getOptionAllowDirtySeek());
-				resetToBlackCheckBox->setChecked(selectedSourceVideoFile->getOptionRevertToBlackWhenStop());
-				restartWhereStoppedCheckBox->setChecked(selectedSourceVideoFile->getOptionRestartToMarkIn());
-
-	            // CONTROL signals from GUI to VideoFile
-	            QObject::connect(startButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(play(bool)));
-	            QObject::connect(pauseButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(pause(bool)));
-	            QObject::connect(playSpeedBox, SIGNAL(currentIndexChanged(int)), selectedSourceVideoFile, SLOT(setPlaySpeed(int)));
-	            QObject::connect(dirtySeekCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionAllowDirtySeek(bool)));
-	            QObject::connect(resetToBlackCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRevertToBlackWhenStop(bool)));
-	            QObject::connect(restartWhereStoppedCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRestartToMarkIn(bool)));
-
-	            QObject::connect(seekBackwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBackward()));
-	            QObject::connect(seekForwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekForward()));
-	            QObject::connect(seekBeginButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBegin()));
-	            QObject::connect(seekBackwardButton, SIGNAL(clicked()), this, SLOT(unpauseBeforeSeek()));
-	            QObject::connect(seekForwardButton, SIGNAL(clicked()), this, SLOT(unpauseBeforeSeek()));
-	            QObject::connect(seekBeginButton, SIGNAL(clicked()), this, SLOT(unpauseBeforeSeek()));
+		// Enable start button if the source is playable
+		startButton->setEnabled( (*csi)->isPlayable() );
+		vcontrolDockWidgetContents->setEnabled( (*csi)->isPlayable() );
+		vcontrolDockWidgetControls->setEnabled( (*csi)->isPlayable() );
 
 
-	            QObject::connect(videoLoopButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setLoop(bool)));
-	            QObject::connect(markInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkIn()));
-	            QObject::connect(markOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkOut()));
-	            QObject::connect(resetMarkInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkIn()));
-	            QObject::connect(resetMarkOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkOut()));
+		if ((*csi)->isPlayable()) {
+			playableSelection = (*csi);
+			startButton->setChecked( playableSelection->isPlaying() );
 
-	            // DISPLAY consistency from VideoFile to GUI
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), startButton, SLOT(setChecked(bool)));
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), videoFrame, SLOT(setEnabled(bool)));
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), timingControlFrame, SLOT(setEnabled(bool)));
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
+			switch (playableSelection->rtti()){
+			case Source::ALGORITHM_SOURCE:
+				QObject::connect(startButton, SIGNAL(toggled(bool)), dynamic_cast<AlgorithmSource *>(playableSelection), SLOT(play(bool)));
+				break;
+			case Source::CAMERA_SOURCE:
+				QObject::connect(startButton, SIGNAL(toggled(bool)), dynamic_cast<OpencvSource *>(playableSelection), SLOT(play(bool)));
+				break;
+			case Source::VIDEO_SOURCE:
+				QObject::connect(startButton, SIGNAL(toggled(bool)), dynamic_cast<VideoSource *>(playableSelection), SLOT(play(bool)));
+				break;
+			default:
+				break;
+			}
 
-	            // Consistency and update timer control from VideoFile
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
-	            QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), this, SLOT(updateRefreshTimerState()));
+			// except for video source, these pannels are disabled
+			vcontrolDockWidgetOptions->setEnabled(false);
+			videoFrame->setEnabled(false);
+			timingControlFrame->setEnabled(false);
 
-				videoLoopButton->setChecked(selectedSourceVideoFile->isLoop());
-				playSpeedBox->setCurrentIndex(selectedSourceVideoFile->getPlaySpeed());
+			// Among playable sources, there is the particular case of video sources :
+			if ( (*csi)->rtti() == Source::VIDEO_SOURCE ) {
+				// get the pointer to the video to control
+		        selectedSourceVideoFile = (dynamic_cast<VideoSource *>(*csi))->getVideoFile();
 
-				// is there more than one frame ?
-				if ( selectedSourceVideoFile->getEnd() > 1 ) {
-					// yes, its a video, we can control it
-					vcontrolDockWidgetContents->setEnabled(true);
+		        // control this video if it is valid
+		        if (selectedSourceVideoFile){
+
+		        	// setup GUI button states to match the current state of the videofile; do it before connecting slots to avoid re-emiting signals
 					vcontrolDockWidgetOptions->setEnabled(true);
-					startButton->setEnabled( true );
+		        	videoFrame->setEnabled(selectedSourceVideoFile->isRunning());
+					timingControlFrame->setEnabled(selectedSourceVideoFile->isRunning());
 
-					// restore config
-					restartWhereStoppedCheckBox->setChecked(selectedSourceVideoFile->getOptionRestartToMarkIn());
-					resetToBlackCheckBox->setChecked(selectedSourceVideoFile->getOptionRevertToBlackWhenStop());
+					pauseButton->setChecked( selectedSourceVideoFile->isPaused());
 					dirtySeekCheckBox->setChecked(selectedSourceVideoFile->getOptionAllowDirtySeek());
+					resetToBlackCheckBox->setChecked(selectedSourceVideoFile->getOptionRevertToBlackWhenStop());
+					restartWhereStoppedCheckBox->setChecked(selectedSourceVideoFile->getOptionRestartToMarkIn());
+					videoLoopButton->setChecked(selectedSourceVideoFile->isLoop());
+					playSpeedBox->setCurrentIndex(selectedSourceVideoFile->getPlaySpeed());
+
+		            // CONTROL signals from GUI to VideoFile
+		            QObject::connect(pauseButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(pause(bool)));
+		            QObject::connect(playSpeedBox, SIGNAL(currentIndexChanged(int)), selectedSourceVideoFile, SLOT(setPlaySpeed(int)));
+		            QObject::connect(dirtySeekCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionAllowDirtySeek(bool)));
+		            QObject::connect(resetToBlackCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRevertToBlackWhenStop(bool)));
+		            QObject::connect(restartWhereStoppedCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRestartToMarkIn(bool)));
+
+		            QObject::connect(seekBackwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBackward()));
+		            QObject::connect(seekForwardButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekForward()));
+		            QObject::connect(seekBeginButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(seekBegin()));
+		            QObject::connect(seekBackwardButton, SIGNAL(clicked()), this, SLOT(unpauseBeforeSeek()));
+		            QObject::connect(seekForwardButton, SIGNAL(clicked()), this, SLOT(unpauseBeforeSeek()));
+		            QObject::connect(seekBeginButton, SIGNAL(clicked()), this, SLOT(unpauseBeforeSeek()));
+
+
+		            QObject::connect(videoLoopButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setLoop(bool)));
+		            QObject::connect(markInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkIn()));
+		            QObject::connect(markOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(setMarkOut()));
+		            QObject::connect(resetMarkInButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkIn()));
+		            QObject::connect(resetMarkOutButton, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetMarkOut()));
+
+		            // DISPLAY consistency from VideoFile to GUI
+		            QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
+		            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), videoFrame, SLOT(setEnabled(bool)));
+		            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), timingControlFrame, SLOT(setEnabled(bool)));
+		            QObject::connect(selectedSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
+		            QObject::connect(selectedSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
+
+		            // Consistency and update timer control from VideoFile
+		            QObject::connect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
+		            QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
+		            QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), this, SLOT(updateRefreshTimerState()));
 
 					// display info (time or frames)
 					on_actionShow_frames_toggled(actionShow_frames->isChecked());
@@ -462,57 +475,12 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 					// restart slider timer
 					updateRefreshTimerState();
 					updateMarks();
+		        } // end video file
+			} // end video source
+		} // end playable
+	} else {  // it is not a valid source
 
-				} else {
-					// no, its a picture, we can't control it
-					vcontrolDockWidgetContents->setEnabled(false);
-					startButton->setEnabled( false );
-				}
-	        }
-			return;
-		}
-
-#ifdef OPEN_CV
-		// if it is an OpencvSource (camera)
-		if ( (*csi)->rtti() == Source::CAMERA_SOURCE ) {
-			cvs = dynamic_cast<OpencvSource *>(*csi);
-			// we can play/stop  it
-			vcontrolDockWidgetContents->setEnabled(true);
-			startButton->setChecked( cvs->isRunning() );
-			startButton->setEnabled( true );
-			QObject::connect(startButton, SIGNAL(toggled(bool)), cvs, SLOT(play(bool)));
-
-			// we can't configure it
-			videoFrame->setEnabled(false);
-			timingControlFrame->setEnabled(false);
-			vcontrolDockWidgetOptions->setEnabled(false);
-			return;
-		}
-#endif
-
-		if ( (*csi)->rtti() == Source::ALGORITHM_SOURCE ) {
-			as = dynamic_cast<AlgorithmSource *>(*csi);
-			// we can play/stop  it
-			vcontrolDockWidgetContents->setEnabled(true);
-			startButton->setChecked( as->isRunning() );
-			startButton->setEnabled( true );
-			QObject::connect(startButton, SIGNAL(toggled(bool)), as, SLOT(play(bool)));
-
-			// we can't configure it
-			videoFrame->setEnabled(false);
-			timingControlFrame->setEnabled(false);
-			vcontrolDockWidgetOptions->setEnabled(false);
-			return;
-		}
-
-		vcontrolDockWidgetContents->setEnabled(false);
-		startButton->setEnabled( false );
-
-
-	} else {
-		// it is not a valid source
 		// disable panel widgets
-
 		actionDeleteSource->setEnabled(false);
 		actionCloneSource->setEnabled(false);
 		vcontrolDockWidgetContents->setEnabled(false);
@@ -922,14 +890,16 @@ void GLMixer::on_actionAbout_triggered(){
 	QString msg = QString("%1 :     \tGraphic Live Mixer\n\n").arg(QCoreApplication::applicationName());
 	msg.append(QString("Author:   \tBruno Herbelin\n"));
 	msg.append(QString("Contact:  \tbruno.herbelin@gmail.com\n"));
-	msg.append(QString("License:  \tGPL\n"));
+	msg.append(QString("License:  \tGNU GPL version 3\n"));
     msg.append(QString("Version:  \t%1\n").arg(QCoreApplication::applicationVersion()));
 	
 #ifdef GLMIXER_REVISION
     msg.append(QString("SVN:      \t%1\n").arg(GLMIXER_REVISION));
 #endif
 	
-	msg.append(tr("\nGLMixer is a video mixing software for live performance.\nCheck http://code.google.com/p/glmixer/ for more info."));
+    msg.append(tr("\nGLMixer is a video mixing software for live performance.\n"));
+    msg.append(tr("\nUpdates and source code at:\nhttp://code.google.com/p/glmixer/\n"));
+    msg.append(tr("\nCopyright 2009, 2010 Bruno Herbelin"));
 	QMessageBox::information(this, tr("About %1").arg(QCoreApplication::applicationName()), msg, QMessageBox::Ok, QMessageBox::Ok);
 
 }
@@ -943,9 +913,9 @@ void GLMixer::changeWindowTitle(){
 	setWindowFilePath(currentStageFileName);
 	setWindowModified(false);
 
-//    setWindowTitle(QString("GLMixer %2 - %3[*]").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(session));
+//    setWindowTitle(QString("%1 %2 - %3[*]").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(session));
 
-	actionAppend_Session->setEnabled(!currentStageFileName.isNull());
+//	actionAppend_Session->setEnabled(!currentStageFileName.isNull());
 }
 
 //QString title = QString("Super Mixer %1 - ").arg(QApplication::applicationVersion());
@@ -1353,10 +1323,15 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	// b. Apply source preferences
 	stream >> RenderingManager::getInstance()->defaultSource();
 
-	// c. Other defaults for rendering manager
+	// c.  DefaultScalingMode
 	unsigned int sm = 0;
 	stream >> sm;
 	RenderingManager::getInstance()->setDefaultScalingMode( (Source::scalingMode) sm );
+
+	// d. defaultStartPlaying
+	bool defaultStartPlaying = false;
+	stream >> defaultStartPlaying;
+	RenderingManager::getInstance()->setDefaultPlayOnDrop(defaultStartPlaying);
 
 	return true;
 }
@@ -1375,8 +1350,11 @@ QByteArray GLMixer::getPreferences() const {
 	// b. Store source preferences
 	stream << RenderingManager::getInstance()->defaultSource();
 
-	// c. Other defaults for rendering manager
+	// c. DefaultScalingMode
 	stream << (unsigned int) RenderingManager::getInstance()->getDefaultScalingMode();
+
+	// d. defaultStartPlaying
+	stream << RenderingManager::getInstance()->getDefaultPlayOnDrop();
 
 	return data;
 }
