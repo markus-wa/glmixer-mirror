@@ -107,6 +107,8 @@ public:
 	QDomElement getConfiguration(QDomDocument &doc);
 	void setConfiguration(QDomElement xmlconfig);
 
+	int getStipplingMode() const;
+
 Q_SIGNALS:
 	void sourceMixingModified();
 	void sourceGeometryModified();

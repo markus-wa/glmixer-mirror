@@ -489,7 +489,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
 
     // Check file
     if (!QFileInfo(filename).isFile()){
-        emit error(tr("Error opening %1:\nFile does not exist.").arg(file));
+        emit error(tr("Cannot open %1:\nFile does not exist !").arg(file));
     	return false;
     }
 
@@ -497,36 +497,59 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     if (err < 0) {
         switch (err) {
         case AVERROR_NUMEXPECTED:
-            emit error(tr("Error opening %1:\nIncorrect numbered image sequence syntax.").arg(file));
+            emit error(tr("FFMPEG cannot read  %1:\nIncorrect numbered image sequence syntax.").arg(file));
             break;
         case AVERROR_INVALIDDATA:
-            emit error(tr("Error opening %1:\nError while parsing header.").arg(file));
+            emit error(tr("FFMPEG cannot read  %1:\nError while parsing header.").arg(file));
             break;
         case AVERROR_NOFMT:
-            emit error(tr("Error opening %1:\nUnknown format.").arg(file));
+            emit error(tr("FFMPEG cannot read  %1:\nUnknown format.").arg(file));
             break;
         case AVERROR(EIO):
-            emit error(tr("Error opening %1:\n"
+            emit error(tr("FFMPEG cannot read  %1:\n"
                         "I/O error. Usually that means that input file is truncated and/or corrupted.").arg(file));
             break;
         case AVERROR(ENOMEM):
-            emit error(tr("Error opening %1:\nMemory allocation error.").arg(file));
+            emit error(tr("FFMPEG cannot read  %1:\nMemory allocation error.").arg(file));
             break;
         case AVERROR(ENOENT):
-            emit error(tr("Error opening %1:\nNo such file.").arg(file));
+            emit error(tr("FFMPEG cannot read  %1:\nNo such file.").arg(file));
             break;
         default:
-            emit error(tr("Error opening %1:\nCouldn't open the file.").arg(file));
+            emit error(tr("FFMPEG cannot read  %1:\nUnknown error :( ...").arg(file));
             break;
         }
         return false;
     }
 
-    if (av_find_stream_info(_pFormatCtx) < 0) {
-        // Couldn't find stream information
-        emit error(tr("Error opening %1:\nCouldn't find any stream information in this file.").arg(filename));
-        return false;
-    }
+    err = av_find_stream_info(_pFormatCtx);
+	if (err < 0) {
+		switch (err) {
+		case AVERROR_NUMEXPECTED:
+			emit error(tr("FFMPEG cannot read  %1:\nIncorrect numbered image sequence syntax.").arg(file));
+			break;
+		case AVERROR_INVALIDDATA:
+			emit error(tr("FFMPEG cannot read  %1:\nError while parsing header.").arg(file));
+			break;
+		case AVERROR_NOFMT:
+			emit error(tr("FFMPEG cannot read  %1:\nUnknown format.").arg(file));
+			break;
+		case AVERROR(EIO):
+			emit error(tr("FFMPEG cannot read  %1:\n"
+						"I/O error. Usually that means that input file is truncated and/or corrupted.").arg(file));
+			break;
+		case AVERROR(ENOMEM):
+			emit error(tr("FFMPEG cannot read  %1:\nMemory allocation error.").arg(file));
+			break;
+		case AVERROR(ENOENT):
+			emit error(tr("FFMPEG cannot read  %1:\nNo such file.").arg(file));
+			break;
+		default:
+			emit error(tr("FFMPEG cannot read  %1:\nUnknown error :( ...").arg(file));
+			break;
+		}
+		return false;
+	}
 
     // if video_index not set (no video stream found) or stream open call failed
     videoStream = stream_component_open(_pFormatCtx);
@@ -695,7 +718,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx) {
     }
 
     if (stream_index < 0 || stream_index >= (int) pFCtx->nb_streams) {
-        emit error(tr("Error opening %1:\nNot a video or image file.").arg(filename));
+        emit error(tr("FFMPEG cannot read %1:\nThis is not a video or an image file.").arg(filename));
         return -1;
     }
 
@@ -704,7 +727,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx) {
 
     codec = avcodec_find_decoder(codecCtx->codec_id);
     if (!codec || (avcodec_open(codecCtx, codec) < 0)) {
-        emit error(tr("Error opening %1:\nUnsupported codec (%2).").arg(filename).arg(codec->name));
+        emit error(tr("FFMPEG cannot read %1:\nThe codec '%2' is not supported.").arg(filename).arg(codecCtx->codec_name));
         return -1;
     }
 

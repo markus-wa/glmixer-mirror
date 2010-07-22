@@ -145,6 +145,9 @@ public:
 	inline bool getDefaultPlayOnDrop() const { return _playOnDrop; }
 	inline void setDefaultPlayOnDrop(bool on){ _playOnDrop = on; }
 
+	static bool getUseFboBlitExtension() { return blit_fbo_extension; }
+	static void setUseFboBlitExtension(bool on){ blit_fbo_extension = on; }
+
 public Q_SLOTS:
 
 	void setClearToWhite(bool on) { clearWhite = on; }

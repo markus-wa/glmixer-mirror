@@ -111,6 +111,16 @@ ViewRenderWidget::~ViewRenderWidget()
 		delete _catalogView;
 }
 
+
+int ViewRenderWidget::getStipplingMode() const{
+
+	for (int i = 0; i<4 ; ++i) {
+		if (quad_half_textured == quad_stipped_textured[i])
+			return i;
+	}
+	return 0;
+}
+
 void ViewRenderWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();

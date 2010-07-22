@@ -63,9 +63,8 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 
 
 	if (stackedPreferences->currentWidget() == PageInterface){
-		mixIcon_FINE->setChecked(true);
-		propertyView_TREE->setChecked(true);
-		defaultDisplayTimeFrame->setChecked(false);
+		FINE->setChecked(true);
+
 	}
 }
 
@@ -78,17 +77,21 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	QDataStream stream(&sd, QIODevice::ReadOnly);
 
 	const quint32 magicNumber = 0x1D9D0CB;
-    const quint16 currentMajorVersion = 1;
+    const quint16 currentMajorVersion = 2;
 	quint32 storedMagicNumber;
     quint16 majorVersion = 0;
 	stream >> storedMagicNumber >> majorVersion;
 	if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion)
 		return;
 
-	// a. Read and show the rendering size selected
+	// a. Read and show the rendering preferences
 	QSize RenderingSize;
 	stream  >> RenderingSize;
 	sizeToSelection(RenderingSize);
+
+	bool useBlitFboExtension = false;
+	stream >> useBlitFboExtension;
+	activateBlitFrameBuffer->setChecked(useBlitFboExtension);
 
 	// b. Read and setup the default source properties
 	stream >> defaultSource;
@@ -108,6 +111,25 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	unsigned int  PreviousFrameDelay = 1;
 	stream >> PreviousFrameDelay;
 	numberOfFramesRendering->setValue( (unsigned int) PreviousFrameDelay);
+
+	// f. Mixing icons stippling
+	int  stippling = 0;
+	stream >> stippling;
+	switch (stippling) {
+	case 3:
+		TRIANGLE->setChecked(true);
+		break;
+	case 2:
+		CHECKERBOARD->setChecked(true);
+		break;
+	case 1:
+		GROSS->setChecked(true);
+		break;
+	default:
+		FINE->setChecked(true);
+		break;
+	}
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -115,11 +137,11 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     QByteArray data;
     QDataStream stream(&data, QIODevice::WriteOnly);
     const quint32 magicNumber = 0x1D9D0CB;
-    quint16 majorVersion = 1;
+    quint16 majorVersion = 2;
 	stream << magicNumber << majorVersion;
 
-	// a. write the rendering size selected
-	stream << selectionToSize();
+	// a. write the rendering preferences
+	stream << selectionToSize() << activateBlitFrameBuffer->isChecked();
 
 	// b. Write the default source properties
 	stream 	<< defaultSource;
@@ -133,10 +155,18 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	// e. PreviousFrameDelay
 	stream << (unsigned int) numberOfFramesRendering->value();
 
+	// f. Mixing icons stippling
+	if (FINE->isChecked())
+		stream << 0;
+	if (GROSS->isChecked())
+		stream << 1;
+	if (CHECKERBOARD->isChecked())
+		stream << 2;
+	if (TRIANGLE->isChecked())
+		stream << 3;
+
 	return data;
 }
-
-
 
 void UserPreferencesDialog::sizeToSelection(QSize s){
 

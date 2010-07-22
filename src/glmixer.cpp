@@ -1,5 +1,5 @@
 /*
- * glv.cpp
+ * glmixer.cpp
  *
  *  Created on: Jul 14, 2009
  *      Author: bh
@@ -203,7 +203,7 @@ void GLMixer::displayInfoMessage(QString msg){
 
 void GLMixer::displayWarningMessage(QString msg){
 
-	QMessageBox::warning(0, tr("%1 Warning").arg(QCoreApplication::applicationName()), QString(msg));
+	QMessageBox::warning(0, tr("%1 Warning").arg(QCoreApplication::applicationName()), tr("The following error occurred:\n\n%1").arg(msg));
 }
 
 
@@ -308,12 +308,14 @@ void GLMixer::on_actionMediaSource_triggered(){
 			        delete newSourceVideoFile;
 				}
 			} else {
-				QMessageBox::warning(this, caption, tr("Could not open %1.").arg(filename));
+				displayInfoMessage (tr("The file %1 was not loaded.").arg(filename));
+				delete newSourceVideoFile;
 			}
 		}
 
 	}
-	statusbar->showMessage( tr("%1 media source(s) created; you can now drop them.").arg( fileNames.size() ), 3000 );
+	if (RenderingManager::getInstance()->getSourceBasketSize() > 0)
+		statusbar->showMessage( tr("%1 media source(s) created; you can now drop them.").arg( RenderingManager::getInstance()->getSourceBasketSize() ), 3000 );
 }
 
 
@@ -1237,7 +1239,7 @@ void GLMixer::dropEvent(QDropEvent *event)
 				        delete newSourceVideoFile;
 					}
 				} else {
-					QMessageBox::warning(this, caption, tr("Could not open %1.").arg(filename));
+					displayInfoMessage ( tr("Could not open %1.").arg(filename));
 				}
 			}
 		}
@@ -1265,6 +1267,9 @@ void GLMixer::readSettings(){
 
     // preferences
     restorePreferences(settings.value("UserPreferences").toByteArray());
+
+	// display time as frame
+	actionShow_frames->setChecked(settings.value("DisplayTimeAsFrames").toBool());
 }
 
 void GLMixer::saveSettings(){
@@ -1278,6 +1283,9 @@ void GLMixer::saveSettings(){
 
     // preferences
 	settings.setValue("UserPreferences", getPreferences());
+
+	// display time as frame
+	settings.setValue("DisplayTimeAsFrames", actionShow_frames->isChecked());
 
 	// make sure system saves settings NOW
     settings.sync();
@@ -1309,20 +1317,23 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	QDataStream stream(&sd, QIODevice::ReadOnly);
 
 	const quint32 magicNumber = 0x1D9D0CB;
-    const quint16 currentMajorVersion = 1;
+    const quint16 currentMajorVersion = 2;
 	quint32 storedMagicNumber;
     quint16 majorVersion = 0;
 	stream >> storedMagicNumber >> majorVersion;
 	if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion)
 		return false;
 
-	// a. Apply rendering size
+	// a. Apply rendering preferences
 	QSize RenderingSize;
 	stream  >> RenderingSize;
 	if (RenderingSize != QSize(0,0)) {
 		RenderingManager::getInstance()->setFrameBufferResolution(RenderingSize);
 		OutputRenderWindow::getInstance()->resizeGL();
 	}
+	bool useBlitFboExtension = false;
+	stream >> useBlitFboExtension;
+	RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
 
 	// b. Apply source preferences
 	stream >> RenderingManager::getInstance()->defaultSource();
@@ -1342,6 +1353,11 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	stream >> PreviousFrameDelay;
 	RenderingManager::getInstance()->setPreviousFrameDelay(PreviousFrameDelay);
 
+	// f. Stippling mode
+	int stipplingMode = 0;
+	stream >> stipplingMode;
+	RenderingManager::getRenderingWidget()->setStipplingMode(stipplingMode);
+
 	return true;
 }
 
@@ -1350,11 +1366,12 @@ QByteArray GLMixer::getPreferences() const {
     QByteArray data;
     QDataStream stream(&data, QIODevice::WriteOnly);
     const quint32 magicNumber = 0x1D9D0CB;
-    quint16 majorVersion = 1;
+    quint16 majorVersion = 2;
 	stream << magicNumber << majorVersion;
 
-	// a. Store rendering size
+	// a. Store rendering preferences
 	stream << RenderingManager::getInstance()->getFrameBufferResolution();
+	stream << RenderingManager::getUseFboBlitExtension();
 
 	// b. Store source preferences
 	stream << RenderingManager::getInstance()->defaultSource();
@@ -1367,6 +1384,9 @@ QByteArray GLMixer::getPreferences() const {
 
 	// e.  PreviousFrameDelay
 	stream << RenderingManager::getInstance()->getPreviousFrameDelay();
+
+	// f. Stippling mode
+	stream << RenderingManager::getRenderingWidget()->getStipplingMode();
 
 	return data;
 }
