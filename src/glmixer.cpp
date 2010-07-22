@@ -330,9 +330,11 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		case Source::ALGORITHM_SOURCE:
 			QObject::disconnect(startButton, SIGNAL(toggled(bool)), dynamic_cast<AlgorithmSource *>(playableSelection), SLOT(play(bool)));
 			break;
+#ifdef OPEN_CV
 		case Source::CAMERA_SOURCE:
 			QObject::disconnect(startButton, SIGNAL(toggled(bool)), dynamic_cast<OpencvSource *>(playableSelection), SLOT(play(bool)));
 			break;
+#endif
 		case Source::VIDEO_SOURCE:
 			QObject::disconnect(startButton, SIGNAL(toggled(bool)), dynamic_cast<VideoSource *>(playableSelection), SLOT(play(bool)));
 			break;
@@ -401,9 +403,11 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 			case Source::ALGORITHM_SOURCE:
 				QObject::connect(startButton, SIGNAL(toggled(bool)), dynamic_cast<AlgorithmSource *>(playableSelection), SLOT(play(bool)));
 				break;
+#ifdef OPEN_CV
 			case Source::CAMERA_SOURCE:
 				QObject::connect(startButton, SIGNAL(toggled(bool)), dynamic_cast<OpencvSource *>(playableSelection), SLOT(play(bool)));
 				break;
+#endif
 			case Source::VIDEO_SOURCE:
 				QObject::connect(startButton, SIGNAL(toggled(bool)), dynamic_cast<VideoSource *>(playableSelection), SLOT(play(bool)));
 				break;
