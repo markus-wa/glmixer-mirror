@@ -125,7 +125,7 @@ public:
 	}
 
 	void updatePreviousFrame();
-	inline int getPreviousFrameDelay() const {
+	inline unsigned int getPreviousFrameDelay() const {
 		return previousframe_delay;
 	}
 
@@ -148,7 +148,7 @@ public:
 public Q_SLOTS:
 
 	void setClearToWhite(bool on) { clearWhite = on; }
-	void setPreviousFrameDelay(int delay) { previousframe_delay = CLAMP(delay,1,1000);}
+	void setPreviousFrameDelay(unsigned int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 
 	void clearSourceSet();
 
@@ -173,7 +173,7 @@ protected:
 	QGLFramebufferObject *_fbo;
 	GLuint _fboCatalogTexture;
 	QGLFramebufferObject *previousframe_fbo;
-	int countRenderingSource, previousframe_index, previousframe_delay;
+	unsigned int countRenderingSource, previousframe_index, previousframe_delay;
     bool clearWhite;
 
 	// the set of sources

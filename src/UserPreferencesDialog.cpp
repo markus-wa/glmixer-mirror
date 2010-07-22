@@ -58,7 +58,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 
 		defaultStartPlaying->setChecked(true);
 		scalingModeSelection->setCurrentIndex(0);
-		numberOfFramesRendering->setValue(0);
+		numberOfFramesRendering->setValue(1);
 	}
 
 
@@ -103,6 +103,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     bool DefaultPlayOnDrop;
     stream >> DefaultPlayOnDrop;
     defaultStartPlaying->setChecked(DefaultPlayOnDrop);
+
+	// e.  PreviousFrameDelay
+	unsigned int  PreviousFrameDelay = 1;
+	stream >> PreviousFrameDelay;
+	numberOfFramesRendering->setValue( (unsigned int) PreviousFrameDelay);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -124,6 +129,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
 	// d. defaultStartPlaying
 	stream << defaultStartPlaying->isChecked();
+
+	// e. PreviousFrameDelay
+	stream << (unsigned int) numberOfFramesRendering->value();
 
 	return data;
 }

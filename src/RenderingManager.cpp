@@ -191,12 +191,12 @@ void RenderingManager::updatePreviousFrame() {
 		return;
 
 	// TODO: implement the GUI for selecting frame delay
-//	previousframe_index++;
-//
-//	if (previousframe_index % previousframe_delay)
-//		return;
-//	else
-//		previousframe_index = 0;
+	previousframe_index++;
+
+	if (previousframe_index % previousframe_delay)
+		return;
+
+	previousframe_index = 0;
 
 	if (RenderingManager::blit_fbo_extension)
 	// use the accelerated GL_EXT_framebuffer_blit if available

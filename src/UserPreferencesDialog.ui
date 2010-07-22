@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>812</width>
-    <height>402</height>
+    <width>850</width>
+    <height>396</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -407,6 +407,15 @@ p, li { white-space: pre-wrap; }
           </item>
           <item>
            <widget class="QSlider" name="numberOfFramesRendering">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="pageStep">
+             <number>10</number>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -415,7 +424,7 @@ p, li { white-space: pre-wrap; }
           <item>
            <widget class="QLabel" name="label_2">
             <property name="text">
-             <string>0</string>
+             <string>1</string>
             </property>
            </widget>
           </item>
@@ -438,6 +447,9 @@ p, li { white-space: pre-wrap; }
       </layout>
      </widget>
      <widget class="QWidget" name="PageInterface">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QGroupBox" name="groupBox_2">
@@ -697,17 +709,17 @@ p, li { white-space: pre-wrap; }
   </connection>
   <connection>
    <sender>numberOfFramesRendering</sender>
-   <signal>sliderMoved(int)</signal>
+   <signal>valueChanged(int)</signal>
    <receiver>label_2</receiver>
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>236</x>
-     <y>36</y>
+     <x>703</x>
+     <y>192</y>
     </hint>
     <hint type="destinationlabel">
-     <x>236</x>
-     <y>36</y>
+     <x>787</x>
+     <y>192</y>
     </hint>
    </hints>
   </connection>

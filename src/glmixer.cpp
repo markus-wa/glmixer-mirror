@@ -1275,6 +1275,7 @@ void GLMixer::saveSettings(){
     // preferences
 	settings.setValue("UserPreferences", getPreferences());
 
+	// make sure system saves settings NOW
     settings.sync();
 }
 
@@ -1292,7 +1293,6 @@ void GLMixer::on_actionPreferences_triggered(){
 	if (upd->exec() == QDialog::Accepted) {
 		restorePreferences( upd->getUserPreferences() );
 	}
-
 }
 
 
@@ -1333,6 +1333,11 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	stream >> defaultStartPlaying;
 	RenderingManager::getInstance()->setDefaultPlayOnDrop(defaultStartPlaying);
 
+	// e. PreviousFrameDelay
+	unsigned int  PreviousFrameDelay = 1;
+	stream >> PreviousFrameDelay;
+	RenderingManager::getInstance()->setPreviousFrameDelay(PreviousFrameDelay);
+
 	return true;
 }
 
@@ -1355,6 +1360,9 @@ QByteArray GLMixer::getPreferences() const {
 
 	// d. defaultStartPlaying
 	stream << RenderingManager::getInstance()->getDefaultPlayOnDrop();
+
+	// e.  PreviousFrameDelay
+	stream << RenderingManager::getInstance()->getPreviousFrameDelay();
 
 	return data;
 }
