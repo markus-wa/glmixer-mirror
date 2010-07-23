@@ -145,7 +145,7 @@ void MixerView::paint()
     }
 
 	// The rectangle for selection
-    if ( currentAction == RECTANGLE) {
+    if ( currentAction == View::RECTANGLE) {
 		glDisable(GL_TEXTURE_2D);
 		glColor4f(0.3, 0.8, 0.3, 0.1);
 		glRectdv(rectangleStart, rectangleEnd);
@@ -219,14 +219,14 @@ void MixerView::setAction(actionType a){
 	View::setAction(a);
 
 	switch(a) {
-	case OVER:
+	case View::OVER:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
 		break;
-	case TOOL:
+	case View::GRAB:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		break;
-	case SELECT:
-	case RECTANGLE:
+	case View::SELECT:
+	case View::RECTANGLE:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
 		break;
 	default:
@@ -260,7 +260,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
         if ( clicked ) {
 
         	// if CTRL button modifier pressed, add clicked to selection
-			if ( currentAction != TOOL && QApplication::keyboardModifiers () == Qt::ControlModifier) {
+			if ( currentAction != View::GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
 				setAction(SELECT);
 
 	        	if ( !isInAGroup(clicked) ) {
@@ -275,7 +275,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 			{
 				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 				// ready for grabbing the current source
-				setAction(TOOL);
+				setAction(View::GRAB);
 			}
 		}
 
@@ -285,7 +285,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
 		// clear selection
 		selectedSources.clear();
-		setAction(NONE);
+		setAction(View::NONE);
 		// remember coordinates of clic
 		double dumm;
 	    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleStart, rectangleStart+1, &dumm);
@@ -369,7 +369,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	// LEFT BUTTON : grab or draw a selection rectangle
 	else if (event->buttons() & Qt::LeftButton) {
 
-        if ( clicked && currentAction == TOOL )
+        if ( clicked && currentAction == View::GRAB )
         {
         	SourceListArray::iterator itss;
             for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
@@ -393,7 +393,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
         } else {
 
-        	setAction(RECTANGLE);
+        	setAction(View::RECTANGLE);
 			// set coordinate of end of rectangle selection
 			double dumm;
 		    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleEnd, rectangleEnd+1, &dumm);
@@ -434,7 +434,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     	// RIGHT clic on a source ; change its alpha, but do not make it current
         if ( clicked ) {
         	//  move it individually, even if in a group
-        	setAction(TOOL);
+        	setAction(View::GRAB);
 			grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 
 			return true;
@@ -446,11 +446,11 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
 			// selection mode with CTRL modifier
 			if (QApplication::keyboardModifiers () == Qt::ControlModifier)
-				setAction(SELECT);
+				setAction(View::SELECT);
 			else
-				setAction(OVER);
+				setAction(View::OVER);
 		else
-			setAction(NONE);
+			setAction(View::NONE);
 
     }
 
@@ -461,9 +461,9 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 {
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-	else if (currentAction == TOOL )
+	else if (currentAction == View::GRAB )
 		setAction(OVER);
-	else if (currentAction == RECTANGLE ){
+	else if (currentAction == View::RECTANGLE ){
 
 		// set coordinate of end of rectangle selection
 		double dumm;
@@ -492,7 +492,7 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 				itss++;
 		}
 
-		setAction(NONE);
+		setAction(View::NONE);
 	} else
 		setAction(currentAction);
 
@@ -508,7 +508,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
-	if (currentAction == TOOL ) {
+	if (currentAction == View::GRAB ) {
 		deltazoom = 1.0 - (zoom / previous);
 		// simulate a grab with no mouse movement but a deltazoom :
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
@@ -518,7 +518,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 		deltazoom = 0;
 	}
 	else
-		setAction(NONE);
+		setAction(View::NONE);
 
 	return true;
 }

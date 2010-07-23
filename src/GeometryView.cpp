@@ -43,7 +43,7 @@ GeometryView::GeometryView() : View(), quadrant(0), currentTool(MOVE)
 	maxpany = SOURCE_UNIT*MAXZOOM*2.0;
 	currentAction = View::NONE;
 
-//	borderType = ViewRenderWidget::border_large;
+	borderType = ViewRenderWidget::border_large;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/manipulation.png"));
 }
@@ -80,10 +80,10 @@ void GeometryView::paint()
         glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
         // draw border and handles if active
-        if ((*its)->isActive())
-            glCallList(ViewRenderWidget::border_large);
-        else
-            glCallList(ViewRenderWidget::border_thin);
+		if ((*its)->isActive())
+	        glCallList(borderType);
+		else
+			glCallList(ViewRenderWidget::border_thin);
 
 	    // Blending Function For mixing like in the rendering window
         (*its)->beginEffectsSection();
@@ -196,14 +196,13 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
     			//  make the top most source clicked now the newly current one
     			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
 
-//			// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
-//			if (quadrant > 0) {
-//				currentAction = GeometryView::SCALE;
-//			} else  {
-//				currentAction = GeometryView::TOOL;
-//				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
-//			}
-			setAction(View::TOOL);
+			// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
+			if(quadrant == 0 || currentTool == MOVE) {
+				setAction(View::GRAB);
+				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
+			} else {
+				setAction(View::TOOL);
+			}
 
     	}
     	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
@@ -259,16 +258,19 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	else if (event->buttons() & Qt::LeftButton) {
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( RenderingManager::getInstance()->notAtEnd(cs) && currentAction == View::TOOL) {
-			// manipulate the current source according to the operation detected when clicking
-			if (currentTool == SCALE)
-				scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
-			else if (currentTool == MOVE)
+		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+
+			if (currentAction == View::TOOL) {
+				if (currentTool == MOVE)
+					grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+				else if (currentTool == SCALE)
+					scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+				else if (currentTool == ROTATE) {
+					rotateSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+					setTool(currentTool);
+				}
+			} else if (currentAction == View::GRAB) {
 				grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
-			else if (currentTool == ROTATE) {
-				rotateSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
-//				quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
-				setTool(currentTool);
 			}
 		}
 		return true;
@@ -285,34 +287,26 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
     		// OR
 			// if the currently active source is NOT in the set of sources under the cursor,
 			// THEN
-			// use the top most source for quadrant computation
+			// set quadrant to 0 (grab)
 			// ELSE
 			// use the current source for quadrant computation
 			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd()
 				|| clickedSources.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
-				quadrant = getSourceQuadrant(clickedSources.begin(), event->x(), viewport[3] - event->y());
+//				quadrant = getSourceQuadrant(clickedSources.begin(), event->x(), viewport[3] - event->y());
+				quadrant = 0;
 			else
 				quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
-			setAction(OVER);
-		} else
-			setAction(NONE);
 
-//		if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
-			// determine the quadrant ; it depends on the area clicked (4 corners are quadrants).
-//			quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
-//			if (quadrant > 0) {
-//				borderType = ViewRenderWidget::border_scale;
-//				// choose the cursor diagonal according to the clicked quadrant
-//				if ( quadrant % 2 )
-//					RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
-//				else
-//					RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_B);
-//			} else {
-//				borderType = ViewRenderWidget::border_large;
-//				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
-//			}
-//
-//		}
+			if(quadrant == 0 || currentTool == MOVE)
+				borderType = ViewRenderWidget::border_large;
+			else
+				borderType = ViewRenderWidget::border_scale;
+
+			setAction(View::OVER);
+
+		} else
+			setAction(View::NONE);
+
 	}
 
 	return false;
@@ -324,9 +318,9 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 	else {
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
-			setAction(OVER);
+			setAction(View::OVER);
 		else
-			setAction(NONE);
+			setAction(View::NONE);
 	}
 
     // enforces minimal size ; check that the rescaling did not go bellow the limits and fix it
@@ -346,16 +340,16 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
-	if (currentAction == View::TOOL ){
+	if (currentAction == View::GRAB || currentAction == View::TOOL ){
 		deltazoom = 1.0 - (zoom / previous);
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( RenderingManager::getInstance()->notAtEnd(cs) && currentAction == View::TOOL) {
+		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
 			// manipulate the current source according to the operation detected when clicking
-			if (currentTool == SCALE)
-				scaleSource(cs, event->x(), viewport[3] - event->y(), 0, 0, QApplication::keyboardModifiers () == Qt::ShiftModifier);
-			else if (currentTool == MOVE)
+			if (currentTool == MOVE || currentAction == View::GRAB)
 				grabSource(cs, event->x(), viewport[3] - event->y(), 0, 0);
+			else if (currentTool == SCALE)
+				scaleSource(cs, event->x(), viewport[3] - event->y(), 0, 0, QApplication::keyboardModifiers () == Qt::ShiftModifier);
 			else if (currentTool == ROTATE)
 				rotateSource(cs, event->x(), viewport[3] - event->y(), 0, 0, QApplication::keyboardModifiers () == Qt::ShiftModifier);
 
@@ -364,8 +358,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 		deltazoom = 0;
 	} else {
 		// do not show action indication (as it is likely to become invalid with view change)
-//		borderType = ViewRenderWidget::border_large;
-//		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+		borderType = ViewRenderWidget::border_large;
 		setAction(View::NONE);
 	}
 
@@ -413,7 +406,10 @@ void GeometryView::setTool(toolType t)
 {
 	currentTool = t;
 
-	switch (currentTool) {
+	if (quadrant == 0)
+		t = MOVE;
+
+	switch (t) {
 	case SCALE:
 		if ( quadrant % 2 )
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
@@ -442,7 +438,7 @@ void GeometryView::setTool(toolType t)
 		break;
 	default:
 	case MOVE:
-		if (currentAction == TOOL)
+		if (currentAction == View::TOOL  || currentAction == View::GRAB)
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		else
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
@@ -454,6 +450,9 @@ void GeometryView::setAction(actionType a){
 	View::setAction(a);
 
 	switch(a) {
+	case View::GRAB:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
+		break;
 	case View::OVER:
 	case View::TOOL:
 		setTool(currentTool);
@@ -796,9 +795,9 @@ char GeometryView::getSourceQuadrant(SourceSet::iterator currentSource, int X, i
     //      ax
     //      ^
     //  ----|----
-    //  | 3 | 4 |
+    //  | 1 | 2 |
     //  ----+---- > ay
-    //  | 2 | 1 |
+    //  | 4 | 3 |
     //  ---------
     char quadrant = 0;
     double ax, ay, az;
@@ -815,11 +814,22 @@ char GeometryView::getSourceQuadrant(SourceSet::iterator currentSource, int X, i
 	double x = ax * cosa - ay * sina;
 	double y = ay * cosa + ax * sina;
 
-    if (x > 0) {
-    	quadrant = (y > 0) ? 2 : 3;
-    } else {
-    	quadrant = (y > 0) ? 1 : 4;
+	double w = ((*currentSource)->getScaleX());
+	double h = ((*currentSource)->getScaleY());
+    // exclude mouse cursors out of the area
+    if ( ABS(x) > ABS(w)  || ABS(y) > ABS(h)) {
+    	return 0;
     }
+
+    // compute the quadrant code : this is tricky as scales can be negative !
+    if (( x > BORDER_SIZE * ABS(w) ) && ( y < -BORDER_SIZE * ABS(h) ) ) // RIGHT BOTTOM
+        quadrant = h > 0 ? (w > 0 ? (3) : (4)) : (w > 0 ? (2) : (1));
+    else if  (( x > BORDER_SIZE * ABS(w)) && ( y > BORDER_SIZE * ABS(h) ) ) // RIGHT TOP
+        quadrant = h > 0 ? (w > 0 ? (2) : (1)) : (w > 0 ? (3) : (4));
+    else if  (( x < -BORDER_SIZE * ABS(w)) && ( y < -BORDER_SIZE * ABS(h) ) ) // LEFT BOTTOM
+    	quadrant = h > 0 ? (w > 0 ? (4) : (3)) : (w > 0 ? (1) : (2));
+    else if  (( x < -BORDER_SIZE * ABS(w)) && ( y > BORDER_SIZE * ABS(h) ) ) // LEFT TOP
+    	quadrant = h > 0 ? (w > 0 ? (1) : (2)) : (w > 0 ? (4) : (3));
 
     return quadrant;
 }

@@ -182,10 +182,10 @@ void LayersView::setAction(actionType a){
 	View::setAction(a);
 
 	switch(a) {
-	case OVER:
+	case View::OVER:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
 		break;
-	case TOOL:
+	case View::GRAB:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		break;
 	default:
@@ -221,7 +221,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 				// now manipulate the current one.
 				currentSourceDisplacement = 0;
 				// ready for grabbing the current source
-				setAction(TOOL);
+				setAction(View::GRAB);
 			}
 
     	}
@@ -233,7 +233,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
     } else {
 		// set current to none (end of list)
 		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
-		setAction(NONE);
+		setAction(View::NONE);
     }
 
 	return true;
@@ -266,14 +266,14 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 			// move the source in depth
 			grabSource(cs, event->x(), event->y(), dx, dy);
 			// ready for grabbing the current source
-			setAction(TOOL);
+			setAction(View::GRAB);
 		}
 	} else  { // mouse over (no buttons)
 
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
-			setAction(OVER);
+			setAction(View::OVER);
 		else
-			setAction(NONE);
+			setAction(View::NONE);
 	}
 
 	return true;
@@ -283,8 +283,8 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-	else if (currentAction == TOOL )
-		setAction(OVER);
+	else if (currentAction == View::GRAB )
+		setAction(View::OVER);
 	else
 		setAction(currentAction);
 
@@ -304,7 +304,7 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
-	if (currentAction == TOOL) {
+	if (currentAction == View::GRAB) {
 		deltazoom = zoom - previous;
 		// simulate a grab with no mouse movement but a deltazoom :
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();

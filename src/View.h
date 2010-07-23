@@ -118,7 +118,7 @@ public:
 		return false;
 	}
 
-    typedef enum {NONE = 0, OVER, TOOL, SELECT, RECTANGLE } actionType;
+    typedef enum {NONE = 0, OVER, GRAB, TOOL, SELECT, RECTANGLE } actionType;
     void setAction(actionType a){
     		currentAction = a;
     }

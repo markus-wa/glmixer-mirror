@@ -68,7 +68,7 @@ private:
     void setAction(actionType a);
 
     char quadrant;
-//    GLuint borderType;
+    GLuint borderType;
     toolType currentTool;
 
 };
