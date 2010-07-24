@@ -69,7 +69,7 @@ extern "C" {
  */
 class VideoPicture {
     friend class VideoFile;
-    AVFrame *rgb;
+    AVFrame *rgb, *frame;
     int width, height;
     bool allocated, usePalette;
     double pts;
@@ -80,17 +80,10 @@ public:
     VideoPicture();
     ~VideoPicture();
     /**
-     *  Copy operator ; uses ffmpeg software converter
-     *  if target is already allocated, it should have the same dimensions
+     * Re-fills the Picture using the last filled AVFrame * given;
+     * this also re-applies the filter.
      */
-    VideoPicture& operator=(VideoPicture const &original);
-    /**
-     * specifies the parameters of the ffmpeg software converter used by the copy operator
-     * Then, each time you copy of this Video Picture FROM another VideoPicture, it will use
-     * the corresponding brightness, contrast and saturation.
-     * Set all to Zero to have no modification of the original
-     */
-    void setCopyFiltering(int brightness = 0, int contrast = 0, int saturation = 0);
+    void refilter() const;
     /**
      * Allocate the frame (w x h pixels) and resets to black.
      *
@@ -102,19 +95,20 @@ public:
      * @param format Internal pixel format of the buffer. PIX_FMT_RGB24 (by default), PIX_FMT_RGBA if there is alpha channel
      * @return true on success.
      */
-    bool allocate(int w, int h, enum PixelFormat format = PIX_FMT_RGB24, bool palettized = false);
+    bool allocate(SwsContext *img_convert_ctx, int w, int h, enum PixelFormat format = PIX_FMT_RGB24, bool palettized = false);
     /**
      * Fills the rgb buffer of this Video Picture with the content of the ffmpeg AVFrame given.
+     * If pFrame is not given, it fills the Picture with the formerly given one.
      *
      * This is done with the ffmpeg software conversion method sws_scale using the conversion context provided
-     * in argument (SwsContext).
+     * during allocation (SwsContext *).
      *
      * If the video picture uses a color palette (allocated with palettized = true), then the
      * copy of pixels is done accordingly (slower).
      *
      * Finally, the timestamp given is kept into the Video Picture for later use.
      */
-    void fill(AVFrame *pFrame, SwsContext *img_convert_ctx, double timestamp = 0.0);
+    void fill(AVFrame *pFrame, double timestamp = 0.0);
 
     /**
      * Get a pointer to the buffer containing the frame.

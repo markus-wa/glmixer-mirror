@@ -76,25 +76,33 @@ class DecodingThread: public QThread {
 public:
     DecodingThread(VideoFile *video = 0) :
         QThread((QObject *) video), is(video) {
+    	// allocate a frame to fill
+        _pFrame = avcodec_alloc_frame();
+        Q_CHECK_PTR(_pFrame);
     }
     ~DecodingThread() {
+    	// free the allocated frame
+        av_free(_pFrame);
     }
 
     void run();
 private:
     VideoFile *is;
+    AVFrame *_pFrame;
 };
 
 
 VideoPicture::VideoPicture() :
-		rgb(NULL), width(0), height(0), allocated(false), usePalette(false), pts(0.0) {
+		rgb(NULL), frame(NULL), width(0), height(0), allocated(false), usePalette(false), pts(0.0) {
 
 	img_convert_ctx_filtering = NULL;
 }
 
-bool VideoPicture::allocate(int w, int h, enum PixelFormat format, bool palettized) {
+bool VideoPicture::allocate(SwsContext *img_convert_ctx, int w, int h,  enum PixelFormat format, bool palettized) {
 
+	img_convert_ctx_filtering = img_convert_ctx;
 	usePalette = palettized;
+	frame = NULL;
 
     // if we already have one, make another
     if (rgb) {
@@ -131,13 +139,6 @@ bool VideoPicture::allocate(int w, int h, enum PixelFormat format, bool palettiz
     } else
         return false;
 
-	// a software converter to apply brightness & contrast filters
-	img_convert_ctx_filtering = sws_getContext(width, height+1, pixelformat, width, height, pixelformat, SWS_POINT, NULL, NULL, NULL);
-	// NB: when both dimensions and formats are equal, a copy converter is automatically selected by libswscale (optimal choice)
-	// but here, we DO want to process the pixels with the swscale to apply filtering. So, the trick is to consider an extra line
-	// (allocated) in the src frame so that the destination height is not the same.
-	// The copy operator takes it into account by NOT copying it (srcSliceY =1)
-
     return true;
 }
 
@@ -149,42 +150,6 @@ VideoPicture::~VideoPicture() {
         av_freep(rgb);
     }
 }
-
-VideoPicture& VideoPicture::operator=(VideoPicture const &original) {
-    if (!allocated)
-        allocate(original.width, original.height, original.pixelformat);
-
-    if (allocated && original.allocated && width == original.width && height == original.height && pixelformat == original.pixelformat) {
-    	if (!img_convert_ctx_filtering) {
-    		// no converter ? just copy;
-			int numBytes = avpicture_get_size(pixelformat, width, height);
-			for (int i=0; i<numBytes; ++i)
-				rgb->data[0][i] = original.rgb->data[0][i];
-			pts = original.pts;
-    	} else
-			// apply the modified converter to copy (with the srcSliceY = 1 to avoid extra line)
-			sws_scale(img_convert_ctx_filtering, original.rgb->data, original.rgb->linesize, 1, height, rgb->data, rgb->linesize);
-    }
-    return *this;
-}
-
-
-void VideoPicture::setCopyFiltering(int b, int c, int s){
-	// check values
-	if ( !img_convert_ctx_filtering || ( b < -100 && b > 100) || ( c < -100 && c > 100) || ( s < -100 && s > 100) )
-		return;
-
-	// Modify the sws converter used internally
-	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-	if ( -1 != sws_getColorspaceDetails(img_convert_ctx_filtering, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
-		// ok, can modify the converter
-        brightness = (( b <<16) + 50)/100;
-        contrast = ((( c +100)<<16) + 50)/100;
-		saturation = ((( s +100)<<16) + 50)/100;
-		sws_setColorspaceDetails(img_convert_ctx_filtering, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-	}
-}
-
 
 void VideoPicture::saveToPPM(QString filename) const {
 
@@ -209,12 +174,26 @@ void VideoPicture::saveToPPM(QString filename) const {
     }
 }
 
-void VideoPicture::fill(AVFrame *pFrame, SwsContext *img_convert_ctx, double timestamp) {
+void VideoPicture::refilter() const{
+	if (!frame)
+		return;
+	sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb->data, rgb->linesize);
+}
 
-	if (usePalette)
-	{
+void VideoPicture::fill(AVFrame *pFrame, double timestamp) {
+
+	if (!pFrame)
+		return;
+
+	frame = pFrame;
+
+	if (!usePalette) {
+		// Convert the image with ffmpeg sws
+		sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb->data, rgb->linesize);
+	}
+	else {
 		// get pointer to the palette
-		uint8_t *palette = pFrame->data[1];
+		uint8_t *palette = frame->data[1];
 		// clear rgb to 0 when alpha is 0
 		for (int i = 0; i < 4 * 256; i += 4)
 		{
@@ -225,8 +204,8 @@ void VideoPicture::fill(AVFrame *pFrame, SwsContext *img_convert_ctx, double tim
 				palette[i + 2] = 0;
 			}
 		}
-		// copy BGR palette color from pFrame to RGB buffer of VideoPicture
-		uint8_t *map = pFrame->data[0];
+		// copy BGR palette color from frame to RGB buffer of VideoPicture
+		uint8_t *map = frame->data[0];
 		uint8_t *bgr = rgb->data[0];
 		for (int y = 0; y < height; y++)
 		{
@@ -237,14 +216,11 @@ void VideoPicture::fill(AVFrame *pFrame, SwsContext *img_convert_ctx, double tim
 				*bgr++ = palette[ 4 * map[x]];      // R
 				*bgr++ = palette[ 4 * map[x] + 3];  // A
 			}
-			map += pFrame->linesize[0];
+			map += frame->linesize[0];
 		}
 	}
-	else
-		// Convert the image with ffmpeg sws
-		sws_scale(img_convert_ctx, pFrame->data, pFrame->linesize, 0, height, rgb->data, rgb->linesize);
 
-	// remember pts
+	// remember pts & frame
 	pts = timestamp;
 }
 
@@ -643,9 +619,27 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     	paletized = true;
     }
 
+    // Decide for optimal conversion algo if it was not specified
+     if (conversionAlgorithm == 0) {
+     	if (getEnd() - getBegin() < 2)
+     	    conversionAlgorithm = SWS_LANCZOS;  	// optimal quality scaling for 1 frame sources (images)
+     	else
+     		conversionAlgorithm = SWS_POINT;		// optimal speed scaling for videos
+     }
+
+     // create conversion context
+     img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
+                 targetWidth, targetHeight, targetFormat, conversionAlgorithm, NULL, NULL, NULL);
+
+     if (img_convert_ctx == NULL) {
+         // Cannot initialize the conversion context!
+         emit error(tr("Error opening %1:\nCannot create a suitable conversion context to RGB.").arg(filename));
+         return false;
+     }
+
     /* allocate the buffers */
     for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i) {
-        if (!pictq[i].allocate(targetWidth, targetHeight, targetFormat, paletized)) {
+        if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, paletized)) {
             // Cannot allocate Video Pictures!
             emit error(tr("Error opening %1:\nCannot allocate pictures buffer.").arg(filename));
             return false;
@@ -653,36 +647,19 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     }
 
     // we need a picture to display when not decoding
-    if (!firstPicture.allocate(targetWidth, targetHeight, targetFormat, paletized)) {
+    if (!firstPicture.allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, paletized)) {
         // Cannot allocate Video Pictures!
         emit error(tr("Error opening %1:\nCannot allocate picture buffer.").arg(filename));
         return false;
     }
 
     // we may need a black Picture frame to return when stopped
-    if (!blackPicture.allocate(targetWidth, targetHeight, targetFormat)) {
+    if (!blackPicture.allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat)) {
         // Cannot allocate Video Pictures!
         emit error(tr("Error opening %1:\nCannot allocate picture buffer.").arg(filename));
         return false;
     }
 
-    // Decide for optimal conversion algo if it was not specified
-    if (conversionAlgorithm == 0) {
-    	if (getEnd() - getBegin() < 2)
-    	    conversionAlgorithm = SWS_LANCZOS;  	// optimal quality scaling for 1 frame sources (images)
-    	else
-    		conversionAlgorithm = SWS_POINT;		// optimal speed scaling for videos
-    }
-
-    // create conversion context
-    img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
-                targetWidth, targetHeight, targetFormat, conversionAlgorithm, NULL, NULL, NULL);
-
-    if (img_convert_ctx == NULL) {
-        // Cannot initialize the conversion context!
-        emit error(tr("Error opening %1:\nCannot create a suitable conversion context to RGB.").arg(filename));
-        return false;
-    }
 
     // read firstPicture (not a big problem if fails; it would just be black)
     fill_first_frame(false);
@@ -739,7 +716,7 @@ void VideoFile::fill_first_frame(bool seek) {
 #endif
             // and if the frame is finished (should be in one shot for video stream)
         	if (frameFinished)
-                firstPicture.fill(pFrame, img_convert_ctx);
+                firstPicture.fill(pFrame);
 
         }
         // free frame
@@ -830,12 +807,8 @@ void VideoFile::video_refresh_timer() {
 			emit frameReady(pictq_rindex);
 
 			// knowing the delay (in seconds), we can schedule the next display (in ms)
-			if (!pause_video && !is_synchronized)
+			if (!is_synchronized)
 				ptimer->start((int) (actual_delay * 1000.0 + 0.5)); // round up
-
-//			// if we just paused on this frame, keep it as reference
-//			else
-//				vp->setReferenceFrame();
 
             /* update queue for next picture at the read index */
             if (++pictq_rindex == VIDEO_PICTURE_QUEUE_SIZE)
@@ -1129,14 +1102,8 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts) {
 
     if (vp->rgb && img_convert_ctx && pictq_size <= VIDEO_PICTURE_QUEUE_SIZE) {
 
-        // Convert the image
-//        sws_scale(img_convert_ctx, pFrame->data, pFrame->linesize, 0, video_st->codec->height, vp->rgb->data,
-//                    vp->rgb->linesize);
-//
-//        // remember pts
-//        vp->pts = pts;
-
-        vp->fill(pFrame, img_convert_ctx, pts);
+        // Fill the Video Picture queue with the current frame
+        vp->fill(pFrame, pts);
 
         // set to write indexto next in queue
         if (++pictq_windex == VIDEO_PICTURE_QUEUE_SIZE)
@@ -1187,8 +1154,6 @@ void DecodingThread::run() {
     int len1 = 0, frameFinished = 0;
     double pts = 0.0;					// Presentation time stamp
     int64_t dts = 0;					// Decoding time stamp
-    AVFrame *pFrame = avcodec_alloc_frame();
-    Q_CHECK_PTR(pFrame);
 
 //    is->logmessage += tr("DecodingThread:: run.\n");
 
@@ -1219,17 +1184,17 @@ void DecodingThread::run() {
         is->video_st->codec->reordered_opaque = packet->pts;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-        len1 = avcodec_decode_video2(is->video_st->codec, pFrame, &frameFinished, packet);
+        len1 = avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, packet);
 #else
-        len1 = avcodec_decode_video(is->video_st->codec, pFrame, &frameFinished, packet->data, packet->size);
+        len1 = avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet->data, packet->size);
 #endif
         // get decompression time stamp
         // this is the code in ffplay:
         dts = 0.0;
         if (packet->dts != (int64_t) AV_NOPTS_VALUE) {
             dts = packet->dts;
-        } else if (pFrame->reordered_opaque != (int64_t) AV_NOPTS_VALUE) {
-            dts = pFrame->reordered_opaque;
+        } else if (_pFrame->reordered_opaque != (int64_t) AV_NOPTS_VALUE) {
+            dts = _pFrame->reordered_opaque;
         }
         // this is the code from tutorial :
         //    else if (pFrame->opaque && *(uint64_t*) pFrame->opaque != AV_NOPTS_VALUE) {
@@ -1249,18 +1214,15 @@ void DecodingThread::run() {
 
         // Did we get a full video frame?
         if (frameFinished) {
-            pts = is->synchronize_video(pFrame, pts);
+            pts = is->synchronize_video(_pFrame, pts);
             // yes, frame is ready ; add it to the queue of pictures
-            is->queue_picture(pFrame, pts);
+            is->queue_picture(_pFrame, pts);
         }
 
         // packet was decoded, can be removed
         av_free_packet(packet);
 
     }
-
-    // free the locally allocated variable
-    av_free(pFrame);
 
 //    is->logmessage += tr("DecodingThread:: ended.\n");
 }
@@ -1607,9 +1569,9 @@ void VideoFile::setBrightness(int b){
 		brightness = (( b <<16) + 50)/100;
 		// apply it
 		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-	}
 
-	emit prefilteringChanged();
+		emit prefilteringChanged();
+	}
 }
 
 
@@ -1621,9 +1583,9 @@ void VideoFile::setContrast(int c){
 		contrast   = ((( c +100)<<16) + 50)/100;
 		// apply it
 		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-	}
 
-	emit prefilteringChanged();
+		emit prefilteringChanged();
+	}
 }
 
 
@@ -1636,9 +1598,10 @@ void VideoFile::setSaturation(int s){
 		saturation = ((( s +100)<<16) + 50)/100;
 		// apply it
 		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+
+		emit prefilteringChanged();
 	}
 
-	emit prefilteringChanged();
 }
 
 

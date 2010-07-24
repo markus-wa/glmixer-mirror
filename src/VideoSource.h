@@ -89,7 +89,7 @@ private:
     VideoFile *is;
     VideoPicture copy;
 
-    bool copyChanged;
+    bool filterChanged;
     int bufferIndex;
 
 };
