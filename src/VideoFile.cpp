@@ -87,12 +87,14 @@ private:
 
 
 VideoPicture::VideoPicture() :
-		rgb(NULL), width(0), height(0), allocated(false), pts(0.0) {
+		rgb(NULL), width(0), height(0), allocated(false), usePalette(false), pts(0.0) {
 
-	img_converter = NULL;
+	img_convert_ctx_filtering = NULL;
 }
 
-bool VideoPicture::allocate(int w, int h, enum PixelFormat format) {
+bool VideoPicture::allocate(int w, int h, enum PixelFormat format, bool palettized) {
+
+	usePalette = palettized;
 
     // if we already have one, make another
     if (rgb) {
@@ -130,7 +132,7 @@ bool VideoPicture::allocate(int w, int h, enum PixelFormat format) {
         return false;
 
 	// a software converter to apply brightness & contrast filters
-	img_converter = sws_getContext(width, height+1, pixelformat, width, height, pixelformat, SWS_POINT, NULL, NULL, NULL);
+	img_convert_ctx_filtering = sws_getContext(width, height+1, pixelformat, width, height, pixelformat, SWS_POINT, NULL, NULL, NULL);
 	// NB: when both dimensions and formats are equal, a copy converter is automatically selected by libswscale (optimal choice)
 	// but here, we DO want to process the pixels with the swscale to apply filtering. So, the trick is to consider an extra line
 	// (allocated) in the src frame so that the destination height is not the same.
@@ -153,7 +155,7 @@ VideoPicture& VideoPicture::operator=(VideoPicture const &original) {
         allocate(original.width, original.height, original.pixelformat);
 
     if (allocated && original.allocated && width == original.width && height == original.height && pixelformat == original.pixelformat) {
-    	if (!img_converter) {
+    	if (!img_convert_ctx_filtering) {
     		// no converter ? just copy;
 			int numBytes = avpicture_get_size(pixelformat, width, height);
 			for (int i=0; i<numBytes; ++i)
@@ -161,7 +163,7 @@ VideoPicture& VideoPicture::operator=(VideoPicture const &original) {
 			pts = original.pts;
     	} else
 			// apply the modified converter to copy (with the srcSliceY = 1 to avoid extra line)
-			sws_scale(img_converter, original.rgb->data, original.rgb->linesize, 1, height, rgb->data, rgb->linesize);
+			sws_scale(img_convert_ctx_filtering, original.rgb->data, original.rgb->linesize, 1, height, rgb->data, rgb->linesize);
     }
     return *this;
 }
@@ -169,17 +171,17 @@ VideoPicture& VideoPicture::operator=(VideoPicture const &original) {
 
 void VideoPicture::setCopyFiltering(int b, int c, int s){
 	// check values
-	if ( !img_converter || ( b < -100 && b > 100) || ( c < -100 && c > 100) || ( s < -100 && s > 100) )
+	if ( !img_convert_ctx_filtering || ( b < -100 && b > 100) || ( c < -100 && c > 100) || ( s < -100 && s > 100) )
 		return;
 
 	// Modify the sws converter used internally
 	int *inv_table, srcrange, *table, dstrange, brightness, contrast, saturation;
-	if ( -1 != sws_getColorspaceDetails(img_converter, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
+	if ( -1 != sws_getColorspaceDetails(img_convert_ctx_filtering, &inv_table, &srcrange, &table, &dstrange, &brightness, &contrast, &saturation) ) {
 		// ok, can modify the converter
         brightness = (( b <<16) + 50)/100;
         contrast = ((( c +100)<<16) + 50)/100;
 		saturation = ((( s +100)<<16) + 50)/100;
-		sws_setColorspaceDetails(img_converter, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
+		sws_setColorspaceDetails(img_convert_ctx_filtering, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
 	}
 }
 
@@ -207,6 +209,44 @@ void VideoPicture::saveToPPM(QString filename) const {
     }
 }
 
+void VideoPicture::fill(AVFrame *pFrame, SwsContext *img_convert_ctx, double timestamp) {
+
+	if (usePalette)
+	{
+		// get pointer to the palette
+		uint8_t *palette = pFrame->data[1];
+		// clear rgb to 0 when alpha is 0
+		for (int i = 0; i < 4 * 256; i += 4)
+		{
+			if (palette[i + 3] == 0)
+			{
+				palette[i + 0] = 0;
+				palette[i + 1] = 0;
+				palette[i + 2] = 0;
+			}
+		}
+		// copy BGR palette color from pFrame to RGB buffer of VideoPicture
+		uint8_t *map = pFrame->data[0];
+		uint8_t *bgr = rgb->data[0];
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				*bgr++ = palette[ 4 * map[x] + 2];  // B
+				*bgr++ = palette[ 4 * map[x] + 1];  // G
+				*bgr++ = palette[ 4 * map[x]];      // R
+				*bgr++ = palette[ 4 * map[x] + 3];  // A
+			}
+			map += pFrame->linesize[0];
+		}
+	}
+	else
+		// Convert the image with ffmpeg sws
+		sws_scale(img_convert_ctx, pFrame->data, pFrame->linesize, 0, height, rgb->data, rgb->linesize);
+
+	// remember pts
+	pts = timestamp;
+}
 
 
 bool VideoFile::ffmpegregistered = false;
@@ -224,9 +264,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
 #endif
         ffmpegregistered = true;
     }
-
-    // default software conversion parameters
-    targetFormat = PIX_FMT_RGB24;
 
     // Init some pointers to NULL
     videoStream = -1;
@@ -514,7 +551,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
             emit error(tr("FFMPEG cannot read  %1:\nNo such file.").arg(file));
             break;
         default:
-            emit error(tr("FFMPEG cannot read  %1:\nUnknown error :( ...").arg(file));
+            emit error(tr("FFMPEG cannot read  %1:\nCannot open file.").arg(file));
             break;
         }
         return false;
@@ -543,7 +580,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
 			emit error(tr("FFMPEG cannot read  %1:\nNo such file.").arg(file));
 			break;
 		default:
-			emit error(tr("FFMPEG cannot read  %1:\nUnknown error :( ...").arg(file));
+			emit error(tr("FFMPEG cannot read  %1:\nUnsupported format.").arg(file));
 			break;
 		}
 		return false;
@@ -591,29 +628,39 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
         targetHeight = VideoFile::roundPowerOfTwo(targetHeight);
     }
 
-    // Selection of target format to keep Alpha channel if exist
+    // Default targetFormat to PIX_FMT_RGB24, not using color palette
+    enum PixelFormat targetFormat = PIX_FMT_RGB24;
+    bool paletized = false;
+
+    // Change target format to keep Alpha channel if exist
     if (video_st->codec->pix_fmt == PIX_FMT_RGBA || video_st->codec->pix_fmt == PIX_FMT_BGRA ||
     		video_st->codec->pix_fmt == PIX_FMT_ARGB || video_st->codec->pix_fmt == PIX_FMT_ABGR ||
-    		video_st->codec->pix_fmt == PIX_FMT_YUVJ420P)
+    		video_st->codec->pix_fmt == PIX_FMT_YUVJ420P )
     	targetFormat = PIX_FMT_RGBA;
+    // special case of PALLETIZED pixel formats
+    else if (video_st->codec->pix_fmt == PIX_FMT_PAL8 ){
+    	targetFormat = PIX_FMT_RGBA;
+    	paletized = true;
+    }
 
     /* allocate the buffers */
     for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i) {
-        if (!pictq[i].allocate(targetWidth, targetHeight, targetFormat)) {
+        if (!pictq[i].allocate(targetWidth, targetHeight, targetFormat, paletized)) {
             // Cannot allocate Video Pictures!
             emit error(tr("Error opening %1:\nCannot allocate pictures buffer.").arg(filename));
             return false;
         }
     }
 
-    // we may need a black Picture frame to return when stopped
-    if (!blackPicture.allocate(targetWidth, targetHeight, targetFormat)) {
+    // we need a picture to display when not decoding
+    if (!firstPicture.allocate(targetWidth, targetHeight, targetFormat, paletized)) {
         // Cannot allocate Video Pictures!
         emit error(tr("Error opening %1:\nCannot allocate picture buffer.").arg(filename));
         return false;
     }
-    // we need a picture to display when not decoding
-    if (!firstPicture.allocate(targetWidth, targetHeight, targetFormat)) {
+
+    // we may need a black Picture frame to return when stopped
+    if (!blackPicture.allocate(targetWidth, targetHeight, targetFormat)) {
         // Cannot allocate Video Pictures!
         emit error(tr("Error opening %1:\nCannot allocate picture buffer.").arg(filename));
         return false;
@@ -691,11 +738,9 @@ void VideoFile::fill_first_frame(bool seek) {
         if ( avcodec_decode_video(video_st->codec, pFrame, &frameFinished, packet->data, packet->size) >= 0) {
 #endif
             // and if the frame is finished (should be in one shot for video stream)
-        	if (frameFinished) {
-                // convert it to the firtPicture
-                sws_scale(img_convert_ctx, pFrame->data, pFrame->linesize, 0, video_st->codec->height,
-                            firstPicture.rgb->data, firstPicture.rgb->linesize);
-        	}
+        	if (frameFinished)
+                firstPicture.fill(pFrame, img_convert_ctx);
+
         }
         // free frame
         av_free(pFrame);
@@ -1085,11 +1130,13 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts) {
     if (vp->rgb && img_convert_ctx && pictq_size <= VIDEO_PICTURE_QUEUE_SIZE) {
 
         // Convert the image
-        sws_scale(img_convert_ctx, pFrame->data, pFrame->linesize, 0, video_st->codec->height, vp->rgb->data,
-                    vp->rgb->linesize);
+//        sws_scale(img_convert_ctx, pFrame->data, pFrame->linesize, 0, video_st->codec->height, vp->rgb->data,
+//                    vp->rgb->linesize);
+//
+//        // remember pts
+//        vp->pts = pts;
 
-        // remember pts
-        vp->pts = pts;
+        vp->fill(pFrame, img_convert_ctx, pts);
 
         // set to write indexto next in queue
         if (++pictq_windex == VIDEO_PICTURE_QUEUE_SIZE)
@@ -1595,9 +1642,12 @@ void VideoFile::setSaturation(int s){
 }
 
 
-QString VideoFile::getPixelFormatName() const {
+QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const {
 
-	switch (video_st->codec->pix_fmt) {
+	if (ffmpegPixelFormat == PIX_FMT_NONE)
+		ffmpegPixelFormat =video_st->codec->pix_fmt;
+
+	switch (ffmpegPixelFormat ) {
 
 	case PIX_FMT_YUV420P: return QString("planar YUV 4:2:0, 12bpp");
 	case PIX_FMT_YUYV422: return QString("packed YUV 4:2:2, 16bpp");
@@ -1613,7 +1663,7 @@ QString VideoFile::getPixelFormatName() const {
 	case PIX_FMT_GRAY8: return QString("Y,  8bpp");
 	case PIX_FMT_MONOWHITE:
 	case PIX_FMT_MONOBLACK: return QString("Y,  1bpp");
-	case PIX_FMT_PAL8: return QString("PAL RGB32 palette, 8bpp");
+	case PIX_FMT_PAL8: return QString("RGB32 palette, 8bpp");
 	case PIX_FMT_YUVJ420P: return QString("planar YUV 4:2:0, 12bpp (JPEG)");
 	case PIX_FMT_YUVJ422P: return QString("planar YUV 4:2:2, 16bpp (JPEG)");
 	case PIX_FMT_YUVJ444P: return QString("planar YUV 4:4:4, 24bpp (JPEG)");

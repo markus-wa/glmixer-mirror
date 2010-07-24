@@ -71,10 +71,10 @@ class VideoPicture {
     friend class VideoFile;
     AVFrame *rgb;
     int width, height;
-    bool allocated;
+    bool allocated, usePalette;
     double pts;
     enum PixelFormat pixelformat;
-    SwsContext *img_converter;
+    SwsContext *img_convert_ctx_filtering;
 public:
 
     VideoPicture();
@@ -99,10 +99,23 @@ public:
      *
      * @param w Width of the frame
      * @param h Height of the frame
-     * @param format Internal pixel format of the buffer. PIX_FMT_RGB24 by default, PIX_FMT_RGBA if there is alpha channel, or another format from libavutil/pixfmt.h.
+     * @param format Internal pixel format of the buffer. PIX_FMT_RGB24 (by default), PIX_FMT_RGBA if there is alpha channel
      * @return true on success.
      */
-    bool allocate(int w, int h, enum PixelFormat format = PIX_FMT_RGB24);
+    bool allocate(int w, int h, enum PixelFormat format = PIX_FMT_RGB24, bool palettized = false);
+    /**
+     * Fills the rgb buffer of this Video Picture with the content of the ffmpeg AVFrame given.
+     *
+     * This is done with the ffmpeg software conversion method sws_scale using the conversion context provided
+     * in argument (SwsContext).
+     *
+     * If the video picture uses a color palette (allocated with palettized = true), then the
+     * copy of pixels is done accordingly (slower).
+     *
+     * Finally, the timestamp given is kept into the Video Picture for later use.
+     */
+    void fill(AVFrame *pFrame, SwsContext *img_convert_ctx, double timestamp = 0.0);
+
     /**
      * Get a pointer to the buffer containing the frame.
      *
@@ -113,8 +126,6 @@ public:
      * If the buffer is allocated in the PIX_FMT_RGBA pixel format, it is
      * a Width x Height x 4 array of unsigned bytes (char or uint8_t) .
      * This buffer is directly applicable as a GL_RGBA OpenGL texture.
-     *
-     * Internal representation of buffers for other formats are described in libswscale/swscale.h and libavutil/pixfmt.h.
      *
      * @return pointer to an array of unsigned bytes (char or uint8_t)
      */
@@ -171,7 +182,7 @@ public:
      *                      vp->getBuffer() );
      *    </pre>
      *
-     * @return PIX_FMT_RGB24 by default, PIX_FMT_RGBA if there is alpha channel, or another format from libavutil/pixfmt.h.
+     * @return PIX_FMT_RGB24 by default, PIX_FMT_RGBA if there is alpha channel
      */
     enum PixelFormat getFormat() const {
          return pixelformat;
@@ -355,7 +366,7 @@ public:
      *
      *  @return FFmpeg name of the pixel format. String is empty if file was not opened.
      */
-    QString getPixelFormatName() const ;
+    QString getPixelFormatName(PixelFormat ffmpegPixelFormat = PIX_FMT_NONE) const ;
     /**
      *  Get if the frames are converted to power-of-two dimensions.
      *
@@ -896,7 +907,6 @@ protected:
     bool powerOfTwo;
     int targetWidth, targetHeight;
     int conversionAlgorithm;
-    enum PixelFormat targetFormat;
     VideoPicture firstPicture, blackPicture;
     VideoPicture *resetPicture;
 
