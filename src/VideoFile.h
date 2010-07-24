@@ -271,7 +271,7 @@ public:
      *  @param destinationHeight Height of the VideoPicture to produce; leave at 0 for auto detection from the file resolution.
      */
     VideoFile(QObject *parent = 0,  bool generatePowerOfTwo = false,
-                int swsConversionQuality = SWS_POINT, int destinationWidth = 0, int destinationHeight = 0);
+                int swsConversionQuality = 0, int destinationWidth = 0, int destinationHeight = 0);
     /**
      * Destructor.
      *
@@ -350,6 +350,12 @@ public:
     inline QString getCodecName() const {
         return codecname;
     }
+    /**
+     *  Get the name of the pixel format of the frames of the file opened.
+     *
+     *  @return FFmpeg name of the pixel format. String is empty if file was not opened.
+     */
+    QString getPixelFormatName() const ;
     /**
      *  Get if the frames are converted to power-of-two dimensions.
      *
@@ -887,10 +893,10 @@ protected:
     int pictq_size, pictq_rindex, pictq_windex;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
-    int conversionAlgorithm;
-    int targetWidth, targetHeight;
-    enum PixelFormat targetFormat;
     bool powerOfTwo;
+    int targetWidth, targetHeight;
+    int conversionAlgorithm;
+    enum PixelFormat targetFormat;
     VideoPicture firstPicture, blackPicture;
     VideoPicture *resetPicture;
 

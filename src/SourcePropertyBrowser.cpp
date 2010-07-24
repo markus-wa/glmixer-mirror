@@ -337,6 +337,11 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
+		// Pixel Format
+		property = infoManager->addProperty( QLatin1String("Pixel format") );
+		property->setItalics(true);
+		idToProperty[property->propertyName()] = property;
+		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 
 		// Frames size
 		QtProperty *fs = sizeManager->addProperty( QLatin1String("Frames size") );
@@ -503,6 +508,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			VideoFile *vf = vs->getVideoFile();
 			infoManager->setValue(idToProperty["File name"], vf->getFileName() );
 			infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
+			infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
 			sizeManager->setValue(idToProperty["Frames size"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
 			// Frames size special case when power of two dimensions are generated
 			sizeManager->setValue(idToProperty["Converted size"], QSize(vf->getFrameWidth(),vf->getFrameHeight()) );

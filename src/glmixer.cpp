@@ -285,7 +285,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 		if ( !mfd->configCustomSize() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
 			newSourceVideoFile = new VideoFile(this);
 		else
-			newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB32);
+			newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
 #else
 		newSourceVideoFile = new VideoFile(this);
 #endif

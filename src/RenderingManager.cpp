@@ -949,7 +949,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 			if ( !Filename.attribute("PowerOfTwo").toInt() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
 				newSourceVideoFile = new VideoFile(this);
 			else
-				newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR, PIX_FMT_RGB32);
+				newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR);
 			// if the video file was created successfully
 			if (newSourceVideoFile){
 				// can we open the file ?

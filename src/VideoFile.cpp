@@ -212,7 +212,9 @@ void VideoPicture::saveToPPM(QString filename) const {
 bool VideoFile::ffmpegregistered = false;
 
 VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversionAlgorithm, int destinationWidth, int destinationHeight) :
-    QObject(parent), filename(QString()) {
+    QObject(parent), filename(QString()), powerOfTwo(generatePowerOfTwo),
+    targetWidth(destinationWidth), targetHeight(destinationHeight),
+    conversionAlgorithm(swsConversionAlgorithm) {
 
     if (!ffmpegregistered) {
         avcodec_register_all();
@@ -223,12 +225,8 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
         ffmpegregistered = true;
     }
 
-    // read software conversion parameters
-    targetWidth = destinationWidth;
-    targetHeight = destinationHeight;
+    // default software conversion parameters
     targetFormat = PIX_FMT_RGB24;
-    powerOfTwo = generatePowerOfTwo;
-    conversionAlgorithm = swsConversionAlgorithm;
 
     // Init some pointers to NULL
     videoStream = -1;
@@ -554,7 +552,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     // if video_index not set (no video stream found) or stream open call failed
     videoStream = stream_component_open(_pFormatCtx);
     if (videoStream < 0) {
-        //could not open codecs (errors already emited)
+        //could not open Codecs (error message already emitted)
         return false;
     }
 
@@ -582,10 +580,10 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     	emit markingChanged();
 
     // init picture size
-    if (targetWidth == 0 || targetHeight == 0) {
+    if (targetWidth == 0)
         targetWidth = video_st->codec->width;
+    if (targetHeight == 0)
         targetHeight = video_st->codec->height;
-    }
 
     // round target picture size to power of two size
     if ( powerOfTwo ) {
@@ -593,12 +591,11 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
         targetHeight = VideoFile::roundPowerOfTwo(targetHeight);
     }
 
-    // automatic optimal selection of target format
-    if (video_st->codec->pix_fmt == PIX_FMT_RGB32 || video_st->codec->pix_fmt == PIX_FMT_BGR32)
+    // Selection of target format to keep Alpha channel if exist
+    if (video_st->codec->pix_fmt == PIX_FMT_RGBA || video_st->codec->pix_fmt == PIX_FMT_BGRA ||
+    		video_st->codec->pix_fmt == PIX_FMT_ARGB || video_st->codec->pix_fmt == PIX_FMT_ABGR ||
+    		video_st->codec->pix_fmt == PIX_FMT_YUVJ420P)
     	targetFormat = PIX_FMT_RGBA;
-    else
-    	targetFormat = PIX_FMT_RGB24;
-
 
     /* allocate the buffers */
     for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i) {
@@ -622,6 +619,13 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
         return false;
     }
 
+    // Decide for optimal conversion algo if it was not specified
+    if (conversionAlgorithm == 0) {
+    	if (getEnd() - getBegin() < 2)
+    	    conversionAlgorithm = SWS_LANCZOS;  	// optimal quality scaling for 1 frame sources (images)
+    	else
+    		conversionAlgorithm = SWS_POINT;		// optimal speed scaling for videos
+    }
 
     // create conversion context
     img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
@@ -661,6 +665,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
 
     return true;
 }
+
 
 
 void VideoFile::fill_first_frame(bool seek) {
@@ -1588,4 +1593,66 @@ void VideoFile::setSaturation(int s){
 
 	emit prefilteringChanged();
 }
+
+
+QString VideoFile::getPixelFormatName() const {
+
+	switch (video_st->codec->pix_fmt) {
+
+	case PIX_FMT_YUV420P: return QString("planar YUV 4:2:0, 12bpp");
+	case PIX_FMT_YUYV422: return QString("packed YUV 4:2:2, 16bpp");
+	case PIX_FMT_RGB24:
+	case PIX_FMT_BGR24: return QString("packed RGB 8:8:8, 24bpp");
+	case PIX_FMT_YUV422P: return QString("planar YUV 4:2:2, 16bpp");
+	case PIX_FMT_YUV444P: return QString("planar YUV 4:4:4, 24bpp");
+	case PIX_FMT_RGB32: return QString("packed RGB 8:8:8, 32bpp");
+	case PIX_FMT_YUV410P: return QString("planar YUV 4:1:0,  9bpp");
+	case PIX_FMT_YUV411P: return QString("planar YUV 4:1:1, 12bpp");
+	case PIX_FMT_RGB565: return QString("packed RGB 5:6:5, 16bpp");
+	case PIX_FMT_RGB555: return QString("packed RGB 5:5:5, 16bpp");
+	case PIX_FMT_GRAY8: return QString("Y,  8bpp");
+	case PIX_FMT_MONOWHITE:
+	case PIX_FMT_MONOBLACK: return QString("Y,  1bpp");
+	case PIX_FMT_PAL8: return QString("PAL RGB32 palette, 8bpp");
+	case PIX_FMT_YUVJ420P: return QString("planar YUV 4:2:0, 12bpp (JPEG)");
+	case PIX_FMT_YUVJ422P: return QString("planar YUV 4:2:2, 16bpp (JPEG)");
+	case PIX_FMT_YUVJ444P: return QString("planar YUV 4:4:4, 24bpp (JPEG)");
+	case PIX_FMT_XVMC_MPEG2_MC: return QString("XVideo Motion Acceleration (MPEG2)");
+	case PIX_FMT_UYVY422: return QString("packed YUV 4:2:2, 16bpp");
+	case PIX_FMT_UYYVYY411: return QString("packed YUV 4:1:1, 12bpp");
+	case PIX_FMT_BGR32: return QString("packed RGB 8:8:8, 32bpp");
+	case PIX_FMT_BGR565: return QString("packed RGB 5:6:5, 16bpp");
+	case PIX_FMT_BGR555: return QString("packed RGB 5:5:5, 16bpp");
+	case PIX_FMT_BGR8: return QString("packed RGB 3:3:2, 8bpp");
+	case PIX_FMT_BGR4: return QString("packed RGB 1:2:1, 4bpp");
+	case PIX_FMT_BGR4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
+	case PIX_FMT_RGB8: return QString("packed RGB 3:3:2,  8bpp");
+	case PIX_FMT_RGB4: return QString("packed RGB 1:2:1,  4bpp");
+	case PIX_FMT_RGB4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
+	case PIX_FMT_NV12:
+	case PIX_FMT_NV21: return QString("planar YUV 4:2:0, 12bpp");
+	case PIX_FMT_RGB32_1:
+	case PIX_FMT_BGR32_1: return QString("packed RGB 8:8:8, 32bpp");
+	case PIX_FMT_GRAY16BE:
+	case PIX_FMT_GRAY16LE: return QString("Y, 16bpp");
+	case PIX_FMT_YUV440P: return QString("planar YUV 4:4:0");
+	case PIX_FMT_YUVJ440P: return QString("planar YUV 4:4:0 (JPEG)");
+	case PIX_FMT_YUVA420P: return QString("planar YUV 4:2:0, 20bpp");
+	case PIX_FMT_VDPAU_H264: return QString("H.264 HW");
+	case PIX_FMT_VDPAU_MPEG1: return QString("MPEG-1 HW");
+	case PIX_FMT_VDPAU_MPEG2: return QString("MPEG-2 HW");
+	case PIX_FMT_VDPAU_WMV3: return QString("WMV3 HW");
+	case PIX_FMT_VDPAU_VC1: return QString("VC-1 HW");
+	case PIX_FMT_RGB48BE: return QString("packed RGB 16:16:16, 48bpp");
+	case PIX_FMT_RGB48LE: return QString("packed RGB 16:16:16, 48bpp");
+	case PIX_FMT_VAAPI_MOCO:
+	case PIX_FMT_VAAPI_IDCT:
+	case PIX_FMT_VAAPI_VLD: return QString("HW acceleration through VA API");
+	default:
+		return QString("unknown");
+	}
+
+}
+
+
 
