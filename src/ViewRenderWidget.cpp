@@ -34,6 +34,7 @@
 #include "CatalogView.h"
 #include "Cursor.h"
 #include "SpringCursor.h"
+#include "DelayCursor.h"
 
 GLuint ViewRenderWidget::border_thin_shadow = 0,
 		ViewRenderWidget::border_large_shadow = 0;
@@ -77,6 +78,8 @@ ViewRenderWidget::ViewRenderWidget() :
 	Q_CHECK_PTR(_normalCursor);
 	_springCursor = new SpringCursor;
 	Q_CHECK_PTR(_springCursor);
+	_delayCursor = new DelayCursor;
+	Q_CHECK_PTR(_delayCursor);
 	// sets the current cursor
 	_currentCursor = _normalCursor;
 
@@ -284,6 +287,9 @@ ViewRenderWidget::toolMode ViewRenderWidget::getToolMode(){
 void ViewRenderWidget::setCursorMode(cursorMode m){
 
 	switch(m) {
+	case ViewRenderWidget::CURSOR_DELAY:
+		_currentCursor = _delayCursor;
+		break;
 	case ViewRenderWidget::CURSOR_SPRING:
 		_currentCursor = _springCursor;
 		break;

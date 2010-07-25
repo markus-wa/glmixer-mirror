@@ -37,7 +37,7 @@ public:
 	/**
 	 * Provide the cursor with the original mouse event
 	 */
-	void update(QMouseEvent *e){
+	virtual void update(QMouseEvent *e){
 		if (e->type() == QEvent::MouseButtonPress){
 			pressPos 	=  QPointF(e->pos());
 			active = true;

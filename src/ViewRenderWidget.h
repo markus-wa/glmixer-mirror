@@ -40,6 +40,7 @@ class CatalogView;
 
 class Cursor;
 class SpringCursor;
+class DelayCursor;
 
 class ViewRenderWidget: public glRenderWidget {
 
@@ -96,7 +97,7 @@ public:
 	void setToolMode(toolMode m);
 	toolMode getToolMode();
 
-	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING } cursorMode;
+	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY } cursorMode;
 	void setCursorMode(cursorMode m);
 	cursorMode getCursorMode();
 
@@ -175,6 +176,7 @@ private:
 	// C u r s o r s
 	Cursor *_currentCursor, *_normalCursor;
 	SpringCursor *_springCursor;
+	DelayCursor *_delayCursor;
 
 	// M e s s a g e s
 	QString message;

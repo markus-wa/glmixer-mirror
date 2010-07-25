@@ -255,6 +255,8 @@ void GLMixer::setCursor(QAction *a){
 		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_NORMAL);
 	else if (a == actionCursorSpring)
 		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_SPRING);
+	else if (a == actionCursorDelay)
+		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_DELAY);
 
 }
 
@@ -396,10 +398,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		vcontrolDockWidgetContents->setEnabled( (*csi)->isPlayable() );
 		vcontrolDockWidgetControls->setEnabled( (*csi)->isPlayable() );
 
+		startButton->setChecked( (*csi)->isPlaying() );
 
 		if ((*csi)->isPlayable()) {
 			playableSelection = (*csi);
-			startButton->setChecked( playableSelection->isPlaying() );
 
 			switch (playableSelection->rtti()){
 			case Source::ALGORITHM_SOURCE:
@@ -491,6 +493,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		actionCloneSource->setEnabled(false);
 		vcontrolDockWidgetContents->setEnabled(false);
 		startButton->setEnabled( false );
+		startButton->setChecked( false );
 
 		sourceDockWidgetContents->setEnabled(false);
 	}
@@ -817,18 +820,18 @@ void GLMixer::unpauseBeforeSeek() {
 
 void GLMixer::pauseAfterSeek (){
 
-	static int frameCounter = 0;
+//	static int frameCounter = 0;
 
 	// if the button 'Pause' is checked, we shall go back to pause once
 	// we'll have displayed the seeked frame
 	if (pauseButton->isChecked()) {
 
-		// make sure we display all the pictures in the queue
-		if (frameCounter++ <= VIDEO_PICTURE_QUEUE_SIZE)
-			return;
+//		// make sure we display all the pictures in the queue
+//		if (frameCounter++ <= VIDEO_PICTURE_QUEUE_SIZE)
+//			return;
 
 		selectedSourceVideoFile->pause(true);
-		frameCounter = 0;
+//		frameCounter = 0;
 
 		refreshTiming();
 	}

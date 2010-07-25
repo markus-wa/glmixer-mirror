@@ -31,6 +31,7 @@ set(MYQT_SRCS
 	OutputRenderWindow.cpp
 	SourcePropertyBrowser.cpp
 	SpringCursor.cpp
+	DelayCursor.cpp
 	UserPreferencesDialog.cpp
     glmixer.cpp
     main.cpp

@@ -1,5 +1,5 @@
 /*
- * springCursor.h
+ * DelayCursor.h
  *
  *  Created on: Jul 13, 2010
  *      Author: bh
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef SPRINGCursor_H_
-#define SPRINGCursor_H_
+#ifndef DelayCursor_H_
+#define DelayCursor_H_
 
 #include "Cursor.h"
 
-class SpringCursor: public Cursor
+class DelayCursor: public Cursor
 {
 public:
-	SpringCursor();
+	DelayCursor();
 
 	void update(QMouseEvent *e);
 	bool apply(double fpsaverage);
@@ -40,16 +40,8 @@ public:
 
 private:
 
-	// parameters of the physics
-	double mass, lenght, stiffness, damping, viscousness;
-	// previous coordinates to compute speed
-	QPointF _mousePos, _shadowPos;
-	// speeds of real cursor (v) and shadow (V)
-	QPointF v, V;
-	// force computed
-	QPointF f;
 	// timing
 	double t, duration;
 };
 
-#endif /* SPRINGCursor_H_ */
+#endif /* DelayCursor_H_ */

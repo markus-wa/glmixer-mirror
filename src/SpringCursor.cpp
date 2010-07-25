@@ -37,29 +37,63 @@ SpringCursor::SpringCursor() : Cursor()
 	stiffness = 0.1;
 	damping = 1.0;
 	viscousness = 0.01;
+
+	t = 0.0;
 }
 
 
+void SpringCursor::update(QMouseEvent *e){
+
+	Cursor::update(e);
+
+	if (e->type() == QEvent::MouseButtonPress){
+		// reset time
+		t = 0.0;
+		duration = 0.0;
+		// start at press position
+		shadowPos = pressPos;
+	}
+}
 
 bool SpringCursor::apply(double fpsaverage){
 
+//	return Cursor::apply(fpsaverage);
+
 	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
 
-	if (!active) {
-		shadowPos = mousePos;
-		return false;
-	}
-
-	if (updated)
-		updated = false;
+//	if (!active) {
+////		shadowPos = mousePos;
+//		return false;
+//	}
+//
+//	if (updated)
+//		updated = false;
 
 	// animate the shadow
 
-	// keep old position
-	_shadowPos = shadowPos;
 
-	// new position
-	shadowPos = _shadowPos + dt * mass *(mousePos - shadowPos) ;
+	if (active) {
+
+		duration += dt;
+
+		// target is the current pos if not release button
+		releasePos = mousePos;
+
+
+
+	}
+
+	t += dt;
+
+//	QPointF delta =  mass * dt;
+
+	double coef = t / duration;
+
+	// interpolation
+	shadowPos = (coef) * pressPos + (1.0 - coef) * releasePos;
+
+	// interpolation finished
+	return (coef - 1.0 < EPSILON);
 
 	// if the shadow reached the real cursor position
 	// then return false
@@ -68,7 +102,7 @@ bool SpringCursor::apply(double fpsaverage){
 //	qDebug("dist %f", euclidean(POS, _POS));
 //	qDebug("mana %f", (POS - pos).manhattanLength());
 
-	return (shadowPos - mousePos).manhattanLength() > 1.0 ;
+//	return (shadowPos - releasePos).manhattanLength() > 1.0 ;
 
 }
 
