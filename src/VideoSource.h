@@ -59,24 +59,42 @@ public:
 
 	// Adjust brightness factor
 	inline void setBrightness(int b) {
-		is->setBrightness(b);
+		if (isPlayable())
+			is->setBrightness(b);
+		else
+			Source::setBrightness(b);
 	}
 	inline int getBrightness() const {
-		return is->getBrightness();
+		if (isPlayable())
+			return is->getBrightness();
+		else
+			return Source::getBrightness();
 	}
 	// Adjust contrast factor
 	inline void setContrast(int c) {
-		is->setContrast(c);
+		if (isPlayable())
+			is->setContrast(c);
+		else
+			Source::setContrast(c);
 	}
 	inline int getContrast() const {
-		return is->getContrast();
+		if (isPlayable())
+			return is->getContrast();
+		else
+			return Source::getContrast();
 	}
 	// Adjust saturation factor
 	inline void setSaturation(int s) {
-		is->setSaturation(s);
+		if (isPlayable())
+			is->setSaturation(s);
+		else
+			Source::setSaturation(s);
 	}
 	inline int getSaturation() const {
-		return is->getSaturation();
+		if (isPlayable())
+			return is->getSaturation();
+		else
+			return Source::getSaturation();
 	}
 
 	int getFrameWidth() const { return is->getFrameWidth(); }

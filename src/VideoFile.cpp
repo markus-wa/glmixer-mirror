@@ -118,7 +118,7 @@ bool VideoPicture::allocate(SwsContext *img_convert_ctx, int w, int h,  enum Pix
     pixelformat = format;
 
     // Determine required buffer size and allocate buffer
-    int numBytes = avpicture_get_size(pixelformat, width, height+1);
+    int numBytes = avpicture_get_size(pixelformat, width, height);
     uint8_t *buffer = static_cast<uint8_t*>(av_mallocz(numBytes + FF_INPUT_BUFFER_PADDING_SIZE));
 
     Q_CHECK_PTR(buffer);
@@ -131,7 +131,7 @@ bool VideoPicture::allocate(SwsContext *img_convert_ctx, int w, int h,  enum Pix
         rgb = avcodec_alloc_frame();
         // setup the Video Picture buffer
         if (rgb != NULL) {
-            avpicture_fill( reinterpret_cast<AVPicture*>(rgb), buffer, pixelformat, width, height+1);
+            avpicture_fill( reinterpret_cast<AVPicture*>(rgb), buffer, pixelformat, width, height);
 			allocated = true;
         } else
             return false;
@@ -174,15 +174,17 @@ void VideoPicture::saveToPPM(QString filename) const {
     }
 }
 
-void VideoPicture::refilter() const{
-	if (!frame)
+void VideoPicture::refilter() const
+{
+	if (!allocated || !frame)
 		return;
+
 	sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb->data, rgb->linesize);
 }
 
-void VideoPicture::fill(AVFrame *pFrame, double timestamp) {
-
-	if (!pFrame)
+void VideoPicture::fill(AVFrame *pFrame, double timestamp)
+{
+	if (!allocated || !pFrame)
 		return;
 
 	frame = pFrame;
@@ -192,6 +194,9 @@ void VideoPicture::fill(AVFrame *pFrame, double timestamp) {
 		sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb->data, rgb->linesize);
 	}
 	else {
+
+		// TOTO : create a real frame and keep it ; next time it will be used for sws filtering
+
 		// get pointer to the palette
 		uint8_t *palette = frame->data[1];
 		// clear rgb to 0 when alpha is 0
@@ -374,6 +379,10 @@ void VideoFile::stop() {
 }
 
 void VideoFile::start() {
+
+	// nothing to play if there is ONE frame only...
+	if (getEnd() - getBegin() < 2)
+		return;
 
     if (quit && pFormatCtx) {
         // reset quit flag
@@ -586,8 +595,6 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     else
     	mark_out = qBound(mark_in, markOut, getEnd());
 
-//    video_st->nb_frames = getEnd() - getBegin();
-
     // emit that marking changed only once
     if (markIn != 0 || markOut != 0)
     	emit markingChanged();
@@ -719,8 +726,8 @@ void VideoFile::fill_first_frame(bool seek) {
                 firstPicture.fill(pFrame);
 
         }
-        // free frame
-        av_free(pFrame);
+        // do NOT free frame ; it is re-used in the firtPicture to apply filter // av_free(pFrame);
+        // its just one frame per source anyway.
     }
     // free packet
     av_free_packet(packet);

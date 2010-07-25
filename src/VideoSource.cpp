@@ -91,7 +91,7 @@ VideoSource::~VideoSource() {
 
 
 bool VideoSource::isPlayable() const {
-	return (is->getEnd() > 1);
+	return ( is->getEnd() - is->getBegin() > 1);
 }
 
 bool VideoSource::isPlaying() const {
@@ -144,10 +144,13 @@ void VideoSource::updateFrame (int i)
 
 void VideoSource::applyFilter(){
 
-	// if the source is still on the original frame or the video file is paused
-	if (bufferIndex == -1 || !is->isRunning() || is->isPaused()) {
+//	// if the source is still on the original frame or the video file is paused
+//	if (bufferIndex == -1 || !is->isRunning() || is->isPaused()) {
+	// if the video file is stopped or paused
+	if ( !is->isRunning() || is->isPaused()) {
 		// request to change the buffer from the new copy
 		frameChanged = filterChanged = true;
+
 	}
 	else {
 		// else do nothing special; wait for next frame to apply filter
