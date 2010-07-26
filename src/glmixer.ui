@@ -773,9 +773,6 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                 <property name="maxLength">
                  <number>32767</number>
                 </property>
-                <property name="frame">
-                 <bool>false</bool>
-                </property>
                 <property name="readOnly">
                  <bool>true</bool>
                 </property>
@@ -902,7 +899,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                  <enum>Qt::Horizontal</enum>
                 </property>
                 <property name="tickPosition">
-                 <enum>QSlider::NoTicks</enum>
+                 <enum>QSlider::TicksBothSides</enum>
                 </property>
                 <property name="tickInterval">
                  <number>20</number>
@@ -924,7 +921,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                  <enum>Qt::Horizontal</enum>
                 </property>
                 <property name="tickPosition">
-                 <enum>QSlider::TicksAbove</enum>
+                 <enum>QSlider::NoTicks</enum>
                 </property>
                </widget>
               </item>

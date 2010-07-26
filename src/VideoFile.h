@@ -34,12 +34,13 @@ extern "C" {
 #include <QObject>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QThread>
 #include <QTimer>
 
 /**
  * Dimension of the queue of VideoPictures in a VideoFile
  */
-#define VIDEO_PICTURE_QUEUE_SIZE 4
+#define VIDEO_PICTURE_QUEUE_SIZE 2
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -47,9 +48,9 @@ extern "C" {
 #define SEEK_STEP 0.1
 /**
  * During decoding, the thread sleep for a little while in case there is an error or nothing to do.
- * 100 miliseconds is the default. The lower the more busy the CPU will be.
+ * 40 miliseconds is the ffplay default. The lower the more busy the CPU will be.
  */
-#define SLEEP_DELAY 100
+#define SLEEP_DELAY 40
 
 /**
  * Frames of a VideoFile are decoded and converted to VideoPictures.
@@ -185,6 +186,7 @@ public:
 
 class ParsingThread;
 class DecodingThread;
+class RefreshFrameThread;
 
 /**
  *  A VideoFile holds the ffmpeg video decoding and conversion processes required to read a
@@ -238,6 +240,7 @@ Q_OBJECT
 
     friend class ParsingThread;
     friend class DecodingThread;
+    friend class RefreshFrameThread;
 
 public:
 
@@ -529,13 +532,13 @@ public:
      * @param iconfile Name of the file to put as icon of the window
      */
     static void displayFormatsCodecsInformation(QString iconfile);
-    /**
-     * Use the timer from another videoFile to try to keep in sync.
-     * This feature was introduced to support stereoscopic (2 movies) video play.
-     *
-     * @param vf Pointer to a VideoFile which will become 'master'
-     */
-    void synchroniseWithVideo(VideoFile *vf);
+//    /**
+//     * Use the timer from another videoFile to try to keep in sync.
+//     * This feature was introduced to support stereoscopic (2 movies) video play.
+//     *
+//     * @param vf Pointer to a VideoFile which will become 'master'
+//     */
+//    void synchroniseWithVideo(VideoFile *vf);
     /**
      * Returns the strength of the brightness filter applied on the video
      * @return value between [-100, 100]
@@ -819,7 +822,7 @@ protected Q_SLOTS:
     /**
      * Slot called from an internal timer synchronized on the video time code.
      */
-    void video_refresh_timer();
+    int video_refresh_timer();
     /**
      * Slot called when a thread ends prematurely (error handling).
      */
@@ -888,10 +891,11 @@ protected:
     double video_current_pts;
     int64_t video_current_pts_time;
 
-    QTimer *ptimer;
-    bool is_synchronized;
-    int64_t last_time, last_virtual_time;
+//    QTimer *ptimer;
+//    bool is_synchronized;
+//    int64_t last_time;
     double play_speed;
+    double min_frame_delay, max_frame_delay;
 
     // picture queue management
     VideoPicture pictq[VIDEO_PICTURE_QUEUE_SIZE];
@@ -902,11 +906,13 @@ protected:
     int targetWidth, targetHeight;
     int conversionAlgorithm;
     VideoPicture firstPicture, blackPicture;
+    AVFrame *firstFrame;
     VideoPicture *resetPicture;
 
     // Threads and execution manangement
     ParsingThread *parse_tid;
     DecodingThread *decod_tid;
+    RefreshFrameThread *refresh_tid;
     bool quit;
     bool loop_video;
     bool pause_video;
@@ -917,5 +923,6 @@ protected:
     static bool ffmpegregistered;
 
 };
+
 
 #endif /* VIDEOFILE_H_ */

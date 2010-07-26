@@ -73,7 +73,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
     					 vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
     					 vp->getBuffer() );
         }
-        is->play(true);
+//        is->play(true);
     }
     else
     	qWarning("** WARNING **\nThe media source could not be created properly. Remove it and retry.");
@@ -144,8 +144,6 @@ void VideoSource::updateFrame (int i)
 
 void VideoSource::applyFilter(){
 
-//	// if the source is still on the original frame or the video file is paused
-//	if (bufferIndex == -1 || !is->isRunning() || is->isPaused()) {
 	// if the video file is stopped or paused
 	if ( !is->isRunning() || is->isPaused()) {
 		// request to change the buffer from the new copy
