@@ -107,6 +107,8 @@ private:
 
 void RefreshFrameThread::run() {
 
+	int nbJump = 1;
+
 	while (is  && !is->quit){
 		if (is->video_st) {
 
@@ -116,17 +118,19 @@ void RefreshFrameThread::run() {
 			else {
 				// there is a picture to refresh
 				// sleep for the duration given by video_refresh_timer
-				msleep( is->video_refresh_timer() );
+				msleep( is->video_refresh_timer( &nbJump ) );
 
-				/* update queue for next picture at the read index */
-				if (++is->pictq_rindex == VIDEO_PICTURE_QUEUE_SIZE)
-					is->pictq_rindex = 0;
+				for (int i = 0; i<nbJump && is->pictq_size > 0; ++i) {
+					/* update queue for next picture at the read index */
+					if (++is->pictq_rindex == VIDEO_PICTURE_QUEUE_SIZE)
+						is->pictq_rindex = 0;
 
-				is->pictq_mutex->lock();
-				is->pictq_size--;
-				// tell video thread that it can go on...
-				is->pictq_cond->wakeAll();
-				is->pictq_mutex->unlock();
+					is->pictq_mutex->lock();
+					is->pictq_size--;
+					// tell video thread that it can go on...
+					is->pictq_cond->wakeAll();
+					is->pictq_mutex->unlock();
+				}
 			}
 		} else
 			msleep(100);
@@ -306,13 +310,13 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
     QObject::connect(parse_tid, SIGNAL(finished()), this, SLOT(thread_terminated()));
     QObject::connect(decod_tid, SIGNAL(finished()), this, SLOT(thread_terminated()));
 
-    refresh_tid = new RefreshFrameThread(this);
-    Q_CHECK_PTR(refresh_tid);
+//    refresh_tid = new RefreshFrameThread(this);
+//    Q_CHECK_PTR(refresh_tid);
 
-//    ptimer = new QTimer(refresh_tid);
-//    Q_CHECK_PTR(ptimer);
-//    ptimer->setSingleShot(true);
-//    QObject::connect(ptimer, SIGNAL(timeout()), this, SLOT(video_refresh_timer()));
+    ptimer = new QTimer(this);
+    Q_CHECK_PTR(ptimer);
+    ptimer->setSingleShot(true);
+    QObject::connect(ptimer, SIGNAL(timeout()), this, SLOT(video_refresh_timer()));
 
     // initialize behavior
     play_speed = 1.0; // normal play speed
@@ -323,11 +327,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
     quit = true; // not running yet
     restart_where_stopped = true;
     mark_stop = 0;
-//    is_synchronized = false;
-
-    // initial clock
-    video_current_pts_time = av_gettime();
-    frame_timer = (double) (video_current_pts_time) / (double) AV_TIME_BASE;
 
     // reset
     reset();
@@ -341,7 +340,7 @@ VideoFile::~VideoFile() {
     parse_tid->wait();
     pictq_cond->wakeAll();
     decod_tid->wait();
-    refresh_tid->wait();
+//    refresh_tid->wait();
 
     if (img_convert_ctx)
         sws_freeContext(img_convert_ctx);
@@ -355,10 +354,9 @@ VideoFile::~VideoFile() {
     delete pictq_mutex;
     delete pictq_cond;
 
-    delete refresh_tid;
-//    if (!is_synchronized) {
-//    	delete ptimer;
-//    }
+//    delete refresh_tid;
+
+	delete ptimer;
 
 	QObject::disconnect(this,0,0,0);
 }
@@ -367,15 +365,6 @@ VideoFile::~VideoFile() {
 void VideoFile::sendInfo(QString m){
 	emit info( QString("%1 : %2").arg(filename).arg(m) );
 }
-
-//void VideoFile::synchroniseWithVideo(VideoFile *vf){
-//
-//    if (ptimer)
-//    	delete ptimer;
-//	this->ptimer = vf->ptimer;
-//	is_synchronized = true;
-//    QObject::connect(ptimer, SIGNAL(timeout()), this, SLOT(video_refresh_timer()));
-//}
 
 
 void VideoFile::reset() {
@@ -391,15 +380,18 @@ void VideoFile::reset() {
     pause_video_last = true;
     setPlaySpeed(getPlaySpeed());
 
-    if (video_st)
-    	frame_last_delay = av_q2d(video_st->codec->time_base);
-    else
+    if (video_st) {
+    	frame_last_delay = 1.0 / getFrameRate();
+        video_current_pts =   (double) getBegin() * av_q2d( video_st->time_base) / play_speed ;
+    } else {
         frame_last_delay = 40e-3; // 40 ms
-
-    video_current_pts = 0;
+        video_current_pts =  0.0 ;
+    }
     frame_last_pts = video_current_pts ;
-    frame_timer += (double) (av_gettime() - video_current_pts_time) / (double) AV_TIME_BASE;
 
+    // initial clock
+    video_current_pts_time = av_gettime();
+    frame_timer = (double) (video_current_pts_time ) / (double) AV_TIME_BASE;
 }
 
 void VideoFile::stop() {
@@ -440,8 +432,6 @@ void VideoFile::start() {
     if (quit && pFormatCtx) {
         // reset quit flag
         quit = false;
-        // reset internal state
-        reset();
 
         // where shall we (re)start ?
 		// enforces seek to the frame before ; it is needed because we may miss the good frame
@@ -453,15 +443,15 @@ void VideoFile::start() {
         else
             seekToPosition(mark_in);
 
-//        // start update pictures
-//		if (!is_synchronized)
-//			ptimer->start(0);
+        // reset internal state
+        reset();
 
         // start parsing and decoding threads
         parse_tid->start();
         decod_tid->start();
-        refresh_tid->start();
-        refresh_tid->setPriority(QThread::TimeCriticalPriority);
+        ptimer->start(0);
+//        refresh_tid->start();
+//        refresh_tid->setPriority(QThread::TimeCriticalPriority);
 
         /* say if we are running or not */
         emit running(!quit);
@@ -504,9 +494,9 @@ void VideoFile::setPlaySpeed(int playspeed) {
     }
 
     if (video_st) {
-		min_frame_delay = 0.1 * av_q2d(video_st->codec->time_base) / play_speed;
-		max_frame_delay = 5.0 * av_q2d(video_st->codec->time_base) / play_speed;
-//		qDebug("min_frame_delay %f    max_frame_delay %f    (%f)", min_frame_delay, max_frame_delay, av_q2d(video_st->codec->time_base));
+		min_frame_delay = 0.5 / ( getFrameRate() * play_speed );
+		max_frame_delay = 10.0 / ( getFrameRate() * play_speed );
+		qDebug("min_frame_delay %f    max_frame_delay %f    (%f)", min_frame_delay, max_frame_delay, 1/getFrameRate());
 
     } else
     {
@@ -816,20 +806,19 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx) {
     return stream_index;
 }
 
-int VideoFile::video_refresh_timer() {
-//	void VideoFile::video_refresh_timer() {
+void VideoFile::video_refresh_timer() {
 
     VideoPicture *vp;
     double actual_delay = 0.0, delay = 0.0;
+    int nbFrameToJump = 1;
 
-//    if (video_st) {
-//
-//        if (pictq_size < 1) {
-//            // no picture yet ? Quickly retry...
-//        	if (!is_synchronized)
-//        		ptimer->start(15);
-//
-//        } else {
+    if (video_st) {
+
+        if (pictq_size < 1) {
+            // no picture yet ? Quickly retry...
+        	ptimer->start(15);
+
+        } else {
 
             // use vp as the current picture at the read index
             vp = &pictq[pictq_rindex];
@@ -841,8 +830,11 @@ int VideoFile::video_refresh_timer() {
 			// how long since last frame ?
 			delay = video_current_pts - frame_last_pts; /* the pts from last time */
 
-			if (delay <= 0.0 || delay >= max_frame_delay ) {
-				delay = frame_last_delay;               /* if incorrect delay, use previous one */
+//			if (delay > 1.5 * frame_last_delay)
+//				qDebug("nde delay %f   %f ", delay, frame_last_delay);
+
+			if (delay <= min_frame_delay || delay >= max_frame_delay ) {			/* if incorrect delay, use previous one */
+				delay = frame_last_delay;
 				// as incorrect delay is generally due to seek, set the last pts to the seek pos
 		        frame_last_pts = (double) seek_pos * av_q2d(video_st->time_base) / play_speed ;
 			}
@@ -858,38 +850,101 @@ int VideoFile::video_refresh_timer() {
 			/* compute the REAL delay */
 			actual_delay = frame_timer - ((double) av_gettime() / (double) AV_TIME_BASE);
 
+//			qDebug(" actual_delay %f", actual_delay);
+
 			// clamp the delay
 			actual_delay = qBound(min_frame_delay, actual_delay, max_frame_delay );
 
-			// if we hit the lower bound, we don't display the frame
-			if (actual_delay > min_frame_delay)
+			// if the actual delay is acceptable
+			if (actual_delay > min_frame_delay) {
 				/* show the picture at the current read index */
 				emit frameReady(pictq_rindex);
-//
-//			// knowing the delay (in seconds), we can schedule the next display (in ms)
-//			if (!is_synchronized)
-//				ptimer->start((int) (actual_delay * 1000.0 + 0.5)); // round up
-
-            /* update queue for next picture at the read index */
-//            if (++pictq_rindex == VIDEO_PICTURE_QUEUE_SIZE)
-//                pictq_rindex = 0;
-//
-//            pictq_mutex->lock();
-//            pictq_size--;
-//            // tell video thread that it can go on...
-//            pictq_cond->wakeAll();
-//            pictq_mutex->unlock();
+			}
+			// else if we hit the lower bound, we skip next frame
+			else {
+//				qDebug(" actual_delay %f", actual_delay);
+				nbFrameToJump = 2;
+			}
 
 			// knowing the delay (in seconds), we can schedule the next display (in ms)
-            return ((int) (actual_delay * 1000.0 + 0.5)); // round up)
+			ptimer->start((int) (actual_delay * 1000.0 + 0.5)); // round up
 
-//        }
-//
-//    } else {
-//        // wait for a video_st to be created
-//    	if (!is_synchronized)
-//    		ptimer->start(100);
-//    }
+			for (int i = 0; i<nbFrameToJump && pictq_size > 0; ++i) {
+				/* update queue for next picture at the read index */
+				if (++pictq_rindex == VIDEO_PICTURE_QUEUE_SIZE)
+					pictq_rindex = 0;
+
+				pictq_mutex->lock();
+				pictq_size--;
+				// tell video thread that it can go on...
+				pictq_cond->wakeAll();
+				pictq_mutex->unlock();
+			}
+
+        }
+
+    } else {
+        // wait for a video_st to be created
+    	ptimer->start(100);
+    }
+}
+
+int VideoFile::video_refresh_timer(int *nbFrameToJump) {
+
+    VideoPicture *vp;
+    double actual_delay = 0.0, delay = 0.0;
+
+
+    (*nbFrameToJump) = 1;
+
+	// use vp as the current picture at the read index
+	vp = &pictq[pictq_rindex];
+
+	// update time to now
+	video_current_pts = vp->pts;
+	video_current_pts_time = av_gettime();
+
+	// how long since last frame ?
+	delay = video_current_pts - frame_last_pts; /* the pts from last time */
+
+	if (delay > 1.5 * frame_last_delay)
+		qDebug("nde delay %f   %f ", delay, frame_last_delay);
+
+	if (delay <= min_frame_delay || delay >= max_frame_delay ) {			/* if incorrect delay, use previous one */
+		delay = frame_last_delay;
+		// as incorrect delay is generally due to seek, set the last pts to the seek pos
+		frame_last_pts = (double) seek_pos * av_q2d(video_st->time_base) / play_speed ;
+	}
+	else
+		frame_last_delay = delay;               /* save for next time */
+
+	// remember current pts for next time
+	frame_last_pts = video_current_pts;
+
+	// the next frame should be displayed at frame_timer
+	frame_timer += delay;
+
+	/* compute the REAL delay */
+	actual_delay = frame_timer - ((double) av_gettime() / (double) AV_TIME_BASE);
+
+	// clamp the delay
+	actual_delay = qBound(min_frame_delay, actual_delay, max_frame_delay );
+
+	// if the actual delay is acceptable
+	if (actual_delay > min_frame_delay) {
+		/* show the picture at the current read index */
+		emit frameReady(pictq_rindex);
+	}
+	// else if we hit the lower bound, we skip next frame
+	else {
+		qDebug(" actual_delay %f", actual_delay);
+
+			(*nbFrameToJump) = 2;
+	}
+
+	// knowing the delay (in seconds), we can schedule the next display (in ms)
+	return ((int) (actual_delay * 1000.0 + 0.5)); // round up)
+
 }
 
 int64_t VideoFile::getCurrentFrameTime() const {
@@ -1080,7 +1135,6 @@ void ParsingThread::run() {
 
             is->seek_backward = false;
             is->seek_req = false;
-//            eof = false;
         }
 
         /* if the queue is full, no need to read more */
@@ -1089,21 +1143,21 @@ void ParsingThread::run() {
             continue;
         }
 
-//        // Management of end of file : avoid reading packet if we know its the end of the file!
-//        if ( url_feof(is->pFormatCtx->pb) != 0 || eof) {
-//            av_init_packet(packet);
-//            packet->data = NULL;
-//            packet->size = 0;
-//            packet->stream_index = is->videoStream;
-//            // set this packet position to the mark_out so the reading will loop or stop
-//            packet->dts = is->mark_out + 1;
-//            is->videoq.put(packet);
-//            msleep(SLEEP_DELAY);
-//
-//            qDebug("EOF");
-//
-//            continue;
-//        }
+        // Management of end of file : avoid reading packet if we know its the end of the file!
+        if ( url_feof(is->pFormatCtx->pb) != 0 ) {
+            av_init_packet(packet);
+            packet->data = NULL;
+            packet->size = 0;
+            packet->stream_index = is->videoStream;
+            // set this packet position to the mark_out so the reading will loop or stop
+            packet->dts = is->mark_out + 1;
+            is->videoq.put(packet);
+            msleep(SLEEP_DELAY);
+
+            qDebug("EOF");
+
+            continue;
+        }
 
         int ret = av_read_frame(is->pFormatCtx, packet);
 
@@ -1273,9 +1327,6 @@ void DecodingThread::run() {
     				is->mark_stop = is->mark_out;
     			} else  // if loop more on, loop to mark in
     				is->seekToPosition(is->mark_in);
-//    			qDebug("this was the last frame (dts +duration = %d)", dts + packet->duration);
-//    			qDebug("is->mark_out = %d)", is->mark_out);
-//    			qDebug("mis->ark_stop = %d)", is->mark_stop);
     		}
 
             // compute presentation time stamp
@@ -1285,9 +1336,9 @@ void DecodingThread::run() {
             // yes !  frame is ready ; add it to the queue of pictures
             is->queue_picture(_pFrame, pts);
         }
-//        else {
-//        	qDebug("frame NOT Finished");
-//        }
+        else {
+        	qDebug("frame NOT Finished");
+        }
 
         // packet was decoded, should be removed
         av_free_packet(packet);

@@ -40,7 +40,7 @@ extern "C" {
 /**
  * Dimension of the queue of VideoPictures in a VideoFile
  */
-#define VIDEO_PICTURE_QUEUE_SIZE 2
+#define VIDEO_PICTURE_QUEUE_SIZE 4
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -48,9 +48,9 @@ extern "C" {
 #define SEEK_STEP 0.1
 /**
  * During decoding, the thread sleep for a little while in case there is an error or nothing to do.
- * 40 miliseconds is the ffplay default. The lower the more busy the CPU will be.
+ * 100 miliseconds is the ffplay default. The lower the more busy the CPU will be.
  */
-#define SLEEP_DELAY 40
+#define SLEEP_DELAY 70
 
 /**
  * Frames of a VideoFile are decoded and converted to VideoPictures.
@@ -818,11 +818,16 @@ public Q_SLOTS:
      */
     void setSaturation(int s);
 
-protected Q_SLOTS:
     /**
-     * Slot called from an internal timer synchronized on the video time code.
+     *
      */
-    int video_refresh_timer();
+    int video_refresh_timer(int *nbFrameToJump);
+
+protected Q_SLOTS:
+	/**
+	 * Slot called from an internal timer synchronized on the video time code.
+	 */
+	void video_refresh_timer();
     /**
      * Slot called when a thread ends prematurely (error handling).
      */
@@ -891,7 +896,7 @@ protected:
     double video_current_pts;
     int64_t video_current_pts_time;
 
-//    QTimer *ptimer;
+    QTimer *ptimer;
 //    bool is_synchronized;
 //    int64_t last_time;
     double play_speed;
