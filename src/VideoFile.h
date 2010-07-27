@@ -50,7 +50,7 @@ extern "C" {
  * During decoding, the thread sleep for a little while in case there is an error or nothing to do.
  * 100 miliseconds is the ffplay default. The lower the more busy the CPU will be.
  */
-#define SLEEP_DELAY 70
+#define SLEEP_DELAY 100
 
 /**
  * Frames of a VideoFile are decoded and converted to VideoPictures.
