@@ -104,16 +104,26 @@ void Source::setName(QString n) {
 
 void Source::testCulling() {
 
+	int w = SOURCE_UNIT;
+	int h = SOURCE_UNIT;
+
+	if (OutputRenderWindow::getInstance()->getAspectRatio() > 1)
+		w *= OutputRenderWindow::getInstance()->getAspectRatio();
+	else
+		h *= OutputRenderWindow::getInstance()->getAspectRatio();
+
 	// if all coordinates of center are between viewport limits, it is obviously visible
-	if (x > -SOURCE_UNIT && x < SOURCE_UNIT && y > -SOURCE_UNIT && y
-			< SOURCE_UNIT)
+	if (x > -w && x < w && y > -h && y < h)
 		culled = false;
 	else {
 		// not obviously visible
 		// but it might still be parly visible if the distance from the center to the borders is less than the width
-		if ((x + ABS(scalex) < -SOURCE_UNIT) || (x - ABS(scalex) > SOURCE_UNIT))
+
+		int d = sqrt( scalex*scalex + scaley * scaley);
+
+		if ((x + d < -w) || (x - d > w))
 			culled = true;
-		else if ((y + ABS(scaley) < -SOURCE_UNIT) || (y - ABS(scaley) > SOURCE_UNIT))
+		else if ((y + d < -h) || (y - d > h))
 			culled = true;
 			else
 				culled = false;

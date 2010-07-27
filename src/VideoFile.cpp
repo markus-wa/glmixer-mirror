@@ -1301,7 +1301,7 @@ void DecodingThread::run() {
                 dts = _pFrame->reordered_opaque;
 
     		// test if this was the last frame
-    		if ( is->videoq.isEmpty() && dts + packet->duration >= is->mark_out - 1) {
+    		if ( is->videoq.isEmpty() || dts + packet->duration >= is->mark_out - 1) {
     			// if no more frames because we approach the upper limit of frames and there is no more in the queue
     			// react according to loop mode
     			if (!is->loop_video) {
