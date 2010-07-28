@@ -905,6 +905,7 @@ protected:
     // picture queue management
     VideoPicture pictq[VIDEO_PICTURE_QUEUE_SIZE];
     int pictq_size, pictq_rindex, pictq_windex;
+    bool pictq_skip;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
     bool powerOfTwo;

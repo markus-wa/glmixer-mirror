@@ -370,6 +370,7 @@ void VideoFile::sendInfo(QString m){
 void VideoFile::reset() {
 
     // reset variables to 0
+    pictq_skip = false;
     video_clock = 0.0;
     pictq_windex = 0;
     pictq_size = 0;
@@ -713,7 +714,6 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
         return false;
     }
 
-
     // read firstPicture (not a big problem if fails; it would just be black)
     fill_first_frame(false);
     resetPicture = &firstPicture;
@@ -808,13 +808,12 @@ void VideoFile::video_refresh_timer() {
 
     VideoPicture *vp;
     double actual_delay = 0.0, delay = 0.0;
-    int nbFrameToJump = 1;
 
     if (video_st) {
 
         if (pictq_size < 1) {
             // no picture yet ? Quickly retry...
-        	ptimer->start(frame_last_pts);
+        	ptimer->start(10);
         	return;
 
         } else {
@@ -849,37 +848,35 @@ void VideoFile::video_refresh_timer() {
 			// clamp the delay
 			actual_delay = qBound(min_frame_delay, actual_delay, max_frame_delay );
 
-			// if the actual delay is acceptable
-			if (actual_delay > min_frame_delay) {
-				/* show the picture at the current read index */
-				emit frameReady(pictq_rindex);
-			}
-			// else if we hit the lower bound, we skip next frame
-			else {
-				nbFrameToJump = 2;
-			}
+			/* show the picture at the current read index
+			 * (this delay is for next frame) */
+			emit frameReady(pictq_rindex);
 
-			if (!pause_video)
+			if (!pause_video) {
 				// knowing the delay (in seconds), we can schedule the next display (in ms)
 				ptimer->start((int) (actual_delay * 1000.0 + 0.5)); // round up
-
-			for (int i = 0; i<nbFrameToJump && pictq_size > 0; ++i) {
-				/* update queue for next picture at the read index */
-				if (++pictq_rindex == VIDEO_PICTURE_QUEUE_SIZE)
-					pictq_rindex = 0;
-
-				pictq_mutex->lock();
-				pictq_size--;
-				// tell video thread that it can go on...
-				pictq_cond->wakeAll();
-				pictq_mutex->unlock();
 			}
+
+			/* update queue for next picture at the read index */
+			if (++pictq_rindex == VIDEO_PICTURE_QUEUE_SIZE)
+				pictq_rindex = 0;
+
+			pictq_mutex->lock();
+			// if we hit the lower bound, we skip next frame
+			if ( !(actual_delay > min_frame_delay ))
+				pictq_skip = true;
+			// decrease the number of frames in the queue
+			pictq_size--;
+			// tell video thread that it can go on...
+			pictq_cond->wakeAll();
+			pictq_mutex->unlock();
+
 
         }
 
     } else {
         // wait for a video_st to be created
-    	ptimer->start(100);
+    	ptimer->start(SLEEP_DELAY);
     }
 }
 
@@ -1190,6 +1187,11 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts) {
         pictq_cond->wait(pictq_mutex); // the condition is released in VideoFile::video_refresh_timer()
     pictq_mutex->unlock();
 
+    if (pictq_skip) {
+    	pictq_skip = false;
+    	return;
+    }
+
     // if have to quit, discard the rest but let the video thread continue
     if (quit) {
         pictq_mutex->lock();
@@ -1202,7 +1204,7 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts) {
     // (write index is set to 0 initially)
     VideoPicture *vp = &pictq[pictq_windex];
 
-    if (vp->rgb && img_convert_ctx && pictq_size <= VIDEO_PICTURE_QUEUE_SIZE) {
+    if (vp->rgb && pictq_size <= VIDEO_PICTURE_QUEUE_SIZE) {
 
         // Fill the Video Picture queue with the current frame
         vp->fill(pFrame, pts);
@@ -1263,7 +1265,7 @@ void DecodingThread::run() {
     while (is) {
         // sleep a bit if paused
         if (is->pause_video && !is->quit) {
-            msleep(SLEEP_DELAY);
+            msleep(10);
             continue;
         }
 
@@ -1291,34 +1293,35 @@ void DecodingThread::run() {
         len1 = avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet->data, packet->size);
 #endif
 
-        // Did we get a full frame?
-        if (frameFinished) {
-            // get decoding time stamp
-            dts = 0.0;
-            if (packet->dts != (int64_t) AV_NOPTS_VALUE)
-                dts = packet->dts;
-            else if (_pFrame->reordered_opaque != (int64_t) AV_NOPTS_VALUE)
-                dts = _pFrame->reordered_opaque;
+        // get decompression time stamp
+		// this is the code in ffplay:
+		dts = 0.0;
+		if (packet->dts != (int64_t) AV_NOPTS_VALUE) {
+			dts = packet->dts;
+		} else if (_pFrame->reordered_opaque != (int64_t) AV_NOPTS_VALUE) {
+			dts = _pFrame->reordered_opaque;
+		}
 
-    		// test if this was the last frame
-    		if ( is->videoq.isEmpty() || dts + packet->duration >= is->mark_out - 1) {
-    			// if no more frames because we approach the upper limit of frames and there is no more in the queue
-    			// react according to loop mode
-    			if (!is->loop_video) {
-    				// if loop mode off, stop at the end
-    				is->stop();
-    				is->mark_stop = is->mark_out;
-    			} else  // if loop more on, loop to mark in
-    				is->seekToPosition(is->mark_in);
-    		}
+		// test if this was the last frame (also for unfinished frames)
+		if ( is->videoq.isEmpty() && dts + packet->duration >= is->mark_out - 2) {
+			// if no more frames because we approach the upper limit of frames and there is no more in the queue
+			// react according to loop mode
+			if (!is->loop_video) {
+				// if loop mode off, stop at the end
+				is->stop();
+				is->mark_stop = is->mark_out;
+			} else  // if loop more on, loop to mark in
+				is->seekToPosition(is->mark_in);
+		}
 
-            // compute presentation time stamp
-    		pts = (double) dts * av_q2d(is->video_st->time_base) / is->play_speed ;
-            pts = is->synchronize_video(_pFrame, pts);
-
-            // yes !  frame is ready ; add it to the queue of pictures
-            is->queue_picture(_pFrame, pts);
-        }
+		// Did we get a full video frame?
+		if (frameFinished) {
+			// compute presentation time stamp
+			pts = dts * av_q2d(is->video_st->time_base) / is->play_speed;
+			pts = is->synchronize_video(_pFrame, pts);
+			// yes, frame is ready ; add it to the queue of pictures
+			is->queue_picture(_pFrame, pts);
+		}
 
         // packet was decoded, should be removed
         av_free_packet(packet);
@@ -1474,7 +1477,7 @@ bool VideoFile::PacketQueue::isFlush(AVPacket *pkt) {
     return (pkt->data == flush_pkt->data);
 }
 
-#define MAX_VIDEOQ_SIZE (5 * 256 * 1024)
+#define MAX_VIDEOQ_SIZE (20 * 256 * 1024)
 
 bool VideoFile::PacketQueue::isFull() {
     return (size > MAX_VIDEOQ_SIZE);

@@ -118,9 +118,7 @@ void Source::testCulling() {
 	else {
 		// not obviously visible
 		// but it might still be parly visible if the distance from the center to the borders is less than the width
-
 		int d = sqrt( scalex*scalex + scaley * scaley);
-
 		if ((x + d < -w) || (x - d > w))
 			culled = true;
 		else if ((y + d < -h) || (y - d > h))
