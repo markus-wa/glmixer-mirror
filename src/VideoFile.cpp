@@ -45,6 +45,10 @@ extern "C" {
 #include <libavutil/common.h>
 }
 
+// TODO : make this a user preference
+// 4 * 256 * 1024 = 1 Mo
+#define MAX_VIDEOQ_SIZE (4 * 4 * 256 * 1024)
+
 #include "VideoFile.h"
 #include "VideoFile.moc"
 
@@ -1302,18 +1306,6 @@ void DecodingThread::run() {
 			dts = _pFrame->reordered_opaque;
 		}
 
-		// test if this was the last frame (also for unfinished frames)
-		if ( is->videoq.isEmpty() && dts + packet->duration >= is->mark_out - 2) {
-			// if no more frames because we approach the upper limit of frames and there is no more in the queue
-			// react according to loop mode
-			if (!is->loop_video) {
-				// if loop mode off, stop at the end
-				is->stop();
-				is->mark_stop = is->mark_out;
-			} else  // if loop more on, loop to mark in
-				is->seekToPosition(is->mark_in);
-		}
-
 		// Did we get a full video frame?
 		if (frameFinished) {
 			// compute presentation time stamp
@@ -1321,6 +1313,19 @@ void DecodingThread::run() {
 			pts = is->synchronize_video(_pFrame, pts);
 			// yes, frame is ready ; add it to the queue of pictures
 			is->queue_picture(_pFrame, pts);
+		}
+
+		// test if this was the last frame (also for unfinished frames)
+		// we test after the above queue_picture : the queue is empty only if we really get to the end
+		if ( dts >= is->mark_out  || (is->videoq.isEmpty() && dts + packet->duration >= is->getEnd() - 1) ){
+			// if no more frames because we approach the upper limit of frames and there is no more in the queue
+			// react according to loop mode
+			if (!is->loop_video) {
+				// if loop mode off, stop at the end (mark_out >= getEnd)
+				is->stop();
+				is->mark_stop = is->mark_out; // this ensures the start will jump back to beginning
+			} else  // if loop more on, loop to mark in
+				is->seekToPosition(is->mark_in);
 		}
 
         // packet was decoded, should be removed
@@ -1477,7 +1482,6 @@ bool VideoFile::PacketQueue::isFlush(AVPacket *pkt) {
     return (pkt->data == flush_pkt->data);
 }
 
-#define MAX_VIDEOQ_SIZE (20 * 256 * 1024)
 
 bool VideoFile::PacketQueue::isFull() {
     return (size > MAX_VIDEOQ_SIZE);
