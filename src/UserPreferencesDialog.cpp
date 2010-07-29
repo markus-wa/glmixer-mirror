@@ -37,6 +37,8 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     defaultProperties->setPropertyEnabled("Scale", false);
     defaultProperties->setPropertyEnabled("Depth", false);
     defaultProperties->setPropertyEnabled("Aspect ratio", false);
+
+    activateBlitFrameBuffer->setEnabled(glSupportsExtension("GL_EXT_framebuffer_blit"));
 }
 
 UserPreferencesDialog::~UserPreferencesDialog()
@@ -64,7 +66,6 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 
 	if (stackedPreferences->currentWidget() == PageInterface){
 		FINE->setChecked(true);
-
 	}
 }
 

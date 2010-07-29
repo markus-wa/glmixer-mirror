@@ -146,7 +146,7 @@ public:
 	inline void setDefaultPlayOnDrop(bool on){ _playOnDrop = on; }
 
 	static bool getUseFboBlitExtension() { return blit_fbo_extension; }
-	static void setUseFboBlitExtension(bool on){ blit_fbo_extension = on; }
+	static void setUseFboBlitExtension(bool on);
 
 public Q_SLOTS:
 

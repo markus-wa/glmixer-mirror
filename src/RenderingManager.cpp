@@ -62,6 +62,19 @@ SourcePropertyBrowser *RenderingManager::getPropertyBrowserWidget() {
 	return getInstance()->_propertyBrowser;
 }
 
+void RenderingManager::setUseFboBlitExtension(bool on){
+
+       if (glSupportsExtension("GL_EXT_framebuffer_blit"))
+               RenderingManager::blit_fbo_extension = on;
+       else {
+               // if extension not supported but it is requested, show warning
+               if (on)
+                       qWarning( "** WARNING **\n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware."
+                               "\n\nRendering speed be sub-optimal but all should work properly.");
+               RenderingManager::blit_fbo_extension = false;
+       }
+}
+
 RenderingManager *RenderingManager::getInstance() {
 
 	if (_instance == 0) {
@@ -69,12 +82,6 @@ RenderingManager *RenderingManager::getInstance() {
 		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
 			qCritical( "*** ERROR ***\n\nOpenGL Frame Buffer Objects are not supported on this graphics hardware."
 					"\n\nThe program cannot operate properly.\n\nExiting...");
-
-		if (glSupportsExtension("GL_EXT_framebuffer_blit"))
-			RenderingManager::blit_fbo_extension = true;
-		else
-			qWarning( "** WARNING **\n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware."
-					"\n\nRendering speed be sub-optimal but all should work properly.");
 
 		if (!glSupportsExtension("GL_ARB_imaging")) {
 			Source::imaging_extension = false;

@@ -1324,8 +1324,11 @@ void GLMixer::on_actionPreferences_triggered(){
 
 bool GLMixer::restorePreferences(const QByteArray & state){
 
-	if (state.isEmpty())
-	        return false;
+    if (state.isEmpty()) {
+		// no preference? try to use the best extensions...
+		RenderingManager::setUseFboBlitExtension(true);
+		return false;
+    }
 
 	QByteArray sd = state;
 	QDataStream stream(&sd, QIODevice::ReadOnly);
@@ -1340,14 +1343,12 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 
 	// a. Apply rendering preferences
 	QSize RenderingSize;
-	stream  >> RenderingSize;
-	if (RenderingSize != QSize(0,0)) {
+	bool useBlitFboExtension = true;
+	stream  >> RenderingSize >> useBlitFboExtension;
+	if (RenderingSize != QSize(0,0))
 		RenderingManager::getInstance()->setFrameBufferResolution(RenderingSize);
-		OutputRenderWindow::getInstance()->resizeGL();
-	}
-	bool useBlitFboExtension = false;
-	stream >> useBlitFboExtension;
 	RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
+	OutputRenderWindow::getInstance()->resizeGL();
 
 	// b. Apply source preferences
 	stream >> RenderingManager::getInstance()->defaultSource();
