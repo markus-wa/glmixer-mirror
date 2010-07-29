@@ -186,7 +186,6 @@ public:
 
 class ParsingThread;
 class DecodingThread;
-class RefreshFrameThread;
 
 /**
  *  A VideoFile holds the ffmpeg video decoding and conversion processes required to read a
@@ -240,7 +239,6 @@ Q_OBJECT
 
     friend class ParsingThread;
     friend class DecodingThread;
-    friend class RefreshFrameThread;
 
 public:
 
@@ -532,13 +530,6 @@ public:
      * @param iconfile Name of the file to put as icon of the window
      */
     static void displayFormatsCodecsInformation(QString iconfile);
-//    /**
-//     * Use the timer from another videoFile to try to keep in sync.
-//     * This feature was introduced to support stereoscopic (2 movies) video play.
-//     *
-//     * @param vf Pointer to a VideoFile which will become 'master'
-//     */
-//    void synchroniseWithVideo(VideoFile *vf);
     /**
      * Returns the strength of the brightness filter applied on the video
      * @return value between [-100, 100]
@@ -818,11 +809,6 @@ public Q_SLOTS:
      */
     void setSaturation(int s);
 
-    /**
-     *
-     */
-    int video_refresh_timer(int *nbFrameToJump);
-
 protected Q_SLOTS:
 	/**
 	 * Slot called from an internal timer synchronized on the video time code.
@@ -854,9 +840,10 @@ protected:
         bool get(AVPacket *pkt, bool block);
         bool put(AVPacket *pkt);
         bool flush();
-        bool isFlush(AVPacket *pkt);
-        bool isFull();
-        bool isEmpty() { return size == 0; }
+        bool isFlush(AVPacket *pkt) const;
+        bool isFull() const;
+        inline bool isEmpty() const { return size == 0; }
+        inline int getSize() const { return size; }
     };
 
     // internal methods
@@ -897,8 +884,6 @@ protected:
     int64_t video_current_pts_time;
 
     QTimer *ptimer;
-//    bool is_synchronized;
-//    int64_t last_time;
     double play_speed;
     double min_frame_delay, max_frame_delay;
 
@@ -918,7 +903,6 @@ protected:
     // Threads and execution manangement
     ParsingThread *parse_tid;
     DecodingThread *decod_tid;
-    RefreshFrameThread *refresh_tid;
     bool quit;
     bool loop_video;
     bool pause_video;
