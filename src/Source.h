@@ -329,7 +329,7 @@ protected:
 	// identity and properties
 	GLuint id;
 	QString name;
-	bool active, culled, frameChanged;
+	bool active, culled, frameChanged, cropped;
 	SourceList *clones;
 
 	// GL Stuff
@@ -343,6 +343,7 @@ protected:
 	QColor texcolor;
 	GLenum source_blend, destination_blend;
 	GLenum blend_eq;
+	GLfloat crop_start_x, crop_start_y, crop_end_x, crop_end_y;
 
 	// if should be set to GL_NEAREST
 	bool pixelated;

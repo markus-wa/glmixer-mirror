@@ -343,6 +343,12 @@ void SourcePropertyBrowser::createPropertyTree(){
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 
+		// Ignore alpha channel
+		property = boolManager->addProperty("Ignore alpha");
+		property->setToolTip("Do not use the alpha channel of the images (black instead).");
+		idToProperty[property->propertyName()] = property;
+		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
+
 		// Frames size
 		QtProperty *fs = sizeManager->addProperty( QLatin1String("Frames size") );
 		fs->setItalics(true);
@@ -509,6 +515,8 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["File name"], vf->getFileName() );
 			infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
 			infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
+			boolManager->setValue(idToProperty["Ignore alpha"], vf->ignoresAlphaChannel());
+			idToProperty["Ignore alpha"]->setEnabled(vf->pixelFormatHasAlphaChannel());
 			sizeManager->setValue(idToProperty["Frames size"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
 			// Frames size special case when power of two dimensions are generated
 			sizeManager->setValue(idToProperty["Converted size"], QSize(vf->getFrameWidth(),vf->getFrameHeight()) );
@@ -752,6 +760,18 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 		currentItem->setPixelated(value);
 		// update the current frame
 		currentItem->requestUpdate();
+	}
+	else if ( property == idToProperty["Ignore alpha"] ) {
+		if (currentItem->rtti() == Source::VIDEO_SOURCE) {
+			VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
+			if (vs != 0) {
+				VideoFile *vf = vs->getVideoFile();
+				vf->stop();
+				vf->close();
+				vf->open(vf->getFileName(), vf->getMarkIn(), vf->getMarkOut(), value);
+
+			}
+		}
 	}
 }
 

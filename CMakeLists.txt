@@ -66,6 +66,7 @@ find_package( avformat REQUIRED)
 find_package( avcodec REQUIRED)
 find_package( avutil REQUIRED )
 find_package( swscale REQUIRED )
+find_package( avcore QUIET )
 find_package( ZLIB REQUIRED)
 find_package( BZip2 QUIET)
 find_package( theora QUIET)
@@ -99,6 +100,12 @@ if (AVUTIL_FOUND)
 else (AVUTIL_FOUND)
   message(FATAL_ERROR "No FFMPEG avutil library found.")  
 endif (AVUTIL_FOUND)
+
+if (AVCORE_FOUND)
+  message(STATUS "FFMPEG avcore Library Found OK")
+  include_directories(${AVCORE_INCLUDE_DIR})
+  set( EXTRA_LIBRARIES  ${EXTRA_LIBRARIES} ${AVCORE_LIBRARY} )
+endif (AVCORE_FOUND)
 
 if (SWSCALE_FOUND)
   message(STATUS "FFMPEG swscale Library Found OK")
@@ -181,7 +188,7 @@ else (OpenCV_FOUND)
   message(STATUS "OpenCV Library Not found")
 endif (OpenCV_FOUND)
 
-set( GLMIXER_LIBRARIES   ${AVFORMAT_LIBRARY}
+set( GLMIXER_LIBRARIES  ${AVFORMAT_LIBRARY}
                         ${AVCODEC_LIBRARY}
                         ${AVUTIL_LIBRARY}
                         ${SWSCALE_LIBRARY}

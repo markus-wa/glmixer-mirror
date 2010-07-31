@@ -605,7 +605,11 @@ public Q_SLOTS:
      * @param markOut Position of the mark OUT where to stop.
      * @return true on success
      */
-    bool open(QString file, int64_t markIn = 0, int64_t markOut = 0);
+    bool open(QString file, int64_t markIn = 0, int64_t markOut = 0, bool ignoreAlphaChannel = false);
+    /**
+     *
+     */
+    void close();
     /**
      * Starts the decoding-conversion process.
      * Does nothing if the process was already started.
@@ -808,6 +812,11 @@ public Q_SLOTS:
      * @param s value between [-100, 100], 0 for no effect (original colors)
      */
     void setSaturation(int s);
+    /**
+     *
+     */
+    bool pixelFormatHasAlphaChannel() const;
+    inline bool ignoresAlphaChannel() const { return ignoreAlpha; }
 
 protected Q_SLOTS:
 	/**
@@ -867,6 +876,7 @@ protected:
     SwsContext *img_convert_ctx;
     int videoStream;
     PacketQueue videoq;
+    bool ignoreAlpha;
 
     // seeking management
     bool seek_req, seek_backward, seek_any;

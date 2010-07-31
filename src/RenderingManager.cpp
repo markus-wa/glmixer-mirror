@@ -837,6 +837,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 			// filename, marks, saturation
 			QDomElement f = doc.createElement("Filename");
 			f.setAttribute("PowerOfTwo", vf->getPowerOfTwoConversion());
+			f.setAttribute("IgnoreAlpha", vf->ignoresAlphaChannel());
 			QDomText filename = doc.createTextNode(vf->getFileName());
 			f.appendChild(filename);
 			specific.appendChild(f);
@@ -960,7 +961,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 			// if the video file was created successfully
 			if (newSourceVideoFile){
 				// can we open the file ?
-				if ( newSourceVideoFile->open( Filename.text(), marks.attribute("In").toUInt(), marks.attribute("Out").toUInt() ) ) {
+				if ( newSourceVideoFile->open( Filename.text(), marks.attribute("In").toUInt(), marks.attribute("Out").toUInt(), Filename.attribute("IgnoreAlpha").toInt() ) ) {
 					// create the source as it is a valid video file (this also set it to be the current source)
 					newsource = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile, depth);
 					if (!newsource)

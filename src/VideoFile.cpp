@@ -43,11 +43,12 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/common.h>
+#include <libavutil/pixdesc.h>
 }
 
 // Buffer between Parsing thread and Decoding thread
 #define MEGABYTE 1048576
-#define MAX_VIDEOQ_SIZE (5 * 1048576)
+#define MAX_VIDEOQ_SIZE (3 * 1048576)
 
 #include "VideoFile.h"
 #include "VideoFile.moc"
@@ -153,7 +154,7 @@ VideoPicture::~VideoPicture() {
 
 void VideoPicture::saveToPPM(QString filename) const {
 
-    if ( allocated && rgb ) {
+    if ( allocated && rgb && pixelformat != PIX_FMT_RGBA) {
         FILE *pFile;
         int  y;
 
@@ -167,7 +168,7 @@ void VideoPicture::saveToPPM(QString filename) const {
 
         // Write pixel data
         for(y=0; y<height; y++)
-            fwrite(rgb->data[0] + y*rgb->linesize[0], 1, width*3, pFile);
+			fwrite(rgb->data[0] + y*rgb->linesize[0], 1, width*3, pFile);
 
         // Close file
         fclose(pFile);
@@ -176,7 +177,7 @@ void VideoPicture::saveToPPM(QString filename) const {
 
 void VideoPicture::refilter() const
 {
-	if (!allocated || !frame || !img_convert_ctx_filtering)
+	if (!allocated || !frame || !img_convert_ctx_filtering || usePalette)
 		return;
 
 	sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb->data, rgb->linesize);
@@ -187,12 +188,17 @@ void VideoPicture::fill(AVFrame *pFrame, double timestamp)
 	if (!allocated || !pFrame || !img_convert_ctx_filtering)
 		return;
 
+	// remember frame
 	frame = pFrame;
+	// remember pts
+	pts = timestamp;
 
 	if (!usePalette) {
 		// Convert the image with ffmpeg sws
 		sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb->data, rgb->linesize);
+		return;
 	}
+	// I reimplement here sws_convertPalette8ToPacked32 which does not work...
 	else {
 		// get pointer to the palette
 		uint8_t *palette = frame->data[1];
@@ -216,14 +222,13 @@ void VideoPicture::fill(AVFrame *pFrame, double timestamp)
 				*bgr++ = palette[ 4 * map[x] + 2];  // B
 				*bgr++ = palette[ 4 * map[x] + 1];  // G
 				*bgr++ = palette[ 4 * map[x]];      // R
-				*bgr++ = palette[ 4 * map[x] + 3];  // A
+				if (pixelformat == PIX_FMT_RGBA)
+					*bgr++ = palette[ 4 * map[x] + 3];  // A
 			}
 			map += frame->linesize[0];
 		}
 	}
 
-	// remember pts
-	pts = timestamp;
 }
 
 
@@ -250,6 +255,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
     img_convert_ctx = NULL;
     firstFrame = NULL;
     resetPicture = NULL;
+    ignoreAlpha = false;
 
     // Contruct some objects
     parse_tid = new ParsingThread(this);
@@ -283,20 +289,28 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
     reset();
 }
 
-VideoFile::~VideoFile() {
+void VideoFile::close() {
 
-    // tries to end properly
+	// request ending
     quit = true;
     // wait for threads to end properly
     parse_tid->wait();
     pictq_cond->wakeAll();
     decod_tid->wait();
 
+    // free context
     if (img_convert_ctx)
         sws_freeContext(img_convert_ctx);
 
+    // close file
     if (pFormatCtx)
         av_close_input_file(pFormatCtx);
+
+}
+
+VideoFile::~VideoFile() {
+
+	close();
 
     // delete threads
     delete parse_tid;
@@ -487,11 +501,12 @@ const VideoPicture *VideoFile::getPictureAtIndex(int index) const {
     return (&pictq[index]);
 }
 
-bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
+bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreAlphaChannel) {
 
     AVFormatContext *_pFormatCtx;
 
     filename = file;
+    ignoreAlpha = ignoreAlphaChannel;
 
     // tells everybody we are set !
     emit info(tr("Opening %1...").arg(filename) );
@@ -605,58 +620,77 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     bool paletized = false;
 
     // Change target format to keep Alpha channel if exist
-    if (video_st->codec->pix_fmt == PIX_FMT_RGBA || video_st->codec->pix_fmt == PIX_FMT_BGRA ||
-    		video_st->codec->pix_fmt == PIX_FMT_ARGB || video_st->codec->pix_fmt == PIX_FMT_ABGR ||
-    		video_st->codec->pix_fmt == PIX_FMT_YUVJ420P ){
+    if ( pixelFormatHasAlphaChannel() ){
     	targetFormat = PIX_FMT_RGBA;
-
-        qDebug("PIX_FMT_RGBA");
     }
     // special case of PALLETIZED pixel formats
-    else if (video_st->codec->pix_fmt == PIX_FMT_PAL8 ){
+    else if ( av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL ){
     	targetFormat = PIX_FMT_RGBA;
     	paletized = true;
     }
 
+    // Decide for optimal scaling algo if it was not specified
+    // NB: the algo is used only if the conversion is scaled or with filter
+    // (i.e. optimal 'unscaled' converter is used by default)
+	if (conversionAlgorithm == 0) {
+		if (getEnd() - getBegin() < 2)
+			conversionAlgorithm = SWS_LANCZOS;  	// optimal quality scaling for 1 frame sources (images)
+		else
+			conversionAlgorithm = SWS_FAST_BILINEAR;		// optimal speed scaling for videos
+	}
 
-    // Decide for optimal conversion algo if it was not specified
-     if (conversionAlgorithm == 0) {
-     	if (getEnd() - getBegin() < 2)
-     	    conversionAlgorithm = SWS_LANCZOS;  	// optimal quality scaling for 1 frame sources (images)
-     	else
-     		conversionAlgorithm = SWS_POINT;		// optimal speed scaling for videos
-     }
+#ifndef NDEBUG
+	conversionAlgorithm |= SWS_PRINT_INFO;
+#endif
 
-     // create conversion context
-     img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
-                 targetWidth, targetHeight, targetFormat, conversionAlgorithm, NULL, NULL, NULL);
+	// create conversion context
+    if (ignoreAlpha) {
+    	// The ignore alpha flag is normally requested when the source is rgba
+    	// and in this case, optimal conversion from rgba to rgba is to do nothing : but
+    	// this means there is no conversion, and no brightness/contrast is applied
+    	// So, I add the presence of a minimal filter to enforce the conversion
+    	targetFormat = PIX_FMT_RGB24;
+    	SwsFilter *filter = sws_getDefaultFilter(0.0, 1.0, 0.0 ,0.0, 0.0, 0.0, 1);
+    	// MMX should be faster !
+    	conversionAlgorithm |= SWS_CPU_CAPS_MMX;
+    	img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
+    									targetWidth, targetHeight, targetFormat, conversionAlgorithm,
+										filter, NULL, NULL);
+    }
+    else
+    	img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
+									 targetWidth, targetHeight, targetFormat, conversionAlgorithm,
+									 NULL, NULL, NULL);
 
-     if (img_convert_ctx == NULL) {
-         // Cannot initialize the conversion context!
-         emit error(tr("Error opening %1:\nCannot create a suitable conversion context to RGB.").arg(filename));
-         return false;
-     }
+    if (img_convert_ctx == NULL) {
+		// Cannot initialize the conversion context!
+		emit error(tr("Error opening %1:\nCannot create a suitable conversion context.").arg(filename));
+		return false;
+	}
 
     /* allocate the buffers */
-    for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i) {
-        if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, paletized)) {
-            // Cannot allocate Video Pictures!
-            emit error(tr("Error opening %1:\nCannot allocate pictures buffer.").arg(filename));
-            return false;
-        }
+	// not need for the picture queue if there is ONE frame only...
+	if (getEnd() - getBegin() > 1)
+		for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i) {
+			if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, paletized)) {
+				// Cannot allocate Video Pictures!
+				emit error(tr("Error opening %1:\nCannot allocate pictures buffer.").arg(filename));
+				return false;
+			}
+		}
+
+    // TODO : make black picture a static of the class
+    // we may need a black Picture frame to return when stopped
+    if (!blackPicture.allocate(0, targetWidth, targetHeight)) {
+        // Cannot allocate Video Pictures!
+        emit error(tr("Error opening %1:\nCannot allocate buffer.").arg(filename));
+        return false;
     }
 
     // we need a picture to display when not decoding
     if (!firstPicture.allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, paletized)) {
         // Cannot allocate Video Pictures!
         emit error(tr("Error opening %1:\nCannot allocate picture buffer.").arg(filename));
-        return false;
-    }
-
-    // we may need a black Picture frame to return when stopped
-    if (!blackPicture.allocate(0, targetWidth, targetHeight)) {
-        // Cannot allocate Video Pictures!
-        emit error(tr("Error opening %1:\nCannot allocate buffer.").arg(filename));
         return false;
     }
 
@@ -677,6 +711,14 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut) {
     return true;
 }
 
+
+bool VideoFile::pixelFormatHasAlphaChannel() const {
+
+	if (!video_st)
+		return false;
+
+	return ( av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3 );
+}
 
 
 void VideoFile::fill_first_frame(bool seek) {
@@ -717,6 +759,9 @@ void VideoFile::fill_first_frame(bool seek) {
 
     if(seek)
         avcodec_flush_buffers(video_st->codec);
+
+//    firstPicture.saveToPPM("firstpict.ppm");
+
 }
 
 
@@ -1599,63 +1644,10 @@ void VideoFile::setSaturation(int s){
 
 QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const {
 
-	if (ffmpegPixelFormat == PIX_FMT_NONE)
+	if (ffmpegPixelFormat == PIX_FMT_NONE && video_st)
 		ffmpegPixelFormat =video_st->codec->pix_fmt;
 
-	switch (ffmpegPixelFormat ) {
-
-	case PIX_FMT_YUV420P: return QString("planar YUV 4:2:0, 12bpp");
-	case PIX_FMT_YUYV422: return QString("packed YUV 4:2:2, 16bpp");
-	case PIX_FMT_RGB24:
-	case PIX_FMT_BGR24: return QString("packed RGB 8:8:8, 24bpp");
-	case PIX_FMT_YUV422P: return QString("planar YUV 4:2:2, 16bpp");
-	case PIX_FMT_YUV444P: return QString("planar YUV 4:4:4, 24bpp");
-	case PIX_FMT_RGB32: return QString("packed RGB 8:8:8, 32bpp");
-	case PIX_FMT_YUV410P: return QString("planar YUV 4:1:0,  9bpp");
-	case PIX_FMT_YUV411P: return QString("planar YUV 4:1:1, 12bpp");
-	case PIX_FMT_RGB565: return QString("packed RGB 5:6:5, 16bpp");
-	case PIX_FMT_RGB555: return QString("packed RGB 5:5:5, 16bpp");
-	case PIX_FMT_GRAY8: return QString("Y,  8bpp");
-	case PIX_FMT_MONOWHITE:
-	case PIX_FMT_MONOBLACK: return QString("Y,  1bpp");
-	case PIX_FMT_PAL8: return QString("RGB32 palette, 8bpp");
-	case PIX_FMT_YUVJ420P: return QString("planar YUV 4:2:0, 12bpp (JPEG)");
-	case PIX_FMT_YUVJ422P: return QString("planar YUV 4:2:2, 16bpp (JPEG)");
-	case PIX_FMT_YUVJ444P: return QString("planar YUV 4:4:4, 24bpp (JPEG)");
-	case PIX_FMT_XVMC_MPEG2_MC: return QString("XVideo Motion Acceleration (MPEG2)");
-	case PIX_FMT_UYVY422: return QString("packed YUV 4:2:2, 16bpp");
-	case PIX_FMT_UYYVYY411: return QString("packed YUV 4:1:1, 12bpp");
-	case PIX_FMT_BGR32: return QString("packed RGB 8:8:8, 32bpp");
-	case PIX_FMT_BGR565: return QString("packed RGB 5:6:5, 16bpp");
-	case PIX_FMT_BGR555: return QString("packed RGB 5:5:5, 16bpp");
-	case PIX_FMT_BGR8: return QString("packed RGB 3:3:2, 8bpp");
-	case PIX_FMT_BGR4: return QString("packed RGB 1:2:1, 4bpp");
-	case PIX_FMT_BGR4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
-	case PIX_FMT_RGB8: return QString("packed RGB 3:3:2,  8bpp");
-	case PIX_FMT_RGB4: return QString("packed RGB 1:2:1,  4bpp");
-	case PIX_FMT_RGB4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
-	case PIX_FMT_NV12:
-	case PIX_FMT_NV21: return QString("planar YUV 4:2:0, 12bpp");
-	case PIX_FMT_RGB32_1:
-	case PIX_FMT_BGR32_1: return QString("packed RGB 8:8:8, 32bpp");
-	case PIX_FMT_GRAY16BE:
-	case PIX_FMT_GRAY16LE: return QString("Y, 16bpp");
-	case PIX_FMT_YUV440P: return QString("planar YUV 4:4:0");
-	case PIX_FMT_YUVJ440P: return QString("planar YUV 4:4:0 (JPEG)");
-	case PIX_FMT_YUVA420P: return QString("planar YUV 4:2:0, 20bpp");
-	case PIX_FMT_VDPAU_H264: return QString("H.264 HW");
-	case PIX_FMT_VDPAU_MPEG1: return QString("MPEG-1 HW");
-	case PIX_FMT_VDPAU_MPEG2: return QString("MPEG-2 HW");
-	case PIX_FMT_VDPAU_WMV3: return QString("WMV3 HW");
-	case PIX_FMT_VDPAU_VC1: return QString("VC-1 HW");
-	case PIX_FMT_RGB48BE: return QString("packed RGB 16:16:16, 48bpp");
-	case PIX_FMT_RGB48LE: return QString("packed RGB 16:16:16, 48bpp");
-	case PIX_FMT_VAAPI_MOCO:
-	case PIX_FMT_VAAPI_IDCT:
-	case PIX_FMT_VAAPI_VLD: return QString("HW acceleration through VA API");
-	default:
-		return QString("unknown");
-	}
+	return QString (av_pix_fmt_descriptors[video_st->codec->pix_fmt].name) ;
 
 }
 
