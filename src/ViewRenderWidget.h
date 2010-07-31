@@ -141,7 +141,7 @@ protected:
 
 	// all the display lists
 	static GLuint border_thin_shadow, border_large_shadow;
-	static GLuint border_thin, border_large, border_scale, border_rotate;
+	static GLuint border_thin, border_large, border_scale;
 	static GLuint frame_selection, frame_screen;
 	static GLuint quad_texured, quad_half_textured, quad_window[2];
 	static GLuint circle_mixing, layerbg, catalogbg;

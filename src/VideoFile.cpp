@@ -253,6 +253,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
     video_st = NULL;
     pFormatCtx = NULL;
     img_convert_ctx = NULL;
+    filter = NULL;
     firstFrame = NULL;
     resetPicture = NULL;
     ignoreAlpha = false;
@@ -298,9 +299,11 @@ void VideoFile::close() {
     pictq_cond->wakeAll();
     decod_tid->wait();
 
-    // free context
+    // free context & filter
     if (img_convert_ctx)
         sws_freeContext(img_convert_ctx);
+    if (filter)
+    	sws_freeFilter(filter);
 
     // close file
     if (pFormatCtx)
@@ -636,31 +639,35 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 		if (getEnd() - getBegin() < 2)
 			conversionAlgorithm = SWS_LANCZOS;  	// optimal quality scaling for 1 frame sources (images)
 		else
-			conversionAlgorithm = SWS_FAST_BILINEAR;		// optimal speed scaling for videos
+			conversionAlgorithm = SWS_POINT;		// optimal speed scaling for videos
 	}
 
 #ifndef NDEBUG
+	// print all info if in debug
 	conversionAlgorithm |= SWS_PRINT_INFO;
 #endif
 
-	// create conversion context
     if (ignoreAlpha) {
+    	targetFormat = PIX_FMT_RGB24;
     	// The ignore alpha flag is normally requested when the source is rgba
     	// and in this case, optimal conversion from rgba to rgba is to do nothing : but
     	// this means there is no conversion, and no brightness/contrast is applied
-    	// So, I add the presence of a minimal filter to enforce the conversion
-    	targetFormat = PIX_FMT_RGB24;
-    	SwsFilter *filter = sws_getDefaultFilter(0.0, 1.0, 0.0 ,0.0, 0.0, 0.0, 1);
-    	// MMX should be faster !
-    	conversionAlgorithm |= SWS_CPU_CAPS_MMX;
-    	img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
-    									targetWidth, targetHeight, targetFormat, conversionAlgorithm,
-										filter, NULL, NULL);
+    	// So, I change the filter to enforce a per-pixel conversion (here a slight blur)
+    	filter = sws_getDefaultFilter(0.0, 1.0, 0.0 ,0.0, 0.0, 0.0, 0);
     }
     else
-    	img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
-									 targetWidth, targetHeight, targetFormat, conversionAlgorithm,
-									 NULL, NULL, NULL);
+    	// default filter for doing nothing
+//    	filter = sws_getDefaultFilter(0.0, 0.0, 0.0 ,0.0, 0.0, 0.0, 0);
+    	filter = NULL;
+
+	// MMX should be faster !
+	conversionAlgorithm |= SWS_CPU_CAPS_MMX;
+	conversionAlgorithm |= SWS_CPU_CAPS_MMX2;
+
+	// create conversion context
+	img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
+									targetWidth, targetHeight, targetFormat, conversionAlgorithm,
+									filter, NULL, NULL);
 
     if (img_convert_ctx == NULL) {
 		// Cannot initialize the conversion context!
@@ -679,7 +686,6 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 			}
 		}
 
-    // TODO : make black picture a static of the class
     // we may need a black Picture frame to return when stopped
     if (!blackPicture.allocate(0, targetWidth, targetHeight)) {
         // Cannot allocate Video Pictures!

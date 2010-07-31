@@ -874,6 +874,7 @@ protected:
     AVFormatContext *pFormatCtx;
     AVStream *video_st;
     SwsContext *img_convert_ctx;
+    SwsFilter *filter;
     int videoStream;
     PacketQueue videoq;
     bool ignoreAlpha;
