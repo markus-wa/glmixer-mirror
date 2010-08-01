@@ -170,7 +170,7 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
     verticalLayout->addWidget(buttonBox);
 
     openglExtensionsDialog->setWindowTitle(tr("OpenGL Extensions"));
-    label->setText(tr("Supported OpenGL extensions:"));
+    label->setText(tr("OpenGL version %1\n\nSupported extensions:").arg((char *)glGetString(GL_VERSION)));
 
     QAbstractItemModel *model = new QStringListModel(glSupportedExtensions());
     extensionsListView->setModel(model);

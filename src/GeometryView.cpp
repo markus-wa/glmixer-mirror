@@ -34,7 +34,7 @@
 #define MAXZOOM 3.0
 #define DEFAULTZOOM 0.5
 
-GeometryView::GeometryView() : View(), quadrant(0), currentTool(MOVE)
+GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE)
 {
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;

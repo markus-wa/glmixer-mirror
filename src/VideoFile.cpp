@@ -23,11 +23,6 @@
  *
  */
 
-//#define QT_NO_DEBUG_OUTPUT
-//#define QT_NO_WARNING_OUTPUT
-#define QT_FATAL_WARNINGS
-
-#define __STDC_CONSTANT_MACROS
 #include <stdint.h>
 
 #ifndef INT64_MIN
@@ -623,7 +618,9 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
     bool paletized = false;
 
     // Change target format to keep Alpha channel if exist
-    if ( pixelFormatHasAlphaChannel() ){
+    if ( pixelFormatHasAlphaChannel()
+    	// this is a fix for some jpeg formats with YUVJ format
+		|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h >0 ){
     	targetFormat = PIX_FMT_RGBA;
     }
     // special case of PALLETIZED pixel formats
@@ -722,7 +719,6 @@ bool VideoFile::pixelFormatHasAlphaChannel() const {
 
 	if (!video_st)
 		return false;
-
 	return ( av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3 );
 }
 
@@ -1487,7 +1483,7 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile) {
     verticalLayout->addWidget(buttonBox);
 
     ffmpegInfoDialog->setWindowTitle(tr("FFMPEG formats and codecs"));
-    label->setText(tr("Available formats"));
+    label->setText(tr("Compiled with libavcodec %1.%2.%3 \n\nAvailable formats").arg(LIBAVCODEC_VERSION_MAJOR).arg(LIBAVCODEC_VERSION_MINOR).arg(LIBAVCODEC_VERSION_MICRO));
     label_2->setText(tr("Readable VIDEO codecs"));
 
     QTreeWidgetItem *___qtreewidgetitem = treeWidget_2->headerItem();
@@ -1651,9 +1647,12 @@ void VideoFile::setSaturation(int s){
 QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const {
 
 	if (ffmpegPixelFormat == PIX_FMT_NONE && video_st)
-		ffmpegPixelFormat =video_st->codec->pix_fmt;
+		ffmpegPixelFormat = video_st->codec->pix_fmt;
 
-	return QString (av_pix_fmt_descriptors[video_st->codec->pix_fmt].name) ;
+	QString pfn(av_pix_fmt_descriptors[ffmpegPixelFormat].name);
+	pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[ffmpegPixelFormat]));
+
+	return pfn;
 
 }
 
