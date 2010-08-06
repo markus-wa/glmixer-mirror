@@ -576,6 +576,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			// disable filtering for clone source
 			idToProperty["Brightness"]->setEnabled(false);
 			idToProperty["Contrast"]->setEnabled(false);
+			idToProperty["Saturation"]->setEnabled(false);
 			idToProperty["Pixelated"]->setEnabled(false);
 			idToProperty["Color table"]->setEnabled(false);
 			idToProperty["Filter"]->setEnabled(false);

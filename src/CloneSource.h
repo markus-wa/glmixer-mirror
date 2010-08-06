@@ -45,9 +45,13 @@ public:
 	int getFrameWidth() const { return original->getFrameWidth(); }
 	int getFrameHeight() const { return original->getFrameWidth(); }
 
+//	void update() { // DO SOMETHING TO COPY ORIGNINAL TEXTURE INTO CLONE TEXTURE
+//		original->update();
+//	}
+
     // only RenderingManager can create a source
 protected:
-	CloneSource(SourceSet::iterator sit, double d): Source((*sit)->getTextureIndex(), d), original(*sit) {
+	CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->getTextureIndex(), d), original(*sit) {
 		// when cloning a clone, get back to the original ;
 		CloneSource *tmp = dynamic_cast<CloneSource *>(original);
 		if (tmp)

@@ -307,7 +307,7 @@ p, li { white-space: pre-wrap; }
             </size>
            </property>
            <property name="toolTip">
-            <string>Starts / stops  the movie [SPACE]</string>
+            <string>Starts / stops  the movie</string>
            </property>
            <property name="styleSheet">
             <string> QToolButton { /* all types of tool button */
@@ -334,7 +334,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
             </size>
            </property>
            <property name="shortcut">
-            <string>Return, Enter</string>
+            <string>Space</string>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -413,7 +413,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                <item>
                 <widget class="QToolButton" name="seekBeginButton">
                  <property name="toolTip">
-                  <string>Jump backward to movie start. [UP]</string>
+                  <string>Jump backward to movie start.</string>
                  </property>
                  <property name="styleSheet">
                   <string> QToolButton { /* all types of tool button */
@@ -445,7 +445,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                <item>
                 <widget class="QToolButton" name="seekBackwardButton">
                  <property name="toolTip">
-                  <string>Jump backward [LEFT]</string>
+                  <string>Jump backward</string>
                  </property>
                  <property name="styleSheet">
                   <string> QToolButton { /* all types of tool button */
@@ -470,14 +470,14 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                   </size>
                  </property>
                  <property name="shortcut">
-                  <string>PgUp</string>
+                  <string>[</string>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QToolButton" name="pauseButton">
                  <property name="toolTip">
-                  <string>Pause/resume play [DOWN]</string>
+                  <string>Pause/resume play</string>
                  </property>
                  <property name="styleSheet">
                   <string> QToolButton { /* all types of tool button */
@@ -503,7 +503,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                   </size>
                  </property>
                  <property name="shortcut">
-                  <string>Space</string>
+                  <string>P</string>
                  </property>
                  <property name="checkable">
                   <bool>true</bool>
@@ -520,6 +520,9 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
+                 </property>
+                 <property name="toolTip">
+                  <string>Advance by 1 frame</string>
                  </property>
                  <property name="styleSheet">
                   <string notr="true"> QToolButton {
@@ -543,12 +546,15 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                    <height>22</height>
                   </size>
                  </property>
+                 <property name="shortcut">
+                  <string>\</string>
+                 </property>
                 </widget>
                </item>
                <item>
                 <widget class="QToolButton" name="seekForwardButton">
                  <property name="toolTip">
-                  <string>Jump forward [RIGHT]</string>
+                  <string>Jump forward</string>
                  </property>
                  <property name="styleSheet">
                   <string notr="true"> QToolButton {
@@ -573,7 +579,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                   </size>
                  </property>
                  <property name="shortcut">
-                  <string>PgDown</string>
+                  <string>]</string>
                  </property>
                 </widget>
                </item>
@@ -682,7 +688,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                <item>
                 <widget class="QToolButton" name="videoLoopButton">
                  <property name="toolTip">
-                  <string>Loop playback</string>
+                  <string>Enable loop playback</string>
                  </property>
                  <property name="styleSheet">
                   <string> QToolButton { /* all types of tool button */
@@ -793,7 +799,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                  <string>Mark IN</string>
                 </property>
                 <property name="shortcut">
-                 <string>Ctrl+I</string>
+                 <string>I</string>
                 </property>
                </widget>
               </item>
@@ -841,7 +847,7 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
                  <string>Mark OUT</string>
                 </property>
                 <property name="shortcut">
-                 <string>Ctrl+O</string>
+                 <string>O</string>
                 </property>
                </widget>
               </item>

@@ -36,6 +36,7 @@ bool Source::imaging_extension = true;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 bool Source::playable = false;
 
+// innefective source just to get default parameters
 Source::Source() :
 			active(false), culled(false), frameChanged(false), textureIndex(0),
 			maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(0),
@@ -53,17 +54,9 @@ Source::Source() :
 	// default name
 	name = QString("Source");
 
-	// give it a unique identifyer
-	id = lastid++;
-
-	clones = new SourceList;
-
-	for (int i = 0; i<15; ++i)
-		saturationMatrix[i] = 0.f;
-	saturationMatrix[15]= 1.f;
 }
 
-
+// the 'REAL' source constructor.
 Source::Source(GLuint texture, double depth) :
 	active(false), culled(false), frameChanged(true), textureIndex(texture),
 	maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
@@ -86,6 +79,7 @@ Source::Source(GLuint texture, double depth) :
 
 	clones = new SourceList;
 
+	// initialize the saturation matrix
 	for (int i = 0; i<15; ++i)
 		saturationMatrix[i] = 0.f;
 	saturationMatrix[15]= 1.f;
@@ -254,26 +248,11 @@ void Source::draw(bool withalpha, GLenum mode) const {
 		glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(),
 				withalpha ? texalpha : 1.0);
 		// draw
+// TODO : use vertex buffer objects
 //		if (cropped) {
 //
-//			// TODO : use vertex arrays
-//			// Front Face (note that the texture's corners have to match the quad's corners)
-//			glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-//			glBegin(GL_QUADS);
-//			glMultiTexCoord2f(GL_TEXTURE0, crop_start_x, crop_end_y);
-//			glMultiTexCoord2f(GL_TEXTURE1, 0.f, 1.f);
-//			glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-//			glMultiTexCoord2f(GL_TEXTURE0, crop_end_x, crop_end_y);
-//			glMultiTexCoord2f(GL_TEXTURE1, 1.f, 1.f);
-//			glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-//			glMultiTexCoord2f(GL_TEXTURE0, crop_end_x, crop_start_y);
-//			glMultiTexCoord2f(GL_TEXTURE1, 1.f, 0.f);
-//			glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-//			glMultiTexCoord2f(GL_TEXTURE0, crop_start_x, crop_start_y);
-//			glMultiTexCoord2f(GL_TEXTURE1, 0.f, 0.f);
-//			glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-//			glEnd();
-//		} else
+//			modify fbo
+//		}
 			glCallList(ViewRenderWidget::quad_texured);
 	}
 }
