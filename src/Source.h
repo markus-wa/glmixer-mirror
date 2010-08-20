@@ -360,6 +360,7 @@ protected:
 	// statics
 	static GLuint lastid;
 	static bool imaging_extension;
+
 };
 
 

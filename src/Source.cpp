@@ -247,13 +247,17 @@ void Source::draw(bool withalpha, GLenum mode) const {
 		// set transparency and color
 		glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(),
 				withalpha ? texalpha : 1.0);
+
 		// draw
 // TODO : use vertex buffer objects
 //		if (cropped) {
 //
 //			modify fbo
 //		}
-			glCallList(ViewRenderWidget::quad_texured);
+//			glCallList(ViewRenderWidget::quad_texured);
+
+
+	    glDrawArrays(GL_QUADS, 0, 4);
 	}
 }
 
@@ -274,10 +278,10 @@ static GLubyte colorTable2[2][3] = { { 0, 0, 0 }, { 255, 255, 255 } };
 // Sharpen convolution kernel
 static GLfloat mSharpen[3][3] = { { 0.0f, -1.0f, 0.0f },
 		{ -1.0f, 5.0f, -1.0f }, { 0.0f, -1.0f, 0.0f } };
-// Blur convolution kernel
+
 static GLfloat mBlur[3][3] = { { 1.0f, 1.0f, 1.0f }, { 1.0f, 2.0f, 1.f }, {
 		1.0f, 1.f, 1.0f } };
-// Blur convolution kernel
+
 static GLfloat mEdge[3][3] = { { 1.0f, 1.0f, 1.0f }, { 1.0f, -9.0, 1.0f }, {
 		1.0f, 1.0f, 1.0f } };
 // Emboss convolution kernel
@@ -330,63 +334,63 @@ void Source::setSaturation(int sat) {
 void Source::beginEffectsSection() const {
 
 	if (brightness != 0) {
-		float b = float(brightness) / 100.f;
-		glPixelTransferf(GL_RED_BIAS, b);
-		glPixelTransferf(GL_GREEN_BIAS, b);
-		glPixelTransferf(GL_BLUE_BIAS, b);
+//		float b = float(brightness) / 100.f;
+//		glPixelTransferf(GL_RED_BIAS, b);
+//		glPixelTransferf(GL_GREEN_BIAS, b);
+//		glPixelTransferf(GL_BLUE_BIAS, b);
 	}
 
 	if (contrast != 0) {
-		float b = float(contrast) / 100.f + 1.f;
-		glPixelTransferf(GL_RED_SCALE, b);
-		glPixelTransferf(GL_GREEN_SCALE, b);
-		glPixelTransferf(GL_BLUE_SCALE, b);
+//		float b = float(contrast) / 100.f + 1.f;
+//		glPixelTransferf(GL_RED_SCALE, b);
+//		glPixelTransferf(GL_GREEN_SCALE, b);
+//		glPixelTransferf(GL_BLUE_SCALE, b);
 	}
 
 	// the other options require the GL_ARB_IMAGING extension
-	if (!imaging_extension)
-		return;
+//	if (!imaging_extension)
+//		return;
 
 	if (convolution != Source::NO_CONVOLUTION) {
-		glEnable(GL_CONVOLUTION_2D);
-
-		if (convolution == Source::SHARPEN_CONVOLUTION) {
-			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3,	GL_LUMINANCE, GL_FLOAT, mSharpen);
-		} else if (convolution == Source::BLUR_CONVOLUTION) {
-			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3,	GL_LUMINANCE, GL_FLOAT, mBlur);
-			glMatrixMode(GL_COLOR);
-			glScalef(0.1, 0.1, 0.1);
-			glMatrixMode(GL_MODELVIEW);
-		} else if (convolution == Source::EMBOSS_CONVOLUTION) {
-			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3,	GL_LUMINANCE, GL_FLOAT, mEmboss);
-		} else if (convolution == Source::EDGE_CONVOLUTION) {
-			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3,	GL_LUMINANCE, GL_FLOAT, mEdge);
-		}
+//		glEnable(GL_CONVOLUTION_2D);
+//
+//		if (convolution == Source::SHARPEN_CONVOLUTION) {
+//			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3,	GL_LUMINANCE, GL_FLOAT, mSharpen);
+//		} else if (convolution == Source::BLUR_CONVOLUTION) {
+//			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3,	GL_LUMINANCE, GL_FLOAT, mBlur);
+//			glMatrixMode(GL_COLOR);
+//			glScalef(0.1, 0.1, 0.1);
+//			glMatrixMode(GL_MODELVIEW);
+//		} else if (convolution == Source::EMBOSS_CONVOLUTION) {
+//			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3,	GL_LUMINANCE, GL_FLOAT, mEmboss);
+//		} else if (convolution == Source::EDGE_CONVOLUTION) {
+//			glConvolutionFilter2D(GL_CONVOLUTION_2D, GL_RGB, 3, 3,	GL_LUMINANCE, GL_FLOAT, mEdge);
+//		}
 
 	}
 
 	if (colorTable != Source::NO_COLORTABLE) {
-		glEnable(GL_COLOR_TABLE);
-
-		if (colorTable == Source::INVERT_COLORTABLE) {
-			glColorTable(GL_COLOR_TABLE, GL_RGB, 256, GL_RGB, GL_UNSIGNED_BYTE, invertTable);
-		} else if (colorTable == Source::COLOR_16_COLORTABLE) {
-			glColorTable(GL_COLOR_TABLE, GL_RGB, 16, GL_RGB, GL_UNSIGNED_BYTE, colorTable16);
-		} else if (colorTable == Source::COLOR_8_COLORTABLE) {
-			glColorTable(GL_COLOR_TABLE, GL_RGB, 8, GL_RGB, GL_UNSIGNED_BYTE, colorTable8);
-		} else if (colorTable == Source::COLOR_4_COLORTABLE) {
-			glColorTable(GL_COLOR_TABLE, GL_RGB, 4, GL_RGB, GL_UNSIGNED_BYTE, colorTable4);
-		} else if (colorTable == Source::COLOR_2_COLORTABLE) {
-			glColorTable(GL_COLOR_TABLE, GL_RGB, 2, GL_RGB, GL_UNSIGNED_BYTE, colorTable2);
-//			glColorTable(GL_COLOR_TABLE, GL_RGB, 4, GL_RGB, GL_UNSIGNED_BYTE, testTable);
-		}
+//		glEnable(GL_COLOR_TABLE);
+//
+//		if (colorTable == Source::INVERT_COLORTABLE) {
+//			glColorTable(GL_COLOR_TABLE, GL_RGB, 256, GL_RGB, GL_UNSIGNED_BYTE, invertTable);
+//		} else if (colorTable == Source::COLOR_16_COLORTABLE) {
+//			glColorTable(GL_COLOR_TABLE, GL_RGB, 16, GL_RGB, GL_UNSIGNED_BYTE, colorTable16);
+//		} else if (colorTable == Source::COLOR_8_COLORTABLE) {
+//			glColorTable(GL_COLOR_TABLE, GL_RGB, 8, GL_RGB, GL_UNSIGNED_BYTE, colorTable8);
+//		} else if (colorTable == Source::COLOR_4_COLORTABLE) {
+//			glColorTable(GL_COLOR_TABLE, GL_RGB, 4, GL_RGB, GL_UNSIGNED_BYTE, colorTable4);
+//		} else if (colorTable == Source::COLOR_2_COLORTABLE) {
+//			glColorTable(GL_COLOR_TABLE, GL_RGB, 2, GL_RGB, GL_UNSIGNED_BYTE, colorTable2);
+////			glColorTable(GL_COLOR_TABLE, GL_RGB, 4, GL_RGB, GL_UNSIGNED_BYTE, testTable);
+//		}
 
 	}
 
 	if (saturation != 0) {
-		glMatrixMode(GL_COLOR);
-		glLoadMatrixf(saturationMatrix);
-		glMatrixMode(GL_MODELVIEW);
+//		glMatrixMode(GL_COLOR);
+//		glLoadMatrixf(saturationMatrix);
+//		glMatrixMode(GL_MODELVIEW);
 	}
 
 }
@@ -398,16 +402,16 @@ void Source::endEffectsSection() const {
 //	glBlendEquation(GL_FUNC_ADD);
 
 	if (brightness != 0) {
-		glPixelTransferf(GL_RED_BIAS, 0.0f);
-		glPixelTransferf(GL_GREEN_BIAS, 0.0f);
-		glPixelTransferf(GL_BLUE_BIAS, 0.0f);
+//		glPixelTransferf(GL_RED_BIAS, 0.0f);
+//		glPixelTransferf(GL_GREEN_BIAS, 0.0f);
+//		glPixelTransferf(GL_BLUE_BIAS, 0.0f);
 	}
 
 	if (contrast != 0) {
 		//		glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
-		glPixelTransferf(GL_RED_SCALE, 1.0f);
-		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
-		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+//		glPixelTransferf(GL_RED_SCALE, 1.0f);
+//		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+//		glPixelTransferf(GL_BLUE_SCALE, 1.0f);
 	}
 
 	if (pixelated) {
@@ -416,31 +420,31 @@ void Source::endEffectsSection() const {
 	}
 
 	// the other options require the GL_ARB_IMAGING extension
-	if (!imaging_extension)
-		return;
+//	if (!imaging_extension)
+//		return;
 
 	if (convolution != Source::NO_CONVOLUTION) {
-		glMatrixMode(GL_COLOR);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glDisable(GL_CONVOLUTION_2D);
+//		glMatrixMode(GL_COLOR);
+//		glLoadIdentity();
+//		glMatrixMode(GL_MODELVIEW);
+//		glDisable(GL_CONVOLUTION_2D);
 	}
 
 	if (saturation != 0) {
-		glMatrixMode(GL_COLOR);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
+//		glMatrixMode(GL_COLOR);
+//		glLoadIdentity();
+//		glMatrixMode(GL_MODELVIEW);
 	}
 
 	if (colorTable != Source::NO_COLORTABLE) {
-		glDisable(GL_COLOR_TABLE);
+//		glDisable(GL_COLOR_TABLE);
 	}
 
-	if (mask_type != Source::NO_MASK) {
+//	if (mask_type != Source::NO_MASK) {
 		glActiveTexture(GL_TEXTURE1);
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
-	}
+//	}
 }
 
 void Source::blend() const {
@@ -448,7 +452,7 @@ void Source::blend() const {
 	glBlendEquation(blend_eq);
 	glBlendFunc(source_blend, destination_blend);
 
-	if (mask_type != Source::NO_MASK) {
+//	if (mask_type != Source::NO_MASK) {
 		// activate texture 1 ; double texturing of the mask
 		glActiveTexture(GL_TEXTURE1);
 		// select and enable the texture corresponding to the mask
@@ -457,7 +461,8 @@ void Source::blend() const {
 
 		// back to texture 0 for the following
 		glActiveTexture(GL_TEXTURE0);
-	}
+//	}
+
 }
 
 void Source::setMask(maskType t, GLuint texture) {
@@ -466,26 +471,30 @@ void Source::setMask(maskType t, GLuint texture) {
 
 	switch (t) {
 	case Source::ROUNDCORNER_MASK:
-		maskTextureIndex = ViewRenderWidget::mask_textures[0];
-		break;
-	case Source::CIRCLE_MASK:
 		maskTextureIndex = ViewRenderWidget::mask_textures[1];
 		break;
-	case Source::GRADIENT_CIRCLE_MASK:
+	case Source::CIRCLE_MASK:
 		maskTextureIndex = ViewRenderWidget::mask_textures[2];
 		break;
-	case Source::GRADIENT_SQUARE_MASK:
+	case Source::GRADIENT_CIRCLE_MASK:
 		maskTextureIndex = ViewRenderWidget::mask_textures[3];
+		break;
+	case Source::GRADIENT_SQUARE_MASK:
+		maskTextureIndex = ViewRenderWidget::mask_textures[4];
 		break;
 	case Source::CUSTOM_MASK:
 		if (texture != 0)
 			maskTextureIndex = texture;
 	default:
 	case Source::NO_MASK:
+		maskTextureIndex = ViewRenderWidget::mask_textures[0];
 		mask_type = Source::NO_MASK;
 	}
 
 }
+
+// TODO : use DataStreams for reading and saving glm files in Rendering Manager
+// (this involves solving the problem with scale applied as default source)
 
 QDataStream &operator<<(QDataStream &stream, const Source *source){
 

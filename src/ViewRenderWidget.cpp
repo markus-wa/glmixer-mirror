@@ -36,6 +36,10 @@
 #include "SpringCursor.h"
 #include "DelayCursor.h"
 
+#define PROGRAM_VERTEX_ATTRIBUTE 0
+#define PROGRAM_TEXCOORD_ATTRIBUTE 1
+#define PROGRAM_MASKCOORD_ATTRIBUTE 2
+
 GLuint ViewRenderWidget::border_thin_shadow = 0,
 		ViewRenderWidget::border_large_shadow = 0;
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
@@ -48,6 +52,11 @@ GLuint ViewRenderWidget::quad_half_textured = 0,
 		ViewRenderWidget::quad_stipped_textured[] = { 0, 0, 0, 0 };
 GLuint ViewRenderWidget::mask_textures[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 GLuint ViewRenderWidget::fading = 0;
+
+GLfloat ViewRenderWidget::coords[12];
+GLfloat ViewRenderWidget::texc[8];
+GLfloat ViewRenderWidget::maskc[8];
+QGLShaderProgram *ViewRenderWidget::program = 0;
 
 ViewRenderWidget::ViewRenderWidget() :
 	glRenderWidget(), faded(false), viewMenu(0), catalogMenu(0), showFps_(0)
@@ -127,6 +136,7 @@ int ViewRenderWidget::getStipplingMode() const{
 void ViewRenderWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
+	buildShader();
 
 	setBackgroundColor(QColor(52, 52, 52));
 
@@ -154,34 +164,38 @@ void ViewRenderWidget::initializeGL()
 	{
 		glActiveTexture(GL_TEXTURE1);
 		glEnable(GL_TEXTURE_2D);
-		mask_textures[0] = bindTexture(QPixmap(QString::fromUtf8(
+		mask_textures[0] = bindTexture(QPixmap(2,2), GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+		mask_textures[1] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_roundcorner.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		mask_textures[1] = bindTexture(QPixmap(QString::fromUtf8(
+		mask_textures[2] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		mask_textures[2] = bindTexture(QPixmap(QString::fromUtf8(
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+		mask_textures[3] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_linear_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		mask_textures[3] = bindTexture(QPixmap(QString::fromUtf8(
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+		mask_textures[4] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_linear_square.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
 
 		glDisable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
@@ -718,6 +732,113 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 
 }
 
+
+
+void ViewRenderWidget::buildShader(){
+
+	coords[0] = -1;
+	coords[1] = 1;
+	coords[2] = 0;
+	coords[3] = 1;
+	coords[4] = 1;
+	coords[5] = 0;
+	coords[6] = 1;
+	coords[7] = -1;
+	coords[8] = 0;
+	coords[9] = -1;
+	coords[10] = -1;
+	coords[11] = 0;
+	texc[0] = 0.f;
+	texc[1] = 0.f;
+	texc[2] = 1.f;
+	texc[3] = 0.f;
+	texc[4] = 1.f;
+	texc[5] = 1.f;
+	texc[6] = 0.f;
+	texc[7] = 1.f;
+	maskc[0] = 0.f;
+	maskc[1] = 0.f;
+	maskc[2] = 1.f;
+	maskc[3] = 0.f;
+	maskc[4] = 1.f;
+	maskc[5] = 1.f;
+	maskc[6] = 0.f;
+	maskc[7] = 1.f;
+
+	QGLShader *vshader = new QGLShader(QGLShader::Vertex, this);
+	const char *vsrc =
+		"#version 130\n"
+		"in highp vec4 texCoord;\n"
+		"out highp vec4 texc;\n"
+		"in vec4 maskCoord;\n"
+		"out vec4 maskc;\n"
+		"in vec4 gl_Color;\n"
+		"out vec4 baseColor;\n"
+		"void main(void)\n"
+		"{\n"
+		"    gl_Position = ftransform();\n"
+		"    texc = texCoord;\n"
+		"    maskc = maskCoord;\n"
+		"    baseColor = gl_Color;\n"
+		"}\n";
+//	const char *vsrc =
+//		"attribute highp vec4 texCoord;\n"
+//		"attribute vec4 maskCoord;\n"
+//		"varying highp vec4 texc;\n"
+//		"varying vec4 maskc;\n"
+//		"varying vec4 baseColor;\n"
+//		"void main(void)\n"
+//		"{\n"
+//		"    gl_Position = ftransform();\n"
+//		"    texc = texCoord;\n"
+//		"    maskc = maskCoord;\n"
+//		"    baseColor = gl_Color;\n"
+//		"}\n";
+	vshader->compileSourceCode(vsrc);
+
+
+	program = new QGLShaderProgram(this);
+	program->addShader(vshader);
+	program->addShaderFromSourceFile(QGLShader::Fragment, ":/glmixer/shaders/imageProcessing_fragment.glsl");
+	program->bindAttributeLocation("vertex", PROGRAM_VERTEX_ATTRIBUTE);
+	program->bindAttributeLocation("texCoord", PROGRAM_TEXCOORD_ATTRIBUTE);
+	program->bindAttributeLocation("maskCoord", PROGRAM_MASKCOORD_ATTRIBUTE);
+
+	program->link();
+
+	program->bind();
+	program->setUniformValue("sourceTexture", 0);
+	program->setUniformValue("maskTexture", 1);
+	program->setUniformValue("utilityTexture", 2);
+
+	program->setUniformValue("sourceDrawing", false);
+	program->setUniformValue("contrast", 1.f);
+	program->setUniformValue("saturation", 1.f);
+	program->setUniformValue("brightness", 0.f);
+	program->setUniformValue("gamma", 1.f);
+	//             gamma levels : minInput, maxInput, minOutput, maxOutput:
+	program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f);
+	program->setUniformValue("hueshift", 0.f);
+	program->setUniformValue("chromakey", 0.0, 0.0, 0.0 );
+	program->setUniformValue("threshold", 0.0f);
+	program->setUniformValue("nbColors", -1);
+	program->setUniformValue("invertMode", 0);
+	program->setUniformValue("filter", 0);
+
+	program->enableAttributeArray(PROGRAM_VERTEX_ATTRIBUTE);
+	program->enableAttributeArray(PROGRAM_TEXCOORD_ATTRIBUTE);
+	program->enableAttributeArray(PROGRAM_MASKCOORD_ATTRIBUTE);
+
+	program->setAttributeArray (PROGRAM_VERTEX_ATTRIBUTE, coords, 3, 0);
+	program->setAttributeArray (PROGRAM_TEXCOORD_ATTRIBUTE, texc, 2, 0);
+	program->setAttributeArray (PROGRAM_MASKCOORD_ATTRIBUTE, maskc, 2, 0);
+
+
+	program->release();
+
+}
+
+
 /**
  * Build a display list of a textured QUAD and returns its id
  **/
@@ -966,23 +1087,29 @@ GLuint ViewRenderWidget::buildLineList()
 	// default
 	glNewList(base, GL_COMPILE);
 
+	glActiveTexture(GL_TEXTURE2);
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
 	glPushMatrix();
 	glScalef(1.25, 1.25, 1.0);
-	glBegin(GL_QUADS); // begin drawing a square
-	glTexCoord2f(0.0f, 0.0f);
-	glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-	glTexCoord2f(1.0f, 0.0f);
-	glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(1.f, 1.f, 0.0f); // Top Right
-	glTexCoord2f(0.0f, 1.0f);
-	glVertex3f(-1.f, 1.f, 0.0f); // Top Left
-	glEnd();
+//	glBegin(GL_QUADS); // begin drawing a square
+//	glTexCoord2f(0.0f, 0.0f);
+//	glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+//	glTexCoord2f(1.0f, 0.0f);
+//	glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
+//	glTexCoord2f(1.0f, 1.0f);
+//	glVertex3f(1.f, 1.f, 0.0f); // Top Right
+//	glTexCoord2f(0.0f, 1.0f);
+//	glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+//	glEnd();
+//
+
+
+    glDrawArrays(GL_QUADS, 0, 4);
+
 	glPopMatrix();
 
-	glDisable(GL_TEXTURE_2D);
 	glLineWidth(1.0);
 	glColor4f(0.9, 0.9, 0.0, 0.7);
 
@@ -1004,16 +1131,19 @@ GLuint ViewRenderWidget::buildLineList()
 
 	glPushMatrix();
 	glScalef(1.25, 1.25, 1.0);
-	glBegin(GL_QUADS); // begin drawing a square
-	glTexCoord2f(0.0f, 0.0f);
-	glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-	glTexCoord2f(1.0f, 0.0f);
-	glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(1.f, 1.f, 0.0f); // Top Right
-	glTexCoord2f(0.0f, 1.0f);
-	glVertex3f(-1.f, 1.f, 0.0f); // Top Left
-	glEnd();
+//	glBegin(GL_QUADS); // begin drawing a square
+//	glTexCoord2f(0.0f, 0.0f);
+//	glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+//	glTexCoord2f(1.0f, 0.0f);
+//	glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
+//	glTexCoord2f(1.0f, 1.0f);
+//	glVertex3f(1.f, 1.f, 0.0f); // Top Right
+//	glTexCoord2f(0.0f, 1.0f);
+//	glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+//	glEnd();
+
+    glDrawArrays(GL_QUADS, 0, 4);
+
 	glPopMatrix();
 
 	glDisable(GL_TEXTURE_2D);

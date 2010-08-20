@@ -350,19 +350,35 @@ void LayersView::zoomBestFit() {
 
 bool LayersView::keyPressEvent ( QKeyEvent * event ){
 
+	SourceSet::iterator currentSource = RenderingManager::getInstance()->getCurrentSource();
 
-	switch (event->key()) {
-		case Qt::Key_Left:
-			return true;
-		case Qt::Key_Right:
-			return true;
-		case Qt::Key_Down:
-			return true;
-		case Qt::Key_Up:
-			return true;
-		default:
-			return false;
+	if (currentSource != RenderingManager::getInstance()->getEnd()) {
+	    double dz = 0.0;
+
+		switch (event->key()) {
+			case Qt::Key_Down:
+			case Qt::Key_Left:
+				dz = 1.0;
+				break;
+			case Qt::Key_Up:
+			case Qt::Key_Right:
+				dz = -1.0;
+				break;
+			default:
+				return false;
+		}
+
+		//(*its)->moveTo( (*its)->getX() + dx,  (*its)->getY() + dy);
+	    double newdepth =  (*currentSource)->getDepth() + dz;
+		currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
+
+		// we need to set current again
+		RenderingManager::getInstance()->setCurrentSource(currentSource);
+
+		return true;
 	}
+
+	return false;
 }
 
 bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {

@@ -87,6 +87,8 @@ void MixerView::paint()
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
     glEnable(GL_TEXTURE_2D);
+    ViewRenderWidget::program->bind();
+
     bool first = true;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
@@ -101,10 +103,14 @@ void MixerView::paint()
     	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     	glBlendEquation(GL_FUNC_ADD);
 
+		ViewRenderWidget::program->setUniformValue("sourceDrawing", false);
+
 		if ((*its)->isActive())
 			glCallList(ViewRenderWidget::border_large_shadow);
 		else
 			glCallList(ViewRenderWidget::border_thin_shadow);
+
+		ViewRenderWidget::program->setUniformValue("sourceDrawing", true);
 
 	    // Blending Function For mixing like in the rendering window
         (*its)->beginEffectsSection();
@@ -114,6 +120,7 @@ void MixerView::paint()
 
 		// draw surface
 		(*its)->draw();
+
 
 		// draw stippled version of the source on top
 		glCallList(ViewRenderWidget::quad_half_textured);
@@ -125,7 +132,11 @@ void MixerView::paint()
 		//
         RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
         first = false;
+
 	}
+
+    ViewRenderWidget::program->release();
+
 
 	// if no source was rendered, clear anyway
 	if (first)
@@ -393,6 +404,9 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
         } else {
 
+        	if (clicked)
+        		return false;
+
         	setAction(View::RECTANGLE);
 			// set coordinate of end of rectangle selection
 			double dumm;
@@ -443,7 +457,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     }
 	// NO BUTTON : show a mouse-over cursor
 	{
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
 			// selection mode with CTRL modifier
 			if (QApplication::keyboardModifiers () == Qt::ControlModifier)
 				setAction(View::SELECT);
@@ -481,16 +495,22 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 	    	}
 	    }
 
-		SourceList result;
-		for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end();) {
-			result.erase (result.begin (), result.end ());
-			std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
-			// if the group is fully inside the rectangle selection
-			if ( (*itss).size() == result.size() )
-				itss = groupSources.erase( itss );
-			else
-				itss++;
-		}
+	    if (rectSources.size() > 0) {
+
+			// set the last selected as current
+			RenderingManager::getInstance()->setCurrentSource( (*rectSources.begin())->getId() );
+
+			SourceList result;
+			for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end();) {
+				result.erase (result.begin (), result.end ());
+				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
+				// if the group is fully inside the rectangle selection
+				if ( (*itss).size() == result.size() )
+					itss = groupSources.erase( itss );
+				else
+					itss++;
+			}
+	    }
 
 		setAction(View::NONE);
 	} else
@@ -569,31 +589,63 @@ void MixerView::zoomBestFit()
 }
 
 
-//bool MixerView::keyPressEvent ( QKeyEvent * event ){
-//
-//	if (currentAction == OVER )
-//		setAction(SELECT);
-//	else
-//		setAction(currentAction);
-//
-//	switch (event->key()) {
-//		case Qt::Key_Left:
-//			return true;
-//		case Qt::Key_Right:
-//			return true;
-//		case Qt::Key_Down:
-//			return true;
-//		case Qt::Key_Up:
-//			return true;
-//		default:
-//			return false;
-//	}
-//}
+bool MixerView::keyPressEvent ( QKeyEvent * event ){
 
-bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY) {
+	if (currentAction == OVER && event->modifiers() == Qt::ControlModifier)
+		setAction(SELECT);
+	else
+		setAction(currentAction);
+
+
+	if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
+	    double dx = 0.0, dy = 0.0;
+		Source *current_source = *RenderingManager::getInstance()->getCurrentSource();
+
+		switch (event->key()) {
+			case Qt::Key_Left:
+				dx = -1.0 / zoom;
+				break;
+			case Qt::Key_Right:
+				dx = 1.0 / zoom;
+				break;
+			case Qt::Key_Down:
+				dy = -1.0 / zoom;
+				break;
+			case Qt::Key_Up:
+				dy = 1.0 / zoom;
+				break;
+			default:
+				return false;
+		}
+
+		// find a group or a selection which contains the current source
+		SourceListArray::iterator itss;
+		for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+			if ( (*itss).count(current_source) > 0 )
+				break;
+		}
+		if ( itss != groupSources.end() ) {
+			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+				(*its)->setAlphaCoordinates( (*its)->getAlphaX() + dx, (*its)->getAlphaY() + dy);
+			}
+		} else if ( selectedSources.count(current_source) > 0 ){
+			for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
+				(*its)->setAlphaCoordinates( (*its)->getAlphaX() + dx, (*its)->getAlphaY() + dy);
+			}
+		}
+		else
+			current_source->setAlphaCoordinates( current_source->getAlphaX() + dx, current_source->getAlphaY() + dy);
+
+		return true;
+	}
+
+
+	return false;
+}
+
+bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
 	// prepare variables
-	clickedSources.clear();
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
     GLint hits = 0;
 
@@ -634,12 +686,16 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
-    while (hits != 0) {
-    	clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
-    	hits--;
-    }
+	if (clic) {
+		clickedSources.clear();
+		while (hits != 0) {
+			clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
+			hits--;
+		}
 
-    return !clickedSources.empty();
+		return !clickedSources.empty();
+	} else
+		return hits != 0;
 
 }
 

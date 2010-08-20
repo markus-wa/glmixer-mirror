@@ -139,6 +139,12 @@ public Q_SLOTS:
 
 protected:
 
+	// Shading
+    static GLfloat coords[12];
+    static GLfloat texc[8];
+    static GLfloat maskc[8];
+    static QGLShaderProgram *program;
+
 	// all the display lists
 	static GLuint border_thin_shadow, border_large_shadow;
 	static GLuint border_thin, border_large, border_scale;
@@ -164,6 +170,8 @@ protected:
     GLuint buildWindowList(GLubyte r, GLubyte g, GLubyte b);
     GLuint buildBordersList();
     GLuint buildFadingList();
+
+    void buildShader();
 
 private:
     // V i e w s

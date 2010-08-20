@@ -42,7 +42,7 @@ public:
     bool mouseReleaseEvent ( QMouseEvent * event );
     bool mouseDoubleClickEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
-//    bool keyPressEvent ( QKeyEvent * event );
+    bool keyPressEvent ( QKeyEvent * event );
 
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
@@ -54,7 +54,7 @@ public:
 
 private:
 
-    bool getSourcesAtCoordinates(int mouseX, int mouseY);
+    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy) ;
 

@@ -386,21 +386,41 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 }
 
 
-//bool GeometryView::keyPressEvent ( QKeyEvent * event ){
-//
-//	switch (event->key()) {
-//		case Qt::Key_Left:
-//			return true;
-//		case Qt::Key_Right:
-//			return true;
-//		case Qt::Key_Down:
-//			return true;
-//		case Qt::Key_Up:
-//			return true;
-//		default:
-//			return false;
-//	}
-//}
+bool GeometryView::keyPressEvent ( QKeyEvent * event ){
+
+	SourceSet::iterator its = RenderingManager::getInstance()->getCurrentSource();
+
+	if (its != RenderingManager::getInstance()->getEnd()) {
+	    double dx = 0.0, dy = 0.0;
+
+	    double bx = 1.0, by = 1.0, bz = 1.0;
+//	    gluUnProject(-0.10, -0.10, 0.0, modelview, projection, viewport, &bx, &by, &bz);
+
+
+		switch (event->key()) {
+			case Qt::Key_Left:
+				dx = -bx;
+				break;
+			case Qt::Key_Right:
+				dx = bx;
+				break;
+			case Qt::Key_Down:
+				dy = -by;
+				break;
+			case Qt::Key_Up:
+				dy = by;
+				break;
+			default:
+				return false;
+		}
+
+		(*its)->moveTo( (*its)->getX() + dx,  (*its)->getY() + dy);
+
+		return true;
+	}
+
+	return false;
+}
 
 void GeometryView::setTool(toolType t)
 {
@@ -513,7 +533,6 @@ void GeometryView::zoomBestFit() {
 bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 
 	// prepare variables
-	clickedSources.clear();
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
     GLint hits = 0;
 
@@ -556,12 +575,15 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
-    while (hits != 0) {
-    	clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
-    	hits--;
-    }
 
-    return !clickedSources.empty();
+	clickedSources.clear();
+	while (hits != 0) {
+		clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
+		hits--;
+	}
+
+	return !clickedSources.empty();
+
 }
 
 
