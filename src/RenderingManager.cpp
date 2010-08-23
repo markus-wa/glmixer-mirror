@@ -50,7 +50,7 @@ Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 
 // static members
 RenderingManager *RenderingManager::_instance = 0;
-bool RenderingManager::blit_fbo_extension = false;
+bool RenderingManager::blit_fbo_extension = true;
 
 ViewRenderWidget *RenderingManager::getRenderingWidget() {
 

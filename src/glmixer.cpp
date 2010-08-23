@@ -25,6 +25,7 @@
 
 #define XML_GLM_VERSION "0.6"
 
+
 #include <QApplication>
 #include <QDomDocument>
 
@@ -119,6 +120,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // Setup Video file dialog
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
+    sfd = new QFileDialog(this);
 
     // Create preview widget
     OutputRenderWidget *outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
@@ -1034,55 +1036,31 @@ void GLMixer::on_actionSave_Session_triggered(){
 	}
 }
 
-void GLMixer::on_actionSave_Session_as_triggered(){
+void GLMixer::on_actionSave_Session_as_triggered()
+{
+	sfd->setAcceptMode(QFileDialog::AcceptSave);
+	sfd->setFileMode(QFileDialog::AnyFile);
+	sfd->setFilter(tr("GLMixer workspace (*.glm)"));
+	sfd->setDefaultSuffix("glm");
 
-    static QFileDialog *SaveSessionFileDialog = 0;
-    if (!SaveSessionFileDialog) {
-    	SaveSessionFileDialog = new QFileDialog(this);
-        SaveSessionFileDialog->restoreState(settings.value("SaveSessionFileDialog").toByteArray());
-    	SaveSessionFileDialog->setAcceptMode(QFileDialog::AcceptSave);
-    	SaveSessionFileDialog->setFileMode(QFileDialog::AnyFile);
-    	SaveSessionFileDialog->setFilter(tr("GLMixer workspace (*.glm)"));
-    	SaveSessionFileDialog->setDefaultSuffix("glm");
-    }
-
-	if (SaveSessionFileDialog->exec()) {
-	    QString fileName = SaveSessionFileDialog->selectedFiles().front();
+	if (sfd->exec()) {
+	    QString fileName = sfd->selectedFiles().front();
 		// now we got a filename, save the file:
 		currentStageFileName = fileName;
 		on_actionSave_Session_triggered();
 	}
-
-    settings.setValue("SaveSessionFileDialog", SaveSessionFileDialog->saveState());
-    settings.sync();
 }
 
 void GLMixer::on_actionLoad_Session_triggered()
 {
-//	QString fileName = QDir::fromNativeSeparators(currentStageFileName);
-//	fileName.resize( fileName.lastIndexOf('/') );
-//
-//    fileName = QFileDialog::getOpenFileName(this, tr("Open session file"), fileName, tr("GLMixer workspace (*.glm)"));
-//    if (fileName.isEmpty())
-//         return;
-//	openSessionFile(fileName);
+	sfd->setAcceptMode(QFileDialog::AcceptOpen);
+	sfd->setFileMode(QFileDialog::ExistingFile);
+	sfd->setFilter(tr("GLMixer workspace (*.glm)"));
 
-    static QFileDialog *LoadSessionFileDialog = 0;
-    if (!LoadSessionFileDialog) {
-    	LoadSessionFileDialog = new QFileDialog(this);
-    	LoadSessionFileDialog->restoreState(settings.value("LoadSessionFileDialog").toByteArray());
-    	LoadSessionFileDialog->setAcceptMode(QFileDialog::AcceptOpen);
-    	LoadSessionFileDialog->setFileMode(QFileDialog::ExistingFile);
-    	LoadSessionFileDialog->setFilter(tr("GLMixer workspace (*.glm)"));
-    }
-
-	if (LoadSessionFileDialog->exec()) {
-	    QString fileName = LoadSessionFileDialog->selectedFiles().front();
+	if (sfd->exec()) {
+	    QString fileName = sfd->selectedFiles().front();
 		openSessionFile(fileName);
 	}
-
-    settings.setValue("LoadSessionFileDialog", LoadSessionFileDialog->saveState());
-    settings.sync();
 }
 
 void GLMixer::openSessionFile(QString fileName)
@@ -1278,30 +1256,43 @@ void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
 
 void GLMixer::readSettings(){
 
-	// Main window config
-    restoreGeometry(settings.value("geometry").toByteArray());
-    restoreState(settings.value("windowState").toByteArray());
+	// windows config
+    if (settings.contains("geometry"))
+    	restoreGeometry(settings.value("geometry").toByteArray());
+    if (settings.contains("windowState"))
+    	restoreState(settings.value("windowState").toByteArray());
+    if (settings.contains("OutputRenderWindow"))
+    	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
 
     // dialogs configs
-    vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
-    mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
-    OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
+    if (settings.contains("vcontrolOptionSplitter"))
+    	vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
+
+    if (settings.contains("VideoFileDialog"))
+    	mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
+
+    if (settings.contains("SessionFileDialog"))
+    	sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
 
     // preferences
-    restorePreferences(settings.value("UserPreferences").toByteArray());
+    if (settings.contains("UserPreferences"))
+    	restorePreferences(settings.value("UserPreferences").toByteArray());
 
 	// display time as frame
-	actionShow_frames->setChecked(settings.value("DisplayTimeAsFrames").toBool());
+    if (settings.contains("DisplayTimeAsFrames"))
+    	actionShow_frames->setChecked(settings.value("DisplayTimeAsFrames").toBool());
 }
 
 void GLMixer::saveSettings(){
 
-	// Main window config
+	// windows config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
+    settings.setValue("OutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
+
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());
-    settings.setValue("OutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
+    settings.setValue("SessionFileDialog", sfd->saveState());
 
     // preferences
 	settings.setValue("UserPreferences", getPreferences());
@@ -1341,8 +1332,8 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	QByteArray sd = state;
 	QDataStream stream(&sd, QIODevice::ReadOnly);
 
-	const quint32 magicNumber = 0x1D9D0CB;
-    const quint16 currentMajorVersion = 2;
+	const quint32 magicNumber = MAGIC_NUMBER;
+    const quint16 currentMajorVersion = QSETTING_PREFERENCE_VERSION;
 	quint32 storedMagicNumber;
     quint16 majorVersion = 0;
 	stream >> storedMagicNumber >> majorVersion;
@@ -1377,9 +1368,10 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	RenderingManager::getInstance()->setPreviousFrameDelay(PreviousFrameDelay);
 
 	// f. Stippling mode
-	int stipplingMode = 0;
+	unsigned int stipplingMode = 0;
 	stream >> stipplingMode;
-	RenderingManager::getRenderingWidget()->setStipplingMode(stipplingMode);
+
+	ViewRenderWidget::setStipplingMode(stipplingMode);
 
 	return true;
 }
@@ -1388,8 +1380,8 @@ QByteArray GLMixer::getPreferences() const {
 
     QByteArray data;
     QDataStream stream(&data, QIODevice::WriteOnly);
-    const quint32 magicNumber = 0x1D9D0CB;
-    quint16 majorVersion = 2;
+    const quint32 magicNumber = MAGIC_NUMBER;
+    const quint16 majorVersion = QSETTING_PREFERENCE_VERSION;
 	stream << magicNumber << majorVersion;
 
 	// a. Store rendering preferences
@@ -1409,7 +1401,7 @@ QByteArray GLMixer::getPreferences() const {
 	stream << RenderingManager::getInstance()->getPreviousFrameDelay();
 
 	// f. Stippling mode
-	stream << RenderingManager::getRenderingWidget()->getStipplingMode();
+	stream << ViewRenderWidget::getStipplingMode();
 
 	return data;
 }

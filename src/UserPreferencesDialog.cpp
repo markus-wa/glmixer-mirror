@@ -77,8 +77,8 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	QByteArray sd = state;
 	QDataStream stream(&sd, QIODevice::ReadOnly);
 
-	const quint32 magicNumber = 0x1D9D0CB;
-    const quint16 currentMajorVersion = 2;
+	const quint32 magicNumber = MAGIC_NUMBER;
+    const quint16 currentMajorVersion = QSETTING_PREFERENCE_VERSION;
 	quint32 storedMagicNumber;
     quint16 majorVersion = 0;
 	stream >> storedMagicNumber >> majorVersion;
@@ -90,7 +90,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	stream  >> RenderingSize;
 	sizeToSelection(RenderingSize);
 
-	bool useBlitFboExtension = false;
+	bool useBlitFboExtension = true;
 	stream >> useBlitFboExtension;
 	activateBlitFrameBuffer->setChecked(useBlitFboExtension);
 
@@ -99,12 +99,12 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     defaultProperties->showProperties(defaultSource);
 
 	// c. Default scaling mode
-    unsigned int sm;
+    unsigned int sm = 0;
     stream >> sm;
     scalingModeSelection->setCurrentIndex(sm);
 
     // d. DefaultPlayOnDrop
-    bool DefaultPlayOnDrop;
+    bool DefaultPlayOnDrop = false;
     stream >> DefaultPlayOnDrop;
     defaultStartPlaying->setChecked(DefaultPlayOnDrop);
 
@@ -114,7 +114,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	numberOfFramesRendering->setValue( (unsigned int) PreviousFrameDelay);
 
 	// f. Mixing icons stippling
-	int  stippling = 0;
+	unsigned int  stippling = 0;
 	stream >> stippling;
 	switch (stippling) {
 	case 3:
@@ -137,8 +137,8 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     QByteArray data;
     QDataStream stream(&data, QIODevice::WriteOnly);
-    const quint32 magicNumber = 0x1D9D0CB;
-    quint16 majorVersion = 2;
+    const quint32 magicNumber = MAGIC_NUMBER;
+    quint16 majorVersion = QSETTING_PREFERENCE_VERSION;
 	stream << magicNumber << majorVersion;
 
 	// a. write the rendering preferences
@@ -148,7 +148,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	stream 	<< defaultSource;
 
 	// c. Default scaling mode
-	stream << scalingModeSelection->currentIndex();
+	stream << (unsigned int) scalingModeSelection->currentIndex();
 
 	// d. defaultStartPlaying
 	stream << defaultStartPlaying->isChecked();
@@ -158,13 +158,13 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
 	// f. Mixing icons stippling
 	if (FINE->isChecked())
-		stream << 0;
+		stream << (unsigned int) 0;
 	if (GROSS->isChecked())
-		stream << 1;
+		stream << (unsigned int) 1;
 	if (CHECKERBOARD->isChecked())
-		stream << 2;
+		stream << (unsigned int) 2;
 	if (TRIANGLE->isChecked())
-		stream << 3;
+		stream << (unsigned int) 3;
 
 	return data;
 }

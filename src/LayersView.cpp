@@ -121,7 +121,7 @@ void LayersView::paint()
 		(*its)->draw();
 
 		// draw stippled version of the source on top
-		glCallList(ViewRenderWidget::quad_half_textured);
+		glCallList(ViewRenderWidget::quad_stipped_textured[ViewRenderWidget::stipplingMode]);
 
 		glPopMatrix();
 

@@ -48,7 +48,7 @@ GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_window[] = {0,
 GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0;
 GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0,
 		ViewRenderWidget::catalogbg = 0;
-GLuint ViewRenderWidget::quad_half_textured = 0,
+GLuint ViewRenderWidget::stipplingMode = 0,
 		ViewRenderWidget::quad_stipped_textured[] = { 0, 0, 0, 0 };
 GLuint ViewRenderWidget::mask_textures[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 GLuint ViewRenderWidget::fading = 0;
@@ -124,15 +124,6 @@ ViewRenderWidget::~ViewRenderWidget()
 }
 
 
-int ViewRenderWidget::getStipplingMode() const{
-
-	for (int i = 0; i<4 ; ++i) {
-		if (quad_half_textured == quad_stipped_textured[i])
-			return i;
-	}
-	return 0;
-}
-
 void ViewRenderWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
@@ -147,7 +138,6 @@ void ViewRenderWidget::initializeGL()
 	quad_stipped_textured[1] = buildHalfList_gross();
 	quad_stipped_textured[2] = buildHalfList_checkerboard();
 	quad_stipped_textured[3] = buildHalfList_triangle();
-	quad_half_textured = quad_stipped_textured[0];
 	frame_selection = buildSelectList();
 	circle_mixing = buildCircleList();
 	layerbg = buildLayerbgList();
@@ -164,32 +154,32 @@ void ViewRenderWidget::initializeGL()
 	{
 		glActiveTexture(GL_TEXTURE1);
 		glEnable(GL_TEXTURE_2D);
-		mask_textures[0] = bindTexture(QPixmap(2,2), GL_TEXTURE_2D);
+		mask_textures[Source::NO_MASK] = bindTexture(QPixmap(2,2), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-		mask_textures[1] = bindTexture(QPixmap(QString::fromUtf8(
+		mask_textures[Source::ROUNDCORNER_MASK] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_roundcorner.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		mask_textures[2] = bindTexture(QPixmap(QString::fromUtf8(
+		mask_textures[Source::CIRCLE_MASK] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		mask_textures[3] = bindTexture(QPixmap(QString::fromUtf8(
+		mask_textures[Source::GRADIENT_CIRCLE_MASK] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_linear_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-		mask_textures[4] = bindTexture(QPixmap(QString::fromUtf8(
+		mask_textures[Source::GRADIENT_SQUARE_MASK] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_linear_square.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -361,7 +351,7 @@ void ViewRenderWidget::paintGL()
 	if (_currentView->isModified())
 		_currentView->setModelview();
 	// draw the view
-//	_currentView->paint();
+	_currentView->paint();
 
 	// draw a semi-transparent overlay if view should be faded
 	if (faded)
@@ -399,31 +389,54 @@ void ViewRenderWidget::paintGL()
 	// 4. The extra information
 	//
 	// HUD : display message
-	if (displayMessage)
-	{
-		glColor4f(0.8, 0.80, 0.2, 1.0);
-		QGLWidget::renderText(20, (int)(3.5*((QApplication::font().pixelSize()>0) ? QApplication::font().pixelSize() : QApplication::font().pointSize())),
-				message, QFont());
-	}
+//	if (displayMessage)
+//	{
+//		glColor4f(0.8, 0.80, 0.2, 1.0);
+//		QGLWidget::renderText(20, (int)(3.5*((QApplication::font().pixelSize()>0) ? QApplication::font().pixelSize() : QApplication::font().pointSize())),
+//				message, QFont());
+//	}
 	// FPS computation
-	if (++fpsCounter_ == 20)
+	if (++fpsCounter_ == 10)
 	{
-		f_p_s_ = 1000.0 * 20.0 / fpsTime_.restart();
+		f_p_s_ = 1000.0 * 10.0 / fpsTime_.restart();
 		fpsCounter_ = 0;
 	}
 	// HUD display of framerate (on request or if FPS is dangerously slow)
-//	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) )
-//		displayFPS();
+	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) )
+		displayFPS();
 }
 
 void ViewRenderWidget::displayFPS()
 {
 
-	QString fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_,
-			0, 'f', ((f_p_s_ < 10.0) ? 1 : 0));
-	qglColor(f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red));
-	QGLWidget::renderText(10, (int)(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
+//	QString fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_,
+//			0, 'f', ((f_p_s_ < 10.0) ? 1 : 0));
+//	qglColor(f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red));
+//	QGLWidget::renderText(10, (int)(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
 
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D(0.0, width(), 0.0, height());
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glDisable(GL_TEXTURE_2D);
+
+	qglColor(Qt::lightGray);
+	glRectf(9.0, height() - 9.0, 61.0, height() - 21.0);
+
+	qglColor(f_p_s_ > 40 ? Qt::darkGreen : (f_p_s_ > 20 ? Qt::yellow : Qt::red));
+	// Draw a filled rectangle with current color
+	glRectf(10.0, height() - 10.0, f_p_s_, height() - 20.0);
+
+	glEnable(GL_TEXTURE_2D);
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
 }
 
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event)

@@ -26,6 +26,9 @@
 #ifndef USERPREFERENCESDIALOG_H_
 #define USERPREFERENCESDIALOG_H_
 
+#define QSETTING_PREFERENCE_VERSION 2
+#define MAGIC_NUMBER 0x1D9D0CB
+
 #include <QDialog>
 #include "ui_UserPreferencesDialog.h"
 

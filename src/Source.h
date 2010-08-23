@@ -231,12 +231,12 @@ public:
 	}
 
 	typedef enum {
-		NO_MASK,
-		ROUNDCORNER_MASK,
-		CIRCLE_MASK,
-		GRADIENT_CIRCLE_MASK,
-		GRADIENT_SQUARE_MASK,
-		CUSTOM_MASK
+		NO_MASK = 0,
+		ROUNDCORNER_MASK = 1,
+		CIRCLE_MASK = 2,
+		GRADIENT_CIRCLE_MASK = 3,
+		GRADIENT_SQUARE_MASK = 4,
+		CUSTOM_MASK = 5
 	} maskType;
 	void setMask(maskType t, GLuint texture = 0);
 	int getMask() const {

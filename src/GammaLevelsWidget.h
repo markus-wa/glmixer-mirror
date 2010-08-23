@@ -46,7 +46,6 @@ public Q_SLOTS:
 private:
 
     class GammaPlotArea *plot;
-
     Source *source;
 };
 

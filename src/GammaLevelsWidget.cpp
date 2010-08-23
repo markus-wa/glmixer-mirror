@@ -84,6 +84,7 @@ void GammaLevelsWidget::setValues(float gamma, float minInput, float maxInput, f
     // setup values, with some sanity check
     plot->gamma = qBound(gamma, 0.f, 1.f);
     gammaSlider->setValue( GammaToSlider(plot->gamma) );
+	gammaText->setText( QString().setNum( plot->gamma, 'f', 2) );
 
     plot->xmin = qBound(minInput, 0.f, 1.f);
     plot->xmax = qBound(maxInput, 0.f, 1.f);
@@ -93,6 +94,20 @@ void GammaLevelsWidget::setValues(float gamma, float minInput, float maxInput, f
     plot->ymin = qMin(plot->ymax, plot->ymin);
 
 	plot->update();
+
+	QList<int> s = outSplit->sizes();
+	int total = s[0] + s[1] + s[2];
+	s[2] = plot->ymin * total;
+	s[0] = total - total * plot->ymax;
+	s[1] = total - s[0] - s[2];
+	outSplit->setSizes(s);
+
+	s = inSplit->sizes();
+	total = s[0] + s[1] + s[2];
+	s[0] = plot->xmin * total;
+	s[2] = total - total * plot->xmax;
+	s[1] = total - s[0] - s[2];
+	inSplit->setSizes(s);
 }
 
 void GammaLevelsWidget::showEvent ( QShowEvent * event ){
@@ -119,29 +134,31 @@ void GammaLevelsWidget::showEvent ( QShowEvent * event ){
 
 void GammaLevelsWidget::on_resetButton_clicked (  ){
 
-	plot->xmin = 0.f;
-	plot->xmax = 1.f;
-	plot->ymin = 0.f;
-	plot->ymax = 1.f;
+//	plot->xmin = 0.f;
+//	plot->xmax = 1.f;
+//	plot->ymin = 0.f;
+//	plot->ymax = 1.f;
+//
+//	QList<int> s = outSplit->sizes();
+//	int total = s[0] + s[1] + s[2];
+//	s[2] = plot->ymin * total;
+//	s[0] = total - total * plot->ymax;
+//	s[1] = total - s[0] - s[2];
+//	outSplit->setSizes(s);
+//
+//	s = inSplit->sizes();
+//	total = s[0] + s[1] + s[2];
+//	s[0] = plot->xmin * total;
+//	s[2] = total - total * plot->xmax;
+//	s[1] = total - s[0] - s[2];
+//	inSplit->setSizes(s);
+//
+//	gammaSlider->setValue(GammaToSlider(1.f));
+//	plot->gamma = 1.f;
+//	gammaText->setText( QString().setNum( plot->gamma, 'f', 2) );
+//	plot->update();
 
-	QList<int> s = outSplit->sizes();
-	int total = s[0] + s[1] + s[2];
-	s[2] = plot->ymin * total;
-	s[0] = total - total * plot->ymax;
-	s[1] = total - s[0] - s[2];
-	outSplit->setSizes(s);
-
-	s = inSplit->sizes();
-	total = s[0] + s[1] + s[2];
-	s[0] = plot->xmin * total;
-	s[2] = total - total * plot->xmax;
-	s[1] = total - s[0] - s[2];
-	inSplit->setSizes(s);
-
-	gammaSlider->setValue(GammaToSlider(1.f));
-	plot->gamma = 1.f;
-	gammaText->setText( QString().setNum( plot->gamma, 'f', 2) );
-	plot->update();
+	setValues(1.f, 0.f, 1.f, 0.f, 1.f);
 
     if (source)
     	source->setGamma(plot->gamma, plot->xmin, plot->xmax, plot->ymin, plot->ymax);

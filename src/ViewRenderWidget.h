@@ -61,8 +61,7 @@ public:
 	/**
 	 * QGLWidget implementation
 	 */
-//	void paintGL();
-    void paintEvent(QPaintEvent *event);
+	void paintGL();
 	void initializeGL();
 	void resizeGL(int w = 0, int h = 0);
     void mousePressEvent(QMouseEvent *event);
@@ -109,7 +108,8 @@ public:
 	QDomElement getConfiguration(QDomDocument &doc);
 	void setConfiguration(QDomElement xmlconfig);
 
-	int getStipplingMode() const;
+	static inline unsigned int getStipplingMode() { return stipplingMode; }
+	static inline void setStipplingMode(unsigned int m) { stipplingMode = CLAMP(m, 0, 3); }
 
 Q_SIGNALS:
 	void sourceMixingModified();
@@ -130,7 +130,6 @@ public Q_SLOTS:
 	void refresh();
 	void showMessage(QString s);
 	inline void hideMessage() { displayMessage = false; }
-	inline void setStipplingMode(int m) { quad_half_textured = quad_stipped_textured[CLAMP(m, 0, 3)]; }
 	void contextMenu(const QPoint &);
 	void setCatalogVisible(bool on = false);
 	void setCatalogSizeSmall();
@@ -150,9 +149,9 @@ protected:
 	static GLuint border_thin_shadow, border_large_shadow;
 	static GLuint border_thin, border_large, border_scale;
 	static GLuint frame_selection, frame_screen;
-	static GLuint quad_texured, quad_half_textured, quad_window[2];
+	static GLuint quad_texured, quad_window[2];
 	static GLuint circle_mixing, layerbg, catalogbg;
-	static GLuint quad_stipped_textured[4];
+	static GLuint stipplingMode, quad_stipped_textured[4];
 	static GLuint mask_textures[8];
 	static GLuint fading;
 

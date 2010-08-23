@@ -311,11 +311,12 @@ void Source::endEffectsSection() const {
     	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 
-//	if (mask_type != Source::NO_MASK) {
-		glActiveTexture(GL_TEXTURE1);
-		glDisable(GL_TEXTURE_2D);
-		glActiveTexture(GL_TEXTURE0);
-//	}
+	// disable the mask
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[Source::NO_MASK]);
+//	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+
 }
 
 void Source::blend() const {
@@ -323,44 +324,30 @@ void Source::blend() const {
 	glBlendEquation(blend_eq);
 	glBlendFunc(source_blend, destination_blend);
 
-//	if (mask_type != Source::NO_MASK) {
-		// activate texture 1 ; double texturing of the mask
-		glActiveTexture(GL_TEXTURE1);
-		glEnable(GL_TEXTURE_2D);
-		// select and enable the texture corresponding to the mask
-		glBindTexture(GL_TEXTURE_2D, maskTextureIndex);
 
-		// back to texture 0 for the following
+	// activate texture 1 ; double texturing of the mask
+	glActiveTexture(GL_TEXTURE1);
+//	glEnable(GL_TEXTURE_2D);
+	// select and enable the texture corresponding to the mask
+	glBindTexture(GL_TEXTURE_2D, maskTextureIndex);
+
+	// back to texture 0 for the following // not needed
 //		glActiveTexture(GL_TEXTURE0);
-//	}
+
 
 }
 
 void Source::setMask(maskType t, GLuint texture) {
 
-	mask_type = t;
+	mask_type = CLAMP(t, Source::NO_MASK, Source::CUSTOM_MASK);
 
-	switch (t) {
-	case Source::ROUNDCORNER_MASK:
-		maskTextureIndex = ViewRenderWidget::mask_textures[1];
-		break;
-	case Source::CIRCLE_MASK:
-		maskTextureIndex = ViewRenderWidget::mask_textures[2];
-		break;
-	case Source::GRADIENT_CIRCLE_MASK:
-		maskTextureIndex = ViewRenderWidget::mask_textures[3];
-		break;
-	case Source::GRADIENT_SQUARE_MASK:
-		maskTextureIndex = ViewRenderWidget::mask_textures[4];
-		break;
-	case Source::CUSTOM_MASK:
+	if (mask_type == Source::CUSTOM_MASK) {
 		if (texture != 0)
 			maskTextureIndex = texture;
-	default:
-	case Source::NO_MASK:
-		maskTextureIndex = ViewRenderWidget::mask_textures[0];
-		mask_type = Source::NO_MASK;
-	}
+		else
+			maskTextureIndex = ViewRenderWidget::mask_textures[Source::NO_MASK];
+	} else
+		maskTextureIndex = ViewRenderWidget::mask_textures[mask_type];
 
 }
 

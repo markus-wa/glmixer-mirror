@@ -112,6 +112,7 @@ private:
 	QString currentStageFileName;
 	VideoFile *selectedSourceVideoFile;
 	VideoFileDialog *mfd;
+	QFileDialog *sfd;
 
 	QTimer *refreshTimingTimer;
 	bool waspaused;
