@@ -31,6 +31,7 @@ uniform float gamma;
 uniform vec4 levels;
 uniform float hueshift;
 uniform vec3 chromakey;
+uniform float chromadelta;
 uniform float threshold;
 uniform int nbColors;
 uniform int invertMode; // 0=normal, 1=invert RGB, 2=invert V
@@ -103,7 +104,7 @@ vec3 convolution()
 
     for (i = 0; i<3; i++)
         for (j = 0; j<3; j++) {
-            tmp = texture2D(texture, vec2 ( texc.s + float(i-1)*step_w, texc.t + float(j-1)*step_h ) ).rgb;
+            tmp = texture2D(sourceTexture, vec2 ( texc.s + float(i-1)*step_w, texc.t + float(j-1)*step_h ) ).rgb;
             sum += tmp * kernel[3*i + j];
         }
 
@@ -113,7 +114,7 @@ vec3 convolution()
 
 vec3 apply_filter() {
 
-    if (filter == 0)
+    if (filter == 0 || filter > 15)
         return texture2D(sourceTexture, texc.st).rgb;
     else if (filter < 10)
         return convolution();
@@ -148,7 +149,7 @@ vec3 RGBToHSL(in vec3 color)
 
     if (delta == 0.0)       //This is a gray, no chroma...
     {
-        hsl.x = 0.0;    // Hue
+        hsl.x = -1.0;    // Hue
         hsl.y = 0.0;    // Saturation
     }
     else                    //Chromatic data...
@@ -227,14 +228,14 @@ vec3 HSLToRGB(in vec3 hsl)
 ** Details: http://blog.mouaif.org/2009/01/22/photoshop-gamma-correction-shader/
 */
 
-#define GammaCorrection(color, gamma) pow(color, 1.0 / gamma)
+#define GammaCorrection(color, gamma) pow( color, 1.0 / vec3(gamma))
 
 /*
 ** Levels control (input (+gamma), output)
 ** Details: http://blog.mouaif.org/2009/01/28/levels-control-shader/
 */
 
-#define LevelsControlInputRange(color, minInput, maxInput)  min(max(color - vec3(minInput), vec3(0.0)) / (vec3(maxInput) - vec3(minInput)), vec3(1.0))
+#define LevelsControlInputRange(color, minInput, maxInput)  min(max(color - vec3(minInput), 0.0) / (vec3(maxInput) - vec3(minInput)), 1.0)
 #define LevelsControlInput(color, minInput, gamma, maxInput) GammaCorrection(LevelsControlInputRange(color, minInput, maxInput), gamma)
 #define LevelsControlOutputRange(color, minOutput, maxOutput)  mix(vec3(minOutput), vec3(maxOutput), color)
 #define LevelsControl(color, minInput, gamma, maxInput, minOutput, maxOutput)   LevelsControlOutputRange(LevelsControlInput(color, minInput, gamma, maxInput), minOutput, maxOutput)
@@ -251,14 +252,14 @@ void main(void)
     // get filtered value of texel
     vec3 texel = apply_filter();
     // deal with alpha separately
-    //float alpha = texture2D(maskTexture, maskc.st).a * texture2D(sourceTexture, texc.st).a  * baseColor.a;
-    float alpha = texture2D(maskTexture, maskc.st).a * baseColor.a;
+    float alpha = texture2D(maskTexture, maskc.st).a * texture2D(sourceTexture, texc.st).a  * baseColor.a;
+    //float alpha = texture2D(maskTexture, maskc.st).a * baseColor.a;
 
     // operations on RGB ; brightness, contrast and levels
     vec3 transformedRGB = mix(vec3(0.62), texel.rgb, contrast);
     transformedRGB += brightness;
     // also clamp values
-    //transformedRGB = LevelsControl(transformedRGB, levels.x, gamma, levels.y, levels.z, levels.w);
+    transformedRGB = LevelsControl(transformedRGB, levels.x, gamma, levels.y, levels.z, levels.w);
 
     if (invertMode==1)
        transformedRGB = vec3(1.0) - transformedRGB;
@@ -287,7 +288,7 @@ void main(void)
         if (invertMode == 2)
             transformedHSL.z = 1.0 - transformedHSL.z;
 
-        if ( chromakey.z > 0.0 && all( lessThan(transformedHSL - chromakey, vec3(0.1))) )
+        if ( chromakey.z > 0.0 && all( lessThan( abs(transformedHSL - chromakey), vec3(chromadelta))) )
             alpha *= 0.0;
 
     }

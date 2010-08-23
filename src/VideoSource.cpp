@@ -32,11 +32,12 @@ GLuint videoSourceIconIndex = 0;
 Source::RTTI VideoSource::type = Source::VIDEO_SOURCE;
 
 VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), Source(texture, d),
-		is(f), filterChanged(false), bufferIndex(-1)
+		is(f), bufferIndex(-1)
 {
 
     if (videoSourceIconIndex == 0) {
 
+    	glActiveTexture(GL_TEXTURE0);
     	glGenTextures(1, &videoSourceIconIndex);
     	glBindTexture(GL_TEXTURE_2D, videoSourceIconIndex);
     	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -53,8 +54,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
 
         aspectratio = is->getStreamAspectRatio();
 
-		QObject::connect(is, SIGNAL(prefilteringChanged()), this, SLOT(applyFilter()));
-
+		glActiveTexture(GL_TEXTURE0);
     	glBindTexture(GL_TEXTURE_2D, textureIndex);
     	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -73,7 +73,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
     					 vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
     					 vp->getBuffer() );
         }
-//        is->play(true);
+
     }
     else
     	qWarning("** WARNING **\nThe media source could not be created properly. Remove it and retry.");
@@ -116,10 +116,6 @@ void VideoSource::update(){
 		// is the picture good ?
         if (vp && vp->isAllocated()) {
 
-            // if we detected a change of filter, re-apply it
-    		if (filterChanged)
-    			vp->refilter();
-
         	// use it for OpenGL
             if ( vp->getFormat() == PIX_FMT_RGBA)
             	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,  vp->getWidth(),
@@ -139,7 +135,6 @@ void VideoSource::updateFrame (int i)
 {
 	frameChanged = true;
 	bufferIndex = i;
-    filterChanged = false;
 }
 
 void VideoSource::applyFilter(){
@@ -147,12 +142,8 @@ void VideoSource::applyFilter(){
 	// if the video file is stopped or paused
 	if ( !is->isRunning() || is->isPaused()) {
 		// request to change the buffer from the new copy
-		frameChanged = filterChanged = true;
+		frameChanged = true;
 
-	}
-	else {
-		// else do nothing special; wait for next frame to apply filter
-		filterChanged = false;
 	}
 }
 

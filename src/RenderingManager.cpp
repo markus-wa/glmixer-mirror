@@ -214,7 +214,7 @@ void RenderingManager::updatePreviousFrame() {
 		// several frames, and each loopback source could use a different one
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
 
-		glBlitFramebufferEXT(0, _fbo->height(), _fbo->width(), 0, 0, 0,
+		glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
 				previousframe_fbo->width(), previousframe_fbo->height(),
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
@@ -819,13 +819,35 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 		sourceElem.appendChild(blend);
 
 		QDomElement filter = doc.createElement("Filter");
-		filter.setAttribute("Brightness", (*its)->getBrightness());
-		filter.setAttribute("Contrast", (*its)->getContrast());
-		filter.setAttribute("Saturation", (*its)->getSaturation());
 		filter.setAttribute("Pixelated", (*its)->isPixelated());
-		filter.setAttribute("ColorTable", (*its)->getColorTable());
-		filter.setAttribute("Convolution", (*its)->getConvolution());
+		filter.setAttribute("InvertMode", (*its)->getInvertMode());
+		filter.setAttribute("Filter", (*its)->getFilter());
 		sourceElem.appendChild(filter);
+
+		QDomElement Coloring = doc.createElement("Coloring");
+		Coloring.setAttribute("Brightness", (*its)->getBrightness());
+		Coloring.setAttribute("Contrast", (*its)->getContrast());
+		Coloring.setAttribute("Saturation", (*its)->getSaturation());
+		Coloring.setAttribute("Hueshift", (*its)->getHueShift());
+		Coloring.setAttribute("luminanceThreshold", (*its)->getLuminanceThreshold());
+		Coloring.setAttribute("numberOfColors", (*its)->getNumberOfColors());
+		sourceElem.appendChild(Coloring);
+
+		QDomElement Chromakey = doc.createElement("Chromakey");
+		Chromakey.setAttribute("on", (*its)->getChromaKey());
+		Chromakey.setAttribute("R", (*its)->getChromaKeyColor().red());
+		Chromakey.setAttribute("G", (*its)->getChromaKeyColor().green());
+		Chromakey.setAttribute("B", (*its)->getChromaKeyColor().blue());
+		Chromakey.setAttribute("Tolerance", (*its)->getChromaKeyTolerance());
+		sourceElem.appendChild(Chromakey);
+
+		QDomElement Gamma = doc.createElement("Gamma");
+		Gamma.setAttribute("value", (*its)->getGamma());
+		Gamma.setAttribute("minInput", (*its)->getGammaMinInput());
+		Gamma.setAttribute("maxInput", (*its)->getGammaMaxInput());
+		Gamma.setAttribute("minOutput", (*its)->getGammaMinOuput());
+		Gamma.setAttribute("maxOutput", (*its)->getGammaMaxOutput());
+		sourceElem.appendChild(Gamma);
 
 		QDomElement specific = doc.createElement("TypeSpecific");
 		specific.setAttribute("type", (*its)->rtti());
@@ -906,6 +928,7 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 
 	QDomElement tmp;
 	newsource->setName( child.attribute("name") );
+
 	newsource->setX( child.firstChildElement("Position").attribute("X").toDouble() );
 	newsource->setY( child.firstChildElement("Position").attribute("Y").toDouble() );
 	newsource->setCenterX( child.firstChildElement("Center").attribute("X").toDouble() );
@@ -913,21 +936,43 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 	newsource->setRotationAngle( child.firstChildElement("Angle").attribute("A").toDouble() );
 	newsource->setScaleX( child.firstChildElement("Scale").attribute("X").toDouble() );
 	newsource->setScaleY( child.firstChildElement("Scale").attribute("Y").toDouble() );
+
 	tmp = child.firstChildElement("Alpha");
 	newsource->setAlphaCoordinates( tmp.attribute("X").toDouble(), tmp.attribute("Y").toDouble() );
+
 	tmp = child.firstChildElement("Color");
 	newsource->setColor( QColor( tmp.attribute("R").toInt(),tmp.attribute("G").toInt(), tmp.attribute("B").toInt() ) );
+
 	tmp = child.firstChildElement("Blending");
 	newsource->setBlendEquation( (GLenum) tmp.attribute("Equation").toInt()  );
 	newsource->setBlendFunc( GL_SRC_ALPHA, (GLenum) tmp.attribute("Function").toInt() );
 	newsource->setMask( (Source::maskType) tmp.attribute("Mask").toInt() );
+
 	tmp = child.firstChildElement("Filter");
+	newsource->setPixelated( tmp.attribute("Pixelated").toInt() );
+	newsource->setInvertMode( (Source::invertModeType) tmp.attribute("InvertMode").toInt() );
+	newsource->setFilter( (Source::filterType) tmp.attribute("Filter").toInt() );
+
+	tmp = child.firstChildElement("Coloring");
 	newsource->setBrightness( tmp.attribute("Brightness").toInt() );
 	newsource->setContrast( tmp.attribute("Contrast").toInt() );
 	newsource->setSaturation( tmp.attribute("Saturation").toInt() );
-	newsource->setPixelated( tmp.attribute("Pixelated").toInt() );
-	newsource->setColorTable( (Source::colorTableType) tmp.attribute("ColorTable").toInt() );
-	newsource->setConvolution( (Source::convolutionType) tmp.attribute("Convolution").toInt() );
+	newsource->setHueShift( tmp.attribute("Hueshift").toInt() );
+	newsource->setLuminanceThreshold( tmp.attribute("luminanceThreshold").toInt() );
+	newsource->setNumberOfColors( tmp.attribute("numberOfColors").toInt() );
+
+	tmp = child.firstChildElement("Chromakey");
+	newsource->setChromaKey( tmp.attribute("on").toInt() );
+	newsource->setChromaKeyColor( QColor( tmp.attribute("R").toInt(),tmp.attribute("G").toInt(), tmp.attribute("B").toInt() ) );
+	newsource->setChromaKeyTolerance( tmp.attribute("Tolerance").toInt() );
+
+	tmp = child.firstChildElement("Gamma");
+	newsource->setGamma( tmp.attribute("value").toFloat(),
+			tmp.attribute("minInput").toFloat(),
+			tmp.attribute("maxInput").toFloat(),
+			tmp.attribute("minOutput").toFloat(),
+			tmp.attribute("maxOutput").toFloat());
+
 }
 
 void RenderingManager::addConfiguration(QDomElement xmlconfig) {

@@ -33,6 +33,7 @@ set(MYQT_SRCS
 	SpringCursor.cpp
 	DelayCursor.cpp
 	UserPreferencesDialog.cpp
+	GammaLevelsWidget.cpp
     glmixer.cpp
     main.cpp
 )
@@ -49,6 +50,7 @@ set(MYQT_UIS
     CameraDialog.ui
     AlgorithmSelectionDialog.ui
     UserPreferencesDialog.ui
+    GammaLevelsDialog.ui
 )
 
 

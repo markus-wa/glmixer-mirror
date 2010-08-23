@@ -23,7 +23,7 @@
  *
  */
 
-#define XML_GLM_VERSION "0.5"
+#define XML_GLM_VERSION "0.6"
 
 #include <QApplication>
 #include <QDomDocument>
@@ -47,6 +47,7 @@
 #endif
 #include "VideoFileDisplayWidget.h"
 #include "SourcePropertyBrowser.h"
+#include "GammaLevelsWidget.h"
 #include "CatalogView.h"
 
 #include "glmixer.moc"
@@ -65,6 +66,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     menuToolBars->addAction(sourceDockWidget->toggleViewAction());
     menuToolBars->addAction(vcontrolDockWidget->toggleViewAction());
     menuToolBars->addAction(cursorDockWidget->toggleViewAction());
+    menuToolBars->addAction(gammaDockWidget->toggleViewAction());
     menuToolBars->addSeparator();
     menuToolBars->addAction(sourceToolBar->toggleViewAction());
     menuToolBars->addAction(viewToolBar->toggleViewAction());
@@ -108,6 +110,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	propertyBrowser->setParent(sourceDockWidgetContents);
 	sourceDockWidgetContentsLayout->addWidget(propertyBrowser);
     QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
+
+	// Setup the gamma levels toolbox
+	GammaLevelsWidget *gammaAdjust = new GammaLevelsWidget(gammaDockWidgetContents);
+	gammaDockWidgetContentsLayout->addWidget(gammaAdjust);
+	QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), gammaAdjust, SLOT(connectSource(SourceSet::iterator) ) );
+
 
     // Setup Video file dialog
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());

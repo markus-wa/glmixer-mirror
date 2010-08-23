@@ -57,46 +57,6 @@ public:
 
     inline VideoFile *getVideoFile() const { return is; }
 
-	// Adjust brightness factor
-	inline void setBrightness(int b) {
-		if (isPlayable())
-			is->setBrightness(b);
-		else
-			Source::setBrightness(b);
-	}
-	inline int getBrightness() const {
-		if (isPlayable())
-			return is->getBrightness();
-		else
-			return Source::getBrightness();
-	}
-	// Adjust contrast factor
-	inline void setContrast(int c) {
-		if (isPlayable())
-			is->setContrast(c);
-		else
-			Source::setContrast(c);
-	}
-	inline int getContrast() const {
-		if (isPlayable())
-			return is->getContrast();
-		else
-			return Source::getContrast();
-	}
-	// Adjust saturation factor
-	inline void setSaturation(int s) {
-		if (isPlayable())
-			is->setSaturation(s);
-		else
-			Source::setSaturation(s);
-	}
-	inline int getSaturation() const {
-		if (isPlayable())
-			return is->getSaturation();
-		else
-			return Source::getSaturation();
-	}
-
 	int getFrameWidth() const { return is->getFrameWidth(); }
 	int getFrameHeight() const { return is->getFrameHeight(); }
 
@@ -107,7 +67,6 @@ private:
     VideoFile *is;
     VideoPicture copy;
 
-    bool filterChanged;
     int bufferIndex;
 
 };

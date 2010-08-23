@@ -108,7 +108,6 @@ private:
     class QtSizePropertyManager *sizeManager;
     class QtEnumPropertyManager *enumManager;
     class QtBoolPropertyManager *boolManager;
-    class QtTimePropertyManager *timeManager;
 
 };
 

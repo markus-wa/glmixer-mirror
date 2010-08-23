@@ -8,7 +8,7 @@
         <file>textures/mask_circle.png</file>  
         <file>textures/mask_roundcorner.png</file> 
         <file>textures/mask_linear_circle.png</file>        
-        <file>textures/mask_linear_square.png</file>
+        <file>textures/mask_linear_square.png</file> 
         <file>shaders/imageProcessing_fragment.glsl</file>   
     </qresource>
 </RCC>  

@@ -78,6 +78,7 @@ void LayersView::paint()
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
     glEnable(GL_TEXTURE_2D);
+    ViewRenderWidget::program->bind();
     bool first = true;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
@@ -102,12 +103,14 @@ void LayersView::paint()
     	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     	glBlendEquation(GL_FUNC_ADD);
 
+		ViewRenderWidget::program->setUniformValue("sourceDrawing", false);
         // draw border if active
         if ((*its)->isActive())
             glCallList(ViewRenderWidget::border_large_shadow);
         else
             glCallList(ViewRenderWidget::border_thin_shadow);
 
+		ViewRenderWidget::program->setUniformValue("sourceDrawing", true);
 	    // Blending Function for mixing like in the rendering window
         (*its)->beginEffectsSection();
 		// bind the source texture and update its content
@@ -136,6 +139,7 @@ void LayersView::paint()
 		// fill-in the loopback buffer
 	    RenderingManager::getInstance()->updatePreviousFrame();
 
+    ViewRenderWidget::program->release();
 
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();

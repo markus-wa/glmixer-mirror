@@ -61,6 +61,7 @@ void MixerView::paint()
     glCallList(ViewRenderWidget::circle_mixing);
 
     // and the selection connection lines
+	glActiveTexture(GL_TEXTURE0);
     glDisable(GL_TEXTURE_2D);
     glLineStipple(1, 0x9999);
     glEnable(GL_LINE_STIPPLE);
@@ -99,11 +100,11 @@ void MixerView::paint()
 		glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		glScalef( SOURCE_UNIT * (*its)->getAspectRatio(),  SOURCE_UNIT, 1.f);
 
+		ViewRenderWidget::program->setUniformValue("sourceDrawing", false);
+
     	// standard transparency blending
     	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     	glBlendEquation(GL_FUNC_ADD);
-
-		ViewRenderWidget::program->setUniformValue("sourceDrawing", false);
 
 		if ((*its)->isActive())
 			glCallList(ViewRenderWidget::border_large_shadow);
@@ -135,15 +136,14 @@ void MixerView::paint()
 
 	}
 
-    ViewRenderWidget::program->release();
-
-
 	// if no source was rendered, clear anyway
 	if (first)
 		RenderingManager::getInstance()->renderToFrameBuffer(0, first);
 	else
 		// fill-in the loopback buffer
 	    RenderingManager::getInstance()->updatePreviousFrame();
+
+    ViewRenderWidget::program->release();
 
     // Then the selection outlines
     for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {

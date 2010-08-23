@@ -42,6 +42,7 @@ protected:
 	CaptureSource(QImage capture, GLuint texture, double d): Source(texture, d), _capture(capture) {
 
 		if (!_capture.isNull()) {
+			glActiveTexture(GL_TEXTURE0);
 	    	glBindTexture(GL_TEXTURE_2D, textureIndex);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

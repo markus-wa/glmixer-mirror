@@ -361,7 +361,7 @@ void ViewRenderWidget::paintGL()
 	if (_currentView->isModified())
 		_currentView->setModelview();
 	// draw the view
-	_currentView->paint();
+//	_currentView->paint();
 
 	// draw a semi-transparent overlay if view should be faded
 	if (faded)
@@ -412,16 +412,18 @@ void ViewRenderWidget::paintGL()
 		fpsCounter_ = 0;
 	}
 	// HUD display of framerate (on request or if FPS is dangerously slow)
-	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) )
-		displayFPS();
+//	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) )
+//		displayFPS();
 }
 
 void ViewRenderWidget::displayFPS()
 {
+
 	QString fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_,
 			0, 'f', ((f_p_s_ < 10.0) ? 1 : 0));
 	qglColor(f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red));
 	QGLWidget::renderText(10, (int)(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
+
 }
 
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
@@ -757,14 +759,15 @@ void ViewRenderWidget::buildShader(){
 	texc[6] = 0.f;
 	texc[7] = 1.f;
 	maskc[0] = 0.f;
-	maskc[1] = 0.f;
+	maskc[1] = 1.f;
 	maskc[2] = 1.f;
-	maskc[3] = 0.f;
+	maskc[3] = 1.f;
 	maskc[4] = 1.f;
-	maskc[5] = 1.f;
+	maskc[5] = 0.f;
 	maskc[6] = 0.f;
-	maskc[7] = 1.f;
+	maskc[7] = 0.f;
 
+	program = new QGLShaderProgram(this);
 	QGLShader *vshader = new QGLShader(QGLShader::Vertex, this);
 	const char *vsrc =
 		"#version 130\n"
@@ -781,23 +784,7 @@ void ViewRenderWidget::buildShader(){
 		"    maskc = maskCoord;\n"
 		"    baseColor = gl_Color;\n"
 		"}\n";
-//	const char *vsrc =
-//		"attribute highp vec4 texCoord;\n"
-//		"attribute vec4 maskCoord;\n"
-//		"varying highp vec4 texc;\n"
-//		"varying vec4 maskc;\n"
-//		"varying vec4 baseColor;\n"
-//		"void main(void)\n"
-//		"{\n"
-//		"    gl_Position = ftransform();\n"
-//		"    texc = texCoord;\n"
-//		"    maskc = maskCoord;\n"
-//		"    baseColor = gl_Color;\n"
-//		"}\n";
 	vshader->compileSourceCode(vsrc);
-
-
-	program = new QGLShaderProgram(this);
 	program->addShader(vshader);
 	program->addShaderFromSourceFile(QGLShader::Fragment, ":/glmixer/shaders/imageProcessing_fragment.glsl");
 	program->bindAttributeLocation("vertex", PROGRAM_VERTEX_ATTRIBUTE);
@@ -820,6 +807,7 @@ void ViewRenderWidget::buildShader(){
 	program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f);
 	program->setUniformValue("hueshift", 0.f);
 	program->setUniformValue("chromakey", 0.0, 0.0, 0.0 );
+	program->setUniformValue("chromadelta", 0.1f);
 	program->setUniformValue("threshold", 0.0f);
 	program->setUniformValue("nbColors", -1);
 	program->setUniformValue("invertMode", 0);
@@ -832,7 +820,6 @@ void ViewRenderWidget::buildShader(){
 	program->setAttributeArray (PROGRAM_VERTEX_ATTRIBUTE, coords, 3, 0);
 	program->setAttributeArray (PROGRAM_TEXCOORD_ATTRIBUTE, texc, 2, 0);
 	program->setAttributeArray (PROGRAM_MASKCOORD_ATTRIBUTE, maskc, 2, 0);
-
 
 	program->release();
 
@@ -865,22 +852,7 @@ GLuint ViewRenderWidget::buildHalfList_fine()
 	glPolygonStipple(halftone);
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
-
-	glBegin(GL_QUADS); // begin drawing a square
-
-	// Front Face (note that the texture's corners have to match the quad's corners)
-	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-
-	glTexCoord2f(0.0f, 1.0f);
-	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-	glTexCoord2f(1.0f, 0.0f);
-	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-	glTexCoord2f(0.0f, 0.0f);
-	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-
-	glEnd();
+    glDrawArrays(GL_QUADS, 0, 4);
 
 	glDisable(GL_POLYGON_STIPPLE);
 
@@ -892,17 +864,17 @@ GLuint ViewRenderWidget::buildHalfList_gross()
 {
 	GLubyte halftone[] =
 	{ 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-			0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33,
-			0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
-			0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xCC,
-			0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
-			0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
-			0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC,
-			0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33,
-			0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
-			0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC,
-			0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-			0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC };
+	0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33,
+	0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+	0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xCC,
+	0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33,
+	0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+	0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC,
+	0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33,
+	0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,
+	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xCC, 0xCC, 0xCC,
+	0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
+	0x33, 0x33, 0xCC, 0xCC, 0xCC, 0xCC };
 
 	GLuint id = glGenLists(1);
 	glNewList(id, GL_COMPILE);
@@ -911,22 +883,7 @@ GLuint ViewRenderWidget::buildHalfList_gross()
 	glPolygonStipple(halftone);
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
-
-	glBegin(GL_QUADS); // begin drawing a square
-
-	// Front Face (note that the texture's corners have to match the quad's corners)
-	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-
-	glTexCoord2f(0.0f, 1.0f);
-	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-	glTexCoord2f(1.0f, 0.0f);
-	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-	glTexCoord2f(0.0f, 0.0f);
-	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-
-	glEnd();
+    glDrawArrays(GL_QUADS, 0, 4);
 
 	glDisable(GL_POLYGON_STIPPLE);
 
@@ -936,40 +893,34 @@ GLuint ViewRenderWidget::buildHalfList_gross()
 
 GLuint ViewRenderWidget::buildHalfList_checkerboard()
 {
+	GLubyte halftone[] = {
+	    	    0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
+	    	    0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
+	    	    0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
+	    	    0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
+	    	    0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
+	    	    0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
+	    	    0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
+	    	    0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
+	    	    0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
+	    	    0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
+	    	    0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
+	    	    0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
+	    	    0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
+	    	    0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
+	    	    0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
+	    	    0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00};
+
 	GLuint id = glGenLists(1);
 	glNewList(id, GL_COMPILE);
 
-	// NON transparent
+	glEnable(GL_POLYGON_STIPPLE);
+	glPolygonStipple(halftone);
+
 	glColor4f(1.0, 1.0, 1.0, 1.0);
+    glDrawArrays(GL_QUADS, 0, 4);
 
-	// Front Face (note that the texture's corners have to match the quad's corners)
-	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-
-	glBegin(GL_QUADS); // begin drawing a grid
-
-	int I = 8, J = 6;
-	float x = 0.f, y = 0.f, u = 0.f, v = 0.f;
-	float dx = 2.f / (float) I, dy = 2.f / (float) J, du = 1.f / (float) I, dv =
-			1.f / (float) J;
-	for (int i = 0; i < I; ++i)
-		for (int j = 0; j < J; ++j)
-			if ((i + j) % 2 == 0)
-			{
-				u = (float) i * du;
-				v = 1.f - (float) j * dv;
-				x = (float) i * dx - 1.0;
-				y = (float) j * dy - 1.0;
-				glTexCoord2f(u, v);
-				glVertex3f(x, y, 0.0f); // Bottom Left
-				glTexCoord2f(u + du, v);
-				glVertex3f(x + dx, y, 0.0f); // Bottom Right
-				glTexCoord2f(u + du, v - dv);
-				glVertex3f(x + dx, y + dy, 0.0f); // Top Right
-				glTexCoord2f(u, v - dv);
-				glVertex3f(x, y + dy, 0.0f); // Top Left
-			}
-
-	glEnd();
+	glDisable(GL_POLYGON_STIPPLE);
 
 	glEndList();
 	return id;
@@ -1038,6 +989,9 @@ GLuint ViewRenderWidget::buildSelectList()
 
 /**
  * Build a display list of a textured QUAD and returns its id
+ *
+ * This is used only for the source drawing in GL_SELECT mode
+ *
  **/
 GLuint ViewRenderWidget::buildTexturedQuadList()
 {
@@ -1049,17 +1003,17 @@ GLuint ViewRenderWidget::buildTexturedQuadList()
 	// Front Face (note that the texture's corners have to match the quad's corners)
 	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
-	glMultiTexCoord2f(GL_TEXTURE0, 0.f, 1.f);
-	glMultiTexCoord2f(GL_TEXTURE1, 0.f, 1.f);
+//	glMultiTexCoord2f(GL_TEXTURE0, 0.f, 1.f);
+//	glMultiTexCoord2f(GL_TEXTURE1, 0.f, 1.f);
 	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-	glMultiTexCoord2f(GL_TEXTURE0, 1.f, 1.f);
-	glMultiTexCoord2f(GL_TEXTURE1, 1.f, 1.f);
+//	glMultiTexCoord2f(GL_TEXTURE0, 1.f, 1.f);
+//	glMultiTexCoord2f(GL_TEXTURE1, 1.f, 1.f);
 	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-	glMultiTexCoord2f(GL_TEXTURE0, 1.f, 0.f);
-	glMultiTexCoord2f(GL_TEXTURE1, 1.f, 0.f);
+//	glMultiTexCoord2f(GL_TEXTURE0, 1.f, 0.f);
+//	glMultiTexCoord2f(GL_TEXTURE1, 1.f, 0.f);
 	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-	glMultiTexCoord2f(GL_TEXTURE0, 0.f, 0.f);
-	glMultiTexCoord2f(GL_TEXTURE1, 0.f, 0.f);
+//	glMultiTexCoord2f(GL_TEXTURE0, 0.f, 0.f);
+//	glMultiTexCoord2f(GL_TEXTURE1, 0.f, 0.f);
 	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
 
 	glEnd();
@@ -1073,6 +1027,7 @@ GLuint ViewRenderWidget::buildTexturedQuadList()
  **/
 GLuint ViewRenderWidget::buildLineList()
 {
+	glActiveTexture(GL_TEXTURE2);
 	GLuint texid = bindTexture(QPixmap(QString::fromUtf8(
 			":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D);
 	GLuint texid2 = bindTexture(QPixmap(QString::fromUtf8(
@@ -1084,7 +1039,7 @@ GLuint ViewRenderWidget::buildLineList()
 	GLuint base = glGenLists(2);
 	glListBase(base);
 
-	// default
+	// default thin border
 	glNewList(base, GL_COMPILE);
 
 	glActiveTexture(GL_TEXTURE2);
@@ -1093,25 +1048,16 @@ GLuint ViewRenderWidget::buildLineList()
 
 	glPushMatrix();
 	glScalef(1.25, 1.25, 1.0);
-//	glBegin(GL_QUADS); // begin drawing a square
-//	glTexCoord2f(0.0f, 0.0f);
-//	glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-//	glTexCoord2f(1.0f, 0.0f);
-//	glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
-//	glTexCoord2f(1.0f, 1.0f);
-//	glVertex3f(1.f, 1.f, 0.0f); // Top Right
-//	glTexCoord2f(0.0f, 1.0f);
-//	glVertex3f(-1.f, 1.f, 0.0f); // Top Left
-//	glEnd();
-//
 
-
+	glColor4f(0.0, 0.0, 0.0, 0.0);
     glDrawArrays(GL_QUADS, 0, 4);
 
 	glPopMatrix();
 
 	glLineWidth(1.0);
 	glColor4f(0.9, 0.9, 0.0, 0.7);
+
+	glDisable(GL_TEXTURE_2D);
 
 	glBegin(GL_LINE_LOOP); // begin drawing a square
 	glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
@@ -1120,28 +1066,20 @@ GLuint ViewRenderWidget::buildLineList()
 	glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
 	glEnd();
 
-	glEnable(GL_TEXTURE_2D);
 
 	glEndList();
 
 	// over
 	glNewList(base + 1, GL_COMPILE);
 
+	glActiveTexture(GL_TEXTURE2);
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
 
 	glPushMatrix();
 	glScalef(1.25, 1.25, 1.0);
-//	glBegin(GL_QUADS); // begin drawing a square
-//	glTexCoord2f(0.0f, 0.0f);
-//	glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-//	glTexCoord2f(1.0f, 0.0f);
-//	glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
-//	glTexCoord2f(1.0f, 1.0f);
-//	glVertex3f(1.f, 1.f, 0.0f); // Top Right
-//	glTexCoord2f(0.0f, 1.0f);
-//	glVertex3f(-1.f, 1.f, 0.0f); // Top Left
-//	glEnd();
 
+	glColor4f(0.0, 0.0, 0.0, 0.0);
     glDrawArrays(GL_QUADS, 0, 4);
 
 	glPopMatrix();
@@ -1157,8 +1095,6 @@ GLuint ViewRenderWidget::buildLineList()
 	glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
 	glEnd();
 
-	glEnable(GL_TEXTURE_2D);
-
 	glEndList();
 
 	return base;
@@ -1169,6 +1105,7 @@ GLuint ViewRenderWidget::buildCircleList()
 	GLuint id = glGenLists(1);
 	GLUquadricObj *quadObj = gluNewQuadric();
 
+	glActiveTexture(GL_TEXTURE0);
 	GLuint texid = 0; //bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/circle.png")), GL_TEXTURE_2D);
 	glGenTextures(1, &texid);
 	glBindTexture(GL_TEXTURE_2D, texid);
@@ -1188,6 +1125,8 @@ GLuint ViewRenderWidget::buildCircleList()
 	glTranslatef(0.0, 0.0, -1.0);
 
 	glDisable(GL_BLEND);
+
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);

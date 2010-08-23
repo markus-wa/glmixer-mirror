@@ -67,6 +67,7 @@ void GeometryView::paint()
     glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
     glPopMatrix();
 
+    ViewRenderWidget::program->bind();
     bool first = true;
     // then the icons of the sources (reversed depth order)
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
@@ -80,11 +81,14 @@ void GeometryView::paint()
         glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
         // draw border and handles if active
+		ViewRenderWidget::program->setUniformValue("sourceDrawing", false);
+
 		if ((*its)->isActive())
 	        glCallList(borderType);
 		else
 			glCallList(ViewRenderWidget::border_thin);
 
+		ViewRenderWidget::program->setUniformValue("sourceDrawing", true);
 	    // Blending Function For mixing like in the rendering window
         (*its)->beginEffectsSection();
 		// bind the source texture and update its content
@@ -110,6 +114,8 @@ void GeometryView::paint()
 	else
 		// fill-in the loopback buffer
 		RenderingManager::getInstance()->updatePreviousFrame();
+
+    ViewRenderWidget::program->release();
 
     // last the frame thing
 	glPushMatrix();
@@ -393,6 +399,7 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 	if (its != RenderingManager::getInstance()->getEnd()) {
 	    double dx = 0.0, dy = 0.0;
 
+	    // TODO compute pixel width
 	    double bx = 1.0, by = 1.0, bz = 1.0;
 //	    gluUnProject(-0.10, -0.10, 0.0, modelview, projection, viewport, &bx, &by, &bz);
 

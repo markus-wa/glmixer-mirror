@@ -61,7 +61,8 @@ public:
 	/**
 	 * QGLWidget implementation
 	 */
-	void paintGL();
+//	void paintGL();
+    void paintEvent(QPaintEvent *event);
 	void initializeGL();
 	void resizeGL(int w = 0, int h = 0);
     void mousePressEvent(QMouseEvent *event);
