@@ -41,9 +41,8 @@ Source::Source() :
 			active(false), culled(false), frameChanged(false), textureIndex(0),
 			maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(0),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-			centerx(0.0), centery(0.0), rotangle(0.0),
-			aspectratio(1.0), texalpha(1.0), pixelated(false),
-			filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
+			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
+			pixelated(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
 			brightness(0.f), contrast(1.f),	saturation(1.f),
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
 			hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
@@ -55,6 +54,8 @@ Source::Source() :
 	destination_blend = GL_ONE;
 	blend_eq = GL_FUNC_ADD;
 
+	textureCoordinates.setCoords(0.0, 0.0, 1.0, 1.0);
+
 	// default name
 	name = QString("Source");
 
@@ -65,9 +66,8 @@ Source::Source(GLuint texture, double depth) :
 	active(false), culled(false), frameChanged(true), textureIndex(texture),
 	maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
 	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-	centerx(0.0), centery(0.0), rotangle(0.0),
-	aspectratio(1.0), texalpha(1.0), pixelated(false),
-	filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
+	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
+	pixelated(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
 	brightness(0.f), contrast(1.f),	saturation(1.f),
 	gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
 	hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
@@ -78,6 +78,8 @@ Source::Source(GLuint texture, double depth) :
 	source_blend = GL_SRC_ALPHA;
 	destination_blend = GL_ONE;
 	blend_eq = GL_FUNC_ADD;
+
+	textureCoordinates.setCoords(0.0, 0.0, 1.0, 1.0);
 
 	// default name
 	name = QString("Source");
@@ -250,12 +252,15 @@ void Source::draw(bool withalpha, GLenum mode) const {
 		glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(),
 				withalpha ? texalpha : 1.0);
 
-// TODO : crop
-//		if (cropped) {
-//
-//			modify texc
-//		}
-
+		// texture coordinate changes
+		ViewRenderWidget::texc[0] = textureCoordinates.left();
+		ViewRenderWidget::texc[1] = textureCoordinates.top();
+		ViewRenderWidget::texc[2] = textureCoordinates.right();
+		ViewRenderWidget::texc[3] = textureCoordinates.top();
+		ViewRenderWidget::texc[4] = textureCoordinates.right();
+		ViewRenderWidget::texc[5] = textureCoordinates.bottom();
+		ViewRenderWidget::texc[6] = textureCoordinates.left();
+		ViewRenderWidget::texc[7] = textureCoordinates.bottom();
 
 	    glDrawArrays(GL_QUADS, 0, 4);
 	}
@@ -314,7 +319,6 @@ void Source::endEffectsSection() const {
 	// disable the mask
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[Source::NO_MASK]);
-//	glDisable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
 
 }
@@ -327,7 +331,6 @@ void Source::blend() const {
 
 	// activate texture 1 ; double texturing of the mask
 	glActiveTexture(GL_TEXTURE1);
-//	glEnable(GL_TEXTURE_2D);
 	// select and enable the texture corresponding to the mask
 	glBindTexture(GL_TEXTURE_2D, maskTextureIndex);
 
@@ -372,6 +375,7 @@ QDataStream &operator<<(QDataStream &stream, const Source *source){
 			<< source->getAlpha()
 			<< (unsigned int) source->getBlendFuncDestination()
 			<< (unsigned int) source->getBlendEquation()
+			<< source->getTextureCoordinates()
 			<< source->getColor()
 			<< source->isPixelated()
 			<< (unsigned int) source->getFilter()
@@ -411,6 +415,7 @@ QDataStream &operator>>(QDataStream &stream, Source *source){
 	float floatValue, f2, f3, f4, f5;
 	QColor colorValue;
 	bool boolValue;
+	QRectF rectValue;
 
 	stream >> doubleValue; 	source->setX(doubleValue);
 	stream >> doubleValue; 	source->setY(doubleValue);
@@ -422,6 +427,7 @@ QDataStream &operator>>(QDataStream &stream, Source *source){
 	stream >> floatValue; 	source->setAlpha(floatValue);
 	stream >> uintValue;	source->setBlendFunc(GL_SRC_ALPHA, (GLenum) uintValue);
 	stream >> uintValue;	source->setBlendEquation(uintValue);
+	stream >> rectValue;	source->setTextureCoordinates(rectValue);
 	stream >> colorValue;	source->setColor(colorValue);
 	stream >> boolValue;	source->setPixelated(boolValue);
 	stream >> uintValue;	source->setFilter( (Source::filterType) uintValue);
@@ -454,6 +460,7 @@ void Source::copyPropertiesFrom(const Source *source){
 	texalpha = source->texalpha;
 	destination_blend = source->destination_blend;
 	blend_eq =  source->blend_eq;
+	textureCoordinates = source->textureCoordinates;
 	texcolor = source->texcolor;
 	brightness = source->brightness;
 	contrast = source->contrast;

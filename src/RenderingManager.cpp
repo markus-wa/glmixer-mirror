@@ -797,6 +797,13 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 		scale.setAttribute("Y", (*its)->getScaleY());
 		sourceElem.appendChild(scale);
 
+		QDomElement crop = doc.createElement("Crop");
+		crop.setAttribute("X", (*its)->getTextureCoordinates().x());
+		crop.setAttribute("Y", (*its)->getTextureCoordinates().y());
+		crop.setAttribute("W", (*its)->getTextureCoordinates().width());
+		crop.setAttribute("H", (*its)->getTextureCoordinates().height());
+		sourceElem.appendChild(crop);
+
 		QDomElement d = doc.createElement("Depth");
 		d.setAttribute("Z", (*its)->getDepth());
 		sourceElem.appendChild(d);
@@ -942,6 +949,9 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 
 	tmp = child.firstChildElement("Color");
 	newsource->setColor( QColor( tmp.attribute("R").toInt(),tmp.attribute("G").toInt(), tmp.attribute("B").toInt() ) );
+
+	tmp = child.firstChildElement("Crop");
+	newsource->setTextureCoordinates( QRectF( tmp.attribute("X").toDouble(), tmp.attribute("Y").toDouble(),tmp.attribute("W").toDouble(),tmp.attribute("H").toDouble() ) );
 
 	tmp = child.firstChildElement("Blending");
 	newsource->setBlendEquation( (GLenum) tmp.attribute("Equation").toInt()  );

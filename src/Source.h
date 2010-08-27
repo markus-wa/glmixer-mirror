@@ -30,6 +30,7 @@
 #include <QColor>
 #include <QMap>
 #include <QDataStream>
+#include <QRectF>
 
 #include "common.h"
 
@@ -157,7 +158,9 @@ public:
 	inline GLdouble getRotationAngle() const {
 		return rotangle;
 	}
-
+	inline QRectF getTextureCoordinates() const {
+		return textureCoordinates;
+	}
 	// sets
 	inline void setAspectRatio(GLdouble ar) {
 		aspectratio = ar;
@@ -184,6 +187,11 @@ public:
 		rotangle = v;
 	}
 	void moveTo(GLdouble posx, GLdouble posy);
+
+	void setTextureCoordinates(QRectF textureCoords) {
+		textureCoordinates = textureCoords;
+	}
+
 	void setScale(GLdouble sx, GLdouble sy);
 	void scaleBy(GLfloat fx, GLfloat fy);
 	void clampScale();
@@ -421,7 +429,7 @@ protected:
 	QColor texcolor;
 	GLenum source_blend, destination_blend;
 	GLenum blend_eq;
-	GLfloat crop_start_x, crop_start_y, crop_end_x, crop_end_y;
+	QRectF textureCoordinates;
 
 	// if should be set to GL_NEAREST
 	bool pixelated;

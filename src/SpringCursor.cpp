@@ -120,7 +120,7 @@ bool SpringCursor::wheelEvent(QWheelEvent * event){
 
 
 void SpringCursor::draw(GLint viewport[4]) {
-		glDisable(GL_TEXTURE_2D);
+
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 		glLoadIdentity();
@@ -140,7 +140,6 @@ void SpringCursor::draw(GLint viewport[4]) {
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
-		glEnable(GL_TEXTURE_2D);
 	}
 
 //	return Cursor::update(fpsaverage);

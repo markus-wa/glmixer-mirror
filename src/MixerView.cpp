@@ -61,8 +61,8 @@ void MixerView::paint()
     glCallList(ViewRenderWidget::circle_mixing);
 
     // and the selection connection lines
-	glActiveTexture(GL_TEXTURE0);
-    glDisable(GL_TEXTURE_2D);
+//	glActiveTexture(GL_TEXTURE0);
+//    glDisable(GL_TEXTURE_2D);
     glLineStipple(1, 0x9999);
     glEnable(GL_LINE_STIPPLE);
     glLineWidth(2.0);
@@ -87,8 +87,11 @@ void MixerView::paint()
 
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
-    glEnable(GL_TEXTURE_2D);
     ViewRenderWidget::program->bind();
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
 
     bool first = true;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
@@ -143,6 +146,10 @@ void MixerView::paint()
 	    RenderingManager::getInstance()->updatePreviousFrame();
 
     ViewRenderWidget::program->release();
+	glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
 
     // Then the selection outlines
     for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
@@ -156,7 +163,7 @@ void MixerView::paint()
 
 	// The rectangle for selection
     if ( currentAction == View::RECTANGLE) {
-		glDisable(GL_TEXTURE_2D);
+//		glDisable(GL_TEXTURE_2D);
 		glColor4f(0.3, 0.8, 0.3, 0.1);
 		glRectdv(rectangleStart, rectangleEnd);
 		glLineWidth(0.5);
@@ -167,7 +174,7 @@ void MixerView::paint()
 		glVertex3d(rectangleEnd[0], rectangleEnd[1], 0.0);
 		glVertex3d(rectangleStart[0], rectangleEnd[1], 0.0);
 	    glEnd();
-		glEnable(GL_TEXTURE_2D);
+//		glEnable(GL_TEXTURE_2D);
     }
 
     // the source dropping icon

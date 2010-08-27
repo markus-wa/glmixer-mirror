@@ -348,8 +348,11 @@ void ViewRenderWidget::paintGL()
 	glRenderWidget::paintGL();
 
 	// apply modelview transformations from zoom and panning only when requested
-	if (_currentView->isModified())
+	if (_currentView->isModified()) {
 		_currentView->setModelview();
+		// update modelview-projection matrix of the shader
+//		program->setUniformValue("ModelViewProjectionMatrix",QMatrix4x4 (_currentView->projection) * QMatrix4x4 (_currentView->modelview) );
+	}
 	// draw the view
 	_currentView->paint();
 
@@ -423,7 +426,7 @@ void ViewRenderWidget::displayFPS()
 	glPushMatrix();
 	glLoadIdentity();
 
-	glDisable(GL_TEXTURE_2D);
+//	glDisable(GL_TEXTURE_2D);
 
 	qglColor(Qt::lightGray);
 	glRectf(9.0, height() - 9.0, 61.0, height() - 21.0);
@@ -432,7 +435,7 @@ void ViewRenderWidget::displayFPS()
 	// Draw a filled rectangle with current color
 	glRectf(10.0, height() - 10.0, f_p_s_, height() - 20.0);
 
-	glEnable(GL_TEXTURE_2D);
+//	glEnable(GL_TEXTURE_2D);
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
@@ -781,24 +784,7 @@ void ViewRenderWidget::buildShader(){
 	maskc[7] = 0.f;
 
 	program = new QGLShaderProgram(this);
-	QGLShader *vshader = new QGLShader(QGLShader::Vertex, this);
-	const char *vsrc =
-		"#version 130\n"
-		"in highp vec4 texCoord;\n"
-		"out highp vec4 texc;\n"
-		"in vec4 maskCoord;\n"
-		"out vec4 maskc;\n"
-		"in vec4 gl_Color;\n"
-		"out vec4 baseColor;\n"
-		"void main(void)\n"
-		"{\n"
-		"    gl_Position = ftransform();\n"
-		"    texc = texCoord;\n"
-		"    maskc = maskCoord;\n"
-		"    baseColor = gl_Color;\n"
-		"}\n";
-	vshader->compileSourceCode(vsrc);
-	program->addShader(vshader);
+	program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl");
 	program->addShaderFromSourceFile(QGLShader::Fragment, ":/glmixer/shaders/imageProcessing_fragment.glsl");
 	program->bindAttributeLocation("vertex", PROGRAM_VERTEX_ATTRIBUTE);
 	program->bindAttributeLocation("texCoord", PROGRAM_TEXCOORD_ATTRIBUTE);
@@ -825,6 +811,8 @@ void ViewRenderWidget::buildShader(){
 	program->setUniformValue("nbColors", -1);
 	program->setUniformValue("invertMode", 0);
 	program->setUniformValue("filter", 0);
+
+	program->setUniformValue("ModelViewProjectionMatrix", QMatrix4x4 ());
 
 	program->enableAttributeArray(PROGRAM_VERTEX_ATTRIBUTE);
 	program->enableAttributeArray(PROGRAM_TEXCOORD_ATTRIBUTE);
@@ -977,7 +965,6 @@ GLuint ViewRenderWidget::buildSelectList()
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glDisable(GL_TEXTURE_2D);
 
 	glLineWidth(2.0);
 	glColor4f(0.2, 0.80, 0.2, 1.0);
@@ -993,7 +980,6 @@ GLuint ViewRenderWidget::buildSelectList()
 	glEnd();
 
 	glDisable(GL_LINE_STIPPLE);
-	glEnable(GL_TEXTURE_2D);
 
 	glEndList();
 
@@ -1015,18 +1001,9 @@ GLuint ViewRenderWidget::buildTexturedQuadList()
 
 	// Front Face (note that the texture's corners have to match the quad's corners)
 	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-
-//	glMultiTexCoord2f(GL_TEXTURE0, 0.f, 1.f);
-//	glMultiTexCoord2f(GL_TEXTURE1, 0.f, 1.f);
 	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-//	glMultiTexCoord2f(GL_TEXTURE0, 1.f, 1.f);
-//	glMultiTexCoord2f(GL_TEXTURE1, 1.f, 1.f);
 	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-//	glMultiTexCoord2f(GL_TEXTURE0, 1.f, 0.f);
-//	glMultiTexCoord2f(GL_TEXTURE1, 1.f, 0.f);
 	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-//	glMultiTexCoord2f(GL_TEXTURE0, 0.f, 0.f);
-//	glMultiTexCoord2f(GL_TEXTURE1, 0.f, 0.f);
 	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
 
 	glEnd();
@@ -1140,6 +1117,7 @@ GLuint ViewRenderWidget::buildCircleList()
 	glDisable(GL_BLEND);
 
 	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
@@ -1166,7 +1144,6 @@ GLuint ViewRenderWidget::buildCircleList()
 	glColor4f(0.1, 0.1, 0.1, 0.8);
 	gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT * 3.0, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 50, 3);
 
-	glEnable(GL_TEXTURE_2D);
 
 	glPopMatrix();
 	glEndList();
@@ -1180,7 +1157,6 @@ GLuint ViewRenderWidget::buildLayerbgList()
 
 	glNewList(id, GL_COMPILE);
 
-	glDisable(GL_TEXTURE_2D);
 	glColor4f(0.6, 0.6, 0.6, 1.0);
 	glLineWidth(0.7);
 	glBegin(GL_LINES);
@@ -1191,7 +1167,6 @@ GLuint ViewRenderWidget::buildLayerbgList()
 	}
 	glEnd();
 
-	glEnable(GL_TEXTURE_2D);
 	glEndList();
 
 	return id;
@@ -1252,6 +1227,8 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 	glColor4ub(0, 0, 0, 200);
 
@@ -1281,7 +1258,6 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
 		glVertex3f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Left
 	glEnd();
 
-	glEnable(GL_TEXTURE_2D);
 
 	glEndList();
 	return id;
@@ -1303,7 +1279,6 @@ GLuint ViewRenderWidget::buildFrameList()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
-	glDisable(GL_TEXTURE_2D);
 	glLineWidth(5.0);
 	glColor4f(0.85, 0.15, 0.85, 1.0);
 
@@ -1326,7 +1301,6 @@ GLuint ViewRenderWidget::buildFrameList()
 		glVertex3f(-1.01f * SOURCE_UNIT, 0.0f, 0.0f);
 	glEnd();
 
-	glEnable(GL_TEXTURE_2D);
 	glEndList();
 
 	return base;
@@ -1346,7 +1320,6 @@ GLuint ViewRenderWidget::buildBordersList()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
-	glDisable(GL_TEXTURE_2D);
 	glLineWidth(1.0);
 	glColor4f(0.9, 0.9, 0.0, 0.7);
 
@@ -1357,7 +1330,6 @@ GLuint ViewRenderWidget::buildBordersList()
 	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
 	glEnd();
 
-	glEnable(GL_TEXTURE_2D);
 	glEndList();
 
 	// selected large border (no action)
@@ -1366,7 +1338,6 @@ GLuint ViewRenderWidget::buildBordersList()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
-	glDisable(GL_TEXTURE_2D);
 	glColor4f(0.9, 0.9, 0.0, 0.8);
 
 	// draw the bold border
@@ -1380,8 +1351,6 @@ GLuint ViewRenderWidget::buildBordersList()
 
 	glEnd();
 
-	glEnable(GL_TEXTURE_2D);
-
 	glEndList();
 
 	// selected for TOOL
@@ -1390,7 +1359,6 @@ GLuint ViewRenderWidget::buildBordersList()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
-	glDisable(GL_TEXTURE_2D);
 	glColor4f(0.9, 0.9, 0.0, 0.9);
 
 	// draw the bold border
@@ -1430,8 +1398,6 @@ GLuint ViewRenderWidget::buildBordersList()
 
 	glEnd();
 
-	glEnable(GL_TEXTURE_2D);
-
 	glEndList();
 
 	return base;
@@ -1448,17 +1414,14 @@ GLuint ViewRenderWidget::buildFadingList()
 	glPushMatrix();
 	glLoadIdentity();
 	gluOrtho2D(-1, 1, -1, 1);
-
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glDisable(GL_TEXTURE_2D);
 	glColor4f(0.1, 0.1, 0.1, 0.5);
 	glRectf(-1, -1, 1, 1);
-	glEnable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

@@ -64,6 +64,7 @@ private:
     void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
     void scaleSource(SourceSet::iterator s, int x, int y, int dx, int dy, bool option = 0);
     void rotateSource(SourceSet::iterator s, int x, int y, int dx, int dy, bool option = 0);
+    void cropSource(SourceSet::iterator s, int x, int y, int dx, int dy, bool option = 0);
     void panningBy(int x, int y, int dx, int dy);
     void setAction(actionType a);
 

@@ -35,6 +35,7 @@
 #include <QtIntPropertyManager>
 #include <QtStringPropertyManager>
 #include <QtColorPropertyManager>
+#include <QtRectFPropertyManager>
 #include <QtPointFPropertyManager>
 #include <QtSizePropertyManager>
 #include <QtEnumPropertyManager>
@@ -104,6 +105,7 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent)
     pointManager = new QtPointFPropertyManager(this);
     enumManager = new QtEnumPropertyManager(this);
     boolManager = new QtBoolPropertyManager(this);
+    rectManager = new QtRectFPropertyManager(this);
     // special managers which are not associated with a factory (i.e non editable)
     infoManager = new QtStringPropertyManager(this);
     sizeManager = new QtSizePropertyManager(this);
@@ -127,6 +129,7 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent)
     propertyTreeEditor->setFactoryForManager(pointManager->subDoublePropertyManager(), doubleSpinBoxFactory);
     propertyTreeEditor->setFactoryForManager(enumManager, comboBoxFactory);
     propertyTreeEditor->setFactoryForManager(boolManager, checkBoxFactory);
+    propertyTreeEditor->setFactoryForManager(rectManager->subDoublePropertyManager(), doubleSpinBoxFactory);
 
     propertyGroupEditor->setFactoryForManager(doubleManager, doubleSpinBoxFactory);
     propertyGroupEditor->setFactoryForManager(intManager, sliderFactory);
@@ -135,6 +138,7 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent)
     propertyGroupEditor->setFactoryForManager(pointManager->subDoublePropertyManager(), doubleSpinBoxFactory);
     propertyGroupEditor->setFactoryForManager(enumManager, comboBoxFactory);
     propertyGroupEditor->setFactoryForManager(boolManager, checkBoxFactory);
+    propertyGroupEditor->setFactoryForManager(rectManager->subDoublePropertyManager(), doubleSpinBoxFactory);
 
 }
 
@@ -206,8 +210,15 @@ void SourcePropertyBrowser::createPropertyTree(){
 	property = pointManager->addProperty("Scale");
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("Scaling factors on X and Y");
-	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
-	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
+	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
+	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
+	root->addSubProperty(property);
+	// Texture coordinates
+	property = rectManager->addProperty("Crop");
+	idToProperty[property->propertyName()] = property;
+	property->setToolTip("Texture coordinates (top-left bottom-right)");
+	rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
+	rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
 	root->addSubProperty(property);
 	// Depth
 	property = doubleManager->addProperty("Depth");
@@ -513,6 +524,8 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
                 this, SLOT(valueChanged(QtProperty *, int)));
     disconnect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
                 this, SLOT(valueChanged(QtProperty *, bool)));
+    disconnect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
+                this, SLOT(valueChanged(QtProperty *, const QRectF &)));
 
 	if (s) {
 		stringManager->setValue(idToProperty["Name"], s->getName() );
@@ -520,6 +533,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		pointManager->setValue(idToProperty["Rotation center"], QPointF( s->getCenterX() / SOURCE_UNIT, s->getCenterY() / SOURCE_UNIT));
 		doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
 		pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
+		rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
 		doubleManager->setValue(idToProperty["Depth"], s->getDepth() );
 		doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
 		enumManager->setValue(idToProperty["Blending"], presetBlending.key( qMakePair( glblendToEnum[s->getBlendFuncDestination()], glequationToEnum[s->getBlendEquation()] ) ) );
@@ -644,6 +658,8 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 	                this, SLOT(valueChanged(QtProperty *, int)));
 	    connect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
 	                this, SLOT(valueChanged(QtProperty *, bool)));
+	    connect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
+	                this, SLOT(valueChanged(QtProperty *, const QRectF &)));
 	}
 }
 
@@ -752,6 +768,17 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QPointF &va
 	}
 }
 
+void SourcePropertyBrowser::valueChanged(QtProperty *property, const QRectF &value){
+
+	if (!currentItem)
+			return;
+
+	if ( property == idToProperty["Crop"] ) {
+		currentItem->setTextureCoordinates(value);
+	}
+}
+
+
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &value){
 
@@ -763,9 +790,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &val
 	}
 	else if ( property == idToProperty["Key Color"] ) {
 			currentItem->setChromaKeyColor(value);
-
-			qDebug("chroma  %f  %f  %f", value.hueF(), value.saturationF(), value.valueF() );
-//			qDebug("chroma  %f  %f  %f", 1.f - value.hueF(), 1.f - value.saturationF(), 1.f - value.valueF() );
 	}
 }
 
@@ -980,8 +1004,12 @@ void SourcePropertyBrowser::updateGeometryProperties(){
 	pointManager->setValue(idToProperty["Position"], QPointF( currentItem->getX() / SOURCE_UNIT, currentItem->getY() / SOURCE_UNIT));
 	pointManager->setValue(idToProperty["Scale"], QPointF( currentItem->getScaleX() / SOURCE_UNIT, currentItem->getScaleY() / SOURCE_UNIT));
 	doubleManager->setValue(idToProperty["Angle"], currentItem->getRotationAngle());
-
 	connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
+
+	disconnect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)), this, SLOT(valueChanged(QtProperty *, const QRectF &)));
+	rectManager->setValue(idToProperty["Crop"], currentItem->getTextureCoordinates() );
+	connect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)), this, SLOT(valueChanged(QtProperty *, const QRectF &)));
+
 }
 
 void SourcePropertyBrowser::updateLayerProperties(){

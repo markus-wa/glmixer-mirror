@@ -61,6 +61,7 @@ public slots:
     void enumChanged(QtProperty *property, int value);
 	void valueChanged(QtProperty *property, double value);
 	void valueChanged(QtProperty *property, const QString &value);
+    void valueChanged(QtProperty *property, const QRectF &value);
 
     // force expanding or collapsing of the property tree items
     void setGlobalExpandState(bool expanded);
@@ -108,6 +109,7 @@ private:
     class QtSizePropertyManager *sizeManager;
     class QtEnumPropertyManager *enumManager;
     class QtBoolPropertyManager *boolManager;
+    class QtRectFPropertyManager *rectManager;
 
 };
 

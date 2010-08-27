@@ -68,6 +68,11 @@ void GeometryView::paint()
     glPopMatrix();
 
     ViewRenderWidget::program->bind();
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
+
     bool first = true;
     // then the icons of the sources (reversed depth order)
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
@@ -116,6 +121,10 @@ void GeometryView::paint()
 		RenderingManager::getInstance()->updatePreviousFrame();
 
     ViewRenderWidget::program->release();
+	glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
 
     // last the frame thing
 	glPushMatrix();
@@ -271,6 +280,8 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 					grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
 				else if (currentTool == SCALE)
 					scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+				else if (currentTool == CROP)
+					cropSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
 				else if (currentTool == ROTATE) {
 					rotateSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
 					setTool(currentTool);
@@ -461,7 +472,10 @@ void GeometryView::setTool(toolType t)
 
 		break;
 	case CROP:
-		// TODO implement crop
+		if ( quadrant % 2 )
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
+		else
+			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_B);
 		break;
 	default:
 	case MOVE:
@@ -711,7 +725,7 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
 	sy = option ? sx : (ay + h) / (by + h);  // proportional scaling if option is ON
 	ay = h * (sy - 1.0);
 
-    // reverse rotation to apply scaling and shift in the world reference
+    // reverse rotation to apply translation shift in the world reference
     cosa = cos((*currentSource)->getRotationAngle() / 180.0 * M_PI);
     sina = sin((*currentSource)->getRotationAngle() / 180.0 * M_PI);
 
@@ -816,6 +830,108 @@ void GeometryView::rotateSource(SourceSet::iterator currentSource, int X, int Y,
 //    // modulo 360
 //    angle -= (double)( (int) angle / 360 ) * 360.0;
 //	(*currentSource)->setRotationAngle(angle);
+
+
+/**
+ * Crop the source
+ *
+ * it looks easy, BUT :
+ * - I wanted a crop similar to a scaling, with the source geometry changing (scaling)  ; the texture have to be adapted to the
+ *  new scale and position on the fly...
+ *
+ * This implementation performs a scaling of the 'source geometry' (the border) while keeps the texels in place.
+ * Cropping OUTSIDE the geometry repeats the texture.
+ *
+ *
+ **/
+void GeometryView::cropSource(SourceSet::iterator currentSource, int X, int Y, int dx, int dy, bool option) {
+
+	double dum;
+    double bx, by; // before movement
+    double ax, ay; // after  movement
+
+    // get clic coordinates in Geometry view coordinate system
+	gluUnProject((GLdouble) (X - dx), (GLdouble) (Y - dy),
+			1.0, modelview, projection, viewport, &bx, &by, &dum);
+	gluUnProject((GLdouble) X, (GLdouble) Y, 1.0,
+			modelview, projection, viewport, &ax, &ay, &dum);
+
+	// take into account movement of the cursor due to zoom with scroll wheel
+	ax += (ax + getPanningX()) * deltazoom;
+	ay += (ay + getPanningY()) * deltazoom;
+
+    double w = ((*currentSource)->getScaleX());
+    double x = (*currentSource)->getX();
+    double h = ((*currentSource)->getScaleY());
+    double y = (*currentSource)->getY();
+    double cosa = cos(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    double sina = sin(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+
+    // convert to vectors ( source center -> clic position)
+	ax -= x; ay -= y;
+	bx -= x; by -= y;
+
+	// rotate to compute scaling into the source orientation
+	dum = ax * cosa - ay * sina;
+	ay = ay  * cosa + ax * sina;
+	ax = dum;
+
+	dum = bx * cosa - by * sina;
+	by = by  * cosa + bx * sina;
+	bx = dum;
+
+	// Scaling, according to the quadrant in which we clicked
+    double sx = 1.0, sy = 1.0;
+
+	if ( quadrant == 1 || quadrant == 4)   // LEFT
+		w = -w;
+	sx = (ax + w) / (bx + w);
+
+	if ( quadrant > 2 )					  // BOTTOM
+		h = -h;
+	sy = option ? sx : (ay + h) / (by + h);  // proportional scaling if option is ON
+
+	// translate
+	double tx = w * (sx - 1.0);
+	double ty = h * (sy - 1.0);
+
+	// Crop
+	QRectF tex = (*currentSource)->getTextureCoordinates();
+	// compute texture coordinate of point clicked before movement
+	double bs = bx / (2.0 * ((*currentSource)->getScaleX()));
+	double bt = by / (2.0 * ((*currentSource)->getScaleY()));
+	// compute texture coordinate of point clicked after movement, considering the movement changes
+	double as =  ( ax + tx ) / (2.0 * ((*currentSource)->getScaleX()) * sx);
+	double at =  ( ay + ty ) / (2.0 * ((*currentSource)->getScaleY()) * sy);
+	// depending on the quadrant, it is not the same corner of texture coordinates to change
+	if ( quadrant == 1 ) {
+		tex.setLeft( tex.left() + tex.width() * (as - bs) );
+		tex.setTop( tex.top() + tex.height() * (bt - at) );
+	} else if ( quadrant == 2 ) {
+		tex.setRight( tex.right() + tex.width() * (as - bs) );
+		tex.setTop( tex.top() + tex.height() * (bt - at) );
+	} else if ( quadrant == 3 ) {
+		tex.setRight( tex.right() + tex.width() * (as - bs) );
+		tex.setBottom( tex.bottom() + tex.height() * (bt - at) );
+	} else {
+		tex.setLeft( tex.left() + tex.width() * (as - bs) );
+		tex.setBottom( tex.bottom() + tex.height() * (bt - at) );
+	}
+	(*currentSource)->setTextureCoordinates(tex);
+
+    // reverse rotation to apply translation shift in the world reference
+    cosa = cos((*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    sina = sin((*currentSource)->getRotationAngle() / 180.0 * M_PI);
+
+	dum = tx * cosa - ty * sina;
+	ty = ty  * cosa + tx * sina;
+	tx = dum;
+
+    (*currentSource)->scaleBy(sx, sy);
+    (*currentSource)->moveTo(x + tx, y + ty);
+
+}
+
 
 /**
  *
