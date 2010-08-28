@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1049</width>
-    <height>856</height>
+    <width>1115</width>
+    <height>907</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="centralViewLayout">
+   <layout class="QVBoxLayout" name="centralViewLayout">
     <property name="spacing">
      <number>0</number>
     </property>
@@ -40,7 +40,7 @@
     <item>
      <widget class="QFrame" name="viewControlBar">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+       <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -54,18 +54,21 @@
       <property name="frameShadow">
        <enum>QFrame::Plain</enum>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_7">
-       <property name="leftMargin">
-        <number>3</number>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <property name="spacing">
+        <number>5</number>
        </property>
-       <property name="topMargin">
+       <property name="leftMargin">
         <number>10</number>
        </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
        <property name="rightMargin">
-        <number>0</number>
+        <number>10</number>
        </property>
        <property name="bottomMargin">
-        <number>7</number>
+        <number>3</number>
        </property>
        <item>
         <widget class="QLabel" name="viewIcon">
@@ -81,9 +84,28 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_2">
+        <widget class="QLabel" name="viewLabel">
+         <property name="styleSheet">
+          <string notr="true">color: rgb(128, 128, 128);</string>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="text">
+          <string>View</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::NoTextInteraction</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizSpace">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -92,6 +114,16 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="zoomLabel">
+         <property name="styleSheet">
+          <string notr="true">color: rgb(128, 128, 128);</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonZoomReset">
@@ -152,6 +184,23 @@
          <property name="icon">
           <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/zoom-fit-best.png</normaloff>:/glmixer/icons/zoom-fit-best.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="fpsLabel">
+         <property name="styleSheet">
+          <string notr="true">color: rgb(128, 128, 128);</string>
+         </property>
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
@@ -1151,7 +1200,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1049</width>
+     <width>1115</width>
      <height>19</height>
     </rect>
    </property>

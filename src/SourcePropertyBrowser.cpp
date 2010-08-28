@@ -339,8 +339,8 @@ void SourcePropertyBrowser::createPropertyTree(){
 	enumNames.clear();
 	enumNames << "None" << "Gaussian blur" << "Median blur" << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
 			  << "Medium edge detect"<< "Hard edge detect"<<"Emboss"<<"Edge emboss"
-			  << "Erosion 3x3"<< "Erosion 7x7"<< "Erosion 13x13"
-			  << "Dilation 3x3"<< "Dilation 7x7"<< "Dilation 13x13";
+			  << "Erosion 3x3"<< "Erosion 5x5"<< "Erosion 7x7"
+			  << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7";
 	enumManager->setEnumNames(property, enumNames);
 	root->addSubProperty(property);
 	// Chroma key on/off
@@ -617,7 +617,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			else
 				infoManager->setValue(idToProperty["Rendering mechanism"], "Draw to frame buffer object" );
 			sizeManager->setValue(idToProperty["Frames size"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
-			infoManager->setValue(idToProperty["Frame rate"], QString::number( RenderingManager::getRenderingWidget()->getFPS() / float(RenderingManager::getInstance()->getPreviousFrameDelay()) ) + QString(" fps") );
+			infoManager->setValue(idToProperty["Frame rate"], QString::number( RenderingManager::getRenderingWidget()->getFramerate() / float(RenderingManager::getInstance()->getPreviousFrameDelay()) ) + QString(" fps") );
 		} else
 		if (s->rtti() == Source::ALGORITHM_SOURCE) {
 

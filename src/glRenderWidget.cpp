@@ -92,6 +92,7 @@ void glRenderWidget::initializeGL()
 
     // setup default background color to black
     glClearColor(0.0, 0.0, 0.0, 1.0f);
+    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
 }
 

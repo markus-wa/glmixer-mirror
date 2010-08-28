@@ -77,18 +77,19 @@ public:
     /**
      * Specific methods
      */
-    void displayFPS();
-	float getFPS() { return f_p_s_; }
-	void showFramerate(bool on) { showFps_ = on; }
+    void displayFramerate();
+	float getFramerate() { return f_p_s_; }
+	void showFramerate(bool on);
 	void setViewContextMenu(QMenu *m) { viewMenu = m; }
 	void setCatalogContextMenu(QMenu *m) { catalogMenu = m; }
+	void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
 
 	/**
 	 * management of the manipulation views
 	 */
 	typedef enum {NONE = 0, MIXING=1, GEOMETRY=2, LAYER=3 } viewMode;
 	void setViewMode(viewMode mode);
-	QPixmap getViewIcon();
+	View *getView() {return _currentView;}
 
 	typedef enum {MOUSE_ARROW = 0, MOUSE_HAND_OPEN, MOUSE_HAND_CLOSED, MOUSE_SCALE_F, MOUSE_SCALE_B, MOUSE_ROT_TOP_RIGHT, MOUSE_ROT_TOP_LEFT, MOUSE_ROT_BOTTOM_RIGHT, MOUSE_ROT_BOTTOM_LEFT, MOUSE_QUESTION, MOUSE_SIZEALL, MOUSE_HAND_INDEX} mouseCursor;
 	void setMouseCursor(mouseCursor c);
@@ -129,7 +130,7 @@ public Q_SLOTS:
 	void zoomBestFit();
 	void refresh();
 	void showMessage(QString s);
-	inline void hideMessage() { displayMessage = false; }
+	void hideMessage();
 	void contextMenu(const QPoint &);
 	void setCatalogVisible(bool on = false);
 	void setCatalogSizeSmall();
@@ -187,8 +188,7 @@ private:
 	DelayCursor *_delayCursor;
 
 	// M e s s a g e s
-	QString message;
-	bool displayMessage;
+	QLabel *messageLabel, *fpsLabel;
 	QTimer messageTimer;
 	bool faded;
 	QMenu *viewMenu, *catalogMenu;

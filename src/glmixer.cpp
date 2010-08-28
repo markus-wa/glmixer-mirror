@@ -100,8 +100,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	mainRendering = (QGLWidget *) RenderingManager::getRenderingWidget();
 	mainRendering->setParent(centralwidget);
 	centralViewLayout->addWidget(mainRendering);
-	//activate the default view
+	//activate the default view & share labels to display in
 	setView(actionMixingView);
+	RenderingManager::getRenderingWidget()->setLabels(zoomLabel, fpsLabel);
 	// share menus as context menus of the main view
 	RenderingManager::getRenderingWidget()->setViewContextMenu(menuZoom);
 	RenderingManager::getRenderingWidget()->setCatalogContextMenu(menuCatalog);
@@ -226,7 +227,8 @@ void GLMixer::setView(QAction *a){
 	else if (a == actionLayersView)
 		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::LAYER);
 
-	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getViewIcon());
+	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getView()->getIcon());
+	viewLabel->setText(RenderingManager::getRenderingWidget()->getView()->getTitle());
 
 	switch ( RenderingManager::getRenderingWidget()->getToolMode() ){
 	case ViewRenderWidget::TOOL_SCALE:
@@ -1261,6 +1263,7 @@ void GLMixer::readSettings(){
     	restoreGeometry(settings.value("geometry").toByteArray());
     if (settings.contains("windowState"))
     	restoreState(settings.value("windowState").toByteArray());
+
     if (settings.contains("OutputRenderWindow"))
     	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
 

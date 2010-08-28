@@ -215,6 +215,12 @@ public:
 	/**
 	 *
 	 */
+	inline QString getTitle() {
+		return title;
+	}
+	/**
+	 *
+	 */
 	virtual void clear() {
 		zoomReset();
 		selectedSources.clear();
@@ -238,6 +244,7 @@ protected:
 	reverseSourceSet clickedSources;
 	QPoint lastClicPos;
 	QPixmap icon;
+	QString title;
 
     actionType currentAction;
 	GLdouble rectangleStart[2], rectangleEnd[2];

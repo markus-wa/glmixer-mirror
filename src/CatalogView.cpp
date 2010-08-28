@@ -45,6 +45,7 @@ CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_
 	_largeIconSize[LARGE] = 70.0;
 
 	_currentSize = MEDIUM;
+    title = "Catalog";
 }
 
 CatalogView::~CatalogView() {

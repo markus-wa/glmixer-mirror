@@ -59,7 +59,7 @@ GLfloat ViewRenderWidget::maskc[8];
 QGLShaderProgram *ViewRenderWidget::program = 0;
 
 ViewRenderWidget::ViewRenderWidget() :
-	glRenderWidget(), faded(false), viewMenu(0), catalogMenu(0), showFps_(0)
+	glRenderWidget(), messageLabel(0), fpsLabel(0), faded(false), viewMenu(0), catalogMenu(0), showFps_(0)
 {
 
 	setMouseTracking(true);
@@ -93,10 +93,8 @@ ViewRenderWidget::ViewRenderWidget() :
 	_currentCursor = _normalCursor;
 
 	// opengl HID display
-	displayMessage = false;
 	connect(&messageTimer, SIGNAL(timeout()), SLOT(hideMessage()));
 	messageTimer.setSingleShot(true);
-
 	fpsTime_.start();
 	fpsCounter_ = 0;
 	f_p_s_ = 1000.0 / period;
@@ -211,15 +209,12 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 	{
 	case ViewRenderWidget::MIXING:
 		_currentView = (View *) _mixingView;
-		showMessage("Mixing View");
 		break;
 	case ViewRenderWidget::GEOMETRY:
 		_currentView = (View *) _geometryView;
-		showMessage("Geometry View");
 		break;
 	case ViewRenderWidget::LAYER:
 		_currentView = (View *) _layersView;
-		showMessage("Layers View");
 		break;
 	case ViewRenderWidget::NONE:
 	default:
@@ -262,11 +257,6 @@ void ViewRenderWidget::contextMenu(const QPoint &pos)
 	{
 		viewMenu->exec(mapToGlobal(pos));
 	}
-}
-
-QPixmap ViewRenderWidget::getViewIcon()
-{
-	return _currentView->getIcon();
 }
 
 void ViewRenderWidget::setToolMode(toolMode m){
@@ -391,31 +381,23 @@ void ViewRenderWidget::paintGL()
 	//
 	// 4. The extra information
 	//
-	// HUD : display message
-//	if (displayMessage)
-//	{
-//		glColor4f(0.8, 0.80, 0.2, 1.0);
-//		QGLWidget::renderText(20, (int)(3.5*((QApplication::font().pixelSize()>0) ? QApplication::font().pixelSize() : QApplication::font().pointSize())),
-//				message, QFont());
-//	}
 	// FPS computation
 	if (++fpsCounter_ == 10)
 	{
 		f_p_s_ = 1000.0 * 10.0 / fpsTime_.restart();
 		fpsCounter_ = 0;
+
+		if (fpsLabel && showFps_) {
+			fpsLabel->setText(QString("%1 fps").arg(f_p_s_, 0, 'f', ((f_p_s_ < 10.0) ? 1 : 0)) );
+		}
 	}
 	// HUD display of framerate (on request or if FPS is dangerously slow)
 	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) )
-		displayFPS();
+		displayFramerate();
 }
 
-void ViewRenderWidget::displayFPS()
+void ViewRenderWidget::displayFramerate()
 {
-
-//	QString fpsString_ = tr("%1Hz", "Frames per seconds, in Hertz").arg(f_p_s_,
-//			0, 'f', ((f_p_s_ < 10.0) ? 1 : 0));
-//	qglColor(f_p_s_ > 25 ? Qt::darkGreen : (f_p_s_ > 15 ? Qt::yellow : Qt::red));
-//	QGLWidget::renderText(10, (int)(1.5*((QApplication::font().pixelSize()>0)?QApplication::font().pixelSize():QApplication::font().pointSize())), fpsString_, QFont());
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -426,20 +408,28 @@ void ViewRenderWidget::displayFPS()
 	glPushMatrix();
 	glLoadIdentity();
 
-//	glDisable(GL_TEXTURE_2D);
-
 	qglColor(Qt::lightGray);
-	glRectf(9.0, height() - 9.0, 61.0, height() - 21.0);
-
-	qglColor(f_p_s_ > 40 ? Qt::darkGreen : (f_p_s_ > 20 ? Qt::yellow : Qt::red));
+	glRecti(width() - 71, height() - 1, width() - 9, height() - 11);
+	qglColor(f_p_s_ > 40.f ? Qt::darkGreen : (f_p_s_ > 20.f ? Qt::yellow : Qt::red));
 	// Draw a filled rectangle with current color
-	glRectf(10.0, height() - 10.0, f_p_s_, height() - 20.0);
+	glRecti(width() - 70, height() - 2, width() - 70 + (int)f_p_s_, height() - 10);
 
-//	glEnable(GL_TEXTURE_2D);
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
+
+
+}
+
+
+void ViewRenderWidget::showFramerate(bool on)
+{
+	showFps_ = on;
+
+	if (fpsLabel)
+		fpsLabel->clear();
+
 }
 
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
@@ -567,6 +557,8 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 
 	if (!_currentView->wheelEvent(event))
 		QWidget::wheelEvent(event);
+
+	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
@@ -622,6 +614,7 @@ void ViewRenderWidget::zoomOut()
 {
 	makeCurrent();
 	_currentView->zoomOut();
+
 	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
@@ -629,6 +622,7 @@ void ViewRenderWidget::zoomReset()
 {
 	makeCurrent();
 	_currentView->zoomReset();
+
 	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
@@ -636,6 +630,7 @@ void ViewRenderWidget::zoomBestFit()
 {
 	makeCurrent();
 	_currentView->zoomBestFit();
+
 	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
@@ -651,13 +646,16 @@ void ViewRenderWidget::clearViews()
 
 void ViewRenderWidget::showMessage(QString s)
 {
-	if (displayMessage)
-		messageTimer.stop();
-	message = s;
+	messageTimer.stop();
+	if (messageLabel)
+		messageLabel->setText(s);
 	messageTimer.start(1000);
-	displayMessage = true;
 }
 
+void ViewRenderWidget::hideMessage()
+{
+	messageLabel->clear();
+}
 /**
  * save and load configuration
  */
@@ -999,11 +997,13 @@ GLuint ViewRenderWidget::buildTexturedQuadList()
 
 	glBegin(GL_QUADS); // begin drawing a square
 
-	// Front Face (note that the texture's corners have to match the quad's corners)
-	glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+	glTexCoord2f(0.f, 1.f);
 	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glTexCoord2f(1.f, 1.f);
 	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	glTexCoord2f(1.f, 0.f);
 	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	glTexCoord2f(0.f, 0.f);
 	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
 
 	glEnd();

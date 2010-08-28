@@ -37,7 +37,7 @@ public:
 
     virtual void initializeGL();
     virtual void paintGL();
-    virtual void resizeGL(int w, int h);
+    virtual void resizeGL(int w = 0, int h = 0);
 
 	float getAspectRatio() const;
 	inline bool freeAspectRatio() const { return !useAspectRatio; }

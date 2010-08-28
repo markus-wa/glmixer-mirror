@@ -46,6 +46,7 @@ GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE)
 	borderType = ViewRenderWidget::border_large;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/manipulation.png"));
+    title = " Geometry view";
 }
 
 

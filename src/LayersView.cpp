@@ -49,6 +49,7 @@ LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), currentSourceDisplacem
 	currentAction = View::NONE;
 
 	icon.load(QString::fromUtf8(":/glmixer/icons/depth.png"));
+    title = " Layers view";
 }
 
 
@@ -77,8 +78,12 @@ void LayersView::paint()
 
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
-    glEnable(GL_TEXTURE_2D);
     ViewRenderWidget::program->bind();
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
+
     bool first = true;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
@@ -91,7 +96,7 @@ void LayersView::paint()
 		if ((*its)->isActive()) {
 			// animated displacement
 			if (currentSourceDisplacement < MAXDISPLACEMENT)
-				currentSourceDisplacement += ( MAXDISPLACEMENT + 0.1 - currentSourceDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFPS();
+				currentSourceDisplacement += ( MAXDISPLACEMENT + 0.1 - currentSourceDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
 			glTranslatef( currentSourceDisplacement, 0.0,  1.0 +(*its)->getDepth());
 
 		} else
@@ -140,6 +145,10 @@ void LayersView::paint()
 	    RenderingManager::getInstance()->updatePreviousFrame();
 
     ViewRenderWidget::program->release();
+	glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
 
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();

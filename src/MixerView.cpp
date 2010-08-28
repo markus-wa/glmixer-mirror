@@ -45,6 +45,7 @@ MixerView::MixerView() : View()
 	currentAction = View::NONE;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
+    title = " Mixing view";
 }
 
 void MixerView::setModelview()

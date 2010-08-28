@@ -62,7 +62,9 @@ void OutputRenderWidget::initializeGL() {
     glDisable(GL_LIGHTING);
 
     // Enables texturing
+	glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
+
     // This hint can improve the speed of texturing when perspective-correct texture coordinate interpolation isn't needed
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     // Pure texture color (no lighting)
@@ -71,18 +73,16 @@ void OutputRenderWidget::initializeGL() {
     // Turn blending off
     glDisable(GL_BLEND);
 
-	if ( RenderingManager::blit_fbo_extension )
-	// use the accelerated GL_EXT_framebuffer_blit if available
-	{
-	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
-	}
-
 	setBackgroundColor(palette().color(QPalette::Window));
 }
 
 void OutputRenderWidget::resizeGL(int w, int h)
 {
+	if (w == 0 || h == 0) {
+		w = width();
+		h = height();
+	}
+
 	glRenderWidget::resizeGL(w, h);
 
 	if ( RenderingManager::blit_fbo_extension ) {
@@ -105,7 +105,7 @@ void OutputRenderWidget::resizeGL(int w, int h)
 			}
 		}
 		// the option 'free aspect ratio' is on ; use the window dimensions
-		// (only valid for window, not widget)
+		// (only valid for widget, not window)
 		else if ( useWindowAspectRatio ) {
 			float windowAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
 			if ( aspectRatio < windowAspectRatio) {
@@ -131,7 +131,6 @@ void OutputRenderWidget::resizeGL(int w, int h)
 	}
 	else
 	{
-		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
 		if (useAspectRatio) {
@@ -140,12 +139,14 @@ void OutputRenderWidget::resizeGL(int w, int h)
 				glScalef(1.f, -aspectRatio / renderingAspectRatio, 1.f);
 			else
 				glScalef(renderingAspectRatio / aspectRatio, -1.f, 1.f);
-		} else if (useWindowAspectRatio) {
+		} else if (useWindowAspectRatio) { // (only valid for widget, not window)
 			float windowAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
 			if (aspectRatio < windowAspectRatio)
 				glScalef(1.f, -aspectRatio / windowAspectRatio, 1.f);
 			else
 				glScalef(windowAspectRatio / aspectRatio, -1.f, 1.f);
+		} else {
+			glScalef(1.f, -1.0, 1.f);
 		}
 	}
 }
@@ -153,11 +154,7 @@ void OutputRenderWidget::resizeGL(int w, int h)
 
 void OutputRenderWindow::resizeGL(int w, int h)
 {
-	if (w == 0 || h == 0)
-		OutputRenderWidget::resizeGL(width(), height());
-	else
-		OutputRenderWidget::resizeGL(w, h);
-
+	OutputRenderWidget::resizeGL(w, h);
 	emit resized(!useAspectRatio);
 }
 
@@ -165,7 +162,7 @@ void OutputRenderWidget::useFreeAspectRatio(bool on) {
 
 	useAspectRatio = !on;
 	makeCurrent();
-	resizeGL(width(), height());
+	resizeGL();
 }
 
 void OutputRenderWidget::paintGL()
@@ -187,10 +184,7 @@ void OutputRenderWidget::paintGL()
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
-
-//		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
-//		glDrawArrays(GL_QUADS, 0, 4);
 		glCallList(ViewRenderWidget::quad_texured);
 	}
 }
