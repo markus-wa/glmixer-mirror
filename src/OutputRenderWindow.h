@@ -41,9 +41,10 @@ public:
 
 	float getAspectRatio() const;
 	inline bool freeAspectRatio() const { return !useAspectRatio; }
+	void useFreeAspectRatio(bool on);
 
 public Q_SLOTS:
-	void useFreeAspectRatio(bool on);
+	void refresh();
 
 protected:
 	bool useAspectRatio, useWindowAspectRatio;
@@ -71,7 +72,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 //	void windowClosed();
-	void resized(bool);
+	void resized();
 
 	/**
 	 * singleton mechanism

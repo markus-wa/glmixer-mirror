@@ -30,7 +30,6 @@
 
 #include "VideoFile.h"
 #include "SourceSet.h"
-#include "VideoFileDialog.h"
 
 /**
 
@@ -68,6 +67,7 @@ public Q_SLOTS:
 	void on_frameSlider_actionTriggered(int);
 	void on_actionShow_frames_toggled(bool);
 	void on_actionShowFPS_toggled(bool);
+	void on_actionFree_aspect_ratio_toggled(bool);
 	void on_actionAbout_triggered();
 	void on_actionPreferences_triggered();
 
@@ -111,8 +111,9 @@ protected:
 private:
 	QString currentStageFileName;
 	VideoFile *selectedSourceVideoFile;
-	VideoFileDialog *mfd;
 	QFileDialog *sfd;
+	class VideoFileDialog *mfd;
+	class OutputRenderWidget *outputpreview;
 
 	QTimer *refreshTimingTimer;
 	bool waspaused;

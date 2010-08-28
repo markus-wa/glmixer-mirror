@@ -118,15 +118,18 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	gammaDockWidgetContentsLayout->addWidget(gammaAdjust);
 	QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), gammaAdjust, SLOT(connectSource(SourceSet::iterator) ) );
 
-
     // Setup Video file dialog
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
     sfd = new QFileDialog(this);
 
     // Create preview widget
-    OutputRenderWidget *outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
+    outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
 	previewDockWidgetContentsLayout->addWidget(outputpreview);
 	outputpreview->setCursor(Qt::ArrowCursor);
+
+    // Default state without source selected
+    vcontrolDockWidgetContents->setEnabled(false);
+    sourceDockWidgetContents->setEnabled(false);
 
     // signals for source management with RenderingManager
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(connectSource(SourceSet::iterator) ) );
@@ -137,11 +140,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // Signals between GUI and output window
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
-	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(useFreeAspectRatio(bool)));
-	QObject::connect(actionWhite_background, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setClearToWhite(bool)));
-	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized(bool)), outputpreview, SLOT(useFreeAspectRatio(bool)));
-	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized(bool)), RenderingManager::getRenderingWidget(), SLOT(refresh()));
-	QObject::connect(actionShow_Catalog, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setCatalogVisible(bool)));
+
 	// group the menu items of the catalog sizes ;
 	QActionGroup *catalogActionGroup = new QActionGroup(this);
 	catalogActionGroup->addAction(actionCatalogSmall);
@@ -152,15 +151,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionCatalogLarge, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(setCatalogSizeLarge()));
 
 	// Signals between GUI and rendering widget
-	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(refresh()));
+	QObject::connect(actionShow_Catalog, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setCatalogVisible(bool)));
+	QObject::connect(actionWhite_background, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setClearToWhite(bool)));
 	QObject::connect(actionZoomIn, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomIn()));
 	QObject::connect(actionZoomOut, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomOut()));
 	QObject::connect(actionZoomReset, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
 	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
-
-    // Initial state
-    vcontrolDockWidgetContents->setEnabled(false);
-    sourceDockWidgetContents->setEnabled(false);
 
     // a Timer to update sliders and counters
     refreshTimingTimer = new QTimer(this);
@@ -915,6 +911,22 @@ void GLMixer::on_actionShowFPS_toggled(bool on){
 	RenderingManager::getRenderingWidget()->showFramerate(on);
 }
 
+void GLMixer::on_actionFree_aspect_ratio_toggled(bool on){
+
+	OutputRenderWindow::getInstance()->useFreeAspectRatio(on);
+	outputpreview->useFreeAspectRatio(on);
+
+	if (on) {
+		QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized()), outputpreview, SLOT(refresh()));
+		QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized()), RenderingManager::getRenderingWidget(), SLOT(refresh()));
+	} else {
+		QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(resized()), outputpreview, SLOT(refresh()));
+		QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(resized()), RenderingManager::getRenderingWidget(), SLOT(refresh()));
+	}
+
+	RenderingManager::getRenderingWidget()->refresh();
+}
+
 void GLMixer::on_actionAbout_triggered(){
 
 	QString msg = QString("%1 :     \tGraphic Live Mixer\n\n").arg(QCoreApplication::applicationName());
@@ -1281,9 +1293,12 @@ void GLMixer::readSettings(){
     if (settings.contains("UserPreferences"))
     	restorePreferences(settings.value("UserPreferences").toByteArray());
 
-	// display time as frame
+	// boolean options
     if (settings.contains("DisplayTimeAsFrames"))
     	actionShow_frames->setChecked(settings.value("DisplayTimeAsFrames").toBool());
+    if (settings.contains("DisplayFramerate"))
+    	actionShowFPS->setChecked(settings.value("DisplayFramerate").toBool());
+
 }
 
 void GLMixer::saveSettings(){
@@ -1300,8 +1315,9 @@ void GLMixer::saveSettings(){
     // preferences
 	settings.setValue("UserPreferences", getPreferences());
 
-	// display time as frame
+	// boolean options
 	settings.setValue("DisplayTimeAsFrames", actionShow_frames->isChecked());
+	settings.setValue("DisplayFramerate", actionShowFPS->isChecked());
 
 	// make sure system saves settings NOW
     settings.sync();

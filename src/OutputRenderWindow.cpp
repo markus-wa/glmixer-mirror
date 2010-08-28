@@ -83,6 +83,7 @@ void OutputRenderWidget::resizeGL(int w, int h)
 		h = height();
 	}
 
+	// generic widget resize (also computes aspectRatio)
 	glRenderWidget::resizeGL(w, h);
 
 	if ( RenderingManager::blit_fbo_extension ) {
@@ -107,7 +108,7 @@ void OutputRenderWidget::resizeGL(int w, int h)
 		// the option 'free aspect ratio' is on ; use the window dimensions
 		// (only valid for widget, not window)
 		else if ( useWindowAspectRatio ) {
-			float windowAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+			float windowAspectRatio = OutputRenderWindow::getInstance()->aspectRatio;
 			if ( aspectRatio < windowAspectRatio) {
 				int nh = (int)( float(w) / windowAspectRatio);
 				rx = 0;
@@ -140,7 +141,7 @@ void OutputRenderWidget::resizeGL(int w, int h)
 			else
 				glScalef(renderingAspectRatio / aspectRatio, -1.f, 1.f);
 		} else if (useWindowAspectRatio) { // (only valid for widget, not window)
-			float windowAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+			float windowAspectRatio = OutputRenderWindow::getInstance()->aspectRatio;
 			if (aspectRatio < windowAspectRatio)
 				glScalef(1.f, -aspectRatio / windowAspectRatio, 1.f);
 			else
@@ -155,15 +156,22 @@ void OutputRenderWidget::resizeGL(int w, int h)
 void OutputRenderWindow::resizeGL(int w, int h)
 {
 	OutputRenderWidget::resizeGL(w, h);
-	emit resized(!useAspectRatio);
+	emit resized();
 }
 
-void OutputRenderWidget::useFreeAspectRatio(bool on) {
-
+void OutputRenderWidget::useFreeAspectRatio(bool on)
+{
 	useAspectRatio = !on;
+	refresh();
+}
+
+void OutputRenderWidget::refresh()
+{
 	makeCurrent();
 	resizeGL();
+	paintGL();
 }
+
 
 void OutputRenderWidget::paintGL()
 {

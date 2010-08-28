@@ -1263,11 +1263,11 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
     <addaction name="actionLayersView"/>
-    <addaction name="actionShowFPS"/>
     <addaction name="menuZoom"/>
     <addaction name="separator"/>
     <addaction name="menuCatalog"/>
     <addaction name="menuToolBars"/>
+    <addaction name="actionShowFPS"/>
     <addaction name="actionShow_frames"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
