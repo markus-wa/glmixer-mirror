@@ -188,8 +188,11 @@ public:
 	}
 	void moveTo(GLdouble posx, GLdouble posy);
 
-	void setTextureCoordinates(QRectF textureCoords) {
+	inline void setTextureCoordinates(QRectF textureCoords) {
 		textureCoordinates = textureCoords;
+	}
+	inline void resetTextureCoordinates() {
+		textureCoordinates.setCoords(0.0, 0.0, 1.0, 1.0);
 	}
 
 	void setScale(GLdouble sx, GLdouble sy);

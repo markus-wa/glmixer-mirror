@@ -602,49 +602,34 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 	else
 		setAction(currentAction);
 
+	SourceSet::iterator its = RenderingManager::getInstance()->getCurrentSource();
 
-	if (RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
-	    double dx = 0.0, dy = 0.0;
-		Source *current_source = *RenderingManager::getInstance()->getCurrentSource();
-
+	if (its != RenderingManager::getInstance()->getEnd()) {
+	    int dx =0, dy = 0, factor = 1;
+	    if (event->modifiers() & Qt::ControlModifier)
+	    	factor *= 10;
+	    if (event->modifiers() & Qt::ShiftModifier)
+	    	factor *= 2;
 		switch (event->key()) {
 			case Qt::Key_Left:
-				dx = -1.0 / zoom;
+				dx = -factor;
 				break;
 			case Qt::Key_Right:
-				dx = 1.0 / zoom;
+				dx = factor;
 				break;
 			case Qt::Key_Down:
-				dy = -1.0 / zoom;
+				dy = -factor;
 				break;
 			case Qt::Key_Up:
-				dy = 1.0 / zoom;
+				dy = factor;
 				break;
 			default:
 				return false;
 		}
-
-		// find a group or a selection which contains the current source
-		SourceListArray::iterator itss;
-		for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-			if ( (*itss).count(current_source) > 0 )
-				break;
-		}
-		if ( itss != groupSources.end() ) {
-			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-				(*its)->setAlphaCoordinates( (*its)->getAlphaX() + dx, (*its)->getAlphaY() + dy);
-			}
-		} else if ( selectedSources.count(current_source) > 0 ){
-			for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
-				(*its)->setAlphaCoordinates( (*its)->getAlphaX() + dx, (*its)->getAlphaY() + dy);
-			}
-		}
-		else
-			current_source->setAlphaCoordinates( current_source->getAlphaX() + dx, current_source->getAlphaY() + dy);
+		grabSource(*its, 0, 0, dx, dy);
 
 		return true;
 	}
-
 
 	return false;
 }

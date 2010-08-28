@@ -394,6 +394,7 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 		if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()){
 			(*RenderingManager::getInstance()->getCurrentSource())->resetScale();
+			(*RenderingManager::getInstance()->getCurrentSource())->resetTextureCoordinates();
 		} else
 			zoomBestFit();
 
@@ -408,31 +409,28 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 	SourceSet::iterator its = RenderingManager::getInstance()->getCurrentSource();
 
 	if (its != RenderingManager::getInstance()->getEnd()) {
-	    double dx = 0.0, dy = 0.0;
-
-	    // TODO compute pixel width
-	    double bx = 1.0, by = 1.0, bz = 1.0;
-//	    gluUnProject(-0.10, -0.10, 0.0, modelview, projection, viewport, &bx, &by, &bz);
-
-
+	    int dx =0, dy = 0, factor = 1;
+	    if (event->modifiers() & Qt::ControlModifier)
+	    	factor *= 10;
+	    if (event->modifiers() & Qt::ShiftModifier)
+	    	factor *= 2;
 		switch (event->key()) {
 			case Qt::Key_Left:
-				dx = -bx;
+				dx = -factor;
 				break;
 			case Qt::Key_Right:
-				dx = bx;
+				dx = factor;
 				break;
 			case Qt::Key_Down:
-				dy = -by;
+				dy = -factor;
 				break;
 			case Qt::Key_Up:
-				dy = by;
+				dy = factor;
 				break;
 			default:
 				return false;
 		}
-
-		(*its)->moveTo( (*its)->getX() + dx,  (*its)->getY() + dy);
+		grabSource(its, 0, 0, dx, dy);
 
 		return true;
 	}
