@@ -3,8 +3,8 @@
     <file>images/stippling_1.png</file>
     <file>images/stippling_2.png</file>
     <file>images/stippling_3.png</file>
-    <file>images/stippling_4.png</file>
+    <file>images/stippling_4.png</file> 
     <file>images/stippling_5.png</file>
-    <file>images/glmixer_splash.png</file>
+    <file>images/glmixer_splash.png</file> 
   </qresource>
 </RCC> 

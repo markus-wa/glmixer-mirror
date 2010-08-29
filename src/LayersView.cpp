@@ -102,20 +102,27 @@ void LayersView::paint()
 		} else
 			glTranslatef( 0.0, 0.0,  1.0 +(*its)->getDepth());
 
-        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+//        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+		if ( renderingAspectRatio > 1.0)
+			glScaled(1.0 , 1.0 / renderingAspectRatio,  1.0);
+		else
+			glScaled(1.0 * renderingAspectRatio, 1.0,  1.0);
+
 
     	// standard transparency blending
     	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     	glBlendEquation(GL_FUNC_ADD);
 
-		ViewRenderWidget::program->setUniformValue("sourceDrawing", false);
+		ViewRenderWidget::setSourceDrawingMode(false);
         // draw border if active
         if ((*its)->isActive())
             glCallList(ViewRenderWidget::border_large_shadow);
         else
             glCallList(ViewRenderWidget::border_thin_shadow);
 
-		ViewRenderWidget::program->setUniformValue("sourceDrawing", true);
+		ViewRenderWidget::setSourceDrawingMode(true);
+
 	    // Blending Function for mixing like in the rendering window
         (*its)->beginEffectsSection();
 		// bind the source texture and update its content
@@ -126,7 +133,11 @@ void LayersView::paint()
 		(*its)->draw();
 
 		// draw stippled version of the source on top
-		glCallList(ViewRenderWidget::quad_stipped_textured[ViewRenderWidget::stipplingMode]);
+//		glCallList(ViewRenderWidget::quad_stipped_textured[ViewRenderWidget::stipplingMode]);
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+		(*its)->draw(false);
+		glDisable(GL_POLYGON_STIPPLE);
 
 		glPopMatrix();
 
@@ -137,18 +148,18 @@ void LayersView::paint()
         first = false;
 
 	}
+    ViewRenderWidget::program->release();
+	glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
+
 	// if no source was rendered, clear anyway
 	if (first)
 		RenderingManager::getInstance()->renderToFrameBuffer(0, first);
 	else
 		// fill-in the loopback buffer
 	    RenderingManager::getInstance()->updatePreviousFrame();
-
-    ViewRenderWidget::program->release();
-	glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glDisable(GL_TEXTURE_2D);
 
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();
@@ -424,7 +435,12 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
         glPushMatrix();
         // place and scale
         glTranslatef((*its)->isActive() ? currentSourceDisplacement : 0.0, 0.0,  1.0 +(*its)->getDepth());
-        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+//        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+		if ( renderingAspectRatio > 1.0)
+			glScaled(1.0 , 1.0 / renderingAspectRatio,  1.0);
+		else
+			glScaled(1.0 * renderingAspectRatio, 1.0,  1.0);
         (*its)->draw(false, GL_SELECT);
         glPopMatrix();
     }

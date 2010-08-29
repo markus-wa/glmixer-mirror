@@ -93,12 +93,11 @@ void CatalogView::clear() {
 	glPushAttrib(GL_COLOR_BUFFER_BIT);
 
 	// clear to transparent
-	glClearColor( 1.0, 1.0, 1.0, 0.0);
+	glClearColor( 0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// draw the catalog gb and its frame
-	glColor4f(0.6, 0.6, 0.6, 0.6);
-    glDisable(GL_TEXTURE_2D);
+	glColor4f(0.5, 0.5, 0.5, 0.2);
 
 	_width = SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio();
     float bl_x = -_width + 0.3 * _size[_currentSize] * h_unit;
@@ -107,9 +106,9 @@ void CatalogView::clear() {
     float tr_y = SOURCE_UNIT;
     glRectf( bl_x, bl_y, tr_x, tr_y);
 
-	glColor4f(0.8, 0.8, 0.8, 1.0);
+	glColor4f(0.8, 0.8, 0.8, 0.9);
 	glLineWidth(2);
-    glBegin(GL_LINE_LOOP); // begin drawing a square
+    glBegin(GL_LINE_LOOP); // drawing a square
 
 		glVertex2f(bl_x, bl_y); // Bottom Left
 		glVertex2f(tr_x, bl_y); // Bottom Right
@@ -117,8 +116,6 @@ void CatalogView::clear() {
 		glVertex2f(bl_x, tr_y); // Top Right
 
     glEnd();
-
-    glEnable(GL_TEXTURE_2D);
 
 	glPopAttrib();
 }
@@ -135,6 +132,7 @@ void CatalogView::drawSource(Source *s, int index)
 		_height = 0.0;
 
 	if (s) {
+
 		// target 60 pixels wide icons (height depending on aspect ratio)
 		// each source is a quad [-1 +1]
 		double swidth_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) * h_unit;
@@ -147,14 +145,12 @@ void CatalogView::drawSource(Source *s, int index)
 		if (height > 2.0 * SOURCE_UNIT) {
 			glColor4f(0.8, 0.8, 0.8, 0.6);
 			glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
-		    glDisable(GL_TEXTURE_2D);
 		    glLineWidth(2);
-		    glBegin(GL_LINE_LOOP); // begin drawing a square
-				glVertex2f(0.0, 0.50); //
-				glVertex2f(0.50, 1.0); //
-				glVertex2f(-0.50, 1.0); //
+		    glBegin(GL_LINE_LOOP); // draw a triangle
+				glVertex2f(0.0, 0.50);
+				glVertex2f(0.50, 1.0);
+				glVertex2f(-0.50, 1.0);
 		    glEnd();
-		    glEnable(GL_TEXTURE_2D);
 
 			return;
 		}
@@ -165,11 +161,16 @@ void CatalogView::drawSource(Source *s, int index)
 		glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - _height + sheight_pixels, 0.0);
 		if (s->isActive())
 			glTranslatef( (_iconSize[_currentSize] -_largeIconSize[_currentSize]) * h_unit , 0.0, 0.0);
-		glScalef( swidth_pixels, -sheight_pixels, 1.f);
+		glScalef( swidth_pixels, sheight_pixels, 1.f);
 
 	    glDisable(GL_BLEND);
+
+		glBindTexture(GL_TEXTURE_2D, s->getTextureIndex() );
 		// draw source texture (without shading)
-		s->draw(false);
+//		s->draw(false);
+		glColor4f(0.0, 0.0, 0.0, 1.0);
+		glDrawArrays(GL_QUADS, 0, 4);
+
 	    glEnable(GL_BLEND);
 
 		// was it clicked ?
@@ -193,6 +194,7 @@ void CatalogView::drawSource(Source *s, int index)
 			}
 		}
 
+		ViewRenderWidget::setSourceDrawingMode(false);
 	    // draw source border
 		glScalef( 1.05, 1.05, 1.0);
 		if (s->isActive())
@@ -236,23 +238,23 @@ void CatalogView::paint() {
     glBlendEquation(GL_FUNC_ADD);
 
 	// draw the texture rendered with fbo during rendering
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getCatalogTexture());
 
     glBegin(GL_QUADS); // begin drawing a square
-
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-
-    // specific texture coordinates to take only the section corresponding to the catalog
-    glTexCoord2d(0.0, 1.0);
-    glVertex2f(-SOURCE_UNIT, SOURCE_UNIT); // Bottom Left
-    glTexCoord2d( _size[_currentSize] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 1.0);
-    glVertex2f( SOURCE_UNIT, SOURCE_UNIT); // Bottom Right
-    glTexCoord2d( _size[_currentSize] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 0.0);
-    glVertex2f( SOURCE_UNIT, -SOURCE_UNIT); // Top Right
-    glTexCoord2d(0.0, 0.0);
-    glVertex2f(-SOURCE_UNIT, -SOURCE_UNIT); // Top Left
-
+		// specific texture coordinates to take only the section corresponding to the catalog
+		glTexCoord2d(0.0, 1.0);
+		glVertex2f(-SOURCE_UNIT, SOURCE_UNIT); // Bottom Left
+		glTexCoord2d( _size[_currentSize] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 1.0);
+		glVertex2f( SOURCE_UNIT, SOURCE_UNIT); // Bottom Right
+		glTexCoord2d( _size[_currentSize] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 0.0);
+		glVertex2f( SOURCE_UNIT, -SOURCE_UNIT); // Top Right
+		glTexCoord2d(0.0, 0.0);
+		glVertex2f(-SOURCE_UNIT, -SOURCE_UNIT); // Top Left
     glEnd();
+
+    glDisable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

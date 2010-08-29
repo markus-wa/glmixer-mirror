@@ -32,7 +32,6 @@
 #include <QtVariantPropertyManager>
 
 GLuint Source::lastid = 1;
-bool Source::imaging_extension = true;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 bool Source::playable = false;
 

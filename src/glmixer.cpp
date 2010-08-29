@@ -1268,82 +1268,72 @@ void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
 }
 
 
-void GLMixer::readSettings(){
-
+void GLMixer::readSettings()
+{
 	// windows config
     if (settings.contains("geometry"))
     	restoreGeometry(settings.value("geometry").toByteArray());
     if (settings.contains("windowState"))
     	restoreState(settings.value("windowState").toByteArray());
-
     if (settings.contains("OutputRenderWindow"))
     	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
-
     // dialogs configs
     if (settings.contains("vcontrolOptionSplitter"))
     	vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
-
     if (settings.contains("VideoFileDialog"))
     	mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
-
     if (settings.contains("SessionFileDialog"))
     	sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
-
-    // preferences
-    if (settings.contains("UserPreferences"))
-    	restorePreferences(settings.value("UserPreferences").toByteArray());
-
 	// boolean options
     if (settings.contains("DisplayTimeAsFrames"))
     	actionShow_frames->setChecked(settings.value("DisplayTimeAsFrames").toBool());
     if (settings.contains("DisplayFramerate"))
     	actionShowFPS->setChecked(settings.value("DisplayFramerate").toBool());
-
+    // preferences
+    if (settings.contains("UserPreferences"))
+    	restorePreferences(settings.value("UserPreferences").toByteArray());
 }
 
-void GLMixer::saveSettings(){
-
+void GLMixer::saveSettings()
+{
 	// windows config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
     settings.setValue("OutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
-
+    // dialogs configs
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());
     settings.setValue("SessionFileDialog", sfd->saveState());
-
-    // preferences
-	settings.setValue("UserPreferences", getPreferences());
-
 	// boolean options
 	settings.setValue("DisplayTimeAsFrames", actionShow_frames->isChecked());
 	settings.setValue("DisplayFramerate", actionShowFPS->isChecked());
-
+    // preferences
+	settings.setValue("UserPreferences", getPreferences());
 	// make sure system saves settings NOW
     settings.sync();
 }
 
 
-void GLMixer::on_actionPreferences_triggered(){
-
-	// popup a question dialog to select the type of algorithm
+void GLMixer::on_actionPreferences_triggered()
+{
+	// create the user preference dialog
 	static UserPreferencesDialog *upd = 0;
-	if (!upd) {
+	if (!upd)
 		upd = new UserPreferencesDialog(this);
-	}
 
+	// fill in the saved preferences
 	upd->showPreferences( getPreferences() );
 
-	if (upd->exec() == QDialog::Accepted) {
+	// show the dialog and apply preferences if it was accepted
+	if (upd->exec() == QDialog::Accepted)
 		restorePreferences( upd->getUserPreferences() );
-	}
 }
 
 
 bool GLMixer::restorePreferences(const QByteArray & state){
 
     if (state.isEmpty()) {
-		// no preference? try to use the best extensions...
+		// no preference? apply defaults as displayed in the dialog (if not already default)
 		RenderingManager::setUseFboBlitExtension(true);
 		return false;
     }
@@ -1366,7 +1356,6 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	if (RenderingSize != QSize(0,0))
 		RenderingManager::getInstance()->setFrameBufferResolution(RenderingSize);
 	RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
-	OutputRenderWindow::getInstance()->resizeGL();
 
 	// b. Apply source preferences
 	stream >> RenderingManager::getInstance()->defaultSource();
@@ -1389,8 +1378,12 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	// f. Stippling mode
 	unsigned int stipplingMode = 0;
 	stream >> stipplingMode;
-
 	ViewRenderWidget::setStipplingMode(stipplingMode);
+
+	// Refresh all GL widgets (to apply the preferences changed above)
+	RenderingManager::getRenderingWidget()->refresh();
+	OutputRenderWindow::getInstance()->refresh();
+	outputpreview->refresh();
 
 	return true;
 }

@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>412</width>
-    <height>386</height>
+    <width>273</width>
+    <height>382</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Algorithm source creation</string>
@@ -21,7 +27,7 @@
    <item>
     <widget class="QLabel" name="title">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+      <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -33,34 +39,40 @@
    </item>
    <item>
     <widget class="QComboBox" name="AlgorithmComboBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <item>
       <property name="text">
-       <string>Flat                              (do nothing, just a flat white source)</string>
+       <string>Flat color</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Greyscale noise           (random grey per pixel)</string>
+       <string>Greyscale random noise</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Color noise                  (random color per pixel)</string>
+       <string>Color random noise</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Greyscale Perlin noise (pseudo-random greyscale texture)</string>
+       <string>Greyscale Perlin noise</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Color Perlin noise        (pseudo-random color texture)</string>
+       <string>Color Perlin noise</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Turbulences                (Perlin turbulence)</string>
+       <string>Perlin turbulences</string>
       </property>
      </item>
     </widget>
@@ -68,7 +80,7 @@
    <item>
     <widget class="QGroupBox" name="sizeGroupBox">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+      <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -76,13 +88,7 @@
      <property name="title">
       <string>Dimensions</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
-       <number>3</number>
-      </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QComboBox" name="presetsSizeComboBox">
         <property name="sizePolicy">
@@ -169,44 +175,48 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="w">
-        <property name="text">
-         <string>Width</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="widthSpinBox">
-        <property name="minimum">
-         <number>2</number>
-        </property>
-        <property name="maximum">
-         <number>1024</number>
-        </property>
-        <property name="value">
-         <number>256</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="h">
-        <property name="text">
-         <string>Height</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="heightSpinBox">
-        <property name="minimum">
-         <number>2</number>
-        </property>
-        <property name="maximum">
-         <number>1024</number>
-        </property>
-        <property name="value">
-         <number>256</number>
-        </property>
-       </widget>
+       <layout class="QGridLayout" name="sizeGridLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="w">
+          <property name="text">
+           <string>Width</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="widthSpinBox">
+          <property name="minimum">
+           <number>2</number>
+          </property>
+          <property name="maximum">
+           <number>1024</number>
+          </property>
+          <property name="value">
+           <number>256</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="heightSpinBox">
+          <property name="minimum">
+           <number>2</number>
+          </property>
+          <property name="maximum">
+           <number>1024</number>
+          </property>
+          <property name="value">
+           <number>256</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="h">
+          <property name="text">
+           <string>Height</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -214,7 +224,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+      <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -262,7 +272,7 @@
    <item>
     <widget class="QGroupBox" name="customUpdateFrequency">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+      <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -336,8 +346,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>266</x>
-     <y>351</y>
+     <x>265</x>
+     <y>364</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -352,8 +362,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>318</x>
-     <y>351</y>
+     <x>265</x>
+     <y>364</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -368,12 +378,12 @@
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>258</x>
-     <y>293</y>
+     <x>212</x>
+     <y>318</y>
     </hint>
     <hint type="destinationlabel">
-     <x>287</x>
-     <y>293</y>
+     <x>232</x>
+     <y>318</y>
     </hint>
    </hints>
   </connection>
@@ -384,12 +394,12 @@
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>235</x>
-     <y>214</y>
+     <x>212</x>
+     <y>247</y>
     </hint>
     <hint type="destinationlabel">
-     <x>280</x>
-     <y>210</y>
+     <x>240</x>
+     <y>247</y>
     </hint>
    </hints>
   </connection>

@@ -30,7 +30,7 @@
 
 
 int AlgorithmSelectionDialog::_algo = 1, AlgorithmSelectionDialog::_variability = 30;
-int AlgorithmSelectionDialog::_width = 0, AlgorithmSelectionDialog::_height = 0, AlgorithmSelectionDialog::_preset = 8;
+int AlgorithmSelectionDialog::_width = 160, AlgorithmSelectionDialog::_height = 120, AlgorithmSelectionDialog::_preset = 8;
 unsigned long AlgorithmSelectionDialog::_update = 40;
 
 AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(parent), s(0), preview(0){
@@ -40,6 +40,8 @@ AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(pa
     preview = new SourceDisplayWidget(this);
     verticalLayout->insertWidget(1, preview);
 
+	preview->setMinimumSize(_width, _height);
+
     // recall choices
     presetsSizeComboBox->setCurrentIndex(_preset);
     if (_preset == 0) {
@@ -47,8 +49,10 @@ AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(pa
 		widthSpinBox->setValue(_width);
     }
     variabilitySlider->setValue(_variability);
+
     // create source with selected algo
     AlgorithmComboBox->setCurrentIndex(_algo);
+
 	// change update
 	frequencySlider->setValue(_update);
 	customUpdateFrequency->setChecked(_update != 60);

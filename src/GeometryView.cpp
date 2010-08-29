@@ -86,15 +86,6 @@ void GeometryView::paint()
         glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
         glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
-        // draw border and handles if active
-		ViewRenderWidget::program->setUniformValue("sourceDrawing", false);
-
-		if ((*its)->isActive())
-	        glCallList(borderType);
-		else
-			glCallList(ViewRenderWidget::border_thin);
-
-		ViewRenderWidget::program->setUniformValue("sourceDrawing", true);
 	    // Blending Function For mixing like in the rendering window
         (*its)->beginEffectsSection();
 		// bind the source texture and update its content
@@ -105,27 +96,37 @@ void GeometryView::paint()
 		(*its)->blend();
         (*its)->draw();
 
-        glPopMatrix();
-
 		//
 		// 2. Render it into FBO
 		//
         RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
         first = false;
 
+        // draw border and handles if active
+		ViewRenderWidget::setSourceDrawingMode(false);
+
+		if ((*its)->isActive())
+	        glCallList(borderType);
+		else
+			glCallList(ViewRenderWidget::border_thin);
+
+		ViewRenderWidget::setSourceDrawingMode(true);
+
+        glPopMatrix();
+
     }
+    ViewRenderWidget::program->release();
+	glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
+
 	// if no source was rendered, clear anyway
 	if (first)
 		RenderingManager::getInstance()->renderToFrameBuffer(0, first);
 	else
 		// fill-in the loopback buffer
 		RenderingManager::getInstance()->updatePreviousFrame();
-
-    ViewRenderWidget::program->release();
-	glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glDisable(GL_TEXTURE_2D);
 
     // last the frame thing
 	glPushMatrix();

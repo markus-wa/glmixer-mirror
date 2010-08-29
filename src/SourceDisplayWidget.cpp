@@ -28,6 +28,7 @@
 #include "SourceDisplayWidget.moc"
 #include "Source.h"
 #include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 
 SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()), s(0)
 {
@@ -64,7 +65,7 @@ void SourceDisplayWidget::paintGL()
 		else
 			glScalef( aspectRatio / windowaspectratio, 1.0, 1.f);
 
-		s->draw();
+		glCallList(ViewRenderWidget::quad_texured);
 	}
 }
 

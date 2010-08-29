@@ -68,8 +68,7 @@ void RenderingManager::setUseFboBlitExtension(bool on){
                RenderingManager::blit_fbo_extension = on;
        else {
                // if extension not supported but it is requested, show warning
-               if (on)
-                       qWarning( "** WARNING **\n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware."
+               if (on) qWarning( "** WARNING ** \n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware."
                                "\n\nRendering speed be sub-optimal but all should work properly.");
                RenderingManager::blit_fbo_extension = false;
        }
@@ -80,14 +79,12 @@ RenderingManager *RenderingManager::getInstance() {
 	if (_instance == 0) {
 
 		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-			qCritical( "*** ERROR ***\n\nOpenGL Frame Buffer Objects are not supported on this graphics hardware."
+			qCritical( "*** ERROR *** \n\nOpenGL Frame Buffer Objects are not supported on this graphics hardware."
 					"\n\nThe program cannot operate properly.\n\nExiting...");
 
-		if (!glSupportsExtension("GL_ARB_imaging")) {
-			Source::imaging_extension = false;
-			qWarning( "** WARNING **\n\nOpenGL extension GL_ARB_imaging is not supported on this graphics hardware."
-					"\n\nSeveral image processing operations will not work (brigthness, contrast, filters, etc.).");
-		}
+		if (!glSupportsExtension("GL_ARB_vertex_program") || !glSupportsExtension("GL_ARB_fragment_program"))
+			qCritical( "*** ERROR *** \n\nOpenGL GLSL programming is not supported on this graphics hardware."
+					"\n\nThe program cannot operate properly.\n\nExiting...");
 
 		_instance = new RenderingManager;
 		Q_CHECK_PTR(_instance);
@@ -180,17 +177,14 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     _renderwidget->_renderView->viewport[2] = _fbo->width();
     _renderwidget->_renderView->viewport[3] = _fbo->height();
 
+
 }
-
-
 
 
 float RenderingManager::getFrameBufferAspectRatio() const{
 
 	return ((float) _fbo->width() / (float) _fbo->height());
 }
-
-
 
 void RenderingManager::updatePreviousFrame() {
 
@@ -239,9 +233,14 @@ void RenderingManager::updatePreviousFrame() {
 
 		// render to the frame buffer object
 		previousframe_fbo->bind();
-		glBindTexture(GL_TEXTURE_2D, _fbo->texture());
 
+		glClearColor(0.f, 0.f, 0.f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, _fbo->texture());
 		glCallList(ViewRenderWidget::quad_texured);
+
 		previousframe_fbo->release();
 
 		// pop the projection matrix and GL state back for rendering the current view
@@ -261,7 +260,6 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
 	glViewport(0, 0, _renderwidget->_renderView->viewport[2], _renderwidget->_renderView->viewport[3]);
-//	glViewport(0, 0, _fbo->width(), _fbo->height());
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -269,7 +267,8 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glLoadMatrixd(_renderwidget->_renderView->modelview);
+	glLoadIdentity();
+//	glLoadMatrixd(_renderwidget->_renderView->modelview);
 
 	// render to the frame buffer object
 	_fbo->bind();
@@ -307,7 +306,11 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 		if (_renderwidget->_catalogView->visible()) {
 			glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
 
+			// clear Modelview
 			glLoadIdentity();
+			// draw without effect
+			ViewRenderWidget::setSourceDrawingMode(false);
+
 			static int indexSource = 0;
 			if (clearfirst) {
 				// Clear Catalog view

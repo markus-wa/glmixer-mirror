@@ -175,8 +175,7 @@ void OutputRenderWidget::refresh()
 
 void OutputRenderWidget::paintGL()
 {
-	 // do NOT display fps : //	glRenderWidget::paintGL();
-    glClear(GL_COLOR_BUFFER_BIT);
+	glRenderWidget::paintGL();
 
 	if ( RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available

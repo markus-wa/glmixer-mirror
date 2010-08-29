@@ -89,10 +89,10 @@ void MixerView::paint()
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
     ViewRenderWidget::program->bind();
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
+//	glActiveTexture(GL_TEXTURE1);
+//	glEnable(GL_TEXTURE_2D);
+//	glActiveTexture(GL_TEXTURE0);
+//	glEnable(GL_TEXTURE_2D);
 
     bool first = true;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
@@ -102,20 +102,16 @@ void MixerView::paint()
 		//
 		glPushMatrix();
 		glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-		glScalef( SOURCE_UNIT * (*its)->getAspectRatio(),  SOURCE_UNIT, 1.f);
 
-		ViewRenderWidget::program->setUniformValue("sourceDrawing", false);
+		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+		if ( renderingAspectRatio > 1.0)
+			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
+		else
+			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
 
     	// standard transparency blending
     	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     	glBlendEquation(GL_FUNC_ADD);
-
-		if ((*its)->isActive())
-			glCallList(ViewRenderWidget::border_large_shadow);
-		else
-			glCallList(ViewRenderWidget::border_thin_shadow);
-
-		ViewRenderWidget::program->setUniformValue("sourceDrawing", true);
 
 	    // Blending Function For mixing like in the rendering window
         (*its)->beginEffectsSection();
@@ -124,12 +120,14 @@ void MixerView::paint()
 		(*its)->update();
 
 		// draw surface
+		ViewRenderWidget::setSourceDrawingMode(true);
 		(*its)->draw();
 
 		// draw stippled version of the source on top
-		glCallList(ViewRenderWidget::quad_stipped_textured[ViewRenderWidget::stipplingMode]);
-
-		glPopMatrix();
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+		(*its)->draw(false);
+		glDisable(GL_POLYGON_STIPPLE);
 
 		//
 		// 2. Render it into FBO
@@ -137,7 +135,23 @@ void MixerView::paint()
         RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
         first = false;
 
+		ViewRenderWidget::setSourceDrawingMode(false);
+
+		if ((*its)->isActive())
+			glCallList(ViewRenderWidget::border_large_shadow);
+		else
+			glCallList(ViewRenderWidget::border_thin_shadow);
+
+
+		glPopMatrix();
+
 	}
+
+    ViewRenderWidget::program->release();
+//	glActiveTexture(GL_TEXTURE1);
+//	glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+//	glDisable(GL_TEXTURE_2D);
 
 	// if no source was rendered, clear anyway
 	if (first)
@@ -146,17 +160,16 @@ void MixerView::paint()
 		// fill-in the loopback buffer
 	    RenderingManager::getInstance()->updatePreviousFrame();
 
-    ViewRenderWidget::program->release();
-	glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glDisable(GL_TEXTURE_2D);
 
     // Then the selection outlines
     for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-        glScalef( SOURCE_UNIT * (*its)->getAspectRatio(), SOURCE_UNIT, 1.f);
+		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+		if ( renderingAspectRatio > 1.0)
+			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
+		else
+			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
 		glCallList(ViewRenderWidget::frame_selection);
         glPopMatrix();
 
@@ -662,8 +675,13 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
         glPushMatrix();
-        glTranslatef( (*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-        glScalef( SOURCE_UNIT * (*its)->getAspectRatio(),  SOURCE_UNIT, 1.f);
+        glTranslated( (*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
+		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+		if ( renderingAspectRatio > 1.0)
+			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
+		else
+			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
+
         (*its)->draw(false, GL_SELECT);
         glPopMatrix();
     }

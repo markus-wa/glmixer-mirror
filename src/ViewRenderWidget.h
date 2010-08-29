@@ -53,6 +53,7 @@ class ViewRenderWidget: public glRenderWidget {
 	friend class LayersView;
 	friend class CatalogView;
 	friend class OutputRenderWidget;
+	friend class SourceDisplayWidget;
 
 public:
 	ViewRenderWidget();
@@ -152,15 +153,16 @@ protected:
 	static GLuint frame_selection, frame_screen;
 	static GLuint quad_texured, quad_window[2];
 	static GLuint circle_mixing, layerbg, catalogbg;
-	static GLuint stipplingMode, quad_stipped_textured[4];
 	static GLuint mask_textures[8];
 	static GLuint fading;
+	static GLuint stipplingMode;
+	static GLubyte stippling[];
 
 	// utility to build the display lists
-    GLuint buildHalfList_fine();
-    GLuint buildHalfList_gross();
-    GLuint buildHalfList_checkerboard();
-    GLuint buildHalfList_triangle();
+//    GLuint buildHalfList_fine();
+//    GLuint buildHalfList_gross();
+//    GLuint buildHalfList_checkerboard();
+//    GLuint buildHalfList_triangle();
     GLuint buildSelectList();
     GLuint buildLineList();
     GLuint buildTexturedQuadList();
@@ -173,6 +175,7 @@ protected:
     GLuint buildFadingList();
 
     void buildShader();
+    static void setSourceDrawingMode(bool on);
 
 private:
     // V i e w s
