@@ -43,11 +43,8 @@ public:
 	inline QString getOriginalName() { return original->getName(); }
 	inline GLuint getOriginalId() { return original->getId(); }
 	int getFrameWidth() const { return original->getFrameWidth(); }
-	int getFrameHeight() const { return original->getFrameWidth(); }
+	int getFrameHeight() const { return original->getFrameHeight(); }
 
-//	void update() { // DO SOMETHING TO COPY ORIGNINAL TEXTURE INTO CLONE TEXTURE
-//		original->update();
-//	}
 
     // only RenderingManager can create a source
 protected:

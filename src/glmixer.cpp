@@ -659,6 +659,7 @@ void GLMixer::on_actionCaptureSource_triggered(){
 
 	// capture screen
 	QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
+	capture = capture.convertToFormat(QImage::Format_RGB32);
 
 	// display and request action with this capture
 	CaptureDialog cd(this, capture);

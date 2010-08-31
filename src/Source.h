@@ -247,7 +247,11 @@ public:
 		CIRCLE_MASK = 2,
 		GRADIENT_CIRCLE_MASK = 3,
 		GRADIENT_SQUARE_MASK = 4,
-		CUSTOM_MASK = 5
+		GRADIENT_LEFT_MASK = 5,
+		GRADIENT_RIGHT_MASK = 6,
+		GRADIENT_TOP_MASK = 7,
+		GRADIENT_BOTTOM_MASK = 8,
+		CUSTOM_MASK = 9
 	} maskType;
 	void setMask(maskType t, GLuint texture = 0);
 	int getMask() const {

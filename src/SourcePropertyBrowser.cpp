@@ -266,7 +266,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	enumNames.clear();
 	// TODO implement selection of custom file mask
 //	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Custom file";
-	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient";
+	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Left to right" << "Right to left" << "Top down" << "Bottom up";
 	enumManager->setEnumNames(property, enumNames);
     QMap<int, QIcon> enumIcons;
     enumIcons[0] = QIcon();
@@ -274,7 +274,11 @@ void SourcePropertyBrowser::createPropertyTree(){
     enumIcons[2] = QIcon(":/glmixer/textures/mask_circle.png");
     enumIcons[3] = QIcon(":/glmixer/textures/mask_linear_circle.png");
     enumIcons[4] = QIcon(":/glmixer/textures/mask_linear_square.png");
-    enumIcons[5] = QIcon(":/glmixer/icons/fileopen.png");
+    enumIcons[5] = QIcon(":/glmixer/textures/mask_linear_left.png");
+    enumIcons[6] = QIcon(":/glmixer/textures/mask_linear_right.png");
+    enumIcons[7] = QIcon(":/glmixer/textures/mask_linear_top.png");
+    enumIcons[8] = QIcon(":/glmixer/textures/mask_linear_bottom.png");
+    enumIcons[9] = QIcon(":/glmixer/icons/fileopen.png");
     enumManager->setEnumIcons(property, enumIcons);
 	root->addSubProperty(property);
 	// Color
@@ -343,6 +347,11 @@ void SourcePropertyBrowser::createPropertyTree(){
 			  << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7";
 	enumManager->setEnumNames(property, enumNames);
 	root->addSubProperty(property);
+	// Pixelated on/off
+	property = boolManager->addProperty("Pixelated");
+	property->setToolTip("Show square pixels when active.");
+	idToProperty[property->propertyName()] = property;
+	root->addSubProperty(property);
 	// Chroma key on/off
 	property = boolManager->addProperty("Chroma key");
 	property->setToolTip("Enables chroma-keying (removes a key color).");
@@ -360,11 +369,13 @@ void SourcePropertyBrowser::createPropertyTree(){
 	intManager->setRange(property, 0, 100);
 	intManager->setSingleStep(property, 10);
 	root->addSubProperty(property);
-	// Pixelated on/off
-	property = boolManager->addProperty("Pixelated");
-	property->setToolTip("Show square pixels when active.");
-	idToProperty[property->propertyName()] = property;
-	root->addSubProperty(property);
+
+	// Frames size
+	QtProperty *fs = sizeManager->addProperty( QLatin1String("Frames size") );
+	fs->setItalics(true);
+	idToProperty[fs->propertyName()] = fs;
+	root->addSubProperty(fs);
+
 	// AspectRatio
 	property = infoManager->addProperty("Aspect ratio");
 	property->setToolTip("Width / height ratio or original source");
@@ -397,17 +408,10 @@ void SourcePropertyBrowser::createPropertyTree(){
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 
-		// Frames size
-		QtProperty *fs = sizeManager->addProperty( QLatin1String("Frames size") );
-		fs->setItalics(true);
-		idToProperty[fs->propertyName()] = fs;
-		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(fs);
-
 		// Frames size special case when power of two dimensions are generated
-		property = sizeManager->addProperty( QLatin1String("Converted size") );
+		property = sizeManager->addProperty( QLatin1String("Original size") );
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
-//		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 
 		// Frame rate
 		QtProperty *fr = infoManager->addProperty( QLatin1String("Frame rate") );
@@ -444,8 +448,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(property);
-		// Frames size
-		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(fs);
 		// Frame rate
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(fr);
 #endif
@@ -457,8 +459,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(property);
-		// Frames size
-		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(fs);
 		// Frame rate
 		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(fr);
 
@@ -470,8 +470,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(property);
-		// Frames size
-		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(fs);
 		// Frame rate
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(fr);
 		// Variability
@@ -493,9 +491,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::CLONE_SOURCE]->addSubProperty(property);
 
-	rttiToProperty[Source::CAPTURE_SOURCE] = groupManager->addProperty( QLatin1String("Rendering capture properties"));
-		// Frames size
-		rttiToProperty[Source::CAPTURE_SOURCE]->addSubProperty(fs);
+//	rttiToProperty[Source::CAPTURE_SOURCE] = groupManager->addProperty( QLatin1String("Rendering capture properties"));
 
 }
 
@@ -582,15 +578,15 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
 			boolManager->setValue(idToProperty["Ignore alpha"], vf->ignoresAlphaChannel());
 			idToProperty["Ignore alpha"]->setEnabled(vf->pixelFormatHasAlphaChannel());
-			sizeManager->setValue(idToProperty["Frames size"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
+			sizeManager->setValue(idToProperty["Frames size"], QSize(vf->getFrameWidth(),vf->getFrameHeight()) );
 			// Frames size special case when power of two dimensions are generated
-			sizeManager->setValue(idToProperty["Converted size"], QSize(vf->getFrameWidth(),vf->getFrameHeight()) );
 			if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight()) {
-				if ( !rttiToProperty[Source::VIDEO_SOURCE]->subProperties().contains(idToProperty["Converted size"]))
-					rttiToProperty[Source::VIDEO_SOURCE]->insertSubProperty(idToProperty["Converted size"], idToProperty["Frames size"]);
+				sizeManager->setValue(idToProperty["Original size"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
+				if ( !rttiToProperty[Source::VIDEO_SOURCE]->subProperties().contains(idToProperty["Original size"]))
+					rttiToProperty[Source::VIDEO_SOURCE]->insertSubProperty(idToProperty["Original size"], idToProperty["Ignore alpha"]);
 			} else {
-				if ( rttiToProperty[Source::VIDEO_SOURCE]->subProperties().contains(idToProperty["Converted size"]))
-					rttiToProperty[Source::VIDEO_SOURCE]->removeSubProperty(idToProperty["Converted size"]);
+				if ( rttiToProperty[Source::VIDEO_SOURCE]->subProperties().contains(idToProperty["Original size"]))
+					rttiToProperty[Source::VIDEO_SOURCE]->removeSubProperty(idToProperty["Original size"]);
 			}
 			infoManager->setValue(idToProperty["Frame rate"], QString::number( vf->getFrameRate() ) + QString(" fps") );
 			infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
@@ -636,6 +632,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Clone") );
 			CloneSource *cs = dynamic_cast<CloneSource *>(s);
 			infoManager->setValue(idToProperty["Clone of"], cs->getOriginalName() );
+			sizeManager->setValue(idToProperty["Frames size"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
 		} else
 		if (s->rtti() == Source::CAPTURE_SOURCE) {
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Captured image") );
@@ -1050,6 +1047,8 @@ void SourcePropertyBrowser::ctxMenuGroup(const QPoint &pos){
     static QMenu *menu = 0;
     if (!menu) {
     	menu = new QMenu;
+        menu->addAction(tr("Reset all values"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
+        menu->addSeparator();
     	menu->addAction(tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
     }
     menu->exec(mapToGlobal(pos));
@@ -1061,8 +1060,10 @@ void SourcePropertyBrowser::ctxMenuTree(const QPoint &pos){
     static QMenu *menu = 0;
     if (!menu) {
     	menu = new QMenu;
-        menu->addAction(tr("Expand All"), this, SLOT(expandAll()));
-        menu->addAction(tr("Collapse All"), this, SLOT(collapseAll()));
+        menu->addAction(tr("Reset all values"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
+        menu->addSeparator();
+        menu->addAction(tr("Expand tree"), this, SLOT(expandAll()));
+        menu->addAction(tr("Collapse tree"), this, SLOT(collapseAll()));
         menu->addAction(tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
     }
 

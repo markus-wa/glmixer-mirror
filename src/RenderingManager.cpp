@@ -489,6 +489,24 @@ void RenderingManager::addSourceToBasket(Source *s){
 	setCurrentSource( getEnd() );
 }
 
+
+void RenderingManager::resetSource(SourceSet::iterator sit){
+
+	// apply default parameters
+	(*sit)->copyPropertiesFrom(_defaultSource);
+	// scale the source to match the preferences
+	(*sit)->resetScale(_scalingMode);
+
+	_propertyBrowser->showProperties(sit);
+}
+
+
+void RenderingManager::resetCurrentSource(){
+
+	if(isValid(_currentSource))
+		resetSource(_currentSource);
+}
+
 int RenderingManager::getSourceBasketSize() const{
 
 	return (int) (dropBasket.size());

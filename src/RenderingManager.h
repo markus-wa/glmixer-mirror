@@ -94,6 +94,7 @@ public:
 	bool setCurrentNext();
 	bool setCurrentPrevious();
 
+
 	void addSourceToBasket(Source *s);
 	int getSourceBasketSize() const;
 	Source *getSourceBasketTop() const;
@@ -154,6 +155,8 @@ public Q_SLOTS:
 	void setPreviousFrameDelay(unsigned int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 
 	void clearSourceSet();
+	void resetSource(SourceSet::iterator sit);
+	void resetCurrentSource();
 
 	void dropSourceWithAlpha(double alphax, double alphay);
 	void dropSourceWithCoordinates(double x, double y);
