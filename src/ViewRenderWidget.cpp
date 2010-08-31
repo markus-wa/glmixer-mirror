@@ -45,7 +45,7 @@ GLuint ViewRenderWidget::border_thin_shadow = 0,
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
 GLuint ViewRenderWidget::border_scale = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_window[] = {0, 0};
-GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0;
+GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0, ViewRenderWidget::frame_screen_thin = 0;
 GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0,
 		ViewRenderWidget::catalogbg = 0;
 GLuint ViewRenderWidget::mask_textures[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -201,6 +201,7 @@ void ViewRenderWidget::initializeGL()
 	quad_window[0] = buildWindowList(0, 0, 0);
 	quad_window[1] = buildWindowList(255, 255, 255);
 	frame_screen = buildFrameList();
+	frame_screen_thin = frame_screen + 1;
 	border_thin = buildBordersList();
 	border_large = border_thin + 1;
 	border_scale = border_thin + 2;
@@ -1244,10 +1245,10 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
  **/
 GLuint ViewRenderWidget::buildFrameList()
 {
-	GLuint base = glGenLists(1);
+	GLuint base = glGenLists(2);
 	glListBase(base);
 
-	// default
+	// default thik
 	glNewList(base, GL_COMPILE);
 
 	// blended antialiasing
@@ -1256,6 +1257,39 @@ GLuint ViewRenderWidget::buildFrameList()
 	glBlendEquation(GL_FUNC_ADD);
 
 	glLineWidth(5.0);
+	glColor4f(0.85, 0.15, 0.85, 1.0);
+
+	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
+		glVertex3f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT, 0.0f); // Bottom Left
+		glVertex3f(0.0f, -1.01f * SOURCE_UNIT, 0.0f);
+		glVertex3f(0.0f, -1.07f * SOURCE_UNIT, 0.0f);
+		glVertex3f(0.0f, -1.01f * SOURCE_UNIT, 0.0f);
+		glVertex3f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT, 0.0f); // Bottom Right
+		glVertex3f(1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(1.05f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT, 0.0f); // Top Right
+		glVertex3f(0.0f, 1.01f * SOURCE_UNIT, 0.0f);
+		glVertex3f(0.0f, 1.07f * SOURCE_UNIT, 0.0f);
+		glVertex3f(0.0f, 1.01f * SOURCE_UNIT, 0.0f);
+		glVertex3f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT, 0.0f); // Top Left
+		glVertex3f(-1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(-1.05f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex3f(-1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+	glEnd();
+
+	glEndList();
+
+
+	// thin
+	glNewList(base + 1, GL_COMPILE);
+
+	// blended antialiasing
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+
+	glLineWidth(1.0);
 	glColor4f(0.85, 0.15, 0.85, 1.0);
 
 	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
@@ -1278,7 +1312,6 @@ GLuint ViewRenderWidget::buildFrameList()
 	glEnd();
 
 	glEndList();
-
 	return base;
 }
 

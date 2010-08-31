@@ -150,7 +150,7 @@ protected:
 	// all the display lists
 	static GLuint border_thin_shadow, border_large_shadow;
 	static GLuint border_thin, border_large, border_scale;
-	static GLuint frame_selection, frame_screen;
+	static GLuint frame_selection, frame_screen, frame_screen_thin;
 	static GLuint quad_texured, quad_window[2];
 	static GLuint circle_mixing, layerbg, catalogbg;
 	static GLuint mask_textures[8];
@@ -159,10 +159,6 @@ protected:
 	static GLubyte stippling[];
 
 	// utility to build the display lists
-//    GLuint buildHalfList_fine();
-//    GLuint buildHalfList_gross();
-//    GLuint buildHalfList_checkerboard();
-//    GLuint buildHalfList_triangle();
     GLuint buildSelectList();
     GLuint buildLineList();
     GLuint buildTexturedQuadList();

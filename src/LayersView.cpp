@@ -70,19 +70,21 @@ void LayersView::paint()
 	glBlendEquation(GL_FUNC_ADD);
     glCallList(ViewRenderWidget::layerbg);
 
+
 	glPushMatrix();
-	glScalef(OutputRenderWindow::getInstance()->getAspectRatio() / SOURCE_UNIT, 1.0 / SOURCE_UNIT, 1.0 / SOURCE_UNIT);
+
+	double renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+	if ( renderingAspectRatio < 1.0)
+		glScaled(1.0 / SOURCE_UNIT , 1.0 / (renderingAspectRatio * SOURCE_UNIT),  1.0 / SOURCE_UNIT);
+	else
+		glScaled(renderingAspectRatio /  SOURCE_UNIT, 1.0 / SOURCE_UNIT,  1.0 / SOURCE_UNIT);
 	glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
-    glCallList(ViewRenderWidget::frame_screen);
+    glCallList(ViewRenderWidget::frame_screen_thin);
 	glPopMatrix();
 
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
     ViewRenderWidget::program->bind();
-	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
 
     bool first = true;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
@@ -103,11 +105,11 @@ void LayersView::paint()
 			glTranslatef( 0.0, 0.0,  1.0 +(*its)->getDepth());
 
 //        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
-		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
 		if ( renderingAspectRatio > 1.0)
 			glScaled(1.0 , 1.0 / renderingAspectRatio,  1.0);
 		else
-			glScaled(1.0 * renderingAspectRatio, 1.0,  1.0);
+			glScaled(renderingAspectRatio, 1.0,  1.0);
 
 
     	// standard transparency blending
@@ -133,7 +135,6 @@ void LayersView::paint()
 		(*its)->draw();
 
 		// draw stippled version of the source on top
-//		glCallList(ViewRenderWidget::quad_stipped_textured[ViewRenderWidget::stipplingMode]);
 		glEnable(GL_POLYGON_STIPPLE);
 		glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
 		(*its)->draw(false);
@@ -149,10 +150,10 @@ void LayersView::paint()
 
 	}
     ViewRenderWidget::program->release();
-	glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
+    // restore state
 	glActiveTexture(GL_TEXTURE0);
-	glDisable(GL_TEXTURE_2D);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
 	// if no source was rendered, clear anyway
 	if (first)

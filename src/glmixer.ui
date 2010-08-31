@@ -1817,6 +1817,9 @@ p, li { white-space: pre-wrap; }
    <property name="statusTip">
     <string>Creates a new source which clones the current one.</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
   </action>
   <action name="actionDeleteSource">
    <property name="enabled">
@@ -1833,7 +1836,7 @@ p, li { white-space: pre-wrap; }
     <string>Removes the current source from the pool.</string>
    </property>
    <property name="shortcut">
-    <string>Backspace</string>
+    <string>Del, Backspace</string>
    </property>
   </action>
   <action name="actionAppend_Session">
@@ -2094,6 +2097,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="statusTip">
     <string>Show / hide a catalog of all sources in the current view.</string>
+   </property>
+   <property name="shortcut">
+    <string>F4</string>
    </property>
   </action>
   <action name="actionCatalogSmall">

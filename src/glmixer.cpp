@@ -29,7 +29,6 @@
 #include <QApplication>
 #include <QDomDocument>
 
-
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
 #include "AlgorithmSelectionDialog.h"
