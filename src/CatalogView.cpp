@@ -32,17 +32,17 @@
 CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
 							first_index(0), last_index(0), _clicX(0.0), _clicY(0.0)
 {
-	_size[SMALL] = 60.0;
+	_size[SMALL] = 61.0;
 	_iconSize[SMALL] = 23.0;
 	_largeIconSize[SMALL] = 26.0;
 
-	_size[MEDIUM] = 100.0;
+	_size[MEDIUM] = 101.0;
 	_iconSize[MEDIUM] = 38.0;
 	_largeIconSize[MEDIUM] = 42.0;
 
-	_size[LARGE] = 150.0;
-	_iconSize[LARGE] = 58.0;
-	_largeIconSize[LARGE] = 70.0;
+	_size[LARGE] = 151.0;
+	_iconSize[LARGE] = 54.0;
+	_largeIconSize[LARGE] = 62.0;
 
 	_currentSize = MEDIUM;
     title = "Catalog";
@@ -54,21 +54,19 @@ CatalogView::~CatalogView() {
 
 void CatalogView::resize(int w, int h) {
 
-	View::resize(w, h);
-	// TODO : switch depending on side (top, bottom, left, right..)
-
 	// compute viewport considering width
-	viewport[0] = viewport[2] - _size[_currentSize];
-	viewport[1] = 0;
+	// TODO : switch depending on side (top, bottom, left, right..)
+	viewport[0] = w - _size[_currentSize];
+	viewport[2] = _size[_currentSize];
 
 	h_unit = 2.0 * SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio() / double(RenderingManager::getInstance()->getFrameBufferWidth());
-	v_unit = 2.0 * SOURCE_UNIT / double(RenderingManager::getInstance()->getFrameBufferHeight());
+	v_unit = 2.0 * SOURCE_UNIT / double(viewport[3]);
 }
 
 void CatalogView::setSize(catalogSize s){
 
 	_currentSize = s;
-	resize();
+	resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
 }
 
 
@@ -81,25 +79,25 @@ void CatalogView::setModelview()
 void CatalogView::setVisible(bool on){
 
 	_visible = on;
-	resize();
+	resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
 }
 
 void CatalogView::clear() {
 
 	// Clearing the catalog is actually drawing the decoration of the catalog bar
 	// This method is called by the rendering manager with a viewport covering the fbo
-	// and a projection matrix set to gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT, -SOURCE_UNIT, SOURCE_UNIT);
-
-	glPushAttrib(GL_COLOR_BUFFER_BIT);
+	// and a projection matrix set to
+	// gluOrtho2D(-SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), -SOURCE_UNIT, SOURCE_UNIT);
+	// Modelview is Identity
 
 	// clear to transparent
 	glClearColor( 0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	// draw the catalog gb and its frame
-	glColor4f(0.5, 0.5, 0.5, 0.2);
-
 	_width = SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio();
+
+	// draw the catalog background and its frame
+	glColor4f(0.5, 0.5, 0.5, 0.2);
     float bl_x = -_width + 0.3 * _size[_currentSize] * h_unit;
     float bl_y = -SOURCE_UNIT + ( 2.0 * SOURCE_UNIT - _height) - 0.5;
     float tr_x = -_width + _size[_currentSize] * h_unit;
@@ -107,17 +105,14 @@ void CatalogView::clear() {
     glRectf( bl_x, bl_y, tr_x, tr_y);
 
 	glColor4f(0.8, 0.8, 0.8, 0.9);
-	glLineWidth(2);
-    glBegin(GL_LINE_LOOP); // drawing a square
-
-		glVertex2f(bl_x, bl_y); // Bottom Left
+	glLineWidth(3);
+    glBegin(GL_LINES); // drawing borders
 		glVertex2f(tr_x, bl_y); // Bottom Right
-		glVertex2f(tr_x, tr_y); // Top Right
-		glVertex2f(bl_x, tr_y); // Top Right
-
+		glVertex2f(bl_x, bl_y); // Bottom Left
+		glVertex2f(bl_x, bl_y); // Bottom Left
+		glVertex2f(bl_x, tr_y); // Top Left
     glEnd();
 
-	glPopAttrib();
 }
 
 void CatalogView::drawSource(Source *s, int index)
@@ -126,12 +121,13 @@ void CatalogView::drawSource(Source *s, int index)
 	// This method is called by the rendering manager with a viewport covering the fbo
 	// and a projection matrix set to
 	// gluOrtho2D(-SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), -SOURCE_UNIT, SOURCE_UNIT);
+	// Modelview is Identity
 
 	// reset height to 0 at first icon
 	if (index == 0)
 		_height = 0.0;
 
-	if (s) {
+	if ( s ) {
 
 		// target 60 pixels wide icons (height depending on aspect ratio)
 		// each source is a quad [-1 +1]
@@ -163,39 +159,26 @@ void CatalogView::drawSource(Source *s, int index)
 			glTranslatef( (_iconSize[_currentSize] -_largeIconSize[_currentSize]) * h_unit , 0.0, 0.0);
 		glScalef( swidth_pixels, sheight_pixels, 1.f);
 
-	    glDisable(GL_BLEND);
 
-		glBindTexture(GL_TEXTURE_2D, s->getTextureIndex() );
 		// draw source texture (without shading)
-//		s->draw(false);
+		glBindTexture(GL_TEXTURE_2D, s->getTextureIndex() );
+
+	    glDisable(GL_BLEND);
 		glColor4f(0.0, 0.0, 0.0, 1.0);
 		glDrawArrays(GL_QUADS, 0, 4);
-
 	    glEnable(GL_BLEND);
 
 		// was it clicked ?
 		if ( ABS(_clicX) > 0.1 || ABS(_clicY) > 0.1 ) {
-			//if ( )
-
-			qDebug("clic at %f %f", _clicX, _clicY);
-
-			double px = -_width + _size[_currentSize] * h_unit * 0.5;
-			double py = SOURCE_UNIT - _height + sheight_pixels;
-
-//
-			qDebug("s    at %f %f", px, py);
-			qDebug("        %f %f", swidth_pixels, sheight_pixels);
-
-			if ( ABS( _clicX - px) <  swidth_pixels && ABS( _clicY - py) < sheight_pixels ) {
-
+			if ( ABS( _clicY + SOURCE_UNIT - _height + sheight_pixels) < sheight_pixels ) {
 				RenderingManager::getInstance()->setCurrentSource(s->getId());
 				// done with click
 				_clicX = _clicY = 0.0;
 			}
 		}
 
-		ViewRenderWidget::setSourceDrawingMode(false);
 	    // draw source border
+		ViewRenderWidget::setSourceDrawingMode(false);
 		glScalef( 1.05, 1.05, 1.0);
 		if (s->isActive())
 			glCallList(ViewRenderWidget::border_large);
@@ -213,20 +196,18 @@ void CatalogView::paint() {
 	// Paint the catalog view is only drawing the off-screen rendered catalog texture.
 	// This texture is filled during rendering manager fbo update with the clear and drawSource methods.
 	//
-	// This paint is called by ViewRenderWidget with a viewport covering the full window
-	// and a projection matrix set according to the current view.
+	// This paint is called by ViewRenderWidget
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT  | GL_VIEWPORT_BIT);
 
 	// draw only in the area of the screen covered by the catalog
-	glViewport(viewport[0],viewport[1],_size[_currentSize], RenderingManager::getInstance()->getFrameBufferHeight());
+	glViewport(viewport[0],viewport[1], viewport[2], viewport[3]);
 
 	// use a standard ortho projection to paint the quad with catalog
-	// (use SOURCE_UNIT width to match drawing scale in the fbo texture, but not necessary)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluOrtho2D(-SOURCE_UNIT, SOURCE_UNIT,  SOURCE_UNIT, -SOURCE_UNIT);
+	gluOrtho2D(0, viewport[2], 0, viewport[3]);
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -245,13 +226,13 @@ void CatalogView::paint() {
     glBegin(GL_QUADS); // begin drawing a square
 		// specific texture coordinates to take only the section corresponding to the catalog
 		glTexCoord2d(0.0, 1.0);
-		glVertex2f(-SOURCE_UNIT, SOURCE_UNIT); // Bottom Left
-		glTexCoord2d( _size[_currentSize] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 1.0);
-		glVertex2f( SOURCE_UNIT, SOURCE_UNIT); // Bottom Right
-		glTexCoord2d( _size[_currentSize] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 0.0);
-		glVertex2f( SOURCE_UNIT, -SOURCE_UNIT); // Top Right
+		glVertex2i(0, 0); // Bottom Left
+		glTexCoord2d( viewport[2] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 1.0);
+		glVertex2i( viewport[2], 0); // Bottom Right
+		glTexCoord2d( viewport[2] / double(RenderingManager::getInstance()->getFrameBufferWidth()), 0.0);
+		glVertex2i( viewport[2], viewport[3]); // Top Right
 		glTexCoord2d(0.0, 0.0);
-		glVertex2f(-SOURCE_UNIT, -SOURCE_UNIT); // Top Left
+		glVertex2i(0, viewport[3]); // Top Left
     glEnd();
 
     glDisable(GL_TEXTURE_2D);
@@ -268,7 +249,8 @@ void CatalogView::paint() {
 
 bool CatalogView::isInside(const QPoint &pos){
 
-	if (_visible && pos.x() > viewport[0] && (viewport[3] - pos.y()) < (int)(_height / v_unit) + 10 )
+//	if (_visible && pos.x() > viewport[0] )
+	if (_visible && pos.x() > viewport[0] && (RenderingManager::getRenderingWidget()->height() - pos.y()) < (int)(_height / v_unit) )
 		return true;
 
 	return false;
@@ -279,8 +261,7 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
 	if ( isInside(event->pos()) ) {
 		// get coordinates of clic in object space
 		GLdouble z;
-		gluUnProject((double)event->x(), (double)event->y(), 1.0, modelview, projection, viewport, &_clicX, &_clicY, &z);
-
+		gluUnProject((double)event->x(), (double)(RenderingManager::getRenderingWidget()->height() - event->y()), 1.0, modelview, projection, viewport, &_clicX, &_clicY, &z);
 		return true;
 	}
 
@@ -289,11 +270,7 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
 
 bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
-	if (isInside(event->pos()) ) {
-		return true;
-	}
-
-	return false;
+	return isInside(event->pos());
 }
 
 
@@ -312,7 +289,6 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {
 	if (isInside(event->pos()) ) {
-
 		_clicX = _clicY = 0.0;
 		return true;
 	}
@@ -324,6 +300,8 @@ bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 bool CatalogView::wheelEvent ( QWheelEvent * event )
 {
 	if (isInside(event->pos())) {
+
+		// TODO implement scrolling in the list
 		return true;
 	}
 

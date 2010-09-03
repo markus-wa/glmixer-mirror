@@ -177,6 +177,8 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     _renderwidget->_renderView->viewport[2] = _fbo->width();
     _renderwidget->_renderView->viewport[3] = _fbo->height();
 
+    _renderwidget->_catalogView->viewport[1] = 0;
+    _renderwidget->_catalogView->viewport[3] = _fbo->height();
 
 }
 

@@ -58,6 +58,8 @@ void MixerView::setModelview()
 
 void MixerView::paint()
 {
+	double renderingAspectRatio = 1.0;
+
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing);
 
@@ -96,7 +98,7 @@ void MixerView::paint()
 		glPushMatrix();
 		glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 
-		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
 		if ( renderingAspectRatio > 1.0)
 			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
 		else
@@ -155,7 +157,7 @@ void MixerView::paint()
     for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
 		if ( renderingAspectRatio > 1.0)
 			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
 		else
@@ -194,7 +196,13 @@ void MixerView::paint()
 				glCallList(ViewRenderWidget::border_thin);
 			}
 			glPopMatrix();
-		glScalef( SOURCE_UNIT * s->getAspectRatio(), SOURCE_UNIT, 1.f);
+
+		renderingAspectRatio = s->getScaleX() / s->getScaleY();
+		if ( renderingAspectRatio > 1.0)
+			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
+		else
+			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
+
 		glCallList(ViewRenderWidget::border_large_shadow);
 		glPopMatrix();
     }

@@ -46,8 +46,7 @@ GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
 GLuint ViewRenderWidget::border_scale = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_window[] = {0, 0};
 GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0, ViewRenderWidget::frame_screen_thin = 0;
-GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0,
-		ViewRenderWidget::catalogbg = 0;
+GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0;
 GLuint ViewRenderWidget::mask_textures[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 GLuint ViewRenderWidget::fading = 0;
 
@@ -121,7 +120,7 @@ GLfloat ViewRenderWidget::maskc[8];
 QGLShaderProgram *ViewRenderWidget::program = 0;
 
 ViewRenderWidget::ViewRenderWidget() :
-	glRenderWidget(), messageLabel(0), fpsLabel(0), faded(false), viewMenu(0), catalogMenu(0), showFps_(0)
+	glRenderWidget(), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), showFps_(0)
 {
 
 	setMouseTracking(true);
@@ -197,7 +196,6 @@ void ViewRenderWidget::initializeGL()
 	frame_selection = buildSelectList();
 	circle_mixing = buildCircleList();
 	layerbg = buildLayerbgList();
-	catalogbg = buildCatalogbgList();
 	quad_window[0] = buildWindowList(0, 0, 0);
 	quad_window[1] = buildWindowList(255, 255, 255);
 	frame_screen = buildFrameList();
@@ -284,10 +282,10 @@ void ViewRenderWidget::initializeGL()
 	glGetDoublev(GL_PROJECTION_MATRIX, _renderView->projection);
 	glGetDoublev(GL_PROJECTION_MATRIX, _catalogView->projection);
 
-//	glMatrixMode(GL_MODELVIEW);
-//	glLoadIdentity();
-//	glGetDoublev(GL_MODELVIEW_MATRIX, _renderView->modelview);
-//	glGetDoublev(GL_MODELVIEW_MATRIX, _catalogView->modelview);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glGetDoublev(GL_MODELVIEW_MATRIX, _renderView->modelview);
+	glGetDoublev(GL_MODELVIEW_MATRIX, _catalogView->modelview);
 
 }
 
@@ -434,13 +432,16 @@ void ViewRenderWidget::paintGL()
 	// draw the view
 	_currentView->paint();
 
-	// draw a semi-transparent overlay if view should be faded
-	if (faded)
-	{
+	//
+	// 3. draw a semi-transparent overlay if view should be faded out
+	//
+	//
+	if (!_catalogView->isTransparent()) {
 		glCallList(ViewRenderWidget::fading);
 		setMouseCursor(MOUSE_ARROW);
 	}
-
+	// if not faded, means the area is active
+	else
 	//
 	// 2. the shadow of the cursor
 	//
@@ -461,14 +462,11 @@ void ViewRenderWidget::paintGL()
 	}
 
 	//
-	// 3. The catalog view with transparency
-	//
-	if (_catalogView->visible())
-		_catalogView->paint();
-
-	//
 	// 4. The extra information
 	//
+	// Catalog
+	if (_catalogView->visible())
+		_catalogView->paint();
 	// FPS computation
 	if (++fpsCounter_ == 10)
 	{
@@ -526,11 +524,9 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 
 	_currentCursor->update(event);
 
-	if (_catalogView->mousePressEvent(event))
-		return;
-
+	// ask the catalog view if it wants this mouse press event and then
 	// inform the view of the mouse press event
-	if (!_currentView->mousePressEvent(event))
+	if (!_catalogView->mousePressEvent(event) && !_currentView->mousePressEvent(event))
 	{
 
 		// if there is something to drop, inform the rendering manager that it can drop the source at the clic coordinates
@@ -541,22 +537,19 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 			if (_currentView == _mixingView)
 			{
 				double ax = 0.0, ay = 0.0;
-				_mixingView->alphaCoordinatesFromMouse(event->x(),
-						event->y(), &ax, &ay);
+				_mixingView->alphaCoordinatesFromMouse(event->x(), event->y(), &ax, &ay);
 				emit sourceMixingDrop(ax, ay);
 			}
 			else if (_currentView == _geometryView)
 			{
 				double x = 0.0, y = 0.0;
-				_geometryView->coordinatesFromMouse(event->x(),
-						event->y(), &x, &y);
+				_geometryView->coordinatesFromMouse(event->x(), event->y(), &x, &y);
 				emit sourceGeometryDrop(x, y);
 			}
 			else if (_currentView == _layersView)
 			{
 				double d = 0.0, dumm;
-				_layersView->unProjectDepth(event->x(), event->y(),
-						0.0, 0.0, &d, &dumm);
+				_layersView->unProjectDepth(event->x(), event->y(), 0.0, 0.0, &d, &dumm);
 				emit sourceLayerDrop(d);
 			}
 		}
@@ -571,14 +564,10 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	makeCurrent();
 
-
+	// ask the catalog view if it wants this mouse move event
 	if (event->buttons() == Qt::NoButton && _catalogView->mouseMoveEvent(event))
-	{
-		setFaded(true);
 		return;
-	}
-	else
-		setFaded(false);
+
 
 //	// if there is a source to drop, direct cursor
 //	if ( RenderingManager::getInstance()->getSourceBasketTop() )
@@ -610,6 +599,7 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
 
 	_currentCursor->update(event);
 
+	// ask the catalog view if it wants this mouse release event
 	if (_catalogView->mouseReleaseEvent(event))
 		return;
 
@@ -693,7 +683,6 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 
 void ViewRenderWidget::leaveEvent ( QEvent * event ){
 
-	setFaded(false);
 	_catalogView->setTransparent(true);
 
 	QWidget::leaveEvent(event);
@@ -1142,36 +1131,6 @@ GLuint ViewRenderWidget::buildLayerbgList()
 		glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 0.0);
 		glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 31.0);
 	}
-	glEnd();
-
-	glEndList();
-
-	return id;
-}
-
-GLuint ViewRenderWidget::buildCatalogbgList()
-{
-	GLuint id = glGenLists(1);
-
-//	GLuint texid = bindTexture(QPixmap(QString::fromUtf8(
-//			":/glmixer/textures/catalog_bg.png")), GL_TEXTURE_2D);
-
-	glNewList(id, GL_COMPILE);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glBlendEquation(GL_FUNC_ADD);
-
-//	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture
-	glColor3f(1.0, 1.0, 1.0);
-	glBegin(GL_QUADS); // begin drawing a square
-	glTexCoord2f(0.0f, 0.0f);
-	glVertex2d(-SOURCE_UNIT, -SOURCE_UNIT); // Bottom Left
-	glTexCoord2f(1.0f, 0.0f);
-	glVertex2d(0.0, -SOURCE_UNIT); // Bottom Right
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex2d(0.0, SOURCE_UNIT); // Top Right
-	glTexCoord2f(0.0f, 1.0f);
-	glVertex2d(-SOURCE_UNIT, SOURCE_UNIT); // Top Left
 	glEnd();
 
 	glEndList();

@@ -39,7 +39,7 @@ public:
 	void setModelview();
 	void clear();
 	void paint();
-	void resize(int w = -1, int h = -1);
+	void resize(int w, int h);
 	bool isInside(const QPoint &pos);
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
@@ -50,10 +50,11 @@ public:
 	// Specific implementation
 	void setVisible(bool on);
 	bool visible() { return _visible;}
-	void setTransparent(bool on) { _alpha = on ? 0.5 : 1.0; }
+	inline void setTransparent(bool on) { _alpha = on ? 0.5 : 1.0; }
+	inline bool isTransparent() const { return _alpha < 0.9; }
 	typedef enum { SMALL = 0, MEDIUM = 1, LARGE = 2 } catalogSize;
 	void setSize(catalogSize s);
-	catalogSize getSize() { return _currentSize; }
+	inline catalogSize getSize() const { return _currentSize; }
 
 	// drawing
 	void drawSource(Source *s, int index);

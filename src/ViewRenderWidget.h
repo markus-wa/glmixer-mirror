@@ -137,7 +137,6 @@ public Q_SLOTS:
 	void setCatalogSizeSmall();
 	void setCatalogSizeMedium();
 	void setCatalogSizeLarge();
-	inline void setFaded(bool on) { faded = on; }
 
 protected:
 
@@ -152,7 +151,7 @@ protected:
 	static GLuint border_thin, border_large, border_scale;
 	static GLuint frame_selection, frame_screen, frame_screen_thin;
 	static GLuint quad_texured, quad_window[2];
-	static GLuint circle_mixing, layerbg, catalogbg;
+	static GLuint circle_mixing, layerbg;
 	static GLuint mask_textures[8];
 	static GLuint fading;
 	static GLuint stipplingMode;
@@ -164,7 +163,6 @@ protected:
     GLuint buildTexturedQuadList();
     GLuint buildCircleList();
     GLuint buildLayerbgList();
-    GLuint buildCatalogbgList();
     GLuint buildFrameList();
     GLuint buildWindowList(GLubyte r, GLubyte g, GLubyte b);
     GLuint buildBordersList();
@@ -189,7 +187,6 @@ private:
 	// M e s s a g e s
 	QLabel *messageLabel, *fpsLabel;
 	QTimer messageTimer;
-	bool faded;
 	QMenu *viewMenu, *catalogMenu;
 
 	// F P S    d i s p l a y
