@@ -281,6 +281,8 @@ void Source::update() {
 void Source::beginEffectsSection() const {
 
 
+	ViewRenderWidget::program->setUniformValue("step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
+
 	ViewRenderWidget::program->setUniformValue("gamma", gamma);
 	//             gamma levels : minInput, maxInput, minOutput, maxOutput:
 	ViewRenderWidget::program->setUniformValue("levels", gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut);

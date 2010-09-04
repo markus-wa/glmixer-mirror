@@ -25,12 +25,13 @@
 
 #include <cmath>
 
+#define euclidean(P1, P2)  sqrt( (P1.x()-P2.x()) * (P1.x()-P2.x()) +  (P1.y()-P2.y()) * (P1.y()-P2.y()) )
+
 #include <DelayCursor.h>
 
-DelayCursor::DelayCursor() : Cursor()
+DelayCursor::DelayCursor() : Cursor(), t(0.0), duration(0.0)
 {
 
-	t = 0.0;
 }
 
 
@@ -42,43 +43,48 @@ void DelayCursor::update(QMouseEvent *e){
 		// reset time
 		t = 0.0;
 		duration = 0.0;
-		// start at press position
-		shadowPos = pressPos;
 	}
 }
 
 bool DelayCursor::apply(double fpsaverage){
 
-//	return Cursor::apply(fpsaverage);
-
 	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
 
 	// animate the shadow
-
-
 	if (active) {
+
+		releasePos = mousePos;
 
 		duration += dt;
 
-		// target is the current pos if not release button
-		releasePos = mousePos;
+
+		if (duration > 1.0) {
+
+//		duration += 2.0 * dt;
+
+		t += dt;
+
+//		double coef = 0.0;
+//
+//		if ((shadowPos - releasePos).manhattanLength() > 1)
+//			coef += t *(double)(pressPos - shadowPos).manhattanLength() / (double)(shadowPos - releasePos).manhattanLength();
+
+		// interpolation
+		shadowPos = pressPos + 100.0 * t * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
+//		shadowPos += dt * coef * (releasePos - shadowPos);
+
+//		qDebug("%f", euclidean(releasePos, pressPos));
+
+		// interpolation finished?
+		if ( euclidean(releasePos, shadowPos) < 1.0)
+			active = false;
 
 
-
+		}
+		return true;
 	}
 
-	t += dt;
-
-//	QPointF delta =  mass * dt;
-
-	double coef = t / duration;
-
-	// interpolation
-	shadowPos = (coef) * pressPos + (1.0 - coef) * releasePos;
-
-	// interpolation finished
-	return (coef - 1.0 < EPSILON);
-
+	return false;
 }
 
 
@@ -109,7 +115,7 @@ void DelayCursor::draw(GLint viewport[4]) {
 	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
 	glEnd();
 
-
+	glLineWidth(1);
 	glBegin(GL_LINES);
 	glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
 	glVertex2d(releasePos.x(), viewport[3] - releasePos.y());

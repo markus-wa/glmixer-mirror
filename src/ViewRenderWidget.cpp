@@ -384,6 +384,9 @@ ViewRenderWidget::cursorMode ViewRenderWidget::getCursorMode(){
 	if (_currentCursor == _springCursor)
 		return ViewRenderWidget::CURSOR_SPRING;
 
+	if (_currentCursor == _delayCursor)
+		return ViewRenderWidget::CURSOR_DELAY;
+
 	return ViewRenderWidget::CURSOR_NORMAL;
 }
 
@@ -868,6 +871,11 @@ void ViewRenderWidget::buildShader(){
 	maskc[7] = 0.f;
 
 	program = new QGLShaderProgram(this);
+
+	QFile file(":/glmixer/shaders/imageProcessing_vertex.glsl");
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	         return;
+
 	program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl");
 	program->addShaderFromSourceFile(QGLShader::Fragment, ":/glmixer/shaders/imageProcessing_fragment.glsl");
 	program->bindAttributeLocation("vertex", PROGRAM_VERTEX_ATTRIBUTE);
@@ -880,6 +888,8 @@ void ViewRenderWidget::buildShader(){
 	program->setUniformValue("sourceTexture", 0);
 	program->setUniformValue("maskTexture", 1);
 	program->setUniformValue("utilityTexture", 2);
+
+	program->setUniformValue("step", 1.f / 640.f, 1.f / 480.f);
 
 	program->setUniformValue("sourceDrawing", false);
 	program->setUniformValue("contrast", 1.f);
@@ -1683,4 +1693,3 @@ void ViewRenderWidget::setMouseCursor(mouseCursor c)
 		setCursor(arrowCursor);
 	}
 }
-

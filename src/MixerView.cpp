@@ -396,6 +396,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	// LEFT BUTTON : grab or draw a selection rectangle
 	else if (event->buttons() & Qt::LeftButton) {
 
+
         if ( clicked && currentAction == View::GRAB )
         {
         	SourceListArray::iterator itss;

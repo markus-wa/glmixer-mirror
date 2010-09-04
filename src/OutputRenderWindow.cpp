@@ -185,7 +185,7 @@ void OutputRenderWidget::paintGL()
 		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
-		glBlitFramebuffer(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
+		glBlitFramebufferEXT(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
 									 rx, ry, rw, rh,
 									 GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	} else

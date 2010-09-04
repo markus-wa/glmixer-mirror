@@ -27,7 +27,6 @@
 
 #include <SpringCursor.h>
 
-#define euclidean(P1, P2)  sqrt( (P1.x()-P2.x()) * (P1.x()-P2.x()) +  (P1.y()-P2.y()) * (P1.y()-P2.y()) )
 
 SpringCursor::SpringCursor() : Cursor()
 {
@@ -49,61 +48,33 @@ void SpringCursor::update(QMouseEvent *e){
 	if (e->type() == QEvent::MouseButtonPress){
 		// reset time
 		t = 0.0;
-		duration = 0.0;
-		// start at press position
-		shadowPos = pressPos;
 	}
 }
 
 bool SpringCursor::apply(double fpsaverage){
 
-//	return Cursor::apply(fpsaverage);
-
 	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
 
-//	if (!active) {
-////		shadowPos = mousePos;
-//		return false;
-//	}
-//
-//	if (updated)
-//		updated = false;
-
 	// animate the shadow
-
-
 	if (active) {
 
-		duration += dt;
-
-		// target is the current pos if not release button
 		releasePos = mousePos;
 
+		t += dt;
 
+		double coef = 0.5;
 
+		if ((shadowPos - releasePos).manhattanLength() > 1.0)
+			coef += 1.0 / mass * (pressPos - shadowPos).manhattanLength() / (shadowPos - releasePos).manhattanLength();
+
+		// interpolation
+		shadowPos += dt * coef * (releasePos - shadowPos);
+
+		// interpolation finished?
+		return ((shadowPos - releasePos).manhattanLength() > 3.0);
 	}
 
-	t += dt;
-
-//	QPointF delta =  mass * dt;
-
-	double coef = t / duration;
-
-	// interpolation
-	shadowPos = (coef) * pressPos + (1.0 - coef) * releasePos;
-
-	// interpolation finished
-	return (coef - 1.0 < EPSILON);
-
-	// if the shadow reached the real cursor position
-	// then return false
-	// else return true
-
-//	qDebug("dist %f", euclidean(POS, _POS));
-//	qDebug("mana %f", (POS - pos).manhattanLength());
-
-//	return (shadowPos - releasePos).manhattanLength() > 1.0 ;
-
+	return false;
 }
 
 
@@ -121,26 +92,32 @@ bool SpringCursor::wheelEvent(QWheelEvent * event){
 
 void SpringCursor::draw(GLint viewport[4]) {
 
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
 
-		glPointSize(10 + (10 - mass));
-		glColor4ub(13, 148, 224, 255);
+	glPointSize(10 + (10 - mass));
+	glColor4ub(13, 148, 224, 255);
 
-		glBegin(GL_POINTS);
-		glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
-		glEnd();
+	glBegin(GL_POINTS);
+	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+	glEnd();
 
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-	}
+	glLineWidth(1);
+	glBegin(GL_LINES);
+	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+	glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
+	glEnd();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+}
 
 //	return Cursor::update(fpsaverage);
 

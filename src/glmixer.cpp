@@ -787,8 +787,8 @@ void GLMixer::on_frameSlider_sliderMoved (int v){
     QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
 
     // the trick; call a method when the frame will be ready!
-    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
-//    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
+//    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
+    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
 
     // let the VideoFile run till it displays the frame seeked
     selectedSourceVideoFile->pause(false);
@@ -929,7 +929,7 @@ void GLMixer::on_actionFree_aspect_ratio_toggled(bool on){
 
 void GLMixer::on_actionAbout_triggered(){
 
-	QString msg = QString("%1 :     \tGraphic Live Mixer\n\n").arg(QCoreApplication::applicationName());
+	QString msg = QString("%1 :   \tGraphic Live Mixer\n\n").arg(QCoreApplication::applicationName());
 	msg.append(QString("Author:   \tBruno Herbelin\n"));
 	msg.append(QString("Contact:  \tbruno.herbelin@gmail.com\n"));
 	msg.append(QString("License:  \tGNU GPL version 3\n"));
@@ -950,14 +950,14 @@ void GLMixer::on_actionAbout_triggered(){
 void GLMixer::changeWindowTitle(){
 
 	//	session file name
-//	QString session = currentStageFileName.isNull() ? "unsaved session" : QFileInfo(currentStageFileName).fileName();
+	QString session = currentStageFileName.isNull() ? "unsaved session" : QFileInfo(currentStageFileName).fileName();
 
-	setWindowFilePath(currentStageFileName);
-	setWindowModified(false);
+//	setWindowFilePath(session);
+//	setWindowModified(true);
 
-//    setWindowTitle(QString("%1 %2 - %3[*]").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(session));
+    setWindowTitle(QString("%1 %2 - %3").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(session));
 
-//	actionAppend_Session->setEnabled(!currentStageFileName.isNull());
+	actionAppend_Session->setEnabled(!currentStageFileName.isNull());
 }
 
 //QString title = QString("Super Mixer %1 - ").arg(QApplication::applicationVersion());
@@ -1003,11 +1003,10 @@ void GLMixer::on_actionNew_Session_triggered()
 	currentStageFileName = QString();
 	changeWindowTitle();
 	RenderingManager::getInstance()->clearSourceSet();
-	RenderingManager::getRenderingWidget()->clearViews();
-
-	// TODO: maybe a default for these options into the user preferences?
-	actionWhite_background->setChecked(false);
+	actionWhite_background->setChecked(false); // TODO: maybe a default for these options into the user preferences?
 	actionFree_aspect_ratio->setChecked(false);
+	OutputRenderWindow::getInstance()->resizeGL();
+	RenderingManager::getRenderingWidget()->clearViews();
 }
 
 

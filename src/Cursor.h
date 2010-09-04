@@ -32,7 +32,13 @@
 class Cursor {
 
 public:
-	Cursor() : event(0), updated(false), active(false) { }
+	Cursor() : event(0), updated(false), active(false) {
+		pressPos = QPointF(0,0);
+		releasePos = QPointF(0,0);
+		shadowPos = QPointF(0,0);
+		mousePos = QPointF(0,0);
+	}
+	virtual ~Cursor() {};
 
 	/**
 	 * Provide the cursor with the original mouse event
@@ -40,6 +46,9 @@ public:
 	virtual void update(QMouseEvent *e){
 		if (e->type() == QEvent::MouseButtonPress){
 			pressPos 	=  QPointF(e->pos());
+			shadowPos = pressPos;
+			b = e->button();
+			bs = e->buttons();
 			active = true;
 		} else if (e->type() == QEvent::MouseButtonRelease){
 			releasePos 	=  QPointF(e->pos());
@@ -47,8 +56,6 @@ public:
 		}
 
 		mousePos =  QPointF(e->pos());
-		b = e->button();
-		bs = e->buttons();
 		updated = true;
 	}
 

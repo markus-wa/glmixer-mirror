@@ -210,7 +210,7 @@ void RenderingManager::updatePreviousFrame() {
 		// several frames, and each loopback source could use a different one
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
 
-		glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
+		glBlitFramebufferEXT(0, _fbo->height(), _fbo->width(), 0, 0, 0,
 				previousframe_fbo->width(), previousframe_fbo->height(),
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
 

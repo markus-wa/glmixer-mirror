@@ -49,7 +49,7 @@ private:
 	// force computed
 	QPointF f;
 	// timing
-	double t, duration;
+	double t;
 };
 
 #endif /* SPRINGCursor_H_ */

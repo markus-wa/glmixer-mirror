@@ -401,8 +401,8 @@ public:
 
 	void copyPropertiesFrom(const Source *s);
 
-	virtual int getFrameWidth() const { return 0; }
-	virtual int getFrameHeight() const { return 0; }
+	virtual int getFrameWidth() const { return 1; }
+	virtual int getFrameHeight() const { return 1; }
 
 protected:
 	/*

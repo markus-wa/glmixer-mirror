@@ -48,6 +48,7 @@ public:
 		viewport[2] = 0;
 		viewport[3] = 0;
 	}
+	virtual ~View() {};
 	/**
 	 * Apply the Modelview matrix
 	 */
