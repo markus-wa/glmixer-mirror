@@ -92,7 +92,7 @@ SET(MACOSX_BUNDLE_COPYRIGHT "Bruno Herbelin")
 add_executable(glmixer MACOSX_BUNDLE ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )
 
 # link the "qtproject" target against the Qt libraries. which libraries exactly, is defined by the "include(${QT_USE_FILE})" line above, which sets up this variable.
-target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${QT_QTXML_LIBRARIES} ${GLMIXER_LIBRARIES})
+target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${QT_QTXML_LIBRARIES} ${GLMIXER_LIBRARIES} )
 
 set(GLMIXER_APP_BUNDLE_ROOT "${CMAKE_BINARY_DIR}/src/glmixer.app/") 
 
@@ -128,8 +128,6 @@ glmixer_install_qt4_framework(QtSvg
   APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
   DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 )
-
-
 
 # QT Plugins
 GLMIXER_INSTALL_DYLIB(libqjpeg.dylib
@@ -169,46 +167,13 @@ GLMIXER_INSTALL_DYLIB(libqtiff.dylib
   DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 )
 
-if (OpenCV_FOUND)
-# Dependency libraries
-GLMIXER_INSTALL_DYLIB(libcxcore.2.0.dylib
-  TARGET bundle NAME libcxcore.2.0.dylib
-  LIBRARY /usr/local/lib/libcxcore.2.0.dylib
-  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-)
-GLMIXER_INSTALL_DYLIB(libml.2.0.dylib
-  TARGET bundle NAME libml.2.0.dylib
-  LIBRARY /usr/local/lib/libml.2.0.dylib
-  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-  DEPENDS_LIBRARIES libcxcore.2.0.dylib
-)
-GLMIXER_INSTALL_DYLIB(libcv.2.0.dylib
-  TARGET bundle NAME libcv.2.0.dylib
-  LIBRARY /usr/local/lib/libcv.2.0.dylib
-  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-  DEPENDS_LIBRARIES libcxcore.2.0.dylib
-)
-GLMIXER_INSTALL_DYLIB(libhighgui.2.0.dylib
-  TARGET bundle NAME libhighgui.2.0.dylib
-  LIBRARY /usr/local/lib/libhighgui.2.0.dylib
-  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-  DEPENDS_LIBRARIES libcxcore.2.0.dylib libcv.2.0.dylib
-)
-GLMIXER_INSTALL_DYLIB(libcvaux.2.0.dylib
-  TARGET bundle NAME libcvaux.2.0.dylib
-  LIBRARY /usr/local/lib/libcvaux.2.0.dylib
-  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-  DEPENDS_LIBRARIES libcxcore.2.0.dylib libcv.2.0.dylib libml.2.0.dylib libhighgui.2.0.dylib
-)
-endif (OpenCV_FOUND)
-
 set(GLMIXER_APP_BUNDLE_EXECUTABLE "${CMAKE_BINARY_DIR}/src/glmixer.app/Contents/MacOS/glmixer") 
 
 if (OpenCV_FOUND)
 	glmixer_install_name_tool(${GLMIXER_APP_BUNDLE_EXECUTABLE}
 	  TARGET bundle
-	  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg}
-	  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqsvg.dylib libqtiff.dylib libcxcore.2.0.dylib libcv.2.0.dylib libml.2.0.dylib libhighgui.2.0.dylib libcvaux.2.0.dylib
+	  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg} 
+	  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqsvg.dylib libqtiff.dylib 
 	)
 else (OpenCV_FOUND)
 	glmixer_install_name_tool(${GLMIXER_APP_BUNDLE_EXECUTABLE}
@@ -217,7 +182,6 @@ else (OpenCV_FOUND)
 	  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqsvg.dylib libqtiff.dylib
 	)
 endif (OpenCV_FOUND)
-
 
 
 
