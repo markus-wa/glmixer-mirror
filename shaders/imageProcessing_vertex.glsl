@@ -1,11 +1,9 @@
-#version 130
 
-in highp vec2 texCoord;
-out highp vec2 texc;
-in vec2 maskCoord;
-out vec2 maskc;
-in vec4 gl_Color;
-out vec4 baseColor;
+attribute vec2 texCoord;
+varying vec2 texc;
+attribute vec2 maskCoord;
+varying vec2 maskc;
+varying vec4 baseColor;
    
 void main(void)
 {
@@ -14,4 +12,5 @@ void main(void)
     baseColor = gl_Color;
 
     gl_Position = ftransform();
-};
+}
+
