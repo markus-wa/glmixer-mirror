@@ -38,11 +38,11 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 	static bool testDone = false;
 	if (!testDone) {
 		if (!format().rgba())
-		  qCritical("*** ERROR ***\n\nOpenGL Could not set RGBA buffer; cannot perform OpenGL rendering.");
+		  qFatal("*** ERROR ***\n\nOpenGL Could not set RGBA buffer; cannot perform OpenGL rendering.");
 		if (!format().directRendering())
-		  qWarning("** WARNING **\n\nOpenGL Could not set direct rendering; rendering will be slow.");
+		  qCritical("** WARNING **\n\nOpenGL Could not set direct rendering; rendering will be slow.");
 		if (!format().doubleBuffer())
-		  qWarning("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
+		  qCritical("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
 		testDone = true;
 	}
 

@@ -876,13 +876,22 @@ void ViewRenderWidget::buildShader(){
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	         return;
 
-	program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl");
-	program->addShaderFromSourceFile(QGLShader::Fragment, ":/glmixer/shaders/imageProcessing_fragment.glsl");
+	if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl"))
+		qCritical( "** ERROR ** \n\nOpenGL GLSL error in vertex shader: \n\n%s", qPrintable(program->log()));
+	else if (program->log().contains("warning"))
+		qWarning( "** WARNING ** \n\nOpenGL GLSL warning in vertex shader: \n\n%s", qPrintable(program->log()));
+
+	if (!program->addShaderFromSourceFile(QGLShader::Fragment, ":/glmixer/shaders/imageProcessing_fragment.glsl"))
+		qCritical( "** ERROR ** \n\nOpenGL GLSL error in fragment shader: \n\n%s", qPrintable(program->log()));
+	else if (program->log().contains("warning"))
+		qWarning( "** WARNING ** \n\nOpenGL GLSL warning in fragment shader: \n\n%s", qPrintable(program->log()));
+
 	program->bindAttributeLocation("vertex", PROGRAM_VERTEX_ATTRIBUTE);
 	program->bindAttributeLocation("texCoord", PROGRAM_TEXCOORD_ATTRIBUTE);
 	program->bindAttributeLocation("maskCoord", PROGRAM_MASKCOORD_ATTRIBUTE);
 
-	program->link();
+	if (!program->link())
+		qFatal( "** ERROR ** \n\nOpenGL GLSL link error:\n\n%s", qPrintable(program->log()));
 
 	program->bind();
 	program->setUniformValue("sourceTexture", 0);

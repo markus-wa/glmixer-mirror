@@ -187,7 +187,7 @@ vec3 apply_filter() {
 ** Hue, saturation, luminance
 */
 
-vec3 RGBToHSL(in vec3 color)
+vec3 RGBToHSL(vec3 color)
 {
     vec3 hsl = vec3(0.0, 0.0, 0.0); // init to 0 to avoid warnings ? (and reverse if + remove first part)
 
@@ -229,7 +229,7 @@ vec3 RGBToHSL(in vec3 color)
     return hsl;
 }
 
-float HueToRGB(in float f1, in float f2, in float hue)
+float HueToRGB(float f1, float f2, float hue)
 {
     if (hue < 0.0)
         hue += 1.0;
@@ -247,7 +247,7 @@ float HueToRGB(in float f1, in float f2, in float hue)
     return res;
 }
 
-vec3 HSLToRGB(in vec3 hsl)
+vec3 HSLToRGB(vec3 hsl)
 {
     vec3 rgb;
 
@@ -314,15 +314,15 @@ void main(void)
        transformedRGB = vec3(1.0) - transformedRGB;
 
     // get HSL to perform operations on Hue Saturation and Luminance
-    vec3 transformedHSL = RGBToHSL( transformedRGB );
+   vec3 transformedHSL = RGBToHSL( transformedRGB );
 
     // Operations on HSL ; if threshold applied, others are not useful
     if(threshold > 0.0) {
         // level threshold
-        transformedHSL = vec3(0.0, 0.0, step(transformedHSL.z, threshold) );
+        transformedHSL = vec3(0.0, 0.0, transformedHSL.z < threshold);
     } else {
         // perform hue shift
-        transformedHSL.x = mod( transformedHSL.x + hueshift, 1.0);
+        transformedHSL.x = transformedHSL.x + hueshift; 
 
         // Saturation
         transformedHSL.y *= saturation;

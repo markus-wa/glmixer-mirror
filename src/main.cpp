@@ -42,11 +42,11 @@ void GLMixerMessageOutput(QtMsgType type, const char *msg)
 		 break;
 	 case QtWarningMsg:
 		 std::cerr<<"Warning: "<<msg<<std::endl;
+//		 QMessageBox::warning(0, QString("%1 Warning").arg(QCoreApplication::applicationName()), QString(msg));
 		 break;
 	 case QtCriticalMsg:
 		 std::cerr<<"Critical: "<<msg<<std::endl;
-		 QMessageBox::critical(0, QString("%1 Critical Information").arg(QCoreApplication::applicationName()), QString(msg));
-		 abort();
+		 QMessageBox::critical(0, QString("%1 Critical Error").arg(QCoreApplication::applicationName()), QString(msg));
 		 break;
 	 case QtFatalMsg:
 		 std::cerr<<"Fatal: "<<msg<<std::endl;

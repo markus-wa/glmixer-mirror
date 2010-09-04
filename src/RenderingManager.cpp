@@ -79,11 +79,11 @@ RenderingManager *RenderingManager::getInstance() {
 	if (_instance == 0) {
 
 		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-			qCritical( "*** ERROR *** \n\nOpenGL Frame Buffer Objects are not supported on this graphics hardware."
+			qFatal( "*** ERROR *** \n\nOpenGL Frame Buffer Objects are not supported on this graphics hardware."
 					"\n\nThe program cannot operate properly.\n\nExiting...");
 
 		if (!glSupportsExtension("GL_ARB_vertex_program") || !glSupportsExtension("GL_ARB_fragment_program"))
-			qCritical( "*** ERROR *** \n\nOpenGL GLSL programming is not supported on this graphics hardware."
+			qFatal( "*** ERROR *** \n\nOpenGL GLSL programming is not supported on this graphics hardware."
 					"\n\nThe program cannot operate properly.\n\nExiting...");
 
 		_instance = new RenderingManager;
