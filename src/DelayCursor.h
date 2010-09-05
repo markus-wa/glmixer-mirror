@@ -26,10 +26,18 @@
 #ifndef DelayCursor_H_
 #define DelayCursor_H_
 
-#include "Cursor.h"
+#include <QObject>
 
-class DelayCursor: public Cursor
+#include "Cursor.h"
+#define MIN_SPEED 30
+#define MAX_SPEED 250
+#define MIN_WAIT 0.2
+#define MAX_WAIT 3.0
+
+class DelayCursor: public QObject, public Cursor
 {
+    Q_OBJECT
+
 public:
 	DelayCursor();
 
@@ -38,7 +46,20 @@ public:
 	bool wheelEvent(QWheelEvent * event);
 	void draw(GLint viewport[4]);
 
+	inline int getSpeed() const { return (int) speed; }
+	inline double getWaitTime() const { return waitTime; }
+
+public Q_SLOTS:
+	inline void setSpeed(int s) { speed = (double) CLAMP(s, MIN_SPEED, MAX_SPEED); }
+	inline void setWaitTime(double t) { waitTime = CLAMP(t, MIN_WAIT, MAX_WAIT); }
+
+Q_SIGNALS:
+	void speedChanged(int s);
+
 private:
+
+	double speed;
+	double waitTime;
 
 	// timing
 	double t, duration;

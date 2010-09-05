@@ -25,18 +25,10 @@
 
 #include <cmath>
 
-#include <SpringCursor.h>
+#include "SpringCursor.moc"
 
-
-SpringCursor::SpringCursor() : Cursor()
+SpringCursor::SpringCursor() : Cursor(), mass(5.0)
 {
-	// init physics vars
-	mass = 1.0;
-	lenght = 0.0;
-	stiffness = 0.1;
-	damping = 1.0;
-	viscousness = 0.01;
-
 	t = 0.0;
 }
 
@@ -71,7 +63,7 @@ bool SpringCursor::apply(double fpsaverage){
 		shadowPos += dt * coef * (releasePos - shadowPos);
 
 		// interpolation finished?
-		return ((shadowPos - releasePos).manhattanLength() > 3.0);
+		return ((shadowPos - releasePos).manhattanLength() > 4.0);
 	}
 
 	return false;
@@ -83,9 +75,10 @@ bool SpringCursor::wheelEvent(QWheelEvent * event){
 	if (!active)
 		return false;
 
-	mass += ((float) event->delta() * mass * 1.0) / (120.0 * 10.0) ;
-	mass = CLAMP(mass, 1.0, 10.0);
+	mass += ((float) event->delta() * mass * MIN_MASS) / (60.0 * MAX_MASS) ;
+	mass = CLAMP(mass, MIN_MASS, MAX_MASS);
 
+	emit massChanged((int)mass);
 	return true;
 }
 
@@ -100,7 +93,7 @@ void SpringCursor::draw(GLint viewport[4]) {
 	glPushMatrix();
 	glLoadIdentity();
 
-	glPointSize(10 + (10 - mass));
+	glPointSize(10 + mass);
 	glColor4ub(13, 148, 224, 255);
 
 	glBegin(GL_POINTS);
@@ -119,6 +112,16 @@ void SpringCursor::draw(GLint viewport[4]) {
 	glPopMatrix();
 }
 
+
+
+//// parameters of the physics
+//double mass, lenght, stiffness, damping, viscousness;
+//// previous coordinates to compute speed
+//QPointF _mousePos, _shadowPos;
+//// speeds of real cursor (v) and shadow (V)
+//QPointF v, V;
+//// force computed
+//QPointF f;
 //	return Cursor::update(fpsaverage);
 
 //	// 0. speeds

@@ -330,7 +330,7 @@ void main(void)
         // perform reduction of colors
         if (nbColors > 0) {
             transformedHSL *= vec3(nbColors);
-            transformedHSL = ceil(transformedHSL);
+            transformedHSL = floor(transformedHSL);
             transformedHSL /= vec3(nbColors);
         }
 

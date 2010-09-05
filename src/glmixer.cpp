@@ -49,6 +49,8 @@
 #include "SourcePropertyBrowser.h"
 #include "GammaLevelsWidget.h"
 #include "CatalogView.h"
+#include "DelayCursor.h"
+#include "SpringCursor.h"
 
 #include "glmixer.moc"
 
@@ -92,6 +94,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	cursorActions->addAction(actionCursorDelay);
 	cursorActions->addAction(actionCursorCurve);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
+
+
 
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
@@ -156,6 +160,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionZoomOut, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomOut()));
 	QObject::connect(actionZoomReset, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
 	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
+
+	// Signals between cursors and their configuration gui
+	QObject::connect(RenderingManager::getRenderingWidget()->getDelayCursor(), SIGNAL(speedChanged(int)), cursorDelaySpeed, SLOT(setValue(int)) );
+	QObject::connect(cursorDelaySpeed, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget()->getDelayCursor(), SLOT(setSpeed(int)) );
+	QObject::connect(cursorDelayWaitDuration, SIGNAL(valueChanged(double)), RenderingManager::getRenderingWidget()->getDelayCursor(), SLOT(setWaitTime(double)) );
+	QObject::connect(RenderingManager::getRenderingWidget()->getSpringCursor(), SIGNAL(massChanged(int)), cursorSpringMass, SLOT(setValue(int)) );
+	QObject::connect(cursorSpringMass, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget()->getSpringCursor(), SLOT(setMass(int)) );
 
     // a Timer to update sliders and counters
     refreshTimingTimer = new QTimer(this);
@@ -258,13 +269,16 @@ void GLMixer::setTool(QAction *a){
 
 void GLMixer::setCursor(QAction *a){
 
-	if (a == actionCursorNormal)
+	if (a == actionCursorNormal) {
 		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_NORMAL);
-	else if (a == actionCursorSpring)
+		cursorOptionWidget->setCurrentWidget(cursorNormalOptions);
+	} else if (a == actionCursorSpring) {
 		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_SPRING);
-	else if (a == actionCursorDelay)
+		cursorOptionWidget->setCurrentWidget(cursorSpringOptions);
+	} else if (a == actionCursorDelay) {
 		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_DELAY);
-
+		cursorOptionWidget->setCurrentWidget(cursorDelayOptions);
+	}
 }
 
 void GLMixer::on_actionMediaSource_triggered(){

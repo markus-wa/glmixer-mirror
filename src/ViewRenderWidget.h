@@ -103,6 +103,8 @@ public:
 	void setCursorMode(cursorMode m);
 	cursorMode getCursorMode();
 
+	inline SpringCursor *getSpringCursor() const { return _springCursor; }
+	inline DelayCursor *getDelayCursor() const { return _delayCursor; }
 
 	/**
 	 * save and load configuration
@@ -152,23 +154,12 @@ protected:
 	static GLuint frame_selection, frame_screen, frame_screen_thin;
 	static GLuint quad_texured, quad_window[2];
 	static GLuint circle_mixing, layerbg;
-	static GLuint mask_textures[8];
+	static GLuint mask_textures[9];
 	static GLuint fading;
 	static GLuint stipplingMode;
 	static GLubyte stippling[];
 
-	// utility to build the display lists
-    GLuint buildSelectList();
-    GLuint buildLineList();
-    GLuint buildTexturedQuadList();
-    GLuint buildCircleList();
-    GLuint buildLayerbgList();
-    GLuint buildFrameList();
-    GLuint buildWindowList(GLubyte r, GLubyte g, GLubyte b);
-    GLuint buildBordersList();
-    GLuint buildFadingList();
 
-    void buildShader();
     static void setSourceDrawingMode(bool on);
 
 private:
@@ -194,6 +185,19 @@ private:
 	unsigned int fpsCounter_;
 	float f_p_s_;
 	bool showFps_;
+
+	// utility to build the display lists
+    GLuint buildSelectList();
+    GLuint buildLineList();
+    GLuint buildTexturedQuadList();
+    GLuint buildCircleList();
+    GLuint buildLayerbgList();
+    GLuint buildFrameList();
+    GLuint buildWindowList(GLubyte r, GLubyte g, GLubyte b);
+    GLuint buildBordersList();
+    GLuint buildFadingList();
+
+    void buildShader();
 };
 
 #endif /* VIEWRENDERWIDGET_H_ */

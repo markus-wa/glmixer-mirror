@@ -44,11 +44,13 @@ public:
 	 * Provide the cursor with the original mouse event
 	 */
 	virtual void update(QMouseEvent *e){
-		if (e->type() == QEvent::MouseButtonPress){
-			pressPos 	=  QPointF(e->pos());
-			shadowPos = pressPos;
+		if (!active && e->type() == QEvent::MouseButtonPress){
 			b = e->button();
 			bs = e->buttons();
+			if (b != Qt::LeftButton)
+				return;
+			pressPos 	=  QPointF(e->pos());
+			shadowPos = pressPos;
 			active = true;
 		} else if (e->type() == QEvent::MouseButtonRelease){
 			releasePos 	=  QPointF(e->pos());

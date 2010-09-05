@@ -26,10 +26,17 @@
 #ifndef SPRINGCursor_H_
 #define SPRINGCursor_H_
 
-#include "Cursor.h"
+#include <QObject>
 
-class SpringCursor: public Cursor
+#include "Cursor.h"
+#define MIN_MASS 1
+#define MAX_MASS 20
+
+
+class SpringCursor: public QObject, public Cursor
 {
+    Q_OBJECT
+
 public:
 	SpringCursor();
 
@@ -38,16 +45,18 @@ public:
 	bool wheelEvent(QWheelEvent * event);
 	void draw(GLint viewport[4]);
 
+	inline int getMass() const { return (int)mass; }
+
+public Q_SLOTS:
+	inline void setMass(int m) { mass = (double) CLAMP(m, MIN_MASS, MAX_MASS); }
+
+Q_SIGNALS:
+	void massChanged(int m);
+
 private:
 
-	// parameters of the physics
-	double mass, lenght, stiffness, damping, viscousness;
-	// previous coordinates to compute speed
-	QPointF _mousePos, _shadowPos;
-	// speeds of real cursor (v) and shadow (V)
-	QPointF v, V;
-	// force computed
-	QPointF f;
+	// parameters
+	double mass;
 	// timing
 	double t;
 };

@@ -27,13 +27,12 @@
 
 #define euclidean(P1, P2)  sqrt( (P1.x()-P2.x()) * (P1.x()-P2.x()) +  (P1.y()-P2.y()) * (P1.y()-P2.y()) )
 
-#include <DelayCursor.h>
+#include "DelayCursor.moc"
 
-DelayCursor::DelayCursor() : Cursor(), t(0.0), duration(0.0)
+DelayCursor::DelayCursor() : Cursor(), speed(100.0), waitTime(1.0), t(0.0), duration(0.0)
 {
 
 }
-
 
 void DelayCursor::update(QMouseEvent *e){
 
@@ -55,31 +54,19 @@ bool DelayCursor::apply(double fpsaverage){
 
 		releasePos = mousePos;
 
-		duration += dt;
+		if (duration < waitTime)
+			duration += dt;
+		else {
 
+			t += dt;
 
-		if (duration > 1.0) {
+			// interpolation
+			shadowPos = pressPos + speed * t * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
+	//		shadowPos += dt * coef * (releasePos - shadowPos);
 
-//		duration += 2.0 * dt;
-
-		t += dt;
-
-//		double coef = 0.0;
-//
-//		if ((shadowPos - releasePos).manhattanLength() > 1)
-//			coef += t *(double)(pressPos - shadowPos).manhattanLength() / (double)(shadowPos - releasePos).manhattanLength();
-
-		// interpolation
-		shadowPos = pressPos + 100.0 * t * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
-//		shadowPos += dt * coef * (releasePos - shadowPos);
-
-//		qDebug("%f", euclidean(releasePos, pressPos));
-
-		// interpolation finished?
-		if ( euclidean(releasePos, shadowPos) < 1.0)
-			active = false;
-
-
+			// interpolation finished?
+			if ( euclidean(releasePos, shadowPos) < speed * dt)
+				active = false;
 		}
 		return true;
 	}
@@ -93,6 +80,13 @@ bool DelayCursor::wheelEvent(QWheelEvent * event){
 	if (!active)
 		return false;
 
+	if (duration < waitTime) {
+		duration = 0.0;
+
+		speed += ((float) event->delta() * speed * MIN_SPEED) / (240.0 * MAX_SPEED) ;
+		speed = CLAMP(speed, MIN_SPEED, MAX_SPEED);
+		emit speedChanged((int)speed);
+	}
 
 	return true;
 }
@@ -108,11 +102,21 @@ void DelayCursor::draw(GLint viewport[4]) {
 	glPushMatrix();
 	glLoadIdentity();
 
-	glPointSize(10);
 	glColor4ub(13, 148, 224, 255);
 
+	glPointSize(15);
 	glBegin(GL_POINTS);
 	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+	glEnd();
+
+	QPointF p(pressPos);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	while( euclidean(releasePos, p) > speed ) {
+		glVertex2d(p.x(), (viewport[3] - p.y()));
+		p += speed * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
+	}
+	glVertex2d(p.x(), (viewport[3] - p.y()));
 	glEnd();
 
 	glLineWidth(1);
