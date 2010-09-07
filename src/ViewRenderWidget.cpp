@@ -877,14 +877,14 @@ void ViewRenderWidget::buildShader(){
 	         return;
 
 	if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl"))
-		qCritical( "** ERROR ** \n\nOpenGL GLSL error in vertex shader: \n\n%s", qPrintable(program->log()));
+		qFatal( "** ERROR ** \n\nOpenGL GLSL error in vertex shader: \n\n%s", qPrintable(program->log()));
 	else if (program->log().contains("warning"))
-		qWarning( "** WARNING ** \n\nOpenGL GLSL warning in vertex shader: \n\n%s", qPrintable(program->log()));
+		qCritical( "** ERROR ** \n\nOpenGL GLSL error in vertex shader: \n\n%s", qPrintable(program->log())); ( "** WARNING ** \n\nOpenGL GLSL warning in vertex shader: \n\n%s", qPrintable(program->log()));
 
 	if (!program->addShaderFromSourceFile(QGLShader::Fragment, ":/glmixer/shaders/imageProcessing_fragment.glsl"))
-		qCritical( "** ERROR ** \n\nOpenGL GLSL error in fragment shader: \n\n%s", qPrintable(program->log()));
+		qFatal( "** ERROR ** \n\nOpenGL GLSL error in fragment shader: \n\n%s", qPrintable(program->log()));
 	else if (program->log().contains("warning"))
-		qWarning( "** WARNING ** \n\nOpenGL GLSL warning in fragment shader: \n\n%s", qPrintable(program->log()));
+		qCritical( "** WARNING ** \n\nOpenGL GLSL warning in fragment shader: \n\n%s", qPrintable(program->log()));
 
 	program->bindAttributeLocation("vertex", PROGRAM_VERTEX_ATTRIBUTE);
 	program->bindAttributeLocation("texCoord", PROGRAM_TEXCOORD_ATTRIBUTE);

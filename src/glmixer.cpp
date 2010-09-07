@@ -661,7 +661,7 @@ void CaptureDialog::saveImage()
 
 	if (!filename.isEmpty()) {
 		if (!img.save(filename))
-			qWarning("** Warning **\n\nCould not save file %s.", qPrintable(filename));
+			qCritical("** WARNING **\n\nCould not save file %s.", qPrintable(filename));
 		filename = QDir::fromNativeSeparators(filename);
 		filename.resize( filename.lastIndexOf('/') );
 	}

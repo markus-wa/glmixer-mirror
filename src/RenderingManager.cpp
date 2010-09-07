@@ -68,7 +68,7 @@ void RenderingManager::setUseFboBlitExtension(bool on){
                RenderingManager::blit_fbo_extension = on;
        else {
                // if extension not supported but it is requested, show warning
-               if (on) qWarning( "** WARNING ** \n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware."
+               if (on) qCritical( "** WARNING ** \n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware."
                                "\n\nRendering speed be sub-optimal but all should work properly.");
                RenderingManager::blit_fbo_extension = false;
        }

@@ -46,7 +46,7 @@ void GLMixerMessageOutput(QtMsgType type, const char *msg)
 		 break;
 	 case QtCriticalMsg:
 		 std::cerr<<"Critical: "<<msg<<std::endl;
-		 QMessageBox::critical(0, QString("%1 Critical Error").arg(QCoreApplication::applicationName()), QString(msg));
+		 QMessageBox::critical(0, QString("%1 Critical information").arg(QCoreApplication::applicationName()), QString(msg));
 		 break;
 	 case QtFatalMsg:
 		 std::cerr<<"Fatal: "<<msg<<std::endl;
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     a.processEvents();
 
     if (!QGLFormat::hasOpenGL() ) {
-    	qCritical("*** ERROR ***\n\nThis system does not support OpenGL and this program cannot work without it.");
+    	qFatal("*** ERROR ***\n\nThis system does not support OpenGL and this program cannot work without it.");
     	a.processEvents();
     }
 
