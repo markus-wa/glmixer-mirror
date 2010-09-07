@@ -21,13 +21,14 @@ IF(ProgramRevision)
 MESSAGE(STATUS "Revision is ${ProgramRevision}")
 ENDIF(ProgramRevision)
 # ----------------------------------------------------------------------
-				
+
 set(GLMIXER_VERSION "0.8")
 
 # Expose CMAKE_INCLUDE_PATH and CMAKE_LIBARY_PATH to the GUI so users
 # may set these values without needing to manipulate the environment.
 SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} CACHE STRING "You may add additional search paths here. Use ; to separate multiple paths.")
 SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE STRING "You may add additional search paths here. Use ; to separate multiple paths.")
+SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")
 
 # avoid stupid cmake warning
 IF(COMMAND CMAKE_POLICY)
@@ -77,37 +78,39 @@ find_package( openjpeg QUIET)
 find_package( vorbis QUIET)
 find_package( mp3lame QUIET)
 find_package( faac QUIET)
-find_package( faad QUIET) 
+find_package( faad QUIET)
 
-if( APPLE )
-	find_library( OpenCV_LIBS NAMES OpenCV)
-	if(OpenCV_LIBS)
-		set( OpenCV_FOUND "YES" )
-	endif(OpenCV_LIBS)	
-   include_directories(${OpenCV_LIBS}/Headers)
-else ( APPLE )
-	find_package( OpenCV QUIET)
-endif( APPLE )
+if (USE_OPENCV)
+    if( APPLE )
+        find_library( OpenCV_LIBS NAMES OpenCV)
+        if(OpenCV_LIBS)
+            set( OpenCV_FOUND "YES" )
+        endif(OpenCV_LIBS)
+       include_directories(${OpenCV_LIBS}/Headers)
+    else ( APPLE )
+        find_package( OpenCV QUIET)
+    endif( APPLE )
+endif( USE_OPENCV )
 
 if (AVCODEC_FOUND)
   message(STATUS "FFMPEG avcodec Library Found OK")
   include_directories(${AVCODEC_INCLUDE_DIR})
 else (AVCODEC_FOUND)
-  message(FATAL_ERROR "No avcodec library found.")  
+  message(FATAL_ERROR "No avcodec library found.")
 endif (AVCODEC_FOUND)
 
 if (AVFORMAT_FOUND)
   message(STATUS "FFMPEG avformat Library Found OK")
   include_directories(${AVFORMAT_INCLUDE_DIR})
 else (AVFORMAT_FOUND)
-  message(FATAL_ERROR "No FFMPEG avformat library found.")  
+  message(FATAL_ERROR "No FFMPEG avformat library found.")
 endif (AVFORMAT_FOUND)
 
 if (AVUTIL_FOUND)
   message(STATUS "FFMPEG avutil Library Found OK")
   include_directories(${AVUTIL_INCLUDE_DIR})
 else (AVUTIL_FOUND)
-  message(FATAL_ERROR "No FFMPEG avutil library found.")  
+  message(FATAL_ERROR "No FFMPEG avutil library found.")
 endif (AVUTIL_FOUND)
 
 if (AVCORE_FOUND)
@@ -120,14 +123,14 @@ if (SWSCALE_FOUND)
   message(STATUS "FFMPEG swscale Library Found OK")
   include_directories(${SWSCALE_INCLUDE_DIR})
 else (SWSCALE_FOUND)
-  message(FATAL_ERROR "No FFMPEG swscale library found.")  
+  message(FATAL_ERROR "No FFMPEG swscale library found.")
 endif (SWSCALE_FOUND)
 
 if (OPENGL_FOUND)
   message(STATUS "OpenGL Library Found OK")
   include_directories(${OPENGL_INCLUDE_DIR})
 else (OPENGL_FOUND)
-  message(FATAL_ERROR "No OpenGL library found.")  
+  message(FATAL_ERROR "No OpenGL library found.")
 endif (OPENGL_FOUND)
 
 if (WIN32)
@@ -206,7 +209,7 @@ set( GLMIXER_LIBRARIES  ${AVFORMAT_LIBRARY}
 
 
 include(${CMAKE_SOURCE_DIR}/macros.cmake)
-						
+
 # tell cmake to process CMakeLists.txt in that subdirectory
 
 add_subdirectory(libQtProperty)
