@@ -3,24 +3,11 @@ project(glmixer) # the name of your project
 
 cmake_minimum_required(VERSION 2.6.0)
 
-# ----------------------------------------------------------------------
-FIND_PROGRAM(SVN_EXECUTABLE svn
-  DOC "subversion command line client")
-
-MACRO(Subversion_GET_REVISION dir variable)
-  EXECUTE_PROCESS(COMMAND ${SVN_EXECUTABLE} info ${dir} -r HEAD
-    OUTPUT_VARIABLE ${variable}
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  STRING(REGEX REPLACE "^(.*\n)?Revision: ([^\n]+).*"
-    "\\2" ${variable} "${${variable}}")
-ENDMACRO(Subversion_GET_REVISION)
-
-MESSAGE(STATUS "Calling ${SVN_EXECUTABLE}")
-Subversion_GET_REVISION(${PROJECT_SOURCE_DIR} ProgramRevision)
-IF(ProgramRevision)
-MESSAGE(STATUS "Revision is ${ProgramRevision}")
-ENDIF(ProgramRevision)
-# ----------------------------------------------------------------------
+FIND_PACKAGE(Subversion)
+IF(Subversion_FOUND)
+  Subversion_WC_INFO(${PROJECT_SOURCE_DIR} GLMIXER)
+  MESSAGE("Current revision is ${GLMIXER_WC_REVISION}")
+ENDIF(Subversion_FOUND)
 
 set(GLMIXER_VERSION "0.8")
 
@@ -55,9 +42,9 @@ ENDIF(WIN32)
 
 # defines used by preprocessor to integrate program version and SVN revision into the application
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION}" )
-IF(ProgramRevision)
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${ProgramRevision}" )
-ENDIF(ProgramRevision)
+IF(GLMIXER_WC_REVISION)
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${GLMIXER_WC_REVISION}" )
+ENDIF(GLMIXER_WC_REVISION)
 
 # find the dependency libraries
 
