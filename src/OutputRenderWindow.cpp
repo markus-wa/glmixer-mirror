@@ -191,7 +191,7 @@ void OutputRenderWidget::paintGL()
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
-		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+		glBindTextureEXT(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
 		glCallList(ViewRenderWidget::quad_texured);
 	}
 }
