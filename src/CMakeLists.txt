@@ -1,18 +1,18 @@
 # the next line sets up include and link directories and defines some variables that we will use.
 
 # this application uses QT with the following modules:
-set(QT_USE_OPENGL TRUE)
+set(QT_USE_OPENGL    TRUE)
 set(QT_USE_QTOPENGL  TRUE)
 set(QT_USE_QTXML     TRUE)
-set(QT_USE_QTMAIN	 TRUE)
+set(QT_USE_QTMAIN    TRUE)
 # add the corresponding path to include
 include(${QT_USE_FILE})
 
 # the variable "qtproject_SRCS" contains all .cpp files of this project
 set(MYQT_SRCS
-	MixSource.cpp
-	glRenderWidget.cpp
-	CameraDialog.cpp
+    MixSource.cpp
+    glRenderWidget.cpp
+    CameraDialog.cpp
     VideoFileDialogPreview.cpp
     VideoFileDialog.cpp
     VideoFileDisplayWidget.cpp
@@ -21,19 +21,19 @@ set(MYQT_SRCS
     VideoSource.cpp
     AlgorithmSource.cpp
     AlgorithmSelectionDialog.cpp
-	SourceDisplayWidget.cpp
+    SourceDisplayWidget.cpp
     MixerView.cpp
     GeometryView.cpp
     LayersView.cpp
     CatalogView.cpp
-	ViewRenderWidget.cpp
+    ViewRenderWidget.cpp
     RenderingManager.cpp
-	OutputRenderWindow.cpp
-	SourcePropertyBrowser.cpp
-	SpringCursor.cpp
-	DelayCursor.cpp
-	UserPreferencesDialog.cpp
-	GammaLevelsWidget.cpp
+    OutputRenderWindow.cpp
+    SourcePropertyBrowser.cpp
+    SpringCursor.cpp
+    DelayCursor.cpp
+    UserPreferencesDialog.cpp
+    GammaLevelsWidget.cpp
     glmixer.cpp
     main.cpp
 )
@@ -92,7 +92,7 @@ SET(MACOSX_BUNDLE_COPYRIGHT "Bruno Herbelin")
 add_executable(glmixer MACOSX_BUNDLE ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )
 
 # link the "qtproject" target against the Qt libraries. which libraries exactly, is defined by the "include(${QT_USE_FILE})" line above, which sets up this variable.
-target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARIES} ${QT_QTXML_LIBRARIES} ${GLMIXER_LIBRARIES} )
+target_link_libraries(glmixer QtProperty ${QT_LIBRARIES}  ${GLMIXER_LIBRARIES} )
 
 set(GLMIXER_APP_BUNDLE_ROOT "${CMAKE_BINARY_DIR}/src/glmixer.app/") 
 

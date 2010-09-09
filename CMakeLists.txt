@@ -56,8 +56,9 @@ find_package( avformat REQUIRED)
 find_package( avcodec REQUIRED)
 find_package( avutil REQUIRED )
 find_package( swscale REQUIRED )
-find_package( avcore QUIET )
 find_package( ZLIB REQUIRED)
+
+find_package( avcore QUIET )
 find_package( BZip2 QUIET)
 find_package( theora QUIET)
 find_package( x264 QUIET)
@@ -128,9 +129,9 @@ else (GLEW_FOUND)
   message(FATAL_ERROR "No GLEW library found.")
 endif (GLEW_FOUND)
 
-if (WIN32)
-  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} -lws2_32 -lglew32 )
-endif (WIN32)
+# if (WIN32)
+#   set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} -lws2_32 -lglew32 )
+# endif (WIN32)
 
 if (ZLIB_FOUND)
   set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${ZLIB_LIBRARY} )
@@ -199,6 +200,7 @@ set( GLMIXER_LIBRARIES  ${AVFORMAT_LIBRARY}
                         ${AVCODEC_LIBRARY}
                         ${AVUTIL_LIBRARY}
                         ${SWSCALE_LIBRARY}
+                        ${GLEW_LIBRARY}
                         ${EXTRA_LIBRARIES} )
 
 
