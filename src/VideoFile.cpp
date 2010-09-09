@@ -38,7 +38,9 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/common.h>
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 #include <libavutil/pixdesc.h>
+#endif
 }
 
 // Buffer between Parsing thread and Decoding thread
@@ -617,10 +619,11 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
     enum PixelFormat targetFormat = PIX_FMT_RGB24;
     bool paletized = false;
 
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
     // Change target format to keep Alpha channel if exist
     if ( pixelFormatHasAlphaChannel()
     	// this is a fix for some jpeg formats with YUVJ format
-		|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h >0 ){
+		|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h >0  ){
     	targetFormat = PIX_FMT_RGBA;
     }
     // special case of PALLETIZED pixel formats
@@ -628,7 +631,17 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
     	targetFormat = PIX_FMT_RGBA;
     	paletized = true;
     }
-
+#else
+    // Change target format to keep Alpha channel if exist
+    if (pixelFormatHasAlphaChannel()){
+    	targetFormat = PIX_FMT_RGBA;
+    }
+    // special case of PALLETIZED pixel formats
+    else if (video_st->codec->pix_fmt == PIX_FMT_PAL8 ){
+    	targetFormat = PIX_FMT_RGBA;
+    	paletized = true;
+    }
+#endif
     // Decide for optimal scaling algo if it was not specified
     // NB: the algo is used only if the conversion is scaled or with filter
     // (i.e. optimal 'unscaled' converter is used by default)
@@ -719,7 +732,14 @@ bool VideoFile::pixelFormatHasAlphaChannel() const {
 
 	if (!video_st)
 		return false;
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 	return ( av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3 );
+#else
+	return (video_st->codec->pix_fmt == PIX_FMT_RGBA || video_st->codec->pix_fmt == PIX_FMT_BGRA ||
+    		video_st->codec->pix_fmt == PIX_FMT_ARGB || video_st->codec->pix_fmt == PIX_FMT_ABGR ||
+    		video_st->codec->pix_fmt == PIX_FMT_YUVJ420P );
+#endif
 }
 
 
@@ -1644,6 +1664,8 @@ void VideoFile::setSaturation(int s){
 }
 
 
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
+
 QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const {
 
 	if (ffmpegPixelFormat == PIX_FMT_NONE && video_st)
@@ -1653,8 +1675,66 @@ QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const {
 	pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[ffmpegPixelFormat]));
 
 	return pfn;
-
 }
+#else
+QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const {
 
+	if (ffmpegPixelFormat == PIX_FMT_NONE)
+		ffmpegPixelFormat =video_st->codec->pix_fmt;
 
+	switch (ffmpegPixelFormat ) {
 
+	case PIX_FMT_YUV420P: return QString("planar YUV 4:2:0, 12bpp");
+	case PIX_FMT_YUYV422: return QString("packed YUV 4:2:2, 16bpp");
+	case PIX_FMT_RGB24:
+	case PIX_FMT_BGR24: return QString("packed RGB 8:8:8, 24bpp");
+	case PIX_FMT_YUV422P: return QString("planar YUV 4:2:2, 16bpp");
+	case PIX_FMT_YUV444P: return QString("planar YUV 4:4:4, 24bpp");
+	case PIX_FMT_RGB32: return QString("packed RGB 8:8:8, 32bpp");
+	case PIX_FMT_YUV410P: return QString("planar YUV 4:1:0,  9bpp");
+	case PIX_FMT_YUV411P: return QString("planar YUV 4:1:1, 12bpp");
+	case PIX_FMT_RGB565: return QString("packed RGB 5:6:5, 16bpp");
+	case PIX_FMT_RGB555: return QString("packed RGB 5:5:5, 16bpp");
+	case PIX_FMT_GRAY8: return QString("Y,  8bpp");
+	case PIX_FMT_MONOWHITE:
+	case PIX_FMT_MONOBLACK: return QString("Y,  1bpp");
+	case PIX_FMT_PAL8: return QString("RGB32 palette, 8bpp");
+	case PIX_FMT_YUVJ420P: return QString("planar YUV 4:2:0, 12bpp (JPEG)");
+	case PIX_FMT_YUVJ422P: return QString("planar YUV 4:2:2, 16bpp (JPEG)");
+	case PIX_FMT_YUVJ444P: return QString("planar YUV 4:4:4, 24bpp (JPEG)");
+	case PIX_FMT_XVMC_MPEG2_MC: return QString("XVideo Motion Acceleration (MPEG2)");
+	case PIX_FMT_UYVY422: return QString("packed YUV 4:2:2, 16bpp");
+	case PIX_FMT_UYYVYY411: return QString("packed YUV 4:1:1, 12bpp");
+	case PIX_FMT_BGR32: return QString("packed RGB 8:8:8, 32bpp");
+	case PIX_FMT_BGR565: return QString("packed RGB 5:6:5, 16bpp");
+	case PIX_FMT_BGR555: return QString("packed RGB 5:5:5, 16bpp");
+	case PIX_FMT_BGR8: return QString("packed RGB 3:3:2, 8bpp");
+	case PIX_FMT_BGR4: return QString("packed RGB 1:2:1, 4bpp");
+	case PIX_FMT_BGR4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
+	case PIX_FMT_RGB8: return QString("packed RGB 3:3:2,  8bpp");
+	case PIX_FMT_RGB4: return QString("packed RGB 1:2:1,  4bpp");
+	case PIX_FMT_RGB4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
+	case PIX_FMT_NV12:
+	case PIX_FMT_NV21: return QString("planar YUV 4:2:0, 12bpp");
+	case PIX_FMT_RGB32_1:
+	case PIX_FMT_BGR32_1: return QString("packed RGB 8:8:8, 32bpp");
+	case PIX_FMT_GRAY16BE:
+	case PIX_FMT_GRAY16LE: return QString("Y, 16bpp");
+	case PIX_FMT_YUV440P: return QString("planar YUV 4:4:0");
+	case PIX_FMT_YUVJ440P: return QString("planar YUV 4:4:0 (JPEG)");
+	case PIX_FMT_YUVA420P: return QString("planar YUV 4:2:0, 20bpp");
+	case PIX_FMT_VDPAU_H264: return QString("H.264 HW");
+	case PIX_FMT_VDPAU_MPEG1: return QString("MPEG-1 HW");
+	case PIX_FMT_VDPAU_MPEG2: return QString("MPEG-2 HW");
+	case PIX_FMT_VDPAU_WMV3: return QString("WMV3 HW");
+	case PIX_FMT_VDPAU_VC1: return QString("VC-1 HW");
+	case PIX_FMT_RGB48BE: return QString("packed RGB 16:16:16, 48bpp");
+	case PIX_FMT_RGB48LE: return QString("packed RGB 16:16:16, 48bpp");
+	case PIX_FMT_VAAPI_MOCO:
+	case PIX_FMT_VAAPI_IDCT:
+	case PIX_FMT_VAAPI_VLD: return QString("HW acceleration through VA API");
+	default:
+		return QString("unknown");
+	}
+}
+#endif
