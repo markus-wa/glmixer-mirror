@@ -52,6 +52,9 @@ public:
 
 	void alphaCoordinatesFromMouse(int mouseX, int mouseY, double *alphaX, double *alphaY);
 
+	QDomElement getConfiguration(QDomDocument &doc);
+	void setConfiguration(QDomElement xmlconfig);
+
 private:
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);

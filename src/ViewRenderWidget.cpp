@@ -759,47 +759,17 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 	else if (_currentView == _layersView)
 		config.setAttribute("current", ViewRenderWidget::LAYER);
 
-	QDomElement mix = doc.createElement("View");
+	QDomElement mix = _mixingView->getConfiguration(doc);
 	mix.setAttribute("name", "Mixing");
 	config.appendChild(mix);
-	{
-		QDomElement z = doc.createElement("Zoom");
-		z.setAttribute("value", _mixingView->getZoom());
-		mix.appendChild(z);
 
-		QDomElement pos = doc.createElement("Panning");
-		pos.setAttribute("X", _mixingView->getPanningX());
-		pos.setAttribute("Y", _mixingView->getPanningY());
-		mix.appendChild(pos);
-	}
-
-	QDomElement geom = doc.createElement("View");
+	QDomElement geom = _geometryView->getConfiguration(doc);
 	geom.setAttribute("name", "Geometry");
 	config.appendChild(geom);
-	{
-		QDomElement z = doc.createElement("Zoom");
-		z.setAttribute("value", _geometryView->getZoom());
-		geom.appendChild(z);
 
-		QDomElement pos = doc.createElement("Panning");
-		pos.setAttribute("X", _geometryView->getPanningX());
-		pos.setAttribute("Y", _geometryView->getPanningY());
-		geom.appendChild(pos);
-	}
-
-	QDomElement depth = doc.createElement("View");
+	QDomElement depth = _layersView->getConfiguration(doc);
 	depth.setAttribute("name", "Depth");
 	config.appendChild(depth);
-	{
-		QDomElement z = doc.createElement("Zoom");
-		z.setAttribute("value", _layersView->getZoom());
-		depth.appendChild(z);
-
-		QDomElement pos = doc.createElement("Panning");
-		pos.setAttribute("X", _layersView->getPanningX());
-		pos.setAttribute("Y", _layersView->getPanningY());
-		depth.appendChild(pos);
-	}
 
 	QDomElement catalog = doc.createElement("Catalog");
 	config.appendChild(catalog);
@@ -816,21 +786,13 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 
 	QDomElement child = xmlconfig.firstChildElement("View");
 	while (!child.isNull()) {
-		if (child.attribute("name") == "Mixing") {
-			_mixingView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
-			_mixingView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
-			_mixingView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
-		}
-		if (child.attribute("name") == "Geometry") {
-			_geometryView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
-			_geometryView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
-			_geometryView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
-		}
-		if (child.attribute("name") == "Depth") {
-			_layersView->setZoom(child.firstChildElement("Zoom").attribute("value").toFloat());
-			_layersView->setPanningX(child.firstChildElement("Panning").attribute("X").toFloat());
-			_layersView->setPanningY(child.firstChildElement("Panning").attribute("Y").toFloat());
-		}
+		if (child.attribute("name") == "Mixing")
+			_mixingView->setConfiguration(child);
+		else if (child.attribute("name") == "Geometry")
+			_geometryView->setConfiguration(child);
+		else if (child.attribute("name") == "Depth")
+			_layersView->setConfiguration(child);
+
 		// TODO xlm of catalog view
 		child = child.nextSiblingElement();
 	}

@@ -337,12 +337,15 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
             	if ( (*itss).count(clicked) > 0 )
             		break;
             }
+            // if doubleclic on a group ; convert group into selection
         	if ( itss != groupSources.end() ) {
         		selectedSources = SourceList(*itss);
         		// erase group and its color
         		groupColor.remove(itss);
         		groupSources.erase(itss);
-        	} else {
+        	}
+        	// if double clic NOT on a group ; convert selection into group
+        	else {
 				// if the clicked source is in the selection
 				if ( selectedSources.count(clicked) > 0 && selectedSources.size() > 1 ) {
 					//  create a group from the selection
@@ -399,20 +402,25 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
         if ( clicked && currentAction == View::GRAB )
         {
+        	// find if the source is in a group
         	SourceListArray::iterator itss;
             for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
             	if ( (*itss).count(clicked) > 0 )
             		break;
             }
-        	if ( itss != groupSources.end() ) {
-				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
-				}
-        	} else if ( selectedSources.count(clicked) > 0 ){
+            // if the source is in the selection, move the selection
+        	if ( selectedSources.count(clicked) > 0 ){
 				for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
 					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
 			}
+        	// else, if it is in a group, move the group
+        	else if ( itss != groupSources.end() ) {
+				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
+				}
+        	}
+        	// nothing special, move the source individually
 			else
 				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 
@@ -466,7 +474,24 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
         if ( clicked ) {
         	//  move it individually, even if in a group
         	setAction(View::GRAB);
-			grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+
+        	// find if the source is in a group
+        	SourceListArray::iterator itss;
+            for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+            	if ( (*itss).count(clicked) > 0 )
+            		break;
+            }
+
+            // if the source is in the selection AND in a group, then move the group
+			if ( itss != groupSources.end() && selectedSources.count(clicked) > 0 ){
+				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
+				}
+        	}
+			else
+				// move the source individually
+				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+
 
 			return true;
         }
@@ -522,9 +547,9 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 				result.erase (result.begin (), result.end ());
 				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
 				// if the group is fully inside the rectangle selection
-				if ( (*itss).size() == result.size() )
-					itss = groupSources.erase( itss );
-				else
+//				if ( (*itss).size() == result.size() )
+//					itss = groupSources.erase( itss );
+//				else
 					itss++;
 			}
 	    }
@@ -771,3 +796,64 @@ bool MixerView::isInAGroup(Source *s){
     }
 	return ( itss != groupSources.end() );
 }
+
+QDomElement MixerView::getConfiguration(QDomDocument &doc){
+
+	QDomElement mixviewelem = View::getConfiguration(doc);
+
+	QDomElement groups = doc.createElement("Groups");
+    for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+    	if (itss->size() > 1) {
+			QDomElement group = doc.createElement("Group");
+			group.setAttribute("R", groupColor[itss].red());
+			group.setAttribute("G", groupColor[itss].green());
+			group.setAttribute("B", groupColor[itss].blue());
+			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+				QDomElement s = doc.createElement("Source");
+				QDomText sname = doc.createTextNode((*its)->getName());
+				s.appendChild(sname);
+				group.appendChild(s);
+			}
+			groups.appendChild(group);
+    	}
+    }
+	mixviewelem.appendChild(groups);
+
+	return mixviewelem;
+}
+
+
+void MixerView::setConfiguration(QDomElement xmlconfig){
+
+	// apply generic View config
+	View::setConfiguration(xmlconfig);
+
+	QDomElement groups = xmlconfig.firstChildElement("Groups");
+	// if there is a list of groups
+	if (!groups.isNull()){
+		QDomElement group = groups.firstChildElement("Group");
+		// if there is a group in the list
+		while (!group.isNull()) {
+			SourceList newgroup;
+			// if this group has more than 1 element (singleton group would be a bug)
+			if (group.childNodes().count() > 1) {
+				QDomElement sourceelem = group.firstChildElement("Source");
+				// Add every source which name is in the list
+				while (!sourceelem.isNull()) {
+					SourceSet::iterator s = RenderingManager::getInstance()->getByName(sourceelem.text());
+					if (RenderingManager::getInstance()->isValid(s))
+						newgroup.insert( *s );
+					sourceelem = sourceelem.nextSiblingElement();
+				}
+
+				groupSources.push_front(newgroup);
+				groupColor[groupSources.begin()] = QColor( group.attribute("R").toInt(),group.attribute("G").toInt(), group.attribute("B").toInt() );
+			}
+			group = group.nextSiblingElement();
+		}
+	}
+
+}
+
+
+

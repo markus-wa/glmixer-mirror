@@ -29,6 +29,8 @@
 #include "common.h"
 #include "SourceSet.h"
 
+#include <QDomElement>
+
 class CatalogView;
 
 class View {
@@ -231,6 +233,25 @@ public:
 	 *
 	 */
 	bool noSourceClicked() { return clickedSources.empty(); }
+
+	virtual QDomElement getConfiguration(QDomDocument &doc) {
+		QDomElement viewelem = doc.createElement("View");
+		QDomElement z = doc.createElement("Zoom");
+		z.setAttribute("value", getZoom());
+		viewelem.appendChild(z);
+		QDomElement pos = doc.createElement("Panning");
+		pos.setAttribute("X", getPanningX());
+		pos.setAttribute("Y", getPanningY());
+		viewelem.appendChild(pos);
+
+		return viewelem;
+	}
+
+	virtual void setConfiguration(QDomElement xmlconfig) {
+		setZoom(xmlconfig.firstChildElement("Zoom").attribute("value").toFloat());
+		setPanningX(xmlconfig.firstChildElement("Panning").attribute("X").toFloat());
+		setPanningY(xmlconfig.firstChildElement("Panning").attribute("Y").toFloat());
+	}
 
 protected:
 	float zoom, minzoom, maxzoom, deltazoom;
