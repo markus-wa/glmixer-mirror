@@ -154,8 +154,8 @@ vec3 convolution()
 	else if (filter == 9)
 	        kernel = mat3(KERNEL_EMBOSS_EDGE);
         
-    for (i = 0; i<3; i++)
-        for (j = 0; j<3; j++) 
+    for (i = 0; i<3; ++i)
+        for (j = 0; j<3; ++j) 
             sum += texture2D(sourceTexture, texc + step * vec2 (i-1, j-1) ).rgb * kernel[i][j];
 
     return sum;
@@ -319,7 +319,10 @@ void main(void)
     // Operations on HSL ; if threshold applied, others are not useful
     if(threshold > 0.0) {
         // level threshold
-        transformedHSL = vec3(0.0, 0.0, transformedHSL.z < threshold);
+        if (transformedHSL.z < threshold)
+        	transformedHSL = vec3(0.0, 0.0, 1.0);
+        else
+        	transformedHSL = vec3(0.0, 0.0, 0.0);
     } else {
         // perform hue shift
         transformedHSL.x = transformedHSL.x + hueshift; 

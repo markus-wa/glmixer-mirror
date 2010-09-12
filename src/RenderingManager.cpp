@@ -204,17 +204,17 @@ void RenderingManager::updatePreviousFrame() {
 	if (RenderingManager::blit_fbo_extension)
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, _fbo->handle());
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
 
 		// TODO : Can we draw in different texture buffer so we can keep an history of
 		// several frames, and each loopback source could use a different one
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, previousframe_fbo->handle());
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
 
-		glBlitFramebufferEXT(0, _fbo->height(), _fbo->width(), 0, 0, 0,
+		glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
 				previousframe_fbo->width(), previousframe_fbo->height(),
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{

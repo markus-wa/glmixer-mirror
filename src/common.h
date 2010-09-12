@@ -37,11 +37,10 @@
 #if defined(__WIN32__)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <GL/glew.h>
 #endif
 
-#define GL_GLEXT_PROTOTYPES
 #ifdef __APPLE__
+#define GL_GLEXT_PROTOTYPES
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <OpenGL/glext.h>
@@ -57,6 +56,7 @@
 //}
 
 #else
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>

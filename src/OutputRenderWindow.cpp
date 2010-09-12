@@ -181,17 +181,17 @@ void OutputRenderWidget::paintGL()
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 		// select FIRST texture attachment as source
-	    glBindFramebufferEXT(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
-		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+	    glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
-		glBlitFramebufferEXT(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
 									 rx, ry, rw, rh,
 									 GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
-		glBindTextureEXT(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
 		glCallList(ViewRenderWidget::quad_texured);
 	}
 }
