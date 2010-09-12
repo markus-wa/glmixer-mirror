@@ -51,6 +51,8 @@ public:
 	void zoomBestFit();
 
 	void alphaCoordinatesFromMouse(int mouseX, int mouseY, double *alphaX, double *alphaY);
+    bool isInAGroup(Source *);
+    void removeFromSelection(Source *s);
 
 	QDomElement getConfiguration(QDomDocument &doc);
 	void setConfiguration(QDomElement xmlconfig);
@@ -65,7 +67,6 @@ private:
 
     // creation of groups from set of selection
 	SourceListArray groupSources;
-    bool isInAGroup(Source *);
 	QMap<SourceListArray::iterator, QColor> groupColor;
 };
 

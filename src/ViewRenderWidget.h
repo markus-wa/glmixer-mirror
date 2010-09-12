@@ -115,6 +115,8 @@ public:
 	static inline unsigned int getStipplingMode() { return stipplingMode; }
 	static inline void setStipplingMode(unsigned int m) { stipplingMode = CLAMP(m, 0, 3); }
 
+	void removeFromSelections(Source *s);
+
 Q_SIGNALS:
 	void sourceMixingModified();
 	void sourceGeometryModified();

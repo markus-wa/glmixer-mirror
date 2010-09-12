@@ -716,11 +716,12 @@ void GLMixer::on_actionCaptureSource_triggered(){
 }
 
 
-void GLMixer::on_actionDeleteSource_triggered(){
+void GLMixer::on_actionDeleteSource_triggered()
+{
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+	if ( RenderingManager::getInstance()->isValid(cs) ) {
 
-	if ( RenderingManager::getInstance()->isValid(RenderingManager::getInstance()->getCurrentSource()) ) {
-
-		int numclones = (*RenderingManager::getInstance()->getCurrentSource())->getClones()->size();
+		int numclones = (*cs)->getClones()->size();
 		// popup a question dialog 'are u sure' if there are clones attached;
 		if ( numclones ){
 			QString msg = tr("This source was cloned %1 times; all these clones will be removed with this source if you confirm the removal.").arg(numclones);
@@ -729,8 +730,9 @@ void GLMixer::on_actionDeleteSource_triggered(){
 		}
 
 		if ( !numclones ){
-			QString d = (*RenderingManager::getInstance()->getCurrentSource())->getName();
-			RenderingManager::getInstance()->removeSource(RenderingManager::getInstance()->getCurrentSource());
+			QString d = (*cs)->getName();
+			RenderingManager::getInstance()->getRenderingWidget()->removeFromSelections(*cs);
+			RenderingManager::getInstance()->removeSource(cs);
 			statusbar->showMessage( tr("Source %1 deleted.").arg( d ), 3000 );
 		}
 	}
@@ -1045,7 +1047,7 @@ void GLMixer::on_actionNew_Session_triggered()
 	currentStageFileName = QString();
 	changeWindowTitle();
 	RenderingManager::getInstance()->clearSourceSet();
-	actionWhite_background->setChecked(false); // TODO: maybe a default for these options into the user preferences?
+	actionWhite_background->setChecked(false);
 	actionFree_aspect_ratio->setChecked(false);
 	OutputRenderWindow::getInstance()->resizeGL();
 	RenderingManager::getRenderingWidget()->clearViews();

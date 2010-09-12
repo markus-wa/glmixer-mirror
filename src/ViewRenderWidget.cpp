@@ -312,6 +312,13 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 	refresh();
 }
 
+void ViewRenderWidget::removeFromSelections(Source *s)
+{
+	_mixingView->removeFromSelection(s);
+	_geometryView->removeFromSelection(s);
+	_layersView->removeFromSelection(s);
+}
+
 void ViewRenderWidget::setCatalogVisible(bool on)
 {
 	_catalogView->setVisible(on);
@@ -783,7 +790,6 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 
 void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 {
-
 	QDomElement child = xmlconfig.firstChildElement("View");
 	while (!child.isNull()) {
 		if (child.attribute("name") == "Mixing")
@@ -793,13 +799,10 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 		else if (child.attribute("name") == "Depth")
 			_layersView->setConfiguration(child);
 
-		// TODO xlm of catalog view
 		child = child.nextSiblingElement();
 	}
-
+	// NB: the catalog is restaured in GLMixer::openSessionFile because GLMixer has access to the actions
 }
-
-
 
 void ViewRenderWidget::buildShader(){
 
@@ -1089,7 +1092,7 @@ GLuint ViewRenderWidget::buildCircleList()
 
 	//limbo
 	glColor4f(0.1, 0.1, 0.1, 0.8);
-	gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT * 3.0, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 50, 3);
+	gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT * 2.5, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 50, 3);
 
 
 	glPopMatrix();

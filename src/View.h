@@ -253,6 +253,11 @@ public:
 		setPanningY(xmlconfig.firstChildElement("Panning").attribute("Y").toFloat());
 	}
 
+	virtual void removeFromSelection(Source *s) {
+		if ( selectedSources.count(s) > 0)
+			selectedSources.erase( s );
+	}
+
 protected:
 	float zoom, minzoom, maxzoom, deltazoom;
 	float panx, maxpanx, pany, maxpany, panz, maxpanz;

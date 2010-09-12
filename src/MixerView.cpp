@@ -670,6 +670,30 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 	return false;
 }
 
+void MixerView::removeFromSelection(Source *s)
+{
+	View::removeFromSelection(s);
+
+	// find the group containing the source to delete
+	SourceListArray::iterator itss;
+	for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+		if ( (*itss).count(s) > 0 )
+			break;
+	}
+
+	// if there is a group containing the source to delete
+	if(itss != groupSources.end()){
+		// remove the source from this group
+		(*itss).erase(s);
+
+		// if the group is now a singleton, delete it
+		if( (*itss).size() < 2 ){
+			groupSources.erase(itss);
+		}
+	}
+
+}
+
 bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
 	// prepare variables
