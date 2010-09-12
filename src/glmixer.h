@@ -132,7 +132,7 @@ class CaptureDialog: public QDialog {
 public:
 	CaptureDialog(QWidget *parent, QImage capture);
 public Q_SLOTS:
-	void saveImage();
+	QString saveImage();
 };
 
 #endif /* GLV_H_ */

@@ -803,11 +803,14 @@ QDomElement MixerView::getConfiguration(QDomDocument &doc){
 
 	QDomElement groups = doc.createElement("Groups");
     for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+    	// if this group has more than 1 element
     	if (itss->size() > 1) {
+    		// create a group dom element, with color
 			QDomElement group = doc.createElement("Group");
 			group.setAttribute("R", groupColor[itss].red());
 			group.setAttribute("G", groupColor[itss].green());
 			group.setAttribute("B", groupColor[itss].blue());
+			// fill in the group with the list of sources.
 			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
 				QDomElement s = doc.createElement("Source");
 				QDomText sname = doc.createTextNode((*its)->getName());

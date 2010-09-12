@@ -331,7 +331,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 			        delete newSourceVideoFile;
 				}
 			} else {
-				displayInfoMessage (tr("The file %1 was not loaded.").arg(filename));
+				displayInfoMessage (tr("The file %1 could not be loaded.").arg(filename));
 				delete newSourceVideoFile;
 			}
 		}
@@ -646,8 +646,8 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent),
 	DecisionButtonBox = new QDialogButtonBox(this);
 	DecisionButtonBox->setObjectName(QString::fromUtf8("DecisionButtonBox"));
 	DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-	QPushButton *save =  DecisionButtonBox->addButton ( "Save as..", QDialogButtonBox::ActionRole );
-	QObject::connect(save, SIGNAL(clicked()), this, SLOT(saveImage()));
+//	QPushButton *save =  DecisionButtonBox->addButton ( "Save as..", QDialogButtonBox::ActionRole );
+//	QObject::connect(save, SIGNAL(clicked()), this, SLOT(saveImage()));
 
 	verticalLayout->addWidget(DecisionButtonBox);
 	QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
@@ -655,16 +655,18 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent),
 }
 
 
-void CaptureDialog::saveImage()
+QString CaptureDialog::saveImage()
 {
-	filename = QFileDialog::getSaveFileName ( this, tr("Save captured image"), filename,  tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
+	filename = QFileDialog::getSaveFileName ( this, tr("Save captured image"), QDir::currentPath(),  tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
 
 	if (!filename.isEmpty()) {
 		if (!img.save(filename))
 			qCritical("** WARNING **\n\nCould not save file %s.", qPrintable(filename));
-		filename = QDir::fromNativeSeparators(filename);
-		filename.resize( filename.lastIndexOf('/') );
+//		filename = QDir::fromNativeSeparators(filename);
+//		filename.resize( filename.lastIndexOf('/') );
 	}
+
+	return filename;
 }
 
 
@@ -678,12 +680,38 @@ void GLMixer::on_actionCaptureSource_triggered(){
 	CaptureDialog cd(this, capture);
 
 	if (cd.exec() == QDialog::Accepted) {
-		Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
-		if ( s ){
-			RenderingManager::getInstance()->addSourceToBasket(s);
-			statusbar->showMessage( tr("Source created with a capture of the output."), 3000 );
-		} else
-	        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create capture source."));
+		QString filename = cd.saveImage();
+//		Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
+//		if ( s ){
+//			RenderingManager::getInstance()->addSourceToBasket(s);
+//			statusbar->showMessage( tr("Source created with a capture of the output."), 3000 );
+//		} else
+//	        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create capture source."));
+		VideoFile *newSourceVideoFile = new VideoFile(this);
+	    Q_CHECK_PTR(newSourceVideoFile);
+
+	    QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
+		// if the video file was created successfully
+		if (!filename.isNull() && newSourceVideoFile){
+			// forward error messages to display
+			QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
+			QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
+			// can we open the file ?
+			if ( newSourceVideoFile->open( filename ) ) {
+				Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
+				// create the source as it is a valid video file (this also set it to be the current source)
+				if ( s ) {
+					RenderingManager::getInstance()->addSourceToBasket(s);
+				} else {
+			        QMessageBox::warning(this, caption, tr("Could not create media source."));
+			        delete newSourceVideoFile;
+				}
+			} else {
+				displayInfoMessage (tr("The file %1 could not be loaded.").arg(filename));
+				delete newSourceVideoFile;
+			}
+		}
+
 	}
 }
 
