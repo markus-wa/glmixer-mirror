@@ -792,6 +792,7 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 {
 	QDomElement child = xmlconfig.firstChildElement("View");
 	while (!child.isNull()) {
+        // apply configuration node
 		if (child.attribute("name") == "Mixing")
 			_mixingView->setConfiguration(child);
 		else if (child.attribute("name") == "Geometry")
@@ -801,7 +802,7 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 
 		child = child.nextSiblingElement();
 	}
-	// NB: the catalog is restaured in GLMixer::openSessionFile because GLMixer has access to the actions
+	// NB: the catalog is restored in GLMixer::openSessionFile because GLMixer has access to the actions
 }
 
 void ViewRenderWidget::buildShader(){

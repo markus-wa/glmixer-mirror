@@ -47,6 +47,7 @@ Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 
 #include <algorithm>
 #include <QGLFramebufferObject>
+#include <QProgressDialog>
 
 // static members
 RenderingManager *RenderingManager::_instance = 0;
@@ -1016,8 +1017,19 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 	QList<QDomElement> clones;
     QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
 
+    int count = 0;
+    QProgressDialog progress("Loading sources...", "Abort", 4, xmlconfig.childNodes().count());
+	progress.setWindowModality(Qt::WindowModal);
+
+    // start loop of sources to create
 	QDomElement child = xmlconfig.firstChildElement("Source");
 	while (!child.isNull()) {
+
+		progress.setValue(++count);
+
+        if (progress.wasCanceled())
+            break;
+
 		// pointer for new source
 		Source *newsource = 0;
 		// read the depth where the source should be created
@@ -1066,8 +1078,6 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 				QMessageBox::warning(0, caption, tr("Could not allocate memory for media source %1. ").arg(child.attribute("name")));
 
 
-
-
 #ifdef OPEN_CV
 		} else if ( type == Source::CAMERA_SOURCE ) {
 			QDomElement camera = t.firstChildElement("CameraIndex");
@@ -1089,7 +1099,6 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 			if (!newsource)
 		        QMessageBox::warning(0, caption, tr("Could not create algorithm source %1. ").arg(child.attribute("name")));
 
-
 		} else if ( type == Source::RENDERING_SOURCE) {
 			// no tags specific for a rendering source
 			newsource = RenderingManager::getInstance()->newRenderingSource(depth);
@@ -1101,15 +1110,17 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 			clones.push_back(child);
 		}
 
-
 		if (newsource) {
 			// insert the source in the scene
 			insertSource(newsource);
 			// Apply parameters to the created source
 			applySourceConfig(newsource, child);
 		}
+
 		child = child.nextSiblingElement();
 	}
+	// end loop on sources to create
+	progress.setValue(xmlconfig.childNodes().count());
 
 	// Process the list of clones names ; now that every source exist, we can be sure they can be cloned
     QListIterator<QDomElement> it(clones);
