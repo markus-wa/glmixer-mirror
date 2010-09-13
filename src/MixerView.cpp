@@ -112,28 +112,32 @@ void MixerView::paint()
         (*its)->beginEffectsSection();
 
 		// bind the source texture and update its content
+		ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
 		(*its)->update();
 
 		// draw surface
-		ViewRenderWidget::setSourceDrawingMode(true);
 		(*its)->draw();
 
-		// draw stippled version of the source on top
-		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-		(*its)->draw(false);
-		glDisable(GL_POLYGON_STIPPLE);
+		if (!(*its)->isStandby()) {
 
-		//
-		// 2. Render it into FBO
-		//
-        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-        first = false;
+			// draw stippled version of the source on top
+			glEnable(GL_POLYGON_STIPPLE);
+			glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+			(*its)->draw(false);
+			glDisable(GL_POLYGON_STIPPLE);
 
+			//
+			// 2. Render it into FBO
+			//
+			RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+			first = false;
+
+		}
         //
         // 3. draw border and handles if active
         //
 		ViewRenderWidget::setSourceDrawingMode(false);
+		glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[Source::NO_MASK]);
 		if ((*its)->isActive())
 			glCallList(ViewRenderWidget::border_large_shadow);
 		else
@@ -602,7 +606,10 @@ void MixerView::zoomBestFit()
 	// 1. compute bounding box of every sources
     double x_min = 10000, x_max = -10000, y_min = 10000, y_max = -10000;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-		x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
+    	// ignore standby sources
+    	if ((*its)->isStandby()) continue;
+    	// get alpha coordinates
+    	x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
 		x_max = MAXI (x_max, (*its)->getAlphaX() + SOURCE_UNIT * (*its)->getAspectRatio());
 		y_min = MINI (y_min, (*its)->getAlphaY() - SOURCE_UNIT );
 		y_max = MAXI (y_max, (*its)->getAlphaY() + SOURCE_UNIT );
@@ -621,11 +628,13 @@ void MixerView::zoomBestFit()
 	// 4. compute zoom factor to fit to the boundaries
     // initial value = a margin scale of 5%
     double scale = 0.95;
+    double scale1 = ABS(URcorner[0]-LLcorner[0]) / ABS(x_max-x_min);
+    double scale2 = ABS(URcorner[1]-LLcorner[1]) / ABS(y_max-y_min);
     // depending on the axis having the largest extend
-    if ( ABS(x_max-x_min) > ABS(y_max-y_min))
-    	scale *= ABS(URcorner[0]-LLcorner[0]) / ABS(x_max-x_min);
+	if ( scale1 < scale2 )
+    	scale *= scale1;
     else
-    	scale *= ABS(URcorner[1]-LLcorner[1]) / ABS(y_max-y_min);
+    	scale *= scale2;
     // apply the scaling
 	setZoom( zoom * scale );
 }

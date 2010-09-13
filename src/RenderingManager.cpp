@@ -190,10 +190,11 @@ float RenderingManager::getFrameBufferAspectRatio() const{
 
 void RenderingManager::updatePreviousFrame() {
 
+	// skip if disabled
 	if (!previousframe_fbo)
 		return;
 
-	// TODO: implement the GUI for selecting frame delay
+	// frame delay
 	previousframe_index++;
 
 	if (previousframe_index % previousframe_delay)
@@ -529,10 +530,10 @@ void RenderingManager::dropSourceWithAlpha(double alphax, double alphay){
 		return;
 	// get the pointer to the source at the top of the list
 	Source *top = *dropBasket.begin();
-	// apply the modifications
-	top->setAlphaCoordinates(alphax, alphay);
 	// insert the source
 	insertSource(top);
+	// apply the modifications
+	top->setAlphaCoordinates(alphax, alphay);
 	// remove from the basket
 	dropBasket.erase(top);
 
@@ -595,12 +596,14 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 		delete (*itsource);
 	}
 
+	if (countRenderingSource > 0)
+		return;
+
 	// Disable update of previous frame if all the RenderingSources are deleted
-	if (countRenderingSource <= 0) {
-		if (previousframe_fbo)
-			delete previousframe_fbo;
-		previousframe_fbo = 0;
-	}
+	if (previousframe_fbo)
+		delete previousframe_fbo;
+	previousframe_fbo = NULL;
+
 }
 
 void RenderingManager::clearSourceSet() {
@@ -1100,10 +1103,10 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 
 
 		if (newsource) {
-			// Apply parameters to the created source
-			applySourceConfig(newsource, child);
 			// insert the source in the scene
 			insertSource(newsource);
+			// Apply parameters to the created source
+			applySourceConfig(newsource, child);
 		}
 		child = child.nextSiblingElement();
 	}

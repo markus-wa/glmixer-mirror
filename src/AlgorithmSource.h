@@ -72,6 +72,7 @@ protected:
 	void update();
 
 	void initBuffer();
+	void setStandby(bool on);
 
 	algorithmType algotype;
 	unsigned char *buffer;

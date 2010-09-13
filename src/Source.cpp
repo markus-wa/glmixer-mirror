@@ -37,7 +37,7 @@ bool Source::playable = false;
 
 // innefective source just to get default parameters
 Source::Source() :
-			active(false), culled(false), frameChanged(false), textureIndex(0),
+			active(false), culled(false), standby(false), frameChanged(false), textureIndex(0),
 			maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(0),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
@@ -62,7 +62,7 @@ Source::Source() :
 
 // the 'REAL' source constructor.
 Source::Source(GLuint texture, double depth) :
-	active(false), culled(false), frameChanged(true), textureIndex(texture),
+	active(false), culled(false), standby(false), frameChanged(true), textureIndex(texture),
 	maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
 	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
@@ -101,7 +101,7 @@ void Source::setName(QString n) {
 	name = n;
 }
 
-void Source::testCulling() {
+void Source::testGeometryCulling() {
 
 	int w = SOURCE_UNIT;
 	int h = SOURCE_UNIT;
@@ -160,15 +160,19 @@ void Source::setAlphaCoordinates(double x, double y) {
 	alphax = x;
 	alphay = y;
 
+	// TODO : configure the mixing to be linear or quadratic , or with a custom curve ?
 	// Compute distance to the center
-	double d = ((x * x) + (y * y)) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE
-			* CIRCLE_SIZE); // QUADRATIC
+	double d = ((x * x) + (y * y)) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE); // QUADRATIC
+
 	// adjust alpha according to distance to center
 	if (d < 1.0)
 		texalpha = 1.0 - d;
 	else
 		texalpha = 0.0;
 
+	// set the source to stanby if it is in the limbo area
+	// TODO ; make the threshold configurable
+	setStandby( d > (2.5 * 2.5) );
 }
 
 void Source::setAlpha(GLfloat a) {
@@ -192,6 +196,7 @@ void Source::setAlpha(GLfloat a) {
 	// set new alpha coordinates
 	alphax = dx * da;
 	alphay = dy * da;
+
 }
 
 void Source::resetScale(scalingMode sm) {
@@ -240,7 +245,8 @@ void Source::resetScale(scalingMode sm) {
 
 
 
-void Source::draw(bool withalpha, GLenum mode) const {
+void Source::draw(bool withalpha, GLenum mode) const
+{
 	// set id in select mode, avoid texturing if not rendering.
 	if (mode == GL_SELECT) {
 		glLoadName(id);
@@ -248,18 +254,22 @@ void Source::draw(bool withalpha, GLenum mode) const {
 	}
 	else {
 		// set transparency and color
-		glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(),
-				withalpha ? texalpha : 1.0);
+		if (!standby) {
+			glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(),
+					withalpha ? texalpha : 1.0);
 
-		// texture coordinate changes
-		ViewRenderWidget::texc[0] = textureCoordinates.left();
-		ViewRenderWidget::texc[1] = textureCoordinates.top();
-		ViewRenderWidget::texc[2] = textureCoordinates.right();
-		ViewRenderWidget::texc[3] = textureCoordinates.top();
-		ViewRenderWidget::texc[4] = textureCoordinates.right();
-		ViewRenderWidget::texc[5] = textureCoordinates.bottom();
-		ViewRenderWidget::texc[6] = textureCoordinates.left();
-		ViewRenderWidget::texc[7] = textureCoordinates.bottom();
+			// texture coordinate changes
+			ViewRenderWidget::texc[0] = textureCoordinates.left();
+			ViewRenderWidget::texc[1] = textureCoordinates.top();
+			ViewRenderWidget::texc[2] = textureCoordinates.right();
+			ViewRenderWidget::texc[3] = textureCoordinates.top();
+			ViewRenderWidget::texc[4] = textureCoordinates.right();
+			ViewRenderWidget::texc[5] = textureCoordinates.bottom();
+			ViewRenderWidget::texc[6] = textureCoordinates.left();
+			ViewRenderWidget::texc[7] = textureCoordinates.bottom();
+		}
+		else
+			glColor4f(0.0, 0.0, 0.0, 1.0);
 
 	    glDrawArrays(GL_QUADS, 0, 4);
 	}
@@ -268,7 +278,6 @@ void Source::draw(bool withalpha, GLenum mode) const {
 
 void Source::update() {
 
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 
 	if (pixelated) {

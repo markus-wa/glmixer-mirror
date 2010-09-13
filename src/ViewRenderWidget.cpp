@@ -827,13 +827,13 @@ void ViewRenderWidget::buildShader(){
 	texc[6] = 0.f;
 	texc[7] = 1.f;
 	maskc[0] = 0.f;
-	maskc[1] = 1.f;
+	maskc[1] = 0.f;
 	maskc[2] = 1.f;
-	maskc[3] = 1.f;
+	maskc[3] = 0.f;
 	maskc[4] = 1.f;
-	maskc[5] = 0.f;
+	maskc[5] = 1.f;
 	maskc[6] = 0.f;
-	maskc[7] = 0.f;
+	maskc[7] = 1.f;
 
 	program = new QGLShaderProgram(this);
 
@@ -903,7 +903,6 @@ void ViewRenderWidget::setSourceDrawingMode(bool on)
 		glActiveTexture(GL_TEXTURE0);
 	else {
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[Source::NO_MASK]);
 	}
 
 }

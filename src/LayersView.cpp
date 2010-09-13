@@ -89,10 +89,11 @@ void LayersView::paint()
     bool first = true;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
+		if ((*its)->isStandby())
+			continue;
 		//
 		// 1. Render it into current view
 		//
-
 		glPushMatrix();
 
 		if ((*its)->isActive()) {
@@ -363,6 +364,10 @@ void LayersView::zoomBestFit() {
 	// Compute bounding depths of every sources
     double z_min = 10000, z_max = -10000;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+
+		if ((*its)->isStandby())
+			continue;
+
 		z_min = MINI (z_min, (*its)->getDepth());
 		z_max = MAXI (z_max, (*its)->getDepth());
 	}
@@ -433,7 +438,11 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     glMatrixMode(GL_MODELVIEW);
 
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-        glPushMatrix();
+
+		if ((*its)->isStandby())
+			continue;
+
+		glPushMatrix();
         // place and scale
         glTranslatef((*its)->isActive() ? currentSourceDisplacement : 0.0, 0.0,  1.0 +(*its)->getDepth());
 //        glScalef((*its)->getAspectRatio(), 1.0, 1.0);

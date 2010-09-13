@@ -157,7 +157,7 @@ void CatalogView::drawSource(Source *s, int index)
 		glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - _height + sheight_pixels, 0.0);
 		if (s->isActive())
 			glTranslatef( (_iconSize[_currentSize] -_largeIconSize[_currentSize]) * h_unit , 0.0, 0.0);
-		glScalef( swidth_pixels, sheight_pixels, 1.f);
+		glScalef( swidth_pixels, -sheight_pixels, 1.f);
 
 
 		// draw source texture (without shading)

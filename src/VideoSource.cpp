@@ -100,7 +100,28 @@ bool VideoSource::isPlaying() const {
 
 void VideoSource::play(bool on){
 
-	is->play(on);
+	if ( on != isPlaying() )
+		is->play(on);
+}
+
+void VideoSource::setStandby(bool on)
+{
+	if (isPlayable()) {
+		static bool wasplaying = true;
+
+		if ( on ) {
+			if (!standby) {
+				wasplaying = isPlaying() ;
+				play(false);
+			}
+		} else {
+			if (standby) {
+				play(wasplaying);
+			}
+		}
+	}
+
+	Source::setStandby(on);
 }
 
 // only Rendering Manager can call this
@@ -109,7 +130,7 @@ void VideoSource::update(){
 	Source::update();
 
     // update texture
-    if (frameChanged && is) {
+    if ( frameChanged && is) {
 
         const VideoPicture *vp = is->getPictureAtIndex(bufferIndex);
 

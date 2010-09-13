@@ -344,6 +344,23 @@ void AlgorithmSource::initBuffer(){
 
 }
 
+void AlgorithmSource::setStandby(bool on)
+{
+	static bool wasplaying = true;
+
+	if ( on ) {
+		if (!standby) {
+			wasplaying = isPlaying() ;
+			play(false);
+		}
+	} else {
+		if (standby) {
+			play(wasplaying);
+		}
+	}
+
+	Source::setStandby(on);
+}
 
 void AlgorithmSource::update(){
 

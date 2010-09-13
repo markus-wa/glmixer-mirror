@@ -205,7 +205,10 @@ public:
 	inline bool isCulled() const {
 		return culled;
 	}
-	void testCulling();
+	void testGeometryCulling();
+	inline bool isStandby() const {
+		return standby;
+	}
 
 	/**
 	 * Blending
@@ -414,7 +417,12 @@ protected:
 	 *
 	 */
 	void setDepth(GLdouble v);
-
+	/**
+	 * standby is set internally
+	 */
+	virtual void setStandby(bool on) {
+		standby = on;
+	}
 	// RTTI
 	static RTTI type;
 	static bool playable;
@@ -422,7 +430,7 @@ protected:
 	// identity and properties
 	GLuint id;
 	QString name;
-	bool active, culled, frameChanged, cropped;
+	bool active, culled, standby, frameChanged, cropped;
 	SourceList *clones;
 
 	// GL Stuff

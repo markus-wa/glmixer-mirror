@@ -38,6 +38,17 @@ public:
 	static RTTI type;
 	RTTI rtti() const { return type; }
 
+	void setStandby(bool on)
+	{
+//		if ( on ) {
+//			RenderingManager::getInstance()->countRenderingSource--;
+//		} else {
+//			RenderingManager::getInstance()->countRenderingSource++;
+//		}
+
+		Source::setStandby(on);
+	}
+
     // only RenderingManager can create a source
 protected:
 	RenderingSource(GLuint texture, double d): Source(texture, d) {

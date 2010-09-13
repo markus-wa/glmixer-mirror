@@ -72,6 +72,10 @@ void GeometryView::paint()
     bool first = true;
     // then the icons of the sources (reversed depth order)
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+
+		if ((*its)->isStandby())
+			continue;
+
 		//
 		// 1. Render it into current view
 		//
@@ -86,7 +90,7 @@ void GeometryView::paint()
 		// bind the source texture and update its content
 		(*its)->update();
 		// test for culling
-        (*its)->testCulling();
+        (*its)->testGeometryCulling();
         // Draw it !
 		(*its)->blend();
         (*its)->draw();
@@ -101,6 +105,7 @@ void GeometryView::paint()
         // 3. draw border and handles if active
         //
 		ViewRenderWidget::setSourceDrawingMode(false);
+		glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[Source::NO_MASK]);
 
 		if ((*its)->isActive())
 	        glCallList(borderType);
@@ -515,6 +520,8 @@ void GeometryView::zoomBestFit() {
 	// 1. compute bounding box of every sources
     double x_min = 10000, x_max = -10000, y_min = 10000, y_max = -10000;
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+		if ((*its)->isStandby())
+			continue;
 		x_min = MINI (x_min, (*its)->getX() - (*its)->getScaleX());
 		x_max = MAXI (x_max, (*its)->getX() + (*its)->getScaleX());
 		y_min = MINI (y_min, (*its)->getY() - (*its)->getScaleY());
@@ -571,7 +578,9 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     glMatrixMode(GL_MODELVIEW);
 
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-        glPushMatrix();
+		if ((*its)->isStandby())
+			continue;
+		glPushMatrix();
         // place and scale
         glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
         glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);

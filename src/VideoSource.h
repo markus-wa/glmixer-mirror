@@ -44,6 +44,7 @@ protected:
 	VideoSource(VideoFile *f, GLuint texture, double d);
 	virtual ~VideoSource();
     void update();
+	void setStandby(bool on);
 
 public Q_SLOTS:
 	void play(bool on);
