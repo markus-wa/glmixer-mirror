@@ -303,6 +303,9 @@ p, li { white-space: pre-wrap; }
     <number>8</number>
    </attribute>
    <widget class="QWidget" name="vcontrolDockWidgetContents">
+    <property name="styleSheet">
+     <string notr="true">font: 10pt;</string>
+    </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <property name="spacing">
       <number>0</number>
@@ -317,6 +320,9 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="opaqueResize">
         <bool>false</bool>
+       </property>
+       <property name="handleWidth">
+        <number>7</number>
        </property>
        <widget class="QWidget" name="vcontrolDockWidgetControls" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -359,7 +365,7 @@ p, li { white-space: pre-wrap; }
             <string>Starts / stops  the movie</string>
            </property>
            <property name="styleSheet">
-            <string> QToolButton { /* all types of tool button */
+            <string notr="true"> QToolButton { 
      border: 2px solid #8f8f91;
      border-radius: 6px;
  }
@@ -367,7 +373,7 @@ p, li { white-space: pre-wrap; }
      background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                        stop: 0 #8f8f91, stop: 1 #f6f7fa);
  }
-font: 75 10pt &quot;Sans Serif&quot;;</string>
+font: 75 13pt;</string>
            </property>
            <property name="text">
             <string>Play</string>
@@ -793,9 +799,6 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
              <height>70</height>
             </size>
            </property>
-           <property name="styleSheet">
-            <string>font: 8pt &quot;Sans Serif&quot;;</string>
-           </property>
            <property name="frameShape">
             <enum>QFrame::NoFrame</enum>
            </property>
@@ -1048,28 +1051,24 @@ font: 75 10pt &quot;Sans Serif&quot;;</string>
           <height>16777215</height>
          </size>
         </property>
+        <property name="styleSheet">
+         <string notr="true">font: 12pt;</string>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout_10">
          <property name="spacing">
-          <number>3</number>
-         </property>
-         <property name="leftMargin">
           <number>5</number>
          </property>
-         <property name="topMargin">
-          <number>3</number>
-         </property>
-         <property name="rightMargin">
+         <property name="margin">
           <number>5</number>
-         </property>
-         <property name="bottomMargin">
-          <number>3</number>
          </property>
          <item>
           <widget class="QCheckBox" name="dirtySeekCheckBox">
            <property name="font">
             <font>
-             <family>Sans Serif</family>
-             <pointsize>8</pointsize>
+             <pointsize>12</pointsize>
+             <weight>50</weight>
+             <italic>false</italic>
+             <bold>false</bold>
             </font>
            </property>
            <property name="toolTip">
@@ -1086,8 +1085,10 @@ but is more precise in time..</string>
           <widget class="QCheckBox" name="restartWhereStoppedCheckBox">
            <property name="font">
             <font>
-             <family>Sans Serif</family>
-             <pointsize>8</pointsize>
+             <pointsize>12</pointsize>
+             <weight>50</weight>
+             <italic>false</italic>
+             <bold>false</bold>
             </font>
            </property>
            <property name="toolTip">
@@ -1131,8 +1132,10 @@ Uncheck to stay on the same frame when pressing stop.</string>
               </property>
               <property name="font">
                <font>
-                <family>Sans Serif</family>
-                <pointsize>8</pointsize>
+                <pointsize>12</pointsize>
+                <weight>50</weight>
+                <italic>false</italic>
+                <bold>false</bold>
                </font>
               </property>
               <property name="toolTip">
@@ -1201,7 +1204,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>1115</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
