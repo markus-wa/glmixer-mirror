@@ -94,7 +94,7 @@ Source::Source(GLuint texture, double depth) :
 
 Source::~Source() {
 
-	delete clones;
+//	delete clones;
 }
 
 void Source::setName(QString n) {

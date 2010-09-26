@@ -48,6 +48,7 @@ public:
 
     // cosmetics
     void setBackgroundColor(const QColor &c);
+    int updatePeriod() const { return period; }
 
     // OpenGL informations
     static void showGlExtensionsInformationDialog(QString iconfile = "");

@@ -44,6 +44,7 @@ public Q_SLOTS:
 	void restoreDefaultPreferences();
 	void showPreferences(const QByteArray & state);
 	QByteArray getUserPreferences() const;
+	void on_updatePeriod_valueChanged(int period);
 
 private:
 	void sizeToSelection(QSize s);
@@ -51,6 +52,8 @@ private:
 
 	class Source *defaultSource;
 
+    void createCurveIcons();
+    QSize m_iconSize;
 };
 
 #endif /* USERPREFERENCESDIALOG_H_ */

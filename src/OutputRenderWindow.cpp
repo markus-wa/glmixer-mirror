@@ -34,15 +34,38 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-		useAspectRatio(true), useWindowAspectRatio(true) {
+		useAspectRatio(true), useWindowAspectRatio(true), currentAlpha(0.0) {
 
-	setCursor(Qt::BlankCursor);
 	rx = 0;
 	ry = 0;
 	rw = width();
 	rh = height();
+
+	animationAlpha = new QPropertyAnimation(this, "alpha");
+	animationAlpha->setDuration(0);
+	animationAlpha->setEasingCurve(QEasingCurve::InOutQuad);
+    QObject::connect(animationAlpha, SIGNAL(finished()), this, SIGNAL(animationFinished() ) );
 }
 
+void OutputRenderWidget::setTransitionCurve(int curveType)
+{
+	animationAlpha->setEasingCurve( (QEasingCurve::Type) qBound( (int) QEasingCurve::Linear, curveType, (int) QEasingCurve::OutInBounce));
+}
+
+int OutputRenderWidget::transitionCurve() const
+{
+	return (int) animationAlpha->easingCurve().type();
+}
+
+void OutputRenderWidget::setTransitionDuration(int duration)
+{
+	animationAlpha->setDuration(duration);
+}
+
+int OutputRenderWidget::transitionDuration() const
+{
+	return animationAlpha->duration();
+}
 
 float OutputRenderWidget::getAspectRatio() const{
 
@@ -54,26 +77,11 @@ float OutputRenderWidget::getAspectRatio() const{
 
 void OutputRenderWidget::initializeGL() {
 
-    // Enables smooth color shading
-    glShadeModel(GL_FLAT);
-
-    // disable depth and lighting by default
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-
-    // Enables texturing
-	glActiveTexture(GL_TEXTURE0);
-    glEnable(GL_TEXTURE_2D);
-
-    // This hint can improve the speed of texturing when perspective-correct texture coordinate interpolation isn't needed
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-    // Pure texture color (no lighting)
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-    // Turn blending off
-    glDisable(GL_BLEND);
+	glRenderWidget::initializeGL();
 
 	setBackgroundColor(palette().color(QPalette::Window));
+
+	smoothAlphaTransition(true);
 }
 
 void OutputRenderWidget::resizeGL(int w, int h)
@@ -130,7 +138,8 @@ void OutputRenderWidget::resizeGL(int w, int h)
 			rh = h;
 		}
 	}
-	else
+//	else
+	// do this computation always ; rendering with polygon may be used during transition
 	{
 		glLoadIdentity();
 
@@ -177,7 +186,7 @@ void OutputRenderWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
-	if ( RenderingManager::blit_fbo_extension )
+	if ( currentAlpha > 1.0 && RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 		// select FIRST texture attachment as source
@@ -191,16 +200,33 @@ void OutputRenderWidget::paintGL()
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
+		// apply the texture of the frame buffer
 		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+
+		// apply clutch transparency
+		glColor4f(1.0, 1.0, 1.0, currentAlpha);
+
+		// draw the polygon with texture
 		glCallList(ViewRenderWidget::quad_texured);
 	}
 }
 
 
+void OutputRenderWidget::smoothAlphaTransition(bool visible){
 
-OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint) {
+	animationAlpha->setStartValue( currentAlpha );
+	animationAlpha->setEndValue( visible ? 1.1 : 0.0 );
 
+	animationAlpha->start();
+}
+
+OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint)
+{
+	// this is not a windet, but a window
 	useWindowAspectRatio = false;
+	setCursor(Qt::BlankCursor);
+	// default transition of 1 second
+	setTransitionDuration(1000);
 }
 
 OutputRenderWindow *OutputRenderWindow::getInstance() {
@@ -215,7 +241,7 @@ OutputRenderWindow *OutputRenderWindow::getInstance() {
 
 void OutputRenderWindow::initializeGL()
 {
-	OutputRenderWidget::initializeGL();
+	glRenderWidget::initializeGL();
 
     // setup default background color to black
     glClearColor(0.0, 0.0, 0.0, 1.0f);

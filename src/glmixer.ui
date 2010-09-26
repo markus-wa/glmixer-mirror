@@ -1229,6 +1229,8 @@ p, li { white-space: pre-wrap; }
      <property name="title">
       <string>Toolbars</string>
      </property>
+     <addaction name="actionResetToolbars"/>
+     <addaction name="separator"/>
     </widget>
     <widget class="QMenu" name="menuRendering_Window">
      <property name="title">
@@ -1262,16 +1264,17 @@ p, li { white-space: pre-wrap; }
      <addaction name="actionCatalogLarge"/>
     </widget>
     <addaction name="menuRendering_Window"/>
+    <addaction name="actionToggleRenderingVisible"/>
     <addaction name="separator"/>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
     <addaction name="actionLayersView"/>
     <addaction name="menuZoom"/>
-    <addaction name="separator"/>
     <addaction name="menuCatalog"/>
-    <addaction name="menuToolBars"/>
+    <addaction name="separator"/>
     <addaction name="actionShowFPS"/>
     <addaction name="actionShow_frames"/>
+    <addaction name="menuToolBars"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -2284,7 +2287,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/image-collection.png</normaloff>:/glmixer/icons/image-collection.png</iconset>
    </property>
    <property name="text">
-    <string>Show catalog</string>
+    <string>Visible</string>
    </property>
    <property name="statusTip">
     <string>Show / hide a catalog of all sources in the current view.</string>
@@ -2347,6 +2350,29 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>White background</string>
+   </property>
+  </action>
+  <action name="actionToggleRenderingVisible">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/process-stop.png</normaloff>:/glmixer/icons/process-stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>Active</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="actionResetToolbars">
+   <property name="text">
+    <string>Restore default</string>
    </property>
   </action>
  </widget>

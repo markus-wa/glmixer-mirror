@@ -85,6 +85,8 @@ public:
 	inline SourceSet::iterator getEnd()  const{
 		return _sources.end();
 	}
+	inline bool empty() const { return _sources.empty(); }
+
 	void removeSource(SourceSet::iterator itsource);
 	bool setCurrentSource(SourceSet::iterator si);
 	bool setCurrentSource(GLuint name);

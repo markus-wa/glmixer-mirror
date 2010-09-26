@@ -85,9 +85,12 @@ void glRenderWidget::initializeGL()
 
     // ANTIALIASING
     glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_POINT_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_POINT_SMOOTH);
     glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_POLYGON_SMOOTH);
+
+    // This hint can improve the speed of texturing when perspective-correct texture coordinate interpolation isn't needed
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
     // setup default background color to black

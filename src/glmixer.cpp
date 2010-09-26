@@ -40,13 +40,13 @@
 #include "SourceDisplayWidget.h"
 #include "RenderingSource.h"
 #include "AlgorithmSource.h"
-#include "CloneSource.h"
 #include "VideoSource.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
 #include "VideoFileDisplayWidget.h"
 #include "SourcePropertyBrowser.h"
+#include "CloneSource.h"
 #include "GammaLevelsWidget.h"
 #include "CatalogView.h"
 #include "DelayCursor.h"
@@ -95,8 +95,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	cursorActions->addAction(actionCursorCurve);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
 
-
-
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
 	delete mainRendering;
@@ -128,7 +126,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     // Create preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
 	previewDockWidgetContentsLayout->addWidget(outputpreview);
-	outputpreview->setCursor(Qt::ArrowCursor);
 
     // Default state without source selected
     vcontrolDockWidgetContents->setEnabled(false);
@@ -143,6 +140,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // Signals between GUI and output window
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
+	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(smoothAlphaTransition(bool)));
 
 	// group the menu items of the catalog sizes ;
 	QActionGroup *catalogActionGroup = new QActionGroup(this);
@@ -222,6 +220,7 @@ void GLMixer::displayWarningMessage(QString msg){
 
 	QMessageBox::warning(0, tr("%1 Warning").arg(QCoreApplication::applicationName()), tr("The following error occurred:\n\n%1").arg(msg));
 }
+
 
 
 void GLMixer::setView(QAction *a){
@@ -1016,6 +1015,18 @@ void GLMixer::changeWindowTitle(){
 
 void GLMixer::on_actionNew_Session_triggered()
 {
+	// trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
+	actionToggleRenderingVisible->setEnabled(false);
+	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
+	OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
+}
+
+
+void GLMixer::newSession()
+{
+	QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
+	actionToggleRenderingVisible->setEnabled(true);
+
 	// inform the user that data might be lost
 	int ret = QMessageBox::Discard;
 
@@ -1115,48 +1126,67 @@ void GLMixer::on_actionLoad_Session_triggered()
 	sfd->setFilter(tr("GLMixer workspace (*.glm)"));
 
 	if (sfd->exec()) {
-	    QString fileName = sfd->selectedFiles().front();
-		openSessionFile(fileName);
+		// get the first file name selected
+		currentStageFileName = sfd->selectedFiles().front();
+
+		if (RenderingManager::getInstance()->empty())
+			openSessionFile();
+		else {
+			// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
+			actionToggleRenderingVisible->setEnabled(false);
+			QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
+			OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
+		}
 	}
 }
 
-void GLMixer::openSessionFile(QString fileName)
+void GLMixer::openSessionFile(QString filename)
 {
+	// if we come from the smooth transition, disable it (and set to transparent in any case)
+	QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
+	actionToggleRenderingVisible->setEnabled(true);
+	OutputRenderWindow::getInstance()->setAlpha(0.0);
+
+	if (!filename.isEmpty())
+		currentStageFileName = filename;
+
 	QDomDocument doc;
     QString errorStr;
     int errorLine;
     int errorColumn;
 
-     QFile file(fileName);
+     QFile file(currentStageFileName);
      QString caption = tr("%1 session open").arg(QCoreApplication::applicationName());
      if (!file.open(QFile::ReadOnly | QFile::Text)) {
-         QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(fileName).arg(file.errorString()));
+         QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(currentStageFileName).arg(file.errorString()));
          return;
      }
 
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
-        QMessageBox::warning(this, caption, tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(fileName).arg(errorLine).arg(errorColumn).arg(errorStr));
+        QMessageBox::warning(this, caption, tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(currentStageFileName).arg(errorLine).arg(errorColumn).arg(errorStr));
         return;
     }
 
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
-        QMessageBox::critical(this, caption, tr("The file %1 is not a valid GLMixer session file.").arg(fileName));
+        QMessageBox::critical(this, caption, tr("The file %1 is not a valid GLMixer session file.").arg(currentStageFileName));
         return;
     } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
-        QMessageBox::warning(this, caption, tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(fileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
+        QMessageBox::warning(this, caption, tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(currentStageFileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
     }
 
     // read all the content to make sure the file is correct :
     QDomElement srcconfig = root.firstChildElement("SourceList");
     if (!srcconfig.isNull()){
     	// if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
-        on_actionNew_Session_triggered();
+        newSession();
     	RenderingManager::getInstance()->addConfiguration(srcconfig);
         // confirm the loading of the file
-    	currentStageFileName = fileName;
     	changeWindowTitle();
     	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentStageFileName ), 5000 );
+    } else {
+    	currentStageFileName = "";
+    	return;
     }
 
     // less important ; the views config
@@ -1201,6 +1231,7 @@ void GLMixer::openSessionFile(QString fileName)
 		actionFree_aspect_ratio->setChecked(rconfig.attribute("freeAspectRatio").toInt());
 	}
 
+    OutputRenderWindow::getInstance()->smoothAlphaTransition(true);
 }
 
 
@@ -1316,8 +1347,14 @@ void GLMixer::readSettings()
 	// windows config
     if (settings.contains("geometry"))
     	restoreGeometry(settings.value("geometry").toByteArray());
+    else
+    	settings.setValue("defaultGeometry", saveGeometry());
+
     if (settings.contains("windowState"))
     	restoreState(settings.value("windowState").toByteArray());
+    else
+        settings.setValue("defaultWindowState", saveState());
+
     if (settings.contains("OutputRenderWindow"))
     	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
     // dialogs configs
@@ -1357,6 +1394,18 @@ void GLMixer::saveSettings()
 }
 
 
+void GLMixer::on_actionResetToolbars_triggered()
+{
+	restoreGeometry(settings.value("defaultGeometry").toByteArray());
+	restoreState(settings.value("defaultWindowState").toByteArray());
+	restoreDockWidget(previewDockWidget);
+	restoreDockWidget(sourceDockWidget);
+	restoreDockWidget(vcontrolDockWidget);
+	restoreDockWidget(cursorDockWidget);
+	restoreDockWidget(gammaDockWidget);
+
+}
+
 void GLMixer::on_actionPreferences_triggered()
 {
 	// create the user preference dialog
@@ -1395,10 +1444,14 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	// a. Apply rendering preferences
 	QSize RenderingSize;
 	bool useBlitFboExtension = true;
-	stream  >> RenderingSize >> useBlitFboExtension;
+	stream >> RenderingSize >> useBlitFboExtension;
+	RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
 	if (RenderingSize != QSize(0,0))
 		RenderingManager::getInstance()->setFrameBufferResolution(RenderingSize);
-	RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
+	int targetPeriod;
+	stream >> targetPeriod;
+	if (targetPeriod > 0)
+		RenderingManager::getRenderingWidget()->setUpdatePeriod( targetPeriod );
 
 	// b. Apply source preferences
 	stream >> RenderingManager::getInstance()->defaultSource();
@@ -1423,6 +1476,14 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	stream >> stipplingMode;
 	ViewRenderWidget::setStipplingMode(stipplingMode);
 
+	// g. Transition time and curve
+	int duration = 1000;
+	stream >> duration;
+	OutputRenderWindow::getInstance()->setTransitionDuration(duration);
+	int curve = 1;
+	stream >> curve;
+	OutputRenderWindow::getInstance()->setTransitionCurve(curve);
+
 	// Refresh all GL widgets (to apply the preferences changed above)
 	RenderingManager::getRenderingWidget()->refresh();
 	OutputRenderWindow::getInstance()->refresh();
@@ -1442,6 +1503,7 @@ QByteArray GLMixer::getPreferences() const {
 	// a. Store rendering preferences
 	stream << RenderingManager::getInstance()->getFrameBufferResolution();
 	stream << RenderingManager::getUseFboBlitExtension();
+	stream << RenderingManager::getRenderingWidget()->updatePeriod();
 
 	// b. Store source preferences
 	stream << RenderingManager::getInstance()->defaultSource();
@@ -1457,6 +1519,10 @@ QByteArray GLMixer::getPreferences() const {
 
 	// f. Stippling mode
 	stream << ViewRenderWidget::getStipplingMode();
+
+	// g. transition time and Easing curve
+	stream << OutputRenderWindow::getInstance()->transitionDuration();
+	stream << OutputRenderWindow::getInstance()->transitionCurve();
 
 	return data;
 }

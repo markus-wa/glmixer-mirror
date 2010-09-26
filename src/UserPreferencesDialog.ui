@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>846</width>
-    <height>386</height>
+    <width>850</width>
+    <height>437</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -90,195 +90,277 @@
    </item>
    <item row="0" column="1">
     <widget class="QStackedWidget" name="stackedPreferences">
-     <property name="layoutDirection">
-      <enum>Qt::LeftToRight</enum>
-     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
      <widget class="QWidget" name="PageRendering">
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_4_3">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::Box</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-           <property name="text">
-            <string>4:3 aspect ratio:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_3_2">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::Box</enum>
-           </property>
-           <property name="text">
-            <string>3:2 aspect ratio:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_16_10">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::Box</enum>
-           </property>
-           <property name="text">
-            <string>16:10  aspect ratio:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3">
-          <widget class="QLabel" name="label_16_9">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::Box</enum>
-           </property>
-           <property name="text">
-            <string>16:9 aspect ratio:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QRadioButton" name="r640x480">
-           <property name="text">
-            <string>640 x 480 (VGA)</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QRadioButton" name="r600x400">
-           <property name="text">
-            <string>600 x 400</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QRadioButton" name="r640x400">
-           <property name="text">
-            <string>640 x 400</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3">
-          <widget class="QRadioButton" name="r854x480">
-           <property name="text">
-            <string>854 x 480 (WVGA)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QRadioButton" name="r768x576">
-           <property name="text">
-            <string>768 x 576 (PAL)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QRadioButton" name="r720x480">
-           <property name="text">
-            <string>720 x 480 (NTSC)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QRadioButton" name="r800x600">
-           <property name="text">
-            <string>800 x 600 (SVGA)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="2">
-          <widget class="QRadioButton" name="r960x600">
-           <property name="text">
-            <string>960 x 600</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QRadioButton" name="r1042x768">
-           <property name="text">
-            <string>1024 x 768 (XGA)</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QRadioButton" name="r1152x768">
-           <property name="text">
-            <string>1152 x 768</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="2">
-          <widget class="QRadioButton" name="r1280x800">
-           <property name="text">
-            <string>1280 x 800 (WXGA)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="3">
-          <widget class="QRadioButton" name="r1280x720">
-           <property name="text">
-            <string>1280 x 720 (HD 720)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QRadioButton" name="r1600x1200">
-           <property name="text">
-            <string>1600 x 1200 (UXGA)</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="2">
-          <widget class="QRadioButton" name="r1920x1200">
-           <property name="text">
-            <string>1920 x 1200 (WUXGA)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="3">
-          <widget class="QRadioButton" name="r1920x1080">
-           <property name="text">
-            <string>1920 x 1080 (HD 1080)</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QGroupBox" name="Resolution">
+         <property name="toolTip">
+          <string>Size of the internal buffer where the mix is rendered: high resolution may slow down the rendering.</string>
+         </property>
+         <property name="title">
+          <string>Frame buffer resolution</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_4_3">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
+            </property>
+            <property name="text">
+             <string>4:3 aspect ratio:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_3_2">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="text">
+             <string>3:2 aspect ratio:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="label_16_10">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="text">
+             <string>16:10  aspect ratio:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QLabel" name="label_16_9">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="text">
+             <string>16:9 aspect ratio:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QRadioButton" name="r640x480">
+            <property name="text">
+             <string>640 x 480 (VGA)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QRadioButton" name="r600x400">
+            <property name="text">
+             <string>600 x 400</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QRadioButton" name="r640x400">
+            <property name="text">
+             <string>640 x 400</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QRadioButton" name="r854x480">
+            <property name="text">
+             <string>854 x 480 (WVGA)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QRadioButton" name="r768x576">
+            <property name="text">
+             <string>768 x 576 (PAL)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QRadioButton" name="r720x480">
+            <property name="text">
+             <string>720 x 480 (NTSC)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QRadioButton" name="r800x600">
+            <property name="text">
+             <string>800 x 600 (SVGA)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QRadioButton" name="r960x600">
+            <property name="text">
+             <string>960 x 600</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QRadioButton" name="r1042x768">
+            <property name="text">
+             <string>1024 x 768 (XGA)</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QRadioButton" name="r1152x768">
+            <property name="text">
+             <string>1152 x 768</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QRadioButton" name="r1280x800">
+            <property name="text">
+             <string>1280 x 800 (WXGA)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3">
+           <widget class="QRadioButton" name="r1280x720">
+            <property name="text">
+             <string>1280 x 720 (HD 720)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QRadioButton" name="r1600x1200">
+            <property name="text">
+             <string>1600 x 1200 (UXGA)</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QRadioButton" name="r1920x1200">
+            <property name="text">
+             <string>1920 x 1200 (WUXGA)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="3">
+           <widget class="QRadioButton" name="r1920x1080">
+            <property name="text">
+             <string>1920 x 1080 (HD 1080)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Performance</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <property name="spacing">
+             <number>10</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_6">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Targeted frame rate  </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="updatePeriod">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimum">
+               <number>16</number>
+              </property>
+              <property name="maximum">
+               <number>65</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="invertedAppearance">
+               <bool>true</bool>
+              </property>
+              <property name="invertedControls">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="frameRateString">
+              <property name="text">
+               <string>62 fps</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="activateBlitFrameBuffer">
+            <property name="toolTip">
+             <string>Check this if your hardware supports it (save, try, and keep it on if all seems to work).</string>
+            </property>
+            <property name="text">
+             <string>Blit frame buffer (faster if graphics card supports it in hardware, buggy otherwise)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_3">
@@ -293,56 +375,18 @@
          </property>
         </spacer>
        </item>
-       <item>
-        <widget class="QCheckBox" name="activateBlitFrameBuffer">
-         <property name="toolTip">
-          <string>Check this if your hardware supports it (save, try, and keep it on if all seems to work).</string>
-         </property>
-         <property name="text">
-          <string>Blit frame buffer (faster if graphics card supports it in hardware, buggy otherwise)</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <widget class="QLabel" name="labelExplanations">
-           <property name="text">
-            <string>Explanations :</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPlainTextEdit" name="Explanations">
-           <property name="plainText">
-            <string>The rendering resolution is the size of the internal buffer in which the mix is rendered (off-screen). This determines the performance, the quality and the aspect ratio of the rendering. This is not the size of the output window which can always be resized freely (the internal buffer is scaled to fit the output window).
-
-You may want to choose a rendering resolution which matches the aspect ratio of your screen and reaches the highest resolution that your hardware allows for (highest quality/performance ratio). </string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="PageSources">
       <layout class="QVBoxLayout" name="verticalLayout_5">
-       <property name="margin">
-        <number>12</number>
-       </property>
        <item>
         <widget class="QLabel" name="label_4">
-         <property name="styleSheet">
-          <string notr="true">font: 75 11pt;</string>
-         </property>
          <property name="text">
-          <string>    1. Default source properties at creation time</string>
-         </property>
-         <property name="textFormat">
-          <enum>Qt::PlainText</enum>
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1. Default source properties at creation time&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -477,9 +521,6 @@ You may want to choose a rendering resolution which matches the aspect ratio of 
        <bool>true</bool>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
-       <property name="margin">
-        <number>7</number>
-       </property>
        <item>
         <widget class="QGroupBox" name="stipplingGroupBox">
          <property name="toolTip">
@@ -592,6 +633,73 @@ You may want to choose a rendering resolution which matches the aspect ratio of 
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="toolTip">
+          <string>Smoothing fade in or out when closing or openning a session.</string>
+         </property>
+         <property name="title">
+          <string>Transition fade in/out</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Duration (miliseconds, 0 to disable)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="transitionDuration">
+              <property name="toolTip">
+               <string>How long does the transition take.</string>
+              </property>
+              <property name="maximum">
+               <number>5000</number>
+              </property>
+              <property name="singleStep">
+               <number>200</number>
+              </property>
+              <property name="value">
+               <number>1000</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QListWidget" name="easingCurvePicker">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>120</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Choose the transition curve (opacity variation  in time)</string>
+            </property>
+            <property name="isWrapping" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="viewMode">
+             <enum>QListView::IconMode</enum>
+            </property>
+            <property name="selectionRectVisible">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
           <string>Visual improvements</string>
@@ -600,7 +708,7 @@ You may want to choose a rendering resolution which matches the aspect ratio of 
           <item>
            <widget class="QCheckBox" name="checkBox">
             <property name="text">
-             <string>Anti-aliasing of lines</string>
+             <string>Anti-aliasing</string>
             </property>
             <property name="checked">
              <bool>true</bool>

@@ -42,7 +42,6 @@ public:
 	GLMixer(QWidget *parent = 0);
 	~GLMixer();
 
-	void openSessionFile(QString filename);
 
 public Q_SLOTS:
 
@@ -78,6 +77,7 @@ public Q_SLOTS:
 	void on_actionAppend_Session_triggered();
 	void on_actionSelect_Next_triggered();
 	void on_actionSelect_Previous_triggered();
+	void on_actionResetToolbars_triggered();
 
 	// GUI interaction
 	void setView(QAction *a);
@@ -91,6 +91,8 @@ public Q_SLOTS:
 	void refreshTiming();
 	void displayInfoMessage(QString msg);
 	void displayWarningMessage(QString msg);
+	void newSession();
+	void openSessionFile(QString filename = "");
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
