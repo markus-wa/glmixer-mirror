@@ -92,7 +92,12 @@ public Q_SLOTS:
 	void displayInfoMessage(QString msg);
 	void displayWarningMessage(QString msg);
 	void newSession();
-	void openSessionFile(QString filename = "");
+	void openSessionFile(QString filename = QString());
+
+    void filterFolderChanged(const QString &s);
+    void openFolder();
+    void changeFolder();
+    void openFileFromFolder(const QModelIndex & index);
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
@@ -124,7 +129,14 @@ private:
 	QSettings settings;
 	void readSettings();
 	void saveSettings();
+
+	// folder toolbox
+	void setupFolderToolbox();
+    class QStandardItemModel *folderModel;
+    class QSortFilterProxyModel *proxyFolderModel;
+    class QLineEdit *folderLineEdit;
 };
+
 
 class CaptureDialog: public QDialog {
 	Q_OBJECT

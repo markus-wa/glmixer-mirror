@@ -1204,7 +1204,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>1115</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1227,7 +1227,7 @@ p, li { white-space: pre-wrap; }
     </property>
     <widget class="QMenu" name="menuToolBars">
      <property name="title">
-      <string>Toolbars</string>
+      <string>Widgets &amp;&amp; Toolbars</string>
      </property>
      <addaction name="actionResetToolbars"/>
      <addaction name="separator"/>
@@ -1600,6 +1600,10 @@ p, li { white-space: pre-wrap; }
    </widget>
   </widget>
   <widget class="QDockWidget" name="gammaDockWidget">
+   <property name="windowIcon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/tools.png</normaloff>:/glmixer/icons/tools.png</iconset>
+   </property>
    <property name="windowTitle">
     <string>Gamma levels</string>
    </property>
@@ -1616,6 +1620,19 @@ p, li { white-space: pre-wrap; }
      </property>
     </layout>
    </widget>
+  </widget>
+  <widget class="QDockWidget" name="folderDockWidget">
+   <property name="windowIcon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
+   </property>
+   <property name="windowTitle">
+    <string>Folder browser</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="folderDockWidgetContents"/>
   </widget>
   <action name="actionMediaSource">
    <property name="icon">

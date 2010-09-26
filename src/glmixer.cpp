@@ -28,6 +28,7 @@
 
 #include <QApplication>
 #include <QDomDocument>
+#include <QtGui>
 
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
@@ -54,9 +55,11 @@
 
 #include "glmixer.moc"
 
+
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), refreshTimingTimer(0)
 {
     setupUi ( this );
+    setupFolderToolbox();
     setAcceptDrops ( true );
 
 #ifndef OPEN_CV
@@ -69,6 +72,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     menuToolBars->addAction(vcontrolDockWidget->toggleViewAction());
     menuToolBars->addAction(cursorDockWidget->toggleViewAction());
     menuToolBars->addAction(gammaDockWidget->toggleViewAction());
+    menuToolBars->addAction(folderDockWidget->toggleViewAction());
     menuToolBars->addSeparator();
     menuToolBars->addAction(sourceToolBar->toggleViewAction());
     menuToolBars->addAction(viewToolBar->toggleViewAction());
@@ -1015,6 +1019,8 @@ void GLMixer::changeWindowTitle(){
 
 void GLMixer::on_actionNew_Session_triggered()
 {
+	currentStageFileName = QString();
+
 	// trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
 	actionToggleRenderingVisible->setEnabled(false);
 	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
@@ -1027,10 +1033,10 @@ void GLMixer::newSession()
 	QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
 	actionToggleRenderingVisible->setEnabled(true);
 
-	// inform the user that data might be lost
-	int ret = QMessageBox::Discard;
-
 // TODO : implement good mechanism to know if something was changed
+
+//	// inform the user that data might be lost
+//	int ret = QMessageBox::Discard;
 //	if (!currentStageFileName.isNull()) {
 //		 QMessageBox msgBox;
 //		 msgBox.setText("The session may have been modified.");
@@ -1040,22 +1046,22 @@ void GLMixer::newSession()
 //		 msgBox.setDefaultButton(QMessageBox::Save);
 //		 ret = msgBox.exec();
 //	}
-	// react according to user's answer
-	switch (ret) {
-	   case QMessageBox::Save:
-		   // Save was clicked
-		   on_actionSave_Session_triggered();
-		   break;
-	   case QMessageBox::Cancel:
-		   // Cancel was clicked
-		   return;
-	   case QMessageBox::Discard:
-	   default:
-		   // keep on to create new session
-		   break;
-	}
+//	// react according to user's answer
+//	switch (ret) {
+//	   case QMessageBox::Save:
+//		   // Save was clicked
+//		   on_actionSave_Session_triggered();
+//		   break;
+//	   case QMessageBox::Cancel:
+//		   // Cancel was clicked
+//		   return;
+//	   case QMessageBox::Discard:
+//	   default:
+//		   // keep on to create new session
+//		   break;
+//	}
+
 	// make a new session
-	currentStageFileName = QString();
 	changeWindowTitle();
 	RenderingManager::getInstance()->clearSourceSet();
 	actionWhite_background->setChecked(false);
@@ -1098,6 +1104,8 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 		doc.appendChild(root);
 		doc.save(out, 4);
+
+	    file.close();
 
 		changeWindowTitle();
 		statusbar->showMessage( tr("File %1 saved.").arg( currentStageFileName ), 3000 );
@@ -1147,7 +1155,7 @@ void GLMixer::openSessionFile(QString filename)
 	actionToggleRenderingVisible->setEnabled(true);
 	OutputRenderWindow::getInstance()->setAlpha(0.0);
 
-	if (!filename.isEmpty())
+	if (!filename.isNull())
 		currentStageFileName = filename;
 
 	QDomDocument doc;
@@ -1159,35 +1167,40 @@ void GLMixer::openSessionFile(QString filename)
      QString caption = tr("%1 session open").arg(QCoreApplication::applicationName());
      if (!file.open(QFile::ReadOnly | QFile::Text)) {
          QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(currentStageFileName).arg(file.errorString()));
+     	 currentStageFileName = "";
          return;
      }
 
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
         QMessageBox::warning(this, caption, tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(currentStageFileName).arg(errorLine).arg(errorColumn).arg(errorStr));
-        return;
+    	currentStageFileName = "";
+    	return;
     }
+
+    file.close();
 
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
-        QMessageBox::critical(this, caption, tr("The file %1 is not a valid GLMixer session file.").arg(currentStageFileName));
+        QMessageBox::warning(this, caption, tr("The file %1 is not a valid GLMixer session file.").arg(currentStageFileName));
+    	currentStageFileName = "";
         return;
     } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
         QMessageBox::warning(this, caption, tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(currentStageFileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
     }
 
+	// if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
+	newSession();
+
     // read all the content to make sure the file is correct :
     QDomElement srcconfig = root.firstChildElement("SourceList");
-    if (!srcconfig.isNull()){
-    	// if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
-        newSession();
-    	RenderingManager::getInstance()->addConfiguration(srcconfig);
-        // confirm the loading of the file
-    	changeWindowTitle();
-    	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentStageFileName ), 5000 );
-    } else {
-    	currentStageFileName = "";
-    	return;
-    }
+    if (srcconfig.isNull())
+        QMessageBox::warning(this, caption, tr("The file %1 is empty.").arg(currentStageFileName));
+    else
+		RenderingManager::getInstance()->addConfiguration(srcconfig);
+
+    // confirm the loading of the file
+	changeWindowTitle();
+	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentStageFileName ), 5000 );
 
     // less important ; the views config
     QDomElement vconfig = root.firstChildElement("Views");
@@ -1260,6 +1273,8 @@ void GLMixer::on_actionAppend_Session_triggered(){
 		QMessageBox::warning(this, caption, tr("Parse error at line %1, column %2:\n%3").arg(errorLine).arg(errorColumn).arg(errorStr));
 		return;
     }
+
+    file.close();
 
     QDomElement root = doc.documentElement();
     if ( root.tagName() != "GLMixer" ) {
@@ -1526,3 +1541,170 @@ QByteArray GLMixer::getPreferences() const {
 
 	return data;
 }
+
+class folderValidator : public QValidator
+{
+  public:
+    folderValidator(QObject *parent) : QValidator(parent) { }
+
+    QValidator::State validate ( QString & input, int & pos ) const {
+      QDir d(input);
+      if( d.exists ())
+	return QValidator::Acceptable;
+      if( d.isAbsolute ())
+	return QValidator::Intermediate;
+
+      return QValidator::Invalid;
+    }
+};
+
+void addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename)
+{
+
+   QFile file(filename);
+   if ( !file.open(QFile::ReadOnly | QFile::Text) )
+	return;
+
+    QDomDocument doc;
+    QString errorStr;
+    int errorLine;
+    int errorColumn;
+    if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) )
+    	return;
+
+    QDomElement root = doc.documentElement();
+    if ( root.tagName() != "GLMixer" )
+        return;
+
+    if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION )
+        return;
+
+    QDomElement srcconfig = root.firstChildElement("SourceList");
+    if ( srcconfig.isNull() )
+    	return;
+
+    int nbElem = srcconfig.childNodes().count();
+
+    file.close();
+
+    model->insertRow(0);
+    model->setData(model->index(0, 0), name);
+    model->setData(model->index(0, 0), filename, Qt::UserRole);
+    model->itemFromIndex (model->index(0, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
+    model->setData(model->index(0, 1), nbElem);
+    model->setData(model->index(0, 1), filename, Qt::UserRole);
+    model->itemFromIndex (model->index(0, 1))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
+    model->setData(model->index(0, 2), date);
+    model->setData(model->index(0, 2), filename, Qt::UserRole);
+    model->itemFromIndex (model->index(0, 2))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
+
+}
+
+void fillFolderModel(QStandardItemModel *model, const QString &path)
+{
+    QDir dir(path);
+    QFileInfoList fileList = dir.entryInfoList(QStringList("*.glm"), QDir::Files);
+
+    for (int i = 0; i < fileList.size(); ++i) {
+         QFileInfo fileInfo = fileList.at(i);
+	 addFile(model, fileInfo.completeBaseName(), fileInfo.lastModified (), fileInfo.absoluteFilePath() );
+    }
+}
+
+
+void GLMixer::setupFolderToolbox()
+{
+    folderModel = new QStandardItemModel(0, 3, this);
+    folderModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Filename"));
+    folderModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Sources"));
+    folderModel->setHeaderData(2, Qt::Horizontal, QObject::tr("Last modified"));
+
+    proxyFolderModel = new QSortFilterProxyModel;
+    proxyFolderModel->setDynamicSortFilter(true);
+    proxyFolderModel->setFilterKeyColumn(0);
+    proxyFolderModel->setSourceModel(folderModel);
+
+    folderLineEdit = new QLineEdit;
+    folderValidator *v = new folderValidator(this);
+    folderLineEdit->setValidator(v);
+    QToolButton *dirButton = new QToolButton;
+	QIcon icon;
+	icon.addFile(QString::fromUtf8(":/glmixer/icons/fileopen.png"), QSize(), QIcon::Normal, QIcon::Off);
+	dirButton->setIcon(icon);
+
+    QTreeView *proxyView;
+    proxyView = new QTreeView;
+    proxyView->setRootIsDecorated(false);
+    proxyView->setAlternatingRowColors(true);
+    proxyView->setSortingEnabled(true);
+    proxyView->sortByColumn(0, Qt::AscendingOrder);
+    proxyView->setModel(proxyFolderModel);
+
+    QLabel *filterPatternLabel;
+    QLineEdit *filterPatternLineEdit;
+    filterPatternLineEdit = new QLineEdit;
+    filterPatternLineEdit->setText("");
+    filterPatternLabel = new QLabel(tr("&Filter pattern:"));
+    filterPatternLabel->setBuddy(filterPatternLineEdit);
+
+    connect(filterPatternLineEdit, SIGNAL(textChanged(QString)),
+            this, SLOT(filterFolderChanged(QString)));
+    connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
+    connect(folderLineEdit, SIGNAL(editingFinished()), this, SLOT(changeFolder()));
+    connect(proxyView, SIGNAL(doubleClicked(QModelIndex)),
+            this, SLOT(openFileFromFolder(QModelIndex) ));
+
+    QGridLayout *mainLayout = new QGridLayout;
+    mainLayout->addWidget(folderLineEdit, 0, 0, 1, 2);
+    mainLayout->addWidget(dirButton, 0, 2);
+    mainLayout->addWidget(proxyView, 1, 0, 1, 3);
+    mainLayout->addWidget(filterPatternLabel, 2, 0);
+    mainLayout->addWidget(filterPatternLineEdit, 2, 1, 1, 2);
+    folderDockWidgetContents->setLayout(mainLayout);
+
+    fillFolderModel(folderModel, QDir::currentPath());
+    folderLineEdit->setText(QDir::currentPath());
+}
+
+
+void GLMixer::filterFolderChanged(const QString &s)
+{
+    QRegExp regExp(s, Qt::CaseInsensitive, QRegExp::FixedString);
+    proxyFolderModel->setFilterRegExp(regExp);
+}
+
+void GLMixer::changeFolder()
+{
+   folderModel->removeRows(0, folderModel->rowCount());
+   fillFolderModel(folderModel, folderLineEdit->text());
+
+}
+
+void GLMixer::openFolder()
+{
+  QString dirName = QFileDialog::getExistingDirectory(this, tr("Select a directory"), QDir::currentPath());
+  if ( dirName.isEmpty() )
+	return;
+
+   folderLineEdit->setText(dirName);
+
+   folderModel->removeRows(0, folderModel->rowCount());
+   fillFolderModel(folderModel, dirName);
+}
+
+
+void GLMixer::openFileFromFolder(const QModelIndex & index){
+
+	currentStageFileName = proxyFolderModel->data(index, Qt::UserRole).toString();
+
+	if (RenderingManager::getInstance()->empty())
+		openSessionFile();
+	else {
+		// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
+		actionToggleRenderingVisible->setEnabled(false);
+		QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
+		OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
+	}
+
+}
+

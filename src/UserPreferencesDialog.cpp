@@ -36,11 +36,13 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent), 
     easingCurvePicker->setMinimumHeight(m_iconSize.height() + 50);
     createCurveIcons();
 
+    // the default source property browser
     defaultSource = new Source;
     defaultProperties->showProperties(defaultSource);
     defaultProperties->setPropertyEnabled("Type", false);
     defaultProperties->setPropertyEnabled("Scale", false);
     defaultProperties->setPropertyEnabled("Depth", false);
+    defaultProperties->setPropertyEnabled("Frames size", false);
     defaultProperties->setPropertyEnabled("Aspect ratio", false);
 
     activateBlitFrameBuffer->setEnabled(glSupportsExtension("GL_EXT_framebuffer_blit"));
@@ -109,6 +111,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 
 	if (stackedPreferences->currentWidget() == PageRendering) {
 		r640x480->setChecked(true);
+	    activateBlitFrameBuffer->setChecked(glSupportsExtension("GL_EXT_framebuffer_blit"));
 		updatePeriod->setValue(16);
 	}
 
