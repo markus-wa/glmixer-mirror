@@ -79,9 +79,11 @@ void OutputRenderWidget::initializeGL() {
 
 	glRenderWidget::initializeGL();
 
+    // Turn blending off
+    glDisable(GL_BLEND);
+
 	setBackgroundColor(palette().color(QPalette::Window));
 
-	smoothAlphaTransition(true);
 }
 
 void OutputRenderWidget::resizeGL(int w, int h)
@@ -178,7 +180,8 @@ void OutputRenderWidget::refresh()
 {
 	makeCurrent();
 	resizeGL();
-	paintGL();
+
+	update();
 }
 
 
@@ -214,6 +217,9 @@ void OutputRenderWidget::paintGL()
 
 void OutputRenderWidget::smoothAlphaTransition(bool visible){
 
+	if (animationAlpha->state() == QAbstractAnimation::Running )
+		animationAlpha->stop();
+
 	animationAlpha->setStartValue( currentAlpha );
 	animationAlpha->setEndValue( visible ? 1.1 : 0.0 );
 
@@ -225,6 +231,7 @@ OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)Re
 	// this is not a windet, but a window
 	useWindowAspectRatio = false;
 	setCursor(Qt::BlankCursor);
+
 	// default transition of 1 second
 	setTransitionDuration(1000);
 }
@@ -292,11 +299,5 @@ void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {
 
 	event->accept();
 }
-//
-//void OutputRenderWindow::closeEvent(QCloseEvent * event) {
-//
-//	emit windowClosed();
-//	event->accept();
-//
-//}
+
 

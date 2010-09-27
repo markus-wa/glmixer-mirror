@@ -180,6 +180,12 @@ ViewRenderWidget::~ViewRenderWidget()
 		delete _layersView;
 	if (_catalogView)
 		delete _catalogView;
+	if (_normalCursor)
+		delete _normalCursor;
+	if (_springCursor)
+		delete _springCursor;
+	if (_delayCursor)
+		delete _delayCursor;
 }
 
 

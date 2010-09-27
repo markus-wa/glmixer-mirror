@@ -30,11 +30,9 @@
 
 class glRenderWidget  : public QGLWidget
 {
-    Q_OBJECT
 
 public:
 	glRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
-	virtual ~glRenderWidget();
 
     // QGLWidget implementation
     virtual void initializeGL();
@@ -49,15 +47,10 @@ public:
     // cosmetics
     void setBackgroundColor(const QColor &c);
     int updatePeriod() const { return period; }
+    void setUpdatePeriod(int miliseconds);
 
     // OpenGL informations
     static void showGlExtensionsInformationDialog(QString iconfile = "");
-
-public Q_SLOTS:
-    inline void setUpdatePeriod(int miliseconds) {
-    	period = miliseconds;
-		if (timer > 0)  { killTimer(timer); timer = startTimer(period); }
-    }
 
 protected:
 

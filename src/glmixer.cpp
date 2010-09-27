@@ -974,23 +974,71 @@ void GLMixer::on_actionFree_aspect_ratio_toggled(bool on){
 	RenderingManager::getRenderingWidget()->refresh();
 }
 
-void GLMixer::on_actionAbout_triggered(){
+void setupAboutDialog(QDialog *AboutGLMixer)
+{
+	AboutGLMixer->resize(420, 270);
+	QGridLayout *gridLayout = new QGridLayout(AboutGLMixer);
+	gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+	QLabel *Icon = new QLabel(AboutGLMixer);
+	Icon->setPixmap(QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer.png")));
+	QLabel *Title = new QLabel(AboutGLMixer);
+	Title->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
+	QLabel *VERSION = new QLabel(AboutGLMixer);
+	VERSION->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
+	QLabel *textsvn = new QLabel(AboutGLMixer);
+	QLabel *SVN = new QLabel(AboutGLMixer);
+	QTextBrowser *textBrowser = new QTextBrowser(AboutGLMixer);
+//	textBrowser->setAcceptRichText(false);
+//	textBrowser->setOpenLinks (false);
+	textBrowser->setOpenExternalLinks (true);
+	QDialogButtonBox *validate = new QDialogButtonBox(AboutGLMixer);
+	validate->setOrientation(Qt::Horizontal);
+	validate->setStandardButtons(QDialogButtonBox::Close);
 
-	QString msg = QString("%1 :   \tGraphic Live Mixer\n\n").arg(QCoreApplication::applicationName());
-	msg.append(QString("Author:   \tBruno Herbelin\n"));
-	msg.append(QString("Contact:  \tbruno.herbelin@gmail.com\n"));
-	msg.append(QString("License:  \tGNU GPL version 3\n"));
-    msg.append(QString("Version:  \t%1\n").arg(QCoreApplication::applicationVersion()));
+	gridLayout->addWidget(Icon, 0, 0, 1, 1);
+	gridLayout->addWidget(Title, 0, 1, 1, 1);
+	gridLayout->addWidget(VERSION, 0, 2, 1, 1);
+	gridLayout->addWidget(textsvn, 1, 1, 1, 1);
+	gridLayout->addWidget(SVN, 1, 2, 1, 1);
+	gridLayout->addWidget(textBrowser, 2, 0, 1, 3);
+	gridLayout->addWidget(validate, 3, 0, 1, 3);
+
+	Icon->setText(QString());
+	Title->setText(QApplication::translate("AboutGLMixer", "Graphic Live Mixer", 0, QApplication::UnicodeUTF8));
+	textBrowser->setHtml(QApplication::translate("AboutGLMixer", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+	"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+	"p, li { white-space: pre-wrap; }\n"
+	"</style></head><body style=\" font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+	"<p>GLMixer is a video mixing software for live performance.</p>\n"
+	"<p>Author:	Bruno Herbelin<br>\n"
+	"Contact:	bruno.herbelin@gmail.com<br>\n"
+	"License: 	GNU GPL version 3</p>\n"
+	"<p>Copyright 2009, 2010 Bruno Herbelin</p>\n"
+	"<p>Updates and source code at: <br>\n"
+	"   	<a href=\"http://code.google.com/p/glmixer/\"><span style=\" text-decoration: underline; color:#7d400a;\">http://code.google.com/p/glmixer/</span>"
+	"</a></p>"
+	"<p>GLMixer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation.</p>"
+	"<p>GLMixer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details (see http://www.gnu.org/licenses).</p>"
+	"</body></html>", 0, QApplication::UnicodeUTF8));
+
+	VERSION->setText( QString("%1").arg(QCoreApplication::applicationVersion()) );
 	
 #ifdef GLMIXER_REVISION
-    msg.append(QString("SVN:      \t%1\n").arg(GLMIXER_REVISION));
+	SVN->setText(QString("%1").arg(GLMIXER_REVISION));
+	textsvn->setText(QApplication::translate("AboutGLMixer", "SVN repository revision:", 0, QApplication::UnicodeUTF8));
 #endif
 	
-    msg.append(tr("\nGLMixer is a video mixing software for live performance.\n"));
-    msg.append(tr("\nUpdates and source code at:\nhttp://code.google.com/p/glmixer/\n"));
-    msg.append(tr("\nCopyright 2009, 2010 Bruno Herbelin"));
-	QMessageBox::information(this, tr("About %1").arg(QCoreApplication::applicationName()), msg, QMessageBox::Ok, QMessageBox::Ok);
+	QObject::connect(validate, SIGNAL(accepted()), AboutGLMixer, SLOT(accept()));
+	QObject::connect(validate, SIGNAL(rejected()), AboutGLMixer, SLOT(reject()));
 
+}
+
+void GLMixer::on_actionAbout_triggered(){
+
+	QDialog *aboutglm = new QDialog(this);
+	setupAboutDialog(aboutglm);
+
+	aboutglm->exec();
 }
 
 
@@ -1019,22 +1067,7 @@ void GLMixer::changeWindowTitle(){
 
 void GLMixer::on_actionNew_Session_triggered()
 {
-	currentStageFileName = QString();
-
-	// trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
-	actionToggleRenderingVisible->setEnabled(false);
-	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
-	OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
-}
-
-
-void GLMixer::newSession()
-{
-	QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
-	actionToggleRenderingVisible->setEnabled(true);
-
 // TODO : implement good mechanism to know if something was changed
-
 //	// inform the user that data might be lost
 //	int ret = QMessageBox::Discard;
 //	if (!currentStageFileName.isNull()) {
@@ -1062,12 +1095,30 @@ void GLMixer::newSession()
 //	}
 
 	// make a new session
+	currentStageFileName = QString();
 	changeWindowTitle();
+
+	// trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
+	actionToggleRenderingVisible->setEnabled(false);
+	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
+	OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
+}
+
+
+void GLMixer::newSession()
+{
+	// if comming from animation, disconnect it.
+	QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
+	actionToggleRenderingVisible->setEnabled(true);
+
+	// reset
 	RenderingManager::getInstance()->clearSourceSet();
 	actionWhite_background->setChecked(false);
 	actionFree_aspect_ratio->setChecked(false);
-	OutputRenderWindow::getInstance()->resizeGL();
+
 	RenderingManager::getRenderingWidget()->clearViews();
+	outputpreview->refresh();
+	OutputRenderWindow::getInstance()->refresh();
 }
 
 
@@ -1155,9 +1206,11 @@ void GLMixer::openSessionFile(QString filename)
 	actionToggleRenderingVisible->setEnabled(true);
 	OutputRenderWindow::getInstance()->setAlpha(0.0);
 
+	// in case the argument is valid, use it
 	if (!filename.isNull())
 		currentStageFileName = filename;
 
+	// Ok, ready to load XML ?
 	QDomDocument doc;
     QString errorStr;
     int errorLine;
@@ -1197,10 +1250,6 @@ void GLMixer::openSessionFile(QString filename)
         QMessageBox::warning(this, caption, tr("The file %1 is empty.").arg(currentStageFileName));
     else
 		RenderingManager::getInstance()->addConfiguration(srcconfig);
-
-    // confirm the loading of the file
-	changeWindowTitle();
-	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentStageFileName ), 5000 );
 
     // less important ; the views config
     QDomElement vconfig = root.firstChildElement("Views");
@@ -1243,6 +1292,10 @@ void GLMixer::openSessionFile(QString filename)
     	actionWhite_background->setChecked(rconfig.attribute("clearToWhite").toInt());
 		actionFree_aspect_ratio->setChecked(rconfig.attribute("freeAspectRatio").toInt());
 	}
+
+    // confirm the loading of the file
+	changeWindowTitle();
+	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentStageFileName ), 5000 );
 
     OutputRenderWindow::getInstance()->smoothAlphaTransition(true);
 }

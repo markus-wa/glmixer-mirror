@@ -83,13 +83,11 @@ public:
 	// events handling
 	void keyPressEvent(QKeyEvent * event);
 	void mouseDoubleClickEvent(QMouseEvent * event);
-//	void closeEvent(QCloseEvent * event);
 
 public Q_SLOTS:
 	void setFullScreen(bool on);
 
 Q_SIGNALS:
-//	void windowClosed();
 	void resized();
 
 	/**

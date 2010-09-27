@@ -26,10 +26,9 @@
 #include <QMessageBox>
 
 #include "common.h"
-#include "glRenderWidget.moc"
+#include "glRenderWidget.h"
 
-//
-//QStringList glRenderWidget::listofextensions;
+
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
 : QGLWidget(QGLFormat(QGL::AlphaChannel | QGL::NoDepthBuffer), parent, shareWidget, f), aspectRatio(1.0), timer(-1), period(17)
@@ -46,13 +45,8 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 		testDone = true;
 	}
 
-	update();
 }
 
-
-glRenderWidget::~glRenderWidget() {
-
-}
 
 void glRenderWidget::initializeGL()
 {
@@ -95,7 +89,6 @@ void glRenderWidget::initializeGL()
 
     // setup default background color to black
     glClearColor(0.0, 0.0, 0.0, 1.0f);
-    glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
 
 }
 
@@ -118,7 +111,6 @@ void glRenderWidget::resizeGL(int w, int h)
 
     glMatrixMode(GL_MODELVIEW);
 	
-	update();
 }
 
 void glRenderWidget::paintGL()
@@ -127,7 +119,10 @@ void glRenderWidget::paintGL()
 
 }
 
-
+void glRenderWidget::setUpdatePeriod(int miliseconds) {
+	period = miliseconds;
+	if (timer > 0)  { killTimer(timer); timer = startTimer(period); }
+}
 
 void glRenderWidget::showEvent ( QShowEvent * event ) {
 	QGLWidget::showEvent(event);
@@ -174,7 +169,7 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
     verticalLayout->addWidget(buttonBox);
 
     openglExtensionsDialog->setWindowTitle(tr("OpenGL Extensions"));
-    label->setText(tr("OpenGL version %1\n\nSupported extensions:").arg((char *)glGetString(GL_VERSION)));
+    label->setText(tr("Running with OpenGL version %1\n\nSupported extensions:").arg((char *)glGetString(GL_VERSION)));
 
     QAbstractItemModel *model = new QStringListModel(glSupportedExtensions());
     extensionsListView->setModel(model);
