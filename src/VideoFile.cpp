@@ -254,6 +254,8 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
     firstFrame = NULL;
     resetPicture = NULL;
     ignoreAlpha = false;
+	seek_pos = 0;
+	seek_req = false;
 
     // Contruct some objects
     parse_tid = new ParsingThread(this);
@@ -336,8 +338,7 @@ void VideoFile::reset() {
     pictq_windex = 0;
     pictq_size = 0;
     pictq_rindex = 0;
-    seek_pos = 0;
-    seek_req = false;
+
     pause_video = false;
     pause_video_last = true;
     setPlaySpeed(getPlaySpeed());
@@ -591,8 +592,12 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
     // check the parameters for mark in and out and setup marking accordingly
     if (markIn == 0)
         mark_in = getBegin();
-    else
+    else {
         mark_in = qBound(getBegin(), markIn, getEnd());
+        // openning a file with a mark in ; go there!
+        seek_pos = mark_in;
+        seek_req = true;
+    }
 
     if (markOut == 0)
         mark_out = getEnd();  // default to end of file
