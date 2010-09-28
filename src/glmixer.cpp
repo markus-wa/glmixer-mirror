@@ -1300,6 +1300,8 @@ void GLMixer::openSessionFile(QString filename)
 	// set current to none (end of list)
 	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
 
+	outputpreview->refresh();
+	OutputRenderWindow::getInstance()->refresh();
     OutputRenderWindow::getInstance()->smoothAlphaTransition(true);
 }
 
