@@ -363,6 +363,14 @@ public:
 		return pixelated;
 	}
 
+	// use filters ?
+	inline void setFiltered(bool on) {
+		filtered = on;
+	}
+	inline bool isFiltered() const {
+		return filtered;
+	}
+
 	// select a color table
 	typedef enum {
 		INVERT_NONE = 0,
@@ -448,6 +456,8 @@ protected:
 
 	// if should be set to GL_NEAREST
 	bool pixelated;
+	// if should use filters
+	bool filtered;
 	// which filter to apply?
 	filterType filter;
 	invertModeType invertMode;

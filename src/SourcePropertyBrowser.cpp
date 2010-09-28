@@ -265,7 +265,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 	property->setToolTip("Layer mask like in Gimp or Photoshop");
 	enumNames.clear();
 	// TODO implement selection of custom file mask
-//	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Custom file";
 	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Left to right" << "Right to left" << "Top down" << "Bottom up";
 	enumManager->setEnumNames(property, enumNames);
     QMap<int, QIcon> enumIcons;
@@ -286,6 +285,13 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("Base tint of the source ");
 	root->addSubProperty(property);
+
+	// Filtered on/off
+	property = boolManager->addProperty("Filtered");
+	property->setToolTip("Use GLSL filters.");
+	idToProperty[property->propertyName()] = property;
+	root->addSubProperty(property);
+
 	// Brightness
 	property = intManager->addProperty( QLatin1String("Brightness") );
 	property->setToolTip("Brightness (from black to white)");
@@ -347,11 +353,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 			  << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7";
 	enumManager->setEnumNames(property, enumNames);
 	root->addSubProperty(property);
-	// Pixelated on/off
-	property = boolManager->addProperty("Pixelated");
-	property->setToolTip("Show square pixels when active.");
-	idToProperty[property->propertyName()] = property;
-	root->addSubProperty(property);
 	// Chroma key on/off
 	property = boolManager->addProperty("Chroma key");
 	property->setToolTip("Enables chroma-keying (removes a key color).");
@@ -368,6 +369,12 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, 0, 100);
 	intManager->setSingleStep(property, 10);
+	root->addSubProperty(property);
+
+	// Pixelated on/off
+	property = boolManager->addProperty("Pixelated");
+	property->setToolTip("Show square pixels when active.");
+	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
 
 	// Frames size
@@ -537,6 +544,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		enumManager->setValue(idToProperty["Equation"], glequationToEnum[ s->getBlendEquation() ]);
 		enumManager->setValue(idToProperty["Mask"], s->getMask());
 		colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
+		boolManager->setValue(idToProperty["Filtered"], s->isFiltered());
 		intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
 		intManager->setValue(idToProperty["Contrast"], s->getContrast() );
 		intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
@@ -552,19 +560,25 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		infoManager->setValue(idToProperty["Aspect ratio"], QString::number(s->getAspectRatio()) );
 
 		// enable / disable properties depending on their dependencies
-		idToProperty["Key Color"]->setEnabled(s->getChromaKey());
-		idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
+		idToProperty["Brightness"]->setEnabled(s->isFiltered());
+		idToProperty["Contrast"]->setEnabled(s->isFiltered());
+		idToProperty["Threshold"]->setEnabled(s->isFiltered());
+		idToProperty["Color inversion"]->setEnabled(s->isFiltered());
+		idToProperty["Filter"]->setEnabled(s->isFiltered());
+		idToProperty["Chroma key"]->setEnabled(s->isFiltered());
 
-		if (s->getLuminanceThreshold() > 0) {
-			idToProperty["Saturation"]->setEnabled(false);
-			idToProperty["Hue shift"]->setEnabled(false);
-			idToProperty["Posterize"]->setEnabled(false);
-//			idToProperty["Chroma key"]->setEnabled(false);
+		if (s->isFiltered()) {
+			idToProperty["Key Color"]->setEnabled(s->getChromaKey());
+			idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
+			idToProperty["Saturation"]->setEnabled(s->getLuminanceThreshold() < 1);
+			idToProperty["Hue shift"]->setEnabled(s->getLuminanceThreshold() < 1);
+			idToProperty["Posterize"]->setEnabled(s->getLuminanceThreshold() < 1);
 		} else {
-			idToProperty["Saturation"]->setEnabled(true);
-			idToProperty["Hue shift"]->setEnabled(true);
-			idToProperty["Posterize"]->setEnabled(true);
-//			idToProperty["Chroma key"]->setEnabled(false);
+			idToProperty["Posterize"]->setEnabled(false);
+			idToProperty["Hue shift"]->setEnabled(false);
+			idToProperty["Saturation"]->setEnabled(false);
+			idToProperty["Key Color"]->setEnabled(false);
+			idToProperty["Key Tolerance"]->setEnabled(false);
 		}
 
 
@@ -822,17 +836,17 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 	if (!currentItem)
 		return;
 
-	if ( property == idToProperty["Pixelated"] ) {
+	if ( property == idToProperty["Filtered"] ) {
+		currentItem->setFiltered(value);
+		updatePropertyTree(currentItem);
+	}
+	else if ( property == idToProperty["Pixelated"] ) {
 		currentItem->setPixelated(value);
-		// update the current frame
-		currentItem->requestUpdate();
 	}
 	else if ( property == idToProperty["Chroma key"] ) {
 		currentItem->setChromaKey(value);
 		idToProperty["Key Color"]->setEnabled(value);
 		idToProperty["Key Tolerance"]->setEnabled(value);
-		// update the current frame
-		currentItem->requestUpdate();
 	}
 	else if ( property == idToProperty["Ignore alpha"] ) {
 		if (currentItem->rtti() == Source::VIDEO_SOURCE) {
@@ -855,23 +869,15 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 
 	if ( property == idToProperty["Brightness"] ) {
 		currentItem->setBrightness(value);
-		// request update frame (in case the source is static, stopped, paused, etc)
-		currentItem->requestUpdate();
 	}
 	else if ( property == idToProperty["Contrast"] ) {
 		currentItem->setContrast(value);
-		// request update frame (in case the source is static, stopped, paused, etc)
-		currentItem->requestUpdate();
 	}
 	else if ( property == idToProperty["Saturation"] ) {
 		currentItem->setSaturation(value);
-		// request update frame (in case the source is static, stopped, paused, etc)
-		currentItem->requestUpdate();
 	}
 	else if ( property == idToProperty["Hue shift"] ) {
 		currentItem->setHueShift(value);
-		// request update frame (in case the source is static, stopped, paused, etc)
-		currentItem->requestUpdate();
 	}
 	else if ( property == idToProperty["Threshold"] ) {
 		currentItem->setLuminanceThreshold(value);
@@ -886,18 +892,12 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 			idToProperty["Posterize"]->setEnabled(true);
 //			idToProperty["Chroma key"]->setEnabled(false);
 		}
-		// request update frame (in case the source is static, stopped, paused, etc)
-		currentItem->requestUpdate();
 	}
 	else if ( property == idToProperty["Posterize"] ) {
 		currentItem->setNumberOfColors(value);
-		// request update frame (in case the source is static, stopped, paused, etc)
-		currentItem->requestUpdate();
 	}
 	else if ( property == idToProperty["Key Tolerance"] ) {
 		currentItem->setChromaKeyTolerance(value);
-		// request update frame (in case the source is static, stopped, paused, etc)
-		currentItem->requestUpdate();
 	}
 	else if ( property == idToProperty["Variability"] ) {
 		if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
@@ -941,7 +941,6 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 	else if ( property == idToProperty["Filter"] ) {
 
 		currentItem->setFilter( (Source::filterType) value );
-		currentItem->requestUpdate();
 
 //		// indicate that this change affects performance
 //		if (value == 0)
@@ -953,13 +952,6 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 	else if ( property == idToProperty["Color inversion"] ) {
 
 		currentItem->setInvertMode( (Source::invertModeType) value );
-		currentItem->requestUpdate();
-
-//		// indicate that this change affects performance
-//		if (value == 0)
-//			property->setModified(false);
-//		else
-//			property->setModified(true);
 
 	}
 	else if ( property == idToProperty["Mask"] ) {

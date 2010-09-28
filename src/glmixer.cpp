@@ -1297,6 +1297,9 @@ void GLMixer::openSessionFile(QString filename)
 	changeWindowTitle();
 	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentStageFileName ), 5000 );
 
+	// set current to none (end of list)
+	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+
     OutputRenderWindow::getInstance()->smoothAlphaTransition(true);
 }
 

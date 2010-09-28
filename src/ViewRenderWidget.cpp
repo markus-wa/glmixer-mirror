@@ -483,6 +483,7 @@ void ViewRenderWidget::paintGL()
 	// Catalog
 	if (_catalogView->visible())
 		_catalogView->paint();
+
 	// FPS computation
 	if (++fpsCounter_ == 10)
 	{
@@ -494,13 +495,12 @@ void ViewRenderWidget::paintGL()
 		}
 	}
 	// HUD display of framerate (on request or if FPS is dangerously slow)
-	if (showFps_ || ( f_p_s_ < 25 && f_p_s_ > 0) )
+	if (showFps_ || ( f_p_s_ < 500.0 / (float)period && f_p_s_ > 0) )
 		displayFramerate();
 }
 
 void ViewRenderWidget::displayFramerate()
 {
-
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
@@ -511,17 +511,15 @@ void ViewRenderWidget::displayFramerate()
 	glLoadIdentity();
 
 	qglColor(Qt::lightGray);
-	glRecti(width() - 71, height() - 1, width() - 9, height() - 11);
-	qglColor(f_p_s_ > 40.f ? Qt::darkGreen : (f_p_s_ > 20.f ? Qt::yellow : Qt::red));
-	// Draw a filled rectangle with current color
-	glRecti(width() - 70, height() - 2, width() - 70 + (int)f_p_s_, height() - 10);
+	glRecti(width() - 61, height() - 1, width() - 9, height() - 11);
+	qglColor(f_p_s_ > 500.f / (float)period ? Qt::darkGreen : (f_p_s_ > 200.f / (float)period ? Qt::yellow : Qt::red));
+	// Draw a filled rectangle of lengh proportionnal to % of target fps
+	glRecti(width() - 60, height() - 2, width() - 60 + (int)( 0.05 * f_p_s_  * (float) period), height() - 10);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-
-
 }
 
 

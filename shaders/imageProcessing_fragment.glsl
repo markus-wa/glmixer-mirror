@@ -299,10 +299,16 @@ void main(void)
 		return;
 	}
 
-    // get filtered value of texel
-    vec3 texel = apply_filter();
     // deal with alpha separately
     float alpha = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a  * baseColor.a;
+    
+    if (filter < 0) {
+	    gl_FragColor = vec4( texture2D(sourceTexture, texc).rgb, alpha );
+	    return;
+    }
+    
+    // get filtered value of texel
+    vec3 texel = apply_filter();
 
     // operations on RGB ; brightness, contrast and levels
     vec3 transformedRGB = mix(vec3(0.62), texel, contrast);
@@ -341,7 +347,8 @@ void main(void)
             transformedHSL.z = 1.0 - transformedHSL.z;
 
         if ( chromakey.z > 0.0 && all( lessThan( abs(transformedHSL - chromakey), vec3(chromadelta))) )
-            alpha *= 0.0;
+           // alpha *= 0.0;
+           discard;
 
     }
 

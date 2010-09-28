@@ -472,7 +472,6 @@ void RenderingManager::insertSource(Source *s){
 		std::pair<SourceSet::iterator, bool> ret;
 		ret = _sources.insert(s);
 		if (ret.second) {
-			setCurrentSource(ret.first);
 			s->play(_playOnDrop);
 		} else {
 			delete s;
@@ -533,6 +532,7 @@ void RenderingManager::dropSourceWithAlpha(double alphax, double alphay){
 	Source *top = *dropBasket.begin();
 	// insert the source
 	insertSource(top);
+	setCurrentSource(top->getId());
 	// apply the modifications
 	top->setAlphaCoordinates(alphax, alphay);
 	// remove from the basket
@@ -553,6 +553,7 @@ void RenderingManager::dropSourceWithCoordinates(double x, double y){
 	top->setY(y);
 	// insert the source
 	insertSource(top);
+	setCurrentSource(top->getId());
 	// remove from the basket
 	dropBasket.erase(dropBasket.begin());
 
@@ -570,6 +571,7 @@ void RenderingManager::dropSourceWithDepth(double depth){
 	top->setDepth(depth);
 	// insert the source
 	insertSource(top);
+	setCurrentSource(top->getId());
 	// remove from the basket
 	dropBasket.erase(dropBasket.begin());
 
@@ -853,6 +855,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 		sourceElem.appendChild(blend);
 
 		QDomElement filter = doc.createElement("Filter");
+		filter.setAttribute("Filtered", (*its)->isFiltered());
 		filter.setAttribute("Pixelated", (*its)->isPixelated());
 		filter.setAttribute("InvertMode", (*its)->getInvertMode());
 		filter.setAttribute("Filter", (*its)->getFilter());
@@ -963,52 +966,53 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 	QDomElement tmp;
 	newsource->setName( child.attribute("name") );
 
-	newsource->setX( child.firstChildElement("Position").attribute("X").toDouble() );
-	newsource->setY( child.firstChildElement("Position").attribute("Y").toDouble() );
-	newsource->setCenterX( child.firstChildElement("Center").attribute("X").toDouble() );
-	newsource->setCenterY( child.firstChildElement("Center").attribute("Y").toDouble() );
-	newsource->setRotationAngle( child.firstChildElement("Angle").attribute("A").toDouble() );
-	newsource->setScaleX( child.firstChildElement("Scale").attribute("X").toDouble() );
-	newsource->setScaleY( child.firstChildElement("Scale").attribute("Y").toDouble() );
+	newsource->setX( child.firstChildElement("Position").attribute("X", "0").toDouble() );
+	newsource->setY( child.firstChildElement("Position").attribute("Y", "0").toDouble() );
+	newsource->setCenterX( child.firstChildElement("Center").attribute("X", "0").toDouble() );
+	newsource->setCenterY( child.firstChildElement("Center").attribute("Y", "0").toDouble() );
+	newsource->setRotationAngle( child.firstChildElement("Angle").attribute("A", "0").toDouble() );
+	newsource->setScaleX( child.firstChildElement("Scale").attribute("X", "1").toDouble() );
+	newsource->setScaleY( child.firstChildElement("Scale").attribute("Y", "1").toDouble() );
 
 	tmp = child.firstChildElement("Alpha");
-	newsource->setAlphaCoordinates( tmp.attribute("X").toDouble(), tmp.attribute("Y").toDouble() );
+	newsource->setAlphaCoordinates( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble() );
 
 	tmp = child.firstChildElement("Color");
-	newsource->setColor( QColor( tmp.attribute("R").toInt(),tmp.attribute("G").toInt(), tmp.attribute("B").toInt() ) );
+	newsource->setColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "255").toInt(), tmp.attribute("B", "255").toInt() ) );
 
 	tmp = child.firstChildElement("Crop");
-	newsource->setTextureCoordinates( QRectF( tmp.attribute("X").toDouble(), tmp.attribute("Y").toDouble(),tmp.attribute("W").toDouble(),tmp.attribute("H").toDouble() ) );
+	newsource->setTextureCoordinates( QRectF( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble(),tmp.attribute("W", "1").toDouble(),tmp.attribute("H", "1").toDouble() ) );
 
 	tmp = child.firstChildElement("Blending");
-	newsource->setBlendEquation( (GLenum) tmp.attribute("Equation").toInt()  );
-	newsource->setBlendFunc( GL_SRC_ALPHA, (GLenum) tmp.attribute("Function").toInt() );
-	newsource->setMask( (Source::maskType) tmp.attribute("Mask").toInt() );
+	newsource->setBlendEquation( (GLenum) tmp.attribute("Equation", "32774").toInt()  );
+	newsource->setBlendFunc( GL_SRC_ALPHA, (GLenum) tmp.attribute("Function", "1").toInt() );
+	newsource->setMask( (Source::maskType) tmp.attribute("Mask", "0").toInt() );
 
 	tmp = child.firstChildElement("Filter");
-	newsource->setPixelated( tmp.attribute("Pixelated").toInt() );
-	newsource->setInvertMode( (Source::invertModeType) tmp.attribute("InvertMode").toInt() );
-	newsource->setFilter( (Source::filterType) tmp.attribute("Filter").toInt() );
+	newsource->setFiltered( tmp.attribute("Filtered", "0").toInt() );
+	newsource->setPixelated( tmp.attribute("Pixelated", "0").toInt() );
+	newsource->setInvertMode( (Source::invertModeType) tmp.attribute("InvertMode", "0").toInt() );
+	newsource->setFilter( (Source::filterType) tmp.attribute("Filter", "0").toInt() );
 
 	tmp = child.firstChildElement("Coloring");
-	newsource->setBrightness( tmp.attribute("Brightness").toInt() );
-	newsource->setContrast( tmp.attribute("Contrast").toInt() );
-	newsource->setSaturation( tmp.attribute("Saturation").toInt() );
-	newsource->setHueShift( tmp.attribute("Hueshift").toInt() );
-	newsource->setLuminanceThreshold( tmp.attribute("luminanceThreshold").toInt() );
-	newsource->setNumberOfColors( tmp.attribute("numberOfColors").toInt() );
+	newsource->setBrightness( tmp.attribute("Brightness", "0").toInt() );
+	newsource->setContrast( tmp.attribute("Contrast", "0").toInt() );
+	newsource->setSaturation( tmp.attribute("Saturation", "0").toInt() );
+	newsource->setHueShift( tmp.attribute("Hueshift", "0").toInt() );
+	newsource->setLuminanceThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
+	newsource->setNumberOfColors( tmp.attribute("numberOfColors", "0").toInt() );
 
 	tmp = child.firstChildElement("Chromakey");
-	newsource->setChromaKey( tmp.attribute("on").toInt() );
-	newsource->setChromaKeyColor( QColor( tmp.attribute("R").toInt(),tmp.attribute("G").toInt(), tmp.attribute("B").toInt() ) );
-	newsource->setChromaKeyTolerance( tmp.attribute("Tolerance").toInt() );
+	newsource->setChromaKey( tmp.attribute("on", "0").toInt() );
+	newsource->setChromaKeyColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "0").toInt(), tmp.attribute("B", "0").toInt() ) );
+	newsource->setChromaKeyTolerance( tmp.attribute("Tolerance", "7").toInt() );
 
 	tmp = child.firstChildElement("Gamma");
-	newsource->setGamma( tmp.attribute("value").toFloat(),
-			tmp.attribute("minInput").toFloat(),
-			tmp.attribute("maxInput").toFloat(),
-			tmp.attribute("minOutput").toFloat(),
-			tmp.attribute("maxOutput").toFloat());
+	newsource->setGamma( tmp.attribute("value", "1").toFloat(),
+			tmp.attribute("minInput", "0").toFloat(),
+			tmp.attribute("maxInput", "1").toFloat(),
+			tmp.attribute("minOutput", "0").toFloat(),
+			tmp.attribute("maxOutput", "1").toFloat());
 
 }
 
@@ -1018,8 +1022,9 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
     QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
 
     int count = 0;
-    QProgressDialog progress("Loading sources...", "Abort", 4, xmlconfig.childNodes().count());
+    QProgressDialog progress("Loading sources...", "Abort", 1, xmlconfig.childNodes().count());
 	progress.setWindowModality(Qt::WindowModal);
+	progress.setMinimumDuration( 600 );
 
     // start loop of sources to create
 	QDomElement child = xmlconfig.firstChildElement("Source");
@@ -1033,7 +1038,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 		// pointer for new source
 		Source *newsource = 0;
 		// read the depth where the source should be created
-		double depth = child.firstChildElement("Depth").attribute("Z").toDouble();
+		double depth = child.firstChildElement("Depth").attribute("Z", "0").toDouble();
 
 		// get the type of the source to create
 		QDomElement t = child.firstChildElement("TypeSpecific");
@@ -1047,7 +1052,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 
 			// create the video file
 			VideoFile *newSourceVideoFile = NULL;
-			if ( !Filename.attribute("PowerOfTwo").toInt() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
+			if ( !Filename.attribute("PowerOfTwo","0").toInt() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
 				newSourceVideoFile = new VideoFile(this);
 			else
 				newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR);
@@ -1062,12 +1067,12 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 					else {
 						// all is good ! we can apply specific parameters to the video file
 						QDomElement play = t.firstChildElement("Play");
-						newSourceVideoFile->setPlaySpeed(play.attribute("Speed").toInt());
-						newSourceVideoFile->setLoop(play.attribute("Loop").toInt());
+						newSourceVideoFile->setPlaySpeed(play.attribute("Speed","3").toInt());
+						newSourceVideoFile->setLoop(play.attribute("Loop","1").toInt());
 						QDomElement options = t.firstChildElement("Options");
-						newSourceVideoFile->setOptionAllowDirtySeek(options.attribute("AllowDirtySeek").toInt());
-						newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn").toInt());
-						newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop").toInt());
+						newSourceVideoFile->setOptionAllowDirtySeek(options.attribute("AllowDirtySeek","0").toInt());
+						newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
+						newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
 					}
 				}
 				else
