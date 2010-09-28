@@ -301,25 +301,21 @@ void main(void)
 
     // deal with alpha separately
     float alpha = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a  * baseColor.a;
+    vec3 transformedRGB;
     
     if (filter < 0) {
-	    gl_FragColor = vec4( texture2D(sourceTexture, texc).rgb, alpha );
+    	transformedRGB = LevelsControl(texture2D(sourceTexture, texc).rgb, levels.x, gamma, levels.y, levels.z, levels.w);
+	    gl_FragColor = vec4(transformedRGB , alpha );
 	    return;
     }
     
-    // get filtered value of texel
-    vec3 texel = apply_filter();
-
-    // operations on RGB ; brightness, contrast and levels
-    vec3 transformedRGB = mix(vec3(0.62), texel, contrast);
+    transformedRGB = mix(vec3(0.62), apply_filter(), contrast);
     transformedRGB += brightness;
-    // also clamp values
     transformedRGB = LevelsControl(transformedRGB, levels.x, gamma, levels.y, levels.z, levels.w);
 
     if (invertMode==1)
        transformedRGB = vec3(1.0) - transformedRGB;
 
-    // get HSL to perform operations on Hue Saturation and Luminance
    vec3 transformedHSL = RGBToHSL( transformedRGB );
 
     // Operations on HSL ; if threshold applied, others are not useful

@@ -14,6 +14,6 @@
         <file>textures/mask_linear_top.png</file> 
         <file>textures/mask_linear_bottom.png</file> 
         <file>shaders/imageProcessing_fragment.glsl</file>
-        <file>shaders/imageProcessing_vertex.glsl</file>    
+        <file>shaders/imageProcessing_vertex.glsl</file>      
     </qresource>
 </RCC>  
