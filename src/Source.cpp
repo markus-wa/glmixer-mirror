@@ -289,36 +289,36 @@ void Source::update() {
 
 void Source::beginEffectsSection() const {
 
-	if (!filtered) {
-		ViewRenderWidget::program->setUniformValue("filter", (GLint) -1);
-		return;
-	}
-
-	ViewRenderWidget::program->setUniformValue("step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
-
+//	if (!filtered) {
+//		ViewRenderWidget::program->setUniformValue("filter", (GLint) -1);
+//		return;
+//	}
+//
+//	ViewRenderWidget::program->setUniformValue("step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
+//
 	ViewRenderWidget::program->setUniformValue("gamma", gamma);
 	//             gamma levels : minInput, maxInput, minOutput, maxOutput:
 	ViewRenderWidget::program->setUniformValue("levels", gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut);
 
-	ViewRenderWidget::program->setUniformValue("contrast", contrast);
-	ViewRenderWidget::program->setUniformValue("brightness", brightness);
-	ViewRenderWidget::program->setUniformValue("saturation", saturation);
-	ViewRenderWidget::program->setUniformValue("hueshift", hueShift);
-
-	ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
-	ViewRenderWidget::program->setUniformValue("invertMode", (GLint) invertMode);
-	ViewRenderWidget::program->setUniformValue("nbColors", (GLint) numberOfColors);
-
-	if (luminanceThreshold > 0 )
-		ViewRenderWidget::program->setUniformValue("threshold", (GLfloat) luminanceThreshold / 100.f);
-	else
-		ViewRenderWidget::program->setUniformValue("threshold", -1.f);
-
-	if (useChromaKey) {
-		ViewRenderWidget::program->setUniformValue("chromakey", chromaKeyColor.hueF(), chromaKeyColor.saturationF(), chromaKeyColor.lightnessF() );
-		ViewRenderWidget::program->setUniformValue("chromadelta", chromaKeyTolerance);
-	} else
-		ViewRenderWidget::program->setUniformValue("chromakey", 0.f,0.f, 0.f );
+//	ViewRenderWidget::program->setUniformValue("contrast", contrast);
+//	ViewRenderWidget::program->setUniformValue("brightness", brightness);
+//	ViewRenderWidget::program->setUniformValue("saturation", saturation);
+//	ViewRenderWidget::program->setUniformValue("hueshift", hueShift);
+//
+//	ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
+//	ViewRenderWidget::program->setUniformValue("invertMode", (GLint) invertMode);
+//	ViewRenderWidget::program->setUniformValue("nbColors", (GLint) numberOfColors);
+//
+//	if (luminanceThreshold > 0 )
+//		ViewRenderWidget::program->setUniformValue("threshold", (GLfloat) luminanceThreshold / 100.f);
+//	else
+//		ViewRenderWidget::program->setUniformValue("threshold", -1.f);
+//
+//	if (useChromaKey) {
+//		ViewRenderWidget::program->setUniformValue("chromakey", chromaKeyColor.hueF(), chromaKeyColor.saturationF(), chromaKeyColor.lightnessF() );
+//		ViewRenderWidget::program->setUniformValue("chromadelta", chromaKeyTolerance);
+//	} else
+//		ViewRenderWidget::program->setUniformValue("chromakey", 0.f,0.f, 0.f );
 
 }
 
