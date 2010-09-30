@@ -61,6 +61,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     setupUi ( this );
     setupFolderToolbox();
     setAcceptDrops ( true );
+    errorMessageDialog = new QErrorMessage(this);
 
 #ifndef OPEN_CV
     actionCameraSource->setEnabled(false);
@@ -664,7 +665,7 @@ QString CaptureDialog::saveImage()
 
 	if (!filename.isEmpty()) {
 		if (!img.save(filename))
-			qCritical("** WARNING **\n\nCould not save file %s.", qPrintable(filename));
+			qWarning("** WARNING **\n\nCould not save file %s.", qPrintable(filename));
 //		filename = QDir::fromNativeSeparators(filename);
 //		filename.resize( filename.lastIndexOf('/') );
 	}
@@ -1045,14 +1046,14 @@ void GLMixer::on_actionAbout_triggered(){
 void GLMixer::changeWindowTitle(){
 
 	//	session file name
-	QString session = currentStageFileName.isNull() ? "unsaved session" : QFileInfo(currentStageFileName).fileName();
+	QString session = currentSessionFileName.isNull() ? "unsaved session" : QFileInfo(currentSessionFileName).fileName();
 
 //	setWindowFilePath(session);
 //	setWindowModified(true);
 
     setWindowTitle(QString("%1 %2 - %3").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(session));
 
-	actionAppend_Session->setEnabled(!currentStageFileName.isNull());
+	actionAppend_Session->setEnabled(!currentSessionFileName.isNull());
 }
 
 //QString title = QString("Super Mixer %1 - ").arg(QApplication::applicationVersion());
@@ -1095,7 +1096,7 @@ void GLMixer::on_actionNew_Session_triggered()
 //	}
 
 	// make a new session
-	currentStageFileName = QString();
+	currentSessionFileName = QString();
 	changeWindowTitle();
 
 	// trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
@@ -1124,13 +1125,13 @@ void GLMixer::newSession()
 
 void GLMixer::on_actionSave_Session_triggered(){
 
-	if (currentStageFileName.isNull())
+	if (currentSessionFileName.isNull())
 		on_actionSave_Session_as_triggered();
 	else {
 
-		QFile file(currentStageFileName);
+		QFile file(currentSessionFileName);
 		if (!file.open(QFile::WriteOnly | QFile::Text) ) {
-			QMessageBox::warning(this, tr("%1 session save").arg(QCoreApplication::applicationName()), tr("Cannot write file %1:\n%2.").arg(currentStageFileName).arg(file.errorString()));
+			QMessageBox::warning(this, tr("%1 session save").arg(QCoreApplication::applicationName()), tr("Cannot write file %1:\n%2.").arg(currentSessionFileName).arg(file.errorString()));
 			return;
 		}
 		QTextStream out(&file);
@@ -1142,7 +1143,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 		QDomElement root = doc.createElement("GLMixer");
 		root.setAttribute("version", XML_GLM_VERSION);
 
-		QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc);
+		QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(currentSessionFileName).canonicalPath());
 		root.appendChild(renderConfig);
 
 		QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
@@ -1159,7 +1160,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 	    file.close();
 
 		changeWindowTitle();
-		statusbar->showMessage( tr("File %1 saved.").arg( currentStageFileName ), 3000 );
+		statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
 	}
 }
 
@@ -1173,7 +1174,7 @@ void GLMixer::on_actionSave_Session_as_triggered()
 	if (sfd->exec()) {
 	    QString fileName = sfd->selectedFiles().front();
 		// now we got a filename, save the file:
-		currentStageFileName = fileName;
+		currentSessionFileName = fileName;
 		on_actionSave_Session_triggered();
 	}
 }
@@ -1186,7 +1187,7 @@ void GLMixer::on_actionLoad_Session_triggered()
 
 	if (sfd->exec()) {
 		// get the first file name selected
-		currentStageFileName = sfd->selectedFiles().front();
+		currentSessionFileName = sfd->selectedFiles().front();
 
 		if (RenderingManager::getInstance()->empty())
 			openSessionFile();
@@ -1208,7 +1209,7 @@ void GLMixer::openSessionFile(QString filename)
 
 	// in case the argument is valid, use it
 	if (!filename.isNull())
-		currentStageFileName = filename;
+		currentSessionFileName = filename;
 
 	// Ok, ready to load XML ?
 	QDomDocument doc;
@@ -1216,17 +1217,17 @@ void GLMixer::openSessionFile(QString filename)
     int errorLine;
     int errorColumn;
 
-     QFile file(currentStageFileName);
+     QFile file(currentSessionFileName);
      QString caption = tr("%1 session open").arg(QCoreApplication::applicationName());
      if (!file.open(QFile::ReadOnly | QFile::Text)) {
-         QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(currentStageFileName).arg(file.errorString()));
-     	 currentStageFileName = "";
+         QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(currentSessionFileName).arg(file.errorString()));
+     	 currentSessionFileName = "";
          return;
      }
 
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
-        QMessageBox::warning(this, caption, tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(currentStageFileName).arg(errorLine).arg(errorColumn).arg(errorStr));
-    	currentStageFileName = "";
+        QMessageBox::warning(this, caption, tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(currentSessionFileName).arg(errorLine).arg(errorColumn).arg(errorStr));
+    	currentSessionFileName = "";
     	return;
     }
 
@@ -1234,11 +1235,11 @@ void GLMixer::openSessionFile(QString filename)
 
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
-        QMessageBox::warning(this, caption, tr("The file %1 is not a valid GLMixer session file.").arg(currentStageFileName));
-    	currentStageFileName = "";
+        QMessageBox::warning(this, caption, tr("The file %1 is not a valid GLMixer session file.").arg(currentSessionFileName));
+    	currentSessionFileName = "";
         return;
     } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
-        QMessageBox::warning(this, caption, tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(currentStageFileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
+        QMessageBox::warning(this, caption, tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(currentSessionFileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
     }
 
 	// if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
@@ -1247,9 +1248,9 @@ void GLMixer::openSessionFile(QString filename)
     // read all the content to make sure the file is correct :
     QDomElement srcconfig = root.firstChildElement("SourceList");
     if (srcconfig.isNull())
-        QMessageBox::warning(this, caption, tr("The file %1 is empty.").arg(currentStageFileName));
+        QMessageBox::warning(this, caption, tr("The file %1 is empty.").arg(currentSessionFileName));
     else
-		RenderingManager::getInstance()->addConfiguration(srcconfig);
+		RenderingManager::getInstance()->addConfiguration(srcconfig, QFileInfo(currentSessionFileName).canonicalPath());
 
     // less important ; the views config
     QDomElement vconfig = root.firstChildElement("Views");
@@ -1295,7 +1296,7 @@ void GLMixer::openSessionFile(QString filename)
 
     // confirm the loading of the file
 	changeWindowTitle();
-	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentStageFileName ), 5000 );
+	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
 
 	// set current to none (end of list)
 	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
@@ -1313,15 +1314,12 @@ void GLMixer::on_actionAppend_Session_triggered(){
     int errorLine;
     int errorColumn;
 
-    QString fileName = QDir::fromNativeSeparators(currentStageFileName);
-    fileName.resize( fileName.lastIndexOf('/') );
-
-    fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), fileName, tr("GLMixer workspace (*.glm)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), QFileInfo(currentSessionFileName).absolutePath(), tr("GLMixer workspace (*.glm)"));
 	if ( fileName.isEmpty() )
 		return;
 
 	QFile file(fileName);
-    QString caption = tr("%1 session append").arg(QCoreApplication::applicationName());
+    QString caption = tr("Append %1 to current session").arg(QCoreApplication::applicationName());
 	if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
 		QMessageBox::warning(this, caption, tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
 		return;
@@ -1349,10 +1347,10 @@ void GLMixer::on_actionAppend_Session_triggered(){
     	return;
 
     // if we got up to here, it should be fine
-    RenderingManager::getInstance()->addConfiguration(srcconfig);
+    RenderingManager::getInstance()->addConfiguration(srcconfig, QFileInfo(currentSessionFileName).canonicalPath());
 
     // confirm the loading of the file
-	statusbar->showMessage( tr("Sources from %1 appended to %2.").arg( fileName ).arg( currentStageFileName ), 3000 );
+	statusbar->showMessage( tr("Sources from %1 appended to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
 }
 
 void GLMixer::dragEnterEvent(QDragEnterEvent *event)
@@ -1368,21 +1366,63 @@ void GLMixer::dragMoveEvent(QDragMoveEvent *event)
 void GLMixer::dropEvent(QDropEvent *event)
 {
     const QMimeData *mimeData = event->mimeData();
+	QStringList mediaFiles;
+	QString glmfile;
 
+    // browse the list of urls dropped
 	if (mimeData->hasUrls()) {
 		QList<QUrl> urlList = mimeData->urls();
 		QString text;
 	    QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
 
 		// arbitrary limitation in the amount of drops allowed (avoid manipulation mistakes)
-		if (urlList.size() > 50)
-			QMessageBox::warning(this, caption, tr("Cannot drop more than 50 files at a time."));
+		if (urlList.size() > 20)
+			errorMessageDialog->showMessage( tr("Cannot open more than 20 files at a time."));
 
-		for (int i = 0; i < urlList.size() && i < 30; ++i) {
-			QString filename = urlList.at(i).toLocalFile();
+		for (int i = 0; i < urlList.size() && i < 20; ++i) {
+			QFileInfo urlname(urlList.at(i).toLocalFile());
 
-		    VideoFile *newSourceVideoFile  = new VideoFile(this);
-		    Q_CHECK_PTR(newSourceVideoFile);
+			if ( urlname.suffix() == "glm") {
+				if (glmfile.isNull())
+					glmfile = urlname.absoluteFilePath();
+				else {
+					errorMessageDialog->showMessage( tr("Cannot open more than one .glm session file."));
+					break;
+				}
+			}
+			else //  maybe a video ?
+				mediaFiles.append(urlname.absoluteFilePath());
+		}
+	}
+
+	if (!glmfile.isNull()) {
+		currentSessionFileName = glmfile;
+
+		if (RenderingManager::getInstance()->empty())
+			openSessionFile();
+		else {
+			// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
+			actionToggleRenderingVisible->setEnabled(false);
+			QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
+			OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
+		}
+
+		if (!mediaFiles.isEmpty())
+			errorMessageDialog->showMessage( tr("Loading only the .glm session file; discarding the other files provided."));
+
+	} else {
+
+		QProgressDialog progress("Loading sources...", "Abort", 1, mediaFiles.size());
+		progress.setWindowModality(Qt::WindowModal);
+		progress.setMinimumDuration( 600 );
+		for (int i = 0; i < mediaFiles.size(); ++i)
+		{
+			progress.setValue(i);
+			if (progress.wasCanceled())
+				break;
+
+			VideoFile *newSourceVideoFile  = new VideoFile(this);
+			Q_CHECK_PTR(newSourceVideoFile);
 
 			// if the video file was created successfully
 			if (newSourceVideoFile){
@@ -1390,17 +1430,18 @@ void GLMixer::dropEvent(QDropEvent *event)
 				QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
 				QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
 				// can we open the file ?
-				if ( newSourceVideoFile->open( filename ) ) {
+				if ( newSourceVideoFile->open( mediaFiles.at(i) ) ) {
 					Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
 					// create the source as it is a valid video file (this also set it to be the current source)
 					if ( s ) {
 						RenderingManager::getInstance()->addSourceToBasket(s);
 					} else {
-				        QMessageBox::warning(this, caption, tr("Could not create media source."));
-				        delete newSourceVideoFile;
+						displayInfoMessage ( tr("Could not create media source."));
+						delete newSourceVideoFile;
 					}
 				} else {
-					displayInfoMessage ( tr("Could not open %1.").arg(filename));
+					displayInfoMessage ( tr("Could not open %1.").arg(mediaFiles.at(i)));
+					delete newSourceVideoFile;
 				}
 			}
 		}
@@ -1753,7 +1794,7 @@ void GLMixer::openFolder()
 
 void GLMixer::openFileFromFolder(const QModelIndex & index){
 
-	currentStageFileName = proxyFolderModel->data(index, Qt::UserRole).toString();
+	currentSessionFileName = proxyFolderModel->data(index, Qt::UserRole).toString();
 
 	if (RenderingManager::getInstance()->empty())
 		openSessionFile();

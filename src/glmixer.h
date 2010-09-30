@@ -116,7 +116,8 @@ protected:
 	QByteArray getPreferences() const;
 
 private:
-	QString currentStageFileName;
+	QErrorMessage *errorMessageDialog;
+	QString currentSessionFileName;
 	VideoFile *selectedSourceVideoFile;
 	QFileDialog *sfd;
 	class VideoFileDialog *mfd;

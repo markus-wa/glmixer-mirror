@@ -140,8 +140,8 @@ public:
 	/**
 	 * save and load configuration
 	 */
-	QDomElement getConfiguration(QDomDocument &doc);
-	void addConfiguration(QDomElement xmlconfig);
+	QDomElement getConfiguration(QDomDocument &doc, QDir current);
+	void addConfiguration(QDomElement xmlconfig, QDir current);
 	inline Source *defaultSource() { return _defaultSource; }
 	inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
 	inline void setDefaultScalingMode(Source::scalingMode sm) { _scalingMode = sm; }
@@ -156,6 +156,7 @@ public Q_SLOTS:
 	void setClearToWhite(bool on) { clearWhite = on; }
 	void setPreviousFrameDelay(unsigned int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 
+	void clearBasket();
 	void clearSourceSet();
 	void resetSource(SourceSet::iterator sit);
 	void resetCurrentSource();

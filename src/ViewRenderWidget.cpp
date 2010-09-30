@@ -347,8 +347,16 @@ void ViewRenderWidget::setCatalogSizeLarge()
 
 void ViewRenderWidget::contextMenu(const QPoint &pos)
 {
-
-	if (_catalogView->isInside(pos) && catalogMenu)
+	// if there is something to drop, context menu offers to end the drop
+	if (RenderingManager::getInstance()->getSourceBasketTop())
+	{
+		QMenu menu(this);
+		QAction *newAct = new QAction(tr("&Empty basket"), this);
+		menu.addAction(newAct);
+		connect(newAct, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(clearBasket()));
+		menu.exec(mapToGlobal(pos));
+	}
+	else if (_catalogView->isInside(pos) && catalogMenu)
 	{
 		catalogMenu->exec(mapToGlobal(pos));
 	}
@@ -544,7 +552,7 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 	{
 
 		// if there is something to drop, inform the rendering manager that it can drop the source at the clic coordinates
-		if (RenderingManager::getInstance()->getSourceBasketTop())
+		if (RenderingManager::getInstance()->getSourceBasketTop() && event->buttons() & Qt::LeftButton)
 		{
 
 			// depending on the view, ask the rendering manager to drop the source with the user parameters

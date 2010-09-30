@@ -480,8 +480,8 @@ void RenderingManager::insertSource(Source *s){
 	}
 }
 
-void RenderingManager::addSourceToBasket(Source *s){
-
+void RenderingManager::addSourceToBasket(Source *s)
+{
 	// add the source into the basket
 	dropBasket.insert(s);
 	// apply default parameters
@@ -492,6 +492,13 @@ void RenderingManager::addSourceToBasket(Source *s){
 	setCurrentSource( getEnd() );
 }
 
+void RenderingManager::clearBasket()
+{
+	for (SourceList::iterator sit = dropBasket.begin(); sit != dropBasket.end(); sit = dropBasket.begin()) {
+		dropBasket.erase(sit);
+		delete (*sit);
+	}
+}
 
 void RenderingManager::resetSource(SourceSet::iterator sit){
 
@@ -798,7 +805,7 @@ SourceSet::iterator RenderingManager::getByName(const QString name) const{
 /**
  * save and load configuration
  */
-QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
+QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) {
 
 	QDomElement config = doc.createElement("SourceList");
 
@@ -895,8 +902,9 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc) {
 			// Necessary information for re-creating this video source:
 			// filename, marks, saturation
 			QDomElement f = doc.createElement("Filename");
-			f.setAttribute("PowerOfTwo", vf->getPowerOfTwoConversion());
-			f.setAttribute("IgnoreAlpha", vf->ignoresAlphaChannel());
+			f.setAttribute("PowerOfTwo", (int) vf->getPowerOfTwoConversion());
+			f.setAttribute("IgnoreAlpha", (int) vf->ignoresAlphaChannel());
+			f.setAttribute("Relative", current.relativeFilePath(vf->getFileName()) );
 			QDomText filename = doc.createTextNode(vf->getFileName());
 			f.appendChild(filename);
 			specific.appendChild(f);
@@ -1016,7 +1024,7 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 
 }
 
-void RenderingManager::addConfiguration(QDomElement xmlconfig) {
+void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 	QList<QDomElement> clones;
     QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
@@ -1058,25 +1066,39 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig) {
 				newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR);
 			// if the video file was created successfully
 			if (newSourceVideoFile){
-				// can we open the file ?
-				if ( newSourceVideoFile->open( Filename.text(), marks.attribute("In").toUInt(), marks.attribute("Out").toUInt(), Filename.attribute("IgnoreAlpha").toInt() ) ) {
-					// create the source as it is a valid video file (this also set it to be the current source)
-					newsource = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile, depth);
-					if (!newsource)
-				        QMessageBox::warning(0, caption, tr("Could not create media source %1. ").arg(child.attribute("name")));
-					else {
-						// all is good ! we can apply specific parameters to the video file
-						QDomElement play = t.firstChildElement("Play");
-						newSourceVideoFile->setPlaySpeed(play.attribute("Speed","3").toInt());
-						newSourceVideoFile->setLoop(play.attribute("Loop","1").toInt());
-						QDomElement options = t.firstChildElement("Options");
-						newSourceVideoFile->setOptionAllowDirtySeek(options.attribute("AllowDirtySeek","0").toInt());
-						newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
-						newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
+				// first reads with the absolute file name
+				QString fileNameToOpen = Filename.text();
+				// if there is no such file, try generate a file name from the relative file name
+				if (!QFileInfo(fileNameToOpen).exists())
+					fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
+				// if there is such a file
+				if (QFileInfo(fileNameToOpen).exists()) {
+					// can we open this existing file ?
+					if ( newSourceVideoFile->open( fileNameToOpen, marks.attribute("In").toUInt(), marks.attribute("Out").toUInt(), Filename.attribute("IgnoreAlpha").toInt() ) ) {
+						// create the source as it is a valid video file (this also set it to be the current source)
+						newsource = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile, depth);
+						if (newsource){
+							// all is good ! we can apply specific parameters to the video file
+							QDomElement play = t.firstChildElement("Play");
+							newSourceVideoFile->setPlaySpeed(play.attribute("Speed","3").toInt());
+							newSourceVideoFile->setLoop(play.attribute("Loop","1").toInt());
+							QDomElement options = t.firstChildElement("Options");
+							newSourceVideoFile->setOptionAllowDirtySeek(options.attribute("AllowDirtySeek","0").toInt());
+							newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
+							newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
+						}
+						else
+							QMessageBox::warning(0, caption, tr("Could not create media source %1. ").arg(child.attribute("name")));
 					}
+					else
+						QMessageBox::warning(0, caption, tr("Could not open file %1 with ffmpeg. ").arg(Filename.text()));
 				}
 				else
-					QMessageBox::warning(0, caption, tr("Could not open media file %1. ").arg(Filename.text()));
+					QMessageBox::warning(0, caption, tr("There is no file named %1\n or %2. ").arg(Filename.text()).arg(fileNameToOpen));
+
+				// if one of the above failed, remove the video file object from memory
+				if (!newsource)
+					delete newSourceVideoFile;
 
 			}
 			else

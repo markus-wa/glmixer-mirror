@@ -90,6 +90,7 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent)
     propertyTreeEditor = new QtTreePropertyBrowser(this);
     propertyTreeEditor->setObjectName(QString::fromUtf8("Property Tree"));
     propertyTreeEditor->setContextMenuPolicy(Qt::CustomContextMenu);
+    propertyTreeEditor->setResizeMode(QtTreePropertyBrowser::Interactive);
 	connect(propertyTreeEditor, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenuTree(const QPoint &)));
 
 	// TODO ; read default from application config
@@ -179,12 +180,12 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("A name to identify the source");
 	root->addSubProperty(property);
-	// Type (not editable)
-	property = infoManager->addProperty( QLatin1String("Type") );
-	property->setItalics(true);
-	idToProperty[property->propertyName()] = property;
-	property->setToolTip("What is shown in this source.");
-	root->addSubProperty(property);
+//	// Type (not editable)
+//	property = infoManager->addProperty( QLatin1String("Type") );
+//	property->setItalics(true);
+//	idToProperty[property->propertyName()] = property;
+//	property->setToolTip("What is shown in this source.");
+//	root->addSubProperty(property);
 	// Position
 	property = pointManager->addProperty("Position");
 	idToProperty[property->propertyName()] = property;
@@ -391,7 +392,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	root->addSubProperty(property);
 
 
-	rttiToProperty[Source::VIDEO_SOURCE] = groupManager->addProperty( QLatin1String("Media file properties"));
+	rttiToProperty[Source::VIDEO_SOURCE] = groupManager->addProperty( QLatin1String("Media file"));
 
 		// File Name
 		property = infoManager->addProperty( QLatin1String("File name") );
@@ -448,7 +449,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 
 
 #ifdef OPEN_CV
-	rttiToProperty[Source::CAMERA_SOURCE] = groupManager->addProperty( QLatin1String("Camera properties"));
+	rttiToProperty[Source::CAMERA_SOURCE] = groupManager->addProperty( QLatin1String("Camera"));
 
 		// Identifier
 		property = infoManager->addProperty( QLatin1String("Identifier") );
@@ -459,7 +460,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(fr);
 #endif
 
-	rttiToProperty[Source::RENDERING_SOURCE] = groupManager->addProperty( QLatin1String("Render loop-back properties"));
+	rttiToProperty[Source::RENDERING_SOURCE] = groupManager->addProperty( QLatin1String("Render loop-back"));
 
 		// Identifier
 		property = infoManager->addProperty( QLatin1String("Rendering mechanism") );
@@ -470,7 +471,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(fr);
 
 
-	rttiToProperty[Source::ALGORITHM_SOURCE] = groupManager->addProperty( QLatin1String("Algorithm properties"));
+	rttiToProperty[Source::ALGORITHM_SOURCE] = groupManager->addProperty( QLatin1String("Algorithm"));
 
 		// Identifier
 		property = infoManager->addProperty( QLatin1String("Algorithm") );
@@ -490,7 +491,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		intManager->setRange(property, 1, 60);
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(property);
 
-	rttiToProperty[Source::CLONE_SOURCE] = groupManager->addProperty( QLatin1String("Clone properties"));
+	rttiToProperty[Source::CLONE_SOURCE] = groupManager->addProperty( QLatin1String("Clone"));
 
 		// Identifier
 		property = infoManager->addProperty( QLatin1String("Clone of") );
@@ -700,13 +701,19 @@ void SourcePropertyBrowser::showProperties(Source *source) {
 
 		// show all the Properties into the browser:
 		QListIterator<QtProperty *> it(root->subProperties());
-		while (it.hasNext()) {
-			addProperty(it.next());
-		}
+
+		// first property ; the name
+		addProperty(it.next());
 
 		// add the sub tree of the properties related to this source type
 		if ( rttiToProperty.contains(source->rtti()) )
 			addProperty( rttiToProperty[ source->rtti() ] );
+
+		// the rest of the properties
+		while (it.hasNext()) {
+			addProperty(it.next());
+		}
+
 	}
 }
 
