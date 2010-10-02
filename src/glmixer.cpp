@@ -23,13 +23,12 @@
  *
  */
 
-#define XML_GLM_VERSION "0.6"
-
 
 #include <QApplication>
 #include <QDomDocument>
 #include <QtGui>
 
+#include "common.h"
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
 #include "AlgorithmSelectionDialog.h"
@@ -49,6 +48,7 @@
 #include "SourcePropertyBrowser.h"
 #include "CloneSource.h"
 #include "GammaLevelsWidget.h"
+#include "SessionSwitcherWidget.h"
 #include "CatalogView.h"
 #include "DelayCursor.h"
 #include "SpringCursor.h"
@@ -59,7 +59,6 @@
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), refreshTimingTimer(0)
 {
     setupUi ( this );
-    setupFolderToolbox();
     setAcceptDrops ( true );
     errorMessageDialog = new QErrorMessage(this);
 
@@ -73,7 +72,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     menuToolBars->addAction(vcontrolDockWidget->toggleViewAction());
     menuToolBars->addAction(cursorDockWidget->toggleViewAction());
     menuToolBars->addAction(gammaDockWidget->toggleViewAction());
-    menuToolBars->addAction(folderDockWidget->toggleViewAction());
+    menuToolBars->addAction(switcherDockWidget->toggleViewAction());
     menuToolBars->addSeparator();
     menuToolBars->addAction(sourceToolBar->toggleViewAction());
     menuToolBars->addAction(viewToolBar->toggleViewAction());
@@ -100,6 +99,16 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	cursorActions->addAction(actionCursorCurve);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
 
+    // recent files history
+    QMenu *recentFiles = new QMenu(this);
+    actionRecent_session->setMenu(recentFiles);
+    for (int i = 0; i < MAX_RECENT_FILES; ++i) {
+        recentFileActs[i] = new QAction(this);
+        recentFileActs[i]->setVisible(false);
+        connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(on_actionLoad_RecentSession_triggered()));
+        recentFiles->addAction(recentFileActs[i]);
+    }
+
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
 	delete mainRendering;
@@ -123,6 +132,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	GammaLevelsWidget *gammaAdjust = new GammaLevelsWidget(gammaDockWidgetContents);
 	gammaDockWidgetContentsLayout->addWidget(gammaAdjust);
 	QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), gammaAdjust, SLOT(connectSource(SourceSet::iterator) ) );
+
+	// Setup the session switcher toolbox
+	SessionSwitcherWidget *switcherSession = new SessionSwitcherWidget(switcherDockWidgetContents, &settings);
+	switcherDockWidgetContentsLayout->addWidget(switcherSession);
+	QObject::connect(switcherSession, SIGNAL(switchSessionFile(QString)), this, SLOT(switchToSessionFile(QString)) );
 
     // Setup Video file dialog
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
@@ -180,6 +194,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // recall settings from last time
     readSettings();
+
+    // start with new file
+    currentSessionFileName = QString();
+    confirmSessionFileName();
 }
 
 GLMixer::~GLMixer()
@@ -1043,28 +1061,37 @@ void GLMixer::on_actionAbout_triggered(){
 }
 
 
-void GLMixer::changeWindowTitle(){
+void GLMixer::confirmSessionFileName(){
 
-	//	session file name
-	QString session = currentSessionFileName.isNull() ? "unsaved session" : QFileInfo(currentSessionFileName).fileName();
+	// recent files history
+	QStringList files = settings.value("recentFileList").toStringList();
 
-//	setWindowFilePath(session);
-//	setWindowModified(true);
+	if (currentSessionFileName.isNull()) {
+		setWindowTitle(QString("%1 %2 - unsaved").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()));
+		actionAppend_Session->setEnabled(false);
+	} else {
+		// title and menu
+		setWindowTitle(QString("%1 %2 - %3").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(QFileInfo(currentSessionFileName).fileName()));
+		actionAppend_Session->setEnabled(true);
 
-    setWindowTitle(QString("%1 %2 - %3").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()).arg(session));
+		files.removeAll(currentSessionFileName);
+		files.prepend(currentSessionFileName);
+		while (files.size() > MAX_RECENT_FILES)
+			files.removeLast();
+	}
 
-	actionAppend_Session->setEnabled(!currentSessionFileName.isNull());
+	for (int i = 0; i < files.size(); ++i) {
+		 QString text = tr("&%1 - %2").arg(i + 1).arg(QFileInfo(files[i]).fileName());
+		 recentFileActs[i]->setText(text);
+		 recentFileActs[i]->setData(files[i]);
+		 recentFileActs[i]->setVisible(true);
+	}
+	for (int j = files.size(); j < MAX_RECENT_FILES; ++j)
+		recentFileActs[j]->setVisible(false);
+
+	settings.setValue("recentFileList", files);
 }
 
-//QString title = QString("Super Mixer %1 - ").arg(QApplication::applicationVersion());
-//
-////	Trick to get only the filename from the full path for every platform ; use the QDir class
-//title += currentStageFileName.isNull() ? "unsaved session" : QDir(currentStageFileName).dirName();
-//
-//
-//setWindowTitle(title);
-//
-//actionAppend_Session->setEnabled(!currentStageFileName.isNull());
 
 void GLMixer::on_actionNew_Session_triggered()
 {
@@ -1097,7 +1124,7 @@ void GLMixer::on_actionNew_Session_triggered()
 
 	// make a new session
 	currentSessionFileName = QString();
-	changeWindowTitle();
+	confirmSessionFileName();
 
 	// trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
 	actionToggleRenderingVisible->setEnabled(false);
@@ -1159,7 +1186,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 	    file.close();
 
-		changeWindowTitle();
+		confirmSessionFileName();
 		statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
 	}
 }
@@ -1187,17 +1214,39 @@ void GLMixer::on_actionLoad_Session_triggered()
 
 	if (sfd->exec()) {
 		// get the first file name selected
-		currentSessionFileName = sfd->selectedFiles().front();
-
-		if (RenderingManager::getInstance()->empty())
-			openSessionFile();
-		else {
-			// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
-			actionToggleRenderingVisible->setEnabled(false);
-			QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
-			OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
-		}
+		switchToSessionFile( sfd->selectedFiles().front() );
 	}
+}
+
+
+void GLMixer::on_actionLoad_RecentSession_triggered()
+{
+	QAction *action = qobject_cast<QAction *>(sender());
+	if (action)
+		switchToSessionFile(action->data().toString());
+
+}
+
+
+void GLMixer::switchToSessionFile(QString filename){
+
+	currentSessionFileName = filename;
+
+	if (RenderingManager::getInstance()->empty())
+		openSessionFile();
+	else {
+
+		// capture screen
+		QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
+		capture = capture.convertToFormat(QImage::Format_RGB32);
+		Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
+
+		// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
+		actionToggleRenderingVisible->setEnabled(false);
+		QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
+		OutputRenderWindow::getInstance()->smoothAlphaTransition(false,s);
+	}
+
 }
 
 void GLMixer::openSessionFile(QString filename)
@@ -1221,13 +1270,13 @@ void GLMixer::openSessionFile(QString filename)
      QString caption = tr("%1 session open").arg(QCoreApplication::applicationName());
      if (!file.open(QFile::ReadOnly | QFile::Text)) {
          QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(currentSessionFileName).arg(file.errorString()));
-     	 currentSessionFileName = "";
+     	 currentSessionFileName = QString();
          return;
      }
 
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
         QMessageBox::warning(this, caption, tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(currentSessionFileName).arg(errorLine).arg(errorColumn).arg(errorStr));
-    	currentSessionFileName = "";
+    	currentSessionFileName = QString();
     	return;
     }
 
@@ -1236,7 +1285,7 @@ void GLMixer::openSessionFile(QString filename)
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
         QMessageBox::warning(this, caption, tr("The file %1 is not a valid GLMixer session file.").arg(currentSessionFileName));
-    	currentSessionFileName = "";
+    	currentSessionFileName = QString();
         return;
     } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
         QMessageBox::warning(this, caption, tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(currentSessionFileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
@@ -1289,13 +1338,13 @@ void GLMixer::openSessionFile(QString filename)
 
     // finally, the render config
     QDomElement rconfig = root.firstChildElement("Rendering");
-    if (!vconfig.isNull()) {
+    if (!rconfig.isNull()) {
     	actionWhite_background->setChecked(rconfig.attribute("clearToWhite").toInt());
 		actionFree_aspect_ratio->setChecked(rconfig.attribute("freeAspectRatio").toInt());
 	}
 
     // confirm the loading of the file
-	changeWindowTitle();
+	confirmSessionFileName();
 	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
 
 	// set current to none (end of list)
@@ -1486,6 +1535,7 @@ void GLMixer::readSettings()
     // preferences
     if (settings.contains("UserPreferences"))
     	restorePreferences(settings.value("UserPreferences").toByteArray());
+
 }
 
 void GLMixer::saveSettings()
@@ -1517,6 +1567,7 @@ void GLMixer::on_actionResetToolbars_triggered()
 	restoreDockWidget(vcontrolDockWidget);
 	restoreDockWidget(cursorDockWidget);
 	restoreDockWidget(gammaDockWidget);
+	restoreDockWidget(switcherDockWidget);
 
 }
 
@@ -1641,169 +1692,4 @@ QByteArray GLMixer::getPreferences() const {
 	return data;
 }
 
-class folderValidator : public QValidator
-{
-  public:
-    folderValidator(QObject *parent) : QValidator(parent) { }
-
-    QValidator::State validate ( QString & input, int & pos ) const {
-      QDir d(input);
-      if( d.exists ())
-	return QValidator::Acceptable;
-      if( d.isAbsolute ())
-	return QValidator::Intermediate;
-
-      return QValidator::Invalid;
-    }
-};
-
-void addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename)
-{
-
-   QFile file(filename);
-   if ( !file.open(QFile::ReadOnly | QFile::Text) )
-	return;
-
-    QDomDocument doc;
-    QString errorStr;
-    int errorLine;
-    int errorColumn;
-    if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) )
-    	return;
-
-    QDomElement root = doc.documentElement();
-    if ( root.tagName() != "GLMixer" )
-        return;
-
-    if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION )
-        return;
-
-    QDomElement srcconfig = root.firstChildElement("SourceList");
-    if ( srcconfig.isNull() )
-    	return;
-
-    int nbElem = srcconfig.childNodes().count();
-
-    file.close();
-
-    model->insertRow(0);
-    model->setData(model->index(0, 0), name);
-    model->setData(model->index(0, 0), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
-    model->setData(model->index(0, 1), nbElem);
-    model->setData(model->index(0, 1), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 1))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
-    model->setData(model->index(0, 2), date);
-    model->setData(model->index(0, 2), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 2))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
-
-}
-
-void fillFolderModel(QStandardItemModel *model, const QString &path)
-{
-    QDir dir(path);
-    QFileInfoList fileList = dir.entryInfoList(QStringList("*.glm"), QDir::Files);
-
-    for (int i = 0; i < fileList.size(); ++i) {
-         QFileInfo fileInfo = fileList.at(i);
-	 addFile(model, fileInfo.completeBaseName(), fileInfo.lastModified (), fileInfo.absoluteFilePath() );
-    }
-}
-
-
-void GLMixer::setupFolderToolbox()
-{
-    folderModel = new QStandardItemModel(0, 3, this);
-    folderModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Filename"));
-    folderModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Sources"));
-    folderModel->setHeaderData(2, Qt::Horizontal, QObject::tr("Last modified"));
-
-    proxyFolderModel = new QSortFilterProxyModel;
-    proxyFolderModel->setDynamicSortFilter(true);
-    proxyFolderModel->setFilterKeyColumn(0);
-    proxyFolderModel->setSourceModel(folderModel);
-
-    folderLineEdit = new QLineEdit;
-    folderValidator *v = new folderValidator(this);
-    folderLineEdit->setValidator(v);
-    QToolButton *dirButton = new QToolButton;
-	QIcon icon;
-	icon.addFile(QString::fromUtf8(":/glmixer/icons/fileopen.png"), QSize(), QIcon::Normal, QIcon::Off);
-	dirButton->setIcon(icon);
-
-    QTreeView *proxyView;
-    proxyView = new QTreeView;
-    proxyView->setRootIsDecorated(false);
-    proxyView->setAlternatingRowColors(true);
-    proxyView->setSortingEnabled(true);
-    proxyView->sortByColumn(0, Qt::AscendingOrder);
-    proxyView->setModel(proxyFolderModel);
-
-    QLabel *filterPatternLabel;
-    QLineEdit *filterPatternLineEdit;
-    filterPatternLineEdit = new QLineEdit;
-    filterPatternLineEdit->setText("");
-    filterPatternLabel = new QLabel(tr("&Filter pattern:"));
-    filterPatternLabel->setBuddy(filterPatternLineEdit);
-
-    connect(filterPatternLineEdit, SIGNAL(textChanged(QString)),
-            this, SLOT(filterFolderChanged(QString)));
-    connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
-    connect(folderLineEdit, SIGNAL(editingFinished()), this, SLOT(changeFolder()));
-    connect(proxyView, SIGNAL(doubleClicked(QModelIndex)),
-            this, SLOT(openFileFromFolder(QModelIndex) ));
-
-    QGridLayout *mainLayout = new QGridLayout;
-    mainLayout->addWidget(folderLineEdit, 0, 0, 1, 2);
-    mainLayout->addWidget(dirButton, 0, 2);
-    mainLayout->addWidget(proxyView, 1, 0, 1, 3);
-    mainLayout->addWidget(filterPatternLabel, 2, 0);
-    mainLayout->addWidget(filterPatternLineEdit, 2, 1, 1, 2);
-    folderDockWidgetContents->setLayout(mainLayout);
-
-    fillFolderModel(folderModel, QDir::currentPath());
-    folderLineEdit->setText(QDir::currentPath());
-}
-
-
-void GLMixer::filterFolderChanged(const QString &s)
-{
-    QRegExp regExp(s, Qt::CaseInsensitive, QRegExp::FixedString);
-    proxyFolderModel->setFilterRegExp(regExp);
-}
-
-void GLMixer::changeFolder()
-{
-   folderModel->removeRows(0, folderModel->rowCount());
-   fillFolderModel(folderModel, folderLineEdit->text());
-
-}
-
-void GLMixer::openFolder()
-{
-  QString dirName = QFileDialog::getExistingDirectory(this, tr("Select a directory"), QDir::currentPath());
-  if ( dirName.isEmpty() )
-	return;
-
-   folderLineEdit->setText(dirName);
-
-   folderModel->removeRows(0, folderModel->rowCount());
-   fillFolderModel(folderModel, dirName);
-}
-
-
-void GLMixer::openFileFromFolder(const QModelIndex & index){
-
-	currentSessionFileName = proxyFolderModel->data(index, Qt::UserRole).toString();
-
-	if (RenderingManager::getInstance()->empty())
-		openSessionFile();
-	else {
-		// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
-		actionToggleRenderingVisible->setEnabled(false);
-		QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
-		OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
-	}
-
-}
 

@@ -61,10 +61,6 @@ GammaLevelsWidget::GammaLevelsWidget(QWidget *parent) : QWidget(parent)
 }
 
 
-GammaLevelsWidget::~GammaLevelsWidget(){
-
-}
-
 void GammaLevelsWidget::connectSource(SourceSet::iterator csi){
 
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
@@ -190,7 +186,7 @@ float GammaLevelsWidget::gamma(){
 }
 
 
-void GammaLevelsWidget::on_gammaSlider_sliderMoved(int val){
+void GammaLevelsWidget::on_gammaSlider_valueChanged(int val){
 
     plot->gamma = SliderToGamma(val);
     gammaText->setText( QString().setNum( plot->gamma, 'f', 2) );

@@ -23,7 +23,6 @@ class GammaLevelsWidget : public QWidget, Ui::GammaLevelsWidget {
 public:
 
     GammaLevelsWidget(QWidget *parent);
-    virtual ~GammaLevelsWidget();
 
     void setValues(float gamma, float minInput, float maxInput, float minOutput, float maxOutput);
 
@@ -38,7 +37,7 @@ public:
 public Q_SLOTS:
 
     void connectSource(SourceSet::iterator);
-    void on_gammaSlider_sliderMoved(int);
+    void on_gammaSlider_valueChanged(int);
     void on_inSplit_splitterMoved ( int pos, int index );
     void on_outSplit_splitterMoved ( int pos, int index );
     void on_resetButton_clicked ();

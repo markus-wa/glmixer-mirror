@@ -34,7 +34,7 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-		useAspectRatio(true), useWindowAspectRatio(true), currentAlpha(0.0) {
+		useAspectRatio(true), useWindowAspectRatio(true), currentAlpha(0.0), backgroundSource(0) {
 
 	rx = 0;
 	ry = 0;
@@ -203,6 +203,15 @@ void OutputRenderWidget::paintGL()
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
+		if (backgroundSource!=0) {
+			backgroundSource->update();
+			glPushMatrix();
+			glScalef(1.0, -1.0, 1.0);
+			glColor4f(1.0, 1.0, 1.0, 1.0 - currentAlpha);
+			glCallList(ViewRenderWidget::quad_texured);
+			glPopMatrix();
+		}
+
 		// apply the texture of the frame buffer
 		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
 
@@ -211,14 +220,18 @@ void OutputRenderWidget::paintGL()
 
 		// draw the polygon with texture
 		glCallList(ViewRenderWidget::quad_texured);
+
 	}
 }
 
 
-void OutputRenderWidget::smoothAlphaTransition(bool visible){
+void OutputRenderWidget::smoothAlphaTransition(bool visible, Source *temporaryBackgound){
 
 	if (animationAlpha->state() == QAbstractAnimation::Running )
 		animationAlpha->stop();
+
+	if (!visible)
+		backgroundSource = temporaryBackgound;
 
 	animationAlpha->setStartValue( currentAlpha );
 	animationAlpha->setEndValue( visible ? 1.1 : 0.0 );

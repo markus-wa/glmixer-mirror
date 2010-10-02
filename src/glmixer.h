@@ -31,6 +31,8 @@
 #include "VideoFile.h"
 #include "SourceSet.h"
 
+#define MAX_RECENT_FILES 7
+
 /**
 
  */
@@ -44,8 +46,6 @@ public:
 
 
 public Q_SLOTS:
-
-	void changeWindowTitle();
 
 	// menu and actions
 	void on_actionMediaSource_triggered();
@@ -74,6 +74,7 @@ public Q_SLOTS:
 	void on_actionSave_Session_triggered();
 	void on_actionSave_Session_as_triggered();
 	void on_actionLoad_Session_triggered();
+	void on_actionLoad_RecentSession_triggered();
 	void on_actionAppend_Session_triggered();
 	void on_actionSelect_Next_triggered();
 	void on_actionSelect_Previous_triggered();
@@ -93,11 +94,8 @@ public Q_SLOTS:
 	void displayWarningMessage(QString msg);
 	void newSession();
 	void openSessionFile(QString filename = QString());
-
-    void filterFolderChanged(const QString &s);
-    void openFolder();
-    void changeFolder();
-    void openFileFromFolder(const QModelIndex & index);
+	void switchToSessionFile(QString filename);
+	void confirmSessionFileName();
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
@@ -130,12 +128,8 @@ private:
 	QSettings settings;
 	void readSettings();
 	void saveSettings();
+	QAction *recentFileActs[MAX_RECENT_FILES];
 
-	// folder toolbox
-	void setupFolderToolbox();
-    class QStandardItemModel *folderModel;
-    class QSortFilterProxyModel *proxyFolderModel;
-    class QLineEdit *folderLineEdit;
 };
 
 

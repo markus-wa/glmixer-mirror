@@ -34,6 +34,7 @@ set(MYQT_SRCS
     DelayCursor.cpp
     UserPreferencesDialog.cpp
     GammaLevelsWidget.cpp
+    SessionSwitcherWidget.cpp
     glmixer.cpp
     main.cpp
 )

@@ -26,6 +26,7 @@
 #ifndef OUTPUTRENDERWINDOW_H_
 #define OUTPUTRENDERWINDOW_H_
 
+class Source;
 #include "glRenderWidget.h"
 #include <QPropertyAnimation>
 
@@ -54,9 +55,17 @@ public:
 	void setTransitionCurve(int curveType);
 	int transitionCurve() const ;
 
+	typedef enum {
+		TRANSITION_NONE = 0,
+		TRANSITION_BLACK = 1,
+		TRANSITION_LAST_FRAME = 2
+	} transitionType;
+	void setTransitionType(transitionType t) {transition_type = t;}
+	transitionType getTransitionType() const {return transition_type;}
+
 public Q_SLOTS:
 	void refresh();
-	void smoothAlphaTransition(bool visible);
+	void smoothAlphaTransition(bool visible, Source *temporaryBackgound = 0);
 
 Q_SIGNALS:
 	void animationFinished();
@@ -66,7 +75,9 @@ protected:
 	int rx, ry, rw, rh;
 
 	float currentAlpha;
+	Source *backgroundSource;
 	QPropertyAnimation *animationAlpha;
+	transitionType transition_type;
 };
 
 class OutputRenderWindow : public OutputRenderWidget {

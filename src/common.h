@@ -66,11 +66,6 @@ QStringList glSupportedExtensions();
 #define DEPTH_EPSILON 0.1
 #define BORDER_SIZE 0.4
 
-// #include <cmath>
-// #include <string>
-// #include <iostream>
-// #include <sstream>
-#include <stdexcept>
-
+#define XML_GLM_VERSION "0.6"
 
 #endif /*  COMMON_H_ */
