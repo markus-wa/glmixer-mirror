@@ -186,7 +186,17 @@ float GammaLevelsWidget::gamma(){
 }
 
 
-void GammaLevelsWidget::on_gammaSlider_valueChanged(int val){
+void GammaLevelsWidget::on_gammaSlider_actionTriggered (int action)
+{
+	if (action == QAbstractSlider::SliderSingleStepAdd)
+		gammaSlider->setSliderPosition ( gammaSlider->value() + gammaSlider->singleStep());
+	else if (action == QAbstractSlider::SliderSingleStepSub)
+		gammaSlider->setSliderPosition ( gammaSlider->value() - gammaSlider->singleStep());
+
+	on_gammaSlider_sliderMoved(gammaSlider->sliderPosition());
+}
+
+void GammaLevelsWidget::on_gammaSlider_sliderMoved(int val){
 
     plot->gamma = SliderToGamma(val);
     gammaText->setText( QString().setNum( plot->gamma, 'f', 2) );
