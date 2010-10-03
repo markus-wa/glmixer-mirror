@@ -40,6 +40,7 @@ class AlgorithmSource: public QObject, public Source {
     friend class AlgorithmSelectionDialog;
 	friend class RenderingManager;
     friend class AlgorithmThread;
+    friend class OutputRenderWidget;
 
 public:
 
@@ -62,7 +63,7 @@ public Q_SLOTS:
 	void setPeriodicity(unsigned long u_seconds) {period = u_seconds;}
 	void setVariability(double v) { variability = CLAMP(v, 0.0, 1.0); }
 
-    // only RenderingManager can create a source
+    // only friends can create a source
 protected:
 	AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256, double v = 1.0, unsigned long p= 16666);
 	~AlgorithmSource();

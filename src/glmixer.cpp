@@ -129,12 +129,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
 
 	// Setup the gamma levels toolbox
-	GammaLevelsWidget *gammaAdjust = new GammaLevelsWidget(gammaDockWidgetContents);
+	GammaLevelsWidget *gammaAdjust = new GammaLevelsWidget(this);
 	gammaDockWidgetContentsLayout->addWidget(gammaAdjust);
 	QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), gammaAdjust, SLOT(connectSource(SourceSet::iterator) ) );
 
 	// Setup the session switcher toolbox
-	SessionSwitcherWidget *switcherSession = new SessionSwitcherWidget(switcherDockWidgetContents, &settings);
+	SessionSwitcherWidget *switcherSession = new SessionSwitcherWidget(this, &settings);
 	switcherDockWidgetContentsLayout->addWidget(switcherSession);
 	QObject::connect(switcherSession, SIGNAL(switchSessionFile(QString)), this, SLOT(switchToSessionFile(QString)) );
 
@@ -332,7 +332,10 @@ void GLMixer::on_actionMediaSource_triggered(){
 		else
 			newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
 #else
-		newSourceVideoFile = new VideoFile(this);
+		if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two")  )
+			newSourceVideoFile = new VideoFile(this);
+		else
+			newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
 #endif
 	    Q_CHECK_PTR(newSourceVideoFile);
 
@@ -554,7 +557,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 void GLMixer::on_actionCameraSource_triggered() {
 
 	CameraDialog cd(this);
-	cd.setModal(false);
 
 	if (cd.exec() == QDialog::Accepted) {
 		// create a source according to the selected driver :
@@ -599,10 +601,8 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 
 	// popup a question dialog to select the type of algorithm
 	static AlgorithmSelectionDialog *asd = 0;
-	if (!asd) {
+	if (!asd)
 		asd = new AlgorithmSelectionDialog(this);
-		asd->setModal(false);
-	}
 
 	if (asd->exec() == QDialog::Accepted) {
 		Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(),
@@ -1235,18 +1235,11 @@ void GLMixer::switchToSessionFile(QString filename){
 	if (RenderingManager::getInstance()->empty())
 		openSessionFile();
 	else {
-
-		// capture screen
-		QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
-		capture = capture.convertToFormat(QImage::Format_RGB32);
-		Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
-
 		// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
 		actionToggleRenderingVisible->setEnabled(false);
 		QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
-		OutputRenderWindow::getInstance()->smoothAlphaTransition(false,s);
+		OutputRenderWindow::getInstance()->smoothAlphaTransition(false, OutputRenderWindow::getInstance()->getTransitionType());
 	}
-
 }
 
 void GLMixer::openSessionFile(QString filename)
@@ -1352,7 +1345,7 @@ void GLMixer::openSessionFile(QString filename)
 
 	outputpreview->refresh();
 	OutputRenderWindow::getInstance()->refresh();
-    OutputRenderWindow::getInstance()->smoothAlphaTransition(true);
+    OutputRenderWindow::getInstance()->smoothAlphaTransition(true, OutputRenderWindow::getInstance()->getTransitionType());
 }
 
 
@@ -1453,7 +1446,7 @@ void GLMixer::dropEvent(QDropEvent *event)
 			// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
 			actionToggleRenderingVisible->setEnabled(false);
 			QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
-			OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
+			OutputRenderWindow::getInstance()->smoothAlphaTransition(false, OutputRenderWindow::getInstance()->getTransitionType());
 		}
 
 		if (!mediaFiles.isEmpty())

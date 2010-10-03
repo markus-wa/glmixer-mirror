@@ -32,6 +32,7 @@
 class MixSource: public Source
 {
 	friend class RenderingManager;
+    friend class OutputRenderWidget;
 
 public:
 
@@ -41,7 +42,7 @@ public:
 	int getFrameWidth() const { return 0; }
 	int getFrameHeight() const { return 0; }
 
-    // only RenderingManager can create a source
+    // only friends can create a source
 protected:
 
 	MixSource(GLuint texture, double d);

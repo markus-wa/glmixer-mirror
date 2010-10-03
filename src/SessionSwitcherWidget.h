@@ -24,18 +24,23 @@ public Q_SLOTS:
     void openFolder();
     void folderChanged( const QString & text );
     void openFileFromFolder(const QModelIndex & index);
-    void selectTransition(int transitionType);
+    void selectTransitionType(int t);
+
+    void customizeTransition();
 
 Q_SIGNALS:
 	void switchSessionFile(QString);
 
 private:
+
 	// folder toolbox
 	void setupFolderToolbox();
     class QStandardItemModel *folderModel;
     class QSortFilterProxyModel *proxyFolderModel;
     class QComboBox *folderHistory, *transitionSelection;
+    class QToolButton *customButton;
     class QSettings *appSettings;
+
 };
 
 #endif /* SESSIONSWITCHERWIDGET_H_ */

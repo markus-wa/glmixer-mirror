@@ -53,6 +53,7 @@ class OpencvSource: public QObject, public Source {
     friend class CameraDialog;
     friend class RenderingManager;
     friend class CameraThread;
+    friend class OutputRenderWidget;
 
 public:
 
@@ -69,7 +70,7 @@ public Q_SLOTS:
 	void play(bool on);
 
 protected:
-    // only MainRenderWidget can create a source (need its GL context)
+    // only friends can create a source (need its GL context)
 	OpencvSource(int opencvIndex, GLuint texture, double d);
 	virtual ~OpencvSource();
 

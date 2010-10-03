@@ -31,13 +31,14 @@
 class CaptureSource: public Source {
 
 	friend class RenderingManager;
+    friend class OutputRenderWidget;
 
 public:
 
 	static RTTI type;
 	RTTI rtti() const { return type; }
 
-    // only RenderingManager can create a source
+    // only friends can create a source
 protected:
 	CaptureSource(QImage capture, GLuint texture, double d): Source(texture, d), _capture(capture) {
 

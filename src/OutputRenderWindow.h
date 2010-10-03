@@ -55,17 +55,28 @@ public:
 	void setTransitionCurve(int curveType);
 	int transitionCurve() const ;
 
+	void setTransitionColor(QColor c) { customTransitionColor = c; }
+	QColor transitionColor() const { return customTransitionColor; }
+
+	void setTransitionMedia(QString filename);
+	QString transitionMedia() const ;
+
 	typedef enum {
 		TRANSITION_NONE = 0,
-		TRANSITION_BLACK = 1,
-		TRANSITION_LAST_FRAME = 2
+		TRANSITION_BACKGROUND = 1,
+		TRANSITION_LAST_FRAME = 2,
+		TRANSITION_CUSTOM_COLOR = 3,
+		TRANSITION_CUSTOM_MEDIA = 4
 	} transitionType;
 	void setTransitionType(transitionType t) {transition_type = t;}
 	transitionType getTransitionType() const {return transition_type;}
 
+
 public Q_SLOTS:
 	void refresh();
-	void smoothAlphaTransition(bool visible, Source *temporaryBackgound = 0);
+	void smoothAlphaTransition(bool visible, transitionType transition = TRANSITION_BACKGROUND);
+
+	void setTransitionSource(Source *s = NULL);
 
 Q_SIGNALS:
 	void animationFinished();
@@ -74,10 +85,13 @@ protected:
 	bool useAspectRatio, useWindowAspectRatio;
 	int rx, ry, rw, rh;
 
+	int preferedDuration;
 	float currentAlpha;
 	Source *backgroundSource;
 	QPropertyAnimation *animationAlpha;
 	transitionType transition_type;
+    QColor customTransitionColor;
+    class VideoSource *customTransitionVideoSource;
 };
 
 class OutputRenderWindow : public OutputRenderWidget {

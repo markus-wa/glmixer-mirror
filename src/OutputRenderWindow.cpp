@@ -27,6 +27,9 @@
 #include "OutputRenderWindow.moc"
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
+#include "VideoSource.h"
+#include "AlgorithmSource.h"
+#include "CaptureSource.h"
 
 #include <QGLFramebufferObject>
 
@@ -34,7 +37,8 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-		useAspectRatio(true), useWindowAspectRatio(true), currentAlpha(0.0), backgroundSource(0) {
+		useAspectRatio(true), useWindowAspectRatio(true), preferedDuration(1000), currentAlpha(1.0), backgroundSource(0),
+		transition_type(TRANSITION_NONE), customTransitionColor(QColor()), customTransitionVideoSource(0) {
 
 	rx = 0;
 	ry = 0;
@@ -45,6 +49,7 @@ OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareW
 	animationAlpha->setDuration(0);
 	animationAlpha->setEasingCurve(QEasingCurve::InOutQuad);
     QObject::connect(animationAlpha, SIGNAL(finished()), this, SIGNAL(animationFinished() ) );
+
 }
 
 void OutputRenderWidget::setTransitionCurve(int curveType)
@@ -59,12 +64,13 @@ int OutputRenderWidget::transitionCurve() const
 
 void OutputRenderWidget::setTransitionDuration(int duration)
 {
-	animationAlpha->setDuration(duration);
+	preferedDuration = duration;
+
 }
 
 int OutputRenderWidget::transitionDuration() const
 {
-	return animationAlpha->duration();
+	return preferedDuration;
 }
 
 float OutputRenderWidget::getAspectRatio() const{
@@ -203,11 +209,12 @@ void OutputRenderWidget::paintGL()
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
-		if (backgroundSource!=0) {
+		if ( backgroundSource != NULL ) {
 			backgroundSource->update();
 			glPushMatrix();
 			glScalef(1.0, -1.0, 1.0);
-			glColor4f(1.0, 1.0, 1.0, 1.0 - currentAlpha);
+			QColor texcolor = backgroundSource->getColor();
+			glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(), 1.0 - currentAlpha);
 			glCallList(ViewRenderWidget::quad_texured);
 			glPopMatrix();
 		}
@@ -224,19 +231,119 @@ void OutputRenderWidget::paintGL()
 	}
 }
 
+void OutputRenderWidget::setTransitionSource(Source *s)
+{
+	if (backgroundSource) {
+		if (backgroundSource == (Source*) customTransitionVideoSource)
+			customTransitionVideoSource->play(false);
+		else
+			delete backgroundSource;
+	}
 
-void OutputRenderWidget::smoothAlphaTransition(bool visible, Source *temporaryBackgound){
+	backgroundSource = s;
+}
+
+
+void OutputRenderWidget::setTransitionMedia(QString filename)
+{
+	if (customTransitionVideoSource)
+		delete customTransitionVideoSource;
+
+	customTransitionVideoSource = NULL;
+
+    VideoFile *newSourceVideoFile = NULL;
+	if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two")  )
+		newSourceVideoFile = new VideoFile(this);
+	else
+		newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
+
+    Q_CHECK_PTR(newSourceVideoFile);
+
+	if ( newSourceVideoFile->open( filename ) ) {
+		newSourceVideoFile->setOptionRestartToMarkIn(true);
+		// create new video source
+		GLuint textureIndex;
+		makeCurrent();
+		glGenTextures(1, &textureIndex);
+		customTransitionVideoSource = new VideoSource(newSourceVideoFile, textureIndex, 0.0);
+	} else {
+		qCritical( qPrintable( tr("The file %1 could not be loaded.").arg(filename)) );
+		delete newSourceVideoFile;
+	}
+
+}
+
+
+QString OutputRenderWidget::transitionMedia() const
+{
+	if (customTransitionVideoSource )
+		return customTransitionVideoSource->getVideoFile()->getFileName();
+
+	return QString();
+}
+
+void OutputRenderWidget::smoothAlphaTransition(bool visible, transitionType transition){
 
 	if (animationAlpha->state() == QAbstractAnimation::Running )
 		animationAlpha->stop();
 
-	if (!visible)
-		backgroundSource = temporaryBackgound;
+	QObject::disconnect(animationAlpha, SIGNAL(finished()), this, SLOT(setTransitionSource()) );
+
+	switch (transition) {
+		case TRANSITION_BACKGROUND:
+			setTransitionSource(NULL);
+			animationAlpha->setDuration(preferedDuration);
+			break;
+		case TRANSITION_LAST_FRAME:
+			// special case ; don't behave identically for fade in than out
+			if (visible) {
+				QObject::connect(animationAlpha, SIGNAL(finished()), this, SLOT(setTransitionSource()) );
+				animationAlpha->setDuration(preferedDuration);
+			} else {
+				// capture screen and use it immediately as transition source
+				QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
+				capture = capture.convertToFormat(QImage::Format_RGB32);
+				GLuint textureIndex;
+				makeCurrent();
+				glGenTextures(1, &textureIndex);
+				setTransitionSource( (Source *) new CaptureSource(capture, textureIndex, 0.0));
+				animationAlpha->setDuration(0);
+			}
+			break;
+		case TRANSITION_CUSTOM_COLOR:
+			if (visible) {
+				QObject::connect(animationAlpha, SIGNAL(finished()), this, SLOT(setTransitionSource()) );
+			} else {
+				GLuint textureIndex;
+				makeCurrent();
+				glGenTextures(1, &textureIndex);
+				Source *s = (Source *) new AlgorithmSource(0, textureIndex, 0.0, 4, 4, 0, 0);
+				s->setColor(customTransitionColor);
+				setTransitionSource(s);
+			}
+			animationAlpha->setDuration(preferedDuration);
+			break;
+		case TRANSITION_CUSTOM_MEDIA:
+			if (customTransitionVideoSource) {
+				if (visible) {
+					QObject::connect(animationAlpha, SIGNAL(finished()), this, SLOT(setTransitionSource()) );
+				} else {
+					setTransitionSource(customTransitionVideoSource);
+					customTransitionVideoSource->play(true);
+				}
+			}
+			animationAlpha->setDuration(preferedDuration);
+			break;
+		default:
+		case TRANSITION_NONE:
+			setTransitionSource(NULL);
+			animationAlpha->setDuration(0);
+	}
 
 	animationAlpha->setStartValue( currentAlpha );
 	animationAlpha->setEndValue( visible ? 1.1 : 0.0 );
-
 	animationAlpha->start();
+
 }
 
 OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint)

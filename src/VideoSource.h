@@ -38,8 +38,9 @@ class VideoSource : public QObject, public Source {
     Q_OBJECT
 
     friend class RenderingManager;
+    friend class OutputRenderWidget;
 
-    // only RenderingManager can create a source
+    // only friends can create a source
 protected:
 	VideoSource(VideoFile *f, GLuint texture, double d);
 	virtual ~VideoSource();

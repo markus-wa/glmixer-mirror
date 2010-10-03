@@ -8,6 +8,9 @@
 #include <QDomDocument>
 
 #include "common.h"
+#include "RenderingManager.h"
+#include "OutputRenderWindow.h"
+
 #include "SessionSwitcherWidget.moc"
 
 class folderValidator : public QValidator
@@ -21,7 +24,6 @@ class folderValidator : public QValidator
     	  return QValidator::Acceptable;
       if( d.isAbsolute ())
     	  return QValidator::Intermediate;
-
       return QValidator::Invalid;
     }
 };
@@ -103,9 +105,11 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 void SessionSwitcherWidget::setupFolderToolbox()
 {
 	transitionSelection = new QComboBox;
-	transitionSelection->addItem("Transition - disabled");
-	transitionSelection->addItem("Transition - to Black");
-	transitionSelection->addItem("Transition - keep last frame");
+	transitionSelection->addItem("Transition - Disabled");
+	transitionSelection->addItem("Transition - Background");
+	transitionSelection->addItem("Transition - Last frame");
+	transitionSelection->addItem("Transition - Custom color");
+	transitionSelection->addItem("Transition - Media file");
 
     folderModel = new QStandardItemModel(0, 3, this);
     folderModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Filename"));
@@ -122,6 +126,9 @@ void SessionSwitcherWidget::setupFolderToolbox()
 	QIcon icon;
 	icon.addFile(QString::fromUtf8(":/glmixer/icons/fileopen.png"), QSize(), QIcon::Normal, QIcon::Off);
 	dirButton->setIcon(icon);
+
+    customButton = new QToolButton;
+	customButton->setIcon( QIcon() );
 
 	folderHistory = new QComboBox;
 	folderHistory->setEditable(true);
@@ -147,14 +154,15 @@ void SessionSwitcherWidget::setupFolderToolbox()
     connect(filterPatternLineEdit, SIGNAL(textChanged(QString)),
             this, SLOT(nameFilterChanged(QString)));
     connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
-//    connect(folderPathEdit, SIGNAL(editingFinished()), this, SLOT(editPathFolder()));
+    connect(customButton, SIGNAL(clicked()),  this, SLOT(customizeTransition()));
     connect(proxyView, SIGNAL(doubleClicked(QModelIndex)),
             this, SLOT(openFileFromFolder(QModelIndex) ));
     connect(folderHistory, SIGNAL(currentIndexChanged(QString)), this, SLOT(folderChanged(QString)));
-    connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(selectTransition(int)));
+    connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(selectTransitionType(int)));
 
     QGridLayout *mainLayout = new QGridLayout;
-    mainLayout->addWidget(transitionSelection, 0, 0, 1, 3);
+    mainLayout->addWidget(transitionSelection, 0, 0, 1, 2);
+    mainLayout->addWidget(customButton, 0, 2);
     mainLayout->addWidget(proxyView, 1, 0, 1, 3);
     mainLayout->addWidget(folderHistory, 2, 0, 1, 2);
     mainLayout->addWidget(dirButton, 2, 2);
@@ -202,8 +210,51 @@ void SessionSwitcherWidget::openFileFromFolder(const QModelIndex & index){
 
 }
 
-void  SessionSwitcherWidget::selectTransition(int transitionType){
+void  SessionSwitcherWidget::selectTransitionType(int t){
+
+	OutputRenderWindow::getInstance()->setTransitionType( (OutputRenderWindow::transitionType) CLAMP(OutputRenderWindow::TRANSITION_NONE, t, OutputRenderWindow::TRANSITION_CUSTOM_MEDIA) );
+
+	customButton->setStyleSheet("");
+
+	if (OutputRenderWindow::getInstance()->getTransitionType() == OutputRenderWindow::TRANSITION_CUSTOM_COLOR ) {
+		QPixmap c = QPixmap(16, 16);
+		c.fill(OutputRenderWindow::getInstance()->transitionColor());
+		customButton->setIcon( QIcon(c) );
+
+	} else if (OutputRenderWindow::getInstance()->getTransitionType() == OutputRenderWindow::TRANSITION_CUSTOM_MEDIA ) {
+		customButton->setIcon(QIcon(QString::fromUtf8(":/glmixer/icons/fileopen.png")));
+
+		if ( !QFileInfo(OutputRenderWindow::getInstance()->transitionMedia()).exists() )
+			customButton->setStyleSheet("QToolButton { border: 1px solid red }");
+
+	} else
+		customButton->setIcon( QIcon() );
+
+}
 
 
+void SessionSwitcherWidget::customizeTransition()
+{
+	if (OutputRenderWindow::getInstance()->getTransitionType() == OutputRenderWindow::TRANSITION_CUSTOM_COLOR ) {
+
+		QColor color = QColorDialog::getColor(Qt::green, parentWidget());
+		if (color.isValid()) {
+			OutputRenderWindow::getInstance()->setTransitionColor(color);
+			selectTransitionType( (int) OutputRenderWindow::TRANSITION_CUSTOM_COLOR);
+		}
+	}
+	else if (OutputRenderWindow::getInstance()->getTransitionType() == OutputRenderWindow::TRANSITION_CUSTOM_MEDIA ) {
+
+		QString text = QFileDialog::getOpenFileName(this, tr("Open File"),
+															QDir::currentPath(),
+															tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
+		if ( QFileInfo(text).exists()) {
+			OutputRenderWindow::getInstance()->setTransitionMedia(text);
+			customButton->setStyleSheet("");
+		} else {
+			qCritical( qPrintable( tr("The file %1 does not exist.").arg(text)) );
+			customButton->setStyleSheet("QToolButton { border: 1px solid red }");
+		}
+	}
 }
 
