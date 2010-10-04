@@ -129,6 +129,7 @@ void SessionSwitcherWidget::setupFolderToolbox()
 
     customButton = new QToolButton;
 	customButton->setIcon( QIcon() );
+	customButton->setVisible(false);
 
 	folderHistory = new QComboBox;
 	folderHistory->setEditable(true);
@@ -220,15 +221,16 @@ void  SessionSwitcherWidget::selectTransitionType(int t){
 		QPixmap c = QPixmap(16, 16);
 		c.fill(OutputRenderWindow::getInstance()->transitionColor());
 		customButton->setIcon( QIcon(c) );
+		customButton->setVisible(true);
 
 	} else if (OutputRenderWindow::getInstance()->getTransitionType() == OutputRenderWindow::TRANSITION_CUSTOM_MEDIA ) {
 		customButton->setIcon(QIcon(QString::fromUtf8(":/glmixer/icons/fileopen.png")));
 
 		if ( !QFileInfo(OutputRenderWindow::getInstance()->transitionMedia()).exists() )
 			customButton->setStyleSheet("QToolButton { border: 1px solid red }");
-
+		customButton->setVisible(true);
 	} else
-		customButton->setIcon( QIcon() );
+		customButton->setVisible(false);
 
 }
 
@@ -252,7 +254,8 @@ void SessionSwitcherWidget::customizeTransition()
 			OutputRenderWindow::getInstance()->setTransitionMedia(text);
 			customButton->setStyleSheet("");
 		} else {
-			qCritical( qPrintable( tr("The file %1 does not exist.").arg(text)) );
+			if (!text.isEmpty())
+				qCritical( qPrintable( tr("The file %1 does not exist.").arg(text)) );
 			customButton->setStyleSheet("QToolButton { border: 1px solid red }");
 		}
 	}

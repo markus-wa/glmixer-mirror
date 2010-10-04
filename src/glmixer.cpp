@@ -105,7 +105,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     for (int i = 0; i < MAX_RECENT_FILES; ++i) {
         recentFileActs[i] = new QAction(this);
         recentFileActs[i]->setVisible(false);
-        connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(on_actionLoad_RecentSession_triggered()));
+        connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(actionLoad_RecentSession_triggered()));
         recentFiles->addAction(recentFileActs[i]);
     }
 
@@ -1219,7 +1219,7 @@ void GLMixer::on_actionLoad_Session_triggered()
 }
 
 
-void GLMixer::on_actionLoad_RecentSession_triggered()
+void GLMixer::actionLoad_RecentSession_triggered()
 {
 	QAction *action = qobject_cast<QAction *>(sender());
 	if (action)
