@@ -850,7 +850,11 @@ void ViewRenderWidget::buildShader(){
 
 	program = new QGLShaderProgram(this);
 
+#ifndef GLMIXER_SIMPLIFIED_GLSL
 	if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl"))
+#else
+	if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex_simplified.glsl"))
+#endif
 		qFatal( "** ERROR ** \n\nOpenGL GLSL error in vertex shader: \n\n%s", qPrintable(program->log()));
 	else if (program->log().contains("warning"))
 		qCritical( "** WARNING ** \n\nOpenGL GLSL warning in vertex shader: \n\n%s", qPrintable(program->log()));

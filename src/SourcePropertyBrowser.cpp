@@ -844,7 +844,9 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 		return;
 
 	if ( property == idToProperty["Filtered"] ) {
+#ifndef GLMIXER_SIMPLIFIED_GLSL
 		currentItem->setFiltered(value);
+#endif
 		updatePropertyTree(currentItem);
 	}
 	else if ( property == idToProperty["Pixelated"] ) {
