@@ -27,14 +27,9 @@
 
 #include "Source.h"
 
-UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent), m_iconSize(64, 64)
+UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 {
     setupUi(this);
-
-    // create the curves into the transition easing curve selector
-    easingCurvePicker->setIconSize(m_iconSize);
-    easingCurvePicker->setMinimumHeight(m_iconSize.height() + 50);
-    createCurveIcons();
 
     // the default source property browser
     defaultSource = new Source;
@@ -54,57 +49,6 @@ UserPreferencesDialog::~UserPreferencesDialog()
 	delete defaultSource;
 }
 
-void UserPreferencesDialog::createCurveIcons()
-{
-    QPixmap pix(m_iconSize);
-    QPainter painter(&pix);
-    QLinearGradient gradient(0,0, 0, m_iconSize.height());
-    gradient.setColorAt(0.0, QColor(240, 240, 240));
-    gradient.setColorAt(1.0, QColor(224, 224, 224));
-    QBrush brush(gradient);
-    const QMetaObject &mo = QEasingCurve::staticMetaObject;
-    QMetaEnum metaEnum = mo.enumerator(mo.indexOfEnumerator("Type"));
-    // Skip QEasingCurve::Custom
-    for (int i = 0; i < QEasingCurve::NCurveTypes - 3; ++i) {
-        painter.fillRect(QRect(QPoint(0, 0), m_iconSize), brush);
-        QEasingCurve curve((QEasingCurve::Type)i);
-        painter.setPen(QColor(0, 0, 255, 64));
-        qreal xAxis = m_iconSize.height()/1.5;
-        qreal yAxis = m_iconSize.width()/3;
-        painter.drawLine(0, xAxis, m_iconSize.width(),  xAxis);
-        painter.drawLine(yAxis, 0, yAxis, m_iconSize.height());
-
-        qreal curveScale = m_iconSize.height()/2;
-
-        painter.setPen(Qt::NoPen);
-
-        // start point
-        painter.setBrush(Qt::red);
-        QPoint start(yAxis, xAxis - curveScale * curve.valueForProgress(0));
-        painter.drawRect(start.x() - 1, start.y() - 1, 3, 3);
-
-        // end point
-        painter.setBrush(Qt::blue);
-        QPoint end(yAxis + curveScale, xAxis - curveScale * curve.valueForProgress(1));
-        painter.drawRect(end.x() - 1, end.y() - 1, 3, 3);
-
-        QPainterPath curvePath;
-        curvePath.moveTo(start);
-        for (qreal t = 0; t <= 1.0; t+=1.0/curveScale) {
-            QPoint to;
-            to.setX(yAxis + curveScale * t);
-            to.setY(xAxis - curveScale * curve.valueForProgress(t));
-            curvePath.lineTo(to);
-        }
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.strokePath(curvePath, QColor(32, 32, 32));
-        painter.setRenderHint(QPainter::Antialiasing, false);
-        QListWidgetItem *item = new QListWidgetItem;
-        item->setIcon(QIcon(pix));
-        item->setText(metaEnum.key(i));
-        easingCurvePicker->addItem(item);
-    }
-}
 
 
 void UserPreferencesDialog::restoreDefaultPreferences() {
@@ -128,8 +72,6 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 
 	if (stackedPreferences->currentWidget() == PageInterface){
 		FINE->setChecked(true);
-		transitionDuration->setValue(1000);
-		easingCurvePicker->setCurrentRow(3);
 	}
 }
 
@@ -199,13 +141,6 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 		break;
 	}
 
-	// g. transition time and Easing curve
-	int duration = 0;
-	stream >> duration;
-	transitionDuration->setValue(duration);
-	int curve = 1;
-	stream >> curve;
-	easingCurvePicker->setCurrentRow(curve);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -241,10 +176,6 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 		stream << (unsigned int) 2;
 	if (TRIANGLE->isChecked())
 		stream << (unsigned int) 3;
-
-	// g. transition time and Easing curve
-	stream << transitionDuration->value();
-	stream << easingCurvePicker->currentRow();
 
 	return data;
 }

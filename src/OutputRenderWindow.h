@@ -49,10 +49,7 @@ public:
 	void setAlpha(float a) { currentAlpha = a; }
 	float alpha() const { return currentAlpha; }
 
-	void setTransitionDuration(int duration);
 	int transitionDuration() const;
-
-	void setTransitionCurve(int curveType);
 	int transitionCurve() const ;
 
 	void setTransitionColor(QColor c) { customTransitionColor = c; }
@@ -77,6 +74,8 @@ public Q_SLOTS:
 	void smoothAlphaTransition(bool visible, transitionType transition = TRANSITION_BACKGROUND);
 
 	void setTransitionSource(Source *s = NULL);
+	void setTransitionDuration(int duration);
+	void setTransitionCurve(int curveType);
 
 Q_SIGNALS:
 	void animationFinished();

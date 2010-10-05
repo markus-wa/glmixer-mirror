@@ -27,6 +27,8 @@ public Q_SLOTS:
     void selectTransitionType(int t);
 
     void customizeTransition();
+    void saveSettings();
+    void restoreSettings();
 
 Q_SIGNALS:
 	void switchSessionFile(QString);
@@ -34,13 +36,16 @@ Q_SIGNALS:
 private:
 
 	// folder toolbox
+	QListWidget *createCurveIcons();
 	void setupFolderToolbox();
-    class QStandardItemModel *folderModel;
-    class QSortFilterProxyModel *proxyFolderModel;
-    class QComboBox *folderHistory, *transitionSelection;
-    class QToolButton *customButton;
-    class QSettings *appSettings;
-
+    QStandardItemModel *folderModel;
+    QSortFilterProxyModel *proxyFolderModel;
+    QComboBox *folderHistory, *transitionSelection;
+    QToolButton *customButton;
+    QSettings *appSettings;
+    QListWidget *easingCurvePicker;
+    QSpinBox *transitionDuration;
+    QSize m_iconSize;
 };
 
 #endif /* SESSIONSWITCHERWIDGET_H_ */

@@ -52,8 +52,6 @@ private:
 
 	class Source *defaultSource;
 
-    void createCurveIcons();
-    QSize m_iconSize;
 };
 
 #endif /* USERPREFERENCESDIALOG_H_ */

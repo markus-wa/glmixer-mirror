@@ -1634,14 +1634,6 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	stream >> stipplingMode;
 	ViewRenderWidget::setStipplingMode(stipplingMode);
 
-	// g. Transition time and curve
-	int duration = 1000;
-	stream >> duration;
-	OutputRenderWindow::getInstance()->setTransitionDuration(duration);
-	int curve = 1;
-	stream >> curve;
-	OutputRenderWindow::getInstance()->setTransitionCurve(curve);
-
 	// Refresh all GL widgets (to apply the preferences changed above)
 	RenderingManager::getRenderingWidget()->refresh();
 	OutputRenderWindow::getInstance()->refresh();
@@ -1677,10 +1669,6 @@ QByteArray GLMixer::getPreferences() const {
 
 	// f. Stippling mode
 	stream << ViewRenderWidget::getStipplingMode();
-
-	// g. transition time and Easing curve
-	stream << OutputRenderWindow::getInstance()->transitionDuration();
-	stream << OutputRenderWindow::getInstance()->transitionCurve();
 
 	return data;
 }
