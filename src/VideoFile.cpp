@@ -90,68 +90,55 @@ private:
 };
 
 
-VideoPicture::VideoPicture() :
-		rgb(NULL), frame(NULL), width(0), height(0), allocated(false), usePalette(false), pts(0.0) {
+VideoPicture::VideoPicture() : oldframe(0), width(0), height(0), allocated(false), usePalette(false), pts(0.0) {
 
 	img_convert_ctx_filtering = NULL;
+	rgb.data[0] = NULL;
 }
 
-bool VideoPicture::allocate(SwsContext *img_convert_ctx, int w, int h,  enum PixelFormat format, bool palettized) {
+bool VideoPicture::allocate(SwsContext *img_convert_ctx, int w, int h, enum PixelFormat format, bool palettized) {
 
 	img_convert_ctx_filtering = img_convert_ctx;
 	usePalette = palettized;
-	frame = NULL;
-
-    // if we already have one, make another
-    if (rgb) {
-        // free image
-        if (rgb->data)
-            av_freep(rgb->data);
-        av_freep(rgb);
-    }
-
-    // Allocate a place to put our image
     width = w;
     height = h;
     pixelformat = format;
 
+    // if we already have one, make another
+	// free image
+	if (rgb.data[0]) {
+		avpicture_free(&rgb);
+		rgb.data[0] = NULL;
+	}
+
     // Determine required buffer size and allocate buffer
     int numBytes = avpicture_get_size(pixelformat, width, height);
     uint8_t *buffer = static_cast<uint8_t*>(av_mallocz(numBytes + FF_INPUT_BUFFER_PADDING_SIZE));
-
     Q_CHECK_PTR(buffer);
+	// initialize buffer to black
+	for (int i = 0; i < numBytes; ++i)
+		buffer[i] = 0;
 
-    if (buffer != NULL) {
-        // initialize buffer to black
-        for (int i = 0; i < numBytes; ++i)
-            buffer[i] = 0;
-        // create the frame
-        rgb = avcodec_alloc_frame();
-        // setup the Video Picture buffer
-        if (rgb != NULL) {
-            avpicture_fill( reinterpret_cast<AVPicture*>(rgb), buffer, pixelformat, width, height);
-			allocated = true;
-        } else
-            return false;
+	// create & fill the picture
+	if ( avpicture_alloc( &rgb, pixelformat, width, height) < 0)
+		return false;
+	avpicture_fill( &rgb, buffer, pixelformat, width, height);
 
-    } else
-        return false;
-
+	allocated = true;
     return true;
 }
 
-VideoPicture::~VideoPicture() {
-    if (rgb) {
-        // free image
-        if (rgb->data)
-            av_freep(rgb->data);
-        av_freep(rgb);
-    }
+VideoPicture::~VideoPicture()
+{
+	if (rgb.data[0]) {
+		avpicture_free(&rgb);
+		rgb.data[0] = NULL;
+	}
 }
 
 void VideoPicture::saveToPPM(QString filename) const {
 
-    if ( allocated && rgb && pixelformat != PIX_FMT_RGBA) {
+    if ( allocated && pixelformat != PIX_FMT_RGBA) {
         FILE *pFile;
         int  y;
 
@@ -165,7 +152,7 @@ void VideoPicture::saveToPPM(QString filename) const {
 
         // Write pixel data
         for(y=0; y<height; y++)
-			fwrite(rgb->data[0] + y*rgb->linesize[0], 1, width*3, pFile);
+			fwrite(rgb.data[0] + y*rgb.linesize[0], 1, width*3, pFile);
 
         // Close file
         fclose(pFile);
@@ -174,25 +161,26 @@ void VideoPicture::saveToPPM(QString filename) const {
 
 void VideoPicture::refilter() const
 {
-	if (!allocated || !frame || !img_convert_ctx_filtering || usePalette)
+	if (!allocated || !oldframe || !img_convert_ctx_filtering || usePalette)
 		return;
 
-	sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb->data, rgb->linesize);
+	sws_scale(img_convert_ctx_filtering, oldframe->data, oldframe->linesize, 0, height, rgb.data, rgb.linesize);
 }
 
-void VideoPicture::fill(AVFrame *pFrame, double timestamp)
+
+void VideoPicture::fill(AVPicture *frame, double timestamp)
 {
-	if (!allocated || !pFrame || !img_convert_ctx_filtering)
+	if (!allocated || !frame || !img_convert_ctx_filtering)
 		return;
 
-	// remember frame
-	frame = pFrame;
+	// remember frame (for refilter())
+	oldframe = frame;
 	// remember pts
 	pts = timestamp;
 
 	if (!usePalette) {
 		// Convert the image with ffmpeg sws
-		sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb->data, rgb->linesize);
+		sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb.data, rgb.linesize);
 		return;
 	}
 	// I reimplement here sws_convertPalette8ToPacked32 which does not work...
@@ -211,7 +199,7 @@ void VideoPicture::fill(AVFrame *pFrame, double timestamp)
 		}
 		// copy BGR palette color from frame to RGB buffer of VideoPicture
 		uint8_t *map = frame->data[0];
-		uint8_t *bgr = rgb->data[0];
+		uint8_t *bgr = rgb.data[0];
 		for (int y = 0; y < height; y++)
 		{
 			for (int x = 0; x < width; x++)
@@ -248,6 +236,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo, int swsConversion
     // Init some pointers to NULL
     videoStream = -1;
     video_st = NULL;
+    deinterlacing_buffer = NULL;
     pFormatCtx = NULL;
     img_convert_ctx = NULL;
     filter = NULL;
@@ -320,6 +309,9 @@ VideoFile::~VideoFile() {
     delete pictq_mutex;
     delete pictq_cond;
 	delete ptimer;
+
+	if (deinterlacing_buffer)
+		av_free(deinterlacing_buffer);
 
 	QObject::disconnect(this,0,0,0);
 }
@@ -777,7 +769,7 @@ void VideoFile::fill_first_frame(bool seek) {
 #endif
             // and if the frame is finished (should be in one shot for video stream)
         	if (frameFinished)
-                firstPicture.fill(firstFrame);
+                firstPicture.fill((AVPicture *)firstFrame);
         }
     }
 
@@ -1159,10 +1151,26 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts) {
     // (write index is set to 0 initially)
     VideoPicture *vp = &pictq[pictq_windex];
 
-    if (vp->rgb && pictq_size <= VIDEO_PICTURE_QUEUE_SIZE) {
+    if (vp->isAllocated() && pictq_size <= VIDEO_PICTURE_QUEUE_SIZE) {
+
+    	AVPicture *picture = (AVPicture*)pFrame;
+
+    	if (pFrame->interlaced_frame) {
+			// create temporary picture the first time we need it
+			if (deinterlacing_buffer == NULL) {
+				int size = avpicture_get_size(video_st->codec->pix_fmt, video_st->codec->width, video_st->codec->height);
+				deinterlacing_buffer= (uint8_t *)av_malloc(size);
+				avpicture_fill(&deinterlacing_picture, deinterlacing_buffer, video_st->codec->pix_fmt, video_st->codec->width, video_st->codec->height);
+			}
+
+			// try to deinterlace into the temporary picture
+			if(avpicture_deinterlace(&deinterlacing_picture, picture, video_st->codec->pix_fmt, video_st->codec->width, video_st->codec->height) == 0)
+				// if deinterlacing was successfull, use it
+				picture = &deinterlacing_picture;
+    	}
 
         // Fill the Video Picture queue with the current frame
-        vp->fill(pFrame, pts);
+        vp->fill(picture, pts);
 
         // set to write indexto next in queue
         if (++pictq_windex == VIDEO_PICTURE_QUEUE_SIZE)

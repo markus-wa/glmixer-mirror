@@ -70,7 +70,7 @@ extern "C" {
  */
 class VideoPicture {
     friend class VideoFile;
-    AVFrame *rgb, *frame;
+    AVPicture rgb, *oldframe;
     int width, height;
     bool allocated, usePalette;
     double pts;
@@ -109,7 +109,7 @@ public:
      *
      * Finally, the timestamp given is kept into the Video Picture for later use.
      */
-    void fill(AVFrame *pFrame, double timestamp = 0.0);
+    void fill(AVPicture *pFrame, double timestamp = 0.0);
 
     /**
      * Get a pointer to the buffer containing the frame.
@@ -125,7 +125,7 @@ public:
      * @return pointer to an array of unsigned bytes (char or uint8_t)
      */
     inline char *getBuffer() const {
-        return (allocated ? (char*) rgb->data[0] : NULL);
+        return (allocated ? (char*) rgb.data[0] : NULL);
     }
     /**
      * Get the width of the picture.
@@ -157,7 +157,7 @@ public:
      * @return true if there is a picture available.
      */
     inline bool isAllocated() const {
-        return (allocated && (rgb != NULL));
+        return (allocated && (rgb.data != NULL));
     }
     /**
      * Creates and saves a .ppm image file with the current buffer (if full).
@@ -878,6 +878,8 @@ protected:
     int videoStream;
     PacketQueue videoq;
     bool ignoreAlpha;
+    uint8_t *deinterlacing_buffer;
+    AVPicture deinterlacing_picture;
 
     // seeking management
     bool seek_req, seek_backward, seek_any;
