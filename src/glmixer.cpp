@@ -52,6 +52,7 @@
 #include "CatalogView.h"
 #include "DelayCursor.h"
 #include "SpringCursor.h"
+#include "MagnetCursor.h"
 
 #include "glmixer.moc"
 
@@ -96,6 +97,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	cursorActions->addAction(actionCursorNormal);
 	cursorActions->addAction(actionCursorSpring);
 	cursorActions->addAction(actionCursorDelay);
+	cursorActions->addAction(actionCursorMagnet);
 	cursorActions->addAction(actionCursorCurve);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
 
@@ -300,6 +302,9 @@ void GLMixer::setCursor(QAction *a){
 	} else if (a == actionCursorDelay) {
 		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_DELAY);
 		cursorOptionWidget->setCurrentWidget(cursorDelayOptions);
+	} else if (a == actionCursorMagnet) {
+		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_MAGNET);
+		cursorOptionWidget->setCurrentWidget(cursorMagnetOptions);
 	}
 }
 
@@ -315,7 +320,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 #else
 	fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"),
 													QDir::currentPath(),
-													tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
+													tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv *.mod);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
 
 	d.setPath(fileNames.first());
 #endif

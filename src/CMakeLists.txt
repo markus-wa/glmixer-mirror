@@ -32,6 +32,7 @@ set(MYQT_SRCS
     SourcePropertyBrowser.cpp
     SpringCursor.cpp
     DelayCursor.cpp
+    MagnetCursor.cpp
     UserPreferencesDialog.cpp
     GammaLevelsWidget.cpp
     SessionSwitcherWidget.cpp

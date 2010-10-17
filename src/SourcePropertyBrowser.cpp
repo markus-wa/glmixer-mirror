@@ -143,6 +143,24 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent)
 
 }
 
+QString aspectRatioToString(double ar)
+{
+	if ( (ar - (1.0) ) < EPSILON )
+		return QString("1:1");
+	else if ( (ar - (5.0 / 4.0) ) < EPSILON )
+		return QString("5:4");
+	else if ( (ar - (4.0 / 3.0) ) < EPSILON )
+		return QString("4:3");
+	else if ( (ar - (16.0 / 9.0) ) < EPSILON )
+		return QString("16:9");
+	else  if ( (ar - (3.0 / 2.0) ) < EPSILON )
+		return QString("3:2");
+	else if ( (ar - (16.0 / 10.0) ) < EPSILON )
+		return QString("16:10");
+	else
+		return QString::number(ar);
+
+}
 
 
 void SourcePropertyBrowser::createPropertyTree(){
@@ -180,32 +198,13 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("A name to identify the source");
 	root->addSubProperty(property);
-//	// Type (not editable)
-//	property = infoManager->addProperty( QLatin1String("Type") );
-//	property->setItalics(true);
-//	idToProperty[property->propertyName()] = property;
-//	property->setToolTip("What is shown in this source.");
-//	root->addSubProperty(property);
+
 	// Position
 	property = pointManager->addProperty("Position");
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("X and Y coordinates of the center");
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
-	root->addSubProperty(property);
-	// Rotation center
-	property = pointManager->addProperty("Rotation center");
-	property->setToolTip("X and Y coordinates of the rotation center (relative to the center)");
-	idToProperty[property->propertyName()] = property;
-	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
-	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
-	root->addSubProperty(property);
-	// Rotation angle
-	property = doubleManager->addProperty("Angle");
-	property->setToolTip("Angle of rotation in degrees (counter clock wise)");
-	idToProperty[property->propertyName()] = property;
-	doubleManager->setRange(property, 0, 360);
-	doubleManager->setSingleStep(property, 10.0);
 	root->addSubProperty(property);
 	// Scale
 	property = pointManager->addProperty("Scale");
@@ -214,10 +213,24 @@ void SourcePropertyBrowser::createPropertyTree(){
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
 	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
 	root->addSubProperty(property);
+	// Rotation angle
+	property = doubleManager->addProperty("Angle");
+	property->setToolTip("Angle of rotation in degrees (counter clock wise)");
+	idToProperty[property->propertyName()] = property;
+	doubleManager->setRange(property, 0, 360);
+	doubleManager->setSingleStep(property, 10.0);
+	root->addSubProperty(property);
+	// Rotation center
+//	property = pointManager->addProperty("Rotation center");
+//	property->setToolTip("X and Y coordinates of the rotation center (relative to the center)");
+//	idToProperty[property->propertyName()] = property;
+//	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
+//	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
+//	root->addSubProperty(property);
 	// Texture coordinates
 	property = rectManager->addProperty("Crop");
 	idToProperty[property->propertyName()] = property;
-	property->setToolTip("Texture coordinates (top-left bottom-right)");
+	property->setToolTip("Texture coordinates");
 	rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
 	rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
 	root->addSubProperty(property);
@@ -237,7 +250,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of Destination blending func
 	QtProperty *blendingItem = enumManager->addProperty("Blending");
 	idToProperty[blendingItem->propertyName()] = blendingItem;
-	property->setToolTip("How the colors are mixed with the sources in lower layers.");
+	blendingItem->setToolTip("How the colors are mixed with the sources in lower layers.");
 	QStringList enumNames;
 	enumNames << "Custom" << "Color mix" << "Inverse color mix" << "Layer color mix" << "Layer inverse color mix" << "Layer opacity";
 	enumManager->setEnumNames(blendingItem, enumNames);
@@ -245,7 +258,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of Destination blending func
 	property = enumManager->addProperty("Destination");
 	idToProperty[property->propertyName()] = property;
-	property->setToolTip("OpenGL blending function for these texels (Custom only)");
+	property->setToolTip("OpenGL blending function");
 	enumNames.clear();
 	enumNames << "Zero" << "One" << "Color" << "Invert color" << "Background color" << "Invert background color" << "Alpha" << "Invert alpha" << "Background Alpha" << "Invert background Alpha";
 	enumManager->setEnumNames(property, enumNames);
@@ -253,7 +266,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of blending Equations
 	property = enumManager->addProperty("Equation");
 	idToProperty[property->propertyName()] = property;
-	property->setToolTip("OpenGL equation for blending (Custom only)");
+	property->setToolTip("OpenGL blending equation");
 	enumNames.clear();
 	enumNames << "Add" << "Subtract" << "Reverse" << "Min" << "Max";
 	enumManager->setEnumNames(property, enumNames);
@@ -263,7 +276,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// enum list of blending masks
 	property = enumManager->addProperty("Mask");
 	idToProperty[property->propertyName()] = property;
-	property->setToolTip("Layer mask like in Gimp or Photoshop");
+	property->setToolTip("Layer mask (where black is opaque)");
 	enumNames.clear();
 	// TODO implement selection of custom file mask
 	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Left to right" << "Right to left" << "Top down" << "Bottom up";
@@ -278,119 +291,123 @@ void SourcePropertyBrowser::createPropertyTree(){
     enumIcons[6] = QIcon(":/glmixer/textures/mask_linear_right.png");
     enumIcons[7] = QIcon(":/glmixer/textures/mask_linear_top.png");
     enumIcons[8] = QIcon(":/glmixer/textures/mask_linear_bottom.png");
-    enumIcons[9] = QIcon(":/glmixer/icons/fileopen.png");
+//    enumIcons[9] = QIcon(":/glmixer/icons/fileopen.png");
     enumManager->setEnumIcons(property, enumIcons);
 	root->addSubProperty(property);
 	// Color
 	property = colorManager->addProperty("Color");
 	idToProperty[property->propertyName()] = property;
-	property->setToolTip("Base tint of the source ");
-	root->addSubProperty(property);
-
-	// Filtered on/off
-	property = boolManager->addProperty("Filtered");
-	property->setToolTip("Use GLSL filters.");
-	idToProperty[property->propertyName()] = property;
-	root->addSubProperty(property);
-
-	// Brightness
-	property = intManager->addProperty( QLatin1String("Brightness") );
-	property->setToolTip("Brightness (from black to white)");
-	idToProperty[property->propertyName()] = property;
-	intManager->setRange(property, -100, 100);
-	intManager->setSingleStep(property, 10);
-	root->addSubProperty(property);
-	// Contrast
-	property = intManager->addProperty( QLatin1String("Contrast") );
-	property->setToolTip("Contrast (from uniform color to high deviation)");
-	idToProperty[property->propertyName()] = property;
-	intManager->setRange(property, -100, 100);
-	intManager->setSingleStep(property, 10);
-	root->addSubProperty(property);
-	// Saturation
-	property = intManager->addProperty( QLatin1String("Saturation") );
-	property->setToolTip("Saturation (from greyscale to enhanced colors)");
-	idToProperty[property->propertyName()] = property;
-	intManager->setRange(property, -100, 100);
-	intManager->setSingleStep(property, 10);
-	root->addSubProperty(property);
-	// hue
-	property = intManager->addProperty( QLatin1String("Hue shift") );
-	property->setToolTip("Hue shift (circular shift of color Hue)");
-	idToProperty[property->propertyName()] = property;
-	intManager->setRange(property, 0, 360);
-	intManager->setSingleStep(property, 36);
-	root->addSubProperty(property);
-	// threshold
-	property = intManager->addProperty( QLatin1String("Threshold") );
-	property->setToolTip("Luminance threshold (convert to black & white, keeping colors above the threshold, 0 to keep original)");
-	idToProperty[property->propertyName()] = property;
-	intManager->setRange(property, 0, 100);
-	intManager->setSingleStep(property, 10);
-	root->addSubProperty(property);
-	// nb colors
-	property = intManager->addProperty( QLatin1String("Posterize") );
-	property->setToolTip("Posterize (reduce number of colors, 0 to keep original)");
-	idToProperty[property->propertyName()] = property;
-	intManager->setRange(property, 0, 256);
-	intManager->setSingleStep(property, 1);
-	root->addSubProperty(property);
-	// enum list of inversion types
-	property = enumManager->addProperty("Color inversion");
-	idToProperty[property->propertyName()] = property;
-	property->setToolTip("Invert colors or luminance");
-	enumNames.clear();
-	enumNames << "None" << "RGB invert" << "Luminance invert";
-	enumManager->setEnumNames(property, enumNames);
-	root->addSubProperty(property);
-	// enum list of filters
-	property = enumManager->addProperty("Filter");
-	idToProperty[property->propertyName()] = property;
-	property->setToolTip("Imaging filters (convolutions & morphological operators)");
-	enumNames.clear();
-	enumNames << "None" << "Gaussian blur" << "Median blur" << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
-			  << "Medium edge detect"<< "Hard edge detect"<<"Emboss"<<"Edge emboss"
-			  << "Erosion 3x3"<< "Erosion 5x5"<< "Erosion 7x7"
-			  << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7";
-	enumManager->setEnumNames(property, enumNames);
-	root->addSubProperty(property);
-	// Chroma key on/off
-	property = boolManager->addProperty("Chroma key");
-	property->setToolTip("Enables chroma-keying (removes a key color).");
-	idToProperty[property->propertyName()] = property;
-	root->addSubProperty(property);
-	// chroma key Color
-	property = colorManager->addProperty("Key Color");
-	idToProperty[property->propertyName()] = property;
-	property->setToolTip("Color used for the chroma-keying.");
-	root->addSubProperty(property);
-	// threshold
-	property = intManager->addProperty( QLatin1String("Key Tolerance") );
-	property->setToolTip("Percentage of tolerance around the key color");
-	idToProperty[property->propertyName()] = property;
-	intManager->setRange(property, 0, 100);
-	intManager->setSingleStep(property, 10);
+	property->setToolTip("Base tint of the source");
 	root->addSubProperty(property);
 
 	// Pixelated on/off
 	property = boolManager->addProperty("Pixelated");
-	property->setToolTip("Show square pixels when active.");
+	property->setToolTip("Do not smooth pixels");
 	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
+
+	// Filtered on/off
+	QtProperty *filter = boolManager->addProperty("Filtered");
+	filter->setToolTip("Use GLSL filters");
+	idToProperty[filter->propertyName()] = filter;
+	root->addSubProperty(filter);
+	{
+		// Brightness
+		property = intManager->addProperty( QLatin1String("Brightness") );
+		property->setToolTip("Brightness (from black to white)");
+		idToProperty[property->propertyName()] = property;
+		intManager->setRange(property, -100, 100);
+		intManager->setSingleStep(property, 10);
+		filter->addSubProperty(property);
+		// Contrast
+		property = intManager->addProperty( QLatin1String("Contrast") );
+		property->setToolTip("Contrast (from uniform color to high deviation)");
+		idToProperty[property->propertyName()] = property;
+		intManager->setRange(property, -100, 100);
+		intManager->setSingleStep(property, 10);
+		filter->addSubProperty(property);
+		// Saturation
+		property = intManager->addProperty( QLatin1String("Saturation") );
+		property->setToolTip("Saturation (from greyscale to enhanced colors)");
+		idToProperty[property->propertyName()] = property;
+		intManager->setRange(property, -100, 100);
+		intManager->setSingleStep(property, 10);
+		filter->addSubProperty(property);
+		// hue
+		property = intManager->addProperty( QLatin1String("Hue shift") );
+		property->setToolTip("Hue shift (circular shift of color Hue)");
+		idToProperty[property->propertyName()] = property;
+		intManager->setRange(property, 0, 360);
+		intManager->setSingleStep(property, 36);
+		filter->addSubProperty(property);
+		// threshold
+		property = intManager->addProperty( QLatin1String("Threshold") );
+		property->setToolTip("Luminance threshold (convert to black & white, keeping colors above the threshold, 0 to keep original)");
+		idToProperty[property->propertyName()] = property;
+		intManager->setRange(property, 0, 100);
+		intManager->setSingleStep(property, 10);
+		filter->addSubProperty(property);
+		// nb colors
+		property = intManager->addProperty( QLatin1String("Posterize") );
+		property->setToolTip("Posterize (reduce number of colors, 0 to keep original)");
+		idToProperty[property->propertyName()] = property;
+		intManager->setRange(property, 0, 256);
+		intManager->setSingleStep(property, 1);
+		filter->addSubProperty(property);
+		// enum list of inversion types
+		property = enumManager->addProperty("Color inversion");
+		idToProperty[property->propertyName()] = property;
+		property->setToolTip("Invert colors or luminance");
+		enumNames.clear();
+		enumNames << "None" << "RGB invert" << "Luminance invert";
+		enumManager->setEnumNames(property, enumNames);
+		filter->addSubProperty(property);
+		// enum list of filters
+		property = enumManager->addProperty("Filter");
+		idToProperty[property->propertyName()] = property;
+		property->setToolTip("Imaging filters (convolutions & morphological operators)");
+		enumNames.clear();
+		enumNames << "None" << "Gaussian blur" << "Median blur" << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
+				  << "Medium edge detect"<< "Hard edge detect"<<"Emboss"<<"Edge emboss"
+				  << "Erosion 3x3"<< "Erosion 5x5"<< "Erosion 7x7"
+				  << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7";
+		enumManager->setEnumNames(property, enumNames);
+		filter->addSubProperty(property);
+		// Chroma key on/off
+		QtProperty *chroma = boolManager->addProperty("Chroma key");
+		chroma->setToolTip("Enables chroma-keying (removes a key color).");
+		idToProperty[chroma->propertyName()] = chroma;
+		filter->addSubProperty(chroma);
+		// chroma key Color
+		property = colorManager->addProperty("Key Color");
+		idToProperty[property->propertyName()] = property;
+		property->setToolTip("Color used for the chroma-keying.");
+		chroma->addSubProperty(property);
+		// threshold
+		property = intManager->addProperty( QLatin1String("Key Tolerance") );
+		property->setToolTip("Percentage of tolerance around the key color");
+		idToProperty[property->propertyName()] = property;
+		intManager->setRange(property, 0, 100);
+		intManager->setSingleStep(property, 10);
+		chroma->addSubProperty(property);
+	}
 
 	// Frames size
 	QtProperty *fs = sizeManager->addProperty( QLatin1String("Frames size") );
+	fs->setToolTip("Width & height of frames");
 	fs->setItalics(true);
 	idToProperty[fs->propertyName()] = fs;
-	root->addSubProperty(fs);
 
 	// AspectRatio
-	property = infoManager->addProperty("Aspect ratio");
-	property->setToolTip("Width / height ratio or original source");
-	property->setItalics(true);
-	idToProperty[property->propertyName()] = property;
-	root->addSubProperty(property);
+	QtProperty *ar = infoManager->addProperty("Aspect ratio");
+	ar->setToolTip("Ratio of pixel dimensions of acquired frames");
+	ar->setItalics(true);
+	idToProperty[ar->propertyName()] = ar;
 
+	// Frame rate
+	QtProperty *fr = infoManager->addProperty( QLatin1String("Frame rate") );
+	fr->setItalics(true);
+	idToProperty[fr->propertyName()] = fr;
 
 	rttiToProperty[Source::VIDEO_SOURCE] = groupManager->addProperty( QLatin1String("Media file"));
 
@@ -409,22 +426,21 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
-
-		// Ignore alpha channel
-		property = boolManager->addProperty("Ignore alpha");
-		property->setToolTip("Do not use the alpha channel of the images (black instead).");
+		// interlacing
+		property = infoManager->addProperty( QLatin1String("Interlaced") );
+		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
+
+		// Frames size & aspect ratio
+		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(fs);
+		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(ar);
 
 		// Frames size special case when power of two dimensions are generated
 		property = sizeManager->addProperty( QLatin1String("Original size") );
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
-
 		// Frame rate
-		QtProperty *fr = infoManager->addProperty( QLatin1String("Frame rate") );
-		fr->setItalics(true);
-		idToProperty[fr->propertyName()] = fr;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(fr);
 		// Duration
 		property = infoManager->addProperty( QLatin1String("Duration") );
@@ -441,9 +457,9 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
-		// logs
-		property = infoManager->addProperty( QLatin1String("Errors log") );
-		property->setItalics(true);
+		// Ignore alpha channel
+		property = boolManager->addProperty("Ignore alpha");
+		property->setToolTip("Do not use the alpha channel of the images (black instead).");
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 
@@ -458,6 +474,10 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(property);
 		// Frame rate
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(fr);
+
+		// Frames size & aspect ratio
+		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(fs);
+		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(ar);
 #endif
 
 	rttiToProperty[Source::RENDERING_SOURCE] = groupManager->addProperty( QLatin1String("Render loop-back"));
@@ -470,6 +490,9 @@ void SourcePropertyBrowser::createPropertyTree(){
 		// Frame rate
 		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(fr);
 
+		// Frames size & aspect ratio
+		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(fs);
+		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(ar);
 
 	rttiToProperty[Source::ALGORITHM_SOURCE] = groupManager->addProperty( QLatin1String("Algorithm"));
 
@@ -491,6 +514,10 @@ void SourcePropertyBrowser::createPropertyTree(){
 		intManager->setRange(property, 1, 60);
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(property);
 
+		// Frames size & aspect ratio
+		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(fs);
+		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(ar);
+
 	rttiToProperty[Source::CLONE_SOURCE] = groupManager->addProperty( QLatin1String("Clone"));
 
 		// Identifier
@@ -498,6 +525,10 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::CLONE_SOURCE]->addSubProperty(property);
+
+		// Frames size & aspect ratio
+		rttiToProperty[Source::CLONE_SOURCE]->addSubProperty(fs);
+		rttiToProperty[Source::CLONE_SOURCE]->addSubProperty(ar);
 
 //	rttiToProperty[Source::CAPTURE_SOURCE] = groupManager->addProperty( QLatin1String("Rendering capture properties"));
 
@@ -558,7 +589,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
 		intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
 		boolManager->setValue(idToProperty["Pixelated"], s->isPixelated());
-		infoManager->setValue(idToProperty["Aspect ratio"], QString::number(s->getAspectRatio()) );
+		infoManager->setValue(idToProperty["Aspect ratio"], aspectRatioToString(s->getAspectRatio()) );
 
 		// enable / disable properties depending on their dependencies
 		idToProperty["Brightness"]->setEnabled(s->isFiltered());
@@ -607,7 +638,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
 			infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
 			infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
-			infoManager->setValue(idToProperty["Errors log"], vf->getLogs() );
+			infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? tr("Yes") : tr("No") );
 
 		} else
 #ifdef OPEN_CV

@@ -35,6 +35,7 @@
 #include "Cursor.h"
 #include "SpringCursor.h"
 #include "DelayCursor.h"
+#include "MagnetCursor.h"
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 #define PROGRAM_TEXCOORD_ATTRIBUTE 1
@@ -150,6 +151,8 @@ ViewRenderWidget::ViewRenderWidget() :
 	Q_CHECK_PTR(_springCursor);
 	_delayCursor = new DelayCursor;
 	Q_CHECK_PTR(_delayCursor);
+	_magnetCursor = new MagnetCursor;
+	Q_CHECK_PTR(_magnetCursor);
 	// sets the current cursor
 	_currentCursor = _normalCursor;
 
@@ -186,6 +189,8 @@ ViewRenderWidget::~ViewRenderWidget()
 		delete _springCursor;
 	if (_delayCursor)
 		delete _delayCursor;
+	if (_magnetCursor)
+		delete _magnetCursor;
 }
 
 
@@ -219,11 +224,15 @@ void ViewRenderWidget::initializeGL()
 		mask_textures[Source::NO_MASK] = bindTexture(QPixmap(black_xpm), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
 		mask_textures[Source::ROUNDCORNER_MASK] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_roundcorner.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
@@ -231,6 +240,8 @@ void ViewRenderWidget::initializeGL()
 				":/glmixer/textures/mask_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
@@ -238,6 +249,8 @@ void ViewRenderWidget::initializeGL()
 				":/glmixer/textures/mask_linear_circle.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
@@ -245,6 +258,8 @@ void ViewRenderWidget::initializeGL()
 				":/glmixer/textures/mask_linear_square.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
@@ -252,6 +267,8 @@ void ViewRenderWidget::initializeGL()
 				":/glmixer/textures/mask_linear_left.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
@@ -259,20 +276,26 @@ void ViewRenderWidget::initializeGL()
 				":/glmixer/textures/mask_linear_right.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
 		mask_textures[Source::GRADIENT_TOP_MASK] = bindTexture(QPixmap(QString::fromUtf8(
-				":/glmixer/textures/mask_linear_top.png")), GL_TEXTURE_2D);
+				":/glmixer/textures/mask_linear_bottom.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
 		mask_textures[Source::GRADIENT_BOTTOM_MASK] = bindTexture(QPixmap(QString::fromUtf8(
-				":/glmixer/textures/mask_linear_bottom.png")), GL_TEXTURE_2D);
+				":/glmixer/textures/mask_linear_top.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
 		glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
@@ -393,6 +416,9 @@ void ViewRenderWidget::setCursorMode(cursorMode m){
 	case ViewRenderWidget::CURSOR_SPRING:
 		_currentCursor = _springCursor;
 		break;
+	case ViewRenderWidget::CURSOR_MAGNET:
+		_currentCursor = _magnetCursor;
+		break;
 	default:
 	case ViewRenderWidget::CURSOR_NORMAL:
 		_currentCursor = _normalCursor;
@@ -407,6 +433,9 @@ ViewRenderWidget::cursorMode ViewRenderWidget::getCursorMode(){
 
 	if (_currentCursor == _delayCursor)
 		return ViewRenderWidget::CURSOR_DELAY;
+
+	if (_currentCursor == _magnetCursor)
+		return ViewRenderWidget::CURSOR_MAGNET;
 
 	return ViewRenderWidget::CURSOR_NORMAL;
 }

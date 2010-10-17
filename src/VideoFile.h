@@ -817,6 +817,10 @@ public Q_SLOTS:
      */
     bool pixelFormatHasAlphaChannel() const;
     inline bool ignoresAlphaChannel() const { return ignoreAlpha; }
+    /**
+     *
+     */
+    bool isInterlaced() const { return deinterlacing_buffer != 0; }
 
 protected Q_SLOTS:
 	/**

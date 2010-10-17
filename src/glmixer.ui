@@ -1204,7 +1204,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>1115</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1314,6 +1314,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionCursorNormal"/>
     <addaction name="actionCursorSpring"/>
     <addaction name="actionCursorDelay"/>
+    <addaction name="actionCursorMagnet"/>
     <addaction name="actionCursorCurve"/>
    </widget>
    <addaction name="menuFile"/>
@@ -1403,6 +1404,7 @@ p, li { white-space: pre-wrap; }
    <addaction name="actionCursorNormal"/>
    <addaction name="actionCursorSpring"/>
    <addaction name="actionCursorDelay"/>
+   <addaction name="actionCursorMagnet"/>
    <addaction name="actionCursorCurve"/>
   </widget>
   <widget class="QDockWidget" name="cursorDockWidget">
@@ -1430,7 +1432,7 @@ p, li { white-space: pre-wrap; }
      <item>
       <widget class="QStackedWidget" name="cursorOptionWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -1592,6 +1594,64 @@ p, li { white-space: pre-wrap; }
             <enum>Qt::Horizontal</enum>
            </property>
           </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="cursorMagnetOptions">
+        <layout class="QVBoxLayout" name="verticalLayout_7">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <item>
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap resource="../icons.qrc">:/glmixer/icons/magnet-cursor.png</pixmap>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>Attraction force:</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>142</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -2197,7 +2257,7 @@ p, li { white-space: pre-wrap; }
     <string>The cursor follows the mouse (default)</string>
    </property>
    <property name="shortcut">
-    <string>U</string>
+    <string>N</string>
    </property>
   </action>
   <action name="actionCursorSpring">
@@ -2212,16 +2272,13 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/spring-cursor.png</normaloff>:/glmixer/icons/spring-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Spring cursor</string>
-   </property>
-   <property name="toolTip">
-    <string>Spring cursor</string>
+    <string>Elastic cursor</string>
    </property>
    <property name="statusTip">
     <string>The cursor is attracted by the mouse but is more 'heavy'.</string>
    </property>
    <property name="shortcut">
-    <string>I</string>
+    <string>E</string>
    </property>
   </action>
   <action name="actionCursorDelay">
@@ -2245,7 +2302,7 @@ p, li { white-space: pre-wrap; }
     <string>The cursor moves with a constant speed to reach the mouse position.</string>
    </property>
    <property name="shortcut">
-    <string>O</string>
+    <string>D</string>
    </property>
   </action>
   <action name="actionCursorCurve">
@@ -2260,10 +2317,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/glmixer/icons/curve-cursor.png</normaloff>:/glmixer/icons/curve-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Curve cursor</string>
-   </property>
-   <property name="toolTip">
-    <string>Curve cursor</string>
+    <string>Path cursor</string>
    </property>
    <property name="statusTip">
     <string>The cursor follows a path drawn by the mouse.</string>
@@ -2405,6 +2459,21 @@ p, li { white-space: pre-wrap; }
   <action name="actionRecent_session">
    <property name="text">
     <string>Open recent</string>
+   </property>
+  </action>
+  <action name="actionCursorMagnet">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/magnet-cursor.png</normaloff>:/glmixer/icons/magnet-cursor.png</iconset>
+   </property>
+   <property name="text">
+    <string>Magnet cursor</string>
+   </property>
+   <property name="shortcut">
+    <string>M</string>
    </property>
   </action>
  </widget>

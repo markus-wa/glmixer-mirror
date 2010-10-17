@@ -41,6 +41,7 @@ class CatalogView;
 class Cursor;
 class SpringCursor;
 class DelayCursor;
+class MagnetCursor;
 
 class ViewRenderWidget: public glRenderWidget {
 
@@ -99,12 +100,13 @@ public:
 	void setToolMode(toolMode m);
 	toolMode getToolMode();
 
-	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY } cursorMode;
+	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_MAGNET} cursorMode;
 	void setCursorMode(cursorMode m);
 	cursorMode getCursorMode();
 
 	inline SpringCursor *getSpringCursor() const { return _springCursor; }
 	inline DelayCursor *getDelayCursor() const { return _delayCursor; }
+	inline MagnetCursor *getMagnetCursor() const { return _magnetCursor; }
 
 	/**
 	 * save and load configuration
@@ -176,6 +178,7 @@ private:
 	Cursor *_currentCursor, *_normalCursor;
 	SpringCursor *_springCursor;
 	DelayCursor *_delayCursor;
+	MagnetCursor *_magnetCursor;
 
 	// M e s s a g e s
 	QLabel *messageLabel, *fpsLabel;

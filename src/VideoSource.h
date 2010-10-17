@@ -47,12 +47,8 @@ protected:
     void update();
 	void setStandby(bool on);
 
-public Q_SLOTS:
-	void play(bool on);
-    void updateFrame (int i);
-    void applyFilter();
-
 public:
+
 	RTTI rtti() const { return type; }
 	bool isPlayable() const;
 	bool isPlaying() const;
@@ -62,6 +58,13 @@ public:
 	int getFrameWidth() const { return is->getFrameWidth(); }
 	int getFrameHeight() const { return is->getFrameHeight(); }
 
+	double getStorageAspectRatio() const { return is->getStreamAspectRatio(); }
+
+public Q_SLOTS:
+	void play(bool on);
+    void updateFrame (int i);
+    void applyFilter();
+
 private:
 
 	static RTTI type;
@@ -70,7 +73,6 @@ private:
     VideoPicture copy;
 
     int bufferIndex;
-
 };
 
 #endif /* VIDEOSOURCE_H_ */
