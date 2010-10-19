@@ -145,17 +145,17 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent)
 
 QString aspectRatioToString(double ar)
 {
-	if ( (ar - (1.0) ) < EPSILON )
+	if ( ABS(ar - 1.0 ) < EPSILON )
 		return QString("1:1");
-	else if ( (ar - (5.0 / 4.0) ) < EPSILON )
+	else if ( ABS(ar - (5.0 / 4.0) ) < EPSILON )
 		return QString("5:4");
-	else if ( (ar - (4.0 / 3.0) ) < EPSILON )
+	else if ( ABS(ar - (4.0 / 3.0) ) < EPSILON )
 		return QString("4:3");
-	else if ( (ar - (16.0 / 9.0) ) < EPSILON )
+	else if ( ABS(ar - (16.0 / 9.0) ) < EPSILON )
 		return QString("16:9");
-	else  if ( (ar - (3.0 / 2.0) ) < EPSILON )
+	else  if ( ABS(ar - (3.0 / 2.0) ) < EPSILON )
 		return QString("3:2");
-	else if ( (ar - (16.0 / 10.0) ) < EPSILON )
+	else if ( ABS(ar - (16.0 / 10.0) ) < EPSILON )
 		return QString("16:10");
 	else
 		return QString::number(ar);

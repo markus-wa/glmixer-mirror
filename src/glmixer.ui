@@ -1241,9 +1241,19 @@ p, li { white-space: pre-wrap; }
       <iconset resource="../icons.qrc">
        <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
      </property>
+     <widget class="QMenu" name="menuAspect_Ratio">
+      <property name="title">
+       <string>Aspect Ratio</string>
+      </property>
+      <addaction name="action4_3_aspect_ratio"/>
+      <addaction name="action3_2_aspect_ratio"/>
+      <addaction name="action16_10_aspect_ratio"/>
+      <addaction name="action16_9_aspect_ratio"/>
+      <addaction name="actionFree_aspect_ratio"/>
+     </widget>
      <addaction name="actionFullscreen"/>
-     <addaction name="actionFree_aspect_ratio"/>
      <addaction name="actionWhite_background"/>
+     <addaction name="menuAspect_Ratio"/>
     </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
@@ -1432,7 +1442,7 @@ p, li { white-space: pre-wrap; }
      <item>
       <widget class="QStackedWidget" name="cursorOptionWidget">
        <property name="currentIndex">
-        <number>3</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -1794,7 +1804,7 @@ p, li { white-space: pre-wrap; }
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Free aspect ratio</string>
+    <string>Free window  size</string>
    </property>
    <property name="statusTip">
     <string>Allows to apply the aspect ratio of the output window to the rendering area </string>
@@ -2474,6 +2484,41 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="shortcut">
     <string>M</string>
+   </property>
+  </action>
+  <action name="action4_3_aspect_ratio">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>4:3</string>
+   </property>
+  </action>
+  <action name="action3_2_aspect_ratio">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>3:2</string>
+   </property>
+  </action>
+  <action name="action16_10_aspect_ratio">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>16:10</string>
+   </property>
+  </action>
+  <action name="action16_9_aspect_ratio">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>16:9</string>
    </property>
   </action>
  </widget>

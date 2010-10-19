@@ -27,6 +27,8 @@
 #define MAGNETCURSOR_H_
 
 #include "Cursor.h"
+#define MIN_FORCE 1
+#define MAX_FORCE 20
 
 class MagnetCursor: public QObject, public Cursor
 {
@@ -40,22 +42,20 @@ public:
 	bool wheelEvent(QWheelEvent * event);
 	void draw(GLint viewport[4]);
 
-	inline int getSpeed() const { return (int) speed; }
-	inline double getWaitTime() const { return waitTime; }
+	inline int getForce() const { return (int) force; }
 
 public Q_SLOTS:
-	inline void setSpeed(int s) { speed = (double) s; }
+	inline void setForce(int s) { force = (double) s; }
 
 Q_SIGNALS:
-	void speedChanged(int s);
+	void forceChanged(int s);
 
 private:
 
-	double speed;
-	double waitTime;
+	double force;
 
 	// timing
-	double t, duration;
+	double t;
 };
 
 #endif /* MAGNETCURSOR_H_ */

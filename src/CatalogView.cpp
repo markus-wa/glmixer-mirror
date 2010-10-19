@@ -97,6 +97,8 @@ void CatalogView::clear() {
 	_width = SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio();
 
 	// draw the catalog background and its frame
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 	glColor4f(0.5, 0.5, 0.5, 0.2);
     float bl_x = -_width + 0.3 * _size[_currentSize] * h_unit;
     float bl_y = -SOURCE_UNIT + ( 2.0 * SOURCE_UNIT - _height) - 0.5;

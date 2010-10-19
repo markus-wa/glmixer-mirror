@@ -66,7 +66,6 @@ public Q_SLOTS:
 	void on_frameSlider_actionTriggered(int);
 	void on_actionShow_frames_toggled(bool);
 	void on_actionShowFPS_toggled(bool);
-	void on_actionFree_aspect_ratio_toggled(bool);
 	void on_actionAbout_triggered();
 	void on_actionPreferences_triggered();
 
@@ -84,6 +83,7 @@ public Q_SLOTS:
 	void setView(QAction *a);
 	void setTool(QAction *a);
 	void setCursor(QAction *a);
+	void setAspectRatio(QAction *a);
 	void updateRefreshTimerState();
 	void updateMarks();
 	void unpauseBeforeSeek();

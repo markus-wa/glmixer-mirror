@@ -54,7 +54,7 @@ UserPreferencesDialog::~UserPreferencesDialog()
 void UserPreferencesDialog::restoreDefaultPreferences() {
 
 	if (stackedPreferences->currentWidget() == PageRendering) {
-		r640x480->setChecked(true);
+		resolutionTable->selectRow(0);
 	    activateBlitFrameBuffer->setChecked(glSupportsExtension("GL_EXT_framebuffer_blit"));
 		updatePeriod->setValue(16);
 	}
@@ -92,9 +92,9 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 		return;
 
 	// a. Read and show the rendering preferences
-	QSize RenderingSize;
-	stream  >> RenderingSize;
-	sizeToSelection(RenderingSize);
+	unsigned int RenderingQuality;
+	stream  >> RenderingQuality;
+	resolutionTable->selectRow(RenderingQuality);
 
 	bool useBlitFboExtension = true;
 	stream >> useBlitFboExtension;
@@ -152,7 +152,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	stream << magicNumber << majorVersion;
 
 	// a. write the rendering preferences
-	stream << selectionToSize() << activateBlitFrameBuffer->isChecked();
+	stream << resolutionTable->currentRow() << activateBlitFrameBuffer->isChecked();
 	stream << updatePeriod->value();
 
 	// b. Write the default source properties
@@ -182,54 +182,13 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
 void UserPreferencesDialog::sizeToSelection(QSize s){
 
-	if (s==QSize(640, 480)) r640x480->setChecked(true);
-    if (s==QSize(600, 400)) r600x400->setChecked(true);
-    if (s==QSize(640, 400)) r640x400->setChecked(true);
-    if (s==QSize(854, 480)) r854x480->setChecked(true);
-    if (s==QSize(768, 576)) r768x576->setChecked(true);
-    if (s==QSize(720, 480)) r720x480->setChecked(true);
-    if (s==QSize(800, 600)) r800x600->setChecked(true);
-    if (s==QSize(960, 600)) r960x600->setChecked(true);
-    if (s==QSize(1042, 768)) r1042x768->setChecked(true);
-    if (s==QSize(1152, 768)) r1152x768->setChecked(true);
-    if (s==QSize(1280, 800)) r1280x800->setChecked(true);
-    if (s==QSize(1280, 720)) r1280x720->setChecked(true);
-    if (s==QSize(1600, 1200)) r1600x1200->setChecked(true);
-    if (s==QSize(1920, 1200)) r1920x1200->setChecked(true);
-    if (s==QSize(1920, 1080)) r1920x1080->setChecked(true);
+
 
 }
 
 QSize UserPreferencesDialog::selectionToSize() const {
 
-    if(r600x400->isChecked())
-    	return QSize(600, 400);
-    if(r640x400->isChecked())
-    	return QSize(640, 400);
-    if(r854x480->isChecked())
-    	return QSize(854, 480);
-    if(r768x576->isChecked())
-    	return QSize(798, 576);
-    if(r720x480->isChecked())
-    	return QSize(720, 480);
-    if(r800x600->isChecked())
-    	return QSize(800, 600);
-    if(r960x600->isChecked())
-    	return QSize(960, 600);
-    if(r1042x768->isChecked())
-    	return QSize(1024, 768);
-    if(r1152x768->isChecked())
-    	return QSize(1152, 768);
-    if(r1280x800->isChecked())
-    	return QSize(1280, 800);
-    if(r1280x720->isChecked())
-    	return QSize(1280, 720);
-    if(r1600x1200->isChecked())
-    	return QSize(1600, 1200);
-    if(r1920x1200->isChecked())
-    	return QSize(1920, 1200);
-    if(r1920x1080->isChecked())
-    	return QSize(1920, 1080);
+
 
     return QSize(640, 480);
 }

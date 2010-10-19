@@ -29,7 +29,7 @@
 
 #include "MagnetCursor.moc"
 
-MagnetCursor::MagnetCursor() : Cursor(), speed(100.0), waitTime(1.0), t(0.0), duration(0.0)
+MagnetCursor::MagnetCursor() : Cursor(), force(MIN_FORCE), t(0.0)
 {
 
 }
@@ -41,7 +41,6 @@ void MagnetCursor::update(QMouseEvent *e){
 	if (e->type() == QEvent::MouseButtonPress){
 		// reset time
 		t = 0.0;
-		duration = 0.0;
 	}
 }
 
@@ -49,25 +48,14 @@ bool MagnetCursor::apply(double fpsaverage){
 
 	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
 
+	t += 3.0 * dt;
+	if (t > 3.14) t = 0.0;
+
 	// animate the shadow
 	if (active) {
 
-		releasePos = mousePos;
+		shadowPos = mousePos;
 
-		if (duration < waitTime)
-			duration += dt;
-		else {
-
-			t += dt;
-
-			// interpolation
-			shadowPos = pressPos + speed * t * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
-	//		shadowPos += dt * coef * (releasePos - shadowPos);
-
-			// interpolation finished?
-			if ( euclidean(releasePos, shadowPos) < speed * dt)
-				active = false;
-		}
 		return true;
 	}
 
@@ -80,13 +68,15 @@ bool MagnetCursor::wheelEvent(QWheelEvent * event){
 	if (!active)
 		return false;
 
-	if (duration < waitTime) {
-		duration = 0.0;
+	if (!active)
+		return false;
+
+	force += ((float) event->delta() * force * MIN_FORCE) / (60.0 * MAX_FORCE) ;
+	force = CLAMP(force, MIN_FORCE, MAX_FORCE);
 
 //		speed += ((float) event->delta() * speed * MIN_SPEED) / (240.0 * MAX_SPEED) ;
 //		speed = CLAMP(speed, MIN_SPEED, MAX_SPEED);
-		emit speedChanged((int)speed);
-	}
+	emit forceChanged((int)force);
 
 	return true;
 }
@@ -104,25 +94,23 @@ void MagnetCursor::draw(GLint viewport[4]) {
 
 	glColor4ub(13, 148, 224, 255);
 
-	glPointSize(15);
-	glBegin(GL_POINTS);
-	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
-	glEnd();
+	glTranslatef(shadowPos.x(), viewport[3] - shadowPos.y(), 0.0);
 
-	QPointF p(pressPos);
-	glPointSize(5);
+	glPointSize(10 + force);
 	glBegin(GL_POINTS);
-	while( euclidean(releasePos, p) > speed ) {
-		glVertex2d(p.x(), (viewport[3] - p.y()));
-		p += speed * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
-	}
-	glVertex2d(p.x(), (viewport[3] - p.y()));
+	glVertex2d(0.0, 0.0);
 	glEnd();
 
 	glLineWidth(1);
-	glBegin(GL_LINES);
-	glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
-	glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
+	float r = (2.0 +cos(t + 1.6)) * 20.0;
+	glBegin(GL_LINE_LOOP);
+	for (float i = 0; i < 2.0 * M_PI; i += 0.2)
+		glVertex3f( r * cos(i), r * sin(i), 0);
+	glEnd();
+	r = (1.0 +cos(t)) * 20.0;
+	glBegin(GL_LINE_LOOP);
+	for (float i = 0; i < 2.0 * M_PI; i += 0.2)
+		glVertex3f( r * cos(i), r * sin(i), 0);
 	glEnd();
 
 	glMatrixMode(GL_PROJECTION);

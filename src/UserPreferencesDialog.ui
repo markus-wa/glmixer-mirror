@@ -20,6 +20,12 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <widget class="QListWidget" name="listWidget">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="autoScrollMargin">
       <number>16</number>
      </property>
@@ -101,185 +107,260 @@
           <string>Size of the internal buffer where the mix is rendered: high resolution may slow down the rendering.</string>
          </property>
          <property name="title">
-          <string>Frame buffer resolution</string>
+          <string>Frame buffer size</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_4_3">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>24</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Box</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Plain</enum>
-            </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>4:3 aspect ratio:</string>
+             <string>Select the quality (resolution will be set according to each session aspect ratio)</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="label_3_2">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Box</enum>
-            </property>
-            <property name="text">
-             <string>3:2 aspect ratio:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="label_16_10">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Box</enum>
-            </property>
-            <property name="text">
-             <string>16:10  aspect ratio:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QLabel" name="label_16_9">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Box</enum>
-            </property>
-            <property name="text">
-             <string>16:9 aspect ratio:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QRadioButton" name="r640x480">
-            <property name="text">
-             <string>640 x 480 (VGA)</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QRadioButton" name="r600x400">
-            <property name="text">
-             <string>600 x 400</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QRadioButton" name="r640x400">
-            <property name="text">
-             <string>640 x 400</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QRadioButton" name="r854x480">
-            <property name="text">
-             <string>854 x 480 (WVGA)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QRadioButton" name="r768x576">
-            <property name="text">
-             <string>768 x 576 (PAL)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QRadioButton" name="r720x480">
-            <property name="text">
-             <string>720 x 480 (NTSC)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QRadioButton" name="r800x600">
-            <property name="text">
-             <string>800 x 600 (SVGA)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QRadioButton" name="r960x600">
-            <property name="text">
-             <string>960 x 600</string>
-            </property>
-            <property name="checked">
+          <item>
+           <widget class="QTableWidget" name="resolutionTable">
+            <property name="tabKeyNavigation">
              <bool>false</bool>
             </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QRadioButton" name="r1042x768">
-            <property name="text">
-             <string>1024 x 768 (XGA)</string>
-            </property>
-            <property name="checked">
+            <property name="showDropIndicator" stdset="0">
              <bool>false</bool>
             </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QRadioButton" name="r1152x768">
-            <property name="text">
-             <string>1152 x 768</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2">
-           <widget class="QRadioButton" name="r1280x800">
-            <property name="text">
-             <string>1280 x 800 (WXGA)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="3">
-           <widget class="QRadioButton" name="r1280x720">
-            <property name="text">
-             <string>1280 x 720 (HD 720)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QRadioButton" name="r1600x1200">
-            <property name="text">
-             <string>1600 x 1200 (UXGA)</string>
-            </property>
-            <property name="checked">
+            <property name="dragDropOverwriteMode">
              <bool>false</bool>
             </property>
-           </widget>
-          </item>
-          <item row="5" column="2">
-           <widget class="QRadioButton" name="r1920x1200">
-            <property name="text">
-             <string>1920 x 1200 (WUXGA)</string>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
             </property>
-           </widget>
-          </item>
-          <item row="5" column="3">
-           <widget class="QRadioButton" name="r1920x1080">
-            <property name="text">
-             <string>1920 x 1080 (HD 1080)</string>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
             </property>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+            <row>
+             <property name="text">
+              <string>Basic</string>
+             </property>
+            </row>
+            <row>
+             <property name="text">
+              <string>Standard TV</string>
+             </property>
+            </row>
+            <row>
+             <property name="text">
+              <string>Medium</string>
+             </property>
+            </row>
+            <row>
+             <property name="text">
+              <string>High def</string>
+             </property>
+            </row>
+            <row>
+             <property name="text">
+              <string>Very high def</string>
+             </property>
+            </row>
+            <column>
+             <property name="text">
+              <string>4:3</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>3:2</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>16:10</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>16:9</string>
+             </property>
+            </column>
+            <item row="0" column="0">
+             <property name="text">
+              <string>640x480 VGA</string>
+             </property>
+            </item>
+            <item row="0" column="1">
+             <property name="text">
+              <string>720x480 NTSC</string>
+             </property>
+            </item>
+            <item row="0" column="2">
+             <property name="text">
+              <string>800x480 WVGA</string>
+             </property>
+            </item>
+            <item row="0" column="3">
+             <property name="text">
+              <string>854x480 WVGA</string>
+             </property>
+            </item>
+            <item row="1" column="0">
+             <property name="text">
+              <string>768x576 PAL</string>
+             </property>
+            </item>
+            <item row="1" column="1">
+             <property name="text">
+              <string>864x576</string>
+             </property>
+             <property name="font">
+              <font>
+               <italic>true</italic>
+              </font>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="NoBrush">
+               <color alpha="255">
+                <red>88</red>
+                <green>88</green>
+                <blue>88</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="1" column="2">
+             <property name="text">
+              <string>920x575</string>
+             </property>
+             <property name="font">
+              <font>
+               <italic>true</italic>
+              </font>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="NoBrush">
+               <color alpha="255">
+                <red>88</red>
+                <green>88</green>
+                <blue>88</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="1" column="3">
+             <property name="text">
+              <string>1024x576 WPAL</string>
+             </property>
+            </item>
+            <item row="2" column="0">
+             <property name="text">
+              <string>800x600 SVGA</string>
+             </property>
+            </item>
+            <item row="2" column="1">
+             <property name="text">
+              <string>900x600</string>
+             </property>
+             <property name="font">
+              <font>
+               <italic>true</italic>
+              </font>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="NoBrush">
+               <color alpha="255">
+                <red>88</red>
+                <green>88</green>
+                <blue>88</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="2" column="2">
+             <property name="text">
+              <string>960x600</string>
+             </property>
+             <property name="font">
+              <font>
+               <italic>true</italic>
+              </font>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="NoBrush">
+               <color alpha="255">
+                <red>88</red>
+                <green>88</green>
+                <blue>88</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="2" column="3">
+             <property name="text">
+              <string>1088x612</string>
+             </property>
+             <property name="font">
+              <font>
+               <italic>true</italic>
+              </font>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="NoBrush">
+               <color alpha="255">
+                <red>88</red>
+                <green>88</green>
+                <blue>88</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="3" column="0">
+             <property name="text">
+              <string>1024x768 XGA</string>
+             </property>
+            </item>
+            <item row="3" column="1">
+             <property name="text">
+              <string>1152x768</string>
+             </property>
+            </item>
+            <item row="3" column="2">
+             <property name="text">
+              <string>1280x800 WXGA</string>
+             </property>
+            </item>
+            <item row="3" column="3">
+             <property name="text">
+              <string>1280x720 HD</string>
+             </property>
+            </item>
+            <item row="4" column="0">
+             <property name="text">
+              <string>1600x1200 UXGA</string>
+             </property>
+            </item>
+            <item row="4" column="1">
+             <property name="text">
+              <string>1440x960</string>
+             </property>
+            </item>
+            <item row="4" column="2">
+             <property name="text">
+              <string>1920x1200 WUXGA</string>
+             </property>
+            </item>
+            <item row="4" column="3">
+             <property name="text">
+              <string>1920x1080 HD</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>

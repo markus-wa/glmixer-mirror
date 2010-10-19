@@ -52,6 +52,10 @@ Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 // static members
 RenderingManager *RenderingManager::_instance = 0;
 bool RenderingManager::blit_fbo_extension = true;
+QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED] = { { QSize(640,480), QSize(768,576), QSize(800,600), QSize(1024,768), QSize(1600,1200) },
+																		   { QSize(720,480), QSize(864,576), QSize(900,600), QSize(1152,768), QSize(1440,960) },
+																           { QSize(800,480), QSize(920,575), QSize(960,600), QSize(1280,800), QSize(1920,1200) },
+																           { QSize(854,480), QSize(1024,576), QSize(1088,612), QSize(1280,720), QSize(1920,1080) }};
 
 ViewRenderWidget *RenderingManager::getRenderingWidget() {
 
@@ -123,7 +127,8 @@ RenderingManager::RenderingManager() :
     QObject::connect(_renderwidget, SIGNAL(sourceLayerDrop(double)), this, SLOT(dropSourceWithDepth(double)) );
 
     // 3. Initialize the frame buffer
-	setFrameBufferResolution( QSize(DEFAULT_WIDTH, DEFAULT_HEIGHT) );
+    renderingQuality = QUALITY_VGA;
+	setFrameBufferResolution( sizeOfFrameBuffer[ASPECT_RATIO_4_3][renderingQuality] );
 
 	_currentSource = getEnd();
 
@@ -141,6 +146,36 @@ RenderingManager::~RenderingManager() {
 	if (_fbo)
 		delete _fbo;
 
+}
+
+
+void RenderingManager::setRenderingQuality(frameBufferQuality q)
+{
+	if ( q == QUALITY_UNSUPPORTED )
+		q = QUALITY_VGA;
+
+	// ignore if nothing changes
+	if (q == renderingQuality)
+		return;
+
+	// quality changed ; change resolution
+	renderingQuality = q;
+	setFrameBufferResolution( sizeOfFrameBuffer[renderingAspectRatio][renderingQuality]);
+}
+
+
+void RenderingManager::setRenderingAspectRatio(standardAspectRatio ar)
+{
+	// ignore if nothing changes
+	if ( ar == renderingAspectRatio )
+		return;
+
+	renderingAspectRatio = ar;
+
+	// by default, free windows are rendered with a 4:3 aspect ratio frame bufer
+	if (ar == ASPECT_RATIO_FREE)
+		ar = ASPECT_RATIO_4_3;
+	setFrameBufferResolution( sizeOfFrameBuffer[ar][renderingQuality]);
 }
 
 void RenderingManager::setFrameBufferResolution(QSize size) {
@@ -184,9 +219,9 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 }
 
 
-float RenderingManager::getFrameBufferAspectRatio() const{
+double RenderingManager::getFrameBufferAspectRatio() const{
 
-	return ((float) _fbo->width() / (float) _fbo->height());
+	return ((double) _fbo->width() / (double) _fbo->height());
 }
 
 void RenderingManager::updatePreviousFrame() {
@@ -1175,5 +1210,21 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
     	}
     }
 
+}
+
+
+
+standardAspectRatio doubleToAspectRatio(double ar)
+{
+	if ( ABS(ar - (4.0 / 3.0) ) < EPSILON )
+		return ASPECT_RATIO_4_3;
+	else if ( ABS(ar - (16.0 / 9.0) ) < EPSILON )
+		return ASPECT_RATIO_16_9;
+	else  if ( ABS(ar - (3.0 / 2.0) ) < EPSILON )
+		return ASPECT_RATIO_3_2;
+	else if ( ABS(ar - (16.0 / 10.0) ) < EPSILON )
+		return ASPECT_RATIO_16_10;
+	else
+		return ASPECT_RATIO_FREE;
 }
 

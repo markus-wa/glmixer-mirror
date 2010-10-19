@@ -26,20 +26,35 @@
 #ifndef MAINRENDERWIDGET_H_
 #define MAINRENDERWIDGET_H_
 
-#define DEFAULT_WIDTH 640
-#define DEFAULT_HEIGHT 480
-
 #include "common.h"
 #include "SourceSet.h"
 
-class ViewRenderWidget;
-class SourcePropertyBrowser;
+typedef enum {
+	QUALITY_VGA = 0,
+	QUALITY_PAL,
+	QUALITY_SVGA,
+	QUALITY_XGA,
+	QUALITY_UXGA,
+	QUALITY_UNSUPPORTED
+} frameBufferQuality;
+
+typedef enum {
+	ASPECT_RATIO_4_3 = 0,
+	ASPECT_RATIO_3_2,
+	ASPECT_RATIO_16_10,
+	ASPECT_RATIO_16_9,
+	ASPECT_RATIO_FREE
+} standardAspectRatio;
+
+standardAspectRatio doubleToAspectRatio(double ar);
 
 #include <QObject>
 #include <QDomElement>
 
 class QGLFramebufferObject;
 class VideoFile;
+class ViewRenderWidget;
+class SourcePropertyBrowser;
 
 class RenderingManager: public QObject {
 
@@ -104,9 +119,17 @@ public:
 	/**
 	 * management of the rendering
 	 */
-	void setFrameBufferResolution(QSize size);
-	void renderToFrameBuffer(Source *source, bool clearfirst);
-	float getFrameBufferAspectRatio() const;
+	void setRenderingQuality(frameBufferQuality q);
+	inline frameBufferQuality getRenderingQuality() const {
+		return renderingQuality;
+	}
+
+	void setRenderingAspectRatio(standardAspectRatio ar);
+	standardAspectRatio getRenderingAspectRatio() const {
+		return renderingAspectRatio;
+	}
+
+	double getFrameBufferAspectRatio() const;
 	inline QSize getFrameBufferResolution() const {
 			return _fbo ? _fbo->size() : QSize(0,0);
 	}
@@ -127,6 +150,7 @@ public:
 		return _fbo ? _fbo->handle() : 0;
 	}
 
+	void renderToFrameBuffer(Source *source, bool clearfirst);
 	void updatePreviousFrame();
 	inline unsigned int getPreviousFrameDelay() const {
 		return previousframe_delay;
@@ -173,6 +197,8 @@ private:
 	virtual ~RenderingManager();
 	static RenderingManager *_instance;
 
+	void setFrameBufferResolution(QSize size);
+
 protected:
 	// the rendering area
 	ViewRenderWidget *_renderwidget;
@@ -184,6 +210,8 @@ protected:
 	QGLFramebufferObject *previousframe_fbo;
 	unsigned int countRenderingSource, previousframe_index, previousframe_delay;
     bool clearWhite;
+    frameBufferQuality renderingQuality;
+    standardAspectRatio renderingAspectRatio;
 
 	// the set of sources
 	SourceSet _sources;
@@ -194,6 +222,7 @@ protected:
 	bool _playOnDrop;
 
     static bool blit_fbo_extension;
+    static QSize sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED];
 };
 
 #endif /* MAINRENDERWIDGET_H_ */

@@ -88,18 +88,38 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 	QActionGroup *toolActions = new QActionGroup(this);
 	toolActions->addAction(actionToolGrab);
+	actionToolGrab->setData(ViewRenderWidget::TOOL_GRAB);
 	toolActions->addAction(actionToolScale);
+	actionToolScale->setData(ViewRenderWidget::TOOL_SCALE);
 	toolActions->addAction(actionToolRotate);
+	actionToolRotate->setData(ViewRenderWidget::TOOL_ROTATE);
 	toolActions->addAction(actionToolCut);
+	actionToolCut->setData(ViewRenderWidget::TOOL_CUT);
     QObject::connect(toolActions, SIGNAL(triggered(QAction *)), this, SLOT(setTool(QAction *) ) );
 
 	QActionGroup *cursorActions = new QActionGroup(this);
 	cursorActions->addAction(actionCursorNormal);
+	actionCursorNormal->setData(ViewRenderWidget::CURSOR_NORMAL);
 	cursorActions->addAction(actionCursorSpring);
+	actionCursorSpring->setData(ViewRenderWidget::CURSOR_SPRING);
 	cursorActions->addAction(actionCursorDelay);
+	actionCursorDelay->setData(ViewRenderWidget::CURSOR_DELAY);
 	cursorActions->addAction(actionCursorMagnet);
-	cursorActions->addAction(actionCursorCurve);
+	actionCursorMagnet->setData(ViewRenderWidget::CURSOR_MAGNET);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
+
+	QActionGroup *aspectRatioActions = new QActionGroup(this);
+	aspectRatioActions->addAction(action4_3_aspect_ratio);
+	action4_3_aspect_ratio->setData(ASPECT_RATIO_4_3);
+	aspectRatioActions->addAction(action3_2_aspect_ratio);
+	action3_2_aspect_ratio->setData(ASPECT_RATIO_3_2);
+	aspectRatioActions->addAction(action16_10_aspect_ratio);
+	action16_10_aspect_ratio->setData(ASPECT_RATIO_16_10);
+	aspectRatioActions->addAction(action16_9_aspect_ratio);
+	action16_9_aspect_ratio->setData(ASPECT_RATIO_16_9);
+	aspectRatioActions->addAction(actionFree_aspect_ratio);
+	actionFree_aspect_ratio->setData(ASPECT_RATIO_FREE);
+    QObject::connect(aspectRatioActions, SIGNAL(triggered(QAction *)), this, SLOT(setAspectRatio(QAction *) ) );
 
     // recent files history
     QMenu *recentFiles = new QMenu(this);
@@ -205,7 +225,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 GLMixer::~GLMixer()
 {
 	saveSettings();
-
 	RenderingManager::deleteInstance();
 }
 
@@ -279,33 +298,13 @@ void GLMixer::setView(QAction *a){
 
 void GLMixer::setTool(QAction *a){
 
-	if (a == actionToolGrab)
-		RenderingManager::getRenderingWidget()->setToolMode(ViewRenderWidget::TOOL_GRAB);
-	else if (a == actionToolScale)
-		RenderingManager::getRenderingWidget()->setToolMode(ViewRenderWidget::TOOL_SCALE);
-	else if (a == actionToolRotate)
-		RenderingManager::getRenderingWidget()->setToolMode(ViewRenderWidget::TOOL_ROTATE);
-	else if (a == actionToolCut)
-		RenderingManager::getRenderingWidget()->setToolMode(ViewRenderWidget::TOOL_CUT);
-
+	RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) a->data().toInt() );
 }
-
 
 void GLMixer::setCursor(QAction *a){
 
-	if (a == actionCursorNormal) {
-		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_NORMAL);
-		cursorOptionWidget->setCurrentWidget(cursorNormalOptions);
-	} else if (a == actionCursorSpring) {
-		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_SPRING);
-		cursorOptionWidget->setCurrentWidget(cursorSpringOptions);
-	} else if (a == actionCursorDelay) {
-		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_DELAY);
-		cursorOptionWidget->setCurrentWidget(cursorDelayOptions);
-	} else if (a == actionCursorMagnet) {
-		RenderingManager::getRenderingWidget()->setCursorMode(ViewRenderWidget::CURSOR_MAGNET);
-		cursorOptionWidget->setCurrentWidget(cursorMagnetOptions);
-	}
+	RenderingManager::getRenderingWidget()->setCursorMode( (ViewRenderWidget::cursorMode) a->data().toInt() );
+	cursorOptionWidget->setCurrentIndex(a->data().toInt());
 }
 
 void GLMixer::on_actionMediaSource_triggered(){
@@ -982,15 +981,25 @@ void GLMixer::on_actionShowFPS_toggled(bool on){
 	RenderingManager::getRenderingWidget()->showFramerate(on);
 }
 
-void GLMixer::on_actionFree_aspect_ratio_toggled(bool on){
 
-	OutputRenderWindow::getInstance()->useFreeAspectRatio(on);
-	outputpreview->useFreeAspectRatio(on);
+void GLMixer::setAspectRatio(QAction *a)
+{
+	standardAspectRatio ar = (standardAspectRatio) a->data().toInt();
 
-	if (on) {
+	RenderingManager::getInstance()->setRenderingAspectRatio(ar);
+
+	// apply config; this also refreshes the rendering areas
+	// if none of the above, the FREE aspect ratio was requested
+	if (ar == ASPECT_RATIO_FREE) {
+		OutputRenderWindow::getInstance()->useFreeAspectRatio(true);
+		outputpreview->useFreeAspectRatio(true);
 		QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized()), outputpreview, SLOT(refresh()));
 		QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(resized()), RenderingManager::getRenderingWidget(), SLOT(refresh()));
-	} else {
+	}
+	// otherwise, disable the free aspect ratio
+	else {
+		OutputRenderWindow::getInstance()->useFreeAspectRatio(false);
+		outputpreview->useFreeAspectRatio(false);
 		QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(resized()), outputpreview, SLOT(refresh()));
 		QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(resized()), RenderingManager::getRenderingWidget(), SLOT(refresh()));
 	}
@@ -1147,11 +1156,10 @@ void GLMixer::newSession()
 	// reset
 	RenderingManager::getInstance()->clearSourceSet();
 	actionWhite_background->setChecked(false);
-	actionFree_aspect_ratio->setChecked(false);
-
 	RenderingManager::getRenderingWidget()->clearViews();
-	outputpreview->refresh();
-	OutputRenderWindow::getInstance()->refresh();
+
+	// trigger the default aspect ratio; this also refreshes the rendering areas
+	action4_3_aspect_ratio->trigger();
 }
 
 
@@ -1176,6 +1184,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 		root.setAttribute("version", XML_GLM_VERSION);
 
 		QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(currentSessionFileName).canonicalPath());
+		renderConfig.setAttribute("aspectRatio", (int) RenderingManager::getInstance()->getRenderingAspectRatio());
 		root.appendChild(renderConfig);
 
 		QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
@@ -1293,11 +1302,30 @@ void GLMixer::openSessionFile(QString filename)
 	newSession();
 
     // read all the content to make sure the file is correct :
-    QDomElement srcconfig = root.firstChildElement("SourceList");
-    if (srcconfig.isNull())
+    QDomElement renderConfig = root.firstChildElement("SourceList");
+    if (renderConfig.isNull())
         QMessageBox::warning(this, caption, tr("The file %1 is empty.").arg(currentSessionFileName));
-    else
-		RenderingManager::getInstance()->addConfiguration(srcconfig, QFileInfo(currentSessionFileName).canonicalPath());
+    else {
+    	standardAspectRatio ar = (standardAspectRatio) renderConfig.attribute("aspectRatio", "0").toInt();
+    	switch(ar) {
+    	case ASPECT_RATIO_FREE:
+    		actionFree_aspect_ratio->trigger();
+    		break;
+    	case ASPECT_RATIO_16_10:
+    		action16_10_aspect_ratio->trigger();
+    		break;
+    	case ASPECT_RATIO_16_9:
+    		action16_9_aspect_ratio->trigger();
+    		break;
+    	case ASPECT_RATIO_3_2:
+    		action3_2_aspect_ratio->trigger();
+    		break;
+    	default:
+    	case ASPECT_RATIO_4_3:
+    		action4_3_aspect_ratio->setChecked(true);
+    	}
+		RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath());
+    }
 
     // less important ; the views config
     QDomElement vconfig = root.firstChildElement("Views");
@@ -1605,12 +1633,11 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 		return false;
 
 	// a. Apply rendering preferences
-	QSize RenderingSize;
+	unsigned int RenderingQuality;
 	bool useBlitFboExtension = true;
-	stream >> RenderingSize >> useBlitFboExtension;
+	stream >> RenderingQuality >> useBlitFboExtension;
 	RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
-	if (RenderingSize != QSize(0,0))
-		RenderingManager::getInstance()->setFrameBufferResolution(RenderingSize);
+	RenderingManager::getInstance()->setRenderingQuality((frameBufferQuality) RenderingQuality);
 	int targetPeriod;
 	stream >> targetPeriod;
 	if (targetPeriod > 0)
@@ -1656,7 +1683,7 @@ QByteArray GLMixer::getPreferences() const {
 	stream << magicNumber << majorVersion;
 
 	// a. Store rendering preferences
-	stream << RenderingManager::getInstance()->getFrameBufferResolution();
+	stream << (unsigned int) RenderingManager::getInstance()->getRenderingQuality();
 	stream << RenderingManager::getUseFboBlitExtension();
 	stream << RenderingManager::getRenderingWidget()->updatePeriod();
 
