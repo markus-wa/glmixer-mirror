@@ -75,7 +75,7 @@ void glRenderWidget::initializeGL()
 
     // Blending Function For transparency Based On Source Alpha Value
 	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // ANTIALIASING
     glEnable(GL_LINE_SMOOTH);

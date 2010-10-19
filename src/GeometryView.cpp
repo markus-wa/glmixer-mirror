@@ -60,7 +60,6 @@ void GeometryView::setModelview()
 
 void GeometryView::paint()
 {
-	static QColor clearColor;
 
     // first the black background (as the rendering black clear color) with shadow
 	glPushMatrix();

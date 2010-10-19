@@ -209,6 +209,7 @@ void OutputRenderWidget::paintGL()
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
+
 		if ( backgroundSource != NULL ) {
 			backgroundSource->update();
 			glPushMatrix();
@@ -369,6 +370,12 @@ OutputRenderWindow *OutputRenderWindow::getInstance() {
 void OutputRenderWindow::initializeGL()
 {
 	glRenderWidget::initializeGL();
+
+	// one little line for a big alpha blending problem !
+	// the modulation of alpha of the fbo texture should NOT take into
+	// account the alpha of this texture (not be transparent with the background)
+	// although the polygon itself should be blender.
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
 
     // setup default background color to black
     glClearColor(0.0, 0.0, 0.0, 1.0f);
