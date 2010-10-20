@@ -11,10 +11,6 @@
 #define LevelsControlOutputRange(color, minOutput, maxOutput) ( minOutput*(1.f-color) + maxOutput*color  )
 #define LevelsControl(color, minInput, gamma, maxInput, minOutput, maxOutput)   LevelsControlOutputRange(LevelsControlInput(color, minInput, gamma, maxInput), minOutput, maxOutput)
 
-// #define GammaToSlider(gamma) (int) (gamma * 100.f)
-// #define SliderToGamma(val) (float)(val) / 100.f
-#define GammaToSlider(gamma) (int)(230.f*log((exp(1000.f/230.f)-1.f)*(gamma/10.f)+1.f))
-#define SliderToGamma(val) (10.f*exp((float)(val)/230.f)-1.f)/(exp(1000.f/230.f)-1.f)
 
 class GammaPlotArea : public QWidget
 {

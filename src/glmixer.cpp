@@ -166,7 +166,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // Create preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
-	previewDockWidgetContentsLayout->addWidget(outputpreview);
+	previewDockWidgetContentsLayout->insertWidget(0, outputpreview);
 
     // Default state without source selected
     vcontrolDockWidgetContents->setEnabled(false);
@@ -1140,6 +1140,9 @@ void GLMixer::on_actionNew_Session_triggered()
 	currentSessionFileName = QString();
 	confirmSessionFileName();
 
+	// reset
+	on_gammaShiftReset_clicked();
+
 	// trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
 	actionToggleRenderingVisible->setEnabled(false);
 	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
@@ -1185,6 +1188,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 		QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(currentSessionFileName).canonicalPath());
 		renderConfig.setAttribute("aspectRatio", (int) RenderingManager::getInstance()->getRenderingAspectRatio());
+		renderConfig.setAttribute("gammaShift", RenderingManager::getInstance()->getGammaShift());
 		root.appendChild(renderConfig);
 
 		QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
@@ -1324,6 +1328,10 @@ void GLMixer::openSessionFile(QString filename)
     	case ASPECT_RATIO_4_3:
     		action4_3_aspect_ratio->setChecked(true);
     	}
+    	float g = renderConfig.attribute("gammaShift", "1").toFloat();
+    	gammaShiftSlider->setValue(GammaToSlider(g));
+    	gammaShiftText->setText( QString().setNum( g, 'f', 2) );
+    	RenderingManager::getInstance()->setGammaShift(g);
 		RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath());
     }
 
@@ -1705,4 +1713,17 @@ QByteArray GLMixer::getPreferences() const {
 	return data;
 }
 
+
+void GLMixer::on_gammaShiftSlider_valueChanged(int val)
+{
+	float g = SliderToGamma(val);
+	gammaShiftText->setText( QString().setNum( g, 'f', 2) );
+	RenderingManager::getInstance()->setGammaShift(g);
+}
+
+void GLMixer::on_gammaShiftReset_clicked()
+{
+	gammaShiftSlider->setValue( 470 );
+	RenderingManager::getInstance()->setGammaShift(1.0);
+}
 

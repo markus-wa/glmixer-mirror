@@ -15,6 +15,8 @@
 
 
 #define NUM_POINTS_PLOT 40
+#define GammaToSlider(gamma) (int)(230.f*log((exp(1000.f/230.f)-1.f)*(gamma/10.f)+1.f))
+#define SliderToGamma(val) (10.f*exp((float)(val)/230.f)-1.f)/(exp(1000.f/230.f)-1.f)
 
 class GammaLevelsWidget : public QWidget, Ui::GammaLevelsWidget {
 

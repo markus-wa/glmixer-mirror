@@ -129,6 +129,9 @@ public:
 		return renderingAspectRatio;
 	}
 
+	void setGammaShift(float g);
+	float getGammaShift() const;
+
 	double getFrameBufferAspectRatio() const;
 	inline QSize getFrameBufferResolution() const {
 			return _fbo ? _fbo->size() : QSize(0,0);
@@ -189,6 +192,7 @@ public Q_SLOTS:
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);
 
+
 Q_SIGNALS:
 	void currentSourceChanged(SourceSet::iterator csi);
 
@@ -212,6 +216,7 @@ protected:
     bool clearWhite;
     frameBufferQuality renderingQuality;
     standardAspectRatio renderingAspectRatio;
+    float gammaShift;
 
 	// the set of sources
 	SourceSet _sources;

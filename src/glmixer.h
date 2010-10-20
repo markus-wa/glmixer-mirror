@@ -68,7 +68,6 @@ public Q_SLOTS:
 	void on_actionShowFPS_toggled(bool);
 	void on_actionAbout_triggered();
 	void on_actionPreferences_triggered();
-
 	void on_actionNew_Session_triggered();
 	void on_actionSave_Session_triggered();
 	void on_actionSave_Session_as_triggered();
@@ -78,6 +77,8 @@ public Q_SLOTS:
 	void on_actionSelect_Next_triggered();
 	void on_actionSelect_Previous_triggered();
 	void on_actionResetToolbars_triggered();
+	void on_gammaShiftSlider_valueChanged(int);
+	void on_gammaShiftReset_clicked();
 
 	// GUI interaction
 	void setView(QAction *a);

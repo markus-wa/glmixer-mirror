@@ -247,10 +247,72 @@ p, li { white-space: pre-wrap; }
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="previewDockWidgetContents">
-    <layout class="QVBoxLayout" name="previewDockWidgetContentsLayout">
-     <property name="margin">
-      <number>2</number>
-     </property>
+    <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_8">
+       <item>
+        <widget class="QLabel" name="gammaShiftText">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string>1.0</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::PlainText</enum>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="indent">
+          <number>5</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSlider" name="gammaShiftSlider">
+         <property name="toolTip">
+          <string>Gamma global factor</string>
+         </property>
+         <property name="minimum">
+          <number>270</number>
+         </property>
+         <property name="maximum">
+          <number>670</number>
+         </property>
+         <property name="singleStep">
+          <number>5</number>
+         </property>
+         <property name="pageStep">
+          <number>50</number>
+         </property>
+         <property name="value">
+          <number>470</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="gammaShiftReset">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -2475,6 +2537,9 @@ p, li { white-space: pre-wrap; }
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/magnet-cursor.png</normaloff>:/glmixer/icons/magnet-cursor.png</iconset>
@@ -2545,12 +2610,12 @@ p, li { white-space: pre-wrap; }
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>157</x>
-     <y>877</y>
+     <x>158</x>
+     <y>871</y>
     </hint>
     <hint type="destinationlabel">
-     <x>243</x>
-     <y>879</y>
+     <x>244</x>
+     <y>872</y>
     </hint>
    </hints>
   </connection>
@@ -2561,12 +2626,12 @@ p, li { white-space: pre-wrap; }
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>243</x>
-     <y>879</y>
+     <x>244</x>
+     <y>872</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>877</y>
+     <x>158</x>
+     <y>871</y>
     </hint>
    </hints>
   </connection>
@@ -2642,11 +2707,11 @@ p, li { white-space: pre-wrap; }
    <hints>
     <hint type="sourcelabel">
      <x>1109</x>
-     <y>856</y>
+     <y>853</y>
     </hint>
     <hint type="destinationlabel">
      <x>1109</x>
-     <y>883</y>
+     <y>881</y>
     </hint>
    </hints>
   </connection>
@@ -2658,11 +2723,11 @@ p, li { white-space: pre-wrap; }
    <hints>
     <hint type="sourcelabel">
      <x>196</x>
-     <y>844</y>
+     <y>837</y>
     </hint>
     <hint type="destinationlabel">
      <x>221</x>
-     <y>843</y>
+     <y>836</y>
     </hint>
    </hints>
   </connection>

@@ -106,7 +106,7 @@ void RenderingManager::deleteInstance() {
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
 			previousframe_index(0), previousframe_delay(1), clearWhite(false),
-			_scalingMode(Source::SCALE_CROP), _playOnDrop(true) {
+			_scalingMode(Source::SCALE_CROP), gammaShift(1.f), _playOnDrop(true) {
 
 	// 1. Create the view rendering widget and its catalog view
 	_renderwidget = new ViewRenderWidget;
@@ -128,7 +128,8 @@ RenderingManager::RenderingManager() :
 
     // 3. Initialize the frame buffer
     renderingQuality = QUALITY_VGA;
-	setFrameBufferResolution( sizeOfFrameBuffer[ASPECT_RATIO_4_3][renderingQuality] );
+    renderingAspectRatio = ASPECT_RATIO_4_3;
+	setFrameBufferResolution( sizeOfFrameBuffer[renderingAspectRatio][renderingQuality] );
 
 	_currentSource = getEnd();
 
@@ -331,6 +332,9 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 				glTranslated(source->getX(), source->getY(), 0.0);
 		        glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
 				glScaled(source->getScaleX(), source->getScaleY(), 1.f);
+
+				// gamma shift
+				ViewRenderWidget::program->setUniformValue("gamma", source->getGamma() * gammaShift);
 
 				source->blend();
 				source->draw();
@@ -1212,7 +1216,15 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 }
 
+void RenderingManager::setGammaShift(float g)
+{
+	gammaShift = g;
+}
 
+float RenderingManager::getGammaShift() const
+{
+	return gammaShift;
+}
 
 standardAspectRatio doubleToAspectRatio(double ar)
 {

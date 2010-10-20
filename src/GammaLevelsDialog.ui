@@ -42,6 +42,9 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Adjust color  output range</string>
+       </property>
        <property name="styleSheet">
         <string notr="true">QWidget{
     background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:1 rgba(0, 0, 0, 255));
@@ -129,6 +132,12 @@ alternate-background-color: rgb(88, 88, 88);</string>
          <width>16777215</width>
          <height>20</height>
         </size>
+       </property>
+       <property name="toolTip">
+        <string>Adjust color input range</string>
+       </property>
+       <property name="whatsThis">
+        <string/>
        </property>
        <property name="styleSheet">
         <string notr="true">QWidget{
@@ -222,6 +231,12 @@ border-color: black;</string>
      </item>
      <item row="1" column="0">
       <widget class="QToolButton" name="resetButton">
+       <property name="toolTip">
+        <string>Reset</string>
+       </property>
+       <property name="statusTip">
+        <string>Reset</string>
+       </property>
        <property name="text">
         <string>0</string>
        </property>
@@ -268,6 +283,9 @@ border-color: black;</string>
      </item>
      <item>
       <widget class="QSlider" name="gammaSlider">
+       <property name="toolTip">
+        <string>Gamma factor</string>
+       </property>
        <property name="minimum">
         <number>10</number>
        </property>
