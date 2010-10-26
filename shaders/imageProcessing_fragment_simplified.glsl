@@ -17,20 +17,9 @@ uniform sampler2D sourceTexture;
 uniform sampler2D maskTexture;
 uniform sampler2D utilityTexture;
 
-uniform vec2 step;
 uniform bool sourceDrawing;
-uniform float contrast;
-uniform float saturation;
-uniform float brightness;
 uniform float gamma;
 uniform vec4 levels;
-uniform float hueshift;
-uniform vec3 chromakey;
-uniform float chromadelta;
-uniform float threshold;
-uniform int nbColors;
-uniform int invertMode; 
-uniform int filter;
 
 
 

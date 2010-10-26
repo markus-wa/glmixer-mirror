@@ -1020,11 +1020,13 @@ int64_t VideoFile::getEnd() const {
 
 void VideoFile::setMarkIn(int64_t t) {
     mark_in = qBound(getBegin(), t, mark_out);
+//    mark_in = qBound(getBegin(), t, getEnd());
     emit markingChanged();
 }
 
 void VideoFile::setMarkOut(int64_t t) {
     mark_out = qBound(mark_in, t, getEnd());
+//    mark_out = qBound(getBegin(), t, getEnd());
     emit markingChanged();
 }
 

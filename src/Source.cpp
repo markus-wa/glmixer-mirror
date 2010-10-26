@@ -293,6 +293,8 @@ void Source::beginEffectsSection() const {
 	//             gamma levels : minInput, maxInput, minOutput, maxOutput:
 	ViewRenderWidget::program->setUniformValue("levels", gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut);
 
+
+#ifndef GLMIXER_SIMPLIFIED_GLSL
 	if (!filtered) {
 		ViewRenderWidget::program->setUniformValue("filter", (GLint) -1);
 		return;
@@ -319,6 +321,7 @@ void Source::beginEffectsSection() const {
 		ViewRenderWidget::program->setUniformValue("chromadelta", chromaKeyTolerance);
 	} else
 		ViewRenderWidget::program->setUniformValue("chromakey", 0.f,0.f, 0.f );
+#endif
 
 }
 
@@ -334,6 +337,10 @@ void Source::endEffectsSection() const {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[Source::NO_MASK]);
 	glActiveTexture(GL_TEXTURE0);
+
+//	// reset the blending
+//	glBlendEquation(GL_FUNC_ADD);
+//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 }
 

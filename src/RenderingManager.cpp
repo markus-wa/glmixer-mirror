@@ -194,29 +194,32 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
 
 	// create second attachment texture for FBO
-	_fbo->bind();
-    glGenTextures(1, &_fboCatalogTexture);
-    glBindTexture(GL_TEXTURE_2D, _fboCatalogTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _fbo->width(), _fbo->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	if (_fbo->bind()) {
+		glGenTextures(1, &_fboCatalogTexture);
+		glBindTexture(GL_TEXTURE_2D, _fboCatalogTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _fbo->width(), _fbo->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_2D, _fboCatalogTexture, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    _fbo->release();
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_2D, _fboCatalogTexture, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		_fbo->release();
 
-    // store viewport info
-    _renderwidget->_renderView->viewport[0] = 0;
-    _renderwidget->_renderView->viewport[1] = 0;
-    _renderwidget->_renderView->viewport[2] = _fbo->width();
-    _renderwidget->_renderView->viewport[3] = _fbo->height();
+		// store viewport info
+		_renderwidget->_renderView->viewport[0] = 0;
+		_renderwidget->_renderView->viewport[1] = 0;
+		_renderwidget->_renderView->viewport[2] = _fbo->width();
+		_renderwidget->_renderView->viewport[3] = _fbo->height();
 
-    _renderwidget->_catalogView->viewport[1] = 0;
-    _renderwidget->_catalogView->viewport[3] = _fbo->height();
-
+		_renderwidget->_catalogView->viewport[1] = 0;
+		_renderwidget->_catalogView->viewport[3] = _fbo->height();
+	}
+	else
+		qFatal( "*** ERROR *** \n\nOpenGL Frame Buffer Objects is not working properly."
+							"\n\nThe program cannot operate properly.\n\nExiting...");
 }
 
 
@@ -272,16 +275,17 @@ void RenderingManager::updatePreviousFrame() {
 		glColor4f(1.0, 1.0, 1.0, 1.0);
 
 		// render to the frame buffer object
-		previousframe_fbo->bind();
+		if (previousframe_fbo->bind()) {
 
-		glClearColor(0.f, 0.f, 0.f, 1.f);
-		glClear(GL_COLOR_BUFFER_BIT);
+			glClearColor(0.f, 0.f, 0.f, 1.f);
+			glClear(GL_COLOR_BUFFER_BIT);
 
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-		glCallList(ViewRenderWidget::quad_texured);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+			glCallList(ViewRenderWidget::quad_texured);
 
-		previousframe_fbo->release();
+			previousframe_fbo->release();
+		}
 
 		// pop the projection matrix and GL state back for rendering the current view
 		// to the actual widget
@@ -311,7 +315,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 //	glLoadMatrixd(_renderwidget->_renderView->modelview);
 
 	// render to the frame buffer object
-	_fbo->bind();
+	if (_fbo->bind())
 	{
 		//
 		// 1. Draw into first texture attachment; the final output rendering
@@ -366,8 +370,11 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 		}
 
+		_fbo->release();
 	}
-	_fbo->release();
+	else
+		qFatal( "*** ERROR *** \n\nOpenGL Frame Buffer Objects is not accessible."
+			"\n\nThe program cannot operate properly.\n\nExiting...");
 
 	// pop the projection matrix and GL state back for rendering the current view
 	// to the actual widget

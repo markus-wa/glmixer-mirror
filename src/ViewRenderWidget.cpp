@@ -875,29 +875,30 @@ void ViewRenderWidget::buildShader(){
 	if (!program->link())
 		qFatal( "** ERROR ** \n\nOpenGL GLSL link error:\n\n%s", qPrintable(program->log()));
 
-	program->bind();
+	if (!program->bind())
+		qFatal( "** ERROR ** \n\nOpenGL GLSL binding error:\n\n%s", qPrintable(program->log()));
+
 	program->setUniformValue("sourceTexture", 0);
 	program->setUniformValue("maskTexture", 1);
 	program->setUniformValue("utilityTexture", 2);
 
-	program->setUniformValue("step", 1.f / 640.f, 1.f / 480.f);
-
 	program->setUniformValue("sourceDrawing", false);
+	program->setUniformValue("gamma", 1.f);
+	program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f); // gamma levels : minInput, maxInput, minOutput, maxOutput:
+
+#ifndef GLMIXER_SIMPLIFIED_GLSL
+	program->setUniformValue("step", 1.f / 640.f, 1.f / 480.f);
 	program->setUniformValue("contrast", 1.f);
 	program->setUniformValue("saturation", 1.f);
 	program->setUniformValue("brightness", 0.f);
-	program->setUniformValue("gamma", 1.f);
-	//             gamma levels : minInput, maxInput, minOutput, maxOutput:
-	program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f);
 	program->setUniformValue("hueshift", 0.f);
 	program->setUniformValue("chromakey", 0.0, 0.0, 0.0 );
 	program->setUniformValue("chromadelta", 0.1f);
 	program->setUniformValue("threshold", 0.0f);
-	program->setUniformValue("nbColors", -1);
-	program->setUniformValue("invertMode", 0);
-	program->setUniformValue("filter", 0);
-
-	program->setUniformValue("ModelViewProjectionMatrix", QMatrix4x4 ());
+	program->setUniformValue("nbColors", (GLint) -1);
+	program->setUniformValue("invertMode", (GLint) 0);
+	program->setUniformValue("filter", (GLint) 0);
+#endif
 
 	program->enableAttributeArray(PROGRAM_VERTEX_ATTRIBUTE);
 	program->enableAttributeArray(PROGRAM_TEXCOORD_ATTRIBUTE);

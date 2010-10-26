@@ -306,6 +306,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
 
+#ifndef GLMIXER_SIMPLIFIED_GLSL
 	// Filtered on/off
 	QtProperty *filter = boolManager->addProperty("Filtered");
 	filter->setToolTip("Use GLSL filters");
@@ -391,7 +392,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		intManager->setSingleStep(property, 10);
 		chroma->addSubProperty(property);
 	}
-
+#endif
 	// Frames size
 	QtProperty *fs = sizeManager->addProperty( QLatin1String("Frames size") );
 	fs->setToolTip("Width & height of frames");

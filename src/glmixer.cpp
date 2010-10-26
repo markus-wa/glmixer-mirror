@@ -1196,7 +1196,6 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 		QDomElement rendering = doc.createElement("Rendering");
 		rendering.setAttribute("clearToWhite", (int) RenderingManager::getInstance()->clearToWhite());
-		rendering.setAttribute("freeAspectRatio", (int) OutputRenderWindow::getInstance()->freeAspectRatio());
 		root.appendChild(rendering);
 
 		doc.appendChild(root);
@@ -1374,7 +1373,6 @@ void GLMixer::openSessionFile(QString filename)
     QDomElement rconfig = root.firstChildElement("Rendering");
     if (!rconfig.isNull()) {
     	actionWhite_background->setChecked(rconfig.attribute("clearToWhite").toInt());
-		actionFree_aspect_ratio->setChecked(rconfig.attribute("freeAspectRatio").toInt());
 	}
 
     // confirm the loading of the file
