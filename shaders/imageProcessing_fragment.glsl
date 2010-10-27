@@ -305,7 +305,7 @@ void main(void)
     
     if (filter < 0) {
     	transformedRGB = LevelsControl(texture2D(sourceTexture, texc).rgb, levels.x, gamma, levels.y, levels.z, levels.w);
-	    gl_FragColor = vec4(transformedRGB , alpha );
+	    gl_FragColor = vec4(transformedRGB  * baseColor.rgb, alpha );
 	    return;
     }
     
