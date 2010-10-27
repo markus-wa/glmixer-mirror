@@ -58,7 +58,8 @@ void MixerView::setModelview()
 
 void MixerView::paint()
 {
-	double renderingAspectRatio = 1.0;
+	static double renderingAspectRatio = 1.0;
+	static bool first = true;
 
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing);
@@ -88,65 +89,66 @@ void MixerView::paint()
 
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
-    ViewRenderWidget::program->bind();
-    bool first = true;
-	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-
-		//
-		// 1. Render it into current view
-		//
-		glPushMatrix();
-		glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-
-		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
-		if ( renderingAspectRatio > 1.0)
-			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
-		else
-			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
-
-    	// standard transparency blending
-    	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    	glBlendEquation(GL_FUNC_ADD);
-
-	    // Blending Function For mixing like in the rendering window
-        (*its)->beginEffectsSection();
-
-		// bind the source texture and update its content
-		ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
-		(*its)->update();
-
-		// draw surface
-		(*its)->draw();
-
-		if (!(*its)->isStandby()) {
-
-			// draw stippled version of the source on top
-			glEnable(GL_POLYGON_STIPPLE);
-			glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-			(*its)->draw(false);
-			glDisable(GL_POLYGON_STIPPLE);
+    if (ViewRenderWidget::program->bind()) {
+		first = true;
+		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
 			//
-			// 2. Render it into FBO
+			// 1. Render it into current view
 			//
-			RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-			first = false;
+			glPushMatrix();
+			glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 
+			renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+			if ( renderingAspectRatio > 1.0)
+				glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
+			else
+				glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
+
+			// standard transparency blending
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendEquation(GL_FUNC_ADD);
+
+			// Blending Function For mixing like in the rendering window
+			(*its)->beginEffectsSection();
+
+			// bind the source texture and update its content
+			ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
+			(*its)->update();
+
+			// draw surface
+			(*its)->draw();
+
+			if (!(*its)->isStandby()) {
+
+				// draw stippled version of the source on top
+				glEnable(GL_POLYGON_STIPPLE);
+				glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+				(*its)->draw(false);
+				glDisable(GL_POLYGON_STIPPLE);
+
+				//
+				// 2. Render it into FBO
+				//
+				RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+				first = false;
+
+			}
+			//
+			// 3. draw border and handles if active
+			//
+			ViewRenderWidget::setSourceDrawingMode(false);
+			glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[Source::NO_MASK]);
+			if ((*its)->isActive())
+				glCallList(ViewRenderWidget::border_large_shadow);
+			else
+				glCallList(ViewRenderWidget::border_thin_shadow);
+
+			glPopMatrix();
 		}
-        //
-        // 3. draw border and handles if active
-        //
-		ViewRenderWidget::setSourceDrawingMode(false);
-		glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[Source::NO_MASK]);
-		if ((*its)->isActive())
-			glCallList(ViewRenderWidget::border_large_shadow);
-		else
-			glCallList(ViewRenderWidget::border_thin_shadow);
 
-		glPopMatrix();
-	}
-
-    ViewRenderWidget::program->release();
+		ViewRenderWidget::program->release();
+    }
 	glActiveTexture(GL_TEXTURE0);
 
 	// if no source was rendered, clear anyway

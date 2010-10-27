@@ -60,63 +60,80 @@ void GeometryView::setModelview()
 
 void GeometryView::paint()
 {
+	static bool first = true;
 
-    // first the black background (as the rendering black clear color) with shadow
+    // first the background (as the rendering black clear color) with shadow
 	glPushMatrix();
     glScalef( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
     glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
     glPopMatrix();
 
-    ViewRenderWidget::program->bind();
-    bool first = true;
-    // then the icons of the sources (reversed depth order)
-	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+    // we use the shader to render sources
+    if (ViewRenderWidget::program->bind()) {
+		first = true;
+		// The icons of the sources (reversed depth order)
+		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-		if ((*its)->isStandby())
-			continue;
+			if ((*its)->isStandby())
+				continue;
 
-		//
-		// 1. Render it into current view
-		//
-        // place and scale
-        glPushMatrix();
-        glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
-        glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
-        glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+			//
+			// 1. Render it into current view
+			//
+			ViewRenderWidget::setSourceDrawingMode(true);
 
-	    // Blending Function For mixing like in the rendering window
-        (*its)->beginEffectsSection();
-		// bind the source texture and update its content
-		(*its)->update();
-		// test for culling
-        (*its)->testGeometryCulling();
-        // Draw it !
-		(*its)->blend();
-        (*its)->draw();
+			// place and scale
+			glPushMatrix();
+			glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
+			glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
+			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
-		//
-		// 2. Render it into FBO
-		//
-        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-        first = false;
+			// Blending Function For mixing like in the rendering window
+			(*its)->beginEffectsSection();
+			// bind the source texture and update its content
+			(*its)->update();
+			// test for culling
+			(*its)->testGeometryCulling();
+			// Draw it !
+			(*its)->blend();
+			(*its)->draw();
 
-        //
-        // 3. draw border and handles if active
-        //
+			//
+			// 2. Render it into FBO
+			//
+			RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+			first = false;
+
+			glPopMatrix();
+		}
+
+		// draw borders on top
 		ViewRenderWidget::setSourceDrawingMode(false);
 		glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[Source::NO_MASK]);
 
-		if ((*its)->isActive())
-	        glCallList(borderType);
-		else
-			glCallList(ViewRenderWidget::border_thin);
+		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+			if ((*its)->isStandby())
+				continue;
 
-		ViewRenderWidget::setSourceDrawingMode(true);
+			//
+			// 3. draw border and handles if active
+			//
+			// place and scale
+			glPushMatrix();
+			glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
+			glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
+			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
-        glPopMatrix();
+			if ((*its)->isActive())
+				glCallList(borderType);
+			else
+				glCallList(ViewRenderWidget::border_thin);
 
+			glPopMatrix();
+
+		}
+		ViewRenderWidget::program->release();
     }
-    ViewRenderWidget::program->release();
 	glActiveTexture(GL_TEXTURE0);
 
 	// if no source was rendered, clear anyway
@@ -131,7 +148,6 @@ void GeometryView::paint()
     glScalef( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
     glCallList(ViewRenderWidget::frame_screen);
     glPopMatrix();
-
 
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();

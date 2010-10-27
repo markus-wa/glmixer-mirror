@@ -1,7 +1,8 @@
 
-attribute vec2 texCoord;
+attribute highp vec2 texCoord;
+attribute lowp vec2 maskCoord;
+
 varying vec2 texc;
-attribute vec2 maskCoord;
 varying vec2 maskc;
 varying vec4 baseColor;
    

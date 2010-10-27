@@ -37,9 +37,6 @@
 #include "DelayCursor.h"
 #include "MagnetCursor.h"
 
-#define PROGRAM_VERTEX_ATTRIBUTE 0
-#define PROGRAM_TEXCOORD_ATTRIBUTE 1
-#define PROGRAM_MASKCOORD_ATTRIBUTE 2
 
 GLuint ViewRenderWidget::border_thin_shadow = 0,
 		ViewRenderWidget::border_large_shadow = 0;
@@ -115,9 +112,10 @@ GLubyte ViewRenderWidget::stippling[] = {
 	    0x7A, 0x22, 0x7A, 0x22, 0x7A, 0x22, 0x7A, 0x22,
 	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-GLfloat ViewRenderWidget::coords[12];
-GLfloat ViewRenderWidget::texc[8];
-GLfloat ViewRenderWidget::maskc[8];
+
+GLfloat ViewRenderWidget::coords[12] = { -1.f, 1.f, 0.f,  1.f, 1.f, 0.f,  1.f, -1.f, 0.f,  -1.f, -1.f, 0.f };
+GLfloat ViewRenderWidget::texc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
+GLfloat ViewRenderWidget::maskc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 QGLShaderProgram *ViewRenderWidget::program = 0;
 
 ViewRenderWidget::ViewRenderWidget() :
@@ -201,9 +199,9 @@ void ViewRenderWidget::initializeGL()
 
 	setBackgroundColor(QColor(52, 52, 52));
 
+	quad_texured = buildTexturedQuadList();
 	border_thin_shadow = buildLineList();
 	border_large_shadow = border_thin_shadow + 1;
-	quad_texured = buildTexturedQuadList();
 	frame_selection = buildSelectList();
 	circle_mixing = buildCircleList();
 	layerbg = buildLayerbgList();
@@ -823,35 +821,6 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 
 void ViewRenderWidget::buildShader(){
 
-	coords[0] = -1;
-	coords[1] = 1;
-	coords[2] = 0;
-	coords[3] = 1;
-	coords[4] = 1;
-	coords[5] = 0;
-	coords[6] = 1;
-	coords[7] = -1;
-	coords[8] = 0;
-	coords[9] = -1;
-	coords[10] = -1;
-	coords[11] = 0;
-	texc[0] = 0.f;
-	texc[1] = 0.f;
-	texc[2] = 1.f;
-	texc[3] = 0.f;
-	texc[4] = 1.f;
-	texc[5] = 1.f;
-	texc[6] = 0.f;
-	texc[7] = 1.f;
-	maskc[0] = 0.f;
-	maskc[1] = 0.f;
-	maskc[2] = 1.f;
-	maskc[3] = 0.f;
-	maskc[4] = 1.f;
-	maskc[5] = 1.f;
-	maskc[6] = 0.f;
-	maskc[7] = 1.f;
-
 	program = new QGLShaderProgram(this);
 
 	if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl"))
@@ -868,16 +837,19 @@ void ViewRenderWidget::buildShader(){
 	else if (program->log().contains("warning"))
 		qCritical( "** WARNING ** \n\nOpenGL GLSL warning in fragment shader: \n\n%s", qPrintable(program->log()));
 
-	program->bindAttributeLocation("vertex", PROGRAM_VERTEX_ATTRIBUTE);
-	program->bindAttributeLocation("texCoord", PROGRAM_TEXCOORD_ATTRIBUTE);
-	program->bindAttributeLocation("maskCoord", PROGRAM_MASKCOORD_ATTRIBUTE);
-
 	if (!program->link())
 		qFatal( "** ERROR ** \n\nOpenGL GLSL link error:\n\n%s", qPrintable(program->log()));
 
 	if (!program->bind())
 		qFatal( "** ERROR ** \n\nOpenGL GLSL binding error:\n\n%s", qPrintable(program->log()));
 
+	// set the pointer to the array for the texture attributes
+	program->enableAttributeArray("texCoord");
+	program->setAttributeArray ("texCoord", texc, 2, 0);
+	program->enableAttributeArray("maskCoord");
+	program->setAttributeArray ("maskCoord", maskc, 2, 0);
+
+	// set the default values for the uniform variables
 	program->setUniformValue("sourceTexture", 0);
 	program->setUniformValue("maskTexture", 1);
 	program->setUniformValue("utilityTexture", 2);
@@ -900,15 +872,11 @@ void ViewRenderWidget::buildShader(){
 	program->setUniformValue("filter", (GLint) 0);
 #endif
 
-	program->enableAttributeArray(PROGRAM_VERTEX_ATTRIBUTE);
-	program->enableAttributeArray(PROGRAM_TEXCOORD_ATTRIBUTE);
-	program->enableAttributeArray(PROGRAM_MASKCOORD_ATTRIBUTE);
-
-	program->setAttributeArray (PROGRAM_VERTEX_ATTRIBUTE, coords, 3, 0);
-	program->setAttributeArray (PROGRAM_TEXCOORD_ATTRIBUTE, texc, 2, 0);
-	program->setAttributeArray (PROGRAM_MASKCOORD_ATTRIBUTE, maskc, 2, 0);
-
 	program->release();
+
+	// create and enable the vertex array for drawing a QUAD
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, coords);
 
 }
 
@@ -1012,7 +980,8 @@ GLuint ViewRenderWidget::buildLineList()
 	glScalef(1.23, 1.23, 1.0);
 
 	glColor4f(0.0, 0.0, 0.0, 0.0);
-    glDrawArrays(GL_QUADS, 0, 4);
+//    glDrawArrays(GL_QUADS, 0, 4);
+	glCallList(ViewRenderWidget::quad_texured);
 
 	glPopMatrix();
 
@@ -1038,7 +1007,8 @@ GLuint ViewRenderWidget::buildLineList()
 	glScalef(1.23, 1.23, 1.0);
 
 	glColor4f(0.0, 0.0, 0.0, 0.0);
-    glDrawArrays(GL_QUADS, 0, 4);
+//    glDrawArrays(GL_QUADS, 0, 4);
+	glCallList(ViewRenderWidget::quad_texured);
 
 	glPopMatrix();
 

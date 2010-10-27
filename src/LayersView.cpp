@@ -65,6 +65,8 @@ void LayersView::setModelview()
 
 void LayersView::paint()
 {
+	static bool first = true;
+
     // First the background stuff
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
@@ -84,73 +86,69 @@ void LayersView::paint()
 
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
-    ViewRenderWidget::program->bind();
+    if (ViewRenderWidget::program->bind()) {
 
-    bool first = true;
-	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+		first = true;
+		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-		if ((*its)->isStandby())
-			continue;
-		//
-		// 1. Render it into current view
-		//
-		glPushMatrix();
+			if ((*its)->isStandby())
+				continue;
+			//
+			// 1. Render it into current view
+			//
+			glPushMatrix();
 
-		if ((*its)->isActive()) {
-			// animated displacement
-			if (currentSourceDisplacement < MAXDISPLACEMENT)
-				currentSourceDisplacement += ( MAXDISPLACEMENT + 0.1 - currentSourceDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
-			glTranslatef( currentSourceDisplacement, 0.0,  1.0 +(*its)->getDepth());
+			if ((*its)->isActive()) {
+				// animated displacement
+				if (currentSourceDisplacement < MAXDISPLACEMENT)
+					currentSourceDisplacement += ( MAXDISPLACEMENT + 0.1 - currentSourceDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
+				glTranslatef( currentSourceDisplacement, 0.0,  1.0 +(*its)->getDepth());
 
-		} else
-			glTranslatef( 0.0, 0.0,  1.0 +(*its)->getDepth());
+			} else
+				glTranslatef( 0.0, 0.0,  1.0 +(*its)->getDepth());
 
-//        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
-		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
-		if ( renderingAspectRatio > 1.0)
-			glScaled(1.0 , 1.0 / renderingAspectRatio,  1.0);
-		else
-			glScaled(renderingAspectRatio, 1.0,  1.0);
+	        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
 
+			// standard transparency blending
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendEquation(GL_FUNC_ADD);
 
-    	// standard transparency blending
-    	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    	glBlendEquation(GL_FUNC_ADD);
+			ViewRenderWidget::setSourceDrawingMode(false);
+			// draw border if active
+			if ((*its)->isActive())
+				glCallList(ViewRenderWidget::border_large_shadow);
+			else
+				glCallList(ViewRenderWidget::border_thin_shadow);
 
-		ViewRenderWidget::setSourceDrawingMode(false);
-        // draw border if active
-        if ((*its)->isActive())
-            glCallList(ViewRenderWidget::border_large_shadow);
-        else
-            glCallList(ViewRenderWidget::border_thin_shadow);
+			ViewRenderWidget::setSourceDrawingMode(true);
 
-		ViewRenderWidget::setSourceDrawingMode(true);
+			// Blending Function for mixing like in the rendering window
+			(*its)->beginEffectsSection();
+			// bind the source texture and update its content
+			(*its)->update();
 
-	    // Blending Function for mixing like in the rendering window
-        (*its)->beginEffectsSection();
-		// bind the source texture and update its content
-		(*its)->update();
+			// draw surface
+			(*its)->blend();
+			(*its)->draw();
 
-		// draw surface
-		(*its)->blend();
-		(*its)->draw();
+			// draw stippled version of the source on top
+			glEnable(GL_POLYGON_STIPPLE);
+			glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+			(*its)->draw(false);
+			glDisable(GL_POLYGON_STIPPLE);
 
-		// draw stippled version of the source on top
-		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-		(*its)->draw(false);
-		glDisable(GL_POLYGON_STIPPLE);
+			glPopMatrix();
 
-		glPopMatrix();
+			//
+			// 2. Render it into FBO
+			//
+			RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+			first = false;
 
-		//
-		// 2. Render it into FBO
-		//
-        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-        first = false;
+		}
+		ViewRenderWidget::program->release();
+    }
 
-	}
-    ViewRenderWidget::program->release();
     // restore state
 	glActiveTexture(GL_TEXTURE0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -445,12 +443,8 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 		glPushMatrix();
         // place and scale
         glTranslatef((*its)->isActive() ? currentSourceDisplacement : 0.0, 0.0,  1.0 +(*its)->getDepth());
-//        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
-		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
-		if ( renderingAspectRatio > 1.0)
-			glScaled(1.0 , 1.0 / renderingAspectRatio,  1.0);
-		else
-			glScaled(1.0 * renderingAspectRatio, 1.0,  1.0);
+        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+
         (*its)->draw(false, GL_SELECT);
         glPopMatrix();
     }
