@@ -220,6 +220,8 @@ protected:
 
 	// the set of sources
 	SourceSet _sources;
+
+	// manipulation of sources
 	SourceSet::iterator _currentSource;
 	SourceList dropBasket;
 	Source *_defaultSource;
