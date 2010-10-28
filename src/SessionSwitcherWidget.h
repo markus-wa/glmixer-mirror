@@ -20,10 +20,12 @@ public:
 	SessionSwitcherWidget(QWidget *parent, QSettings *settings);
 
 public Q_SLOTS:
-    void nameFilterChanged(const QString &s);
+
+	void updateFolder();
     void openFolder();
     void folderChanged( const QString & text );
     void openFileFromFolder(const QModelIndex & index);
+    void nameFilterChanged(const QString &s);
     void selectTransitionType(int t);
 
     void customizeTransition();

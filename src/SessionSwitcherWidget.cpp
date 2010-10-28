@@ -222,15 +222,18 @@ void SessionSwitcherWidget::openFolder()
 
 }
 
-
-void SessionSwitcherWidget::openFileFromFolder(const QModelIndex & index){
-
-	emit switchSessionFile(proxyFolderModel->data(index, Qt::UserRole).toString());
-
+void SessionSwitcherWidget::updateFolder()
+{
+	folderChanged( folderHistory->currentText() );
 }
 
-void  SessionSwitcherWidget::selectTransitionType(int t){
+void SessionSwitcherWidget::openFileFromFolder(const QModelIndex & index)
+{
+	emit switchSessionFile(proxyFolderModel->data(index, Qt::UserRole).toString());
+}
 
+void  SessionSwitcherWidget::selectTransitionType(int t)
+{
 	OutputRenderWindow::transitionType tt = (OutputRenderWindow::transitionType) CLAMP(OutputRenderWindow::TRANSITION_NONE, t, OutputRenderWindow::TRANSITION_CUSTOM_MEDIA);
 	OutputRenderWindow::getInstance()->setTransitionType( tt );
 

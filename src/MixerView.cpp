@@ -295,14 +295,28 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
         	// if CTRL button modifier pressed, add clicked to selection
 			if ( currentAction != View::GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
 				setAction(SELECT);
-
-	        	if ( !isInAGroup(clicked) ) {
+				// test if source is in a group
+        		SourceListArray::iterator itss = groupSources.begin();
+				for(; itss != groupSources.end(); itss++) {
+					if ( (*itss).count(clicked) > 0 )
+						break;
+				}
+				// NOT in a source : add individual item clicked
+	        	if ( itss == groupSources.end()  ) {
 					if ( selectedSources.count(clicked) > 0)
 						selectedSources.erase( clicked );
 					else
 						selectedSources.insert( clicked );
 	        	}
-
+	        	// add the full group attached to the clicked item
+	        	else {
+	        		SourceList result;
+					if ( selectedSources.count(clicked) > 0)
+		        		std::set_difference(selectedSources.begin(), selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+					else
+						std::set_union(selectedSources.begin(), selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+					selectedSources = SourceList(result);
+	        	}
 			}
 			else // not in selection (SELECT) action mode, then just set the current active source
 			{
@@ -396,14 +410,14 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 	}
 	// DROP MODE : avoid other actions
-	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret mouse events in drop mode
 		return false;
 	}
 	// LEFT BUTTON : grab or draw a selection rectangle
-	else if (event->buttons() & Qt::LeftButton) {
+	if (event->buttons() & Qt::LeftButton) {
 
 
         if ( clicked && currentAction == View::GRAB )
@@ -498,23 +512,20 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 				// move the source individually
 				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 
-
 			return true;
         }
 
     }
 	// NO BUTTON : show a mouse-over cursor
-	{
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
-			// selection mode with CTRL modifier
-			if (QApplication::keyboardModifiers () == Qt::ControlModifier)
-				setAction(View::SELECT);
-			else
-				setAction(View::OVER);
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) ) {
+		// selection mode with CTRL modifier
+		if (QApplication::keyboardModifiers () == Qt::ControlModifier)
+			setAction(View::SELECT);
 		else
-			setAction(View::NONE);
-
-    }
+			setAction(View::OVER);
+	}
+	else
+		setAction(View::NONE);
 
 	return false;
 }

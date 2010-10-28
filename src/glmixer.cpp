@@ -159,6 +159,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	SessionSwitcherWidget *switcherSession = new SessionSwitcherWidget(this, &settings);
 	switcherDockWidgetContentsLayout->addWidget(switcherSession);
 	QObject::connect(switcherSession, SIGNAL(switchSessionFile(QString)), this, SLOT(switchToSessionFile(QString)) );
+	QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
 
     // Setup Video file dialog
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
@@ -1199,6 +1200,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 		confirmSessionFileName();
 		statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
+		emit sessionSaved();
 	}
 }
 
