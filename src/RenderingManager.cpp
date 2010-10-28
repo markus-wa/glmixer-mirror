@@ -106,7 +106,7 @@ void RenderingManager::deleteInstance() {
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
 			previousframe_index(0), previousframe_delay(1), clearWhite(false),
-			_scalingMode(Source::SCALE_CROP), gammaShift(1.f), _playOnDrop(true) {
+			gammaShift(1.f), _scalingMode(Source::SCALE_CROP), _playOnDrop(true) {
 
 	// 1. Create the view rendering widget and its catalog view
 	_renderwidget = new ViewRenderWidget;

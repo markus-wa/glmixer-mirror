@@ -200,6 +200,7 @@ set( GLMIXER_LIBRARIES  ${AVFORMAT_LIBRARY}
                         ${AVCODEC_LIBRARY}
                         ${AVUTIL_LIBRARY}
                         ${SWSCALE_LIBRARY}
+                        ${OPENGL_LIBRARY}
                         ${GLEW_LIBRARY}
                         ${EXTRA_LIBRARIES} )
 

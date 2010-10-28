@@ -225,11 +225,7 @@
      <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
    </property>
    <property name="toolTip">
-    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;Preview of the rendering output (as it is displayed in the output window).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>Preview of the rendering output (as it is displayed in the output window).</string>
    </property>
    <property name="floating">
     <bool>false</bool>
@@ -248,6 +244,9 @@ p, li { white-space: pre-wrap; }
    </attribute>
    <widget class="QWidget" name="previewDockWidgetContents">
     <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
+     <property name="margin">
+      <number>3</number>
+     </property>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_8">
        <item>
@@ -257,6 +256,9 @@ p, li { white-space: pre-wrap; }
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Gamma global factor</string>
          </property>
          <property name="layoutDirection">
           <enum>Qt::RightToLeft</enum>
@@ -302,12 +304,29 @@ p, li { white-space: pre-wrap; }
        </item>
        <item>
         <widget class="QToolButton" name="gammaShiftReset">
+         <property name="toolTip">
+          <string>Reset gamma</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::DelayedPopup</enum>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonIconOnly</enum>
+         </property>
+         <property name="arrowType">
+          <enum>Qt::NoArrow</enum>
          </property>
         </widget>
        </item>
@@ -365,8 +384,11 @@ p, li { white-space: pre-wrap; }
     <number>8</number>
    </attribute>
    <widget class="QWidget" name="vcontrolDockWidgetContents">
-    <property name="styleSheet">
-     <string notr="true">font: 10pt;</string>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <property name="spacing">
@@ -377,6 +399,12 @@ p, li { white-space: pre-wrap; }
      </property>
      <item>
       <widget class="QSplitter" name="vcontrolOptionSplitter">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -387,6 +415,18 @@ p, li { white-space: pre-wrap; }
         <number>7</number>
        </property>
        <widget class="QWidget" name="vcontrolDockWidgetControls" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>100</height>
+         </size>
+        </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
           <number>3</number>
@@ -406,7 +446,7 @@ p, li { white-space: pre-wrap; }
          <item>
           <widget class="QToolButton" name="startButton">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+            <sizepolicy hsizetype="Fixed" vsizetype="Maximum">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -435,7 +475,7 @@ p, li { white-space: pre-wrap; }
      background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                        stop: 0 #8f8f91, stop: 1 #f6f7fa);
  }
-font: 75 13pt;</string>
+</string>
            </property>
            <property name="text">
             <string>Play</string>
@@ -470,7 +510,7 @@ font: 75 13pt;</string>
             <bool>true</bool>
            </property>
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -484,13 +524,10 @@ font: 75 13pt;</string>
            <property name="autoFillBackground">
             <bool>false</bool>
            </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
             <property name="leftMargin">
              <number>5</number>
             </property>
@@ -522,7 +559,7 @@ font: 75 13pt;</string>
               </property>
               <layout class="QHBoxLayout">
                <property name="spacing">
-                <number>4</number>
+                <number>8</number>
                </property>
                <property name="margin">
                 <number>0</number>
@@ -597,7 +634,7 @@ font: 75 13pt;</string>
                   <string>Pause/resume play</string>
                  </property>
                  <property name="styleSheet">
-                  <string> QToolButton { /* all types of tool button */
+                  <string notr="true"> QToolButton { 
      border: 2px solid #8f8f91;
      border-radius: 6px;
  }
@@ -639,7 +676,7 @@ font: 75 13pt;</string>
                   </sizepolicy>
                  </property>
                  <property name="toolTip">
-                  <string>Advance by 1 frame</string>
+                  <string>Step by 1 frame</string>
                  </property>
                  <property name="styleSheet">
                   <string notr="true"> QToolButton {
@@ -722,59 +759,151 @@ font: 75 13pt;</string>
               </property>
               <layout class="QHBoxLayout">
                <property name="spacing">
-                <number>2</number>
+                <number>-1</number>
                </property>
                <property name="margin">
                 <number>0</number>
                </property>
                <item>
-                <widget class="QComboBox" name="playSpeedBox">
+                <widget class="QStackedWidget" name="stackedWidget">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="toolTip">
-                  <string>Playing speed</string>
+                  <string>Play speed</string>
                  </property>
                  <property name="currentIndex">
                   <number>3</number>
                  </property>
-                 <item>
-                  <property name="text">
-                   <string>1/4</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>1/3</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>1/2</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>1x</string>
-                  </property>
-                  <property name="icon">
-                   <iconset>
-                    <normaloff>:/glv/icons/media-playback-start.png</normaloff>:/glv/icons/media-playback-start.png</iconset>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2x</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>3x</string>
-                  </property>
-                 </item>
+                 <widget class="QWidget" name="pageSpeed0">
+                  <layout class="QHBoxLayout" name="horizontalLayout_14">
+                   <property name="margin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="labelSpeed_1_4">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>1/4</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                 <widget class="QWidget" name="pageSpeed1">
+                  <layout class="QHBoxLayout" name="horizontalLayout_13">
+                   <property name="margin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="labelSpeed_1_3">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>1/3</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                 <widget class="QWidget" name="pageSpeed2">
+                  <layout class="QHBoxLayout" name="horizontalLayout_12">
+                   <property name="margin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="labelSpeed_1_2">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>1/2</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                 <widget class="QWidget" name="pageSpeed3">
+                  <layout class="QHBoxLayout" name="horizontalLayout_11">
+                   <property name="margin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="labelSpeed_1">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>1x</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                 <widget class="QWidget" name="pageSpeed4">
+                  <layout class="QHBoxLayout" name="horizontalLayout_10">
+                   <property name="margin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="labelSpeed_2">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>2x</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                 <widget class="QWidget" name="pageSpeed5">
+                  <layout class="QHBoxLayout" name="horizontalLayout_9">
+                   <property name="margin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="labelSpeed_3">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>3x</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
                 </widget>
                </item>
                <item>
                 <widget class="QSlider" name="playSpeedSlider">
                  <property name="toolTip">
-                  <string>Playing speed</string>
+                  <string>Play speed</string>
                  </property>
                  <property name="minimum">
                   <number>0</number>
@@ -805,7 +934,7 @@ font: 75 13pt;</string>
                <item>
                 <widget class="QToolButton" name="videoLoopButton">
                  <property name="toolTip">
-                  <string>Enable loop playback</string>
+                  <string>Loop to mark-in playback</string>
                  </property>
                  <property name="styleSheet">
                   <string> QToolButton { /* all types of tool button */
@@ -847,10 +976,10 @@ font: 75 13pt;</string>
          <item>
           <widget class="QFrame" name="timingControlFrame">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -868,30 +997,63 @@ font: 75 13pt;</string>
             <enum>QFrame::Plain</enum>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="spacing">
+             <number>3</number>
+            </property>
             <property name="margin">
              <number>0</number>
             </property>
             <item>
-             <layout class="QGridLayout" name="gridLayout_2">
-              <property name="horizontalSpacing">
-               <number>5</number>
-              </property>
-              <property name="verticalSpacing">
-               <number>2</number>
+             <layout class="QGridLayout" name="gridLayout">
+              <property name="spacing">
+               <number>1</number>
               </property>
               <item row="0" column="0" colspan="2">
                <widget class="QLineEdit" name="timeLineEdit">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>90</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="baseSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Lucida Grande</family>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
+                <property name="cursor">
+                 <cursorShape>ArrowCursor</cursorShape>
+                </property>
                 <property name="toolTip">
                  <string>Current frame time</string>
                 </property>
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
+                </property>
                 <property name="maxLength">
-                 <number>32767</number>
+                 <number>30</number>
+                </property>
+                <property name="frame">
+                 <bool>true</bool>
                 </property>
                 <property name="readOnly">
                  <bool>true</bool>
@@ -900,14 +1062,49 @@ font: 75 13pt;</string>
               </item>
               <item row="1" column="0">
                <widget class="QPushButton" name="markInButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
-                  <width>90</width>
-                  <height>16777215</height>
+                  <width>60</width>
+                  <height>20</height>
                  </size>
+                </property>
+                <property name="baseSize">
+                 <size>
+                  <width>60</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>11</pointsize>
+                 </font>
                 </property>
                 <property name="toolTip">
                  <string>Sets the IN mark at the current time</string>
+                </property>
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true"> QPushButton { 
+     border: 1px solid #8f8f91;
+     border-radius: 3px;
+ }
+ QPushButton:pressed {
+     background-color: rgb(188, 188, 188)
+ }</string>
                 </property>
                 <property name="text">
                  <string>Mark IN</string>
@@ -919,8 +1116,32 @@ font: 75 13pt;</string>
               </item>
               <item row="1" column="1">
                <widget class="QToolButton" name="resetMarkInButton">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>20</width>
+                  <height>22</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>20</width>
+                  <height>22</height>
+                 </size>
+                </property>
+                <property name="baseSize">
+                 <size>
+                  <width>20</width>
+                  <height>22</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>Resets the IN mark at the start of file.</string>
+                </property>
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
                 </property>
                 <property name="styleSheet">
                  <string> QToolButton { /* all types of tool button */
@@ -931,31 +1152,60 @@ font: 75 13pt;</string>
      background-color: rgb(188, 188, 188)
  }</string>
                 </property>
-                <property name="text">
-                 <string>...</string>
-                </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
                   <normaloff>:/glmixer/icons/media-skip-backward.png</normaloff>:/glmixer/icons/media-skip-backward.png</iconset>
-                </property>
-                <property name="iconSize">
-                 <size>
-                  <width>16</width>
-                  <height>16</height>
-                 </size>
                 </property>
                </widget>
               </item>
               <item row="2" column="0">
                <widget class="QPushButton" name="markOutButton">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
-                  <width>90</width>
-                  <height>16777215</height>
+                  <width>60</width>
+                  <height>20</height>
                  </size>
+                </property>
+                <property name="baseSize">
+                 <size>
+                  <width>60</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>11</pointsize>
+                 </font>
                 </property>
                 <property name="toolTip">
                  <string>Sets the OUT mark at the current time</string>
+                </property>
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true"> QPushButton { 
+     border: 1px solid #8f8f91;
+     border-radius: 3px;
+ }
+ QPushButton:pressed {
+     background-color: rgb(188, 188, 188)
+ }</string>
                 </property>
                 <property name="text">
                  <string>Mark OUT</string>
@@ -967,8 +1217,38 @@ font: 75 13pt;</string>
               </item>
               <item row="2" column="1">
                <widget class="QToolButton" name="resetMarkOutButton">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>20</width>
+                  <height>22</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>20</width>
+                  <height>22</height>
+                 </size>
+                </property>
+                <property name="baseSize">
+                 <size>
+                  <width>20</width>
+                  <height>22</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>Reset the OUT mark at the end of file.</string>
+                </property>
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
                 </property>
                 <property name="styleSheet">
                  <string> QToolButton { /* all types of tool button */
@@ -979,18 +1259,9 @@ font: 75 13pt;</string>
      background-color: rgb(188, 188, 188)
  }</string>
                 </property>
-                <property name="text">
-                 <string>...</string>
-                </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
                   <normaloff>:/glmixer/icons/media-skip-forward.png</normaloff>:/glmixer/icons/media-skip-forward.png</iconset>
-                </property>
-                <property name="iconSize">
-                 <size>
-                  <width>16</width>
-                  <height>16</height>
-                 </size>
                 </property>
                </widget>
               </item>
@@ -1003,6 +1274,9 @@ font: 75 13pt;</string>
               </property>
               <item>
                <widget class="QSlider" name="frameSlider">
+                <property name="toolTip">
+                 <string>Time line</string>
+                </property>
                 <property name="minimum">
                  <number>0</number>
                 </property>
@@ -1079,15 +1353,23 @@ font: 75 13pt;</string>
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="toolButton">
+          <widget class="QToolButton" name="controlOptionsButton">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="maximumSize">
             <size>
              <width>16</width>
              <height>16777215</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string/>
+           </property>
+           <property name="styleSheet">
+            <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -1102,36 +1384,49 @@ font: 75 13pt;</string>
              <height>64</height>
             </size>
            </property>
+           <property name="shortcut">
+            <string notr="true"/>
+           </property>
           </widget>
          </item>
         </layout>
        </widget>
        <widget class="QWidget" name="vcontrolDockWidgetOptions" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="maximumSize">
          <size>
           <width>200</width>
           <height>16777215</height>
          </size>
         </property>
-        <property name="styleSheet">
-         <string notr="true">font: 12pt;</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_10">
-         <property name="spacing">
-          <number>5</number>
-         </property>
+        <layout class="QVBoxLayout" name="_2">
          <property name="margin">
-          <number>5</number>
+          <number>6</number>
          </property>
          <item>
           <widget class="QCheckBox" name="dirtySeekCheckBox">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font">
             <font>
-             <pointsize>12</pointsize>
-             <weight>50</weight>
-             <italic>false</italic>
-             <bold>false</bold>
+             <family>Lucida Grande</family>
+             <pointsize>10</pointsize>
             </font>
+           </property>
+           <property name="mouseTracking">
+            <bool>false</bool>
            </property>
            <property name="toolTip">
             <string>Allow to jump in-between full frames (MPEG).
@@ -1141,16 +1436,23 @@ but is more precise in time..</string>
            <property name="text">
             <string>Allow seek dirty frames</string>
            </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
          <item>
           <widget class="QCheckBox" name="restartWhereStoppedCheckBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font">
             <font>
-             <pointsize>12</pointsize>
-             <weight>50</weight>
-             <italic>false</italic>
-             <bold>false</bold>
+             <family>Lucida Grande</family>
+             <pointsize>10</pointsize>
             </font>
            </property>
            <property name="toolTip">
@@ -1167,37 +1469,53 @@ Uncheck to stay on the same frame when pressing stop.</string>
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <property name="spacing">
              <number>0</number>
             </property>
-            <property name="margin">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
              <number>0</number>
             </property>
             <item>
-             <widget class="QWidget" name="widget_3" native="true">
-              <property name="minimumSize">
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Preferred</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
                <size>
-                <width>50</width>
-                <height>0</height>
+                <width>40</width>
+                <height>8</height>
                </size>
               </property>
-             </widget>
+             </spacer>
             </item>
             <item>
              <widget class="QCheckBox" name="resetToBlackCheckBox">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
               <property name="font">
                <font>
-                <pointsize>12</pointsize>
-                <weight>50</weight>
-                <italic>false</italic>
-                <bold>false</bold>
+                <family>Lucida Grande</family>
+                <pointsize>10</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -1215,6 +1533,19 @@ Uncheck to display the restart frame when stopped.</string>
            </layout>
           </widget>
          </item>
+         <item>
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
         </layout>
        </widget>
       </widget>
@@ -1231,11 +1562,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/preferences.png</normaloff>:/glmixer/icons/preferences.png</iconset>
    </property>
    <property name="toolTip">
-    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;Configuration of the source currently highlighted (clic on a source icon to highlight it).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>Configuration of the source currently highlighted (clic on a source icon to highlight it).</string>
    </property>
    <property name="floating">
     <bool>false</bool>
@@ -1252,10 +1579,10 @@ p, li { white-space: pre-wrap; }
    <widget class="QWidget" name="sourceDockWidgetContents">
     <layout class="QVBoxLayout" name="sourceDockWidgetContentsLayout">
      <property name="spacing">
-      <number>2</number>
+      <number>3</number>
      </property>
      <property name="margin">
-      <number>0</number>
+      <number>1</number>
      </property>
     </layout>
    </widget>
@@ -1266,7 +1593,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>1115</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1496,10 +1823,10 @@ p, li { white-space: pre-wrap; }
    <widget class="QWidget" name="cursorDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
      <property name="spacing">
-      <number>0</number>
+      <number>3</number>
      </property>
      <property name="margin">
-      <number>0</number>
+      <number>3</number>
      </property>
      <item>
       <widget class="QStackedWidget" name="cursorOptionWidget">
@@ -1567,6 +1894,9 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QSlider" name="cursorSpringMass">
+           <property name="toolTip">
+            <string>Make the cursor heavy or lightweight</string>
+           </property>
            <property name="minimum">
             <number>1</number>
            </property>
@@ -1627,6 +1957,9 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QDoubleSpinBox" name="cursorDelayWaitDuration">
+           <property name="toolTip">
+            <string>How long before the movement starts.</string>
+           </property>
            <property name="suffix">
             <string> second(s)</string>
            </property>
@@ -1653,6 +1986,9 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="QSlider" name="cursorDelaySpeed">
+           <property name="toolTip">
+            <string>Translation speed</string>
+           </property>
            <property name="minimum">
             <number>30</number>
            </property>
@@ -1737,6 +2073,9 @@ p, li { white-space: pre-wrap; }
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/tools.png</normaloff>:/glmixer/icons/tools.png</iconset>
    </property>
+   <property name="toolTip">
+    <string>Adjust gamma and levels for current source.</string>
+   </property>
    <property name="windowTitle">
     <string>Gamma levels</string>
    </property>
@@ -1746,10 +2085,10 @@ p, li { white-space: pre-wrap; }
    <widget class="QWidget" name="gammaDockWidgetContents">
     <layout class="QVBoxLayout" name="gammaDockWidgetContentsLayout">
      <property name="spacing">
-      <number>2</number>
+      <number>3</number>
      </property>
      <property name="margin">
-      <number>0</number>
+      <number>3</number>
      </property>
     </layout>
    </widget>
@@ -1758,6 +2097,9 @@ p, li { white-space: pre-wrap; }
    <property name="windowIcon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
+   </property>
+   <property name="toolTip">
+    <string>Switch smoothly between .glm sessions.</string>
    </property>
    <property name="windowTitle">
     <string>Session switcher</string>
@@ -1768,10 +2110,10 @@ p, li { white-space: pre-wrap; }
    <widget class="QWidget" name="switcherDockWidgetContents">
     <layout class="QVBoxLayout" name="switcherDockWidgetContentsLayout">
      <property name="spacing">
-      <number>2</number>
+      <number>3</number>
      </property>
      <property name="margin">
-      <number>0</number>
+      <number>3</number>
      </property>
     </layout>
    </widget>
@@ -2604,45 +2946,13 @@ p, li { white-space: pre-wrap; }
  </resources>
  <connections>
   <connection>
-   <sender>playSpeedBox</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>playSpeedSlider</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>158</x>
-     <y>871</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>244</x>
-     <y>872</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>playSpeedSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>playSpeedBox</receiver>
-   <slot>setCurrentIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>244</x>
-     <y>872</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>158</x>
-     <y>871</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>toolButtonZoomFit</sender>
    <signal>pressed()</signal>
    <receiver>actionZoomBestFit</receiver>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>923</x>
+     <x>911</x>
      <y>73</y>
     </hint>
     <hint type="destinationlabel">
@@ -2658,7 +2968,7 @@ p, li { white-space: pre-wrap; }
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>899</x>
+     <x>887</x>
      <y>73</y>
     </hint>
     <hint type="destinationlabel">
@@ -2674,7 +2984,7 @@ p, li { white-space: pre-wrap; }
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>875</x>
+     <x>863</x>
      <y>73</y>
     </hint>
     <hint type="destinationlabel">
@@ -2690,7 +3000,7 @@ p, li { white-space: pre-wrap; }
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>851</x>
+     <x>839</x>
      <y>73</y>
     </hint>
     <hint type="destinationlabel">
@@ -2706,12 +3016,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1109</x>
-     <y>853</y>
+     <x>1114</x>
+     <y>835</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1109</x>
-     <y>881</y>
+     <x>1105</x>
+     <y>855</y>
     </hint>
    </hints>
   </connection>
@@ -2723,11 +3033,11 @@ p, li { white-space: pre-wrap; }
    <hints>
     <hint type="sourcelabel">
      <x>196</x>
-     <y>837</y>
+     <y>833</y>
     </hint>
     <hint type="destinationlabel">
      <x>221</x>
-     <y>836</y>
+     <y>832</y>
     </hint>
    </hints>
   </connection>
@@ -2776,6 +3086,22 @@ p, li { white-space: pre-wrap; }
     <hint type="destinationlabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>playSpeedSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>stackedWidget</receiver>
+   <slot>setCurrentIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>176</x>
+     <y>870</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>122</x>
+     <y>862</y>
     </hint>
    </hints>
   </connection>

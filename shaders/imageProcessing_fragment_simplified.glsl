@@ -1,14 +1,4 @@
 
-#define KERNEL_BLUR_GAUSSIAN 0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625
-#define KERNEL_BLUR_MEAN 0.111111,0.111111,0.111111,0.111111,0.111111,0.111111,0.111111,0.111111,0.111111
-#define KERNEL_SHARPEN 0.0, -1.0, 0.0, -1.0, 5.0, -1.0, 0.0, -1.0, 0.0
-#define KERNEL_SHARPEN_MORE -1.0, -1.0, -1.0, -1.0, 9.0, -1.0, -1.0, -1.0, -1.0
-#define KERNEL_EDGE_GAUSSIAN -0.0943852, -0.155615, -0.0943852, -0.155615, 1.0, -0.155615, -0.0943852, -0.155615, -0.0943852
-#define KERNEL_EDGE_LAPLACE 0.0, -1.0, 0.0, -1.0, 4.0, -1.0, 0.0, -1.0, 0.0
-#define KERNEL_EDGE_LAPLACE_2 -2.0, 1.0, -2.0, 1.0, 4.0, 1.0, -2.0, 1.0, -2.0
-#define KERNEL_EMBOSS -2.0, -1.0, 0.0, -1.0, 1.0, 1.0, 0.0, 1.0, 2.0
-#define KERNEL_EMBOSS_EDGE 5.0, -3.0, -3.0, 5.0, 0.0, -3.0, 5.0, -3.0, -3.0
-
 varying vec2 texc;
 varying vec2 maskc;
 varying vec4 baseColor;

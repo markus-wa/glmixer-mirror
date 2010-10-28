@@ -79,6 +79,7 @@ public Q_SLOTS:
 	void on_actionResetToolbars_triggered();
 	void on_gammaShiftSlider_valueChanged(int);
 	void on_gammaShiftReset_clicked();
+	void on_controlOptionsButton_clicked();
 
 	// GUI interaction
 	void setView(QAction *a);

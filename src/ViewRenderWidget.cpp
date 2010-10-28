@@ -195,10 +195,12 @@ ViewRenderWidget::~ViewRenderWidget()
 void ViewRenderWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
-	buildShader();
-
 	setBackgroundColor(QColor(52, 52, 52));
 
+	// Create GLSL program and VERTEX array
+	buildShader();
+
+	// Create display lists
 	quad_texured = buildTexturedQuadList();
 	border_thin_shadow = buildLineList();
 	border_large_shadow = border_thin_shadow + 1;
@@ -214,6 +216,7 @@ void ViewRenderWidget::initializeGL()
 	border_scale = border_thin + 2;
 	fading = buildFadingList();
 
+	// Create mask textures
 	if (!mask_textures[0])
 	{
 		glActiveTexture(GL_TEXTURE1);
@@ -980,8 +983,8 @@ GLuint ViewRenderWidget::buildLineList()
 	glScalef(1.23, 1.23, 1.0);
 
 	glColor4f(0.0, 0.0, 0.0, 0.0);
-//    glDrawArrays(GL_QUADS, 0, 4);
-	glCallList(ViewRenderWidget::quad_texured);
+    glDrawArrays(GL_QUADS, 0, 4);
+//	glCallList(ViewRenderWidget::quad_texured);
 
 	glPopMatrix();
 
@@ -1007,8 +1010,8 @@ GLuint ViewRenderWidget::buildLineList()
 	glScalef(1.23, 1.23, 1.0);
 
 	glColor4f(0.0, 0.0, 0.0, 0.0);
-//    glDrawArrays(GL_QUADS, 0, 4);
-	glCallList(ViewRenderWidget::quad_texured);
+    glDrawArrays(GL_QUADS, 0, 4);
+//	glCallList(ViewRenderWidget::quad_texured);
 
 	glPopMatrix();
 
