@@ -344,8 +344,8 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 
 bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
-	// for LEFT double button clic alrernate group / selection
-	if ( (event->buttons() & Qt::LeftButton) /*&& getSourceAtCoordinates(event->x(), viewport[3] - event->y()) */) {
+	// for LEFT double button clic alternate group / selection
+	if ( (event->buttons() & Qt::LeftButton) ) {
 
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
@@ -357,7 +357,7 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
             	if ( (*itss).count(clicked) > 0 )
             		break;
             }
-            // if doubleclic on a group ; convert group into selection
+            // if double clic on a group ; convert group into selection
         	if ( itss != groupSources.end() ) {
         		selectedSources = SourceList(*itss);
         		// erase group and its color
@@ -373,14 +373,16 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 					groupColor[groupSources.begin()] = QColor::fromHsv ( rand()%180 + 179, 250, 250);
 					selectedSources.clear();
 				}
-				// else add it to the selection
-				else
-					selectedSources.insert( clicked );
         	}
 		}
-//		else  // double clic in background
-//			zoomBestFit();
-
+		else { // double clic in background
+		    double ax, ay, az;
+		    gluUnProject((GLdouble) event->x(), (GLdouble) event->y(), 0.0,  modelview, projection, viewport, &ax, &ay, &az);
+		    // apply panning
+		    setPanningX( ax );
+		    setPanningY( ay );
+			return false;
+		}
 	}
 
 	return true;
