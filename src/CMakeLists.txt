@@ -185,13 +185,12 @@ else (OpenCV_FOUND)
 	)
 endif (OpenCV_FOUND)
 
-
-
 ADD_CUSTOM_COMMAND(
     TARGET bundle
     POST_BUILD
     COMMAND mkdir ARGS ${CMAKE_BINARY_DIR}/src/glmixer.app/Contents/Resources/
-    COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/icons/glmixer.icns ${CMAKE_BINARY_DIR}/src/glmixer.app/Contents/Resources/
+    COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/icons/glmixer.icns ${CMAKE_BINARY_DIR}/src/glmixer.app/Contents/Resources/
+    COMMAND cp -Rf ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib ${CMAKE_BINARY_DIR}/src/glmixer.app/Contents/Resources/
 )
 
 else ( APPLE )
