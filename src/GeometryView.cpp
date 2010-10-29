@@ -201,17 +201,23 @@ void GeometryView::resize(int w, int h)
 
 bool GeometryView::mousePressEvent(QMouseEvent *event)
 {
+	if (!event)
+		return false;
+
 	lastClicPos = event->pos();
 
 	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+		return false;
 	}
-	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+
+	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret other mouse events in drop mode
 		return false;
 	}
-	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
+
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
 
     	// get the top most clicked source
     	SourceSet::iterator clicked = clickedSources.begin();
@@ -257,15 +263,19 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
     			quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
     		}
     	}
-    } else
-		// set current to none (end of list)
-		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
 
-	return true;
+    	return true;
+    }
+
+	// set current to none (end of list)
+	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+	return false;
 }
 
 bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 {
+	if (!event)
+		return false;
 
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
@@ -275,18 +285,18 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
-
+		return false;
 	}
 	// DROP MODE ; show a question mark cursor and avoid other actions
-	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret mouse events in drop mode
 		return false;
-
 	}
 	// LEFT button : use TOOL on the current source
-	else if (event->buttons() & Qt::LeftButton) {
+	if (event->buttons() & Qt::LeftButton) {
+
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
@@ -308,44 +318,43 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		}
 		return true;
 
-	} else if (event->buttons() & Qt::RightButton) {
-
-		// TODO : implement right-move = action on a single element of the selection group
-
-	} else  { // mouse over (no buttons)
-
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
-
-    		// if there was no current source
-    		// OR
-			// if the currently active source is NOT in the set of sources under the cursor,
-			// THEN
-			// set quadrant to 0 (grab)
-			// ELSE
-			// use the current source for quadrant computation
-			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd()
-				|| clickedSources.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
-//				quadrant = getSourceQuadrant(clickedSources.begin(), event->x(), viewport[3] - event->y());
-				quadrant = 0;
-			else
-				quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
-
-			if(quadrant == 0 || currentTool == MOVE)
-				borderType = ViewRenderWidget::border_large;
-			else
-				borderType = ViewRenderWidget::border_scale;
-
-			setAction(View::OVER);
-
-		} else
-			setAction(View::NONE);
-
 	}
+
+	// mouse over (no buttons)
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+
+		// if there was no current source
+		// OR
+		// if the currently active source is NOT in the set of sources under the cursor,
+		// THEN
+		// set quadrant to 0 (grab)
+		// ELSE
+		// use the current source for quadrant computation
+		if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd()
+			|| clickedSources.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
+//				quadrant = getSourceQuadrant(clickedSources.begin(), event->x(), viewport[3] - event->y());
+			quadrant = 0;
+		else
+			quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
+
+		if(quadrant == 0 || currentTool == MOVE)
+			borderType = ViewRenderWidget::border_large;
+		else
+			borderType = ViewRenderWidget::border_scale;
+
+		setAction(View::OVER);
+	}
+	else
+		setAction(View::NONE);
+
 
 	return false;
 }
 
-bool GeometryView::mouseReleaseEvent ( QMouseEvent * event ){
+bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
+{
+	if (!event)
+		return false;
 
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
@@ -403,7 +412,10 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
 bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
-	// TODO : left double clic
+	if (!event)
+		return false;
+
+	// SHIFT +  left double click = re-center panning
 	if ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) {
 		double ax, ay, az;
 		gluUnProject((GLdouble) event->x(), viewport[3] - (GLdouble) event->y(), 0.0,  modelview, projection, viewport, &ax, &ay, &az);

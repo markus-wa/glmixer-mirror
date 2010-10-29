@@ -320,7 +320,6 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 		//
 		// 1. Draw into first texture attachment; the final output rendering
 		//
-//		glDrawBuffer(GL_COLOR_ATTACHMENT0); // no need to specify default
 
 		if (clearfirst) {
 			if (clearWhite)
@@ -508,22 +507,30 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 	return ( (Source *) s );
 }
 
-void RenderingManager::insertSource(Source *s){
-
+bool RenderingManager::insertSource(Source *s)
+{
 	if (s) {
 		// replace the source name by another available one based on the original name
 		s->setName(getAvailableNameFrom(s->getName()));
 
-		// set the last created source to be current
-		std::pair<SourceSet::iterator, bool> ret;
-		ret = _sources.insert(s);
-		if (ret.second) {
-			s->play(_playOnDrop);
-		} else {
-			delete s;
-	        QMessageBox::warning(0, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not insert source into the stack."));
+		if (_sources.size() < MAX_SOURCE_COUNT) {
+			//insert the source to the list
+			std::pair<SourceSet::iterator, bool> ret;
+			ret = _sources.insert(s);
+			if (ret.second) {
+				// success ; start playing (according to preference)
+				s->play(_playOnDrop);
+				// inform of success
+				return true;
+			}
+			else
+				QMessageBox::warning(0, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Not enough memory to insert the source into the stack."));
 		}
+		else
+			QMessageBox::warning(0, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("You have reached the maximum amount of source supported (%1).").arg(MAX_SOURCE_COUNT));
 	}
+
+	return false;
 }
 
 void RenderingManager::addSourceToBasket(Source *s)
@@ -583,13 +590,16 @@ void RenderingManager::dropSourceWithAlpha(double alphax, double alphay){
 		return;
 	// get the pointer to the source at the top of the list
 	Source *top = *dropBasket.begin();
-	// insert the source
-	insertSource(top);
-	setCurrentSource(top->getId());
-	// apply the modifications
-	top->setAlphaCoordinates(alphax, alphay);
 	// remove from the basket
 	dropBasket.erase(top);
+	// insert the source
+	if ( insertSource(top) ) {
+		// make it current
+		setCurrentSource(top->getId());
+		// apply the modifications
+		top->setAlphaCoordinates(alphax, alphay);
+	} else
+		delete top;
 
 }
 
@@ -601,15 +611,17 @@ void RenderingManager::dropSourceWithCoordinates(double x, double y){
 
 	// get the pointer to the source at the top of the list
 	Source *top = *dropBasket.begin();
-	// apply the modifications
-	top->setX(x);
-	top->setY(y);
-	// insert the source
-	insertSource(top);
-	setCurrentSource(top->getId());
 	// remove from the basket
-	dropBasket.erase(dropBasket.begin());
-
+	dropBasket.erase(top);
+	// insert the source
+	if ( insertSource(top) ) {
+		// make it current
+		setCurrentSource(top->getId());
+		// apply the modifications
+		top->setX(x);
+		top->setY(y);
+	} else
+		delete top;
 }
 
 void RenderingManager::dropSourceWithDepth(double depth){
@@ -620,13 +632,16 @@ void RenderingManager::dropSourceWithDepth(double depth){
 
 	// get the pointer to the source at the top of the list
 	Source *top = *dropBasket.begin();
-	// apply the modifications
-	top->setDepth(depth);
-	// insert the source
-	insertSource(top);
-	setCurrentSource(top->getId());
 	// remove from the basket
-	dropBasket.erase(dropBasket.begin());
+	dropBasket.erase(top);
+	// insert the source
+	if ( insertSource(top) ) {
+		// make it current
+		setCurrentSource(top->getId());
+		// apply the modifications
+		top->setDepth(depth);
+	} else
+		delete top;
 
 }
 
@@ -1073,7 +1088,7 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 	QList<QDomElement> clones;
-    QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
+    QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
 
     int count = 0;
     QProgressDialog progress("Loading sources...", "Abort", 1, xmlconfig.childNodes().count());
@@ -1185,9 +1200,11 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 		if (newsource) {
 			// insert the source in the scene
-			insertSource(newsource);
-			// Apply parameters to the created source
-			applySourceConfig(newsource, child);
+			if ( insertSource(newsource) )
+				// Apply parameters to the created source
+				applySourceConfig(newsource, child);
+			else
+				delete newsource;
 		}
 
 		child = child.nextSiblingElement();
@@ -1213,7 +1230,8 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
     			// Apply parameters to the created source
     			applySourceConfig(clonesource, c);
     			// insert the source in the scene
-    			insertSource(clonesource);
+    			if ( !insertSource(clonesource) )
+    				delete clonesource;
     		}else
     	        QMessageBox::warning(0, caption, tr("Could not create clone source %1.").arg(c.attribute("name")));
     	} else {

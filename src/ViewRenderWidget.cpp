@@ -350,7 +350,7 @@ void ViewRenderWidget::contextMenu(const QPoint &pos)
 	if (RenderingManager::getInstance()->getSourceBasketTop())
 	{
 		QMenu menu(this);
-		QAction *newAct = new QAction(tr("&Empty basket"), this);
+		QAction *newAct = new QAction(tr("Cancel"), this);
 		menu.addAction(newAct);
 		connect(newAct, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(clearBasket()));
 		menu.exec(mapToGlobal(pos));
@@ -359,7 +359,7 @@ void ViewRenderWidget::contextMenu(const QPoint &pos)
 	{
 		catalogMenu->exec(mapToGlobal(pos));
 	}
-	else if (viewMenu)
+	else if (viewMenu && _currentView->noSourceClicked())
 	{
 		viewMenu->exec(mapToGlobal(pos));
 	}

@@ -571,9 +571,14 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
 		doubleManager->setValue(idToProperty["Depth"], s->getDepth() );
 		doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
-		enumManager->setValue(idToProperty["Blending"], presetBlending.key( qMakePair( glblendToEnum[s->getBlendFuncDestination()], glequationToEnum[s->getBlendEquation()] ) ) );
+
+		int preset = presetBlending.key( qMakePair( glblendToEnum[s->getBlendFuncDestination()], glequationToEnum[s->getBlendEquation()] ) );
+		enumManager->setValue(idToProperty["Blending"], preset );
 		enumManager->setValue(idToProperty["Destination"], glblendToEnum[ s->getBlendFuncDestination() ]);
 		enumManager->setValue(idToProperty["Equation"], glequationToEnum[ s->getBlendEquation() ]);
+		idToProperty["Destination"]->setEnabled(preset == 0);
+		idToProperty["Equation"]->setEnabled(preset == 0);
+
 		enumManager->setValue(idToProperty["Mask"], s->getMask());
 		colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
 		boolManager->setValue(idToProperty["Pixelated"], s->isPixelated());
@@ -1079,9 +1084,9 @@ void SourcePropertyBrowser::ctxMenuGroup(const QPoint &pos){
     static QMenu *menu = 0;
     if (!menu) {
     	menu = new QMenu;
-        menu->addAction(tr("Reset all values"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
-        menu->addSeparator();
     	menu->addAction(tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
+        menu->addSeparator();
+        menu->addAction(tr("Reset all properties"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
     }
     menu->exec(mapToGlobal(pos));
 }
@@ -1092,11 +1097,14 @@ void SourcePropertyBrowser::ctxMenuTree(const QPoint &pos){
     static QMenu *menu = 0;
     if (!menu) {
     	menu = new QMenu;
-        menu->addAction(tr("Reset all values"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
-        menu->addSeparator();
+        menu->addAction(tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
         menu->addAction(tr("Expand tree"), this, SLOT(expandAll()));
         menu->addAction(tr("Collapse tree"), this, SLOT(collapseAll()));
-        menu->addAction(tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
+        menu->addSeparator();
+        menu->addAction(tr("Reset all properties"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
+        // TODO ; context entry to reset the current property
+//        menu->addAction(tr("Reset this property"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
+        // use QtAbstractPropertyBrowser :  propertyTreeEditor->currentItem()->property();
     }
 
     menu->exec(mapToGlobal(pos));

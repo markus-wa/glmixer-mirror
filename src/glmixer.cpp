@@ -345,7 +345,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 #endif
 	    Q_CHECK_PTR(newSourceVideoFile);
 
-	    QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
+	    QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
 		// if the video file was created successfully
 		if (newSourceVideoFile){
 			// forward error messages to display
@@ -582,7 +582,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 					RenderingManager::getInstance()->addSourceToBasket(s);
 					statusbar->showMessage( tr("Clone created of the source with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()), 3000 );
 				} else
-			        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create clone source."));
+			        QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Could not create clone source."));
 			}
 			//else create a new opencv source :
 			else {
@@ -591,7 +591,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 					RenderingManager::getInstance()->addSourceToBasket(s);
 					statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()), 3000 );
 				} else
-			        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create OpenCV source."));
+			        QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Could not create OpenCV source."));
 			}
 		}
 #endif
@@ -615,7 +615,7 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 			RenderingManager::getInstance()->addSourceToBasket(s);
 			statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
 		} else
-	        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create algorithm source."));
+	        QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Could not create algorithm source."));
 	}
 }
 
@@ -627,7 +627,7 @@ void GLMixer::on_actionRenderingSource_triggered(){
 		RenderingManager::getInstance()->addSourceToBasket(s);
 		statusbar->showMessage( tr("Source created with the rendering output loopback."), 3000 );
 	}else
-        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create rendering source."));
+        QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Could not create rendering source."));
 }
 
 
@@ -639,7 +639,7 @@ void GLMixer::on_actionCloneSource_triggered(){
 			RenderingManager::getInstance()->addSourceToBasket(s);
 			statusbar->showMessage( tr("The current source has been cloned."), 3000);
 		} else
-	        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create clone source."));
+	        QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Could not create clone source."));
 	}
 }
 
@@ -712,11 +712,11 @@ void GLMixer::on_actionCaptureSource_triggered(){
 //			RenderingManager::getInstance()->addSourceToBasket(s);
 //			statusbar->showMessage( tr("Source created with a capture of the output."), 3000 );
 //		} else
-//	        QMessageBox::warning(this, tr("%1 create source").arg(QCoreApplication::applicationName()), tr("Could not create capture source."));
+//	        QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Could not create capture source."));
 		VideoFile *newSourceVideoFile = new VideoFile(this);
 	    Q_CHECK_PTR(newSourceVideoFile);
 
-	    QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
+	    QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
 		// if the video file was created successfully
 		if (!filename.isNull() && newSourceVideoFile){
 			// forward error messages to display
@@ -1278,7 +1278,7 @@ void GLMixer::openSessionFile(QString filename)
     int errorColumn;
 
      QFile file(currentSessionFileName);
-     QString caption = tr("%1 session open").arg(QCoreApplication::applicationName());
+     QString caption = tr("%1 Cannot open session").arg(QCoreApplication::applicationName());
      if (!file.open(QFile::ReadOnly | QFile::Text)) {
          QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(currentSessionFileName).arg(file.errorString()));
      	 currentSessionFileName = QString();
@@ -1401,7 +1401,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
 		return;
 
 	QFile file(fileName);
-    QString caption = tr("Append %1 to current session").arg(QCoreApplication::applicationName());
+    QString caption = tr("Cannot append %1 to current session").arg(QCoreApplication::applicationName());
 	if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
 		QMessageBox::warning(this, caption, tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
 		return;
@@ -1455,7 +1455,7 @@ void GLMixer::dropEvent(QDropEvent *event)
 	if (mimeData->hasUrls()) {
 		QList<QUrl> urlList = mimeData->urls();
 		QString text;
-	    QString caption = tr("%1 create source").arg(QCoreApplication::applicationName());
+	    QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
 
 		// arbitrary limitation in the amount of drops allowed (avoid manipulation mistakes)
 		if (urlList.size() > 20)

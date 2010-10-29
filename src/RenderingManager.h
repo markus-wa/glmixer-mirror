@@ -85,7 +85,7 @@ public:
 	Source *newAlgorithmSource(int type, int w, int h, double v, int p, double depth = -1.0);
 	Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
 	// insert the source into the scene
-	void insertSource(Source *s);
+	bool insertSource(Source *s);
 
 	SourceSet::iterator getById(const GLuint id) const;
 	SourceSet::iterator getByName(const QString name) const;

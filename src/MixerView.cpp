@@ -269,27 +269,31 @@ void MixerView::setAction(actionType a){
 
 bool MixerView::mousePressEvent(QMouseEvent *event)
 {
+	if (!event)
+		return false;
+
 	lastClicPos = event->pos();
 
 	// MIDDLE BUTTON ; panning cursor
 	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 		// priority to panning of the view (even in drop mode)
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+		return false;
 	}
 	// DRoP MODE ; explicitly do nothing
-	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		// don't interpret other mouse events in drop mode
 		return false;
 	}
-	// LEFT BUTTON ; initiate action
+	// OTHER BUTTON ; initiate action
 //	else  if (event->buttons() & Qt::LeftButton) {
-	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
 
     	// get the top most clicked source
     	Source *clicked = *clickedSources.begin();
 
-    	// if a source icon was cliked
+    	// should be always true
         if ( clicked ) {
 
         	// if CTRL button modifier pressed, add clicked to selection
@@ -325,36 +329,41 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 				setAction(View::GRAB);
 			}
 		}
+    	return true;
+    }
 
-    } else // clic in background
-    {
-		// set current to none (end of list)
-		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
-		// clear selection
-		selectedSources.clear();
-		setAction(View::NONE);
-		// remember coordinates of clic
-		double dumm;
-	    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleStart, rectangleStart+1, &dumm);
+	// click in background
 
-	}
+	// set current to none (end of list)
+	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+	// clear selection
+	selectedSources.clear();
+	setAction(View::NONE);
+	// remember coordinates of clic
+	double dumm;
+	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleStart, rectangleStart+1, &dumm);
 
-	return true;
+	return false;
 }
 
-bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
+bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
+{
+	if (!event)
+		return false;
 
-	// for LEFT double button clic alternate group / selection
+	// for LEFT double button
 	if ( event->buttons() & Qt::LeftButton ) {
-
+		// SHIFT + double click = re-center panning
 		if (QApplication::keyboardModifiers () == Qt::ShiftModifier) {
 		    double ax, ay, az;
 		    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0,  modelview, projection, viewport, &ax, &ay, &az);
 		    // apply panning
 		    setPanningX( - (float) ax );
 		    setPanningY( - (float) ay );
+			return false;
 		}
-		else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+		// left double click on a source : change the group / selection
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
 	    	// get the top most clicked source
 	    	Source *clicked = *clickedSources.begin();
@@ -381,9 +390,8 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 					selectedSources.clear();
 				}
         	}
+        	return true;
 		}
-
-		return true;
 	}
 
 	return false;
@@ -409,8 +417,8 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     // MIDDLE button ; panning
 	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 
-		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
-		return false;
+			panningBy(event->x(), viewport[3] - event->y(), dx, dy);
+			return false;
 	}
 	// DROP MODE : avoid other actions
 	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
@@ -421,7 +429,6 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	}
 	// LEFT BUTTON : grab or draw a selection rectangle
 	if (event->buttons() & Qt::LeftButton) {
-
 
         if ( clicked && currentAction == View::GRAB )
         {
@@ -446,7 +453,6 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
         	// nothing special, move the source individually
 			else
 				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
-
 
     		return true;
 
