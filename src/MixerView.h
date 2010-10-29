@@ -48,7 +48,7 @@ public:
 
 	void clear();
 	void zoomReset();
-	void zoomBestFit();
+	void zoomBestFit( bool onlyClickedSource = false );
 
 	void alphaCoordinatesFromMouse(int mouseX, int mouseY, double *alphaX, double *alphaY);
     bool isInAGroup(Source *);

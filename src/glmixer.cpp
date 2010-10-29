@@ -200,6 +200,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionZoomOut, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomOut()));
 	QObject::connect(actionZoomReset, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
 	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
+	QObject::connect(actionZoomCurrentSource, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomCurrentSource()));
 
 	// Signals between cursors and their configuration gui
 	QObject::connect(RenderingManager::getRenderingWidget()->getDelayCursor(), SIGNAL(speedChanged(int)), cursorDelaySpeed, SLOT(setValue(int)) );
@@ -445,6 +446,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		sourceDockWidgetContents->setEnabled(true);
 		actionDeleteSource->setEnabled(true);
 		actionCloneSource->setEnabled(true);
+		toolButtonZoomCurrent->setEnabled(true);
+		actionZoomCurrentSource->setEnabled(true);
 
 		// Enable start button if the source is playable
 		startButton->setEnabled( (*csi)->isPlayable() );
@@ -538,6 +541,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		// disable panel widgets
 		actionDeleteSource->setEnabled(false);
 		actionCloneSource->setEnabled(false);
+		toolButtonZoomCurrent->setEnabled(false);
+		actionZoomCurrentSource->setEnabled(false);
 		vcontrolDockWidgetContents->setEnabled(false);
 		startButton->setEnabled( false );
 		startButton->setChecked( false );

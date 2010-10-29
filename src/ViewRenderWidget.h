@@ -135,6 +135,7 @@ public Q_SLOTS:
 	void zoomOut();
 	void zoomReset();
 	void zoomBestFit();
+	void zoomCurrentSource();
 	void refresh();
 	void showMessage(QString s);
 	void hideMessage();

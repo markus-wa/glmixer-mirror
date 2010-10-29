@@ -359,7 +359,7 @@ void ViewRenderWidget::contextMenu(const QPoint &pos)
 	{
 		catalogMenu->exec(mapToGlobal(pos));
 	}
-	else if (viewMenu && _currentView->noSourceClicked())
+	else if (viewMenu)
 	{
 		viewMenu->exec(mapToGlobal(pos));
 	}
@@ -743,6 +743,14 @@ void ViewRenderWidget::zoomBestFit()
 {
 	makeCurrent();
 	_currentView->zoomBestFit();
+
+	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+}
+
+void ViewRenderWidget::zoomCurrentSource()
+{
+	makeCurrent();
+	_currentView->zoomBestFit(true);
 
 	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }

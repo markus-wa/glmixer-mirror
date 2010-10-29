@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/zoom-fit-source.png</file>
     <file>icons/magnet-cursor.png</file>
     <file>icons/question.png</file>
     <file>icons/delete.png</file>

@@ -45,7 +45,7 @@ public:
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
 	void zoomReset();
-	void zoomBestFit();
+	void zoomBestFit( bool onlyClickedSource = false );
 
     void unProjectDepth(int x, int y, int dx, int dy, double *depth, double *depthBeforeDelta);
 

@@ -50,7 +50,7 @@ public:
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
 	void zoomReset();
-	void zoomBestFit();
+	void zoomBestFit( bool onlyClickedSource = false );
 
 	void coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y);
 

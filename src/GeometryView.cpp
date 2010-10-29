@@ -203,7 +203,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
-	if (event->buttons() & Qt::MidButton) {
+	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
 	}
 	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
@@ -272,7 +272,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
     lastClicPos = event->pos();
 
 	// MIDDLE button ; panning
-	if (event->buttons() & Qt::MidButton) {
+	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 
@@ -401,22 +401,19 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 }
 
 
-bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event ){
-
-
-	// TODO :  for LEFT double button clic alrernate group / selection
-	// for LEFT double button clic : expand the current source to the rendering area
-	if ( (event->buttons() & Qt::LeftButton) && getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
-
-		if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()){
-			(*RenderingManager::getInstance()->getCurrentSource())->resetScale();
-			(*RenderingManager::getInstance()->getCurrentSource())->resetTextureCoordinates();
-		} else
-			zoomBestFit();
-
+bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
+{
+	// TODO : left double clic
+	if ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) {
+		double ax, ay, az;
+		gluUnProject((GLdouble) event->x(), viewport[3] - (GLdouble) event->y(), 0.0,  modelview, projection, viewport, &ax, &ay, &az);
+		// apply panning
+		setPanningX( -(float) ax );
+		setPanningY( -(float) ay );
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 
@@ -524,19 +521,30 @@ void GeometryView::zoomReset() {
 	setPanningY(0);
 }
 
-void GeometryView::zoomBestFit() {
+void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 
 	// nothing to do if there is no source
 	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
 		zoomReset();
 		return;
 	}
+	// 0. consider either the list of clicked sources, either the full list
+    SourceSet::iterator beginning, end;
+    if (onlyClickedSource && RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
+    	beginning = end = RenderingManager::getInstance()->getCurrentSource();
+    	end++;
+    } else {
+    	beginning = RenderingManager::getInstance()->getBegin();
+    	end = RenderingManager::getInstance()->getEnd();
+    }
 
-	// 1. compute bounding box of every sources
+	// 1. compute bounding box of every sources to consider
     double x_min = 10000, x_max = -10000, y_min = 10000, y_max = -10000;
-	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-		if ((*its)->isStandby())
-			continue;
+	for(SourceSet::iterator  its = beginning; its != end; its++) {
+    	// ignore standby sources
+    	if ((*its)->isStandby())
+    		continue;
+    	// get coordinates
 		x_min = MINI (x_min, (*its)->getX() - (*its)->getScaleX());
 		x_max = MAXI (x_max, (*its)->getX() + (*its)->getScaleX());
 		y_min = MINI (y_min, (*its)->getY() - (*its)->getScaleY());

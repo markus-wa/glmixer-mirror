@@ -145,7 +145,7 @@ public:
 	/**
 	 *
 	 */
-	virtual void zoomBestFit() {
+	virtual void zoomBestFit( bool onlyClickedSource = false ) {
 	}
 	/**
 	 *

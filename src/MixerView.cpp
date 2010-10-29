@@ -272,7 +272,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	// MIDDLE BUTTON ; panning cursor
-	if (event->buttons() & Qt::MidButton) {
+	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 		// priority to panning of the view (even in drop mode)
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
 	}
@@ -345,9 +345,16 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 
 	// for LEFT double button clic alternate group / selection
-	if ( (event->buttons() & Qt::LeftButton) ) {
+	if ( event->buttons() & Qt::LeftButton ) {
 
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+		if (QApplication::keyboardModifiers () == Qt::ShiftModifier) {
+		    double ax, ay, az;
+		    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0,  modelview, projection, viewport, &ax, &ay, &az);
+		    // apply panning
+		    setPanningX( - (float) ax );
+		    setPanningY( - (float) ay );
+		}
+		else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
 	    	// get the top most clicked source
 	    	Source *clicked = *clickedSources.begin();
@@ -375,17 +382,11 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event ){
 				}
         	}
 		}
-		else { // double clic in background
-		    double ax, ay, az;
-		    gluUnProject((GLdouble) event->x(), (GLdouble) event->y(), 0.0,  modelview, projection, viewport, &ax, &ay, &az);
-		    // apply panning
-		    setPanningX( ax );
-		    setPanningY( ay );
-			return false;
-		}
+
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 
@@ -406,7 +407,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		clicked = 0;
 
     // MIDDLE button ; panning
-	if (event->buttons() & Qt::MidButton) {
+	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 		return false;
@@ -610,7 +611,7 @@ void MixerView::zoomReset()
 	setPanningX(0); setPanningY(0);
 }
 
-void MixerView::zoomBestFit()
+void MixerView::zoomBestFit( bool onlyClickedSource )
 {
 	// nothing to do if there is no source
 	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
@@ -618,11 +619,22 @@ void MixerView::zoomBestFit()
 		return;
 	}
 
-	// 1. compute bounding box of every sources
+	// 0. consider either the list of clicked sources, either the full list
+    SourceSet::iterator beginning, end;
+    if (onlyClickedSource && RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
+    	beginning = end = RenderingManager::getInstance()->getCurrentSource();
+    	end++;
+    } else {
+    	beginning = RenderingManager::getInstance()->getBegin();
+    	end = RenderingManager::getInstance()->getEnd();
+    }
+
+	// 1. compute bounding box of every sources to consider
     double x_min = 10000, x_max = -10000, y_min = 10000, y_max = -10000;
-	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+	for(SourceSet::iterator  its = beginning; its != end; its++) {
     	// ignore standby sources
-    	if ((*its)->isStandby()) continue;
+    	if ((*its)->isStandby())
+    		continue;
     	// get alpha coordinates
     	x_min = MINI (x_min, (*its)->getAlphaX() - SOURCE_UNIT * (*its)->getAspectRatio());
 		x_max = MAXI (x_max, (*its)->getAlphaX() + SOURCE_UNIT * (*its)->getAspectRatio());

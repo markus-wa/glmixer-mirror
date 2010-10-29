@@ -351,7 +351,7 @@ void LayersView::zoomReset() {
 
 }
 
-void LayersView::zoomBestFit() {
+void LayersView::zoomBestFit( bool onlyClickedSource ) {
 
 	// nothing to do if there is no source
 	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
