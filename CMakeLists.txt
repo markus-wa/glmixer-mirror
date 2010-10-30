@@ -129,9 +129,9 @@ else (GLEW_FOUND)
   message(FATAL_ERROR "No GLEW library found.")
 endif (GLEW_FOUND)
 
-# if (WIN32)
-#   set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} -lws2_32 -lglew32 )
-# endif (WIN32)
+if (WIN32)
+  set( EXTRA_LIBRARIES  ${EXTRA_LIBRARIES} -lws2_32 )
+endif (WIN32)
 
 if (ZLIB_FOUND)
   set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${ZLIB_LIBRARY} )
