@@ -45,21 +45,33 @@ IF(GLMIXER_WC_REVISION)
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${GLMIXER_WC_REVISION}" )
 ENDIF(GLMIXER_WC_REVISION)
 
-# find the dependency libraries
-
-find_package( Qt4 REQUIRED)
-
+# HERE ARE THE BASIC DEPENDENCIES
 set( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
-set( CMAKE_FIND_LIBRARY_PREFIXES lib )
-set( CMAKE_FIND_LIBRARY_SUFFIXES .a .lib .lib64 .so .so.0)
-set( CMAKE_LIBRARY_PATH 
-  /opt/local/lib
-  /opt/lib
-  /usr/local/lib
-  /usr/lib
-  /mingw/lib 
-  ${CMAKE_SYSTEM_LIBRARY_PATH}
-)
+find_package( Qt4 REQUIRED)
+find_package( OpenGL REQUIRED)
+set( GLMIXER_LIBRARIES  ${OPENGL_LIBRARY})
+
+# HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
+if (USE_OPENCV)
+    if( APPLE )
+        find_library( OpenCV_LIBS NAMES OpenCV)
+        if(OpenCV_LIBS)
+            set( OpenCV_FOUND "YES" )
+        endif(OpenCV_LIBS)
+       include_directories(${OpenCV_LIBS}/Headers)
+    else ( APPLE )
+        find_package( OpenCV QUIET)
+    endif( APPLE )
+    # If there is OpenCV, then this application will use OpenCV
+	if (OpenCV_FOUND)
+	  message(STATUS "OpenCV Library found OK")
+	  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OpenCV_LIBS}  )
+	endif (OpenCV_FOUND)
+endif( USE_OPENCV )
+
+
+
+# SOME HINTS FOR THE FIND_LIBRARY BELLOW
 set( CMAKE_INCLUDE_PATH 
   /opt/local/include
   /opt/include
@@ -68,16 +80,19 @@ set( CMAKE_INCLUDE_PATH
   /mingw/include
   ${CMAKE_SYSTEM_INCLUDE_PATH}
 )
+set( CMAKE_FIND_LIBRARY_PREFIXES "" lib )
+set( CMAKE_FIND_LIBRARY_SUFFIXES .a .dll .lib .lib64 .so .so.0)
+set( CMAKE_LIBRARY_PATH 
+  /opt/local/lib
+  /opt/lib
+  /usr/local/lib
+  /usr/lib
+  /mingw/bin 
+  /mingw/lib 
+  ${CMAKE_SYSTEM_LIBRARY_PATH}
+)
 
-# HERE ARE THE OPENGL DEPENDENCIES
-
-find_package( OpenGL REQUIRED)
-
-set( GLMIXER_LIBRARIES  ${OPENGL_LIBRARY})
-if (WIN32)
-  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
-endif (WIN32)
-                    
+# HERE IS THE GLEW DEPENDENCY
 find_library( GLEW_LIBRARY NAMES GLEW glew glew32)
 if (GLEW_LIBRARY)
   set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${GLEW_LIBRARY} )
@@ -202,30 +217,15 @@ if (Z_LIBRARY)
 set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${Z_LIBRARY} )
 endif (Z_LIBRARY)
 
+# HERE IS THE INSTALLATION WINDOWS SOCK LIB 
 
-# HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
-
-if (USE_OPENCV)
-    if( APPLE )
-        find_library( OpenCV_LIBS NAMES OpenCV)
-        if(OpenCV_LIBS)
-            set( OpenCV_FOUND "YES" )
-        endif(OpenCV_LIBS)
-       include_directories(${OpenCV_LIBS}/Headers)
-    else ( APPLE )
-        find_package( OpenCV QUIET)
-    endif( APPLE )
-endif( USE_OPENCV )
-
-# If there is OpenCV, then this application will use OpenCV
-if (OpenCV_FOUND)
-  message(STATUS "OpenCV Library found OK")
-  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OpenCV_LIBS}  )
-endif (OpenCV_FOUND)
-
-include(${CMAKE_SOURCE_DIR}/macros.cmake)
+if (WIN32)
+  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
+endif (WIN32)
 
 # tell cmake to process CMakeLists.txt in those subdirectories
+
+include(${CMAKE_SOURCE_DIR}/macros.cmake)
 
 add_subdirectory(libQtProperty)
 add_subdirectory(src)
