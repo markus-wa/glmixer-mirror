@@ -1,6 +1,5 @@
 project(glmixer) # the name of your project
 
-
 cmake_minimum_required(VERSION 2.6.0)
 
 FIND_PACKAGE(Subversion)
@@ -49,25 +48,129 @@ ENDIF(GLMIXER_WC_REVISION)
 # find the dependency libraries
 
 set( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
-find_package( Qt4 REQUIRED)
-find_package( OpenGL REQUIRED)
-find_package( GLEW REQUIRED)
-find_package( avformat REQUIRED)
-find_package( avcodec REQUIRED)
-find_package( avutil REQUIRED )
-find_package( swscale REQUIRED )
-find_package( ZLIB REQUIRED)
+set( CMAKE_FIND_LIBRARY_PREFIXES lib )
+set( CMAKE_FIND_LIBRARY_SUFFIXES .a .lib .lib64)
+set( CMAKE_LIBRARY_PATH 
+  /opt/local/lib
+  /opt/lib
+  /usr/local/lib
+  /usr/lib
+  /mingw/lib 
+  ${CMAKE_SYSTEM_LIBRARY_PATH}
+)
+set( CMAKE_INCLUDE_PATH 
+  /opt/local/include
+  /opt/include
+  /usr/local/include
+  /usr/include
+  /mingw/include
+  ${CMAKE_SYSTEM_INCLUDE_PATH}
+)
 
-find_package( avcore QUIET )
-find_package( BZip2 QUIET)
-find_package( theora QUIET)
-find_package( x264 QUIET)
-find_package( xvid QUIET)
-find_package( openjpeg QUIET)
-#find_package( vorbis QUIET)
-#find_package( mp3lame QUIET)
-#find_package( faac QUIET)
-#find_package( faad QUIET)
+find_package( Qt4 REQUIRED)
+
+# HERE ARE THE OPENGL DEPENDENCIES
+
+find_package( OpenGL REQUIRED)
+
+set( GLMIXER_LIBRARIES  ${OPENGL_LIBRARY})
+if (WIN32)
+  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
+endif (WIN32)
+                    
+find_library( GLEW_LIBRARY NAMES GLEW glew glew32)
+if (GLEW_LIBRARY)
+  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${GLEW_LIBRARY} )
+  find_path( GLEW_INCLUDE NAMES GL/glew.h )
+  include_directories(${GLEW_INCLUDE})
+else (GLEW_LIBRARY)
+  message(FATAL_ERROR "No GLEW library found.")
+endif (GLEW_LIBRARY)
+
+# HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
+
+find_library( AVCODEC_LIBRARY NAMES avcodec)
+if (AVCODEC_LIBRARY)
+  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${AVCODEC_LIBRARY} )
+  find_path( FFMPEG_INCLUDE NAMES libavcodec/avcodec.h )
+  include_directories(${FFMPEG_INCLUDE})
+else (AVCODEC_LIBRARY)
+  message(FATAL_ERROR "No avcodec library found.")
+endif (AVCODEC_LIBRARY)
+
+find_library( AVFORMAT_LIBRARY NAMES avformat)
+if (AVFORMAT_LIBRARY)
+  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${AVFORMAT_LIBRARY} )
+else (AVFORMAT_LIBRARY)
+  message(FATAL_ERROR "No avformat library found.")
+endif (AVFORMAT_LIBRARY)
+
+find_library( AVUTIL_LIBRARY NAMES avutil)
+if (AVUTIL_LIBRARY)
+  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${AVUTIL_LIBRARY} )
+else (AVUTIL_LIBRARY)
+  message(FATAL_ERROR "No avutil library found.")
+endif (AVUTIL_LIBRARY)
+
+find_library( SWSCALE_LIBRARY NAMES swscale)
+if (SWSCALE_LIBRARY)
+  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${SWSCALE_LIBRARY} )
+else (SWSCALE_LIBRARY)
+  message(FATAL_ERROR "No swscale library found.")
+endif (SWSCALE_LIBRARY)
+
+find_library( AVCORE_LIBRARY NAMES avcore)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${AVCORE_LIBRARY} )
+
+# BELLOW IS THE LIST OF FFMPEG OPTIONNAL DEPENDENCIES.
+# ADD THE LIBRARIES AS REQUIRED BY YOUR INSTALLATION OF FFMPEG
+
+find_library( THEORA_LIBRARY NAMES theora theoraenc theoradec)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${THEORA_LIBRARY} )
+
+find_library( X264_LIBRARY NAMES x264)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${X264_LIBRARY} )
+
+find_library( XVID_LIBRARY NAMES xvidcore)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${XVID_LIBRARY} )
+
+find_library( FAAC_LIBRARY NAMES faac)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${FAAC_LIBRARY} )
+
+find_library( MP3LAME_LIBRARY NAMES mp3lame)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${MP3LAME_LIBRARY} )
+
+find_library( VORBIS_LIBRARY NAMES vorbis)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${VORBIS_LIBRARY} )
+
+find_library( VORBISENC_LIBRARY NAMES vorbisenc)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${VORBISENC_LIBRARY} )
+
+find_library( OGG_LIBRARY NAMES ogg)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OGG_LIBRARY} )
+
+find_library( ORC_LIBRARY NAMES orc-0.4)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${ORC_LIBRARY} )
+
+find_library( SCHROEDINGER_LIBRARY NAMES schroedinger-1.0)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${SCHROEDINGER_LIBRARY} )
+
+find_library( SPEEDX_LIBRARY NAMES speex)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${SPEEDX_LIBRARY} )
+
+find_library( DIRACENC_LIBRARY NAMES dirac_encoder)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${DIRACENC_LIBRARY} )
+
+find_library( VPX_LIBRARY NAMES vpx)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${VPX_LIBRARY} )
+
+find_library( BZ2_LIBRARY NAMES bz2)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${BZ2_LIBRARY} )
+
+find_library( Z_LIBRARY NAMES z)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${Z_LIBRARY} )
+
+# HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
 
 if (USE_OPENCV)
     if( APPLE )
@@ -81,135 +184,15 @@ if (USE_OPENCV)
     endif( APPLE )
 endif( USE_OPENCV )
 
-if (AVCODEC_FOUND)
-  message(STATUS "FFMPEG avcodec Library Found OK")
-  include_directories(${AVCODEC_INCLUDE_DIR})
-else (AVCODEC_FOUND)
-  message(FATAL_ERROR "No avcodec library found.")
-endif (AVCODEC_FOUND)
-
-if (AVFORMAT_FOUND)
-  message(STATUS "FFMPEG avformat Library Found OK")
-  include_directories(${AVFORMAT_INCLUDE_DIR})
-else (AVFORMAT_FOUND)
-  message(FATAL_ERROR "No FFMPEG avformat library found.")
-endif (AVFORMAT_FOUND)
-
-if (AVUTIL_FOUND)
-  message(STATUS "FFMPEG avutil Library Found OK")
-  include_directories(${AVUTIL_INCLUDE_DIR})
-else (AVUTIL_FOUND)
-  message(FATAL_ERROR "No FFMPEG avutil library found.")
-endif (AVUTIL_FOUND)
-
-if (AVCORE_FOUND)
-  message(STATUS "FFMPEG avcore Library Found OK")
-  include_directories(${AVCORE_INCLUDE_DIR})
-  set( EXTRA_LIBRARIES  ${EXTRA_LIBRARIES} ${AVCORE_LIBRARY} )
-endif (AVCORE_FOUND)
-
-if (SWSCALE_FOUND)
-  message(STATUS "FFMPEG swscale Library Found OK")
-  include_directories(${SWSCALE_INCLUDE_DIR})
-else (SWSCALE_FOUND)
-  message(FATAL_ERROR "No FFMPEG swscale library found.")
-endif (SWSCALE_FOUND)
-
-if (OPENGL_FOUND)
-  message(STATUS "OpenGL Library Found OK")
-  include_directories(${OPENGL_INCLUDE_DIR})
-else (OPENGL_FOUND)
-  message(FATAL_ERROR "No OpenGL library found.")
-endif (OPENGL_FOUND)
-
-if (GLEW_FOUND)
-  message(STATUS "GLEW Library Found OK")
-  include_directories(${GLEW_INCLUDE_PATH})
-else (GLEW_FOUND)
-  message(FATAL_ERROR "No GLEW library found.")
-endif (GLEW_FOUND)
-
-if (WIN32)
-  set( EXTRA_LIBRARIES  ${EXTRA_LIBRARIES} -lws2_32 )
-endif (WIN32)
-
-if (ZLIB_FOUND)
-  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${ZLIB_LIBRARY} )
-  message(STATUS "ZLIB Library Found OK")
-endif (ZLIB_FOUND)
-
-if (BZIP2_FOUND)
-  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${BZIP2_LIBRARIES} )
-  message(STATUS "BZIP2 Library Found OK")
-endif (BZIP2_FOUND)
-
-if (THEORA_FOUND)
-  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${THEORA_LIBRARY} )
-  message(STATUS "THEORA Library Found OK")
-endif (THEORA_FOUND)
-
-if (X264_FOUND)
-  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${X264_LIBRARY} )
-  message(STATUS "X264 Library Found OK")
-endif (X264_FOUND)
-
-if (OPENJPEG_FOUND)
-  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${OPENJPEG_LIBRARY} )
-  message(STATUS "OPENJPEG Library Found OK")
-endif (OPENJPEG_FOUND)
-
-if (XVID_FOUND)
-  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${XVID_LIBRARY} )
-  message(STATUS "XVID Library Found OK")
-endif (XVID_FOUND)
-
-# if (VORBIS_FOUND)
-#   set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${VORBIS_LIBRARIES} )
-#   message(STATUS "VORBIS Library Found OK")
-# endif (VORBIS_FOUND)
-
-# if (MP3LAME_FOUND)
-#   set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${MP3LAME_LIBRARY} )
-#   message(STATUS "MP3LAME Library Found OK")
-# endif (MP3LAME_FOUND)
-
-# if (FAAC_FOUND)
-#   set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${FAAC_LIBRARY} )
-#   message(STATUS "FAAC Library Found OK")
-# endif (FAAC_FOUND)
-# 
-# if (FAAD_FOUND)
-#   set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${FAAD_LIBRARY} )
-#   message(STATUS "FAAD Library Found OK")
-# endif (FAAD_FOUND)
-# 
-# if (MATROSKA_FOUND)
-#   set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${MATROSKA_LIBRARY} )
-#   message(STATUS "MATROSKA Library Found OK")
-# endif (MATROSKA_FOUND)
-
 # If there is OpenCV, then this application will use OpenCV
 if (OpenCV_FOUND)
   message(STATUS "OpenCV Library found OK")
-  set( EXTRA_LIBRARIES    ${EXTRA_LIBRARIES} ${OpenCV_LIBS}  )
-else (OpenCV_FOUND)
-  message(STATUS "OpenCV Library Not found")
+  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OpenCV_LIBS}  )
 endif (OpenCV_FOUND)
-
-set( GLMIXER_LIBRARIES  ${AVFORMAT_LIBRARY}
-                        ${AVCODEC_LIBRARY}
-                        ${AVUTIL_LIBRARY}
-                        ${SWSCALE_LIBRARY}
-                        ${OPENGL_LIBRARY}
-                        ${GLEW_LIBRARY}
-                        ${EXTRA_LIBRARIES} )
-
-
 
 include(${CMAKE_SOURCE_DIR}/macros.cmake)
 
-# tell cmake to process CMakeLists.txt in that subdirectory
+# tell cmake to process CMakeLists.txt in those subdirectories
 
 add_subdirectory(libQtProperty)
-
 add_subdirectory(src)

@@ -169,6 +169,7 @@ GLMIXER_INSTALL_DYLIB(libqtiff.dylib
   DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 )
 
+
 set(GLMIXER_APP_BUNDLE_EXECUTABLE "${CMAKE_BINARY_DIR}/src/glmixer.app/Contents/MacOS/glmixer") 
 
 if (OpenCV_FOUND)
