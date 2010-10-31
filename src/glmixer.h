@@ -113,7 +113,7 @@ protected:
     void dropEvent(QDropEvent *event);
 	void closeEvent(QCloseEvent * event);
 
-	bool restorePreferences(const QByteArray & state);
+	void restorePreferences(const QByteArray & state);
 	QByteArray getPreferences() const;
 
 private:
@@ -123,6 +123,7 @@ private:
 	QFileDialog *sfd;
 	class VideoFileDialog *mfd;
 	class OutputRenderWidget *outputpreview;
+	class UserPreferencesDialog *upd;
 
 	QTimer *refreshTimingTimer;
 	bool waspaused;

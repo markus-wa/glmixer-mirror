@@ -40,6 +40,8 @@ public:
 	UserPreferencesDialog(QWidget *parent = 0);
 	virtual ~UserPreferencesDialog();
 
+	void setModeMinimal(bool on);
+
 public Q_SLOTS:
 	void restoreDefaultPreferences();
 	void showPreferences(const QByteArray & state);

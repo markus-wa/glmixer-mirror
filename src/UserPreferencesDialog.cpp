@@ -30,6 +30,7 @@
 UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 {
     setupUi(this);
+	IntroTextLabel->setVisible(false);
 
     // the default source property browser
     defaultSource = new Source;
@@ -50,13 +51,26 @@ UserPreferencesDialog::~UserPreferencesDialog()
 }
 
 
+void UserPreferencesDialog::setModeMinimal(bool on)
+{
+	listWidget->setVisible(!on);
+	IntroTextLabel->setVisible(on);
+
+	if (on){
+		resolutionTable->selectRow(0);
+		stackedPreferences->setCurrentIndex(0);
+        DecisionButtonBox->setStandardButtons(QDialogButtonBox::Save);
+	} else {
+        DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Save);
+	}
+}
 
 void UserPreferencesDialog::restoreDefaultPreferences() {
 
 	if (stackedPreferences->currentWidget() == PageRendering) {
 		resolutionTable->selectRow(0);
 	    activateBlitFrameBuffer->setChecked(glSupportsExtension("GL_EXT_framebuffer_blit"));
-		updatePeriod->setValue(16);
+		updatePeriod->setValue(33);
 	}
 
 	if (stackedPreferences->currentWidget() == PageSources) {
@@ -100,7 +114,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	stream >> useBlitFboExtension;
 	activateBlitFrameBuffer->setChecked(useBlitFboExtension);
 
-	int tfr = 16;
+	int tfr = 33;
 	stream >> tfr;
 	updatePeriod->setValue(tfr);
 

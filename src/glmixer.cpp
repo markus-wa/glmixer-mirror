@@ -161,9 +161,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(switcherSession, SIGNAL(switchSessionFile(QString)), this, SLOT(switchToSessionFile(QString)) );
 	QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
 
-    // Setup Video file dialog
+    // Setup dialogs
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
     sfd = new QFileDialog(this);
+    upd = new UserPreferencesDialog(this);
 
     // Create preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
@@ -1566,8 +1567,7 @@ void GLMixer::readSettings()
     if (settings.contains("DisplayFramerate"))
     	actionShowFPS->setChecked(settings.value("DisplayFramerate").toBool());
     // preferences
-    if (settings.contains("UserPreferences"))
-    	restorePreferences(settings.value("UserPreferences").toByteArray());
+	restorePreferences(settings.value("UserPreferences").toByteArray());
 
 }
 
@@ -1606,26 +1606,30 @@ void GLMixer::on_actionResetToolbars_triggered()
 
 void GLMixer::on_actionPreferences_triggered()
 {
-	// create the user preference dialog
-	static UserPreferencesDialog *upd = 0;
-	if (!upd)
-		upd = new UserPreferencesDialog(this);
-
 	// fill in the saved preferences
 	upd->showPreferences( getPreferences() );
 
 	// show the dialog and apply preferences if it was accepted
 	if (upd->exec() == QDialog::Accepted)
 		restorePreferences( upd->getUserPreferences() );
+
 }
 
 
-bool GLMixer::restorePreferences(const QByteArray & state){
+void GLMixer::restorePreferences(const QByteArray & state){
 
+	// no preference?
     if (state.isEmpty()) {
-		// no preference? apply defaults as displayed in the dialog (if not already default)
-		RenderingManager::setUseFboBlitExtension(true);
-		return false;
+
+    	// set dialog in minimal mode
+    	upd->setModeMinimal(true);
+
+    	// show the dialog and apply preferences
+    	upd->exec();
+		restorePreferences( upd->getUserPreferences() );
+
+		upd->setModeMinimal(false);
+		return;
     }
 
 	QByteArray sd = state;
@@ -1637,7 +1641,8 @@ bool GLMixer::restorePreferences(const QByteArray & state){
     quint16 majorVersion = 0;
 	stream >> storedMagicNumber >> majorVersion;
 	if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion)
-		return false;
+		// TODO dialog warning error
+		return;
 
 	// a. Apply rendering preferences
 	unsigned int RenderingQuality;
@@ -1678,7 +1683,6 @@ bool GLMixer::restorePreferences(const QByteArray & state){
 	OutputRenderWindow::getInstance()->refresh();
 	outputpreview->refresh();
 
-	return true;
 }
 
 QByteArray GLMixer::getPreferences() const {
