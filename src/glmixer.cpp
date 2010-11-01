@@ -684,13 +684,26 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent),
 
 QString CaptureDialog::saveImage()
 {
-	filename = QFileDialog::getSaveFileName ( this, tr("Save captured image"), QDir::currentPath(),  tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
+	// keep a static instance of location and base file name
+	static QDir dname(QDir::currentPath());
+	static QString basename("capture");
 
+	// try to suggest an incremented file name
+	QFileInfo fname = QFileInfo( dname, basename + ".png");
+	for (int i = 1; fname.exists() && i<1000; i++)
+		fname = QFileInfo( dname, QString("%1_%2.png").arg(basename).arg(i));
+
+	// ask for file name
+	filename = QFileDialog::getSaveFileName ( this, tr("Save captured image"), fname.absoluteFilePath(), tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
+
+	// save the file
 	if (!filename.isEmpty()) {
 		if (!img.save(filename))
 			qWarning("** WARNING **\n\nCould not save file %s.", qPrintable(filename));
-//		filename = QDir::fromNativeSeparators(filename);
-//		filename.resize( filename.lastIndexOf('/') );
+		// remember location and base file name for next time
+		fname = QFileInfo( filename );
+		dname = fname.dir();
+		basename =  fname.baseName().section("_", 0, fname.baseName().count("_")-1);
 	}
 
 	return filename;
