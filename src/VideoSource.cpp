@@ -95,13 +95,22 @@ bool VideoSource::isPlayable() const {
 }
 
 bool VideoSource::isPlaying() const {
-	return is->isRunning();
+	return isPlayable() && is->isRunning();
 }
 
 void VideoSource::play(bool on){
-
 	if ( on != isPlaying() )
 		is->play(on);
+}
+
+bool VideoSource::isPaused() const {
+	return isPlaying() && is->isPaused();
+}
+
+void VideoSource::pause(bool on){
+
+	if ( on != isPaused() )
+		is->pause(on);
 }
 
 void VideoSource::setStandby(bool on)

@@ -1683,6 +1683,7 @@ Uncheck to display the restart frame when stopped.</string>
     </widget>
     <addaction name="menuRendering_Window"/>
     <addaction name="actionToggleRenderingVisible"/>
+    <addaction name="actionPause"/>
     <addaction name="separator"/>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
@@ -2877,7 +2878,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/process-stop.png</normaloff>:/glmixer/icons/process-stop.png</iconset>
    </property>
    <property name="text">
-    <string>Active</string>
+    <string>On air</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
@@ -2959,6 +2960,21 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="toolTip">
     <string>Zoom on current source</string>
+   </property>
+  </action>
+  <action name="actionPause">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/media-playback-pause.png</normaloff>:/glmixer/icons/media-playback-pause.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pause</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
    </property>
   </action>
  </widget>

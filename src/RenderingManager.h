@@ -174,6 +174,7 @@ public:
 	inline void setDefaultScalingMode(Source::scalingMode sm) { _scalingMode = sm; }
 	inline bool getDefaultPlayOnDrop() const { return _playOnDrop; }
 	inline void setDefaultPlayOnDrop(bool on){ _playOnDrop = on; }
+	inline bool isPaused () { return paused; }
 
 	static bool getUseFboBlitExtension() { return blit_fbo_extension; }
 	static void setUseFboBlitExtension(bool on);
@@ -183,6 +184,7 @@ public Q_SLOTS:
 	void setClearToWhite(bool on) { clearWhite = on; }
 	void setPreviousFrameDelay(unsigned int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 
+	void pause(bool on);
 	void clearBasket();
 	void clearSourceSet();
 	void resetSource(SourceSet::iterator sit);
@@ -227,6 +229,7 @@ protected:
 	Source *_defaultSource;
 	Source::scalingMode _scalingMode;
 	bool _playOnDrop;
+	bool paused;
 
     static bool blit_fbo_extension;
     static QSize sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED];

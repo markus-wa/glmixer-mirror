@@ -465,7 +465,7 @@ void ViewRenderWidget::paintGL()
 	// 3. draw a semi-transparent overlay if view should be faded out
 	//
 	//
-	if (!_catalogView->isTransparent()) {
+	if (!_catalogView->isTransparent() || RenderingManager::getInstance()->isPaused()) {
 		glCallList(ViewRenderWidget::fading);
 		setMouseCursor(MOUSE_ARROW);
 	}
@@ -510,6 +510,27 @@ void ViewRenderWidget::paintGL()
 	// HUD display of framerate (on request or if FPS is dangerously slow)
 	if (showFps_ || ( f_p_s_ < 500.0 / (float)period && f_p_s_ > 0) )
 		displayFramerate();
+
+	// Pause logo
+	if (RenderingManager::getInstance()->isPaused()){
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		gluOrtho2D(0.0, width(), 0.0, height());
+
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
+		qglColor(Qt::lightGray);
+		glRecti(15, height() - 5, 25, height() - 30);
+		glRecti(30, height() - 5, 40, height() - 30);
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
 }
 
 void ViewRenderWidget::displayFramerate()

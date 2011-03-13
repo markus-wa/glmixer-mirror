@@ -52,6 +52,7 @@ public:
 	RTTI rtti() const { return type; }
 	bool isPlayable() const;
 	bool isPlaying() const;
+	bool isPaused() const;
 
     inline VideoFile *getVideoFile() const { return is; }
 
@@ -62,6 +63,7 @@ public:
 
 public Q_SLOTS:
 	void play(bool on);
+	void pause(bool on);
     void updateFrame (int i);
     void applyFilter();
 

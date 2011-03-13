@@ -45,6 +45,7 @@ Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 #include "OpencvSource.h"
 #endif
 
+#include <map>
 #include <algorithm>
 #include <QGLFramebufferObject>
 #include <QProgressDialog>
@@ -106,7 +107,7 @@ void RenderingManager::deleteInstance() {
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
 			previousframe_index(0), previousframe_delay(1), clearWhite(false),
-			gammaShift(1.f), _scalingMode(Source::SCALE_CROP), _playOnDrop(true) {
+			gammaShift(1.f), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false) {
 
 	// 1. Create the view rendering widget and its catalog view
 	_renderwidget = new ViewRenderWidget;
@@ -331,7 +332,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 
 		if (source) {
 			// draw the source only if not culled and alpha not null
-			if (!source->isCulled() && source->getAlpha() > 0.0) {
+			if (!source->isStandby() && !source->isCulled() && source->getAlpha() > 0.0) {
 				glTranslated(source->getX(), source->getY(), 0.0);
 		        glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
 				glScaled(source->getScaleX(), source->getScaleY(), 1.f);
@@ -1264,4 +1265,36 @@ standardAspectRatio doubleToAspectRatio(double ar)
 	else
 		return ASPECT_RATIO_FREE;
 }
+
+void RenderingManager::pause(bool on){
+
+	static std::map<Source *, bool> sourcePlayStatus;
+	// setup status
+	paused = on;
+
+	// for every source in the manager, start/stop it
+	for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its++) {
+		// exception for video source which are paused
+		if ( (*its)->rtti() == Source::VIDEO_SOURCE ) {
+			VideoSource *s = dynamic_cast<VideoSource *>(*its);
+			if (on) {
+				sourcePlayStatus[s] = s->isPaused();
+				s->pause(true);
+			} else
+				s->pause(sourcePlayStatus[s]);
+		} else {
+			if (on) {
+				sourcePlayStatus[*its] = (*its)->isPlaying();
+				(*its)->play(!on);
+			} else
+				(*its)->play(sourcePlayStatus[*its]);
+		}
+	}
+
+	if (!on)
+		sourcePlayStatus.clear();
+
+}
+
+
 
