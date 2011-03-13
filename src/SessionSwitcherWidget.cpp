@@ -54,8 +54,29 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
     QDomElement srcconfig = root.firstChildElement("SourceList");
     if ( srcconfig.isNull() )
     	return;
-
+    // get number of sources in the session
     int nbElem = srcconfig.childNodes().count();
+
+    // get aspect ratio
+    QString aspectRatio;
+	standardAspectRatio ar = (standardAspectRatio) srcconfig.attribute("aspectRatio", "0").toInt();
+	switch(ar) {
+	case ASPECT_RATIO_FREE:
+		aspectRatio = "free";
+		break;
+	case ASPECT_RATIO_16_10:
+		aspectRatio = "16:10";
+		break;
+	case ASPECT_RATIO_16_9:
+		aspectRatio = "16:9";
+		break;
+	case ASPECT_RATIO_3_2:
+		aspectRatio = "3:2";
+		break;
+	default:
+	case ASPECT_RATIO_4_3:
+		aspectRatio = "4:3";
+	}
 
     file.close();
 
@@ -63,12 +84,18 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
     model->setData(model->index(0, 0), name);
     model->setData(model->index(0, 0), filename, Qt::UserRole);
     model->itemFromIndex (model->index(0, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
+
     model->setData(model->index(0, 1), nbElem);
     model->setData(model->index(0, 1), filename, Qt::UserRole);
     model->itemFromIndex (model->index(0, 1))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
-    model->setData(model->index(0, 2), date);
+
+    model->setData(model->index(0, 2), aspectRatio);
     model->setData(model->index(0, 2), filename, Qt::UserRole);
     model->itemFromIndex (model->index(0, 2))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
+
+    model->setData(model->index(0, 3), date.toString("yy/MM/dd hh:mm"));
+    model->setData(model->index(0, 3), filename, Qt::UserRole);
+    model->itemFromIndex (model->index(0, 3))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
 
 }
 
@@ -83,7 +110,7 @@ void fillFolderModel(QStandardItemModel *model, const QString &path)
     // fill list
     for (int i = 0; i < fileList.size(); ++i) {
          QFileInfo fileInfo = fileList.at(i);
-         addFile(model, fileInfo.completeBaseName(), fileInfo.lastModified (), fileInfo.absoluteFilePath() );
+         addFile(model, fileInfo.completeBaseName(), fileInfo.lastModified(), fileInfo.absoluteFilePath() );
     }
 }
 
@@ -123,10 +150,11 @@ void SessionSwitcherWidget::setupFolderToolbox()
 	easingCurvePicker->setEnabled(false);
 	easingCurvePicker->setCurrentRow(3);
 
-    folderModel = new QStandardItemModel(0, 3, this);
+    folderModel = new QStandardItemModel(0, 4, this);
     folderModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Filename"));
-    folderModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Sources"));
-    folderModel->setHeaderData(2, Qt::Horizontal, QObject::tr("Last modified"));
+    folderModel->setHeaderData(1, Qt::Horizontal, QObject::tr("n"));
+    folderModel->setHeaderData(2, Qt::Horizontal, QObject::tr("W:H"));
+    folderModel->setHeaderData(3, Qt::Horizontal, QObject::tr("Last modified"));
 
     proxyFolderModel = new QSortFilterProxyModel;
     proxyFolderModel->setDynamicSortFilter(true);
@@ -157,6 +185,8 @@ void SessionSwitcherWidget::setupFolderToolbox()
     proxyView->sortByColumn(0, Qt::AscendingOrder);
     proxyView->setModel(proxyFolderModel);
     proxyView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    proxyView->resizeColumnToContents(1);
+    proxyView->resizeColumnToContents(2);
 
     QLabel *filterPatternLabel;
     QLineEdit *filterPatternLineEdit;

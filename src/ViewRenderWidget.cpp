@@ -474,21 +474,21 @@ void ViewRenderWidget::paintGL()
 	//
 	// 2. the shadow of the cursor
 	//
-	if (_currentCursor->apply(f_p_s_) ) {
+		if (_currentCursor->apply(f_p_s_) ) {
 
-		_currentCursor->draw(_currentView->viewport);
+			_currentCursor->draw(_currentView->viewport);
 
-		if (_currentView->mouseMoveEvent( _currentCursor->getMouseMoveEvent() ))
-		{
-			// the view 'mouseMoveEvent' returns true ; there was something changed!
-			if (_currentView == _mixingView)
-				emit sourceMixingModified();
-			else if (_currentView == _geometryView)
-				emit sourceGeometryModified();
-			else if (_currentView == _layersView)
-				emit sourceLayerModified();
+			if (_currentView->mouseMoveEvent( _currentCursor->getMouseMoveEvent() ))
+			{
+				// the view 'mouseMoveEvent' returns true ; there was something changed!
+				if (_currentView == _mixingView)
+					emit sourceMixingModified();
+				else if (_currentView == _geometryView)
+					emit sourceGeometryModified();
+				else if (_currentView == _layersView)
+					emit sourceLayerModified();
+			}
 		}
-	}
 
 	//
 	// 4. The extra information

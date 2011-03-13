@@ -1778,6 +1778,10 @@ Uncheck to display the restart frame when stopped.</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionToggleRenderingVisible"/>
+   <addaction name="actionPause"/>
+   <addaction name="actionFullscreen"/>
+   <addaction name="separator"/>
    <addaction name="actionMixingView"/>
    <addaction name="actionGeometryView"/>
    <addaction name="actionLayersView"/>
@@ -2153,10 +2157,6 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
   </action>
   <action name="actionQuit">
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/system-shutdown.png</normaloff>:/glmixer/icons/system-shutdown.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;Quit</string>
    </property>
@@ -2206,8 +2206,15 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/fullscreen.png</normaloff>:/glmixer/icons/fullscreen.png</iconset>
+   </property>
    <property name="text">
     <string>Full screen</string>
+   </property>
+   <property name="toolTip">
+    <string>Sets the output window to fullscreen mode.</string>
    </property>
    <property name="statusTip">
     <string>Sets the output window to fullscreen mode.</string>
@@ -2256,6 +2263,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Mixing view</string>
    </property>
+   <property name="toolTip">
+    <string>Switch to mixing view</string>
+   </property>
    <property name="statusTip">
     <string>The mixing view allows to change the transparency of the sources.</string>
    </property>
@@ -2274,6 +2284,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Geometry view</string>
    </property>
+   <property name="toolTip">
+    <string>Switch to geometry view</string>
+   </property>
    <property name="statusTip">
     <string>The geometry view allows to move, scale and rotate sources.</string>
    </property>
@@ -2291,6 +2304,9 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="text">
     <string>Layers view</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch to layers view</string>
    </property>
    <property name="statusTip">
     <string>The layers view allows to organize the sources in layers.</string>
@@ -2803,6 +2819,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Visible</string>
    </property>
+   <property name="toolTip">
+    <string>Show catalog</string>
+   </property>
    <property name="statusTip">
     <string>Show / hide a catalog of all sources in the current view.</string>
    </property>
@@ -2875,13 +2894,26 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/process-stop.png</normaloff>:/glmixer/icons/process-stop.png</iconset>
+     <normaloff>:/glmixer/icons/off.png</normaloff>
+     <normalon>:/glmixer/icons/on.png</normalon>:/glmixer/icons/off.png</iconset>
    </property>
    <property name="text">
     <string>On air</string>
    </property>
+   <property name="toolTip">
+    <string>Output window is active when &quot;On air&quot;</string>
+   </property>
    <property name="shortcut">
     <string>F5</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionResetToolbars">
@@ -2973,8 +3005,14 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Pause</string>
    </property>
+   <property name="toolTip">
+    <string>Pause the session (all sources)</string>
+   </property>
    <property name="shortcut">
     <string>F6</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
  </widget>
