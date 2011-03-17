@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef MAINRENDERWIDGET_H_
-#define MAINRENDERWIDGET_H_
+#ifndef RENDERINGMANAGER_H_
+#define RENDERINGMANAGER_H_
 
 #include "common.h"
 #include "SourceSet.h"
@@ -55,6 +55,7 @@ class QGLFramebufferObject;
 class VideoFile;
 class ViewRenderWidget;
 class SourcePropertyBrowser;
+class RenderingEncoder;
 
 class RenderingManager: public QObject {
 
@@ -69,6 +70,7 @@ public:
 	 */
 	static ViewRenderWidget *getRenderingWidget();
 	static SourcePropertyBrowser *getPropertyBrowserWidget();
+	static RenderingEncoder *getRecorder();
 	static RenderingManager *getInstance();
 	static void deleteInstance();
 
@@ -222,6 +224,8 @@ protected:
 
 	// the set of sources
 	SourceSet _sources;
+    // the recorder
+    RenderingEncoder *_recorder;
 
 	// manipulation of sources
 	SourceSet::iterator _currentSource;
@@ -235,4 +239,4 @@ protected:
     static QSize sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED];
 };
 
-#endif /* MAINRENDERWIDGET_H_ */
+#endif /* RENDERINGMANAGER_H_ */

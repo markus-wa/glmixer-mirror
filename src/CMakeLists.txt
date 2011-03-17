@@ -28,6 +28,7 @@ set(MYQT_SRCS
     CatalogView.cpp
     ViewRenderWidget.cpp
     RenderingManager.cpp
+    RenderingEncoder.cpp
     OutputRenderWindow.cpp
     SourcePropertyBrowser.cpp
     SpringCursor.cpp

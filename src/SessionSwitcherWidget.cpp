@@ -146,7 +146,7 @@ void SessionSwitcherWidget::setupFolderToolbox()
 	easingCurvePicker->setViewMode(QListView::IconMode);
 	easingCurvePicker->setWrapping (false);
     easingCurvePicker->setIconSize(m_iconSize);
-    easingCurvePicker->setFixedHeight(m_iconSize.height()+30);
+    easingCurvePicker->setFixedHeight(m_iconSize.height()+34);
 	easingCurvePicker->setEnabled(false);
 	easingCurvePicker->setCurrentRow(3);
 
@@ -167,6 +167,11 @@ void SessionSwitcherWidget::setupFolderToolbox()
 	icon.addFile(QString::fromUtf8(":/glmixer/icons/fileopen.png"), QSize(), QIcon::Normal, QIcon::Off);
 	dirButton->setIcon(icon);
 
+    QToolButton *dirDeleteButton = new QToolButton;
+	QIcon icon2;
+	icon2.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
+	dirDeleteButton->setIcon(icon2);
+
     customButton = new QToolButton;
 	customButton->setIcon( QIcon() );
 	customButton->setVisible(false);
@@ -176,6 +181,8 @@ void SessionSwitcherWidget::setupFolderToolbox()
 	folderHistory->setValidator(v);
 	folderHistory->setInsertPolicy (QComboBox::InsertAtTop);
 	folderHistory->setMaxCount(MAX_RECENT_FOLDERS);
+	folderHistory->setMaximumWidth(250);
+	folderHistory->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
     QTreeView *proxyView;
     proxyView = new QTreeView;
@@ -197,6 +204,7 @@ void SessionSwitcherWidget::setupFolderToolbox()
 
     connect(filterPatternLineEdit, SIGNAL(textChanged(QString)), this, SLOT(nameFilterChanged(QString)));
     connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
+    connect(dirDeleteButton, SIGNAL(clicked()),  this, SLOT(discardFolder()));
     connect(customButton, SIGNAL(clicked()),  this, SLOT(customizeTransition()));
     connect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(openFileFromFolder(QModelIndex) ));
     connect(folderHistory, SIGNAL(currentIndexChanged(QString)), this, SLOT(folderChanged(QString)));
@@ -205,18 +213,19 @@ void SessionSwitcherWidget::setupFolderToolbox()
     connect(easingCurvePicker, SIGNAL(currentRowChanged (int)), OutputRenderWindow::getInstance(), SLOT(setTransitionCurve(int)));
 
     QGridLayout *mainLayout = new QGridLayout;
-    mainLayout->addWidget(transitionSelection, 0, 0, 1, 2);
-    mainLayout->addWidget(customButton, 0, 2);
+    mainLayout->addWidget(transitionSelection, 0, 0, 1, 3);
+    mainLayout->addWidget(customButton, 0, 3);
 
     mainLayout->addWidget(transitionDurationLabel, 1, 0);
-    mainLayout->addWidget(transitionDuration, 1, 1, 1, 2);
+    mainLayout->addWidget(transitionDuration, 1, 1, 1, 3);
 
-    mainLayout->addWidget(easingCurvePicker, 2, 0, 1, 3);
-    mainLayout->addWidget(proxyView, 3, 0, 1, 3);
+    mainLayout->addWidget(easingCurvePicker, 2, 0, 1, 4);
+    mainLayout->addWidget(proxyView, 3, 0, 1, 4);
     mainLayout->addWidget(folderHistory, 4, 0, 1, 2);
     mainLayout->addWidget(dirButton, 4, 2);
+    mainLayout->addWidget(dirDeleteButton, 4, 3);
     mainLayout->addWidget(filterPatternLabel, 5, 0);
-    mainLayout->addWidget(filterPatternLineEdit, 5, 1, 1, 2);
+    mainLayout->addWidget(filterPatternLineEdit, 5, 1, 1, 3);
     setLayout(mainLayout);
 
 }
@@ -238,6 +247,7 @@ void SessionSwitcherWidget::folderChanged( const QString & text )
         folders.removeLast();
     appSettings->setValue("recentFolderList", folders);
 
+    folderHistory->updateGeometry ();
     fillFolderModel(folderModel, text);
 }
 
@@ -252,9 +262,20 @@ void SessionSwitcherWidget::openFolder()
 
 }
 
+void SessionSwitcherWidget::discardFolder()
+{
+	QStringList folders = appSettings->value("recentFolderList").toStringList();
+	folders.removeAll( folderHistory->currentText() );
+    appSettings->setValue("recentFolderList", folders);
+	folderHistory->removeItem(folderHistory->currentIndex());
+
+	updateFolder();
+}
+
 void SessionSwitcherWidget::updateFolder()
 {
 	folderChanged( folderHistory->currentText() );
+	folderHistory->updateGeometry ();
 }
 
 void SessionSwitcherWidget::openFileFromFolder(const QModelIndex & index)
@@ -310,7 +331,7 @@ void SessionSwitcherWidget::customizeTransition()
 		} else {
 			// not a valid file ; show a warning only if the QFileDialog did not return null (cancel)
 			if (!newfile.isNull())
-				qCritical( qPrintable( tr("The file %1 does not exist.").arg(newfile)) );
+				qCritical( "The file %s does not exist.", qPrintable(newfile) );
 			// if no valid oldfile neither; show icon in red
 			if (oldfile.isEmpty())
 				customButton->setStyleSheet("QToolButton { border: 1px solid red }");

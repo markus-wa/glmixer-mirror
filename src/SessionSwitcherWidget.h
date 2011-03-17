@@ -23,6 +23,7 @@ public Q_SLOTS:
 
 	void updateFolder();
     void openFolder();
+    void discardFolder();
     void folderChanged( const QString & text );
     void openFileFromFolder(const QModelIndex & index);
     void nameFilterChanged(const QString &s);

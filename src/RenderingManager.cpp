@@ -36,7 +36,7 @@ Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 
 #include "ViewRenderWidget.h"
 #include "CatalogView.h"
-
+#include "RenderingEncoder.h"
 #include "SourcePropertyBrowser.h"
 #include "AlgorithmSource.h"
 #include "VideoFile.h"
@@ -55,7 +55,7 @@ RenderingManager *RenderingManager::_instance = 0;
 bool RenderingManager::blit_fbo_extension = true;
 QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED] = { { QSize(640,480), QSize(768,576), QSize(800,600), QSize(1024,768), QSize(1600,1200) },
 																		   { QSize(720,480), QSize(864,576), QSize(900,600), QSize(1152,768), QSize(1440,960) },
-																           { QSize(800,480), QSize(920,575), QSize(960,600), QSize(1280,800), QSize(1920,1200) },
+																           { QSize(800,480), QSize(912,570), QSize(960,600), QSize(1280,800), QSize(1920,1200) },
 																           { QSize(854,480), QSize(1024,576), QSize(1088,612), QSize(1280,720), QSize(1920,1080) }};
 
 ViewRenderWidget *RenderingManager::getRenderingWidget() {
@@ -66,6 +66,11 @@ ViewRenderWidget *RenderingManager::getRenderingWidget() {
 SourcePropertyBrowser *RenderingManager::getPropertyBrowserWidget() {
 
 	return getInstance()->_propertyBrowser;
+}
+
+RenderingEncoder *RenderingManager::getRecorder() {
+
+	return getInstance()->_recorder;
 }
 
 void RenderingManager::setUseFboBlitExtension(bool on){
@@ -115,6 +120,8 @@ RenderingManager::RenderingManager() :
 
 	_propertyBrowser = new SourcePropertyBrowser;
 	Q_CHECK_PTR(_propertyBrowser);
+
+	_recorder = new RenderingEncoder(this);
 
 	// 2. Connect the above view holders to events
     QObject::connect(this, SIGNAL(currentSourceChanged(SourceSet::iterator)), _propertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
@@ -231,6 +238,9 @@ double RenderingManager::getFrameBufferAspectRatio() const{
 
 void RenderingManager::updatePreviousFrame() {
 
+	// save the frame to file (the recorder knows if it is active or not)
+	_recorder->addFrame();
+
 	// skip if disabled
 	if (!previousframe_fbo)
 		return;
@@ -315,13 +325,13 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 	glLoadIdentity();
 //	glLoadMatrixd(_renderwidget->_renderView->modelview);
 
+	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 	// render to the frame buffer object
 	if (_fbo->bind())
 	{
 		//
 		// 1. Draw into first texture attachment; the final output rendering
 		//
-
 		if (clearfirst) {
 			if (clearWhite)
 				glClearColor(1.f, 1.f, 1.f, 1.f);

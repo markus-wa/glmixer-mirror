@@ -230,6 +230,28 @@ void OutputRenderWidget::paintGL()
 		glCallList(ViewRenderWidget::quad_texured);
 
 	}
+
+	if (RenderingManager::getInstance()->isPaused() && !(windowFlags() & Qt::Window)){
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		gluOrtho2D(0.0, width(), 0.0, height());
+
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
+		glDisable(GL_TEXTURE_2D);
+		qglColor(Qt::lightGray);
+		glRecti(15, height() - 5, 25, height() - 30);
+		glRecti(30, height() - 5, 40, height() - 30);
+		glEnable(GL_TEXTURE_2D);
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
 }
 
 void OutputRenderWidget::setTransitionSource(Source *s)
@@ -268,7 +290,7 @@ void OutputRenderWidget::setTransitionMedia(QString filename)
 		glGenTextures(1, &textureIndex);
 		customTransitionVideoSource = new VideoSource(newSourceVideoFile, textureIndex, 0.0);
 	} else {
-		qCritical( qPrintable( tr("The file %1 could not be loaded.").arg(filename)) );
+		qCritical( "The file %s could not be loaded.", qPrintable(filename) );
 		delete newSourceVideoFile;
 	}
 

@@ -53,6 +53,7 @@
 #include "DelayCursor.h"
 #include "SpringCursor.h"
 #include "MagnetCursor.h"
+#include "RenderingEncoder.h"
 
 #include "glmixer.moc"
 
@@ -186,6 +187,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(smoothAlphaTransition(bool)));
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), vcontrolDockWidget, SLOT(setDisabled(bool)));
+
+	// Recording triggers
+	QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));
+	// TODO; connect to disable many actions, like saving, opening session, preferences, etc.
 
 	// group the menu items of the catalog sizes ;
 	QActionGroup *catalogActionGroup = new QActionGroup(this);
@@ -1278,6 +1283,9 @@ void GLMixer::switchToSessionFile(QString filename){
 
 void GLMixer::openSessionFile(QString filename)
 {
+	// unpause if it was
+	actionPause->setChecked ( false );
+
 	// if we come from the smooth transition, disable it (and set to transparent in any case)
 	QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
 	actionToggleRenderingVisible->setEnabled(true);

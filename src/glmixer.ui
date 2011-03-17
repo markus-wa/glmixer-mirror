@@ -1639,28 +1639,6 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionResetToolbars"/>
      <addaction name="separator"/>
     </widget>
-    <widget class="QMenu" name="menuRendering_Window">
-     <property name="title">
-      <string>Output Window</string>
-     </property>
-     <property name="icon">
-      <iconset resource="../icons.qrc">
-       <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
-     </property>
-     <widget class="QMenu" name="menuAspect_Ratio">
-      <property name="title">
-       <string>Aspect Ratio</string>
-      </property>
-      <addaction name="action4_3_aspect_ratio"/>
-      <addaction name="action3_2_aspect_ratio"/>
-      <addaction name="action16_10_aspect_ratio"/>
-      <addaction name="action16_9_aspect_ratio"/>
-      <addaction name="actionFree_aspect_ratio"/>
-     </widget>
-     <addaction name="actionFullscreen"/>
-     <addaction name="actionWhite_background"/>
-     <addaction name="menuAspect_Ratio"/>
-    </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
       <string>Zoom</string>
@@ -1681,10 +1659,6 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionCatalogMedium"/>
      <addaction name="actionCatalogLarge"/>
     </widget>
-    <addaction name="menuRendering_Window"/>
-    <addaction name="actionToggleRenderingVisible"/>
-    <addaction name="actionPause"/>
-    <addaction name="separator"/>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
     <addaction name="actionLayersView"/>
@@ -1735,8 +1709,30 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionCursorMagnet"/>
     <addaction name="actionCursorCurve"/>
    </widget>
+   <widget class="QMenu" name="menuRendering">
+    <property name="title">
+     <string>Rendering</string>
+    </property>
+    <widget class="QMenu" name="menuAspect_Ratio_2">
+     <property name="title">
+      <string>Aspect Ratio</string>
+     </property>
+     <addaction name="action4_3_aspect_ratio"/>
+     <addaction name="action3_2_aspect_ratio"/>
+     <addaction name="action16_10_aspect_ratio"/>
+     <addaction name="action16_9_aspect_ratio"/>
+     <addaction name="actionFree_aspect_ratio"/>
+    </widget>
+    <addaction name="actionToggleRenderingVisible"/>
+    <addaction name="actionPause"/>
+    <addaction name="actionRecord"/>
+    <addaction name="actionFullscreen"/>
+    <addaction name="menuAspect_Ratio_2"/>
+    <addaction name="actionWhite_background"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSession"/>
+   <addaction name="menuRendering"/>
    <addaction name="menuView"/>
    <addaction name="menuAction"/>
    <addaction name="menuHelp"/>
@@ -2378,7 +2374,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Add source from &amp;Device</string>
    </property>
    <property name="toolTip">
-    <string>Add source from Device</string>
+    <string>Add a source from Device</string>
    </property>
    <property name="statusTip">
     <string>Creates a live source showing frames of a connected device (e.g. webcam)</string>
@@ -2393,16 +2389,16 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/display-source.png</normaloff>:/glmixer/icons/display-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add loopback from &amp;Rendering</string>
+    <string>Add rendering Loopback</string>
    </property>
    <property name="toolTip">
-    <string>Add loopback from Rendering</string>
+    <string>Add a rendering Loopback source</string>
    </property>
    <property name="statusTip">
     <string>Creates a new source which displays the previous rendering of the output window.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+R</string>
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="actionZoomIn">
@@ -2496,6 +2492,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Add source from output &amp;Capture</string>
    </property>
+   <property name="toolTip">
+    <string>Add an image source from screen Capture</string>
+   </property>
    <property name="statusTip">
     <string>Creates a new source with the image of the current output window.</string>
    </property>
@@ -2510,6 +2509,9 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="text">
     <string>Add source &amp;Algorithm</string>
+   </property>
+   <property name="toolTip">
+    <string>Add an Algorithm source</string>
    </property>
    <property name="statusTip">
     <string>Creates a new source using algorithms to generate graphics.</string>
@@ -3009,10 +3011,29 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Pause the session (all sources)</string>
    </property>
    <property name="shortcut">
-    <string>F6</string>
+    <string>Ctrl+P</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionRecord">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/record.png</normaloff>
+     <normalon>:/glmixer/icons/recording.png</normalon>:/glmixer/icons/record.png</iconset>
+   </property>
+   <property name="text">
+    <string>Record</string>
+   </property>
+   <property name="toolTip">
+    <string>Record output</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>
