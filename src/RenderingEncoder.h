@@ -15,9 +15,6 @@
 
 #include <cstdio>
 extern "C" {
-
-#include "glw_rec.h"
-
 #include <libavutil/common.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/mathematics.h>
@@ -39,7 +36,7 @@ public:
 
 public Q_SLOTS:
 	void setActive(bool on);
-	void moveFileTo(QString newFileName);
+	void saveFileAs();
 
 private:
     AVCodec *codec;

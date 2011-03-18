@@ -56,7 +56,7 @@ bool RenderingManager::blit_fbo_extension = true;
 QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED] = { { QSize(640,480), QSize(768,576), QSize(800,600), QSize(1024,768), QSize(1600,1200) },
 																		   { QSize(720,480), QSize(864,576), QSize(900,600), QSize(1152,768), QSize(1440,960) },
 																           { QSize(800,480), QSize(912,570), QSize(960,600), QSize(1280,800), QSize(1920,1200) },
-																           { QSize(854,480), QSize(1024,576), QSize(1088,612), QSize(1280,720), QSize(1920,1080) }};
+																           { QSize(848,480), QSize(1024,576), QSize(1088,612), QSize(1280,720), QSize(1920,1080) }};
 
 ViewRenderWidget *RenderingManager::getRenderingWidget() {
 

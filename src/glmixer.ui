@@ -1776,6 +1776,7 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <addaction name="actionToggleRenderingVisible"/>
    <addaction name="actionPause"/>
+   <addaction name="actionRecord"/>
    <addaction name="actionFullscreen"/>
    <addaction name="separator"/>
    <addaction name="actionMixingView"/>

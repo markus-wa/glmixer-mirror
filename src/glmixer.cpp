@@ -190,7 +190,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 	// Recording triggers
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));
-	// TODO; connect to disable many actions, like saving, opening session, preferences, etc.
+	// TODO; connect to disable many actions, like quitting, opening session, preferences, etc.
 
 	// group the menu items of the catalog sizes ;
 	QActionGroup *catalogActionGroup = new QActionGroup(this);

@@ -12,6 +12,8 @@
 
 #include <QDir>
 #include <QFileInfo>
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QGLFramebufferObject>
 
 
@@ -29,16 +31,15 @@ RenderingEncoder::~RenderingEncoder() {
 
 void RenderingEncoder::setActive(bool on)
 {
-	bool success = false;
-
-	if (on)
-		success = start();
-	else
-		success = close();
-
-	// TODO: if not success, display warning
-	if (!success)
-		qCritical("Could not %s recording video.", on ? "start" : "stop");
+	if (on) {
+		if (!start())
+			qCritical("Could not stop video recording.");
+	} else {
+		if (close())
+			saveFileAs();
+		else
+			qCritical("Could not stop video recording.");
+	}
 }
 
 // Start the encoding process
@@ -112,10 +113,16 @@ bool RenderingEncoder::start(){
 	tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 3);
 	if (!tmpframe)
 		return false;
-	linesize[0] = -fbosize.width()*3;
-	linesize[1] = -fbosize.width()*3;
-	linesize[2] = -fbosize.width()*3;
+
+	// setup the frame pointers to tmpframe for reading the frame backward (y inverted in opengl)
+	linesize[0] = - fbosize.width() * 3;
 	data[0] = (uint8_t *) tmpframe + (fbosize.width()) * (fbosize.height() - 1) * 3;
+	linesize[1] = 0;
+	data[1] = 0;
+	linesize[2] = 0;
+	data[2] = 0;
+	linesize[3] = 0;
+	data[3] = 0;
 
 
 	// create conversion context
@@ -199,19 +206,23 @@ bool RenderingEncoder::close(){
 	return true;
 }
 
-void RenderingEncoder::moveFileTo(QString newFileName){
+void RenderingEncoder::saveFileAs(){
 
-	// if the file already exists, ask if we should overwrite.
-	QFileInfo infoFileDestination(newFileName);
-	if (infoFileDestination.exists()){
-		bool overwrite = true;
-		// TODO: here we ask with a dialog "do u want to overwrite"
-		//
-		if (overwrite)
+	static QDir dir(QDir::currentPath());
+
+	// Select file name
+	QString newFileName = QFileDialog::getSaveFileName ( 0, tr("Save captured video"), dir.absolutePath(), tr("MPEG1 video (*.mpg *.mpeg)"));
+
+	// remember path
+	dir = QFileInfo(newFileName).dir();
+
+	if (!newFileName.isEmpty()) {
+		// delete file if exists
+		QFileInfo infoFileDestination(newFileName);
+		if (infoFileDestination.exists()){
 			infoFileDestination.dir().remove(infoFileDestination.fileName ());
+		}
+		// move the temporaryFileName to newFileName
+		QDir::temp().rename(temporaryFileName, newFileName);
 	}
-
-	// move the temporaryFileName to newFileName
-	QDir::temp().rename(temporaryFileName, newFileName);
-
 }
