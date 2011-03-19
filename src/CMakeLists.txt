@@ -39,6 +39,7 @@ set(MYQT_SRCS
     SessionSwitcherWidget.cpp
     glmixer.cpp
     main.cpp
+    video_rec.c
 )
 
 set(MYQT_RCS

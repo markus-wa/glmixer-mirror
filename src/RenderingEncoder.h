@@ -8,17 +8,12 @@
 #ifndef RENDERINGENCODER_H_
 #define RENDERINGENCODER_H_
 
-#include <QDir>
+#include <QObject>
 #include <QString>
 #include <QSize>
 
-
-#include <cstdio>
 extern "C" {
-#include <libavutil/common.h>
-#include <libavcodec/avcodec.h>
-#include <libavutil/mathematics.h>
-#include <libswscale/swscale.h>
+#include "video_rec.h"
 }
 
 
@@ -28,37 +23,37 @@ class RenderingEncoder: public QObject {
 
 public:
 	RenderingEncoder(QObject * parent = 0);
-	virtual ~RenderingEncoder();
 
 	bool start();
 	void addFrame();
 	bool close();
+
+	typedef enum {
+		FFVHUFF = 0,
+		MPEG1
+	} encoder_format;
+
+	void setFormat(encoder_format f);
 
 public Q_SLOTS:
 	void setActive(bool on);
 	void saveFileAs();
 
 private:
-    AVCodec *codec;
-    AVCodecContext *c;
-    int out_size, size, outbuf_size;
-    FILE *f;
-    AVFrame *picture;
-    uint8_t *outbuf, *picture_buf;
-    SwsContext *img_convert_ctx;
-	uint8_t * 	data [4];
-	char *tmpframe;
-	int 	linesize [4];
-	int framenum;
-
+	// temp file location
 	QString temporaryFileName;
-
 
 	// state machine
 	bool started;
 
 	// opengl
+	char * tmpframe;
 	QSize fbosize;
+	unsigned int fbohandle;
+
+	// encoder
+	encoder_format format;
+	video_rec_t *recorder;
 
 };
 

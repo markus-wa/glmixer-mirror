@@ -17,15 +17,30 @@
 #include <QGLFramebufferObject>
 
 
-RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false) {
-	// TODO Auto-generated constructor stub
-
-	temporaryFileName = "glmixeroutput.mpg";
+RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), fbohandle(0) {
+	// set default format
+	setFormat(RenderingEncoder::FFVHUFF);
+	setFormat(RenderingEncoder::MPEG1);
 
 }
 
-RenderingEncoder::~RenderingEncoder() {
-	// TODO Auto-generated destructor stub
+
+void RenderingEncoder::setFormat(encoder_format f){
+
+	if (!started) {
+		format = f;
+
+		switch (format) {
+		case RenderingEncoder::MPEG1:
+				temporaryFileName = "glmixeroutput.mpg";
+			break;
+		case RenderingEncoder::FFVHUFF:
+			default:
+				temporaryFileName = "glmixeroutput.avi";
+		}
+	} else {
+		// TODO : warning message
+	}
 }
 
 
@@ -33,7 +48,7 @@ void RenderingEncoder::setActive(bool on)
 {
 	if (on) {
 		if (!start())
-			qCritical("Could not stop video recording.");
+			qCritical("Could not start video recording.");
 	} else {
 		if (close())
 			saveFileAs();
@@ -57,79 +72,23 @@ bool RenderingEncoder::start(){
 
 	// get access to the size of the renderrer fbo
 	fbosize = RenderingManager::getInstance()->getFrameBufferResolution();
+	fbohandle =  RenderingManager::getInstance()->getFrameBufferHandle();
 
-	/* find the mpeg1 video encoder */
-	codec = avcodec_find_encoder(CODEC_ID_MPEG1VIDEO);
-	if (!codec) {
-		qDebug("codec not found\n");
-		return false;
+
+	switch (format) {
+	case RenderingEncoder::MPEG1:
+		tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 3);
+		recorder = mpeg_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), 25);
+		break;
+	case RenderingEncoder::FFVHUFF:
+	default:
+		tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 4);
+		recorder = ffvhuff_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), 25);
 	}
 
-	c= avcodec_alloc_context();
-	picture= avcodec_alloc_frame();
-
-	/* put sample parameters */
-	c->bit_rate = 400000;
-	/* resolution must be a multiple of two */
-	c->width = fbosize.width();
-	c->height = fbosize.height();
-	/* frames per second */
-	// TODO : read frame rate from glRenderWidget
-	c->time_base= (AVRational){1,25};
-	/* emit one intra frame every ten frames */
-	c->gop_size = 10;
-	c->max_b_frames=1;
-	c->pix_fmt = PIX_FMT_YUV420P;
-
-	/* open it */
-	if (avcodec_open(c, codec) < 0) {
-		qDebug("could not open codec\n");
-		return false;
-	}
-
-	f = fopen( qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), "wb");
-	if (!f) {
-		qDebug("could not open %s\n", qPrintable(QDir::temp().absoluteFilePath(temporaryFileName)) );
-		return false;
-	}
-
-	/* alloc image and output buffer */
-	outbuf_size = 1000000;
-	outbuf = (uint8_t *) malloc(outbuf_size);
-	size = c->width * c->height;
-	picture_buf = (uint8_t *) malloc((size * 3) / 2); /* size for YUV 420 */
-
-	picture->data[0] = picture_buf;
-	picture->data[1] = picture->data[0] + size;
-	picture->data[2] = picture->data[1] + size / 4;
-	picture->linesize[0] = c->width;
-	picture->linesize[1] = c->width / 2;
-	picture->linesize[2] = c->width / 2;
-
-	// reset frame counter
-	framenum = 0;
-
-	// create a temporary buffer for gl read
-	tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 3);
 	if (!tmpframe)
 		return false;
-
-	// setup the frame pointers to tmpframe for reading the frame backward (y inverted in opengl)
-	linesize[0] = - fbosize.width() * 3;
-	data[0] = (uint8_t *) tmpframe + (fbosize.width()) * (fbosize.height() - 1) * 3;
-	linesize[1] = 0;
-	data[1] = 0;
-	linesize[2] = 0;
-	data[2] = 0;
-	linesize[3] = 0;
-	data[3] = 0;
-
-
-	// create conversion context
-	img_convert_ctx = sws_getContext(fbosize.width(), fbosize.height(), PIX_FMT_RGB24,
-										c->width, c->height, PIX_FMT_YUV420P, SWS_POINT,
-										NULL, NULL, NULL);
-	if (img_convert_ctx == NULL)
+	if (recorder == NULL)
 		return false;
 
 	started = true;
@@ -145,23 +104,24 @@ void RenderingEncoder::addFrame(){
 	if (!started)
 		return;
 
-	// bind rendering frame buffer object
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
-	// read the pixels and store into the temporary buffer
-	glReadPixels((GLint)0, (GLint)0, (GLint)fbosize.width(), (GLint)fbosize.height(), GL_RGB, GL_UNSIGNED_BYTE, tmpframe);
-	// unbind fbo
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-	// convert buffer to avcodec frame
-	sws_scale(img_convert_ctx, data, linesize, 0, fbosize.height(), picture->data, picture->linesize);
-
-	// set timing for frame and increment frame counter
-	picture->pts = 1000000LL * framenum / 25;
-	framenum++;
-
-	/* encode the image */
-	out_size = avcodec_encode_video(c, outbuf, outbuf_size, picture);
-	fwrite(outbuf, 1, out_size, f);
+	switch (format) {
+	case RenderingEncoder::MPEG1:
+		// bind rendering frame buffer object
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbohandle);
+		// read the pixels and store into the temporary buffer
+		glReadPixels((GLint)0, (GLint)0, (GLint)fbosize.width(), (GLint)fbosize.height(), GL_RGB, GL_UNSIGNED_BYTE, tmpframe);
+		// give the frame to the encoder
+		mpeg_rec_deliver_vframe(recorder, tmpframe);
+		break;
+	case RenderingEncoder::FFVHUFF:
+	default:
+		// bind rendering frame buffer object
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbohandle);
+		// read the pixels and store into the temporary buffer
+		glReadPixels((GLint)0, (GLint)0, (GLint)fbosize.width(), (GLint)fbosize.height(), GL_BGRA, GL_UNSIGNED_BYTE, tmpframe);
+		// give the frame to the encoder
+		ffvhuff_rec_deliver_vframe(recorder, tmpframe);
+	}
 
 }
 
@@ -174,30 +134,14 @@ bool RenderingEncoder::close(){
 	if (!started)
 		return false;
 
-	/* get the delayed frames */
-	for(; out_size;) {
-		out_size = avcodec_encode_video(c, outbuf, outbuf_size, NULL);
-		fwrite(outbuf, 1, out_size, f);
+	switch (format) {
+	case RenderingEncoder::MPEG1:
+		mpeg_rec_stop(recorder);
+		break;
+	case RenderingEncoder::FFVHUFF:
+	default:
+		ffvhuff_rec_stop(recorder);
 	}
-
-	/* add sequence end code to have a real mpeg file */
-	outbuf[0] = 0x00;
-	outbuf[1] = 0x00;
-	outbuf[2] = 0x01;
-	outbuf[3] = 0xb7;
-	fwrite(outbuf, 1, 4, f);
-	fclose(f);
-	free(picture_buf);
-	free(outbuf);
-
-	// free avcodec stuff
-	avcodec_close(c);
-	av_free(c);
-	av_free(picture);
-
-    // free context converter
-    if (img_convert_ctx)
-        sws_freeContext(img_convert_ctx);
 
     // free opengl buffer
 	free(tmpframe);
@@ -211,7 +155,16 @@ void RenderingEncoder::saveFileAs(){
 	static QDir dir(QDir::currentPath());
 
 	// Select file name
-	QString newFileName = QFileDialog::getSaveFileName ( 0, tr("Save captured video"), dir.absolutePath(), tr("MPEG1 video (*.mpg *.mpeg)"));
+	QString newFileName;
+
+	switch (format) {
+	case RenderingEncoder::MPEG1:
+		newFileName = QFileDialog::getSaveFileName ( 0, tr("Save captured video"), dir.absolutePath(), tr("MPEG Video (*.mpg)"));
+		break;
+	case RenderingEncoder::FFVHUFF:
+		default:
+		newFileName = QFileDialog::getSaveFileName ( 0, tr("Save captured video"), dir.absolutePath(), tr("AVI Video (*.avi)"));
+	}
 
 	// remember path
 	dir = QFileInfo(newFileName).dir();
