@@ -16,11 +16,15 @@
 #include <QMessageBox>
 #include <QGLFramebufferObject>
 
+extern "C" {
+#include "video_rec.h"
+}
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), fbohandle(0) {
+
 	// set default format
 	setFormat(RenderingEncoder::FFVHUFF);
-	setFormat(RenderingEncoder::MPEG1);
+//	setFormat(RenderingEncoder::MPEG1);
 
 }
 
@@ -39,7 +43,7 @@ void RenderingEncoder::setFormat(encoder_format f){
 				temporaryFileName = "glmixeroutput.avi";
 		}
 	} else {
-		// TODO : warning message
+		qCritical("ERROR setting video recording format.\nRecorder is busy.");
 	}
 }
 
@@ -48,13 +52,14 @@ void RenderingEncoder::setActive(bool on)
 {
 	if (on) {
 		if (!start())
-			qCritical("Could not start video recording.");
+			qCritical("ERROR starting video recording.\n%s", errormessage);
 	} else {
 		if (close())
 			saveFileAs();
-		else
-			qCritical("Could not stop video recording.");
 	}
+
+	// inform if we could be activated
+    emit activated(started);
 }
 
 // Start the encoding process
@@ -74,26 +79,43 @@ bool RenderingEncoder::start(){
 	fbosize = RenderingManager::getInstance()->getFrameBufferResolution();
 	fbohandle =  RenderingManager::getInstance()->getFrameBufferHandle();
 
-
 	switch (format) {
 	case RenderingEncoder::MPEG1:
 		tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 3);
-		recorder = mpeg_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), 25);
+		recorder = mpeg_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), 25, errormessage);
 		break;
 	case RenderingEncoder::FFVHUFF:
 	default:
 		tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 4);
-		recorder = ffvhuff_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), 25);
+		recorder = ffvhuff_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), 25, errormessage);
 	}
 
+	// test success of initialization
 	if (!tmpframe)
 		return false;
 	if (recorder == NULL)
 		return false;
 
+	// start
+    emit status(tr("Start recording."), 1000);
+	timer.start();
+	elapseTimer = startTimer(1000); // emit the duration of recording every second
 	started = true;
 
 	return true;
+}
+
+void RenderingEncoder::timerEvent(QTimerEvent *event)
+{
+    emit status(tr("Recording time: %1 s").arg(timer.elapsed()/1000), 1000);
+}
+
+int RenderingEncoder::getRecodingTime() {
+
+	if (started)
+		return timer.elapsed();
+	else
+		return 0;
 }
 
 // Add a frame to the stream
@@ -101,7 +123,7 @@ bool RenderingEncoder::start(){
 // - save to file
 void RenderingEncoder::addFrame(){
 
-	if (!started)
+	if (!started || recorder == NULL)
 		return;
 
 	switch (format) {
@@ -146,7 +168,10 @@ bool RenderingEncoder::close(){
     // free opengl buffer
 	free(tmpframe);
 
+	// done
+	killTimer(elapseTimer);
 	started = false;
+
 	return true;
 }
 
@@ -177,5 +202,6 @@ void RenderingEncoder::saveFileAs(){
 		}
 		// move the temporaryFileName to newFileName
 		QDir::temp().rename(temporaryFileName, newFileName);
+	    emit status(tr("File %1 saved.").arg(newFileName), 2000);
 	}
 }

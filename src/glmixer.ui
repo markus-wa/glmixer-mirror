@@ -1713,7 +1713,7 @@ Uncheck to display the restart frame when stopped.</string>
     <property name="title">
      <string>Rendering</string>
     </property>
-    <widget class="QMenu" name="menuAspect_Ratio_2">
+    <widget class="QMenu" name="menuAspect_Ratio">
      <property name="title">
       <string>Aspect Ratio</string>
      </property>
@@ -1727,7 +1727,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionPause"/>
     <addaction name="actionRecord"/>
     <addaction name="actionFullscreen"/>
-    <addaction name="menuAspect_Ratio_2"/>
+    <addaction name="menuAspect_Ratio"/>
     <addaction name="actionWhite_background"/>
    </widget>
    <addaction name="menuFile"/>

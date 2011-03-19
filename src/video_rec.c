@@ -1,19 +1,8 @@
 /*
- *  GLW Recoder - Record video of display output
- *  Copyright (C) 2010 Andreas Öman
+ * video_rec.c
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  Created on: Mar 16, 2011
+ *      Author: bh
  */
 
 #include <libavformat/avformat.h>
@@ -43,23 +32,13 @@ struct mpeg_rec {
 	struct SwsContext *img_convert_ctx;
 };
 
-struct video_rec {
-	int width;
-	int height;
-	int fps;
-	int framenum;
-	union {
-		struct ffvhuff_rec *ffvhuff;
-		struct mpeg_rec *mpeg;
-	};
-};
 
 
 video_rec_t *
-ffvhuff_rec_init(const char *filename, int width, int height, int fps)
+ffvhuff_rec_init(const char *filename, int width, int height, int fps, char *errormessage)
 {
-
 	AVCodec *c;
+
 	video_rec_t *rec = calloc(1, sizeof(video_rec_t));
 	rec->ffvhuff = calloc(1, sizeof(struct ffvhuff_rec));
 
@@ -70,9 +49,9 @@ ffvhuff_rec_init(const char *filename, int width, int height, int fps)
 
 	rec->ffvhuff->fmt = av_guess_format(NULL, filename, NULL);
 	if(rec->ffvhuff->fmt == NULL) {
-		//    TRACE(TRACE_ERROR, "GLWREC",
-		//	  "Unable to record to %s -- Unknown file format",
-		//	  filename);
+		snprintf(errormessage, 256, "Unknown file format. Unable to record to %s.", filename);
+		free(rec->ffvhuff);
+		free(rec);
 		return NULL;
 	}
 
@@ -94,35 +73,37 @@ ffvhuff_rec_init(const char *filename, int width, int height, int fps)
 	rec->ffvhuff->v_ctx->coder_type = 1;
 
 	if(av_set_parameters(rec->ffvhuff->oc, NULL) < 0) {
-		//    TRACE(TRACE_ERROR, "GLWREC",
-		//	  "Unable to record to %s -- Invalid output format parameters",
-		//	  filename);
-
-		fprintf(stderr, "Invalid output format. ");
-
+		snprintf(errormessage, 256, "Invalid output format parameters. Unable to record to %s.", filename);
+		free(rec->ffvhuff->oc);
+		free(rec->ffvhuff);
+		free(rec);
 		return NULL;
 	}
 
 	dump_format(rec->ffvhuff->oc, 0, filename, 1);
 
 	c = avcodec_find_encoder(rec->ffvhuff->v_ctx->codec_id);
-	if (!c)
+	if (!c) {
+		snprintf(errormessage, 256, "Could not find video codec. Unable to record to %s.", filename);
+		free(rec->ffvhuff->oc);
+		free(rec->ffvhuff);
+		free(rec);
 		return NULL;
+	}
 
 	if(avcodec_open(rec->ffvhuff->v_ctx, c) < 0) {
-		//    TRACE(TRACE_ERROR, "GLWREC",
-		//	  "Unable to record to %s -- Unable to open video codec",
-		//	  filename);
-
-		fprintf(stderr, "Unable to open video codec. ");
+		snprintf(errormessage, 256, "Could not open video codec. Unable to record to %s.", filename);
+		free(rec->ffvhuff->oc);
+		free(rec->ffvhuff);
+		free(rec);
 		return NULL;
 	}
 
 	if(url_fopen(&rec->ffvhuff->oc->pb, filename, URL_WRONLY) < 0) {
-		//    TRACE(TRACE_ERROR, "GLWREC",
-		//	  "Unable to record to %s -- Unable to open file for writing",
-		//	  filename);
-		fprintf(stderr, "Unable to open file for writing. ");
+		snprintf(errormessage, 256, "Could not open temporary file %s for writing.", filename);
+		free(rec->ffvhuff->oc);
+		free(rec->ffvhuff);
+		free(rec);
 		return NULL;
 	}
 
@@ -143,6 +124,9 @@ ffvhuff_rec_init(const char *filename, int width, int height, int fps)
 void
 ffvhuff_rec_stop(video_rec_t *rec)
 {
+	if (rec == NULL)
+		return;
+
 	int i;
 
 	av_write_trailer(rec->ffvhuff->oc);
@@ -156,7 +140,6 @@ ffvhuff_rec_stop(video_rec_t *rec)
 
 	url_fclose(rec->ffvhuff->oc->pb);
 	free(rec->ffvhuff->oc);
-
 	free(rec->ffvhuff->vbuf_ptr);
 	free(rec->ffvhuff);
 	free(rec);
@@ -203,7 +186,7 @@ ffvhuff_rec_deliver_vframe(video_rec_t *rec, void *data)
 
 
 video_rec_t *
-mpeg_rec_init(const char *filename, int width, int height, int fps)
+mpeg_rec_init(const char *filename, int width, int height, int fps, char *errormessage)
 {
 	video_rec_t *rec = calloc(1, sizeof(video_rec_t));
 	rec->mpeg = calloc(1, sizeof(struct mpeg_rec));
@@ -216,7 +199,9 @@ mpeg_rec_init(const char *filename, int width, int height, int fps)
 	/* find the mpeg1 video encoder */
 	rec->mpeg->codec = avcodec_find_encoder(CODEC_ID_MPEG1VIDEO);
 	if (!rec->mpeg->codec) {
-		//			qDebug("codec not found\n");
+		snprintf(errormessage, 256, "Could not find video codec. Unable to record to %s.", filename);
+		free(rec->mpeg);
+		free(rec);
 		return NULL;
 	}
 
@@ -237,13 +222,11 @@ mpeg_rec_init(const char *filename, int width, int height, int fps)
 
 	/* open it */
 	if (avcodec_open(rec->mpeg->c, rec->mpeg->codec) < 0) {
-		//			qDebug("could not open codec\n");
-		return NULL;
-	}
-
-	rec->mpeg->f = fopen( filename, "wb");
-	if (!rec->mpeg->f) {
-		//			qDebug("could not open %s\n", qPrintable(QDir::temp().absoluteFilePath(temporaryFileName)) );
+		snprintf(errormessage, 256, "Could not open video codec. Unable to record to %s.", filename);
+		av_free(rec->mpeg->c);
+		av_free(rec->mpeg->picture);
+		free(rec->mpeg);
+		free(rec);
 		return NULL;
 	}
 
@@ -264,9 +247,25 @@ mpeg_rec_init(const char *filename, int width, int height, int fps)
 	rec->mpeg->img_convert_ctx = sws_getContext(rec->width, rec->height, PIX_FMT_RGB24,
 			rec->mpeg->c->width, rec->mpeg->c->height, PIX_FMT_YUV420P,
 			SWS_POINT, NULL, NULL, NULL);
-	if (rec->mpeg->img_convert_ctx == NULL)
+	if (rec->mpeg->img_convert_ctx == NULL){
+		snprintf(errormessage, 256, "Could not create conversion context. Unable to record to %s.", filename);
+		av_free(rec->mpeg->c);
+		av_free(rec->mpeg->picture);
+		free(rec->mpeg);
+		free(rec);
 		return NULL;
+	}
 
+	rec->mpeg->f = fopen( filename, "wb");
+	if (!rec->mpeg->f) {
+		snprintf(errormessage, 256, "Could not open temporary file %s for writing.", filename);
+		sws_freeContext(rec->mpeg->img_convert_ctx);
+		av_free(rec->mpeg->c);
+		av_free(rec->mpeg->picture);
+		free(rec->mpeg);
+		free(rec);
+		return NULL;
+	}
 
 	return rec;
 }
@@ -275,6 +274,9 @@ mpeg_rec_init(const char *filename, int width, int height, int fps)
 
 void  mpeg_rec_stop(video_rec_t *rec)
 {
+	if (rec == NULL)
+		return;
+
 	/* get the delayed frames */
 	for(; rec->mpeg->out_size;) {
 		rec->mpeg->out_size = avcodec_encode_video(rec->mpeg->c, rec->mpeg->outbuf, rec->mpeg->outbuf_size, NULL);
