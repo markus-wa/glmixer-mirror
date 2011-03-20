@@ -31,7 +31,10 @@
 #include <QString>
 #include <QSize>
 
-typedef struct video_rec video_rec_t;
+
+extern "C" {
+#include "video_rec.h"
+}
 
 class RenderingEncoder: public QObject {
 
@@ -44,13 +47,8 @@ public:
 	void addFrame();
 	bool close();
 
-	typedef enum {
-		FFVHUFF = 0,
-		MPEG1
-	} encoder_format;
-
-	void setFormat(encoder_format f);
-	int Format() { return (int) format; }
+	void setEncodingFormat(encodingformat f);
+	encodingformat encodingFormat() { return format; }
 	void setUpdatePeriod(int ms) { update=ms; }
 	int updatePeriod() { return update; }
 
@@ -79,12 +77,11 @@ private:
 
 	// opengl
 	char * tmpframe;
-	QSize fbosize;
 	unsigned int fbohandle;
 
 	// encoder
 	int update, displayupdate;
-	encoder_format format;
+	encodingformat format;
 	video_rec_t *recorder;
 	char errormessage[256];
 };

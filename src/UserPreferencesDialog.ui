@@ -476,12 +476,22 @@
            <widget class="QComboBox" name="recordingFormatSelection">
             <item>
              <property name="text">
-              <string>AVI (FFVHUFF codec, looseless fast encoding, large file size)</string>
+              <string>AVI       (FFVHUFF codec, looseless fast encoding, large file size)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>MPG (MPEG1-2 codec, jpeg compression, average file size)</string>
+              <string>MPG    (MPEG1 codec, conversion + jpeg compression, average file)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>MP4    (MPEG4 codec, conversion + jpeg compression, average file)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>WMV   (Windows Media WMV1 codec, low quality, small file)</string>
              </property>
             </item>
            </widget>

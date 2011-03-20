@@ -1714,11 +1714,17 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	stream >> recformat;
 	switch (recformat) {
 	case 1:
-		RenderingManager::getRecorder()->setFormat(RenderingEncoder::MPEG1);
+		RenderingManager::getRecorder()->setEncodingFormat(FORMAT_MPG_MPEG1);
+		break;
+	case 2:
+		RenderingManager::getRecorder()->setEncodingFormat(FORMAT_MP4_MPEG4);
+		break;
+	case 3:
+		RenderingManager::getRecorder()->setEncodingFormat(FORMAT_WMV_WMV1);
 		break;
 	case 0:
 	default:
-		RenderingManager::getRecorder()->setFormat(RenderingEncoder::FFVHUFF);
+		RenderingManager::getRecorder()->setEncodingFormat(FORMAT_AVI_FFVHUFF);
 	}
 	int rtfr = 40;
 	stream >> rtfr;
@@ -1760,7 +1766,7 @@ QByteArray GLMixer::getPreferences() const {
 	stream << ViewRenderWidget::getStipplingMode();
 
 	// g. recording format
-	stream << RenderingManager::getRecorder()->Format();
+	stream << (unsigned int) RenderingManager::getRecorder()->encodingFormat();
 	stream << RenderingManager::getRecorder()->updatePeriod();
 
 	return data;

@@ -17,30 +17,19 @@
 #include <QMessageBox>
 #include <QGLFramebufferObject>
 
-extern "C" {
-#include "video_rec.h"
-}
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), fbohandle(0), update(40), displayupdate(33) {
 
 	// set default format
-	setFormat(RenderingEncoder::FFVHUFF);
+	setEncodingFormat(FORMAT_AVI_FFVHUFF);
 }
 
 
-void RenderingEncoder::setFormat(encoder_format f){
+void RenderingEncoder::setEncodingFormat(encodingformat f){
 
 	if (!started) {
 		format = f;
-
-		switch (format) {
-		case RenderingEncoder::MPEG1:
-				temporaryFileName = "glmixeroutput.mpg";
-			break;
-		case RenderingEncoder::FFVHUFF:
-			default:
-				temporaryFileName = "glmixeroutput.avi";
-		}
+		temporaryFileName = "glmixeroutput";
 	} else {
 		qCritical("ERROR setting video recording format.\n\nRecorder is busy.");
 	}
@@ -75,7 +64,7 @@ bool RenderingEncoder::start(){
 	}
 
 	// get access to the size of the renderrer fbo
-	fbosize = RenderingManager::getInstance()->getFrameBufferResolution();
+	QSize fbosize = RenderingManager::getInstance()->getFrameBufferResolution();
 	fbohandle =  RenderingManager::getInstance()->getFrameBufferHandle();
 
 	// setup update frequency
@@ -83,20 +72,13 @@ bool RenderingEncoder::start(){
 	RenderingManager::getRenderingWidget()->setUpdatePeriod( update );
 	int freq = (int) ( 1000.0 / double(update) );
 
-	switch (format) {
-	case RenderingEncoder::MPEG1:
-		tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 3);
-		recorder = mpeg_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), freq, errormessage);
-		break;
-	case RenderingEncoder::FFVHUFF:
-	default:
-		tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 4);
-		recorder = ffvhuff_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), freq, errormessage);
-	}
-
-	// test success of initialization
+	// BGRA temporary frame for read pixels of FBO
+	tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 4);
 	if (!tmpframe)
 		return false;
+
+	// initialization of ffmpeg recorder
+	recorder = video_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), format, fbosize.width(), fbosize.height(), freq, errormessage);
 	if (recorder == NULL)
 		return false;
 
@@ -123,51 +105,28 @@ int RenderingEncoder::getRecodingTime() {
 }
 
 // Add a frame to the stream
-// - encode
-// - save to file
 void RenderingEncoder::addFrame(){
 
 	if (!started || recorder == NULL)
 		return;
 
-	switch (format) {
-	case RenderingEncoder::MPEG1:
-		// bind rendering frame buffer object
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbohandle);
-		// read the pixels and store into the temporary buffer
-		glReadPixels((GLint)0, (GLint)0, (GLint)fbosize.width(), (GLint)fbosize.height(), GL_RGB, GL_UNSIGNED_BYTE, tmpframe);
-		// give the frame to the encoder
-		mpeg_rec_deliver_vframe(recorder, tmpframe);
-		break;
-	case RenderingEncoder::FFVHUFF:
-	default:
-		// bind rendering frame buffer object
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbohandle);
-		// read the pixels and store into the temporary buffer
-		glReadPixels((GLint)0, (GLint)0, (GLint)fbosize.width(), (GLint)fbosize.height(), GL_BGRA, GL_UNSIGNED_BYTE, tmpframe);
-		// give the frame to the encoder
-		ffvhuff_rec_deliver_vframe(recorder, tmpframe);
-	}
+	// bind rendering frame buffer object
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbohandle);
+	// read the pixels and store into the temporary buffer
+	glReadPixels((GLint)0, (GLint)0, (GLint) recorder->width, (GLint) recorder->height, GL_BGRA, GL_UNSIGNED_BYTE, tmpframe);
+	// give the frame to the encoder by calling the function specified in the recorder
+	(*recorder->pt2RecordingFunction)(recorder, tmpframe);
 
 }
 
 // Close the encoding process
-// - get the delayed frames
-// - add sequence end code to have a real mpeg file
-// - close file
 bool RenderingEncoder::close(){
 
 	if (!started)
 		return false;
 
-	switch (format) {
-	case RenderingEncoder::MPEG1:
-		mpeg_rec_stop(recorder);
-		break;
-	case RenderingEncoder::FFVHUFF:
-	default:
-		ffvhuff_rec_stop(recorder);
-	}
+	// stop recorder
+	video_rec_stop(recorder);
 
     // free opengl buffer
 	free(tmpframe);
@@ -189,15 +148,23 @@ void RenderingEncoder::saveFileAs(){
 	// Select file name
 	QString newFileName;
 
+	QString fmt;
 	switch (format) {
-	case RenderingEncoder::MPEG1:
-		newFileName = QFileDialog::getSaveFileName ( 0, tr("Save captured video"), dir.absolutePath(), tr("MPEG Video (*.mpg)"));
+	case FORMAT_MPG_MPEG1:
+		fmt = "MPEG 1 Video (*.mpg *.mpeg)";
 		break;
-	case RenderingEncoder::FFVHUFF:
-		default:
-		newFileName = QFileDialog::getSaveFileName ( 0, tr("Save captured video"), dir.absolutePath(), tr("AVI Video (*.avi)"));
+	case FORMAT_MP4_MPEG4:
+		fmt = "MPEG 4 Video (*.mp4)";
+		break;
+	case FORMAT_WMV_WMV1:
+		fmt = "Windows Media Video (*.wmv)";
+		break;
+	default:
+	case FORMAT_AVI_FFVHUFF:
+		fmt = "AVI Video (*.avi)";
 	}
-
+	// get file name
+	newFileName = QFileDialog::getSaveFileName ( 0, tr("Save captured video"), dir.absolutePath(), fmt);
 	// remember path
 	dir = QFileInfo(newFileName).dir();
 
