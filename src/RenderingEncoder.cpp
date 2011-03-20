@@ -9,6 +9,7 @@
 
 #include "common.h"
 #include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -20,12 +21,10 @@ extern "C" {
 #include "video_rec.h"
 }
 
-RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), fbohandle(0) {
+RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), fbohandle(0), update(40), displayupdate(33) {
 
 	// set default format
 	setFormat(RenderingEncoder::FFVHUFF);
-//	setFormat(RenderingEncoder::MPEG1);
-
 }
 
 
@@ -43,7 +42,7 @@ void RenderingEncoder::setFormat(encoder_format f){
 				temporaryFileName = "glmixeroutput.avi";
 		}
 	} else {
-		qCritical("ERROR setting video recording format.\nRecorder is busy.");
+		qCritical("ERROR setting video recording format.\n\nRecorder is busy.");
 	}
 }
 
@@ -52,7 +51,7 @@ void RenderingEncoder::setActive(bool on)
 {
 	if (on) {
 		if (!start())
-			qCritical("ERROR starting video recording.\n%s", errormessage);
+			qCritical("ERROR starting video recording.\n\n%s\n", errormessage);
 	} else {
 		if (close())
 			saveFileAs();
@@ -79,15 +78,20 @@ bool RenderingEncoder::start(){
 	fbosize = RenderingManager::getInstance()->getFrameBufferResolution();
 	fbohandle =  RenderingManager::getInstance()->getFrameBufferHandle();
 
+	// setup update frequency
+	displayupdate = RenderingManager::getRenderingWidget()->updatePeriod();
+	RenderingManager::getRenderingWidget()->setUpdatePeriod( update );
+	int freq = (int) ( 1000.0 / double(update) );
+
 	switch (format) {
 	case RenderingEncoder::MPEG1:
 		tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 3);
-		recorder = mpeg_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), 25, errormessage);
+		recorder = mpeg_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), freq, errormessage);
 		break;
 	case RenderingEncoder::FFVHUFF:
 	default:
 		tmpframe = (char *) malloc(fbosize.width() * fbosize.height() * 4);
-		recorder = ffvhuff_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), 25, errormessage);
+		recorder = ffvhuff_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), fbosize.width(), fbosize.height(), freq, errormessage);
 	}
 
 	// test success of initialization
@@ -171,6 +175,9 @@ bool RenderingEncoder::close(){
 	// done
 	killTimer(elapseTimer);
 	started = false;
+
+	// restore former display update period
+	RenderingManager::getRenderingWidget()->setUpdatePeriod( displayupdate );
 
 	return true;
 }

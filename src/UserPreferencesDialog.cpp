@@ -155,6 +155,14 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 		break;
 	}
 
+	// g. recording format
+	unsigned int recformat = 0;
+	stream >> recformat;
+	recordingFormatSelection->setCurrentIndex(recformat);
+	int rtfr = 40;
+	stream >> rtfr;
+	recordingUpdatePeriod->setValue(rtfr);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -191,6 +199,10 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	if (TRIANGLE->isChecked())
 		stream << (unsigned int) 3;
 
+	// g. recording format
+	stream << recordingFormatSelection->currentIndex();
+	stream << recordingUpdatePeriod->value();
+
 	return data;
 }
 
@@ -202,8 +214,6 @@ void UserPreferencesDialog::sizeToSelection(QSize s){
 
 QSize UserPreferencesDialog::selectionToSize() const {
 
-
-
     return QSize(640, 480);
 }
 
@@ -212,3 +222,10 @@ void UserPreferencesDialog::on_updatePeriod_valueChanged(int period)
 {
 	frameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(updatePeriod->value()) ) ) );
 }
+
+
+void UserPreferencesDialog::on_recordingUpdatePeriod_valueChanged(int period)
+{
+	recordingFrameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(recordingUpdatePeriod->value()) ) ) );
+}
+

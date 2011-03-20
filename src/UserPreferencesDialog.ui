@@ -51,7 +51,7 @@
       <bool>false</bool>
      </property>
      <property name="currentRow">
-      <number>0</number>
+      <number>-1</number>
      </property>
      <item>
       <property name="text">
@@ -66,6 +66,15 @@
       </property>
       <property name="flags">
        <set>ItemIsSelectable|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Recording</string>
+      </property>
+      <property name="icon">
+       <iconset resource="../icons.qrc">
+        <normaloff>:/glmixer/icons/record_disabled.png</normaloff>:/glmixer/icons/record_disabled.png</iconset>
       </property>
      </item>
      <item>
@@ -97,7 +106,7 @@
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stackedPreferences">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="PageRendering">
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -380,7 +389,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Targeted frame rate  </string>
+               <string>Targeted display frame rate  </string>
               </property>
              </widget>
             </item>
@@ -452,6 +461,104 @@
           </size>
          </property>
         </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="PageRecording">
+      <layout class="QVBoxLayout" name="verticalLayout_9">
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>File format</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_10">
+          <item>
+           <widget class="QComboBox" name="recordingFormatSelection">
+            <item>
+             <property name="text">
+              <string>AVI (FFVHUFF codec, looseless fast encoding, large file size)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>MPG (MPEG1-2 codec, jpeg compression, average file size)</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <property name="spacing">
+             <number>10</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_7">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Targeted file frame rate  </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="recordingUpdatePeriod">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimum">
+               <number>33</number>
+              </property>
+              <property name="maximum">
+               <number>65</number>
+              </property>
+              <property name="value">
+               <number>40</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="invertedAppearance">
+               <bool>true</bool>
+              </property>
+              <property name="invertedControls">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="recordingFrameRateString">
+              <property name="text">
+               <string>25 fps</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>161</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>

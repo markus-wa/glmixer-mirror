@@ -47,6 +47,7 @@ public Q_SLOTS:
 	void showPreferences(const QByteArray & state);
 	QByteArray getUserPreferences() const;
 	void on_updatePeriod_valueChanged(int period);
+	void on_recordingUpdatePeriod_valueChanged(int period);
 
 private:
 	void sizeToSelection(QSize s);

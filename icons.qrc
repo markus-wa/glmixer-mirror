@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/record_disabled.png</file>
     <file>icons/off.png</file>
     <file>icons/on.png</file>
     <file>icons/fullscreen.png</file>

@@ -47,9 +47,9 @@ ffvhuff_rec_init(const char *filename, int width, int height, int fps, char *err
 	rec->fps = fps;
 	rec->framenum = 0;
 
-	rec->ffvhuff->fmt = av_guess_format(NULL, filename, NULL);
+	rec->ffvhuff->fmt = av_guess_format("avi", NULL, NULL);
 	if(rec->ffvhuff->fmt == NULL) {
-		snprintf(errormessage, 256, "Unknown file format. Unable to record to %s.", filename);
+		snprintf(errormessage, 256, "AVI file format not supported. Unable to record to %s.", filename);
 		free(rec->ffvhuff);
 		free(rec);
 		return NULL;
@@ -82,9 +82,11 @@ ffvhuff_rec_init(const char *filename, int width, int height, int fps, char *err
 
 	dump_format(rec->ffvhuff->oc, 0, filename, 1);
 
+	avcodec_register_all();
+
 	c = avcodec_find_encoder(rec->ffvhuff->v_ctx->codec_id);
 	if (!c) {
-		snprintf(errormessage, 256, "Could not find video codec. Unable to record to %s.", filename);
+		snprintf(errormessage, 256, "Could not find video codec FFVHUFF. Unable to record to %s.", filename);
 		free(rec->ffvhuff->oc);
 		free(rec->ffvhuff);
 		free(rec);
@@ -92,7 +94,7 @@ ffvhuff_rec_init(const char *filename, int width, int height, int fps, char *err
 	}
 
 	if(avcodec_open(rec->ffvhuff->v_ctx, c) < 0) {
-		snprintf(errormessage, 256, "Could not open video codec. Unable to record to %s.", filename);
+		snprintf(errormessage, 256, "Could not open video codec FFVHUFF at %d fps. \nUnable to record to %s.", fps, filename);
 		free(rec->ffvhuff->oc);
 		free(rec->ffvhuff);
 		free(rec);
@@ -196,10 +198,12 @@ mpeg_rec_init(const char *filename, int width, int height, int fps, char *errorm
 	rec->fps = fps;
 	rec->framenum = 0;
 
+	avcodec_register_all();
+
 	/* find the mpeg1 video encoder */
 	rec->mpeg->codec = avcodec_find_encoder(CODEC_ID_MPEG1VIDEO);
 	if (!rec->mpeg->codec) {
-		snprintf(errormessage, 256, "Could not find video codec. Unable to record to %s.", filename);
+		snprintf(errormessage, 256, "Could not find video codec MPEG1. Unable to record to %s.", filename);
 		free(rec->mpeg);
 		free(rec);
 		return NULL;
@@ -222,7 +226,7 @@ mpeg_rec_init(const char *filename, int width, int height, int fps, char *errorm
 
 	/* open it */
 	if (avcodec_open(rec->mpeg->c, rec->mpeg->codec) < 0) {
-		snprintf(errormessage, 256, "Could not open video codec. Unable to record to %s.", filename);
+		snprintf(errormessage, 256, "Could not open video codec MPEG1 at %d fps. \nUnable to record to %s.", fps, filename);
 		av_free(rec->mpeg->c);
 		av_free(rec->mpeg->picture);
 		free(rec->mpeg);
@@ -249,6 +253,7 @@ mpeg_rec_init(const char *filename, int width, int height, int fps, char *errorm
 			SWS_POINT, NULL, NULL, NULL);
 	if (rec->mpeg->img_convert_ctx == NULL){
 		snprintf(errormessage, 256, "Could not create conversion context. Unable to record to %s.", filename);
+		avcodec_close(rec->mpeg->c);
 		av_free(rec->mpeg->c);
 		av_free(rec->mpeg->picture);
 		free(rec->mpeg);
@@ -260,6 +265,7 @@ mpeg_rec_init(const char *filename, int width, int height, int fps, char *errorm
 	if (!rec->mpeg->f) {
 		snprintf(errormessage, 256, "Could not open temporary file %s for writing.", filename);
 		sws_freeContext(rec->mpeg->img_convert_ctx);
+		avcodec_close(rec->mpeg->c);
 		av_free(rec->mpeg->c);
 		av_free(rec->mpeg->picture);
 		free(rec->mpeg);
@@ -322,10 +328,6 @@ mpeg_rec_deliver_vframe(video_rec_t *rec, void *data)
 
 	// convert buffer to avcodec frame
 	sws_scale(rec->mpeg->img_convert_ctx, frame, linesize, 0, rec->height, rec->mpeg->picture->data, rec->mpeg->picture->linesize);
-
-	// set timing for frame and increment frame counter
-	rec->mpeg->picture->pts = 1000000LL * rec->framenum / rec->fps;
-	rec->framenum++;
 
 	/* encode the image */
 	rec->mpeg->out_size = avcodec_encode_video(rec->mpeg->c, rec->mpeg->outbuf, rec->mpeg->outbuf_size, rec->mpeg->picture);

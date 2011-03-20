@@ -50,6 +50,10 @@ public:
 	} encoder_format;
 
 	void setFormat(encoder_format f);
+	int Format() { return (int) format; }
+	void setUpdatePeriod(int ms) { update=ms; }
+	int updatePeriod() { return update; }
+
 	bool isActive() { return started; }
 	int getRecodingTime();
 
@@ -79,6 +83,7 @@ private:
 	unsigned int fbohandle;
 
 	// encoder
+	int update, displayupdate;
 	encoder_format format;
 	video_rec_t *recorder;
 	char errormessage[256];

@@ -1672,7 +1672,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     quint16 majorVersion = 0;
 	stream >> storedMagicNumber >> majorVersion;
 	if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion)
-		// TODO dialog warning error
+		// TODO clear preferences or display dialog warning error
 		return;
 
 	// a. Apply rendering preferences
@@ -1709,6 +1709,21 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	stream >> stipplingMode;
 	ViewRenderWidget::setStipplingMode(stipplingMode);
 
+	// g. recording format
+	unsigned int recformat = 0;
+	stream >> recformat;
+	switch (recformat) {
+	case 1:
+		RenderingManager::getRecorder()->setFormat(RenderingEncoder::MPEG1);
+		break;
+	case 0:
+	default:
+		RenderingManager::getRecorder()->setFormat(RenderingEncoder::FFVHUFF);
+	}
+	int rtfr = 40;
+	stream >> rtfr;
+	RenderingManager::getRecorder()->setUpdatePeriod(rtfr);
+
 	// Refresh all GL widgets (to apply the preferences changed above)
 	RenderingManager::getRenderingWidget()->refresh();
 	OutputRenderWindow::getInstance()->refresh();
@@ -1743,6 +1758,10 @@ QByteArray GLMixer::getPreferences() const {
 
 	// f. Stippling mode
 	stream << ViewRenderWidget::getStipplingMode();
+
+	// g. recording format
+	stream << RenderingManager::getRecorder()->Format();
+	stream << RenderingManager::getRecorder()->updatePeriod();
 
 	return data;
 }
