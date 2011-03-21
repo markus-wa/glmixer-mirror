@@ -1600,6 +1600,10 @@ void GLMixer::readSettings()
     // preferences
 	restorePreferences(settings.value("UserPreferences").toByteArray());
 
+
+	// TODO: add settings for saving recorder path
+
+
 }
 
 void GLMixer::saveSettings()
@@ -1728,7 +1732,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	}
 	int rtfr = 40;
 	stream >> rtfr;
-	RenderingManager::getRecorder()->setUpdatePeriod(rtfr);
+	RenderingManager::getRecorder()->setUpdatePeriod(rtfr > 0 ? rtfr : 40);
 
 	// Refresh all GL widgets (to apply the preferences changed above)
 	RenderingManager::getRenderingWidget()->refresh();

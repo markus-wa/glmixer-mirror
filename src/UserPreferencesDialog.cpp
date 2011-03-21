@@ -161,7 +161,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	recordingFormatSelection->setCurrentIndex(recformat);
 	int rtfr = 40;
 	stream >> rtfr;
-	recordingUpdatePeriod->setValue(rtfr);
+	recordingUpdatePeriod->setValue(rtfr > 0 ? rtfr : 40);
 
 }
 

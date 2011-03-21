@@ -11,7 +11,7 @@
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
 
-#include <QDir>
+#include <QSize>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -22,6 +22,10 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(f
 
 	// set default format
 	setEncodingFormat(FORMAT_AVI_FFVHUFF);
+	// init file saving dir
+	sfa.setDirectory(QDir::currentPath());
+	sfa.setAcceptMode(QFileDialog::AcceptSave);
+	sfa.setFileMode(QFileDialog::AnyFile);
 }
 
 
@@ -143,39 +147,41 @@ bool RenderingEncoder::close(){
 
 void RenderingEncoder::saveFileAs(){
 
-	static QDir dir(QDir::currentPath());
-
-	// Select file name
-	QString newFileName;
-
-	QString fmt;
+	// Select file format
 	switch (format) {
 	case FORMAT_MPG_MPEG1:
-		fmt = "MPEG 1 Video (*.mpg *.mpeg)";
+		sfa.setFilter(tr("MPEG 1 Video (*.mpg *.mpeg)"));
+		sfa.setDefaultSuffix("mpg");
 		break;
 	case FORMAT_MP4_MPEG4:
-		fmt = "MPEG 4 Video (*.mp4)";
+		sfa.setFilter(tr("MPEG 4 Video (*.mp4)"));
+		sfa.setDefaultSuffix("mp4");
 		break;
 	case FORMAT_WMV_WMV1:
-		fmt = "Windows Media Video (*.wmv)";
+		sfa.setFilter(tr("Windows Media Video (*.wmv)"));
+		sfa.setDefaultSuffix("wmv");
 		break;
 	default:
 	case FORMAT_AVI_FFVHUFF:
-		fmt = "AVI Video (*.avi)";
+		sfa.setFilter(tr("AVI Video (*.avi)"));
+		sfa.setDefaultSuffix("avi");
 	}
-	// get file name
-	newFileName = QFileDialog::getSaveFileName ( 0, tr("Save captured video"), dir.absolutePath(), fmt);
-	// remember path
-	dir = QFileInfo(newFileName).dir();
 
-	if (!newFileName.isEmpty()) {
-		// delete file if exists
-		QFileInfo infoFileDestination(newFileName);
-		if (infoFileDestination.exists()){
-			infoFileDestination.dir().remove(infoFileDestination.fileName ());
+	// get file name
+	if (sfa.exec()) {
+	    QString newFileName = sfa.selectedFiles().front();
+		// now we got a filename, save the file:
+		if (!newFileName.isEmpty()) {
+
+			// delete file if exists
+			QFileInfo infoFileDestination(newFileName);
+			if (infoFileDestination.exists()){
+				infoFileDestination.dir().remove(infoFileDestination.fileName());
+			}
+			// move the temporaryFileName to newFileName
+			QDir::temp().rename(temporaryFileName, newFileName);
+			emit status(tr("File %1 saved.").arg(newFileName), 2000);
 		}
-		// move the temporaryFileName to newFileName
-		QDir::temp().rename(temporaryFileName, newFileName);
-	    emit status(tr("File %1 saved.").arg(newFileName), 2000);
 	}
+
 }

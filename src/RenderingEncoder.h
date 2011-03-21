@@ -29,7 +29,7 @@
 #include <QObject>
 #include <QTime>
 #include <QString>
-#include <QSize>
+#include <QFileDialog>
 
 
 extern "C" {
@@ -55,6 +55,9 @@ public:
 	bool isActive() { return started; }
 	int getRecodingTime();
 
+	void setSavingDirectory(QString path) { sfa.setDirectory(path); }
+	QString savingDirectory() { return sfa.directory().absolutePath(); }
+
 public Q_SLOTS:
 	void setActive(bool on);
 	void saveFileAs();
@@ -69,6 +72,7 @@ protected:
 private:
 	// temp file location
 	QString temporaryFileName;
+	QFileDialog sfa;
 
 	// state machine
 	bool started;
