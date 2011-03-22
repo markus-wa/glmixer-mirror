@@ -106,7 +106,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 		return;
 
 	// a. Read and show the rendering preferences
-	unsigned int RenderingQuality;
+	uint RenderingQuality;
 	stream  >> RenderingQuality;
 	resolutionTable->selectRow(RenderingQuality);
 
@@ -123,7 +123,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     defaultProperties->showProperties(defaultSource);
 
 	// c. Default scaling mode
-    unsigned int sm = 0;
+    uint sm = 0;
     stream >> sm;
     scalingModeSelection->setCurrentIndex(sm);
 
@@ -133,12 +133,12 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     defaultStartPlaying->setChecked(DefaultPlayOnDrop);
 
 	// e.  PreviousFrameDelay
-	unsigned int  PreviousFrameDelay = 1;
+	uint  PreviousFrameDelay = 1;
 	stream >> PreviousFrameDelay;
-	numberOfFramesRendering->setValue( (unsigned int) PreviousFrameDelay);
+	numberOfFramesRendering->setValue( (int) PreviousFrameDelay);
 
 	// f. Mixing icons stippling
-	unsigned int  stippling = 0;
+	uint  stippling = 0;
 	stream >> stippling;
 	switch (stippling) {
 	case 3:
@@ -156,10 +156,10 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	}
 
 	// g. recording format
-	unsigned int recformat = 0;
+	uint recformat = 0;
 	stream >> recformat;
 	recordingFormatSelection->setCurrentIndex(recformat);
-	int rtfr = 40;
+	uint rtfr = 40;
 	stream >> rtfr;
 	recordingUpdatePeriod->setValue(rtfr > 0 ? rtfr : 40);
 
@@ -181,27 +181,27 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	stream 	<< defaultSource;
 
 	// c. Default scaling mode
-	stream << (unsigned int) scalingModeSelection->currentIndex();
+	stream << (uint) scalingModeSelection->currentIndex();
 
 	// d. defaultStartPlaying
 	stream << defaultStartPlaying->isChecked();
 
 	// e. PreviousFrameDelay
-	stream << (unsigned int) numberOfFramesRendering->value();
+	stream << (uint) numberOfFramesRendering->value();
 
 	// f. Mixing icons stippling
 	if (FINE->isChecked())
-		stream << (unsigned int) 0;
+		stream << (uint) 0;
 	if (GROSS->isChecked())
-		stream << (unsigned int) 1;
+		stream << (uint) 1;
 	if (CHECKERBOARD->isChecked())
-		stream << (unsigned int) 2;
+		stream << (uint) 2;
 	if (TRIANGLE->isChecked())
-		stream << (unsigned int) 3;
+		stream << (uint) 3;
 
 	// g. recording format
-	stream << recordingFormatSelection->currentIndex();
-	stream << recordingUpdatePeriod->value();
+	stream << (uint) recordingFormatSelection->currentIndex();
+	stream << (uint) recordingUpdatePeriod->value();
 
 	return data;
 }

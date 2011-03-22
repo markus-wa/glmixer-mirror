@@ -21,6 +21,7 @@
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), fbohandle(0), update(40), displayupdate(33) {
 
 	// set default format
+	temporaryFileName = "glmixeroutput";
 	setEncodingFormat(FORMAT_AVI_FFVHUFF);
 	// init file saving dir
 	sfa.setDirectory(QDir::currentPath());
@@ -33,7 +34,6 @@ void RenderingEncoder::setEncodingFormat(encodingformat f){
 
 	if (!started) {
 		format = f;
-		temporaryFileName = "glmixeroutput";
 	} else {
 		qCritical("ERROR setting video recording format.\n\nRecorder is busy.");
 	}

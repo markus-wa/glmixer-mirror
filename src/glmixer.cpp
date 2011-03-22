@@ -1592,6 +1592,8 @@ void GLMixer::readSettings()
     	mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
     if (settings.contains("SessionFileDialog"))
     	sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
+    if (settings.contains("RenderingEncoder"))
+    	RenderingManager::getRecorder()->restoreState(settings.value("RenderingEncoder").toByteArray());
 	// boolean options
     if (settings.contains("DisplayTimeAsFrames"))
     	actionShow_frames->setChecked(settings.value("DisplayTimeAsFrames").toBool());
@@ -1599,10 +1601,6 @@ void GLMixer::readSettings()
     	actionShowFPS->setChecked(settings.value("DisplayFramerate").toBool());
     // preferences
 	restorePreferences(settings.value("UserPreferences").toByteArray());
-
-
-	// TODO: add settings for saving recorder path
-
 
 }
 
@@ -1616,6 +1614,7 @@ void GLMixer::saveSettings()
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());
     settings.setValue("SessionFileDialog", sfd->saveState());
+    settings.setValue("RenderingEncoder", RenderingManager::getRecorder()->saveState());
 	// boolean options
 	settings.setValue("DisplayTimeAsFrames", actionShow_frames->isChecked());
 	settings.setValue("DisplayFramerate", actionShowFPS->isChecked());
@@ -1680,7 +1679,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 		return;
 
 	// a. Apply rendering preferences
-	unsigned int RenderingQuality;
+	uint RenderingQuality;
 	bool useBlitFboExtension = true;
 	stream >> RenderingQuality >> useBlitFboExtension;
 	RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
@@ -1694,7 +1693,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	stream >> RenderingManager::getInstance()->defaultSource();
 
 	// c.  DefaultScalingMode
-	unsigned int sm = 0;
+	uint sm = 0;
 	stream >> sm;
 	RenderingManager::getInstance()->setDefaultScalingMode( (Source::scalingMode) sm );
 
@@ -1704,17 +1703,17 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	RenderingManager::getInstance()->setDefaultPlayOnDrop(defaultStartPlaying);
 
 	// e. PreviousFrameDelay
-	unsigned int  PreviousFrameDelay = 1;
+	uint  PreviousFrameDelay = 1;
 	stream >> PreviousFrameDelay;
 	RenderingManager::getInstance()->setPreviousFrameDelay(PreviousFrameDelay);
 
 	// f. Stippling mode
-	unsigned int stipplingMode = 0;
+	uint stipplingMode = 0;
 	stream >> stipplingMode;
 	ViewRenderWidget::setStipplingMode(stipplingMode);
 
 	// g. recording format
-	unsigned int recformat = 0;
+	uint recformat = 0;
 	stream >> recformat;
 	switch (recformat) {
 	case 1:
@@ -1730,7 +1729,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	default:
 		RenderingManager::getRecorder()->setEncodingFormat(FORMAT_AVI_FFVHUFF);
 	}
-	int rtfr = 40;
+	uint rtfr = 40;
 	stream >> rtfr;
 	RenderingManager::getRecorder()->setUpdatePeriod(rtfr > 0 ? rtfr : 40);
 
@@ -1750,7 +1749,7 @@ QByteArray GLMixer::getPreferences() const {
 	stream << magicNumber << majorVersion;
 
 	// a. Store rendering preferences
-	stream << (unsigned int) RenderingManager::getInstance()->getRenderingQuality();
+	stream << (uint) RenderingManager::getInstance()->getRenderingQuality();
 	stream << RenderingManager::getUseFboBlitExtension();
 	stream << RenderingManager::getRenderingWidget()->updatePeriod();
 
@@ -1758,7 +1757,7 @@ QByteArray GLMixer::getPreferences() const {
 	stream << RenderingManager::getInstance()->defaultSource();
 
 	// c. DefaultScalingMode
-	stream << (unsigned int) RenderingManager::getInstance()->getDefaultScalingMode();
+	stream << (uint) RenderingManager::getInstance()->getDefaultScalingMode();
 
 	// d. defaultStartPlaying
 	stream << RenderingManager::getInstance()->getDefaultPlayOnDrop();
@@ -1770,7 +1769,7 @@ QByteArray GLMixer::getPreferences() const {
 	stream << ViewRenderWidget::getStipplingMode();
 
 	// g. recording format
-	stream << (unsigned int) RenderingManager::getRecorder()->encodingFormat();
+	stream << (uint) RenderingManager::getRecorder()->encodingFormat();
 	stream << RenderingManager::getRecorder()->updatePeriod();
 
 	return data;

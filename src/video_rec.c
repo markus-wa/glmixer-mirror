@@ -37,33 +37,33 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	video_rec_t *rec = calloc(1, sizeof(video_rec_t));
 	rec->enc = calloc(1, sizeof(struct encoder));
 
-	// fill in basic infor
+	// fill in basic info
 	rec->width = width;
 	rec->height = height;
 	rec->fps = fps;
 	rec->framenum = 0;
 
 	// setup according to format
-	char f_name[32];
+	char f_name[6] = "";
 	enum CodecID f_codec_id = CODEC_ID_NONE;
 	enum PixelFormat f_pix_fmt =  PIX_FMT_NONE;
 	switch (f){
 	case FORMAT_MPG_MPEG1:
-		snprintf(f_name, 32, "mpeg");
+		snprintf(f_name, 6, "mpeg");
 		f_codec_id = CODEC_ID_MPEG1VIDEO;
 		f_pix_fmt =  PIX_FMT_YUV420P;
 		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
 		rec->conv = calloc(1, sizeof(struct converter));
 		break;
 	case FORMAT_WMV_WMV1:
-		snprintf(f_name, 32, "avi");
+		snprintf(f_name, 6, "avi");
 		f_codec_id = CODEC_ID_WMV1;
 		f_pix_fmt =  PIX_FMT_YUV420P;
 		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
 		rec->conv = calloc(1, sizeof(struct converter));
 		break;
 	case FORMAT_MP4_MPEG4:
-		snprintf(f_name, 32, "mp4");
+		snprintf(f_name, 6, "mp4");
 		f_codec_id = CODEC_ID_MPEG4;
 		f_pix_fmt =  PIX_FMT_YUV420P;
 		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
@@ -71,7 +71,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		break;
 	default:
 	case FORMAT_AVI_FFVHUFF:
-		snprintf(f_name, 32, "avi");
+		snprintf(f_name, 6, "avi");
 		f_codec_id = CODEC_ID_FFVHUFF;
 		f_pix_fmt =  PIX_FMT_BGRA;
 		rec->pt2RecordingFunction = &ffvhuff_rec_deliver_vframe;

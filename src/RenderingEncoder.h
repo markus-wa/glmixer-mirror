@@ -49,14 +49,14 @@ public:
 
 	void setEncodingFormat(encodingformat f);
 	encodingformat encodingFormat() { return format; }
-	void setUpdatePeriod(int ms) { update=ms; }
-	int updatePeriod() { return update; }
+	void setUpdatePeriod(uint ms) { update=ms; }
+	uint updatePeriod() { return update; }
 
 	bool isActive() { return started; }
 	int getRecodingTime();
 
-	void setSavingDirectory(QString path) { sfa.setDirectory(path); }
-	QString savingDirectory() { return sfa.directory().absolutePath(); }
+	QByteArray saveState() const { return sfa.saveState(); }
+	bool restoreState(const QByteArray &state) { return sfa.restoreState(state); }
 
 public Q_SLOTS:
 	void setActive(bool on);
@@ -70,7 +70,7 @@ protected:
     void timerEvent(QTimerEvent *event);
 
 private:
-	// temp file location
+	// files location
 	QString temporaryFileName;
 	QFileDialog sfa;
 
@@ -84,7 +84,7 @@ private:
 	unsigned int fbohandle;
 
 	// encoder
-	int update, displayupdate;
+	uint update, displayupdate;
 	encodingformat format;
 	video_rec_t *recorder;
 	char errormessage[256];
