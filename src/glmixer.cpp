@@ -660,14 +660,14 @@ void GLMixer::on_actionCloneSource_triggered(){
 }
 
 
-CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent), img(capture) {
+CaptureDialog::CaptureDialog(QWidget *parent, QImage capture, QString caption) : QDialog(parent), img(capture) {
 
 	QVBoxLayout *verticalLayout;
 	QLabel *Question, *Display;
 	QDialogButtonBox *DecisionButtonBox;
 	setObjectName(QString::fromUtf8("CaptureDialog"));
 	resize(300, 179);
-	setWindowTitle(tr( "Output capture source"));
+	setWindowTitle(tr( "Frame captured"));
 	verticalLayout = new QVBoxLayout(this);
 	verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
 	Question = new QLabel(this);
@@ -677,7 +677,7 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture) : QDialog(parent),
 	sizePolicy.setVerticalStretch(0);
 	sizePolicy.setHeightForWidth(Question->sizePolicy().hasHeightForWidth());
 	Question->setSizePolicy(sizePolicy);
-	Question->setText(tr("Create a source with this image ?"));
+	Question->setText(caption);
 	verticalLayout->addWidget(Question);
 
 	Display = new QLabel(this);
@@ -709,7 +709,7 @@ QString CaptureDialog::saveImage()
 		fname = QFileInfo( dname, QString("%1_%2.png").arg(basename).arg(i));
 
 	// ask for file name
-	filename = QFileDialog::getSaveFileName ( this, tr("Save captured image"), fname.absoluteFilePath(), tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
+	QString filename = QFileDialog::getSaveFileName ( parentWidget(), tr("Save captured image"), fname.absoluteFilePath(), tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
 
 	// save the file
 	if (!filename.isEmpty()) {
@@ -719,9 +719,11 @@ QString CaptureDialog::saveImage()
 		fname = QFileInfo( filename );
 		dname = fname.dir();
 		basename =  fname.baseName().section("_", 0, fname.baseName().count("_")-1);
-	}
 
-	return filename;
+		return filename;
+	}
+	// return "not" so that the caller can use it in a sentence "File *not* saved"...
+	return tr("not");
 }
 
 
@@ -732,41 +734,37 @@ void GLMixer::on_actionCaptureSource_triggered(){
 	capture = capture.convertToFormat(QImage::Format_RGB32);
 
 	// display and request action with this capture
-	CaptureDialog cd(this, capture);
+	CaptureDialog cd(this, capture, tr("Create a source with this image ?"));
 
 	if (cd.exec() == QDialog::Accepted) {
 		QString filename = cd.saveImage();
-//		Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
-//		if ( s ){
-//			RenderingManager::getInstance()->addSourceToBasket(s);
-//			statusbar->showMessage( tr("Source created with a capture of the output."), 3000 );
-//		} else
-//	        QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Could not create capture source."));
-		VideoFile *newSourceVideoFile = new VideoFile(this);
-	    Q_CHECK_PTR(newSourceVideoFile);
 
-	    QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
-		// if the video file was created successfully
-		if (!filename.isNull() && newSourceVideoFile){
-			// forward error messages to display
-			QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
-			QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
-			// can we open the file ?
-			if ( newSourceVideoFile->open( filename ) ) {
-				Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
-				// create the source as it is a valid video file (this also set it to be the current source)
-				if ( s ) {
-					RenderingManager::getInstance()->addSourceToBasket(s);
+		if ( QFileInfo(filename).exists() ){
+			VideoFile *newSourceVideoFile = new VideoFile(this);
+			Q_CHECK_PTR(newSourceVideoFile);
+
+			QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
+			// if the video file was created successfully
+			if (newSourceVideoFile){
+				// forward error messages to display
+				QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
+				QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
+				// can we open the file ?
+				if ( newSourceVideoFile->open( filename ) ) {
+					Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
+					// create the source as it is a valid video file (this also set it to be the current source)
+					if ( s ) {
+						RenderingManager::getInstance()->addSourceToBasket(s);
+					} else {
+						QMessageBox::warning(this, caption, tr("Could not create media source."));
+						delete newSourceVideoFile;
+					}
 				} else {
-			        QMessageBox::warning(this, caption, tr("Could not create media source."));
-			        delete newSourceVideoFile;
+					displayInfoMessage (tr("The file %1 could not be loaded.").arg(filename));
+					delete newSourceVideoFile;
 				}
-			} else {
-				displayInfoMessage (tr("The file %1 could not be loaded.").arg(filename));
-				delete newSourceVideoFile;
 			}
 		}
-
 	}
 }
 
@@ -1803,4 +1801,21 @@ void GLMixer::on_controlOptionsButton_clicked()
 	}
 	vcontrolOptionSplitter->setSizes(splitSizes);
 }
+
+
+void GLMixer::on_actionSave_snapshot_triggered(){
+
+	// capture screen
+	QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
+	capture = capture.convertToFormat(QImage::Format_RGB32);
+
+	// display and request action with this capture
+	CaptureDialog cd(this, capture, tr("Save this image ?"));
+
+	if (cd.exec() == QDialog::Accepted) {
+		QString filename = cd.saveImage();
+		displayInfoMessage(tr("File %1 saved.").arg(filename));
+	}
+}
+
 

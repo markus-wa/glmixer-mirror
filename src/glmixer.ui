@@ -1726,6 +1726,9 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionToggleRenderingVisible"/>
     <addaction name="actionPause"/>
     <addaction name="actionRecord"/>
+    <addaction name="actionSave_recording"/>
+    <addaction name="actionSave_snapshot"/>
+    <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
     <addaction name="menuAspect_Ratio"/>
     <addaction name="actionWhite_background"/>
@@ -1774,11 +1777,6 @@ Uncheck to display the restart frame when stopped.</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionToggleRenderingVisible"/>
-   <addaction name="actionPause"/>
-   <addaction name="actionRecord"/>
-   <addaction name="actionFullscreen"/>
-   <addaction name="separator"/>
    <addaction name="actionMixingView"/>
    <addaction name="actionGeometryView"/>
    <addaction name="actionLayersView"/>
@@ -2138,13 +2136,33 @@ Uncheck to display the restart frame when stopped.</string>
     </layout>
    </widget>
   </widget>
+  <widget class="QToolBar" name="renderingToolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionToggleRenderingVisible"/>
+   <addaction name="actionPause"/>
+   <addaction name="actionRecord"/>
+   <addaction name="actionSave_recording"/>
+   <addaction name="actionSave_snapshot"/>
+   <addaction name="actionFullscreen"/>
+  </widget>
   <action name="actionMediaSource">
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
    </property>
    <property name="text">
-    <string>Add source(s) from &amp;Media File(s)</string>
+    <string>Add source(s) &amp;Media File(s)</string>
    </property>
    <property name="statusTip">
     <string>Creates as many sources as media files loaded (images or videos)</string>
@@ -2217,7 +2235,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Sets the output window to fullscreen mode.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+F</string>
+    <string>F11</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
@@ -2372,7 +2390,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/camera.png</normaloff>:/glmixer/icons/camera.png</iconset>
    </property>
    <property name="text">
-    <string>Add source from &amp;Device</string>
+    <string>Add source &amp;Device</string>
    </property>
    <property name="toolTip">
     <string>Add a source from Device</string>
@@ -2390,7 +2408,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/display-source.png</normaloff>:/glmixer/icons/display-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add rendering Loopback</string>
+    <string>Add source Loopback rendering</string>
    </property>
    <property name="toolTip">
     <string>Add a rendering Loopback source</string>
@@ -2481,9 +2499,6 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="statusTip">
     <string>Displays the update frequency in the top corner of the views.</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+F</string>
-   </property>
   </action>
   <action name="actionCaptureSource">
    <property name="icon">
@@ -2491,7 +2506,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/photo-source.png</normaloff>:/glmixer/icons/photo-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add source from output &amp;Capture</string>
+    <string>Add source &amp;Frame &amp;capture</string>
    </property>
    <property name="toolTip">
     <string>Add an image source from screen Capture</string>
@@ -2500,7 +2515,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Creates a new source with the image of the current output window.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+C</string>
+    <string>Ctrl+F</string>
    </property>
   </action>
   <action name="actionAlgorithmSource">
@@ -3028,13 +3043,37 @@ Uncheck to display the restart frame when stopped.</string>
      <normalon>:/glmixer/icons/recording.png</normalon>:/glmixer/icons/record.png</iconset>
    </property>
    <property name="text">
-    <string>Record</string>
+    <string>Start / suspend &amp;Recording</string>
    </property>
    <property name="toolTip">
     <string>Record output</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionSave_recording">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/record-save.png</normaloff>:/glmixer/icons/record-save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save recording</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
+   </property>
+  </action>
+  <action name="actionSave_snapshot">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/photo-save.png</normaloff>:/glmixer/icons/photo-save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Frame</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F</string>
    </property>
   </action>
  </widget>

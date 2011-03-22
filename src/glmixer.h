@@ -80,6 +80,7 @@ public Q_SLOTS:
 	void on_gammaShiftSlider_valueChanged(int);
 	void on_gammaShiftReset_clicked();
 	void on_controlOptionsButton_clicked();
+	void on_actionSave_snapshot_triggered();
 
 	// GUI interaction
 	void setView(QAction *a);
@@ -141,9 +142,8 @@ class CaptureDialog: public QDialog {
 	Q_OBJECT
 
 	QImage img;
-	QString filename;
 public:
-	CaptureDialog(QWidget *parent, QImage capture);
+	CaptureDialog(QWidget *parent, QImage capture, QString caption);
 public Q_SLOTS:
 	QString saveImage();
 };
