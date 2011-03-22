@@ -688,8 +688,6 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture, QString caption) :
 	DecisionButtonBox = new QDialogButtonBox(this);
 	DecisionButtonBox->setObjectName(QString::fromUtf8("DecisionButtonBox"));
 	DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-//	QPushButton *save =  DecisionButtonBox->addButton ( "Save as..", QDialogButtonBox::ActionRole );
-//	QObject::connect(save, SIGNAL(clicked()), this, SLOT(saveImage()));
 
 	verticalLayout->addWidget(DecisionButtonBox);
 	QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
@@ -713,8 +711,10 @@ QString CaptureDialog::saveImage()
 
 	// save the file
 	if (!filename.isEmpty()) {
-		if (!img.save(filename))
-			qWarning("** WARNING **\n\nCould not save file %s.", qPrintable(filename));
+		if (!img.save(filename)) {
+			qCritical("** Error **\n\nCould not save file %s.", qPrintable(filename));
+			return tr("not");
+		}
 		// remember location and base file name for next time
 		fname = QFileInfo( filename );
 		dname = fname.dir();
@@ -743,7 +743,6 @@ void GLMixer::on_actionCaptureSource_triggered(){
 			VideoFile *newSourceVideoFile = new VideoFile(this);
 			Q_CHECK_PTR(newSourceVideoFile);
 
-			QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
 			// if the video file was created successfully
 			if (newSourceVideoFile){
 				// forward error messages to display
@@ -756,11 +755,11 @@ void GLMixer::on_actionCaptureSource_triggered(){
 					if ( s ) {
 						RenderingManager::getInstance()->addSourceToBasket(s);
 					} else {
-						QMessageBox::warning(this, caption, tr("Could not create media source."));
+						qCritical("** Error **\n\nCould not create media source with %s.", qPrintable(filename));
 						delete newSourceVideoFile;
 					}
 				} else {
-					displayInfoMessage (tr("The file %1 could not be loaded.").arg(filename));
+					qCritical("** Error **\n\nCould not load %s.", qPrintable(filename));
 					delete newSourceVideoFile;
 				}
 			}
