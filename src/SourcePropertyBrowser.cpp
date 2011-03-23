@@ -50,6 +50,7 @@
 #include <QtCheckBoxFactory>
 #include <QtTimeEditFactory>
 #include <QtColorEditorFactory>
+#include <QFileInfo>
 
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
@@ -69,6 +70,7 @@ QMap<GLenum, int> glequationToEnum;
 QMap<int, GLenum> enumToGlequation;
 QMap<int, QPair<int, int> > presetBlending;
 
+QString getSizeString(float num);
 
 SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent), root(0), currentItem(0) {
 
@@ -417,6 +419,11 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
+		// File size
+		property = infoManager->addProperty( QLatin1String("File size") );
+		property->setItalics(true);
+		idToProperty[property->propertyName()] = property;
+		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 		// Codec
 		property = infoManager->addProperty( QLatin1String("Codec") );
 		property->setItalics(true);
@@ -625,7 +632,9 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 
 			VideoSource *vs = dynamic_cast<VideoSource *>(s);
 			VideoFile *vf = vs->getVideoFile();
-			infoManager->setValue(idToProperty["File name"], vf->getFileName() );
+			infoManager->setValue(idToProperty["File name"], QFileInfo(vf->getFileName()).fileName() );
+			idToProperty["File name"]->setToolTip(vf->getFileName());
+			infoManager->setValue(idToProperty["File size"], getSizeString( QFileInfo(vf->getFileName()).size() ) );
 			infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
 			infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
 			boolManager->setValue(idToProperty["Ignore alpha"], vf->ignoresAlphaChannel());
@@ -1128,4 +1137,19 @@ void SourcePropertyBrowser::switchToGroupView(){
     propertyGroupArea->setVisible(true);
 }
 
+QString getSizeString(float num)
+{
+    QStringList list;
+    list << "KB" << "MB" << "GB" << "TB";
+
+    QStringListIterator i(list);
+    QString unit("bytes");
+
+    while(num >= 1024.0 && i.hasNext())
+     {
+        unit = i.next();
+        num /= 1024.0;
+    }
+    return QString().setNum(num,'f',2)+" "+unit;
+}
 

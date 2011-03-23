@@ -2235,7 +2235,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Sets the output window to fullscreen mode.</string>
    </property>
    <property name="shortcut">
-    <string>F11</string>
+    <string>Ctrl+F</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
@@ -2408,7 +2408,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/display-source.png</normaloff>:/glmixer/icons/display-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add source Loopback rendering</string>
+    <string>Add source &amp;Loopback rendering</string>
    </property>
    <property name="toolTip">
     <string>Add a rendering Loopback source</string>
@@ -2499,6 +2499,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="statusTip">
     <string>Displays the update frequency in the top corner of the views.</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F</string>
+   </property>
   </action>
   <action name="actionCaptureSource">
    <property name="icon">
@@ -2506,7 +2509,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/photo-source.png</normaloff>:/glmixer/icons/photo-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add source &amp;Frame &amp;capture</string>
+    <string>Add source &amp;Capture frame</string>
    </property>
    <property name="toolTip">
     <string>Add an image source from screen Capture</string>
@@ -2515,7 +2518,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Creates a new source with the image of the current output window.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+F</string>
+    <string>Ctrl+C</string>
    </property>
   </action>
   <action name="actionAlgorithmSource">
@@ -2802,7 +2805,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Select Next</string>
    </property>
    <property name="toolTip">
-    <string>Select next source</string>
+    <string>Select next source (Tab)</string>
    </property>
    <property name="statusTip">
     <string>Select next source (shortcut is [TAB])</string>
@@ -3070,10 +3073,10 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/photo-save.png</normaloff>:/glmixer/icons/photo-save.png</iconset>
    </property>
    <property name="text">
-    <string>Save Frame</string>
+    <string>Save frame Capture</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+F</string>
+    <string>Ctrl+Shift+C</string>
    </property>
   </action>
  </widget>
