@@ -1178,9 +1178,10 @@ void GLMixer::on_actionNew_Session_triggered()
 
 void GLMixer::newSession()
 {
-	// if comming from animation, disconnect it.
+	// if coming from animation, disconnect it.
 	QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
 	actionToggleRenderingVisible->setEnabled(true);
+	OutputRenderWindow::getInstance()->smoothAlphaTransition(true);
 
 	// reset
 	RenderingManager::getInstance()->clearSourceSet();
@@ -1712,20 +1713,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	// g. recording format
 	uint recformat = 0;
 	stream >> recformat;
-	switch (recformat) {
-	case 1:
-		RenderingManager::getRecorder()->setEncodingFormat(FORMAT_MPG_MPEG1);
-		break;
-	case 2:
-		RenderingManager::getRecorder()->setEncodingFormat(FORMAT_MP4_MPEG4);
-		break;
-	case 3:
-		RenderingManager::getRecorder()->setEncodingFormat(FORMAT_WMV_WMV1);
-		break;
-	case 0:
-	default:
-		RenderingManager::getRecorder()->setEncodingFormat(FORMAT_AVI_FFVHUFF);
-	}
+	RenderingManager::getRecorder()->setEncodingFormat( (encodingformat) recformat);
 	uint rtfr = 40;
 	stream >> rtfr;
 	RenderingManager::getRecorder()->setUpdatePeriod(rtfr > 0 ? rtfr : 40);

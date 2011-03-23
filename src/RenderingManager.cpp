@@ -522,16 +522,13 @@ bool RenderingManager::insertSource(Source *s)
 {
 	if (s) {
 		// replace the source name by another available one based on the original name
-		s->setName(getAvailableNameFrom(s->getName()));
+		s->setName( getAvailableNameFrom(s->getName()) );
 
 		if (_sources.size() < MAX_SOURCE_COUNT) {
 			//insert the source to the list
-			std::pair<SourceSet::iterator, bool> ret;
-			ret = _sources.insert(s);
-			if (ret.second) {
+			if (_sources.insert(s).second)
 				// inform of success
 				return true;
-			}
 			else
 				QMessageBox::warning(0, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Not enough memory to insert the source into the stack."));
 		}

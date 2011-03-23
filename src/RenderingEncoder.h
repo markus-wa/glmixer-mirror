@@ -77,7 +77,7 @@ private:
 	// state machine
 	bool started;
 	QTime timer;
-	int elapseTimer;
+	int elapseTimer, badframecount;
 
 	// opengl
 	char * tmpframe;

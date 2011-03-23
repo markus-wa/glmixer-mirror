@@ -508,7 +508,7 @@ void ViewRenderWidget::paintGL()
 		}
 	}
 	// HUD display of framerate (on request or if FPS is dangerously slow)
-	if (showFps_ || ( f_p_s_ < 500.0 / (float)period && f_p_s_ > 0) )
+	if (showFps_ || ( f_p_s_ < 800.0 / (float)period && f_p_s_ > 0) )
 		displayFramerate();
 
 	// Pause logo
@@ -546,7 +546,7 @@ void ViewRenderWidget::displayFramerate()
 
 	qglColor(Qt::lightGray);
 	glRecti(width() - 61, height() - 1, width() - 9, height() - 11);
-	qglColor(f_p_s_ > 500.f / (float)period ? Qt::darkGreen : (f_p_s_ > 200.f / (float)period ? Qt::yellow : Qt::red));
+	qglColor(f_p_s_ > 800.f / (float)period ? Qt::darkGreen : (f_p_s_ > 500.f / (float)period ? Qt::yellow : Qt::red));
 	// Draw a filled rectangle of lengh proportionnal to % of target fps
 	glRecti(width() - 60, height() - 2, width() - 60 + (int)( 0.05 * f_p_s_  * (float) period), height() - 10);
 

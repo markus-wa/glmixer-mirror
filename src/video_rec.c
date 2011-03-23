@@ -55,9 +55,16 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
 		rec->conv = calloc(1, sizeof(struct converter));
 		break;
-	case FORMAT_WMV_WMV1:
+	case FORMAT_WMV_WMV2:
 		snprintf(f_name, 6, "avi");
-		f_codec_id = CODEC_ID_WMV1;
+		f_codec_id = CODEC_ID_WMV2;
+		f_pix_fmt =  PIX_FMT_YUV420P;
+		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
+		rec->conv = calloc(1, sizeof(struct converter));
+		break;
+	case FORMAT_FLV_FLV1:
+		snprintf(f_name, 6, "flv");
+		f_codec_id = CODEC_ID_FLV1;
 		f_pix_fmt =  PIX_FMT_YUV420P;
 		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
 		rec->conv = calloc(1, sizeof(struct converter));
@@ -188,10 +195,10 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
  *
  */
 
-void video_rec_stop(video_rec_t *rec)
+int video_rec_stop(video_rec_t *rec)
 {
 	if (rec == NULL)
-		return;
+		return 0;
 
 	// end file
 	av_write_trailer(rec->enc->oc);
@@ -206,6 +213,7 @@ void video_rec_stop(video_rec_t *rec)
 	url_fclose(rec->enc->oc->pb);
 
 	// free data structures
+	int c = rec->framenum;
 	free(rec->enc->oc);
 	free(rec->enc->vbuf_ptr);
 	free(rec->enc);
@@ -216,6 +224,8 @@ void video_rec_stop(video_rec_t *rec)
 		free(rec->conv);
 	}
 	free(rec);
+
+	return c;
 }
 
 

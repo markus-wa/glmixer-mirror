@@ -18,7 +18,7 @@
 #include <QGLFramebufferObject>
 
 
-RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), fbohandle(0), update(40), displayupdate(33) {
+RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), elapseTimer(0), badframecount(0), fbohandle(0), update(40), displayupdate(33) {
 
 	// set default format
 	temporaryFileName = "glmixeroutput";
@@ -90,6 +90,7 @@ bool RenderingEncoder::start(){
     emit status(tr("Start recording."), 1000);
 	timer.start();
 	elapseTimer = startTimer(1000); // emit the duration of recording every second
+	badframecount = 0;
 	started = true;
 
 	return true;
@@ -121,6 +122,10 @@ void RenderingEncoder::addFrame(){
 	// give the frame to the encoder by calling the function specified in the recorder
 	(*recorder->pt2RecordingFunction)(recorder, tmpframe);
 
+	// increment the bad frame counter each time the frame rate is bellow 80% of the target frame rate
+	if ( RenderingManager::getRenderingWidget()->getFramerate() <  800.0 / double(update) )
+		badframecount++;
+
 }
 
 // Close the encoding process
@@ -130,7 +135,8 @@ bool RenderingEncoder::close(){
 		return false;
 
 	// stop recorder
-	video_rec_stop(recorder);
+	int framecount = video_rec_stop(recorder);
+	int duration = timer.elapsed();
 
     // free opengl buffer
 	free(tmpframe);
@@ -141,6 +147,24 @@ bool RenderingEncoder::close(){
 
 	// restore former display update period
 	RenderingManager::getRenderingWidget()->setUpdatePeriod( displayupdate );
+
+	// show warning if too many frames were bad
+	if ( float(badframecount) / float(framecount) > 0.8f  ) {
+
+		 QMessageBox msgBox;
+		 msgBox.setIcon(QMessageBox::Warning);
+		 msgBox.setText(tr("The movie has been recorded, but %1 % of the frames were not synchronous.").arg((badframecount * 100) / (framecount)));
+		 msgBox.setInformativeText(tr("Do you still want to save the movie ?"));
+		 msgBox.setDetailedText( tr("This is because the rendering frame rate was %1 fps on average instead of the targeted %2 fps.\nThe consequence is that timing of the movie will be incorrect (play too fast). To avoid this, retry after setting a lower target frame rate in the recording preference.").arg((1000 * framecount)/duration).arg((int) ( 1000.0 / double(update) )) );
+
+		 QPushButton *abortButton = msgBox.addButton(QMessageBox::Discard);
+		 msgBox.addButton(tr("Save anyway"), QMessageBox::AcceptRole);
+
+		 msgBox.exec();
+		 if (msgBox.clickedButton() == abortButton) {
+		     return false;
+		 }
+	}
 
 	return true;
 }
@@ -157,9 +181,13 @@ void RenderingEncoder::saveFileAs(){
 		sfa.setFilter(tr("MPEG 4 Video (*.mp4)"));
 		sfa.setDefaultSuffix("mp4");
 		break;
-	case FORMAT_WMV_WMV1:
+	case FORMAT_WMV_WMV2:
 		sfa.setFilter(tr("Windows Media Video (*.wmv)"));
 		sfa.setDefaultSuffix("wmv");
+		break;
+	case FORMAT_FLV_FLV1:
+		sfa.setFilter(tr("Flash Video (*.flv)"));
+		sfa.setDefaultSuffix("flv");
 		break;
 	default:
 	case FORMAT_AVI_FFVHUFF:

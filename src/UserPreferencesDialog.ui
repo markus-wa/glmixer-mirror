@@ -106,7 +106,7 @@
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stackedPreferences">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="PageRendering">
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -476,22 +476,27 @@
            <widget class="QComboBox" name="recordingFormatSelection">
             <item>
              <property name="text">
-              <string>AVI       (FFVHUFF codec, looseless fast encoding, large file size)</string>
+              <string>AVI       (FFVHUFF codec)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>MPG    (MPEG1 codec, conversion + jpeg compression, average file)</string>
+              <string>MPG    (MPEG1 codec)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>MP4    (MPEG4 codec, conversion + jpeg compression, average file)</string>
+              <string>MP4    (MPEG4 codec)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>WMV   (Windows Media WMV1 codec, low quality, small file)</string>
+              <string>WMV   (Windows Media Video 8 WMV2 codec)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>FLV      (Flash Video FLV1 codec)</string>
              </property>
             </item>
            </widget>
