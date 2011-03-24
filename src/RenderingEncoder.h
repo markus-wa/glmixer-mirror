@@ -36,12 +36,18 @@ extern "C" {
 #include "video_rec.h"
 }
 
+
+class EncodingThread;
+
 class RenderingEncoder: public QObject {
 
 	Q_OBJECT
 
+    friend class EncodingThread;
+
 public:
 	RenderingEncoder(QObject * parent = 0);
+	~RenderingEncoder();
 
 	bool start();
 	void addFrame();
@@ -80,10 +86,12 @@ private:
 	int elapseTimer, badframecount;
 
 	// opengl
-	char * tmpframe;
+//	char * tmpframe;
 	unsigned int fbohandle;
 
 	// encoder
+    EncodingThread *encoder;
+
 	uint update, displayupdate;
 	encodingformat format;
 	video_rec_t *recorder;

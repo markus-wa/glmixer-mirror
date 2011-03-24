@@ -106,7 +106,7 @@
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stackedPreferences">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="PageRendering">
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -558,6 +558,20 @@
              </widget>
             </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>NB: FFVHUFF is looseless and the fastest algorithm.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Other codec are lossy and more CPU hungry (risk of frame rate drop)</string>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="verticalSpacer_4">

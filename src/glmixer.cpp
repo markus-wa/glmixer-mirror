@@ -200,6 +200,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionPreferences, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), menuAspect_Ratio, SLOT(setDisabled(bool)));
 
+	actionSave_recording->setEnabled(false);
+
 	// group the menu items of the catalog sizes ;
 	QActionGroup *catalogActionGroup = new QActionGroup(this);
 	catalogActionGroup->addAction(actionCatalogSmall);
