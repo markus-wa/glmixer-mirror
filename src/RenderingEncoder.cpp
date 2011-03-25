@@ -17,7 +17,6 @@
 #include <QMessageBox>
 #include <QGLFramebufferObject>
 #include <QThread>
-#include <QElapsedTimer>
 
 
 class EncodingThread: public QThread {
@@ -97,7 +96,7 @@ protected:
     // picture queue management
     char** pictq;
     int pictq_max, pictq_size, pictq_rindex, pictq_windex;
-    QElapsedTimer timer;
+    QTime timer;
 };
 
 void EncodingThread::run() {
