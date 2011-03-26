@@ -8,7 +8,6 @@
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
-#include <libavutil/opt.h>
 
 #include "video_rec.h"
 #include <stdio.h>
@@ -123,7 +122,11 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		return NULL;
 	}
 
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,65,0)
+	dump_format(rec->enc->oc, 0, filename, 1);
+#else
 	av_dump_format(rec->enc->oc, 0, filename, 1);
+#endif
 
 	avcodec_register_all();
 
@@ -144,7 +147,11 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		return NULL;
 	}
 
-	if(avio_open(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,65,0)
+	if(url_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
+#else
+	if(avio_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
+#endif
 		snprintf(errormessage, 256, "Could not open temporary file %s for writing.", filename);
 		av_free(rec->enc->oc);
 		free(rec->enc);
@@ -204,7 +211,12 @@ int video_rec_stop(video_rec_t *rec)
 	// end file
 	av_write_trailer(rec->enc->oc);
 	// close file
+
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,65,0)
+	url_fclose(rec->enc->oc->pb);
+#else
 	avio_close(rec->enc->oc->pb);
+#endif
 
 	int i = 0;
 	for(; i < rec->enc->oc->nb_streams; i++) {

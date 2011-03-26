@@ -38,7 +38,6 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/common.h>
-#include <libavutil/opt.h>
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 #include <libavutil/pixdesc.h>
 #endif
