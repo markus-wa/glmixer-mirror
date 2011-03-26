@@ -8,6 +8,7 @@
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
+#include <libavutil/opt.h>
 
 #include "video_rec.h"
 #include <stdio.h>
@@ -116,20 +117,20 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 
 	if(av_set_parameters(rec->enc->oc, NULL) < 0) {
 		snprintf(errormessage, 256, "Invalid output format parameters.\nUnable to start recording.");
-		free(rec->enc->oc);
+		av_free(rec->enc->oc);
 		free(rec->enc);
 		free(rec);
 		return NULL;
 	}
 
-	dump_format(rec->enc->oc, 0, filename, 1);
+	av_dump_format(rec->enc->oc, 0, filename, 1);
 
 	avcodec_register_all();
 
 	c = avcodec_find_encoder(rec->enc->v_ctx->codec_id);
 	if (!c) {
 		snprintf(errormessage, 256, "Cannot find video codec %s.\nUnable to start recording.", c->name);
-		free(rec->enc->oc);
+		av_free(rec->enc->oc);
 		free(rec->enc);
 		free(rec);
 		return NULL;
@@ -137,15 +138,15 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 
 	if(avcodec_open(rec->enc->v_ctx, c) < 0) {
 		snprintf(errormessage, 256, "Cannot open video codec %s at %d fps.\nUnable to start recording.", c->name, fps);
-		free(rec->enc->oc);
+		av_free(rec->enc->oc);
 		free(rec->enc);
 		free(rec);
 		return NULL;
 	}
 
-	if(url_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
+	if(avio_open(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
 		snprintf(errormessage, 256, "Could not open temporary file %s for writing.", filename);
-		free(rec->enc->oc);
+		av_free(rec->enc->oc);
 		free(rec->enc);
 		free(rec);
 		return NULL;
@@ -168,21 +169,21 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		rec->conv->picture->linesize[2] = rec->enc->v_ctx->width / 2;
 
 		// create conversion context
-		rec->conv->img_convert_ctx = sws_getContext(rec->width, rec->height, PIX_FMT_BGRA,
+		rec->conv->img_convert_ctx = sws_getCachedContext(NULL, rec->width, rec->height, PIX_FMT_BGRA,
 													rec->enc->v_ctx->width, rec->enc->v_ctx->height, f_pix_fmt,
 													SWS_POINT, NULL, NULL, NULL);
 		if (rec->conv->img_convert_ctx == NULL){
 			snprintf(errormessage, 256, "Could not create conversion context. Unable to record to %s.", filename);
 			free(rec->conv->picture_buf);
 			av_free(rec->conv->picture);
-			free(rec->enc->oc);
+			av_free(rec->enc->oc);
 			free(rec->enc);
 			free(rec->conv);
 			free(rec);
 			return NULL;
 		}
-	}
 
+	}
 	// encoder buffer
 	rec->enc->vbuf_size = 2000000;
 	rec->enc->vbuf_ptr = av_malloc(rec->enc->vbuf_size);
@@ -202,20 +203,22 @@ int video_rec_stop(video_rec_t *rec)
 
 	// end file
 	av_write_trailer(rec->enc->oc);
+	// close file
+	avio_close(rec->enc->oc->pb);
+
 	int i = 0;
 	for(; i < rec->enc->oc->nb_streams; i++) {
 		AVStream *st = rec->enc->oc->streams[i];
 		avcodec_close(st->codec);
-		free(st->codec);
-		free(st);
+		avcodec_default_free_buffers (st->codec);
+		av_free(st->codec);
+		av_free(st);
 	}
-	// close file
-	url_fclose(rec->enc->oc->pb);
 
 	// free data structures
 	int c = rec->framenum;
-	free(rec->enc->oc);
-	free(rec->enc->vbuf_ptr);
+	av_free(rec->enc->oc);
+	av_free(rec->enc->vbuf_ptr);
 	free(rec->enc);
 	if (rec->conv) {
 		free(rec->conv->picture_buf);
@@ -307,6 +310,8 @@ mpeg_rec_deliver_vframe(video_rec_t *rec, void *data)
 
 	// one more frame done !
 	rec->framenum++;
+
 }
+
 
 

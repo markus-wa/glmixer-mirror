@@ -38,6 +38,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/common.h>
+#include <libavutil/opt.h>
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 #include <libavutil/pixdesc.h>
 #endif
@@ -672,10 +673,9 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 	conversionAlgorithm |= SWS_CPU_CAPS_MMX2;
 
 	// create conversion context
-	img_convert_ctx = sws_getContext(video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
+	img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width, video_st->codec->height, video_st->codec->pix_fmt,
 									targetWidth, targetHeight, targetFormat, conversionAlgorithm,
 									filter, NULL, NULL);
-
     if (img_convert_ctx == NULL) {
 		// Cannot initialize the conversion context!
 		emit error(tr("Error opening %1:\nCannot create a suitable conversion context.").arg(filename));
@@ -1102,7 +1102,7 @@ void ParsingThread::run() {
         // MAIN call ; reading the frame
         if (av_read_frame(is->pFormatCtx, packet) < 0) {
         	// if could NOT read full frame, was it an error?
-		   if (url_ferror(is->pFormatCtx->pb)) {
+		   if (is->pFormatCtx->pb->error) {
 			   // error ; exit
 			   is->logmessage += tr("ParsingThread:: Couldn't read frame.\n");
 			   is->sendInfo( tr("Could not read frame.") );
