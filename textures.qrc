@@ -13,6 +13,8 @@
         <file>textures/mask_linear_right.png</file> 
         <file>textures/mask_linear_top.png</file> 
         <file>textures/mask_linear_bottom.png</file> 
+        <file>textures/mask_linear_horizontal.png</file> 
+        <file>textures/mask_linear_vertical.png</file> 
         <file>shaders/imageProcessing_fragment.glsl</file>
         <file>shaders/imageProcessing_fragment_simplified.glsl</file> 
         <file>shaders/imageProcessing_vertex.glsl</file>  

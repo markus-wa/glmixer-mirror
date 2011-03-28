@@ -254,7 +254,9 @@ public:
 		GRADIENT_RIGHT_MASK = 6,
 		GRADIENT_TOP_MASK = 7,
 		GRADIENT_BOTTOM_MASK = 8,
-		CUSTOM_MASK = 9
+		GRADIENT_HORIZONTAL_MASK = 9,
+		GRADIENT_VERTICAL_MASK = 10,
+		CUSTOM_MASK = 11
 	} maskType;
 	void setMask(maskType t, GLuint texture = 0);
 	int getMask() const {

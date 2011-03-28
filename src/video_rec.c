@@ -89,6 +89,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	// create avcodec encoding objects
 	//
 
+    av_register_all();
 	rec->enc->fmt = av_guess_format(f_name, NULL, NULL);
 	if(rec->enc->fmt == NULL) {
 		snprintf(errormessage, 256, "%s file format not supported. Unable to record to %s.", f_name, filename);
@@ -150,7 +151,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,65,0)
 	if(url_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
 #else
-	if(avio_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
+	if(avio_open(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
 #endif
 		snprintf(errormessage, 256, "Could not open temporary file %s for writing.", filename);
 		av_free(rec->enc->oc);

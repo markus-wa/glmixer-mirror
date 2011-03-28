@@ -159,7 +159,7 @@ protected:
 	static GLuint frame_selection, frame_screen, frame_screen_thin;
 	static GLuint quad_texured, quad_window[2];
 	static GLuint circle_mixing, layerbg;
-	static GLuint mask_textures[9];
+	static GLuint mask_textures[Source::CUSTOM_MASK];
 	static GLuint fading;
 	static GLuint stipplingMode;
 	static GLubyte stippling[];

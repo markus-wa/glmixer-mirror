@@ -281,7 +281,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	property->setToolTip("Layer mask (where black is opaque)");
 	enumNames.clear();
 	// TODO implement selection of custom file mask
-	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Left to right" << "Right to left" << "Top down" << "Bottom up";
+	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Left to right" << "Right to left" << "Top down" << "Bottom up"<< "Horizontal bar" << "Vertical bar";
 	enumManager->setEnumNames(property, enumNames);
     QMap<int, QIcon> enumIcons;
     enumIcons[0] = QIcon();
@@ -293,6 +293,8 @@ void SourcePropertyBrowser::createPropertyTree(){
     enumIcons[6] = QIcon(":/glmixer/textures/mask_linear_right.png");
     enumIcons[7] = QIcon(":/glmixer/textures/mask_linear_top.png");
     enumIcons[8] = QIcon(":/glmixer/textures/mask_linear_bottom.png");
+    enumIcons[9] = QIcon(":/glmixer/textures/mask_linear_horizontal.png");
+    enumIcons[10] = QIcon(":/glmixer/textures/mask_linear_vertical.png");
 //    enumIcons[9] = QIcon(":/glmixer/icons/fileopen.png");
     enumManager->setEnumIcons(property, enumIcons);
 	root->addSubProperty(property);

@@ -47,7 +47,7 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 	}
 
 	if (timer == 0)
-		timer = new QTimer(this);
+		timer = new QTimer();
 	connect(timer, SIGNAL(timeout()), this, SLOT(update()));
 	timer->setInterval(20);
 }
@@ -128,10 +128,10 @@ void glRenderWidget::paintGL()
 
 void glRenderWidget::setUpdatePeriod(int miliseconds) {
 
-	if (miliseconds > 0)
-		timer->start(miliseconds);
+	if (miliseconds > 11)
+		timer->start(miliseconds-1);
 	else
-		timer->stop();
+		timer->start();
 }
 
 int glRenderWidget::updatePeriod() {

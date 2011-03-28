@@ -45,7 +45,7 @@ GLuint ViewRenderWidget::border_scale = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_window[] = {0, 0};
 GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0, ViewRenderWidget::frame_screen_thin = 0;
 GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0;
-GLuint ViewRenderWidget::mask_textures[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+GLuint ViewRenderWidget::mask_textures[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 GLuint ViewRenderWidget::fading = 0;
 
 GLuint ViewRenderWidget::stipplingMode = 0;
@@ -271,6 +271,18 @@ void ViewRenderWidget::initializeGL()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		mask_textures[Source::GRADIENT_BOTTOM_MASK] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_linear_top.png")), GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		mask_textures[Source::GRADIENT_HORIZONTAL_MASK] = bindTexture(QPixmap(QString::fromUtf8(
+				":/glmixer/textures/mask_linear_horizontal.png")), GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		mask_textures[Source::GRADIENT_VERTICAL_MASK] = bindTexture(QPixmap(QString::fromUtf8(
+				":/glmixer/textures/mask_linear_vertical.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
