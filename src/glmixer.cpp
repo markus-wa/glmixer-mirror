@@ -1686,8 +1686,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	RenderingManager::getInstance()->setRenderingQuality((frameBufferQuality) RenderingQuality);
 	int targetPeriod;
 	stream >> targetPeriod;
-	if (targetPeriod > 0)
-		RenderingManager::getRenderingWidget()->setUpdatePeriod( targetPeriod );
+	if (targetPeriod > 0) {
+//		RenderingManager::getRenderingWidget()->setUpdatePeriod( targetPeriod );
+//		OutputRenderWindow::getInstance()->setUpdatePeriod( targetPeriod );
+		glRenderWidget::setUpdatePeriod( targetPeriod );
+	}
 
 	// b. Apply source preferences
 	stream >> RenderingManager::getInstance()->defaultSource();
@@ -1738,7 +1741,7 @@ QByteArray GLMixer::getPreferences() const {
 	// a. Store rendering preferences
 	stream << (uint) RenderingManager::getInstance()->getRenderingQuality();
 	stream << RenderingManager::getUseFboBlitExtension();
-	stream << RenderingManager::getRenderingWidget()->updatePeriod();
+	stream << glRenderWidget::updatePeriod();
 
 	// b. Store source preferences
 	stream << RenderingManager::getInstance()->defaultSource();

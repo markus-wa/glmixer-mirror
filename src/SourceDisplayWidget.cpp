@@ -32,8 +32,7 @@
 
 SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()), s(0)
 {
-	// setup for 50Hz
-	period = 20;
+
 }
 
 

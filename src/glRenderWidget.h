@@ -39,15 +39,11 @@ public:
     virtual void resizeGL(int w, int h);
     virtual void paintGL();
 
-    // Update events management
-    virtual void timerEvent( QTimerEvent *) { update(); }
-    virtual void showEvent ( QShowEvent * event );
-    virtual void hideEvent ( QHideEvent * event );
-
     // cosmetics
     void setBackgroundColor(const QColor &c);
-    int updatePeriod() const { return period; }
-    void setUpdatePeriod(int miliseconds);
+
+    static int updatePeriod();
+    static void setUpdatePeriod(int miliseconds);
 
     // OpenGL informations
     static void showGlExtensionsInformationDialog(QString iconfile = "");
@@ -55,8 +51,8 @@ public:
 protected:
 
 	float aspectRatio;
-    int timer, period;
 
+	static class QTimer *timer;
 };
 
 #endif /* GLRENDERWIDGET_H_ */

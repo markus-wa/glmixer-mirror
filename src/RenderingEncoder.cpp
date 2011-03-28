@@ -228,8 +228,8 @@ bool RenderingEncoder::start(){
 	fbohandle =  RenderingManager::getInstance()->getFrameBufferHandle();
 
 	// setup update period for recording
-	displayupdate = RenderingManager::getRenderingWidget()->updatePeriod();
-	RenderingManager::getRenderingWidget()->setUpdatePeriod( update );
+	displayupdate = glRenderWidget::updatePeriod();
+	glRenderWidget::setUpdatePeriod( update );
 
 	// initialization of ffmpeg recorder
 	recorder = video_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), format, fbosize.width(), fbosize.height(), freq, errormessage);
@@ -309,7 +309,7 @@ bool RenderingEncoder::close(){
 	started = false;
 
 	// restore former display update period
-	RenderingManager::getRenderingWidget()->setUpdatePeriod( displayupdate );
+	glRenderWidget::setUpdatePeriod( displayupdate );
 
 	// show warning if too many frames were bad
 	if ( float(badframecount) / float(framecount) > 0.7f  ) {

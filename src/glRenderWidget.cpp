@@ -24,14 +24,15 @@
  */
 
 #include <QMessageBox>
+#include <QTimer>
 
 #include "common.h"
 #include "glRenderWidget.h"
 
-
+QTimer *glRenderWidget::timer = 0;
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
-: QGLWidget(QGLFormat(QGL::AlphaChannel | QGL::NoDepthBuffer), parent, shareWidget, f), aspectRatio(1.0), timer(-1), period(17)
+: QGLWidget(QGLFormat(QGL::AlphaChannel | QGL::NoDepthBuffer), parent, shareWidget, f), aspectRatio(1.0)
 
 {
 	static bool testDone = false;
@@ -45,6 +46,10 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 		testDone = true;
 	}
 
+	if (timer == 0)
+		timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+	timer->setInterval(20);
 }
 
 
@@ -115,27 +120,22 @@ void glRenderWidget::resizeGL(int w, int h)
 
 void glRenderWidget::paintGL()
 {
+	// avoid drawing if not visible
+	if ( !isVisible() )
+		return;
     glClear(GL_COLOR_BUFFER_BIT);
-
 }
 
 void glRenderWidget::setUpdatePeriod(int miliseconds) {
-	period = miliseconds;
-	if (timer > 0)  { killTimer(timer); timer = startTimer(period); }
+
+	if (miliseconds > 0)
+		timer->start(miliseconds);
+	else
+		timer->stop();
 }
 
-void glRenderWidget::showEvent ( QShowEvent * event ) {
-	QGLWidget::showEvent(event);
-	if(timer == -1)
-		timer = startTimer(period);
-}
-
-void glRenderWidget::hideEvent ( QHideEvent * event ) {
-	QGLWidget::hideEvent(event);
-	if(timer > 0) {
-		killTimer(timer);
-		timer = -1;
-	}
+int glRenderWidget::updatePeriod() {
+	return timer->interval();
 }
 
 void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
