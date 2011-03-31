@@ -38,7 +38,7 @@ class VideoSource : public QObject, public Source {
     Q_OBJECT
 
     friend class RenderingManager;
-    friend class OutputRenderWidget;
+    friend class SessionSwitcher;
 
     // only friends can create a source
 protected:

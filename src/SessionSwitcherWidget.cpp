@@ -9,7 +9,7 @@
 
 #include "common.h"
 #include "RenderingManager.h"
-#include "OutputRenderWindow.h"
+#include "SessionSwitcher.h"
 
 #include "SessionSwitcherWidget.moc"
 
@@ -209,8 +209,8 @@ void SessionSwitcherWidget::setupFolderToolbox()
     connect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(openFileFromFolder(QModelIndex) ));
     connect(folderHistory, SIGNAL(currentIndexChanged(QString)), this, SLOT(folderChanged(QString)));
     connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(selectTransitionType(int)));
-    connect(transitionDuration, SIGNAL(valueChanged(int)), OutputRenderWindow::getInstance(), SLOT(setTransitionDuration(int)));
-    connect(easingCurvePicker, SIGNAL(currentRowChanged (int)), OutputRenderWindow::getInstance(), SLOT(setTransitionCurve(int)));
+    connect(transitionDuration, SIGNAL(valueChanged(int)), RenderingManager::getSessionSwitcher(), SLOT(setTransitionDuration(int)));
+    connect(easingCurvePicker, SIGNAL(currentRowChanged (int)), RenderingManager::getSessionSwitcher(), SLOT(setTransitionCurve(int)));
 
     QGridLayout *mainLayout = new QGridLayout;
     mainLayout->addWidget(transitionSelection, 0, 0, 1, 3);
@@ -285,23 +285,23 @@ void SessionSwitcherWidget::openFileFromFolder(const QModelIndex & index)
 
 void  SessionSwitcherWidget::selectTransitionType(int t)
 {
-	OutputRenderWindow::transitionType tt = (OutputRenderWindow::transitionType) CLAMP(OutputRenderWindow::TRANSITION_NONE, t, OutputRenderWindow::TRANSITION_CUSTOM_MEDIA);
-	OutputRenderWindow::getInstance()->setTransitionType( tt );
+	SessionSwitcher::transitionType tt = (SessionSwitcher::transitionType) CLAMP(SessionSwitcher::TRANSITION_NONE, t, SessionSwitcher::TRANSITION_CUSTOM_MEDIA);
+	RenderingManager::getSessionSwitcher()->setTransitionType( tt );
 
 	customButton->setStyleSheet("");
-	transitionDuration->setEnabled(tt != OutputRenderWindow::TRANSITION_NONE);
-	easingCurvePicker->setEnabled(tt != OutputRenderWindow::TRANSITION_NONE);
+	transitionDuration->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
+	easingCurvePicker->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
 
-	if ( tt == OutputRenderWindow::TRANSITION_CUSTOM_COLOR ) {
+	if ( tt == SessionSwitcher::TRANSITION_CUSTOM_COLOR ) {
 		QPixmap c = QPixmap(16, 16);
-		c.fill(OutputRenderWindow::getInstance()->transitionColor());
+		c.fill(RenderingManager::getSessionSwitcher()->transitionColor());
 		customButton->setIcon( QIcon(c) );
 		customButton->setVisible(true);
 
-	} else if ( tt == OutputRenderWindow::TRANSITION_CUSTOM_MEDIA ) {
+	} else if ( tt == SessionSwitcher::TRANSITION_CUSTOM_MEDIA ) {
 		customButton->setIcon(QIcon(QString::fromUtf8(":/glmixer/icons/fileopen.png")));
 
-		if ( !QFileInfo(OutputRenderWindow::getInstance()->transitionMedia()).exists() )
+		if ( !QFileInfo(RenderingManager::getSessionSwitcher()->transitionMedia()).exists() )
 			customButton->setStyleSheet("QToolButton { border: 1px solid red }");
 		customButton->setVisible(true);
 	} else
@@ -312,21 +312,21 @@ void  SessionSwitcherWidget::selectTransitionType(int t)
 
 void SessionSwitcherWidget::customizeTransition()
 {
-	if (OutputRenderWindow::getInstance()->getTransitionType() == OutputRenderWindow::TRANSITION_CUSTOM_COLOR ) {
+	if (RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_CUSTOM_COLOR ) {
 
-		QColor color = QColorDialog::getColor(OutputRenderWindow::getInstance()->transitionColor(), parentWidget());
+		QColor color = QColorDialog::getColor(RenderingManager::getSessionSwitcher()->transitionColor(), parentWidget());
 		if (color.isValid()) {
-			OutputRenderWindow::getInstance()->setTransitionColor(color);
-			selectTransitionType( (int) OutputRenderWindow::TRANSITION_CUSTOM_COLOR);
+			RenderingManager::getSessionSwitcher()->setTransitionColor(color);
+			selectTransitionType( (int) SessionSwitcher::TRANSITION_CUSTOM_COLOR);
 		}
 	}
-	else if (OutputRenderWindow::getInstance()->getTransitionType() == OutputRenderWindow::TRANSITION_CUSTOM_MEDIA ) {
+	else if (RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_CUSTOM_MEDIA ) {
 
-		QString oldfile = OutputRenderWindow::getInstance()->transitionMedia();
+		QString oldfile = RenderingManager::getSessionSwitcher()->transitionMedia();
 		QString newfile = QFileDialog::getOpenFileName(this, tr("Open File"), oldfile.isEmpty() ? QDir::currentPath() : oldfile,
 											tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
 		if ( QFileInfo(newfile).exists()) {
-			OutputRenderWindow::getInstance()->setTransitionMedia(newfile);
+			RenderingManager::getSessionSwitcher()->setTransitionMedia(newfile);
 			customButton->setStyleSheet("");
 		} else {
 			// not a valid file ; show a warning only if the QFileDialog did not return null (cancel)
@@ -347,9 +347,9 @@ void SessionSwitcherWidget::saveSettings()
     appSettings->setValue("transitionSelection", transitionSelection->currentIndex());
     appSettings->setValue("transitionDuration", transitionDuration->value());
     appSettings->setValue("transitionCurve", easingCurvePicker->currentRow());
-    QVariant variant = OutputRenderWindow::getInstance()->transitionColor();
+    QVariant variant = RenderingManager::getSessionSwitcher()->transitionColor();
     appSettings->setValue("transitionColor", variant);
-    appSettings->setValue("transitionMedia", OutputRenderWindow::getInstance()->transitionMedia());
+    appSettings->setValue("transitionMedia", RenderingManager::getSessionSwitcher()->transitionMedia());
 
 }
 
@@ -362,11 +362,11 @@ void SessionSwitcherWidget::restoreSettings()
 		folderHistory->addItems(folders);
     folderHistory->setCurrentIndex(0);
 
-    OutputRenderWindow::getInstance()->setTransitionColor( appSettings->value("transitionColor").value<QColor>());
+    RenderingManager::getSessionSwitcher()->setTransitionColor( appSettings->value("transitionColor").value<QColor>());
 
     QString mediaFileName = appSettings->value("transitionMedia", "").toString();
     if (QFileInfo(mediaFileName).exists())
-    	OutputRenderWindow::getInstance()->setTransitionMedia(mediaFileName);
+    	RenderingManager::getSessionSwitcher()->setTransitionMedia(mediaFileName);
 
     transitionSelection->setCurrentIndex(appSettings->value("transitionSelection", "0").toInt());
     transitionDuration->setValue(appSettings->value("transitionDuration", "1000").toInt());

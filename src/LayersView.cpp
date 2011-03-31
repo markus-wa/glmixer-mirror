@@ -155,11 +155,10 @@ void LayersView::paint()
 	glBlendEquation(GL_FUNC_ADD);
 
 	// if no source was rendered, clear anyway
-	if (first)
-		RenderingManager::getInstance()->renderToFrameBuffer(0, first);
-	else
-		// fill-in the loopback buffer
-	    RenderingManager::getInstance()->updatePreviousFrame();
+	RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
+
+	// post render draw (loop back and recorder)
+	RenderingManager::getInstance()->postRenderToFrameBuffer();
 
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();

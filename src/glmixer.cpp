@@ -54,6 +54,7 @@
 #include "SpringCursor.h"
 #include "MagnetCursor.h"
 #include "RenderingEncoder.h"
+#include "SessionSwitcher.h"
 
 #include "glmixer.moc"
 
@@ -182,11 +183,15 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(actionQuit, SIGNAL(triggered()), this, SLOT(close()));
     QObject::connect(actionAbout_Qt, SIGNAL(triggered()), QApplication::instance(), SLOT(aboutQt()));
 
-    // Signals between GUI and output window
+    // Rendering control
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
-	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(smoothAlphaTransition(bool)));
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
+	QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setFaded(bool)));
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), vcontrolDockWidget, SLOT(setDisabled(bool)));
+
+	// session switching
+	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getSessionSwitcher(), SLOT(startTransition(bool)));
+	QObject::connect(alphaSlider, SIGNAL(valueChanged(int)), RenderingManager::getSessionSwitcher(), SLOT(setTransparency(int)));
 
 	// Recording triggers
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));
@@ -1173,17 +1178,17 @@ void GLMixer::on_actionNew_Session_triggered()
 
 	// trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
 	actionToggleRenderingVisible->setEnabled(false);
-	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
-	OutputRenderWindow::getInstance()->smoothAlphaTransition(false);
+	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
+	RenderingManager::getSessionSwitcher()->startTransition(false);
 }
 
 
 void GLMixer::newSession()
 {
 	// if coming from animation, disconnect it.
-	QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
+	QObject::disconnect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
 	actionToggleRenderingVisible->setEnabled(true);
-	OutputRenderWindow::getInstance()->smoothAlphaTransition(true);
+	RenderingManager::getSessionSwitcher()->startTransition(true, true);
 
 	// reset
 	RenderingManager::getInstance()->clearSourceSet();
@@ -1284,8 +1289,8 @@ void GLMixer::switchToSessionFile(QString filename){
 	else {
 		// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
 		actionToggleRenderingVisible->setEnabled(false);
-		QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
-		OutputRenderWindow::getInstance()->smoothAlphaTransition(false, OutputRenderWindow::getInstance()->getTransitionType());
+		QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
+		RenderingManager::getSessionSwitcher()->startTransition(false);
 	}
 }
 
@@ -1295,9 +1300,9 @@ void GLMixer::openSessionFile(QString filename)
 	actionPause->setChecked ( false );
 
 	// if we come from the smooth transition, disable it (and set to transparent in any case)
-	QObject::disconnect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
+	QObject::disconnect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
 	actionToggleRenderingVisible->setEnabled(true);
-	OutputRenderWindow::getInstance()->setAlpha(0.0);
+	RenderingManager::getSessionSwitcher()->setAlpha(1.0);
 
 	// in case the argument is valid, use it
 	if (!filename.isNull())
@@ -1335,7 +1340,8 @@ void GLMixer::openSessionFile(QString filename)
     }
 
 	// if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
-	newSession();
+	RenderingManager::getInstance()->clearSourceSet();
+	RenderingManager::getRenderingWidget()->clearViews();
 
     // read all the content to make sure the file is correct :
     QDomElement renderConfig = root.firstChildElement("SourceList");
@@ -1358,7 +1364,7 @@ void GLMixer::openSessionFile(QString filename)
     		break;
     	default:
     	case ASPECT_RATIO_4_3:
-    		action4_3_aspect_ratio->setChecked(true);
+    		action4_3_aspect_ratio->trigger();
     	}
     	float g = renderConfig.attribute("gammaShift", "1").toFloat();
     	gammaShiftSlider->setValue(GammaToSlider(g));
@@ -1417,7 +1423,7 @@ void GLMixer::openSessionFile(QString filename)
 
 	outputpreview->refresh();
 	OutputRenderWindow::getInstance()->refresh();
-    OutputRenderWindow::getInstance()->smoothAlphaTransition(true, OutputRenderWindow::getInstance()->getTransitionType());
+    RenderingManager::getSessionSwitcher()->startTransition(true);
 }
 
 
@@ -1517,8 +1523,8 @@ void GLMixer::dropEvent(QDropEvent *event)
 		else {
 			// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
 			actionToggleRenderingVisible->setEnabled(false);
-			QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
-			OutputRenderWindow::getInstance()->smoothAlphaTransition(false, OutputRenderWindow::getInstance()->getTransitionType());
+			QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
+			RenderingManager::getSessionSwitcher()->startTransition(false);
 		}
 
 		if (!mediaFiles.isEmpty())

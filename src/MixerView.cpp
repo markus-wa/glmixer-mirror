@@ -59,7 +59,7 @@ void MixerView::setModelview()
 void MixerView::paint()
 {
 	static double renderingAspectRatio = 1.0;
-	static bool first = true;
+	static bool first = true, last = false;
 
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing);
@@ -91,6 +91,7 @@ void MixerView::paint()
     // render in the depth order
     if (ViewRenderWidget::program->bind()) {
 		first = true;
+		last = false;
 		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
 			//
@@ -152,12 +153,10 @@ void MixerView::paint()
 	glActiveTexture(GL_TEXTURE0);
 
 	// if no source was rendered, clear anyway
-	if (first)
-		RenderingManager::getInstance()->renderToFrameBuffer(0, first);
-	else
-		// fill-in the loopback buffer
-	    RenderingManager::getInstance()->updatePreviousFrame();
+	RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
 
+	// post render draw (loop back and recorder)
+	RenderingManager::getInstance()->postRenderToFrameBuffer();
 
     // Then the selection outlines
     for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {

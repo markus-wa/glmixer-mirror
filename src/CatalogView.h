@@ -50,7 +50,7 @@ public:
 	// Specific implementation
 	void setVisible(bool on);
 	bool visible() { return _visible;}
-	inline void setTransparent(bool on) { _alpha = on ? 0.5 : 1.0; }
+	void setTransparent(bool on);
 	inline bool isTransparent() const { return _alpha < 0.9; }
 	typedef enum { SMALL = 0, MEDIUM = 1, LARGE = 2 } catalogSize;
 	void setSize(catalogSize s);

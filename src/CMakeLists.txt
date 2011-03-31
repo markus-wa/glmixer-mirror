@@ -36,6 +36,7 @@ set(MYQT_SRCS
     MagnetCursor.cpp
     UserPreferencesDialog.cpp
     GammaLevelsWidget.cpp
+    SessionSwitcher.cpp
     SessionSwitcherWidget.cpp
     glmixer.cpp
     main.cpp

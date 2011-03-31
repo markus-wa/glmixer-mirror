@@ -278,15 +278,21 @@ bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 {
-	if (isInside(event->pos())) {
-		setTransparent(false);
-		return true;
-	}
+//	static bool status = false;
+	bool s = isInside(event->pos());
 
-	setTransparent(true);
-	return false;
+	if (s != !isTransparent())
+		setTransparent(!s);
+
+	return s;
 }
 
+
+void CatalogView::setTransparent(bool on)
+{
+	_alpha = on ? 0.5 : 1.0;
+	RenderingManager::getRenderingWidget()->setFaded(!on);
+}
 
 bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {

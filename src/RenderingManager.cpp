@@ -27,6 +27,12 @@
 
 #include "common.h"
 
+#include "AlgorithmSource.h"
+#include "VideoFile.h"
+#include "VideoSource.h"
+#ifdef OPEN_CV
+#include "OpencvSource.h"
+#endif
 #include "RenderingSource.h"
 Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "CloneSource.h"
@@ -38,12 +44,8 @@ Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 #include "CatalogView.h"
 #include "RenderingEncoder.h"
 #include "SourcePropertyBrowser.h"
-#include "AlgorithmSource.h"
-#include "VideoFile.h"
-#include "VideoSource.h"
-#ifdef OPEN_CV
-#include "OpencvSource.h"
-#endif
+#include "SessionSwitcher.h"
+
 
 #include <map>
 #include <algorithm>
@@ -71,6 +73,11 @@ SourcePropertyBrowser *RenderingManager::getPropertyBrowserWidget() {
 RenderingEncoder *RenderingManager::getRecorder() {
 
 	return getInstance()->_recorder;
+}
+
+SessionSwitcher *RenderingManager::getSessionSwitcher() {
+
+	return getInstance()->_switcher;
 }
 
 void RenderingManager::setUseFboBlitExtension(bool on){
@@ -121,7 +128,9 @@ RenderingManager::RenderingManager() :
 	_propertyBrowser = new SourcePropertyBrowser;
 	Q_CHECK_PTR(_propertyBrowser);
 
+	// create recorder and session switcher
 	_recorder = new RenderingEncoder(this);
+	_switcher = new SessionSwitcher(this);
 
 	// 2. Connect the above view holders to events
     QObject::connect(this, SIGNAL(currentSourceChanged(SourceSet::iterator)), _propertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
@@ -200,9 +209,11 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 	_fbo = new QGLFramebufferObject(size);
 	Q_CHECK_PTR(_fbo);
 
-
-	// create second attachment texture for FBO
 	if (_fbo->bind()) {
+		// default draw target
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+		// create second draw target texture for this FBO (for catalog)
 		glGenTextures(1, &_fboCatalogTexture);
 		glBindTexture(GL_TEXTURE_2D, _fboCatalogTexture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _fbo->width(), _fbo->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -212,7 +223,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_2D, _fboCatalogTexture, 0);
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _fboCatalogTexture, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		_fbo->release();
 
@@ -236,81 +247,81 @@ double RenderingManager::getFrameBufferAspectRatio() const{
 	return ((double) _fbo->width() / (double) _fbo->height());
 }
 
-void RenderingManager::updatePreviousFrame() {
+void RenderingManager::postRenderToFrameBuffer() {
+
+	// skip loop back if disabled
+	if (previousframe_fbo) {
+
+		// frame delay
+		previousframe_index++;
+
+		if (previousframe_index % previousframe_delay)
+			return;
+
+		previousframe_index = 0;
+
+		if (RenderingManager::blit_fbo_extension)
+		// use the accelerated GL_EXT_framebuffer_blit if available
+		{
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
+			// TODO : Can we draw in different texture buffer so we can keep an history of
+			// several frames, and each loopback source could use a different one
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
+
+			glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
+					previousframe_fbo->width(), previousframe_fbo->height(),
+					GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		} else
+		// 	Draw quad with fbo texture in a more basic OpenGL way
+		{
+			glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+			glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glColor4f(1.0, 1.0, 1.0, 1.0);
+
+			// render to the frame buffer object
+			if (previousframe_fbo->bind())
+			{
+
+				glClearColor(0.f, 0.f, 0.f, 1.f);
+				glClear(GL_COLOR_BUFFER_BIT);
+
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+				glCallList(ViewRenderWidget::quad_texured);
+
+				previousframe_fbo->release();
+			}
+
+			// pop the projection matrix and GL state back for rendering the current view
+			// to the actual widget
+			glPopAttrib();
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+		}
+	}
 
 	// save the frame to file (the recorder knows if it is active or not)
 	_recorder->addFrame();
 
-	// skip if disabled
-	if (!previousframe_fbo)
-		return;
-
-	// frame delay
-	previousframe_index++;
-
-	if (previousframe_index % previousframe_delay)
-		return;
-
-	previousframe_index = 0;
-
-	if (RenderingManager::blit_fbo_extension)
-	// use the accelerated GL_EXT_framebuffer_blit if available
-	{
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
-
-		// TODO : Can we draw in different texture buffer so we can keep an history of
-		// several frames, and each loopback source could use a different one
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
-
-		glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
-				previousframe_fbo->width(), previousframe_fbo->height(),
-				GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	} else
-	// 	Draw quad with fbo texture in a more basic OpenGL way
-	{
-		glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-		glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
-
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
-
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-
-		glColor4f(1.0, 1.0, 1.0, 1.0);
-
-		// render to the frame buffer object
-		if (previousframe_fbo->bind()) {
-
-			glClearColor(0.f, 0.f, 0.f, 1.f);
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-			glCallList(ViewRenderWidget::quad_texured);
-
-			previousframe_fbo->release();
-		}
-
-		// pop the projection matrix and GL state back for rendering the current view
-		// to the actual widget
-		glPopAttrib();
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-	}
-
 }
 
 
-void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
+void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last) {
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
@@ -323,16 +334,15 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-//	glLoadMatrixd(_renderwidget->_renderView->modelview);
 
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+
 	// render to the frame buffer object
 	if (_fbo->bind())
 	{
 		//
 		// 1. Draw into first texture attachment; the final output rendering
 		//
-		if (clearfirst) {
+		if (first) {
 			if (clearWhite)
 				glClearColor(1.f, 1.f, 1.f, 1.f);
 			else
@@ -355,29 +365,37 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool clearfirst) {
 			}
 			// in any case, always end the effect
 			source->endEffectsSection();
+
+			//
+			// 2. Draw into second texture  attachment ; the catalog (if visible)
+			//
+			if (_renderwidget->_catalogView->visible()) {
+				glDrawBuffer(GL_COLOR_ATTACHMENT1);
+
+				// clear Modelview
+				glLoadIdentity();
+				// draw without effect
+				ViewRenderWidget::setSourceDrawingMode(false);
+
+				static int indexSource = 0;
+				if (first) {
+					// Clear Catalog view
+					_renderwidget->_catalogView->clear();
+					indexSource = 0;
+				}
+				// Draw this source into the catalog
+				_renderwidget->_catalogView->drawSource( source, indexSource++);
+
+				glDrawBuffer(GL_COLOR_ATTACHMENT0);
+			}
+
 		}
 
-		//
-		// 2. Draw into second texture  attachment ; the catalog (if visible)
-		//
-		if (_renderwidget->_catalogView->visible()) {
-			glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+		// render the transition layer on top after the last frame
+		if (last) {
 
-			// clear Modelview
-			glLoadIdentity();
-			// draw without effect
-			ViewRenderWidget::setSourceDrawingMode(false);
-
-			static int indexSource = 0;
-			if (clearfirst) {
-				// Clear Catalog view
-				_renderwidget->_catalogView->clear();
-				indexSource = 0;
-			}
-			// Draw this source into the catalog
-			_renderwidget->_catalogView->drawSource( source, indexSource++);
-
-			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+			ViewRenderWidget::setSourceDrawingMode(true);
+			_switcher->render();
 		}
 
 		_fbo->release();
@@ -403,7 +421,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
 		previousframe_fbo = new QGLFramebufferObject(_fbo->width(), _fbo->height());
 	}
 
-	// create a source appropriate for this videofile
+	// create a source appropriate
 	RenderingSource *s = new RenderingSource(previousframe_fbo->texture(), getAvailableDepthFrom(depth));
 	Q_CHECK_PTR(s);
 
@@ -428,7 +446,7 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &textureIndex, &highpriority);
 
-	// create a source appropriate for this videofile
+	// create a source appropriate
 	CaptureSource *s = new CaptureSource(img, textureIndex, getAvailableDepthFrom(depth));
 	Q_CHECK_PTR(s);
 
@@ -498,7 +516,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 	GLclampf lowpriority = 0.1;
 	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
-	// create a source appropriate for this videofile
+	// create a source appropriate
 	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p);
 	Q_CHECK_PTR(s);
 

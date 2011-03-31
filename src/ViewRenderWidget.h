@@ -54,6 +54,7 @@ class ViewRenderWidget: public glRenderWidget {
 	friend class LayersView;
 	friend class CatalogView;
 	friend class OutputRenderWidget;
+	friend class SessionSwitcher;
 	friend class SourceDisplayWidget;
 
 public:
@@ -144,6 +145,7 @@ public Q_SLOTS:
 	void setCatalogSizeSmall();
 	void setCatalogSizeMedium();
 	void setCatalogSizeLarge();
+	void setFaded(bool on) { faded = on; }
 
 protected:
 
@@ -174,6 +176,7 @@ private:
 	GeometryView *_geometryView;
 	LayersView *_layersView;
 	CatalogView *_catalogView;
+	bool faded;
 
 	// C u r s o r s
 	Cursor *_currentCursor, *_normalCursor;

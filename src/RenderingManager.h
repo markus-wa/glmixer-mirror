@@ -56,6 +56,7 @@ class VideoFile;
 class ViewRenderWidget;
 class SourcePropertyBrowser;
 class RenderingEncoder;
+class SessionSwitcher;
 
 class RenderingManager: public QObject {
 
@@ -71,6 +72,7 @@ public:
 	static ViewRenderWidget *getRenderingWidget();
 	static SourcePropertyBrowser *getPropertyBrowserWidget();
 	static RenderingEncoder *getRecorder();
+	static SessionSwitcher *getSessionSwitcher();
 	static RenderingManager *getInstance();
 	static void deleteInstance();
 
@@ -155,8 +157,8 @@ public:
 		return _fbo ? _fbo->handle() : 0;
 	}
 
-	void renderToFrameBuffer(Source *source, bool clearfirst);
-	void updatePreviousFrame();
+	void renderToFrameBuffer(Source *source, bool first, bool last = false);
+	void postRenderToFrameBuffer();
 	inline unsigned int getPreviousFrameDelay() const {
 		return previousframe_delay;
 	}
@@ -226,6 +228,8 @@ protected:
 	SourceSet _sources;
     // the recorder
     RenderingEncoder *_recorder;
+    // the session switcher
+    SessionSwitcher *_switcher;
 
 	// manipulation of sources
 	SourceSet::iterator _currentSource;

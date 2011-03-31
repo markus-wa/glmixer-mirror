@@ -137,11 +137,10 @@ void GeometryView::paint()
 	glActiveTexture(GL_TEXTURE0);
 
 	// if no source was rendered, clear anyway
-	if (first)
-		RenderingManager::getInstance()->renderToFrameBuffer(0, first);
-	else
-		// fill-in the loopback buffer
-		RenderingManager::getInstance()->updatePreviousFrame();
+	RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
+
+	// post render draw (loop back and recorder)
+	RenderingManager::getInstance()->postRenderToFrameBuffer();
 
     // last the frame thing
 	glPushMatrix();

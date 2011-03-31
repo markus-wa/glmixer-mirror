@@ -119,7 +119,7 @@ GLfloat ViewRenderWidget::maskc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f}
 QGLShaderProgram *ViewRenderWidget::program = 0;
 
 ViewRenderWidget::ViewRenderWidget() :
-	glRenderWidget(), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), showFps_(0)
+	glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), showFps_(0)
 {
 
 	setMouseTracking(true);
@@ -477,7 +477,8 @@ void ViewRenderWidget::paintGL()
 	// 3. draw a semi-transparent overlay if view should be faded out
 	//
 	//
-	if (!_catalogView->isTransparent() || RenderingManager::getInstance()->isPaused()) {
+//	if (!_catalogView->isTransparent() || RenderingManager::getInstance()->isPaused()) {
+	if (faded) {
 		glCallList(ViewRenderWidget::fading);
 		setMouseCursor(MOUSE_ARROW);
 	}
@@ -901,6 +902,7 @@ void ViewRenderWidget::buildShader(){
 	program->setUniformValue("sourceDrawing", false);
 	program->setUniformValue("gamma", 1.f);
 	program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f); // gamma levels : minInput, maxInput, minOutput, maxOutput:
+
 
 #ifndef GLMIXER_SIMPLIFIED_GLSL
 	program->setUniformValue("step", 1.f / 640.f, 1.f / 480.f);
