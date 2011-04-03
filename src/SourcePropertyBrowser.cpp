@@ -671,10 +671,10 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		if (s->rtti() == Source::RENDERING_SOURCE) {
 
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Rendering loop-back") );
-			if (glSupportsExtension("GL_EXT_framebuffer_blit"))
+			if (RenderingManager::getInstance()->getUseFboBlitExtension())
 				infoManager->setValue(idToProperty["Rendering mechanism"], "Blit to frame buffer object" );
 			else
-				infoManager->setValue(idToProperty["Rendering mechanism"], "Draw to frame buffer object" );
+				infoManager->setValue(idToProperty["Rendering mechanism"], "Draw in frame buffer object" );
 			sizeManager->setValue(idToProperty["Frames size"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
 			infoManager->setValue(idToProperty["Frame rate"], QString::number( RenderingManager::getRenderingWidget()->getFramerate() / float(RenderingManager::getInstance()->getPreviousFrameDelay()) ) + QString(" fps") );
 		} else

@@ -43,6 +43,8 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 		  qCritical("** WARNING **\n\nOpenGL Could not set direct rendering; rendering will be slow.");
 		if (!format().doubleBuffer())
 		  qCritical("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
+		if (!glSupportsExtension("GL_EXT_gpu_shader4"))
+		  qCritical("** WARNING **\n\nOpenGL does not support GLSL shading version 4; rendering will be slow.");
 		testDone = true;
 	}
 

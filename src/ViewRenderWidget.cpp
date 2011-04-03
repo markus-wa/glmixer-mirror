@@ -484,6 +484,7 @@ void ViewRenderWidget::paintGL()
 	}
 	// if not faded, means the area is active
 	else
+	{
 	//
 	// 2. the shadow of the cursor
 	//
@@ -502,7 +503,7 @@ void ViewRenderWidget::paintGL()
 					emit sourceLayerModified();
 			}
 		}
-
+	}
 	//
 	// 4. The extra information
 	//

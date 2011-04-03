@@ -1,4 +1,6 @@
 
+#extension GL_EXT_gpu_shader4 : require
+
 #define KERNEL_BLUR_GAUSSIAN 0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625
 #define KERNEL_BLUR_MEAN 0.111111,0.111111,0.111111,0.111111,0.111111,0.111111,0.111111,0.111111,0.111111
 #define KERNEL_SHARPEN 0.0, -1.0, 0.0, -1.0, 5.0, -1.0, 0.0, -1.0, 0.0
@@ -284,6 +286,7 @@ vec3 HSLToRGB(vec3 hsl)
 ** Levels control (input (+gamma), output)
 ** Details: http://blog.mouaif.org/2009/01/28/levels-control-shader/
 */
+
 
 #define LevelsControlInputRange(color, minInput, maxInput)  min(max(color - vec3(minInput), 0.0) / (vec3(maxInput) - vec3(minInput)), 1.0)
 #define LevelsControlInput(color, minInput, gamma, maxInput) GammaCorrection(LevelsControlInputRange(color, minInput, maxInput), gamma)
