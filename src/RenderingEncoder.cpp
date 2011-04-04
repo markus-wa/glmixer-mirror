@@ -143,7 +143,7 @@ void EncodingThread::run() {
 	}
 }
 
-RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), elapseTimer(0), badframecount(0), fbohandle(0), update(40), displayupdate(33) {
+RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), automaticSaving(false), started(false), elapseTimer(0), badframecount(0), fbohandle(0), update(40), displayupdate(33) {
 
 	// set default format
 	temporaryFileName = "glmixeroutput";
@@ -176,8 +176,12 @@ void RenderingEncoder::setActive(bool on)
 		if (!start())
 			qCritical("ERROR starting video recording.\n\n%s\n", errormessage);
 	} else {
-		if (close())
-			saveFileAs();
+		if (close()) {
+			if (automaticSaving)
+				saveFile();
+			else
+				saveFileAs();
+		}
 	}
 
 	// inform if we could be activated
@@ -335,6 +339,39 @@ bool RenderingEncoder::close(){
 	}
 
 	return true;
+}
+
+
+void RenderingEncoder::saveFile(){
+
+	QString suff;
+	switch (format) {
+	case FORMAT_MPG_MPEG1:
+		suff = ".mpg";
+		break;
+	case FORMAT_MP4_MPEG4:
+		suff = ".mp4";
+		break;
+	case FORMAT_WMV_WMV2:
+		suff = ".wmv";
+		break;
+	case FORMAT_FLV_FLV1:
+		suff = ".flv";
+		break;
+	default:
+	case FORMAT_AVI_FFVHUFF:
+		suff = ".avi";
+	}
+
+	QFileInfo infoFileDestination(savingFolder, QDateTime::currentDateTime().toString(Qt::ISODate) + suff);
+
+	if (infoFileDestination.exists()){
+		infoFileDestination.dir().remove(infoFileDestination.fileName());
+	}
+	// move the temporaryFileName to newFileName
+	QDir::temp().rename(temporaryFileName, infoFileDestination.absoluteFilePath());
+	emit status(tr("File %1 saved.").arg(infoFileDestination.absoluteFilePath()), 2000);
+
 }
 
 void RenderingEncoder::saveFileAs(){

@@ -13,22 +13,6 @@
 
 #include "SessionSwitcherWidget.moc"
 
-class folderValidator : public QValidator
-{
-  public:
-    folderValidator(QObject *parent) : QValidator(parent) { }
-
-    QValidator::State validate ( QString & input, int & pos ) const {
-      QDir d(input);
-      if( d.exists ())
-    	  return QValidator::Acceptable;
-      if( d.isAbsolute ())
-    	  return QValidator::Intermediate;
-      return QValidator::Invalid;
-    }
-};
-
-
 
 void addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename)
 {

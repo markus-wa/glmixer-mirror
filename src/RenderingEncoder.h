@@ -53,19 +53,29 @@ public:
 	void addFrame();
 	bool close();
 
+	// preferences encoding
 	void setEncodingFormat(encodingformat f);
 	encodingformat encodingFormat() { return format; }
 	void setUpdatePeriod(uint ms) { update=ms; }
 	uint updatePeriod() { return update; }
 
+	// preferences saving mode
+	void setAutomaticSavingMode(bool on) { automaticSaving = on;}
+	bool automaticSavingMode() { return automaticSaving;}
+	void setAutomaticSavingFolder(QDir d) { savingFolder = d; }
+	QDir automaticSavingFolder() { return savingFolder; }
+
+	// status
 	bool isActive() { return started; }
 	int getRecodingTime();
 
+	// file dialog state restoration
 	QByteArray saveState() const { return sfa.saveState(); }
 	bool restoreState(const QByteArray &state) { return sfa.restoreState(state); }
 
 public Q_SLOTS:
 	void setActive(bool on);
+	void saveFile();
 	void saveFileAs();
 
 Q_SIGNALS:
@@ -79,6 +89,8 @@ private:
 	// files location
 	QString temporaryFileName;
 	QFileDialog sfa;
+	QDir savingFolder;
+	bool automaticSaving;
 
 	// state machine
 	bool started;

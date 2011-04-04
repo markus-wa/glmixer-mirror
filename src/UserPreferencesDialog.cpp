@@ -25,6 +25,7 @@
 
 #include "UserPreferencesDialog.moc"
 
+#include "common.h"
 #include "Source.h"
 
 UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
@@ -41,8 +42,13 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     defaultProperties->setPropertyEnabled("Frames size", false);
     defaultProperties->setPropertyEnabled("Aspect ratio", false);
 
+    // the rendering option for BLIT of frame buffer makes no sense if the computer does not supports it
     activateBlitFrameBuffer->setEnabled(glSupportsExtension("GL_EXT_framebuffer_blit"));
 
+    // add a validator for folder selection in recording preference
+    recordingFolderLine->setValidator(new folderValidator(this));
+	recordingFolderLine->setProperty("exists", true);
+    QObject::connect(recordingFolderLine, SIGNAL(textChanged(const QString &)), this, SLOT(recordingFolderPathChanged(const QString &)));
 }
 
 UserPreferencesDialog::~UserPreferencesDialog()
@@ -71,6 +77,13 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 		resolutionTable->selectRow(0);
 	    activateBlitFrameBuffer->setChecked(glSupportsExtension("GL_EXT_framebuffer_blit"));
 		updatePeriod->setValue(33);
+	}
+
+	if (stackedPreferences->currentWidget() == PageRecording) {
+		recordingFormatSelection->setCurrentIndex(0);
+		recordingUpdatePeriod->setValue(40);
+		recordingFolderBox->setChecked(false);
+		recordingFolderLine->clear();
 	}
 
 	if (stackedPreferences->currentWidget() == PageSources) {
@@ -163,6 +176,14 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	stream >> rtfr;
 	recordingUpdatePeriod->setValue(rtfr > 0 ? rtfr : 40);
 
+	// e. recording folder
+	bool automaticSave = false;
+	stream >> automaticSave;
+	recordingFolderBox->setChecked(automaticSave);
+	QString automaticSaveFolder;
+	stream >> automaticSaveFolder;
+	recordingFolderLine->setText(automaticSaveFolder);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -203,18 +224,11 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	stream << (uint) recordingFormatSelection->currentIndex();
 	stream << (uint) recordingUpdatePeriod->value();
 
+	// e. recording folder
+	stream << recordingFolderBox->isChecked();
+	stream << recordingFolderLine->text();
+
 	return data;
-}
-
-void UserPreferencesDialog::sizeToSelection(QSize s){
-
-
-
-}
-
-QSize UserPreferencesDialog::selectionToSize() const {
-
-    return QSize(640, 480);
 }
 
 
@@ -227,5 +241,22 @@ void UserPreferencesDialog::on_updatePeriod_valueChanged(int period)
 void UserPreferencesDialog::on_recordingUpdatePeriod_valueChanged(int period)
 {
 	recordingFrameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(recordingUpdatePeriod->value()) ) ) );
+}
+
+
+void UserPreferencesDialog::on_recordingFolderButton_clicked(){
+
+	  QString dirName = QFileDialog::getExistingDirectory(this, tr("Select a directory"), recordingFolderLine->text().isEmpty()?QDir::currentPath():recordingFolderLine->text());
+	  if ( ! dirName.isEmpty() )
+		  recordingFolderLine->setText(dirName);
+
+}
+
+void UserPreferencesDialog::recordingFolderPathChanged(const QString &s)
+{
+	if( recordingFolderLine->hasAcceptableInput ())
+		recordingFolderLine->setStyleSheet("");
+	else
+		recordingFolderLine->setStyleSheet("color: red");
 }
 

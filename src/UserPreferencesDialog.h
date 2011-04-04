@@ -48,10 +48,10 @@ public Q_SLOTS:
 	QByteArray getUserPreferences() const;
 	void on_updatePeriod_valueChanged(int period);
 	void on_recordingUpdatePeriod_valueChanged(int period);
+	void on_recordingFolderButton_clicked();
+	void recordingFolderPathChanged(const QString &);
 
 private:
-	void sizeToSelection(QSize s);
-	QSize selectionToSize() const;
 
 	class Source *defaultSource;
 

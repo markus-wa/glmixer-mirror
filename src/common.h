@@ -69,4 +69,23 @@ QStringList glSupportedExtensions();
 
 #define XML_GLM_VERSION "0.6"
 
+#include <QDir>
+#include <QValidator>
+
+class folderValidator : public QValidator
+{
+  public:
+    folderValidator(QObject *parent) : QValidator(parent) { }
+
+    QValidator::State validate ( QString & input, int & pos ) const {
+      QDir d(input);
+      if( d.exists() )
+	  	  return QValidator::Acceptable;
+      if( d.isAbsolute() )
+    	  return QValidator::Intermediate;
+      return QValidator::Invalid;
+    }
+};
+
+
 #endif /*  COMMON_H_ */

@@ -1692,11 +1692,8 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	RenderingManager::getInstance()->setRenderingQuality((frameBufferQuality) RenderingQuality);
 	int targetPeriod;
 	stream >> targetPeriod;
-	if (targetPeriod > 0) {
-//		RenderingManager::getRenderingWidget()->setUpdatePeriod( targetPeriod );
-//		OutputRenderWindow::getInstance()->setUpdatePeriod( targetPeriod );
+	if (targetPeriod > 0)
 		glRenderWidget::setUpdatePeriod( targetPeriod );
-	}
 
 	// b. Apply source preferences
 	stream >> RenderingManager::getInstance()->defaultSource();
@@ -1728,6 +1725,17 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	uint rtfr = 40;
 	stream >> rtfr;
 	RenderingManager::getRecorder()->setUpdatePeriod(rtfr > 0 ? rtfr : 40);
+
+	// e. recording folder
+	bool automaticSave = false;
+	stream >> automaticSave;
+	RenderingManager::getRecorder()->setAutomaticSavingMode(automaticSave);
+	QString automaticSaveFolder;
+	stream >> automaticSaveFolder;
+	QDir d(automaticSaveFolder);
+	if ( !d.exists())
+		d = QDir::current();
+	RenderingManager::getRecorder()->setAutomaticSavingFolder(d);
 
 	// Refresh all GL widgets (to apply the preferences changed above)
 	RenderingManager::getRenderingWidget()->refresh();
@@ -1767,6 +1775,10 @@ QByteArray GLMixer::getPreferences() const {
 	// g. recording format
 	stream << (uint) RenderingManager::getRecorder()->encodingFormat();
 	stream << RenderingManager::getRecorder()->updatePeriod();
+
+	// e. recording folder
+	stream << RenderingManager::getRecorder()->automaticSavingMode();
+	stream << RenderingManager::getRecorder()->automaticSavingFolder().absolutePath();
 
 	return data;
 }

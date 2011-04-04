@@ -401,6 +401,9 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="toolTip">
+               <string>Update frequency targetted for rendering</string>
+              </property>
               <property name="minimum">
                <number>16</number>
               </property>
@@ -469,11 +472,14 @@
        <item>
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
-          <string>File format</string>
+          <string>Recording format</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_10">
           <item>
            <widget class="QComboBox" name="recordingFormatSelection">
+            <property name="toolTip">
+             <string>Select the recording Codec</string>
+            </property>
             <item>
              <property name="text">
               <string>AVI       (FFVHUFF codec)</string>
@@ -527,6 +533,9 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="toolTip">
+               <string>Select the recording frame rate</string>
+              </property>
               <property name="minimum">
                <number>33</number>
               </property>
@@ -573,21 +582,60 @@
             </property>
            </widget>
           </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="recordingFolderBox">
+         <property name="title">
+          <string>Automatic saving in a folder</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <spacer name="verticalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+           <widget class="QLineEdit" name="recordingFolderLine">
+            <property name="toolTip">
+             <string>Location where the files are saved</string>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>161</height>
-             </size>
+            <property name="styleSheet">
+             <string notr="true">*[exists=&quot;false&quot;] { background-color: yellow }</string>
             </property>
-           </spacer>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="recordingFolderButton">
+            <property name="toolTip">
+             <string>Select a folder</string>
+            </property>
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -670,7 +718,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
-          <string>3. Rendering source specific options</string>
+          <string>3. Loopback source</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
@@ -691,6 +739,9 @@ p, li { white-space: pre-wrap; }
           </item>
           <item>
            <widget class="QSlider" name="numberOfFramesRendering">
+            <property name="toolTip">
+             <string>Loopback sources re-inject the previous frame in the rendering; skipping frames adds delay.</string>
+            </property>
             <property name="minimum">
              <number>1</number>
             </property>
