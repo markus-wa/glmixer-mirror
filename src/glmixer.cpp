@@ -1286,6 +1286,7 @@ void GLMixer::switchToSessionFile(QString filename){
 	currentSessionFileName = filename;
 
 	if (RenderingManager::getInstance()->empty())
+		// no need for fade off transition if nothing loaded
 		openSessionFile();
 	else {
 		// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
@@ -1300,10 +1301,10 @@ void GLMixer::openSessionFile(QString filename)
 	// unpause if it was
 	actionPause->setChecked ( false );
 
-	// if we come from the smooth transition, disable it (and set to transparent in any case)
+	// if we come from the smooth transition, disconnect the signal and enforce session switcher to show transition
 	QObject::disconnect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
-	actionToggleRenderingVisible->setEnabled(true);
 	RenderingManager::getSessionSwitcher()->setAlpha(1.0);
+	actionToggleRenderingVisible->setEnabled(true);
 
 	// in case the argument is valid, use it
 	if (!filename.isNull())
@@ -1315,6 +1316,7 @@ void GLMixer::openSessionFile(QString filename)
     int errorLine;
     int errorColumn;
 
+    // open file
 	QFile file(currentSessionFileName);
 	QString caption = tr("%1 Cannot open session").arg(QCoreApplication::applicationName());
 	if (!file.open(QFile::ReadOnly | QFile::Text)) {
@@ -1322,15 +1324,15 @@ void GLMixer::openSessionFile(QString filename)
 		currentSessionFileName = QString();
 		return;
 	}
-
+	// load content
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
         QMessageBox::warning(this, caption, tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(currentSessionFileName).arg(errorLine).arg(errorColumn).arg(errorStr));
     	currentSessionFileName = QString();
     	return;
     }
-
+    // close file
     file.close();
-
+    // verify it is a GLM file
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
         QMessageBox::warning(this, caption, tr("The file %1 is not a valid GLMixer session file.").arg(currentSessionFileName));
@@ -1339,12 +1341,9 @@ void GLMixer::openSessionFile(QString filename)
     } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
         QMessageBox::warning(this, caption, tr("Problem loading %1\n\nThe version of the file is not compatible (%2 instead of %3).\nI will try to do what I can...\n").arg(currentSessionFileName).arg(root.attribute("version")).arg(XML_GLM_VERSION));
     }
-
 	// if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
 	RenderingManager::getInstance()->clearSourceSet();
-	RenderingManager::getRenderingWidget()->clearViews();
-
-    // read all the content to make sure the file is correct :
+    // read the source list and its configuration
     QDomElement renderConfig = root.firstChildElement("SourceList");
     if (renderConfig.isNull())
         QMessageBox::warning(this, caption, tr("The file %1 is empty.").arg(currentSessionFileName));
@@ -1371,15 +1370,15 @@ void GLMixer::openSessionFile(QString filename)
     	gammaShiftSlider->setValue(GammaToSlider(g));
     	gammaShiftText->setText( QString().setNum( g, 'f', 2) );
     	RenderingManager::getInstance()->setGammaShift(g);
+    	// read the list of sources
 		RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath());
     }
-
-    // less important ; the views config
+    // read the views configuration
+	RenderingManager::getRenderingWidget()->clearViews();
     QDomElement vconfig = root.firstChildElement("Views");
     if (!vconfig.isNull()){
-
+    	// apply the views configuration
     	RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
-
     	// activate the view specified as 'current' in the xml config
     	switch ( (ViewRenderWidget::viewMode) vconfig.attribute("current").toInt()){
     	case (ViewRenderWidget::NONE):
@@ -1408,8 +1407,7 @@ void GLMixer::openSessionFile(QString filename)
     		break;
     	}
     }
-
-    // finally, the render config
+    // finally, read the rendering configuration
     QDomElement rconfig = root.firstChildElement("Rendering");
     if (!rconfig.isNull()) {
     	actionWhite_background->setChecked(rconfig.attribute("clearToWhite").toInt());
@@ -1419,11 +1417,14 @@ void GLMixer::openSessionFile(QString filename)
 	confirmSessionFileName();
 	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
 
-	// set current to none (end of list)
+	// set current source to none (end of list)
 	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
 
+	// refresh views
 	outputpreview->refresh();
 	OutputRenderWindow::getInstance()->refresh();
+
+	// start the smooth transition
     RenderingManager::getSessionSwitcher()->startTransition(true);
 }
 

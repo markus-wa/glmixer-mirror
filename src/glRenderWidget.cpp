@@ -131,7 +131,7 @@ void glRenderWidget::paintGL()
 void glRenderWidget::setUpdatePeriod(int miliseconds) {
 
 	if (miliseconds > 11)
-		timer->start(miliseconds-1);
+		timer->start(miliseconds);
 	else
 		timer->start();
 }

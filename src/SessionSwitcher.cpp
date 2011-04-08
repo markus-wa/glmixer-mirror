@@ -199,13 +199,11 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 	animationAlpha->setDuration( instanteneous ? 0 : duration );
 	animationAlpha->setStartValue( overlayAlpha );
 	animationAlpha->setEndValue( sceneVisible ? 0.0 : 1.0 );
+	// do not do "animationAlpha->start();" immediately ; there is a delay in rendering
+	// so, we also delay a little the start of the transition to make sure it is fully applied
+	QTimer::singleShot(100, animationAlpha, SLOT(start()));
 
-	qDebug("current time before start %d", animationAlpha->currentTime());
-	animationAlpha->start();
+	RenderingManager::getRenderingWidget()->setFaded(!instanteneous);
 
-	qDebug("start transition for %d ms, from %f to alpha %f, mode %d",animationAlpha->duration(), animationAlpha->startValue().toFloat(), animationAlpha->endValue().toFloat(),(int)transition_type );
-	qDebug("current time %d", animationAlpha->currentTime());
-	qDebug("current value %f", animationAlpha->currentValue().toFloat());
-	RenderingManager::getRenderingWidget()->setFaded(true);
 }
 

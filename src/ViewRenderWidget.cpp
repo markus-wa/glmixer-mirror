@@ -477,7 +477,6 @@ void ViewRenderWidget::paintGL()
 	// 3. draw a semi-transparent overlay if view should be faded out
 	//
 	//
-//	if (!_catalogView->isTransparent() || RenderingManager::getInstance()->isPaused()) {
 	if (faded) {
 		glCallList(ViewRenderWidget::fading);
 		setMouseCursor(MOUSE_ARROW);
