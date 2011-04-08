@@ -21,6 +21,7 @@ transition_type(TRANSITION_NONE), customTransitionColor(QColor()), customTransit
 	animationAlpha = new QPropertyAnimation(this, "alpha");
 	animationAlpha->setDuration(0);
 	animationAlpha->setEasingCurve(QEasingCurve::InOutQuad);
+
     QObject::connect(animationAlpha, SIGNAL(finished()), this, SIGNAL(animationFinished() ) );
     QObject::connect(animationAlpha, SIGNAL(finished()), this, SLOT(endTransition() ) );
 
@@ -172,9 +173,6 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 	if (animationAlpha->state() == QAbstractAnimation::Running )
 		animationAlpha->stop();
 
-
-//	QObject::disconnect(animationAlpha, SIGNAL(finished()), this, SLOT(setTransitionSource()) );
-
 	switch (transition_type) {
 		case TRANSITION_LAST_FRAME:
 			// special case ; don't behave identically for fade in than fade out
@@ -197,13 +195,17 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 			break;
 	}
 
-	animationAlpha->setDuration(instanteneous ? 0 : duration);
+	animationAlpha->setCurrentTime(0);
+	animationAlpha->setDuration( instanteneous ? 0 : duration );
 	animationAlpha->setStartValue( overlayAlpha );
 	animationAlpha->setEndValue( sceneVisible ? 0.0 : 1.0 );
 
-//	qDebug("start transition for %d ms, from %f to alpha %f, mode %d",animationAlpha->duration(), animationAlpha->startValue().toFloat(), animationAlpha->endValue().toFloat(),(int)transition_type );
-
+	qDebug("current time before start %d", animationAlpha->currentTime());
 	animationAlpha->start();
+
+	qDebug("start transition for %d ms, from %f to alpha %f, mode %d",animationAlpha->duration(), animationAlpha->startValue().toFloat(), animationAlpha->endValue().toFloat(),(int)transition_type );
+	qDebug("current time %d", animationAlpha->currentTime());
+	qDebug("current value %f", animationAlpha->currentValue().toFloat());
 	RenderingManager::getRenderingWidget()->setFaded(true);
 }
 

@@ -116,9 +116,10 @@ void EncodingThread::run() {
 				break;
 			// otherwise, quickly retry...
 			else
-				msleep(5);
+				msleep(period / 2);
 
 		} else {
+			timer.restart();
 
 			// record the picture to encode by calling the function specified in the recorder
 			(*(rec)->pt2RecordingFunction)(rec, pictq[pictq_rindex]);
@@ -134,16 +135,17 @@ void EncodingThread::run() {
 			pictq_cond->wakeAll();
 			pictq_mutex->unlock();
 
-			// how long since last frame ?
-			dt = period - (int) timer.restart();
-			// wait for the time needed to be at the good frame rate (if more than 1 ms)
-			if (dt > 1)
+			// how long time remains ?
+			dt = period - (int) timer.elapsed();
+			if (dt > 0 && dt < period)
 				msleep(dt);
+
 		}
 	}
 }
 
-RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), automaticSaving(false), started(false), elapseTimer(0), badframecount(0), fbohandle(0), update(40), displayupdate(33) {
+RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), automaticSaving(false), started(false), paused(false),
+													elapseTimer(0), badframecount(0), fbohandle(0), update(40), displayupdate(33) {
 
 	// set default format
 	temporaryFileName = "glmixeroutput";
@@ -186,6 +188,32 @@ void RenderingEncoder::setActive(bool on)
 
 	// inform if we could be activated
     emit activated(started);
+}
+
+
+void RenderingEncoder::setPaused(bool on)
+{
+	static int elapsed = 0;
+
+	// no pause if not active
+	if (!started)
+		return;
+
+	// set pause
+	paused = on;
+
+	if (paused) {
+		// remember timer
+		elapsed = timer.elapsed();
+		killTimer(elapseTimer);
+		emit status(tr("Recording paused after %1 s").arg(elapsed/1000), 3000);
+	} else {
+		// restart a timer
+		timer = timer.addMSecs(timer.elapsed() - elapsed);
+		elapseTimer = startTimer(1000);
+	    emit status(tr("Recording time: %1 s").arg(timer.elapsed()/1000), 1000);
+	}
+
 }
 
 // Start the encoding process
@@ -275,7 +303,7 @@ int RenderingEncoder::getRecodingTime() {
 // it *should* be called at the desired frame rate
 void RenderingEncoder::addFrame(){
 
-	if (!started || recorder == NULL)
+	if (!started || paused || recorder == NULL)
 		return;
 
 	// bind rendering frame buffer object
@@ -305,10 +333,8 @@ bool RenderingEncoder::close(){
 	int framecount = video_rec_stop(recorder);
 	int duration = timer.elapsed();
 
-    // free opengl buffer
-//	free(tmpframe);
-
 	// done
+    emit status(tr("Recorded %1 s").arg(timer.elapsed()/1000), 3000);
 	killTimer(elapseTimer);
 	started = false;
 
@@ -325,7 +351,7 @@ bool RenderingEncoder::close(){
 		 msgBox.setDetailedText( tr("This is because the recording frame rate was %1 fps on average instead of the targeted %2 fps.\n\n"
 				 "The consequence is that timing of the movie will be incorrect (play too fast). "
 				 "To avoid this, change the preferences to:\n"
-				 "- a faster recording codec (VFFHUFF is the fastest)\n"
+				 "- a faster recording codec\n"
 				 "- a lower recording frame rate\n"
 				 "- a lower rendering quality").arg((1000 * framecount)/duration).arg((int) ( 1000.0 / double(update) )) );
 
@@ -337,6 +363,7 @@ bool RenderingEncoder::close(){
 		     return false;
 		 }
 	}
+
 
 	return true;
 }

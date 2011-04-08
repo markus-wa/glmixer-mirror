@@ -79,6 +79,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	default:
 	case FORMAT_AVI_FFVHUFF:
 		snprintf(f_name, 6, "avi");
+//		f_codec_id = CODEC_ID_RAWVIDEO;
 		f_codec_id = CODEC_ID_FFVHUFF;
 		f_pix_fmt =  PIX_FMT_BGRA;
 		rec->pt2RecordingFunction = &ffvhuff_rec_deliver_vframe;

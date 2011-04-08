@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1115</width>
+    <width>1161</width>
     <height>895</height>
    </rect>
   </property>
@@ -1628,7 +1628,7 @@ Uncheck to display the restart frame when stopped.</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1115</width>
+     <width>1161</width>
      <height>19</height>
     </rect>
    </property>
@@ -1745,7 +1745,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionToggleRenderingVisible"/>
     <addaction name="actionPause"/>
     <addaction name="actionRecord"/>
-    <addaction name="actionSave_recording"/>
+    <addaction name="actionPause_recording"/>
     <addaction name="actionSave_snapshot"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
@@ -2171,7 +2171,7 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionToggleRenderingVisible"/>
    <addaction name="actionPause"/>
    <addaction name="actionRecord"/>
-   <addaction name="actionSave_recording"/>
+   <addaction name="actionPause_recording"/>
    <addaction name="actionSave_snapshot"/>
    <addaction name="actionFullscreen"/>
   </widget>
@@ -3074,13 +3074,22 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Ctrl+R</string>
    </property>
   </action>
-  <action name="actionSave_recording">
+  <action name="actionPause_recording">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/record-save.png</normaloff>:/glmixer/icons/record-save.png</iconset>
+     <normaloff>:/glmixer/icons/record-pause.png</normaloff>:/glmixer/icons/record-pause.png</iconset>
    </property>
    <property name="text">
-    <string>Save recording</string>
+    <string>Pause recording</string>
+   </property>
+   <property name="toolTip">
+    <string>Pause recording</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+R</string>

@@ -195,8 +195,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 	// Recording triggers
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));
-	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionRecord, SLOT(setChecked(bool)));
+//	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionRecord, SLOT(setChecked(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(status(const QString &, int)), statusbar , SLOT(showMessage(const QString &, int)));
+	QObject::connect(actionRecord, SIGNAL(toggled(bool)), actionPause_recording, SLOT(setEnabled(bool)));
+	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
+	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
 	// connect to disable many actions, like quitting, opening session, preferences, etc.
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionNew_Session, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionLoad_Session, SLOT(setDisabled(bool)));
@@ -204,8 +207,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionQuit, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionPreferences, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), menuAspect_Ratio, SLOT(setDisabled(bool)));
-
-	actionSave_recording->setEnabled(false);
 
 	// group the menu items of the catalog sizes ;
 	QActionGroup *catalogActionGroup = new QActionGroup(this);
@@ -1314,13 +1315,13 @@ void GLMixer::openSessionFile(QString filename)
     int errorLine;
     int errorColumn;
 
-     QFile file(currentSessionFileName);
-     QString caption = tr("%1 Cannot open session").arg(QCoreApplication::applicationName());
-     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-         QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(currentSessionFileName).arg(file.errorString()));
-     	 currentSessionFileName = QString();
-         return;
-     }
+	QFile file(currentSessionFileName);
+	QString caption = tr("%1 Cannot open session").arg(QCoreApplication::applicationName());
+	if (!file.open(QFile::ReadOnly | QFile::Text)) {
+		QMessageBox::warning(this, caption, tr("Cannot open file %1:\n\n%2.").arg(currentSessionFileName).arg(file.errorString()));
+		currentSessionFileName = QString();
+		return;
+	}
 
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
         QMessageBox::warning(this, caption, tr("Problem reading %1.\n\nParse error at line %2, column %3:\n%4").arg(currentSessionFileName).arg(errorLine).arg(errorColumn).arg(errorStr));

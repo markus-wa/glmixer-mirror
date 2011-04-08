@@ -75,6 +75,7 @@ public:
 
 public Q_SLOTS:
 	void setActive(bool on);
+	void setPaused(bool on);
 	void saveFile();
 	void saveFileAs();
 
@@ -93,7 +94,7 @@ private:
 	bool automaticSaving;
 
 	// state machine
-	bool started;
+	bool started, paused;
 	QTime timer;
 	int elapseTimer, badframecount;
 
