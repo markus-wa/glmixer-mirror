@@ -11,6 +11,7 @@
 #define MAX_RECENT_FOLDERS 10
 
 #include <QtGui>
+#include "RenderingManager.h"
 
 class SessionSwitcherWidget  : public QWidget {
 
@@ -33,6 +34,8 @@ public Q_SLOTS:
     void saveSettings();
     void restoreSettings();
 
+    void setAllowedAspectRatio(const standardAspectRatio ar);
+
 Q_SIGNALS:
 	void switchSessionFile(QString);
 
@@ -49,6 +52,7 @@ private:
     QListWidget *easingCurvePicker;
     QSpinBox *transitionDuration;
     QSize m_iconSize;
+    standardAspectRatio allowedAspectRatio;
 };
 
 #endif /* SESSIONSWITCHERWIDGET_H_ */

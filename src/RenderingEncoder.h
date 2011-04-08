@@ -36,6 +36,7 @@ extern "C" {
 #include "video_rec.h"
 }
 
+#include "RenderingManager.h"
 
 class EncodingThread;
 
@@ -82,6 +83,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void activated(bool);
 	void status(const QString &, int);
+	void selectAspectRatio(const standardAspectRatio );
 
 protected:
     void timerEvent(QTimerEvent *event);
@@ -99,7 +101,6 @@ private:
 	int elapseTimer, badframecount;
 
 	// opengl
-//	char * tmpframe;
 	unsigned int fbohandle;
 
 	// encoder

@@ -8,13 +8,12 @@
 #include <QDomDocument>
 
 #include "common.h"
-#include "RenderingManager.h"
 #include "SessionSwitcher.h"
 
 #include "SessionSwitcherWidget.moc"
 
 
-void addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename)
+void addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename, const standardAspectRatio allowedAspectRatio)
 {
 
    QFile file(filename);
@@ -64,26 +63,30 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
 
     file.close();
 
+    Qt::ItemFlags flags = Qt::ItemIsSelectable;
+    if (allowedAspectRatio == ASPECT_RATIO_FREE || ar == allowedAspectRatio)
+    	flags |= Qt::ItemIsEnabled;
+
     model->insertRow(0);
     model->setData(model->index(0, 0), name);
     model->setData(model->index(0, 0), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
+    model->itemFromIndex (model->index(0, 0))->setFlags (flags);
 
     model->setData(model->index(0, 1), nbElem);
     model->setData(model->index(0, 1), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 1))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
+    model->itemFromIndex (model->index(0, 1))->setFlags (flags);
 
     model->setData(model->index(0, 2), aspectRatio);
     model->setData(model->index(0, 2), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 2))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
+    model->itemFromIndex (model->index(0, 2))->setFlags (flags);
 
     model->setData(model->index(0, 3), date.toString("yy/MM/dd hh:mm"));
     model->setData(model->index(0, 3), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 3))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled);
+    model->itemFromIndex (model->index(0, 3))->setFlags (flags);
 
 }
 
-void fillFolderModel(QStandardItemModel *model, const QString &path)
+void fillFolderModel(QStandardItemModel *model, const QString &path, const standardAspectRatio allowedAspectRatio)
 {
     QDir dir(path);
     QFileInfoList fileList = dir.entryInfoList(QStringList("*.glm"), QDir::Files);
@@ -94,12 +97,13 @@ void fillFolderModel(QStandardItemModel *model, const QString &path)
     // fill list
     for (int i = 0; i < fileList.size(); ++i) {
          QFileInfo fileInfo = fileList.at(i);
-         addFile(model, fileInfo.completeBaseName(), fileInfo.lastModified(), fileInfo.absoluteFilePath() );
+         addFile(model, fileInfo.completeBaseName(), fileInfo.lastModified(), fileInfo.absoluteFilePath(), allowedAspectRatio);
     }
 }
 
 
-SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *settings) : QWidget(parent), appSettings(settings), m_iconSize(48,48) {
+SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *settings) : QWidget(parent),
+																					appSettings(settings), m_iconSize(48,48), allowedAspectRatio(ASPECT_RATIO_FREE) {
 
 	setupFolderToolbox();
 
@@ -232,7 +236,7 @@ void SessionSwitcherWidget::folderChanged( const QString & text )
     appSettings->setValue("recentFolderList", folders);
 
     folderHistory->updateGeometry ();
-    fillFolderModel(folderModel, text);
+    fillFolderModel(folderModel, text, allowedAspectRatio);
 }
 
 void SessionSwitcherWidget::openFolder()
@@ -415,3 +419,10 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
     return easingCurvePicker;
 }
 
+
+
+void SessionSwitcherWidget::setAllowedAspectRatio(const standardAspectRatio ar)
+{
+	allowedAspectRatio = ar;
+	updateFolder();
+}

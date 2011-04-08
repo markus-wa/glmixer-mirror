@@ -271,6 +271,7 @@ bool RenderingEncoder::start(){
 	// init
 	encoder->initialize(recorder, update);
 	badframecount = 0;
+	emit selectAspectRatio(RenderingManager::getInstance()->getRenderingAspectRatio());
 
 	// start
     emit status(tr("Start recording."), 1000);
@@ -334,6 +335,7 @@ bool RenderingEncoder::close(){
 	int duration = timer.elapsed();
 
 	// done
+	emit selectAspectRatio(ASPECT_RATIO_FREE);
     emit status(tr("Recorded %1 s").arg(timer.elapsed()/1000), 3000);
 	killTimer(elapseTimer);
 	started = false;
