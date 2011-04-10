@@ -37,7 +37,6 @@
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 #include "MixerView.h"
-#include "SourceDisplayWidget.h"
 #include "RenderingSource.h"
 #include "AlgorithmSource.h"
 #include "VideoSource.h"
@@ -189,9 +188,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setFaded(bool)));
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), vcontrolDockWidget, SLOT(setDisabled(bool)));
 
+	outputbutton_4_3->setDefaultAction(action4_3_aspect_ratio);
+	outputbutton_3_2->setDefaultAction(action3_2_aspect_ratio);
+	outputbutton_16_10->setDefaultAction(action16_10_aspect_ratio);
+	outputbutton_16_9->setDefaultAction(action16_9_aspect_ratio);
+	outputbutton_fullscreen->setDefaultAction(actionFullscreen);
+
 	// session switching
 	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getSessionSwitcher(), SLOT(startTransition(bool)));
-	QObject::connect(alphaSlider, SIGNAL(valueChanged(int)), RenderingManager::getSessionSwitcher(), SLOT(setTransparency(int)));
 
 	// Recording triggers
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));
@@ -206,6 +210,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionQuit, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionPreferences, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), menuAspect_Ratio, SLOT(setDisabled(bool)));
+	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputbutton_4_3, SLOT(setDisabled(bool)));
+	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputbutton_3_2, SLOT(setDisabled(bool)));
+	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputbutton_16_10, SLOT(setDisabled(bool)));
+	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputbutton_16_9, SLOT(setDisabled(bool)));
+
 	// do not allow to record without a fixed aspect ratio
 	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(selectAspectRatio(const standardAspectRatio )), switcherSession, SLOT(setAllowedAspectRatio(const standardAspectRatio)));

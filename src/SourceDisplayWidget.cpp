@@ -49,10 +49,16 @@ void SourceDisplayWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
+	if (!isEnabled())
+		return;
+
 	if (s) {
 
 	    glMatrixMode(GL_MODELVIEW);
 	    glLoadIdentity();
+
+	    glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
+
 		// update the texture of the source
 		s->update();
 

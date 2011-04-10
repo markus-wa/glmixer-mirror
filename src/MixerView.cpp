@@ -101,8 +101,8 @@ void MixerView::paint()
 			glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 
 			renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
-			if ( renderingAspectRatio > 1.0)
-				glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
+			if ( ABS(renderingAspectRatio) > 1.0)
+				glScaled(SOURCE_UNIT, SOURCE_UNIT / renderingAspectRatio,  1.0);
 			else
 				glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
 

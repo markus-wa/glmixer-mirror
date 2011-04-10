@@ -163,6 +163,9 @@ void OutputRenderWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
+	if (!isEnabled())
+		return;
+
 	if ( RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
