@@ -31,18 +31,25 @@
 
 QTimer *glRenderWidget::timer = 0;
 
+static QGLFormat glRenderWidgetFormat(QGL::AlphaChannel | QGL::NoDepthBuffer | QGL::DirectRendering | QGL::NoAccumBuffer | QGL::NoStencilBuffer);
+
+// for using VSYNC if we move the opengl rendering into a thread:
+// glRenderWidgetFormat.setSwapInterval(20);
+
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
-: QGLWidget(QGLFormat(QGL::AlphaChannel | QGL::NoDepthBuffer), parent, shareWidget, f), aspectRatio(1.0)
+: QGLWidget(glRenderWidgetFormat, parent, shareWidget, f), aspectRatio(1.0)
 
 {
 	static bool testDone = false;
 	if (!testDone) {
-		if (!format().rgba())
+		if (!glRenderWidgetFormat.rgba())
 		  qFatal("*** ERROR ***\n\nOpenGL Could not set RGBA buffer; cannot perform OpenGL rendering.");
-		if (!format().directRendering())
+		if (!glRenderWidgetFormat.directRendering())
 		  qCritical("** WARNING **\n\nOpenGL Could not set direct rendering; rendering will be slow.");
-		if (!format().doubleBuffer())
+		if (!glRenderWidgetFormat.doubleBuffer())
 		  qCritical("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
+		if (glRenderWidgetFormat.swapInterval() > 0)
+		  qCritical("** WARNING **\n\nOpenGL is configured with VSYNC enabled; rendering will be slow.\n\nDisable VSYNC in your system graphics properties.");
 		if (!glSupportsExtension("GL_EXT_gpu_shader4"))
 		  qCritical("** WARNING **\n\nOpenGL does not support GLSL shading version 4; rendering will be slow.");
 		testDone = true;
