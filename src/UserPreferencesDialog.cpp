@@ -184,6 +184,10 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	stream >> automaticSaveFolder;
 	recordingFolderLine->setText(automaticSaveFolder);
 
+	// f. disable filtering
+	bool disablefilter = false;
+	stream >> disablefilter;
+	disableFiltering->setChecked(disablefilter);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -227,6 +231,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	// e. recording folder
 	stream << recordingFolderBox->isChecked();
 	stream << recordingFolderLine->text();
+
+	// f. disable filter
+	stream << disableFiltering->isChecked();
 
 	return data;
 }

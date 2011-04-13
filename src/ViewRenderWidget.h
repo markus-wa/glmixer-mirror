@@ -118,6 +118,9 @@ public:
 	static inline unsigned int getStipplingMode() { return stipplingMode; }
 	static inline void setStipplingMode(unsigned int m) { stipplingMode = CLAMP(m, 0, 3); }
 
+	static inline bool filteringEnabled() { return !disableFiltering; }
+	void setFilteringEnabled(bool on);
+
 	void removeFromSelections(Source *s);
 
 Q_SIGNALS:
@@ -154,6 +157,7 @@ protected:
     static GLfloat texc[8];
     static GLfloat maskc[8];
     static QGLShaderProgram *program;
+    static bool disableFiltering;
 
 	// all the display lists
 	static GLuint border_thin_shadow, border_large_shadow;
@@ -165,7 +169,6 @@ protected:
 	static GLuint fading;
 	static GLuint stipplingMode;
 	static GLubyte stippling[];
-
 
     static void setSourceDrawingMode(bool on);
 
@@ -206,7 +209,6 @@ private:
     GLuint buildBordersList();
     GLuint buildFadingList();
 
-    void buildShader();
 };
 
 #endif /* VIEWRENDERWIDGET_H_ */

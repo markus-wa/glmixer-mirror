@@ -195,13 +195,15 @@ void MixerView::paint()
 		glPushMatrix();
 		glTranslated( ax, ay, az);
 			glPushMatrix();
-			glTranslated( SOURCE_UNIT * s->getAspectRatio() + 1.0, - SOURCE_UNIT + 1.0, 0.0);
+			if ( ABS(s->getAspectRatio()) > 1.0)
+				glTranslated(SOURCE_UNIT + 1.0, -SOURCE_UNIT / s->getAspectRatio() + 1.0,  0.0);
+			else
+				glTranslated(SOURCE_UNIT * s->getAspectRatio() + 1.0, -SOURCE_UNIT + 1.0,  0.0);
 			for (int i = 1; i < RenderingManager::getInstance()->getSourceBasketSize(); ++i ) {
-				glTranslated(  2.1, 0.0, 0.0);
+				glTranslated(2.1, 0.0, 0.0);
 				glCallList(ViewRenderWidget::border_thin);
 			}
 			glPopMatrix();
-
 		renderingAspectRatio = s->getScaleX() / s->getScaleY();
 		if ( renderingAspectRatio > 1.0)
 			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);

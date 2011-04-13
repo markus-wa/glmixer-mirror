@@ -9,6 +9,8 @@
 
 #include "common.h"
 #include "SessionSwitcher.h"
+#include "OutputRenderWindow.h"
+#include "SourceDisplayWidget.h"
 
 #include "SessionSwitcherWidget.moc"
 
@@ -105,20 +107,47 @@ void fillFolderModel(QStandardItemModel *model, const QString &path, const stand
 SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *settings) : QWidget(parent),
 																					appSettings(settings), m_iconSize(48,48), allowedAspectRatio(ASPECT_RATIO_FREE) {
 
-	setupFolderToolbox();
-
-	restoreSettings();
-}
-
-
-void SessionSwitcherWidget::setupFolderToolbox()
-{
 	transitionSelection = new QComboBox;
 	transitionSelection->addItem("Transition - Disabled");
-	transitionSelection->addItem("Transition - Background");
+	transitionSelection->addItem("Transition - Black");
 	transitionSelection->addItem("Transition - Last frame");
 	transitionSelection->addItem("Transition - Custom color");
 	transitionSelection->addItem("Transition - Media file");
+	transitionSelection->setToolTip("Select the transition type");
+
+	transitionTab = new QTabWidget(this);
+	transitionTab->setToolTip("Choose how you control the transition");
+	transitionTab->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
+	transitionTab->addTab( new QWidget(), "Manual");
+	QGridLayout *g = new QGridLayout;
+
+    sessionLabel = new QLabel;
+    sessionLabel->setText("Current");
+    sessionLabel->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
+    sessionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignBottom);
+    g->addWidget(sessionLabel, 0, 0);
+
+    overlayPreview = new SourceDisplayWidget(this);
+    overlayPreview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    overlayPreview->setMinimumSize(QSize(80, 60));
+    g->addWidget(overlayPreview, 0, 1);
+
+    overlayLabel = new QLabel;
+    overlayLabel->setText("Next");
+    overlayLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    overlayLabel->setAlignment(Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing);
+    g->addWidget(overlayLabel, 0, 2);
+
+    transitionSlider = new QSlider;
+    transitionSlider->setMinimum(-100);
+    transitionSlider->setMaximum(101);
+    transitionSlider->setValue(-100);
+    transitionSlider->setOrientation(Qt::Horizontal);
+    transitionSlider->setTickPosition(QSlider::TicksAbove);
+    transitionSlider->setTickInterval(100);
+    g->addWidget(transitionSlider, 1, 0, 1, 3);
+
+    transitionTab->widget(0)->setLayout(g);
 
 	QLabel *transitionDurationLabel;
 	transitionDuration = new QSpinBox;
@@ -127,7 +156,6 @@ void SessionSwitcherWidget::setupFolderToolbox()
 	transitionDuration->setValue(1000);
 	transitionDurationLabel = new QLabel(tr("&Duration (ms):"));
 	transitionDurationLabel->setBuddy(transitionDuration);
-	transitionDuration->setEnabled(false);
 
     // create the curves into the transition easing curve selector
 	easingCurvePicker = createCurveIcons();
@@ -135,8 +163,14 @@ void SessionSwitcherWidget::setupFolderToolbox()
 	easingCurvePicker->setWrapping (false);
     easingCurvePicker->setIconSize(m_iconSize);
     easingCurvePicker->setFixedHeight(m_iconSize.height()+34);
-	easingCurvePicker->setEnabled(false);
 	easingCurvePicker->setCurrentRow(3);
+
+	transitionTab->addTab( new QWidget(), "Automatic");
+	g = new QGridLayout;
+	g->addWidget(transitionDurationLabel, 1, 0);
+	g->addWidget(transitionDuration, 1, 1);
+    g->addWidget(easingCurvePicker, 2, 0, 1, 2);
+    transitionTab->widget(1)->setLayout(g);
 
     folderModel = new QStandardItemModel(0, 4, this);
     folderModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Filename"));
@@ -151,11 +185,13 @@ void SessionSwitcherWidget::setupFolderToolbox()
 
     folderValidator *v = new folderValidator(this);
     QToolButton *dirButton = new QToolButton;
+    dirButton->setToolTip("Add a folder to the list");
 	QIcon icon;
 	icon.addFile(QString::fromUtf8(":/glmixer/icons/fileopen.png"), QSize(), QIcon::Normal, QIcon::Off);
 	dirButton->setIcon(icon);
 
     QToolButton *dirDeleteButton = new QToolButton;
+    dirDeleteButton->setToolTip("Remove a folder from the list");
 	QIcon icon2;
 	icon2.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
 	dirDeleteButton->setIcon(icon2);
@@ -165,6 +201,7 @@ void SessionSwitcherWidget::setupFolderToolbox()
 	customButton->setVisible(false);
 
 	folderHistory = new QComboBox;
+	folderHistory->setToolTip("List of folders containing session files");
 	folderHistory->setEditable(true);
 	folderHistory->setValidator(v);
 	folderHistory->setInsertPolicy (QComboBox::InsertAtTop);
@@ -174,6 +211,7 @@ void SessionSwitcherWidget::setupFolderToolbox()
 
     QTreeView *proxyView;
     proxyView = new QTreeView;
+    proxyView->setToolTip("Double click on a session to initiate the transition");
     proxyView->setRootIsDecorated(false);
     proxyView->setAlternatingRowColors(true);
     proxyView->setSortingEnabled(true);
@@ -182,6 +220,7 @@ void SessionSwitcherWidget::setupFolderToolbox()
     proxyView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     proxyView->resizeColumnToContents(1);
     proxyView->resizeColumnToContents(2);
+    proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
 
     QLabel *filterPatternLabel;
     QLineEdit *filterPatternLineEdit;
@@ -199,23 +238,22 @@ void SessionSwitcherWidget::setupFolderToolbox()
     connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(selectTransitionType(int)));
     connect(transitionDuration, SIGNAL(valueChanged(int)), RenderingManager::getSessionSwitcher(), SLOT(setTransitionDuration(int)));
     connect(easingCurvePicker, SIGNAL(currentRowChanged (int)), RenderingManager::getSessionSwitcher(), SLOT(setTransitionCurve(int)));
+    connect(transitionSlider, SIGNAL(valueChanged(int)), this, SLOT(manualTransitionAdjustment(int)));
 
     QGridLayout *mainLayout = new QGridLayout;
     mainLayout->addWidget(transitionSelection, 0, 0, 1, 3);
     mainLayout->addWidget(customButton, 0, 3);
-
-    mainLayout->addWidget(transitionDurationLabel, 1, 0);
-    mainLayout->addWidget(transitionDuration, 1, 1, 1, 3);
-
-    mainLayout->addWidget(easingCurvePicker, 2, 0, 1, 4);
-    mainLayout->addWidget(proxyView, 3, 0, 1, 4);
-    mainLayout->addWidget(folderHistory, 4, 0, 1, 2);
-    mainLayout->addWidget(dirButton, 4, 2);
-    mainLayout->addWidget(dirDeleteButton, 4, 3);
-    mainLayout->addWidget(filterPatternLabel, 5, 0);
-    mainLayout->addWidget(filterPatternLineEdit, 5, 1, 1, 3);
+    mainLayout->addWidget(transitionTab, 1, 0, 1, 4);
+    mainLayout->addWidget(proxyView, 2, 0, 1, 4);
+    mainLayout->addWidget(folderHistory, 3, 0, 1, 2);
+    mainLayout->addWidget(dirButton, 3, 2);
+    mainLayout->addWidget(dirDeleteButton, 3, 3);
+    mainLayout->addWidget(filterPatternLabel, 4, 0);
+    mainLayout->addWidget(filterPatternLineEdit, 4, 1, 1, 3);
     setLayout(mainLayout);
 
+    // restore the settings
+	restoreSettings();
 }
 
 
@@ -268,7 +306,8 @@ void SessionSwitcherWidget::updateFolder()
 
 void SessionSwitcherWidget::openFileFromFolder(const QModelIndex & index)
 {
-	emit switchSessionFile(proxyFolderModel->data(index, Qt::UserRole).toString());
+	if (transitionTab->currentIndex() == 1)
+		emit switchSessionFile(proxyFolderModel->data(index, Qt::UserRole).toString());
 }
 
 void  SessionSwitcherWidget::selectTransitionType(int t)
@@ -277,14 +316,14 @@ void  SessionSwitcherWidget::selectTransitionType(int t)
 	RenderingManager::getSessionSwitcher()->setTransitionType( tt );
 
 	customButton->setStyleSheet("");
-	transitionDuration->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
-	easingCurvePicker->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
+	transitionTab->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
 
 	if ( tt == SessionSwitcher::TRANSITION_CUSTOM_COLOR ) {
 		QPixmap c = QPixmap(16, 16);
 		c.fill(RenderingManager::getSessionSwitcher()->transitionColor());
 		customButton->setIcon( QIcon(c) );
 		customButton->setVisible(true);
+		customButton->setToolTip("Choose color");
 
 	} else if ( tt == SessionSwitcher::TRANSITION_CUSTOM_MEDIA ) {
 		customButton->setIcon(QIcon(QString::fromUtf8(":/glmixer/icons/fileopen.png")));
@@ -292,8 +331,12 @@ void  SessionSwitcherWidget::selectTransitionType(int t)
 		if ( !QFileInfo(RenderingManager::getSessionSwitcher()->transitionMedia()).exists() )
 			customButton->setStyleSheet("QToolButton { border: 1px solid red }");
 		customButton->setVisible(true);
+		customButton->setToolTip("Choose media");
 	} else
 		customButton->setVisible(false);
+
+	// set the overlay source
+	overlayPreview->setSource(RenderingManager::getSessionSwitcher()->overlaySource);
 
 }
 
@@ -338,7 +381,7 @@ void SessionSwitcherWidget::saveSettings()
     QVariant variant = RenderingManager::getSessionSwitcher()->transitionColor();
     appSettings->setValue("transitionColor", variant);
     appSettings->setValue("transitionMedia", RenderingManager::getSessionSwitcher()->transitionMedia());
-
+    appSettings->setValue("transitionTab", transitionTab->currentIndex());
 }
 
 void SessionSwitcherWidget::restoreSettings()
@@ -359,10 +402,12 @@ void SessionSwitcherWidget::restoreSettings()
     transitionSelection->setCurrentIndex(appSettings->value("transitionSelection", "0").toInt());
     transitionDuration->setValue(appSettings->value("transitionDuration", "1000").toInt());
     easingCurvePicker->setCurrentRow(appSettings->value("transitionCurve", "3").toInt());
+    transitionTab->setCurrentIndex(appSettings->value("transitionTab", 0).toInt());
 
     connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(saveSettings()));
     connect(transitionDuration, SIGNAL(valueChanged(int)), this, SLOT(saveSettings()));
     connect(easingCurvePicker, SIGNAL(currentRowChanged (int)), this, SLOT(saveSettings()));
+    connect(transitionTab, SIGNAL(currentChanged(int)), this, SLOT(saveSettings()));
 }
 
 QListWidget *SessionSwitcherWidget::createCurveIcons()
@@ -425,4 +470,19 @@ void SessionSwitcherWidget::setAllowedAspectRatio(const standardAspectRatio ar)
 {
 	allowedAspectRatio = ar;
 	updateFolder();
+}
+
+void SessionSwitcherWidget::manualTransitionAdjustment(int t)
+{
+	// apply transition
+	RenderingManager::getSessionSwitcher()->setAlpha( 1.f - float( ABS(t) ) / 100.f);
+
+	// detect change of session
+	if ( t == 0 ){
+
+	}
+	// detect end of transition
+	if ( t > 100 ) {
+		transitionSlider->setValue(-100);
+	}
 }

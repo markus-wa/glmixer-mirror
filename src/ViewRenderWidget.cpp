@@ -117,6 +117,7 @@ GLfloat ViewRenderWidget::coords[12] = { -1.f, 1.f, 0.f,  1.f, 1.f, 0.f,  1.f, -
 GLfloat ViewRenderWidget::texc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 GLfloat ViewRenderWidget::maskc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 QGLShaderProgram *ViewRenderWidget::program = 0;
+bool ViewRenderWidget::disableFiltering = false;
 
 ViewRenderWidget::ViewRenderWidget() :
 	glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), showFps_(0)
@@ -196,9 +197,6 @@ void ViewRenderWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
 	setBackgroundColor(QColor(52, 52, 52));
-
-	// Create GLSL program and VERTEX array
-	buildShader();
 
 	// Create display lists
 	quad_texured = buildTexturedQuadList();
@@ -864,23 +862,37 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 	// NB: the catalog is restored in GLMixer::openSessionFile because GLMixer has access to the actions
 }
 
-void ViewRenderWidget::buildShader(){
+void ViewRenderWidget::setFilteringEnabled(bool on)
+{
+	// if the GLSL program was already created, delete it
+	if( program ) {
+		// except if the filtering is already at the same configuration
+		if ( disableFiltering == !on )
+			return;
+		program->release();
+		delete program;
+	}
+	// apply flag
+	disableFiltering = !on;
 
+	// instanciate the GLSL program
 	program = new QGLShaderProgram(this);
+
+	QString fshfile;
+	if (disableFiltering)
+		fshfile = ":/glmixer/shaders/imageProcessing_fragment_simplified.glsl";
+	else
+		fshfile = ":/glmixer/shaders/imageProcessing_fragment.glsl";
+
+	if (!program->addShaderFromSourceFile(QGLShader::Fragment, fshfile))
+		qFatal( "** ERROR ** \n\nOpenGL GLSL error in fragment shader: \n\n%s", qPrintable(program->log()));
+	else if (program->log().contains("warning"))
+		qCritical( "** WARNING ** \n\nOpenGL GLSL warning in fragment shader: \n\n%s", qPrintable(program->log()));
 
 	if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl"))
 		qFatal( "** ERROR ** \n\nOpenGL GLSL error in vertex shader: \n\n%s", qPrintable(program->log()));
 	else if (program->log().contains("warning"))
 		qCritical( "** WARNING ** \n\nOpenGL GLSL warning in vertex shader: \n\n%s", qPrintable(program->log()));
-
-#ifndef GLMIXER_SIMPLIFIED_GLSL
-	if (!program->addShaderFromSourceFile(QGLShader::Fragment, ":/glmixer/shaders/imageProcessing_fragment.glsl"))
-#else
-	if (!program->addShaderFromSourceFile(QGLShader::Fragment, ":/glmixer/shaders/imageProcessing_fragment_simplified.glsl"))
-#endif
-		qFatal( "** ERROR ** \n\nOpenGL GLSL error in fragment shader: \n\n%s", qPrintable(program->log()));
-	else if (program->log().contains("warning"))
-		qCritical( "** WARNING ** \n\nOpenGL GLSL warning in fragment shader: \n\n%s", qPrintable(program->log()));
 
 	if (!program->link())
 		qFatal( "** ERROR ** \n\nOpenGL GLSL link error:\n\n%s", qPrintable(program->log()));
@@ -898,25 +910,23 @@ void ViewRenderWidget::buildShader(){
 	program->setUniformValue("sourceTexture", 0);
 	program->setUniformValue("maskTexture", 1);
 	program->setUniformValue("utilityTexture", 2);
-
 	program->setUniformValue("sourceDrawing", false);
 	program->setUniformValue("gamma", 1.f);
 	program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f); // gamma levels : minInput, maxInput, minOutput, maxOutput:
 
-
-#ifndef GLMIXER_SIMPLIFIED_GLSL
-	program->setUniformValue("step", 1.f / 640.f, 1.f / 480.f);
-	program->setUniformValue("contrast", 1.f);
-	program->setUniformValue("saturation", 1.f);
-	program->setUniformValue("brightness", 0.f);
-	program->setUniformValue("hueshift", 0.f);
-	program->setUniformValue("chromakey", 0.0, 0.0, 0.0 );
-	program->setUniformValue("chromadelta", 0.1f);
-	program->setUniformValue("threshold", 0.0f);
-	program->setUniformValue("nbColors", (GLint) -1);
-	program->setUniformValue("invertMode", (GLint) 0);
-	program->setUniformValue("filter", (GLint) 0);
-#endif
+	if (!disableFiltering) {
+		program->setUniformValue("step", 1.f / 640.f, 1.f / 480.f);
+		program->setUniformValue("contrast", 1.f);
+		program->setUniformValue("saturation", 1.f);
+		program->setUniformValue("brightness", 0.f);
+		program->setUniformValue("hueshift", 0.f);
+		program->setUniformValue("chromakey", 0.0, 0.0, 0.0 );
+		program->setUniformValue("chromadelta", 0.1f);
+		program->setUniformValue("threshold", 0.0f);
+		program->setUniformValue("nbColors", (GLint) -1);
+		program->setUniformValue("invertMode", (GLint) 0);
+		program->setUniformValue("filter", (GLint) 0);
+	}
 
 	program->release();
 

@@ -52,7 +52,6 @@ public Q_SLOTS:
 	void recordingFolderPathChanged(const QString &);
 
 private:
-
 	class Source *defaultSource;
 
 };

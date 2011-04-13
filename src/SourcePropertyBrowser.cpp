@@ -310,7 +310,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
 
-#ifndef GLMIXER_SIMPLIFIED_GLSL
 	// Filtered on/off
 	QtProperty *filter = boolManager->addProperty("Filtered");
 	filter->setToolTip("Use GLSL filters");
@@ -396,7 +395,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		intManager->setSingleStep(property, 10);
 		chroma->addSubProperty(property);
 	}
-#endif
+
 	// Frames size
 	QtProperty *fs = sizeManager->addProperty( QLatin1String("Frames size") );
 	fs->setToolTip("Width & height of frames");
@@ -592,42 +591,46 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
 		boolManager->setValue(idToProperty["Pixelated"], s->isPixelated());
 		infoManager->setValue(idToProperty["Aspect ratio"], aspectRatioToString(s->getAspectRatio()) );
-#ifndef GLMIXER_SIMPLIFIED_GLSL
-		boolManager->setValue(idToProperty["Filtered"], s->isFiltered());
-		intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
-		intManager->setValue(idToProperty["Contrast"], s->getContrast() );
-		intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
-		intManager->setValue(idToProperty["Hue shift"], s->getHueShift() );
-		intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
-		intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
-		enumManager->setValue(idToProperty["Color inversion"], (int) s->getInvertMode());
-		enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
-		boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
-		colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
-		intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
 
-		// enable / disable properties depending on their dependencies
-		idToProperty["Brightness"]->setEnabled(s->isFiltered());
-		idToProperty["Contrast"]->setEnabled(s->isFiltered());
-		idToProperty["Threshold"]->setEnabled(s->isFiltered());
-		idToProperty["Color inversion"]->setEnabled(s->isFiltered());
-		idToProperty["Filter"]->setEnabled(s->isFiltered());
-		idToProperty["Chroma key"]->setEnabled(s->isFiltered());
 
-		if (s->isFiltered()) {
-			idToProperty["Key Color"]->setEnabled(s->getChromaKey());
-			idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
-			idToProperty["Saturation"]->setEnabled(s->getLuminanceThreshold() < 1);
-			idToProperty["Hue shift"]->setEnabled(s->getLuminanceThreshold() < 1);
-			idToProperty["Posterize"]->setEnabled(s->getLuminanceThreshold() < 1);
-		} else {
-			idToProperty["Posterize"]->setEnabled(false);
-			idToProperty["Hue shift"]->setEnabled(false);
-			idToProperty["Saturation"]->setEnabled(false);
-			idToProperty["Key Color"]->setEnabled(false);
-			idToProperty["Key Tolerance"]->setEnabled(false);
+		idToProperty["Filtered"]->setEnabled(ViewRenderWidget::filteringEnabled());
+		if (ViewRenderWidget::filteringEnabled()) {
+
+			boolManager->setValue(idToProperty["Filtered"], s->isFiltered());
+			intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
+			intManager->setValue(idToProperty["Contrast"], s->getContrast() );
+			intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
+			intManager->setValue(idToProperty["Hue shift"], s->getHueShift() );
+			intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
+			intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
+			enumManager->setValue(idToProperty["Color inversion"], (int) s->getInvertMode());
+			enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
+			boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
+			colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
+			intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
+
+			// enable / disable properties depending on their dependencies
+			idToProperty["Brightness"]->setEnabled(s->isFiltered());
+			idToProperty["Contrast"]->setEnabled(s->isFiltered());
+			idToProperty["Threshold"]->setEnabled(s->isFiltered());
+			idToProperty["Color inversion"]->setEnabled(s->isFiltered());
+			idToProperty["Filter"]->setEnabled(s->isFiltered());
+			idToProperty["Chroma key"]->setEnabled(s->isFiltered());
+
+			if (s->isFiltered()) {
+				idToProperty["Key Color"]->setEnabled(s->getChromaKey());
+				idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
+				idToProperty["Saturation"]->setEnabled(s->getLuminanceThreshold() < 1);
+				idToProperty["Hue shift"]->setEnabled(s->getLuminanceThreshold() < 1);
+				idToProperty["Posterize"]->setEnabled(s->getLuminanceThreshold() < 1);
+			} else {
+				idToProperty["Posterize"]->setEnabled(false);
+				idToProperty["Hue shift"]->setEnabled(false);
+				idToProperty["Saturation"]->setEnabled(false);
+				idToProperty["Key Color"]->setEnabled(false);
+				idToProperty["Key Tolerance"]->setEnabled(false);
+			}
 		}
-#endif
 
 		if (s->rtti() == Source::VIDEO_SOURCE) {
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Media file") );
@@ -854,12 +857,9 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &val
 	if ( property == idToProperty["Color"] ) {
 		currentItem->setColor(value);
 	}
-
-#ifndef GLMIXER_SIMPLIFIED_GLSL
 	else if ( property == idToProperty["Key Color"] ) {
 			currentItem->setChromaKeyColor(value);
 	}
-#endif
 }
 
 
@@ -908,7 +908,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 			}
 		}
 	}
-#ifndef GLMIXER_SIMPLIFIED_GLSL
 	else if ( property == idToProperty["Filtered"] ) {
 		currentItem->setFiltered(value);
 		updatePropertyTree(currentItem);
@@ -918,7 +917,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 		idToProperty["Key Color"]->setEnabled(value);
 		idToProperty["Key Tolerance"]->setEnabled(value);
 	}
-#endif
 }
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
@@ -926,7 +924,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 	if (!currentItem)
 			return;
 
-#ifndef GLMIXER_SIMPLIFIED_GLSL
 	if ( property == idToProperty["Brightness"] ) {
 		currentItem->setBrightness(value);
 	}
@@ -957,9 +954,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 	else if ( property == idToProperty["Key Tolerance"] ) {
 		currentItem->setChromaKeyTolerance(value);
 	}
-	else
-#endif
-	if ( property == idToProperty["Variability"] ) {
+	else if ( property == idToProperty["Variability"] ) {
 		if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
 			AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
 			as->setVariability( double(value) / 100.0);
@@ -1013,7 +1008,6 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 			currentItem->setMask( (Source::maskType) value );
 
 	}
-#ifndef GLMIXER_SIMPLIFIED_GLSL
 	else if ( property == idToProperty["Filter"] ) {
 
 		currentItem->setFilter( (Source::filterType) value );
@@ -1025,7 +1019,6 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 		currentItem->setInvertMode( (Source::invertModeType) value );
 
 	}
-#endif
 }
 
 

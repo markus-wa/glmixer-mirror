@@ -32,7 +32,7 @@ struct converter {
 video_rec_t *
 video_rec_init(const char *filename, encodingformat f, int width, int height, int fps, char *errormessage)
 {
-	AVCodec *c;
+	AVCodec *c = NULL;
 
 	video_rec_t *rec = calloc(1, sizeof(video_rec_t));
 	rec->enc = calloc(1, sizeof(struct encoder));
@@ -44,46 +44,74 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	rec->framenum = 0;
 
 	// setup according to format
-	char f_name[6] = "";
+	char f_name[9] = "";
 	enum CodecID f_codec_id = CODEC_ID_NONE;
 	enum PixelFormat f_pix_fmt =  PIX_FMT_NONE;
 	switch (f){
 	case FORMAT_MPG_MPEG1:
-		snprintf(f_name, 6, "mpeg");
+		snprintf(f_name, 9, "mpeg");
 		f_codec_id = CODEC_ID_MPEG1VIDEO;
 		f_pix_fmt =  PIX_FMT_YUV420P;
-		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
+		rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
 		rec->conv = calloc(1, sizeof(struct converter));
+		snprintf(rec->suffix, 6, "mpg");
+		snprintf(rec->description, 64, "MPEG Video (*.mpg *.mpeg)");
 		break;
 	case FORMAT_WMV_WMV2:
-		snprintf(f_name, 6, "avi");
+		snprintf(f_name, 9, "avi");
 		f_codec_id = CODEC_ID_WMV2;
 		f_pix_fmt =  PIX_FMT_YUV420P;
-		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
+		rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
 		rec->conv = calloc(1, sizeof(struct converter));
+		snprintf(rec->suffix, 6, "wmv");
+		snprintf(rec->description, 64, "Windows Media Video (*.wmv)");
 		break;
 	case FORMAT_FLV_FLV1:
-		snprintf(f_name, 6, "flv");
+		snprintf(f_name, 9, "flv");
 		f_codec_id = CODEC_ID_FLV1;
 		f_pix_fmt =  PIX_FMT_YUV420P;
-		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
+		rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
 		rec->conv = calloc(1, sizeof(struct converter));
+		snprintf(rec->suffix, 6, "flv");
+		snprintf(rec->description, 64, "Flash Video (*.flv)");
 		break;
 	case FORMAT_MP4_MPEG4:
-		snprintf(f_name, 6, "mp4");
+		snprintf(f_name, 9, "mp4");
 		f_codec_id = CODEC_ID_MPEG4;
 		f_pix_fmt =  PIX_FMT_YUV420P;
-		rec->pt2RecordingFunction = &mpeg_rec_deliver_vframe;
+		rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
 		rec->conv = calloc(1, sizeof(struct converter));
+		snprintf(rec->suffix, 6, "mp4");
+		snprintf(rec->description, 64, "MPEG 4 Video (*.mp4)");
 		break;
-	default:
+	case FORMAT_MPG_MPEG2:
+		snprintf(f_name, 9, "mpeg");
+		f_codec_id = CODEC_ID_MPEG2VIDEO;
+		f_pix_fmt =  PIX_FMT_YUV420P;
+		rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
+		rec->conv = calloc(1, sizeof(struct converter));
+		snprintf(rec->suffix, 6, "mpg");
+		snprintf(rec->description, 64, "MPEG Video (*.mpg *.mpeg)");
+		break;
 	case FORMAT_AVI_FFVHUFF:
-		snprintf(f_name, 6, "avi");
-//		f_codec_id = CODEC_ID_RAWVIDEO;
+		snprintf(f_name, 9, "avi");
 		f_codec_id = CODEC_ID_FFVHUFF;
 		f_pix_fmt =  PIX_FMT_BGRA;
-		rec->pt2RecordingFunction = &ffvhuff_rec_deliver_vframe;
+		rec->pt2RecordingFunction = &rec_deliver_vframe;
 		rec->conv = NULL;
+		snprintf(rec->suffix, 6, "avi");
+		snprintf(rec->description, 64, "AVI Video (*.avi)");
+		break;
+	default:
+	case FORMAT_AVI_RAW:
+		snprintf(f_name, 9, "avi");
+//		snprintf(f_name, 9, "rawvideo");
+		f_codec_id = CODEC_ID_RAWVIDEO;
+		f_pix_fmt =  PIX_FMT_BGRA;
+		rec->pt2RecordingFunction = &rec_deliver_vframe;
+		rec->conv = NULL;
+		snprintf(rec->suffix, 6, "avi");
+		snprintf(rec->description, 64, "AVI Video (*.avi)");
 	}
 
 	//
@@ -93,9 +121,8 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
     av_register_all();
 	rec->enc->fmt = av_guess_format(f_name, NULL, NULL);
 	if(rec->enc->fmt == NULL) {
-		snprintf(errormessage, 256, "%s file format not supported. Unable to record to %s.", f_name, filename);
-		free(rec->enc);
-		free(rec);
+		snprintf(errormessage, 256, "File format %s not supported.\nUnable to start recording.", f_name, filename);
+		video_rec_free(rec);
 		return NULL;
 	}
 
@@ -112,15 +139,14 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	rec->enc->v_ctx->width = width;
 	rec->enc->v_ctx->height = height;
 	rec->enc->v_ctx->time_base.den = fps;
+
 	rec->enc->v_ctx->time_base.num = 1;
 	rec->enc->v_ctx->pix_fmt = f_pix_fmt;
 	rec->enc->v_ctx->coder_type = 1;
 
 	if(av_set_parameters(rec->enc->oc, NULL) < 0) {
 		snprintf(errormessage, 256, "Invalid output format parameters.\nUnable to start recording.");
-		av_free(rec->enc->oc);
-		free(rec->enc);
-		free(rec);
+		video_rec_free(rec);
 		return NULL;
 	}
 
@@ -133,19 +159,15 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	avcodec_register_all();
 
 	c = avcodec_find_encoder(rec->enc->v_ctx->codec_id);
-	if (!c) {
-		snprintf(errormessage, 256, "Cannot find video codec %s.\nUnable to start recording.", c->name);
-		av_free(rec->enc->oc);
-		free(rec->enc);
-		free(rec);
+	if (c == NULL) {
+		snprintf(errormessage, 256, "Cannot find video codec for %s file.\nUnable to start recording.", f_name);
+		video_rec_free(rec);
 		return NULL;
 	}
 
 	if(avcodec_open(rec->enc->v_ctx, c) < 0) {
-		snprintf(errormessage, 256, "Cannot open video codec %s at %d fps.\nUnable to start recording.", c->name, fps);
-		av_free(rec->enc->oc);
-		free(rec->enc);
-		free(rec);
+		snprintf(errormessage, 256, "Cannot open video codec %s (at %d fps).\nUnable to start recording.", c->name, rec->enc->v_ctx->time_base.den);
+		video_rec_free(rec);
 		return NULL;
 	}
 
@@ -154,10 +176,8 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 #else
 	if(avio_open(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
 #endif
-		snprintf(errormessage, 256, "Could not open temporary file %s for writing.", filename);
-		av_free(rec->enc->oc);
-		free(rec->enc);
-		free(rec);
+		snprintf(errormessage, 256, "Cannot create temporary file %s.\nUnable to start recording.", filename);
+		video_rec_free(rec);
 		return NULL;
 	}
 
@@ -182,13 +202,8 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 													rec->enc->v_ctx->width, rec->enc->v_ctx->height, f_pix_fmt,
 													SWS_POINT, NULL, NULL, NULL);
 		if (rec->conv->img_convert_ctx == NULL){
-			snprintf(errormessage, 256, "Could not create conversion context. Unable to record to %s.", filename);
-			free(rec->conv->picture_buf);
-			av_free(rec->conv->picture);
-			av_free(rec->enc->oc);
-			free(rec->enc);
-			free(rec->conv);
-			free(rec);
+			snprintf(errormessage, 256, "Could not create conversion context.\nUnable to record to %s.", filename);
+			video_rec_free(rec);
 			return NULL;
 		}
 
@@ -229,28 +244,35 @@ int video_rec_stop(video_rec_t *rec)
 		av_free(st);
 	}
 
-	// free data structures
-	int c = rec->framenum;
-	av_free(rec->enc->oc);
-	av_free(rec->enc->vbuf_ptr);
-	free(rec->enc);
-	if (rec->conv) {
-		free(rec->conv->picture_buf);
-		av_free(rec->conv->picture);
-		sws_freeContext(rec->conv->img_convert_ctx);
-		free(rec->conv);
-	}
-	free(rec);
-
-	return c;
+	return rec->framenum;
 }
 
+void video_rec_free(video_rec_t *rec)
+{
+	if (rec) {
+		// free data structures
+		if (rec->enc->oc)
+			av_free(rec->enc->oc);
+		if (rec->enc->vbuf_ptr)
+			av_free(rec->enc->vbuf_ptr);
+		if (rec->enc)
+			free(rec->enc);
+		if (rec->conv) {
+			free(rec->conv->picture_buf);
+			av_free(rec->conv->picture);
+			if (rec->conv->img_convert_ctx)
+				sws_freeContext(rec->conv->img_convert_ctx);
+			free(rec->conv);
+		}
+		free(rec);
+	}
+}
 
 /**
  *
  */
 void
-ffvhuff_rec_deliver_vframe(video_rec_t *rec, void *data)
+rec_deliver_vframe(video_rec_t *rec, void *data)
 {
 	int r;
 	AVPacket pkt;
@@ -289,7 +311,7 @@ ffvhuff_rec_deliver_vframe(video_rec_t *rec, void *data)
  *
  */
 void
-mpeg_rec_deliver_vframe(video_rec_t *rec, void *data)
+sws_rec_deliver_vframe(video_rec_t *rec, void *data)
 {
 	int r;
 	AVPacket pkt;

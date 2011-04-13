@@ -29,6 +29,7 @@ public Q_SLOTS:
     void openFileFromFolder(const QModelIndex & index);
     void nameFilterChanged(const QString &s);
     void selectTransitionType(int t);
+    void manualTransitionAdjustment(int t);
 
     void customizeTransition();
     void saveSettings();
@@ -43,16 +44,22 @@ private:
 
 	// folder toolbox
 	QListWidget *createCurveIcons();
-	void setupFolderToolbox();
     QStandardItemModel *folderModel;
     QSortFilterProxyModel *proxyFolderModel;
     QComboBox *folderHistory, *transitionSelection;
+    QTabWidget *transitionTab;
+    QSlider *transitionSlider;
     QToolButton *customButton;
     QSettings *appSettings;
     QListWidget *easingCurvePicker;
     QSpinBox *transitionDuration;
     QSize m_iconSize;
     standardAspectRatio allowedAspectRatio;
+
+    class OutputRenderWidget *sessionPreview;
+    class SourceDisplayWidget *overlayPreview;
+    QLabel *sessionLabel, *overlayLabel;
+
 };
 
 #endif /* SESSIONSWITCHERWIDGET_H_ */

@@ -184,7 +184,12 @@ void RenderingEncoder::setActive(bool on)
 			else
 				saveFileAs();
 		}
+		video_rec_free(recorder);
 	}
+
+	// restore former display update period
+	if (!started)
+		glRenderWidget::setUpdatePeriod( displayupdate );
 
 	// inform if we could be activated
     emit activated(started);
@@ -340,9 +345,6 @@ bool RenderingEncoder::close(){
 	killTimer(elapseTimer);
 	started = false;
 
-	// restore former display update period
-	glRenderWidget::setUpdatePeriod( displayupdate );
-
 	// show warning if too many frames were bad
 	if ( float(badframecount) / float(framecount) > 0.7f  ) {
 
@@ -366,33 +368,13 @@ bool RenderingEncoder::close(){
 		 }
 	}
 
-
 	return true;
 }
 
 
 void RenderingEncoder::saveFile(){
 
-	QString suff;
-	switch (format) {
-	case FORMAT_MPG_MPEG1:
-		suff = ".mpg";
-		break;
-	case FORMAT_MP4_MPEG4:
-		suff = ".mp4";
-		break;
-	case FORMAT_WMV_WMV2:
-		suff = ".wmv";
-		break;
-	case FORMAT_FLV_FLV1:
-		suff = ".flv";
-		break;
-	default:
-	case FORMAT_AVI_FFVHUFF:
-		suff = ".avi";
-	}
-
-	QFileInfo infoFileDestination(savingFolder, QDateTime::currentDateTime().toString(Qt::ISODate) + suff);
+	QFileInfo infoFileDestination(savingFolder, QDateTime::currentDateTime().toString(Qt::ISODate) + '.' + recorder->suffix);
 
 	if (infoFileDestination.exists()){
 		infoFileDestination.dir().remove(infoFileDestination.fileName());
@@ -405,29 +387,8 @@ void RenderingEncoder::saveFile(){
 
 void RenderingEncoder::saveFileAs(){
 
-	// Select file format
-	switch (format) {
-	case FORMAT_MPG_MPEG1:
-		sfa.setFilter(tr("MPEG 1 Video (*.mpg *.mpeg)"));
-		sfa.setDefaultSuffix("mpg");
-		break;
-	case FORMAT_MP4_MPEG4:
-		sfa.setFilter(tr("MPEG 4 Video (*.mp4)"));
-		sfa.setDefaultSuffix("mp4");
-		break;
-	case FORMAT_WMV_WMV2:
-		sfa.setFilter(tr("Windows Media Video (*.wmv)"));
-		sfa.setDefaultSuffix("wmv");
-		break;
-	case FORMAT_FLV_FLV1:
-		sfa.setFilter(tr("Flash Video (*.flv)"));
-		sfa.setDefaultSuffix("flv");
-		break;
-	default:
-	case FORMAT_AVI_FFVHUFF:
-		sfa.setFilter(tr("AVI Video (*.avi)"));
-		sfa.setDefaultSuffix("avi");
-	}
+	sfa.setFilter(recorder->description);
+	sfa.setDefaultSuffix(recorder->suffix);
 
 	// get file name
 	if (sfa.exec()) {

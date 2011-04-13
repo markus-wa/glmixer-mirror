@@ -293,8 +293,9 @@ void Source::beginEffectsSection() const {
 	//             gamma levels : minInput, maxInput, minOutput, maxOutput:
 	ViewRenderWidget::program->setUniformValue("levels", gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut);
 
+	if (ViewRenderWidget::disableFiltering)
+		return;
 
-#ifndef GLMIXER_SIMPLIFIED_GLSL
 	if (!filtered) {
 		ViewRenderWidget::program->setUniformValue("filter", (GLint) -1);
 		return;
@@ -321,7 +322,7 @@ void Source::beginEffectsSection() const {
 		ViewRenderWidget::program->setUniformValue("chromadelta", chromaKeyTolerance);
 	} else
 		ViewRenderWidget::program->setUniformValue("chromakey", 0.f,0.f, 0.f );
-#endif
+
 
 }
 

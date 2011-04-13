@@ -18,6 +18,8 @@ class SessionSwitcher: public QObject {
 	Q_OBJECT
     Q_PROPERTY(float alpha READ alpha WRITE setAlpha)
 
+	friend class SessionSwitcherWidget;
+
 public:
 	SessionSwitcher(QObject *parent = 0);
 	virtual ~SessionSwitcher();

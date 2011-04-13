@@ -199,6 +199,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 	// Recording triggers
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));
+	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionRecord, SLOT(setChecked(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(status(const QString &, int)), statusbar , SLOT(showMessage(const QString &, int)));
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), actionPause_recording, SLOT(setEnabled(bool)));
 	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
@@ -1750,11 +1751,18 @@ void GLMixer::restorePreferences(const QByteArray & state){
 		d = QDir::current();
 	RenderingManager::getRecorder()->setAutomaticSavingFolder(d);
 
-	// Refresh all GL widgets (to apply the preferences changed above)
+	// f. disable filtering
+	bool disablefilter = false;
+	stream >> disablefilter;
+	// better make the view render widget current before setting filtering enabled
 	RenderingManager::getRenderingWidget()->refresh();
+	RenderingManager::getRenderingWidget()->setFilteringEnabled(!disablefilter);
+
+	// Refresh widgets to make changes visible
 	OutputRenderWindow::getInstance()->refresh();
 	outputpreview->refresh();
-
+	// de-select current source
+	RenderingManager::getInstance()->setCurrentSource(-1);
 }
 
 QByteArray GLMixer::getPreferences() const {
@@ -1792,6 +1800,9 @@ QByteArray GLMixer::getPreferences() const {
 	// e. recording folder
 	stream << RenderingManager::getRecorder()->automaticSavingMode();
 	stream << RenderingManager::getRecorder()->automaticSavingFolder().absolutePath();
+
+	// f. disable filtering
+	stream << !ViewRenderWidget::filteringEnabled();
 
 	return data;
 }

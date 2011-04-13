@@ -38,7 +38,7 @@ SessionSwitcher::~SessionSwitcher() {
 void SessionSwitcher::render() {
 
 	// if we shall render the overlay, do it !
-	if ( overlaySource != NULL ) {
+	if ( overlaySource ) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
 
@@ -48,6 +48,7 @@ void SessionSwitcher::render() {
 		overlaySource->update();
 		glScaled( RenderingManager::getInstance()->getFrameBufferAspectRatio() * overlaySource->getScaleX(), overlaySource->getScaleY(), 1.f);
 		glCallList(ViewRenderWidget::quad_texured);
+		glDisable(GL_TEXTURE_2D);
 	}
 
 }

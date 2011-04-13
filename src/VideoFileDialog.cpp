@@ -31,7 +31,7 @@
 
 VideoFileDialog::VideoFileDialog( QWidget * parent, const QString & caption, const QString & directory, const QString & filter) : QFileDialog(parent, caption, directory, filter) {
 
-    setFilter(tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv *.mod);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp *.ppm);;Any file (*.*)"));
+    setFilter(tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.mjpeg *.swf *.flv *.mod);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp *.ppm);;Any file (*.*)"));
 
     QLayout *grid = layout();
 

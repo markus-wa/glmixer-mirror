@@ -449,6 +449,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="disableFiltering">
+            <property name="text">
+             <string>Disable filters (needed only for some hardware)</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -471,6 +478,9 @@
       <layout class="QVBoxLayout" name="verticalLayout_9">
        <item>
         <widget class="QGroupBox" name="groupBox">
+         <property name="toolTip">
+          <string>Format of video file generated</string>
+         </property>
          <property name="title">
           <string>Recording format</string>
          </property>
@@ -482,27 +492,37 @@
             </property>
             <item>
              <property name="text">
-              <string>AVI       (FFVHUFF codec)</string>
+              <string>AVI       (RAW video)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>MPG    (MPEG1 codec)</string>
+              <string>AVI       (FFVHUFF)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>MP4    (MPEG4 codec)</string>
+              <string>MPG   (MPEG1)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>WMV   (Windows Media Video 8 WMV2 codec)</string>
+              <string>MPG   (MPEG2)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>FLV      (Flash Video FLV1 codec)</string>
+              <string>MP4    (MPEG4)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>WMV   (Windows Media Video 8)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>FLV      (Flash Video FLV1)</string>
              </property>
             </item>
            </widget>
@@ -571,14 +591,14 @@
           <item>
            <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>NB: FFVHUFF is looseless and the fastest algorithm.</string>
+             <string>NB: RAW and FFVHUFF are looseless and the fastest recording methods.</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_9">
             <property name="text">
-             <string>Other codec are lossy and more CPU hungry (risk of frame rate drop)</string>
+             <string>Other codec are more CPU hungry (risk of frame rate drop) and may be lossy.</string>
             </property>
            </widget>
           </item>
@@ -587,6 +607,10 @@
        </item>
        <item>
         <widget class="QGroupBox" name="recordingFolderBox">
+         <property name="toolTip">
+          <string>Save recordings automatically without prompting
+the user to select a file name</string>
+         </property>
          <property name="title">
           <string>Automatic saving in a folder</string>
          </property>
@@ -642,23 +666,24 @@
      <widget class="QWidget" name="PageSources">
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1. Default source properties at creation time&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="toolTip">
+          <string>Initial properties at the creation of sources</string>
          </property>
+         <property name="title">
+          <string>Source default properties</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_11">
+          <item>
+           <widget class="SourcePropertyBrowser" name="defaultProperties" native="true"/>
+          </item>
+         </layout>
         </widget>
-       </item>
-       <item>
-        <widget class="SourcePropertyBrowser" name="defaultProperties" native="true"/>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
-          <string>2. Drop options</string>
+          <string>Dropping options</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
@@ -667,7 +692,7 @@ p, li { white-space: pre-wrap; }
              <string>Check if you want to source to start playing when dropped.</string>
             </property>
             <property name="text">
-             <string>Sart playing immediately after drop</string>
+             <string>Play immediately after drop</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -718,7 +743,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
-          <string>3. Loopback source</string>
+          <string>Loopback source</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
