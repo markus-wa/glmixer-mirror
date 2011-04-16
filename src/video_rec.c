@@ -150,7 +150,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		return NULL;
 	}
 
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,65,0)
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
 	dump_format(rec->enc->oc, 0, filename, 1);
 #else
 	av_dump_format(rec->enc->oc, 0, filename, 1);
@@ -171,7 +171,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		return NULL;
 	}
 
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,65,0)
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
 	if(url_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
 #else
 	if(avio_open(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
@@ -229,7 +229,7 @@ int video_rec_stop(video_rec_t *rec)
 	av_write_trailer(rec->enc->oc);
 	// close file
 
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,65,0)
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
 	url_fclose(rec->enc->oc->pb);
 #else
 	avio_close(rec->enc->oc->pb);
