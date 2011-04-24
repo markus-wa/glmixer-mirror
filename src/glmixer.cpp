@@ -159,7 +159,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	// Setup the session switcher toolbox
 	SessionSwitcherWidget *switcherSession = new SessionSwitcherWidget(this, &settings);
 	switcherDockWidgetContentsLayout->addWidget(switcherSession);
-	QObject::connect(switcherSession, SIGNAL(switchSessionFile(QString)), this, SLOT(switchToSessionFile(QString)) );
+	QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
 	QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
 
     // Setup dialogs

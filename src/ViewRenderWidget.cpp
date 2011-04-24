@@ -945,6 +945,7 @@ void ViewRenderWidget::setSourceDrawingMode(bool on)
 		glActiveTexture(GL_TEXTURE0);
 	else {
 		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[Source::NO_MASK]);
 	}
 
 }
@@ -959,23 +960,23 @@ GLuint ViewRenderWidget::buildSelectList()
 	// selected
 	glNewList(base, GL_COMPILE);
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
 
-	glLineWidth(2.0);
-	glColor4f(0.2, 0.80, 0.2, 1.0);
+		glLineWidth(2.0);
+		glColor4f(0.2, 0.80, 0.2, 1.0);
 
-	glLineStipple(1, 0x9999);
-	glEnable(GL_LINE_STIPPLE);
+		glLineStipple(1, 0x9999);
+		glEnable(GL_LINE_STIPPLE);
 
-	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex3d(-1.1, -1.1, 0.0); // Bottom Left
-	glVertex3d(1.1, -1.1, 0.0); // Bottom Right
-	glVertex3d(1.1, 1.1, 0.0); // Top Right
-	glVertex3d(-1.1, 1.1, 0.0); // Top Left
-	glEnd();
+		glBegin(GL_LINE_LOOP); // begin drawing a square
+		glVertex3d(-1.1, -1.1, 0.0); // Bottom Left
+		glVertex3d(1.1, -1.1, 0.0); // Bottom Right
+		glVertex3d(1.1, 1.1, 0.0); // Top Right
+		glVertex3d(-1.1, 1.1, 0.0); // Top Left
+		glEnd();
 
-	glDisable(GL_LINE_STIPPLE);
+		glDisable(GL_LINE_STIPPLE);
 
 	glEndList();
 
@@ -993,18 +994,18 @@ GLuint ViewRenderWidget::buildTexturedQuadList()
 	GLuint id = glGenLists(1);
 	glNewList(id, GL_COMPILE);
 
-	glBegin(GL_QUADS); // begin drawing a square
+		glBegin(GL_QUADS); // begin drawing a square
 
-	glTexCoord2f(0.f, 1.f);
-	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-	glTexCoord2f(1.f, 1.f);
-	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-	glTexCoord2f(1.f, 0.f);
-	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-	glTexCoord2f(0.f, 0.f);
-	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+		glTexCoord2f(0.f, 1.f);
+		glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+		glTexCoord2f(1.f, 1.f);
+		glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+		glTexCoord2f(1.f, 0.f);
+		glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+		glTexCoord2f(0.f, 0.f);
+		glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
 
-	glEnd();
+		glEnd();
 
 	glEndList();
 	return id;
@@ -1030,53 +1031,44 @@ GLuint ViewRenderWidget::buildLineList()
 	// default thin border
 	glNewList(base, GL_COMPILE);
 
-	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+		glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 
-	glPushMatrix();
-	glScalef(1.23, 1.23, 1.0);
+		glPushMatrix();
+		glScalef(1.23, 1.23, 1.0);
+		glColor4f(0.0, 0.0, 0.0, 0.0);
+		glDrawArrays(GL_QUADS, 0, 4);
+		glPopMatrix();
 
-	glColor4f(0.0, 0.0, 0.0, 0.0);
-    glDrawArrays(GL_QUADS, 0, 4);
-//	glCallList(ViewRenderWidget::quad_texured);
-
-	glPopMatrix();
-
-	glLineWidth(1.0);
-	glColor4f(0.9, 0.9, 0.0, 0.7);
-
-	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
-	glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
-	glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
-	glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
-	glEnd();
-
+		glLineWidth(1.0);
+		glColor4f(0.9, 0.9, 0.0, 0.7);
+		glBegin(GL_LINE_LOOP); // begin drawing a square
+		glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
+		glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
+		glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
+		glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
+		glEnd();
 
 	glEndList();
 
 	// over
 	glNewList(base + 1, GL_COMPILE);
 
-	glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
+		glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
 
-	glPushMatrix();
-	glScalef(1.23, 1.23, 1.0);
+		glPushMatrix();
+		glScalef(1.23, 1.23, 1.0);
+		glColor4f(0.0, 0.0, 0.0, 0.0);
+		glDrawArrays(GL_QUADS, 0, 4);
+		glPopMatrix();
 
-	glColor4f(0.0, 0.0, 0.0, 0.0);
-    glDrawArrays(GL_QUADS, 0, 4);
-//	glCallList(ViewRenderWidget::quad_texured);
-
-	glPopMatrix();
-
-	glLineWidth(3.0);
-	glColor4f(0.9, 0.9, 0.0, 0.7);
-
-	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
-	glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
-	glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
-	glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
-	glEnd();
+		glLineWidth(3.0);
+		glColor4f(0.9, 0.9, 0.0, 0.7);
+		glBegin(GL_LINE_LOOP); // begin drawing a square
+		glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
+		glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
+		glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
+		glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
+		glEnd();
 
 	glEndList();
 
@@ -1104,41 +1096,36 @@ GLuint ViewRenderWidget::buildCircleList()
 
 	glNewList(id, GL_COMPILE);
 
-	glPushMatrix();
-	glTranslatef(0.0, 0.0, -1.0);
+		glPushMatrix();
+		glTranslatef(0.0, 0.0, -1.0);
 
-	glDisable(GL_BLEND);
+		glDisable(GL_BLEND);
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+		glColor4f(1.0, 1.0, 1.0, 1.0);
+		gluQuadricTexture(quadObj, GL_TRUE);
+		gluDisk(quadObj, 0.0, CIRCLE_SIZE * SOURCE_UNIT, 50, 3);
+		glDisable(GL_TEXTURE_2D);
 
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+		// blended antialiasing
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
+		glColor4f(0.6, 0.6, 0.6, 1.0);
+		glLineWidth(5.0);
 
-	glColor4f(1.0, 1.0, 1.0, 1.0);
-	gluQuadricTexture(quadObj, GL_TRUE);
-	gluDisk(quadObj, 0.0, CIRCLE_SIZE * SOURCE_UNIT, 50, 3);
+		glBegin(GL_LINE_LOOP);
+		for (float i = 0; i < 2.0 * M_PI; i += 0.07)
+			glVertex3f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i), 0);
+		glEnd();
 
-	glDisable(GL_TEXTURE_2D);
+		//limbo
+		glColor4f(0.1, 0.1, 0.1, 0.8);
+		gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT * 2.5, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 50, 3);
 
-	// blended antialiasing
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
+		glPopMatrix();
 
-	glColor4f(0.6, 0.6, 0.6, 1.0);
-	glLineWidth(5.0);
-
-	glBegin(GL_LINE_LOOP);
-	for (float i = 0; i < 2.0 * M_PI; i += 0.07)
-		glVertex3f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE
-				* SOURCE_UNIT * sin(i), 0);
-	glEnd();
-
-	//limbo
-	glColor4f(0.1, 0.1, 0.1, 0.8);
-	gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT * 2.5, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 50, 3);
-
-
-	glPopMatrix();
 	glEndList();
 
 	return id;
@@ -1150,15 +1137,15 @@ GLuint ViewRenderWidget::buildLayerbgList()
 
 	glNewList(id, GL_COMPILE);
 
-	glColor4f(0.6, 0.6, 0.6, 1.0);
-	glLineWidth(0.7);
-	glBegin(GL_LINES);
-	for (float i = -4.0; i < 6.0; i += CLAMP( ABS(i)/2.f , 0.01, 5.0))
-	{
-		glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 0.0);
-		glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 31.0);
-	}
-	glEnd();
+		glColor4f(0.6, 0.6, 0.6, 1.0);
+		glLineWidth(0.7);
+		glBegin(GL_LINES);
+		for (float i = -4.0; i < 6.0; i += CLAMP( ABS(i)/2.f , 0.01, 5.0))
+		{
+			glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 0.0);
+			glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 31.0);
+		}
+		glEnd();
 
 	glEndList();
 
@@ -1187,40 +1174,39 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
 	GLuint id = glGenLists(1);
 	glNewList(id, GL_COMPILE);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-	glColor4ub(0, 0, 0, 200);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+		glColor4ub(0, 0, 0, 200);
 
-	glPushMatrix();
-		glTranslatef(0.02 * SOURCE_UNIT, -0.1 * SOURCE_UNIT, 0.1);
-		glScalef(1.5 * SOURCE_UNIT, 1.5 * SOURCE_UNIT, 1.0);
+		glPushMatrix();
+			glTranslatef(0.02 * SOURCE_UNIT, -0.1 * SOURCE_UNIT, 0.1);
+			glScalef(1.5 * SOURCE_UNIT, 1.5 * SOURCE_UNIT, 1.0);
+			glBegin(GL_QUADS); // begin drawing a square
+				glTexCoord2f(0.0f, 1.0f);
+				glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+				glTexCoord2f(1.0f, 1.0f);
+				glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
+				glTexCoord2f(1.0f, 0.0f);
+				glVertex3f(1.f, 1.f, 0.0f); // Top Right
+				glTexCoord2f(0.0f, 0.0f);
+				glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+			glEnd();
+		glPopMatrix();
+
+		glDisable(GL_TEXTURE_2D);
+		glColor4ub(r, g, b, 255);
 		glBegin(GL_QUADS); // begin drawing a square
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex3f(1.f, 1.f, 0.0f); // Top Right
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+			// Front Face
+			glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
+			glVertex3f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Left
+			glVertex3f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Right
+			glVertex3f(1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Right
+			glVertex3f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Left
 		glEnd();
-	glPopMatrix();
-
-	glDisable(GL_TEXTURE_2D);
-	glColor4ub(r, g, b, 255);
-	glBegin(GL_QUADS); // begin drawing a square
-		// Front Face
-		glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-		glVertex3f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Left
-		glVertex3f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Right
-		glVertex3f(1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Right
-		glVertex3f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Left
-	glEnd();
-
 
 	glEndList();
 	return id;
@@ -1312,12 +1298,10 @@ GLuint ViewRenderWidget::buildBordersList()
 	// default thin border
 	glNewList(base, GL_COMPILE);
 
+	glLineWidth(1.0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-
-	glLineWidth(1.0);
 	glColor4f(0.9, 0.9, 0.0, 0.7);
-
 	glBegin(GL_LINE_LOOP); // begin drawing a square
 	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
 	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
@@ -1330,20 +1314,15 @@ GLuint ViewRenderWidget::buildBordersList()
 	// selected large border (no action)
 	glNewList(base + 1, GL_COMPILE);
 
+	glLineWidth(3.0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-
 	glColor4f(0.9, 0.9, 0.0, 0.8);
-
-	// draw the bold border
-	glLineWidth(3.0);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-	glEnd();
-
+	glVertex3f(-1.01f, -1.01f, 0.0f); // Bottom Left
+	glVertex3f(1.01f, -1.01f, 0.0f); // Bottom Right
+	glVertex3f(1.01f, 1.01f, 0.0f); // Top Right
+	glVertex3f(-1.01f, 1.01f, 0.0f); // Top Left
 	glEnd();
 
 	glEndList();

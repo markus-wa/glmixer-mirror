@@ -30,19 +30,23 @@
 #include "OutputRenderWindow.h"
 
 CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
-							first_index(0), last_index(0), _clicX(0.0), _clicY(0.0)
+							first_index(0), last_index(0), _clicX(0.0), _clicY(0.0), sourceClicked(0)
 {
-	_size[SMALL] = 61.0;
-	_iconSize[SMALL] = 23.0;
-	_largeIconSize[SMALL] = 26.0;
+	_size[SMALL] = 49.0;
+	_iconSize[SMALL] = 19.0;
+	_largeIconSize[SMALL] = 21.0;
 
-	_size[MEDIUM] = 101.0;
-	_iconSize[MEDIUM] = 38.0;
-	_largeIconSize[MEDIUM] = 42.0;
+	_size[MEDIUM] = 61.0;
+	_iconSize[MEDIUM] = 23.0;
+	_largeIconSize[MEDIUM] = 26.0;
 
-	_size[LARGE] = 151.0;
-	_iconSize[LARGE] = 54.0;
-	_largeIconSize[LARGE] = 62.0;
+	_size[LARGE] = 101.0;
+	_iconSize[LARGE] = 38.0;
+	_largeIconSize[LARGE] = 42.0;
+
+//	_size[LARGE] = 151.0;
+//	_iconSize[LARGE] = 54.0;
+//	_largeIconSize[LARGE] = 62.0;
 
 	_currentSize = MEDIUM;
     title = "Catalog";
@@ -119,6 +123,7 @@ void CatalogView::clear() {
 
 void CatalogView::drawSource(Source *s, int index)
 {
+	static double swidth_pixels = 0.0, sheight_pixels = 0.0, height = 0.0;
 	// Drawing a source is rendering a quad with the source texture in the catalog bar.
 	// This method is called by the rendering manager with a viewport covering the fbo
 	// and a projection matrix set to
@@ -133,23 +138,28 @@ void CatalogView::drawSource(Source *s, int index)
 
 		// target 60 pixels wide icons (height depending on aspect ratio)
 		// each source is a quad [-1 +1]
-		double swidth_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) * h_unit;
-		double sheight_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) / s->getAspectRatio() * v_unit;
+		swidth_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) * h_unit;
+		sheight_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) / s->getAspectRatio() * v_unit;
 
 		// increment y height by the height of this source + margin
-		double height = _height + 2.0 * sheight_pixels + 0.1 * _size[_currentSize] * v_unit;
+		height = _height + 2.0 * sheight_pixels + 0.1 * _size[_currentSize] * v_unit;
 
 		// if getting out of available drawing area, skip this source and draw arrow instead
 		if (height > 2.0 * SOURCE_UNIT) {
-			glColor4f(0.8, 0.8, 0.8, 0.6);
-			glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
-		    glLineWidth(2);
-		    glBegin(GL_LINE_LOOP); // draw a triangle
-				glVertex2f(0.0, 0.50);
-				glVertex2f(0.50, 1.0);
-				glVertex2f(-0.50, 1.0);
-		    glEnd();
-
+			if (_currentSize == LARGE)
+				setSize(MEDIUM);
+			else if (_currentSize == MEDIUM)
+				setSize(SMALL);
+			else {
+				glColor4f(0.8, 0.8, 0.8, 0.6);
+				glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
+				glLineWidth(2);
+				glBegin(GL_LINE_LOOP); // draw a triangle
+					glVertex2f(0.0, 0.50);
+					glVertex2f(0.50, 1.0);
+					glVertex2f(-0.50, 1.0);
+				glEnd();
+			}
 			return;
 		}
 
@@ -161,32 +171,28 @@ void CatalogView::drawSource(Source *s, int index)
 			glTranslatef( (_iconSize[_currentSize] -_largeIconSize[_currentSize]) * h_unit , 0.0, 0.0);
 		glScalef( swidth_pixels, -sheight_pixels, 1.f);
 
-
 		// draw source texture (without shading)
-		glBindTexture(GL_TEXTURE_2D, s->getTextureIndex() );
-
+		glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
 	    glDisable(GL_BLEND);
 		glColor4f(0.0, 0.0, 0.0, 1.0);
 		glDrawArrays(GL_QUADS, 0, 4);
 	    glEnable(GL_BLEND);
 
-		// was it clicked ?
-		if ( ABS(_clicX) > 0.1 || ABS(_clicY) > 0.1 ) {
-			if ( ABS( _clicY + SOURCE_UNIT - _height + sheight_pixels) < sheight_pixels ) {
-				RenderingManager::getInstance()->setCurrentSource(s->getId());
-				// done with click
-				_clicX = _clicY = 0.0;
-			}
-		}
-
 	    // draw source border
-		ViewRenderWidget::setSourceDrawingMode(false);
 		glScalef( 1.05, 1.05, 1.0);
 		if (s->isActive())
 			glCallList(ViewRenderWidget::border_large);
 		else
 			glCallList(ViewRenderWidget::border_thin);
 
+		// was it clicked ?
+		if ( ABS(_clicX) > 0.1 || ABS(_clicY) > 0.1 ) {
+			if ( ABS( _clicY + SOURCE_UNIT - _height + sheight_pixels) < sheight_pixels ) {
+				sourceClicked = s->getId();
+				// done with click
+				_clicX = _clicY = 0.0;
+			}
+		}
 
 	}
 
@@ -298,9 +304,14 @@ bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {
 	if (isInside(event->pos()) ) {
 		_clicX = _clicY = 0.0;
+
+		if (sourceClicked)
+			RenderingManager::getInstance()->setCurrentSource(sourceClicked);
+
 		return true;
 	}
 
+	sourceClicked = 0;
 	return false;
 }
 
@@ -308,7 +319,6 @@ bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 bool CatalogView::wheelEvent ( QWheelEvent * event )
 {
 	if (isInside(event->pos())) {
-
 		// TODO implement scrolling in the list
 		return true;
 	}

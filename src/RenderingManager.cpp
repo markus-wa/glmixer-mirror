@@ -587,6 +587,11 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
 }
 
 
+void RenderingManager::selectCurrentSource(GLuint name){
+
+	setCurrentSource(name);
+}
+
 void RenderingManager::resetCurrentSource(){
 
 	if(isValid(_currentSource))
@@ -757,7 +762,6 @@ bool RenderingManager::setCurrentNext(){
 		return false;
 
 	if (_currentSource != _sources.end()) {
-
 		// deactivate current
 		(*_currentSource)->activate(false);
 		// increment to next source

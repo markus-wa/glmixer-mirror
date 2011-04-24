@@ -109,7 +109,6 @@ void GeometryView::paint()
 
 		// draw borders on top
 		ViewRenderWidget::setSourceDrawingMode(false);
-		glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[Source::NO_MASK]);
 
 		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 			if ((*its)->isStandby())

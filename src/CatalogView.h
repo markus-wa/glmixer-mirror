@@ -68,6 +68,7 @@ private:
 	float _alpha;
 	int first_index, last_index;
 	double _clicX, _clicY;
+	GLuint sourceClicked;
 };
 
 #endif /* SELECTIONVIEW_H_ */

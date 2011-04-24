@@ -139,7 +139,7 @@ void MixerView::paint()
 			// 3. draw border and handles if active
 			//
 			ViewRenderWidget::setSourceDrawingMode(false);
-			glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[Source::NO_MASK]);
+
 			if ((*its)->isActive())
 				glCallList(ViewRenderWidget::border_large_shadow);
 			else
@@ -163,7 +163,7 @@ void MixerView::paint()
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
-		if ( renderingAspectRatio > 1.0)
+		if ( ABS(renderingAspectRatio) > 1.0)
 			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
 		else
 			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
@@ -205,7 +205,7 @@ void MixerView::paint()
 			}
 			glPopMatrix();
 		renderingAspectRatio = s->getScaleX() / s->getScaleY();
-		if ( renderingAspectRatio > 1.0)
+		if ( ABS(renderingAspectRatio) > 1.0)
 			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
 		else
 			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
