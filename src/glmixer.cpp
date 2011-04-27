@@ -161,6 +161,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	switcherDockWidgetContentsLayout->addWidget(switcherSession);
 	QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
 	QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
+	QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
 
     // Setup dialogs
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
@@ -195,6 +196,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	outputbutton_fullscreen->setDefaultAction(actionFullscreen);
 
 	// session switching
+	QObject::connect(this, SIGNAL(sessionLoaded()), this, SLOT(confirmSessionFileName()));
 	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getSessionSwitcher(), SLOT(startTransition(bool)));
 
 	// Recording triggers
@@ -204,6 +206,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), actionPause_recording, SLOT(setEnabled(bool)));
 	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
 	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
+
 	// connect to disable many actions, like quitting, opening session, preferences, etc.
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionNew_Session, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionLoad_Session, SLOT(setDisabled(bool)));
@@ -1067,8 +1070,6 @@ void setupAboutDialog(QDialog *AboutGLMixer)
 	QLabel *textsvn = new QLabel(AboutGLMixer);
 	QLabel *SVN = new QLabel(AboutGLMixer);
 	QTextBrowser *textBrowser = new QTextBrowser(AboutGLMixer);
-//	textBrowser->setAcceptRichText(false);
-//	textBrowser->setOpenLinks (false);
 	textBrowser->setOpenExternalLinks (true);
 	QDialogButtonBox *validate = new QDialogButtonBox(AboutGLMixer);
 	validate->setOrientation(Qt::Horizontal);
@@ -1092,7 +1093,7 @@ void setupAboutDialog(QDialog *AboutGLMixer)
 	"<p>Author:	Bruno Herbelin<br>\n"
 	"Contact:	bruno.herbelin@gmail.com<br>\n"
 	"License: 	GNU GPL version 3</p>\n"
-	"<p>Copyright 2009, 2010 Bruno Herbelin</p>\n"
+	"<p>Copyright 2009-2011 Bruno Herbelin</p>\n"
 	"<p>Updates and source code at: <br>\n"
 	"   	<a href=\"http://code.google.com/p/glmixer/\"><span style=\" text-decoration: underline; color:#7d400a;\">http://code.google.com/p/glmixer/</span>"
 	"</a></p>"
@@ -1150,6 +1151,10 @@ void GLMixer::confirmSessionFileName(){
 		recentFileActs[j]->setVisible(false);
 
 	settings.setValue("recentFileList", files);
+
+	// message
+	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
+
 }
 
 
@@ -1425,16 +1430,8 @@ void GLMixer::openSessionFile(QString filename)
     	actionWhite_background->setChecked(rconfig.attribute("clearToWhite").toInt());
 	}
 
-    // confirm the loading of the file
-	confirmSessionFileName();
-	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
-
-	// set current source to none (end of list)
-	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
-
-	// refresh views
-	outputpreview->refresh();
-	OutputRenderWindow::getInstance()->refresh();
+    // broadcast that the session is loaded
+	emit sessionLoaded();
 
 	// start the smooth transition
     RenderingManager::getSessionSwitcher()->startTransition(true);

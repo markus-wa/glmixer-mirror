@@ -15,7 +15,7 @@
 
 #include <QGLWidget>
 
-SessionSwitcher::SessionSwitcher(QObject *parent)  : QObject(parent), duration(1000), overlayAlpha(0.0), overlaySource(0),
+SessionSwitcher::SessionSwitcher(QObject *parent)  : QObject(parent), manual_mode(false), duration(1000), overlayAlpha(0.0), overlaySource(0),
 transition_type(TRANSITION_NONE), customTransitionColor(QColor()), customTransitionVideoSource(0) {
 
 	animationAlpha = new QPropertyAnimation(this, "alpha");
@@ -184,6 +184,7 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 				QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
 				capture = capture.convertToFormat(QImage::Format_RGB32);
 				setTransitionSource( RenderingManager::getInstance()->newCaptureSource(capture) );
+				// no break
 			}
 		case TRANSITION_NONE:
 			instanteneous = true;
@@ -194,6 +195,12 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 				customTransitionVideoSource->play(true);
 		default:
 			break;
+	}
+
+
+	if (manual_mode) {
+		instanteneous = true;
+		sceneVisible = false;
 	}
 
 	animationAlpha->setCurrentTime(0);

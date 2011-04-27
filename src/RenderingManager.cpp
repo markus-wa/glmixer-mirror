@@ -1274,6 +1274,8 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
     	}
     }
 
+	// set current source to none (end of list)
+	setCurrentSource( getEnd() );
 }
 
 void RenderingManager::setGammaShift(float g)

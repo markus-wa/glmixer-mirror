@@ -278,6 +278,7 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
 
 bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
+	RenderingManager::getRenderingWidget()->zoomCurrentSource();
 	return isInside(event->pos());
 }
 

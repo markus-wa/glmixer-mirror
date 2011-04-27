@@ -26,10 +26,17 @@ public Q_SLOTS:
     void openFolder();
     void discardFolder();
     void folderChanged( const QString & text );
-    void openFileFromFolder(const QModelIndex & index);
+
+    void startTransitionToSession(const QModelIndex & index);
+	// unblock the GUI suspended when loading new session
+	void unsuspend() { suspended = false; }
+    void selectSession(const QModelIndex & index);
     void nameFilterChanged(const QString &s);
-    void selectTransitionType(int t);
-    void manualTransitionAdjustment(int t);
+
+    void setTransitionType(int t);
+    void setTransitionMode(int m);
+    void transitionSliderChanged(int t);
+	void resetTransitionSlider();
 
     void customizeTransition();
     void saveSettings();
@@ -38,7 +45,7 @@ public Q_SLOTS:
     void setAllowedAspectRatio(const standardAspectRatio ar);
 
 Q_SIGNALS:
-	void switchSessionFile(QString);
+	void sessionTriggered(QString);
 
 private:
 
@@ -46,6 +53,7 @@ private:
 	QListWidget *createCurveIcons();
     QStandardItemModel *folderModel;
     QSortFilterProxyModel *proxyFolderModel;
+    QTreeView *proxyView;
     QComboBox *folderHistory, *transitionSelection;
     QTabWidget *transitionTab;
     QSlider *transitionSlider;
@@ -56,10 +64,10 @@ private:
     QSize m_iconSize;
     standardAspectRatio allowedAspectRatio;
 
-    class OutputRenderWidget *sessionPreview;
     class SourceDisplayWidget *overlayPreview;
-    QLabel *sessionLabel, *overlayLabel;
-
+    QLabel *currentSessionLabel, *nextSessionLabel;
+    QString nextSession;
+    bool nextSessionSelected, suspended;
 };
 
 #endif /* SESSIONSWITCHERWIDGET_H_ */

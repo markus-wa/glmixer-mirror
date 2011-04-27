@@ -106,6 +106,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void sourceMarksModified(bool);
 	void sessionSaved();
+	void sessionLoaded();
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
