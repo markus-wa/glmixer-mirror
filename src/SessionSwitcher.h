@@ -64,6 +64,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void animationFinished();
+	void transitionSourceChanged(Source *s);
 
 private:
 	bool manual_mode;

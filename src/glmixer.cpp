@@ -198,6 +198,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	// session switching
 	QObject::connect(this, SIGNAL(sessionLoaded()), this, SLOT(confirmSessionFileName()));
 	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getSessionSwitcher(), SLOT(startTransition(bool)));
+	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
 
 	// Recording triggers
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));

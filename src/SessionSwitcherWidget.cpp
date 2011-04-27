@@ -125,7 +125,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 	QGridLayout *g = new QGridLayout;
 
     currentSessionLabel = new QLabel;
-    currentSessionLabel->setText(tr("Current:\nnone"));
+    currentSessionLabel->setText(tr("100% current"));
     currentSessionLabel->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
     currentSessionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignBottom);
     g->addWidget(currentSessionLabel, 0, 0);
@@ -136,7 +136,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     g->addWidget(overlayPreview, 0, 1);
 
     nextSessionLabel = new QLabel;
-    nextSessionLabel->setText(tr("Next:\nno selection"));
+    nextSessionLabel->setText(tr("No selection"));
     nextSessionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     nextSessionLabel->setAlignment(Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing);
     g->addWidget(nextSessionLabel, 0, 2);
@@ -318,9 +318,9 @@ void SessionSwitcherWidget::selectSession(const QModelIndex & index)
 {
 	// read file name
 	nextSession = proxyFolderModel->data(index, Qt::UserRole).toString();
-	// display that we can do transition to new selected session
-    nextSessionLabel->setText(tr("Next:\n%1").arg(QFileInfo(nextSession).baseName()));
     transitionSlider->setEnabled(true);
+	// display that we can do transition to new selected session
+    nextSessionLabel->setText(tr("0% %1").arg(QFileInfo(nextSession).baseName()));
 }
 
 void SessionSwitcherWidget::setTransitionType(int t)
@@ -349,9 +349,6 @@ void SessionSwitcherWidget::setTransitionType(int t)
 		customButton->setToolTip("Choose media");
 	} else
 		customButton->setVisible(false);
-
-	// set the overlay source
-	overlayPreview->setSource(RenderingManager::getSessionSwitcher()->overlaySource);
 
 }
 
@@ -538,6 +535,9 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 
 	if ( nextSessionSelected ) {
 
+		// display that we can do transition to new selected session
+	    nextSessionLabel->setText(tr("%1% %2").arg(ABS(t)).arg(QFileInfo(nextSession).baseName()));
+
 		// prevent coming back to previous
 		if (t < 0) {
 			transitionSlider->setValue(0);
@@ -548,12 +548,15 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 			// reset
 			nextSessionSelected = false;
 			transitionSlider->setValue(-100);
-			resetTransitionSlider();
 			RenderingManager::getSessionSwitcher()->endTransition();
-			// reset the overlay source for last frame transition
-			if ( RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_LAST_FRAME )
-				overlayPreview->setSource(0);
+			// reset the overlay source according to type
+			RenderingManager::getSessionSwitcher()->setTransitionType(RenderingManager::getSessionSwitcher()->getTransitionType());
+
+			// no target
+			nextSessionLabel->setText(tr("No selection"));
+			resetTransitionSlider();
 		}
+
 
 	} else {
 
@@ -565,9 +568,20 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 			emit sessionTriggered(nextSession);
 			// disable changing session
 			resetTransitionSlider();
-			// reset the overlay source for last frame transition
-			if ( RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_LAST_FRAME )
-				overlayPreview->setSource(RenderingManager::getSessionSwitcher()->overlaySource);
 		}
+
+	    currentSessionLabel->setText(tr("%1% current").arg(ABS(t)));
 	}
+}
+
+
+void SessionSwitcherWidget::setTransitionSourcePreview(Source *s)
+{
+	// set the overlay source
+	overlayPreview->setSource(s);
+}
+
+void SessionSwitcherWidget::unsuspend()
+{
+	suspended = false;
 }

@@ -29,7 +29,7 @@ public Q_SLOTS:
 
     void startTransitionToSession(const QModelIndex & index);
 	// unblock the GUI suspended when loading new session
-	void unsuspend() { suspended = false; }
+	void unsuspend();
     void selectSession(const QModelIndex & index);
     void nameFilterChanged(const QString &s);
 
@@ -37,6 +37,7 @@ public Q_SLOTS:
     void setTransitionMode(int m);
     void transitionSliderChanged(int t);
 	void resetTransitionSlider();
+	void setTransitionSourcePreview(Source *s);
 
     void customizeTransition();
     void saveSettings();

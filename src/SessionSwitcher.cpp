@@ -91,6 +91,8 @@ void SessionSwitcher::setTransitionSource(Source *s)
 	}
 
 	overlaySource = s;
+
+	emit transitionSourceChanged(overlaySource);
 }
 
 
@@ -123,6 +125,7 @@ void SessionSwitcher::setTransitionMedia(QString filename)
 	if (transition_type == TRANSITION_CUSTOM_MEDIA)
 		overlaySource = customTransitionVideoSource;
 
+	emit transitionSourceChanged(overlaySource);
 
 }
 
@@ -166,10 +169,16 @@ void SessionSwitcher::setTransitionType(transitionType t) {
 void SessionSwitcher::endTransition()
 {
 	RenderingManager::getRenderingWidget()->setFaded(false);
+
 }
 
 
 void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
+
+	if (manual_mode) {
+		instanteneous = true;
+		sceneVisible = false;
+	}
 
 	if (animationAlpha->state() == QAbstractAnimation::Running )
 		animationAlpha->stop();
@@ -197,11 +206,6 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 			break;
 	}
 
-
-	if (manual_mode) {
-		instanteneous = true;
-		sceneVisible = false;
-	}
 
 	animationAlpha->setCurrentTime(0);
 	animationAlpha->setDuration( instanteneous ? 0 : duration );
