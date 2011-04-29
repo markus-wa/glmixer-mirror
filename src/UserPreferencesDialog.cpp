@@ -66,6 +66,7 @@ void UserPreferencesDialog::setModeMinimal(bool on)
 		resolutionTable->selectRow(0);
 		stackedPreferences->setCurrentIndex(0);
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Save);
+        restoreDefaultPreferences();
 	} else {
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Save);
 	}
@@ -76,7 +77,8 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 	if (stackedPreferences->currentWidget() == PageRendering) {
 		resolutionTable->selectRow(0);
 	    activateBlitFrameBuffer->setChecked(glSupportsExtension("GL_EXT_framebuffer_blit"));
-		updatePeriod->setValue(33);
+		updatePeriod->setValue(20);
+		disableFiltering->setChecked(false);
 	}
 
 	if (stackedPreferences->currentWidget() == PageRecording) {
@@ -127,7 +129,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	stream >> useBlitFboExtension;
 	activateBlitFrameBuffer->setChecked(useBlitFboExtension);
 
-	int tfr = 33;
+	int tfr = 20;
 	stream >> tfr;
 	updatePeriod->setValue(tfr);
 

@@ -1702,7 +1702,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	stream >> RenderingQuality >> useBlitFboExtension;
 	RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
 	RenderingManager::getInstance()->setRenderingQuality((frameBufferQuality) RenderingQuality);
-	int targetPeriod;
+	int targetPeriod = 20;
 	stream >> targetPeriod;
 	if (targetPeriod > 0)
 		glRenderWidget::setUpdatePeriod( targetPeriod );
