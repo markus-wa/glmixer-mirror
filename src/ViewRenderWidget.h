@@ -101,7 +101,7 @@ public:
 	void setToolMode(toolMode m);
 	toolMode getToolMode();
 
-	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_MAGNET} cursorMode;
+	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_MAGNET, CURSOR_CURVE} cursorMode;
 	void setCursorMode(cursorMode m);
 	cursorMode getCursorMode();
 

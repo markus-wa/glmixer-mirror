@@ -33,6 +33,7 @@ class Source;
 class OutputRenderWidget: public glRenderWidget {
 
 	Q_OBJECT
+    Q_PROPERTY(float alpha READ alpha WRITE setAlpha)
 
 public:
 	OutputRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
@@ -45,14 +46,19 @@ public:
 	inline bool freeAspectRatio() const { return !useAspectRatio; }
 	void useFreeAspectRatio(bool on);
 
+	void setAlpha(float a) { currentAlpha = a; }
+	float alpha() const { return currentAlpha; }
 
 public Q_SLOTS:
 	void refresh();
-
+	void smoothAlphaTransition(bool visible);
+	
 protected:
 	bool useAspectRatio, useWindowAspectRatio;
 	int rx, ry, rw, rh;
 
+	float currentAlpha;
+	QPropertyAnimation *animationAlpha;
 };
 
 class OutputRenderWindow : public OutputRenderWidget {

@@ -54,7 +54,7 @@ private:
 	QListWidget *createCurveIcons();
     QStandardItemModel *folderModel;
     QSortFilterProxyModel *proxyFolderModel;
-    QTreeView *proxyView;
+    class SearchingTreeView *proxyView;
     QComboBox *folderHistory, *transitionSelection;
     QTabWidget *transitionTab;
     QSlider *transitionSlider;

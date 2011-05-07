@@ -45,6 +45,17 @@ void SourceDisplayWidget::initializeGL()
 
 }
 
+void SourceDisplayWidget::setSource(Source *sourceptr) {
+	s = sourceptr;
+
+	if (s)
+		// adjust source AR to fill the area
+		s->setAspectRatio( double (width()) / double (height()) );
+
+}
+
+void SourceDisplayWidget::playSource(bool on) { s->play(on); }
+
 void SourceDisplayWidget::paintGL()
 {
 	glRenderWidget::paintGL();

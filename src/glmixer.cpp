@@ -107,6 +107,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	actionCursorDelay->setData(ViewRenderWidget::CURSOR_DELAY);
 	cursorActions->addAction(actionCursorMagnet);
 	actionCursorMagnet->setData(ViewRenderWidget::CURSOR_MAGNET);
+	cursorActions->addAction(actionCursorCurve);
+	actionCursorCurve->setData(ViewRenderWidget::CURSOR_CURVE);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
 
 	QActionGroup *aspectRatioActions = new QActionGroup(this);
@@ -162,6 +164,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
 	QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
 	QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
+	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
+	switcherSession->restoreSettings();
 
     // Setup dialogs
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
@@ -197,8 +201,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 	// session switching
 	QObject::connect(this, SIGNAL(sessionLoaded()), this, SLOT(confirmSessionFileName()));
-	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getSessionSwitcher(), SLOT(startTransition(bool)));
-	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
+	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(smoothAlphaTransition(bool)));
 
 	// Recording triggers
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));

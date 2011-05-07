@@ -14,6 +14,51 @@
 
 #include "SessionSwitcherWidget.moc"
 
+class SearchingTreeView : public QTreeView
+{
+	QLineEdit *filter;
+
+public:
+
+	SearchingTreeView ( QWidget * parent = 0 ): QTreeView(parent) {
+		filter = 0;
+	}
+
+	void keyPressEvent ( QKeyEvent * event ) {
+
+		QSortFilterProxyModel *m = dynamic_cast<QSortFilterProxyModel *>(model());
+		if (m) {
+
+			if (filter && (event->key() == Qt::Key_Escape || event->key() == Qt::Key_Return) ) {
+				m->setFilterWildcard("");
+				filter->hide();
+				delete filter;
+				filter = 0;
+
+			} else {
+				filter = new QLineEdit(this);
+				filter->show();
+				filter->setFocus();
+				QObject::connect(filter, SIGNAL(textChanged(const QString &)), parent(), SLOT(nameFilterChanged(const QString &)) );
+				filter->setText(event->text().simplified());
+			}
+		}
+	}
+
+	void leaveEvent ( QEvent * event ) {
+
+		QSortFilterProxyModel *m = dynamic_cast<QSortFilterProxyModel *>(model());
+		if (m && filter) {
+				m->setFilterWildcard("");
+				filter->hide();
+				delete filter;
+				filter = 0;
+
+		}
+		QTreeView::leaveEvent(event);
+	}
+
+};
 
 void addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename, const standardAspectRatio allowedAspectRatio)
 {
@@ -213,7 +258,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 	folderHistory->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	folderHistory->setDuplicatesEnabled(false);
 
-    proxyView = new QTreeView;
+    proxyView = new SearchingTreeView;
     proxyView->setRootIsDecorated(false);
     proxyView->setAlternatingRowColors(true);
     proxyView->setSortingEnabled(true);
@@ -224,14 +269,6 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyView->resizeColumnToContents(2);
     proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
 
-    QLabel *filterPatternLabel;
-    QLineEdit *filterPatternLineEdit;
-    filterPatternLineEdit = new QLineEdit;
-    filterPatternLineEdit->setText("");
-    filterPatternLabel = new QLabel(tr("&Filename filter:"));
-    filterPatternLabel->setBuddy(filterPatternLineEdit);
-
-    connect(filterPatternLineEdit, SIGNAL(textChanged(QString)), this, SLOT(nameFilterChanged(QString)));
     connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
     connect(dirDeleteButton, SIGNAL(clicked()),  this, SLOT(discardFolder()));
     connect(customButton, SIGNAL(clicked()),  this, SLOT(customizeTransition()));
@@ -250,12 +287,8 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     mainLayout->addWidget(folderHistory, 3, 0, 1, 2);
     mainLayout->addWidget(dirButton, 3, 2);
     mainLayout->addWidget(dirDeleteButton, 3, 3);
-    mainLayout->addWidget(filterPatternLabel, 4, 0);
-    mainLayout->addWidget(filterPatternLineEdit, 4, 1, 1, 3);
     setLayout(mainLayout);
 
-    // restore the settings
-	restoreSettings();
 }
 
 
@@ -568,8 +601,9 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 			emit sessionTriggered(nextSession);
 			// disable changing session
 			resetTransitionSlider();
+		} else if (t > -100) {
+			overlayPreview->playSource(true);
 		}
-
 	    currentSessionLabel->setText(tr("%1% current").arg(ABS(t)));
 	}
 }

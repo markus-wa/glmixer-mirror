@@ -34,12 +34,17 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-		useAspectRatio(true), useWindowAspectRatio(true) {
+		useAspectRatio(true), useWindowAspectRatio(true), currentAlpha(1.0) {
 
 	rx = 0;
 	ry = 0;
 	rw = width();
 	rh = height();
+	
+	animationAlpha = new QPropertyAnimation(this, "alpha");
+	animationAlpha->setDuration(500);
+	animationAlpha->setEasingCurve(QEasingCurve::InOutQuad);
+	
 }
 
 float OutputRenderWidget::getAspectRatio() const{
@@ -115,7 +120,8 @@ void OutputRenderWidget::resizeGL(int w, int h)
 			rh = h;
 		}
 	}
-	else
+//	else
+	// do this computation always ; rendering with polygon may be used during transition
 	{
 		glLoadIdentity();
 
@@ -166,7 +172,7 @@ void OutputRenderWidget::paintGL()
 	if (!isEnabled())
 		return;
 
-	if ( RenderingManager::blit_fbo_extension )
+	if ( currentAlpha > 1.0 && RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 		// select fbo texture read target
@@ -183,6 +189,9 @@ void OutputRenderWidget::paintGL()
 	{
 		// apply the texture of the frame buffer
 		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+
+		// apply clutch transparency
+		glColor4f(1.0, 1.0, 1.0, currentAlpha);
 
 		// draw the polygon with texture
 		glCallList(ViewRenderWidget::quad_texured);
@@ -210,6 +219,17 @@ void OutputRenderWidget::paintGL()
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 	}
+}
+
+void OutputRenderWidget::smoothAlphaTransition(bool visible){
+
+	if (animationAlpha->state() == QAbstractAnimation::Running )
+		animationAlpha->stop();
+
+	animationAlpha->setStartValue( currentAlpha );
+	animationAlpha->setEndValue( visible ? 1.1 : 0.0 );
+	animationAlpha->start();
+
 }
 
 OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint)

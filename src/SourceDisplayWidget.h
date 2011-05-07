@@ -39,7 +39,8 @@ public:
 
     virtual void initializeGL();
     virtual void paintGL();
-	inline void setSource(Source *sourceptr) { s = sourceptr;}
+	void setSource(Source *sourceptr);
+	void playSource(bool on);
 
 	int getNewTextureIndex();
 
