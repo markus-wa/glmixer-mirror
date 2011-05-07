@@ -184,6 +184,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     nextSessionLabel->setText(tr("No selection"));
     nextSessionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     nextSessionLabel->setAlignment(Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing);
+    nextSessionLabel->setStyleSheet("QLabel::disabled {\ncolor: rgb(128, 0, 0);\n}");
     g->addWidget(nextSessionLabel, 0, 2);
 
     transitionSlider = new QSlider;
@@ -352,6 +353,8 @@ void SessionSwitcherWidget::selectSession(const QModelIndex & index)
 	// read file name
 	nextSession = proxyFolderModel->data(index, Qt::UserRole).toString();
     transitionSlider->setEnabled(true);
+    currentSessionLabel->setEnabled(true);
+    nextSessionLabel->setEnabled(true);
 	// display that we can do transition to new selected session
     nextSessionLabel->setText(tr("0% %1").arg(QFileInfo(nextSession).baseName()));
 }
@@ -523,10 +526,18 @@ void SessionSwitcherWidget::resetTransitionSlider()
 {
 	// enable / disable transition slider
     transitionSlider->setEnabled(nextSessionSelected);
+    currentSessionLabel->setEnabled(nextSessionSelected);
+    nextSessionLabel->setEnabled(nextSessionSelected);
 	// enable / disable changing session
 	proxyView->setEnabled(!nextSessionSelected);
 	// clear the selection
 	proxyView->clearSelection();
+
+	// ensure correct re-display
+	if (!nextSessionSelected) {
+		RenderingManager::getSessionSwitcher()->setTransitionType(RenderingManager::getSessionSwitcher()->getTransitionType());
+		nextSessionLabel->setText(tr("No selection"));
+	}
 }
 
 void  SessionSwitcherWidget::setTransitionMode(int m)
@@ -580,13 +591,9 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 		if ( t > 100 ) {
 			// reset
 			nextSessionSelected = false;
-			transitionSlider->setValue(-100);
 			RenderingManager::getSessionSwitcher()->endTransition();
-			// reset the overlay source according to type
-			RenderingManager::getSessionSwitcher()->setTransitionType(RenderingManager::getSessionSwitcher()->getTransitionType());
-
 			// no target
-			nextSessionLabel->setText(tr("No selection"));
+			transitionSlider->setValue(-100);
 			resetTransitionSlider();
 		}
 
@@ -597,13 +604,14 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 		if ( t >= 0 ){
 			nextSessionSelected = true;
 			suspended = true;
+			resetTransitionSlider();
 			// request to load session file
 			emit sessionTriggered(nextSession);
-			// disable changing session
-			resetTransitionSlider();
-		} else if (t > -100) {
+
+		} else if (t > -100 && RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_CUSTOM_MEDIA) {
 			overlayPreview->playSource(true);
 		}
+		// show percent of mixing
 	    currentSessionLabel->setText(tr("%1% current").arg(ABS(t)));
 	}
 }

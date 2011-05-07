@@ -1195,9 +1195,6 @@ void GLMixer::on_actionNew_Session_triggered()
 	currentSessionFileName = QString();
 	confirmSessionFileName();
 
-	// reset
-	on_gammaShiftReset_clicked();
-
 	// trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
 	actionToggleRenderingVisible->setEnabled(false);
 	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
@@ -1210,15 +1207,18 @@ void GLMixer::newSession()
 	// if coming from animation, disconnect it.
 	QObject::disconnect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
 	actionToggleRenderingVisible->setEnabled(true);
-	RenderingManager::getSessionSwitcher()->startTransition(true, true);
+	RenderingManager::getSessionSwitcher()->startTransition(true);
 
 	// reset
 	RenderingManager::getInstance()->clearSourceSet();
 	actionWhite_background->setChecked(false);
 	RenderingManager::getRenderingWidget()->clearViews();
 
-	// trigger the default aspect ratio; this also refreshes the rendering areas
-	action4_3_aspect_ratio->trigger();
+	// refreshes the rendering areas
+	outputpreview->refresh();
+	// reset
+	on_gammaShiftReset_clicked();
+
 }
 
 
@@ -1304,16 +1304,21 @@ void GLMixer::actionLoad_RecentSession_triggered()
 
 void GLMixer::switchToSessionFile(QString filename){
 
-	currentSessionFileName = filename;
+	if (filename.isEmpty()) {
+		newSession();
+	} else {
+		// setup filename
+		currentSessionFileName = filename;
 
-	if (RenderingManager::getInstance()->empty())
 		// no need for fade off transition if nothing loaded
-		openSessionFile();
-	else {
-		// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
-		actionToggleRenderingVisible->setEnabled(false);
-		QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
-		RenderingManager::getSessionSwitcher()->startTransition(false);
+		if (RenderingManager::getInstance()->empty())
+			openSessionFile();
+		else {
+			// trigger openSessionFile after the smooth transition to black is finished (action is disabled meanwhile)
+			actionToggleRenderingVisible->setEnabled(false);
+			QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
+			RenderingManager::getSessionSwitcher()->startTransition(false);
+		}
 	}
 }
 

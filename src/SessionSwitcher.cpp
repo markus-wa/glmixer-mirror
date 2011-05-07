@@ -91,7 +91,6 @@ void SessionSwitcher::setTransitionSource(Source *s)
 	}
 
 	overlaySource = s;
-
 	emit transitionSourceChanged(overlaySource);
 }
 
@@ -116,7 +115,6 @@ void SessionSwitcher::setTransitionMedia(QString filename)
 		newSourceVideoFile->play(false);
 		// create new video source
 		customTransitionVideoSource = (VideoSource*) RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
-
 	} else {
 		qCritical( "The file %s could not be loaded.", qPrintable(filename) );
 		delete newSourceVideoFile;
@@ -126,7 +124,6 @@ void SessionSwitcher::setTransitionMedia(QString filename)
 		overlaySource = customTransitionVideoSource;
 
 	emit transitionSourceChanged(overlaySource);
-
 }
 
 
@@ -163,25 +160,19 @@ void SessionSwitcher::setTransitionType(transitionType t) {
 	}
 
 	setTransitionSource(s);
-
 }
 
 void SessionSwitcher::endTransition()
 {
 	RenderingManager::getRenderingWidget()->setFaded(false);
-
 }
 
 
 void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 
-	if (manual_mode) {
-		instanteneous = true;
-		sceneVisible = false;
-	}
-
 	if (animationAlpha->state() == QAbstractAnimation::Running )
 		animationAlpha->stop();
+
 
 	switch (transition_type) {
 		case TRANSITION_LAST_FRAME:
@@ -206,7 +197,10 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 			break;
 	}
 
-
+	if (manual_mode) {
+		instanteneous = true;
+		sceneVisible = false;
+	}
 	animationAlpha->setCurrentTime(0);
 	animationAlpha->setDuration( instanteneous ? 0 : duration );
 	animationAlpha->setStartValue( overlayAlpha );

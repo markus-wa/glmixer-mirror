@@ -766,7 +766,7 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
         glPushMatrix();
         glTranslated( (*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
-		if ( renderingAspectRatio > 1.0)
+		if ( ABS(renderingAspectRatio) > 1.0)
 			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
 		else
 			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
