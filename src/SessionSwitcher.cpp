@@ -113,7 +113,7 @@ void SessionSwitcher::setTransitionMedia(QString filename)
 
 	if ( newSourceVideoFile->open( filename ) ) {
 		newSourceVideoFile->setOptionRestartToMarkIn(true);
-//		newSourceVideoFile->play(true);
+		newSourceVideoFile->play(false);
 		// create new video source
 		customTransitionVideoSource = (VideoSource*) RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
 
