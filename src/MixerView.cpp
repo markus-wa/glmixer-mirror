@@ -354,20 +354,19 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 	// for LEFT double button
 	if ( event->buttons() & Qt::LeftButton ) {
-		// SHIFT + double click = re-center panning
-		if (QApplication::keyboardModifiers () == Qt::ShiftModifier) {
-		    double ax, ay, az;
-		    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0,  modelview, projection, viewport, &ax, &ay, &az);
-		    // apply panning
-		    setPanningX( - (float) ax );
-		    setPanningY( - (float) ay );
-			return false;
-		}
+
 		// left double click on a source : change the group / selection
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
-	    	// get the top most clicked source
-	    	Source *clicked = *clickedSources.begin();
+			// get the top most clicked source
+			Source *clicked = *clickedSources.begin();
+
+			// SHIFT + double click = zoom best fit on clicked source
+			if (QApplication::keyboardModifiers() == Qt::ShiftModifier) {
+				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
+				zoomBestFit(true);
+				return false;
+			}
 
         	SourceListArray::iterator itss = groupSources.begin();
             for(; itss != groupSources.end(); itss++) {

@@ -26,16 +26,16 @@ public:
 
 	void keyPressEvent ( QKeyEvent * event ) {
 
+		if (filter) {
+			filter->hide();
+			delete filter;
+			filter = 0;
+		}
 		QSortFilterProxyModel *m = dynamic_cast<QSortFilterProxyModel *>(model());
 		if (m) {
-
-			if (filter && (event->key() == Qt::Key_Escape || event->key() == Qt::Key_Return) ) {
+			if (event->key() == Qt::Key_Escape || event->key() == Qt::Key_Return)
 				m->setFilterWildcard("");
-				filter->hide();
-				delete filter;
-				filter = 0;
-
-			} else {
+			else {
 				filter = new QLineEdit(this);
 				filter->show();
 				filter->setFocus();
@@ -46,14 +46,13 @@ public:
 	}
 
 	void leaveEvent ( QEvent * event ) {
-
 		QSortFilterProxyModel *m = dynamic_cast<QSortFilterProxyModel *>(model());
-		if (m && filter) {
-				m->setFilterWildcard("");
-				filter->hide();
-				delete filter;
-				filter = 0;
-
+		if (m)
+			m->setFilterWildcard("");
+		if (filter) {
+			filter->hide();
+			delete filter;
+			filter = 0;
 		}
 		QTreeView::leaveEvent(event);
 	}

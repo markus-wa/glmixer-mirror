@@ -314,6 +314,25 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 	return true;
 }
 
+
+bool LayersView::mouseDoubleClickEvent ( QMouseEvent * event )
+{
+	if (!event)
+		return false;
+
+	// SHIFT +  left double click = zoom best fit
+	if ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) {
+		// get the top most clicked source
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+
+			RenderingManager::getInstance()->setCurrentSource( (*clickedSources.begin())->getId() );
+			zoomBestFit(true);
+		}
+	}
+
+	return false;
+}
+
 bool LayersView::wheelEvent ( QWheelEvent * event ){
 
     int dx = event->x() - lastClicPos.x();
@@ -358,9 +377,19 @@ void LayersView::zoomBestFit( bool onlyClickedSource ) {
 		return;
 	}
 
+	// 0. consider either the list of clicked sources, either the full list
+    SourceSet::iterator beginning, end;
+    if (onlyClickedSource && RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
+    	beginning = end = RenderingManager::getInstance()->getCurrentSource();
+    	end++;
+    } else {
+    	beginning = RenderingManager::getInstance()->getBegin();
+    	end = RenderingManager::getInstance()->getEnd();
+    }
+
 	// Compute bounding depths of every sources
     double z_min = 10000, z_max = -10000;
-	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+	for(SourceSet::iterator  its = beginning; its != end; its++) {
 
 		if ((*its)->isStandby())
 			continue;
@@ -369,7 +398,7 @@ void LayersView::zoomBestFit( bool onlyClickedSource ) {
 		z_max = MAXI (z_max, (*its)->getDepth());
 	}
 
-	setZoom	( z_max );
+	setZoom	( z_max + 1.0);
 
 	// TODO : LayersView::zoomBestFit() also adjust panning
 }

@@ -35,7 +35,7 @@
 #include "Cursor.h"
 #include "SpringCursor.h"
 #include "DelayCursor.h"
-#include "MagnetCursor.h"
+#include "AxisCursor.h"
 
 
 GLuint ViewRenderWidget::border_thin_shadow = 0,
@@ -150,8 +150,8 @@ ViewRenderWidget::ViewRenderWidget() :
 	Q_CHECK_PTR(_springCursor);
 	_delayCursor = new DelayCursor;
 	Q_CHECK_PTR(_delayCursor);
-	_magnetCursor = new MagnetCursor;
-	Q_CHECK_PTR(_magnetCursor);
+	_axisCursor = new AxisCursor;
+	Q_CHECK_PTR(_axisCursor);
 	// sets the current cursor
 	_currentCursor = _normalCursor;
 
@@ -188,8 +188,8 @@ ViewRenderWidget::~ViewRenderWidget()
 		delete _springCursor;
 	if (_delayCursor)
 		delete _delayCursor;
-	if (_magnetCursor)
-		delete _magnetCursor;
+	if (_axisCursor)
+		delete _axisCursor;
 }
 
 
@@ -402,8 +402,8 @@ void ViewRenderWidget::setCursorMode(cursorMode m){
 	case ViewRenderWidget::CURSOR_SPRING:
 		_currentCursor = _springCursor;
 		break;
-	case ViewRenderWidget::CURSOR_MAGNET:
-		_currentCursor = _magnetCursor;
+	case ViewRenderWidget::CURSOR_AXIS:
+		_currentCursor = _axisCursor;
 		break;
 	default:
 	case ViewRenderWidget::CURSOR_NORMAL:
@@ -420,8 +420,8 @@ ViewRenderWidget::cursorMode ViewRenderWidget::getCursorMode(){
 	if (_currentCursor == _delayCursor)
 		return ViewRenderWidget::CURSOR_DELAY;
 
-	if (_currentCursor == _magnetCursor)
-		return ViewRenderWidget::CURSOR_MAGNET;
+	if (_currentCursor == _axisCursor)
+		return ViewRenderWidget::CURSOR_AXIS;
 
 	return ViewRenderWidget::CURSOR_NORMAL;
 }

@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/axis-cursor.png</file>
     <file>icons/aspectratio_3_2.png</file>
     <file>icons/aspectratio_4_3.png</file>
     <file>icons/aspectratio_16_9.png</file>

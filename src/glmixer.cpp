@@ -51,7 +51,7 @@
 #include "CatalogView.h"
 #include "DelayCursor.h"
 #include "SpringCursor.h"
-#include "MagnetCursor.h"
+#include "AxisCursor.h"
 #include "RenderingEncoder.h"
 #include "SessionSwitcher.h"
 
@@ -105,8 +105,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	actionCursorSpring->setData(ViewRenderWidget::CURSOR_SPRING);
 	cursorActions->addAction(actionCursorDelay);
 	actionCursorDelay->setData(ViewRenderWidget::CURSOR_DELAY);
-	cursorActions->addAction(actionCursorMagnet);
-	actionCursorMagnet->setData(ViewRenderWidget::CURSOR_MAGNET);
+	cursorActions->addAction(actionCursorAxis);
+	actionCursorAxis->setData(ViewRenderWidget::CURSOR_AXIS);
 	cursorActions->addAction(actionCursorCurve);
 	actionCursorCurve->setData(ViewRenderWidget::CURSOR_CURVE);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );

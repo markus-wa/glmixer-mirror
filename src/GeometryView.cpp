@@ -413,14 +413,14 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 	if (!event)
 		return false;
 
-	// SHIFT +  left double click = re-center panning
+	// SHIFT +  left double click = zoom best fit
 	if ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) {
-		double ax, ay, az;
-		gluUnProject((GLdouble) event->x(), viewport[3] - (GLdouble) event->y(), 0.0,  modelview, projection, viewport, &ax, &ay, &az);
-		// apply panning
-		setPanningX( -(float) ax );
-		setPanningY( -(float) ay );
-		return true;
+		// get the top most clicked source
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+
+			RenderingManager::getInstance()->setCurrentSource( (*clickedSources.begin())->getId() );
+			zoomBestFit(true);
+		}
 	}
 
 	return false;
