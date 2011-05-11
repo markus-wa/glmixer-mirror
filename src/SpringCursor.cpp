@@ -100,11 +100,17 @@ void SpringCursor::draw(GLint viewport[4]) {
 	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
 	glEnd();
 
+	// dashed line with pattern depending on spring lenght
+	glEnable(GL_LINE_STIPPLE);
+	glLineStipple( int((releasePos-shadowPos).manhattanLength() / 50.0), 0xAAAA);
+
 	glLineWidth(1);
 	glBegin(GL_LINES);
 	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
 	glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
 	glEnd();
+
+	glDisable(GL_LINE_STIPPLE);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

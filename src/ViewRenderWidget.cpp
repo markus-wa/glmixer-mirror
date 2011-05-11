@@ -36,6 +36,7 @@
 #include "SpringCursor.h"
 #include "DelayCursor.h"
 #include "AxisCursor.h"
+#include "LineCursor.h"
 
 
 GLuint ViewRenderWidget::border_thin_shadow = 0,
@@ -152,8 +153,11 @@ ViewRenderWidget::ViewRenderWidget() :
 	Q_CHECK_PTR(_delayCursor);
 	_axisCursor = new AxisCursor;
 	Q_CHECK_PTR(_axisCursor);
+	_lineCursor = new LineCursor;
+	Q_CHECK_PTR(_lineCursor);
 	// sets the current cursor
 	_currentCursor = _normalCursor;
+	enableCursor = false;
 
 	// opengl HID display
 	connect(&messageTimer, SIGNAL(timeout()), SLOT(hideMessage()));
@@ -190,6 +194,8 @@ ViewRenderWidget::~ViewRenderWidget()
 		delete _delayCursor;
 	if (_axisCursor)
 		delete _axisCursor;
+	if (_lineCursor)
+		delete _lineCursor;
 }
 
 
@@ -405,6 +411,9 @@ void ViewRenderWidget::setCursorMode(cursorMode m){
 	case ViewRenderWidget::CURSOR_AXIS:
 		_currentCursor = _axisCursor;
 		break;
+	case ViewRenderWidget::CURSOR_LINE:
+		_currentCursor = _lineCursor;
+		break;
 	default:
 	case ViewRenderWidget::CURSOR_NORMAL:
 		_currentCursor = _normalCursor;
@@ -416,12 +425,12 @@ ViewRenderWidget::cursorMode ViewRenderWidget::getCursorMode(){
 
 	if (_currentCursor == _springCursor)
 		return ViewRenderWidget::CURSOR_SPRING;
-
 	if (_currentCursor == _delayCursor)
 		return ViewRenderWidget::CURSOR_DELAY;
-
 	if (_currentCursor == _axisCursor)
 		return ViewRenderWidget::CURSOR_AXIS;
+	if (_currentCursor == _lineCursor)
+		return ViewRenderWidget::CURSOR_LINE;
 
 	return ViewRenderWidget::CURSOR_NORMAL;
 }
@@ -485,7 +494,7 @@ void ViewRenderWidget::paintGL()
 	//
 	// 2. the shadow of the cursor
 	//
-		if (_currentCursor->apply(f_p_s_) ) {
+		if (enableCursor && _currentCursor->apply(f_p_s_) ) {
 
 			_currentCursor->draw(_currentView->viewport);
 
@@ -635,7 +644,7 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 //	else
 
 
-	if (_currentCursor->isActive())
+	if (enableCursor && _currentCursor->isActive())
 		_currentCursor->update(event);
 	else
 		_currentView->mouseMoveEvent(event);
@@ -689,7 +698,7 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 	if (_catalogView->wheelEvent(event))
 		return;
 
-	if (_currentCursor->wheelEvent(event))
+	if (enableCursor && _currentCursor->wheelEvent(event))
 		return;
 
 	if (!_currentView->wheelEvent(event))

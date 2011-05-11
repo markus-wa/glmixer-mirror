@@ -1823,6 +1823,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionCursorSpring"/>
     <addaction name="actionCursorDelay"/>
     <addaction name="actionCursorAxis"/>
+    <addaction name="actionCursorLine"/>
     <addaction name="actionCursorCurve"/>
    </widget>
    <widget class="QMenu" name="menuRendering">
@@ -1938,6 +1939,7 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionCursorSpring"/>
    <addaction name="actionCursorDelay"/>
    <addaction name="actionCursorAxis"/>
+   <addaction name="actionCursorLine"/>
    <addaction name="actionCursorCurve"/>
   </widget>
   <widget class="QDockWidget" name="cursorDockWidget">
@@ -2083,16 +2085,16 @@ Uncheck to display the restart frame when stopped.</string>
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Wait duration:</string>
+              <string>Latency:</string>
              </property>
             </widget>
            </item>
           </layout>
          </item>
          <item>
-          <widget class="QDoubleSpinBox" name="cursorDelayWaitDuration">
+          <widget class="QDoubleSpinBox" name="cursorDelayLatency">
            <property name="toolTip">
-            <string>How long before the movement starts.</string>
+            <string>How late the cursor is behind the mouse.</string>
            </property>
            <property name="suffix">
             <string> second(s)</string>
@@ -2114,26 +2116,29 @@ Uncheck to display the restart frame when stopped.</string>
          <item>
           <widget class="QLabel" name="label_6">
            <property name="text">
-            <string>Speed:</string>
+            <string>Filtering:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSlider" name="cursorDelaySpeed">
+          <widget class="QSpinBox" name="cursorDelayFiltering">
            <property name="toolTip">
-            <string>Translation speed</string>
+            <string>How many frames used to smooth the path</string>
+           </property>
+           <property name="suffix">
+            <string> frames</string>
            </property>
            <property name="minimum">
-            <number>30</number>
+            <number>0</number>
            </property>
            <property name="maximum">
-            <number>250</number>
+            <number>20</number>
+           </property>
+           <property name="singleStep">
+            <number>1</number>
            </property>
            <property name="value">
-            <number>100</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <number>5</number>
            </property>
           </widget>
          </item>
@@ -2179,6 +2184,98 @@ Uncheck to display the restart frame when stopped.</string>
             <set>Qt::AlignCenter</set>
            </property>
           </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page">
+        <layout class="QVBoxLayout" name="verticalLayout_10">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <item>
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap resource="../icons.qrc">:/glmixer/icons/line-cursor.png</pixmap>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_11">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Speed</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QSlider" name="cursorLineSpeed">
+           <property name="toolTip">
+            <string>Translation speed</string>
+           </property>
+           <property name="minimum">
+            <number>30</number>
+           </property>
+           <property name="maximum">
+            <number>250</number>
+           </property>
+           <property name="value">
+            <number>100</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>Trigerring delay</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="cursorLineWaitDuration">
+           <property name="toolTip">
+            <string>How long before the movement starts.</string>
+           </property>
+           <property name="suffix">
+            <string> second(s)</string>
+           </property>
+           <property name="minimum">
+            <double>0.200000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>3.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.200000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>94</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -3062,7 +3159,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Axis cursor</string>
    </property>
    <property name="shortcut">
-    <string>M</string>
+    <string>A</string>
    </property>
   </action>
   <action name="action4_3_aspect_ratio">
@@ -3202,6 +3299,21 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
+   </property>
+  </action>
+  <action name="actionCursorLine">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/line-cursor.png</normaloff>:/glmixer/icons/line-cursor.png</iconset>
+   </property>
+   <property name="text">
+    <string>Line cursor</string>
+   </property>
+   <property name="shortcut">
+    <string>L</string>
    </property>
   </action>
  </widget>

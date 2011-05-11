@@ -42,6 +42,7 @@ class Cursor;
 class SpringCursor;
 class DelayCursor;
 class AxisCursor;
+class LineCursor;
 
 class ViewRenderWidget: public glRenderWidget {
 
@@ -101,13 +102,13 @@ public:
 	void setToolMode(toolMode m);
 	toolMode getToolMode();
 
-	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_MAGNET, CURSOR_CURVE} cursorMode;
+	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_LINE, CURSOR_MAGNET, CURSOR_CURVE} cursorMode;
 	void setCursorMode(cursorMode m);
 	cursorMode getCursorMode();
 
 	inline SpringCursor *getSpringCursor() const { return _springCursor; }
 	inline DelayCursor *getDelayCursor() const { return _delayCursor; }
-	inline AxisCursor *getAxisCursor() const { return _axisCursor; }
+	inline LineCursor *getLineCursor() const { return _lineCursor; }
 
 	/**
 	 * save and load configuration
@@ -149,6 +150,7 @@ public Q_SLOTS:
 	void setCatalogSizeMedium();
 	void setCatalogSizeLarge();
 	void setFaded(bool on) { faded = on; }
+	void setCursorEnabled(bool on) { enableCursor = on; }
 
 protected:
 
@@ -186,6 +188,8 @@ private:
 	SpringCursor *_springCursor;
 	DelayCursor *_delayCursor;
 	AxisCursor *_axisCursor;
+	LineCursor *_lineCursor;
+	bool enableCursor;
 
 	// M e s s a g e s
 	QLabel *messageLabel, *fpsLabel;

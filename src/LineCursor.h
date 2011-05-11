@@ -1,7 +1,7 @@
 /*
- * DelayCursor.h
+ * LineCursor.h
  *
- *  Created on: May 10, 2011
+ *  Created on: Jul 13, 2010
  *      Author: bh
  *
  *  This file is part of GLMixer.
@@ -23,44 +23,46 @@
  *
  */
 
-#ifndef DelayCursor_H_
-#define DelayCursor_H_
+#ifndef LineCursor_H_
+#define LineCursor_H_
 
 #include <QObject>
 
 #include "Cursor.h"
-#define MIN_LATENCY 0.1
-#define MAX_LATENCY 3.0
-#define SAMPLING_FREQ 120.0
-#define AVERAGE_WINDOW 5
+#define MIN_SPEED 30
+#define MAX_SPEED 250
+#define MIN_WAIT 0.2
+#define MAX_WAIT 3.0
 
-class DelayCursor: public QObject, public Cursor
+class LineCursor: public QObject, public Cursor
 {
     Q_OBJECT
 
 public:
-	DelayCursor();
+	LineCursor();
 
 	void update(QMouseEvent *e);
 	bool apply(double fpsaverage);
 	bool wheelEvent(QWheelEvent * event);
 	void draw(GLint viewport[4]);
 
-	inline double getLatency() const { return latency; }
+	inline int getSpeed() const { return (int) speed; }
+	inline double getWaitTime() const { return waitTime; }
 
 public Q_SLOTS:
-	inline void setLatency(double t) { latency = CLAMP(t, MIN_LATENCY, MAX_LATENCY); }
-	void setFiltering(int p);
+	inline void setSpeed(int s) { speed = (double) CLAMP(s, MIN_SPEED, MAX_SPEED); }
+	inline void setWaitTime(double t) { waitTime = CLAMP(t, MIN_WAIT, MAX_WAIT); }
 
 Q_SIGNALS:
-	void latencyChanged(double s);
+	void speedChanged(int s);
 
 private:
 
-	double latency, emaexp;
+	double speed;
+	double waitTime;
 
 	// timing
-	QVector<QPointF> positions;
+	double t, duration;
 };
 
-#endif /* DelayCursor_H_ */
+#endif /* LineCursor_H_ */

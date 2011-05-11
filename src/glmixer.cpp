@@ -52,6 +52,7 @@
 #include "DelayCursor.h"
 #include "SpringCursor.h"
 #include "AxisCursor.h"
+#include "LineCursor.h"
 #include "RenderingEncoder.h"
 #include "SessionSwitcher.h"
 
@@ -107,6 +108,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	actionCursorDelay->setData(ViewRenderWidget::CURSOR_DELAY);
 	cursorActions->addAction(actionCursorAxis);
 	actionCursorAxis->setData(ViewRenderWidget::CURSOR_AXIS);
+	cursorActions->addAction(actionCursorLine);
+	actionCursorLine->setData(ViewRenderWidget::CURSOR_LINE);
 	cursorActions->addAction(actionCursorCurve);
 	actionCursorCurve->setData(ViewRenderWidget::CURSOR_CURVE);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
@@ -246,9 +249,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionZoomCurrentSource, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomCurrentSource()));
 
 	// Signals between cursors and their configuration gui
-	QObject::connect(RenderingManager::getRenderingWidget()->getDelayCursor(), SIGNAL(speedChanged(int)), cursorDelaySpeed, SLOT(setValue(int)) );
-	QObject::connect(cursorDelaySpeed, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget()->getDelayCursor(), SLOT(setSpeed(int)) );
-	QObject::connect(cursorDelayWaitDuration, SIGNAL(valueChanged(double)), RenderingManager::getRenderingWidget()->getDelayCursor(), SLOT(setWaitTime(double)) );
+	QObject::connect(RenderingManager::getRenderingWidget()->getLineCursor(), SIGNAL(speedChanged(int)), cursorLineSpeed, SLOT(setValue(int)) );
+	QObject::connect(cursorLineSpeed, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget()->getLineCursor(), SLOT(setSpeed(int)) );
+	QObject::connect(cursorLineWaitDuration, SIGNAL(valueChanged(double)), RenderingManager::getRenderingWidget()->getLineCursor(), SLOT(setWaitTime(double)) );
+	QObject::connect(RenderingManager::getRenderingWidget()->getDelayCursor(), SIGNAL(latencyChanged(double)), cursorDelayLatency, SLOT(setValue(double)) );
+	QObject::connect(cursorDelayLatency, SIGNAL(valueChanged(double)), RenderingManager::getRenderingWidget()->getDelayCursor(), SLOT(setLatency(double)) );
+	QObject::connect(cursorDelayFiltering, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget()->getDelayCursor(), SLOT(setFiltering(int)) );
 	QObject::connect(RenderingManager::getRenderingWidget()->getSpringCursor(), SIGNAL(massChanged(int)), cursorSpringMass, SLOT(setValue(int)) );
 	QObject::connect(cursorSpringMass, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget()->getSpringCursor(), SLOT(setMass(int)) );
 
@@ -485,6 +491,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
+		// enable cursor on a source clic
+		RenderingManager::getRenderingWidget()->setCursorEnabled(true);
+
 		// enable properties and actions on the current valid source
 		sourceDockWidgetContents->setEnabled(true);
 		actionDeleteSource->setEnabled(true);
@@ -580,6 +589,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 			} // end video source
 		} // end playable
 	} else {  // it is not a valid source
+
+		// disable cursor on a source clic
+		RenderingManager::getRenderingWidget()->setCursorEnabled(false);
 
 		// disable panel widgets
 		actionDeleteSource->setEnabled(false);

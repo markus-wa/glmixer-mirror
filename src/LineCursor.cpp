@@ -1,7 +1,7 @@
 /*
- * AxisCursor.cpp
+ * LineCursor.cpp
  *
- *  Created on: May 9, 2011
+ *  Created on: Jul 13, 2010
  *      Author: bh
  *
  *  This file is part of GLMixer.
@@ -27,41 +27,50 @@
 
 #define euclidean(P1, P2)  sqrt( (P1.x()-P2.x()) * (P1.x()-P2.x()) +  (P1.y()-P2.y()) * (P1.y()-P2.y()) )
 
-#include "AxisCursor.moc"
+#include "LineCursor.moc"
 
-AxisCursor::AxisCursor() : Cursor(), x_axis(true)
+LineCursor::LineCursor() : Cursor(), speed(100.0), waitTime(1.0), t(0.0), duration(0.0)
 {
 
 }
 
-//void AxisCursor::update(QMouseEvent *e){
-//
-//	Cursor::update(e);
-//
-//	if (e->type() == QEvent::MouseButtonPress){
-//		// reset time
-//		t = 0.0;
-//		duration = 0.0;
-//	}
-//}
+void LineCursor::update(QMouseEvent *e){
 
-bool AxisCursor::apply(double fpsaverage){
+	Cursor::update(e);
+
+	if (e->type() == QEvent::MouseButtonPress){
+		// reset time
+		t = 0.0;
+		duration = 0.0;
+	}
+}
+
+bool LineCursor::apply(double fpsaverage){
+
+	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
 
 	// animate the shadow
 	if (active) {
 
-		// updated means fist time pressed : we determine the direction
-		if (updated && (mousePos-pressPos).manhattanLength() < 15.0 )  {
-			x_axis =  ABS(mousePos.x() - pressPos.x()) > ABS(mousePos.y() - pressPos.y()) ;
-			updated = false;
-		}
+		releasePos = mousePos;
 
-		if (x_axis) {
-			shadowPos.setX(mousePos.x());
-			shadowPos.setY(pressPos.y());
-		} else {
-			shadowPos.setX(pressPos.x());
-			shadowPos.setY(mousePos.y());
+		if (duration < waitTime)
+			duration += dt;
+		else {
+			// time increment
+			t += dt;
+
+			// interpolation
+			shadowPos = pressPos + speed * t * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
+
+			// interpolation finished?
+			if ( euclidean(releasePos, shadowPos) < speed * dt){
+				// reset all
+				pressPos = mousePos;
+				shadowPos = mousePos;
+				duration = 0.0;
+				t = 0.0;
+			}
 		}
 		return true;
 	}
@@ -70,21 +79,24 @@ bool AxisCursor::apply(double fpsaverage){
 }
 
 
-bool AxisCursor::wheelEvent(QWheelEvent * event){
+bool LineCursor::wheelEvent(QWheelEvent * event){
 
 	if (!active)
 		return false;
 
-	if (x_axis)
-		pressPos.setY( pressPos.y() - ((float) event->delta()) / (24.0) );
-	else
-		pressPos.setX( pressPos.x() + ((float) event->delta()) / (24.0) );
+	if (duration < waitTime) {
+		duration = 0.0;
+
+		speed += ((float) event->delta() * speed * MIN_SPEED) / (240.0 * MAX_SPEED) ;
+		speed = CLAMP(speed, MIN_SPEED, MAX_SPEED);
+		emit speedChanged((int)speed);
+	}
 
 	return true;
 }
 
 
-void AxisCursor::draw(GLint viewport[4]) {
+void LineCursor::draw(GLint viewport[4]) {
 //	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -101,20 +113,21 @@ void AxisCursor::draw(GLint viewport[4]) {
 	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
 	glEnd();
 
+	QPointF p(pressPos);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	while( euclidean(releasePos, p) > speed ) {
+		glVertex2d(p.x(), (viewport[3] - p.y()));
+		p += speed * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
+	}
+	glVertex2d(p.x(), (viewport[3] - p.y()));
+	glEnd();
+
 	glLineWidth(1);
 	glBegin(GL_LINES);
 	glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
-	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
+	glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
 	glEnd();
-
-	glLineStipple(1, 0x9999);
-	glEnable(GL_LINE_STIPPLE);
-	glBegin(GL_LINES);
-	glVertex2d(mousePos.x(), viewport[3] - mousePos.y());
-	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
-	glEnd();
-	glDisable(GL_LINE_STIPPLE);
-
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

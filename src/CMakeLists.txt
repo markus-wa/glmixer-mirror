@@ -34,6 +34,7 @@ set(MYQT_SRCS
     SpringCursor.cpp
     DelayCursor.cpp
     AxisCursor.cpp
+    LineCursor.cpp
     UserPreferencesDialog.cpp
     GammaLevelsWidget.cpp
     SessionSwitcher.cpp

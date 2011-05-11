@@ -25,13 +25,12 @@
 
 #include <cmath>
 
-#define euclidean(P1, P2)  sqrt( (P1.x()-P2.x()) * (P1.x()-P2.x()) +  (P1.y()-P2.y()) * (P1.y()-P2.y()) )
-
 #include "DelayCursor.moc"
 
-DelayCursor::DelayCursor() : Cursor(), speed(100.0), waitTime(1.0), t(0.0), duration(0.0)
+DelayCursor::DelayCursor() : Cursor(), latency(1.0)
 {
 
+	emaexp = 2.0 / double(AVERAGE_WINDOW + 1);
 }
 
 void DelayCursor::update(QMouseEvent *e){
@@ -39,54 +38,77 @@ void DelayCursor::update(QMouseEvent *e){
 	Cursor::update(e);
 
 	if (e->type() == QEvent::MouseButtonPress){
-		// reset time
-		t = 0.0;
-		duration = 0.0;
+		// reset
+		positions.clear();
 	}
 }
 
 bool DelayCursor::apply(double fpsaverage){
 
-	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
+//	double dt = 1.0 / qMax(fpsaverage, 1.0);
 
 	// animate the shadow
 	if (active) {
 
 		releasePos = mousePos;
 
-		if (duration < waitTime)
-			duration += dt;
-		else {
+		// principle is as follows ; we push back values of current mouse pos into the stack and pop front to get shadow pos
+		// But in addition, we also push values intermediate for a virtual SAMPLING_FREQ maximal queue by interpolation on the current fpsaverage
+		// and we pop the values sampled by the fpsaverage (discard intermediate not used).
+		// This allows to have varying fps when push than when pop (which is very likely to happen)
+		QPointF pos;
+		float f = 0.0;
+		int i = 0;
 
-			t += dt;
+		// how many values would we have at SAMPLING_FREQ Hz instead of fpsaverage?
+		int numMousePos = (int) (SAMPLING_FREQ / fpsaverage);
+		// starting from last pushed position,
+		if (positions.empty())
+			pos = pressPos;
+		else
+			pos = positions.last();
 
+		// interpolate until current mouse pos
+		for( i = 1; i < numMousePos + 1; ++i, f = float(i)/float(numMousePos)) {
 			// interpolation
-			shadowPos = pressPos + speed * t * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
-	//		shadowPos += dt * coef * (releasePos - shadowPos);
-
-			// interpolation finished?
-			if ( euclidean(releasePos, shadowPos) < speed * dt)
-				active = false;
+			QPointF newpos = pos + (mousePos - pos)* f ;
+			// filter to smooth curve ; exponential moving average is the simplest !
+			if (!positions.empty())
+				newpos = emaexp * newpos + (1.0 - emaexp) * positions.last();
+			// add value
+			positions.push_back( newpos );
 		}
+
+		// when the size of the stack is more than the latency,
+		// pop until the stack size corresponds to the delay to wait
+		for ( i = 0; positions.size() > int(latency * SAMPLING_FREQ); ++i) {
+			pos = positions.front();
+			positions.pop_front();
+		}
+		// if above looped, use this new pos
+		if ( i != 0 )
+			shadowPos = pos;
+
 		return true;
 	}
 
 	return false;
 }
 
+void DelayCursor::setFiltering(int p){
+
+	emaexp = 2.0 / double( qMax(p, 1) + 1);
+}
 
 bool DelayCursor::wheelEvent(QWheelEvent * event){
 
 	if (!active)
 		return false;
 
-	if (duration < waitTime) {
-		duration = 0.0;
+	latency += ((float) event->delta() * latency * MIN_LATENCY) / (240.0 * MAX_LATENCY) ;
+	latency = CLAMP(latency, MIN_LATENCY, MAX_LATENCY);
 
-		speed += ((float) event->delta() * speed * MIN_SPEED) / (240.0 * MAX_SPEED) ;
-		speed = CLAMP(speed, MIN_SPEED, MAX_SPEED);
-		emit speedChanged((int)speed);
-	}
+	emit latencyChanged(latency);
 
 	return true;
 }
@@ -109,20 +131,14 @@ void DelayCursor::draw(GLint viewport[4]) {
 	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());
 	glEnd();
 
-	QPointF p(pressPos);
-	glPointSize(5);
-	glBegin(GL_POINTS);
-	while( euclidean(releasePos, p) > speed ) {
-		glVertex2d(p.x(), (viewport[3] - p.y()));
-		p += speed * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
-	}
-	glVertex2d(p.x(), (viewport[3] - p.y()));
-	glEnd();
-
+	QPointF pos(shadowPos);
+	QVectorIterator<QPointF> p(positions);
 	glLineWidth(1);
-	glBegin(GL_LINES);
-	glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
-	glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
+	glBegin(GL_LINE_STRIP);
+	while (p.hasNext()){
+		pos = p.next();
+		glVertex2d(pos.x(), (viewport[3] - pos.y()));
+	}
 	glEnd();
 
 	glMatrixMode(GL_PROJECTION);
