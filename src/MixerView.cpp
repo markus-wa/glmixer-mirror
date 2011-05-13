@@ -392,6 +392,9 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
         	}
         	return true;
 		}
+		// default action ; zoom best fit on whole screen
+		else
+			zoomBestFit(false);
 	}
 
 	return false;

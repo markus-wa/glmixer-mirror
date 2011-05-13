@@ -413,14 +413,19 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 	if (!event)
 		return false;
 
-	// SHIFT +  left double click = zoom best fit
-	if ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) {
+	// left double click = zoom best fit
+	if ( event->buttons() & Qt::LeftButton ) {
 		// get the top most clicked source
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
-
-			RenderingManager::getInstance()->setCurrentSource( (*clickedSources.begin())->getId() );
-			zoomBestFit(true);
+			// SHIFT + on a source ; best fit on source
+			if (QApplication::keyboardModifiers () == Qt::ShiftModifier) {
+				RenderingManager::getInstance()->setCurrentSource( (*clickedSources.begin())->getId() );
+				zoomBestFit(true);
+			}
 		}
+		// default action ; zoom best fit on whole screen
+		else
+			zoomBestFit(false);
 	}
 
 	return false;
