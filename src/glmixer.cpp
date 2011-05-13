@@ -53,6 +53,7 @@
 #include "SpringCursor.h"
 #include "AxisCursor.h"
 #include "LineCursor.h"
+#include "FuzzyCursor.h"
 #include "RenderingEncoder.h"
 #include "SessionSwitcher.h"
 
@@ -110,8 +111,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	actionCursorAxis->setData(ViewRenderWidget::CURSOR_AXIS);
 	cursorActions->addAction(actionCursorLine);
 	actionCursorLine->setData(ViewRenderWidget::CURSOR_LINE);
-	cursorActions->addAction(actionCursorCurve);
-	actionCursorCurve->setData(ViewRenderWidget::CURSOR_CURVE);
+	cursorActions->addAction(actionCursorFuzzy);
+	actionCursorFuzzy->setData(ViewRenderWidget::CURSOR_FUZZY);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
 
 	QActionGroup *aspectRatioActions = new QActionGroup(this);
@@ -249,14 +250,17 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionZoomCurrentSource, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomCurrentSource()));
 
 	// Signals between cursors and their configuration gui
-	QObject::connect(RenderingManager::getRenderingWidget()->getLineCursor(), SIGNAL(speedChanged(int)), cursorLineSpeed, SLOT(setValue(int)) );
-	QObject::connect(cursorLineSpeed, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget()->getLineCursor(), SLOT(setSpeed(int)) );
-	QObject::connect(cursorLineWaitDuration, SIGNAL(valueChanged(double)), RenderingManager::getRenderingWidget()->getLineCursor(), SLOT(setWaitTime(double)) );
-	QObject::connect(RenderingManager::getRenderingWidget()->getDelayCursor(), SIGNAL(latencyChanged(double)), cursorDelayLatency, SLOT(setValue(double)) );
-	QObject::connect(cursorDelayLatency, SIGNAL(valueChanged(double)), RenderingManager::getRenderingWidget()->getDelayCursor(), SLOT(setLatency(double)) );
-	QObject::connect(cursorDelayFiltering, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget()->getDelayCursor(), SLOT(setFiltering(int)) );
-	QObject::connect(RenderingManager::getRenderingWidget()->getSpringCursor(), SIGNAL(massChanged(int)), cursorSpringMass, SLOT(setValue(int)) );
-	QObject::connect(cursorSpringMass, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget()->getSpringCursor(), SLOT(setMass(int)) );
+	QObject::connect(dynamic_cast<LineCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_LINE)), SIGNAL(speedChanged(int)), cursorLineSpeed, SLOT(setValue(int)) );
+	QObject::connect(cursorLineSpeed, SIGNAL(valueChanged(int)), dynamic_cast<LineCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_LINE)), SLOT(setSpeed(int)) );
+	QObject::connect(cursorLineWaitDuration, SIGNAL(valueChanged(double)), dynamic_cast<LineCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_LINE)), SLOT(setWaitTime(double)) );
+	QObject::connect(dynamic_cast<DelayCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_DELAY)), SIGNAL(latencyChanged(double)), cursorDelayLatency, SLOT(setValue(double)) );
+	QObject::connect(cursorDelayLatency, SIGNAL(valueChanged(double)), dynamic_cast<DelayCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_DELAY)), SLOT(setLatency(double)) );
+	QObject::connect(cursorDelayFiltering, SIGNAL(valueChanged(int)), dynamic_cast<DelayCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_DELAY)), SLOT(setFiltering(int)) );
+	QObject::connect(dynamic_cast<SpringCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_SPRING)), SIGNAL(massChanged(int)), cursorSpringMass, SLOT(setValue(int)) );
+	QObject::connect(cursorSpringMass, SIGNAL(valueChanged(int)), dynamic_cast<SpringCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_SPRING)), SLOT(setMass(int)) );
+	QObject::connect(dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SIGNAL(radiusChanged(int)), cursorFuzzyRadius, SLOT(setValue(int)) );
+	QObject::connect(cursorFuzzyRadius, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setRadius(int)) );
+	QObject::connect(cursorFuzzyFiltering, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setFiltering(int)) );
 
     // a Timer to update sliders and counters
     refreshTimingTimer = new QTimer(this);

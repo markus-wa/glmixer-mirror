@@ -35,6 +35,7 @@ set(MYQT_SRCS
     DelayCursor.cpp
     AxisCursor.cpp
     LineCursor.cpp
+    FuzzyCursor.cpp
     UserPreferencesDialog.cpp
     GammaLevelsWidget.cpp
     SessionSwitcher.cpp

@@ -1824,7 +1824,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionCursorDelay"/>
     <addaction name="actionCursorAxis"/>
     <addaction name="actionCursorLine"/>
-    <addaction name="actionCursorCurve"/>
+    <addaction name="actionCursorFuzzy"/>
    </widget>
    <widget class="QMenu" name="menuRendering">
     <property name="title">
@@ -1940,7 +1940,7 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionCursorDelay"/>
    <addaction name="actionCursorAxis"/>
    <addaction name="actionCursorLine"/>
-   <addaction name="actionCursorCurve"/>
+   <addaction name="actionCursorFuzzy"/>
   </widget>
   <widget class="QDockWidget" name="cursorDockWidget">
    <property name="windowIcon">
@@ -1958,12 +1958,6 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="cursorDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-     <property name="margin">
-      <number>3</number>
-     </property>
      <item>
       <widget class="QStackedWidget" name="cursorOptionWidget">
        <property name="currentIndex">
@@ -2273,6 +2267,101 @@ Uncheck to display the restart frame when stopped.</string>
             <size>
              <width>20</width>
              <height>94</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_2">
+        <layout class="QVBoxLayout" name="verticalLayout_11">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_15">
+           <item>
+            <widget class="QLabel" name="label_14">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap resource="../icons.qrc">:/glmixer/icons/fuzzy-cursor.png</pixmap>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_13">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Radius</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QSlider" name="cursorFuzzyRadius">
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>250</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="pageStep">
+            <number>50</number>
+           </property>
+           <property name="value">
+            <number>50</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>Filtering</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="cursorFuzzyFiltering">
+           <property name="suffix">
+            <string> frames</string>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>20</number>
+           </property>
+           <property name="value">
+            <number>5</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
             </size>
            </property>
           </spacer>
@@ -2966,31 +3055,31 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Delay cursor</string>
    </property>
    <property name="statusTip">
-    <string>The cursor moves with a constant speed to reach the mouse position.</string>
+    <string>The cursor follows the mouse with a latency</string>
    </property>
    <property name="shortcut">
     <string>D</string>
    </property>
   </action>
-  <action name="actionCursorCurve">
+  <action name="actionCursorFuzzy">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/curve-cursor.png</normaloff>:/glmixer/icons/curve-cursor.png</iconset>
+     <normaloff>:/glmixer/icons/fuzzy-cursor.png</normaloff>:/glmixer/icons/fuzzy-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Path cursor</string>
+    <string>Fuzzy cursor</string>
    </property>
    <property name="statusTip">
-    <string>The cursor follows a path drawn by the mouse.</string>
+    <string>The cursor makes fuzzy movements around the mouse</string>
    </property>
    <property name="shortcut">
-    <string>P</string>
+    <string>F</string>
    </property>
   </action>
   <action name="actionSelect_Next">
@@ -3158,6 +3247,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Axis cursor</string>
    </property>
+   <property name="statusTip">
+    <string>The cursor follows the axis</string>
+   </property>
    <property name="shortcut">
     <string>A</string>
    </property>
@@ -3311,6 +3403,9 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="text">
     <string>Line cursor</string>
+   </property>
+   <property name="statusTip">
+    <string>The cursor moves on a line to reach the mouse position.</string>
    </property>
    <property name="shortcut">
     <string>L</string>

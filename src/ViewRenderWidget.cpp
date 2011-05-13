@@ -37,6 +37,7 @@
 #include "DelayCursor.h"
 #include "AxisCursor.h"
 #include "LineCursor.h"
+#include "FuzzyCursor.h"
 
 
 GLuint ViewRenderWidget::border_thin_shadow = 0,
@@ -155,6 +156,8 @@ ViewRenderWidget::ViewRenderWidget() :
 	Q_CHECK_PTR(_axisCursor);
 	_lineCursor = new LineCursor;
 	Q_CHECK_PTR(_lineCursor);
+	_fuzzyCursor = new FuzzyCursor;
+	Q_CHECK_PTR(_fuzzyCursor);
 	// sets the current cursor
 	_currentCursor = _normalCursor;
 	enableCursor = false;
@@ -414,6 +417,10 @@ void ViewRenderWidget::setCursorMode(cursorMode m){
 	case ViewRenderWidget::CURSOR_LINE:
 		_currentCursor = _lineCursor;
 		break;
+		break;
+	case ViewRenderWidget::CURSOR_FUZZY:
+		_currentCursor = _fuzzyCursor;
+		break;
 	default:
 	case ViewRenderWidget::CURSOR_NORMAL:
 		_currentCursor = _normalCursor;
@@ -431,8 +438,31 @@ ViewRenderWidget::cursorMode ViewRenderWidget::getCursorMode(){
 		return ViewRenderWidget::CURSOR_AXIS;
 	if (_currentCursor == _lineCursor)
 		return ViewRenderWidget::CURSOR_LINE;
+	if (_currentCursor == _fuzzyCursor)
+		return ViewRenderWidget::CURSOR_FUZZY;
 
 	return ViewRenderWidget::CURSOR_NORMAL;
+}
+
+Cursor *ViewRenderWidget::getCursor(cursorMode m)
+{
+	switch(m) {
+		case ViewRenderWidget::CURSOR_DELAY:
+			return (Cursor*)_delayCursor;
+		case ViewRenderWidget::CURSOR_SPRING:
+			return (Cursor*)_springCursor;
+		case ViewRenderWidget::CURSOR_AXIS:
+			return (Cursor*)_axisCursor;
+		case ViewRenderWidget::CURSOR_LINE:
+			return (Cursor*)_lineCursor;
+		case ViewRenderWidget::CURSOR_FUZZY:
+			return (Cursor*)_fuzzyCursor;
+			break;
+		default:
+		case ViewRenderWidget::CURSOR_NORMAL:
+			return _normalCursor;
+	}
+
 }
 
 /**

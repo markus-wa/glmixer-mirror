@@ -43,6 +43,7 @@ class SpringCursor;
 class DelayCursor;
 class AxisCursor;
 class LineCursor;
+class FuzzyCursor;
 
 class ViewRenderWidget: public glRenderWidget {
 
@@ -102,13 +103,14 @@ public:
 	void setToolMode(toolMode m);
 	toolMode getToolMode();
 
-	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_LINE, CURSOR_MAGNET, CURSOR_CURVE} cursorMode;
+	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_LINE, CURSOR_FUZZY} cursorMode;
 	void setCursorMode(cursorMode m);
 	cursorMode getCursorMode();
 
-	inline SpringCursor *getSpringCursor() const { return _springCursor; }
-	inline DelayCursor *getDelayCursor() const { return _delayCursor; }
-	inline LineCursor *getLineCursor() const { return _lineCursor; }
+	Cursor *getCursor(cursorMode m = CURSOR_NORMAL);
+//	inline SpringCursor *getSpringCursor() const { return _springCursor; }
+//	inline DelayCursor *getDelayCursor() const { return _delayCursor; }
+//	inline LineCursor *getLineCursor() const { return _lineCursor; }
 
 	/**
 	 * save and load configuration
@@ -189,6 +191,7 @@ private:
 	DelayCursor *_delayCursor;
 	AxisCursor *_axisCursor;
 	LineCursor *_lineCursor;
+	FuzzyCursor *_fuzzyCursor;
 	bool enableCursor;
 
 	// M e s s a g e s
