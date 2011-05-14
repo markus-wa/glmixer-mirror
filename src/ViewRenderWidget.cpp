@@ -234,6 +234,12 @@ void ViewRenderWidget::initializeGL()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		mask_textures[Source::ANTIALIASING_MASK] = bindTexture(QPixmap(QString::fromUtf8(
+				":/glmixer/textures/mask_antialiasing.png")), GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		mask_textures[Source::ROUNDCORNER_MASK] = bindTexture(QPixmap(QString::fromUtf8(
 				":/glmixer/textures/mask_roundcorner.png")), GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -903,6 +909,8 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 
 void ViewRenderWidget::setFilteringEnabled(bool on)
 {
+	makeCurrent();
+
 	// if the GLSL program was already created, delete it
 	if( program ) {
 		// except if the filtering is already at the same configuration

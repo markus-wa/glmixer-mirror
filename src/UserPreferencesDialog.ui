@@ -929,7 +929,7 @@ the user to select a file name</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QCheckBox" name="antiAliasing">
             <property name="text">
              <string>Anti-aliasing</string>
             </property>

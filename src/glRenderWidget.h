@@ -41,6 +41,8 @@ public:
 
     // cosmetics
     void setBackgroundColor(const QColor &c);
+    inline bool antiAliasing() { return antialiasing; }
+    void setAntiAliasing(bool on);
 
     static int updatePeriod();
     static void setUpdatePeriod(int miliseconds);
@@ -51,6 +53,7 @@ public:
 protected:
 
 	float aspectRatio;
+	bool antialiasing;
 
 	static class QTimer *timer;
 };

@@ -101,6 +101,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 
 	if (stackedPreferences->currentWidget() == PageInterface){
 		FINE->setChecked(true);
+		antiAliasing->setChecked(true);
 	}
 }
 
@@ -178,7 +179,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	stream >> rtfr;
 	recordingUpdatePeriod->setValue(rtfr > 0 ? rtfr : 40);
 
-	// e. recording folder
+	// h. recording folder
 	bool automaticSave = false;
 	stream >> automaticSave;
 	recordingFolderBox->setChecked(automaticSave);
@@ -186,10 +187,15 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	stream >> automaticSaveFolder;
 	recordingFolderLine->setText(automaticSaveFolder);
 
-	// f. disable filtering
+	// i. disable filtering
 	bool disablefilter = false;
 	stream >> disablefilter;
 	disableFiltering->setChecked(disablefilter);
+
+	// j. antialiasing
+	bool antialiasing = true;
+	stream >> antialiasing;
+	antiAliasing->setChecked(antialiasing);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -230,12 +236,15 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	stream << (uint) recordingFormatSelection->currentIndex();
 	stream << (uint) recordingUpdatePeriod->value();
 
-	// e. recording folder
+	// h. recording folder
 	stream << recordingFolderBox->isChecked();
 	stream << recordingFolderLine->text();
 
-	// f. disable filter
+	// i. disable filter
 	stream << disableFiltering->isChecked();
+
+	// i. antialiasing
+	stream << antiAliasing->isChecked();
 
 	return data;
 }

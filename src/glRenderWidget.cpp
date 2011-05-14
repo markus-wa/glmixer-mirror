@@ -61,6 +61,25 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 	timer->setInterval(20);
 }
 
+void glRenderWidget::setAntiAliasing(bool on)
+{
+	antialiasing = on;
+	makeCurrent();
+
+    // OPENGL ANTIALIASING
+	if (antialiasing) {
+		glEnable(GL_POINT_SMOOTH);
+		glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+		glEnable(GL_LINE_SMOOTH);
+		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+		glEnable(GL_POLYGON_SMOOTH);
+		glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	} else {
+		glDisable(GL_LINE_SMOOTH);
+		glDisable(GL_POINT_SMOOTH);
+		glDisable(GL_POLYGON_SMOOTH);
+	}
+}
 
 void glRenderWidget::initializeGL()
 {
@@ -91,15 +110,10 @@ void glRenderWidget::initializeGL()
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // ANTIALIASING
-    glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    glEnable(GL_POINT_SMOOTH);
-    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-    glEnable(GL_POLYGON_SMOOTH);
-
     // This hint can improve the speed of texturing when perspective-correct texture coordinate interpolation isn't needed
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+    // This hint can improve the speed of shading when dFdx dFdy aren't needed in GLSL
+    glHint(GL_FRAGMENT_SHADER_DERIVATIVE_HINT, GL_FASTEST);
 
     // setup default background color to black
     glClearColor(0.0, 0.0, 0.0, 1.0f);

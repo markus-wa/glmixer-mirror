@@ -1716,9 +1716,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	quint32 storedMagicNumber;
     quint16 majorVersion = 0;
 	stream >> storedMagicNumber >> majorVersion;
-	if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion)
-		// TODO clear preferences or display dialog warning error
+	if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion) {
+		// display dialog warning error
+		qCritical("** Error **\n\nCould not load preferences.");
 		return;
+	}
 
 	// a. Apply rendering preferences
 	uint RenderingQuality;
@@ -1762,7 +1764,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	stream >> rtfr;
 	RenderingManager::getRecorder()->setUpdatePeriod(rtfr > 0 ? rtfr : 40);
 
-	// e. recording folder
+	// h. recording folder
 	bool automaticSave = false;
 	stream >> automaticSave;
 	RenderingManager::getRecorder()->setAutomaticSavingMode(automaticSave);
@@ -1773,12 +1775,17 @@ void GLMixer::restorePreferences(const QByteArray & state){
 		d = QDir::current();
 	RenderingManager::getRecorder()->setAutomaticSavingFolder(d);
 
-	// f. disable filtering
+	// i. disable filtering
 	bool disablefilter = false;
 	stream >> disablefilter;
 	// better make the view render widget current before setting filtering enabled
 	RenderingManager::getRenderingWidget()->refresh();
 	RenderingManager::getRenderingWidget()->setFilteringEnabled(!disablefilter);
+
+	// j. antialiasing
+	bool antialiasing = true;
+	stream >> antialiasing;
+	RenderingManager::getRenderingWidget()->setAntiAliasing(antialiasing);
 
 	// Refresh widgets to make changes visible
 	OutputRenderWindow::getInstance()->refresh();
@@ -1819,12 +1826,15 @@ QByteArray GLMixer::getPreferences() const {
 	stream << (uint) RenderingManager::getRecorder()->encodingFormat();
 	stream << RenderingManager::getRecorder()->updatePeriod();
 
-	// e. recording folder
+	// h. recording folder
 	stream << RenderingManager::getRecorder()->automaticSavingMode();
 	stream << RenderingManager::getRecorder()->automaticSavingFolder().absolutePath();
 
-	// f. disable filtering
+	// i. filtering
 	stream << !ViewRenderWidget::filteringEnabled();
+
+	// j. antialiasing
+	stream << RenderingManager::getRenderingWidget()->antiAliasing();
 
 	return data;
 }

@@ -59,6 +59,9 @@ void OutputRenderWidget::initializeGL() {
 
 	glRenderWidget::initializeGL();
 
+	// set antialiasing
+	setAntiAliasing(false);
+
     // Turn blending off
     glDisable(GL_BLEND);
 
