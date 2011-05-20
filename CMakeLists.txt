@@ -8,7 +8,7 @@ IF(Subversion_FOUND)
   MESSAGE("Current revision is ${GLMIXER_WC_REVISION}")
 ENDIF(Subversion_FOUND)
 
-set(GLMIXER_VERSION "0.9")
+set(GLMIXER_VERSION "1.0")
 
 # Expose CMAKE_INCLUDE_PATH and CMAKE_LIBARY_PATH to the GUI so users
 # may set these values without needing to manipulate the environment.

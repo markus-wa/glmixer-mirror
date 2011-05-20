@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     a.setApplicationName("GLMixer");
 
 #ifdef GLMIXER_VERSION
-    a.setApplicationVersion( QString("%1").arg(GLMIXER_VERSION) );
+    a.setApplicationVersion( QString("%1").arg(GLMIXER_VERSION, 2, 'f', 1 ) );
 #else
     a.setApplicationVersion( "Beta" );
 #endif
