@@ -175,6 +175,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     g->addWidget(currentSessionLabel, 0, 0);
 
     overlayPreview = new SourceDisplayWidget(this);
+    overlayPreview->useAspectRatio(false);
     overlayPreview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     overlayPreview->setMinimumSize(QSize(80, 60));
     g->addWidget(overlayPreview, 0, 1);

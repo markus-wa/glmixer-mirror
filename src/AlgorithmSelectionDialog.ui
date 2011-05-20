@@ -45,36 +45,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <item>
-      <property name="text">
-       <string>Flat color</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Greyscale random noise</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Color random noise</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Greyscale Perlin noise</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Color Perlin noise</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Perlin turbulences</string>
-      </property>
-     </item>
     </widget>
    </item>
    <item>

@@ -1044,13 +1044,13 @@ GLuint ViewRenderWidget::buildTexturedQuadList()
 		glBegin(GL_QUADS); // begin drawing a square
 
 		glTexCoord2f(0.f, 1.f);
-		glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+		glVertex2f(-1.0f, -1.0f); // Bottom Left
 		glTexCoord2f(1.f, 1.f);
-		glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+		glVertex2f(1.0f, -1.0f); // Bottom Right
 		glTexCoord2f(1.f, 0.f);
-		glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+		glVertex2f(1.0f, 1.0f); // Top Right
 		glTexCoord2f(0.f, 0.f);
-		glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+		glVertex2f(-1.0f, 1.0f); // Top Left
 
 		glEnd();
 
@@ -1089,10 +1089,10 @@ GLuint ViewRenderWidget::buildLineList()
 		glLineWidth(1.0);
 		glColor4f(0.9, 0.9, 0.0, 0.7);
 		glBegin(GL_LINE_LOOP); // begin drawing a square
-		glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
-		glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
-		glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
-		glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
+		glVertex2f(-1.05f, -1.05f); // Bottom Left
+		glVertex2f(1.05f, -1.05f); // Bottom Right
+		glVertex2f(1.05f, 1.05f); // Top Right
+		glVertex2f(-1.05f, 1.05f); // Top Left
 		glEnd();
 
 	glEndList();
@@ -1111,10 +1111,10 @@ GLuint ViewRenderWidget::buildLineList()
 		glLineWidth(3.0);
 		glColor4f(0.9, 0.9, 0.0, 0.7);
 		glBegin(GL_LINE_LOOP); // begin drawing a square
-		glVertex3f(-1.05f, -1.05f, 0.0f); // Bottom Left
-		glVertex3f(1.05f, -1.05f, 0.0f); // Bottom Right
-		glVertex3f(1.05f, 1.05f, 0.0f); // Top Right
-		glVertex3f(-1.05f, 1.05f, 0.0f); // Top Left
+		glVertex2f(-1.05f, -1.05f); // Bottom Left
+		glVertex2f(1.05f, -1.05f); // Bottom Right
+		glVertex2f(1.05f, 1.05f); // Top Right
+		glVertex2f(-1.05f, 1.05f); // Top Left
 		glEnd();
 
 	glEndList();
@@ -1164,7 +1164,7 @@ GLuint ViewRenderWidget::buildCircleList()
 
 		glBegin(GL_LINE_LOOP);
 		for (float i = 0; i < 2.0 * M_PI; i += 0.07)
-			glVertex3f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i), 0);
+			glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));
 		glEnd();
 
 		//limbo
@@ -1234,13 +1234,13 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
 			glScalef(1.5 * SOURCE_UNIT, 1.5 * SOURCE_UNIT, 1.0);
 			glBegin(GL_QUADS); // begin drawing a square
 				glTexCoord2f(0.0f, 1.0f);
-				glVertex3f(-1.f, -1.f, 0.0f); // Bottom Left
+				glVertex2f(-1.f, -1.f); // Bottom Left
 				glTexCoord2f(1.0f, 1.0f);
-				glVertex3f(1.f, -1.f, 0.0f); // Bottom Right
+				glVertex2f(1.f, -1.f); // Bottom Right
 				glTexCoord2f(1.0f, 0.0f);
-				glVertex3f(1.f, 1.f, 0.0f); // Top Right
+				glVertex2f(1.f, 1.f); // Top Right
 				glTexCoord2f(0.0f, 0.0f);
-				glVertex3f(-1.f, 1.f, 0.0f); // Top Left
+				glVertex2f(-1.f, 1.f); // Top Left
 			glEnd();
 		glPopMatrix();
 
@@ -1249,10 +1249,10 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
 		glBegin(GL_QUADS); // begin drawing a square
 			// Front Face
 			glNormal3f(0.0f, 0.0f, 1.0f); // front face points out of the screen on z.
-			glVertex3f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Left
-			glVertex3f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT, 0.0f); // Bottom Right
-			glVertex3f(1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Right
-			glVertex3f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT, 0.0f); // Top Left
+			glVertex2f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT); // Bottom Left
+			glVertex2f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT); // Bottom Right
+			glVertex2f(1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT); // Top Right
+			glVertex2f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT); // Top Left
 		glEnd();
 
 	glEndList();
@@ -1279,22 +1279,22 @@ GLuint ViewRenderWidget::buildFrameList()
 	glColor4f(0.85, 0.15, 0.85, 1.0);
 
 	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
-		glVertex3f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT, 0.0f); // Bottom Left
-		glVertex3f(0.0f, -1.01f * SOURCE_UNIT, 0.0f);
-		glVertex3f(0.0f, -1.07f * SOURCE_UNIT, 0.0f);
-		glVertex3f(0.0f, -1.01f * SOURCE_UNIT, 0.0f);
-		glVertex3f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT, 0.0f); // Bottom Right
-		glVertex3f(1.01f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(1.05f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(1.01f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT, 0.0f); // Top Right
-		glVertex3f(0.0f, 1.01f * SOURCE_UNIT, 0.0f);
-		glVertex3f(0.0f, 1.07f * SOURCE_UNIT, 0.0f);
-		glVertex3f(0.0f, 1.01f * SOURCE_UNIT, 0.0f);
-		glVertex3f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT, 0.0f); // Top Left
-		glVertex3f(-1.01f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(-1.05f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(-1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
+		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
+		glVertex2f(0.0f, -1.07f * SOURCE_UNIT);
+		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
+		glVertex2f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Right
+		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
+		glVertex2f(1.05f * SOURCE_UNIT, 0.0f);
+		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
+		glVertex2f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Right
+		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
+		glVertex2f(0.0f, 1.07f * SOURCE_UNIT);
+		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
+		glVertex2f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Left
+		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
+		glVertex2f(-1.05f * SOURCE_UNIT, 0.0f);
+		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
 	glEnd();
 
 	glEndList();
@@ -1312,22 +1312,22 @@ GLuint ViewRenderWidget::buildFrameList()
 	glColor4f(0.85, 0.15, 0.85, 1.0);
 
 	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
-		glVertex3f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT, 0.0f); // Bottom Left
-		glVertex3f(0.0f, -1.01f * SOURCE_UNIT, 0.0f);
-		glVertex3f(0.0f, -1.05f * SOURCE_UNIT, 0.0f);
-		glVertex3f(0.0f, -1.01f * SOURCE_UNIT, 0.0f);
-		glVertex3f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT, 0.0f); // Bottom Right
-		glVertex3f(1.01f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(1.05f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(1.01f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT, 0.0f); // Top Right
-		glVertex3f(0.0f, 1.01f * SOURCE_UNIT, 0.0f);
-		glVertex3f(0.0f, 1.05f * SOURCE_UNIT, 0.0f);
-		glVertex3f(0.0f, 1.01f * SOURCE_UNIT, 0.0f);
-		glVertex3f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT, 0.0f); // Top Left
-		glVertex3f(-1.01f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(-1.05f * SOURCE_UNIT, 0.0f, 0.0f);
-		glVertex3f(-1.01f * SOURCE_UNIT, 0.0f, 0.0f);
+		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
+		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
+		glVertex2f(0.0f, -1.05f * SOURCE_UNIT);
+		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
+		glVertex2f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Right
+		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
+		glVertex2f(1.05f * SOURCE_UNIT, 0.0f);
+		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
+		glVertex2f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Right
+		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
+		glVertex2f(0.0f, 1.05f * SOURCE_UNIT);
+		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
+		glVertex2f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Left
+		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
+		glVertex2f(-1.05f * SOURCE_UNIT, 0.0f);
+		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
 	glEnd();
 
 	glEndList();
@@ -1350,10 +1350,10 @@ GLuint ViewRenderWidget::buildBordersList()
 	glBlendEquation(GL_FUNC_ADD);
 	glColor4f(0.9, 0.9, 0.0, 0.7);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glVertex2f(-1.0f, -1.0f); // Bottom Left
+	glVertex2f(1.0f, -1.0f); // Bottom Right
+	glVertex2f(1.0f, 1.0f); // Top Right
+	glVertex2f(-1.0f, 1.0f); // Top Left
 	glEnd();
 
 	glEndList();
@@ -1366,10 +1366,10 @@ GLuint ViewRenderWidget::buildBordersList()
 	glBlendEquation(GL_FUNC_ADD);
 	glColor4f(0.9, 0.9, 0.0, 0.8);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex3f(-1.01f, -1.01f, 0.0f); // Bottom Left
-	glVertex3f(1.01f, -1.01f, 0.0f); // Bottom Right
-	glVertex3f(1.01f, 1.01f, 0.0f); // Top Right
-	glVertex3f(-1.01f, 1.01f, 0.0f); // Top Left
+	glVertex2f(-1.01f, -1.01f); // Bottom Left
+	glVertex2f(1.01f, -1.01f); // Bottom Right
+	glVertex2f(1.01f, 1.01f); // Top Right
+	glVertex2f(-1.01f, 1.01f); // Top Left
 	glEnd();
 
 	glEndList();
@@ -1385,37 +1385,37 @@ GLuint ViewRenderWidget::buildBordersList()
 	// draw the bold border
 	glLineWidth(3.0);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-	glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-	glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-	glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	glVertex2f(-1.01f, -1.01f); // Bottom Left
+	glVertex2f(1.01f, -1.01f); // Bottom Right
+	glVertex2f(1.01f, 1.01f); // Top Right
+	glVertex2f(-1.01f, 1.01f); // Top Left
 	glEnd();
 
 	glLineWidth(1.0);
 	glBegin(GL_LINES); // begin drawing a square
 	//    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-	glVertex3f(-BORDER_SIZE, -1.0f, 0.0f);
-	glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
-	glVertex3f(-BORDER_SIZE, -BORDER_SIZE, 0.0f);
-	glVertex3f(-1.0f, -BORDER_SIZE, 0.0f);
+	glVertex2f(-BORDER_SIZE, -1.0f);
+	glVertex2f(-BORDER_SIZE, -BORDER_SIZE);
+	glVertex2f(-BORDER_SIZE, -BORDER_SIZE);
+	glVertex2f(-1.0f, -BORDER_SIZE);
 
 	//    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-	glVertex3f(1.0f, -BORDER_SIZE, 0.0f);
-	glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
-	glVertex3f(BORDER_SIZE, -BORDER_SIZE, 0.0f);
-	glVertex3f(BORDER_SIZE, -1.0f, 0.0f);
+	glVertex2f(1.0f, -BORDER_SIZE);
+	glVertex2f(BORDER_SIZE, -BORDER_SIZE);
+	glVertex2f(BORDER_SIZE, -BORDER_SIZE);
+	glVertex2f(BORDER_SIZE, -1.0f);
 
 	//    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-	glVertex3f(BORDER_SIZE, 1.0f, 0.0f);
-	glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
-	glVertex3f(BORDER_SIZE, BORDER_SIZE, 0.0f);
-	glVertex3f(1.0f, BORDER_SIZE, 0.0f);
+	glVertex2f(BORDER_SIZE, 1.0f);
+	glVertex2f(BORDER_SIZE, BORDER_SIZE);
+	glVertex2f(BORDER_SIZE, BORDER_SIZE);
+	glVertex2f(1.0f, BORDER_SIZE);
 
 	//    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-	glVertex3f(-BORDER_SIZE, 1.0f, 0.0f);
-	glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
-	glVertex3f(-BORDER_SIZE, BORDER_SIZE, 0.0f);
-	glVertex3f(-1.0f, BORDER_SIZE, 0.0f);
+	glVertex2f(-BORDER_SIZE, 1.0f);
+	glVertex2f(-BORDER_SIZE, BORDER_SIZE);
+	glVertex2f(-BORDER_SIZE, BORDER_SIZE);
+	glVertex2f(-1.0f, BORDER_SIZE);
 
 	glEnd();
 

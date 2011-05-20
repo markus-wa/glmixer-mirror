@@ -43,9 +43,11 @@ public:
 	void playSource(bool on);
 
 	int getNewTextureIndex();
+	void useAspectRatio(bool on) { use_aspect_ratio = on; }
 
 private:
     Source *s;
+    bool use_aspect_ratio;
 };
 
 #endif /* SOURCEDISPLAYWIDGET_H_ */

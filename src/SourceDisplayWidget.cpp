@@ -32,7 +32,7 @@
 
 SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()), s(0)
 {
-
+	use_aspect_ratio = true;
 }
 
 
@@ -48,7 +48,7 @@ void SourceDisplayWidget::initializeGL()
 void SourceDisplayWidget::setSource(Source *sourceptr) {
 	s = sourceptr;
 
-	if (s)
+	if (s && !use_aspect_ratio)
 		// adjust source AR to fill the area
 		s->setAspectRatio( double (width()) / double (height()) );
 

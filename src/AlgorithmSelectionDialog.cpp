@@ -29,7 +29,7 @@
 #include "AlgorithmSource.h"
 
 
-int AlgorithmSelectionDialog::_algo = 1, AlgorithmSelectionDialog::_variability = 30;
+int AlgorithmSelectionDialog::_algo = 0, AlgorithmSelectionDialog::_variability = 30;
 int AlgorithmSelectionDialog::_width = 160, AlgorithmSelectionDialog::_height = 120, AlgorithmSelectionDialog::_preset = 8;
 unsigned long AlgorithmSelectionDialog::_update = 40;
 
@@ -50,8 +50,13 @@ AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(pa
     }
     variabilitySlider->setValue(_variability);
 
-    // create source with selected algo
-    AlgorithmComboBox->setCurrentIndex(_algo);
+    AlgorithmComboBox->clear();
+    // create sources with selected algo
+    for (int i = 0; i < AlgorithmSource::NONE; ++i)
+    	AlgorithmComboBox->addItem(AlgorithmSource::getAlgorithmDescription(i));
+
+    _algo = AlgorithmComboBox->currentIndex();
+    createSource();
 
 	// change update
 	frequencySlider->setValue(_update);

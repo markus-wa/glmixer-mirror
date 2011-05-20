@@ -20,4 +20,4 @@
         <file>shaders/imageProcessing_fragment_simplified.glsl</file>
         <file>shaders/imageProcessing_vertex.glsl</file>
     </qresource>
-</RCC>  
+</RCC> 

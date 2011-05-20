@@ -125,6 +125,14 @@ double turb(double x, double y, double z, double minFreq, double maxFreq){
 	}
 	return r - 0.3;
 }
+
+
+unsigned char randDisp(double disp) {
+
+    return (unsigned char) ( 127.0 *  disp);
+//    return (unsigned char) ( 127.0 * ( ((double)rand()) / ((double)RAND_MAX) ) *  disp);
+}
+
 /**
  *  Thread class to update the texture
  */
@@ -133,14 +141,23 @@ class AlgorithmThread: public QThread {
 public:
 	AlgorithmThread(AlgorithmSource *source) :
         QThread(), as(source), end(false) {
+
+		tmp = new unsigned char [as->width * as->height * 4];
     }
+
+	~AlgorithmThread(){
+		delete tmp;
+	}
 
     void run();
 
     AlgorithmSource* as;
     bool end;
+    unsigned char *tmp;
 
 };
+
+
 
 void AlgorithmThread::run(){
 
@@ -159,17 +176,40 @@ void AlgorithmThread::run(){
 			{
 				srand( t.elapsed() );
 				if ( as->algotype == AlgorithmSource::BW_NOISE ){
-					for (int i = 0; i < (as->width * as->height); ++i) {
-						as->buffer[i * 4 + 0] =  (unsigned char) ( as->variability * double(rand() % std::numeric_limits<unsigned char>::max()) + (1.0 - as->variability) * double(as->buffer[i * 4 + 0]) )  ;
-						as->buffer[i * 4 + 1] = as->buffer[i * 4];
-						as->buffer[i * 4 + 2] = as->buffer[i * 4];
-						as->buffer[i * 4 + 3] = as->buffer[i * 4];
+					for (int i = 0; i < (as->width * as->height); ++i)
+						memset((void *) (as->buffer + i * 4), (unsigned char) ( as->variability * double(rand() % std::numeric_limits<unsigned char>::max()) + (1.0 - as->variability) * double(as->buffer[i * 4 + 0]) ), 4 );
+
+				} else
+				if ( as->algotype == AlgorithmSource::BW_COSBARS ){
+					static int phase = 0;
+					phase = ( phase + int (as->variability * 36.0) ) % (360);
+					unsigned char c = 0;
+
+					// fill in a line
+					for (int x = 0; x < as->width; ++x) {
+						c = (unsigned char) ( cos( double(phase) * M_PI / 180.0 + double(x) * 2.0 * M_PI / double(as->width)  ) * 127.0 + 128.0) ;
+						memset((void *) (as->buffer + x * 4), c, 4);
 					}
+					// copy line in rows
+					for (int y = 1; y < as->height; ++y)
+						memcpy((void *) (as->buffer + y * as->width * 4), as->buffer , as->width * 4);
+
+				} else
+				if ( as->algotype == AlgorithmSource::BW_COSCHECKER ){
+					static int phase = 0;
+					phase = ( phase + int (as->variability * 36.0) ) % (360);
+					unsigned char c = 0;
+
+					for (int x = 0; x < as->width; ++x)
+						for (int y = 0; y < as->height; ++y) {
+							c = (unsigned char) ( cos( double(phase) * M_PI / 180.0 + double(x) * 2.0 * M_PI / double(as->width)  ) * 63.0 + 64.0);
+							c += (unsigned char) ( cos( double(phase) * M_PI / 180.0 + double(y) * 2.0 * M_PI / double(as->height)  ) * 63.0 + 64.0);
+							memset((void *) (as->buffer + (y * as->width + x) * 4), c, 4);
+						}
 
 				} else
 				if ( as->algotype == AlgorithmSource::COLOR_NOISE ){
 					for (int i = 0; i < (as->width * as->height * 4); ++i)
-//						as->buffer[i] = (unsigned char) ((  rand() % 2 ) * std::numeric_limits<unsigned char>::max());
 						as->buffer[i] = (unsigned char) ( as->variability * double(rand() % std::numeric_limits<unsigned char>::max()) + (1.0 - as->variability) * double(as->buffer[i]) )  ;
 
 				} else
@@ -181,20 +221,17 @@ void AlgorithmThread::run(){
 					for (int x = 0; x < as->width; ++x)
 						for (int y = 0; y < as->height; ++y) {
 							double v = pnoise( double(x) * as->horizontal , double(y) * as->vertical , i );
-							as->buffer[(y * as->width + x) * 4 + 0 ] = (unsigned char) (128.0 * v  + 128);
-							as->buffer[(y * as->width + x) * 4 + 1 ] = (unsigned char) (128.0 * v  + 128);
-							as->buffer[(y * as->width + x) * 4 + 2 ] = (unsigned char) (128.0 * v  + 128);
-							as->buffer[(y * as->width + x) * 4 + 3 ] = (unsigned char) (128.0 * v  + 128);
+							memset((void *) (as->buffer + (y * as->width + x) * 4), (unsigned char) (128.0 * v) + 128, 4);
 						}
 				} else
 					if ( as->algotype == AlgorithmSource::PERLIN_COLOR_NOISE ){
 
 						static double i = 0.0, j = 0.0, k = 0.0, l = 0.0;
 						static double di = 0.3, dj = 0.4, dk = 0.5, dl = 0.7;
-						i += as->variability * di;; // / RenderingManager::getRenderingWidget()->getFPS();
-						j += as->variability * dj;; // / RenderingManager::getRenderingWidget()->getFPS();
-						k += as->variability * dk;; // / RenderingManager::getRenderingWidget()->getFPS();
-						l += as->variability * dl;; // / RenderingManager::getRenderingWidget()->getFPS();
+						i += as->variability * di;;
+						j += as->variability * dj;;
+						k += as->variability * dk;;
+						l += as->variability * dl;;
 						if (i > 100000.0 || i < 0.0)   di = -di;
 						for (int x = 0; x < as->width; ++x)
 							for (int y = 0; y < as->height; ++y) {
@@ -215,10 +252,7 @@ void AlgorithmThread::run(){
 							for (int x = 0; x < as->width; ++x)
 								for (int y = 0; y < as->height; ++y) {
 									double v = turb( double(x) * as->horizontal , double(y) * as->vertical , i , 1.0, 16.0 );
-									as->buffer[(y * as->width + x) * 4 + 0 ] = (unsigned char) (128.0 * v  + 128);
-									as->buffer[(y * as->width + x) * 4 + 1 ] = (unsigned char) (128.0 * v  + 128);
-									as->buffer[(y * as->width + x) * 4 + 2 ] = (unsigned char) (128.0 * v  + 128);
-									as->buffer[(y * as->width + x) * 4 + 3 ] = (unsigned char) (128.0 * v  + 128);
+									memset((void *) (as->buffer + (y * as->width + x) * 4), (unsigned char) (128.0 * v) + 128, 4);
 								}
 						}
 
@@ -339,8 +373,7 @@ void AlgorithmSource::initBuffer(){
 
 	buffer = new unsigned char [width * height * 4];
 	// CLEAR the buffer to white
-	for (int i = 0; i < (width * height * 4); ++i)
-		buffer[i] = std::numeric_limits<unsigned char>::max();
+	memset((void *)buffer, std::numeric_limits<unsigned char>::max(), width * height * 4 - 1);
 
 }
 
@@ -400,6 +433,12 @@ QString AlgorithmSource::getAlgorithmDescription(int t) {
 		break;
 	case BW_NOISE:
 		description = QString("Greyscale noise");
+		break;
+	case BW_COSBARS:
+		description = QString("Greyscale cosine bars");
+		break;
+	case BW_COSCHECKER:
+		description = QString("Greyscale cosine checkerboard");
 		break;
 	case COLOR_NOISE:
 		description = QString("Color noise");

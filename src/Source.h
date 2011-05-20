@@ -70,6 +70,7 @@ public:
 		ALGORITHM_SOURCE,
 		RENDERING_SOURCE,
 		CAPTURE_SOURCE,
+		SVG_SOURCE,
 		MIX_SOURCE
 	} RTTI;
 	virtual RTTI rtti() const { return type; }
