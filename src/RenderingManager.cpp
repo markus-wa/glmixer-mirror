@@ -679,7 +679,16 @@ void RenderingManager::dropSourceWithDepth(double depth){
 
 }
 
+void RenderingManager::removeSource(const GLuint idsource){
+
+	removeSource(getById(idsource));
+
+}
+
 void RenderingManager::removeSource(SourceSet::iterator itsource) {
+
+	// remove from all selections
+	_renderwidget->removeFromSelections(*itsource);
 
 	// if we are removing the current source, ensure it is not the current one anymore
 	if (itsource == _currentSource) {
@@ -688,27 +697,24 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 	}
 
 	if (itsource != _sources.end()) {
-		CloneSource *cs = dynamic_cast<CloneSource *> (*itsource);
-		if (cs == NULL)
-			// first remove every clone of the source to be removed (if it is not a clone already)
-			for (SourceList::iterator clone = (*itsource)->getClones()->begin(); clone
-					!= (*itsource)->getClones()->end(); clone
-					= (*itsource)->getClones()->begin()) {
-				removeSource(getById((*clone)->getId()));
+		// if this is not a clone
+		if ((*itsource)->rtti() != Source::CLONE_SOURCE)
+			// remove every clone of the source to be removed
+			for (SourceList::iterator clone = (*itsource)->getClones()->begin(); clone != (*itsource)->getClones()->end(); clone = (*itsource)->getClones()->begin()) {
+				removeSource((*clone)->getId());
 			}
 		// then remove the source itself
 		_sources.erase(itsource);
 		delete (*itsource);
 	}
 
-	if (countRenderingSource > 0)
-		return;
-
-	// Disable update of previous frame if all the RenderingSources are deleted
-	if (previousframe_fbo)
-		delete previousframe_fbo;
-	previousframe_fbo = NULL;
-
+	// is there no more rendering source ?
+	if (countRenderingSource == 0) {
+		// no more rendering source; we can disable update of previous frame
+		if (previousframe_fbo)
+			delete previousframe_fbo;
+		previousframe_fbo = NULL;
+	}
 }
 
 void RenderingManager::clearSourceSet() {
@@ -750,9 +756,9 @@ bool RenderingManager::setCurrentSource(SourceSet::iterator si) {
 	return false;
 }
 
-bool RenderingManager::setCurrentSource(GLuint name) {
+bool RenderingManager::setCurrentSource(GLuint id) {
 
-	return setCurrentSource(getById(name));
+	return setCurrentSource(getById(id));
 }
 
 

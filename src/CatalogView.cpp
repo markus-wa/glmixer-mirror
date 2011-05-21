@@ -179,16 +179,32 @@ void CatalogView::drawSource(Source *s, int index)
 	    glEnable(GL_BLEND);
 
 	    // draw source border
-		glScalef( 1.05, 1.05, 1.0);
-		if (s->isActive())
-			glCallList(ViewRenderWidget::border_large);
+		if (s->isActive()) {
+			glScalef( 1.06, 1.06, 1.0);	    // large border for the active source
+			glLineWidth(3.0);
+		} else {
+			glScalef( 1.05, 1.05, 1.0);
+			glLineWidth(1.0);
+		}
+
+		if ( View::selectedSources.count(s) > 0)
+			glColor4f(0.2, 0.80, 0.2, 1.0);			// green border for selected sources
 		else
-			glCallList(ViewRenderWidget::border_thin);
+			glColor4f(0.9, 0.9, 0.0, 0.7);			// yellow
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
+		glBegin(GL_LINE_LOOP); // begin drawing a square
+		glVertex2f(-1.0f, -1.0f); // Bottom Left
+		glVertex2f(1.0f, -1.0f); // Bottom Right
+		glVertex2f(1.0f, 1.0f); // Top Right
+		glVertex2f(-1.0f, 1.0f); // Top Left
+		glEnd();
 
 		// was it clicked ?
 		if ( ABS(_clicX) > 0.1 || ABS(_clicY) > 0.1 ) {
 			if ( ABS( _clicY + SOURCE_UNIT - _height + sheight_pixels) < sheight_pixels ) {
-				sourceClicked = s->getId();
+				sourceClicked = s;
 				// done with click
 				_clicX = _clicY = 0.0;
 			}
@@ -307,13 +323,24 @@ bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 	if (isInside(event->pos()) ) {
 		_clicX = _clicY = 0.0;
 
-		if (sourceClicked)
-			RenderingManager::getInstance()->setCurrentSource(sourceClicked);
+		// the clic (when mouse press was down) was over a source ?
+		if (sourceClicked) {
+			// make this source the current
+			RenderingManager::getInstance()->setCurrentSource(sourceClicked->getId());
+
+			// if the CTRL key is also pressed, then add / remove it to the selection
+			if (event->modifiers() & Qt::ControlModifier) {
+				if (View::selectedSources.count(sourceClicked) > 0)
+					View::selectedSources.erase(sourceClicked);
+				else
+					View::selectedSources.insert(sourceClicked);
+			}
+		}
 
 		return true;
 	}
 
-	sourceClicked = 0;
+	sourceClicked = NULL;
 	return false;
 }
 

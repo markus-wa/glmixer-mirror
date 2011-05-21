@@ -22,6 +22,7 @@ set(MYQT_SRCS
     AlgorithmSource.cpp
     AlgorithmSelectionDialog.cpp
     SourceDisplayWidget.cpp
+    View.cpp
     MixerView.cpp
     GeometryView.cpp
     LayersView.cpp

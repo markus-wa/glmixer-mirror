@@ -234,29 +234,12 @@ public:
 	 */
 	bool noSourceClicked() { return clickedSources.empty(); }
 
-	virtual QDomElement getConfiguration(QDomDocument &doc) {
-		QDomElement viewelem = doc.createElement("View");
-		QDomElement z = doc.createElement("Zoom");
-		z.setAttribute("value", getZoom());
-		viewelem.appendChild(z);
-		QDomElement pos = doc.createElement("Panning");
-		pos.setAttribute("X", getPanningX());
-		pos.setAttribute("Y", getPanningY());
-		viewelem.appendChild(pos);
+	virtual QDomElement getConfiguration(QDomDocument &doc);
+	virtual void setConfiguration(QDomElement xmlconfig);
 
-		return viewelem;
-	}
+	static void removeFromSelection(Source *s);
+	static SourceList selection() { return selectedSources; }
 
-	virtual void setConfiguration(QDomElement xmlconfig) {
-		setZoom(xmlconfig.firstChildElement("Zoom").attribute("value").toFloat());
-		setPanningX(xmlconfig.firstChildElement("Panning").attribute("X").toFloat());
-		setPanningY(xmlconfig.firstChildElement("Panning").attribute("Y").toFloat());
-	}
-
-	virtual void removeFromSelection(Source *s) {
-		if ( selectedSources.count(s) > 0)
-			selectedSources.erase( s );
-	}
 
 protected:
 	float zoom, minzoom, maxzoom, deltazoom;
@@ -267,7 +250,7 @@ protected:
 	GLdouble projection[16];
 	GLdouble modelview[16];
 
-	SourceList selectedSources;
+	static SourceList selectedSources;
 	reverseSourceSet clickedSources;
 	QPoint lastClicPos;
 	QPixmap icon;

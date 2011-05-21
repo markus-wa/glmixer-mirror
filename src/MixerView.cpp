@@ -715,9 +715,8 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 	return false;
 }
 
-void MixerView::removeFromSelection(Source *s)
+void MixerView::removeFromGroup(Source *s)
 {
-	View::removeFromSelection(s);
 
 	// find the group containing the source to delete
 	SourceListArray::iterator itss;

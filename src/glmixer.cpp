@@ -813,21 +813,36 @@ void GLMixer::on_actionCaptureSource_triggered(){
 
 void GLMixer::on_actionDeleteSource_triggered()
 {
+	// lisst of sources to delete
+	SourceList todelete;
+
+	// if the current source is valid, add it todelete
 	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 	if ( RenderingManager::getInstance()->isValid(cs) ) {
+		// if the current source is in the selection, delete the whole selection
+		if ( View::selection().size() > 0  && View::selection().count(*cs) > 0 ) {
+			// make a copy of the selection (to make sure we do not mess with pointers)
+			todelete = SourceList(View::selection());
+		}
+		else
+			// else delete only the current
+			todelete.insert(*cs);
+	}
 
-		int numclones = (*cs)->getClones()->size();
+	// remove all the source in the list todelete
+	for(SourceList::iterator  its = todelete.begin(); its != todelete.end(); its++) {
+		// test for clones of this source
+		int numclones = (*its)->getClones()->size();
 		// popup a question dialog 'are u sure' if there are clones attached;
 		if ( numclones ){
-			QString msg = tr("This source was cloned %1 times; all these clones will be removed with this source if you confirm the removal.").arg(numclones);
+			QString msg = tr("This source was cloned %1 times; Do you want to delete all the clones too?").arg(numclones);
 			if ( QMessageBox::question(this," Are you sure?", msg, QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
 				numclones = 0;
 		}
 
 		if ( !numclones ){
-			QString d = (*cs)->getName();
-			RenderingManager::getInstance()->getRenderingWidget()->removeFromSelections(*cs);
-			RenderingManager::getInstance()->removeSource(cs);
+			QString d = (*its)->getName();
+			RenderingManager::getInstance()->removeSource((*its)->getId());
 			statusbar->showMessage( tr("Source %1 deleted.").arg( d ), 3000 );
 		}
 	}

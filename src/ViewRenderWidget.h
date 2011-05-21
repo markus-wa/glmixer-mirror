@@ -106,11 +106,7 @@ public:
 	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_LINE, CURSOR_FUZZY} cursorMode;
 	void setCursorMode(cursorMode m);
 	cursorMode getCursorMode();
-
 	Cursor *getCursor(cursorMode m = CURSOR_NORMAL);
-//	inline SpringCursor *getSpringCursor() const { return _springCursor; }
-//	inline DelayCursor *getDelayCursor() const { return _delayCursor; }
-//	inline LineCursor *getLineCursor() const { return _lineCursor; }
 
 	/**
 	 * save and load configuration

@@ -52,7 +52,7 @@ public:
 
 	void alphaCoordinatesFromMouse(int mouseX, int mouseY, double *alphaX, double *alphaY);
     bool isInAGroup(Source *);
-    void removeFromSelection(Source *s);
+    void removeFromGroup(Source *s);
 
 	QDomElement getConfiguration(QDomDocument &doc);
 	void setConfiguration(QDomElement xmlconfig);

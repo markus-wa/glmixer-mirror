@@ -107,6 +107,7 @@ public:
 	inline bool empty() const { return _sources.empty(); }
 
 	void removeSource(SourceSet::iterator itsource);
+	void removeSource(const GLuint idsource);
 	bool setCurrentSource(SourceSet::iterator si);
 	bool setCurrentSource(GLuint name);
 	inline SourceSet::iterator getCurrentSource()  const{

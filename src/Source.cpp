@@ -170,9 +170,10 @@ void Source::setAlphaCoordinates(double x, double y) {
 	else
 		texalpha = 0.0;
 
-	// set the source to stanby if it is in the limbo area
+	// set the source to stanby if it is in the limbo area (if there is no clone relying on its update)
 	// TODO ; make the threshold configurable
-	setStandby( d > (2.5 * 2.5) );
+	if (clones->size() < 1)
+		setStandby( d > (2.5 * 2.5) );
 }
 
 void Source::setAlpha(GLfloat a) {

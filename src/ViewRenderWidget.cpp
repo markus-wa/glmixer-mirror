@@ -344,9 +344,8 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 
 void ViewRenderWidget::removeFromSelections(Source *s)
 {
-	_mixingView->removeFromSelection(s);
-	_geometryView->removeFromSelection(s);
-	_layersView->removeFromSelection(s);
+	View::removeFromSelection(s);
+	_mixingView->removeFromGroup(s);
 }
 
 void ViewRenderWidget::setCatalogVisible(bool on)
