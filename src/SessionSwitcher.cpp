@@ -142,11 +142,11 @@ void SessionSwitcher::setTransitionType(transitionType t) {
 	Source *s = NULL;
 	switch (transition_type) {
 		case TRANSITION_CUSTOM_COLOR:
-			s =  RenderingManager::getInstance()->newAlgorithmSource(0, 4, 4, 0, 0) ;
+			s =  RenderingManager::getInstance()->newAlgorithmSource(int(AlgorithmSource::FLAT), 2, 2, 0, 0) ;
 			s->setColor(customTransitionColor);
 			break;
 		case TRANSITION_BACKGROUND:
-			s =  RenderingManager::getInstance()->newAlgorithmSource(0, 4, 4, 0, 0) ;
+			s =  RenderingManager::getInstance()->newAlgorithmSource(int(AlgorithmSource::FLAT), 2, 2, 0, 0) ;
 			s->setColor(QColor(Qt::black)); // TODO what if white background ?
 			break;
 		case TRANSITION_CUSTOM_MEDIA:
