@@ -70,7 +70,7 @@ void MixerView::paint()
     glLineWidth(2.0);
     glColor4f(0.2, 0.8, 0.2, 1.0);
     glBegin(GL_LINE_LOOP);
-    for(SourceSet::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
+    for(SourceSet::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
         glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
     }
     glEnd();
@@ -159,7 +159,7 @@ void MixerView::paint()
 	RenderingManager::getInstance()->postRenderToFrameBuffer();
 
     // Then the selection outlines
-    for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
+    for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
@@ -298,7 +298,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
         if ( clicked ) {
 
         	// if CTRL button modifier pressed, add clicked to selection
-			if ( currentAction != View::GRAB && QApplication::keyboardModifiers () == Qt::ControlModifier) {
+			if (  QApplication::keyboardModifiers () == Qt::ControlModifier) {
 				setAction(SELECT);
 				// test if source is in a group
         		SourceListArray::iterator itss = groupSources.begin();
@@ -308,19 +308,19 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 				}
 				// NOT in a source : add individual item clicked
 	        	if ( itss == groupSources.end()  ) {
-					if ( selectedSources.count(clicked) > 0)
-						selectedSources.erase( clicked );
+					if ( View::selectedSources.count(clicked) > 0)
+						View::selectedSources.erase( clicked );
 					else
-						selectedSources.insert( clicked );
+						View::selectedSources.insert( clicked );
 	        	}
 	        	// add the full group attached to the clicked item
 	        	else {
 	        		SourceList result;
-					if ( selectedSources.count(clicked) > 0)
-		        		std::set_difference(selectedSources.begin(), selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+					if ( View::selectedSources.count(clicked) > 0)
+		        		std::set_difference(View::selectedSources.begin(), View::selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
 					else
-						std::set_union(selectedSources.begin(), selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
-					selectedSources = SourceList(result);
+						std::set_union(View::selectedSources.begin(), View::selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+					View::selectedSources = SourceList(result);
 	        	}
 			}
 			else // not in selection (SELECT) action mode, then just set the current active source
@@ -338,7 +338,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	// set current to none (end of list)
 	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
 	// clear selection
-	selectedSources.clear();
+	View::selectedSources.clear();
 	setAction(View::NONE);
 	// remember coordinates of clic
 	double dumm;
@@ -375,7 +375,7 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
             }
             // if double clic on a group ; convert group into selection
         	if ( itss != groupSources.end() ) {
-        		selectedSources = SourceList(*itss);
+        		View::selectedSources = SourceList(*itss);
         		// erase group and its color
         		groupColor.remove(itss);
         		groupSources.erase(itss);
@@ -383,11 +383,11 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
         	// if double clic NOT on a group ; convert selection into group
         	else {
 				// if the clicked source is in the selection
-				if ( selectedSources.count(clicked) > 0 && selectedSources.size() > 1 ) {
+				if ( View::selectedSources.count(clicked) > 0 && View::selectedSources.size() > 1 ) {
 					//  create a group from the selection
-					groupSources.push_front(SourceList(selectedSources));
+					groupSources.push_front(SourceList(View::selectedSources));
 					groupColor[groupSources.begin()] = QColor::fromHsv ( rand()%180 + 179, 250, 250);
-					selectedSources.clear();
+					View::selectedSources.clear();
 				}
         	}
         	return true;
@@ -442,8 +442,8 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
             		break;
             }
             // if the source is in the selection, move the selection
-        	if ( selectedSources.count(clicked) > 0 ){
-				for(SourceList::iterator  its = selectedSources.begin(); its != selectedSources.end(); its++) {
+        	if ( View::selectedSources.count(clicked) > 0 ){
+				for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
 					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
 			}
@@ -494,7 +494,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 				}
 			}
 
-			selectedSources = SourceList(rectSources);
+			View::selectedSources = SourceList(rectSources);
 			return false;
         }
 
@@ -515,7 +515,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
             }
 
             // if the source is in the selection AND in a group, then move the group
-			if ( itss != groupSources.end() && selectedSources.count(clicked) > 0 ){
+			if ( itss != groupSources.end() && View::selectedSources.count(clicked) > 0 ){
 				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
 					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
@@ -804,8 +804,7 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
  **/
 void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
 
-	if (!s)
-		return;
+	if (!s) return;
 
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement

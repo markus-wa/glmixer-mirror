@@ -50,12 +50,15 @@ public:
 
     void unProjectDepth(int x, int y, int dx, int dy, double *depth, double *depthBeforeDelta);
 
+    void bringForward(Source *s, bool individual);
+
 private:
     float lookatdistance;
-    float currentSourceDisplacement;
+    float forwardDisplacement;
+    SourceList forwardSources;
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY);
-    void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
+    void grabSource(Source *s, int x, int y, int dx, int dy, bool setcurrent=true);
     void panningBy(int x, int y, int dx, int dy);
 
     void setAction(actionType a);

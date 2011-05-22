@@ -37,7 +37,7 @@
 #define MAX_LOOKAT 9.0
 #define DEFAULT_LOOKAT 4.0
 
-LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), currentSourceDisplacement(0) {
+LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), forwardDisplacement(0) {
 
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
@@ -98,15 +98,20 @@ void LayersView::paint()
 			//
 			glPushMatrix();
 
-			if ((*its)->isActive()) {
+			// if the source is active or part of the selection which is active
+			if ( forwardSources.count(*its) > 0 ) {
 				// animated displacement
-				if (currentSourceDisplacement < MAXDISPLACEMENT)
-					currentSourceDisplacement += ( MAXDISPLACEMENT + 0.1 - currentSourceDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
-				glTranslatef( currentSourceDisplacement, 0.0,  1.0 +(*its)->getDepth());
+				if (forwardDisplacement < MAXDISPLACEMENT)
+					forwardDisplacement += ( MAXDISPLACEMENT + 0.1 - forwardDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
+				glTranslatef( forwardDisplacement, 0.0, 0.0);
+			}
+			else {
+				// draw stippled version of the source on top
+				glEnable(GL_POLYGON_STIPPLE);
+				glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+			}
 
-			} else
-				glTranslatef( 0.0, 0.0,  1.0 +(*its)->getDepth());
-
+			glTranslatef( 0.0, 0.0,  1.0 + (*its)->getDepth());
 	        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
 
 			// standard transparency blending
@@ -114,11 +119,15 @@ void LayersView::paint()
 			glBlendEquation(GL_FUNC_ADD);
 
 			ViewRenderWidget::setSourceDrawingMode(false);
-			// draw border if active
+			// draw border (larger if active)
 			if ((*its)->isActive())
 				glCallList(ViewRenderWidget::border_large_shadow);
 			else
 				glCallList(ViewRenderWidget::border_thin_shadow);
+
+			// draw border for selection
+			if (View::selectedSources.count(*its))
+				glCallList(ViewRenderWidget::frame_selection);
 
 			ViewRenderWidget::setSourceDrawingMode(true);
 
@@ -132,8 +141,8 @@ void LayersView::paint()
 			(*its)->draw();
 
 			// draw stippled version of the source on top
-			glEnable(GL_POLYGON_STIPPLE);
-			glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+//			glEnable(GL_POLYGON_STIPPLE);
+//			glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
 			(*its)->draw(false);
 			glDisable(GL_POLYGON_STIPPLE);
 
@@ -167,8 +176,8 @@ void LayersView::paint()
     	unProjectDepth(lastClicPos.x(), lastClicPos.y(), 0.0, 0.0, &depth, &dumm);
 
 		glPushMatrix();
-		currentSourceDisplacement = MAXDISPLACEMENT;
-		glTranslated( currentSourceDisplacement, 0.0, 1.0 + depth);
+		forwardDisplacement = MAXDISPLACEMENT;
+		glTranslated( forwardDisplacement, 0.0, 1.0 + depth);
 			glPushMatrix();
 			glTranslated( s->getAspectRatio(), -0.9, 0.0);
 	        glScalef(0.1, 0.1, 1.0);
@@ -211,8 +220,27 @@ void LayersView::setAction(actionType a){
 	case View::GRAB:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		break;
+	case View::SELECT:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
+		break;
 	default:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+	}
+}
+
+void LayersView::bringForward(Source *s, bool individual)
+{
+	//reset forward if the source is not already in
+	if (forwardSources.count(s) == 0)
+		forwardDisplacement = 0;
+
+	// if the source is part of a selection, set the whole selection to be forward
+	if (!individual && (View::selectedSources.count(s) > 0 && View::selectedSources.count(*RenderingManager::getInstance()->getCurrentSource())) )
+		forwardSources = View::selectedSources;
+	else {
+		// else only this source is forward
+		forwardSources = SourceList();
+		forwardSources.insert(s);
 	}
 }
 
@@ -221,7 +249,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	// MIDDLE BUTTON ; panning cursor
-	if (event->buttons() & Qt::MidButton) {
+	if (event->buttons() & Qt::MidButton || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
 	}
 	// DRoP MODE ; explicitly do nothing
@@ -234,28 +262,38 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
     	// get the top most clicked source
-    	SourceSet::iterator clicked = clickedSources.begin();
+    	Source *clicked = *clickedSources.begin();
 
-    	// for LEFT button clic : manipulate only the top most or the newly clicked
-    	if (event->buttons() & Qt::LeftButton) {
+    	// for LEFT or RIGHT button clic : manipulate only the top most or the newly clicked
+    	if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton) {
 
-			//  make the top most source clicked now the newly current one
-			if (RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() )) {
-				// now manipulate the current one.
-				currentSourceDisplacement = 0;
+    		// CTRL clic = add/remove from selection
+    		if ( currentAction == View::SELECT ) {
+
+				if ( View::selectedSources.count(clicked) > 0)
+					View::selectedSources.erase( clicked );
+				else
+					View::selectedSources.insert( clicked );
+
+    		}
+    		// else
+    		else {
+				//  make the top most source clicked now the newly current one
+				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
+				// put this source in the forward list,
+				bringForward(clicked, event->buttons() & Qt::RightButton);
 				// ready for grabbing the current source
 				setAction(View::GRAB);
-			}
-
+    		}
     	}
-    	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
-    	else if (event->buttons() & Qt::RightButton) {
 
-
-    	}
     } else {
 		// set current to none (end of list)
 		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+		// clear the list of sources forward
+		forwardSources.clear();
+		// clear selection
+		View::selectedSources.clear();
 		setAction(View::NONE);
     }
 
@@ -269,7 +307,7 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
     lastClicPos = event->pos();
 
 	// MIDDLE button ; rotation
-	if (event->buttons() & Qt::MidButton) {
+	if (event->buttons() & Qt::MidButton || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 		// move the view
 		panningBy(event->x(), event->y(), dx, dy);
 	}
@@ -280,22 +318,31 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 		// don't interpret mouse events in drop mode
 		return false;
 	}
-	// LEFT BUTTON : grab
-	else if (event->buttons() & Qt::LeftButton) {
+	// LEFT or RIGHT BUTTON : grab
+	else if ( event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton ) {
 
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
-			// move the source in depth
-			grabSource(cs, event->x(), event->y(), dx, dy);
-			// ready for grabbing the current source
-			setAction(View::GRAB);
-		}
-	} else  { // mouse over (no buttons)
 
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
-			setAction(View::OVER);
-		else
+		// if there is a current source
+		if ( currentAction == View::GRAB && RenderingManager::getInstance()->notAtEnd(cs)) {
+
+            // move all the source placed forward
+			for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++)
+				grabSource( *its, event->x(), event->y(), dx, dy, (*its)->getId() == (*cs)->getId());
+
+		}
+	}
+	// mouse over (no buttons)
+	else {
+		// detect if mouse is over a source
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+			// mouse over and CTRL key ?
+			if (event->modifiers() == Qt::ControlModifier)
+				setAction(View::SELECT);
+			else
+				setAction(View::OVER);
+		} else
 			setAction(View::NONE);
 	}
 
@@ -304,12 +351,13 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 
 bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
+	// restore action mode
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
-			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 	else if (currentAction == View::GRAB )
 		setAction(View::OVER);
-	else
-		setAction(currentAction);
+//	else
+//		setAction(currentAction);
 
 	return true;
 }
@@ -344,23 +392,35 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
-	float previous = zoom;
+    // SHIFT wheel = modify look at distance
+    if (QApplication::keyboardModifiers () == Qt::ShiftModifier) {
+		// adjust the looking distance
+		lookatdistance = CLAMP( lookatdistance + ((float) event->delta() * lookatdistance * MIN_LOOKAT) / (1200.0 * MAX_LOOKAT) , MIN_LOOKAT, MAX_LOOKAT);
+		modified = true;
+  	}
+    // else (normal or CTRL wheel) = modify zoom
+    else {
 
-	if (QApplication::keyboardModifiers () == Qt::ControlModifier)
-		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (60.0 * maxzoom) );
-	else
-		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
+		float previous = zoom;
 
-	if (currentAction == View::GRAB) {
-		deltazoom = zoom - previous;
-		// simulate a grab with no mouse movement but a deltazoom :
-		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( RenderingManager::getInstance()->notAtEnd(cs))
-			grabSource(cs, event->x(), event->y(), dx, dy);
-		// reset deltazoom
-		deltazoom = 0;
+		if (QApplication::keyboardModifiers () == Qt::ControlModifier)
+			setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (60.0 * maxzoom) );
+		else
+			setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (180.0 * maxzoom) );
+
+		if (currentAction == View::GRAB) {
+			deltazoom = zoom - previous;
+			// simulate a grab with no mouse movement but a deltazoom :
+			SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+			if ( RenderingManager::getInstance()->notAtEnd(cs))
+				// move all the source placed forward
+				for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++)
+					grabSource( *its, event->x(), event->y(), dx, dy, (*its)->getId() == (*cs)->getId());
+
+			// reset deltazoom
+			deltazoom = 0;
+		}
 	}
-
 	return true;
 }
 
@@ -411,34 +471,37 @@ void LayersView::zoomBestFit( bool onlyClickedSource ) {
 
 bool LayersView::keyPressEvent ( QKeyEvent * event ){
 
-	SourceSet::iterator currentSource = RenderingManager::getInstance()->getCurrentSource();
+	if (currentAction == OVER && event->modifiers() == Qt::ControlModifier)
+		setAction(View::SELECT);
+	else {
+		SourceSet::iterator currentSource = RenderingManager::getInstance()->getCurrentSource();
 
-	if (currentSource != RenderingManager::getInstance()->getEnd()) {
-	    double dz = 0.0;
+		if (currentSource != RenderingManager::getInstance()->getEnd()) {
+			double dz = 0.0;
 
-		switch (event->key()) {
-			case Qt::Key_Down:
-			case Qt::Key_Left:
-				dz = 1.0;
-				break;
-			case Qt::Key_Up:
-			case Qt::Key_Right:
-				dz = -1.0;
-				break;
-			default:
-				return false;
+			switch (event->key()) {
+				case Qt::Key_Down:
+				case Qt::Key_Left:
+					dz = 1.0;
+					break;
+				case Qt::Key_Up:
+				case Qt::Key_Right:
+					dz = -1.0;
+					break;
+				default:
+					return false;
+			}
+
+			//(*its)->moveTo( (*its)->getX() + dx,  (*its)->getY() + dy);
+			double newdepth =  (*currentSource)->getDepth() + dz;
+			currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
+
+			// we need to set current again
+			RenderingManager::getInstance()->setCurrentSource(currentSource);
+
+			return true;
 		}
-
-		//(*its)->moveTo( (*its)->getX() + dx,  (*its)->getY() + dy);
-	    double newdepth =  (*currentSource)->getDepth() + dz;
-		currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
-
-		// we need to set current again
-		RenderingManager::getInstance()->setCurrentSource(currentSource);
-
-		return true;
 	}
-
 	return false;
 }
 
@@ -475,7 +538,10 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 
 		glPushMatrix();
         // place and scale
-        glTranslatef((*its)->isActive() ? currentSourceDisplacement : 0.0, 0.0,  1.0 +(*its)->getDepth());
+		if ( forwardSources.count(*its) > 0 )
+	        glTranslatef(forwardDisplacement, 0.0,  1.0 +(*its)->getDepth());
+		else
+			glTranslatef(0.0, 0.0,  1.0 +(*its)->getDepth());
         glScalef((*its)->getAspectRatio(), 1.0, 1.0);
 
         (*its)->draw(false, GL_SELECT);
@@ -543,7 +609,9 @@ void LayersView::unProjectDepth(int x, int y, int dx, int dy, double *depth, dou
 /**
  *
  **/
-void LayersView::grabSource(SourceSet::iterator currentSource, int x, int y, int dx, int dy) {
+void LayersView::grabSource(Source *s, int x, int y, int dx, int dy, bool setcurrent) {
+
+	if (!s) return;
 
 	double bz = 0.0; // depth before delta movement
 	double az = 0.0; // depth at current x and y
@@ -552,11 +620,13 @@ void LayersView::grabSource(SourceSet::iterator currentSource, int x, int y, int
 
     // (az-bz) is the depth change caused by the mouse mouvement
     // deltazoom is the depth change due to zooming in/out while grabbing
-    double newdepth =  (*currentSource)->getDepth() +  az - bz  +  deltazoom;
+    double newdepth = s->getDepth() +  az - bz  +  deltazoom;
+    SourceSet::iterator currentSource = RenderingManager::getInstance()->getById(s->getId());
 	currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
 
-	// we need to set current again
-	RenderingManager::getInstance()->setCurrentSource(currentSource);
+	// if we need to set current again
+	if (setcurrent)
+		RenderingManager::getInstance()->setCurrentSource(currentSource);
 
 }
 
