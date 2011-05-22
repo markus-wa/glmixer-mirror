@@ -68,6 +68,7 @@ private:
     // creation of groups from set of selection
 	SourceListArray groupSources;
 	QMap<SourceListArray::iterator, QColor> groupColor;
+	GLdouble rectangleStart[2], rectangleEnd[2];
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */

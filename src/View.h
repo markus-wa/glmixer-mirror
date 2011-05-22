@@ -257,7 +257,6 @@ protected:
 	QString title;
 
     actionType currentAction;
-	GLdouble rectangleStart[2], rectangleEnd[2];
 };
 
 #endif /* VIEW_H_ */
