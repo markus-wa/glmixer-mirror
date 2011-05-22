@@ -142,18 +142,12 @@ public:
 	AlgorithmThread(AlgorithmSource *source) :
         QThread(), as(source), end(false) {
 
-		tmp = new unsigned char [as->width * as->height * 4];
     }
-
-	~AlgorithmThread(){
-		delete tmp;
-	}
 
     void run();
 
     AlgorithmSource* as;
     bool end;
-    unsigned char *tmp;
 
 };
 
@@ -373,7 +367,7 @@ void AlgorithmSource::initBuffer(){
 
 	buffer = new unsigned char [width * height * 4];
 	// CLEAR the buffer to white
-	memset((void *)buffer, std::numeric_limits<unsigned char>::max(), width * height * 4 - 1);
+	memset((void *)buffer, std::numeric_limits<unsigned char>::max(), width * height * 4 );
 
 }
 
