@@ -136,10 +136,12 @@ void CatalogView::drawSource(Source *s, int index)
 
 	if ( s ) {
 
+		bool iscurrent = RenderingManager::getInstance()->isCurrentSource(s);
+
 		// target 60 pixels wide icons (height depending on aspect ratio)
 		// each source is a quad [-1 +1]
-		swidth_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) * h_unit;
-		sheight_pixels = ( s->isActive() ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) / s->getAspectRatio() * v_unit;
+		swidth_pixels = ( iscurrent ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) * h_unit;
+		sheight_pixels = ( iscurrent ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) / s->getAspectRatio() * v_unit;
 
 		// increment y height by the height of this source + margin
 		height = _height + 2.0 * sheight_pixels + 0.1 * _size[_currentSize] * v_unit;
@@ -167,7 +169,7 @@ void CatalogView::drawSource(Source *s, int index)
 
 		// place the icon at center of width, and vertically spaced
 		glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - _height + sheight_pixels, 0.0);
-		if (s->isActive())
+		if (iscurrent)
 			glTranslatef( (_iconSize[_currentSize] -_largeIconSize[_currentSize]) * h_unit , 0.0, 0.0);
 		glScalef( swidth_pixels, -sheight_pixels, 1.f);
 
@@ -178,19 +180,20 @@ void CatalogView::drawSource(Source *s, int index)
 		glDrawArrays(GL_QUADS, 0, 4);
 	    glEnable(GL_BLEND);
 
+		ViewRenderWidget::setSourceDrawingMode(false);
 	    // draw source border
-		if (s->isActive()) {
-			glScalef( 1.06, 1.06, 1.0);	    // large border for the active source
+		if (iscurrent) {
+			glScalef( 1.06, 1.06, 1.0);	    // large border for the current source
 			glLineWidth(3.0);
 		} else {
-			glScalef( 1.05, 1.05, 1.0);
+			glScalef( 1.05, 1.05, 1.0);		// thin border for normal
 			glLineWidth(1.0);
 		}
 
 		if ( View::selectedSources.count(s) > 0)
-			glColor4f(0.2, 0.80, 0.2, 1.0);			// green border for selected sources
+			glColor4ub(230, 105, 10, 255);			// green border for selected sources
 		else
-			glColor4f(0.9, 0.9, 0.0, 0.7);			// yellow
+			glColor4f(0.9, 0.9, 0.0, 0.7);			// yellow for normal
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);

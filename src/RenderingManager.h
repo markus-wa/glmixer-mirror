@@ -108,6 +108,8 @@ public:
 
 	void removeSource(SourceSet::iterator itsource);
 	void removeSource(const GLuint idsource);
+	bool isCurrentSource(Source *s);
+	bool isCurrentSource(SourceSet::iterator si);
 	bool setCurrentSource(SourceSet::iterator si);
 	bool setCurrentSource(GLuint name);
 	inline SourceSet::iterator getCurrentSource()  const{

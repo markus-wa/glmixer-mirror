@@ -123,7 +123,7 @@ void GeometryView::paint()
 			glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
 			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
-			if ((*its)->isActive())
+			if (RenderingManager::getInstance()->isCurrentSource(its))
 				glCallList(borderType);
 			else
 				glCallList(ViewRenderWidget::border_thin);
@@ -140,6 +140,20 @@ void GeometryView::paint()
 
 	// post render draw (loop back and recorder)
 	RenderingManager::getInstance()->postRenderToFrameBuffer();
+
+    // Then the selection outlines
+    for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
+        glPushMatrix();
+//        glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
+//		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+//		if ( ABS(renderingAspectRatio) > 1.0)
+//			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
+//		else
+//			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
+//		glCallList(ViewRenderWidget::frame_selection);
+        glPopMatrix();
+
+    }
 
     // last the frame thing
 	glPushMatrix();
@@ -258,7 +272,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 				// set this newly clicked source as the current one
     			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
     			// update quadrant to match newly current source
-    			quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
+    			quadrant = getSourceQuadrant(*clicked, event->x(), viewport[3] - event->y());
     		}
     	}
 
@@ -279,6 +293,9 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
+	// keep the iterator of the current source under the shoulder ; it will be used
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+
 	// MIDDLE button ; panning
 	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 
@@ -295,23 +312,21 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	// LEFT button : use TOOL on the current source
 	if (event->buttons() & Qt::LeftButton) {
 
-		// keep the iterator of the current source under the shoulder ; it will be used
-		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
 
 			if (currentAction == View::TOOL) {
-				if (currentTool == MOVE)
-					grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
-				else if (currentTool == SCALE)
-					scaleSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
-				else if (currentTool == CROP)
-					cropSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
-				else if (currentTool == ROTATE) {
-					rotateSource(cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+				if (currentTool == GeometryView::MOVE)
+					grabSource(*cs, event->x(), viewport[3] - event->y(), dx, dy);
+				else if (currentTool == GeometryView::SCALE)
+					scaleSource(*cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+				else if (currentTool == GeometryView::CROP)
+					cropSource(*cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+				else if (currentTool == GeometryView::ROTATE) {
+					rotateSource(*cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
 					setTool(currentTool);
 				}
 			} else if (currentAction == View::GRAB) {
-				grabSource(cs, event->x(), viewport[3] - event->y(), dx, dy);
+				grabSource(*cs, event->x(), viewport[3] - event->y(), dx, dy);
 			}
 		}
 		return true;
@@ -321,6 +336,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	// mouse over (no buttons)
 	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
+
 		// if there was no current source
 		// OR
 		// if the currently active source is NOT in the set of sources under the cursor,
@@ -328,12 +344,12 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		// set quadrant to 0 (grab)
 		// ELSE
 		// use the current source for quadrant computation
-		if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd()
-			|| clickedSources.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
+		if ( cs == RenderingManager::getInstance()->getEnd()
+			|| clickedSources.count( *cs ) == 0 )
 //				quadrant = getSourceQuadrant(clickedSources.begin(), event->x(), viewport[3] - event->y());
 			quadrant = 0;
 		else
-			quadrant = getSourceQuadrant(RenderingManager::getInstance()->getCurrentSource(), event->x(), viewport[3] - event->y());
+			quadrant = getSourceQuadrant(*cs, event->x(), viewport[3] - event->y());
 
 		if(quadrant == 0 || currentTool == MOVE)
 			borderType = ViewRenderWidget::border_large;
@@ -387,11 +403,11 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
 			// manipulate the current source according to the operation detected when clicking
 			if (currentTool == MOVE || currentAction == View::GRAB)
-				grabSource(cs, event->x(), viewport[3] - event->y(), 0, 0);
+				grabSource(*cs, event->x(), viewport[3] - event->y(), 0, 0);
 			else if (currentTool == SCALE)
-				scaleSource(cs, event->x(), viewport[3] - event->y(), 0, 0, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+				scaleSource(*cs, event->x(), viewport[3] - event->y(), 0, 0, QApplication::keyboardModifiers () == Qt::ShiftModifier);
 			else if (currentTool == ROTATE)
-				rotateSource(cs, event->x(), viewport[3] - event->y(), 0, 0, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+				rotateSource(*cs, event->x(), viewport[3] - event->y(), 0, 0, QApplication::keyboardModifiers () == Qt::ShiftModifier);
 
 		}
 		// reset deltazoom
@@ -434,9 +450,9 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 
-	SourceSet::iterator its = RenderingManager::getInstance()->getCurrentSource();
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 
-	if (its != RenderingManager::getInstance()->getEnd()) {
+	if (cs != RenderingManager::getInstance()->getEnd()) {
 	    int dx =0, dy = 0, factor = 1;
 	    if (event->modifiers() & Qt::ControlModifier)
 	    	factor *= 10;
@@ -458,7 +474,7 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 			default:
 				return false;
 		}
-		grabSource(its, 0, 0, dx, dy);
+		grabSource(*cs, 0, 0, dx, dy);
 
 		return true;
 	}
@@ -681,7 +697,7 @@ void GeometryView::coordinatesFromMouse(int mouseX, int mouseY, double *X, doubl
 /**
  *
  **/
-void GeometryView::grabSource(SourceSet::iterator currentSource, int x, int y, int dx, int dy) {
+void GeometryView::grabSource(Source *s, int x, int y, int dx, int dy) {
 
 	double dum;
     double bx, by; // before movement
@@ -696,11 +712,11 @@ void GeometryView::grabSource(SourceSet::iterator currentSource, int x, int y, i
     ax += (ax + getPanningX()) * deltazoom;
     ay += (ay + getPanningY()) * deltazoom;
 
-    ax = (*currentSource)->getX() + (ax - bx);
-    ay = (*currentSource)->getY() + (ay - by);
+    ax = s->getX() + (ax - bx);
+    ay = s->getY() + (ay - by);
 
     // move source
-    (*currentSource)->moveTo(ax, ay);
+    s->moveTo(ax, ay);
 
 }
 
@@ -717,7 +733,7 @@ void GeometryView::grabSource(SourceSet::iterator currentSource, int x, int y, i
  * aspect ration of the source.
  *
  **/
-void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, int dx, int dy, bool option) {
+void GeometryView::scaleSource(Source *s, int X, int Y, int dx, int dy, bool option) {
 
 	double dum;
     double bx, by; // before movement
@@ -733,12 +749,12 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
 	ax += (ax + getPanningX()) * deltazoom;
 	ay += (ay + getPanningY()) * deltazoom;
 
-    double w = ((*currentSource)->getScaleX());
-    double x = (*currentSource)->getX();
-    double h = ((*currentSource)->getScaleY());
-    double y = (*currentSource)->getY();
-    double cosa = cos(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
-    double sina = sin(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    double w = s->getScaleX();
+    double x = s->getX();
+    double h = s->getScaleY();
+    double y = s->getY();
+    double cosa = cos(-s->getRotationAngle() / 180.0 * M_PI);
+    double sina = sin(-s->getRotationAngle() / 180.0 * M_PI);
 
     // convert to vectors ( source center -> clic position)
 	ax -= x; ay -= y;
@@ -767,15 +783,15 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
 	ay = h * (sy - 1.0);
 
     // reverse rotation to apply translation shift in the world reference
-    cosa = cos((*currentSource)->getRotationAngle() / 180.0 * M_PI);
-    sina = sin((*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    cosa = cos(s->getRotationAngle() / 180.0 * M_PI);
+    sina = sin(s->getRotationAngle() / 180.0 * M_PI);
 
 	dum = ax * cosa - ay * sina;
 	ay = ay  * cosa + ax * sina;
 	ax = dum;
 
-    (*currentSource)->scaleBy(sx, sy);
-    (*currentSource)->moveTo(x + ax, y + ay);
+    s->scaleBy(sx, sy);
+    s->moveTo(x + ax, y + ay);
 }
 
 // in case i want to implement it : center scaling
@@ -810,7 +826,7 @@ void GeometryView::scaleSource(SourceSet::iterator currentSource, int X, int Y, 
  * scale of the source.
  *
  **/
-void GeometryView::rotateSource(SourceSet::iterator currentSource, int X, int Y, int dx, int dy, bool option) {
+void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool option) {
 
 	double dum;
     double bx, by; // before movement
@@ -826,8 +842,8 @@ void GeometryView::rotateSource(SourceSet::iterator currentSource, int X, int Y,
 	ay += (ay + getPanningY()) * deltazoom;
 
     // convert to vectors ( source center -> clic position)
-    double x = (*currentSource)->getX();
-    double y = (*currentSource)->getY();
+    double x = s->getX();
+    double y = s->getY();
 	ax -= x; ay -= y;
 	bx -= x; by -= y;
 
@@ -836,7 +852,7 @@ void GeometryView::rotateSource(SourceSet::iterator currentSource, int X, int Y,
 		// compute scaling according to distances change
 		dum = sqrt(ax * ax + ay * ay) / sqrt(bx * bx + by * by);
 		// Scaling
-	    (*currentSource)->scaleBy(dum, dum);
+	    s->scaleBy(dum, dum);
 	}
 
 	// compute angle between before and after
@@ -846,11 +862,11 @@ void GeometryView::rotateSource(SourceSet::iterator currentSource, int X, int Y,
 	dum = (bx * ax) > 0 ? bx - ax : SIGN(ax) * (bx + ax);
 
 	// incremental relative rotation
-	dum += (*currentSource)->getRotationAngle() + 360.0;
+	dum += s->getRotationAngle() + 360.0;
 	// modulo 360
 	dum -= (double)( (int) dum / 360 ) * 360.0;
 
-	(*currentSource)->setRotationAngle( ABS(dum) );
+	s->setRotationAngle( ABS(dum) );
 
 }
 
@@ -885,7 +901,7 @@ void GeometryView::rotateSource(SourceSet::iterator currentSource, int X, int Y,
  *
  *
  **/
-void GeometryView::cropSource(SourceSet::iterator currentSource, int X, int Y, int dx, int dy, bool option) {
+void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool option) {
 
 	double dum;
     double bx, by; // before movement
@@ -901,12 +917,12 @@ void GeometryView::cropSource(SourceSet::iterator currentSource, int X, int Y, i
 	ax += (ax + getPanningX()) * deltazoom;
 	ay += (ay + getPanningY()) * deltazoom;
 
-    double w = ((*currentSource)->getScaleX());
-    double x = (*currentSource)->getX();
-    double h = ((*currentSource)->getScaleY());
-    double y = (*currentSource)->getY();
-    double cosa = cos(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
-    double sina = sin(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    double w = s->getScaleX();
+    double x = s->getX();
+    double h = s->getScaleY();
+    double y = s->getY();
+    double cosa = cos(-s->getRotationAngle() / 180.0 * M_PI);
+    double sina = sin(-s->getRotationAngle() / 180.0 * M_PI);
 
     // convert to vectors ( source center -> clic position)
 	ax -= x; ay -= y;
@@ -937,13 +953,13 @@ void GeometryView::cropSource(SourceSet::iterator currentSource, int X, int Y, i
 	double ty = h * (sy - 1.0);
 
 	// Crop
-	QRectF tex = (*currentSource)->getTextureCoordinates();
+	QRectF tex = s->getTextureCoordinates();
 	// compute texture coordinate of point clicked before movement
-	double bs = bx / (2.0 * ((*currentSource)->getScaleX()));
-	double bt = by / (2.0 * ((*currentSource)->getScaleY()));
+	double bs = bx / (2.0 * s->getScaleX());
+	double bt = by / (2.0 * s->getScaleY());
 	// compute texture coordinate of point clicked after movement, considering the movement changes
-	double as =  ( ax + tx ) / (2.0 * ((*currentSource)->getScaleX()) * sx);
-	double at =  ( ay + ty ) / (2.0 * ((*currentSource)->getScaleY()) * sy);
+	double as =  ( ax + tx ) / (2.0 * s->getScaleX() * sx);
+	double at =  ( ay + ty ) / (2.0 * s->getScaleY() * sy);
 	// depending on the quadrant, it is not the same corner of texture coordinates to change
 	if ( quadrant == 1 ) {
 		tex.setLeft( tex.left() + tex.width() * (as - bs) );
@@ -958,18 +974,18 @@ void GeometryView::cropSource(SourceSet::iterator currentSource, int X, int Y, i
 		tex.setLeft( tex.left() + tex.width() * (as - bs) );
 		tex.setBottom( tex.bottom() + tex.height() * (bt - at) );
 	}
-	(*currentSource)->setTextureCoordinates(tex);
+	s->setTextureCoordinates(tex);
 
     // reverse rotation to apply translation shift in the world reference
-    cosa = cos((*currentSource)->getRotationAngle() / 180.0 * M_PI);
-    sina = sin((*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    cosa = cos(s->getRotationAngle() / 180.0 * M_PI);
+    sina = sin(s->getRotationAngle() / 180.0 * M_PI);
 
 	dum = tx * cosa - ty * sina;
 	ty = ty  * cosa + tx * sina;
 	tx = dum;
 
-    (*currentSource)->scaleBy(sx, sy);
-    (*currentSource)->moveTo(x + tx, y + ty);
+    s->scaleBy(sx, sy);
+    s->moveTo(x + tx, y + ty);
 
 }
 
@@ -977,7 +993,7 @@ void GeometryView::cropSource(SourceSet::iterator currentSource, int X, int Y, i
 /**
  *
  **/
-char GeometryView::getSourceQuadrant(SourceSet::iterator currentSource, int X, int Y) {
+char GeometryView::getSourceQuadrant(Source *s, int X, int Y) {
     //      ax
     //      ^
     //  ----|----
@@ -992,16 +1008,16 @@ char GeometryView::getSourceQuadrant(SourceSet::iterator currentSource, int X, i
             modelview, projection, viewport, &ax, &ay, &az);
 
     // vector (source center -> cursor position)
-    ax -= (*currentSource)->getX();
-    ay -= (*currentSource)->getY();
+    ax -= s->getX();
+    ay -= s->getY();
     // quadrant is relative to source orientation
-    double cosa = cos(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
-    double sina = sin(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
+    double cosa = cos(-s->getRotationAngle() / 180.0 * M_PI);
+    double sina = sin(-s->getRotationAngle() / 180.0 * M_PI);
 	double x = ax * cosa - ay * sina;
 	double y = ay * cosa + ax * sina;
 
-	double w = ((*currentSource)->getScaleX());
-	double h = ((*currentSource)->getScaleY());
+	double w = s->getScaleX();
+	double h = s->getScaleY();
     // exclude mouse cursors out of the area
     if ( ABS(x) > ABS(w)  || ABS(y) > ABS(h)) {
     	return 0;

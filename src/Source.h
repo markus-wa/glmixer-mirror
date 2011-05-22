@@ -102,14 +102,6 @@ public:
 	inline GLuint getTextureIndex() {
 		return textureIndex;
 	}
-	// return true if this source is activated (shown as the current with a border)
-	inline bool isActive() const {
-		return active;
-	}
-	// sets if this source is active or not
-	inline void activate(bool flag) {
-		active = flag;
-	}
 
 	/**
 	 * Manipulation
@@ -442,7 +434,7 @@ protected:
 	// identity and properties
 	GLuint id;
 	QString name;
-	bool active, culled, standby, frameChanged, cropped;
+	bool culled, standby, frameChanged, cropped;
 	SourceList *clones;
 
 	// GL Stuff

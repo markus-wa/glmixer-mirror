@@ -68,7 +68,8 @@ void MixerView::paint()
     glLineStipple(1, 0x9999);
     glEnable(GL_LINE_STIPPLE);
     glLineWidth(2.0);
-    glColor4f(0.2, 0.8, 0.2, 1.0);
+//    glColor4f(0.2, 0.8, 0.2, 1.0);
+	glColor4ub(230, 105, 10, 255);
     glBegin(GL_LINE_LOOP);
     for(SourceSet::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
         glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
@@ -140,7 +141,7 @@ void MixerView::paint()
 			//
 			ViewRenderWidget::setSourceDrawingMode(false);
 
-			if ((*its)->isActive())
+			if (RenderingManager::getInstance()->isCurrentSource(its))
 				glCallList(ViewRenderWidget::border_large_shadow);
 			else
 				glCallList(ViewRenderWidget::border_thin_shadow);
@@ -174,10 +175,12 @@ void MixerView::paint()
 
 	// The rectangle for selection
     if ( currentAction == View::RECTANGLE) {
-		glColor4f(0.3, 0.8, 0.3, 0.1);
+		glColor4ub(230, 145, 85, 25);
+//		glColor4f(0.3, 0.8, 0.3, 0.1);
 		glRectdv(rectangleStart, rectangleEnd);
 		glLineWidth(0.5);
-		glColor4f(0.3, 0.8, 0.3, 0.5);
+//		glColor4f(0.3, 0.8, 0.3, 0.5);
+		glColor4ub(230, 145, 85, 125);
 	    glBegin(GL_LINE_LOOP);
 		glVertex3d(rectangleStart[0], rectangleStart[1], 0.0);
 		glVertex3d(rectangleEnd[0], rectangleStart[1], 0.0);

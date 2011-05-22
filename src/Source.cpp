@@ -37,7 +37,7 @@ bool Source::playable = false;
 
 // innefective source just to get default parameters
 Source::Source() :
-			active(false), culled(false), standby(false), frameChanged(false), textureIndex(0),
+			culled(false), standby(false), frameChanged(false), textureIndex(0),
 			maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(0),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
@@ -62,7 +62,7 @@ Source::Source() :
 
 // the 'REAL' source constructor.
 Source::Source(GLuint texture, double depth) :
-	active(false), culled(false), standby(false), frameChanged(true), textureIndex(texture),
+	culled(false), standby(false), frameChanged(true), textureIndex(texture),
 	maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
 	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),

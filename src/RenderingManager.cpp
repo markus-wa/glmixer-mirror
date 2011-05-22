@@ -739,17 +739,26 @@ bool RenderingManager::isValid(SourceSet::iterator itsource)  const{
 		return false;
 }
 
+
+bool RenderingManager::isCurrentSource(Source *s){
+	if (_currentSource != _sources.end())
+		return ( s == *_currentSource );
+	else
+		return false;
+}
+
+bool RenderingManager::isCurrentSource(SourceSet::iterator si){
+
+	return ( si == _currentSource );
+
+}
+
 bool RenderingManager::setCurrentSource(SourceSet::iterator si) {
 
 	if (si != _currentSource) {
-		if (notAtEnd(_currentSource))
-			(*_currentSource)->activate(false);
 
 		_currentSource = si;
 		emit currentSourceChanged(_currentSource);
-
-		if (notAtEnd(_currentSource))
-			(*_currentSource)->activate(true);
 
 		return true;
 	}
@@ -768,8 +777,6 @@ bool RenderingManager::setCurrentNext(){
 		return false;
 
 	if (_currentSource != _sources.end()) {
-		// deactivate current
-		(*_currentSource)->activate(false);
 		// increment to next source
 		_currentSource++;
 		// loop to begin if at end
@@ -779,7 +786,6 @@ bool RenderingManager::setCurrentNext(){
 		_currentSource = _sources.begin();
 
 	emit currentSourceChanged(_currentSource);
-	(*_currentSource)->activate(true);
 	return true;
 }
 
@@ -789,8 +795,6 @@ bool RenderingManager::setCurrentPrevious(){
 		return false;
 
 	if (_currentSource != _sources.end()) {
-		// deactivate current
-		(*_currentSource)->activate(false);
 
 		// if at the beginning, go to the end
 		if (_currentSource == _sources.begin())
@@ -800,7 +804,6 @@ bool RenderingManager::setCurrentPrevious(){
 	// decrement to previous source
 	_currentSource--;
 	emit currentSourceChanged(_currentSource);
-	(*_currentSource)->activate(true);
 	return true;
 }
 

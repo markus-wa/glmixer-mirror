@@ -60,11 +60,11 @@ public:
 private:
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY);
-    char getSourceQuadrant(SourceSet::iterator s, int mouseX, int mouseY);
-    void grabSource(SourceSet::iterator s, int x, int y, int dx, int dy);
-    void scaleSource(SourceSet::iterator s, int x, int y, int dx, int dy, bool option = 0);
-    void rotateSource(SourceSet::iterator s, int x, int y, int dx, int dy, bool option = 0);
-    void cropSource(SourceSet::iterator s, int x, int y, int dx, int dy, bool option = 0);
+    char getSourceQuadrant(Source *s, int mouseX, int mouseY);
+    void grabSource(Source *s, int x, int y, int dx, int dy);
+    void scaleSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
+    void rotateSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
+    void cropSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
     void panningBy(int x, int y, int dx, int dy);
     void setAction(actionType a);
 

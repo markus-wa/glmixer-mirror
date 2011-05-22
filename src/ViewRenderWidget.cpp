@@ -1010,7 +1010,8 @@ GLuint ViewRenderWidget::buildSelectList()
 		glBlendEquation(GL_FUNC_ADD);
 
 		glLineWidth(2.0);
-		glColor4f(0.2, 0.80, 0.2, 1.0);
+//		glColor4f(0.2, 0.80, 0.2, 1.0);
+		glColor4ub(230, 105, 10, 255);
 
 		glLineStipple(1, 0x9999);
 		glEnable(GL_LINE_STIPPLE);

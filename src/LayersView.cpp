@@ -120,7 +120,7 @@ void LayersView::paint()
 
 			ViewRenderWidget::setSourceDrawingMode(false);
 			// draw border (larger if active)
-			if ((*its)->isActive())
+			if (RenderingManager::getInstance()->isCurrentSource(its))
 				glCallList(ViewRenderWidget::border_large_shadow);
 			else
 				glCallList(ViewRenderWidget::border_thin_shadow);
