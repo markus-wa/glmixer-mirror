@@ -694,7 +694,6 @@ void MixerView::zoomBestFit( bool onlyClickedSource )
 
 bool MixerView::keyPressEvent ( QKeyEvent * event ){
 
-	qDebug("event->nativeModifiers() %d", event->nativeModifiers());
 	// detect CTRL to enter select mode
 	if (event->modifiers() & Qt::ControlModifier){
 		setAction(View::SELECT);
