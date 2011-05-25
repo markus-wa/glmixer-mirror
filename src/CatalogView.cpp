@@ -103,15 +103,15 @@ void CatalogView::clear() {
 	// draw the catalog background and its frame
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glColor4f(0.5, 0.5, 0.5, 0.2);
+	glColor4ub(COLOR_FADING, 20);
     float bl_x = -_width + 0.3 * _size[_currentSize] * h_unit;
     float bl_y = -SOURCE_UNIT + ( 2.0 * SOURCE_UNIT - _height) - 0.5;
     float tr_x = -_width + _size[_currentSize] * h_unit;
     float tr_y = SOURCE_UNIT;
     glRectf( bl_x, bl_y, tr_x, tr_y);
 
-	glColor4f(0.8, 0.8, 0.8, 0.9);
-	glLineWidth(3);
+	glColor4ub(COLOR_DRAWINGS, 200);
+	glLineWidth(2);
     glBegin(GL_LINES); // drawing borders
 		glVertex2f(tr_x, bl_y); // Bottom Right
 		glVertex2f(bl_x, bl_y); // Bottom Left
@@ -153,7 +153,7 @@ void CatalogView::drawSource(Source *s, int index)
 			else if (_currentSize == MEDIUM)
 				setSize(SMALL);
 			else {
-				glColor4f(0.8, 0.8, 0.8, 0.6);
+				glColor4ub(COLOR_DRAWINGS, 200);
 				glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
 				glLineWidth(2);
 				glBegin(GL_LINE_LOOP); // draw a triangle
@@ -191,9 +191,9 @@ void CatalogView::drawSource(Source *s, int index)
 		}
 
 		if ( View::selectedSources.count(s) > 0)
-			glColor4ub(230, 105, 10, 255);			// green border for selected sources
+			glColor4ub(COLOR_SELECTION, 250);		//  color for selected sources
 		else
-			glColor4f(0.9, 0.9, 0.0, 0.7);			// yellow for normal
+			glColor4ub(COLOR_SOURCE, 250);			//  color for normal
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);

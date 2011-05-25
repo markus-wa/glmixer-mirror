@@ -117,14 +117,15 @@ public:
 	 *
 	 * @return True if the event was processed and used.
 	 */
-	virtual bool keyPressEvent(QKeyEvent * event) {
-		return false;
-	}
+	virtual bool keyPressEvent(QKeyEvent * event) ;
+	/**
+	 *
+	 * @return True if the event was processed and used.
+	 */
+	virtual bool keyReleaseEvent(QKeyEvent * event) ;
 
-    typedef enum {NONE = 0, OVER, GRAB, TOOL, SELECT, RECTANGLE } actionType;
-    void setAction(actionType a){
-    		currentAction = a;
-    }
+    typedef enum {NONE = 0, OVER, GRAB, TOOL, SELECT, PANNING, DROP } actionType;
+    void setAction(actionType a);
 	/**
 	 *
 	 */
@@ -256,7 +257,7 @@ protected:
 	QPixmap icon;
 	QString title;
 
-    actionType currentAction;
+    actionType currentAction, previousAction;
 };
 
 #endif /* VIEW_H_ */

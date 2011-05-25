@@ -106,7 +106,7 @@ void LineCursor::draw(GLint viewport[4]) {
 	glPushMatrix();
 	glLoadIdentity();
 
-	glColor4ub(13, 148, 224, 255);
+	glColor4ub(COLOR_CURSOR, 255);
 
 	glPointSize(15);
 	glBegin(GL_POINTS);

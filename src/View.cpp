@@ -33,3 +33,19 @@ void View::removeFromSelection(Source *s) {
 	if ( selectedSources.count(s) > 0)
 		selectedSources.erase( s );
 }
+
+bool View::keyPressEvent(QKeyEvent * event) {
+
+	return false;
+}
+
+bool View::keyReleaseEvent(QKeyEvent * event) {
+
+	return false;
+}
+
+void View::setAction(actionType a){
+
+	previousAction = currentAction;
+	currentAction = a;
+}

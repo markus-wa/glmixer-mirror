@@ -43,7 +43,7 @@ public:
     bool mouseDoubleClickEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
     bool keyPressEvent ( QKeyEvent * event );
-
+    bool keyReleaseEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
 	void clear();
@@ -64,11 +64,12 @@ private:
     void panningBy(int x, int y, int dx, int dy) ;
 
     void setAction(actionType a);
+    bool drawRectangle;
 
     // creation of groups from set of selection
 	SourceListArray groupSources;
 	QMap<SourceListArray::iterator, QColor> groupColor;
-	GLdouble rectangleStart[2], rectangleEnd[2];
+	GLdouble selectionRectangleStart[2], selectionRectangleEnd[2];
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */

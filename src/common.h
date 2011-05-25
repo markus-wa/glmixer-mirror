@@ -69,6 +69,20 @@ QStringList glSupportedExtensions();
 
 #define XML_GLM_VERSION "0.6"
 
+#define COLOR_SOURCE 230, 230, 0
+//#define COLOR_SELECTION 240, 80, 220
+//#define COLOR_SELECTION_AREA 230, 150, 220
+//#define COLOR_SELECTION 230, 105, 10
+//#define COLOR_SELECTION_AREA 230, 145, 85
+#define COLOR_SELECTION 0, 180, 50
+#define COLOR_SELECTION_AREA 40, 190, 80
+#define COLOR_BACKGROUND 52, 52, 52
+#define COLOR_DRAWINGS 150, 150, 150
+#define COLOR_LIMBO 35, 35, 35
+#define COLOR_FADING 25, 25, 25
+#define COLOR_FRAME 210, 30, 210
+#define COLOR_CURSOR 13, 148, 224
+
 #include <QDir>
 #include <QValidator>
 

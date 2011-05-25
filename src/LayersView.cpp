@@ -223,6 +223,12 @@ void LayersView::setAction(actionType a){
 	case View::SELECT:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
 		break;
+	case View::PANNING:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+		break;
+	case View::DROP:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+		break;
 	default:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
 	}
@@ -250,54 +256,61 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 
 	// MIDDLE BUTTON ; panning cursor
 	if (event->buttons() & Qt::MidButton || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+		setAction(View::PANNING);
+		return false;
 	}
+
 	// DRoP MODE ; explicitly do nothing
-	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+		setAction(View::DROP);
 		// don't interpret other mouse events in drop mode
 		return false;
 	}
+
 	// if at least one source icon was clicked
-	else if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) &&
+			 (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton) ) {
 
     	// get the top most clicked source
     	Source *clicked = *clickedSources.begin();
+    	if (!clicked)
+    		return false;
 
-    	// for LEFT or RIGHT button clic : manipulate only the top most or the newly clicked
-    	if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton) {
+		// CTRL clic = add/remove from selection
+		if ( currentAction == View::SELECT ) {
 
-    		// CTRL clic = add/remove from selection
-    		if ( currentAction == View::SELECT ) {
+			if ( View::selectedSources.count(clicked) > 0)
+				View::selectedSources.erase( clicked );
+			else
+				View::selectedSources.insert( clicked );
 
-				if ( View::selectedSources.count(clicked) > 0)
-					View::selectedSources.erase( clicked );
-				else
-					View::selectedSources.insert( clicked );
+		}
+		// else not SELECTION ; normal action
+		else {
+			//  make the top most source clicked now the newly current one
+			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
+			// put this source in the forward list,
+			bringForward(clicked, event->buttons() & Qt::RightButton);
+			// ready for grabbing the current source
+			setAction(View::GRAB);
+		}
 
-    		}
-    		// else
-    		else {
-				//  make the top most source clicked now the newly current one
-				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
-				// put this source in the forward list,
-				bringForward(clicked, event->buttons() & Qt::RightButton);
-				// ready for grabbing the current source
-				setAction(View::GRAB);
-    		}
-    	}
-
-    } else {
-		// set current to none (end of list)
-		RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
-		// clear the list of sources forward
-		forwardSources.clear();
-		// clear selection
-		View::selectedSources.clear();
-		setAction(View::NONE);
+		return true;
     }
 
-	return true;
+	// clicked in the background
+
+	// set current source to none (end of list)
+	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+	// clear the list of sources forward
+	forwardSources.clear();
+	// back to no action
+	if ( currentAction == View::SELECT )
+		View::selectedSources.clear();
+	else
+		setAction(View::NONE);
+
+	return false;
 }
 
 bool LayersView::mouseMoveEvent(QMouseEvent *event)
@@ -306,20 +319,27 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
-	// MIDDLE button ; rotation
-	if (event->buttons() & Qt::MidButton || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
-		// move the view
-		panningBy(event->x(), event->y(), dx, dy);
-	}
-	// DROP MODE : avoid other actions
-	else if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+    // DROP MODE : avoid other actions
+	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+		setAction(View::DROP);
 		// don't interpret mouse events in drop mode
 		return false;
 	}
+
+	// MIDDLE button ; rotation
+	if ( currentAction == View::PANNING ) {
+		// move the view
+		panningBy(event->x(), event->y(), dx, dy);
+		return true;
+	}
+
+	// SELECT MODE : no motion
+	// TODO : draw a rectangle to select multiple sources
+	if ( currentAction == View::SELECT )
+		return false;
+
 	// LEFT or RIGHT BUTTON : grab
-	else if ( event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton ) {
+	if ( event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton ) {
 
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
@@ -327,26 +347,22 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 		// if there is a current source
 		if ( currentAction == View::GRAB && RenderingManager::getInstance()->notAtEnd(cs)) {
 
-            // move all the source placed forward
+			// move all the source placed forward
 			for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++)
 				grabSource( *its, event->x(), event->y(), dx, dy, (*its)->getId() == (*cs)->getId());
 
 		}
+		return true;
 	}
 	// mouse over (no buttons)
-	else {
-		// detect if mouse is over a source
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
-			// mouse over and CTRL key ?
-			if (event->modifiers() == Qt::ControlModifier)
-				setAction(View::SELECT);
-			else
-				setAction(View::OVER);
-		} else
-			setAction(View::NONE);
-	}
 
-	return true;
+	// detect if mouse is over a source
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
+		setAction(View::OVER);
+	else
+		setAction(View::NONE);
+
+	return false;
 }
 
 bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
@@ -354,10 +370,10 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 	// restore action mode
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-	else if (currentAction == View::GRAB )
+	else if (currentAction == View::GRAB || currentAction == View::DROP)
 		setAction(View::OVER);
-//	else
-//		setAction(currentAction);
+	else if (currentAction == View::PANNING )
+		setAction(previousAction);
 
 	return true;
 }
@@ -366,6 +382,9 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 bool LayersView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
 	if (!event)
+		return false;
+
+	if (currentAction == View::DROP)
 		return false;
 
 	// left double click = zoom best fit
@@ -398,15 +417,11 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 		lookatdistance = CLAMP( lookatdistance + ((float) event->delta() * lookatdistance * MIN_LOOKAT) / (1200.0 * MAX_LOOKAT) , MIN_LOOKAT, MAX_LOOKAT);
 		modified = true;
   	}
-    // else (normal or CTRL wheel) = modify zoom
+    // else = modify zoom
     else {
 
 		float previous = zoom;
-
-		if (QApplication::keyboardModifiers () == Qt::ControlModifier)
-			setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (60.0 * maxzoom) );
-		else
-			setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (180.0 * maxzoom) );
+		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
 		if (currentAction == View::GRAB) {
 			deltazoom = zoom - previous;
@@ -471,37 +486,48 @@ void LayersView::zoomBestFit( bool onlyClickedSource ) {
 
 bool LayersView::keyPressEvent ( QKeyEvent * event ){
 
-	if (currentAction == OVER && event->modifiers() == Qt::ControlModifier)
+	if (event->modifiers() & Qt::ControlModifier){
 		setAction(View::SELECT);
-	else {
-		SourceSet::iterator currentSource = RenderingManager::getInstance()->getCurrentSource();
-
-		if (currentSource != RenderingManager::getInstance()->getEnd()) {
-			double dz = 0.0;
-
-			switch (event->key()) {
-				case Qt::Key_Down:
-				case Qt::Key_Left:
-					dz = 1.0;
-					break;
-				case Qt::Key_Up:
-				case Qt::Key_Right:
-					dz = -1.0;
-					break;
-				default:
-					return false;
-			}
-
-			//(*its)->moveTo( (*its)->getX() + dx,  (*its)->getY() + dy);
-			double newdepth =  (*currentSource)->getDepth() + dz;
-			currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
-
-			// we need to set current again
-			RenderingManager::getInstance()->setCurrentSource(currentSource);
-
-			return true;
-		}
+		return true;
 	}
+
+	SourceSet::iterator currentSource = RenderingManager::getInstance()->getCurrentSource();
+	if (currentSource != RenderingManager::getInstance()->getEnd()) {
+		double dz = 0.0;
+
+		switch (event->key()) {
+			case Qt::Key_Down:
+			case Qt::Key_Left:
+				dz = 1.0;
+				break;
+			case Qt::Key_Up:
+			case Qt::Key_Right:
+				dz = -1.0;
+				break;
+			default:
+				return false;
+		}
+
+		//(*its)->moveTo( (*its)->getX() + dx,  (*its)->getY() + dy);
+		double newdepth =  (*currentSource)->getDepth() + dz;
+		currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
+
+		// we need to set current again
+		RenderingManager::getInstance()->setCurrentSource(currentSource);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool LayersView::keyReleaseEvent(QKeyEvent * event) {
+
+	if (event->nativeModifiers() == 4) {
+		setAction(previousAction);
+		return true;
+	}
+
 	return false;
 }
 

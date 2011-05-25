@@ -86,7 +86,7 @@ void FuzzyCursor::draw(GLint viewport[4]) {
 	glLoadIdentity();
 
 	glPointSize(10);
-	glColor4ub(13, 148, 224, 255);
+	glColor4ub(COLOR_CURSOR, 255);
 
 	glBegin(GL_POINTS);
 	glVertex2d(shadowPos.x(), viewport[3] - shadowPos.y());

@@ -44,6 +44,10 @@ MixerView::MixerView() : View()
 	maxpany = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	currentAction = View::NONE;
 
+	drawRectangle = false;
+    selectionRectangleStart[0] = selectionRectangleEnd[0] = -maxpanx;
+    selectionRectangleStart[1] = selectionRectangleEnd[1] = -maxpanx;
+
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
     title = " Mixing view";
 }
@@ -68,8 +72,7 @@ void MixerView::paint()
     glLineStipple(1, 0x9999);
     glEnable(GL_LINE_STIPPLE);
     glLineWidth(2.0);
-//    glColor4f(0.2, 0.8, 0.2, 1.0);
-	glColor4ub(230, 105, 10, 255);
+	glColor4ub(COLOR_SELECTION, 255);
     glBegin(GL_LINE_LOOP);
     for(SourceSet::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
         glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
@@ -174,18 +177,16 @@ void MixerView::paint()
     }
 
 	// The rectangle for selection
-    if ( currentAction == View::RECTANGLE) {
-		glColor4ub(230, 145, 85, 25);
-//		glColor4f(0.3, 0.8, 0.3, 0.1);
-		glRectdv(rectangleStart, rectangleEnd);
+    if ( drawRectangle ) {
+		glColor4ub(COLOR_SELECTION_AREA, 25);
+		glRectdv(selectionRectangleStart, selectionRectangleEnd);
 		glLineWidth(0.5);
-//		glColor4f(0.3, 0.8, 0.3, 0.5);
-		glColor4ub(230, 145, 85, 125);
+		glColor4ub(COLOR_SELECTION_AREA, 125);
 	    glBegin(GL_LINE_LOOP);
-		glVertex3d(rectangleStart[0], rectangleStart[1], 0.0);
-		glVertex3d(rectangleEnd[0], rectangleStart[1], 0.0);
-		glVertex3d(rectangleEnd[0], rectangleEnd[1], 0.0);
-		glVertex3d(rectangleStart[0], rectangleEnd[1], 0.0);
+		glVertex3d(selectionRectangleStart[0], selectionRectangleStart[1], 0.0);
+		glVertex3d(selectionRectangleEnd[0], selectionRectangleStart[1], 0.0);
+		glVertex3d(selectionRectangleEnd[0], selectionRectangleEnd[1], 0.0);
+		glVertex3d(selectionRectangleStart[0], selectionRectangleEnd[1], 0.0);
 	    glEnd();
     }
 
@@ -253,6 +254,9 @@ void MixerView::resize(int w, int h)
 
 void MixerView::setAction(actionType a){
 
+	if (a == currentAction)
+		return;
+
 	View::setAction(a);
 
 	switch(a) {
@@ -263,8 +267,13 @@ void MixerView::setAction(actionType a){
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		break;
 	case View::SELECT:
-	case View::RECTANGLE:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
+		break;
+	case View::PANNING:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+		break;
+	case View::DROP:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		break;
 	default:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
@@ -281,71 +290,74 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	// MIDDLE BUTTON ; panning cursor
 	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
 		// priority to panning of the view (even in drop mode)
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+		setAction(View::PANNING);
 		return false;
 	}
+
 	// DRoP MODE ; explicitly do nothing
 	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+		setAction(View::DROP);
 		// don't interpret other mouse events in drop mode
 		return false;
 	}
+
+
 	// OTHER BUTTON ; initiate action
-//	else  if (event->buttons() & Qt::LeftButton) {
 	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
 
     	// get the top most clicked source
     	Source *clicked = *clickedSources.begin();
+    	if (!clicked)
+    		return false;
 
-    	// should be always true
-        if ( clicked ) {
+		// CTRL clic = add/remove from selection
+		if ( currentAction == View::SELECT ) {
 
-        	// if CTRL button modifier pressed, add clicked to selection
-			if (  QApplication::keyboardModifiers () == Qt::ControlModifier) {
-				setAction(SELECT);
-				// test if source is in a group
-        		SourceListArray::iterator itss = groupSources.begin();
-				for(; itss != groupSources.end(); itss++) {
-					if ( (*itss).count(clicked) > 0 )
-						break;
-				}
-				// NOT in a source : add individual item clicked
-	        	if ( itss == groupSources.end()  ) {
-					if ( View::selectedSources.count(clicked) > 0)
-						View::selectedSources.erase( clicked );
-					else
-						View::selectedSources.insert( clicked );
-	        	}
-	        	// add the full group attached to the clicked item
-	        	else {
-	        		SourceList result;
-					if ( View::selectedSources.count(clicked) > 0)
-		        		std::set_difference(View::selectedSources.begin(), View::selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
-					else
-						std::set_union(View::selectedSources.begin(), View::selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
-					View::selectedSources = SourceList(result);
-	        	}
+			// test if source is in a group
+			SourceListArray::iterator itss = groupSources.begin();
+			for(; itss != groupSources.end(); itss++) {
+				if ( (*itss).count(clicked) > 0 )
+					break;
 			}
-			else // not in selection (SELECT) action mode, then just set the current active source
-			{
-				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
-				// ready for grabbing the current source
-				setAction(View::GRAB);
+			// NOT in a source : add individual item clicked
+			if ( itss == groupSources.end()  ) {
+				if ( View::selectedSources.count(clicked) > 0)
+					View::selectedSources.erase( clicked );
+				else
+					View::selectedSources.insert( clicked );
+			}
+			// add the full group attached to the clicked item
+			else {
+				SourceList result;
+				if ( View::selectedSources.count(clicked) > 0)
+					std::set_difference(View::selectedSources.begin(), View::selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+				else
+					std::set_union(View::selectedSources.begin(), View::selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+				View::selectedSources = SourceList(result);
 			}
 		}
-    	return true;
+		else // not in selection (SELECT) action mode, then just set the current active source
+		{
+			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
+			// ready for grabbing the current source
+			setAction(View::GRAB);
+		}
+
+		return true;
     }
 
 	// click in background
 
 	// set current to none (end of list)
 	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
-	// clear selection
-	View::selectedSources.clear();
-	setAction(View::NONE);
+
+	// back to no action
+	if ( currentAction != View::SELECT )
+		setAction(View::NONE);
+
 	// remember coordinates of clic
 	double dumm;
-	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleStart, rectangleStart+1, &dumm);
+	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleStart, selectionRectangleStart+1, &dumm);
 
 	return false;
 }
@@ -353,6 +365,9 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
 	if (!event)
+		return false;
+
+	if (currentAction == View::DROP)
 		return false;
 
 	// for LEFT double button
@@ -413,6 +428,19 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
+	// DROP MODE : avoid other actions
+	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+		setAction(View::DROP);
+		// don't interpret mouse events in drop mode
+		return false;
+	}
+
+	// MIDDLE button ; panning
+	if ( currentAction == View::PANNING ) {
+		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
+		return true;
+	}
+
 	// get the top most clicked source, if there is
 	static Source *clicked = 0;
 	if (!clickedSources.empty())
@@ -420,125 +448,113 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	else
 		clicked = 0;
 
-    // MIDDLE button ; panning
-	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
+	// SELECT AREA
+	if ( !clicked && event->buttons() & Qt::LeftButton ) {
 
-			panningBy(event->x(), viewport[3] - event->y(), dx, dy);
-			return false;
-	}
-	// DROP MODE : avoid other actions
-	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+		drawRectangle = true;
 
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-		// don't interpret mouse events in drop mode
+		// set coordinate of end of rectangle selection
+		double dumm;
+		gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleEnd, selectionRectangleEnd+1, &dumm);
+
+		// loop over every sources to check if it is in the rectangle area
+		SourceList rectSources;
+		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+		{
+			if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+				(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+				(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
+				(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
+				rectSources.insert(*its);
+			}
+		}
+
+		SourceList result;
+		for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+			result.erase (result.begin (), result.end ());
+			std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
+			// if the group is fully inside the rectangle selection
+			if ( (*itss).size() != result.size() ) {
+				// ensure none of the group source remain in the selection
+				result.erase (result.begin (), result.end ());
+				std::set_difference(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+				rectSources = SourceList(result);
+			}
+		}
+
+		if ( currentAction == View::SELECT ) { // extend selection
+		   std::set_union (View::selectedSources.begin (), View::selectedSources.end (),
+				   	   	   rectSources.begin (), rectSources.end (),
+							std::inserter (result, result.begin ()));
+		   View::selectedSources = SourceList(result);
+		} else  // new selection
+			View::selectedSources = SourceList(rectSources);
+
 		return false;
 	}
-	// LEFT BUTTON : grab or draw a selection rectangle
-	if (event->buttons() & Qt::LeftButton) {
 
-        if ( clicked && currentAction == View::GRAB )
-        {
-        	// find if the source is in a group
-        	SourceListArray::iterator itss;
-            for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-            	if ( (*itss).count(clicked) > 0 )
-            		break;
-            }
-            // if the source is in the selection, move the selection
-        	if ( View::selectedSources.count(clicked) > 0 ){
+	// SELECT MODE
+	if ( currentAction == View::SELECT ) {
+		return false;
+	}
+
+	// OTHER BUTTON & clicked : grab
+	if (currentAction == View::GRAB )
+	{
+
+		// find if the source is in a group
+		SourceListArray::iterator itss;
+		for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+			if ( (*itss).count(clicked) > 0 )
+				break;
+		}
+
+		// LEFT BUTTON : move selection
+		if (event->buttons() & Qt::LeftButton ) {
+			// if the source is in the selection, move the selection
+			if ( View::selectedSources.count(clicked) > 0 ){
 				for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
 					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
 			}
-        	// else, if it is in a group, move the group
-        	else if ( itss != groupSources.end() ) {
+			// else, if it is in a group, move the group
+			else if ( itss != groupSources.end() ) {
 				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
 					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
-        	}
-        	// nothing special, move the source individually
+			}
+			// nothing special, move the source individually
 			else
 				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+		}
+		// RIGHT BUTTON : special (non-selection) modification
+		else if (event->buttons() & Qt::RightButton ) {
 
-    		return true;
-
-        } else {
-
-        	if (clicked)
-        		return false;
-
-        	setAction(View::RECTANGLE);
-			// set coordinate of end of rectangle selection
-			double dumm;
-		    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleEnd, rectangleEnd+1, &dumm);
-
-		    // loop over every sources to check if it is in the rectangle area
-		    SourceList rectSources;
-		    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-		    {
-		    	if ((*its)->getAlphaX() > MINI(rectangleStart[0], rectangleEnd[0]) &&
-		    		(*its)->getAlphaX() < MAXI(rectangleStart[0], rectangleEnd[0]) &&
-		    		(*its)->getAlphaY() > MINI(rectangleStart[1], rectangleEnd[1]) &&
-		    		(*its)->getAlphaY() < MAXI(rectangleStart[1], rectangleEnd[1]) ){
-		    		rectSources.insert(*its);
-		    	}
-		    }
-
-			SourceList result;
-			for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-				result.erase (result.begin (), result.end ());
-				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
-				// if the group is fully inside the rectangle selection
-				if ( (*itss).size() != result.size() ) {
-	        		// ensure none of the group source remain in the selection
-					result.erase (result.begin (), result.end ());
-					std::set_difference(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
-					rectSources = SourceList(result);
-				}
+			// find if the source is in a group
+			SourceListArray::iterator itss;
+			for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+				if ( (*itss).count(clicked) > 0 )
+					break;
 			}
 
-			View::selectedSources = SourceList(rectSources);
-			return false;
-        }
-
-    }
-	// RIGHT BUTTON : special (non-selection) modification
-	if (event->buttons() & Qt::RightButton) {
-
-    	// RIGHT clic on a source ; change its alpha, but do not make it current
-        if ( clicked ) {
-        	//  move it individually, even if in a group
-        	setAction(View::GRAB);
-
-        	// find if the source is in a group
-        	SourceListArray::iterator itss;
-            for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-            	if ( (*itss).count(clicked) > 0 )
-            		break;
-            }
-
-            // if the source is in the selection AND in a group, then move the group
+			// if the source is in the selection AND in a group, then move the group
 			if ( itss != groupSources.end() && View::selectedSources.count(clicked) > 0 ){
 				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
 					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
 				}
-        	}
+			}
 			else
 				// move the source individually
 				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 
-			return true;
-        }
+		}
 
-    }
-	// NO BUTTON : show a mouse-over cursor
-	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) ) {
-		// selection mode with CTRL modifier
-		if (QApplication::keyboardModifiers () == Qt::ControlModifier)
-			setAction(View::SELECT);
-		else
-			setAction(View::OVER);
+		return true;
 	}
+
+	// NO BUTTON : show a mouse-over cursor
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
+		setAction(View::OVER);
 	else
 		setAction(View::NONE);
 
@@ -549,22 +565,24 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 {
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-	else if (currentAction == View::GRAB )
+	else if (currentAction == View::GRAB  || currentAction == View::DROP)
 		setAction(OVER);
-	else if (currentAction == View::RECTANGLE ){
+	else if (currentAction == View::PANNING)
+		setAction(previousAction);
+	else if (drawRectangle){
 
 		// set coordinate of end of rectangle selection
 		double dumm;
-	    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, rectangleEnd, rectangleEnd+1, &dumm);
+	    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleEnd, selectionRectangleEnd+1, &dumm);
 
 	    // loop over every sources to check if it is in the rectangle area
 	    SourceList rectSources;
 	    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
 	    {
-	    	if ((*its)->getAlphaX() > MINI(rectangleStart[0], rectangleEnd[0]) &&
-	    		(*its)->getAlphaX() < MAXI(rectangleStart[0], rectangleEnd[0]) &&
-	    		(*its)->getAlphaY() > MINI(rectangleStart[1], rectangleEnd[1]) &&
-	    		(*its)->getAlphaY() < MAXI(rectangleStart[1], rectangleEnd[1]) ){
+	    	if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+	    		(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+	    		(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
+	    		(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
 	    		rectSources.insert(*its);
 	    	}
 	    }
@@ -578,17 +596,14 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 			for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end();) {
 				result.erase (result.begin (), result.end ());
 				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
-				// if the group is fully inside the rectangle selection
-//				if ( (*itss).size() == result.size() )
-//					itss = groupSources.erase( itss );
-//				else
 					itss++;
 			}
 	    }
 
-		setAction(View::NONE);
-	} else
-		setAction(currentAction);
+	} else if ( currentAction == View::SELECT && !getSourcesAtCoordinates(event->x(), viewport[3] - event->y()))
+		View::selectedSources.clear();
+
+	drawRectangle = false;
 
 	return true;
 }
@@ -597,7 +612,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 {
 	float previous = zoom;
 
-	if (QApplication::keyboardModifiers () == Qt::ControlModifier)
+	if (QApplication::keyboardModifiers () == Qt::ShiftModifier)
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
@@ -611,8 +626,6 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 		// reset deltazoom
 		deltazoom = 0;
 	}
-	else
-		setAction(View::NONE);
 
 	return true;
 }
@@ -681,19 +694,18 @@ void MixerView::zoomBestFit( bool onlyClickedSource )
 
 bool MixerView::keyPressEvent ( QKeyEvent * event ){
 
-	if (currentAction == OVER && event->modifiers() == Qt::ControlModifier)
-		setAction(SELECT);
-	else
-		setAction(currentAction);
+	// detect CTRL to enter select mode
+	if (event->modifiers() & Qt::ControlModifier){
+		setAction(View::SELECT);
+		return true;
+	}
 
+	// else move a source
 	SourceSet::iterator its = RenderingManager::getInstance()->getCurrentSource();
-
 	if (its != RenderingManager::getInstance()->getEnd()) {
 	    int dx =0, dy = 0, factor = 1;
-	    if (event->modifiers() & Qt::ControlModifier)
-	    	factor *= 10;
 	    if (event->modifiers() & Qt::ShiftModifier)
-	    	factor *= 2;
+	    	factor *= 10;
 		switch (event->key()) {
 			case Qt::Key_Left:
 				dx = -factor;
@@ -712,6 +724,16 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 		}
 		grabSource(*its, 0, 0, dx, dy);
 
+		return true;
+	}
+
+	return false;
+}
+
+bool MixerView::keyReleaseEvent(QKeyEvent * event) {
+
+	if (event->nativeModifiers() == 4 ) {
+		setAction(previousAction);
 		return true;
 	}
 

@@ -34,7 +34,7 @@
 #define MAXZOOM 3.0
 #define DEFAULTZOOM 0.5
 
-GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE)
+GeometryView::GeometryView() : View(), quadrant(0), selectionQuadrant(-1), currentTool(SCALE)
 {
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
@@ -142,18 +142,29 @@ void GeometryView::paint()
 	RenderingManager::getInstance()->postRenderToFrameBuffer();
 
     // Then the selection outlines
-    for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
-        glPushMatrix();
-//        glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-//		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
-//		if ( ABS(renderingAspectRatio) > 1.0)
-//			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
-//		else
-//			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
-//		glCallList(ViewRenderWidget::frame_selection);
-        glPopMatrix();
-
-    }
+	if ( !View::selectedSources.empty() ) {
+		// set rectangle to selection
+		setBoundingRectangle(View::selectedSources);
+		// draw selection
+		glColor4ub(COLOR_SELECTION, 200);
+		glLineWidth(2);
+		glLineStipple(1, 0x9999);
+		glEnable(GL_LINE_STIPPLE);
+		glBegin(GL_LINE_LOOP); // drawing borders
+			glVertex2f(selectionRectangleOut[0], selectionRectangleOut[1]); // Bottom Left
+			glVertex2f(selectionRectangleOut[0], selectionRectangleOut[3]); // Bottom Right
+			glVertex2f(selectionRectangleOut[2], selectionRectangleOut[3]); // top right
+			glVertex2f(selectionRectangleOut[2], selectionRectangleOut[1]); // Top Left
+		glEnd();
+		glDisable(GL_LINE_STIPPLE);
+		if ( selectionQuadrant > -1 ) {
+			glColor4ub(COLOR_SELECTION_AREA, 50);
+			glRectf(selectionRectangleOut[0], selectionRectangleOut[1], selectionRectangleIn[0], selectionRectangleIn[1]);
+			glRectf(selectionRectangleOut[0], selectionRectangleOut[3], selectionRectangleIn[0], selectionRectangleIn[3]);
+			glRectf(selectionRectangleOut[2], selectionRectangleOut[3], selectionRectangleIn[2], selectionRectangleIn[3]);
+			glRectf(selectionRectangleOut[2], selectionRectangleOut[1], selectionRectangleIn[2], selectionRectangleIn[1]);
+		}
+	}
 
     // last the frame thing
 	glPushMatrix();
@@ -218,33 +229,55 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
 	lastClicPos = event->pos();
 
+	// MIDDLE BUTTON ; panning cursor
 	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+		setAction(View::PANNING);
 		return false;
 	}
 
+	// DRoP MODE ; explicitly do nothing
 	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+		setAction(View::DROP);
 		// don't interpret other mouse events in drop mode
 		return false;
 	}
 
-	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
+//	if ( selectionQuadrant > -1 ){
+////		qDebug("on selection quadrant %d", selectionQuadrant);
+//
+//		// perform the action on the selection
+//
+//	} else
+	// work on the source directly
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) &&
+			 (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)) { // if at least one source icon was clicked
 
     	// get the top most clicked source
-    	SourceSet::iterator clicked = clickedSources.begin();
+    	Source *clicked = *clickedSources.begin();
+    	if (!clicked)
+    		return false;
 
-    	// for LEFT button clic : manipulate only the top most or the newly clicked
-    	if (event->buttons() & Qt::LeftButton) {
+		// if there was no current source, its simple : just take the top most source clicked now
+		// OR
+		// if the currently active source is NOT in the set of clicked sources,
+		if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd()
+			|| clickedSources.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
+			//  make the top most source clicked now the newly current one
+			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
-    		// if there was no current source, its simple : just take the top most source clicked now
-    		// OR
-			// if the currently active source is NOT in the set of clicked sources,
-			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd()
-				|| clickedSources.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
-    			//  make the top most source clicked now the newly current one
-    			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
 
+		// CTRL clic = add/remove new current from selection
+		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+		if ( currentAction == View::SELECT ) {
+
+			if ( View::selectedSources.count(*cs) > 0)
+				View::selectedSources.erase( *cs );
+			else
+				View::selectedSources.insert( *cs );
+
+		}
+		// else not SELECTION ; normal action
+		else {
 			// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
 			if(quadrant == 0 || currentTool == MOVE) {
 				setAction(View::GRAB);
@@ -253,39 +286,27 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 				setAction(View::TOOL);
 			}
 
-    	}
-    	// for RIGHT button clic : switch the currently active source to the one bellow, if exists
-    	else if (event->buttons() & Qt::RightButton) {
-
-    		// if there is no source selected, select the top most
-    		if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd() )
-    			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
-    		// else, try to take another one bellow it
-    		else {
-    			// find where the current source is in the clickedSources
-    			clicked = clickedSources.find(*RenderingManager::getInstance()->getCurrentSource()) ;
-    			// decrement the clicked iterator forward in the clickedSources (and jump back to end when at begining)
-    			if ( clicked == clickedSources.begin() )
-    				clicked = clickedSources.end();
-				clicked--;
-
-				// set this newly clicked source as the current one
-    			RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
-    			// update quadrant to match newly current source
-    			quadrant = getSourceQuadrant(*clicked, event->x(), viewport[3] - event->y());
-    		}
-    	}
+		}
 
     	return true;
     }
 
 	// set current to none (end of list)
 	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+
+	// back to no action
+	if ( currentAction == View::SELECT )
+		View::selectedSources.clear();
+	else
+		setAction(View::NONE);
+
 	return false;
 }
 
 bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 {
+	static Source *clicked = 0;
+
 	if (!event)
 		return false;
 
@@ -293,26 +314,51 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
-	// keep the iterator of the current source under the shoulder ; it will be used
-	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-
-	// MIDDLE button ; panning
-	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
-
-		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
-		return false;
-	}
 	// DROP MODE ; show a question mark cursor and avoid other actions
 	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+		setAction(View::DROP);
 		// don't interpret mouse events in drop mode
 		return false;
 	}
-	// LEFT button : use TOOL on the current source
-	if (event->buttons() & Qt::LeftButton) {
 
-		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+	// MIDDLE button ; panning
+	if ( currentAction == View::PANNING ) {
+		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
+		return false;
+	}
+
+	// SELECT MODE : no motion
+	// TODO : draw a rectangle to select multiple sources
+	if ( currentAction == View::SELECT )
+		return false;
+
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+
+	if ( RenderingManager::getInstance()->isValid(cs) && (currentAction == View::GRAB || currentAction == View::TOOL) ) {
+
+		// if the source is in the selection, move the selection
+		if ( View::selectedSources.count(*cs) > 0 && event->buttons() & Qt::LeftButton ){
+			for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
+
+//				if (currentAction == View::TOOL) {
+//					if (currentTool == GeometryView::MOVE)
+//						grabSource(*its, event->x(), viewport[3] - event->y(), dx, dy);
+//					else if (currentTool == GeometryView::SCALE)
+//						scaleSource(*its, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+//					else if (currentTool == GeometryView::CROP)
+//						cropSource(*its, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+//					else if (currentTool == GeometryView::ROTATE) {
+//						rotateSource(*its, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+//						setTool(currentTool);
+//					}
+//				} else if (currentAction == View::GRAB) {
+					grabSource(*its, event->x(), viewport[3] - event->y(), dx, dy);
+//				}
+
+			}
+		}
+		// LEFT or right button : use TOOL on the current source
+		else {
 
 			if (currentAction == View::TOOL) {
 				if (currentTool == GeometryView::MOVE)
@@ -329,13 +375,21 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 				grabSource(*cs, event->x(), viewport[3] - event->y(), dx, dy);
 			}
 		}
-		return true;
 
+		return true;
 	}
+
+//	// detect if mouse is over a selection rectangle
+//	selectionQuadrant = View::selectedSources.empty() ? -1 : getBoundingRectangleQuadrant(event->x(), viewport[3] - event->y());
+//	// if we are on the selection
+//	if ( selectionQuadrant > -1 ){
+////		qDebug("on selection quadrant %d", selectionQuadrant);
+//
+//		setAction(View::OVER);
+//	}
 
 	// mouse over (no buttons)
 	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
-
 
 		// if there was no current source
 		// OR
@@ -344,9 +398,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		// set quadrant to 0 (grab)
 		// ELSE
 		// use the current source for quadrant computation
-		if ( cs == RenderingManager::getInstance()->getEnd()
-			|| clickedSources.count( *cs ) == 0 )
-//				quadrant = getSourceQuadrant(clickedSources.begin(), event->x(), viewport[3] - event->y());
+		if ( cs == RenderingManager::getInstance()->getEnd() || clickedSources.count( *cs ) == 0 )
 			quadrant = 0;
 		else
 			quadrant = getSourceQuadrant(*cs, event->x(), viewport[3] - event->y());
@@ -372,7 +424,9 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
 
 	if ( RenderingManager::getInstance()->getSourceBasketTop() )
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-	else {
+	else if (currentAction == View::PANNING )
+		setAction(previousAction);
+	else if (currentAction != View::SELECT ){
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
 			setAction(View::OVER);
 		else
@@ -391,7 +445,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
 
 	float previous = zoom;
-	if (QApplication::keyboardModifiers () == Qt::ControlModifier)
+	if (QApplication::keyboardModifiers () == Qt::ShiftModifier)
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
@@ -415,10 +469,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 	} else {
 		// do not show action indication (as it is likely to become invalid with view change)
 		borderType = ViewRenderWidget::border_large;
-		setAction(View::NONE);
 	}
-
-
 
 	return true;
 }
@@ -429,15 +480,34 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 	if (!event)
 		return false;
 
-	// left double click = zoom best fit
+	if (currentAction == View::DROP)
+		return false;
+
+//	 left double click = select next source
 	if ( event->buttons() & Qt::LeftButton ) {
 		// get the top most clicked source
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
-			// SHIFT + on a source ; best fit on source
-			if (QApplication::keyboardModifiers () == Qt::ShiftModifier) {
-				RenderingManager::getInstance()->setCurrentSource( (*clickedSources.begin())->getId() );
-				zoomBestFit(true);
+
+	    	// get the top most clicked source
+	    	SourceSet::iterator clicked = clickedSources.begin();
+			// if there is no source selected, select the top most
+			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd() )
+				RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
+			// else, try to take another one bellow it
+			else {
+				// find where the current source is in the clickedSources
+				clicked = clickedSources.find(*RenderingManager::getInstance()->getCurrentSource()) ;
+				// decrement the clicked iterator forward in the clickedSources (and jump back to end when at begining)
+				if ( clicked == clickedSources.begin() )
+					clicked = clickedSources.end();
+				clicked--;
+
+				// set this newly clicked source as the current one
+				RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
+				// update quadrant to match newly current source
+				quadrant = getSourceQuadrant(*clicked, event->x(), viewport[3] - event->y());
 			}
+
 		}
 		// default action ; zoom best fit on whole screen
 		else
@@ -450,14 +520,17 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 
+	if (event->modifiers() & Qt::ControlModifier){
+		setAction(View::SELECT);
+		return false;
+	}
+
 	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 
 	if (cs != RenderingManager::getInstance()->getEnd()) {
-	    int dx =0, dy = 0, factor = 1;
-	    if (event->modifiers() & Qt::ControlModifier)
-	    	factor *= 10;
-	    if (event->modifiers() & Qt::ShiftModifier)
-	    	factor *= 2;
+		int dx =0, dy = 0, factor = 1;
+		if (event->modifiers() & Qt::ShiftModifier)
+			factor *= 10;
 		switch (event->key()) {
 			case Qt::Key_Left:
 				dx = -factor;
@@ -477,6 +550,15 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 		grabSource(*cs, 0, 0, dx, dy);
 
 		return true;
+	}
+
+	return false;
+}
+
+bool GeometryView::keyReleaseEvent(QKeyEvent * event) {
+
+	if (event->nativeModifiers() == 4) {
+		setAction(previousAction);
 	}
 
 	return false;
@@ -539,6 +621,15 @@ void GeometryView::setAction(actionType a){
 	case View::OVER:
 	case View::TOOL:
 		setTool(currentTool);
+		break;
+	case View::SELECT:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
+		break;
+	case View::PANNING:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+		break;
+	case View::DROP:
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
 		break;
 	default:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
@@ -1036,4 +1127,68 @@ char GeometryView::getSourceQuadrant(Source *s, int X, int Y) {
     return quadrant;
 }
 
+
+char GeometryView::getBoundingRectangleQuadrant(int X, int Y){
+
+    char quadrant = 0;
+    double ax, ay, az;
+
+    gluUnProject((GLdouble) X, (GLdouble) Y, 0.0,
+            modelview, projection, viewport, &ax, &ay, &az);
+
+    // exclude mouse cursors out of the area
+    if ( ax < selectionRectangleOut[0] || ay < selectionRectangleOut[1] || ax > selectionRectangleOut[2] || ay > selectionRectangleOut[3])
+    	return -1;
+
+    // which quadrant ?
+    if ( ax > selectionRectangleOut[0] && ax < selectionRectangleIn[0] && ay > selectionRectangleOut[1] && ay < selectionRectangleIn[1] )
+    	quadrant = 4;
+    else  if ( ax > selectionRectangleOut[0] && ax < selectionRectangleIn[0] && ay < selectionRectangleOut[3] && ay > selectionRectangleIn[3] )
+    	quadrant = 1;
+    else  if ( ax < selectionRectangleOut[2] && ax > selectionRectangleIn[2] && ay > selectionRectangleOut[1] && ay < selectionRectangleIn[1] )
+    	quadrant = 3;
+    else  if ( ax < selectionRectangleOut[2] && ax > selectionRectangleIn[2] && ay < selectionRectangleOut[3] && ay > selectionRectangleIn[3] )
+    	quadrant = 2;
+
+    return quadrant;
+}
+
+
+void GeometryView::setBoundingRectangle(SourceList l){
+
+	// init bbox to max size
+	selectionRectangleOut[0] = maxpanx;
+	selectionRectangleOut[1] = maxpany;
+	selectionRectangleOut[2] = -maxpanx;
+	selectionRectangleOut[3] = -maxpany;
+	// prepare vars
+	GLdouble point[2];
+	GLdouble cosa, sina;
+	// compute bounding box of all sources in the list
+	for(SourceList::iterator  its = l.begin(); its != l.end(); its++) {
+		cosa = cos((*its)->getRotationAngle() / 180.0 * M_PI);
+		sina = sin((*its)->getRotationAngle() / 180.0 * M_PI);
+		for (GLdouble i = -1.0; i < 2.0; i += 2.0)
+			for (GLdouble j = -1.0; j < 2.0; j += 2.0) {
+				// corner with apply rotation
+				point[0] = i * (*its)->getScaleX() * cosa - j * (*its)->getScaleY() * sina + (*its)->getX();
+				point[1] = j * (*its)->getScaleY() * cosa + i * (*its)->getScaleX() * sina + (*its)->getY();
+				// keep max and min
+				selectionRectangleOut[0] = qMin(point[0], selectionRectangleOut[0]);
+				selectionRectangleOut[1] = qMin(point[1], selectionRectangleOut[1]);
+				selectionRectangleOut[2] = qMax(point[0], selectionRectangleOut[2]);
+				selectionRectangleOut[3] = qMax(point[1], selectionRectangleOut[3]);
+			}
+	}
+	selectionRectangleOut[0] -= zoom;
+	selectionRectangleOut[1] -= zoom;
+	selectionRectangleOut[2] += zoom;
+	selectionRectangleOut[3] += zoom;
+
+	selectionRectangleIn[0] = selectionRectangleOut[0] + (1.0 - BORDER_SIZE ) * 0.5  * (selectionRectangleOut[2] - selectionRectangleOut[0]);
+	selectionRectangleIn[1] = selectionRectangleOut[1] + (1.0 - BORDER_SIZE ) * 0.5  * (selectionRectangleOut[3] - selectionRectangleOut[1]);
+	selectionRectangleIn[2] = selectionRectangleOut[2] - (1.0 - BORDER_SIZE ) * 0.5  * (selectionRectangleOut[2] - selectionRectangleOut[0]);
+	selectionRectangleIn[3] = selectionRectangleOut[3] - (1.0 - BORDER_SIZE ) * 0.5  * (selectionRectangleOut[3] - selectionRectangleOut[1]);
+
+}
 

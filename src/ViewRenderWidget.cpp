@@ -205,7 +205,7 @@ ViewRenderWidget::~ViewRenderWidget()
 void ViewRenderWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
-	setBackgroundColor(QColor(52, 52, 52));
+	setBackgroundColor(QColor(COLOR_BACKGROUND));
 
 	// Create display lists
 	quad_texured = buildTexturedQuadList();
@@ -336,6 +336,8 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 	default:
 		_currentView = _renderView;
 	}
+
+	_currentView->setAction(View::NONE);
 
 	// update view to match with the changes in modelview and projection matrices (e.g. resized widget)
 	makeCurrent();
@@ -759,6 +761,24 @@ void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
 	}
 }
 
+
+void ViewRenderWidget::keyReleaseEvent(QKeyEvent * event)
+{
+	makeCurrent();
+
+	if (!_currentView->keyReleaseEvent(event))
+		QWidget::keyReleaseEvent(event);
+	else
+	{   // the view 'keyReleaseEvent' returns true ; there was something changed!
+		if (_currentView == _mixingView)
+			emit sourceMixingModified();
+		else if (_currentView == _geometryView)
+			emit sourceGeometryModified();
+		else if (_currentView == _layersView)
+			emit sourceLayerModified();
+	}
+}
+
 /**
  * Tab key switches to the next source, CTRl-Tab the previous.
  *
@@ -787,6 +807,7 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 void ViewRenderWidget::leaveEvent ( QEvent * event ){
 
 	_catalogView->setTransparent(true);
+	_currentView->setAction(View::NONE);
 
 	QWidget::leaveEvent(event);
 }
@@ -1010,8 +1031,7 @@ GLuint ViewRenderWidget::buildSelectList()
 		glBlendEquation(GL_FUNC_ADD);
 
 		glLineWidth(2.0);
-//		glColor4f(0.2, 0.80, 0.2, 1.0);
-		glColor4ub(230, 105, 10, 255);
+		glColor4ub(COLOR_SELECTION, 255);
 
 		glLineStipple(1, 0x9999);
 		glEnable(GL_LINE_STIPPLE);
@@ -1082,12 +1102,12 @@ GLuint ViewRenderWidget::buildLineList()
 
 		glPushMatrix();
 		glScalef(1.23, 1.23, 1.0);
-		glColor4f(0.0, 0.0, 0.0, 0.0);
+		glColor4ub(0, 0, 0, 0);
 		glDrawArrays(GL_QUADS, 0, 4);
 		glPopMatrix();
 
 		glLineWidth(1.0);
-		glColor4f(0.9, 0.9, 0.0, 0.7);
+		glColor4ub(COLOR_SOURCE, 180);
 		glBegin(GL_LINE_LOOP); // begin drawing a square
 		glVertex2f(-1.05f, -1.05f); // Bottom Left
 		glVertex2f(1.05f, -1.05f); // Bottom Right
@@ -1104,12 +1124,12 @@ GLuint ViewRenderWidget::buildLineList()
 
 		glPushMatrix();
 		glScalef(1.23, 1.23, 1.0);
-		glColor4f(0.0, 0.0, 0.0, 0.0);
+		glColor4ub(0, 0, 0, 0);
 		glDrawArrays(GL_QUADS, 0, 4);
 		glPopMatrix();
 
 		glLineWidth(3.0);
-		glColor4f(0.9, 0.9, 0.0, 0.7);
+		glColor4ub(COLOR_SOURCE, 180);
 		glBegin(GL_LINE_LOOP); // begin drawing a square
 		glVertex2f(-1.05f, -1.05f); // Bottom Left
 		glVertex2f(1.05f, -1.05f); // Bottom Right
@@ -1150,7 +1170,7 @@ GLuint ViewRenderWidget::buildCircleList()
 		glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-		glColor4f(1.0, 1.0, 1.0, 1.0);
+		glColor4ub(255, 255, 255, 255);
 		gluQuadricTexture(quadObj, GL_TRUE);
 		gluDisk(quadObj, 0.0, CIRCLE_SIZE * SOURCE_UNIT, 50, 3);
 		glDisable(GL_TEXTURE_2D);
@@ -1159,7 +1179,7 @@ GLuint ViewRenderWidget::buildCircleList()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
-		glColor4f(0.6, 0.6, 0.6, 1.0);
+		glColor4ub(COLOR_DRAWINGS, 250);
 		glLineWidth(5.0);
 
 		glBegin(GL_LINE_LOOP);
@@ -1168,7 +1188,7 @@ GLuint ViewRenderWidget::buildCircleList()
 		glEnd();
 
 		//limbo
-		glColor4f(0.1, 0.1, 0.1, 0.8);
+		glColor4ub(COLOR_LIMBO, 180);
 		gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT * 2.5, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 50, 3);
 
 		glPopMatrix();
@@ -1184,7 +1204,7 @@ GLuint ViewRenderWidget::buildLayerbgList()
 
 	glNewList(id, GL_COMPILE);
 
-		glColor4f(0.6, 0.6, 0.6, 1.0);
+		glColor4ub(COLOR_DRAWINGS, 255);
 		glLineWidth(0.7);
 		glBegin(GL_LINES);
 		for (float i = -4.0; i < 6.0; i += CLAMP( ABS(i)/2.f , 0.01, 5.0))
@@ -1276,7 +1296,7 @@ GLuint ViewRenderWidget::buildFrameList()
 	glBlendEquation(GL_FUNC_ADD);
 
 	glLineWidth(5.0);
-	glColor4f(0.85, 0.15, 0.85, 1.0);
+	glColor4ub(COLOR_FRAME, 250);
 
 	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
 		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
@@ -1309,7 +1329,7 @@ GLuint ViewRenderWidget::buildFrameList()
 	glBlendEquation(GL_FUNC_ADD);
 
 	glLineWidth(1.0);
-	glColor4f(0.85, 0.15, 0.85, 1.0);
+	glColor4ub(COLOR_FRAME, 250);
 
 	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
 		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
@@ -1348,7 +1368,7 @@ GLuint ViewRenderWidget::buildBordersList()
 	glLineWidth(1.0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glColor4f(0.9, 0.9, 0.0, 0.7);
+	glColor4ub(COLOR_SOURCE, 180);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
 	glVertex2f(-1.0f, -1.0f); // Bottom Left
 	glVertex2f(1.0f, -1.0f); // Bottom Right
@@ -1364,12 +1384,12 @@ GLuint ViewRenderWidget::buildBordersList()
 	glLineWidth(3.0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glColor4f(0.9, 0.9, 0.0, 0.8);
+	glColor4ub(COLOR_SOURCE, 200);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex2f(-1.01f, -1.01f); // Bottom Left
-	glVertex2f(1.01f, -1.01f); // Bottom Right
-	glVertex2f(1.01f, 1.01f); // Top Right
-	glVertex2f(-1.01f, 1.01f); // Top Left
+	glVertex2f(-1.0f, -1.0f); // Bottom Left
+	glVertex2f(1.0f, -1.0f); // Bottom Right
+	glVertex2f(1.0f, 1.0f); // Top Right
+	glVertex2f(-1.0f, 1.0f); // Top Left
 	glEnd();
 
 	glEndList();
@@ -1380,15 +1400,15 @@ GLuint ViewRenderWidget::buildBordersList()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
-	glColor4f(0.9, 0.9, 0.0, 0.9);
+	glColor4ub(COLOR_SOURCE, 230);
 
 	// draw the bold border
 	glLineWidth(3.0);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex2f(-1.01f, -1.01f); // Bottom Left
-	glVertex2f(1.01f, -1.01f); // Bottom Right
-	glVertex2f(1.01f, 1.01f); // Top Right
-	glVertex2f(-1.01f, 1.01f); // Top Left
+	glVertex2f(-1.0f, -1.0f); // Bottom Left
+	glVertex2f(1.0f, -1.0f); // Bottom Right
+	glVertex2f(1.0f, 1.0f); // Top Right
+	glVertex2f(-1.0f, 1.0f); // Top Left
 	glEnd();
 
 	glLineWidth(1.0);
@@ -1441,7 +1461,7 @@ GLuint ViewRenderWidget::buildFadingList()
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glColor4f(0.1, 0.1, 0.1, 0.5);
+	glColor4ub(COLOR_FADING, 128);
 	glRectf(-1, -1, 1, 1);
 
 	glMatrixMode(GL_PROJECTION);

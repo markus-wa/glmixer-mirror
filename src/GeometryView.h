@@ -46,7 +46,7 @@ public:
     bool mouseDoubleClickEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
     bool keyPressEvent ( QKeyEvent * event );
-
+    bool keyReleaseEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
 	void zoomReset();
@@ -68,10 +68,14 @@ private:
     void panningBy(int x, int y, int dx, int dy);
     void setAction(actionType a);
 
-    char quadrant;
+    void setBoundingRectangle(SourceList l);
+    char getBoundingRectangleQuadrant(int X, int Y);
+
+    char quadrant, selectionQuadrant;
     GLuint borderType;
     toolType currentTool;
 
+	GLdouble selectionRectangleOut[4], selectionRectangleIn[4];
 };
 
 #endif /* GEOMETRYVIEWWIDGET_H_ */
