@@ -76,7 +76,7 @@ QStringList glSupportedExtensions();
 //#define COLOR_SELECTION_AREA 230, 145, 85
 #define COLOR_SELECTION 0, 180, 50
 #define COLOR_SELECTION_AREA 40, 190, 80
-#define COLOR_BACKGROUND 52, 52, 52
+#define COLOR_BGROUND 52, 52, 52
 #define COLOR_DRAWINGS 150, 150, 150
 #define COLOR_LIMBO 35, 35, 35
 #define COLOR_FADING 25, 25, 25

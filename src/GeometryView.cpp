@@ -557,9 +557,8 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 
 bool GeometryView::keyReleaseEvent(QKeyEvent * event) {
 
-	if (event->nativeModifiers() == 4) {
+	if ( currentAction == View::SELECT )
 		setAction(previousAction);
-	}
 
 	return false;
 }

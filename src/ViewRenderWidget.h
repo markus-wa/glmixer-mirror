@@ -79,6 +79,7 @@ public:
     bool eventFilter(QObject *object, QEvent *event);
     void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); }  // keep updating even if hidden
     void leaveEvent ( QEvent * event );
+    void enterEvent ( QEvent * event );
 
     /**
      * Specific methods

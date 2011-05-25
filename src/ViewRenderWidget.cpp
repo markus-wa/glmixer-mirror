@@ -205,7 +205,7 @@ ViewRenderWidget::~ViewRenderWidget()
 void ViewRenderWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
-	setBackgroundColor(QColor(COLOR_BACKGROUND));
+	setBackgroundColor(QColor(COLOR_BGROUND));
 
 	// Create display lists
 	quad_texured = buildTexturedQuadList();
@@ -806,10 +806,17 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 
 void ViewRenderWidget::leaveEvent ( QEvent * event ){
 
-	_catalogView->setTransparent(true);
 	_currentView->setAction(View::NONE);
+	_catalogView->setTransparent(true);
 
 	QWidget::leaveEvent(event);
+}
+
+void ViewRenderWidget::enterEvent ( QEvent * event ){
+
+	_currentView->setAction(View::NONE);
+
+	QWidget::enterEvent(event);
 }
 
 void ViewRenderWidget::zoomIn()

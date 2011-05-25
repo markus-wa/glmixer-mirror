@@ -523,10 +523,8 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
 
 bool LayersView::keyReleaseEvent(QKeyEvent * event) {
 
-	if (event->nativeModifiers() == 4) {
+	if ( currentAction == View::SELECT )
 		setAction(previousAction);
-		return true;
-	}
 
 	return false;
 }
