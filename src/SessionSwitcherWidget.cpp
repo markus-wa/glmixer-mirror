@@ -348,6 +348,17 @@ void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 	emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
 }
 
+void SessionSwitcherWidget::startTransitionToNextSession()
+{
+	startTransitionToSession( proxyView->indexBelow (proxyView->currentIndex())	);
+	proxyView->setCurrentIndex( proxyView->indexBelow (proxyView->currentIndex())	);
+}
+void SessionSwitcherWidget::startTransitionToPreviousSession()
+{
+	startTransitionToSession( proxyView->indexAbove (proxyView->currentIndex())	);
+	proxyView->setCurrentIndex( proxyView->indexAbove (proxyView->currentIndex())	);
+}
+
 void SessionSwitcherWidget::selectSession(const QModelIndex & index)
 {
 	// read file name

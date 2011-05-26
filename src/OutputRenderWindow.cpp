@@ -306,6 +306,13 @@ void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {
 	case Qt::Key_Space:
 		setFullScreen(true);
 		break;
+
+	case Qt::Key_Right:
+		emit keyRightPressed();
+		break;
+	case Qt::Key_Left:
+		emit keyLeftPressed();
+		break;
 	default:
 		QWidget::keyPressEvent(event);
 	}

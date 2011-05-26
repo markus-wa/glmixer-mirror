@@ -81,6 +81,8 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void resized();
+	void keyRightPressed();
+	void keyLeftPressed();
 
 	/**
 	 * singleton mechanism

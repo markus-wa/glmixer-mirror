@@ -28,6 +28,8 @@ public Q_SLOTS:
     void folderChanged( const QString & text );
 
     void startTransitionToSession(const QModelIndex & index);
+    void startTransitionToNextSession();
+    void startTransitionToPreviousSession();
 	// unblock the GUI suspended when loading new session
 	void unsuspend();
     void selectSession(const QModelIndex & index);
