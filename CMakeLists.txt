@@ -66,6 +66,8 @@ if (USE_OPENCV)
 	if (OpenCV_FOUND)
 	  message(STATUS "OpenCV Library found OK")
 	  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OpenCV_LIBS}  )
+	else (OpenCV_FOUND)
+		message (STATUS "OpenCV Library not found")
 	endif (OpenCV_FOUND)
 endif( USE_OPENCV )
 
