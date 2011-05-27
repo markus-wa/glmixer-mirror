@@ -290,10 +290,9 @@ void OutputRenderWindow::setFullScreen(bool on) {
 void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent * event) {
 
 	// switch fullscreen / window
-	if (windowFlags() & Qt::Window) {
-		setWindowState(windowState() ^ Qt::WindowFullScreen);
-		update();
-	}
+	if (windowFlags() & Qt::Window)
+		emit toggleFullscreen();
+
 }
 
 void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {

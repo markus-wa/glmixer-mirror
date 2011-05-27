@@ -201,7 +201,7 @@ public Q_SLOTS:
 	void dropSourceWithAlpha(double alphax, double alphay);
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);
-
+	void disableProgressBars(bool off) { _showProgressBar = !off; qDebug("_showProgressBar %d", _showProgressBar);}
 
 Q_SIGNALS:
 	void currentSourceChanged(SourceSet::iterator csi);
@@ -242,6 +242,7 @@ protected:
 	Source::scalingMode _scalingMode;
 	bool _playOnDrop;
 	bool paused;
+	bool _showProgressBar;
 
     static bool blit_fbo_extension;
     static QSize sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED];

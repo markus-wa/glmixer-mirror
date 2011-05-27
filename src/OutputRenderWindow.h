@@ -52,7 +52,7 @@ public:
 public Q_SLOTS:
 	void refresh();
 	void smoothAlphaTransition(bool visible);
-	
+
 protected:
 	bool useAspectRatio, useWindowAspectRatio;
 	int rx, ry, rw, rh;
@@ -83,6 +83,7 @@ Q_SIGNALS:
 	void resized();
 	void keyRightPressed();
 	void keyLeftPressed();
+	void toggleFullscreen();
 
 	/**
 	 * singleton mechanism

@@ -119,7 +119,7 @@ void RenderingManager::deleteInstance() {
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
 			previousframe_index(0), previousframe_delay(1), clearWhite(false),
-			gammaShift(1.f), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false) {
+			gammaShift(1.f), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true) {
 
 	// 1. Create the view rendering widget and its catalog view
 	_renderwidget = new ViewRenderWidget;
@@ -1134,19 +1134,29 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 	QList<QDomElement> clones;
     QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
 
-    int count = 0;
-    QProgressDialog progress("Loading sources...", "Abort", 1, xmlconfig.childNodes().count());
-	progress.setWindowModality(Qt::NonModal);
-	progress.setMinimumDuration( 600 );
+	int count = 0;
+    QProgressDialog *progress = 0;
+    if (_showProgressBar) {
+    	qDebug("showing progress");
+    	progress = new QProgressDialog ("Loading sources...", "Abort", 1, xmlconfig.childNodes().count());
+		progress->setWindowModality(Qt::NonModal);
+		progress->setMinimumDuration( 500 );
+    }
+    else
+    	qDebug("not showing progress");
 
     // start loop of sources to create
 	QDomElement child = xmlconfig.firstChildElement("Source");
 	while (!child.isNull()) {
 
-		progress.setValue(++count);
+		if (progress) {
+			progress->setValue(++count);
 
-        if (progress.wasCanceled())
-            break;
+			if (progress->wasCanceled()) {
+				delete progress;
+				break;
+			}
+		}
 
 		// pointer for new source
 		Source *newsource = 0;
@@ -1254,7 +1264,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 		child = child.nextSiblingElement();
 	}
 	// end loop on sources to create
-	progress.setValue(xmlconfig.childNodes().count());
+	if (progress) progress->setValue(xmlconfig.childNodes().count());
 
 	// Process the list of clones names ; now that every source exist, we can be sure they can be cloned
     QListIterator<QDomElement> it(clones);
@@ -1285,6 +1295,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 	// set current source to none (end of list)
 	setCurrentSource( getEnd() );
+	if (progress) delete progress;
 }
 
 void RenderingManager::setGammaShift(float g)
