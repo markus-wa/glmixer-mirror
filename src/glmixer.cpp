@@ -168,6 +168,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
 	QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
 	QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
+	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), switcherSession, SLOT(startTransitionToNextSession()));
+	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
 	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
 	switcherSession->restoreSettings();
 
@@ -750,7 +752,7 @@ QString CaptureDialog::saveImage()
 		fname = QFileInfo( dname, QString("%1_%2.png").arg(basename).arg(i));
 
 	// ask for file name
-	QString filename = QFileDialog::getSaveFileName ( parentWidget(), tr("Save captured image"), fname.absoluteFilePath(), tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"));
+	QString filename = QFileDialog::getSaveFileName ( parentWidget(), tr("Save captured image"), fname.absoluteFilePath(), tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"), 0,  QFileDialog::DontUseNativeDialog);
 
 	// save the file
 	if (!filename.isEmpty()) {
@@ -1485,7 +1487,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
     int errorLine;
     int errorColumn;
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), QFileInfo(currentSessionFileName).absolutePath(), tr("GLMixer workspace (*.glm)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), QFileInfo(currentSessionFileName).absolutePath(), tr("GLMixer workspace (*.glm)"), 0,  QFileDialog::DontUseNativeDialog);
 	if ( fileName.isEmpty() )
 		return;
 
