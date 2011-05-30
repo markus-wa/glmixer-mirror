@@ -194,7 +194,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(actionAbout_Qt, SIGNAL(triggered()), QApplication::instance(), SLOT(aboutQt()));
 
     // Rendering control
-    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(toggleFullscreen()), actionFullscreen, SLOT(toggle()) );
+    QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(toggleFullscreen(bool)), actionFullscreen, SLOT(setChecked(bool)) );
 
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(disableProgressBars(bool)));
@@ -202,15 +202,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setFaded(bool)));
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), vcontrolDockWidget, SLOT(setDisabled(bool)));
 
-	outputbutton_4_3->setDefaultAction(action4_3_aspect_ratio);
-	outputbutton_3_2->setDefaultAction(action3_2_aspect_ratio);
-	outputbutton_16_10->setDefaultAction(action16_10_aspect_ratio);
-	outputbutton_16_9->setDefaultAction(action16_9_aspect_ratio);
-	outputbutton_fullscreen->setDefaultAction(actionFullscreen);
+	output_aspectratio->setMenu(menuAspect_Ratio);
+	output_onair->setDefaultAction(actionToggleRenderingVisible);
+	output_fullscreen->setDefaultAction(actionFullscreen);
+	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
+	QObject::connect(RenderingManager::getInstance()->getSessionSwitcher(), SIGNAL(alphaChanged(int)), output_alpha, SLOT(setValue(int)));
 
 	// session switching
 	QObject::connect(this, SIGNAL(sessionLoaded()), this, SLOT(confirmSessionFileName()));
-	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(smoothAlphaTransition(bool)));
 
 	// Recording triggers
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setActive(bool)));
@@ -227,10 +226,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionQuit, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionPreferences, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), menuAspect_Ratio, SLOT(setDisabled(bool)));
-	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputbutton_4_3, SLOT(setDisabled(bool)));
-	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputbutton_3_2, SLOT(setDisabled(bool)));
-	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputbutton_16_10, SLOT(setDisabled(bool)));
-	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), outputbutton_16_9, SLOT(setDisabled(bool)));
+	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), output_aspectratio, SLOT(setDisabled(bool)));
 
 	// do not allow to record without a fixed aspect ratio
 	QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
@@ -1365,7 +1361,7 @@ void GLMixer::openSessionFile(QString filename)
 
 	// if we come from the smooth transition, disconnect the signal and enforce session switcher to show transition
 	QObject::disconnect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
-	RenderingManager::getSessionSwitcher()->setAlpha(1.0);
+	RenderingManager::getSessionSwitcher()->setOverlay(1.0);
 	actionToggleRenderingVisible->setEnabled(true);
 
 	// in case the argument is valid, use it
@@ -1903,5 +1899,27 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 		displayInfoMessage(tr("File %1 saved.").arg(filename));
 	}
 }
+
+
+void GLMixer::on_output_alpha_valueChanged(int v){
+
+	static int previous_v = 0;
+
+	if (v == 100 || previous_v == 100) {
+		QObject::disconnect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
+
+		if(previous_v < 100)
+			actionToggleRenderingVisible->setChecked(false);
+		else
+			actionToggleRenderingVisible->setChecked(true);
+
+		QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
+	}
+
+	RenderingManager::getInstance()->getSessionSwitcher()->setAlpha(v);
+
+	previous_v = v;
+}
+
 
 

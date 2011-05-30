@@ -358,13 +358,17 @@
      <item>
       <layout class="QHBoxLayout" name="previewDockWidgetButtonsLayout">
        <item>
-        <widget class="QToolButton" name="outputbutton_4_3">
+        <widget class="QToolButton" name="output_onair">
+         <property name="toolTip">
+          <string>Activate output rendering</string>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/aspectratio_4_3.png</normaloff>:/glmixer/icons/aspectratio_4_3.png</iconset>
+           <normaloff>:/glmixer/icons/off.png</normaloff>
+           <activeoff>:/glmixer/icons/on.png</activeoff>:/glmixer/icons/off.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -384,36 +388,41 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="outputbutton_3_2">
-         <property name="text">
-          <string>...</string>
+        <widget class="QSlider" name="output_alpha">
+         <property name="toolTip">
+          <string>Adjust fading of output</string>
          </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/aspectratio_3_2.png</normaloff>:/glmixer/icons/aspectratio_3_2.png</iconset>
+         <property name="minimum">
+          <number>0</number>
          </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
+         <property name="maximum">
+          <number>100</number>
          </property>
-         <property name="checkable">
-          <bool>true</bool>
+         <property name="singleStep">
+          <number>5</number>
          </property>
-         <property name="autoExclusive">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="invertedAppearance">
+          <bool>false</bool>
+         </property>
+         <property name="invertedControls">
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="outputbutton_16_10">
+        <widget class="QToolButton" name="output_aspectratio">
+         <property name="toolTip">
+          <string>Select aspect ratio</string>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/aspectratio_16_10.png</normaloff>:/glmixer/icons/aspectratio_16_10.png</iconset>
+           <normaloff>:/glmixer/icons/aspectratio.png</normaloff>:/glmixer/icons/aspectratio.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -422,32 +431,15 @@
           </size>
          </property>
          <property name="checkable">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="outputbutton_16_9">
-         <property name="text">
-          <string>...</string>
+        <widget class="QToolButton" name="output_fullscreen">
+         <property name="toolTip">
+          <string>Set output to fullscreen</string>
          </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/aspectratio_16_9.png</normaloff>:/glmixer/icons/aspectratio_16_9.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="outputbutton_fullscreen">
          <property name="text">
           <string>...</string>
          </property>

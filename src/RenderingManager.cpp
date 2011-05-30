@@ -1137,13 +1137,10 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 	int count = 0;
     QProgressDialog *progress = 0;
     if (_showProgressBar) {
-    	qDebug("showing progress");
     	progress = new QProgressDialog ("Loading sources...", "Abort", 1, xmlconfig.childNodes().count());
 		progress->setWindowModality(Qt::NonModal);
 		progress->setMinimumDuration( 500 );
     }
-    else
-    	qDebug("not showing progress");
 
     // start loop of sources to create
 	QDomElement child = xmlconfig.firstChildElement("Source");

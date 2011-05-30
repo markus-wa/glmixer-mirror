@@ -16,6 +16,7 @@ class Source;
 class SessionSwitcher: public QObject {
 
 	Q_OBJECT
+    Q_PROPERTY(float overlay READ overlay WRITE setOverlay)
     Q_PROPERTY(float alpha READ alpha WRITE setAlpha)
 
 	friend class SessionSwitcherWidget;
@@ -26,8 +27,10 @@ public:
 
 	void render();
 
-	void setAlpha(float a) { overlayAlpha = a; }
-	float alpha() const { return overlayAlpha; }
+	void setAlpha(float a);
+	float alpha() const { return currentAlpha; }
+	void setOverlay(float a) { overlayAlpha = a; }
+	float overlay() const { return overlayAlpha; }
 
 	int transitionDuration() const;
 	int transitionCurve() const ;
@@ -61,17 +64,21 @@ public Q_SLOTS:
 	void setTransitionCurve(int curveType);
 	// instantaneous set transparency of overlay
 	void setTransparency(int alpha);
+	// alpha mask
+	void setAlpha(int a);
+	void smoothAlphaTransition(bool visible);
 
 Q_SIGNALS:
 	void animationFinished();
 	void transitionSourceChanged(Source *s);
+	void alphaChanged(int);
 
 private:
 	bool manual_mode;
 	int duration;
-	float overlayAlpha;
+	float currentAlpha, overlayAlpha;
+	QPropertyAnimation *alphaAnimation, *overlayAnimation;
 	Source *overlaySource;
-	QPropertyAnimation *animationAlpha;
 	transitionType transition_type;
     QColor customTransitionColor;
     class VideoSource *customTransitionVideoSource;

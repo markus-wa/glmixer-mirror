@@ -559,7 +559,7 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
 	if ( m == 0 ) {
 		RenderingManager::getSessionSwitcher()->manual_mode = true;
 		// adjust slider to represent current transparency
-		transitionSlider->setValue(RenderingManager::getSessionSwitcher()->alpha() * 100.f - (nextSessionSelected?0.f:100.f));
+		transitionSlider->setValue(RenderingManager::getSessionSwitcher()->overlay() * 100.f - (nextSessionSelected?0.f:100.f));
 		// single clic to select next session
 	    proxyView->setToolTip("Click on a session to choose target session");
 	    disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));

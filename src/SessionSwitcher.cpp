@@ -8,6 +8,7 @@
 #include "SessionSwitcher.moc"
 
 #include "ViewRenderWidget.h"
+#include "OutputRenderWindow.h"
 #include "RenderingManager.h"
 #include "VideoSource.h"
 #include "AlgorithmSource.h"
@@ -15,18 +16,25 @@
 
 #include <QGLWidget>
 
-SessionSwitcher::SessionSwitcher(QObject *parent)  : QObject(parent), manual_mode(false), duration(1000), overlayAlpha(0.0), overlaySource(0),
+SessionSwitcher::SessionSwitcher(QObject *parent)  : QObject(parent), manual_mode(false), duration(1000), currentAlpha(0.0), overlayAlpha(0.0), overlaySource(0),
 transition_type(TRANSITION_NONE), customTransitionColor(QColor()), customTransitionVideoSource(0) {
 
-	animationAlpha = new QPropertyAnimation(this, "alpha");
-	animationAlpha->setDuration(0);
-	animationAlpha->setEasingCurve(QEasingCurve::InOutQuad);
+	// alpha opacity mask
+	alphaAnimation = new QPropertyAnimation(this, "alpha");
+	alphaAnimation->setDuration(500);
+	alphaAnimation->setEasingCurve(QEasingCurve::InOutQuad);
 
-    QObject::connect(animationAlpha, SIGNAL(finished()), this, SIGNAL(animationFinished() ) );
-    QObject::connect(animationAlpha, SIGNAL(finished()), this, SLOT(endTransition() ) );
+	// transition overlay
+	overlayAnimation = new QPropertyAnimation(this, "overlay");
+	overlayAnimation->setDuration(0);
+	overlayAnimation->setEasingCurve(QEasingCurve::InOutQuad);
+
+    QObject::connect(overlayAnimation, SIGNAL(finished()), this, SIGNAL(animationFinished() ) );
+    QObject::connect(overlayAnimation, SIGNAL(finished()), this, SLOT(endTransition() ) );
 
 	// default transition of 1 second
 	setTransitionDuration(1000);
+
 }
 
 SessionSwitcher::~SessionSwitcher() {
@@ -37,8 +45,16 @@ SessionSwitcher::~SessionSwitcher() {
 
 void SessionSwitcher::render() {
 
+	if (currentAlpha > 0.0) {
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
+		glColor4f(0.0, 0.0, 0.0, currentAlpha);
+		glScaled( OutputRenderWindow::getInstance()->getAspectRatio() * SOURCE_UNIT, SOURCE_UNIT, 1.0);
+		glCallList(ViewRenderWidget::quad_texured);
+	}
+
 	// if we shall render the overlay, do it !
-	if ( overlaySource ) {
+	if ( overlayAlpha > 0.0 && overlaySource ) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
 
@@ -46,7 +62,7 @@ void SessionSwitcher::render() {
 		glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_TEXTURE_2D);
 		overlaySource->update();
-		glScaled( RenderingManager::getInstance()->getFrameBufferAspectRatio() * overlaySource->getScaleX(), overlaySource->getScaleY(), 1.f);
+		glScaled( OutputRenderWindow::getInstance()->getAspectRatio() * overlaySource->getScaleX(), overlaySource->getScaleY(), 1.0);
 		glCallList(ViewRenderWidget::quad_texured);
 		glDisable(GL_TEXTURE_2D);
 	}
@@ -56,12 +72,12 @@ void SessionSwitcher::render() {
 
 void SessionSwitcher::setTransitionCurve(int curveType)
 {
-	animationAlpha->setEasingCurve( (QEasingCurve::Type) qBound( (int) QEasingCurve::Linear, curveType, (int) QEasingCurve::OutInBounce));
+	overlayAnimation->setEasingCurve( (QEasingCurve::Type) qBound( (int) QEasingCurve::Linear, curveType, (int) QEasingCurve::OutInBounce));
 }
 
 int SessionSwitcher::transitionCurve() const
 {
-	return (int) animationAlpha->easingCurve().type();
+	return (int) overlayAnimation->easingCurve().type();
 }
 
 void SessionSwitcher::setTransitionDuration(int ms)
@@ -170,8 +186,8 @@ void SessionSwitcher::endTransition()
 
 void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 
-	if (animationAlpha->state() == QAbstractAnimation::Running )
-		animationAlpha->stop();
+	if (overlayAnimation->state() == QAbstractAnimation::Running )
+		overlayAnimation->stop();
 
 
 	switch (transition_type) {
@@ -201,15 +217,37 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 		instanteneous = true;
 		sceneVisible = false;
 	}
-	animationAlpha->setCurrentTime(0);
-	animationAlpha->setDuration( instanteneous ? 0 : duration );
-	animationAlpha->setStartValue( overlayAlpha );
-	animationAlpha->setEndValue( sceneVisible ? 0.0 : 1.0 );
+	overlayAnimation->setCurrentTime(0);
+	overlayAnimation->setDuration( instanteneous ? 0 : duration );
+	overlayAnimation->setStartValue( overlayAlpha );
+	overlayAnimation->setEndValue( sceneVisible ? 0.0 : 1.0 );
 	// do not do "animationAlpha->start();" immediately ; there is a delay in rendering
 	// so, we also delay a little the start of the transition to make sure it is fully applied
-	QTimer::singleShot(100, animationAlpha, SLOT(start()));
+	QTimer::singleShot(100, overlayAnimation, SLOT(start()));
 
 	RenderingManager::getRenderingWidget()->setFaded(!instanteneous);
 
 }
 
+
+void SessionSwitcher::setAlpha(float a)
+{
+	currentAlpha = a;
+	emit alphaChanged( int( a * 100.0) );
+}
+
+void SessionSwitcher::setAlpha(int a)
+{
+	currentAlpha = float(a) / 100.0;
+}
+
+void SessionSwitcher::smoothAlphaTransition(bool visible){
+
+	if (alphaAnimation->state() == QAbstractAnimation::Running )
+		alphaAnimation->stop();
+
+	alphaAnimation->setStartValue( currentAlpha );
+	alphaAnimation->setEndValue( visible ? 0.0 : 1.1 );
+	alphaAnimation->start();
+
+}

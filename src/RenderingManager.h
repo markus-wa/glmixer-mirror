@@ -201,7 +201,7 @@ public Q_SLOTS:
 	void dropSourceWithAlpha(double alphax, double alphay);
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);
-	void disableProgressBars(bool off) { _showProgressBar = !off; qDebug("_showProgressBar %d", _showProgressBar);}
+	void disableProgressBars(bool off) { _showProgressBar = !off; }
 
 Q_SIGNALS:
 	void currentSourceChanged(SourceSet::iterator csi);

@@ -411,6 +411,15 @@ public:
 	virtual int getFrameWidth() const { return 1; }
 	virtual int getFrameHeight() const { return 1; }
 
+	// stick the source
+	inline void setModifiable(bool on) {
+		modifiable = on;
+	}
+	inline bool isModifiable() const {
+		return modifiable;
+	}
+
+
 protected:
 	/*
 	 * Constructor ; only Rendering Manager is allowed
@@ -434,7 +443,7 @@ protected:
 	// identity and properties
 	GLuint id;
 	QString name;
-	bool culled, standby, frameChanged, cropped;
+	bool culled, standby, frameChanged, cropped, modifiable;
 	SourceList *clones;
 
 	// GL Stuff

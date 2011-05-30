@@ -81,6 +81,7 @@ public Q_SLOTS:
 	void on_gammaShiftReset_clicked();
 	void on_controlOptionsButton_clicked();
 	void on_actionSave_snapshot_triggered();
+	void on_output_alpha_valueChanged(int);
 
 	// GUI interaction
 	void setView(QAction *a);

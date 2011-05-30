@@ -806,7 +806,9 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 
 void ViewRenderWidget::leaveEvent ( QEvent * event ){
 
+	// cancel current action
 	_currentView->setAction(View::NONE);
+	// set the catalog  off
 	_catalogView->setTransparent(true);
 
 	QWidget::leaveEvent(event);
@@ -814,7 +816,9 @@ void ViewRenderWidget::leaveEvent ( QEvent * event ){
 
 void ViewRenderWidget::enterEvent ( QEvent * event ){
 
+	// just to be 100% sure no action is current
 	_currentView->setAction(View::NONE);
+	setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
 
 	QWidget::enterEvent(event);
 }

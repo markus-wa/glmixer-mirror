@@ -34,16 +34,12 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-		useAspectRatio(true), useWindowAspectRatio(true), currentAlpha(1.0) {
+		useAspectRatio(true), useWindowAspectRatio(true) {
 
 	rx = 0;
 	ry = 0;
 	rw = width();
 	rh = height();
-	
-	animationAlpha = new QPropertyAnimation(this, "alpha");
-	animationAlpha->setDuration(500);
-	animationAlpha->setEasingCurve(QEasingCurve::InOutQuad);
 	
 }
 
@@ -123,8 +119,7 @@ void OutputRenderWidget::resizeGL(int w, int h)
 			rh = h;
 		}
 	}
-//	else
-	// do this computation always ; rendering with polygon may be used during transition
+	else
 	{
 		glLoadIdentity();
 
@@ -175,7 +170,7 @@ void OutputRenderWidget::paintGL()
 	if (!isEnabled())
 		return;
 
-	if ( currentAlpha > 1.0 && RenderingManager::blit_fbo_extension )
+	if ( RenderingManager::blit_fbo_extension )
 	// use the accelerated GL_EXT_framebuffer_blit if available
 	{
 		// select fbo texture read target
@@ -192,9 +187,6 @@ void OutputRenderWidget::paintGL()
 	{
 		// apply the texture of the frame buffer
 		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
-
-		// apply clutch transparency
-		glColor4f(1.0, 1.0, 1.0, currentAlpha);
 
 		// draw the polygon with texture
 		glCallList(ViewRenderWidget::quad_texured);
@@ -224,16 +216,6 @@ void OutputRenderWidget::paintGL()
 	}
 }
 
-void OutputRenderWidget::smoothAlphaTransition(bool visible){
-
-	if (animationAlpha->state() == QAbstractAnimation::Running )
-		animationAlpha->stop();
-
-	animationAlpha->setStartValue( currentAlpha );
-	animationAlpha->setEndValue( visible ? 1.1 : 0.0 );
-	animationAlpha->start();
-
-}
 
 OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint)
 {
@@ -291,7 +273,7 @@ void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent * event) {
 
 	// switch fullscreen / window
 	if (windowFlags() & Qt::Window)
-		emit toggleFullscreen();
+		emit toggleFullscreen(! (windowState() & Qt::WindowFullScreen) 	);
 
 }
 
@@ -299,11 +281,11 @@ void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {
 
 	switch (event->key()) {
 	case Qt::Key_Escape:
-		setFullScreen(false);
+		emit toggleFullscreen(false);
 		break;
 	case Qt::Key_Enter:
 	case Qt::Key_Space:
-		setFullScreen(true);
+		emit toggleFullscreen(true);
 		break;
 
 	case Qt::Key_Right:
