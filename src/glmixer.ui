@@ -1824,8 +1824,14 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionCloneSource"/>
      <addaction name="actionToggle_fixed"/>
      <addaction name="actionZoomCurrentSource"/>
+     <addaction name="actionResetSource"/>
     </widget>
-    <addaction name="actionMediaSource"/>
+    <widget class="QMenu" name="menuAdd_source_s_Media_File_s">
+     <property name="title">
+      <string>Add source(s) &amp;Media File(s)</string>
+     </property>
+    </widget>
+    <addaction name="menuAdd_source_s_Media_File_s"/>
     <addaction name="actionCameraSource"/>
     <addaction name="actionRenderingSource"/>
     <addaction name="actionCaptureSource"/>
@@ -1899,7 +1905,7 @@ Uncheck to display the restart frame when stopped.</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionMediaSource"/>
+   <addaction name="menuAdd_source_s_Media_File_s"/>
    <addaction name="actionCameraSource"/>
    <addaction name="actionRenderingSource"/>
    <addaction name="actionCaptureSource"/>
@@ -2471,21 +2477,6 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionPause_recording"/>
    <addaction name="actionSave_snapshot"/>
   </widget>
-  <action name="actionMediaSource">
-   <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
-   </property>
-   <property name="text">
-    <string>Add source(s) &amp;Media File(s)</string>
-   </property>
-   <property name="statusTip">
-    <string>Creates as many sources as media files loaded (images or videos)</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+M</string>
-   </property>
-  </action>
   <action name="actionQuit">
    <property name="text">
     <string>&amp;Quit</string>
@@ -3459,6 +3450,11 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="actionResetSource">
+   <property name="text">
+    <string>Reset</string>
    </property>
   </action>
  </widget>
