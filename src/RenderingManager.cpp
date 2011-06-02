@@ -592,6 +592,15 @@ void RenderingManager::selectCurrentSource(GLuint name){
 	setCurrentSource(name);
 }
 
+
+void RenderingManager::toggleMofifiableCurrentSource(){
+
+	if(isValid(_currentSource))
+		(*_currentSource)->setModifiable( ! (*_currentSource)->isModifiable() );
+
+	_propertyBrowser->showProperties(_currentSource);
+}
+
 void RenderingManager::resetCurrentSource(){
 
 	if(isValid(_currentSource))

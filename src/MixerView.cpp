@@ -145,9 +145,9 @@ void MixerView::paint()
 			ViewRenderWidget::setSourceDrawingMode(false);
 
 			if (RenderingManager::getInstance()->isCurrentSource(its))
-				glCallList(ViewRenderWidget::border_large_shadow);
+				glCallList(ViewRenderWidget::border_large_shadow + !(*its)->isModifiable());
 			else
-				glCallList(ViewRenderWidget::border_thin_shadow);
+				glCallList(ViewRenderWidget::border_thin_shadow + !(*its)->isModifiable());
 
 			glPopMatrix();
 		}
@@ -288,7 +288,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	// MIDDLE BUTTON ; panning cursor
-	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
+	if ((event->button() == Qt::MidButton) || ( (event->button() == Qt::LeftButton) && (event->modifiers() & Qt::MetaModifier) ) ) {
 		// priority to panning of the view (even in drop mode)
 		setAction(View::PANNING);
 		return false;
@@ -307,10 +307,10 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 
     	// get the top most clicked source
     	Source *clicked = *clickedSources.begin();
-    	if (!clicked)
+    	if (!clicked )
     		return false;
 
-		// CTRL clic = add/remove from selection
+		// SELECT MODE : add/remove from selection
 		if ( currentAction == View::SELECT ) {
 
 			// test if source is in a group
@@ -336,11 +336,13 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 				View::selectedSources = SourceList(result);
 			}
 		}
-		else // not in selection (SELECT) action mode, then just set the current active source
+		else  // not in selection (SELECT) action mode, then just set the current active source
 		{
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
+
 			// ready for grabbing the current source
-			setAction(View::GRAB);
+			if ( clicked->isModifiable() )
+				setAction(View::GRAB);
 		}
 
 		return true;
@@ -371,7 +373,7 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
 		return false;
 
 	// for LEFT double button
-	if ( event->buttons() & Qt::LeftButton ) {
+	if ( event->button() == Qt::LeftButton ) {
 
 		// left double click on a source : change the group / selection
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
@@ -379,8 +381,8 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
 			// get the top most clicked source
 			Source *clicked = *clickedSources.begin();
 
-			// SHIFT + double click = zoom best fit on clicked source
-			if (QApplication::keyboardModifiers() == Qt::ShiftModifier) {
+			// Meta + double click = zoom best fit on clicked source
+			if (event->modifiers () & Qt::MetaModifier) {
 				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 				zoomBestFit(true);
 				return false;
@@ -435,101 +437,78 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 	}
 
-	// MIDDLE button ; panning
+	// PANNING ; move the background
 	if ( currentAction == View::PANNING ) {
+		// SHIFT ?
+		if ( QApplication::keyboardModifiers () & Qt::ShiftModifier ) {
+			// special move ; move the sources in the opposite
+			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
+			}
+		}
+		// panning background
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 		return true;
 	}
 
-	// get the top most clicked source, if there is
-	static Source *clicked = 0;
-	if (!clickedSources.empty())
-		clicked = *clickedSources.begin();
-	else
-		clicked = 0;
+	if ( event->buttons() & Qt::LeftButton ) {
 
-	// SELECT AREA
-	if ( !clicked && event->buttons() & Qt::LeftButton ) {
+		// get the top most clicked source, if there is one
+		static Source *clicked = 0;
+		if (!clickedSources.empty())
+			clicked = *clickedSources.begin();
+		else
+			clicked = 0;
 
-		drawRectangle = true;
+		// SELECT AREA (no clicked source)
+		if ( !clicked ) {
 
-		// set coordinate of end of rectangle selection
-		double dumm;
-		gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleEnd, selectionRectangleEnd+1, &dumm);
+			drawRectangle = true;
 
-		// loop over every sources to check if it is in the rectangle area
-		SourceList rectSources;
-		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-		{
-			if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-				(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-				(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
-				(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
-				rectSources.insert(*its);
+			// set coordinate of end of rectangle selection
+			double dumm;
+			gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleEnd, selectionRectangleEnd+1, &dumm);
+
+			// loop over every sources to check if it is in the rectangle area
+			SourceList rectSources;
+			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+			{
+				if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+					(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+					(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
+					(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
+					rectSources.insert(*its);
+				}
 			}
-		}
 
-		SourceList result;
-		for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-			result.erase (result.begin (), result.end ());
-			std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
-			// if the group is fully inside the rectangle selection
-			if ( (*itss).size() != result.size() ) {
-				// ensure none of the group source remain in the selection
+			SourceList result;
+			for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
 				result.erase (result.begin (), result.end ());
-				std::set_difference(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
-				rectSources = SourceList(result);
-			}
-		}
-
-		if ( currentAction == View::SELECT ) { // extend selection
-		   std::set_union (View::selectedSources.begin (), View::selectedSources.end (),
-				   	   	   rectSources.begin (), rectSources.end (),
-							std::inserter (result, result.begin ()));
-		   View::selectedSources = SourceList(result);
-		} else  // new selection
-			View::selectedSources = SourceList(rectSources);
-
-		return false;
-	}
-
-	// SELECT MODE
-	if ( currentAction == View::SELECT ) {
-		return false;
-	}
-
-	// OTHER BUTTON & clicked : grab
-	if (currentAction == View::GRAB )
-	{
-
-		// find if the source is in a group
-		SourceListArray::iterator itss;
-		for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-			if ( (*itss).count(clicked) > 0 )
-				break;
-		}
-
-		// LEFT BUTTON : move selection
-		if (event->buttons() & Qt::LeftButton ) {
-			// if the source is in the selection, move the selection
-			if ( View::selectedSources.count(clicked) > 0 ){
-				for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
-					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
+				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
+				// if the group is fully inside the rectangle selection
+				if ( (*itss).size() != result.size() ) {
+					// ensure none of the group source remain in the selection
+					result.erase (result.begin (), result.end ());
+					std::set_difference(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+					rectSources = SourceList(result);
 				}
 			}
-			// else, if it is in a group, move the group
-			else if ( itss != groupSources.end() ) {
-				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
-				}
-			}
-			// nothing special, move the source individually
-			else
-				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
-		}
-		// RIGHT BUTTON : special (non-selection) modification
-		else if (event->buttons() & Qt::RightButton ) {
 
+			if ( currentAction == View::SELECT ) { // extend selection
+			   std::set_union (View::selectedSources.begin (), View::selectedSources.end (),
+							   rectSources.begin (), rectSources.end (),
+								std::inserter (result, result.begin ()));
+			   View::selectedSources = SourceList(result);
+			} else  // new selection
+				View::selectedSources = SourceList(rectSources);
+
+			return false;
+		}
+
+
+		// OTHER BUTTON & clicked : grab
+		if (currentAction == View::GRAB )
+		{
 			// find if the source is in a group
 			SourceListArray::iterator itss;
 			for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
@@ -537,19 +516,44 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 					break;
 			}
 
-			// if the source is in the selection AND in a group, then move the group
-			if ( itss != groupSources.end() && View::selectedSources.count(clicked) > 0 ){
-				for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-					grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
+			// LEFT BUTTON : move selection or group
+			if ( QApplication::keyboardModifiers () != Qt::ShiftModifier ) {
+				// if the source is in the selection, move the selection
+				if ( View::selectedSources.count(clicked) > 0 ){
+					for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
+						grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
+					}
 				}
+				// else, if it is in a group, move the group
+				else if ( itss != groupSources.end() ) {
+					for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+						grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
+					}
+				}
+				// nothing special, move the source individually
+				else
+					grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 			}
-			else
-				// move the source individually
-				grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+			// SHIFT + BUTTON : special (non-selection) modification
+			else {
+				// if the source is in the selection AND in a group, then move the group individually
+				if ( itss != groupSources.end() && View::selectedSources.count(clicked) > 0 ){
+					for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+						grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
+					}
+				}
+				else
+					// move the source individually
+					grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+			}
 
+			return true;
 		}
+	}
 
-		return true;
+	// SELECT MODE
+	if ( currentAction == View::SELECT ) {
+		return false;
 	}
 
 	// NO BUTTON : show a mouse-over cursor
@@ -612,7 +616,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 {
 	float previous = zoom;
 
-	if (QApplication::keyboardModifiers () == Qt::ShiftModifier)
+	if ( event->modifiers () & Qt::MetaModifier )
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
@@ -704,7 +708,7 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 	SourceSet::iterator its = RenderingManager::getInstance()->getCurrentSource();
 	if (its != RenderingManager::getInstance()->getEnd()) {
 	    int dx =0, dy = 0, factor = 1;
-	    if (event->modifiers() & Qt::ShiftModifier)
+	    if (event->modifiers() & Qt::MetaModifier)
 	    	factor *= 10;
 		switch (event->key()) {
 			case Qt::Key_Left:
@@ -817,8 +821,15 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 		}
 
 		return !clickedSources.empty();
-	} else
-		return hits != 0;
+	} else {
+		int s = 0;
+		while (hits != 0) {
+			if ( (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() )
+				s++;
+			hits--;
+		}
+		return s > 0;
+	}
 
 }
 

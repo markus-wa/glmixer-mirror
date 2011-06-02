@@ -197,6 +197,7 @@ public Q_SLOTS:
 	void resetSource(SourceSet::iterator sit);
 	void resetCurrentSource();
 	void selectCurrentSource(GLuint name);
+	void toggleMofifiableCurrentSource();
 
 	void dropSourceWithAlpha(double alphax, double alphay);
 	void dropSourceWithCoordinates(double x, double y);

@@ -255,7 +255,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	// MIDDLE BUTTON ; panning cursor
-	if (event->buttons() & Qt::MidButton || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
+	if (event->button() == Qt::MidButton || ( (event->button() == Qt::LeftButton) && (event->modifiers() & Qt::MetaModifier) ) ) {
 		setAction(View::PANNING);
 		return false;
 	}
@@ -268,8 +268,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	}
 
 	// if at least one source icon was clicked
-	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) &&
-			 (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton) ) {
+	if ( event->button() == Qt::LeftButton && getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
     	// get the top most clicked source
     	Source *clicked = *clickedSources.begin();
@@ -289,8 +288,8 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 		else {
 			//  make the top most source clicked now the newly current one
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
-			// put this source in the forward list,
-			bringForward(clicked, event->buttons() & Qt::RightButton);
+			// put this source in the forward list (single source if SHIFT)
+			bringForward(clicked, event->modifiers () & Qt::ShiftModifier);
 			// ready for grabbing the current source
 			setAction(View::GRAB);
 		}
@@ -338,8 +337,8 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 	if ( currentAction == View::SELECT )
 		return false;
 
-	// LEFT or RIGHT BUTTON : grab
-	if ( event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton ) {
+	// LEFT BUTTON : grab
+	if ( event->buttons() & Qt::LeftButton ) {
 
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
@@ -388,11 +387,11 @@ bool LayersView::mouseDoubleClickEvent ( QMouseEvent * event )
 		return false;
 
 	// left double click = zoom best fit
-	if ( event->buttons() & Qt::LeftButton ) {
+	if ( event->button() == Qt::LeftButton ) {
 		// get the top most clicked source
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 			// SHIFT + on a source ; best fit on source
-			if (QApplication::keyboardModifiers () == Qt::ShiftModifier) {
+			if ( event->modifiers () &  Qt::MetaModifier) {
 				RenderingManager::getInstance()->setCurrentSource( (*clickedSources.begin())->getId() );
 				zoomBestFit(true);
 			}
@@ -411,8 +410,8 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
-    // SHIFT wheel = modify look at distance
-    if (QApplication::keyboardModifiers () == Qt::ShiftModifier) {
+    // Shift wheel = modify look at distance
+    if ( event->modifiers () &  Qt::ShiftModifier) {
 		// adjust the looking distance
 		lookatdistance = CLAMP( lookatdistance + ((float) event->delta() * lookatdistance * MIN_LOOKAT) / (1200.0 * MAX_LOOKAT) , MIN_LOOKAT, MAX_LOOKAT);
 		modified = true;

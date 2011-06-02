@@ -207,54 +207,54 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[modifyroperty->propertyName()] = modifyroperty;
 	root->addSubProperty(modifyroperty);
 
-	// Position
-	property = pointManager->addProperty("Position");
-	idToProperty[property->propertyName()] = property;
-	property->setToolTip("X and Y coordinates of the center");
-	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
-	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
-	modifyroperty->addSubProperty(property);
-	// Scale
-	property = pointManager->addProperty("Scale");
-	idToProperty[property->propertyName()] = property;
-	property->setToolTip("Scaling factors on X and Y");
-	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
-	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
-	modifyroperty->addSubProperty(property);
-	// Rotation angle
-	property = doubleManager->addProperty("Angle");
-	property->setToolTip("Angle of rotation in degrees (counter clock wise)");
-	idToProperty[property->propertyName()] = property;
-	doubleManager->setRange(property, 0, 360);
-	doubleManager->setSingleStep(property, 10.0);
-	modifyroperty->addSubProperty(property);
-	// Rotation center
-//	property = pointManager->addProperty("Rotation center");
-//	property->setToolTip("X and Y coordinates of the rotation center (relative to the center)");
-//	idToProperty[property->propertyName()] = property;
-//	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
-//	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
-//	root->addSubProperty(property);
-	// Texture coordinates
-	property = rectManager->addProperty("Crop");
-	idToProperty[property->propertyName()] = property;
-	property->setToolTip("Texture coordinates");
-	rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
-	rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
-	modifyroperty->addSubProperty(property);
-	// Depth
-	property = doubleManager->addProperty("Depth");
-	property->setToolTip("Depth of the layer");
-	idToProperty[property->propertyName()] = property;
-	doubleManager->setRange(property, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
-	modifyroperty->addSubProperty(property);
-	// Alpha
-	property = doubleManager->addProperty("Alpha");
-	property->setToolTip("Opacity (0 = transparent)");
-	idToProperty[property->propertyName()] = property;
-	doubleManager->setRange(property, 0.0, 1.0);
-	doubleManager->setSingleStep(property, 0.05);
-	modifyroperty->addSubProperty(property);
+		// Position
+		property = pointManager->addProperty("Position");
+		idToProperty[property->propertyName()] = property;
+		property->setToolTip("X and Y coordinates of the center");
+		pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
+		pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
+		modifyroperty->addSubProperty(property);
+		// Scale
+		property = pointManager->addProperty("Scale");
+		idToProperty[property->propertyName()] = property;
+		property->setToolTip("Scaling factors on X and Y");
+		pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
+		pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
+		modifyroperty->addSubProperty(property);
+		// Rotation angle
+		property = doubleManager->addProperty("Angle");
+		property->setToolTip("Angle of rotation in degrees (counter clock wise)");
+		idToProperty[property->propertyName()] = property;
+		doubleManager->setRange(property, 0, 360);
+		doubleManager->setSingleStep(property, 10.0);
+		modifyroperty->addSubProperty(property);
+		// Rotation center
+	//	property = pointManager->addProperty("Rotation center");
+	//	property->setToolTip("X and Y coordinates of the rotation center (relative to the center)");
+	//	idToProperty[property->propertyName()] = property;
+	//	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
+	//	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
+	//	root->addSubProperty(property);
+		// Texture coordinates
+		property = rectManager->addProperty("Crop");
+		idToProperty[property->propertyName()] = property;
+		property->setToolTip("Texture coordinates");
+		rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
+		rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
+		modifyroperty->addSubProperty(property);
+		// Depth
+		property = doubleManager->addProperty("Depth");
+		property->setToolTip("Depth of the layer");
+		idToProperty[property->propertyName()] = property;
+		doubleManager->setRange(property, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+		modifyroperty->addSubProperty(property);
+		// Alpha
+		property = doubleManager->addProperty("Alpha");
+		property->setToolTip("Opacity (0 = transparent)");
+		idToProperty[property->propertyName()] = property;
+		doubleManager->setRange(property, 0.0, 1.0);
+		doubleManager->setSingleStep(property, 0.05);
+		modifyroperty->addSubProperty(property);
 
 	// enum list of Destination blending func
 	QtProperty *blendingItem = enumManager->addProperty("Blending");
@@ -583,8 +583,8 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		boolManager->setValue(idToProperty["Modifiable"], s->isModifiable() );
 		idToProperty["Position"]->setEnabled(s->isModifiable());
 		pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
-		idToProperty["Rotation center"]->setEnabled(s->isModifiable());
-		pointManager->setValue(idToProperty["Rotation center"], QPointF( s->getCenterX() / SOURCE_UNIT, s->getCenterY() / SOURCE_UNIT));
+//		idToProperty["Rotation center"]->setEnabled(s->isModifiable());
+//		pointManager->setValue(idToProperty["Rotation center"], QPointF( s->getCenterX() / SOURCE_UNIT, s->getCenterY() / SOURCE_UNIT));
 		idToProperty["Angle"]->setEnabled(s->isModifiable());
 		doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
 		idToProperty["Scale"]->setEnabled(s->isModifiable());

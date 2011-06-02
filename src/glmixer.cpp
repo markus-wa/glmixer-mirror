@@ -150,6 +150,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	// share menus as context menus of the main view
 	RenderingManager::getRenderingWidget()->setViewContextMenu(menuZoom);
 	RenderingManager::getRenderingWidget()->setCatalogContextMenu(menuCatalog);
+	RenderingManager::getRenderingWidget()->setSourceContextMenu(menuCurrent_source);
 
 	// Setup the property browser
 	SourcePropertyBrowser *propertyBrowser = RenderingManager::getPropertyBrowserWidget();
@@ -249,6 +250,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionZoomReset, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
 	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
 	QObject::connect(actionZoomCurrentSource, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomCurrentSource()));
+	QObject::connect(actionToggle_fixed, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(toggleMofifiableCurrentSource()));
 
 	// Signals between cursors and their configuration gui
 	QObject::connect(dynamic_cast<LineCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_LINE)), SIGNAL(speedChanged(int)), cursorLineSpeed, SLOT(setValue(int)) );
@@ -501,10 +503,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 		// enable properties and actions on the current valid source
 		sourceDockWidgetContents->setEnabled(true);
-		actionDeleteSource->setEnabled(true);
-		actionCloneSource->setEnabled(true);
+		menuCurrent_source->setEnabled(true);
 		toolButtonZoomCurrent->setEnabled(true);
-		actionZoomCurrentSource->setEnabled(true);
 
 		// Enable start button if the source is playable
 		startButton->setEnabled( (*csi)->isPlayable() );
@@ -599,10 +599,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		RenderingManager::getRenderingWidget()->setCursorEnabled(false);
 
 		// disable panel widgets
-		actionDeleteSource->setEnabled(false);
-		actionCloneSource->setEnabled(false);
+		menuCurrent_source->setEnabled(false);
 		toolButtonZoomCurrent->setEnabled(false);
-		actionZoomCurrentSource->setEnabled(false);
 		vcontrolDockWidgetContents->setEnabled(false);
 		startButton->setEnabled( false );
 		startButton->setChecked( false );

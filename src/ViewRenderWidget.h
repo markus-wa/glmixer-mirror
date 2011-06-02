@@ -89,6 +89,7 @@ public:
 	void showFramerate(bool on);
 	void setViewContextMenu(QMenu *m) { viewMenu = m; }
 	void setCatalogContextMenu(QMenu *m) { catalogMenu = m; }
+	void setSourceContextMenu(QMenu *m) { sourceMenu = m; }
 	void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
 
 	/**
@@ -195,7 +196,7 @@ private:
 	// M e s s a g e s
 	QLabel *messageLabel, *fpsLabel;
 	QTimer messageTimer;
-	QMenu *viewMenu, *catalogMenu;
+	QMenu *viewMenu, *catalogMenu, *sourceMenu;
 
 	// F P S    d i s p l a y
 	QTime fpsTime_;

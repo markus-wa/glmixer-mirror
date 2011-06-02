@@ -122,7 +122,7 @@ QGLShaderProgram *ViewRenderWidget::program = 0;
 bool ViewRenderWidget::disableFiltering = false;
 
 ViewRenderWidget::ViewRenderWidget() :
-	glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), showFps_(0)
+	glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
 {
 
 	setMouseTracking(true);
@@ -210,7 +210,7 @@ void ViewRenderWidget::initializeGL()
 	// Create display lists
 	quad_texured = buildTexturedQuadList();
 	border_thin_shadow = buildLineList();
-	border_large_shadow = border_thin_shadow + 1;
+	border_large_shadow = border_thin_shadow + 2;
 	frame_selection = buildSelectList();
 	circle_mixing = buildCircleList();
 	layerbg = buildLayerbgList();
@@ -219,8 +219,8 @@ void ViewRenderWidget::initializeGL()
 	frame_screen = buildFrameList();
 	frame_screen_thin = frame_screen + 1;
 	border_thin = buildBordersList();
-	border_large = border_thin + 1;
-	border_scale = border_thin + 2;
+	border_large = border_thin + 2;
+	border_scale = border_thin + 4;
 	fading = buildFadingList();
 
 	// Create mask textures
@@ -381,14 +381,18 @@ void ViewRenderWidget::contextMenu(const QPoint &pos)
 		connect(newAct, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(clearBasket()));
 		menu.exec(mapToGlobal(pos));
 	}
-	else if (_catalogView->isInside(pos) && catalogMenu)
+	else if (_catalogView->isInside(pos))
 	{
-		catalogMenu->exec(mapToGlobal(pos));
+		if (catalogMenu)
+			catalogMenu->exec(mapToGlobal(pos));
 	}
-	else if (viewMenu && _currentView->noSourceClicked())
+	else if (_currentView->noSourceClicked())
 	{
-		viewMenu->exec(mapToGlobal(pos));
+		if (viewMenu)
+			viewMenu->exec(mapToGlobal(pos));
 	}
+	else if (sourceMenu)
+		sourceMenu->exec(mapToGlobal(pos));
 }
 
 void ViewRenderWidget::setToolMode(toolMode m){
@@ -792,7 +796,7 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 		QKeyEvent *keyEvent = static_cast<QKeyEvent *> (event);
 		if (keyEvent->key() == Qt::Key_Tab)
 		{
-			if (keyEvent->modifiers() & Qt::ControlModifier)
+			if (keyEvent->modifiers() & Qt::ShiftModifier)
 				RenderingManager::getInstance()->setCurrentPrevious();
 			else
 				RenderingManager::getInstance()->setCurrentNext();
@@ -1128,8 +1132,30 @@ GLuint ViewRenderWidget::buildLineList()
 
 	glEndList();
 
-	// over
+	// default thin border STATIC
 	glNewList(base + 1, GL_COMPILE);
+
+		glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+
+		glPushMatrix();
+		glScalef(1.23, 1.23, 1.0);
+		glColor4ub(0, 0, 0, 0);
+		glDrawArrays(GL_QUADS, 0, 4);
+		glPopMatrix();
+
+		glLineWidth(1.0);
+		glColor4ub(COLOR_SOURCE_STATIC, 180);
+		glBegin(GL_LINE_LOOP); // begin drawing a square
+		glVertex2f(-1.05f, -1.05f); // Bottom Left
+		glVertex2f(1.05f, -1.05f); // Bottom Right
+		glVertex2f(1.05f, 1.05f); // Top Right
+		glVertex2f(-1.05f, 1.05f); // Top Left
+		glEnd();
+
+	glEndList();
+
+	// over
+	glNewList(base + 2, GL_COMPILE);
 
 		glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
 
@@ -1141,6 +1167,28 @@ GLuint ViewRenderWidget::buildLineList()
 
 		glLineWidth(3.0);
 		glColor4ub(COLOR_SOURCE, 180);
+		glBegin(GL_LINE_LOOP); // begin drawing a square
+		glVertex2f(-1.05f, -1.05f); // Bottom Left
+		glVertex2f(1.05f, -1.05f); // Bottom Right
+		glVertex2f(1.05f, 1.05f); // Top Right
+		glVertex2f(-1.05f, 1.05f); // Top Left
+		glEnd();
+
+	glEndList();
+
+	// over STATIC
+	glNewList(base + 3, GL_COMPILE);
+
+		glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
+
+		glPushMatrix();
+		glScalef(1.23, 1.23, 1.0);
+		glColor4ub(0, 0, 0, 0);
+		glDrawArrays(GL_QUADS, 0, 4);
+		glPopMatrix();
+
+		glLineWidth(3.0);
+		glColor4ub(COLOR_SOURCE_STATIC, 180);
 		glBegin(GL_LINE_LOOP); // begin drawing a square
 		glVertex2f(-1.05f, -1.05f); // Bottom Left
 		glVertex2f(1.05f, -1.05f); // Bottom Right
@@ -1389,8 +1437,24 @@ GLuint ViewRenderWidget::buildBordersList()
 
 	glEndList();
 
-	// selected large border (no action)
+	// thin border for static
 	glNewList(base + 1, GL_COMPILE);
+
+	glLineWidth(1.0);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+	glColor4ub(COLOR_SOURCE_STATIC, 180);
+	glBegin(GL_LINE_LOOP); // begin drawing a square
+	glVertex2f(-1.0f, -1.0f); // Bottom Left
+	glVertex2f(1.0f, -1.0f); // Bottom Right
+	glVertex2f(1.0f, 1.0f); // Top Right
+	glVertex2f(-1.0f, 1.0f); // Top Left
+	glEnd();
+
+	glEndList();
+
+	// selected large border (no action)
+	glNewList(base + 2, GL_COMPILE);
 
 	glLineWidth(3.0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1405,14 +1469,28 @@ GLuint ViewRenderWidget::buildBordersList()
 
 	glEndList();
 
+	// selected STATIC large border (no action)
+	glNewList(base + 3, GL_COMPILE);
+
+	glLineWidth(3.0);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+	glColor4ub(COLOR_SOURCE_STATIC, 200);
+	glBegin(GL_LINE_LOOP); // begin drawing a square
+	glVertex2f(-1.0f, -1.0f); // Bottom Left
+	glVertex2f(1.0f, -1.0f); // Bottom Right
+	glVertex2f(1.0f, 1.0f); // Top Right
+	glVertex2f(-1.0f, 1.0f); // Top Left
+	glEnd();
+
+	glEndList();
+
 	// selected for TOOL
-	glNewList(base + 2, GL_COMPILE);
+	glNewList(base + 4, GL_COMPILE);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-
 	glColor4ub(COLOR_SOURCE, 230);
-
 	// draw the bold border
 	glLineWidth(3.0);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
@@ -1451,6 +1529,51 @@ GLuint ViewRenderWidget::buildBordersList()
 	glEnd();
 
 	glEndList();
+
+	// selected for TOOL
+		glNewList(base + 5, GL_COMPILE);
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
+		glColor4ub(COLOR_SOURCE_STATIC, 230);
+		// draw the bold border
+		glLineWidth(3.0);
+		glBegin(GL_LINE_LOOP); // begin drawing a square
+		glVertex2f(-1.0f, -1.0f); // Bottom Left
+		glVertex2f(1.0f, -1.0f); // Bottom Right
+		glVertex2f(1.0f, 1.0f); // Top Right
+		glVertex2f(-1.0f, 1.0f); // Top Left
+		glEnd();
+
+		glLineWidth(1.0);
+		glBegin(GL_LINES); // begin drawing a square
+		//    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+		glVertex2f(-BORDER_SIZE, -1.0f);
+		glVertex2f(-BORDER_SIZE, -BORDER_SIZE);
+		glVertex2f(-BORDER_SIZE, -BORDER_SIZE);
+		glVertex2f(-1.0f, -BORDER_SIZE);
+
+		//    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+		glVertex2f(1.0f, -BORDER_SIZE);
+		glVertex2f(BORDER_SIZE, -BORDER_SIZE);
+		glVertex2f(BORDER_SIZE, -BORDER_SIZE);
+		glVertex2f(BORDER_SIZE, -1.0f);
+
+		//    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+		glVertex2f(BORDER_SIZE, 1.0f);
+		glVertex2f(BORDER_SIZE, BORDER_SIZE);
+		glVertex2f(BORDER_SIZE, BORDER_SIZE);
+		glVertex2f(1.0f, BORDER_SIZE);
+
+		//    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+		glVertex2f(-BORDER_SIZE, 1.0f);
+		glVertex2f(-BORDER_SIZE, BORDER_SIZE);
+		glVertex2f(-BORDER_SIZE, BORDER_SIZE);
+		glVertex2f(-1.0f, BORDER_SIZE);
+
+		glEnd();
+
+		glEndList();
 
 	return base;
 }

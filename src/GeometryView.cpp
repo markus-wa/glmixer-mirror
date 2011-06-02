@@ -230,7 +230,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	// MIDDLE BUTTON ; panning cursor
-	if ((event->buttons() & Qt::MidButton) || ( (event->buttons() & Qt::LeftButton) && QApplication::keyboardModifiers () == Qt::ShiftModifier) ) {
+	if ((event->button() == Qt::MidButton) || ( (event->button() == Qt::LeftButton) && (event->modifiers() & Qt::MetaModifier) ) ) {
 		setAction(View::PANNING);
 		return false;
 	}
@@ -248,14 +248,15 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 //		// perform the action on the selection
 //
 //	} else
-	// work on the source directly
-	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) &&
-			 (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)) { // if at least one source icon was clicked
 
-    	// get the top most clicked source
-    	Source *clicked = *clickedSources.begin();
-    	if (!clicked)
-    		return false;
+
+	// work on the source directly
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
+
+		// get the top most clicked source
+		Source *clicked = *clickedSources.begin();
+		if (!clicked)
+			return false;
 
 		// if there was no current source, its simple : just take the top most source clicked now
 		// OR
@@ -265,31 +266,31 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 			//  make the top most source clicked now the newly current one
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
+		// modify source only for left clic
+		if ( event->button() == Qt::LeftButton ) {
+			// SELECT add/remove new current from selection
+			SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+			if ( currentAction == View::SELECT ) {
 
-		// CTRL clic = add/remove new current from selection
-		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( currentAction == View::SELECT ) {
+				if ( View::selectedSources.count(*cs) > 0)
+					View::selectedSources.erase( *cs );
+				else
+					View::selectedSources.insert( *cs );
 
-			if ( View::selectedSources.count(*cs) > 0)
-				View::selectedSources.erase( *cs );
-			else
-				View::selectedSources.insert( *cs );
-
-		}
-		// else not SELECTION ; normal action
-		else {
-			// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
-			if(quadrant == 0 || currentTool == MOVE) {
-				setAction(View::GRAB);
-				RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
-			} else {
-				setAction(View::TOOL);
 			}
-
+			// else not SELECTION ; normal action
+			else {
+				// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
+				if(quadrant == 0 || currentTool == MOVE) {
+					setAction(View::GRAB);
+					RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
+				} else {
+					setAction(View::TOOL);
+				}
+			}
 		}
-
-    	return true;
-    }
+		return true;
+	}
 
 	// set current to none (end of list)
 	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
@@ -300,13 +301,12 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	else
 		setAction(View::NONE);
 
+
 	return false;
 }
 
 bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 {
-	static Source *clicked = 0;
-
 	if (!event)
 		return false;
 
@@ -321,8 +321,15 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 	}
 
-	// MIDDLE button ; panning
+	// PANNING of the background
 	if ( currentAction == View::PANNING ) {
+		// SHIFT ?
+		if ( QApplication::keyboardModifiers()  & Qt::ShiftModifier ) {
+			// special move ; move the sources in the opposite
+			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
+			}
+		}
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 		return false;
 	}
@@ -336,8 +343,25 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 	if ( RenderingManager::getInstance()->isValid(cs) && (currentAction == View::GRAB || currentAction == View::TOOL) ) {
 
-		// if the source is in the selection, move the selection
-		if ( View::selectedSources.count(*cs) > 0 && event->buttons() & Qt::LeftButton ){
+		// if no selection or SHIFT ; manipulate only current source
+		if ( QApplication::keyboardModifiers () == Qt::ShiftModifier || View::selectedSources.count(*cs) == 0 ){
+			if (currentAction == View::TOOL) {
+				if (currentTool == GeometryView::MOVE)
+					grabSource(*cs, event->x(), viewport[3] - event->y(), dx, dy);
+				else if (currentTool == GeometryView::SCALE)
+					scaleSource(*cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+				else if (currentTool == GeometryView::CROP)
+					cropSource(*cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+				else if (currentTool == GeometryView::ROTATE) {
+					rotateSource(*cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
+					setTool(currentTool);
+				}
+			} else if (currentAction == View::GRAB) {
+				grabSource(*cs, event->x(), viewport[3] - event->y(), dx, dy);
+			}
+		}
+		// else if the source is in the selection, move the selection
+		else {
 			for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
 
 //				if (currentAction == View::TOOL) {
@@ -356,24 +380,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 //				}
 
 			}
-		}
-		// LEFT or right button : use TOOL on the current source
-		else {
 
-			if (currentAction == View::TOOL) {
-				if (currentTool == GeometryView::MOVE)
-					grabSource(*cs, event->x(), viewport[3] - event->y(), dx, dy);
-				else if (currentTool == GeometryView::SCALE)
-					scaleSource(*cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
-				else if (currentTool == GeometryView::CROP)
-					cropSource(*cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
-				else if (currentTool == GeometryView::ROTATE) {
-					rotateSource(*cs, event->x(), viewport[3] - event->y(), dx, dy, QApplication::keyboardModifiers () == Qt::ShiftModifier);
-					setTool(currentTool);
-				}
-			} else if (currentAction == View::GRAB) {
-				grabSource(*cs, event->x(), viewport[3] - event->y(), dx, dy);
-			}
 		}
 
 		return true;
@@ -445,7 +452,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
 
 	float previous = zoom;
-	if (QApplication::keyboardModifiers () == Qt::ShiftModifier)
+	if (QApplication::keyboardModifiers () == Qt::MetaModifier)
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
@@ -490,22 +497,31 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 	    	// get the top most clicked source
 	    	SourceSet::iterator clicked = clickedSources.begin();
-			// if there is no source selected, select the top most
-			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd() )
-				RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
-			// else, try to take another one bellow it
-			else {
-				// find where the current source is in the clickedSources
-				clicked = clickedSources.find(*RenderingManager::getInstance()->getCurrentSource()) ;
-				// decrement the clicked iterator forward in the clickedSources (and jump back to end when at begining)
-				if ( clicked == clickedSources.begin() )
-					clicked = clickedSources.end();
-				clicked--;
 
-				// set this newly clicked source as the current one
+			// if there is no source selected, select the top most
+			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd() ) {
 				RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
-				// update quadrant to match newly current source
-				quadrant = getSourceQuadrant(*clicked, event->x(), viewport[3] - event->y());
+				// Meta + double click = zoom best fit on current source
+				if (event->modifiers () & Qt::MetaModifier)
+					zoomBestFit(true);
+			} // else, try to take another one bellow it
+			else {
+				// Meta + double click = zoom best fit on current source
+				if (event->modifiers () & Qt::MetaModifier)
+					zoomBestFit(true);
+				else {
+					// find where the current source is in the clickedSources
+					clicked = clickedSources.find(*RenderingManager::getInstance()->getCurrentSource()) ;
+					// decrement the clicked iterator forward in the clickedSources (and jump back to end when at begining)
+					if ( clicked == clickedSources.begin() )
+						clicked = clickedSources.end();
+					clicked--;
+
+					// set this newly clicked source as the current one
+					RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
+					// update quadrant to match newly current source
+					quadrant = getSourceQuadrant(*clicked, event->x(), viewport[3] - event->y());
+				}
 			}
 
 		}
@@ -520,6 +536,7 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 
+	// enter SELECT mode on press of control key
 	if (event->modifiers() & Qt::ControlModifier){
 		setAction(View::SELECT);
 		return false;
@@ -529,7 +546,7 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 
 	if (cs != RenderingManager::getInstance()->getEnd()) {
 		int dx =0, dy = 0, factor = 1;
-		if (event->modifiers() & Qt::ShiftModifier)
+		if (event->modifiers() & Qt::MetaModifier)
 			factor *= 10;
 		switch (event->key()) {
 			case Qt::Key_Left:
@@ -557,6 +574,7 @@ bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 
 bool GeometryView::keyReleaseEvent(QKeyEvent * event) {
 
+	// leave SELECT mode
 	if ( currentAction == View::SELECT )
 		setAction(previousAction);
 
@@ -649,7 +667,7 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 		zoomReset();
 		return;
 	}
-	// 0. consider either the list of clicked sources, either the full list
+	// 0. consider either the clicked source, either the full list
     SourceSet::iterator beginning, end;
     if (onlyClickedSource && RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
     	beginning = end = RenderingManager::getInstance()->getCurrentSource();
@@ -684,14 +702,11 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 
 	// 4. compute zoom factor to fit to the boundaries
     // initial value = a margin scale of 5%
-    double scale = 0.95;
+    double scalex = 0.95 * ABS(URcorner[0]-LLcorner[0]) / ABS(x_max-x_min);
+    double scaley = 0.95 * ABS(URcorner[1]-LLcorner[1]) / ABS(y_max-y_min);
     // depending on the axis having the largest extend
-    if ( ABS(x_max-x_min) > ABS(y_max-y_min))
-    	scale *= ABS(URcorner[0]-LLcorner[0]) / ABS(x_max-x_min);
-    else
-    	scale *= ABS(URcorner[1]-LLcorner[1]) / ABS(y_max-y_min);
     // apply the scaling
-	setZoom( zoom * scale );
+	setZoom( zoom * (scalex < scaley ? scalex : scaley  ));
 
 }
 

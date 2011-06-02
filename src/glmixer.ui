@@ -362,6 +362,11 @@
          <property name="toolTip">
           <string>Activate output rendering</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -384,6 +389,9 @@
          </property>
          <property name="autoExclusive">
           <bool>false</bool>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonIconOnly</enum>
          </property>
         </widget>
        </item>
@@ -417,6 +425,11 @@
          <property name="toolTip">
           <string>Select aspect ratio</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -440,6 +453,16 @@
          <property name="toolTip">
           <string>Set output to fullscreen</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true"> QToolButton { /* all types of tool button */
+     border: 2px solid #8f8f91;
+     border-radius: 6px;
+ }
+ QToolButton:checked {
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #8f8f91, stop: 1 #f6f7fa);
+ }</string>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -452,6 +475,9 @@
            <width>24</width>
            <height>24</height>
           </size>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -1755,7 +1781,6 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionZoomIn"/>
      <addaction name="actionZoomOut"/>
      <addaction name="actionZoomBestFit"/>
-     <addaction name="actionZoomCurrentSource"/>
     </widget>
     <widget class="QMenu" name="menuCatalog">
      <property name="title">
@@ -1791,16 +1816,24 @@ Uncheck to display the restart frame when stopped.</string>
     <property name="title">
      <string>&amp;Sources</string>
     </property>
+    <widget class="QMenu" name="menuCurrent_source">
+     <property name="title">
+      <string>Current source</string>
+     </property>
+     <addaction name="actionDeleteSource"/>
+     <addaction name="actionCloneSource"/>
+     <addaction name="actionToggle_fixed"/>
+     <addaction name="actionZoomCurrentSource"/>
+    </widget>
     <addaction name="actionMediaSource"/>
     <addaction name="actionCameraSource"/>
     <addaction name="actionRenderingSource"/>
     <addaction name="actionCaptureSource"/>
     <addaction name="actionAlgorithmSource"/>
-    <addaction name="actionCloneSource"/>
     <addaction name="separator"/>
+    <addaction name="menuCurrent_source"/>
     <addaction name="actionSelect_Next"/>
     <addaction name="actionSelect_Previous"/>
-    <addaction name="actionDeleteSource"/>
    </widget>
    <widget class="QMenu" name="menuAction">
     <property name="title">
@@ -1825,6 +1858,10 @@ Uncheck to display the restart frame when stopped.</string>
     <widget class="QMenu" name="menuAspect_Ratio">
      <property name="title">
       <string>Aspect Ratio</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../icons.qrc">
+       <normaloff>:/glmixer/icons/aspectratio.png</normaloff>:/glmixer/icons/aspectratio.png</iconset>
      </property>
      <addaction name="action4_3_aspect_ratio"/>
      <addaction name="action3_2_aspect_ratio"/>
@@ -2819,13 +2856,16 @@ Uncheck to display the restart frame when stopped.</string>
   </action>
   <action name="actionCloneSource">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/copy-source.png</normaloff>:/glmixer/icons/copy-source.png</iconset>
    </property>
    <property name="text">
+    <string>Clone</string>
+   </property>
+   <property name="toolTip">
     <string>Clone current source</string>
    </property>
    <property name="statusTip">
@@ -2837,13 +2877,16 @@ Uncheck to display the restart frame when stopped.</string>
   </action>
   <action name="actionDeleteSource">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/delete.png</normaloff>:/glmixer/icons/delete.png</iconset>
    </property>
    <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="toolTip">
     <string>Delete current source</string>
    </property>
    <property name="statusTip">
@@ -3299,14 +3342,14 @@ Uncheck to display the restart frame when stopped.</string>
   </action>
   <action name="actionZoomCurrentSource">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/zoom-fit-source.png</normaloff>:/glmixer/icons/zoom-fit-source.png</iconset>
    </property>
    <property name="text">
-    <string>Zoom current</string>
+    <string>Zoom in</string>
    </property>
    <property name="toolTip">
     <string>Zoom on current source</string>
@@ -3401,6 +3444,21 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="shortcut">
     <string>L</string>
+   </property>
+  </action>
+  <action name="actionToggle_fixed">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/edit-modifiable-toggle.png</normaloff>:/glmixer/icons/edit-modifiable-toggle.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle fixed</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
    </property>
   </action>
  </widget>
