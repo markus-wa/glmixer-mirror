@@ -22,7 +22,6 @@
  *   Copyright 2009, 2010 Bruno Herbelin
  *
  */
-#include <algorithm>
 
 #include "MixerView.h"
 
@@ -74,7 +73,7 @@ void MixerView::paint()
     glLineWidth(2.0);
 	glColor4ub(COLOR_SELECTION, 255);
     glBegin(GL_LINE_LOOP);
-    for(SourceSet::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
+    for(SourceSet::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
         glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
     }
     glEnd();
@@ -145,9 +144,9 @@ void MixerView::paint()
 			ViewRenderWidget::setSourceDrawingMode(false);
 
 			if (RenderingManager::getInstance()->isCurrentSource(its))
-				glCallList(ViewRenderWidget::border_large_shadow + !(*its)->isModifiable());
+				glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2) );
 			else
-				glCallList(ViewRenderWidget::border_thin_shadow + !(*its)->isModifiable());
+				glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2) );
 
 			glPopMatrix();
 		}
@@ -163,7 +162,7 @@ void MixerView::paint()
 	RenderingManager::getInstance()->postRenderToFrameBuffer();
 
     // Then the selection outlines
-    for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
+    for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
@@ -320,20 +319,14 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 					break;
 			}
 			// NOT in a source : add individual item clicked
-			if ( itss == groupSources.end()  ) {
-				if ( View::selectedSources.count(clicked) > 0)
-					View::selectedSources.erase( clicked );
-				else
-					View::selectedSources.insert( clicked );
-			}
-			// add the full group attached to the clicked item
+			if ( itss == groupSources.end() )
+				View::select(clicked);
+			// else add the full group attached to the clicked item
 			else {
-				SourceList result;
-				if ( View::selectedSources.count(clicked) > 0)
-					std::set_difference(View::selectedSources.begin(), View::selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+				if ( View::isInSelection(clicked) )
+					View::deselect(*itss);
 				else
-					std::set_union(View::selectedSources.begin(), View::selectedSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
-				View::selectedSources = SourceList(result);
+					View::select(*itss);
 			}
 		}
 		else  // not in selection (SELECT) action mode, then just set the current active source
@@ -395,19 +388,20 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
             }
             // if double clic on a group ; convert group into selection
         	if ( itss != groupSources.end() ) {
-        		View::selectedSources = SourceList(*itss);
+        		View::setSelection(*itss);
         		// erase group and its color
         		groupColor.remove(itss);
         		groupSources.erase(itss);
         	}
         	// if double clic NOT on a group ; convert selection into group
         	else {
+        		SourceList selection = View::copySelection();
 				// if the clicked source is in the selection
-				if ( View::selectedSources.count(clicked) > 0 && View::selectedSources.size() > 1 ) {
+				if ( selection.count(clicked)>0 && selection.size()>1 ) {
 					//  create a group from the selection
-					groupSources.push_front(SourceList(View::selectedSources));
+					groupSources.push_front(selection);
 					groupColor[groupSources.begin()] = QColor::fromHsv ( rand()%180 + 179, 250, 250);
-					View::selectedSources.clear();
+					View::clearSelection();
 				}
         	}
         	return true;
@@ -455,7 +449,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
 		// get the top most clicked source, if there is one
 		static Source *clicked = 0;
-		if (!clickedSources.empty())
+		if (sourceClicked())
 			clicked = *clickedSources.begin();
 		else
 			clicked = 0;
@@ -494,13 +488,10 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 				}
 			}
 
-			if ( currentAction == View::SELECT ) { // extend selection
-			   std::set_union (View::selectedSources.begin (), View::selectedSources.end (),
-							   rectSources.begin (), rectSources.end (),
-								std::inserter (result, result.begin ()));
-			   View::selectedSources = SourceList(result);
-			} else  // new selection
-				View::selectedSources = SourceList(rectSources);
+			if ( currentAction == View::SELECT )  // extend selection
+				View::select(rectSources);
+			else  // new selection
+				View::setSelection(rectSources);
 
 			return false;
 		}
@@ -509,44 +500,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		// OTHER BUTTON & clicked : grab
 		if (currentAction == View::GRAB )
 		{
-			// find if the source is in a group
-			SourceListArray::iterator itss;
-			for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-				if ( (*itss).count(clicked) > 0 )
-					break;
-			}
-
-			// LEFT BUTTON : move selection or group
-			if ( QApplication::keyboardModifiers () != Qt::ShiftModifier ) {
-				// if the source is in the selection, move the selection
-				if ( View::selectedSources.count(clicked) > 0 ){
-					for(SourceList::iterator  its = View::selectedSources.begin(); its != View::selectedSources.end(); its++) {
-						grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
-					}
-				}
-				// else, if it is in a group, move the group
-				else if ( itss != groupSources.end() ) {
-					for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-						grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
-					}
-				}
-				// nothing special, move the source individually
-				else
-					grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
-			}
-			// SHIFT + BUTTON : special (non-selection) modification
-			else {
-				// if the source is in the selection AND in a group, then move the group individually
-				if ( itss != groupSources.end() && View::selectedSources.count(clicked) > 0 ){
-					for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-						grabSource( *its, event->x(), viewport[3] - event->y(), dx, dy);
-					}
-				}
-				else
-					// move the source individually
-					grabSource(clicked, event->x(), viewport[3] - event->y(), dx, dy);
-			}
-
+			grabSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 			return true;
 		}
 	}
@@ -605,7 +559,7 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 	    }
 
 	} else if ( currentAction == View::SELECT && !getSourcesAtCoordinates(event->x(), viewport[3] - event->y()))
-		View::selectedSources.clear();
+		View::clearSelection();
 
 	drawRectangle = false;
 
@@ -626,7 +580,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 		// simulate a grab with no mouse movement but a deltazoom :
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 		if ( RenderingManager::getInstance()->notAtEnd(cs))
-			grabSource(*cs, event->x(), (viewport[3] - event->y()), 0, 0);
+			grabSources(*cs, event->x(), (viewport[3] - event->y()), 0, 0);
 		// reset deltazoom
 		deltazoom = 0;
 	}
@@ -820,7 +774,7 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 			hits--;
 		}
 
-		return !clickedSources.empty();
+		return sourceClicked();
 	} else {
 		int s = 0;
 		while (hits != 0) {
@@ -829,6 +783,53 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 			hits--;
 		}
 		return s > 0;
+	}
+
+}
+
+/**
+ *
+ **/
+void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
+
+	if (!s) return;
+
+	// find if the source is in a group
+	SourceListArray::iterator itss;
+	for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+		if ( (*itss).count(s) > 0 )
+			break;
+	}
+
+	// SHIFT : special (non-selection) modification
+	if ( QApplication::keyboardModifiers () & Qt::ShiftModifier ){
+		// if the source is in the selection AND in a group, then move the group individually
+		if ( itss != groupSources.end() && View::isInSelection(s) ){
+			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+				grabSource( *its, x, y, dx, dy);
+			}
+		}
+		else
+			// move the source individually
+			grabSource(s, x, y, dx, dy);
+	}
+	// NORMAL : move selection or group
+	else {
+		// if the source is in the selection, move the selection
+		if ( View::isInSelection(s) ){
+			for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+				grabSource( *its, x, y, dx, dy);
+			}
+		}
+		// else, if it is in a group, move the group
+		else if ( itss != groupSources.end() ) {
+			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
+				grabSource( *its, x, y, dx, dy);
+			}
+		}
+		// nothing special, move the source individually
+		else
+			grabSource(s, x, y, dx, dy);
 	}
 
 }
@@ -858,15 +859,6 @@ void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
     s->setAlphaCoordinates( ix, iy );
 }
 
-
-void MixerView::alphaCoordinatesFromMouse(int mouseX, int mouseY, double *alphaX, double *alphaY){
-
-	double dum;
-
-	gluUnProject((GLdouble) mouseX, (GLdouble) (viewport[3] - mouseY), 0.0,
-	            modelview, projection, viewport, alphaX, alphaY, &dum);
-
-}
 
 /**
  *

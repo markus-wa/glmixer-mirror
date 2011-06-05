@@ -50,7 +50,6 @@ public:
 	void zoomReset();
 	void zoomBestFit( bool onlyClickedSource = false );
 
-	void alphaCoordinatesFromMouse(int mouseX, int mouseY, double *alphaX, double *alphaY);
     bool isInAGroup(Source *);
     void removeFromGroup(Source *s);
 
@@ -61,6 +60,7 @@ private:
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
     void grabSource(Source *s, int x, int y, int dx, int dy);
+    void grabSources(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy) ;
 
     void setAction(actionType a);

@@ -124,6 +124,8 @@ public:
 	 */
 	virtual bool keyReleaseEvent(QKeyEvent * event) ;
 
+	virtual void coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y);
+
     typedef enum {NONE = 0, OVER, GRAB, TOOL, SELECT, PANNING, DROP } actionType;
     void setAction(actionType a);
 	/**
@@ -227,20 +229,35 @@ public:
 	 */
 	virtual void clear() {
 		zoomReset();
-		selectedSources.clear();
 		clickedSources.clear();
 	}
 	/**
 	 *
 	 */
-	bool noSourceClicked() { return clickedSources.empty(); }
+	bool sourceClicked() { return !clickedSources.empty(); }
 
+
+	/**
+	 * SELECTION (static)
+	 */
+	static void select(Source *s);
+	static void deselect(Source *s);
+	static void select(SourceList l);
+	static void deselect(SourceList l);
+	static void clearSelection();
+	static bool isInSelection(Source *s);
+	static bool hasSelection() { return !_selectedSources.empty(); }
+	static void setSelection(SourceList l);
+	static SourceList::iterator selectionBegin() { return _selectedSources.begin(); }
+	static SourceList::iterator selectionEnd() { return _selectedSources.end(); }
+	static SourceList copySelection() { return SourceList (_selectedSources); }
+	static Source *selectionSource() { return _selectionSource; }
+
+	/**
+	 * CONFIGURATION
+	 */
 	virtual QDomElement getConfiguration(QDomDocument &doc);
 	virtual void setConfiguration(QDomElement xmlconfig);
-
-	static void removeFromSelection(Source *s);
-	static SourceList selection() { return selectedSources; }
-
 
 protected:
 	float zoom, minzoom, maxzoom, deltazoom;
@@ -251,13 +268,19 @@ protected:
 	GLdouble projection[16];
 	GLdouble modelview[16];
 
-	static SourceList selectedSources;
+
 	reverseSourceSet clickedSources;
 	QPoint lastClicPos;
 	QPixmap icon;
 	QString title;
 
     actionType currentAction, previousAction;
+
+private:
+	static SourceList _selectedSources;
+	static Source *_selectionSource;
+	static void updateSelectionSource();
+
 };
 
 #endif /* VIEW_H_ */

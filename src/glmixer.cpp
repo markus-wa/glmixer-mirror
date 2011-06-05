@@ -821,9 +821,9 @@ void GLMixer::on_actionDeleteSource_triggered()
 	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 	if ( RenderingManager::getInstance()->isValid(cs) ) {
 		// if the current source is in the selection, delete the whole selection
-		if ( View::selection().size() > 0  && View::selection().count(*cs) > 0 ) {
+		if ( View::hasSelection()  && View::isInSelection(*cs) ) {
 			// make a copy of the selection (to make sure we do not mess with pointers)
-			todelete = SourceList(View::selection());
+			todelete = View::copySelection();
 		}
 		else
 			// else delete only the current

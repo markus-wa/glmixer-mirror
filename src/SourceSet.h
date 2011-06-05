@@ -28,6 +28,7 @@
 
 #include <set>
 #include <deque>
+#include <algorithm>
 
 #include "Source.h"
 

@@ -52,30 +52,27 @@ public:
 	void zoomReset();
 	void zoomBestFit( bool onlyClickedSource = false );
 
-	void coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y);
-
 	void setTool(toolType t);
 	toolType getTool() { return currentTool; }
 
 private:
 
-    bool getSourcesAtCoordinates(int mouseX, int mouseY);
+    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool excludeSelection = false);
     char getSourceQuadrant(Source *s, int mouseX, int mouseY);
     void grabSource(Source *s, int x, int y, int dx, int dy);
-    void scaleSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
+    void grabSources(Source *s, int x, int y, int dx, int dy);
+    void scaleSource(Source *s, int x, int y, int dx, int dy, char quadrant, bool option = 0);
+    void scaleSources(Source *s, int x, int y, int dx, int dy, bool option = 0);
     void rotateSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
+    void rotateSources(Source *s, int x, int y, int dx, int dy, bool option = 0);
     void cropSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
     void panningBy(int x, int y, int dx, int dy);
     void setAction(actionType a);
 
-    void setBoundingRectangle(SourceList l);
-    char getBoundingRectangleQuadrant(int X, int Y);
-
-    char quadrant, selectionQuadrant;
+    char quadrant;
     GLuint borderType;
     toolType currentTool;
 
-	GLdouble selectionRectangleOut[4], selectionRectangleIn[4];
 };
 
 #endif /* GEOMETRYVIEWWIDGET_H_ */

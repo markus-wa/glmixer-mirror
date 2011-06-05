@@ -190,7 +190,7 @@ void CatalogView::drawSource(Source *s, int index)
 			glLineWidth(1.0);
 		}
 
-		if ( View::selectedSources.count(s) > 0)
+		if ( View::isInSelection(s) )
 			glColor4ub(COLOR_SELECTION, 250);		//  color for selected sources
 		else
 			glColor4ub(COLOR_SOURCE, 250);			//  color for normal
@@ -332,12 +332,8 @@ bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 			RenderingManager::getInstance()->setCurrentSource(sourceClicked->getId());
 
 			// if the CTRL key is also pressed, then add / remove it to the selection
-			if (event->modifiers() & Qt::ControlModifier) {
-				if (View::selectedSources.count(sourceClicked) > 0)
-					View::selectedSources.erase(sourceClicked);
-				else
-					View::selectedSources.insert(sourceClicked);
-			}
+			if (event->modifiers() & Qt::ControlModifier)
+				View::select(sourceClicked);
 		}
 
 		return true;

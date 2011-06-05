@@ -1826,12 +1826,7 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionZoomCurrentSource"/>
      <addaction name="actionResetSource"/>
     </widget>
-    <widget class="QMenu" name="menuAdd_source_s_Media_File_s">
-     <property name="title">
-      <string>Add source(s) &amp;Media File(s)</string>
-     </property>
-    </widget>
-    <addaction name="menuAdd_source_s_Media_File_s"/>
+    <addaction name="actionMediaSource"/>
     <addaction name="actionCameraSource"/>
     <addaction name="actionRenderingSource"/>
     <addaction name="actionCaptureSource"/>
@@ -1905,7 +1900,7 @@ Uncheck to display the restart frame when stopped.</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="menuAdd_source_s_Media_File_s"/>
+   <addaction name="actionMediaSource"/>
    <addaction name="actionCameraSource"/>
    <addaction name="actionRenderingSource"/>
    <addaction name="actionCaptureSource"/>
@@ -3455,6 +3450,24 @@ Uncheck to display the restart frame when stopped.</string>
   <action name="actionResetSource">
    <property name="text">
     <string>Reset</string>
+   </property>
+  </action>
+  <action name="actionMediaSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add source(s) Media File(s)</string>
+   </property>
+   <property name="toolTip">
+    <string>Add a source from video or image file(s)</string>
+   </property>
+   <property name="statusTip">
+    <string>Create sources playing videos or images</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
    </property>
   </action>
  </widget>

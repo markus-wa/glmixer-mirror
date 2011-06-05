@@ -210,7 +210,7 @@ void ViewRenderWidget::initializeGL()
 	// Create display lists
 	quad_texured = buildTexturedQuadList();
 	border_thin_shadow = buildLineList();
-	border_large_shadow = border_thin_shadow + 2;
+	border_large_shadow = border_thin_shadow + 1;
 	frame_selection = buildSelectList();
 	circle_mixing = buildCircleList();
 	layerbg = buildLayerbgList();
@@ -219,8 +219,8 @@ void ViewRenderWidget::initializeGL()
 	frame_screen = buildFrameList();
 	frame_screen_thin = frame_screen + 1;
 	border_thin = buildBordersList();
-	border_large = border_thin + 2;
-	border_scale = border_thin + 4;
+	border_large = border_thin + 1;
+	border_scale = border_thin + 2;
 	fading = buildFadingList();
 
 	// Create mask textures
@@ -346,7 +346,7 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 
 void ViewRenderWidget::removeFromSelections(Source *s)
 {
-	View::removeFromSelection(s);
+	View::deselect(s);
 	_mixingView->removeFromGroup(s);
 }
 
@@ -386,7 +386,7 @@ void ViewRenderWidget::contextMenu(const QPoint &pos)
 		if (catalogMenu)
 			catalogMenu->exec(mapToGlobal(pos));
 	}
-	else if (_currentView->noSourceClicked())
+	else if ( !_currentView->sourceClicked())
 	{
 		if (viewMenu)
 			viewMenu->exec(mapToGlobal(pos));
@@ -641,26 +641,16 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 		// if there is something to drop, inform the rendering manager that it can drop the source at the clic coordinates
 		if (RenderingManager::getInstance()->getSourceBasketTop() && event->buttons() & Qt::LeftButton)
 		{
+			double x = 0.0, y = 0.0;
+			_currentView->coordinatesFromMouse(event->x(), event->y(), &x, &y);
 
 			// depending on the view, ask the rendering manager to drop the source with the user parameters
 			if (_currentView == _mixingView)
-			{
-				double ax = 0.0, ay = 0.0;
-				_mixingView->alphaCoordinatesFromMouse(event->x(), event->y(), &ax, &ay);
-				emit sourceMixingDrop(ax, ay);
-			}
+				emit sourceMixingDrop(x, y);
 			else if (_currentView == _geometryView)
-			{
-				double x = 0.0, y = 0.0;
-				_geometryView->coordinatesFromMouse(event->x(), event->y(), &x, &y);
 				emit sourceGeometryDrop(x, y);
-			}
 			else if (_currentView == _layersView)
-			{
-				double d = 0.0, dumm;
-				_layersView->unProjectDepth(event->x(), event->y(), 0.0, 0.0, &d, &dumm);
-				emit sourceLayerDrop(d);
-			}
+				emit sourceLayerDrop(x);
 		}
 		else
 			// the mouse press was not treated ; forward it
@@ -1107,7 +1097,7 @@ GLuint ViewRenderWidget::buildLineList()
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &texid, &highpriority);
 
-	GLuint base = glGenLists(2);
+	GLuint base = glGenLists(4);
 	glListBase(base);
 
 	// default thin border
@@ -1132,30 +1122,8 @@ GLuint ViewRenderWidget::buildLineList()
 
 	glEndList();
 
-	// default thin border STATIC
-	glNewList(base + 1, GL_COMPILE);
-
-		glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-
-		glPushMatrix();
-		glScalef(1.23, 1.23, 1.0);
-		glColor4ub(0, 0, 0, 0);
-		glDrawArrays(GL_QUADS, 0, 4);
-		glPopMatrix();
-
-		glLineWidth(1.0);
-		glColor4ub(COLOR_SOURCE_STATIC, 180);
-		glBegin(GL_LINE_LOOP); // begin drawing a square
-		glVertex2f(-1.05f, -1.05f); // Bottom Left
-		glVertex2f(1.05f, -1.05f); // Bottom Right
-		glVertex2f(1.05f, 1.05f); // Top Right
-		glVertex2f(-1.05f, 1.05f); // Top Left
-		glEnd();
-
-	glEndList();
-
 	// over
-	glNewList(base + 2, GL_COMPILE);
+	glNewList(base + 1, GL_COMPILE);
 
 		glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
 
@@ -1167,6 +1135,28 @@ GLuint ViewRenderWidget::buildLineList()
 
 		glLineWidth(3.0);
 		glColor4ub(COLOR_SOURCE, 180);
+		glBegin(GL_LINE_LOOP); // begin drawing a square
+		glVertex2f(-1.05f, -1.05f); // Bottom Left
+		glVertex2f(1.05f, -1.05f); // Bottom Right
+		glVertex2f(1.05f, 1.05f); // Top Right
+		glVertex2f(-1.05f, 1.05f); // Top Left
+		glEnd();
+
+	glEndList();
+
+	// default thin border STATIC
+	glNewList(base + 2, GL_COMPILE);
+
+		glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+
+		glPushMatrix();
+		glScalef(1.23, 1.23, 1.0);
+		glColor4ub(0, 0, 0, 0);
+		glDrawArrays(GL_QUADS, 0, 4);
+		glPopMatrix();
+
+		glLineWidth(1.0);
+		glColor4ub(COLOR_SOURCE_STATIC, 180);
 		glBegin(GL_LINE_LOOP); // begin drawing a square
 		glVertex2f(-1.05f, -1.05f); // Bottom Left
 		glVertex2f(1.05f, -1.05f); // Bottom Right
@@ -1418,80 +1408,39 @@ GLuint ViewRenderWidget::buildFrameList()
  **/
 GLuint ViewRenderWidget::buildBordersList()
 {
-	GLuint base = glGenLists(4);
+	GLuint base = glGenLists(12);
 	glListBase(base);
 
 	// default thin border
 	glNewList(base, GL_COMPILE);
-
 	glLineWidth(1.0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glColor4ub(COLOR_SOURCE, 180);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
 	glVertex2f(-1.0f, -1.0f); // Bottom Left
 	glVertex2f(1.0f, -1.0f); // Bottom Right
 	glVertex2f(1.0f, 1.0f); // Top Right
 	glVertex2f(-1.0f, 1.0f); // Top Left
 	glEnd();
-
-	glEndList();
-
-	// thin border for static
-	glNewList(base + 1, GL_COMPILE);
-
-	glLineWidth(1.0);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
-	glColor4ub(COLOR_SOURCE_STATIC, 180);
-	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex2f(-1.0f, -1.0f); // Bottom Left
-	glVertex2f(1.0f, -1.0f); // Bottom Right
-	glVertex2f(1.0f, 1.0f); // Top Right
-	glVertex2f(-1.0f, 1.0f); // Top Left
-	glEnd();
-
 	glEndList();
 
 	// selected large border (no action)
-	glNewList(base + 2, GL_COMPILE);
-
+	glNewList(base + 1, GL_COMPILE);
 	glLineWidth(3.0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glColor4ub(COLOR_SOURCE, 200);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
 	glVertex2f(-1.0f, -1.0f); // Bottom Left
 	glVertex2f(1.0f, -1.0f); // Bottom Right
 	glVertex2f(1.0f, 1.0f); // Top Right
 	glVertex2f(-1.0f, 1.0f); // Top Left
 	glEnd();
-
-	glEndList();
-
-	// selected STATIC large border (no action)
-	glNewList(base + 3, GL_COMPILE);
-
-	glLineWidth(3.0);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
-	glColor4ub(COLOR_SOURCE_STATIC, 200);
-	glBegin(GL_LINE_LOOP); // begin drawing a square
-	glVertex2f(-1.0f, -1.0f); // Bottom Left
-	glVertex2f(1.0f, -1.0f); // Bottom Right
-	glVertex2f(1.0f, 1.0f); // Top Right
-	glVertex2f(-1.0f, 1.0f); // Top Left
-	glEnd();
-
 	glEndList();
 
 	// selected for TOOL
-	glNewList(base + 4, GL_COMPILE);
-
+	glNewList(base + 2, GL_COMPILE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glColor4ub(COLOR_SOURCE, 230);
-	// draw the bold border
 	glLineWidth(3.0);
 	glBegin(GL_LINE_LOOP); // begin drawing a square
 	glVertex2f(-1.0f, -1.0f); // Bottom Left
@@ -1499,83 +1448,91 @@ GLuint ViewRenderWidget::buildBordersList()
 	glVertex2f(1.0f, 1.0f); // Top Right
 	glVertex2f(-1.0f, 1.0f); // Top Left
 	glEnd();
-
 	glLineWidth(1.0);
-	glBegin(GL_LINES); // begin drawing a square
-	//    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
+	glBegin(GL_LINES); // begin drawing handles
+	// Bottom Left
 	glVertex2f(-BORDER_SIZE, -1.0f);
 	glVertex2f(-BORDER_SIZE, -BORDER_SIZE);
 	glVertex2f(-BORDER_SIZE, -BORDER_SIZE);
 	glVertex2f(-1.0f, -BORDER_SIZE);
-
-	//    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
+	// Bottom Right
 	glVertex2f(1.0f, -BORDER_SIZE);
 	glVertex2f(BORDER_SIZE, -BORDER_SIZE);
 	glVertex2f(BORDER_SIZE, -BORDER_SIZE);
 	glVertex2f(BORDER_SIZE, -1.0f);
-
-	//    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
+	// Top Right
 	glVertex2f(BORDER_SIZE, 1.0f);
 	glVertex2f(BORDER_SIZE, BORDER_SIZE);
 	glVertex2f(BORDER_SIZE, BORDER_SIZE);
 	glVertex2f(1.0f, BORDER_SIZE);
-
-	//    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
+	// Top Left
 	glVertex2f(-BORDER_SIZE, 1.0f);
 	glVertex2f(-BORDER_SIZE, BORDER_SIZE);
 	glVertex2f(-BORDER_SIZE, BORDER_SIZE);
 	glVertex2f(-1.0f, BORDER_SIZE);
-
 	glEnd();
-
 	glEndList();
 
-	// selected for TOOL
-		glNewList(base + 5, GL_COMPILE);
+	// Normal source color
+	glNewList(base + 3, GL_COMPILE);
+	glColor4ub(COLOR_SOURCE, 180);
+	glCallList(base);
+	glEndList();
 
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBlendEquation(GL_FUNC_ADD);
-		glColor4ub(COLOR_SOURCE_STATIC, 230);
-		// draw the bold border
-		glLineWidth(3.0);
-		glBegin(GL_LINE_LOOP); // begin drawing a square
-		glVertex2f(-1.0f, -1.0f); // Bottom Left
-		glVertex2f(1.0f, -1.0f); // Bottom Right
-		glVertex2f(1.0f, 1.0f); // Top Right
-		glVertex2f(-1.0f, 1.0f); // Top Left
-		glEnd();
+	glNewList(base + 4, GL_COMPILE);
+	glColor4ub(COLOR_SOURCE, 200);
+	glCallList(base+1);
+	glEndList();
 
-		glLineWidth(1.0);
-		glBegin(GL_LINES); // begin drawing a square
-		//    glVertex3f(-1.0f, -1.0f, 0.0f); // Bottom Left
-		glVertex2f(-BORDER_SIZE, -1.0f);
-		glVertex2f(-BORDER_SIZE, -BORDER_SIZE);
-		glVertex2f(-BORDER_SIZE, -BORDER_SIZE);
-		glVertex2f(-1.0f, -BORDER_SIZE);
+	glNewList(base + 5, GL_COMPILE);
+	glColor4ub(COLOR_SOURCE, 220);
+	glCallList(base+2);
+	glEndList();
 
-		//    glVertex3f(1.0f, -1.0f, 0.0f); // Bottom Right
-		glVertex2f(1.0f, -BORDER_SIZE);
-		glVertex2f(BORDER_SIZE, -BORDER_SIZE);
-		glVertex2f(BORDER_SIZE, -BORDER_SIZE);
-		glVertex2f(BORDER_SIZE, -1.0f);
 
-		//    glVertex3f(1.0f, 1.0f, 0.0f); // Top Right
-		glVertex2f(BORDER_SIZE, 1.0f);
-		glVertex2f(BORDER_SIZE, BORDER_SIZE);
-		glVertex2f(BORDER_SIZE, BORDER_SIZE);
-		glVertex2f(1.0f, BORDER_SIZE);
+	// Static source color
+	glNewList(base + 6, GL_COMPILE);
+	glColor4ub(COLOR_SOURCE_STATIC, 180);
+	glCallList(base);
+	glEndList();
 
-		//    glVertex3f(-1.0f, 1.0f, 0.0f); // Top Left
-		glVertex2f(-BORDER_SIZE, 1.0f);
-		glVertex2f(-BORDER_SIZE, BORDER_SIZE);
-		glVertex2f(-BORDER_SIZE, BORDER_SIZE);
-		glVertex2f(-1.0f, BORDER_SIZE);
+	glNewList(base + 7, GL_COMPILE);
+	glColor4ub(COLOR_SOURCE_STATIC, 200);
+	glCallList(base+1);
+	glEndList();
 
-		glEnd();
+	glNewList(base + 8, GL_COMPILE);
+	glColor4ub(COLOR_SOURCE_STATIC, 220);
+	glCallList(base+2);
+	glEndList();
 
-		glEndList();
 
-	return base;
+	// Selection source color
+	glNewList(base + 9, GL_COMPILE);
+	glColor4ub(COLOR_SELECTION , 180);
+	glLineStipple(1, 0x9999);
+	glEnable(GL_LINE_STIPPLE);
+	glCallList(base);
+	glDisable(GL_LINE_STIPPLE);
+	glEndList();
+
+	glNewList(base + 10, GL_COMPILE);
+	glColor4ub(COLOR_SELECTION, 200);
+	glLineStipple(1, 0x9999);
+	glEnable(GL_LINE_STIPPLE);
+	glCallList(base+1);
+	glDisable(GL_LINE_STIPPLE);
+	glEndList();
+
+	glNewList(base + 11, GL_COMPILE);
+	glColor4ub(COLOR_SELECTION, 220);
+	glLineStipple(1, 0x9999);
+	glEnable(GL_LINE_STIPPLE);
+	glCallList(base+2);
+	glDisable(GL_LINE_STIPPLE);
+	glEndList();
+
+	return base + 3;
 }
 
 GLuint ViewRenderWidget::buildFadingList()

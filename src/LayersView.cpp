@@ -121,12 +121,12 @@ void LayersView::paint()
 			ViewRenderWidget::setSourceDrawingMode(false);
 			// draw border (larger if active)
 			if (RenderingManager::getInstance()->isCurrentSource(its))
-				glCallList(ViewRenderWidget::border_large_shadow);
+				glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2));
 			else
-				glCallList(ViewRenderWidget::border_thin_shadow);
+				glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2));
 
 			// draw border for selection
-			if (View::selectedSources.count(*its))
+			if (View::isInSelection(*its))
 				glCallList(ViewRenderWidget::frame_selection);
 
 			ViewRenderWidget::setSourceDrawingMode(true);
@@ -241,8 +241,8 @@ void LayersView::bringForward(Source *s, bool individual)
 		forwardDisplacement = 0;
 
 	// if the source is part of a selection, set the whole selection to be forward
-	if (!individual && (View::selectedSources.count(s) > 0 && View::selectedSources.count(*RenderingManager::getInstance()->getCurrentSource())) )
-		forwardSources = View::selectedSources;
+	if (!individual && (View::isInSelection(s) && View::isInSelection(*RenderingManager::getInstance()->getCurrentSource())) )
+		forwardSources = View::copySelection();
 	else {
 		// else only this source is forward
 		forwardSources = SourceList();
@@ -276,14 +276,8 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
     		return false;
 
 		// CTRL clic = add/remove from selection
-		if ( currentAction == View::SELECT ) {
-
-			if ( View::selectedSources.count(clicked) > 0)
-				View::selectedSources.erase( clicked );
-			else
-				View::selectedSources.insert( clicked );
-
-		}
+		if ( currentAction == View::SELECT )
+			View::select(clicked);
 		// else not SELECTION ; normal action
 		else {
 			//  make the top most source clicked now the newly current one
@@ -305,7 +299,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	forwardSources.clear();
 	// back to no action
 	if ( currentAction == View::SELECT )
-		View::selectedSources.clear();
+		View::clearSelection();
 	else
 		setAction(View::NONE);
 
@@ -343,14 +337,11 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 		// keep the iterator of the current source under the shoulder ; it will be used
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 
-		// if there is a current source
-		if ( currentAction == View::GRAB && RenderingManager::getInstance()->notAtEnd(cs)) {
+		// if there is a current source, grab it (with other forward sources)
+		if ( currentAction == View::GRAB && RenderingManager::getInstance()->isValid(cs))
+			grabSources( *cs, event->x(), event->y(), dx, dy);
 
-			// move all the source placed forward
-			for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++)
-				grabSource( *its, event->x(), event->y(), dx, dy, (*its)->getId() == (*cs)->getId());
 
-		}
 		return true;
 	}
 	// mouse over (no buttons)
@@ -426,10 +417,10 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 			deltazoom = zoom - previous;
 			// simulate a grab with no mouse movement but a deltazoom :
 			SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-			if ( RenderingManager::getInstance()->notAtEnd(cs))
-				// move all the source placed forward
-				for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++)
-					grabSource( *its, event->x(), event->y(), dx, dy, (*its)->getId() == (*cs)->getId());
+
+			// if there is a current source, grab it (with other forward sources)
+			if ( RenderingManager::getInstance()->isValid(cs))
+				grabSources( *cs, event->x(), event->y(), dx, dy);
 
 			// reset deltazoom
 			deltazoom = 0;
@@ -586,9 +577,15 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     	hits--;
     }
 
-    return !clickedSources.empty();
+    return sourceClicked();
 }
 
+
+void LayersView::coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y){
+
+	unProjectDepth(mouseX, mouseY, 0.0, 0.0, X, Y);
+
+}
 
 void LayersView::unProjectDepth(int x, int y, int dx, int dy, double *depth, double *depthBeforeDelta){
 
@@ -650,6 +647,17 @@ void LayersView::grabSource(Source *s, int x, int y, int dx, int dy, bool setcur
 	// if we need to set current again
 	if (setcurrent)
 		RenderingManager::getInstance()->setCurrentSource(currentSource);
+
+}
+
+
+void LayersView::grabSources(Source *s, int x, int y, int dx, int dy)
+{
+	// move all the source placed forward
+	for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++) {
+		grabSource( *its, x, y, dx, dy, (*its)->getId() == s->getId());
+		s = *RenderingManager::getInstance()->getCurrentSource();
+	}
 
 }
 
