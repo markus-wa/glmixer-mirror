@@ -117,6 +117,7 @@ public:
 	}
 	bool setCurrentNext();
 	bool setCurrentPrevious();
+	void unsetCurrentSource() { setCurrentSource( getEnd() ); }
 
 
 	void addSourceToBasket(Source *s);

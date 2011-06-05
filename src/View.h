@@ -252,6 +252,7 @@ public:
 	static SourceList::iterator selectionEnd() { return _selectedSources.end(); }
 	static SourceList copySelection() { return SourceList (_selectedSources); }
 	static Source *selectionSource() { return _selectionSource; }
+	static void updateSelectionSource();
 
 	/**
 	 * CONFIGURATION
@@ -279,7 +280,6 @@ protected:
 private:
 	static SourceList _selectedSources;
 	static Source *_selectionSource;
-	static void updateSelectionSource();
 
 };
 

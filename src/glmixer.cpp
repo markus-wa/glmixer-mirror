@@ -1807,7 +1807,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	OutputRenderWindow::getInstance()->refresh();
 	outputpreview->refresh();
 	// de-select current source
-	RenderingManager::getInstance()->setCurrentSource(-1);
+	RenderingManager::getInstance()->unsetCurrentSource();
 }
 
 QByteArray GLMixer::getPreferences() const {

@@ -34,7 +34,7 @@
 #define MAXZOOM 3.0
 #define DEFAULTZOOM 0.5
 
-GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE)
+GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE), currentSource(0)
 {
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
@@ -144,31 +144,6 @@ void GeometryView::paint()
 
     // Then the selection outlines
 	if ( View::hasSelection() ) {
-//		// set rectangle to selection
-//		setBoundingRectangle(View::selectedSources);
-//		// draw selection
-//		glColor4ub(COLOR_SELECTION, 200);
-//		glLineWidth(2);
-//		glLineStipple(1, 0x9999);
-//		glEnable(GL_LINE_STIPPLE);
-//		glBegin(GL_LINE_LOOP); // drawing borders
-//			glVertex2f(selectionRectangleOut[0], selectionRectangleOut[1]); // Bottom Left
-//			glVertex2f(selectionRectangleOut[0], selectionRectangleOut[3]); // Bottom Right
-//			glVertex2f(selectionRectangleOut[2], selectionRectangleOut[3]); // top right
-//			glVertex2f(selectionRectangleOut[2], selectionRectangleOut[1]); // Top Left
-//		glEnd();
-//		glDisable(GL_LINE_STIPPLE);
-//		if ( selectionQuadrant > -1 ) {
-//			glColor4ub(COLOR_SELECTION_AREA, 50);
-//			glRectf(selectionRectangleOut[0], selectionRectangleOut[1], selectionRectangleIn[0], selectionRectangleIn[1]);
-//			glRectf(selectionRectangleOut[0], selectionRectangleOut[3], selectionRectangleIn[0], selectionRectangleIn[3]);
-//			glRectf(selectionRectangleOut[2], selectionRectangleOut[3], selectionRectangleIn[2], selectionRectangleIn[3]);
-//			glRectf(selectionRectangleOut[2], selectionRectangleOut[1], selectionRectangleIn[2], selectionRectangleIn[1]);
-//		}
-//
-//		// update the shape of the selection source
-//		updateSelectionSource(View::selectedSources);
-
 		// Draw center point
 		glPushMatrix();
 		glTranslated(View::selectionSource()->getX(), View::selectionSource()->getY(), 0);
@@ -181,9 +156,12 @@ void GeometryView::paint()
 		// Draw selection source
 		glRotated(View::selectionSource()->getRotationAngle(), 0.0, 0.0, 1.0);
 		glScaled(View::selectionSource()->getScaleX(), View::selectionSource()->getScaleY(), 1.f);
-		glCallList(borderType  + 6 );
-		glPopMatrix();
+		if ( currentSource == View::selectionSource() )
+			glCallList(borderType + 6);
+		else
+			glCallList(ViewRenderWidget::border_thin + 6);
 
+		glPopMatrix();
 	}
 
     // last the frame thing
@@ -253,66 +231,50 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 		return false;
 	}
 
-
-	// if at least one source icon was clicked
+	// if at least one source was clicked
 	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), QApplication::keyboardModifiers () & Qt::ShiftModifier) )
 	{
 		// get the top most clicked source
-		Source *clicked = *clickedSources.begin();
-		if (!clicked)
+		Source * s =  *clickedSources.begin();
+		if (!s)
 			return false;
 
-		// if we clicked on the selection ; manipulate it and ignore the default source action
-		if (clicked == View::selectionSource()) {
-			// set current to none (end of list)
-			RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
-			// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
-			if(quadrant == 0 || currentTool == MOVE) {
-				setAction(View::GRAB);
-			} else {
-				setAction(View::TOOL);
+		// if there was no current source
+		// OR
+		// if the currently active source is NOT in the set of clicked sources,
+		// then : just take the top most source clicked as current
+		if ( currentSource == 0 || clickedSources.count(currentSource) == 0 )
+			setCurrentSource(s);
+
+		if ( event->button() == Qt::LeftButton ) {
+			// SELECT add/remove new current from selection
+			if ( currentAction == View::SELECT ) {
+				View::select(currentSource);
+				setCurrentSource(View::selectionSource());
 			}
-
-		}
-		else {
-			// if there was no current source
-			// OR
-			// if the currently active source is NOT in the set of clicked sources,
-			// then , its simple : just take the top most source clicked now
-			if ( RenderingManager::getInstance()->isCurrentSource( RenderingManager::getInstance()->getEnd() )
-				|| clickedSources.count(*RenderingManager::getInstance()->getCurrentSource() ) == 0 )
-				//  make the top most source clicked now the newly current one
-				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
-
-			// modify source only for left clic
-			if ( event->button() == Qt::LeftButton ) {
-				// SELECT add/remove new current from selection
-				SourceSet::iterator csit = RenderingManager::getInstance()->getCurrentSource();
-				if ( currentAction == View::SELECT )
-					View::select(*csit);
-				// else not SELECTION ; normal action
-				else {
-					// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
-					if(quadrant == 0 || currentTool == MOVE) {
-						setAction(View::GRAB);
-					} else {
-						setAction(View::TOOL);
-					}
-				}
+			else {
+				quadrant = getSourceQuadrant(currentSource, event->x(), viewport[3] - event->y());
+				// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
+				if(quadrant == 0 || currentTool == MOVE)
+					setAction(View::GRAB);
+				else
+					setAction(View::TOOL);
 			}
 		}
+
+		// we clicked a source
 		return true;
 	}
 
-	// set current to none (end of list)
-	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+	// set current to none
+	RenderingManager::getInstance()->unsetCurrentSource();
+	currentSource = 0;
 
 	// back to no action
 	if ( currentAction == View::SELECT )
 		View::clearSelection();
 	else
 		setAction(View::NONE);
-
 
 	return false;
 }
@@ -321,8 +283,6 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 {
 	if (!event)
 		return false;
-
-	Source *cs = 0, *s = 0;
 
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
@@ -353,46 +313,24 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	if ( currentAction == View::SELECT )
 		return false;
 
-	// is there a current source ?
-	SourceSet::iterator csit = RenderingManager::getInstance()->getCurrentSource();
-	if (RenderingManager::getInstance()->isValid(csit))
-		cs = *csit;
-
-	// manipulate selection if there is one
-	if ( !cs && View::hasSelection() )
-		s = View::selectionSource();
-	else
-	// else manipulate the current source
-		s = cs;
-
-	if (s && (currentAction == View::GRAB || currentAction == View::TOOL) ) {
+	if ( currentSource && (currentAction == View::GRAB || currentAction == View::TOOL) ) {
 
 		if (currentAction == View::TOOL) {
 			if (currentTool == GeometryView::MOVE)
-				grabSources(s, event->x(), viewport[3] - event->y(), dx, dy);
+				grabSources(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
 			else if (currentTool == GeometryView::SCALE)
-				scaleSources(s, event->x(), viewport[3] - event->y(), dx, dy);
+				scaleSources(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
 			else if (currentTool == GeometryView::CROP)
-				cropSource(s, event->x(), viewport[3] - event->y(), dx, dy);
+				cropSource(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
 			else if (currentTool == GeometryView::ROTATE) {
-				rotateSource(s, event->x(), viewport[3] - event->y(), dx, dy);
+				rotateSource(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
 				setTool(currentTool);
 			}
-		} else {
-			grabSources(s, event->x(), viewport[3] - event->y(), dx, dy);
-		}
+		} else
+			grabSources(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
 
 		return true;
 	}
-
-//	// detect if mouse is over a selection rectangle
-//	selectionQuadrant = View::selectedSources.empty() ? -1 : getBoundingRectangleQuadrant(event->x(), viewport[3] - event->y());
-//	// if we are on the selection
-//	if ( selectionQuadrant > -1 ){
-////		qDebug("on selection quadrant %d", selectionQuadrant);
-//
-//		setAction(View::OVER);
-//	}
 
 	// mouse over (no buttons)
 	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
@@ -404,11 +342,10 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		// set quadrant to 0 (grab)
 		// ELSE
 		// use the current source for quadrant computation
-		if ( s == 0 || clickedSources.count( s ) == 0 )
+		if ( currentSource == 0 || clickedSources.count( currentSource ) == 0 )
 			quadrant = 0;
 		else
-			quadrant = getSourceQuadrant(s, event->x(), viewport[3] - event->y());
-
+			quadrant = getSourceQuadrant(currentSource, event->x(), viewport[3] - event->y());
 
 		if(quadrant == 0 || currentTool == MOVE)
 			borderType = ViewRenderWidget::border_large;
@@ -440,9 +377,8 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
 	}
 
     // enforces minimal size ; check that the rescaling did not go bellow the limits and fix it
-	if ( RenderingManager::getInstance()->notAtEnd( RenderingManager::getInstance()->getCurrentSource()) ) {
+	if ( RenderingManager::getInstance()->notAtEnd( RenderingManager::getInstance()->getCurrentSource()) )
 		(*RenderingManager::getInstance()->getCurrentSource())->clampScale();
-	}
 
 	return true;
 }
@@ -458,24 +394,22 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
 	if (currentAction == View::GRAB || currentAction == View::TOOL ){
 		deltazoom = 1.0 - (zoom / previous);
-		// keep the iterator of the current source under the shoulder ; it will be used
-		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
-			// manipulate the current source according to the operation detected when clicking
+		// if there is a current source
+		if ( currentSource ) {
+			// manipulate the current source according to the ongoing action
 			if (currentTool == MOVE || currentAction == View::GRAB)
-				grabSources(*cs, event->x(), viewport[3] - event->y(), 0, 0);
+				grabSources(currentSource, event->x(), viewport[3] - event->y(), 0, 0);
 			else if (currentTool == SCALE)
-				scaleSources(*cs, event->x(), viewport[3] - event->y(), 0, 0);
+				scaleSources(currentSource, event->x(), viewport[3] - event->y(), 0, 0);
 			else if (currentTool == ROTATE)
-				rotateSource(*cs, event->x(), viewport[3] - event->y(), 0, 0);
+				rotateSource(currentSource, event->x(), viewport[3] - event->y(), 0, 0);
 
 		}
 		// reset deltazoom
 		deltazoom = 0;
-	} else {
+	} else
 		// do not show action indication (as it is likely to become invalid with view change)
 		borderType = ViewRenderWidget::border_large;
-	}
 
 	return true;
 }
@@ -498,8 +432,8 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 	    	SourceSet::iterator clicked = clickedSources.begin();
 
 			// if there is no source selected, select the top most
-			if ( RenderingManager::getInstance()->getCurrentSource() == RenderingManager::getInstance()->getEnd() ) {
-				RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
+			if ( currentSource == 0 ) {
+				setCurrentSource(*clicked);
 				// Meta + double click = zoom best fit on current source
 				if (event->modifiers () & Qt::MetaModifier)
 					zoomBestFit(true);
@@ -510,19 +444,18 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 					zoomBestFit(true);
 				else {
 					// find where the current source is in the clickedSources
-					clicked = clickedSources.find(*RenderingManager::getInstance()->getCurrentSource()) ;
-					// decrement the clicked iterator forward in the clickedSources (and jump back to end when at begining)
+					clicked = clickedSources.find(currentSource) ;
+					// decrement the clicked iterator forward in the clickedSources (and jump back to end when at beginning)
 					if ( clicked == clickedSources.begin() )
 						clicked = clickedSources.end();
 					clicked--;
 
 					// set this newly clicked source as the current one
-					RenderingManager::getInstance()->setCurrentSource( (*clicked)->getId() );
+					setCurrentSource(*clicked);
 					// update quadrant to match newly current source
 					quadrant = getSourceQuadrant(*clicked, event->x(), viewport[3] - event->y());
 				}
 			}
-
 		}
 		// default action ; zoom best fit on whole screen
 		else
@@ -668,9 +601,19 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 	}
 	// 0. consider either the clicked source, either the full list
     SourceSet::iterator beginning, end;
-    if (onlyClickedSource && RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
-    	beginning = end = RenderingManager::getInstance()->getCurrentSource();
-    	end++;
+    if (onlyClickedSource ) {
+
+    	if (currentSource == View::selectionSource()) {
+    		beginning = View::selectionBegin();
+    		end = View::selectionEnd();
+    	}
+    	else if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd() ){
+    		beginning = end = RenderingManager::getInstance()->getCurrentSource();
+    		end++;
+    	}
+    	else
+    		return;
+
     } else {
     	beginning = RenderingManager::getInstance()->getBegin();
     	end = RenderingManager::getInstance()->getEnd();
@@ -844,6 +787,9 @@ void GeometryView::grabSources(Source *s, int x, int y, int dx, int dy) {
 		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
 			grabSource( *its, x, y, dx, dy);
 	}
+	// otherwise, update selection source if we move a source of the selection
+	else if (View::isInSelection(s))
+		View::updateSelectionSource();
 
 }
 
@@ -932,10 +878,19 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
 
 	// if the source is the View::selection, move the selection
 	if ( s == View::selectionSource() ) {
+
+//		double sx, sy;
+
 		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
-			scaleSource( *its, x, y, dx, dy, getSourceQuadrant(*its, x, y), option);
+
+
+
+			scaleSource( *its, x, y, dx, dy, getSourceQuadrant(*its, x, y));
 		}
 	}
+	// otherwise, update selection source if we move a source of the selection
+	else if (View::isInSelection(s))
+		View::updateSelectionSource();
 
 }
 
@@ -1029,6 +984,9 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
 			rotateSource( *its, x, y, dx, dy, option);
 		}
 	}
+	// otherwise, update selection source if we move a source of the selection
+	else if (View::isInSelection(s))
+		View::updateSelectionSource();
 
 }
 
@@ -1180,10 +1138,11 @@ char GeometryView::getSourceQuadrant(Source *s, int X, int Y) {
 
 	double w = s->getScaleX();
 	double h = s->getScaleY();
+
     // exclude mouse cursors out of the area
-    if ( ABS(x) > ABS(w)  || ABS(y) > ABS(h)) {
-    	return 0;
-    }
+//    if ( ABS(x) > ABS(w)  || ABS(y) > ABS(h)) {
+//    	return 0;
+//    }
 
     // compute the quadrant code : this is tricky as scales can be negative !
     if (( x > BORDER_SIZE * ABS(w) ) && ( y < -BORDER_SIZE * ABS(h) ) ) // RIGHT BOTTOM
@@ -1198,6 +1157,19 @@ char GeometryView::getSourceQuadrant(Source *s, int X, int Y) {
     return quadrant;
 }
 
+
+
+void GeometryView::setCurrentSource(Source *s)
+{
+	currentSource = s;
+
+	if (s && s != View::selectionSource())
+		RenderingManager::getInstance()->setCurrentSource( s->getId() );
+	else
+		// set current to none (end of list)
+		RenderingManager::getInstance()->unsetCurrentSource();
+
+}
 
 //char GeometryView::getBoundingRectangleQuadrant(int X, int Y){
 //

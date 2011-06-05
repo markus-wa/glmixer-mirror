@@ -69,9 +69,13 @@ private:
     void panningBy(int x, int y, int dx, int dy);
     void setAction(actionType a);
 
+    void setCurrentSource(Source *s);
+
     char quadrant;
     GLuint borderType;
     toolType currentTool;
+
+    Source *currentSource;
 
 };
 

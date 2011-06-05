@@ -294,7 +294,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	// clicked in the background
 
 	// set current source to none (end of list)
-	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+	RenderingManager::getInstance()->unsetCurrentSource();
 	// clear the list of sources forward
 	forwardSources.clear();
 	// back to no action

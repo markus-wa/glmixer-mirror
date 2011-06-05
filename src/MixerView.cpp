@@ -344,7 +344,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	// click in background
 
 	// set current to none (end of list)
-	RenderingManager::getInstance()->setCurrentSource( RenderingManager::getInstance()->getEnd() );
+	RenderingManager::getInstance()->unsetCurrentSource();
 
 	// back to no action
 	if ( currentAction != View::SELECT )
