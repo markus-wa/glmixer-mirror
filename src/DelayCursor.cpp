@@ -133,6 +133,10 @@ void DelayCursor::draw(GLint viewport[4]) {
 
 	QPointF pos(shadowPos);
 	QVectorIterator<QPointF> p(positions);
+
+	glEnable(GL_LINE_STIPPLE);
+	glLineStipple( 10 - int( 10.0 * latency / (MAX_LATENCY - MIN_LATENCY) ), 0xAAAA);
+
 	glLineWidth(1);
 	glBegin(GL_LINE_STRIP);
 	while (p.hasNext()){
@@ -140,6 +144,8 @@ void DelayCursor::draw(GLint viewport[4]) {
 		glVertex2d(pos.x(), (viewport[3] - pos.y()));
 	}
 	glEnd();
+
+	glDisable(GL_LINE_STIPPLE);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

@@ -146,8 +146,6 @@ ViewRenderWidget::ViewRenderWidget() :
 	Q_CHECK_PTR(_catalogView);
 
 	// create the cursors
-	_normalCursor = new Cursor;
-	Q_CHECK_PTR(_normalCursor);
 	_springCursor = new SpringCursor;
 	Q_CHECK_PTR(_springCursor);
 	_delayCursor = new DelayCursor;
@@ -159,8 +157,8 @@ ViewRenderWidget::ViewRenderWidget() :
 	_fuzzyCursor = new FuzzyCursor;
 	Q_CHECK_PTR(_fuzzyCursor);
 	// sets the current cursor
-	_currentCursor = _normalCursor;
-	enableCursor = false;
+	_currentCursor = 0;
+	cursorEnabled = false;
 
 	// opengl HID display
 	connect(&messageTimer, SIGNAL(timeout()), SLOT(hideMessage()));
@@ -189,8 +187,6 @@ ViewRenderWidget::~ViewRenderWidget()
 		delete _layersView;
 	if (_catalogView)
 		delete _catalogView;
-	if (_normalCursor)
-		delete _normalCursor;
 	if (_springCursor)
 		delete _springCursor;
 	if (_delayCursor)
@@ -413,6 +409,14 @@ ViewRenderWidget::toolMode ViewRenderWidget::getToolMode(){
 }
 
 
+void ViewRenderWidget::setCursorEnabled(bool on) {
+
+	if (_currentCursor == 0)
+		cursorEnabled = false;
+	else
+		cursorEnabled = on;
+}
+
 void ViewRenderWidget::setCursorMode(cursorMode m){
 
 	switch(m) {
@@ -434,9 +438,10 @@ void ViewRenderWidget::setCursorMode(cursorMode m){
 		break;
 	default:
 	case ViewRenderWidget::CURSOR_NORMAL:
-		_currentCursor = _normalCursor;
+		_currentCursor = 0;
 	}
 
+	cursorEnabled = false;
 }
 
 ViewRenderWidget::cursorMode ViewRenderWidget::getCursorMode(){
@@ -471,7 +476,7 @@ Cursor *ViewRenderWidget::getCursor(cursorMode m)
 			break;
 		default:
 		case ViewRenderWidget::CURSOR_NORMAL:
-			return _normalCursor;
+			return 0;
 	}
 
 }
@@ -535,7 +540,7 @@ void ViewRenderWidget::paintGL()
 	//
 	// 2. the shadow of the cursor
 	//
-		if (enableCursor && _currentCursor->apply(f_p_s_) ) {
+		if (cursorEnabled && _currentCursor->apply(f_p_s_) ) {
 
 			_currentCursor->draw(_currentView->viewport);
 
@@ -631,13 +636,16 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 {
 	makeCurrent();
 
-	_currentCursor->update(event);
 
 	// ask the catalog view if it wants this mouse press event and then
 	// inform the view of the mouse press event
-	if (!_catalogView->mousePressEvent(event) && !_currentView->mousePressEvent(event))
+	if (!_catalogView->mousePressEvent(event) )
 	{
 
+		if (_currentView->mousePressEvent(event))
+			// enable cursor on a clic
+			setCursorEnabled(true);
+		else
 		// if there is something to drop, inform the rendering manager that it can drop the source at the clic coordinates
 		if (RenderingManager::getInstance()->getSourceBasketTop() && event->buttons() & Qt::LeftButton)
 		{
@@ -657,6 +665,8 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 			QWidget::mousePressEvent(event);
 	}
 
+	if (cursorEnabled)
+		_currentCursor->update(event);
 }
 
 void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
@@ -668,35 +678,30 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 		return;
 
 
-//	// if there is a source to drop, direct cursor
-//	if ( RenderingManager::getInstance()->getSourceBasketTop() )
-//		_currentView->mouseMoveEvent(event);
-//	// else, indirect cursor
-//	else
-
-
-	if (enableCursor && _currentCursor->isActive())
+	if (cursorEnabled && _currentCursor->isActive())
 		_currentCursor->update(event);
-	else
-		_currentView->mouseMoveEvent(event);
-
-//	else
-//	{   // the view 'mouseMoveEvent' returns true ; there was something changed!
-//		if (_currentView == _mixingView)
-//			emit sourceMixingModified();
-//		else if (_currentView == _geometryView)
-//			emit sourceGeometryModified();
-//		else if (_currentView == _layersView)
-//			emit sourceLayerModified();
-//	}
-
+	else {
+		if (_currentView->mouseMoveEvent(event));
+		{   // the view 'mouseMoveEvent' returns true ; there was something changed!
+			if (_currentView == _mixingView)
+				emit sourceMixingModified();
+			else if (_currentView == _geometryView)
+				emit sourceGeometryModified();
+			else if (_currentView == _layersView)
+				emit sourceLayerModified();
+		}
+	}
 }
 
 void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
 {
 	makeCurrent();
 
-	_currentCursor->update(event);
+	if (cursorEnabled) {
+		_currentCursor->update(event);
+		// disable cursor
+		setCursorEnabled(false);
+	}
 
 	// ask the catalog view if it wants this mouse release event
 	if (_catalogView->mouseReleaseEvent(event))
@@ -729,7 +734,7 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 	if (_catalogView->wheelEvent(event))
 		return;
 
-	if (enableCursor && _currentCursor->wheelEvent(event))
+	if (cursorEnabled && _currentCursor->wheelEvent(event))
 		return;
 
 	if (!_currentView->wheelEvent(event))
@@ -786,7 +791,7 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 		QKeyEvent *keyEvent = static_cast<QKeyEvent *> (event);
 		if (keyEvent->key() == Qt::Key_Tab)
 		{
-			if (keyEvent->modifiers() & Qt::ShiftModifier)
+			if (QApplication::keyboardModifiers() & Qt::ShiftModifier)
 				RenderingManager::getInstance()->setCurrentPrevious();
 			else
 				RenderingManager::getInstance()->setCurrentNext();

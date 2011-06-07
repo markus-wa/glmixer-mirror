@@ -500,9 +500,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
-		// enable cursor on a source clic
-		RenderingManager::getRenderingWidget()->setCursorEnabled(true);
-
 		// enable properties and actions on the current valid source
 		sourceDockWidgetContents->setEnabled(true);
 		menuCurrent_source->setEnabled(true);
@@ -596,9 +593,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 			} // end video source
 		} // end playable
 	} else {  // it is not a valid source
-
-		// disable cursor on a source clic
-		RenderingManager::getRenderingWidget()->setCursorEnabled(false);
 
 		// disable panel widgets
 		menuCurrent_source->setEnabled(false);

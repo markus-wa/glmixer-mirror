@@ -151,7 +151,7 @@ public Q_SLOTS:
 	void setCatalogSizeMedium();
 	void setCatalogSizeLarge();
 	void setFaded(bool on) { faded = on; }
-	void setCursorEnabled(bool on) { enableCursor = on; }
+	void setCursorEnabled(bool on);
 
 protected:
 
@@ -185,13 +185,13 @@ private:
 	bool faded;
 
 	// C u r s o r s
-	Cursor *_currentCursor, *_normalCursor;
+	Cursor *_currentCursor;
 	SpringCursor *_springCursor;
 	DelayCursor *_delayCursor;
 	AxisCursor *_axisCursor;
 	LineCursor *_lineCursor;
 	FuzzyCursor *_fuzzyCursor;
-	bool enableCursor;
+	bool cursorEnabled;
 
 	// M e s s a g e s
 	QLabel *messageLabel, *fpsLabel;

@@ -66,6 +66,7 @@ private:
     void rotateSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
     void rotateSources(Source *s, int x, int y, int dx, int dy, bool option = 0);
     void cropSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
+    void cropSources(Source *s, int x, int y, int dx, int dy, bool option = 0);
     void panningBy(int x, int y, int dx, int dy);
     void setAction(actionType a);
 

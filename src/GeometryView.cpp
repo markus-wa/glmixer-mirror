@@ -321,9 +321,9 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 			else if (currentTool == GeometryView::SCALE)
 				scaleSources(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
 			else if (currentTool == GeometryView::CROP)
-				cropSource(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
+				cropSources(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
 			else if (currentTool == GeometryView::ROTATE) {
-				rotateSource(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
+				rotateSources(currentSource, event->x(), viewport[3] - event->y(), dx, dy);
 				setTool(currentTool);
 			}
 		} else
@@ -397,12 +397,14 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 		// if there is a current source
 		if ( currentSource ) {
 			// manipulate the current source according to the ongoing action
-			if (currentTool == MOVE || currentAction == View::GRAB)
+			if (currentTool == GeometryView::MOVE || currentAction == View::GRAB)
 				grabSources(currentSource, event->x(), viewport[3] - event->y(), 0, 0);
-			else if (currentTool == SCALE)
+			else if (currentTool == GeometryView::SCALE)
 				scaleSources(currentSource, event->x(), viewport[3] - event->y(), 0, 0);
-			else if (currentTool == ROTATE)
-				rotateSource(currentSource, event->x(), viewport[3] - event->y(), 0, 0);
+			else if (currentTool == GeometryView::CROP)
+				cropSources(currentSource, event->x(), viewport[3] - event->y(), 0, 0);
+			else if (currentTool == GeometryView::ROTATE)
+				rotateSources(currentSource, event->x(), viewport[3] - event->y(), 0, 0);
 
 		}
 		// reset deltazoom
@@ -873,19 +875,25 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
 
 	if (!s) return;
 
+	// keep the position and scale before modifying the source
+	double sxratio = 1.0/ s->getScaleX();
+	double syratio = 1.0/ s->getScaleY();
+	double sx = s->getX();
+	double sy = s->getY();
+
 	// move the source individually
-	scaleSource(s, x, y, dx, dy, quadrant, option);
+	scaleSource(s, x, y, dx, dy, quadrant, s == View::selectionSource());
 
 	// if the source is the View::selection, move the selection
 	if ( s == View::selectionSource() ) {
-
-//		double sx, sy;
-
+		// ratio of scaling now / before
+		sxratio *= s->getScaleX();
+		syratio *= s->getScaleY();
+		// apply scaling to all sources
 		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
-
-
-
-			scaleSource( *its, x, y, dx, dy, getSourceQuadrant(*its, x, y));
+			(*its)->setX( s->getX() + ((*its)->getX() - sx) * sxratio);
+			(*its)->setY( s->getY() + ((*its)->getY() - sy) * syratio);
+			(*its)->scaleBy(sxratio , syratio);
 		}
 	}
 	// otherwise, update selection source if we move a source of the selection
@@ -975,13 +983,40 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
 
 	if (!s) return;
 
-	// move the source individually
+	// keep the position and scale before modifying the source
+	double sxratio = 1.0/ s->getScaleX();
+	double syratio = 1.0/ s->getScaleY();
+	double angle = s->getRotationAngle();
+
+	// rotate the source individually
 	rotateSource(s, x, y, dx, dy, option);
 
 	// if the source is the View::selection, move the selection
 	if ( s == View::selectionSource() ) {
+
+		// ratio of scaling now / before
+		sxratio *= s->getScaleX();
+		syratio *= s->getScaleY();
+		angle -= s->getRotationAngle();
+		angle -= (double)( (int) angle / 360 ) * 360.0;
+
 		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
-			rotateSource( *its, x, y, dx, dy, option);
+
+			(*its)->scaleBy(sxratio , syratio);
+			(*its)->setRotationAngle( (*its)->getRotationAngle() - angle);
+
+		    double cosa = cos(-angle / 180.0 * M_PI);
+		    double sina = sin(-angle / 180.0 * M_PI);
+		    double dx = (*its)->getX() - s->getX();
+			double dy = (*its)->getY() - s->getY();
+
+			double dum = dx * cosa - dy * sina;
+			dy =  dy * cosa + dx * sina ;
+			dx = dum;
+
+			(*its)->setX(  s->getX() + dx * sxratio);
+			(*its)->setY(  s->getY() + dy * syratio);
+
 		}
 	}
 	// otherwise, update selection source if we move a source of the selection
@@ -1109,6 +1144,25 @@ void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool opti
 
 }
 
+
+void GeometryView::cropSources(Source *s, int x, int y, int dx, int dy, bool option) {
+
+	if (!s) return;
+
+	// crop the source individually
+	cropSource(s, x, y, dx, dy, option);
+
+	// if the source is the View::selection, move the selection
+	if ( s == View::selectionSource() ) {
+		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+			cropSource( *its, x, y, dx, dy, option);
+		}
+	}
+	// otherwise, update selection source if we move a source of the selection
+	else if (View::isInSelection(s))
+		View::updateSelectionSource();
+
+}
 
 /**
  *
