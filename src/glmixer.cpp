@@ -1925,6 +1925,13 @@ void GLMixer::on_actionSelectAll_triggered()
 	View::select(sl);
 }
 
+void GLMixer::on_actionSelectInvert_triggered()
+{
+	SourceSet::iterator sit = RenderingManager::getInstance()->getBegin();
+	// check for the existence of an opencv source which would already be on this same index
+	for ( ; RenderingManager::getInstance()->notAtEnd(sit); sit++)
+		View::select(*sit);
+}
 
 void GLMixer::on_actionSelectCurrent_triggered()
 {
@@ -1932,6 +1939,11 @@ void GLMixer::on_actionSelectCurrent_triggered()
 	if ( RenderingManager::getInstance()->isValid(sit) && !View::isInSelection(*sit))
 		View::select(*sit);
 
+}
+
+void GLMixer::on_actionSelectNone_triggered()
+{
+	View::clearSelection();
 }
 
 

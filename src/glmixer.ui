@@ -1836,7 +1836,10 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="menuCurrent_source"/>
     <addaction name="actionSelect_Next"/>
     <addaction name="actionSelect_Previous"/>
+    <addaction name="separator"/>
     <addaction name="actionSelectAll"/>
+    <addaction name="actionSelectInvert"/>
+    <addaction name="actionSelectNone"/>
    </widget>
    <widget class="QMenu" name="menuAction">
     <property name="title">
@@ -1859,6 +1862,9 @@ Uncheck to display the restart frame when stopped.</string>
      <string>&amp;Rendering</string>
     </property>
     <widget class="QMenu" name="menuAspect_Ratio">
+     <property name="toolTip">
+      <string>Choose rendering aspect ratio of rendering area</string>
+     </property>
      <property name="title">
       <string>Aspect Ratio</string>
      </property>
@@ -2554,6 +2560,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Free window  size</string>
    </property>
+   <property name="toolTip">
+    <string>Set rendering aspect ratio to free window size</string>
+   </property>
    <property name="statusTip">
     <string>Allows to apply the aspect ratio of the output window to the rendering area </string>
    </property>
@@ -2878,7 +2887,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Delete current source</string>
    </property>
    <property name="statusTip">
-    <string>Removes the current source from the pool.</string>
+    <string>Removes the current source from the project.</string>
    </property>
    <property name="shortcut">
     <string>Backspace</string>
@@ -3132,7 +3141,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Select previous source</string>
    </property>
    <property name="statusTip">
-    <string>Select previous source (shortcut is [CTRL][TAB])</string>
+    <string>Select previous source (shortcut is [SHIFT][TAB])</string>
    </property>
   </action>
   <action name="actionShow_Catalog">
@@ -3291,6 +3300,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>4:3</string>
    </property>
+   <property name="toolTip">
+    <string>Set rendering aspect ratio to 4:3</string>
+   </property>
   </action>
   <action name="action3_2_aspect_ratio">
    <property name="checkable">
@@ -3302,6 +3314,9 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="text">
     <string>3:2</string>
+   </property>
+   <property name="toolTip">
+    <string>Set rendering aspect ratio to 3:2</string>
    </property>
   </action>
   <action name="action16_10_aspect_ratio">
@@ -3315,6 +3330,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>16:10</string>
    </property>
+   <property name="toolTip">
+    <string>Set rendering aspect ratio to 16:10</string>
+   </property>
   </action>
   <action name="action16_9_aspect_ratio">
    <property name="checkable">
@@ -3326,6 +3344,9 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="text">
     <string>16:9</string>
+   </property>
+   <property name="toolTip">
+    <string>Set rendering aspect ratio to 16:9</string>
    </property>
   </action>
   <action name="actionZoomCurrentSource">
@@ -3443,7 +3464,10 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/edit-modifiable-toggle.png</normaloff>:/glmixer/icons/edit-modifiable-toggle.png</iconset>
    </property>
    <property name="text">
-    <string>Toggle fixed</string>
+    <string>Toggle modifiable</string>
+   </property>
+   <property name="toolTip">
+    <string>Set on/off the attribute which allows to modify the source</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
@@ -3452,6 +3476,9 @@ Uncheck to display the restart frame when stopped.</string>
   <action name="actionResetSource">
    <property name="text">
     <string>Reset</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset geometry of the source</string>
    </property>
   </action>
   <action name="actionMediaSource">
@@ -3480,6 +3507,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Add to selection</string>
    </property>
+   <property name="toolTip">
+    <string>Add current source to the selection</string>
+   </property>
   </action>
   <action name="actionSelectAll">
    <property name="icon">
@@ -3489,8 +3519,37 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Select &amp;All</string>
    </property>
+   <property name="toolTip">
+    <string>Add all sources to the selection</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionSelectInvert">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/selectinvert.png</normaloff>:/glmixer/icons/selectinvert.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Invert selection</string>
+   </property>
+   <property name="toolTip">
+    <string>Invert the selection</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionSelectNone">
+   <property name="text">
+    <string>Clear selection</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear the selection</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+A</string>
    </property>
   </action>
  </widget>

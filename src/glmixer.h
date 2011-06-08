@@ -83,7 +83,9 @@ public Q_SLOTS:
 	void on_actionSave_snapshot_triggered();
 	void on_output_alpha_valueChanged(int);
 	void on_actionSelectAll_triggered();
+	void on_actionSelectInvert_triggered();
 	void on_actionSelectCurrent_triggered();
+	void on_actionSelectNone_triggered();
 
 	// GUI interaction
 	void setView(QAction *a);
