@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/selectall.png</file>
+    <file>icons/select.png</file>
     <file>icons/edit-modifiable-toggle.png</file>
     <file>icons/aspectratio.png</file>
     <file>icons/fuzzy-cursor.png</file>

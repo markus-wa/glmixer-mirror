@@ -1751,12 +1751,12 @@ Uncheck to display the restart frame when stopped.</string>
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionNew_Session"/>
     <addaction name="actionLoad_Session"/>
     <addaction name="actionRecent_session"/>
     <addaction name="actionAppend_Session"/>
     <addaction name="actionSave_Session"/>
     <addaction name="actionSave_Session_as"/>
+    <addaction name="actionNew_Session"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
@@ -1820,6 +1820,7 @@ Uncheck to display the restart frame when stopped.</string>
      <property name="title">
       <string>Current source</string>
      </property>
+     <addaction name="actionSelectCurrent"/>
      <addaction name="actionDeleteSource"/>
      <addaction name="actionCloneSource"/>
      <addaction name="actionToggle_fixed"/>
@@ -1835,10 +1836,11 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="menuCurrent_source"/>
     <addaction name="actionSelect_Next"/>
     <addaction name="actionSelect_Previous"/>
+    <addaction name="actionSelectAll"/>
    </widget>
    <widget class="QMenu" name="menuAction">
     <property name="title">
-     <string>Tools</string>
+     <string>&amp;Tools</string>
     </property>
     <addaction name="actionToolGrab"/>
     <addaction name="actionToolScale"/>
@@ -1854,7 +1856,7 @@ Uncheck to display the restart frame when stopped.</string>
    </widget>
    <widget class="QMenu" name="menuRendering">
     <property name="title">
-     <string>Rendering</string>
+     <string>&amp;Rendering</string>
     </property>
     <widget class="QMenu" name="menuAspect_Ratio">
      <property name="title">
@@ -1943,9 +1945,9 @@ Uncheck to display the restart frame when stopped.</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionNew_Session"/>
    <addaction name="actionLoad_Session"/>
    <addaction name="actionSave_Session"/>
+   <addaction name="actionNew_Session"/>
   </widget>
   <widget class="QToolBar" name="toolsToolBar">
    <property name="windowTitle">
@@ -2527,7 +2529,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/fullscreen.png</normaloff>:/glmixer/icons/fullscreen.png</iconset>
    </property>
    <property name="text">
-    <string>Full screen</string>
+    <string>&amp;Full screen</string>
    </property>
    <property name="toolTip">
     <string>Sets the output window to fullscreen mode.</string>
@@ -2637,7 +2639,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/filenew.png</normaloff>:/glmixer/icons/filenew.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New session</string>
+    <string>Close session</string>
    </property>
    <property name="toolTip">
     <string>New session</string>
@@ -2646,7 +2648,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Starts a new Session</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+N</string>
+    <string>Ctrl+W</string>
    </property>
   </action>
   <action name="actionLoad_Session">
@@ -2691,7 +2693,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/camera.png</normaloff>:/glmixer/icons/camera.png</iconset>
    </property>
    <property name="text">
-    <string>Add source &amp;Device</string>
+    <string>&amp;New source &amp;Device</string>
    </property>
    <property name="toolTip">
     <string>Add a source from Device</string>
@@ -2700,7 +2702,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Creates a live source showing frames of a connected device (e.g. webcam)</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+D</string>
+    <string>Ctrl+N, D</string>
    </property>
   </action>
   <action name="actionRenderingSource">
@@ -2709,7 +2711,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/display-source.png</normaloff>:/glmixer/icons/display-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add source &amp;Loopback rendering</string>
+    <string>&amp;New source &amp;Loopback</string>
    </property>
    <property name="toolTip">
     <string>Add a rendering Loopback source</string>
@@ -2718,7 +2720,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Creates a new source which displays the previous rendering of the output window.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+L</string>
+    <string>Ctrl+N, L</string>
    </property>
   </action>
   <action name="actionZoomIn">
@@ -2810,7 +2812,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/photo-source.png</normaloff>:/glmixer/icons/photo-source.png</iconset>
    </property>
    <property name="text">
-    <string>Add source &amp;Capture frame</string>
+    <string>&amp;New source &amp;Capture frame</string>
    </property>
    <property name="toolTip">
     <string>Add an image source from screen Capture</string>
@@ -2819,7 +2821,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Creates a new source with the image of the current output window.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+C</string>
+    <string>Ctrl+N, C</string>
    </property>
   </action>
   <action name="actionAlgorithmSource">
@@ -2828,7 +2830,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/computer.png</normaloff>:/glmixer/icons/computer.png</iconset>
    </property>
    <property name="text">
-    <string>Add source &amp;Algorithm</string>
+    <string>&amp;New source &amp;Algorithm</string>
    </property>
    <property name="toolTip">
     <string>Add an Algorithm source</string>
@@ -2837,7 +2839,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Creates a new source using algorithms to generate graphics.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+A</string>
+    <string>Ctrl+N, A</string>
    </property>
   </action>
   <action name="actionCloneSource">
@@ -2929,7 +2931,7 @@ Uncheck to display the restart frame when stopped.</string>
      <disabledoff>:/glmixer/icons/cursor-openhand_off.png</disabledoff>:/glmixer/icons/cursor-openhand.png</iconset>
    </property>
    <property name="text">
-    <string>Grab</string>
+    <string>&amp;Grab</string>
    </property>
    <property name="toolTip">
     <string>Grab tool</string>
@@ -2954,7 +2956,7 @@ Uncheck to display the restart frame when stopped.</string>
      <disabledoff>:/glmixer/icons/cursor-sizeall_off.png</disabledoff>:/glmixer/icons/cursor-sizeall.png</iconset>
    </property>
    <property name="text">
-    <string>Scale</string>
+    <string>&amp;Scale</string>
    </property>
    <property name="toolTip">
     <string>Scale tool</string>
@@ -2979,7 +2981,7 @@ Uncheck to display the restart frame when stopped.</string>
      <disabledoff>:/glmixer/icons/cursor-rotateall_off.png</disabledoff>:/glmixer/icons/cursor-rotateall.png</iconset>
    </property>
    <property name="text">
-    <string>Rotate</string>
+    <string>&amp;Rotate</string>
    </property>
    <property name="toolTip">
     <string>Rotate tool</string>
@@ -3004,7 +3006,7 @@ Uncheck to display the restart frame when stopped.</string>
      <disabledoff>:/glmixer/icons/cursor-dsplit_off.png</disabledoff>:/glmixer/icons/cursor-dsplit.png</iconset>
    </property>
    <property name="text">
-    <string>Cut</string>
+    <string>&amp;Crop</string>
    </property>
    <property name="toolTip">
     <string>Cutting tool</string>
@@ -3028,7 +3030,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/normal-cursor.png</normaloff>:/glmixer/icons/normal-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Normal cursor</string>
+    <string>&amp;Normal cursor</string>
    </property>
    <property name="statusTip">
     <string>The cursor follows the mouse (default)</string>
@@ -3049,7 +3051,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/spring-cursor.png</normaloff>:/glmixer/icons/spring-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Elastic cursor</string>
+    <string>&amp;Elastic cursor</string>
    </property>
    <property name="statusTip">
     <string>The cursor is attracted by the mouse but is more 'heavy'.</string>
@@ -3070,7 +3072,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/delay-cursor.png</normaloff>:/glmixer/icons/delay-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Delay cursor</string>
+    <string>&amp;Delay cursor</string>
    </property>
    <property name="toolTip">
     <string>Delay cursor</string>
@@ -3094,7 +3096,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/fuzzy-cursor.png</normaloff>:/glmixer/icons/fuzzy-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Fuzzy cursor</string>
+    <string>&amp;Fuzzy cursor</string>
    </property>
    <property name="statusTip">
     <string>The cursor makes fuzzy movements around the mouse</string>
@@ -3109,7 +3111,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/next.png</normaloff>:/glmixer/icons/next.png</iconset>
    </property>
    <property name="text">
-    <string>Select Next</string>
+    <string>Next</string>
    </property>
    <property name="toolTip">
     <string>Select next source (Tab)</string>
@@ -3124,7 +3126,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/previous.png</normaloff>:/glmixer/icons/previous.png</iconset>
    </property>
    <property name="text">
-    <string>Select Previous</string>
+    <string>Previous</string>
    </property>
    <property name="toolTip">
     <string>Select previous source</string>
@@ -3266,7 +3268,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/axis-cursor.png</normaloff>:/glmixer/icons/axis-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Axis cursor</string>
+    <string>&amp;Axis cursor</string>
    </property>
    <property name="statusTip">
     <string>The cursor follows the axis</string>
@@ -3350,7 +3352,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/media-playback-pause.png</normaloff>:/glmixer/icons/media-playback-pause.png</iconset>
    </property>
    <property name="text">
-    <string>Pause</string>
+    <string>&amp;Pause</string>
    </property>
    <property name="toolTip">
     <string>Pause the session (all sources)</string>
@@ -3408,10 +3410,10 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/photo-save.png</normaloff>:/glmixer/icons/photo-save.png</iconset>
    </property>
    <property name="text">
-    <string>Save frame Capture</string>
+    <string>Capture and save frame</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+C</string>
+    <string>Ctrl+C</string>
    </property>
   </action>
   <action name="actionCursorLine">
@@ -3423,7 +3425,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/line-cursor.png</normaloff>:/glmixer/icons/line-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Line cursor</string>
+    <string>&amp;Line cursor</string>
    </property>
    <property name="statusTip">
     <string>The cursor moves on a line to reach the mouse position.</string>
@@ -3458,7 +3460,7 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
    </property>
    <property name="text">
-    <string>Add source(s) Media File(s)</string>
+    <string>&amp;New source(s) &amp;Video(s)</string>
    </property>
    <property name="toolTip">
     <string>Add a source from video or image file(s)</string>
@@ -3467,7 +3469,28 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Create sources playing videos or images</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+M</string>
+    <string>Ctrl+N, V</string>
+   </property>
+  </action>
+  <action name="actionSelectCurrent">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/select.png</normaloff>:/glmixer/icons/select.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add to selection</string>
+   </property>
+  </action>
+  <action name="actionSelectAll">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/selectall.png</normaloff>:/glmixer/icons/selectall.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select &amp;All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
    </property>
   </action>
  </widget>

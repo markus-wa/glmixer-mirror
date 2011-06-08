@@ -325,8 +325,6 @@ void GLMixer::displayWarningMessage(QString msg){
 	QMessageBox::warning(0, tr("%1 Warning").arg(QCoreApplication::applicationName()), tr("The following error occurred:\n\n%1").arg(msg));
 }
 
-
-
 void GLMixer::setView(QAction *a){
 
 	if (a == actionMixingView)
@@ -1915,5 +1913,25 @@ void GLMixer::on_output_alpha_valueChanged(int v){
 	previous_v = v;
 }
 
+
+void GLMixer::on_actionSelectAll_triggered()
+{
+	SourceList sl;
+	SourceSet::iterator sit = RenderingManager::getInstance()->getBegin();
+	// check for the existence of an opencv source which would already be on this same index
+	for ( ; RenderingManager::getInstance()->notAtEnd(sit); sit++)
+		sl.insert(*sit);
+
+	View::select(sl);
+}
+
+
+void GLMixer::on_actionSelectCurrent_triggered()
+{
+	SourceSet::iterator sit = RenderingManager::getInstance()->getCurrentSource();
+	if ( RenderingManager::getInstance()->isValid(sit) && !View::isInSelection(*sit))
+		View::select(*sit);
+
+}
 
 
