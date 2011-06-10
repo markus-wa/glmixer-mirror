@@ -601,42 +601,31 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 		zoomReset();
 		return;
 	}
-	// 0. consider either the clicked source, either the full list
-    SourceSet::iterator beginning, end;
-    if (onlyClickedSource ) {
 
-    	if (currentSource == View::selectionSource()) {
-    		beginning = View::selectionBegin();
-    		end = View::selectionEnd();
-    	}
-    	else if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd() ){
-    		beginning = end = RenderingManager::getInstance()->getCurrentSource();
-    		end++;
-    	}
+	// 0. consider either the clicked source, either the full list
+    SourceList l;
+    if ( onlyClickedSource ) {
+
+    	if (currentSource == View::selectionSource())
+    		// list the selection
+    		l = View::copySelection();
+    	else if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd() )
+    		// add only the current source in the list
+    		l.insert(*RenderingManager::getInstance()->getCurrentSource());
     	else
     		return;
 
-    } else {
-    	beginning = RenderingManager::getInstance()->getBegin();
-    	end = RenderingManager::getInstance()->getEnd();
-    }
+    } else
+    	// make a list of all the sources
+		std::copy( RenderingManager::getInstance()->getBegin(), RenderingManager::getInstance()->getEnd(), std::inserter( l, l.end() ) );
 
 	// 1. compute bounding box of every sources to consider
-    double x_min = 10000, x_max = -10000, y_min = 10000, y_max = -10000;
-	for(SourceSet::iterator  its = beginning; its != end; its++) {
-    	// ignore standby sources
-    	if ((*its)->isStandby())
-    		continue;
-    	// get coordinates
-		x_min = MINI (x_min, (*its)->getX() - (*its)->getScaleX());
-		x_max = MAXI (x_max, (*its)->getX() + (*its)->getScaleX());
-		y_min = MINI (y_min, (*its)->getY() - (*its)->getScaleY());
-		y_max = MAXI (y_max, (*its)->getY() + (*its)->getScaleY());
-	}
+	double bbox[2][2];
+	View::computeBoundingBox(l, bbox);
 
 	// 2. Apply the panning to the new center
-	setPanningX	( -( x_min + ABS(x_max - x_min)/ 2.0 ) );
-	setPanningY	( -( y_min + ABS(y_max - y_min)/ 2.0 )  );
+	setPanningX	( -( bbox[0][0] + ABS(bbox[1][0] - bbox[0][0])/ 2.0 ) );
+	setPanningY	( -( bbox[0][1] + ABS(bbox[1][1] - bbox[0][1])/ 2.0 )  );
 
 	// 3. get the extend of the area covered in the viewport (the matrices have been updated just above)
     double LLcorner[3];
@@ -646,8 +635,8 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 
 	// 4. compute zoom factor to fit to the boundaries
     // initial value = a margin scale of 5%
-    double scalex = 0.95 * ABS(URcorner[0]-LLcorner[0]) / ABS(x_max-x_min);
-    double scaley = 0.95 * ABS(URcorner[1]-LLcorner[1]) / ABS(y_max-y_min);
+    double scalex = 0.95 * ABS(URcorner[0]-LLcorner[0]) / ABS(bbox[1][0]-bbox[0][0]);
+    double scaley = 0.95 * ABS(URcorner[1]-LLcorner[1]) / ABS(bbox[1][1]-bbox[0][1]);
     // depending on the axis having the largest extend
     // apply the scaling
 	setZoom( zoom * (scalex < scaley ? scalex : scaley  ));

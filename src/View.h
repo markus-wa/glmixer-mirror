@@ -277,6 +277,8 @@ protected:
 
     actionType currentAction, previousAction;
 
+    static void computeBoundingBox(const SourceList &l, double bbox[][2]);
+
 private:
 	static SourceList _selectedSources;
 	static Source *_selectionSource;

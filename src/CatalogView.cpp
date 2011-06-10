@@ -190,7 +190,9 @@ void CatalogView::drawSource(Source *s, int index)
 			glLineWidth(1.0);
 		}
 
-		if ( View::isInSelection(s) )
+		if ( !s->isModifiable() )
+			glColor4ub(COLOR_SOURCE_STATIC, 250);			//  color for static
+		else if ( View::isInSelection(s) )
 			glColor4ub(COLOR_SELECTION, 250);		//  color for selected sources
 		else
 			glColor4ub(COLOR_SOURCE, 250);			//  color for normal

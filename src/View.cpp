@@ -86,11 +86,10 @@ bool View::isInSelection(Source *s)
 }
 
 
-void View::updateSelectionSource()
+void View::computeBoundingBox(const SourceList &l, double bbox[][2])
 {
-	// prepare vars
-	GLdouble point[2], bbox[2][2];
-	GLdouble cosa, sina;
+	double cosa, sina;
+	double point[2];
 
 	// init bbox to max size
 	bbox[0][0] = SOURCE_UNIT * 5.0;
@@ -99,7 +98,9 @@ void View::updateSelectionSource()
 	bbox[1][1] = -SOURCE_UNIT * 5.0;
 
 	// compute Axis aligned bounding box of all sources in the list
-	for(SourceList::iterator  its = _selectedSources.begin(); its != _selectedSources.end(); its++) {
+	for(SourceList::iterator  its = l.begin(); its != l.end(); its++) {
+    	if ((*its)->isStandby())
+    		continue;
 		cosa = cos((*its)->getRotationAngle() / 180.0 * M_PI);
 		sina = sin((*its)->getRotationAngle() / 180.0 * M_PI);
 		for (GLdouble i = -1.0; i < 2.0; i += 2.0)
@@ -114,6 +115,14 @@ void View::updateSelectionSource()
 				bbox[1][1] = qMax( point[1], bbox[1][1]);
 			}
 	}
+}
+
+void View::updateSelectionSource()
+{
+	// prepare vars
+	GLdouble point[2], bbox[2][2];
+
+	computeBoundingBox(_selectedSources, bbox);
 
 	point[0] = (bbox[1][0] - bbox[0][0]) / 2.0;
 	point[1] = (bbox[1][1] - bbox[0][1]) / 2.0;
