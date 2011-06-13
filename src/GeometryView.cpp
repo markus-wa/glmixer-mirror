@@ -743,7 +743,7 @@ void GeometryView::panningBy(int x, int y, int dx, int dy) {
  **/
 void GeometryView::grabSource(Source *s, int x, int y, int dx, int dy) {
 
-	if (!s) return;
+	if (!s || !s->isModifiable()) return;
 
 	double dum;
     double bx, by; // before movement
@@ -775,8 +775,14 @@ void GeometryView::grabSources(Source *s, int x, int y, int dx, int dy) {
 
 	// if the source is the selection, move the selection too
 	if ( s == View::selectionSource() ) {
-		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++){
+			// discard non modifiable source
+			if (!(*its)->isModifiable()) {
+				View::updateSelectionSource();
+				continue;
+			}
 			grabSource( *its, x, y, dx, dy);
+		}
 	}
 	// otherwise, update selection source if we move a source of the selection
 	else if (View::isInSelection(s))
@@ -799,7 +805,7 @@ void GeometryView::grabSources(Source *s, int x, int y, int dx, int dy) {
  **/
 void GeometryView::scaleSource(Source *s, int X, int Y, int dx, int dy, char quadrant, bool option) {
 
-	if (!s) return;
+	if (!s || !s->isModifiable()) return;
 
 	double dum;
     double bx, by; // before movement
@@ -880,6 +886,11 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
 		syratio *= s->getScaleY();
 		// apply scaling to all sources
 		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+			// discard non modifiable source
+			if (!(*its)->isModifiable()) {
+				View::updateSelectionSource();
+				continue;
+			}
 			(*its)->setX( s->getX() + ((*its)->getX() - sx) * sxratio);
 			(*its)->setY( s->getY() + ((*its)->getY() - sy) * syratio);
 			(*its)->scaleBy(sxratio , syratio);
@@ -924,6 +935,8 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
  *
  **/
 void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool option) {
+
+	if (!s || !s->isModifiable()) return;
 
 	double dum;
     double bx, by; // before movement
@@ -991,6 +1004,11 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
 
 		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
 
+			// discard non modifiable source
+			if (!(*its)->isModifiable()) {
+				View::updateSelectionSource();
+				continue;
+			}
 			(*its)->scaleBy(sxratio , syratio);
 			(*its)->setRotationAngle( (*its)->getRotationAngle() - angle);
 
@@ -1003,8 +1021,8 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
 			dy =  dy * cosa + dx * sina ;
 			dx = dum;
 
-			(*its)->setX(  s->getX() + dx * sxratio);
-			(*its)->setY(  s->getY() + dy * syratio);
+			(*its)->setX( s->getX() + dx * sxratio );
+			(*its)->setY( s->getY() + dy * syratio );
 
 		}
 	}
@@ -1046,6 +1064,8 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
  *
  **/
 void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool option) {
+
+	if (!s || !s->isModifiable()) return;
 
 	double dum;
     double bx, by; // before movement
@@ -1157,6 +1177,9 @@ void GeometryView::cropSources(Source *s, int x, int y, int dx, int dy, bool opt
  *
  **/
 char GeometryView::getSourceQuadrant(Source *s, int X, int Y) {
+
+	if (!s) return 0;
+
     //      ax
     //      ^
     //  ----|----
@@ -1183,9 +1206,9 @@ char GeometryView::getSourceQuadrant(Source *s, int X, int Y) {
 	double h = s->getScaleY();
 
     // exclude mouse cursors out of the area
-//    if ( ABS(x) > ABS(w)  || ABS(y) > ABS(h)) {
-//    	return 0;
-//    }
+    if ( ABS(x) > ABS(w)  || ABS(y) > ABS(h)) {
+    	return 0;
+    }
 
     // compute the quadrant code : this is tricky as scales can be negative !
     if (( x > BORDER_SIZE * ABS(w) ) && ( y < -BORDER_SIZE * ABS(h) ) ) // RIGHT BOTTOM

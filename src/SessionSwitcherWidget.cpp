@@ -555,8 +555,8 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
 {
 	resetTransitionSlider();
 
-	// mode is manual
-	if ( m == 0 ) {
+	// mode is manual (and not with instantaneous transition selected)
+	if ( m == 0  && transitionSelection->currentIndex() > 0) {
 		RenderingManager::getSessionSwitcher()->manual_mode = true;
 		// adjust slider to represent current transparency
 		transitionSlider->setValue(RenderingManager::getSessionSwitcher()->overlay() * 100.f - (nextSessionSelected?0.f:100.f));

@@ -631,7 +631,7 @@ void LayersView::unProjectDepth(int x, int y, int dx, int dy, double *depth, dou
  **/
 void LayersView::grabSource(Source *s, int x, int y, int dx, int dy, bool setcurrent) {
 
-	if (!s) return;
+	if (!s || !s->isModifiable()) return;
 
 	double bz = 0.0; // depth before delta movement
 	double az = 0.0; // depth at current x and y

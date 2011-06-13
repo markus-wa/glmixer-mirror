@@ -241,7 +241,7 @@ void QtBoolEdit::setTextVisible(bool textVisible)
 
     m_textVisible = textVisible;
     if (m_textVisible)
-        m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
+        m_checkBox->setText(isChecked() ? tr("Yes") : tr("No"));
     else
         m_checkBox->setText(QString());
 }
@@ -266,7 +266,7 @@ void QtBoolEdit::setChecked(bool c)
     m_checkBox->setChecked(c);
     if (!m_textVisible)
         return;
-    m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
+    m_checkBox->setText(isChecked() ? tr("Yes") : tr("No"));
 }
 
 bool QtBoolEdit::blockCheckBoxSignals(bool block)

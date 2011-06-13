@@ -1488,8 +1488,8 @@ QString QtBoolPropertyManager::valueText(const QtProperty *property) const
     if (it == d_ptr->m_values.constEnd())
         return QString();
 
-    static const QString trueText = tr("On");
-    static const QString falseText = tr("Off");
+    static const QString trueText = tr("Yes");
+    static const QString falseText = tr("No");
     return it.value() ? trueText : falseText;
 }
 

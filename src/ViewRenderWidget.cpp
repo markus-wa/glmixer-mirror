@@ -1169,6 +1169,15 @@ GLuint ViewRenderWidget::buildLineList()
 		glVertex2f(-1.05f, 1.05f); // Top Left
 		glEnd();
 
+		glPointSize(3.0);
+		glColor4ub(COLOR_SOURCE_STATIC, 180);
+		glBegin(GL_POINTS); // draw nails
+		glVertex2f(-0.9f, -0.9f); // Bottom Left
+		glVertex2f(0.9f, -0.9f); // Bottom Right
+		glVertex2f(0.9f, 0.9f); // Top Right
+		glVertex2f(-0.9f, 0.9f); // Top Left
+		glEnd();
+
 	glEndList();
 
 	// over STATIC
@@ -1189,6 +1198,15 @@ GLuint ViewRenderWidget::buildLineList()
 		glVertex2f(1.05f, -1.05f); // Bottom Right
 		glVertex2f(1.05f, 1.05f); // Top Right
 		glVertex2f(-1.05f, 1.05f); // Top Left
+		glEnd();
+
+		glPointSize(3.0);
+		glColor4ub(COLOR_SOURCE_STATIC, 180);
+		glBegin(GL_POINTS); // draw nails
+		glVertex2f(-0.9f, -0.9f); // Bottom Left
+		glVertex2f(0.9f, -0.9f); // Bottom Right
+		glVertex2f(0.9f, 0.9f); // Top Right
+		glVertex2f(-0.9f, 0.9f); // Top Left
 		glEnd();
 
 	glEndList();
@@ -1499,16 +1517,40 @@ GLuint ViewRenderWidget::buildBordersList()
 	glNewList(base + 6, GL_COMPILE);
 	glColor4ub(COLOR_SOURCE_STATIC, 180);
 	glCallList(base);
+	glPointSize(3.0);
+	glColor4ub(COLOR_SOURCE_STATIC, 180);
+	glBegin(GL_POINTS); // draw nails
+	glVertex2f(-0.9f, -0.9f); // Bottom Left
+	glVertex2f(0.9f, -0.9f); // Bottom Right
+	glVertex2f(0.9f, 0.9f); // Top Right
+	glVertex2f(-0.9f, 0.9f); // Top Left
+	glEnd();
 	glEndList();
 
 	glNewList(base + 7, GL_COMPILE);
 	glColor4ub(COLOR_SOURCE_STATIC, 200);
 	glCallList(base+1);
+	glPointSize(3.0);
+	glColor4ub(COLOR_SOURCE_STATIC, 180);
+	glBegin(GL_POINTS); // draw nails
+	glVertex2f(-0.9f, -0.9f); // Bottom Left
+	glVertex2f(0.9f, -0.9f); // Bottom Right
+	glVertex2f(0.9f, 0.9f); // Top Right
+	glVertex2f(-0.9f, 0.9f); // Top Left
+	glEnd();
 	glEndList();
 
 	glNewList(base + 8, GL_COMPILE);
 	glColor4ub(COLOR_SOURCE_STATIC, 220);
 	glCallList(base+2);
+	glPointSize(3.0);
+	glColor4ub(COLOR_SOURCE_STATIC, 180);
+	glBegin(GL_POINTS); // draw nails
+	glVertex2f(-0.9f, -0.9f); // Bottom Left
+	glVertex2f(0.9f, -0.9f); // Bottom Right
+	glVertex2f(0.9f, 0.9f); // Top Right
+	glVertex2f(-0.9f, 0.9f); // Top Left
+	glEnd();
 	glEndList();
 
 

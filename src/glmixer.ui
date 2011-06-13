@@ -1185,12 +1185,6 @@ p, li { white-space: pre-wrap; }
                   <height>20</height>
                  </size>
                 </property>
-                <property name="font">
-                 <font>
-                  <family>Lucida Grande</family>
-                  <pointsize>10</pointsize>
-                 </font>
-                </property>
                 <property name="cursor">
                  <cursorShape>ArrowCursor</cursorShape>
                 </property>
@@ -1236,11 +1230,6 @@ p, li { white-space: pre-wrap; }
                   <width>60</width>
                   <height>20</height>
                  </size>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>11</pointsize>
-                 </font>
                 </property>
                 <property name="toolTip">
                  <string>Sets the IN mark at the current time</string>
@@ -1337,11 +1326,6 @@ p, li { white-space: pre-wrap; }
                   <width>60</width>
                   <height>20</height>
                  </size>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>11</pointsize>
-                 </font>
                 </property>
                 <property name="toolTip">
                  <string>Sets the OUT mark at the current time</string>
@@ -1570,12 +1554,6 @@ p, li { white-space: pre-wrap; }
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="font">
-            <font>
-             <family>Lucida Grande</family>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
            <property name="mouseTracking">
             <bool>false</bool>
            </property>
@@ -1599,12 +1577,6 @@ but is more precise in time..</string>
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <family>Lucida Grande</family>
-             <pointsize>10</pointsize>
-            </font>
            </property>
            <property name="toolTip">
             <string>Check to go to mark IN position when pressing stop.
@@ -1662,12 +1634,6 @@ Uncheck to stay on the same frame when pressing stop.</string>
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <family>Lucida Grande</family>
-                <pointsize>10</pointsize>
-               </font>
               </property>
               <property name="toolTip">
                <string>Check to clear to black when stopped,
@@ -3470,7 +3436,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Set on/off the attribute which allows to modify the source</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+T</string>
+    <string>Ctrl+M</string>
    </property>
   </action>
   <action name="actionResetSource">

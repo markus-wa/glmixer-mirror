@@ -839,7 +839,7 @@ void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
  **/
 void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
 
-	if (!s) return;
+	if (!s || !s->isModifiable()) return;
 
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement
