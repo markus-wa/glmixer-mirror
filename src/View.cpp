@@ -39,6 +39,10 @@ void View::clearSelection() {
 
 void View::select(Source *s) {
 
+	// Do not consider the _selectionSource in a selection
+	if (s == _selectionSource)
+		return;
+
 	if ( View::_selectedSources.count(s) > 0)
 		View::_selectedSources.erase(s);
 	else
@@ -55,20 +59,24 @@ void View::deselect(Source *s) {
 
 void View::select(SourceList l)
 {
+	// Do not consider the _selectionSource in a selection
+	l.erase(View::_selectionSource);
+	// generate new set as union of current selection and give list
 	SourceList result;
-
 	std::set_union(View::_selectedSources.begin(), View::_selectedSources.end(), l.begin(), l.end(), std::inserter(result, result.begin()) );
-
+	// set new selection
 	View::_selectedSources = SourceList(result);
 	updateSelectionSource();
 }
 
 void View::deselect(SourceList l)
 {
+	// Do not consider the _selectionSource in a selection
+	l.erase(View::_selectionSource);
+	// generate new set as difference of current selection and give list
 	SourceList result;
-
 	std::set_difference(View::_selectedSources.begin(), View::_selectedSources.end(), l.begin(), l.end(), std::inserter(result, result.begin()) );
-
+	// set new selection
 	View::_selectedSources = SourceList(result);
 	updateSelectionSource();
 }
@@ -76,6 +84,9 @@ void View::deselect(SourceList l)
 
 void View::setSelection(SourceList l)
 {
+	// Do not consider the _selectionSource in a selection
+	l.erase(View::_selectionSource);
+	// set new selection
 	View::_selectedSources = SourceList(l);
 	updateSelectionSource();
 }

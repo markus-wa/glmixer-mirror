@@ -637,7 +637,7 @@ void MixerView::zoomBestFit( bool onlyClickedSource )
 
 	// 4. compute zoom factor to fit to the boundaries
     // initial value = a margin scale of 5%
-    double scale = 0.95;
+    double scale = 0.98;
     double scale1 = ABS(URcorner[0]-LLcorner[0]) / ABS(x_max-x_min);
     double scale2 = ABS(URcorner[1]-LLcorner[1]) / ABS(y_max-y_min);
     // depending on the axis having the largest extend

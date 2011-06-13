@@ -635,8 +635,8 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 
 	// 4. compute zoom factor to fit to the boundaries
     // initial value = a margin scale of 5%
-    double scalex = 0.95 * ABS(URcorner[0]-LLcorner[0]) / ABS(bbox[1][0]-bbox[0][0]);
-    double scaley = 0.95 * ABS(URcorner[1]-LLcorner[1]) / ABS(bbox[1][1]-bbox[0][1]);
+    double scalex = 0.98 * ABS(URcorner[0]-LLcorner[0]) / ABS(bbox[1][0]-bbox[0][0]);
+    double scaley = 0.98 * ABS(URcorner[1]-LLcorner[1]) / ABS(bbox[1][1]-bbox[0][1]);
     // depending on the axis having the largest extend
     // apply the scaling
 	setZoom( zoom * (scalex < scaley ? scalex : scaley  ));
