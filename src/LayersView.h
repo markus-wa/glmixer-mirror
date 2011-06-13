@@ -58,7 +58,7 @@ private:
 
     void bringForward(Source *s, bool individual);
     void unProjectDepth(int x, int y, int dx, int dy, double *depth, double *depthBeforeDelta);
-    bool getSourcesAtCoordinates(int mouseX, int mouseY);
+    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
     void grabSource(Source *s, int x, int y, int dx, int dy, bool setcurrent=true);
     void grabSources(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy);

@@ -309,8 +309,9 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
     	if (!clicked )
     		return false;
 
+
 		// SELECT MODE : add/remove from selection
-		if ( currentAction == View::SELECT ) {
+		if ( currentAction == View::SELECT && event->button() == Qt::LeftButton ) {
 
 			// test if source is in a group
 			SourceListArray::iterator itss = groupSources.begin();

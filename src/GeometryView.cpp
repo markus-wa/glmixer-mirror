@@ -303,6 +303,8 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
 			}
+			if ( View::hasSelection() )
+				grabSource( View::selectionSource(), event->x(), viewport[3] - event->y(), -dx, -dy);
 		}
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 		return false;

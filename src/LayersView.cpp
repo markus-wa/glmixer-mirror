@@ -268,7 +268,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	}
 
 	// if at least one source icon was clicked
-	if ( event->button() == Qt::LeftButton && getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+	if (getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
     	// get the top most clicked source
     	Source *clicked = *clickedSources.begin();
@@ -276,7 +276,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
     		return false;
 
 		// CTRL clic = add/remove from selection
-		if ( currentAction == View::SELECT )
+		if (  event->button() == Qt::LeftButton && currentAction == View::SELECT )
 			View::select(clicked);
 		// else not SELECTION ; normal action
 		else {
@@ -347,7 +347,7 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 	// mouse over (no buttons)
 
 	// detect if mouse is over a source
-	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
+	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
 		setAction(View::OVER);
 	else
 		setAction(View::NONE);
@@ -519,10 +519,9 @@ bool LayersView::keyReleaseEvent(QKeyEvent * event) {
 	return false;
 }
 
-bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
+bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
 	// prepare variables
-	clickedSources.clear();
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
     GLint hits = 0;
 
@@ -572,12 +571,23 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY) {
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
-    while (hits != 0) {
-    	clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
-    	hits--;
-    }
+	if (clic) {
+		clickedSources.clear();
+		while (hits != 0) {
+			clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
+			hits--;
+		}
 
-    return sourceClicked();
+		return sourceClicked();
+	} else {
+		int s = 0;
+		while (hits != 0) {
+			if ( (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() )
+				s++;
+			hits--;
+		}
+		return s > 0;
+	}
 }
 
 
