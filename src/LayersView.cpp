@@ -282,10 +282,12 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 		else {
 			//  make the top most source clicked now the newly current one
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
-			// put this source in the forward list (single source if SHIFT)
-			bringForward(clicked, event->modifiers () & Qt::ShiftModifier);
-			// ready for grabbing the current source
-			setAction(View::GRAB);
+			if ( clicked->isModifiable() ){
+				// put this source in the forward list (single source if SHIFT)
+				bringForward(clicked, event->modifiers () & Qt::ShiftModifier);
+				// ready for grabbing the current source
+				setAction(View::GRAB);
+			}
 		}
 
 		return true;
@@ -580,13 +582,10 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
 		return sourceClicked();
 	} else {
-		int s = 0;
-		while (hits != 0) {
-			if ( (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() )
-				s++;
-			hits--;
-		}
-		return s > 0;
+		if (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() )
+			return true;
+		else
+			return false;
 	}
 }
 

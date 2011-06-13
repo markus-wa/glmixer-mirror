@@ -61,10 +61,10 @@ bool LineCursor::apply(double fpsaverage){
 			t += dt;
 
 			// interpolation
-			shadowPos = pressPos + speed * t * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
+			shadowPos = pressPos + speed * t * (releasePos - pressPos) / euclidean(releasePos, pressPos) ;
 
 			// interpolation finished?
-			if ( euclidean(releasePos, shadowPos) < speed * dt){
+			if ( euclidean(pressPos, shadowPos) > euclidean(releasePos, pressPos)){
 				// reset all
 				pressPos = mousePos;
 				shadowPos = mousePos;

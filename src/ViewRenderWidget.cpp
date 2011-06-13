@@ -1542,7 +1542,7 @@ GLuint ViewRenderWidget::buildBordersList()
 
 	glNewList(base + 8, GL_COMPILE);
 	glColor4ub(COLOR_SOURCE_STATIC, 220);
-	glCallList(base+2);
+	glCallList(base+1);
 	glPointSize(3.0);
 	glColor4ub(COLOR_SOURCE_STATIC, 180);
 	glBegin(GL_POINTS); // draw nails
@@ -1577,6 +1577,11 @@ GLuint ViewRenderWidget::buildBordersList()
 	glEnable(GL_LINE_STIPPLE);
 	glCallList(base+2);
 	glDisable(GL_LINE_STIPPLE);
+	glPointSize(10);
+	glColor4ub(COLOR_SELECTION, 200);
+	glBegin(GL_POINTS);
+	glVertex2f(0,0);
+	glEnd();
 	glEndList();
 
 	return base + 3;

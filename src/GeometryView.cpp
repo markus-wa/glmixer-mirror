@@ -147,12 +147,6 @@ void GeometryView::paint()
 		// Draw center point
 		glPushMatrix();
 		glTranslated(View::selectionSource()->getX(), View::selectionSource()->getY(), 0);
-		glPointSize(10);
-		glColor4ub(COLOR_SELECTION, 200);
-		glBegin(GL_POINTS);
-		glVertex2f(0,0);
-		glEnd();
-
 		// Draw selection source
 		glRotated(View::selectionSource()->getRotationAngle(), 0.0, 0.0, 1.0);
 		glScaled(View::selectionSource()->getScaleX(), View::selectionSource()->getScaleY(), 1.f);
@@ -430,7 +424,7 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 	//	 left double click = select next source
 	if ( event->buttons() & Qt::LeftButton ) {
 		// get the top most clicked source
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), QApplication::keyboardModifiers () & Qt::ShiftModifier) ) {
 
 	    	// get the top most clicked source
 	    	SourceSet::iterator clicked = clickedSources.begin();

@@ -926,6 +926,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 		QDomElement sourceElem = doc.createElement("Source");
 		sourceElem.setAttribute("name", (*its)->getName());
 		sourceElem.setAttribute("playing", (*its)->isPlaying());
+		sourceElem.setAttribute("modifiable", (*its)->isModifiable());
 
 		QDomElement pos = doc.createElement("Position");
 		pos.setAttribute("X", (*its)->getX());
@@ -1087,6 +1088,7 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 	QDomElement tmp;
 	newsource->setName( child.attribute("name") );
 	newsource->play( child.attribute("playing", "1").toInt() );
+	newsource->setModifiable( child.attribute("modifiable", "1").toInt() );
 
 	newsource->setX( child.firstChildElement("Position").attribute("X", "0").toDouble() );
 	newsource->setY( child.firstChildElement("Position").attribute("Y", "0").toDouble() );

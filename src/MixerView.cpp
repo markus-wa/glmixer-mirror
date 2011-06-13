@@ -777,13 +777,10 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
 		return sourceClicked();
 	} else {
-		int s = 0;
-		while (hits != 0) {
-			if ( (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() )
-				s++;
-			hits--;
-		}
-		return s > 0;
+		if (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() )
+			return true;
+		else
+			return false;
 	}
 
 }
