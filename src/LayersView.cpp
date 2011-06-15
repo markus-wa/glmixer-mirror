@@ -581,12 +581,8 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 		}
 
 		return sourceClicked();
-	} else {
-		if (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() )
-			return true;
-		else
-			return false;
-	}
+	} else
+		return (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() );
 }
 
 

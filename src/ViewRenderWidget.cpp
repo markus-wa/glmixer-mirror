@@ -1559,6 +1559,7 @@ GLuint ViewRenderWidget::buildBordersList()
 	glColor4ub(COLOR_SELECTION , 180);
 	glLineStipple(1, 0x9999);
 	glEnable(GL_LINE_STIPPLE);
+	glScalef(1.01, 1.01, 1.01);
 	glCallList(base);
 	glDisable(GL_LINE_STIPPLE);
 	glEndList();
@@ -1567,6 +1568,7 @@ GLuint ViewRenderWidget::buildBordersList()
 	glColor4ub(COLOR_SELECTION, 200);
 	glLineStipple(1, 0x9999);
 	glEnable(GL_LINE_STIPPLE);
+	glScalef(1.01, 1.01, 1.01);
 	glCallList(base+1);
 	glDisable(GL_LINE_STIPPLE);
 	glEndList();
@@ -1575,6 +1577,7 @@ GLuint ViewRenderWidget::buildBordersList()
 	glColor4ub(COLOR_SELECTION, 220);
 	glLineStipple(1, 0x9999);
 	glEnable(GL_LINE_STIPPLE);
+	glScalef(1.01, 1.01, 1.01);
 	glCallList(base+2);
 	glDisable(GL_LINE_STIPPLE);
 	glPointSize(10);

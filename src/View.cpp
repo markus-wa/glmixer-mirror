@@ -133,6 +133,9 @@ void View::updateSelectionSource()
 	// prepare vars
 	GLdouble point[2], bbox[2][2];
 
+	if (_selectedSources.empty())
+		return;
+
 	computeBoundingBox(_selectedSources, bbox);
 
 	point[0] = (bbox[1][0] - bbox[0][0]) / 2.0;

@@ -70,7 +70,9 @@ private:
     void panningBy(int x, int y, int dx, int dy);
     void setAction(actionType a);
 
+    // special management of current source ; the artificial selection source can be current too
     void setCurrentSource(Source *s);
+    Source *getCurrentSource();
 
     char quadrant;
     GLuint borderType;

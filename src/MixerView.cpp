@@ -663,7 +663,7 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 	SourceSet::iterator its = RenderingManager::getInstance()->getCurrentSource();
 	if (its != RenderingManager::getInstance()->getEnd()) {
 	    int dx =0, dy = 0, factor = 1;
-	    if (event->modifiers() & Qt::MetaModifier)
+	    if (event->modifiers() & Qt::ShiftModifier)
 	    	factor *= 10;
 		switch (event->key()) {
 			case Qt::Key_Left:
@@ -776,12 +776,8 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 		}
 
 		return sourceClicked();
-	} else {
-		if (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() )
-			return true;
-		else
-			return false;
-	}
+	} else
+		return (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() );
 
 }
 
