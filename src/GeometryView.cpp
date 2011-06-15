@@ -242,13 +242,13 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 			setCurrentSource(s);
 
 		if ( event->button() == Qt::LeftButton ) {
-			// SELECT add/remove new current from selection
+			// SELECT add/remove new clicked from selection
 			if ( currentAction == View::SELECT ) {
 				View::select(s);
 				setCurrentSource(View::selectionSource());
 			}
 			else if ( cs && cs->isModifiable() ){
-				quadrant = getSourceQuadrant(currentSource, event->x(), viewport[3] - event->y());
+				quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
 				// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
 				if(quadrant == 0 || currentTool == MOVE)
 					setAction(View::GRAB);
@@ -310,7 +310,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 
 	Source * cs = getCurrentSource();
-	if ( cs && (currentAction == View::GRAB || currentAction == View::TOOL) ) {
+	if ( cs && cs->isModifiable() && (currentAction == View::GRAB || currentAction == View::TOOL) ) {
 
 		if (currentAction == View::TOOL) {
 			if (currentTool == GeometryView::MOVE)
@@ -342,7 +342,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		if ( cs == 0 || clickedSources.count( cs ) == 0 )
 			quadrant = 0;
 		else
-			quadrant = getSourceQuadrant(currentSource, event->x(), viewport[3] - event->y());
+			quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
 
 		if(quadrant == 0 || currentTool == MOVE)
 			borderType = ViewRenderWidget::border_large;
@@ -351,6 +351,8 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 		if ( cs && cs->isModifiable() )
 			setAction(View::OVER);
+		else
+			setAction(View::NONE);
 	}
 	else
 		setAction(View::NONE);
@@ -368,7 +370,8 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
 	else if (currentAction == View::PANNING )
 		setAction(previousAction);
 	else if (currentAction != View::SELECT ){
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
+		Source * cs = getCurrentSource();
+		if ( cs && cs->isModifiable() )
 			setAction(View::OVER);
 		else
 			setAction(View::NONE);
@@ -396,7 +399,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
 		Source * cs = getCurrentSource();
 		// if there is a current source
-		if ( cs ) {
+		if ( cs && cs->isModifiable() ) {
 			// manipulate the current source according to the ongoing action
 			if (currentTool == GeometryView::MOVE || currentAction == View::GRAB)
 				grabSources(cs, event->x(), viewport[3] - event->y(), 0, 0);
