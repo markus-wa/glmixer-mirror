@@ -636,7 +636,6 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 {
 	makeCurrent();
 
-
 	// ask the catalog view if it wants this mouse press event and then
 	// inform the view of the mouse press event
 	if (!_catalogView->mousePressEvent(event) )
@@ -674,9 +673,8 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 	makeCurrent();
 
 	// ask the catalog view if it wants this mouse move event
-	if (event->buttons() == Qt::NoButton && _catalogView->mouseMoveEvent(event))
+	if (_catalogView->mouseMoveEvent(event))
 		return;
-
 
 	if (cursorEnabled && _currentCursor->isActive())
 		_currentCursor->update(event);

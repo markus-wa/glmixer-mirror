@@ -67,6 +67,20 @@ void MixerView::paint()
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing);
 
+	// The rectangle for selection
+    if ( drawRectangle ) {
+		glColor4ub(COLOR_SELECTION_AREA, 25);
+		glRectdv(selectionRectangleStart, selectionRectangleEnd);
+		glLineWidth(0.5);
+		glColor4ub(COLOR_SELECTION_AREA, 125);
+	    glBegin(GL_LINE_LOOP);
+		glVertex3d(selectionRectangleStart[0], selectionRectangleStart[1], 0.0);
+		glVertex3d(selectionRectangleEnd[0], selectionRectangleStart[1], 0.0);
+		glVertex3d(selectionRectangleEnd[0], selectionRectangleEnd[1], 0.0);
+		glVertex3d(selectionRectangleStart[0], selectionRectangleEnd[1], 0.0);
+	    glEnd();
+    }
+
     // and the selection connection lines
     glLineStipple(1, 0x9999);
     glEnable(GL_LINE_STIPPLE);
@@ -175,19 +189,6 @@ void MixerView::paint()
 
     }
 
-	// The rectangle for selection
-    if ( drawRectangle ) {
-		glColor4ub(COLOR_SELECTION_AREA, 25);
-		glRectdv(selectionRectangleStart, selectionRectangleEnd);
-		glLineWidth(0.5);
-		glColor4ub(COLOR_SELECTION_AREA, 125);
-	    glBegin(GL_LINE_LOOP);
-		glVertex3d(selectionRectangleStart[0], selectionRectangleStart[1], 0.0);
-		glVertex3d(selectionRectangleEnd[0], selectionRectangleStart[1], 0.0);
-		glVertex3d(selectionRectangleEnd[0], selectionRectangleEnd[1], 0.0);
-		glVertex3d(selectionRectangleStart[0], selectionRectangleEnd[1], 0.0);
-	    glEnd();
-    }
 
     // the source dropping icon
 	Source *s = RenderingManager::getInstance()->getSourceBasketTop();

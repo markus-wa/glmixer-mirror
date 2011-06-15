@@ -181,30 +181,15 @@ void CatalogView::drawSource(Source *s, int index)
 	    glEnable(GL_BLEND);
 
 		ViewRenderWidget::setSourceDrawingMode(false);
+
 	    // draw source border
-		if (iscurrent) {
-			glScalef( 1.06, 1.06, 1.0);	    // large border for the current source
-			glLineWidth(3.0);
-		} else {
-			glScalef( 1.05, 1.05, 1.0);		// thin border for normal
-			glLineWidth(1.0);
-		}
-
-		if ( !s->isModifiable() )
-			glColor4ub(COLOR_SOURCE_STATIC, 250);			//  color for static
-		else if ( View::isInSelection(s) )
-			glColor4ub(COLOR_SELECTION, 250);		//  color for selected sources
+		if (iscurrent)
+			glCallList(ViewRenderWidget::border_large + (s->isModifiable() ? 0 : 3));
 		else
-			glColor4ub(COLOR_SOURCE, 250);			//  color for normal
+			glCallList(ViewRenderWidget::border_thin + (s->isModifiable() ? 0 : 3));
 
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBlendEquation(GL_FUNC_ADD);
-		glBegin(GL_LINE_LOOP); // begin drawing a square
-		glVertex2f(-1.0f, -1.0f); // Bottom Left
-		glVertex2f(1.0f, -1.0f); // Bottom Right
-		glVertex2f(1.0f, 1.0f); // Top Right
-		glVertex2f(-1.0f, 1.0f); // Top Left
-		glEnd();
+		if ( View::isInSelection(s) )
+			glCallList(ViewRenderWidget::frame_selection);
 
 		// was it clicked ?
 		if ( ABS(_clicX) > 0.1 || ABS(_clicY) > 0.1 ) {

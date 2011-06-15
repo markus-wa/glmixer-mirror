@@ -163,7 +163,8 @@ bool View::keyReleaseEvent(QKeyEvent * event) {
 
 void View::setAction(actionType a){
 
-	previousAction = currentAction;
+	if (currentAction != View::SELECT)
+		previousAction = currentAction;
 	currentAction = a;
 }
 
