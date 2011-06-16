@@ -255,7 +255,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	// MIDDLE BUTTON ; panning cursor
-	if (event->button() == Qt::MidButton || ( (event->button() == Qt::LeftButton) && (event->modifiers() & Qt::MetaModifier) ) ) {
+	if (event->button() == Qt::MidButton || ( (event->button() == Qt::LeftButton) && (event->modifiers() & PANNIG_MODIFIER) ) ) {
 		setAction(View::PANNING);
 		return false;
 	}
@@ -384,7 +384,7 @@ bool LayersView::mouseDoubleClickEvent ( QMouseEvent * event )
 		// get the top most clicked source
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 			// SHIFT + on a source ; best fit on source
-			if ( event->modifiers () &  Qt::MetaModifier) {
+			if ( event->modifiers () &  PANNIG_MODIFIER) {
 				RenderingManager::getInstance()->setCurrentSource( (*clickedSources.begin())->getId() );
 				zoomBestFit(true);
 			}

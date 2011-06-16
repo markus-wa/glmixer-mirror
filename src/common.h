@@ -45,10 +45,17 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <OpenGL/glext.h>
+
+#define PANNIG_MODIFIER Qt::ALT
+
 #else
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
+
+#define PANNIG_MODIFIER Qt::META
+
 #endif
 
 #include <QtOpenGL>

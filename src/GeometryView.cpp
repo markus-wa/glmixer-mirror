@@ -213,7 +213,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	// MIDDLE BUTTON ; panning cursor
-	if ((event->button() == Qt::MidButton) || ( (event->button() == Qt::LeftButton) && (event->modifiers() & Qt::MetaModifier) ) ) {
+	if ((event->button() == Qt::MidButton) || ( (event->button() == Qt::LeftButton) && (event->modifiers() & PANNIG_MODIFIER) ) ) {
 		setAction(View::PANNING);
 		return false;
 	}
@@ -389,7 +389,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
 
 	float previous = zoom;
-	if (QApplication::keyboardModifiers () == Qt::MetaModifier)
+	if (QApplication::keyboardModifiers () == Qt::ShiftModifier)
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
@@ -441,12 +441,12 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 			if ( currentSource == 0 ) {
 				setCurrentSource(*clicked);
 				// Meta + double click = zoom best fit on current source
-				if (event->modifiers () & Qt::MetaModifier)
+				if (event->modifiers () & PANNIG_MODIFIER)
 					zoomBestFit(true);
 			} // else, try to take another one bellow it
 			else {
 				// Meta + double click = zoom best fit on current source
-				if (event->modifiers () & Qt::MetaModifier)
+				if (event->modifiers () & PANNIG_MODIFIER)
 					zoomBestFit(true);
 				else {
 					// find where the current source is in the clickedSources

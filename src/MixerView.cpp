@@ -288,7 +288,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	// MIDDLE BUTTON ; panning cursor
-	if ((event->button() == Qt::MidButton) || ( (event->button() == Qt::LeftButton) && (event->modifiers() & Qt::MetaModifier) ) ) {
+	if ((event->button() == Qt::MidButton) || ( (event->button() == Qt::LeftButton) && (event->modifiers() & PANNIG_MODIFIER) ) ) {
 		// priority to panning of the view (even in drop mode)
 		setAction(View::PANNING);
 		return false;
@@ -377,7 +377,7 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
 			Source *clicked = *clickedSources.begin();
 
 			// Meta + double click = zoom best fit on clicked source
-			if (event->modifiers () & Qt::MetaModifier) {
+			if (event->modifiers () & PANNIG_MODIFIER) {
 				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 				zoomBestFit(true);
 				return false;
@@ -572,7 +572,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 {
 	float previous = zoom;
 
-	if ( event->modifiers () & Qt::MetaModifier )
+	if ( event->modifiers () & Qt::ShiftModifier )
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
