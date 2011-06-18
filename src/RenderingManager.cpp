@@ -913,7 +913,6 @@ SourceSet::iterator RenderingManager::getByName(const QString name) const{
 
 	return std::find_if(_sources.begin(), _sources.end(), hasName(name));
 }
-
 /**
  * save and load configuration
  */
@@ -1066,6 +1065,21 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			x.setAttribute("Periodicity", QString::number(as->getPeriodicity()) );
 			x.setAttribute("Variability", as->getVariability());
 			specific.appendChild(x);
+
+		} else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
+			CaptureSource *cs = dynamic_cast<CaptureSource *> (*its);
+
+			QByteArray ba;
+			QBuffer buffer(&ba);
+			buffer.open(QIODevice::WriteOnly);
+			cs->image().save(&buffer, "JPG");
+			buffer.close();
+
+			QDomElement f = doc.createElement("Image");
+			QDomText img = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
+
+			f.appendChild(img);
+			specific.appendChild(f);
 
 		} else if ((*its)->rtti() == Source::CLONE_SOURCE) {
 			CloneSource *cs = dynamic_cast<CloneSource *> (*its);
@@ -1254,6 +1268,18 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			newsource = RenderingManager::getInstance()->newRenderingSource(depth);
 			if (!newsource)
 		        QMessageBox::warning(0, caption, tr("Could not create rendering loop-back source %1. ").arg(child.attribute("name")));
+
+		} else if ( type == Source::CAPTURE_SOURCE) {
+
+			QDomElement img = t.firstChildElement("Image");
+			QImage image;
+			QByteArray data =  img.text().toLatin1();
+
+			if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "JPG") )
+				newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
+
+			if (!newsource)
+		        QMessageBox::warning(0, caption, tr("Could not create capture source %1. ").arg(child.attribute("name")));
 
 		} else if ( type == Source::CLONE_SOURCE) {
 			// remember the node of the sources to clone

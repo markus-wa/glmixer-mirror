@@ -773,33 +773,14 @@ void GLMixer::on_actionCaptureSource_triggered(){
 	CaptureDialog cd(this, capture, tr("Create a source with this image ?"));
 
 	if (cd.exec() == QDialog::Accepted) {
-		QString filename = cd.saveImage();
 
-		if ( QFileInfo(filename).exists() ){
-			VideoFile *newSourceVideoFile = new VideoFile(this);
-			Q_CHECK_PTR(newSourceVideoFile);
+		Source *s = RenderingManager::getInstance()->newCaptureSource(cd.img);
+		if ( s ){
+			RenderingManager::getInstance()->addSourceToBasket(s);
+			statusbar->showMessage( tr("Source created with frame capture."), 3000 );
+		}else
+	        QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Could not create frame capture source."));
 
-			// if the video file was created successfully
-			if (newSourceVideoFile){
-				// forward error messages to display
-				QObject::connect(newSourceVideoFile, SIGNAL(error(QString)), this, SLOT(displayWarningMessage(QString)));
-				QObject::connect(newSourceVideoFile, SIGNAL(info(QString)), this, SLOT(displayInfoMessage(QString)));
-				// can we open the file ?
-				if ( newSourceVideoFile->open( filename ) ) {
-					Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
-					// create the source as it is a valid video file (this also set it to be the current source)
-					if ( s ) {
-						RenderingManager::getInstance()->addSourceToBasket(s);
-					} else {
-						qCritical("** Error **\n\nCould not create media source with %s.", qPrintable(filename));
-						delete newSourceVideoFile;
-					}
-				} else {
-					qCritical("** Error **\n\nCould not load %s.", qPrintable(filename));
-					delete newSourceVideoFile;
-				}
-			}
-		}
 	}
 }
 

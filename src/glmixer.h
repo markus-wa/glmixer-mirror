@@ -147,8 +147,8 @@ private:
 class CaptureDialog: public QDialog {
 	Q_OBJECT
 
-	QImage img;
 public:
+	QImage img;
 	CaptureDialog(QWidget *parent, QImage capture, QString caption);
 public Q_SLOTS:
 	QString saveImage();

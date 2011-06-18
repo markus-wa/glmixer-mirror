@@ -19,6 +19,7 @@ set(MYQT_SRCS
     VideoFile.cpp
     Source.cpp
     VideoSource.cpp
+    CaptureSource.cpp
     AlgorithmSource.cpp
     AlgorithmSelectionDialog.cpp
     SourceDisplayWidget.cpp
