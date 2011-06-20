@@ -576,7 +576,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
     gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &bx, &by, &z);
 
-	if ( event->modifiers () & Qt::ShiftModifier )
+	if ( QApplication::keyboardModifiers () & Qt::ShiftModifier )
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
