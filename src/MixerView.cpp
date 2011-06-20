@@ -571,12 +571,27 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 bool MixerView::wheelEvent ( QWheelEvent * event )
 {
 	float previous = zoom;
+	// remember position of cursor before zoom
+    double bx, by, z;
+    gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+            modelview, projection, viewport, &bx, &by, &z);
 
 	if ( event->modifiers () & Qt::ShiftModifier )
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
+	double ax, ay;
+	gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+			modelview, projection, viewport, &ax, &ay, &z);
+
+	// Center view on cursor when zooming ( panning = panning + ( mouse position after zoom - position before zoom ) )
+	// BUT with a non linear correction factor when approaching to MINZOOM (close to 0) which allows
+	// to re-center the view on the center when zooming out maximally
+	setPanningX(( getPanningX() + ax - bx) * 1.0 / ( 1.0 + exp(7.0 - 100.0 * zoom) ) );
+	setPanningY(( getPanningY() + ay - by) * 1.0 / ( 1.0 + exp(7.0 - 100.0 * zoom) ) );
+
+	// keep sources under the cursor if simultaneous grab & zoom
 	if (currentAction == View::GRAB ) {
 		deltazoom = 1.0 - (zoom / previous);
 		// simulate a grab with no mouse movement but a deltazoom :
@@ -871,6 +886,7 @@ void MixerView::panningBy(int x, int y, int dx, int dy) {
     // apply panning
     setPanningX(getPanningX() + ax - bx);
     setPanningY(getPanningY() + ay - by);
+
 }
 
 
