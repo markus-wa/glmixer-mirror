@@ -410,12 +410,19 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
 	// keep sources under the cursor if simultaneous grab & zoom
 	if (currentAction == View::GRAB || currentAction == View::TOOL ){
-		deltazoom = 1.0 - (zoom / previous);
 
 		Source * cs = getCurrentSource();
 		// if there is a current source
 		if ( cs && cs->isModifiable() ) {
-			// manipulate the current source according to the ongoing action
+
+			// where is the mouse cursor now (after zoom and panning)?
+			gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+				modelview, projection, viewport, &ax, &ay, &z);
+			// this means we have a delta of mouse position
+			deltax = ax - bx;
+			deltay = ay - by;
+
+			// actually manipulate the current source according to the ongoing action
 			if (currentTool == GeometryView::MOVE || currentAction == View::GRAB)
 				grabSources(cs, event->x(), viewport[3] - event->y(), 0, 0);
 			else if (currentTool == GeometryView::SCALE)
@@ -425,9 +432,11 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 			else if (currentTool == GeometryView::ROTATE)
 				rotateSources(cs, event->x(), viewport[3] - event->y(), 0, 0);
 
+			// reset delta
+			deltax = 0;
+			deltay = 0;
 		}
-		// reset deltazoom
-		deltazoom = 0;
+
 	} else
 		// do not show action indication (as it is likely to become invalid with view change)
 		borderType = ViewRenderWidget::border_large;
@@ -773,8 +782,8 @@ void GeometryView::grabSource(Source *s, int x, int y, int dx, int dy) {
             modelview, projection, viewport, &ax, &ay, &dum);
 
 	// take into account movement of the cursor due to zoom with scroll wheel
-    ax += (ax + getPanningX()) * deltazoom;
-    ay += (ay + getPanningY()) * deltazoom;
+    ax += deltax;
+    ay += deltay;
 
     ax = s->getX() + (ax - bx);
     ay = s->getY() + (ay - by);
@@ -836,8 +845,8 @@ void GeometryView::scaleSource(Source *s, int X, int Y, int dx, int dy, char qua
 			modelview, projection, viewport, &ax, &ay, &dum);
 
 	// take into account movement of the cursor due to zoom with scroll wheel
-	ax += (ax + getPanningX()) * deltazoom;
-	ay += (ay + getPanningY()) * deltazoom;
+	ax += deltax;
+	ay += deltay;
 
     double w = s->getScaleX();
     double x = s->getX();
@@ -966,8 +975,8 @@ void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool op
             modelview, projection, viewport, &ax, &ay, &dum);
 
 	// take into account movement of the cursor due to zoom with scroll wheel
-	ax += (ax + getPanningX()) * deltazoom;
-	ay += (ay + getPanningY()) * deltazoom;
+	ax += deltax;
+	ay += deltay;
 
     // convert to vectors ( source center -> clic position)
     double x = s->getX();
@@ -1096,8 +1105,8 @@ void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool opti
 			modelview, projection, viewport, &ax, &ay, &dum);
 
 	// take into account movement of the cursor due to zoom with scroll wheel
-	ax += (ax + getPanningX()) * deltazoom;
-	ay += (ay + getPanningY()) * deltazoom;
+	ax += deltax;
+	ay += deltay;
 
     double w = s->getScaleX();
     double x = s->getX();

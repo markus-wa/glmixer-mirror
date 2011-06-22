@@ -43,7 +43,7 @@ public:
 	 * View default constructor ; initialize variables.
 	 */
 	View() :
-		zoom(0), minzoom(0), maxzoom(0), deltazoom(0), panx(0), maxpanx(0),
+		zoom(0), minzoom(0), maxzoom(0), deltax(0), deltay(0), panx(0), maxpanx(0),
 		pany(0), maxpany(0), panz(0), maxpanz(0), modified(true) {
 		viewport[0] = 0;
 		viewport[1] = 0;
@@ -261,14 +261,13 @@ public:
 	virtual void setConfiguration(QDomElement xmlconfig);
 
 protected:
-	float zoom, minzoom, maxzoom, deltazoom;
+	float zoom, minzoom, maxzoom, deltax, deltay;
 	float panx, maxpanx, pany, maxpany, panz, maxpanz;
 	bool modified;
 
 	GLint viewport[4];
 	GLdouble projection[16];
 	GLdouble modelview[16];
-
 
 	reverseSourceSet clickedSources;
 	QPoint lastClicPos;

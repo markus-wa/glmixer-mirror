@@ -416,7 +416,7 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
 		if (currentAction == View::GRAB) {
-			deltazoom = zoom - previous;
+			deltax = zoom - previous;
 			// simulate a grab with no mouse movement but a deltazoom :
 			SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 
@@ -425,7 +425,7 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 				grabSources( *cs, event->x(), event->y(), dx, dy);
 
 			// reset deltazoom
-			deltazoom = 0;
+			deltax = 0;
 		}
 	}
 	return true;
@@ -645,7 +645,7 @@ void LayersView::grabSource(Source *s, int x, int y, int dx, int dy, bool setcur
 
     // (az-bz) is the depth change caused by the mouse mouvement
     // deltazoom is the depth change due to zooming in/out while grabbing
-    double newdepth = s->getDepth() +  az - bz  +  deltazoom;
+    double newdepth = s->getDepth() +  az - bz  +  deltax;
     SourceSet::iterator currentSource = RenderingManager::getInstance()->getById(s->getId());
 	currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
 
@@ -663,7 +663,6 @@ void LayersView::grabSources(Source *s, int x, int y, int dx, int dy)
 		grabSource( *its, x, y, dx, dy, (*its)->getId() == s->getId());
 		s = *RenderingManager::getInstance()->getCurrentSource();
 	}
-
 }
 
 /**

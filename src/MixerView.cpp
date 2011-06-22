@@ -570,36 +570,50 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 
 bool MixerView::wheelEvent ( QWheelEvent * event )
 {
-	float previous = zoom;
 	// remember position of cursor before zoom
     double bx, by, z;
     gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &bx, &by, &z);
 
+    // apply zoom
 	if ( QApplication::keyboardModifiers () & Qt::ShiftModifier )
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
 	else
 		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
 
+	// compute position of cursor after zoom
 	double ax, ay;
 	gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
 			modelview, projection, viewport, &ax, &ay, &z);
 
-	// Center view on cursor when zooming ( panning = panning + ( mouse position after zoom - position before zoom ) )
+	// Center view on cursor when zooming ( panning = panning + ( cursor position after zoom - position before zoom ) )
 	// BUT with a non linear correction factor when approaching to MINZOOM (close to 0) which allows
 	// to re-center the view on the center when zooming out maximally
-	setPanningX(( getPanningX() + ax - bx) * 1.0 / ( 1.0 + exp(7.0 - 100.0 * zoom) ) );
-	setPanningY(( getPanningY() + ay - by) * 1.0 / ( 1.0 + exp(7.0 - 100.0 * zoom) ) );
+	float expfactor = 1.0 / ( 1.0 + exp(7.0 - 100.0 * zoom) );
+	setPanningX((getPanningX() + ax - bx) * expfactor );
+	setPanningY((getPanningY() + ay - by) * expfactor );
 
 	// keep sources under the cursor if simultaneous grab & zoom
 	if (currentAction == View::GRAB ) {
-		deltazoom = 1.0 - (zoom / previous);
-		// simulate a grab with no mouse movement but a deltazoom :
+		// simulate a grab with no mouse movement but a delta movement:
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( RenderingManager::getInstance()->notAtEnd(cs))
+		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+
+			// where is the mouse cursor now (after zoom and panning)?
+			gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+				modelview, projection, viewport, &ax, &ay, &z);
+			// this means we have a delta of mouse position
+			deltax = ax - bx;
+			deltay = ay - by;
+
+			// actually grab the source
 			grabSources(*cs, event->x(), (viewport[3] - event->y()), 0, 0);
-		// reset deltazoom
-		deltazoom = 0;
+
+			// reset delta
+			deltax = 0;
+			deltay = 0;
+		}
+
 	}
 
 	return true;
@@ -859,11 +873,8 @@ void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
     gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
-    ax += (ax + getPanningX()) * deltazoom;
-    ay += (ay + getPanningY()) * deltazoom;
-
-    double ix = s->getAlphaX() + ax - bx;
-    double iy = s->getAlphaY() + ay - by;
+    double ix = s->getAlphaX() + ax - bx + deltax;
+    double iy = s->getAlphaY() + ay - by + deltay;
 
     // move icon
     s->setAlphaCoordinates( ix, iy );
