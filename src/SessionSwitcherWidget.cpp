@@ -152,6 +152,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 																					appSettings(settings), m_iconSize(48,48), allowedAspectRatio(ASPECT_RATIO_FREE),
 																					nextSessionSelected(false), suspended(false)
 {
+	QGridLayout *g;
 
 	transitionSelection = new QComboBox;
 	transitionSelection->addItem("Transition - Instantaneous");
@@ -162,42 +163,12 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 	transitionSelection->setToolTip("Select the transition type");
 	transitionSelection->setCurrentIndex(-1);
 
+	/**
+	 * Tab automatic
+	 */
 	transitionTab = new QTabWidget(this);
 	transitionTab->setToolTip("Choose how you control the transition");
 	transitionTab->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
-	transitionTab->addTab( new QWidget(), "Manual");
-	QGridLayout *g = new QGridLayout;
-
-    currentSessionLabel = new QLabel;
-    currentSessionLabel->setText(tr("100% current"));
-    currentSessionLabel->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
-    currentSessionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignBottom);
-    g->addWidget(currentSessionLabel, 0, 0);
-
-    overlayPreview = new SourceDisplayWidget(this);
-    overlayPreview->useAspectRatio(false);
-    overlayPreview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    overlayPreview->setMinimumSize(QSize(80, 60));
-    g->addWidget(overlayPreview, 0, 1);
-
-    nextSessionLabel = new QLabel;
-    nextSessionLabel->setText(tr("No selection"));
-    nextSessionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-    nextSessionLabel->setAlignment(Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing);
-    nextSessionLabel->setStyleSheet("QLabel::disabled {\ncolor: rgb(128, 0, 0);\n}");
-    g->addWidget(nextSessionLabel, 0, 2);
-
-    transitionSlider = new QSlider;
-    transitionSlider->setMinimum(-100);
-    transitionSlider->setMaximum(101);
-    transitionSlider->setValue(-100);
-    transitionSlider->setOrientation(Qt::Horizontal);
-    transitionSlider->setTickPosition(QSlider::TicksAbove);
-    transitionSlider->setTickInterval(100);
-    transitionSlider->setEnabled(false);
-    g->addWidget(transitionSlider, 1, 0, 1, 3);
-
-    transitionTab->widget(0)->setLayout(g);
 
 	QLabel *transitionDurationLabel;
 	transitionDuration = new QSpinBox;
@@ -220,7 +191,47 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 	g->addWidget(transitionDurationLabel, 1, 0);
 	g->addWidget(transitionDuration, 1, 1);
     g->addWidget(easingCurvePicker, 2, 0, 1, 2);
+    transitionTab->widget(0)->setLayout(g);
+
+    /**
+     * Tab manual
+     */
+    currentSessionLabel = new QLabel;
+    currentSessionLabel->setText(tr("100% current"));
+    currentSessionLabel->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
+    currentSessionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignBottom);
+
+    overlayPreview = new SourceDisplayWidget(this);
+    overlayPreview->useAspectRatio(false);
+    overlayPreview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    overlayPreview->setMinimumSize(QSize(80, 60));
+
+    nextSessionLabel = new QLabel;
+    nextSessionLabel->setText(tr("No selection"));
+    nextSessionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    nextSessionLabel->setAlignment(Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing);
+    nextSessionLabel->setStyleSheet("QLabel::disabled {\ncolor: rgb(128, 0, 0);\n}");
+
+    transitionSlider = new QSlider;
+    transitionSlider->setMinimum(-100);
+    transitionSlider->setMaximum(101);
+    transitionSlider->setValue(-100);
+    transitionSlider->setOrientation(Qt::Horizontal);
+    transitionSlider->setTickPosition(QSlider::TicksAbove);
+    transitionSlider->setTickInterval(100);
+    transitionSlider->setEnabled(false);
+
+	transitionTab->addTab( new QWidget(), "Manual");
+	g = new QGridLayout;
+    g->addWidget(currentSessionLabel, 0, 0);
+    g->addWidget(overlayPreview, 0, 1);
+    g->addWidget(nextSessionLabel, 0, 2);
+    g->addWidget(transitionSlider, 1, 0, 1, 3);
     transitionTab->widget(1)->setLayout(g);
+
+    /**
+     * Folder view
+     */
 
     folderModel = new QStandardItemModel(0, 4, this);
     folderModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Filename"));
@@ -376,9 +387,10 @@ void SessionSwitcherWidget::setTransitionType(int t)
 	RenderingManager::getSessionSwitcher()->setTransitionType( tt );
 
 	customButton->setStyleSheet("");
-	transitionTab->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
+//	transitionTab->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
+	transitionTab->setVisible(tt != SessionSwitcher::TRANSITION_NONE);
 	// hack ; NONE transition type should emulate automatic transition mode
-	setTransitionMode(tt == SessionSwitcher::TRANSITION_NONE ? 1 : transitionTab->currentIndex());
+	setTransitionMode(tt == SessionSwitcher::TRANSITION_NONE ? 0 : transitionTab->currentIndex());
 
 	if ( tt == SessionSwitcher::TRANSITION_CUSTOM_COLOR ) {
 		QPixmap c = QPixmap(16, 16);
@@ -556,7 +568,7 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
 	resetTransitionSlider();
 
 	// mode is manual (and not with instantaneous transition selected)
-	if ( m == 0  && transitionSelection->currentIndex() > 0) {
+	if ( m == 1  && transitionSelection->currentIndex() > 0) {
 		RenderingManager::getSessionSwitcher()->manual_mode = true;
 		// adjust slider to represent current transparency
 		transitionSlider->setValue(RenderingManager::getSessionSwitcher()->overlay() * 100.f - (nextSessionSelected?0.f:100.f));
