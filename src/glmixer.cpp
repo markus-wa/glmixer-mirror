@@ -40,6 +40,7 @@
 #include "RenderingSource.h"
 #include "AlgorithmSource.h"
 #include "VideoSource.h"
+#include "SvgSource.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
@@ -370,10 +371,8 @@ void GLMixer::on_actionMediaSource_triggered(){
 	QStringList fileNames;
 
 #ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
-
 	if (mfd->exec())
 		fileNames = mfd->selectedFiles();
-
 #else
 	fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"),
 													QDir::currentPath(),
@@ -390,16 +389,13 @@ void GLMixer::on_actionMediaSource_triggered(){
 
 #ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
 		if ( !mfd->configCustomSize() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
-			newSourceVideoFile = new VideoFile(this);
-		else
-			newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
 #else
 		if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two")  )
+#endif
 			newSourceVideoFile = new VideoFile(this);
 		else
 			newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
-#endif
-	    Q_CHECK_PTR(newSourceVideoFile);
+
 
 	    QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
 		// if the video file was created successfully
@@ -652,6 +648,34 @@ void GLMixer::on_actionCameraSource_triggered() {
 
 }
 
+
+void GLMixer::on_actionSvgSource_triggered(){
+
+//	// popup a question dialog to select the type of algorithm
+//	static AlgorithmSelectionDialog *asd = 0;
+//	if (!asd)
+//		asd = new AlgorithmSelectionDialog(this);
+
+    QString fileName = QFileDialog::getOpenFileName(this, tr("OpenSVG file"), QFileInfo(currentSessionFileName).absolutePath(), tr("SVG file (*.svg)"), 0,  QFileDialog::DontUseNativeDialog);
+
+	if ( !fileName.isEmpty() ) {
+
+		QFileInfo file(fileName);
+		if ( !file.exists() || !file.isReadable()) {
+			QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Cannot read file %1.").arg(fileName));
+			return;
+		}
+
+		QGraphicsSvgItem *svg = new QGraphicsSvgItem(fileName);
+
+		Source *s = RenderingManager::getInstance()->newSvgSource(svg);
+		if ( s ){
+			RenderingManager::getInstance()->addSourceToBasket(s);
+			statusbar->showMessage( tr("Source created with the file %1.").arg( fileName ), 3000 );
+		} else
+	        QMessageBox::warning(this, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Could not create SVG source."));
+	}
+}
 
 void GLMixer::on_actionAlgorithmSource_triggered(){
 
@@ -1274,7 +1298,7 @@ void GLMixer::on_actionSave_Session_as_triggered()
 {
 	sfd->setAcceptMode(QFileDialog::AcceptSave);
 	sfd->setFileMode(QFileDialog::AnyFile);
-	sfd->setFilter(tr("GLMixer workspace (*.glm)"));
+	sfd->setFilter(tr("GLMixer session (*.glm)"));
 	sfd->setDefaultSuffix("glm");
 
 	if (sfd->exec()) {
@@ -1289,7 +1313,7 @@ void GLMixer::on_actionLoad_Session_triggered()
 {
 	sfd->setAcceptMode(QFileDialog::AcceptOpen);
 	sfd->setFileMode(QFileDialog::ExistingFile);
-	sfd->setFilter(tr("GLMixer workspace (*.glm)"));
+	sfd->setFilter(tr("GLMixer session (*.glm)"));
 
 	if (sfd->exec()) {
 		// get the first file name selected
@@ -1459,7 +1483,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
     int errorLine;
     int errorColumn;
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), QFileInfo(currentSessionFileName).absolutePath(), tr("GLMixer workspace (*.glm)"), 0,  QFileDialog::DontUseNativeDialog);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), QFileInfo(currentSessionFileName).absolutePath(), tr("GLMixer session (*.glm)"), 0,  QFileDialog::DontUseNativeDialog);
 	if ( fileName.isEmpty() )
 		return;
 
@@ -1512,31 +1536,35 @@ void GLMixer::dropEvent(QDropEvent *event)
 {
     const QMimeData *mimeData = event->mimeData();
 	QStringList mediaFiles;
+	QStringList svgFiles;
 	QString glmfile;
+	QString messagetext;
 
     // browse the list of urls dropped
 	if (mimeData->hasUrls()) {
 		QList<QUrl> urlList = mimeData->urls();
-		QString text;
-	    QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
 
 		// arbitrary limitation in the amount of drops allowed (avoid manipulation mistakes)
 		if (urlList.size() > 20)
-			errorMessageDialog->showMessage( tr("Cannot open more than 20 files at a time."));
+			messagetext = tr("Cannot open more than 20 files at a time.");
 
 		for (int i = 0; i < urlList.size() && i < 20; ++i) {
 			QFileInfo urlname(urlList.at(i).toLocalFile());
+			if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
 
-			if ( urlname.suffix() == "glm") {
-				if (glmfile.isNull())
-					glmfile = urlname.absoluteFilePath();
-				else {
-					errorMessageDialog->showMessage( tr("Cannot open more than one .glm session file."));
-					break;
+				if ( urlname.suffix() == "glm") {
+					if (glmfile.isNull())
+						glmfile = urlname.absoluteFilePath();
+					else
+						break;
 				}
-			}
-			else //  maybe a video ?
-				mediaFiles.append(urlname.absoluteFilePath());
+				else if ( urlname.suffix() == "svg") {
+					svgFiles.append(urlname.absoluteFilePath());
+				}
+				else //  maybe a video ?
+					mediaFiles.append(urlname.absoluteFilePath());
+			} else
+				messagetext.append( tr("Ignoring %1.\n\n").arg(urlname.absoluteFilePath()) );
 		}
 	}
 
@@ -1552,15 +1580,17 @@ void GLMixer::dropEvent(QDropEvent *event)
 			RenderingManager::getSessionSwitcher()->startTransition(false);
 		}
 
-		if (!mediaFiles.isEmpty())
-			errorMessageDialog->showMessage( tr("Loading only the .glm session file; discarding the other files provided."));
+		if (!mediaFiles.isEmpty() || !svgFiles.isEmpty())
+			messagetext =  tr("Loading only the .glm session file (discarding the other files provided).\n");
 
 	} else {
-
-		QProgressDialog progress("Loading sources...", "Abort", 1, mediaFiles.size());
+		int i = 0;
+		QProgressDialog progress("Loading sources...", "Abort", 1, mediaFiles.size() + svgFiles.size() );
 		progress.setWindowModality(Qt::WindowModal);
 		progress.setMinimumDuration( 600 );
-		for (int i = 0; i < mediaFiles.size(); ++i)
+
+		// loading Media files
+		for (i = 0; i < mediaFiles.size(); ++i)
 		{
 			progress.setValue(i);
 			if (progress.wasCanceled())
@@ -1578,19 +1608,39 @@ void GLMixer::dropEvent(QDropEvent *event)
 				if ( newSourceVideoFile->open( mediaFiles.at(i) ) ) {
 					Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
 					// create the source as it is a valid video file (this also set it to be the current source)
-					if ( s ) {
+					if ( s )
 						RenderingManager::getInstance()->addSourceToBasket(s);
-					} else {
-						displayInfoMessage ( tr("Could not create media source."));
+					else {
+						messagetext.append( tr("Could not create source with %1.\n\n").arg(mediaFiles.at(i)) );
 						delete newSourceVideoFile;
 					}
 				} else {
-					displayInfoMessage ( tr("Could not open %1.").arg(mediaFiles.at(i)));
+					messagetext.append(  tr("Could not open %1.\n\n").arg(mediaFiles.at(i)) );
 					delete newSourceVideoFile;
 				}
 			}
 		}
+
+		// loading SVG files
+		for (i = 0; i < svgFiles.size(); ++i)
+		{
+			progress.setValue(i + mediaFiles.size());
+			if (progress.wasCanceled())
+				break;
+
+			QGraphicsSvgItem *svg = new QGraphicsSvgItem(svgFiles.at(i));
+
+			Source *s = RenderingManager::getInstance()->newSvgSource(svg);
+			if ( s )
+				RenderingManager::getInstance()->addSourceToBasket(s);
+			else
+				messagetext.append( tr("Could not create source with %1.\n\n").arg(svgFiles.at(i)) );
+		}
+
 	}
+
+	if (!messagetext.isEmpty())
+		errorMessageDialog->showMessage(messagetext);
 
     event->acceptProposedAction();
 }
@@ -1776,6 +1826,22 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	stream >> antialiasing;
 	RenderingManager::getRenderingWidget()->setAntiAliasing(antialiasing);
 
+	// k. mouse buttons and modifiers
+	QMap<int, int> mousemap;
+	stream >> mousemap;
+	View::setMouseButtonsMap(mousemap);
+	QMap<int, int> modifiermap;
+	stream >> modifiermap;
+	View::setMouseModifiersMap(modifiermap);
+
+	// l. zoom config
+	int zoomspeed = 120;
+	stream >> zoomspeed;
+	View::setZoomSpeed((float)zoomspeed);
+	bool zoomcentered = true;
+	stream >> zoomcentered;
+	View::setZoomCentered(zoomcentered);
+
 	// Refresh widgets to make changes visible
 	OutputRenderWindow::getInstance()->refresh();
 	outputpreview->refresh();
@@ -1824,6 +1890,14 @@ QByteArray GLMixer::getPreferences() const {
 
 	// j. antialiasing
 	stream << RenderingManager::getRenderingWidget()->antiAliasing();
+
+	// k. mouse buttons and modifiers
+	stream << View::getMouseButtonsMap();
+	stream << View::getMouseModifiersMap();
+
+	// l. zoom config
+	stream << (int) View::zoomSpeed();
+	stream << View::zoomCentered();
 
 	return data;
 }

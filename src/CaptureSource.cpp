@@ -7,6 +7,8 @@
 
 #include "CaptureSource.h"
 
+Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
+
 CaptureSource::CaptureSource(QImage capture, GLuint texture, double d): Source(texture, d), _capture(capture) {
 
 	if (!_capture.isNull()) {
@@ -19,6 +21,7 @@ CaptureSource::CaptureSource(QImage capture, GLuint texture, double d): Source(t
 
 		aspectratio = double(_capture.width()) / double(_capture.height());
 	}
+	// TODO : else through exception
 }
 
 CaptureSource::~CaptureSource() {

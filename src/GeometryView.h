@@ -57,18 +57,18 @@ public:
 
 private:
 
-    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool excludeSelection = false);
+    bool getSourcesAtCoordinates(int mouseX, int mouseY);
     char getSourceQuadrant(Source *s, int mouseX, int mouseY);
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void grabSources(Source *s, int x, int y, int dx, int dy);
-    void scaleSource(Source *s, int x, int y, int dx, int dy, char quadrant, bool option = 0);
-    void scaleSources(Source *s, int x, int y, int dx, int dy, bool option = 0);
-    void rotateSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
-    void rotateSources(Source *s, int x, int y, int dx, int dy, bool option = 0);
-    void cropSource(Source *s, int x, int y, int dx, int dy, bool option = 0);
-    void cropSources(Source *s, int x, int y, int dx, int dy, bool option = 0);
+    void scaleSource(Source *s, int x, int y, int dx, int dy, char quadrant, bool proportional = 0);
+    void scaleSources(Source *s, int x, int y, int dx, int dy, bool proportional = 0);
+    void rotateSource(Source *s, int x, int y, int dx, int dy, bool noscale = 0);
+    void rotateSources(Source *s, int x, int y, int dx, int dy, bool noscale = 0);
+    void cropSource(Source *s, int x, int y, int dx, int dy, bool proportional = 0);
+    void cropSources(Source *s, int x, int y, int dx, int dy, bool proportional = 0);
     void panningBy(int x, int y, int dx, int dy);
-    void setAction(actionType a);
+    void setAction(ActionType a);
 
     // special management of current source ; the artificial selection source can be current too
     void setCurrentSource(Source *s);

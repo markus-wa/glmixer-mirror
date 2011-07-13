@@ -44,7 +44,8 @@ public:
 	 */
 	View() :
 		zoom(0), minzoom(0), maxzoom(0), deltax(0), deltay(0), panx(0), maxpanx(0),
-		pany(0), maxpany(0), panz(0), maxpanz(0), modified(true) {
+		pany(0), maxpany(0), panz(0), maxpanz(0), modified(true), individual(false),
+		currentAction(NONE), previousAction(NONE){
 		viewport[0] = 0;
 		viewport[1] = 0;
 		viewport[2] = 0;
@@ -126,8 +127,16 @@ public:
 
 	virtual void coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y);
 
-    typedef enum {NONE = 0, OVER, GRAB, TOOL, SELECT, PANNING, DROP } actionType;
-    void setAction(actionType a);
+    typedef enum {
+    	NONE = 0,
+    	OVER,
+    	GRAB,
+    	TOOL,
+    	SELECT,
+    	PANNING,
+    	DROP
+    } ActionType;
+    void setAction(ActionType a);
 	/**
 	 *
 	 */
@@ -173,11 +182,7 @@ public:
 	/**
 	 *
 	 */
-	inline void setPanningX(float x) {
-		panx = CLAMP(x, - maxpanx, maxpanx);
-		setModelview();
-		modified = true;
-	}
+	void setPanning(float x, float y, float z = -1.f);
 	/**
 	 *
 	 */
@@ -187,24 +192,8 @@ public:
 	/**
 	 *
 	 */
-	inline void setPanningY(float y) {
-		pany = CLAMP(y, - maxpany, maxpany);
-		setModelview();
-		modified = true;
-	}
-	/**
-	 *
-	 */
 	inline float getPanningY() {
 		return pany;
-	}
-	/**
-	 *
-	 */
-	inline void setPanningZ(float z) {
-		panz = CLAMP(z, - maxpanz, maxpanz);
-		setModelview();
-		modified = true;
 	}
 	/**
 	 *
@@ -236,9 +225,45 @@ public:
 	 */
 	bool sourceClicked() { return !clickedSources.empty(); }
 
+	/**
+	 * CONFIGURATION
+	 */
+	virtual QDomElement getConfiguration(QDomDocument &doc);
+	virtual void setConfiguration(QDomElement xmlconfig);
 
 	/**
-	 * SELECTION (static)
+	 * User input actions preferences (buttons and modifier keys)
+	 */
+	typedef enum {
+		INPUT_TOOL = 0,
+		INPUT_TOOL_INDIVIDUAL,
+		INPUT_NAVIGATE,
+		INPUT_DRAG,
+		INPUT_SELECT,
+		INPUT_CONTEXT_MENU,
+		INPUT_ZOOM,
+		INPUT_NONE
+	} UserInput;
+
+	static QString userInputLabel(UserInput ab, bool verbose = false);
+    static QString userInputDescription(View::UserInput ab, QMap<View::UserInput,Qt::MouseButtons> bm = View::_buttonmap, QMap<View::UserInput,Qt::KeyboardModifiers> mm = View::_modifiermap);
+	static Qt::MouseButtons qtMouseButtons(View::UserInput ab) { return View::_buttonmap[ab]; }
+	static Qt::KeyboardModifiers qtMouseModifiers(View::UserInput ab) { return View::_modifiermap[ab]; }
+	static QMap<View::UserInput,Qt::MouseButtons> defaultMouseButtonsMap();
+    static QMap<View::UserInput,Qt::KeyboardModifiers> defaultModifiersMap();
+	static QMap<int,int> getMouseButtonsMap(QMap<View::UserInput,Qt::MouseButtons> from = View::_buttonmap) ;
+    static QMap<int,int> getMouseModifiersMap(QMap<View::UserInput,Qt::KeyboardModifiers> from = View::_modifiermap) ;
+	static void setMouseButtonsMap(QMap<int, int> m) ;
+    static void setMouseModifiersMap(QMap<int, int> m) ;
+    static bool isUserInput(QMouseEvent *event, UserInput ab);
+	static void setZoomSpeed(float zs);
+	static float zoomSpeed();
+	static void setZoomCentered(bool on);
+	static bool zoomCentered();
+
+
+	/**
+	 * Selection management
 	 */
 	static void select(Source *s);
 	static void deselect(Source *s);
@@ -254,16 +279,11 @@ public:
 	static Source *selectionSource() { return _selectionSource; }
 	static void updateSelectionSource();
 
-	/**
-	 * CONFIGURATION
-	 */
-	virtual QDomElement getConfiguration(QDomDocument &doc);
-	virtual void setConfiguration(QDomElement xmlconfig);
 
 protected:
 	float zoom, minzoom, maxzoom, deltax, deltay;
 	float panx, maxpanx, pany, maxpany, panz, maxpanz;
-	bool modified;
+	bool modified, individual;
 
 	GLint viewport[4];
 	GLdouble projection[16];
@@ -274,14 +294,18 @@ protected:
 	QPixmap icon;
 	QString title;
 
-    actionType currentAction, previousAction;
+    ActionType currentAction, previousAction;
 
-    static void computeBoundingBox(const SourceList &l, double bbox[][2]);
+    static void computeBoundingBox(const SourceList &l, double bbox[2][2]);
 
 private:
 	static SourceList _selectedSources;
 	static Source *_selectionSource;
+	static float zoomspeed;
+	static bool zoomcentered;
 
+    static QMap<View::UserInput,Qt::MouseButtons> _buttonmap;
+    static QMap<View::UserInput,Qt::KeyboardModifiers> _modifiermap;
 };
 
 #endif /* VIEW_H_ */

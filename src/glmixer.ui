@@ -127,6 +127,9 @@
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonZoomReset">
+         <property name="toolTip">
+          <string>Zoom reset</string>
+         </property>
          <property name="styleSheet">
           <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
          </property>
@@ -141,6 +144,9 @@
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonZoomPlus">
+         <property name="toolTip">
+          <string>Zoom in</string>
+         </property>
          <property name="styleSheet">
           <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
          </property>
@@ -158,6 +164,9 @@
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonZoomMinus">
+         <property name="toolTip">
+          <string>Zoom out</string>
+         </property>
          <property name="styleSheet">
           <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
          </property>
@@ -175,6 +184,9 @@
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonZoomFit">
+         <property name="toolTip">
+          <string>Zoom best fit</string>
+         </property>
          <property name="styleSheet">
           <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
          </property>
@@ -191,6 +203,9 @@
         <widget class="QToolButton" name="toolButtonZoomCurrent">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Zoom on current source</string>
          </property>
          <property name="styleSheet">
           <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
@@ -302,6 +317,9 @@
             <property name="toolTip">
              <string>Gamma global factor</string>
             </property>
+            <property name="statusTip">
+             <string>Adjust gamma to make the output brighter or darker.</string>
+            </property>
             <property name="minimum">
              <number>270</number>
             </property>
@@ -326,6 +344,9 @@
            <widget class="QToolButton" name="gammaShiftReset">
             <property name="toolTip">
              <string>Reset gamma</string>
+            </property>
+            <property name="statusTip">
+             <string>Reset global gamma to default.</string>
             </property>
             <property name="styleSheet">
              <string notr="true"> QToolButton { 
@@ -360,7 +381,10 @@
        <item>
         <widget class="QToolButton" name="output_onair">
          <property name="toolTip">
-          <string>Activate output rendering</string>
+          <string>On air</string>
+         </property>
+         <property name="statusTip">
+          <string>Output window is active when &quot;On air&quot;</string>
          </property>
          <property name="styleSheet">
           <string notr="true"> QToolButton { 
@@ -451,7 +475,10 @@
        <item>
         <widget class="QToolButton" name="output_fullscreen">
          <property name="toolTip">
-          <string>Set output to fullscreen</string>
+          <string>Full screen</string>
+         </property>
+         <property name="statusTip">
+          <string>Sets the output window to fullscreen mode.</string>
          </property>
          <property name="styleSheet">
           <string notr="true"> QToolButton { /* all types of tool button */
@@ -615,6 +642,9 @@ p, li { white-space: pre-wrap; }
             </size>
            </property>
            <property name="toolTip">
+            <string>Starts / stops  the movie</string>
+           </property>
+           <property name="statusTip">
             <string>Starts / stops  the movie</string>
            </property>
            <property name="styleSheet">
@@ -782,6 +812,9 @@ p, li { white-space: pre-wrap; }
                <item>
                 <widget class="QToolButton" name="pauseButton">
                  <property name="toolTip">
+                  <string>Pause/resume play</string>
+                 </property>
+                 <property name="statusTip">
                   <string>Pause/resume play</string>
                  </property>
                  <property name="styleSheet">
@@ -1679,6 +1712,9 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/preferences.png</normaloff>:/glmixer/icons/preferences.png</iconset>
    </property>
    <property name="toolTip">
+    <string>Configuration of current source</string>
+   </property>
+   <property name="statusTip">
     <string>Configuration of the source currently highlighted (clic on a source icon to highlight it).</string>
    </property>
    <property name="floating">
@@ -1732,6 +1768,16 @@ Uncheck to display the restart frame when stopped.</string>
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <widget class="QMenu" name="menuCatalog">
+     <property name="title">
+      <string>Catalog</string>
+     </property>
+     <addaction name="actionShow_Catalog"/>
+     <addaction name="separator"/>
+     <addaction name="actionCatalogSmall"/>
+     <addaction name="actionCatalogMedium"/>
+     <addaction name="actionCatalogLarge"/>
+    </widget>
     <widget class="QMenu" name="menuToolBars">
      <property name="title">
       <string>Widgets &amp;&amp; Toolbars</string>
@@ -1747,16 +1793,6 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionZoomIn"/>
      <addaction name="actionZoomOut"/>
      <addaction name="actionZoomBestFit"/>
-    </widget>
-    <widget class="QMenu" name="menuCatalog">
-     <property name="title">
-      <string>Catalog</string>
-     </property>
-     <addaction name="actionShow_Catalog"/>
-     <addaction name="separator"/>
-     <addaction name="actionCatalogSmall"/>
-     <addaction name="actionCatalogMedium"/>
-     <addaction name="actionCatalogLarge"/>
     </widget>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
@@ -1798,6 +1834,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionRenderingSource"/>
     <addaction name="actionCaptureSource"/>
     <addaction name="actionAlgorithmSource"/>
+    <addaction name="actionSvgSource"/>
     <addaction name="separator"/>
     <addaction name="menuCurrent_source"/>
     <addaction name="actionSelect_Next"/>
@@ -1829,6 +1866,9 @@ Uncheck to display the restart frame when stopped.</string>
     </property>
     <widget class="QMenu" name="menuAspect_Ratio">
      <property name="toolTip">
+      <string>Rendering aspect ratio</string>
+     </property>
+     <property name="statusTip">
       <string>Choose rendering aspect ratio of rendering area</string>
      </property>
      <property name="title">
@@ -1879,6 +1919,7 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionRenderingSource"/>
    <addaction name="actionCaptureSource"/>
    <addaction name="actionAlgorithmSource"/>
+   <addaction name="actionSvgSource"/>
    <addaction name="actionCloneSource"/>
    <addaction name="separator"/>
    <addaction name="actionDeleteSource"/>
@@ -2468,6 +2509,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>FFMPEG Formats and Codecs</string>
    </property>
+   <property name="statusTip">
+    <string>Display the list of video codecs that can be read.</string>
+   </property>
   </action>
   <action name="actionShow_frames">
    <property name="checkable">
@@ -2491,6 +2535,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>OpenGL extensions</string>
    </property>
+   <property name="statusTip">
+    <string>Display the list of OpenGL extensions that your system supports.</string>
+   </property>
   </action>
   <action name="actionFullscreen">
    <property name="checkable">
@@ -2504,7 +2551,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>&amp;Full screen</string>
    </property>
    <property name="toolTip">
-    <string>Sets the output window to fullscreen mode.</string>
+    <string>Full screen</string>
    </property>
    <property name="statusTip">
     <string>Sets the output window to fullscreen mode.</string>
@@ -2617,10 +2664,10 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Close session</string>
    </property>
    <property name="toolTip">
-    <string>New session</string>
+    <string>Close session</string>
    </property>
    <property name="statusTip">
-    <string>Starts a new Session</string>
+    <string>Close current and starts a new Session</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>
@@ -2671,7 +2718,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>&amp;New source &amp;Device</string>
    </property>
    <property name="toolTip">
-    <string>Add a source from Device</string>
+    <string>New source Device</string>
    </property>
    <property name="statusTip">
     <string>Creates a live source showing frames of a connected device (e.g. webcam)</string>
@@ -2689,7 +2736,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>&amp;New source &amp;Loopback</string>
    </property>
    <property name="toolTip">
-    <string>Add a rendering Loopback source</string>
+    <string>New source Loopback</string>
    </property>
    <property name="statusTip">
     <string>Creates a new source which displays the previous rendering of the output window.</string>
@@ -2774,8 +2821,11 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Show FPS</string>
    </property>
+   <property name="toolTip">
+    <string>Show FPS</string>
+   </property>
    <property name="statusTip">
-    <string>Displays the update frequency in the top corner of the views.</string>
+    <string>Displays the update frequency in the corner of the views.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+F</string>
@@ -2790,7 +2840,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>&amp;New source &amp;Capture frame</string>
    </property>
    <property name="toolTip">
-    <string>Add an image source from screen Capture</string>
+    <string>New source Capture frame</string>
    </property>
    <property name="statusTip">
     <string>Creates a new source with the image of the current output window.</string>
@@ -2912,7 +2962,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Grab tool</string>
    </property>
    <property name="statusTip">
-    <string>The grab tool allows to move the sources in the view.</string>
+    <string>Move the sources in the view.</string>
    </property>
    <property name="shortcut">
     <string>G</string>
@@ -2937,7 +2987,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Scale tool</string>
    </property>
    <property name="statusTip">
-    <string>The scale tool allows to resize the sources in the view.</string>
+    <string>Resize the sources in the view.</string>
    </property>
    <property name="shortcut">
     <string>S</string>
@@ -2962,7 +3012,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Rotate tool</string>
    </property>
    <property name="statusTip">
-    <string>The rotate tool allows to turn the sources in the view.</string>
+    <string>Rotate the sources in the view.</string>
    </property>
    <property name="shortcut">
     <string>R</string>
@@ -2984,10 +3034,10 @@ Uncheck to display the restart frame when stopped.</string>
     <string>&amp;Crop</string>
    </property>
    <property name="toolTip">
-    <string>Cutting tool</string>
+    <string>Cropping tool</string>
    </property>
    <property name="statusTip">
-    <string>The cut tool allows to crop the sources in the view.</string>
+    <string>Crop the sources in the view.</string>
    </property>
    <property name="shortcut">
     <string>C</string>
@@ -3089,10 +3139,10 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Next</string>
    </property>
    <property name="toolTip">
-    <string>Select next source (Tab)</string>
+    <string>Select next source [Tab]</string>
    </property>
    <property name="statusTip">
-    <string>Select next source (shortcut is [TAB])</string>
+    <string>Select the next source in the list (shortcut is [TAB])</string>
    </property>
   </action>
   <action name="actionSelect_Previous">
@@ -3107,7 +3157,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Select previous source</string>
    </property>
    <property name="statusTip">
-    <string>Select previous source (shortcut is [SHIFT][TAB])</string>
+    <string>Select the previous source in the list (shortcut is [SHIFT][TAB])</string>
    </property>
   </action>
   <action name="actionShow_Catalog">
@@ -3189,6 +3239,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>White background</string>
    </property>
+   <property name="statusTip">
+    <string>Set the background to white (instead of black)</string>
+   </property>
   </action>
   <action name="actionToggleRenderingVisible">
    <property name="checkable">
@@ -3206,6 +3259,9 @@ Uncheck to display the restart frame when stopped.</string>
     <string>On air</string>
    </property>
    <property name="toolTip">
+    <string>On air</string>
+   </property>
+   <property name="statusTip">
     <string>Output window is active when &quot;On air&quot;</string>
    </property>
    <property name="shortcut">
@@ -3225,10 +3281,19 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>Restore default</string>
    </property>
+   <property name="statusTip">
+    <string>Restore default toolbars and window layout.</string>
+   </property>
   </action>
   <action name="actionRecent_session">
    <property name="text">
     <string>Open recent</string>
+   </property>
+   <property name="toolTip">
+    <string>Open recent sessions</string>
+   </property>
+   <property name="statusTip">
+    <string>Open recent sessions</string>
    </property>
   </action>
   <action name="actionCursorAxis">
@@ -3342,6 +3407,9 @@ Uncheck to display the restart frame when stopped.</string>
     <string>&amp;Pause</string>
    </property>
    <property name="toolTip">
+    <string>Pause session</string>
+   </property>
+   <property name="statusTip">
     <string>Pause the session (all sources)</string>
    </property>
    <property name="shortcut">
@@ -3361,10 +3429,13 @@ Uncheck to display the restart frame when stopped.</string>
      <normalon>:/glmixer/icons/recording.png</normalon>:/glmixer/icons/record.png</iconset>
    </property>
    <property name="text">
-    <string>Start / suspend &amp;Recording</string>
+    <string>Start / Stop &amp;Recording</string>
    </property>
    <property name="toolTip">
-    <string>Record output</string>
+    <string>Start / Stop Recording</string>
+   </property>
+   <property name="statusTip">
+    <string>Record the rendering output to a video file.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
@@ -3387,6 +3458,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="toolTip">
     <string>Pause recording</string>
    </property>
+   <property name="statusTip">
+    <string>Suspend / resume the recording</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Shift+R</string>
    </property>
@@ -3398,6 +3472,12 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="text">
     <string>Capture and save frame</string>
+   </property>
+   <property name="toolTip">
+    <string>Capture and save frame</string>
+   </property>
+   <property name="statusTip">
+    <string>Capture the output frame as and save to image file.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
@@ -3456,10 +3536,10 @@ Uncheck to display the restart frame when stopped.</string>
     <string>&amp;New source(s) &amp;Video(s)</string>
    </property>
    <property name="toolTip">
-    <string>Add a source from video or image file(s)</string>
+    <string>New source(s) Video(s)</string>
    </property>
    <property name="statusTip">
-    <string>Create sources playing videos or images</string>
+    <string>Create a source from video or image file(s)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N, V</string>
@@ -3486,6 +3566,9 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Select &amp;All</string>
    </property>
    <property name="toolTip">
+    <string>Select All</string>
+   </property>
+   <property name="statusTip">
     <string>Add all sources to the selection</string>
    </property>
    <property name="shortcut">
@@ -3501,6 +3584,9 @@ Uncheck to display the restart frame when stopped.</string>
     <string>&amp;Invert selection</string>
    </property>
    <property name="toolTip">
+    <string>Invert selection</string>
+   </property>
+   <property name="statusTip">
     <string>Invert the selection</string>
    </property>
    <property name="shortcut">
@@ -3512,10 +3598,31 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Clear selection</string>
    </property>
    <property name="toolTip">
+    <string>Clear selection</string>
+   </property>
+   <property name="statusTip">
     <string>Clear the selection</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+A</string>
+   </property>
+  </action>
+  <action name="actionSvgSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/svg.png</normaloff>:/glmixer/icons/svg.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;New source vector &amp;Graphics</string>
+   </property>
+   <property name="toolTip">
+    <string>New source vector Graphics</string>
+   </property>
+   <property name="statusTip">
+    <string>Creates a  source displaying vector graphics (SVG)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N, G</string>
    </property>
   </action>
  </widget>

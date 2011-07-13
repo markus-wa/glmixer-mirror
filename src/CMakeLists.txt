@@ -4,6 +4,7 @@
 set(QT_USE_OPENGL    TRUE)
 set(QT_USE_QTOPENGL  TRUE)
 set(QT_USE_QTXML     TRUE)
+set(QT_USE_QTSVG     TRUE)
 set(QT_USE_QTMAIN    TRUE)
 # add the corresponding path to include
 include(${QT_USE_FILE})
@@ -20,6 +21,7 @@ set(MYQT_SRCS
     Source.cpp
     VideoSource.cpp
     CaptureSource.cpp
+    SvgSource.cpp
     AlgorithmSource.cpp
     AlgorithmSelectionDialog.cpp
     SourceDisplayWidget.cpp
@@ -45,6 +47,8 @@ set(MYQT_SRCS
     glmixer.cpp
     main.cpp
     video_rec.c
+    testbuttonframe.cpp
+    testwheelframe.cpp
 )
 
 set(MYQT_RCS

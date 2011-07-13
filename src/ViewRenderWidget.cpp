@@ -167,11 +167,6 @@ ViewRenderWidget::ViewRenderWidget() :
 	fpsCounter_ = 0;
 	f_p_s_ = 1000.0 / updatePeriod();
 
-	// qt context menu
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this,
-			SLOT(contextMenu(const QPoint &)));
-
 	installEventFilter(this);
 }
 
@@ -366,29 +361,31 @@ void ViewRenderWidget::setCatalogSizeLarge()
 	_catalogView->setSize(CatalogView::LARGE);
 }
 
-void ViewRenderWidget::contextMenu(const QPoint &pos)
+void ViewRenderWidget::showContextMenu(ViewContextMenu m, const QPoint &pos)
 {
-	// if there is something to drop, context menu offers to end the drop
-	if (RenderingManager::getInstance()->getSourceBasketTop())
-	{
-		QMenu menu(this);
-		QAction *newAct = new QAction(tr("Cancel"), this);
-		menu.addAction(newAct);
-		connect(newAct, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(clearBasket()));
-		menu.exec(mapToGlobal(pos));
-	}
-	else if (_catalogView->isInside(pos))
-	{
-		if (catalogMenu)
-			catalogMenu->exec(mapToGlobal(pos));
-	}
-	else if ( !_currentView->sourceClicked())
-	{
+	switch (m) {
+	case CONTEXT_MENU_VIEW:
 		if (viewMenu)
 			viewMenu->exec(mapToGlobal(pos));
+		break;
+	case CONTEXT_MENU_SOURCE:
+		if (sourceMenu)
+			sourceMenu->exec(mapToGlobal(pos));
+		break;
+	case CONTEXT_MENU_CATALOG:
+		if (catalogMenu)
+			catalogMenu->exec(mapToGlobal(pos));
+		break;
+	case CONTEXT_MENU_DROP:
+		{
+			QMenu menu(this);
+			QAction *newAct = new QAction(tr("Cancel"), this);
+			menu.addAction(newAct);
+			connect(newAct, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(clearBasket()));
+			menu.exec(mapToGlobal(pos));
+		}
+		break;
 	}
-	else if (sourceMenu)
-		sourceMenu->exec(mapToGlobal(pos));
 }
 
 void ViewRenderWidget::setToolMode(toolMode m){
@@ -678,17 +675,16 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 
 	if (cursorEnabled && _currentCursor->isActive())
 		_currentCursor->update(event);
-	else {
-		if (_currentView->mouseMoveEvent(event));
-		{   // the view 'mouseMoveEvent' returns true ; there was something changed!
-			if (_currentView == _mixingView)
-				emit sourceMixingModified();
-			else if (_currentView == _geometryView)
-				emit sourceGeometryModified();
-			else if (_currentView == _layersView)
-				emit sourceLayerModified();
-		}
+	else if (_currentView->mouseMoveEvent(event)){
+		// the view 'mouseMoveEvent' returns true ; there was something changed!
+		if (_currentView == _mixingView)
+			emit sourceMixingModified();
+		else if (_currentView == _geometryView)
+			emit sourceGeometryModified();
+		else if (_currentView == _layersView)
+			emit sourceLayerModified();
 	}
+
 }
 
 void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)

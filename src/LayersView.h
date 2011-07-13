@@ -39,7 +39,6 @@ public:
     void resize(int w = -1, int h = -1);
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
-    bool mouseDoubleClickEvent(QMouseEvent *event);
     bool mouseReleaseEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
     bool keyPressEvent ( QKeyEvent * event );
@@ -56,14 +55,14 @@ private:
     float forwardDisplacement;
     SourceList forwardSources;
 
-    void bringForward(Source *s, bool individual);
+    void bringForward(Source *s);
     void unProjectDepth(int x, int y, int dx, int dy, double *depth, double *depthBeforeDelta);
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
     void grabSource(Source *s, int x, int y, int dx, int dy, bool setcurrent=true);
     void grabSources(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy);
 
-    void setAction(actionType a);
+    void setAction(ActionType a);
 };
 
 #endif /* LAYERSVIEW_H_ */

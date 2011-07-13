@@ -60,6 +60,7 @@ UserPreferencesDialog::~UserPreferencesDialog()
 void UserPreferencesDialog::setModeMinimal(bool on)
 {
 	listWidget->setVisible(!on);
+	factorySettingsButton->setVisible(!on);
 	IntroTextLabel->setVisible(on);
 
 	if (on){
@@ -70,6 +71,14 @@ void UserPreferencesDialog::setModeMinimal(bool on)
 	} else {
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Save);
 	}
+}
+
+
+void UserPreferencesDialog::restoreAllDefaultPreferences() {
+
+	for (int r = listWidget->count(); r >= 0; listWidget->setCurrentRow(r--))
+		restoreDefaultPreferences();
+
 }
 
 void UserPreferencesDialog::restoreDefaultPreferences() {
@@ -102,6 +111,9 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 	if (stackedPreferences->currentWidget() == PageInterface){
 		FINE->setChecked(true);
 		antiAliasing->setChecked(true);
+		ButtonTestFrame->reset();
+		speedZoom->setValue(120);
+		centeredZoom->setChecked(true);
 	}
 }
 
@@ -196,6 +208,21 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	bool antialiasing = true;
 	stream >> antialiasing;
 	antiAliasing->setChecked(antialiasing);
+
+	// k. mouse buttons and modifiers
+	QMap<int, int> mousemap;
+	stream >> mousemap;
+	QMap<int, int> modifiermap;
+	stream >> modifiermap;
+	ButtonTestFrame->setConfiguration(mousemap, modifiermap);
+
+	// l. zoom config
+	int zoomspeed = 120;
+	stream >> zoomspeed;
+	speedZoom->setValue(zoomspeed);
+	bool zoomcentered = true;
+	stream >> zoomcentered;
+	centeredZoom->setChecked(zoomcentered);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -243,8 +270,16 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	// i. disable filter
 	stream << disableFiltering->isChecked();
 
-	// i. antialiasing
+	// j. antialiasing
 	stream << antiAliasing->isChecked();
+
+	// k. mouse buttons and modifiers
+	stream << View::getMouseButtonsMap(ButtonTestFrame->buttonMap());
+	stream << View::getMouseModifiersMap(ButtonTestFrame->modifierMap());
+
+	// l. zoom config
+	stream << speedZoom->value();
+	stream << centeredZoom->isChecked();
 
 	return data;
 }

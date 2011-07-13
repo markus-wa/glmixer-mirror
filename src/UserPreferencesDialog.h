@@ -44,6 +44,7 @@ public:
 
 public Q_SLOTS:
 	void restoreDefaultPreferences();
+	void restoreAllDefaultPreferences();
 	void showPreferences(const QByteArray & state);
 	QByteArray getUserPreferences() const;
 	void on_updatePeriod_valueChanged(int period);

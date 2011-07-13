@@ -63,7 +63,7 @@ private:
     void grabSources(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy) ;
 
-    void setAction(actionType a);
+    void setAction(ActionType a);
     bool drawRectangle;
 
     // creation of groups from set of selection

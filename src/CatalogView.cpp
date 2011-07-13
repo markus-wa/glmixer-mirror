@@ -318,8 +318,8 @@ bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 			// make this source the current
 			RenderingManager::getInstance()->setCurrentSource(sourceClicked->getId());
 
-			// if the CTRL key is also pressed, then add / remove it to the selection
-			if (event->modifiers() & Qt::ControlModifier)
+			// detect select mode
+			if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) )
 				View::select(sourceClicked);
 		}
 

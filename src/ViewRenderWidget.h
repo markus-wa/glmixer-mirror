@@ -81,15 +81,26 @@ public:
     void leaveEvent ( QEvent * event );
     void enterEvent ( QEvent * event );
 
+	/**
+	 * CONTEXT MENUS
+	 */
+	typedef enum {
+		CONTEXT_MENU_VIEW,
+		CONTEXT_MENU_SOURCE,
+		CONTEXT_MENU_CATALOG,
+		CONTEXT_MENU_DROP
+	} ViewContextMenu;
+	void setViewContextMenu(QMenu *m) { viewMenu = m; }
+	void setCatalogContextMenu(QMenu *m) { catalogMenu = m; }
+	void setSourceContextMenu(QMenu *m) { sourceMenu = m; }
+	void showContextMenu(ViewContextMenu m, const QPoint &);
+
     /**
      * Specific methods
      */
     void displayFramerate();
 	float getFramerate() { return f_p_s_; }
 	void showFramerate(bool on);
-	void setViewContextMenu(QMenu *m) { viewMenu = m; }
-	void setCatalogContextMenu(QMenu *m) { catalogMenu = m; }
-	void setSourceContextMenu(QMenu *m) { sourceMenu = m; }
 	void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
 
 	/**
@@ -145,7 +156,6 @@ public Q_SLOTS:
 	void refresh();
 	void showMessage(QString s);
 	void hideMessage();
-	void contextMenu(const QPoint &);
 	void setCatalogVisible(bool on = false);
 	void setCatalogSizeSmall();
 	void setCatalogSizeMedium();

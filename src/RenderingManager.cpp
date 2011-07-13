@@ -33,12 +33,12 @@
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
+#include "CaptureSource.h"
+#include "SvgSource.h"
 #include "RenderingSource.h"
 Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "CloneSource.h"
 Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
-#include "CaptureSource.h"
-Source::RTTI CaptureSource::type = Source::CAPTURE_SOURCE;
 
 #include "ViewRenderWidget.h"
 #include "CatalogView.h"
@@ -433,6 +433,26 @@ QImage RenderingManager::captureFrameBuffer() {
 
 	_renderwidget->makeCurrent();
 	return _fbo->toImage();
+}
+
+
+Source *RenderingManager::newSvgSource(QGraphicsSvgItem *svg, double depth){
+
+	// create the texture for this source
+	GLuint textureIndex;
+	_renderwidget->makeCurrent();
+	glGenTextures(1, &textureIndex);
+	// high priority means low variability
+	GLclampf highpriority = 1.0;
+	glPrioritizeTextures(1, &textureIndex, &highpriority);
+
+	// create a source appropriate
+	SvgSource *s = new SvgSource(svg, textureIndex, getAvailableDepthFrom(depth));
+	Q_CHECK_PTR(s);
+
+	s->setName( _defaultSource->getName() + "Svg");
+
+	return ( (Source *) s );
 }
 
 Source *RenderingManager::newCaptureSource(QImage img, double depth) {
@@ -1248,7 +1268,7 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 			newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
 			if (!newsource)
-		        QMessageBox::warning(0, caption, tr("Could not create camera source %1 with devide index %2. ").arg(child.attribute("name")).arg(camera.text()));
+		        QMessageBox::warning(0, caption, tr("Could not create camera source %1 with device index %2. ").arg(child.attribute("name")).arg(camera.text()));
 #endif
 
 		} else if ( type == Source::ALGORITHM_SOURCE) {

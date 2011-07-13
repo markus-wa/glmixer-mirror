@@ -33,6 +33,7 @@
 #define MINZOOM 0.04
 #define MAXZOOM 1.0
 #define DEFAULTZOOM 0.1
+#define DEFAULT_PANNING 0.f, 0.f
 
 MixerView::MixerView() : View()
 {
@@ -252,7 +253,7 @@ void MixerView::resize(int w, int h)
 
 
 
-void MixerView::setAction(actionType a){
+void MixerView::setAction(ActionType a){
 
 	if (a == currentAction)
 		return;
@@ -287,8 +288,8 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 
 	lastClicPos = event->pos();
 
-	// MIDDLE BUTTON ; panning cursor
-	if ((event->button() == Qt::MidButton) || ( (event->button() == Qt::LeftButton) && (event->modifiers() & PANNIG_MODIFIER) ) ) {
+	//  panning
+	if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG)) {
 		// priority to panning of the view (even in drop mode)
 		setAction(View::PANNING);
 		return false;
@@ -301,8 +302,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 		return false;
 	}
 
-
-	// OTHER BUTTON ; initiate action
+	// OTHER USER INPUT ; initiate action
 	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
 
     	// get the top most clicked source
@@ -310,9 +310,8 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
     	if (!clicked )
     		return false;
 
-
 		// SELECT MODE : add/remove from selection
-		if ( currentAction == View::SELECT && event->button() == Qt::LeftButton ) {
+		if ( isUserInput(event, INPUT_SELECT) ) {
 
 			// test if source is in a group
 			SourceListArray::iterator itss = groupSources.begin();
@@ -331,15 +330,24 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 					View::select(*itss);
 			}
 		}
-		else  // not in selection (SELECT) action mode, then just set the current active source
-		{
+		else {
+			// not in selection (SELECT) action mode, then set the current active source
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
-			// ready for grabbing the current source
-			if ( clicked->isModifiable() )
-				setAction(View::GRAB);
+			// tool
+			individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
+			if ( isUserInput(event, INPUT_TOOL) || individual ) {
+				// ready for grabbing the current source
+				if ( clicked->isModifiable() )
+					setAction(View::GRAB);
+			}
+			// context menu
+			else if ( isUserInput(event, INPUT_CONTEXT_MENU) )
+				RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
+			// zoom
+			else if ( isUserInput(event, INPUT_ZOOM) )
+				zoomBestFit(true);
 		}
-
 		return true;
     }
 
@@ -347,10 +355,18 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 
 	// set current to none (end of list)
 	RenderingManager::getInstance()->unsetCurrentSource();
-
 	// back to no action
-	if ( currentAction != View::SELECT )
+	if ( currentAction == View::SELECT )
+		View::clearSelection();
+	else
 		setAction(View::NONE);
+
+	// context menu
+	if ( isUserInput(event, INPUT_CONTEXT_MENU) )
+		RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
+	// zoom
+	else if ( isUserInput(event, INPUT_ZOOM) )
+		zoomBestFit(false);
 
 	// remember coordinates of clic
 	double dumm;
@@ -367,21 +383,14 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
 	if (currentAction == View::DROP)
 		return false;
 
-	// for LEFT double button
-	if ( event->button() == Qt::LeftButton ) {
+	// for double tool clic
+	if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL)  ) {
 
 		// left double click on a source : change the group / selection
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
 			// get the top most clicked source
 			Source *clicked = *clickedSources.begin();
-
-			// Meta + double click = zoom best fit on clicked source
-			if (event->modifiers () & PANNIG_MODIFIER) {
-				RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
-				zoomBestFit(true);
-				return false;
-			}
 
         	SourceListArray::iterator itss = groupSources.begin();
             for(; itss != groupSources.end(); itss++) {
@@ -408,9 +417,11 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
         	}
         	return true;
 		}
-		// default action ; zoom best fit on whole screen
-		else
-			zoomBestFit(false);
+	}
+	// zoom
+	else if ( isUserInput(event, INPUT_ZOOM) ) {
+		zoomReset();
+		return true;
 	}
 
 	return false;
@@ -435,20 +446,22 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
 	// PANNING ; move the background
 	if ( currentAction == View::PANNING ) {
-		// SHIFT ?
-		if ( QApplication::keyboardModifiers () & Qt::ShiftModifier ) {
-			// special move ; move the sources in the opposite
-			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
-			}
-		}
 		// panning background
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
-		return true;
+		// SHIFT ?
+		if ( isUserInput(event, INPUT_DRAG) ) {
+			// special move ; move the sources in the opposite
+			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
+			// return true as we may have moved the current source
+			return true;
+		}
+		// return false as nothing changed
+		return false;
 	}
 
-	if ( event->buttons() & Qt::LeftButton ) {
-
+	if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) )
+	{
 		// get the top most clicked source, if there is one
 		static Source *clicked = 0;
 		if (sourceClicked())
@@ -490,33 +503,29 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 				}
 			}
 
-			if ( currentAction == View::SELECT )  // extend selection
+			if ( currentAction == View::SELECT )
+				// extend selection
 				View::select(rectSources);
 			else  // new selection
 				View::setSelection(rectSources);
 
-			return false;
 		}
-
-
-		// OTHER BUTTON & clicked : grab
-		if (currentAction == View::GRAB )
-		{
+		// clicked source not null and grab action
+		else if (currentAction == View::GRAB )
 			grabSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
-			return true;
-		}
+
+		// return true if we modified (grabbed) the source
+		return (bool) clicked;
 	}
 
-	// SELECT MODE
-	if ( currentAction == View::SELECT ) {
-		return false;
+	// Show mouse over cursor only if no user input
+	if ( isUserInput(event, INPUT_NONE)) {
+		//  change action cursor if over a source
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
+			setAction(View::OVER);
+		else
+			setAction(View::NONE);
 	}
-
-	// NO BUTTON : show a mouse-over cursor
-	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
-		setAction(View::OVER);
-	else
-		setAction(View::NONE);
 
 	return false;
 }
@@ -564,6 +573,7 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 		View::clearSelection();
 
 	drawRectangle = false;
+	individual = false;
 
 	return true;
 }
@@ -576,22 +586,20 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
             modelview, projection, viewport, &bx, &by, &z);
 
     // apply zoom
-	if ( QApplication::keyboardModifiers () & Qt::ShiftModifier )
-		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (30.0 * maxzoom) );
-	else
-		setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (120.0 * maxzoom) );
+	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (View::zoomSpeed() * maxzoom) );
 
 	// compute position of cursor after zoom
 	double ax, ay;
 	gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
 			modelview, projection, viewport, &ax, &ay, &z);
 
-	// Center view on cursor when zooming ( panning = panning + ( cursor position after zoom - position before zoom ) )
-	// BUT with a non linear correction factor when approaching to MINZOOM (close to 0) which allows
-	// to re-center the view on the center when zooming out maximally
-	float expfactor = 1.0 / ( 1.0 + exp(7.0 - 100.0 * zoom) );
-	setPanningX((getPanningX() + ax - bx) * expfactor );
-	setPanningY((getPanningY() + ay - by) * expfactor );
+	if (View::zoomCentered()) {
+		// Center view on cursor when zooming ( panning = panning + ( cursor position after zoom - position before zoom ) )
+		// BUT with a non linear correction factor when approaching to MINZOOM (close to 0) which allows
+		// to re-center the view on the center when zooming out maximally
+		float expfactor = 1.0 / ( 1.0 + exp(7.0 - 100.0 * zoom) );
+		setPanning((getPanningX() + ax - bx) * expfactor, (getPanningY() + ay - by) * expfactor );
+	}
 
 	// keep sources under the cursor if simultaneous grab & zoom
 	if (currentAction == View::GRAB ) {
@@ -622,13 +630,13 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 void MixerView::zoomReset()
 {
 	setZoom(DEFAULTZOOM);
-	setPanningX(0); setPanningY(0);
+	setPanning(DEFAULT_PANNING);
 }
 
 void MixerView::zoomBestFit( bool onlyClickedSource )
 {
 	// nothing to do if there is no source
-	if (RenderingManager::getInstance()->getBegin() == RenderingManager::getInstance()->getEnd()){
+	if (RenderingManager::getInstance()->empty()){
 		zoomReset();
 		return;
 	}
@@ -657,8 +665,7 @@ void MixerView::zoomBestFit( bool onlyClickedSource )
 	}
 
 	// 2. Apply the panning to the new center
-	setPanningX	( -( x_min + ABS(x_max - x_min)/ 2.0 ) );
-	setPanningY	( -( y_min + ABS(y_max - y_min)/ 2.0 )  );
+	setPanning( -( x_min + ABS(x_max - x_min)/ 2.0 ) ,  -( y_min + ABS(y_max - y_min)/ 2.0 )  );
 
 	// 3. get the extend of the area covered in the viewport (the matrices have been updated just above)
     double LLcorner[3];
@@ -683,8 +690,8 @@ void MixerView::zoomBestFit( bool onlyClickedSource )
 
 bool MixerView::keyPressEvent ( QKeyEvent * event ){
 
-	// detect CTRL to enter select mode
-	if (event->modifiers() & Qt::ControlModifier){
+	// detect select mode
+	if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) ){
 		setAction(View::SELECT);
 		return true;
 	}
@@ -693,8 +700,9 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 	SourceSet::iterator its = RenderingManager::getInstance()->getCurrentSource();
 	if (its != RenderingManager::getInstance()->getEnd()) {
 	    int dx =0, dy = 0, factor = 1;
-	    if (event->modifiers() & Qt::ShiftModifier)
-	    	factor *= 10;
+// TODO : find a way to configure modifier or forget about the special zoom
+//	    if (event->modifiers() & Qt::ShiftModifier)
+//	    	factor *= 10;
 		switch (event->key()) {
 			case Qt::Key_Left:
 				dx = -factor;
@@ -721,7 +729,7 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 
 bool MixerView::keyReleaseEvent(QKeyEvent * event) {
 
-	if ( currentAction == View::SELECT )
+	if ( currentAction == View::SELECT && !(QApplication::keyboardModifiers() & View::qtMouseModifiers(INPUT_SELECT)) )
 		setAction(previousAction);
 
 	return false;
@@ -825,8 +833,8 @@ void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
 			break;
 	}
 
-	// SHIFT : special (non-selection) modification
-	if ( QApplication::keyboardModifiers () & Qt::ShiftModifier ){
+	// special (non-selection) modification
+	if ( individual ){
 		// if the source is in the selection AND in a group, then move the group individually
 		if ( itss != groupSources.end() && View::isInSelection(s) ){
 			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
@@ -895,8 +903,7 @@ void MixerView::panningBy(int x, int y, int dx, int dy) {
             modelview, projection, viewport, &ax, &ay, &az);
 
     // apply panning
-    setPanningX(getPanningX() + ax - bx);
-    setPanningY(getPanningY() + ay - by);
+    setPanning(getPanningX() + ax - bx, getPanningY() + ay - by);
 
 }
 
