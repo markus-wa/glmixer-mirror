@@ -32,7 +32,7 @@ SvgSource::SvgSource(QGraphicsSvgItem *svg, GLuint texture, double d): Source(te
 	// if the svg renderer could load the file
 	if (_svg) {
 
-		_rendered = QImage(640, 480, QImage::Format_ARGB32_Premultiplied);
+		_rendered = QImage(1024, 768, QImage::Format_ARGB32_Premultiplied);
 
 //		_svg->setSharedRenderer(new QSvgRenderer);
 
@@ -50,8 +50,13 @@ SvgSource::SvgSource(QGraphicsSvgItem *svg, GLuint texture, double d): Source(te
 			glBindTexture(GL_TEXTURE_2D, textureIndex);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered.height(),
-						  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.constBits() );
+#if QT_VERSION >= 0x040700
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
+					  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.constBits() );
+#else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
+					  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.bits() );
+#endif
 
 			aspectratio = double(_rendered.width()) / double(_rendered.height());
 		}

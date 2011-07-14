@@ -164,7 +164,7 @@ void VideoPicture::refilter() const
 	if (!allocated || !oldframe || !img_convert_ctx_filtering || usePalette)
 		return;
 
-	sws_scale(img_convert_ctx_filtering, oldframe->data, oldframe->linesize, 0, height, rgb.data, rgb.linesize);
+	sws_scale(img_convert_ctx_filtering, oldframe->data, oldframe->linesize, 0, height, (uint8_t**) rgb.data, (int*) rgb.linesize);
 }
 
 
@@ -180,7 +180,7 @@ void VideoPicture::fill(AVPicture *frame, double timestamp)
 
 	if (!usePalette) {
 		// Convert the image with ffmpeg sws
-		sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, rgb.data, rgb.linesize);
+		sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0, height, (uint8_t**) rgb.data, (int *) rgb.linesize);
 		return;
 	}
 	// I reimplement here sws_convertPalette8ToPacked32 which does not work...

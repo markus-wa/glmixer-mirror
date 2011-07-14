@@ -119,7 +119,13 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	//
 
     av_register_all();
+
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
 	rec->enc->fmt = av_guess_format(f_name, NULL, NULL);
+#else
+	rec->enc->fmt = guess_stream_format(f_name, NULL, NULL);
+#endif
+
 	if(rec->enc->fmt == NULL) {
 		snprintf(errormessage, 256, "File format %s not supported.\nUnable to start recording.", f_name, filename);
 		video_rec_free(rec);

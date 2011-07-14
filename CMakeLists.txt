@@ -53,15 +53,7 @@ set( GLMIXER_LIBRARIES  ${OPENGL_LIBRARY})
 
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
 if (USE_OPENCV)
-    if( APPLE )
-        find_library( OpenCV_LIBS NAMES OpenCV)
-        if(OpenCV_LIBS)
-            set( OpenCV_FOUND "YES" )
-        endif(OpenCV_LIBS)
-       include_directories(${OpenCV_LIBS}/Headers)
-    else ( APPLE )
-        find_package( OpenCV QUIET)
-    endif( APPLE )
+    find_package( OpenCV QUIET)
     # If there is OpenCV, then this application will use OpenCV
 	if (OpenCV_FOUND)
 	  message(STATUS "OpenCV Library found OK")
@@ -203,6 +195,11 @@ find_library( DIRACENC_LIBRARY NAMES dirac_encoder)
 if (DIRACENC_LIBRARY)
 set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${DIRACENC_LIBRARY} )
 endif (DIRACENC_LIBRARY)
+
+find_library( OPENJPEG_LIBRARY NAMES openjpeg)
+if (OPENJPEG_LIBRARY)
+set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENJPEG_LIBRARY} )
+endif (OPENJPEG_LIBRARY)
 
 find_library( VPX_LIBRARY NAMES vpx)
 if (VPX_LIBRARY)

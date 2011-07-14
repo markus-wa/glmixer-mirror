@@ -17,6 +17,13 @@ QMap<View::UserInput,Qt::KeyboardModifiers> View::_modifiermap = View::defaultMo
 bool View::zoomcentered = false;
 float View::zoomspeed = 120.0;
 
+
+#if QT_VERSION > 0x040602
+#define QTMIDDLEBUTTON Qt::MiddleButton
+#else
+#define QTMIDDLEBUTTON Qt::MidButton
+#endif
+
 QDomElement View::getConfiguration(QDomDocument &doc) {
 	QDomElement viewelem = doc.createElement("View");
 	QDomElement z = doc.createElement("Zoom");
@@ -283,8 +290,8 @@ QMap<View::UserInput,Qt::MouseButtons> View::defaultMouseButtonsMap()
 	QMap<View::UserInput,Qt::MouseButtons> qbuttonmap;
 	qbuttonmap[View::INPUT_TOOL] = Qt::LeftButton;
 	qbuttonmap[View::INPUT_TOOL_INDIVIDUAL] = Qt::LeftButton;
-	qbuttonmap[View::INPUT_NAVIGATE] = Qt::MiddleButton;
-	qbuttonmap[View::INPUT_DRAG] = Qt::MiddleButton;
+	qbuttonmap[View::INPUT_NAVIGATE] = QTMIDDLEBUTTON;
+	qbuttonmap[View::INPUT_DRAG] = QTMIDDLEBUTTON;
 	qbuttonmap[View::INPUT_SELECT] = Qt::LeftButton;
 	qbuttonmap[View::INPUT_CONTEXT_MENU] = Qt::RightButton;
 	qbuttonmap[View::INPUT_ZOOM] = Qt::NoButton;
@@ -337,7 +344,7 @@ QString View::userInputDescription(View::UserInput ab, QMap<View::UserInput,Qt::
 		text.append("Left");
 	if (bm[ab] & Qt::RightButton )
 		text.append("Right");
-	if (bm[ab] & Qt::MiddleButton)
+	if (bm[ab] & QTMIDDLEBUTTON)
 		text.append("Middle");
 	if (bm[ab] & Qt::XButton1 )
 		text.append("1st extra");
