@@ -30,7 +30,7 @@
 #include "OutputRenderWindow.h"
 
 CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
-							first_index(0), last_index(0), _clicX(0.0), _clicY(0.0), sourceClicked(0)
+							first_index(0), last_index(0), sourceClicked(0), cause(0)
 {
 	_size[SMALL] = 49.0;
 	_iconSize[SMALL] = 19.0;
@@ -192,12 +192,13 @@ void CatalogView::drawSource(Source *s, int index)
 			glCallList(ViewRenderWidget::frame_selection);
 
 		// was it clicked ?
-		if ( ABS(_clicX) > 0.1 || ABS(_clicY) > 0.1 ) {
-			if ( ABS( _clicY + SOURCE_UNIT - _height + sheight_pixels) < sheight_pixels ) {
+		if ( cause ) {
+			// get coordinates of clic in object space
+			GLdouble x, y, z;
+			gluUnProject((double)cause->x(), (double)(RenderingManager::getRenderingWidget()->height() - cause->y()), 1.0, modelview, projection, viewport, &x, &y, &z);
+
+			if ( ABS( y + SOURCE_UNIT - _height + sheight_pixels) < sheight_pixels )
 				sourceClicked = s;
-				// done with click
-				_clicX = _clicY = 0.0;
-			}
 		}
 
 	}
@@ -272,22 +273,15 @@ bool CatalogView::isInside(const QPoint &pos){
 
 bool CatalogView::mousePressEvent(QMouseEvent *event)
 {
-	if ( isInside(event->pos()) ) {
-		// get coordinates of clic in object space
-		GLdouble z;
-		gluUnProject((double)event->x(), (double)(RenderingManager::getRenderingWidget()->height() - event->y()), 1.0, modelview, projection, viewport, &_clicX, &_clicY, &z);
-		return true;
-	}
+	if (cause)
+		delete cause;
+	cause = 0;
+	sourceClicked = 0;
 
-	return false;
-}
+	if ( isInside(event->pos()) )
+		cause = new QMouseEvent(event->type(), event->pos(), event->button(), event->buttons(), event->modifiers());
 
-bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
-{
-	bool isin = isInside(event->pos());
-	if (isin)
-		RenderingManager::getRenderingWidget()->zoomCurrentSource();
-	return isin;
+	return (bool) cause;
 }
 
 
@@ -310,23 +304,24 @@ void CatalogView::setTransparent(bool on)
 
 bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {
-	if (isInside(event->pos()) ) {
-		_clicX = _clicY = 0.0;
+	// the clic (when mouse press was down) was on a source ?
+	if (sourceClicked) {
 
-		// the clic (when mouse press was down) was over a source ?
-		if (sourceClicked) {
+		// detect select mode
+		if ( isUserInput(cause, INPUT_SELECT) )
+			View::select(sourceClicked);
+		else if ( isUserInput(cause, INPUT_TOOL) || isUserInput(cause, INPUT_TOOL_INDIVIDUAL) ||  isUserInput(cause, INPUT_ZOOM) ) {
 			// make this source the current
 			RenderingManager::getInstance()->setCurrentSource(sourceClicked->getId());
-
-			// detect select mode
-			if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) )
-				View::select(sourceClicked);
+			// zoom current
+			if ( isUserInput(cause, INPUT_ZOOM) )
+				RenderingManager::getRenderingWidget()->zoomCurrentSource();
 		}
 
+		sourceClicked = 0;
 		return true;
 	}
 
-	sourceClicked = NULL;
 	return false;
 }
 
@@ -335,7 +330,7 @@ bool CatalogView::wheelEvent ( QWheelEvent * event )
 {
 	if (isInside(event->pos())) {
 		// TODO implement scrolling in the list
-		return true;
+//		return true;
 	}
 
 	return false;

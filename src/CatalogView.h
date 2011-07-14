@@ -44,7 +44,6 @@ public:
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent ( QMouseEvent * event );
-    bool mouseDoubleClickEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
 
 	// Specific implementation
@@ -67,8 +66,8 @@ private:
 	double _width, _height, h_unit, v_unit;
 	float _alpha;
 	int first_index, last_index;
-	double _clicX, _clicY;
 	Source *sourceClicked;
+	QMouseEvent *cause;
 };
 
 #endif /* SELECTIONVIEW_H_ */
