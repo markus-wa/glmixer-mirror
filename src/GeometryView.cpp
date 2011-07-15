@@ -291,10 +291,13 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 				if ( cs ){
 					quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
 					// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
-					if(quadrant == 0 || currentTool == MOVE)
+					if(quadrant == 0 || currentTool == MOVE) {
 						setAction(View::GRAB);
-					else
+						borderType = ViewRenderWidget::border_large;
+					} else {
 						setAction(View::TOOL);
+						borderType = ViewRenderWidget::border_scale;
+					}
 				}
 			}
 			// context menu
@@ -416,10 +419,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 			else
 				borderType = ViewRenderWidget::border_scale;
 
-			if ( cs )
-				setAction(View::OVER);
-			else
-				setAction(View::NONE);
+			setAction(View::OVER);
 		}
 		else
 			setAction(View::NONE);
