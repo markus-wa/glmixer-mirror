@@ -59,6 +59,7 @@
 #endif
 
 #include <QtOpenGL>
+#include <QtDebug>
 
 bool glSupportsExtension(QString extname);
 QStringList glSupportedExtensions();

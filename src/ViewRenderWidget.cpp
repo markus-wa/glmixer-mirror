@@ -956,20 +956,20 @@ void ViewRenderWidget::setFilteringEnabled(bool on)
 		fshfile = ":/glmixer/shaders/imageProcessing_fragment.glsl";
 
 	if (!program->addShaderFromSourceFile(QGLShader::Fragment, fshfile))
-		qFatal( "** ERROR ** \n\nOpenGL GLSL error in fragment shader: \n\n%s", qPrintable(program->log()));
+		qFatal( "%s", qPrintable( tr("OpenGL GLSL error in fragment shader; \n\n%1").arg(program->log()) ) );
 	else if (program->log().contains("warning"))
-		qCritical( "** WARNING ** \n\nOpenGL GLSL warning in fragment shader: \n\n%s", qPrintable(program->log()));
+		qCritical() << fshfile << tr(":OpenGL GLSL warning in fragment shader;%1").arg(program->log());
 
 	if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl"))
-		qFatal( "** ERROR ** \n\nOpenGL GLSL error in vertex shader: \n\n%s", qPrintable(program->log()));
+		qFatal( "%s", qPrintable( tr("OpenGL GLSL error in vertex shader; \n\n%1").arg(program->log()) ) );
 	else if (program->log().contains("warning"))
-		qCritical( "** WARNING ** \n\nOpenGL GLSL warning in vertex shader: \n\n%s", qPrintable(program->log()));
+		qCritical() << "imageProcessing_vertex.glsl" << tr(":OpenGL GLSL warning in vertex shader;%1").arg(program->log());
 
 	if (!program->link())
-		qFatal( "** ERROR ** \n\nOpenGL GLSL link error:\n\n%s", qPrintable(program->log()));
+		qFatal( "%s", qPrintable( tr("OpenGL GLSL linking error; \n\n%1").arg(program->log()) ) );
 
 	if (!program->bind())
-		qFatal( "** ERROR ** \n\nOpenGL GLSL binding error:\n\n%s", qPrintable(program->log()));
+		qFatal( "%s", qPrintable( tr("OpenGL GLSL binding error; \n\n%1").arg(program->log()) ) );
 
 	// set the pointer to the array for the texture attributes
 	program->enableAttributeArray("texCoord");

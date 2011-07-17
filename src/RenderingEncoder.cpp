@@ -167,7 +167,7 @@ void RenderingEncoder::setEncodingFormat(encodingformat f){
 	if (!started) {
 		format = f;
 	} else {
-		qCritical("ERROR setting video recording format.\n\nRecorder is busy.");
+		qCritical() << "RenderingEncoder:" << tr ("Cannot change video recording format; Recorder is busy.");
 	}
 }
 
@@ -176,7 +176,7 @@ void RenderingEncoder::setActive(bool on)
 {
 	if (on) {
 		if (!start())
-			qCritical("ERROR starting video recording.\n\n%s\n", errormessage);
+			qCritical() << "RenderingEncoder:" << tr("Error starting video recording; %s.", errormessage);
 	} else {
 		if (close()) {
 			if (automaticSaving)

@@ -86,8 +86,10 @@ void RenderingManager::setUseFboBlitExtension(bool on){
                RenderingManager::blit_fbo_extension = on;
        else {
                // if extension not supported but it is requested, show warning
-               if (on) qCritical( "** WARNING ** \n\nOpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware."
-                               "\n\nRendering speed be sub-optimal but all should work properly.");
+               if (on) {
+            	   qWarning() << "RenderingManager:" << tr("OpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware. Rendering speed be sub-optimal but all should work properly.");
+            	   qCritical() << "RenderingManager:" << tr("Cannot use Blit framebuffer extension.");
+               }
                RenderingManager::blit_fbo_extension = false;
        }
 }
@@ -97,12 +99,12 @@ RenderingManager *RenderingManager::getInstance() {
 	if (_instance == 0) {
 
 		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-			qFatal( "*** ERROR *** \n\nOpenGL Frame Buffer Objects are not supported on this graphics hardware."
-					"\n\nThe program cannot operate properly.\n\nExiting...");
+			qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects are not supported on this graphics hardware."
+					"\n\nThe program cannot operate properly.\n\nExiting...") ));
 
 		if (!glSupportsExtension("GL_ARB_vertex_program") || !glSupportsExtension("GL_ARB_fragment_program"))
-			qFatal( "*** ERROR *** \n\nOpenGL GLSL programming is not supported on this graphics hardware."
-					"\n\nThe program cannot operate properly.\n\nExiting...");
+			qFatal( "%s", qPrintable( tr("OpenGL GLSL programming is not supported on this graphics hardware."
+					"\n\nThe program cannot operate properly.\n\nExiting...")));
 
 		_instance = new RenderingManager;
 		Q_CHECK_PTR(_instance);
@@ -237,8 +239,8 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 		_renderwidget->_catalogView->viewport[3] = _fbo->height();
 	}
 	else
-		qFatal( "*** ERROR *** \n\nOpenGL Frame Buffer Objects is not working properly."
-							"\n\nThe program cannot operate properly.\n\nExiting...");
+		qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not working on this hardware."
+							"\n\nThe program cannot operate properly.\n\nExiting...")));
 }
 
 
@@ -400,8 +402,8 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 		_fbo->release();
 	}
 	else
-		qFatal( "*** ERROR *** \n\nOpenGL Frame Buffer Objects is not accessible."
-			"\n\nThe program cannot operate properly.\n\nExiting...");
+		qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible."
+			"\n\nThe program cannot operate properly.\n\nExiting...")));
 
 	// pop the projection matrix and GL state back for rendering the current view
 	// to the actual widget
@@ -448,9 +450,7 @@ Source *RenderingManager::newSvgSource(QGraphicsSvgItem *svg, double depth){
 
 	// create a source appropriate
 	SvgSource *s = new SvgSource(svg, textureIndex, getAvailableDepthFrom(depth));
-	Q_CHECK_PTR(s);
-
-	s->setName( _defaultSource->getName() + "Svg");
+	if (s) s->setName( _defaultSource->getName() + "Svg");
 
 	return ( (Source *) s );
 }
@@ -467,14 +467,13 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 
 	// create a source appropriate
 	CaptureSource *s = new CaptureSource(img, textureIndex, getAvailableDepthFrom(depth));
-	Q_CHECK_PTR(s);
-
-	s->setName( _defaultSource->getName() + "Capture");
+	if (s) s->setName( _defaultSource->getName() + "Capture");
 
 	return ( (Source *) s );
 }
 
 Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
+
 
 	// create the texture for this source
 	GLuint textureIndex;
@@ -486,9 +485,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 
 	// create a source appropriate for this videofile
 	VideoSource *s = new VideoSource(vf, textureIndex, getAvailableDepthFrom(depth) );
-	Q_CHECK_PTR(s);
-
-	s->setName( _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
+	if (s) s->setName( _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
 
 	return ( (Source *) s );
 }
@@ -510,16 +507,15 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 
 		// try to create the opencv source
 		s = new OpencvSource(opencvIndex, textureIndex, getAvailableDepthFrom(depth));
+		s->setName( _defaultSource->getName() + "Opencv");
 
 	} catch (NoCameraIndexException){
 
 		// free the OpenGL texture
 		glDeleteTextures(1, &textureIndex);
 		// return an invalid pointer
-		return 0;
+		s = 0;
 	}
-
-	s->setName( _defaultSource->getName() + "Opencv");
 
 	return ( (Source *) s );
 }
@@ -537,9 +533,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 
 	// create a source appropriate
 	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p);
-	Q_CHECK_PTR(s);
-
-	s->setName( _defaultSource->getName() + "Algo");
+	if (s) s->setName( _defaultSource->getName() + "Algo");
 
 	return ( (Source *) s );
 }
@@ -548,9 +542,7 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 
 	// create a source appropriate for this videofile
 	CloneSource *s = new CloneSource(sit, getAvailableDepthFrom(depth));
-	Q_CHECK_PTR(s);
-
-	s->setName( _defaultSource->getName() + "Clone");
+	if (s) s->setName( _defaultSource->getName() + "Clone");
 
 	return ( (Source *) s );
 }
@@ -567,10 +559,10 @@ bool RenderingManager::insertSource(Source *s)
 				// inform of success
 				return true;
 			else
-				QMessageBox::warning(0, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("Not enough memory to insert the source into the stack."));
+				qWarning() << tr("RenderingManager:Not enough memory to insert the source into the stack.");
 		}
 		else
-			QMessageBox::warning(0, tr("%1 Cannot create source").arg(QCoreApplication::applicationName()), tr("You have reached the maximum amount of source supported (%1).").arg(MAX_SOURCE_COUNT));
+			qWarning() << tr("RenderingManager:You have reached the maximum amount of source supported (%1).").arg(MAX_SOURCE_COUNT);
 	}
 
 	return false;
@@ -733,6 +725,7 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 				removeSource((*clone)->getId());
 			}
 		// then remove the source itself
+		qDebug() << (*itsource)->getName() << tr(": deleted.");
 		_sources.erase(itsource);
 		delete (*itsource);
 	}
@@ -754,6 +747,8 @@ void RenderingManager::clearSourceSet() {
 
 	// reset the id counter
 	Source::lastid = 1;
+
+	qDebug("RenderingManager:--------------- clear --------------------");
 }
 
 bool RenderingManager::notAtEnd(SourceSet::iterator itsource)  const{
@@ -1174,10 +1169,10 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 
 }
 
-void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
+int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 	QList<QDomElement> clones;
-    QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
+    int ret = 0;
 
 	int count = 0;
     QProgressDialog *progress = 0;
@@ -1243,32 +1238,44 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 							newSourceVideoFile->setOptionAllowDirtySeek(options.attribute("AllowDirtySeek","0").toInt());
 							newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
 							newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
+
+							qDebug() << child.attribute("name") << tr(":Media source created with file ") << fileNameToOpen;
 						}
-						else
-							QMessageBox::warning(0, caption, tr("Could not create media source %1. ").arg(child.attribute("name")));
+						else {
+							qWarning() << child.attribute("name") << tr(":Could not be created.");
+							ret++;
+						}
 					}
-					else
-						QMessageBox::warning(0, caption, tr("Could not open file %1 with ffmpeg. ").arg(Filename.text()));
+					else {
+						qWarning() << child.attribute("name") << tr(":Could not load ")<< fileNameToOpen;
+						ret++;
+					}
 				}
-				else
-					QMessageBox::warning(0, caption, tr("There is no file named %1\n or %2. ").arg(Filename.text()).arg(fileNameToOpen));
+				else {
+					qWarning() << child.attribute("name") << tr(":No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+					ret++;
+				}
 
 				// if one of the above failed, remove the video file object from memory
 				if (!newsource)
 					delete newSourceVideoFile;
 
 			}
-			else
-				QMessageBox::warning(0, caption, tr("Could not allocate memory for media source %1. ").arg(child.attribute("name")));
-
+			else {
+				qWarning() << child.attribute("name") << tr(":Could not allocate memory.");
+				ret++;
+			}
 
 #ifdef OPEN_CV
 		} else if ( type == Source::CAMERA_SOURCE ) {
 			QDomElement camera = t.firstChildElement("CameraIndex");
 
 			newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
-			if (!newsource)
-		        QMessageBox::warning(0, caption, tr("Could not create camera source %1 with device index %2. ").arg(child.attribute("name")).arg(camera.text()));
+			if (!newsource) {
+				qWarning() << child.attribute("name") <<  tr(":Could not open OpenCV device index %2. ").arg(camera.text());
+				ret ++;
+			} else
+				qDebug() << child.attribute("name") <<  tr(":OpenCV source created (device index %2).").arg(camera.text());
 #endif
 
 		} else if ( type == Source::ALGORITHM_SOURCE) {
@@ -1280,14 +1287,20 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			newsource = RenderingManager::getInstance()->newAlgorithmSource(Algorithm.text().toInt(),
 					Frame.attribute("Width").toInt(), Frame.attribute("Height").toInt(),
 					Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), depth);
-			if (!newsource)
-		        QMessageBox::warning(0, caption, tr("Could not create algorithm source %1. ").arg(child.attribute("name")));
+			if (!newsource) {
+				qWarning() << child.attribute("name") << tr(":Could not create algorithm source.");
+		        ret++;
+			} else
+				qDebug() << child.attribute("name") << tr(":Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt()) << ").";
 
 		} else if ( type == Source::RENDERING_SOURCE) {
 			// no tags specific for a rendering source
 			newsource = RenderingManager::getInstance()->newRenderingSource(depth);
-			if (!newsource)
-		        QMessageBox::warning(0, caption, tr("Could not create rendering loop-back source %1. ").arg(child.attribute("name")));
+			if (!newsource) {
+				qWarning() << child.attribute("name") << tr(":Could not create rendering loop-back source.");
+				ret++;
+			} else
+				qDebug() << child.attribute("name") << tr(":Rendering loop-back source created.");
 
 		} else if ( type == Source::CAPTURE_SOURCE) {
 
@@ -1298,8 +1311,11 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "JPG") )
 				newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
 
-			if (!newsource)
-		        QMessageBox::warning(0, caption, tr("Could not create capture source %1. ").arg(child.attribute("name")));
+			if (!newsource) {
+				qWarning() << child.attribute("name") << tr(":Could not create capture source.");
+		        ret++;
+			} else
+				qDebug() << child.attribute("name") << tr(":Capture source created.");
 
 		} else if ( type == Source::CLONE_SOURCE) {
 			// remember the node of the sources to clone
@@ -1340,16 +1356,23 @@ void RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
     			// insert the source in the scene
     			if ( !insertSource(clonesource) )
     				delete clonesource;
-    		}else
-    	        QMessageBox::warning(0, caption, tr("Could not create clone source %1.").arg(c.attribute("name")));
+    			else
+        			qDebug() << c.attribute("name") << tr(":Clone of source %1 created.").arg(f.text());
+    		}else {
+    			qWarning() << c.attribute("name") << tr(":Could not create clone source.");
+    	        ret++;
+    		}
     	} else {
-    		QMessageBox::warning(0, caption, tr("The source '%1' cannot be the clone of '%2' ; no such source.").arg(c.attribute("name")).arg(f.text()));
+    		qWarning() << c.attribute("name") << tr(":Cannot clone %2 ; no such source.").arg(f.text());
+    		ret++;
     	}
     }
 
 	// set current source to none (end of list)
 	setCurrentSource( getEnd() );
 	if (progress) delete progress;
+
+	return ret;
 }
 
 void RenderingManager::setGammaShift(float g)

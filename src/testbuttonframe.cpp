@@ -57,7 +57,7 @@ void TestButtonFrame::mousePressEvent(QMouseEvent *event){
 
 	// special case; SELECT MUST have a modifier
 	if (clicked == View::INPUT_SELECT && QApplication::keyboardModifiers() == Qt::NoModifier ) {
-		qCritical()<<"Selection action *must* use a modifier key (e.g. [CTRL]).";
+		qCritical()<< tr("Selection action *must* use a modifier key (e.g. [CTRL]).");
 		return;
 	}
 

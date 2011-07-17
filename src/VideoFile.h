@@ -545,11 +545,6 @@ public:
      * @return value between [-100, 100]
      */
     int getSaturation();
-    /**
-     * Returns logs of ffmpeg decoding.
-     * @return QString text
-     */
-    QString getLogs() { return logmessage; }
 
 Q_SIGNALS:
     /**
@@ -574,20 +569,6 @@ Q_SIGNALS:
      * Signal emited when a mark (IN or OUT) has been moved.
      */
     void markingChanged();
-    /**
-     * Signal emmited when a special event occurs during decoding;
-     * The VideoFile is still working fine; nothing to do but display the messages if wanted.
-     *
-     * @param msg Information message
-     */
-    void info(QString msg);
-    /**
-     * Signal emmited when an error occurs;
-     * The VideoFile should gently stop, but may stay in a non-usable state; better stop it, or delete it.
-     *
-     * @param msg Error message
-     */
-    void error(QString msg);
     /**
      * Signal emmited when the pre-filtering has changed (brightness, contrast or saturation)
      *
@@ -867,12 +848,10 @@ protected:
     double synchronize_video(AVFrame *src_frame, double pts);
     void queue_picture(AVFrame *pFrame, double pts);
     static int roundPowerOfTwo(int v);
-    void sendInfo(QString m);
 
     // Video and general information
     QString filename;
     QString codecname;
-    QString logmessage;
 
     // Video file, streams and packets
     AVFormatContext *pFormatCtx;

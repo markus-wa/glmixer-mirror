@@ -178,7 +178,7 @@ public:
 	 * save and load configuration
 	 */
 	QDomElement getConfiguration(QDomDocument &doc, QDir current);
-	void addConfiguration(QDomElement xmlconfig, QDir current);
+	int addConfiguration(QDomElement xmlconfig, QDir current);
 	inline Source *defaultSource() { return _defaultSource; }
 	inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
 	inline void setDefaultScalingMode(Source::scalingMode sm) { _scalingMode = sm; }

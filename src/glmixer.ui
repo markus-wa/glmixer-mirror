@@ -523,15 +523,6 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <property name="font">
-    <font>
-     <family>Bitstream Vera Sans</family>
-     <pointsize>9</pointsize>
-     <weight>50</weight>
-     <italic>false</italic>
-     <bold>false</bold>
-    </font>
-   </property>
    <property name="windowIcon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
@@ -2487,6 +2478,89 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionPause_recording"/>
    <addaction name="actionSave_snapshot"/>
   </widget>
+  <widget class="QDockWidget" name="logDockWidget">
+   <property name="toolTip">
+    <string>Logs of GLMixer events.</string>
+   </property>
+   <property name="floating">
+    <bool>true</bool>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Logs</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout_12">
+     <item>
+      <widget class="QTreeWidget" name="logTexts">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="showDropIndicator" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::NoSelection</enum>
+       </property>
+       <property name="rootIsDecorated">
+        <bool>false</bool>
+       </property>
+       <property name="itemsExpandable">
+        <bool>false</bool>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+       <property name="expandsOnDoubleClick">
+        <bool>false</bool>
+       </property>
+       <attribute name="headerVisible">
+        <bool>true</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>Object</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Message</string>
+        </property>
+       </column>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_16">
+       <item>
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="text">
+          <string>Copy to clipboard</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>Clear</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>&amp;Quit</string>
@@ -3713,12 +3787,12 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1114</x>
-     <y>835</y>
+     <x>1178</x>
+     <y>823</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1105</x>
-     <y>855</y>
+     <x>1178</x>
+     <y>848</y>
     </hint>
    </hints>
   </connection>
@@ -3729,12 +3803,12 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>196</x>
-     <y>833</y>
+     <x>203</x>
+     <y>815</y>
     </hint>
     <hint type="destinationlabel">
-     <x>221</x>
-     <y>832</y>
+     <x>232</x>
+     <y>814</y>
     </hint>
    </hints>
   </connection>
@@ -3793,12 +3867,12 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>176</x>
-     <y>870</y>
+     <x>234</x>
+     <y>851</y>
     </hint>
     <hint type="destinationlabel">
-     <x>122</x>
-     <y>862</y>
+     <x>114</x>
+     <y>856</y>
     </hint>
    </hints>
   </connection>
@@ -3809,12 +3883,28 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>911</x>
-     <y>64</y>
+     <x>942</x>
+     <y>75</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>logTexts</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>159</x>
+     <y>744</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>141</x>
+     <y>645</y>
     </hint>
    </hints>
   </connection>

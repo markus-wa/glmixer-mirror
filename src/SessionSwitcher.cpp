@@ -132,7 +132,7 @@ void SessionSwitcher::setTransitionMedia(QString filename)
 		// create new video source
 		customTransitionVideoSource = (VideoSource*) RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
 	} else {
-		qCritical( "The file %s could not be loaded.", qPrintable(filename) );
+		qCritical() << filename << tr(":Session file could not be loaded.");
 		delete newSourceVideoFile;
 	}
 

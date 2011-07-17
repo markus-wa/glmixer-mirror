@@ -43,22 +43,23 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 	static bool testDone = false;
 	if (!testDone) {
 		if (!glRenderWidgetFormat.rgba())
-		  qFatal("*** ERROR ***\n\nOpenGL Could not set RGBA buffer; cannot perform OpenGL rendering.");
+		  qFatal( "%s", qPrintable( tr("OpenGL Could not set RGBA buffer; cannot perform OpenGL rendering.") ));
 		if (!glRenderWidgetFormat.directRendering())
-		  qCritical("** WARNING **\n\nOpenGL Could not set direct rendering; rendering will be slow.");
+		  qCritical() << tr("OpenGL Could not set direct rendering; rendering will be slow.");
 		if (!glRenderWidgetFormat.doubleBuffer())
-		  qCritical("** WARNING **\n\nOpenGL Could not set double buffering; rendering will be slow.");
+		  qCritical() << tr("OpenGL Could not set double buffering; rendering will be slow.");
 		if (glRenderWidgetFormat.swapInterval() > 0)
-		  qCritical("** WARNING **\n\nOpenGL is configured with VSYNC enabled; rendering will be slow.\n\nDisable VSYNC in your system graphics properties.");
+		  qCritical() << tr("OpenGL is configured with VSYNC enabled; rendering will be slow.\n\nDisable VSYNC in your system graphics properties.");
 		if (!glSupportsExtension("GL_EXT_gpu_shader4"))
-		  qCritical("** WARNING **\n\nOpenGL does not support GLSL shading version 4; rendering will be slow.");
+		  qCritical() << tr("OpenGL does not support GLSL shading version 4; rendering will be slow.");
 		testDone = true;
 	}
 
-	if (timer == 0)
+	if (timer == 0) {
 		timer = new QTimer();
+		timer->setInterval(20);
+	}
 	connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-	timer->setInterval(20);
 }
 
 void glRenderWidget::setAntiAliasing(bool on)

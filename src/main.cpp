@@ -29,31 +29,7 @@
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 
-#include <iostream>
-
 QStringList listofextensions;
-
-
-void GLMixerMessageOutput(QtMsgType type, const char *msg)
-{
-	 switch (type) {
-	 case QtDebugMsg:
-		 std::cerr<<"Info: "<<msg<<std::endl;
-		 break;
-	 case QtWarningMsg:
-		 std::cerr<<"Warning: "<<msg<<std::endl;
-//		 QMessageBox::warning(0, QString("%1 Warning").arg(QCoreApplication::applicationName()), QString(msg));
-		 break;
-	 case QtCriticalMsg:
-		 std::cerr<<"Critical: "<<msg<<std::endl;
-		 QMessageBox::critical(0, QString("%1 Critical information").arg(QCoreApplication::applicationName()), QString(msg));
-		 break;
-	 case QtFatalMsg:
-		 std::cerr<<"Fatal: "<<msg<<std::endl;
-		 QMessageBox::critical(0, QString("%1 Fatal Error").arg(QCoreApplication::applicationName()), QString(msg));
-		 abort();
-	 }
-}
 
 bool glSupportsExtension(QString extname) {
     return listofextensions.contains(extname, Qt::CaseInsensitive);
@@ -65,7 +41,7 @@ QStringList glSupportedExtensions() {
 
 int main(int argc, char **argv)
 {
-    qInstallMsgHandler(GLMixerMessageOutput);
+//    qInstallMsgHandler(GLMixerMessageOutput);
     QApplication a(argc, argv);
 
     // -1. sets global application name ; this is used application wide (e.g. QSettings)
@@ -94,7 +70,7 @@ int main(int argc, char **argv)
     a.processEvents();
 
     if (!QGLFormat::hasOpenGL() ) {
-    	qFatal("*** ERROR ***\n\nThis system does not support OpenGL and this program cannot work without it.");
+    	qFatal( "This system does not support OpenGL and this program cannot work without it.");
     	a.processEvents();
     }
 
@@ -112,6 +88,8 @@ int main(int argc, char **argv)
 	// 1. The application GUI : it integrates the Rendering Manager QGLWidget
     GLMixer glmixer_widget;
     glmixer_widget.setWindowTitle(a.applicationName());
+
+    qInstallMsgHandler(GLMixer::MessageOutput);
 
 	// 2. The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow::getInstance()->setWindowTitle(QString("Output Window"));

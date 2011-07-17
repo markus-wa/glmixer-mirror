@@ -32,6 +32,7 @@
 #include "SourceSet.h"
 
 #define MAX_RECENT_FILES 7
+#define MAX_DROP_FILES 20
 
 /**
 
@@ -99,15 +100,17 @@ public Q_SLOTS:
 	void pauseAfterFrame();
 	void pauseAfterSeek();
 	void refreshTiming();
-	void displayInfoMessage(QString msg);
-	void displayWarningMessage(QString msg);
 	void newSession();
 	void openSessionFile(QString filename = QString());
 	void switchToSessionFile(QString filename);
 	void confirmSessionFileName();
+	void errorBoxFinished(int);
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
+
+	// message handler
+	static void MessageOutput(QtMsgType type, const char *msg);
 
 Q_SIGNALS:
 	void sourceMarksModified(bool);
@@ -125,7 +128,6 @@ protected:
 	QByteArray getPreferences() const;
 
 private:
-	QErrorMessage *errorMessageDialog;
 	QString currentSessionFileName;
 	VideoFile *selectedSourceVideoFile;
 	QFileDialog *sfd;
@@ -141,6 +143,8 @@ private:
 	void readSettings();
 	void saveSettings();
 	QAction *recentFileActs[MAX_RECENT_FILES];
+	static QTreeWidget *_logText;
+	static QMessageBox *_errorBox;
 
 };
 

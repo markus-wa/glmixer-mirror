@@ -75,8 +75,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
         }
 
     }
-    else
-    	qCritical("** WARNING **\nThe media source could not be created properly. Remove it and retry.");
+    // TODO : else through exeption
 
 }
 

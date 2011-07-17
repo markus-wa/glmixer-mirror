@@ -58,6 +58,7 @@ extern "C" {
 #include <QtGui/QLabel>
 #include <QtGui/QVBoxLayout>
 #include <QThread>
+#include <QDebug>
 #include <QFileInfo>
 
 class ParsingThread: public QThread {
@@ -317,11 +318,6 @@ VideoFile::~VideoFile() {
 }
 
 
-void VideoFile::sendInfo(QString m){
-	emit info( QString("%1 : %2").arg(filename).arg(m) );
-}
-
-
 void VideoFile::reset() {
 
     // reset variables to 0
@@ -369,10 +365,8 @@ void VideoFile::stop() {
 
         /* say if we are running or not */
         emit running(!quit);
-        emit info(tr("%1 stopped.").arg(filename));
+        qDebug()<<filename<<tr(":stopped.");
 
-        // clear logs (should be done sometime; when stopped is good as logs are used to explain a crash during play)
-        logmessage.clear();
     }
 
 }
@@ -407,7 +401,7 @@ void VideoFile::start() {
 
         /* say if we are running or not */
         emit running(!quit);
-        emit info(tr("%1 started.").arg(filename));
+        qDebug()<<filename<<tr(":started.");
     }
 
 }
@@ -478,7 +472,7 @@ void VideoFile::thread_terminated() {
     // recieved this message while 'quit' was not requested ?
     if (!quit) {
         //  this means an error occured...
-        emit error(tr("Error reading %1 !\n\nLogs;\n%2Decoding interrupted. ").arg(filename).arg(logmessage));
+        qWarning() << filename << tr(":Decoding interrupted.");
 
         // stop properly if possible
         stop();
@@ -501,39 +495,30 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
     filename = file;
     ignoreAlpha = ignoreAlphaChannel;
 
-    // tells everybody we are set !
-    emit info(tr("Opening %1...").arg(filename) );
-
     // Check file
-    if (!QFileInfo(filename).isFile()){
-        emit error(tr("Cannot open %1:\nFile does not exist !").arg(file));
-    	return false;
-    }
-
     int err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0, NULL);
     if (err < 0) {
         switch (err) {
         case AVERROR_NUMEXPECTED:
-            emit error(tr("FFMPEG cannot read  %1:\nIncorrect numbered image sequence syntax.").arg(file));
+            qWarning()<<filename<< tr(":Incorrect numbered image sequence syntax.");
             break;
         case AVERROR_INVALIDDATA:
-            emit error(tr("FFMPEG cannot read  %1:\nError while parsing header.").arg(file));
+            qWarning()<<filename<< tr(":Error while parsing header.");
             break;
         case AVERROR_NOFMT:
-            emit error(tr("FFMPEG cannot read  %1:\nUnknown format.").arg(file));
+            qWarning()<<filename<< tr(":Unknown format.");
             break;
         case AVERROR(EIO):
-            emit error(tr("FFMPEG cannot read  %1:\n"
-                        "I/O error. Usually that means that input file is truncated and/or corrupted.").arg(file));
+        	qWarning()<<filename<< tr(":I/O error. Usually that means that input file is truncated and/or corrupted");
             break;
         case AVERROR(ENOMEM):
-            emit error(tr("FFMPEG cannot read  %1:\nMemory allocation error.").arg(file));
+        	qWarning()<<filename<< tr(":Memory allocation error.");
             break;
         case AVERROR(ENOENT):
-            emit error(tr("FFMPEG cannot read  %1:\nNo such file.").arg(file));
+    		qWarning()<<filename<< tr(":No such file.");
             break;
         default:
-            emit error(tr("FFMPEG cannot read  %1:\nCannot open file.").arg(file));
+        	qWarning()<<filename<< tr(":Cannot open file.");
             break;
         }
         return false;
@@ -543,26 +528,25 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 	if (err < 0) {
 		switch (err) {
 		case AVERROR_NUMEXPECTED:
-			emit error(tr("FFMPEG cannot read  %1:\nIncorrect numbered image sequence syntax.").arg(file));
+        	qWarning()<<filename<< tr(":Incorrect numbered image sequence syntax.");
 			break;
 		case AVERROR_INVALIDDATA:
-			emit error(tr("FFMPEG cannot read  %1:\nError while parsing header.").arg(file));
+        	qWarning()<<filename<< tr(":Error while parsing header.");
 			break;
 		case AVERROR_NOFMT:
-			emit error(tr("FFMPEG cannot read  %1:\nUnknown format.").arg(file));
+        	qWarning()<<filename<< tr(":Unknown format.");
 			break;
 		case AVERROR(EIO):
-			emit error(tr("FFMPEG cannot read  %1:\n"
-						"I/O error. Usually that means that input file is truncated and/or corrupted.").arg(file));
+    		qWarning()<<filename<< tr(":I/O error. Usually that means that input file is truncated and/or corrupted");
 			break;
 		case AVERROR(ENOMEM):
-			emit error(tr("FFMPEG cannot read  %1:\nMemory allocation error.").arg(file));
+    		qWarning()<<filename<< tr(":Memory allocation error");
 			break;
 		case AVERROR(ENOENT):
-			emit error(tr("FFMPEG cannot read  %1:\nNo such file.").arg(file));
+    		qWarning()<<filename<< tr(":No such entry.");
 			break;
 		default:
-			emit error(tr("FFMPEG cannot read  %1:\nUnsupported format.").arg(file));
+        	qWarning()<<filename<< tr(":Unsupported format.");
 			break;
 		}
 		return false;
@@ -677,7 +661,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 									filter, NULL, NULL);
     if (img_convert_ctx == NULL) {
 		// Cannot initialize the conversion context!
-		emit error(tr("Error opening %1:\nCannot create a suitable conversion context.").arg(filename));
+		qWarning() << filename << tr(":Cannot create a suitable conversion context.");
 		return false;
 	}
 
@@ -687,7 +671,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 		for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i) {
 			if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, paletized)) {
 				// Cannot allocate Video Pictures!
-				emit error(tr("Error opening %1:\nCannot allocate pictures buffer.").arg(filename));
+				qWarning() << filename << tr(":Cannot allocate pictures buffer.");
 				return false;
 			}
 		}
@@ -695,14 +679,14 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
     // we may need a black Picture frame to return when stopped
     if (!blackPicture.allocate(0, targetWidth, targetHeight)) {
         // Cannot allocate Video Pictures!
-        emit error(tr("Error opening %1:\nCannot allocate buffer.").arg(filename));
+		qWarning() << filename << tr(":Cannot allocate buffer.");
         return false;
     }
 
     // we need a picture to display when not decoding
     if (!firstPicture.allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, paletized)) {
         // Cannot allocate Video Pictures!
-        emit error(tr("Error opening %1:\nCannot allocate picture buffer.").arg(filename));
+		qWarning() << filename << tr(":Cannot allocate picture buffer.");
         return false;
     }
 
@@ -718,7 +702,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
     emit running(false);
 
     // tells everybody we are set !
-    emit info(tr("File %1 opened (%2 frames).").arg(filename).arg(getExactFrameFromFrame(getEnd())));
+    qDebug()<<filename<<tr(":Media opened (nb. %1).").arg(getExactFrameFromFrame(getEnd()));
 
     return true;
 }
@@ -798,7 +782,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx) {
     }
 
     if (stream_index < 0 || stream_index >= (int) pFCtx->nb_streams) {
-        emit error(tr("FFMPEG cannot read %1:\nThis is not a video or an image file.").arg(filename));
+		qWarning() << filename << tr(":This is not a video or an image file.");
         return -1;
     }
 
@@ -807,7 +791,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx) {
 
     codec = avcodec_find_decoder(codecCtx->codec_id);
     if (!codec || (avcodec_open(codecCtx, codec) < 0)) {
-        emit error(tr("FFMPEG cannot read %1:\nThe codec '%2' is not supported.").arg(filename).arg(codecCtx->codec_name));
+		qWarning() << filename << tr(":The codec ")<< codecCtx->codec_name << tr("is not supported.");
         return -1;
     }
 
@@ -969,9 +953,9 @@ QString VideoFile::getTimeFromFrame(int64_t t) const {
 QString VideoFile::getExactFrameFromFrame(int64_t t) const {
 
 	if ( video_st->nb_frames > 0 )
-		return (QString("Frame: %1").arg( (int)( video_st->nb_frames * double(t - video_st->start_time) / double(video_st->duration) ) ) );
+		return (QString("Frame; %1").arg( (int)( video_st->nb_frames * double(t - video_st->start_time) / double(video_st->duration) ) ) );
 	 else
-		return (QString("Frame: %1").arg( (int)( double (t - video_st->start_time) / getFrameRate()) ));
+		return (QString("Frame; %1").arg( (int)( double (t - video_st->start_time) / getFrameRate()) ));
 
 }
 
@@ -1075,12 +1059,11 @@ void ParsingThread::run() {
                 flags |= AVSEEK_FLAG_BACKWARD;
 
             if (av_seek_frame(is->pFormatCtx, is->videoStream, is->seek_pos, flags) < 0) {
-                is->logmessage += tr("ParsingThread:: Seeking error.\n");
-                is->sendInfo( tr("Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos));
+                qDebug()<< is->filename << tr(":Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos);
             }
 			// after seek,  we'll have to flush buffers
 			if (!is->videoq.flush())
-				is->logmessage += tr("ParsingThread:: Flushing error.\n");
+			   qWarning()<< is->filename << tr(":Flushing error.");
 
             is->seek_backward = false;
             is->seek_req = false;
@@ -1102,9 +1085,7 @@ void ParsingThread::run() {
         if (av_read_frame(is->pFormatCtx, packet) < 0) {
         	// if could NOT read full frame, was it an error?
 		   if (is->pFormatCtx->pb->error) {
-			   // error ; exit
-			   is->logmessage += tr("ParsingThread:: Couldn't read frame.\n");
-			   is->sendInfo( tr("Could not read frame.") );
+			   qWarning()<< is->filename << tr(":Could not read frame.");
 			   break;
 		   }
 		   // no error; just wait a bit for the end of the packet and continue
@@ -1123,7 +1104,7 @@ void ParsingThread::run() {
 
     // request flushing of the video queue (this will end the decoding thread)
 	if (!is->videoq.flush())
-		is->logmessage += tr("ParsingThread:: Flushing error at end.\n");
+	   qWarning()<< is->filename << tr(":Flushing error at end.");
 
 }
 
@@ -1226,8 +1207,6 @@ void DecodingThread::run() {
     double pts = 0.0;					// Presentation time stamp
     int64_t dts = 0;					// Decoding time stamp
 
-//    is->logmessage += tr("DecodingThread:: run.\n");
-
     while (is) {
         // sleep a bit if paused
         if (is->pause_video && !is->quit) {
@@ -1237,8 +1216,6 @@ void DecodingThread::run() {
 
         // get front packet (not blocking if we are quitting)
         if (!is->videoq.get(packet, !is->quit)) {
-            // means we quit getting packets
-            is->logmessage += tr("DecodingThread:: No more packets.\n");
             // this is the exit condition
             break;
         }
@@ -1296,7 +1273,6 @@ void DecodingThread::run() {
         av_free_packet(packet);
     }
 
-//    is->logmessage += tr("DecodingThread:: ended.\n");
 }
 
 void VideoFile::pause(bool pause) {
