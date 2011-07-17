@@ -716,7 +716,7 @@ void GLMixer::on_actionSvgSource_triggered(){
 			return;
 		}
 
-		QGraphicsSvgItem *svg = new QGraphicsSvgItem(fileName);
+		QSvgRenderer *svg = new QSvgRenderer(fileName);
 
 		Source *s = RenderingManager::getInstance()->newSvgSource(svg);
 		if ( s ){
@@ -1694,7 +1694,7 @@ void GLMixer::dropEvent(QDropEvent *event)
 			if (progress.wasCanceled())
 				break;
 
-			QGraphicsSvgItem *svg = new QGraphicsSvgItem(svgFiles.at(i));
+			QSvgRenderer *svg = new QSvgRenderer(svgFiles.at(i));
 
 			Source *s = RenderingManager::getInstance()->newSvgSource(svg);
 			if ( s )

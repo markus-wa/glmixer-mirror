@@ -438,7 +438,7 @@ QImage RenderingManager::captureFrameBuffer() {
 }
 
 
-Source *RenderingManager::newSvgSource(QGraphicsSvgItem *svg, double depth){
+Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 
 	// create the texture for this source
 	GLuint textureIndex;
@@ -1052,9 +1052,9 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			o.setAttribute("RestartToMarkIn", vf->getOptionRestartToMarkIn());
 			o.setAttribute("RevertToBlackWhenStop", vf->getOptionRevertToBlackWhenStop());
 			specific.appendChild(o);
-
 #ifdef OPEN_CV
-		} else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
+		}
+		else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
 			OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
 
 			QDomElement f = doc.createElement("CameraIndex");
@@ -1062,7 +1062,8 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			f.appendChild(id);
 			specific.appendChild(f);
 #endif
-		} else if ((*its)->rtti() == Source::ALGORITHM_SOURCE) {
+		}
+		else if ((*its)->rtti() == Source::ALGORITHM_SOURCE) {
 			AlgorithmSource *as = dynamic_cast<AlgorithmSource *> (*its);
 
 			QDomElement f = doc.createElement("Algorithm");
@@ -1080,8 +1081,8 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			x.setAttribute("Periodicity", QString::number(as->getPeriodicity()) );
 			x.setAttribute("Variability", as->getVariability());
 			specific.appendChild(x);
-
-		} else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
+		}
+		else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
 			CaptureSource *cs = dynamic_cast<CaptureSource *> (*its);
 
 			QByteArray ba;
@@ -1095,12 +1096,21 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 
 			f.appendChild(img);
 			specific.appendChild(f);
-
-		} else if ((*its)->rtti() == Source::CLONE_SOURCE) {
+		}
+		else if ((*its)->rtti() == Source::CLONE_SOURCE) {
 			CloneSource *cs = dynamic_cast<CloneSource *> (*its);
 
 			QDomElement f = doc.createElement("CloneOf");
 			QDomText name = doc.createTextNode(cs->getOriginalName());
+			f.appendChild(name);
+			specific.appendChild(f);
+		}
+		else if ((*its)->rtti() == Source::SVG_SOURCE) {
+			SvgSource *svgs = dynamic_cast<SvgSource *> (*its);
+			QByteArray ba = svgs->getDescription();
+
+			QDomElement f = doc.createElement("Svg");
+			QDomText name = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
 			f.appendChild(name);
 			specific.appendChild(f);
 		}
@@ -1172,7 +1182,7 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 	QList<QDomElement> clones;
-    int ret = 0;
+    int errors = 0;
 
 	int count = 0;
     QProgressDialog *progress = 0;
@@ -1243,17 +1253,17 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 						}
 						else {
 							qWarning() << child.attribute("name") << tr(":Could not be created.");
-							ret++;
+							errors++;
 						}
 					}
 					else {
 						qWarning() << child.attribute("name") << tr(":Could not load ")<< fileNameToOpen;
-						ret++;
+						errors++;
 					}
 				}
 				else {
 					qWarning() << child.attribute("name") << tr(":No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
-					ret++;
+					errors++;
 				}
 
 				// if one of the above failed, remove the video file object from memory
@@ -1263,7 +1273,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			}
 			else {
 				qWarning() << child.attribute("name") << tr(":Could not allocate memory.");
-				ret++;
+				errors++;
 			}
 
 #ifdef OPEN_CV
@@ -1273,12 +1283,12 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
 			if (!newsource) {
 				qWarning() << child.attribute("name") <<  tr(":Could not open OpenCV device index %2. ").arg(camera.text());
-				ret ++;
+				errors ++;
 			} else
 				qDebug() << child.attribute("name") <<  tr(":OpenCV source created (device index %2).").arg(camera.text());
 #endif
-
-		} else if ( type == Source::ALGORITHM_SOURCE) {
+		}
+		else if ( type == Source::ALGORITHM_SOURCE) {
 			// read the tags specific for an algorithm source
 			QDomElement Algorithm = t.firstChildElement("Algorithm");
 			QDomElement Frame = t.firstChildElement("Frame");
@@ -1289,20 +1299,20 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 					Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), depth);
 			if (!newsource) {
 				qWarning() << child.attribute("name") << tr(":Could not create algorithm source.");
-		        ret++;
+		        errors++;
 			} else
 				qDebug() << child.attribute("name") << tr(":Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt()) << ").";
-
-		} else if ( type == Source::RENDERING_SOURCE) {
+		}
+		else if ( type == Source::RENDERING_SOURCE) {
 			// no tags specific for a rendering source
 			newsource = RenderingManager::getInstance()->newRenderingSource(depth);
 			if (!newsource) {
 				qWarning() << child.attribute("name") << tr(":Could not create rendering loop-back source.");
-				ret++;
+				errors++;
 			} else
 				qDebug() << child.attribute("name") << tr(":Rendering loop-back source created.");
-
-		} else if ( type == Source::CAPTURE_SOURCE) {
+		}
+		else if ( type == Source::CAPTURE_SOURCE) {
 
 			QDomElement img = t.firstChildElement("Image");
 			QImage image;
@@ -1313,11 +1323,26 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 			if (!newsource) {
 				qWarning() << child.attribute("name") << tr(":Could not create capture source.");
-		        ret++;
+		        errors++;
 			} else
 				qDebug() << child.attribute("name") << tr(":Capture source created.");
+		}
+		else if ( type == Source::SVG_SOURCE) {
 
-		} else if ( type == Source::CLONE_SOURCE) {
+			QDomElement svg = t.firstChildElement("Svg");
+			QByteArray data =  svg.text().toLatin1();
+
+			QSvgRenderer *rendersvg = new QSvgRenderer(data);
+			if ( rendersvg )
+				newsource = RenderingManager::getInstance()->newSvgSource(rendersvg, depth);
+
+			if (!newsource) {
+				qWarning() << child.attribute("name") << tr(":Could not create vector graphics source.");
+		        errors++;
+			} else
+				qDebug() << child.attribute("name") << tr(":vector graphics source created.");
+		}
+		else if ( type == Source::CLONE_SOURCE) {
 			// remember the node of the sources to clone
 			clones.push_back(child);
 		}
@@ -1360,11 +1385,11 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
         			qDebug() << c.attribute("name") << tr(":Clone of source %1 created.").arg(f.text());
     		}else {
     			qWarning() << c.attribute("name") << tr(":Could not create clone source.");
-    	        ret++;
+    	        errors++;
     		}
     	} else {
     		qWarning() << c.attribute("name") << tr(":Cannot clone %2 ; no such source.").arg(f.text());
-    		ret++;
+    		errors++;
     	}
     }
 
@@ -1372,7 +1397,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 	setCurrentSource( getEnd() );
 	if (progress) delete progress;
 
-	return ret;
+	return errors;
 }
 
 void RenderingManager::setGammaShift(float g)

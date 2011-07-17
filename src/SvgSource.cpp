@@ -27,12 +27,14 @@
 
 Source::RTTI SvgSource::type = Source::SVG_SOURCE;
 
-SvgSource::SvgSource(QGraphicsSvgItem *svg, GLuint texture, double d): Source(texture, d), _svg(svg) {
+SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(texture, d), _svg(svg) {
 
 	// if the svg renderer could load the file
-	if (_svg) {
+	if (_svg && _svg->isValid()) {
 
-		_rendered = QImage(1024, 768, QImage::Format_ARGB32_Premultiplied);
+		QRectF vb = _svg->viewBoxF();
+
+		_rendered = QImage(1024, 1024 * vb.height() / vb.width(), QImage::Format_ARGB32_Premultiplied);
 
 //		_svg->setSharedRenderer(new QSvgRenderer);
 
@@ -40,8 +42,7 @@ SvgSource::SvgSource(QGraphicsSvgItem *svg, GLuint texture, double d): Source(te
 		QPainter imagePainter(&_rendered);
 		imagePainter.setRenderHint(QPainter::HighQualityAntialiasing, true);
 
-	    QStyleOptionGraphicsItem style;
-		_svg->paint(&imagePainter, &style);
+		_svg->render(&imagePainter);
 		imagePainter.end();
 
 		// generate a texture from the rendered image
@@ -74,4 +75,23 @@ SvgSource::~SvgSource()
 	if (_svg)
 		delete _svg;
 }
+
+
+QByteArray SvgSource::getDescription(){
+
+	QBuffer dev;
+
+	QSvgGenerator generator;
+	generator.setOutputDevice(&dev);
+	generator.setTitle(getName());
+
+	QPainter painter;
+	painter.begin(&generator);
+	_svg->render(&painter,_svg->viewBoxF());
+	painter.end();
+
+	return dev.buffer();
+}
+
+
 

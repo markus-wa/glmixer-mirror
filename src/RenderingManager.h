@@ -87,7 +87,7 @@ public:
 #ifdef OPEN_CV
 	Source *newOpencvSource(int opencvIndex, double depth = -1.0);
 #endif
-	Source *newSvgSource(QGraphicsSvgItem *svg, double depth = -1.0);
+	Source *newSvgSource(QSvgRenderer *svg, double depth = -1.0);
 	Source *newAlgorithmSource(int type, int w, int h, double v, int p, double depth = -1.0);
 	Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
 	// insert the source into the scene

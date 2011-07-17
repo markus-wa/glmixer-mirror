@@ -42,14 +42,16 @@ public:
 	int getFrameWidth() const { return _rendered.width(); }
 	int getFrameHeight() const { return _rendered.height(); }
 
+	QByteArray getDescription();
+
     // only friends can create a source
 protected:
 
-	SvgSource(QGraphicsSvgItem *svg, GLuint texture, double d);
+	SvgSource(QSvgRenderer *svg, GLuint texture, double d);
 	virtual ~SvgSource();
 
 private:
-	QGraphicsSvgItem *_svg;
+	QSvgRenderer *_svg;
 	QImage _rendered;
 
 };
