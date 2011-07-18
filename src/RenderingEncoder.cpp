@@ -12,6 +12,7 @@
 #include "ViewRenderWidget.h"
 
 #include <QSize>
+#include <QBuffer>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -212,11 +213,13 @@ void RenderingEncoder::setPaused(bool on)
 		elapsed = timer.elapsed();
 		killTimer(elapseTimer);
 		emit status(tr("Recording paused after %1 s").arg(elapsed/1000), 3000);
+		qDebug() << "RenderingEncoder:" << tr("Paused (%1s).").arg(elapsed/1000);
 	} else {
 		// restart a timer
 		timer = timer.addMSecs(timer.elapsed() - elapsed);
 		elapseTimer = startTimer(1000);
 	    emit status(tr("Recording time: %1 s").arg(timer.elapsed()/1000), 1000);
+		qDebug() << "RenderingEncoder:" << tr("Resumed (%1).").arg(elapsed/1000);
 	}
 
 }
@@ -226,8 +229,10 @@ void RenderingEncoder::setPaused(bool on)
 // - Create the temporary file
 bool RenderingEncoder::start(){
 
-	if (started)
+	if (started) {
+		QByteArray(errormessage, 256) = "Already recording.";
 		return false;
+	}
 
 	// if the temporary file already exists, delete it.
 	if (QDir::temp().exists(temporaryFileName)){
@@ -241,7 +246,7 @@ bool RenderingEncoder::start(){
 	// show warning if frame rate is already too low
 	if ( fps <  freq ) {
 		 QMessageBox msgBox;
-		 msgBox.setIcon(QMessageBox::Warning);
+		 msgBox.setIcon(QMessageBox::Question);
 		 msgBox.setText(tr("Rendering frequency is lower than the requested %1 fps.").arg(freq));
 		 msgBox.setInformativeText(tr("Do you still want to record at %1 fps ?").arg(fps));
 		 msgBox.setDetailedText( tr("The rendering is currently at %1 fps on average, but your recording preferences are set to %2 fps.\n\n"
@@ -286,6 +291,7 @@ bool RenderingEncoder::start(){
 
 	// set status
 	started = true;
+	qDebug() << "RenderingEncoder:" << tr("Start recording (%1).").arg(recorder->description);
 
 	return true;
 }
@@ -382,7 +388,7 @@ void RenderingEncoder::saveFile(){
 	// move the temporaryFileName to newFileName
 	QDir::temp().rename(temporaryFileName, infoFileDestination.absoluteFilePath());
 	emit status(tr("File %1 saved.").arg(infoFileDestination.absoluteFilePath()), 2000);
-
+	qDebug() << infoFileDestination.absoluteFilePath() << tr(":Recording saved.");
 }
 
 void RenderingEncoder::saveFileAs(){
@@ -404,6 +410,7 @@ void RenderingEncoder::saveFileAs(){
 			// move the temporaryFileName to newFileName
 			QDir::temp().rename(temporaryFileName, newFileName);
 			emit status(tr("File %1 saved.").arg(newFileName), 2000);
+			qDebug() << newFileName << tr(":Recording saved.");
 		}
 	}
 

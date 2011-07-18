@@ -23,7 +23,6 @@
  *
  */
 
-#include <QMessageBox>
 #include <QTimer>
 
 #include "common.h"

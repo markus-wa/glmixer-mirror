@@ -1452,6 +1452,7 @@ void RenderingManager::pause(bool on){
 	if (!on)
 		sourcePlayStatus.clear();
 
+	qDebug() << "RenderingManager:" << (on ? tr("All sources paused.") : tr("All source un-paused.") );
 }
 
 

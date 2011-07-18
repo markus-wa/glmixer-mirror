@@ -785,7 +785,7 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 		QKeyEvent *keyEvent = static_cast<QKeyEvent *> (event);
 		if (keyEvent->key() == Qt::Key_Tab)
 		{
-			if (QApplication::keyboardModifiers() & Qt::ShiftModifier)
+			if (QApplication::keyboardModifiers() & Qt::ControlModifier)
 				RenderingManager::getInstance()->setCurrentPrevious();
 			else
 				RenderingManager::getInstance()->setCurrentNext();

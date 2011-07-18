@@ -326,6 +326,17 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
     glRenderWidget::showGlExtensionsInformationDialog(QString::fromUtf8(":/glmixer/icons/display.png"));
 }
 
+void GLMixer::on_copyLogsToClipboard_clicked() {
+
+	QString logs;
+	QTreeWidgetItemIterator it(_logText->topLevelItem(0));
+	 while (*it) {
+		 logs.append( QString("%1:%2\n").arg((*it)->text(0)).arg((*it)->text(1)) );
+		 ++it;
+	 }
+	 QApplication::clipboard()->setText(logs);
+}
+
 void GLMixer::errorBoxFinished(int ret)
 {
 	switch (ret) {
@@ -352,7 +363,7 @@ void GLMixer::MessageOutput(QtMsgType type, const char *msg)
 
 	QStringList message = QString(msg).remove("\"").split(':', QString::SkipEmptyParts);
 	if (message.count() < 2 )
-		message.insert(0, "GLMixer");
+		message.insert(0, QCoreApplication::applicationName());
 	QTreeWidgetItem *item  = new QTreeWidgetItem (message);
 
 	 _logText->addTopLevelItem( item );
@@ -375,7 +386,18 @@ void GLMixer::MessageOutput(QtMsgType type, const char *msg)
 		 break;
 	 case QtFatalMsg:
 		 item->setBackgroundColor(1, QColor(220, 50, 50, 90));
-
+		 // save logs
+		 {
+			QFile file(QString("GLMixerLogs_%1.txt").arg(QDateTime::currentDateTime().toString(Qt::ISODate)));
+			if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+				QTextStream out(&file);
+				QTreeWidgetItemIterator it(_logText->topLevelItem(0));
+				 while (*it) {
+					 out << (*it)->text(0) << ":" << (*it)->text(1) << "\n";
+					 ++it;
+				 }
+			}
+		 }
 		 QMessageBox::critical(0, tr("%1 Fatal Error").arg(QCoreApplication::applicationName()), QString(msg).remove("\""));
 		 QCoreApplication::instance()->exit(-1);
 	 }
@@ -1459,7 +1481,7 @@ void GLMixer::openSessionFile(QString filename)
     // read the source list and its configuration
     QDomElement renderConfig = root.firstChildElement("SourceList");
     if (renderConfig.isNull())
-    	qWarning() << currentSessionFileName << tr(":The file is empty.");
+    	qWarning() << currentSessionFileName << tr(":There is no source to load.");
     else {
     	standardAspectRatio ar = (standardAspectRatio) renderConfig.attribute("aspectRatio", "0").toInt();
     	switch(ar) {
@@ -1484,7 +1506,7 @@ void GLMixer::openSessionFile(QString filename)
     	gammaShiftText->setText( QString().setNum( g, 'f', 2) );
     	RenderingManager::getInstance()->setGammaShift(g);
     	// read the list of sources
-    	qDebug() << currentSessionFileName << ": Loading session.";
+    	qDebug() << currentSessionFileName << ":Loading session.";
 	    // if we got up to here, it should be fine
 	    int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath());
 	    if ( errors > 0)
@@ -1494,7 +1516,9 @@ void GLMixer::openSessionFile(QString filename)
     // read the views configuration
 	RenderingManager::getRenderingWidget()->clearViews();
     QDomElement vconfig = root.firstChildElement("Views");
-    if (!vconfig.isNull()){
+    if (vconfig.isNull())
+    	qDebug() << currentSessionFileName << tr(":No configuration specified.");
+    else  {
     	// apply the views configuration
     	RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
     	// activate the view specified as 'current' in the xml config
@@ -1568,7 +1592,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
 
     QDomElement root = doc.documentElement();
     if ( root.tagName() != "GLMixer" ) {
-		qWarning() << fileName << tr(":This is not a GLMixer session file; ");
+		qWarning() << fileName << tr(":This is not a GLMixer session file.");
 		qCritical() << fileName << tr(":Cannot open file.");
         return;
     } else if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION ) {
@@ -1579,10 +1603,13 @@ void GLMixer::on_actionAppend_Session_triggered(){
 
     // read the content of the source list to make sure the file is correct :
     QDomElement srcconfig = root.firstChildElement("SourceList");
-    if ( srcconfig.isNull() )
+    if ( srcconfig.isNull() ) {
+		qWarning() << fileName << tr(":There is no source to load.");
     	return;
+    }
 
     // if we got up to here, it should be fine
+    qDebug() << fileName << tr(":Adding list of sources.");
     int errors = RenderingManager::getInstance()->addConfiguration(srcconfig, QFileInfo(currentSessionFileName).canonicalPath());
     if ( errors > 0)
     	qCritical() << currentSessionFileName << ": " << errors << tr(" error(s) occurred when reading session.");
@@ -1769,6 +1796,7 @@ void GLMixer::saveSettings()
 	settings.setValue("UserPreferences", getPreferences());
 	// make sure system saves settings NOW
     settings.sync();
+	qDebug() << tr("Preferences saved.");
 }
 
 
@@ -1784,6 +1812,7 @@ void GLMixer::on_actionResetToolbars_triggered()
 	restoreDockWidget(switcherDockWidget);
 	restoreDockWidget(logDockWidget);
 
+	qDebug() << tr("Default layout restored.");
 }
 
 void GLMixer::on_actionPreferences_triggered()
@@ -1914,6 +1943,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	outputpreview->refresh();
 	// de-select current source
 	RenderingManager::getInstance()->unsetCurrentSource();
+
 }
 
 QByteArray GLMixer::getPreferences() const {
@@ -2011,7 +2041,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 	if (cd.exec() == QDialog::Accepted) {
 		QString filename = cd.saveImage();
 		if (!filename.isEmpty())
-			qDebug() << filename << ": saved.";
+			qDebug() << filename << ":Snapshot saved.";
 	}
 }
 

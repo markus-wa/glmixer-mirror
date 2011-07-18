@@ -88,6 +88,7 @@ public Q_SLOTS:
 	void on_actionSelectInvert_triggered();
 	void on_actionSelectCurrent_triggered();
 	void on_actionSelectNone_triggered();
+	void on_copyLogsToClipboard_clicked();
 
 	// GUI interaction
 	void setView(QAction *a);

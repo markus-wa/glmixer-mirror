@@ -2543,14 +2543,14 @@ Uncheck to display the restart frame when stopped.</string>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_16">
        <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="copyLogsToClipboard">
          <property name="text">
           <string>Copy to clipboard</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="clearLogs">
          <property name="text">
           <string>Clear</string>
          </property>
@@ -3231,7 +3231,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Select previous source</string>
    </property>
    <property name="statusTip">
-    <string>Select the previous source in the list (shortcut is [SHIFT][TAB])</string>
+    <string>Select the previous source in the list (shortcut is [CTRL][TAB])</string>
    </property>
   </action>
   <action name="actionShow_Catalog">
@@ -3893,7 +3893,7 @@ Uncheck to display the restart frame when stopped.</string>
    </hints>
   </connection>
   <connection>
-   <sender>pushButton</sender>
+   <sender>clearLogs</sender>
    <signal>clicked()</signal>
    <receiver>logTexts</receiver>
    <slot>clear()</slot>

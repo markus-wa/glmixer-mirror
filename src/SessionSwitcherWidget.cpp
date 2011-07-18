@@ -35,12 +35,12 @@ public:
 		if (m) {
 			if (event->key() == Qt::Key_Escape || event->key() == Qt::Key_Return)
 				m->setFilterWildcard("");
-			else {
+			else if ( event->key() == Qt::Key_Space){
 				filter = new QLineEdit(this);
 				filter->show();
 				filter->setFocus();
 				QObject::connect(filter, SIGNAL(textChanged(const QString &)), parent(), SLOT(nameFilterChanged(const QString &)) );
-				filter->setText(event->text().simplified());
+//				filter->setText(event->text().simplified());
 			}
 		}
 	}
@@ -54,7 +54,8 @@ public:
 			delete filter;
 			filter = 0;
 		}
-		QTreeView::leaveEvent(event);
+		if (event)
+			QTreeView::leaveEvent(event);
 	}
 
 };
@@ -357,6 +358,7 @@ void SessionSwitcherWidget::updateFolder()
 void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 {
 	emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
+	proxyView->leaveEvent(0);
 }
 
 void SessionSwitcherWidget::startTransitionToNextSession()
