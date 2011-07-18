@@ -61,8 +61,17 @@
 
 #include "glmixer.moc"
 
-QTreeWidget *GLMixer::_logText = 0;
-QMessageBox *GLMixer::_errorBox = 0;
+GLMixer *GLMixer::_instance = 0;
+
+GLMixer *GLMixer::getInstance() {
+
+	if (_instance == 0) {
+		_instance = new GLMixer;
+		Q_CHECK_PTR(_instance);
+	}
+
+	return _instance;
+}
 
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), refreshTimingTimer(0)
 {
@@ -354,54 +363,65 @@ void GLMixer::errorBoxFinished(int ret)
 	}
 }
 
-void GLMixer::MessageOutput(QtMsgType type, const char *msg)
+void GLMixer::msgHandler(QtMsgType type, const char *msg)
 {
-	if(!_logText) {
+	if (!_instance) {
 		std::cerr<<msg<<std::endl;
 		return;
 	}
+	// invoke a delayed call (in Qt event loop) of the GLMixer real Message handler SLOT
+	static int methodIndex = _instance->metaObject()->indexOfSlot("MessageOutput(int,QString)");
+	static QMetaMethod method = _instance->metaObject()->method(methodIndex);
+	QString txt = QString(msg).remove("\"");
+	method.invoke(_instance, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
 
-	QStringList message = QString(msg).remove("\"").split('|', QString::SkipEmptyParts);
+}
+
+void GLMixer::MessageOutput(int type, QString msg)
+{
+	// reads the text passed and split into object|message
+	QStringList message = msg.split('|', QString::SkipEmptyParts);
 	if (message.count() < 2 )
 		message.insert(0, QCoreApplication::applicationName());
-	QTreeWidgetItem *item  = new QTreeWidgetItem (message);
 
-	 _logText->addTopLevelItem( item );
-	 _logText->setCurrentItem(item);
+	// create log entry and scroll to it
+	QTreeWidgetItem *item  = new QTreeWidgetItem(message);
+	_logText->addTopLevelItem( item );
+	_logText->setCurrentItem( item );
 
-	 switch (type) {
-	 case QtDebugMsg:
-		 break;
-	 case QtWarningMsg:
+	// adjust color and show dialog according to message type
+	switch ( (QtMsgType) type) {
+	case QtDebugMsg:
+		break;
+	case QtWarningMsg:
 		 item->setBackgroundColor(1, QColor(220, 180, 50, 50));
 		 break;
-	 case QtCriticalMsg:
-		 item->setBackgroundColor(1, QColor(220, 90, 50, 50));
-		 if (_errorBox) {
-			 _errorBox->setText(QString(msg).remove("\""));
+	case QtCriticalMsg:
+		item->setBackgroundColor(1, QColor(220, 90, 50, 50));
+		if (_errorBox) {
+			 _errorBox->setText(msg);
 			 _errorBox->exec();
-		 }
-		 else
-			 QMessageBox::warning(0, tr("%1 Error").arg(QCoreApplication::applicationName()), QString(msg).remove("\""));
-		 break;
-	 case QtFatalMsg:
-		 item->setBackgroundColor(1, QColor(220, 50, 50, 90));
-		 // save logs
-		 {
+		}
+		else
+			QMessageBox::warning(0, tr("%1 Error").arg(QCoreApplication::applicationName()), msg);
+		break;
+	case QtFatalMsg:
+		item->setBackgroundColor(1, QColor(220, 50, 50, 90));
+		// save logs
+		{
 			QFile file(QString("GLMixerLogs_%1.txt").arg(QDateTime::currentDateTime().toString(Qt::ISODate)));
 			if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 				QTextStream out(&file);
 				QTreeWidgetItemIterator it(_logText->topLevelItem(0));
-				 while (*it) {
+				while (*it) {
 					 out << (*it)->text(0) << ":" << (*it)->text(1) << "\n";
 					 ++it;
-				 }
+				}
 			}
-		 }
-		 QMessageBox::critical(0, tr("%1 Fatal Error").arg(QCoreApplication::applicationName()), QString(msg).remove("\""));
-		 QCoreApplication::instance()->exit(-1);
-	 }
-
+		}
+		QMessageBox::critical(0, tr("%1 Fatal Error").arg(QCoreApplication::applicationName()), msg);
+		QCoreApplication::instance()->exit(-1);
+	}
 }
 
 void GLMixer::setView(QAction *a){
@@ -1507,11 +1527,11 @@ void GLMixer::openSessionFile(QString filename)
     	gammaShiftText->setText( QString().setNum( g, 'f', 2) );
     	RenderingManager::getInstance()->setGammaShift(g);
     	// read the list of sources
-    	qDebug() << currentSessionFileName << ":Loading session.";
+    	qDebug() << currentSessionFileName << tr("|Loading session.");
 	    // if we got up to here, it should be fine
 	    int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath());
 	    if ( errors > 0)
-	    	qCritical() << currentSessionFileName << ": " << errors << tr(" error(s) occurred when reading session.");
+	    	qCritical() << currentSessionFileName << "| " << errors << tr(" error(s) occurred when reading session.");
 
     }
     // read the views configuration
@@ -1640,6 +1660,8 @@ void GLMixer::dropEvent(QDropEvent *event)
 
     // browse the list of urls dropped
 	if (mimeData->hasUrls()) {
+		// deal with the urls dropped
+		event->acceptProposedAction();
 		QList<QUrl> urlList = mimeData->urls();
 
 		// arbitrary limitation in the amount of drops allowed (avoid manipulation mistakes)
@@ -1661,10 +1683,13 @@ void GLMixer::dropEvent(QDropEvent *event)
 				}
 				else //  maybe a video ?
 					mediaFiles.append(urlname.absoluteFilePath());
-			} else
+			}
+			else
 				qWarning() << urlname.absoluteFilePath() <<  "|[" << ++errors << "]" << tr("Not a valid file; Ignoring.");
 		}
 	}
+	else
+		return;
 
 	if (!glmfile.isNull()) {
 		currentSessionFileName = glmfile;
@@ -1682,20 +1707,11 @@ void GLMixer::dropEvent(QDropEvent *event)
 			qWarning() <<  "[" << ++errors << "]" << tr("Discarding %1 media files and %2 svg files; only loading the glm session.").arg(mediaFiles.count()).arg(svgFiles.count());
 
 	} else {
-		int i = 0;
-		QProgressDialog progress("Loading sources...", "Abort", 1, mediaFiles.size() + svgFiles.size() );
-		progress.setWindowModality(Qt::WindowModal);
-		progress.setMinimumDuration( 600 );
-
 		// loading Media files
-		for (i = 0; i < mediaFiles.size(); ++i)
+		int i = 0;
+		for (; i < mediaFiles.size(); ++i)
 		{
-			progress.setValue(i);
-			if (progress.wasCanceled())
-				break;
-
 			VideoFile *newSourceVideoFile  = new VideoFile(this);
-			Q_CHECK_PTR(newSourceVideoFile);
 
 			// if the video file was created successfully
 			if (newSourceVideoFile){
@@ -1703,9 +1719,10 @@ void GLMixer::dropEvent(QDropEvent *event)
 				if ( newSourceVideoFile->open( mediaFiles.at(i) ) ) {
 					Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
 					// create the source as it is a valid video file (this also set it to be the current source)
-					if ( s )
+					if ( s ) {
 						RenderingManager::getInstance()->addSourceToBasket(s);
-					else {
+						qDebug() << s->getName() << tr("|New media source created with file ") << mediaFiles.at(i);
+					} else {
 						qWarning() << mediaFiles.at(i) <<  "|[" << ++errors << "]" << tr("Could not be created.");
 						delete newSourceVideoFile;
 					}
@@ -1715,29 +1732,24 @@ void GLMixer::dropEvent(QDropEvent *event)
 				}
 			}
 		}
-
 		// loading SVG files
 		for (i = 0; i < svgFiles.size(); ++i)
 		{
-			progress.setValue(i + mediaFiles.size());
-			if (progress.wasCanceled())
-				break;
-
 			QSvgRenderer *svg = new QSvgRenderer(svgFiles.at(i));
-
 			Source *s = RenderingManager::getInstance()->newSvgSource(svg);
-			if ( s )
+			if ( s ) {
 				RenderingManager::getInstance()->addSourceToBasket(s);
-			else
+				qDebug() << s->getName() <<  tr("|New vector Graphics source created with file ")<< svgFiles.at(i);
+			} else {
 				qWarning() << svgFiles.at(i) <<  "|[" << ++errors << "]" << tr("Could not be created.");
+				delete svg;
+			}
 		}
-
 	}
 
 	if (errors > 0)
 		qCritical() << tr("Not all the dropped files could be loaded.");
 
-    event->acceptProposedAction();
 }
 
 void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
@@ -2043,7 +2055,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 	if (cd.exec() == QDialog::Accepted) {
 		QString filename = cd.saveImage();
 		if (!filename.isEmpty())
-			qDebug() << filename << ":Snapshot saved.";
+			qDebug() << filename << tr("|Snapshot saved.");
 	}
 }
 

@@ -38,6 +38,8 @@ QStringList glSupportedExtensions() {
 	return listofextensions;
 }
 
+
+
 int main(int argc, char **argv)
 {
 //    qInstallMsgHandler(GLMixerMessageOutput);
@@ -85,25 +87,23 @@ int main(int argc, char **argv)
     a.processEvents();
 
 	// 1. The application GUI : it integrates the Rendering Manager QGLWidget
-    GLMixer glmixer_widget;
-    glmixer_widget.setWindowTitle(a.applicationName());
-
-    qInstallMsgHandler(GLMixer::MessageOutput);
+    GLMixer::getInstance()->setWindowTitle(a.applicationName());
+    qInstallMsgHandler(GLMixer::msgHandler);
 
 	// 2. The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow::getInstance()->setWindowTitle(QString("Output Window"));
     OutputRenderWindow::getInstance()->show();
 	
-	// 3. show the GUI in front
-    glmixer_widget.show();
-
-    // 4. load eventual session file provided in argument
+    // 3. load eventual session file provided in argument
     QStringList params = a.arguments();
     if ( params.count() > 1) {
     	// try to read a file with the first argument
-    	glmixer_widget.openSessionFile(params[1]);
+    	GLMixer::getInstance()->openSessionFile(params[1]);
     }
-    splash.finish(&glmixer_widget);
+
+	// 4. show the GUI in front
+    GLMixer::getInstance()->show();
+    splash.finish(GLMixer::getInstance());
 
     return a.exec();
 }

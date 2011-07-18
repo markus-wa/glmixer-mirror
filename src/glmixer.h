@@ -42,9 +42,9 @@ class GLMixer: public QMainWindow, private Ui::GLMixer {
 Q_OBJECT
 
 public:
-	GLMixer(QWidget *parent = 0);
-	~GLMixer();
-
+	static GLMixer *getInstance();
+	// message handler
+	static void msgHandler(QtMsgType type, const char *msg);
 
 public Q_SLOTS:
 
@@ -109,9 +109,8 @@ public Q_SLOTS:
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
+	void MessageOutput(int, QString);
 
-	// message handler
-	static void MessageOutput(QtMsgType type, const char *msg);
 
 Q_SIGNALS:
 	void sourceMarksModified(bool);
@@ -129,6 +128,10 @@ protected:
 	QByteArray getPreferences() const;
 
 private:
+	GLMixer(QWidget *parent = 0);
+	~GLMixer();
+	static GLMixer *_instance;
+
 	QString currentSessionFileName;
 	VideoFile *selectedSourceVideoFile;
 	QFileDialog *sfd;
@@ -144,8 +147,8 @@ private:
 	void readSettings();
 	void saveSettings();
 	QAction *recentFileActs[MAX_RECENT_FILES];
-	static QTreeWidget *_logText;
-	static QMessageBox *_errorBox;
+	QTreeWidget *_logText;
+	QMessageBox *_errorBox;
 
 };
 
