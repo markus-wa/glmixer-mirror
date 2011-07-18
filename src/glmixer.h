@@ -45,6 +45,8 @@ public:
 	static GLMixer *getInstance();
 	// message handler
 	static void msgHandler(QtMsgType type, const char *msg);
+	// exit handler
+	static void exitHandler();
 
 public Q_SLOTS:
 
@@ -109,8 +111,10 @@ public Q_SLOTS:
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
-	void MessageOutput(int, QString);
 
+	void MessageOutput(int, QString);
+	void readSettings();
+	void saveSettings();
 
 Q_SIGNALS:
 	void sourceMarksModified(bool);
@@ -144,11 +148,8 @@ private:
 	bool skipNextRefresh;
 
 	QSettings settings;
-	void readSettings();
-	void saveSettings();
 	QAction *recentFileActs[MAX_RECENT_FILES];
-	QTreeWidget *_logText;
-	QMessageBox *_errorBox;
+	QMessageBox *warningBox;
 
 };
 

@@ -61,6 +61,7 @@ class OutputRenderWindow : public OutputRenderWidget {
 public:
 	// get singleton instance
 	static OutputRenderWindow *getInstance();
+	static void deleteInstance();
 
     void initializeGL();
     void resizeGL(int w = 0, int h = 0);

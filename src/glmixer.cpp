@@ -152,13 +152,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     }
 
     // Setup logging
-    _logText = logTexts;
-    _errorBox = new QMessageBox(this);
-    _errorBox->setIcon(QMessageBox::Warning);
-    _errorBox->setInformativeText(tr("Do you want to see the logs ?"));
-    _errorBox->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    _errorBox->setDefaultButton(QMessageBox::No);
-    QObject::connect(_errorBox, SIGNAL(finished(int)), this, SLOT(errorBoxFinished(int)) );
+    warningBox = new QMessageBox(this);
+    warningBox->setIcon(QMessageBox::Warning);
+    warningBox->setInformativeText(tr("Do you want to see the logs ?"));
+    warningBox->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    warningBox->setDefaultButton(QMessageBox::No);
+    QObject::connect(warningBox, SIGNAL(finished(int)), this, SLOT(errorBoxFinished(int)) );
 
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
@@ -296,9 +295,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(refreshTimingTimer, SIGNAL(timeout()), this, SLOT(refreshTiming()));
     QObject::connect(vcontrolDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(updateRefreshTimerState()));
 
-    // recall settings from last time
-    readSettings();
-
     // start with new file
     currentSessionFileName = QString();
     confirmSessionFileName();
@@ -306,10 +302,21 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 GLMixer::~GLMixer()
 {
-	saveSettings();
-	RenderingManager::deleteInstance();
+	delete mfd;
+    delete sfd;
+    delete upd;
+    delete refreshTimingTimer;
+    delete warningBox;
 }
 
+void GLMixer::exitHandler() {
+
+	_instance->saveSettings();
+
+	RenderingManager::deleteInstance();
+	OutputRenderWindow::deleteInstance();
+	delete _instance;
+}
 
 void GLMixer::closeEvent ( QCloseEvent * event ){
 
@@ -338,7 +345,7 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
 void GLMixer::on_copyLogsToClipboard_clicked() {
 
 	QString logs;
-	QTreeWidgetItemIterator it(_logText->topLevelItem(0));
+	QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
 	 while (*it) {
 		 logs.append( QString("%1:%2\n").arg((*it)->text(0)).arg((*it)->text(1)) );
 		 ++it;
@@ -386,8 +393,8 @@ void GLMixer::MessageOutput(int type, QString msg)
 
 	// create log entry and scroll to it
 	QTreeWidgetItem *item  = new QTreeWidgetItem(message);
-	_logText->addTopLevelItem( item );
-	_logText->setCurrentItem( item );
+	logTexts->addTopLevelItem( item );
+	logTexts->setCurrentItem( item );
 
 	// adjust color and show dialog according to message type
 	switch ( (QtMsgType) type) {
@@ -398,9 +405,9 @@ void GLMixer::MessageOutput(int type, QString msg)
 		 break;
 	case QtCriticalMsg:
 		item->setBackgroundColor(1, QColor(220, 90, 50, 50));
-		if (_errorBox) {
-			 _errorBox->setText(msg);
-			 _errorBox->exec();
+		if (warningBox) {
+			 warningBox->setText(msg);
+			 warningBox->exec();
 		}
 		else
 			QMessageBox::warning(0, tr("%1 Error").arg(QCoreApplication::applicationName()), msg);
@@ -412,7 +419,7 @@ void GLMixer::MessageOutput(int type, QString msg)
 			QFile file(QString("GLMixerLogs_%1.txt").arg(QDateTime::currentDateTime().toString(Qt::ISODate)));
 			if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 				QTextStream out(&file);
-				QTreeWidgetItemIterator it(_logText->topLevelItem(0));
+				QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
 				while (*it) {
 					 out << (*it)->text(0) << ":" << (*it)->text(1) << "\n";
 					 ++it;
@@ -1787,9 +1794,10 @@ void GLMixer::readSettings()
     	actionShow_frames->setChecked(settings.value("DisplayTimeAsFrames").toBool());
     if (settings.contains("DisplayFramerate"))
     	actionShowFPS->setChecked(settings.value("DisplayFramerate").toBool());
+
     // preferences
 	restorePreferences(settings.value("UserPreferences").toByteArray());
-
+	qDebug() << tr("All settings restored.");
 }
 
 void GLMixer::saveSettings()
@@ -1810,7 +1818,7 @@ void GLMixer::saveSettings()
 	settings.setValue("UserPreferences", getPreferences());
 	// make sure system saves settings NOW
     settings.sync();
-	qDebug() << tr("Preferences saved.");
+	qDebug() << tr("Settings saved.");
 }
 
 
@@ -1958,6 +1966,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	// de-select current source
 	RenderingManager::getInstance()->unsetCurrentSource();
 
+	qDebug() << tr("Preferences loaded.");
 }
 
 QByteArray GLMixer::getPreferences() const {

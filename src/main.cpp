@@ -38,8 +38,6 @@ QStringList glSupportedExtensions() {
 	return listofextensions;
 }
 
-
-
 int main(int argc, char **argv)
 {
 //    qInstallMsgHandler(GLMixerMessageOutput);
@@ -89,6 +87,9 @@ int main(int argc, char **argv)
 	// 1. The application GUI : it integrates the Rendering Manager QGLWidget
     GLMixer::getInstance()->setWindowTitle(a.applicationName());
     qInstallMsgHandler(GLMixer::msgHandler);
+    qAddPostRoutine(GLMixer::exitHandler);
+
+    GLMixer::getInstance()->readSettings();
 
 	// 2. The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow::getInstance()->setWindowTitle(QString("Output Window"));
