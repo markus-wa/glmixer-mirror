@@ -140,12 +140,16 @@ void TestButtonFrame::paintEvent(QPaintEvent *event){
 void TestButtonFrame::setConfiguration(QMap<int, int> buttonmap, QMap<int, int> modifiermap) {
 
 	QMapIterator<int, int> i(buttonmap);
-	for (; i.hasNext(); i.next() )
-	     qbuttonmap [ (View::UserInput) i.key() ] = Qt::MouseButtons(i.value());
+	while ( i.hasNext() ) {
+		i.next();
+		qbuttonmap [ (View::UserInput) i.key() ] = Qt::MouseButtons(i.value());
+	}
 
 	QMapIterator<int, int> j(modifiermap);
-	for (; j.hasNext(); j.next())
+	while ( j.hasNext() ) {
+		j.next();
 	     qmodifiermap [ (View::UserInput) j.key() ] = Qt::KeyboardModifiers(j.value());
+	}
 
 	update();
 }
