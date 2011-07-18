@@ -86,9 +86,6 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
 
         Q_CHECK_PTR(is);
 
-        // transfer error signal
-        QObject::connect(is, SIGNAL(error(QString)), this, SIGNAL(error(QString)));
-
         // CONTROL signals from GUI to VideoFile
         QObject::connect(startButton, SIGNAL(toggled(bool)), is, SLOT(play(bool)));
         QObject::connect(seekBackwardButton, SIGNAL(clicked()), is, SLOT(seekBackward()));
