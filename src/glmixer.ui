@@ -1737,7 +1737,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1188</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2513,8 +2513,14 @@ Uncheck to display the restart frame when stopped.</string>
        <property name="selectionMode">
         <enum>QAbstractItemView::NoSelection</enum>
        </property>
+       <property name="textElideMode">
+        <enum>Qt::ElideMiddle</enum>
+       </property>
        <property name="rootIsDecorated">
         <bool>false</bool>
+       </property>
+       <property name="uniformRowHeights">
+        <bool>true</bool>
        </property>
        <property name="itemsExpandable">
         <bool>false</bool>

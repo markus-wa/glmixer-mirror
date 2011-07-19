@@ -160,12 +160,16 @@ RenderingManager::~RenderingManager() {
 
 	clearSourceSet();
 
-	if (_renderwidget != 0)
+	if (_renderwidget)
 		delete _renderwidget;
 
 	if (_fbo)
 		delete _fbo;
 
+	delete _propertyBrowser;
+	delete _recorder;
+	delete _switcher;
+	delete _defaultSource;
 }
 
 
@@ -424,9 +428,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
 
 	// create a source appropriate
 	RenderingSource *s = new RenderingSource(previousframe_fbo->texture(), getAvailableDepthFrom(depth));
-	Q_CHECK_PTR(s);
-
-	s->setName( _defaultSource->getName() + "Render");
+	if (s) s->setName( _defaultSource->getName() + "Render");
 
 	return ( (Source *) s );
 }
@@ -1249,7 +1251,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 							newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
 							newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
 
-							qDebug() << child.attribute("name") << tr("|Media source created with file ") << fileNameToOpen;
+							qDebug() << child.attribute("name") << tr("|Media source created with ") << QFileInfo(fileNameToOpen).fileName();
 						}
 						else {
 							qWarning() << child.attribute("name") << tr("|Could not be created.");
@@ -1282,7 +1284,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 			newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
 			if (!newsource) {
-				qWarning() << child.attribute("name") <<  tr("|Could not open OpenCV device index %2. ").arg(camera.text());
+				qWarning() << child.attribute("name") <<  tr("|Could not open OpenCV device index %2.").arg(camera.text());
 				errors ++;
 			} else
 				qDebug() << child.attribute("name") <<  tr("|OpenCV source created (device index %2).").arg(camera.text());
@@ -1340,7 +1342,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 				qWarning() << child.attribute("name") << tr("|Could not create vector graphics source.");
 		        errors++;
 			} else
-				qDebug() << child.attribute("name") << tr("|vector graphics source created.");
+				qDebug() << child.attribute("name") << tr("|Vector graphics source created.");
 		}
 		else if ( type == Source::CLONE_SOURCE) {
 			// remember the node of the sources to clone
@@ -1452,7 +1454,7 @@ void RenderingManager::pause(bool on){
 	if (!on)
 		sourcePlayStatus.clear();
 
-	qDebug() << "RenderingManager:" << (on ? tr("All sources paused.") : tr("All source un-paused.") );
+	qDebug() << "RenderingManager|" << (on ? tr("All sources paused.") : tr("All source un-paused.") );
 }
 
 

@@ -127,7 +127,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 #endif
 
 	if(rec->enc->fmt == NULL) {
-		snprintf(errormessage, 256, "File format %s not supported.\nUnable to start recording.", f_name, filename);
+		snprintf(errormessage, 256, "File format %s not supported.\nUnable to start recording %s.", f_name, filename);
 		video_rec_free(rec);
 		return NULL;
 	}

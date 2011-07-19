@@ -406,7 +406,7 @@ void GLMixer::MessageOutput(int type, QString msg)
 	case QtCriticalMsg:
 		item->setBackgroundColor(1, QColor(220, 90, 50, 50));
 		if (warningBox) {
-			 warningBox->setText(msg);
+			 warningBox->setText(QString("Problem with %1:\n\n%2\n").arg(message[0]).arg(message[1]));
 			 warningBox->exec();
 		}
 		else
