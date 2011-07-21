@@ -278,10 +278,16 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
 	cause = 0;
 	sourceClicked = 0;
 
-	if ( isInside(event->pos()) )
-		cause = new QMouseEvent(event->type(), event->pos(), event->button(), event->buttons(), event->modifiers());
+	if ( isInside(event->pos()) ) {
 
-	return (bool) cause;
+		if ( isUserInput(event, INPUT_CONTEXT_MENU) )
+			RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_CATALOG, event->pos());
+		else
+			cause = new QMouseEvent(event->type(), event->pos(), event->button(), event->buttons(), event->modifiers());
+
+		return true;
+	}
+	return false;
 }
 
 

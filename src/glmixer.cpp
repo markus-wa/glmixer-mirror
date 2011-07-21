@@ -818,7 +818,7 @@ void GLMixer::on_actionCloneSource_triggered(){
 		if ( s ) {
 			QString name = (*RenderingManager::getInstance()->getCurrentSource())->getName();
 			RenderingManager::getInstance()->addSourceToBasket(s);
-			qDebug() << s->getName() << tr("|New clone of source %1 created.").arg((*RenderingManager::getInstance()->getCurrentSource())->getName());
+			qDebug() << s->getName() << tr("|New clone of source %1 created.").arg(name);
 			statusbar->showMessage( tr("The current source has been cloned."), 3000);
 		} else
 			qCritical() << tr("Could not clone source %1.").arg((*RenderingManager::getInstance()->getCurrentSource())->getName());
@@ -2115,9 +2115,12 @@ void GLMixer::on_actionSelectInvert_triggered()
 void GLMixer::on_actionSelectCurrent_triggered()
 {
 	SourceSet::iterator sit = RenderingManager::getInstance()->getCurrentSource();
-	if ( RenderingManager::getInstance()->isValid(sit) && !View::isInSelection(*sit))
-		View::select(*sit);
-
+	if ( RenderingManager::getInstance()->isValid(sit)) {
+		if (View::isInSelection(*sit))
+			View::deselect(*sit);
+		else
+			View::select(*sit);
+	}
 }
 
 void GLMixer::on_actionSelectNone_triggered()

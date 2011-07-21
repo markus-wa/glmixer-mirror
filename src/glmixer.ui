@@ -81,6 +81,9 @@
          <property name="pixmap">
           <pixmap resource="../icons.qrc">:/glmixer/icons/manipulation.png</pixmap>
          </property>
+         <property name="scaledContents">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -658,8 +661,8 @@ p, li { white-space: pre-wrap; }
            </property>
            <property name="iconSize">
             <size>
-             <width>22</width>
-             <height>22</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="shortcut">
@@ -759,8 +762,8 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="iconSize">
                   <size>
-                   <width>22</width>
-                   <height>22</height>
+                   <width>24</width>
+                   <height>24</height>
                   </size>
                  </property>
                  <property name="shortcut">
@@ -791,8 +794,8 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="iconSize">
                   <size>
-                   <width>22</width>
-                   <height>22</height>
+                   <width>24</width>
+                   <height>24</height>
                   </size>
                  </property>
                  <property name="shortcut">
@@ -828,7 +831,7 @@ p, li { white-space: pre-wrap; }
                  <property name="iconSize">
                   <size>
                    <width>32</width>
-                   <height>22</height>
+                   <height>24</height>
                   </size>
                  </property>
                  <property name="shortcut">
@@ -872,7 +875,7 @@ p, li { white-space: pre-wrap; }
                  <property name="iconSize">
                   <size>
                    <width>16</width>
-                   <height>22</height>
+                   <height>24</height>
                   </size>
                  </property>
                  <property name="shortcut">
@@ -903,8 +906,8 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="iconSize">
                   <size>
-                   <width>22</width>
-                   <height>22</height>
+                   <width>24</width>
+                   <height>24</height>
                   </size>
                  </property>
                  <property name="shortcut">
@@ -1130,8 +1133,8 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="iconSize">
                   <size>
-                   <width>22</width>
-                   <height>22</height>
+                   <width>24</width>
+                   <height>24</height>
                   </size>
                  </property>
                  <property name="checkable">
@@ -1320,6 +1323,12 @@ p, li { white-space: pre-wrap; }
                  <iconset resource="../icons.qrc">
                   <normaloff>:/glmixer/icons/media-skip-backward.png</normaloff>:/glmixer/icons/media-skip-backward.png</iconset>
                 </property>
+                <property name="iconSize">
+                 <size>
+                  <width>12</width>
+                  <height>12</height>
+                 </size>
+                </property>
                </widget>
               </item>
               <item row="2" column="0">
@@ -1421,6 +1430,12 @@ p, li { white-space: pre-wrap; }
                 <property name="icon">
                  <iconset resource="../icons.qrc">
                   <normaloff>:/glmixer/icons/media-skip-forward.png</normaloff>:/glmixer/icons/media-skip-forward.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>12</width>
+                  <height>12</height>
+                 </size>
                 </property>
                </widget>
               </item>
@@ -1737,7 +1752,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1188</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1896,6 +1911,12 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="windowTitle">
     <string>Sources actions </string>
    </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
    <property name="floatable">
     <bool>false</bool>
    </property>
@@ -1921,6 +1942,12 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="windowTitle">
     <string>View selection</string>
    </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
    <property name="floatable">
     <bool>false</bool>
    </property>
@@ -1940,6 +1967,12 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="windowTitle">
     <string>File actions</string>
    </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
    <property name="floatable">
     <bool>false</bool>
    </property>
@@ -1956,6 +1989,12 @@ Uncheck to display the restart frame when stopped.</string>
   <widget class="QToolBar" name="toolsToolBar">
    <property name="windowTitle">
     <string>Tools selection</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
    </property>
    <property name="floatable">
     <bool>false</bool>
@@ -2462,6 +2501,12 @@ Uncheck to display the restart frame when stopped.</string>
   <widget class="QToolBar" name="renderingToolBar">
    <property name="windowTitle">
     <string>toolBar</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
    </property>
    <property name="floatable">
     <bool>false</bool>
@@ -3472,7 +3517,10 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Zoom in</string>
    </property>
    <property name="toolTip">
-    <string>Zoom on current source</string>
+    <string>Zoom in current source</string>
+   </property>
+   <property name="statusTip">
+    <string>Zoom in current source</string>
    </property>
   </action>
   <action name="actionPause">
@@ -3593,6 +3641,9 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Toggle modifiable</string>
    </property>
    <property name="toolTip">
+    <string>Toggle modifiable</string>
+   </property>
+   <property name="statusTip">
     <string>Set on/off the attribute which allows to modify the source</string>
    </property>
    <property name="shortcut">
@@ -3604,7 +3655,10 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Reset</string>
    </property>
    <property name="toolTip">
-    <string>Reset geometry of the source</string>
+    <string>Reset source</string>
+   </property>
+   <property name="statusTip">
+    <string>Reset source properties to default (from preferences)</string>
    </property>
   </action>
   <action name="actionMediaSource">
@@ -3631,10 +3685,13 @@ Uncheck to display the restart frame when stopped.</string>
      <normaloff>:/glmixer/icons/select.png</normaloff>:/glmixer/icons/select.png</iconset>
    </property>
    <property name="text">
-    <string>Add to selection</string>
+    <string>Add/remove to selection</string>
    </property>
    <property name="toolTip">
-    <string>Add current source to the selection</string>
+    <string>Add/remove to selection</string>
+   </property>
+   <property name="statusTip">
+    <string>Add or remove the current source to the selection</string>
    </property>
   </action>
   <action name="actionSelectAll">
