@@ -597,7 +597,6 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
 	// scale the source to match the preferences
 	(*sit)->resetScale(_scalingMode);
 
-	_propertyBrowser->showProperties(sit);
 }
 
 
@@ -609,16 +608,18 @@ void RenderingManager::selectCurrentSource(GLuint name){
 
 void RenderingManager::toggleMofifiableCurrentSource(){
 
-	if(isValid(_currentSource))
+	if(isValid(_currentSource)) {
 		(*_currentSource)->setModifiable( ! (*_currentSource)->isModifiable() );
-
-	_propertyBrowser->showProperties(_currentSource);
+		_propertyBrowser->showProperties(_currentSource);
+	}
 }
 
 void RenderingManager::resetCurrentSource(){
 
-	if(isValid(_currentSource))
+	if(isValid(_currentSource)) {
 		resetSource(_currentSource);
+		_propertyBrowser->showProperties(_currentSource);
+	}
 }
 
 int RenderingManager::getSourceBasketSize() const{

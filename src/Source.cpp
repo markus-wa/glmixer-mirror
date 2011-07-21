@@ -480,7 +480,7 @@ void Source::copyPropertiesFrom(const Source *source){
 	rotangle = source->rotangle;
 //	scalex = source->scalex;
 //	scaley = source->scaley;
-	texalpha = source->texalpha;
+	setAlpha(source->texalpha);
 	destination_blend = source->destination_blend;
 	blend_eq =  source->blend_eq;
 	textureCoordinates = source->textureCoordinates;
