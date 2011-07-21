@@ -61,7 +61,11 @@ void OutputRenderWidget::initializeGL() {
     // Turn blending off
     glDisable(GL_BLEND);
 
+#ifdef __APPLE__
+	setBackgroundColor(Qt::black);
+#else
 	setBackgroundColor(palette().color(QPalette::Window));
+#endif
 
 }
 
@@ -292,7 +296,6 @@ void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {
 	case Qt::Key_Space:
 		emit toggleFullscreen(true);
 		break;
-
 	case Qt::Key_Right:
 		emit keyRightPressed();
 		break;

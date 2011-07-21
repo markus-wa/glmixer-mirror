@@ -142,6 +142,7 @@ private:
 	class VideoFileDialog *mfd;
 	class OutputRenderWidget *outputpreview;
 	class UserPreferencesDialog *upd;
+	class GammaLevelsWidget *gammaAdjust;
 
 	QTimer *refreshTimingTimer;
 	bool waspaused;

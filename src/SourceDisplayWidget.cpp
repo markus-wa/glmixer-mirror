@@ -40,7 +40,11 @@ void SourceDisplayWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
 
+#ifdef __APPLE__
+	setBackgroundColor(Qt::black);
+#else
 	setBackgroundColor(palette().color(QPalette::Window));
+#endif
     glDisable(GL_BLEND);
 
 }

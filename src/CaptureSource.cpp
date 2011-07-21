@@ -16,9 +16,14 @@ CaptureSource::CaptureSource(QImage capture, GLuint texture, double d): Source(t
 		glBindTexture(GL_TEXTURE_2D, textureIndex);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+#if QT_VERSION >= 0x040700
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _capture.width(), _capture. height(),
 					  0, GL_BGRA, GL_UNSIGNED_BYTE, _capture.constBits() );
-
+#else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _capture.width(), _capture. height(),
+					  0, GL_BGRA, GL_UNSIGNED_BYTE, _capture.bits() );
+#endif
 		aspectratio = double(_capture.width()) / double(_capture.height());
 	}
 	// TODO : else through exception

@@ -23,18 +23,22 @@ public:
 
     float gamma;
     float xmin, xmax, ymin, ymax;
+    QSlider *slider;
 
     void setPen(const QPen &pen);
     void setAntialiased(bool antialiased);
 
 protected:
     void paintEvent(QPaintEvent *event);
+    void mouseMoveEvent ( QMouseEvent * event );
+    void wheelEvent ( QWheelEvent * event );
 
 private:
     QPoint points[NUM_POINTS_PLOT];
     QPen pen;
     QBrush brush;
     bool antialiased;
+
 };
 
 
@@ -47,6 +51,9 @@ GammaLevelsWidget::GammaLevelsWidget(QWidget *parent) : QWidget(parent)
     plot = new GammaPlotArea(this);
     plot->setPen(QPen( palette().color(QPalette::Highlight) ));
     plot->setAntialiased(true);
+    // hack to replace slider by mouse and wheel actions in plot widget
+    plot->slider = gammaSlider;
+    gammaSlider->setVisible(false);
 
     plotWidget = (QWidget *) plot;
     gridLayoutGraphic->addWidget(plotWidget, 0, 1, 1, 1);
@@ -56,6 +63,10 @@ GammaLevelsWidget::GammaLevelsWidget(QWidget *parent) : QWidget(parent)
 
 }
 
+void GammaLevelsWidget::setAntialiasing(bool antialiased)
+{
+	plot->setAntialiased(antialiased);
+}
 
 void GammaLevelsWidget::connectSource(SourceSet::iterator csi){
 
@@ -76,7 +87,6 @@ void GammaLevelsWidget::setValues(float gamma, float minInput, float maxInput, f
     // setup values, with some sanity check
     plot->gamma = qBound(gamma, 0.f, 1.f);
     gammaSlider->setValue( GammaToSlider(plot->gamma) );
-	gammaText->setText( QString().setNum( plot->gamma, 'f', 2) );
 
     plot->xmin = qBound(minInput, 0.f, 1.f);
     plot->xmax = qBound(maxInput, 0.f, 1.f);
@@ -124,31 +134,7 @@ void GammaLevelsWidget::showEvent ( QShowEvent * event ){
 }
 
 
-void GammaLevelsWidget::on_resetButton_clicked (  ){
-
-//	plot->xmin = 0.f;
-//	plot->xmax = 1.f;
-//	plot->ymin = 0.f;
-//	plot->ymax = 1.f;
-//
-//	QList<int> s = outSplit->sizes();
-//	int total = s[0] + s[1] + s[2];
-//	s[2] = plot->ymin * total;
-//	s[0] = total - total * plot->ymax;
-//	s[1] = total - s[0] - s[2];
-//	outSplit->setSizes(s);
-//
-//	s = inSplit->sizes();
-//	total = s[0] + s[1] + s[2];
-//	s[0] = plot->xmin * total;
-//	s[2] = total - total * plot->xmax;
-//	s[1] = total - s[0] - s[2];
-//	inSplit->setSizes(s);
-//
-//	gammaSlider->setValue(GammaToSlider(1.f));
-//	plot->gamma = 1.f;
-//	gammaText->setText( QString().setNum( plot->gamma, 'f', 2) );
-//	plot->update();
+void GammaLevelsWidget::on_resetButton_clicked (){
 
 	setValues(1.f, 0.f, 1.f, 0.f, 1.f);
 
@@ -181,29 +167,14 @@ float GammaLevelsWidget::gamma(){
     return plot->gamma;
 }
 
-
-void GammaLevelsWidget::on_gammaSlider_actionTriggered (int action)
-{
-	if (action == QAbstractSlider::SliderSingleStepAdd)
-		gammaSlider->setSliderPosition ( gammaSlider->value() + gammaSlider->singleStep());
-	else if (action == QAbstractSlider::SliderSingleStepSub)
-		gammaSlider->setSliderPosition ( gammaSlider->value() - gammaSlider->singleStep());
-
-	on_gammaSlider_sliderMoved(gammaSlider->sliderPosition());
-}
-
-void GammaLevelsWidget::on_gammaSlider_sliderMoved(int val){
+void GammaLevelsWidget::on_gammaSlider_valueChanged(int val){
 
     plot->gamma = SliderToGamma(val);
-    gammaText->setText( QString().setNum( plot->gamma, 'f', 2) );
-
     plot->update();
 
     if (source)
     	source->setGamma(plot->gamma, plot->xmin, plot->xmax, plot->ymin, plot->ymax);
 }
-
-
 
 void GammaLevelsWidget::on_inSplit_splitterMoved ( int pos, int index ){
 
@@ -278,6 +249,20 @@ void GammaPlotArea::setAntialiased(bool antialiased)
     update();
 }
 
+void GammaPlotArea::mouseMoveEvent ( QMouseEvent * event )
+{
+	if (event->buttons() != Qt::NoButton)
+	{
+		int y = qBound( 0, event->y(), this->height());
+		slider->setValue( (1.f - ((float) y / (float) this->height()) ) * (float)slider->maximum() + slider->minimum() );
+	}
+}
+
+
+void GammaPlotArea::wheelEvent ( QWheelEvent * event )
+{
+	slider->setValue( slider->value() + event->delta() / 2);
+}
 
 void GammaPlotArea::paintEvent(QPaintEvent * /* event */)
 {
@@ -312,11 +297,12 @@ void GammaPlotArea::paintEvent(QPaintEvent * /* event */)
 
     }
     painter.drawPolyline(points, NUM_POINTS_PLOT);
+    QPoint tp = points[NUM_POINTS_PLOT/2] + QPoint( gamma < 1 ? -50 : 5, gamma < 1 ? -10 : 10 );
+    painter.drawText( tp, QString::number(gamma,'f',3));
 
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	painter.setPen(palette().dark().color());
 	painter.setBrush(Qt::NoBrush);
 	painter.drawRect(QRect(0, 0, width() - 1, height() - 1));
 }
-//! [13]
 

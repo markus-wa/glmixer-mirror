@@ -180,7 +180,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
 
 	// Setup the gamma levels toolbox
-	GammaLevelsWidget *gammaAdjust = new GammaLevelsWidget(this);
+	gammaAdjust = new GammaLevelsWidget(this);
 	gammaDockWidgetContentsLayout->addWidget(gammaAdjust);
 	QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), gammaAdjust, SLOT(connectSource(SourceSet::iterator) ) );
 
@@ -307,6 +307,7 @@ GLMixer::~GLMixer()
     delete upd;
     delete refreshTimingTimer;
     delete warningBox;
+    delete gammaAdjust;
 }
 
 void GLMixer::exitHandler() {
@@ -815,6 +816,7 @@ void GLMixer::on_actionCloneSource_triggered(){
 	if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
 		Source *s = RenderingManager::getInstance()->newCloneSource( RenderingManager::getInstance()->getCurrentSource());
 		if ( s ) {
+			QString name = (*RenderingManager::getInstance()->getCurrentSource())->getName();
 			RenderingManager::getInstance()->addSourceToBasket(s);
 			qDebug() << s->getName() << tr("|New clone of source %1 created.").arg((*RenderingManager::getInstance()->getCurrentSource())->getName());
 			statusbar->showMessage( tr("The current source has been cloned."), 3000);
@@ -1943,6 +1945,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	bool antialiasing = true;
 	stream >> antialiasing;
 	RenderingManager::getRenderingWidget()->setAntiAliasing(antialiasing);
+	gammaAdjust->setAntialiasing(antialiasing);
 
 	// k. mouse buttons and modifiers
 	QMap<int, int> mousemap;

@@ -35,12 +35,12 @@ public:
     float gamma();
 
     void showEvent ( QShowEvent * event );
+    void setAntialiasing(bool antialiased);
 
 public Q_SLOTS:
 
     void connectSource(SourceSet::iterator);
-    void on_gammaSlider_sliderMoved(int);
-    void on_gammaSlider_actionTriggered (int action);
+    void on_gammaSlider_valueChanged(int);
     void on_inSplit_splitterMoved ( int pos, int index );
     void on_outSplit_splitterMoved ( int pos, int index );
     void on_resetButton_clicked ();
