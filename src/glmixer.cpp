@@ -73,7 +73,7 @@ GLMixer *GLMixer::getInstance() {
 	return _instance;
 }
 
-GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), fdo(0), refreshTimingTimer(0)
+GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), usesystemdialogs(0), refreshTimingTimer(0)
 {
     setupUi ( this );
     setAcceptDrops ( true );
@@ -356,14 +356,15 @@ void GLMixer::on_copyLogsToClipboard_clicked() {
 
 void GLMixer::msgHandler(QtMsgType type, const char *msg)
 {
+	QString txt = QString(msg).remove("\"");
+
 	// message handler
 	switch (type) {
 	case QtCriticalMsg:
-		QMessageBox::critical(0, QString("%1 Critical").arg(QCoreApplication::applicationName()), QString(msg).remove("\""));
+		QMessageBox::critical(0, tr("%1 -- Critical error").arg(QCoreApplication::applicationName()), txt.replace("|","\n") );
 		break;
 	case QtFatalMsg:
-		std::cerr<<"Fatal: "<<msg<<std::endl;
-		QMessageBox::critical(0, QString("%1 Fatal").arg(QCoreApplication::applicationName()), QString(msg).remove("\""));
+		QMessageBox::critical(0, tr("%1 -- Fatal error").arg(QCoreApplication::applicationName()), txt);
 		abort();
 	default:
 		break;
@@ -374,7 +375,6 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 		// invoke a delayed call (in Qt event loop) of the GLMixer real Message handler SLOT
 		static int methodIndex = _instance->metaObject()->indexOfSlot("Log(int,QString)");
 		static QMetaMethod method = _instance->metaObject()->method(methodIndex);
-		QString txt = QString(msg).remove("\"");
 		method.invoke(_instance, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
 	}
 }
@@ -393,7 +393,6 @@ void GLMixer::Log(int type, QString msg)
 	} else {
 		item->setText(0, message[0]);
 		item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
-		message.append(QCoreApplication::applicationName());
 	}
 
 	// adjust color and show dialog according to message type
@@ -444,6 +443,7 @@ void GLMixer::setView(QAction *a){
 		actionToolGrab->trigger();
 		break;
 	}
+
 }
 
 void GLMixer::setTool(QAction *a){
@@ -742,7 +742,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 void GLMixer::on_actionSvgSource_triggered(){
 
 	QString current = currentSessionFileName.isEmpty() ? QDir::currentPath() : QFileInfo(currentSessionFileName).absolutePath();
-    QString fileName = QFileDialog::getOpenFileName(this, tr("OpenSVG file"), current, tr("Scalable Vector Graphics (*.svg)"), 0, fdo ? QFlags<QFileDialog::Option>() : QFileDialog::DontUseNativeDialog);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("OpenSVG file"), current, tr("Scalable Vector Graphics (*.svg)"), 0, usesystemdialogs ? QFlags<QFileDialog::Option>() : QFileDialog::DontUseNativeDialog);
 
 	if ( !fileName.isEmpty() ) {
 
@@ -1399,7 +1399,7 @@ void GLMixer::on_actionSave_Session_as_triggered()
 	sfd->setAcceptMode(QFileDialog::AcceptSave);
 	sfd->setFileMode(QFileDialog::AnyFile);
 	sfd->setFilter(tr("GLMixer session (*.glm)"));
-	sfd->setOption(QFileDialog::DontUseNativeDialog, !fdo);
+	sfd->setOption(QFileDialog::DontUseNativeDialog, !usesystemdialogs);
 	sfd->setDefaultSuffix("glm");
 
 	if (sfd->exec()) {
@@ -1414,7 +1414,7 @@ void GLMixer::on_actionLoad_Session_triggered()
 {
 	sfd->setAcceptMode(QFileDialog::AcceptOpen);
 	sfd->setFileMode(QFileDialog::ExistingFile);
-	sfd->setOption(QFileDialog::DontUseNativeDialog, !fdo);
+	sfd->setOption(QFileDialog::DontUseNativeDialog, !usesystemdialogs);
 	sfd->setFilter(tr("GLMixer session (*.glm)"));
 
 	if (sfd->exec()) {
@@ -1597,7 +1597,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
 
 	sfd->setAcceptMode(QFileDialog::AcceptOpen);
 	sfd->setFileMode(QFileDialog::ExistingFile);
-	sfd->setOption(QFileDialog::DontUseNativeDialog, !fdo);
+	sfd->setOption(QFileDialog::DontUseNativeDialog, !usesystemdialogs);
 	sfd->setFilter(tr("GLMixer session (*.glm)"));
 
 	if (sfd->exec()) {
@@ -1964,7 +1964,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	View::setZoomCentered(zoomcentered);
 
 	// m. useSystemDialogs
-	stream >> fdo;
+	stream >> usesystemdialogs;
 
 	// Refresh widgets to make changes visible
 	OutputRenderWindow::getInstance()->refresh();
@@ -2136,6 +2136,6 @@ void GLMixer::on_actionSelectNone_triggered()
 
 bool GLMixer::useSystemDialogs()
 {
-	return fdo;
+	return usesystemdialogs;
 }
 

@@ -139,7 +139,7 @@ private:
 	QString currentSessionFileName;
 	VideoFile *selectedSourceVideoFile;
 	QFileDialog *sfd;
-	bool fdo;
+	bool usesystemdialogs;
 	class VideoFileDialog *mfd;
 	class OutputRenderWidget *outputpreview;
 	class UserPreferencesDialog *upd;

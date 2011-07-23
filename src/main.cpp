@@ -24,6 +24,7 @@
 #include <QString>
 
 #include "common.h"
+#include "QLogStream.h"
 #include "glmixer.h"
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
@@ -41,7 +42,12 @@ QStringList glSupportedExtensions() {
 int main(int argc, char **argv)
 {
     QApplication a(argc, argv);
+
+    // this redirects qDebug qWarning etc.
     qInstallMsgHandler(GLMixer::msgHandler);
+    // these redirect both cout/cerr
+    QLogStream qout(std::cout, GLMixer::msgHandler, QtDebugMsg);
+    QLogStream qerr(std::cerr, GLMixer::msgHandler, QtWarningMsg);
 
     // -1. sets global application name ; this is used application wide (e.g. QSettings)
     a.setOrganizationName("bhbn");
