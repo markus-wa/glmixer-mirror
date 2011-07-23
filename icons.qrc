@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/textcopy.png</file>
+    <file>icons/clean.png</file>
+    <file>icons/warning.png</file>
     <file>icons/svg.png</file>
     <file>icons/selectinvert.png</file>
     <file>icons/selectall.png</file>

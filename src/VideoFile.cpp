@@ -365,7 +365,7 @@ void VideoFile::stop() {
 
         /* say if we are running or not */
         emit running(!quit);
-        qDebug()<<filename<<tr("|stopped.");
+        qDebug()<<filename<<tr("|Video stopped.");
 
     }
 
@@ -401,7 +401,7 @@ void VideoFile::start() {
 
         /* say if we are running or not */
         emit running(!quit);
-        qDebug()<<filename<<tr("|started.");
+        qDebug()<<filename<<tr("|Video playing.");
     }
 
 }

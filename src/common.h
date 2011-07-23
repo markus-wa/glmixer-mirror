@@ -1,5 +1,5 @@
 /*
- * system.h
+ * common.h
  *
  *  Created on: Dec 15, 2008
  *      Author: bh
@@ -34,36 +34,7 @@
 #define EPSILON 0.00001
 #define FRAME_DURATION 15
 
-#if defined(__WIN32__)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
-
-#include <GL/glew.h>
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <OpenGL/glext.h>
-
-#define PANNIG_MODIFIER Qt::ALT
-
-#else
-
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
-
-#define PANNIG_MODIFIER Qt::META
-
-#endif
-
-#include <QtOpenGL>
-#include <QtDebug>
-
-bool glSupportsExtension(QString extname);
-QStringList glSupportedExtensions();
-
+#define XML_GLM_VERSION "0.6"
 #define MAX_SOURCE_COUNT 125
 #define SELECTBUFSIZE 512   // > MAX_SOURCE_COUNT * 4 + 3
 #define SOURCE_UNIT 10.0
@@ -74,8 +45,6 @@ QStringList glSupportedExtensions();
 #define MAX_SCALE 100.0
 #define DEPTH_EPSILON 0.1
 #define BORDER_SIZE 0.4
-
-#define XML_GLM_VERSION "0.6"
 
 #define COLOR_SOURCE 230, 230, 0
 #define COLOR_SOURCE_STATIC 230, 40, 40
@@ -88,8 +57,31 @@ QStringList glSupportedExtensions();
 #define COLOR_FRAME 210, 30, 210
 #define COLOR_CURSOR 13, 148, 224
 
+
+#if defined(__WIN32__)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
+#include <GL/glew.h>
+
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <OpenGL/glext.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+#endif
+
+#include <QtOpenGL>
+#include <QtDebug>
 #include <QDir>
 #include <QValidator>
+
+bool glSupportsExtension(QString extname);
+QStringList glSupportedExtensions();
 
 class folderValidator : public QValidator
 {

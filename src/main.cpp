@@ -40,8 +40,8 @@ QStringList glSupportedExtensions() {
 
 int main(int argc, char **argv)
 {
-//    qInstallMsgHandler(GLMixerMessageOutput);
     QApplication a(argc, argv);
+    qInstallMsgHandler(GLMixer::msgHandler);
 
     // -1. sets global application name ; this is used application wide (e.g. QSettings)
     a.setOrganizationName("bhbn");
@@ -68,10 +68,9 @@ int main(int argc, char **argv)
     splash.show();
     a.processEvents();
 
-    if (!QGLFormat::hasOpenGL() ) {
-    	qFatal( "This system does not support OpenGL and this program cannot work without it.");
-    	a.processEvents();
-    }
+    // Test OpenGL support
+    if (!QGLFormat::hasOpenGL() )
+    	qFatal( "%s", qPrintable( QObject::tr("This system does not support OpenGL and this program cannot work without it.")) );
 
     // fill in the list of extensions by creating a dummy glwidget
     QGLWidget *glw = new QGLWidget();
@@ -86,7 +85,6 @@ int main(int argc, char **argv)
 
 	// 1. The application GUI : it integrates the Rendering Manager QGLWidget
     GLMixer::getInstance()->setWindowTitle(a.applicationName());
-    qInstallMsgHandler(GLMixer::msgHandler);
     qAddPostRoutine(GLMixer::exitHandler);
 
     GLMixer::getInstance()->readSettings();

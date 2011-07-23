@@ -8,6 +8,7 @@
 #include <QDomDocument>
 
 #include "common.h"
+#include "glmixer.h"
 #include "SessionSwitcher.h"
 #include "OutputRenderWindow.h"
 #include "SourceDisplayWidget.h"
@@ -330,7 +331,8 @@ void SessionSwitcherWidget::folderChanged( const QString & text )
 
 void SessionSwitcherWidget::openFolder()
 {
-  QString dirName = QFileDialog::getExistingDirectory(this, tr("Select a directory"), QDir::currentPath());
+  QString dirName = QFileDialog::getExistingDirectory(this, tr("Select a directory"), QDir::currentPath(),
+		  	  	  	  	  	  	  	  	  	  	  	  GLMixer::getInstance()->useSystemDialogs() ? QFileDialog::ShowDirsOnly : QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
   if ( dirName.isEmpty() )
 	return;
 
@@ -357,7 +359,16 @@ void SessionSwitcherWidget::updateFolder()
 
 void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 {
-	emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
+	static QModelIndex previous;
+	// avoid bug of repeated call (twice double clic event?)
+	// this also means that one cannot call twice the same session...
+	// TODO; find why startTransitionToSession is called twice when double clicked on item
+	if (index != previous) {
+		emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
+		previous = index;
+	}
+
+	// clear
 	proxyView->leaveEvent(0);
 }
 
@@ -428,7 +439,8 @@ void SessionSwitcherWidget::customizeTransition()
 
 		QString oldfile = RenderingManager::getSessionSwitcher()->transitionMedia();
 		QString newfile = QFileDialog::getOpenFileName(this, tr("Open File"), oldfile.isEmpty() ? QDir::currentPath() : oldfile,
-											tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
+											tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"),
+											0,  QFileDialog::DontUseNativeDialog);
 		if ( QFileInfo(newfile).exists()) {
 			RenderingManager::getSessionSwitcher()->setTransitionMedia(newfile);
 			customButton->setStyleSheet("");

@@ -253,7 +253,8 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setToolTip("Opacity (0 = transparent)");
 		idToProperty[property->propertyName()] = property;
 		doubleManager->setRange(property, 0.0, 1.0);
-		doubleManager->setSingleStep(property, 0.05);
+		doubleManager->setSingleStep(property, 0.01);
+		doubleManager->setDecimals(property, 4);
 		modifyroperty->addSubProperty(property);
 
 	// enum list of Destination blending func

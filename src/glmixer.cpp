@@ -73,7 +73,7 @@ GLMixer *GLMixer::getInstance() {
 	return _instance;
 }
 
-GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), refreshTimingTimer(0)
+GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), fdo(0), refreshTimingTimer(0)
 {
     setupUi ( this );
     setAcceptDrops ( true );
@@ -97,12 +97,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     menuToolBars->addAction(toolsToolBar->toggleViewAction());
 
 	QActionGroup *viewActions = new QActionGroup(this);
+    Q_CHECK_PTR(viewActions);
     viewActions->addAction(actionMixingView);
     viewActions->addAction(actionGeometryView);
     viewActions->addAction(actionLayersView);
     QObject::connect(viewActions, SIGNAL(triggered(QAction *)), this, SLOT(setView(QAction *) ) );
 
 	QActionGroup *toolActions = new QActionGroup(this);
+    Q_CHECK_PTR(toolActions);
 	toolActions->addAction(actionToolGrab);
 	actionToolGrab->setData(ViewRenderWidget::TOOL_GRAB);
 	toolActions->addAction(actionToolScale);
@@ -114,6 +116,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(toolActions, SIGNAL(triggered(QAction *)), this, SLOT(setTool(QAction *) ) );
 
 	QActionGroup *cursorActions = new QActionGroup(this);
+    Q_CHECK_PTR(cursorActions);
 	cursorActions->addAction(actionCursorNormal);
 	actionCursorNormal->setData(ViewRenderWidget::CURSOR_NORMAL);
 	cursorActions->addAction(actionCursorSpring);
@@ -129,6 +132,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
 
 	QActionGroup *aspectRatioActions = new QActionGroup(this);
+    Q_CHECK_PTR(aspectRatioActions);
 	aspectRatioActions->addAction(action4_3_aspect_ratio);
 	action4_3_aspect_ratio->setData(ASPECT_RATIO_4_3);
 	aspectRatioActions->addAction(action3_2_aspect_ratio);
@@ -143,6 +147,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // recent files history
     QMenu *recentFiles = new QMenu(this);
+    Q_CHECK_PTR(recentFiles);
     actionRecent_session->setMenu(recentFiles);
     for (int i = 0; i < MAX_RECENT_FILES; ++i) {
         recentFileActs[i] = new QAction(this);
@@ -150,14 +155,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
         connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(actionLoad_RecentSession_triggered()));
         recentFiles->addAction(recentFileActs[i]);
     }
-
-    // Setup logging
-    warningBox = new QMessageBox(this);
-    warningBox->setIcon(QMessageBox::Warning);
-    warningBox->setInformativeText(tr("Do you want to see the logs ?"));
-    warningBox->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    warningBox->setDefaultButton(QMessageBox::No);
-    QObject::connect(warningBox, SIGNAL(finished(int)), this, SLOT(errorBoxFinished(int)) );
 
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
@@ -181,6 +178,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
 	// Setup the gamma levels toolbox
 	gammaAdjust = new GammaLevelsWidget(this);
+    Q_CHECK_PTR(gammaAdjust);
 	gammaDockWidgetContentsLayout->addWidget(gammaAdjust);
 	QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), gammaAdjust, SLOT(connectSource(SourceSet::iterator) ) );
 
@@ -197,8 +195,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // Setup dialogs
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
+    Q_CHECK_PTR(mfd);
     sfd = new QFileDialog(this);
+    Q_CHECK_PTR(sfd);
     upd = new UserPreferencesDialog(this);
+    Q_CHECK_PTR(upd);
 
     // Create preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
@@ -217,7 +218,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 
     // Rendering control
     QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(toggleFullscreen(bool)), actionFullscreen, SLOT(setChecked(bool)) );
-
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(disableProgressBars(bool)));
     QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
@@ -271,7 +271,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionZoomReset, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
 	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
 	QObject::connect(actionZoomCurrentSource, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomCurrentSource()));
-
 	QObject::connect(actionToggle_fixed, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(toggleMofifiableCurrentSource()));
 	QObject::connect(actionResetSource, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
 
@@ -306,7 +305,6 @@ GLMixer::~GLMixer()
     delete sfd;
     delete upd;
     delete refreshTimingTimer;
-    delete warningBox;
     delete gammaAdjust;
 }
 
@@ -345,91 +343,78 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
 
 void GLMixer::on_copyLogsToClipboard_clicked() {
 
-	QString logs;
-	QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
-	 while (*it) {
-		 logs.append( QString("%1:%2\n").arg((*it)->text(0)).arg((*it)->text(1)) );
-		 ++it;
-	 }
-	 QApplication::clipboard()->setText(logs);
-}
-
-void GLMixer::errorBoxFinished(int ret)
-{
-	switch (ret) {
-	case QMessageBox::Yes:
-		// Show logs was clicked
-		logDockWidget->showNormal();
-		logDockWidget->raise();
-		break;
-	case QMessageBox::No:
-		// Don't show logs was clicked
-		break;
-	default:
-		// should never be reached
-		break;
+	if (logTexts->topLevelItemCount() > 0) {
+		QString logs;
+		QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
+		while (*it) {
+			logs.append( QString("%1:%2\n").arg((*it)->text(0)).arg((*it)->text(1)) );
+			++it;
+		}
+		QApplication::clipboard()->setText(logs);
 	}
 }
 
 void GLMixer::msgHandler(QtMsgType type, const char *msg)
 {
-	if (!_instance) {
-		std::cerr<<msg<<std::endl;
-		return;
+	// message handler
+	switch (type) {
+	case QtCriticalMsg:
+		QMessageBox::critical(0, QString("%1 Critical").arg(QCoreApplication::applicationName()), QString(msg).remove("\""));
+		break;
+	case QtFatalMsg:
+		std::cerr<<"Fatal: "<<msg<<std::endl;
+		QMessageBox::critical(0, QString("%1 Fatal").arg(QCoreApplication::applicationName()), QString(msg).remove("\""));
+		abort();
+	default:
+		break;
 	}
-	// invoke a delayed call (in Qt event loop) of the GLMixer real Message handler SLOT
-	static int methodIndex = _instance->metaObject()->indexOfSlot("MessageOutput(int,QString)");
-	static QMetaMethod method = _instance->metaObject()->method(methodIndex);
-	QString txt = QString(msg).remove("\"");
-	method.invoke(_instance, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
 
+	// forward message to logger
+	if (_instance) {
+		// invoke a delayed call (in Qt event loop) of the GLMixer real Message handler SLOT
+		static int methodIndex = _instance->metaObject()->indexOfSlot("Log(int,QString)");
+		static QMetaMethod method = _instance->metaObject()->method(methodIndex);
+		QString txt = QString(msg).remove("\"");
+		method.invoke(_instance, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
+	}
 }
 
-void GLMixer::MessageOutput(int type, QString msg)
+void GLMixer::Log(int type, QString msg)
 {
+	// create log entry
+	QTreeWidgetItem *item  = new QTreeWidgetItem();
+	logTexts->addTopLevelItem( item );
+
 	// reads the text passed and split into object|message
 	QStringList message = msg.split('|', QString::SkipEmptyParts);
-	if (message.count() < 2 )
-		message.insert(0, QCoreApplication::applicationName());
-
-	// create log entry and scroll to it
-	QTreeWidgetItem *item  = new QTreeWidgetItem(message);
-	logTexts->addTopLevelItem( item );
-	logTexts->setCurrentItem( item );
+	if (message.count() > 1 ) {
+		item->setText(0, message[1]);
+		item->setText(1, message[0]);
+	} else {
+		item->setText(0, message[0]);
+		item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
+		message.append(QCoreApplication::applicationName());
+	}
 
 	// adjust color and show dialog according to message type
 	switch ( (QtMsgType) type) {
-	case QtDebugMsg:
-		break;
 	case QtWarningMsg:
+		 item->setBackgroundColor(0, QColor(220, 180, 50, 50));
 		 item->setBackgroundColor(1, QColor(220, 180, 50, 50));
+		 item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
 		 break;
 	case QtCriticalMsg:
+		item->setBackgroundColor(0, QColor(220, 90, 50, 50));
 		item->setBackgroundColor(1, QColor(220, 90, 50, 50));
-		if (warningBox) {
-			 warningBox->setText(QString("Problem with %1:\n\n%2\n").arg(message[0]).arg(message[1]));
-			 warningBox->exec();
-		}
-		else
-			QMessageBox::warning(0, tr("%1 Error").arg(QCoreApplication::applicationName()), msg);
+		item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
 		break;
-	case QtFatalMsg:
-		item->setBackgroundColor(1, QColor(220, 50, 50, 90));
-		// save logs
-		{
-			QFile file(QString("GLMixerLogs_%1.txt").arg(QDateTime::currentDateTime().toString(Qt::ISODate)));
-			if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-				QTextStream out(&file);
-				QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
-				while (*it) {
-					 out << (*it)->text(0) << ":" << (*it)->text(1) << "\n";
-					 ++it;
-				}
-			}
-		}
-		QMessageBox::critical(0, tr("%1 Fatal Error").arg(QCoreApplication::applicationName()), msg);
-		QCoreApplication::instance()->exit(-1);
+	default:
+		break;
 	}
+
+	// auto scroll to new item
+	logTexts->setCurrentItem( item );
+    logTexts->setColumnWidth(0, logTexts->width() * 70 / 100);
 }
 
 void GLMixer::setView(QAction *a){
@@ -482,7 +467,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 #else
 	fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"),
 													QDir::currentPath(),
-													tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv *.mod);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"));
+													tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv *.mod);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)");
 
 	d.setPath(fileNames.first());
 #endif
@@ -757,7 +742,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 void GLMixer::on_actionSvgSource_triggered(){
 
 	QString current = currentSessionFileName.isEmpty() ? QDir::currentPath() : QFileInfo(currentSessionFileName).absolutePath();
-    QString fileName = QFileDialog::getOpenFileName(this, tr("OpenSVG file"), current, tr("SVG file (*.svg)"), 0,  QFileDialog::DontUseNativeDialog);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("OpenSVG file"), current, tr("Scalable Vector Graphics (*.svg)"), 0, fdo ? QFlags<QFileDialog::Option>() : QFileDialog::DontUseNativeDialog);
 
 	if ( !fileName.isEmpty() ) {
 
@@ -873,22 +858,30 @@ QString CaptureDialog::saveImage()
 		fname = QFileInfo( dname, QString("%1_%2.png").arg(basename).arg(i));
 
 	// ask for file name
-	QString filename = QFileDialog::getSaveFileName ( parentWidget(), tr("Save captured image"), fname.absoluteFilePath(), tr("Images (*.png *.xpm *.jpg *.jpeg *.tiff)"), 0,  QFileDialog::DontUseNativeDialog);
+	QFileDialog fd( parentWidget(), tr("Save captured image"),fname.absoluteFilePath(), "PNG image(*.png);;JPEG Image(*.jpg);;TIFF image(*.tiff);;XPM image(*.xpm)");
+	fd.setAcceptMode(QFileDialog::AcceptSave);
+	fd.setFileMode(QFileDialog::AnyFile);
+	fd.setDefaultSuffix("png");
+	fd.setOption(QFileDialog::DontUseNativeDialog, !GLMixer::getInstance()->useSystemDialogs());
 
-	// save the file
-	if (!filename.isEmpty()) {
-		if (!img.save(filename)) {
-			qCritical() << filename << tr("|Could not save file.");
-			return QString();
+	if (fd.exec()) {
+	    QString filename = fd.selectedFiles().front();
+
+		// save the file
+		if (!filename.isEmpty()) {
+			if (!img.save(filename)) {
+				qCritical() << filename << tr("|Could not save file.");
+				return QString();
+			}
+			// remember location and base file name for next time
+			fname = QFileInfo( filename );
+			dname = fname.dir();
+			basename =  fname.baseName().section("_", 0, fname.baseName().count("_")-1);
+
+			return filename;
 		}
-		// remember location and base file name for next time
-		fname = QFileInfo( filename );
-		dname = fname.dir();
-		basename =  fname.baseName().section("_", 0, fname.baseName().count("_")-1);
-
-		return filename;
 	}
-	// return "not" so that the caller can use it in a sentence "File *not* saved"...
+
 	return QString();
 }
 
@@ -1406,6 +1399,7 @@ void GLMixer::on_actionSave_Session_as_triggered()
 	sfd->setAcceptMode(QFileDialog::AcceptSave);
 	sfd->setFileMode(QFileDialog::AnyFile);
 	sfd->setFilter(tr("GLMixer session (*.glm)"));
+	sfd->setOption(QFileDialog::DontUseNativeDialog, !fdo);
 	sfd->setDefaultSuffix("glm");
 
 	if (sfd->exec()) {
@@ -1420,6 +1414,7 @@ void GLMixer::on_actionLoad_Session_triggered()
 {
 	sfd->setAcceptMode(QFileDialog::AcceptOpen);
 	sfd->setFileMode(QFileDialog::ExistingFile);
+	sfd->setOption(QFileDialog::DontUseNativeDialog, !fdo);
 	sfd->setFilter(tr("GLMixer session (*.glm)"));
 
 	if (sfd->exec()) {
@@ -1442,7 +1437,7 @@ void GLMixer::switchToSessionFile(QString filename){
 
 	if (filename.isEmpty()) {
 		newSession();
-	} else {
+	} else if (currentSessionFileName != filename) {
 		// setup filename
 		currentSessionFileName = filename;
 
@@ -1600,53 +1595,58 @@ void GLMixer::on_actionAppend_Session_triggered(){
     int errorLine;
     int errorColumn;
 
-    QString current = currentSessionFileName.isEmpty() ? QDir::currentPath() : QFileInfo(currentSessionFileName).absolutePath();
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Append session file"), current, tr("GLMixer session (*.glm)"), 0,  QFileDialog::DontUseNativeDialog);
-	if ( fileName.isEmpty() )
-		return;
+	sfd->setAcceptMode(QFileDialog::AcceptOpen);
+	sfd->setFileMode(QFileDialog::ExistingFile);
+	sfd->setOption(QFileDialog::DontUseNativeDialog, !fdo);
+	sfd->setFilter(tr("GLMixer session (*.glm)"));
 
-	QFile file(fileName);
-    QString caption = tr("Cannot append %1 to current session").arg(QCoreApplication::applicationName());
-	if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
-		qWarning() << fileName << tr("|Problem reading file; ") << file.errorString();
-		qCritical() << fileName << tr("|Cannot open file.");
-		return;
+	if (sfd->exec()) {
+		// get the first file name selected
+		QString fileName =  sfd->selectedFiles().front() ;
+
+		QFile file(fileName);
+
+		if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
+			qWarning() << fileName << tr("|Problem reading file; ") << file.errorString();
+			qCritical() << fileName << tr("|Cannot open file.");
+			return;
+		}
+
+		if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) ) {
+			qWarning() << fileName << tr("|XML parsing error line ") << errorLine << "(" << errorColumn << "); " << errorStr;
+			qCritical() << fileName << tr("|Cannot open file.");
+			return;
+		}
+
+		file.close();
+
+		QDomElement root = doc.documentElement();
+		if ( root.tagName() != "GLMixer" ) {
+			qWarning() << fileName << tr("|This is not a GLMixer session file.");
+			qCritical() << fileName << tr("|Cannot open file.");
+			return;
+		} else if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION ) {
+			qWarning() << fileName << tr("|The version of the file is ") << root.attribute("version") << tr(" instead of ") <<XML_GLM_VERSION;
+			qCritical() << fileName << tr("|Incorrect file version. Trying to read what is compatible.");
+			return;
+		}
+
+		// read the content of the source list to make sure the file is correct :
+		QDomElement srcconfig = root.firstChildElement("SourceList");
+		if ( srcconfig.isNull() ) {
+			qWarning() << fileName << tr("|There is no source to load.");
+			return;
+		}
+
+		// if we got up to here, it should be fine
+		qDebug() << fileName << tr("|Adding list of sources.");
+		int errors = RenderingManager::getInstance()->addConfiguration(srcconfig, QFileInfo(currentSessionFileName).canonicalPath());
+		if ( errors > 0)
+			qCritical() << currentSessionFileName << "|" << errors << tr(" error(s) occurred when reading session.");
+
+		// confirm the loading of the file
+		statusbar->showMessage( tr("Sources from %1 appended to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
 	}
-
-    if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) ) {
-		qWarning() << fileName << tr("|XML parsing error line ") << errorLine << "(" << errorColumn << "); " << errorStr;
-		qCritical() << fileName << tr("|Cannot open file.");
-		return;
-    }
-
-    file.close();
-
-    QDomElement root = doc.documentElement();
-    if ( root.tagName() != "GLMixer" ) {
-		qWarning() << fileName << tr("|This is not a GLMixer session file.");
-		qCritical() << fileName << tr("|Cannot open file.");
-        return;
-    } else if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION ) {
-		qWarning() << fileName << tr("|The version of the file is ") << root.attribute("version") << tr(" instead of ") <<XML_GLM_VERSION;
-		qCritical() << fileName << tr("|Incorrect file version. Trying to read what is compatible.");
-        return;
-    }
-
-    // read the content of the source list to make sure the file is correct :
-    QDomElement srcconfig = root.firstChildElement("SourceList");
-    if ( srcconfig.isNull() ) {
-		qWarning() << fileName << tr("|There is no source to load.");
-    	return;
-    }
-
-    // if we got up to here, it should be fine
-    qDebug() << fileName << tr("|Adding list of sources.");
-    int errors = RenderingManager::getInstance()->addConfiguration(srcconfig, QFileInfo(currentSessionFileName).canonicalPath());
-    if ( errors > 0)
-    	qCritical() << currentSessionFileName << "|" << errors << tr(" error(s) occurred when reading session.");
-
-    // confirm the loading of the file
-	statusbar->showMessage( tr("Sources from %1 appended to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
 }
 
 void GLMixer::dragEnterEvent(QDragEnterEvent *event)
@@ -1963,6 +1963,9 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	stream >> zoomcentered;
 	View::setZoomCentered(zoomcentered);
 
+	// m. useSystemDialogs
+	stream >> fdo;
+
 	// Refresh widgets to make changes visible
 	OutputRenderWindow::getInstance()->refresh();
 	outputpreview->refresh();
@@ -2021,6 +2024,9 @@ QByteArray GLMixer::getPreferences() const {
 	// l. zoom config
 	stream << (int) View::zoomSpeed();
 	stream << View::zoomCentered();
+
+	// m. useSystemDialogs
+	stream << _instance->useSystemDialogs();
 
 	return data;
 }
@@ -2128,4 +2134,8 @@ void GLMixer::on_actionSelectNone_triggered()
 	View::clearSelection();
 }
 
+bool GLMixer::useSystemDialogs()
+{
+	return fdo;
+}
 

@@ -107,12 +107,12 @@ public Q_SLOTS:
 	void openSessionFile(QString filename = QString());
 	void switchToSessionFile(QString filename);
 	void confirmSessionFileName();
-	void errorBoxFinished(int);
+	bool useSystemDialogs();
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
 
-	void MessageOutput(int, QString);
+	void Log(int, QString);
 	void readSettings();
 	void saveSettings();
 
@@ -139,6 +139,7 @@ private:
 	QString currentSessionFileName;
 	VideoFile *selectedSourceVideoFile;
 	QFileDialog *sfd;
+	bool fdo;
 	class VideoFileDialog *mfd;
 	class OutputRenderWidget *outputpreview;
 	class UserPreferencesDialog *upd;
@@ -150,7 +151,6 @@ private:
 
 	QSettings settings;
 	QAction *recentFileActs[MAX_RECENT_FILES];
-	QMessageBox *warningBox;
 
 };
 

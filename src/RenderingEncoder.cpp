@@ -10,6 +10,7 @@
 #include "common.h"
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
+#include "glmixer.h"
 
 #include <QSize>
 #include <QBuffer>
@@ -152,6 +153,7 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), automatic
 	temporaryFileName = "glmixeroutput";
 	setEncodingFormat(FORMAT_AVI_FFVHUFF);
 	// init file saving dir
+//	sfa.setOptions(QFileDialog::DontUseNativeDialog);
 	sfa.setDirectory(QDir::currentPath());
 	sfa.setAcceptMode(QFileDialog::AcceptSave);
 	sfa.setFileMode(QFileDialog::AnyFile);
@@ -395,6 +397,7 @@ void RenderingEncoder::saveFileAs(){
 
 	sfa.setFilter(recorder->description);
 	sfa.setDefaultSuffix(recorder->suffix);
+	sfa.setOption(QFileDialog::DontUseNativeDialog, !GLMixer::getInstance()->useSystemDialogs());
 
 	// get file name
 	if (sfa.exec()) {

@@ -1046,17 +1046,40 @@ font: 75;</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
-               <widget class="QCheckBox" name="antiAliasing">
-                <property name="toolTip">
-                 <string>Activate to improve visual appearance</string>
-                </property>
-                <property name="text">
-                 <string>Anti-aliasing</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
+               <layout class="QHBoxLayout" name="horizontalLayout_11">
+                <item>
+                 <widget class="QCheckBox" name="antiAliasing">
+                  <property name="toolTip">
+                   <string>Use anti alisasing in rendering</string>
+                  </property>
+                  <property name="statusTip">
+                   <string>Use anti alisasing in rendering: activate to improve visual appearance</string>
+                  </property>
+                  <property name="text">
+                   <string>Anti-aliasing</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="useSystemDialogs">
+                  <property name="toolTip">
+                   <string>Use your operating system file dialog</string>
+                  </property>
+                  <property name="statusTip">
+                   <string>Use your operating system file dialog</string>
+                  </property>
+                  <property name="text">
+                   <string>Use system dialog boxes</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout">

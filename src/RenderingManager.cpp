@@ -255,6 +255,9 @@ double RenderingManager::getFrameBufferAspectRatio() const{
 
 void RenderingManager::postRenderToFrameBuffer() {
 
+	// save the frame to file (the recorder knows if it is active or not)
+	_recorder->addFrame();
+
 	// skip loop back if disabled
 	if (previousframe_fbo) {
 
@@ -321,8 +324,6 @@ void RenderingManager::postRenderToFrameBuffer() {
 		}
 	}
 
-	// save the frame to file (the recorder knows if it is active or not)
-	_recorder->addFrame();
 
 }
 
