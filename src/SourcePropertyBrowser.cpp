@@ -59,6 +59,7 @@
 #include "CaptureSource.h"
 #include "CloneSource.h"
 #include "VideoSource.h"
+#include "SvgSource.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
@@ -213,6 +214,8 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setToolTip("X and Y coordinates of the center");
 		pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
 		pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
+		pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], 3);
+		pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], 3);
 		modifyroperty->addSubProperty(property);
 		// Scale
 		property = pointManager->addProperty("Scale");
@@ -220,6 +223,8 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setToolTip("Scaling factors on X and Y");
 		pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
 		pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
+		pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], 3);
+		pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], 3);
 		modifyroperty->addSubProperty(property);
 		// Rotation angle
 		property = doubleManager->addProperty("Angle");
@@ -241,6 +246,10 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setToolTip("Texture coordinates");
 		rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[0], 0.1);
 		rectManager->subDoublePropertyManager()->setSingleStep(property->subProperties()[1], 0.1);
+		rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], 3);
+		rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], 3);
+		rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[2], 3);
+		rectManager->subDoublePropertyManager()->setDecimals(property->subProperties()[3], 3);
 		modifyroperty->addSubProperty(property);
 		// Depth
 		property = doubleManager->addProperty("Depth");
@@ -406,7 +415,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	}
 
 	// Frames size
-	QtProperty *fs = sizeManager->addProperty( QLatin1String("Frames size") );
+	QtProperty *fs = sizeManager->addProperty( QLatin1String("Resolution") );
 	fs->setToolTip("Width & height of frames");
 	fs->setItalics(true);
 	idToProperty[fs->propertyName()] = fs;
@@ -481,6 +490,13 @@ void SourcePropertyBrowser::createPropertyTree(){
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::VIDEO_SOURCE]->addSubProperty(property);
 
+	rttiToProperty[Source::SVG_SOURCE] = groupManager->addProperty( QLatin1String("Vector graphics"));
+		// frame size
+		rttiToProperty[Source::SVG_SOURCE]->addSubProperty(fs);
+
+	rttiToProperty[Source::CAPTURE_SOURCE] = groupManager->addProperty( QLatin1String("Captured image"));
+		// frame size
+		rttiToProperty[Source::CAPTURE_SOURCE]->addSubProperty(fs);
 
 #ifdef OPEN_CV
 	rttiToProperty[Source::CAMERA_SOURCE] = groupManager->addProperty( QLatin1String("Camera"));
@@ -547,7 +563,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::CLONE_SOURCE]->addSubProperty(fs);
 		rttiToProperty[Source::CLONE_SOURCE]->addSubProperty(ar);
 
-//	rttiToProperty[Source::CAPTURE_SOURCE] = groupManager->addProperty( QLatin1String("Rendering capture properties"));
 
 }
 
@@ -661,7 +676,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
 			boolManager->setValue(idToProperty["Ignore alpha"], vf->ignoresAlphaChannel());
 			idToProperty["Ignore alpha"]->setEnabled(vf->pixelFormatHasAlphaChannel());
-			sizeManager->setValue(idToProperty["Frames size"], QSize(vf->getFrameWidth(),vf->getFrameHeight()) );
+			sizeManager->setValue(idToProperty["Resolution"], QSize(vf->getFrameWidth(),vf->getFrameHeight()) );
 			// Frames size special case when power of two dimensions are generated
 			if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight()) {
 				sizeManager->setValue(idToProperty["Original size"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
@@ -684,7 +699,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Camera device") );
 			OpencvSource *cvs = dynamic_cast<OpencvSource *>(s);
 			infoManager->setValue(idToProperty["Identifier"], QString("OpenCV Camera %1").arg(cvs->getOpencvCameraIndex()) );
-			sizeManager->setValue(idToProperty["Frames size"], QSize(cvs->getFrameWidth(), cvs->getFrameHeight()) );
+			sizeManager->setValue(idToProperty["Resolution"], QSize(cvs->getFrameWidth(), cvs->getFrameHeight()) );
 			infoManager->setValue(idToProperty["Frame rate"], QString::number( cvs->getFrameRate() ) + QString(" fps") );
 		} else
 #endif
@@ -695,7 +710,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 				infoManager->setValue(idToProperty["Rendering mechanism"], "Blit to frame buffer object" );
 			else
 				infoManager->setValue(idToProperty["Rendering mechanism"], "Draw in frame buffer object" );
-			sizeManager->setValue(idToProperty["Frames size"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
+			sizeManager->setValue(idToProperty["Resolution"], QSize(RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight()) );
 			infoManager->setValue(idToProperty["Frame rate"], QString::number( RenderingManager::getRenderingWidget()->getFramerate() / float(RenderingManager::getInstance()->getPreviousFrameDelay()) ) + QString(" fps") );
 		} else
 		if (s->rtti() == Source::ALGORITHM_SOURCE) {
@@ -703,7 +718,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Algorithm") );
 			AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(s);
 			infoManager->setValue(idToProperty["Algorithm"], AlgorithmSource::getAlgorithmDescription(as->getAlgorithmType()) );
-			sizeManager->setValue(idToProperty["Frames size"], QSize(as->getFrameWidth(), as->getFrameHeight()) );
+			sizeManager->setValue(idToProperty["Resolution"], QSize(as->getFrameWidth(), as->getFrameHeight()) );
 			infoManager->setValue(idToProperty["Frame rate"], QString::number(as->getFrameRate() ) + QString(" fps"));
 
 			intManager->setValue(idToProperty["Variability"], (int) ( as->getVariability() * 100.0 ) );
@@ -715,12 +730,17 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Clone") );
 			CloneSource *cs = dynamic_cast<CloneSource *>(s);
 			infoManager->setValue(idToProperty["Clone of"], cs->getOriginalName() );
-			sizeManager->setValue(idToProperty["Frames size"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
+			sizeManager->setValue(idToProperty["Resolution"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
 		} else
 		if (s->rtti() == Source::CAPTURE_SOURCE) {
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Captured image") );
 			CaptureSource *cs = dynamic_cast<CaptureSource *>(s);
-			sizeManager->setValue(idToProperty["Frames size"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
+			sizeManager->setValue(idToProperty["Resolution"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
+		} else
+		if (s->rtti() == Source::SVG_SOURCE) {
+			infoManager->setValue(idToProperty["Type"], QLatin1String("Vector graphics") );
+			SvgSource *cs = dynamic_cast<SvgSource *>(s);
+			sizeManager->setValue(idToProperty["Resolution"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
 		}
 
 	    // reconnect the managers to the corresponding value change

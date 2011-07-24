@@ -24,6 +24,7 @@
  */
 
 #include <SvgSource.h>
+#include "RenderingManager.h"
 
 Source::RTTI SvgSource::type = Source::SVG_SOURCE;
 
@@ -31,17 +32,19 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
 
 	// if the svg renderer could load the file
 	if (_svg && _svg->isValid()) {
-
+		// get aspect ratio from orifinal box
 		QRectF vb = _svg->viewBoxF();
+		aspectratio = double(vb.width()) / double(vb.height());
 
-		_rendered = QImage(1024, 1024 * vb.height() / vb.width(), QImage::Format_ARGB32_Premultiplied);
-
-//		_svg->setSharedRenderer(new QSvgRenderer);
+		// setup renderer resolution to match to rendering manager preference
+		int w = RenderingManager::getInstance()->getFrameBufferWidth();
+		_rendered = QImage(w, w * aspectratio, QImage::Format_ARGB32_Premultiplied);
 
 		// render an image from the svg
 		QPainter imagePainter(&_rendered);
-		imagePainter.setRenderHint(QPainter::HighQualityAntialiasing, true);
-
+		imagePainter.setRenderHint(QPainter::Antialiasing, true);
+		imagePainter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+		imagePainter.setRenderHint(QPainter::TextAntialiasing, true);
 		_svg->render(&imagePainter);
 		imagePainter.end();
 
@@ -52,14 +55,13 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 #if QT_VERSION >= 0x040700
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered.height(),
 					  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.constBits() );
 #else
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
 					  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.bits() );
 #endif
 
-			aspectratio = double(_rendered.width()) / double(_rendered.height());
 		}
 		// TODO : else through exception
 
@@ -84,6 +86,7 @@ QByteArray SvgSource::getDescription(){
 	QSvgGenerator generator;
 	generator.setOutputDevice(&dev);
 	generator.setTitle(getName());
+	generator.setResolution(150);
 
 	QPainter painter;
 	painter.begin(&generator);

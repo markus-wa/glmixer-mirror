@@ -191,6 +191,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
 	switcherSession->restoreSettings();
 
+	setDockOptions(dockOptions () | QMainWindow::VerticalTabs);
+
 	// setup render window
     QIcon icon;
     icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
