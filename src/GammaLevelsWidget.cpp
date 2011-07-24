@@ -222,7 +222,6 @@ void GammaPlotArea::mouseMoveEvent ( QMouseEvent * event )
 void GammaPlotArea::wheelEvent ( QWheelEvent * event )
 {
 	int lg = GammaToScale(gamma) + event->delta() / 2;
-
 	gamma = ScaleToGamma( qBound(0, lg, 1000) );
 	emit gammaChanged();
 }
@@ -230,39 +229,43 @@ void GammaPlotArea::wheelEvent ( QWheelEvent * event )
 void GammaPlotArea::paintEvent(QPaintEvent * /* event */)
 {
     QPainter painter(this);
+    QPen p(Qt::DotLine);
 
+    // draw grid
     if (!isEnabled())
-    	return;
+        p.setColor(Qt::lightGray);
+    else
+		p.setColor(Qt::darkGray);
+	painter.setPen(p);
+	for (int x = 0; x < width(); x += width()/4)
+		painter.drawLine(x, 0, x, height());
+	for (int y = 0; y < height(); y += height() / 4)
+		painter.drawLine(0, y, width(), y);
 
-    static QPen p(Qt::DotLine);
-    p.setColor(Qt::darkGray);
-    painter.setPen(p);
-    for (int x = 0; x < width(); x += width()/4) {
-        painter.drawLine(x, 0, x, height());
+	// draw plot
+	if (isEnabled()){
+		painter.setPen(pen);
+		if (antialiased)
+			painter.setRenderHint(QPainter::Antialiasing, true);
+
+		float incr = 1.f / (float)( NUM_POINTS_PLOT - 1);
+		float x = 0.f;
+		float y = 0.f;
+		for (int i = 0; i < NUM_POINTS_PLOT; i++, x += incr) {
+
+			y = LevelsControl(x, xmin, gamma, xmax, ymin, ymax);
+
+			points[i].setX( (int) (x * (float) width() ) );
+			points[i].setY( height() - (int)( y * (float) height() ) );
+
+		}
+		painter.drawPolyline(points, NUM_POINTS_PLOT);
+		QPoint tp = points[NUM_POINTS_PLOT/2] + QPoint( gamma < 1 ? -50 : 5, gamma < 1 ? -10 : 10 );
+		painter.drawText( tp, QString::number(gamma,'f',3));
+
     }
-    for (int y = 0; y < height(); y += height() / 4) {
-        painter.drawLine(0, y, width(), y);
-    }
 
-    painter.setPen(pen);
-    if (antialiased)
-        painter.setRenderHint(QPainter::Antialiasing, true);
-
-    float incr = 1.f / (float)( NUM_POINTS_PLOT - 1);
-    float x = 0.f;
-    float y = 0.f;
-    for (int i = 0; i < NUM_POINTS_PLOT; i++, x += incr) {
-
-        y = LevelsControl(x, xmin, gamma, xmax, ymin, ymax);
-
-        points[i].setX( (int) (x * (float) width() ) );
-        points[i].setY( height() - (int)( y * (float) height() ) );
-
-    }
-    painter.drawPolyline(points, NUM_POINTS_PLOT);
-    QPoint tp = points[NUM_POINTS_PLOT/2] + QPoint( gamma < 1 ? -50 : 5, gamma < 1 ? -10 : 10 );
-    painter.drawText( tp, QString::number(gamma,'f',3));
-
+	// draw frame
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	painter.setPen(palette().dark().color());
 	painter.setBrush(Qt::NoBrush);

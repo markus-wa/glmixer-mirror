@@ -188,10 +188,15 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
 	QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
 	QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
-	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), switcherSession, SLOT(startTransitionToNextSession()));
-	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
 	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
 	switcherSession->restoreSettings();
+
+	// setup render window
+    QIcon icon;
+    icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
+	OutputRenderWindow::getInstance()->setWindowIcon(icon);
+	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), switcherSession, SLOT(startTransitionToNextSession()));
+	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
 
     // Setup dialogs
     mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
