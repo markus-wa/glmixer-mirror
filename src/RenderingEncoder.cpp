@@ -153,14 +153,13 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), automatic
 	temporaryFileName = "glmixeroutput";
 	setEncodingFormat(FORMAT_AVI_FFVHUFF);
 	// init file saving dir
-//	sfa.setOptions(QFileDialog::DontUseNativeDialog);
 	sfa.setDirectory(QDir::currentPath());
 	sfa.setAcceptMode(QFileDialog::AcceptSave);
 	sfa.setFileMode(QFileDialog::AnyFile);
 	// create encoding thread
 	encoder = new EncodingThread();
     Q_CHECK_PTR(encoder);
-	encoder->setPriority(QThread::LowPriority);
+	encoder->setPriority(QThread::HighPriority);
 }
 
 RenderingEncoder::~RenderingEncoder() {
