@@ -58,7 +58,7 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 		timer = new QTimer();
 		timer->setInterval(20);
 	}
-	connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+	connect(timer, SIGNAL(timeout()), this, SLOT(repaint()), Qt::DirectConnection);
 }
 
 void glRenderWidget::setAntiAliasing(bool on)

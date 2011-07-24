@@ -159,6 +159,8 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), automatic
 	sfa.setFileMode(QFileDialog::AnyFile);
 	// create encoding thread
 	encoder = new EncodingThread();
+    Q_CHECK_PTR(encoder);
+	encoder->setPriority(QThread::LowPriority);
 }
 
 RenderingEncoder::~RenderingEncoder() {

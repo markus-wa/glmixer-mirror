@@ -632,6 +632,7 @@ void ViewRenderWidget::showFramerate(bool on)
 void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 {
 	makeCurrent();
+	event->accept();
 
 	// ask the catalog view if it wants this mouse press event and then
 	// inform the view of the mouse press event
@@ -656,9 +657,6 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 			else if (_currentView == _layersView)
 				emit sourceLayerDrop(x);
 		}
-		else
-			// the mouse press was not treated ; forward it
-			QWidget::mousePressEvent(event);
 	}
 
 	if (cursorEnabled)
@@ -668,6 +666,7 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	makeCurrent();
+	event->accept();
 
 	// ask the catalog view if it wants this mouse move event
 	if (_catalogView->mouseMoveEvent(event))
@@ -690,6 +689,7 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
 void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
 {
 	makeCurrent();
+	event->accept();
 
 	if (cursorEnabled) {
 		_currentCursor->update(event);
@@ -701,29 +701,41 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
 	if (_catalogView->mouseReleaseEvent(event))
 		return;
 
-	if (!_currentView->mouseReleaseEvent(event))
-		QWidget::mouseReleaseEvent(event);
+	if (_currentView->mouseReleaseEvent(event)) {
+		// the view 'mouseReleaseEvent' returns true ; there was something changed!
+		if (_currentView == _mixingView)
+			emit sourceMixingModified();
+		else if (_currentView == _geometryView)
+			emit sourceGeometryModified();
+		else if (_currentView == _layersView)
+			emit sourceLayerModified();
+	}
 }
 
 void ViewRenderWidget::mouseDoubleClickEvent(QMouseEvent * event)
 {
 	makeCurrent();
+	event->accept();
 
 	if (_catalogView->mouseDoubleClickEvent(event))
 		return;
 
-	if (!_currentView->mouseDoubleClickEvent(event))
-		QWidget::mouseDoubleClickEvent(event);
-	else
-	{   // special case ; double clic changes geometry
-		if (_currentView == _geometryView)
+	if (_currentView->mouseDoubleClickEvent(event)){
+		// the view 'mouseDoubleClickEvent' returns true ; there was something changed!
+		if (_currentView == _mixingView)
+			emit sourceMixingModified();
+		else if (_currentView == _geometryView)
 			emit sourceGeometryModified();
+		else if (_currentView == _layersView)
+			emit sourceLayerModified();
 	}
+
 }
 
 void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 {
 	makeCurrent();
+	event->accept();
 
 	if (_catalogView->wheelEvent(event))
 		return;
@@ -731,19 +743,16 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 	if (cursorEnabled && _currentCursor->wheelEvent(event))
 		return;
 
-	if (!_currentView->wheelEvent(event))
-		QWidget::wheelEvent(event);
-
-	showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+	if (_currentView->wheelEvent(event))
+		showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
 
 void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
 {
 	makeCurrent();
+	event->accept();
 
-	if (!_currentView->keyPressEvent(event))
-		QWidget::keyPressEvent(event);
-	else
+	if (_currentView->keyPressEvent(event))
 	{   // the view 'keyPressEvent' returns true ; there was something changed!
 		if (_currentView == _mixingView)
 			emit sourceMixingModified();
@@ -758,10 +767,9 @@ void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
 void ViewRenderWidget::keyReleaseEvent(QKeyEvent * event)
 {
 	makeCurrent();
+	event->accept();
 
-	if (!_currentView->keyReleaseEvent(event))
-		QWidget::keyReleaseEvent(event);
-	else
+	if (_currentView->keyReleaseEvent(event))
 	{   // the view 'keyReleaseEvent' returns true ; there was something changed!
 		if (_currentView == _mixingView)
 			emit sourceMixingModified();
@@ -804,7 +812,6 @@ void ViewRenderWidget::leaveEvent ( QEvent * event ){
 	// set the catalog  off
 	_catalogView->setTransparent(true);
 
-	QWidget::leaveEvent(event);
 }
 
 void ViewRenderWidget::enterEvent ( QEvent * event ){
@@ -813,7 +820,6 @@ void ViewRenderWidget::enterEvent ( QEvent * event ){
 	_currentView->setAction(View::NONE);
 	setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
 
-	QWidget::enterEvent(event);
 }
 
 void ViewRenderWidget::zoomIn()
