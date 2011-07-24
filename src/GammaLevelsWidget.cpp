@@ -12,55 +12,26 @@
 #define LevelsControl(color, minInput, gamma, maxInput, minOutput, maxOutput)   LevelsControlOutputRange(LevelsControlInput(color, minInput, gamma, maxInput), minOutput, maxOutput)
 
 
-class GammaPlotArea : public QWidget
-{
-
-public:
-    GammaPlotArea(QWidget *parent = 0);
-
-    QSize minimumSizeHint() const;
-    QSize sizeHint() const;
-
-    float gamma;
-    float xmin, xmax, ymin, ymax;
-    QSlider *slider;
-
-    void setPen(const QPen &pen);
-    void setAntialiased(bool antialiased);
-
-protected:
-    void paintEvent(QPaintEvent *event);
-    void mouseMoveEvent ( QMouseEvent * event );
-    void wheelEvent ( QWheelEvent * event );
-
-private:
-    QPoint points[NUM_POINTS_PLOT];
-    QPen pen;
-    QBrush brush;
-    bool antialiased;
-
-};
-
 
 GammaLevelsWidget::GammaLevelsWidget(QWidget *parent) : QWidget(parent)
 {
     setupUi(this);
 
+    // replace dummy widget by plot
     gridLayoutGraphic->removeWidget ( plotWidget );
     delete plotWidget;
     plot = new GammaPlotArea(this);
-    plot->setPen(QPen( palette().color(QPalette::Highlight) ));
-    plot->setAntialiased(true);
-    // hack to replace slider by mouse and wheel actions in plot widget
-    plot->slider = gammaSlider;
-    gammaSlider->setVisible(false);
-
+    Q_CHECK_PTR(plot);
     plotWidget = (QWidget *) plot;
     gridLayoutGraphic->addWidget(plotWidget, 0, 1, 1, 1);
+    QObject::connect(plot, SIGNAL(gammaChanged()), this, SLOT(updateSource()) );
+
+    // setup plot
+    plot->setPen(QPen( palette().color(QPalette::Highlight) ));
+    plot->setAntialiased(true);
 
 	setEnabled(false);
 	source = 0;
-
 }
 
 void GammaLevelsWidget::setAntialiasing(bool antialiased)
@@ -85,9 +56,7 @@ void GammaLevelsWidget::connectSource(SourceSet::iterator csi){
 void GammaLevelsWidget::setValues(float gamma, float minInput, float maxInput, float minOutput, float maxOutput){
 
     // setup values, with some sanity check
-    plot->gamma = qBound(gamma, 0.f, 1.f);
-    gammaSlider->setValue( GammaToSlider(plot->gamma) );
-
+    plot->gamma = gamma;
     plot->xmin = qBound(minInput, 0.f, 1.f);
     plot->xmax = qBound(maxInput, 0.f, 1.f);
     plot->xmin = qMin(plot->xmax, plot->xmin);
@@ -138,8 +107,7 @@ void GammaLevelsWidget::on_resetButton_clicked (){
 
 	setValues(1.f, 0.f, 1.f, 0.f, 1.f);
 
-    if (source)
-    	source->setGamma(plot->gamma, plot->xmin, plot->xmax, plot->ymin, plot->ymax);
+	updateSource();
 }
 
 float GammaLevelsWidget::minOutput(){
@@ -167,17 +135,9 @@ float GammaLevelsWidget::gamma(){
     return plot->gamma;
 }
 
-void GammaLevelsWidget::on_gammaSlider_valueChanged(int val){
 
-    plot->gamma = SliderToGamma(val);
-    plot->update();
-
-    if (source)
-    	source->setGamma(plot->gamma, plot->xmin, plot->xmax, plot->ymin, plot->ymax);
-}
-
-void GammaLevelsWidget::on_inSplit_splitterMoved ( int pos, int index ){
-
+void GammaLevelsWidget::on_inSplit_splitterMoved ( int pos, int index )
+{
     int min = 0, max = 0;
     inSplit->getRange ( index, &min, &max );
 
@@ -189,14 +149,11 @@ void GammaLevelsWidget::on_inSplit_splitterMoved ( int pos, int index ){
         plot->xmin = qMin( (plot->xmax - 0.01f), plot->xmin);
     }
 
-    plot->update();
-
-    if (source)
-    	source->setGamma(plot->gamma, plot->xmin, plot->xmax, plot->ymin, plot->ymax);
+    updateSource();
 }
 
-void GammaLevelsWidget::on_outSplit_splitterMoved ( int pos, int index ){
-
+void GammaLevelsWidget::on_outSplit_splitterMoved ( int pos, int index )
+{
     int min = 0, max = 0;
     outSplit->getRange ( index, &min, &max );
 
@@ -208,12 +165,16 @@ void GammaLevelsWidget::on_outSplit_splitterMoved ( int pos, int index ){
         plot->ymin = qMin(plot->ymax, plot->ymin);
     }
 
-    plot->update();
-
-    if (source)
-    	source->setGamma(plot->gamma, plot->xmin, plot->xmax, plot->ymin, plot->ymax);
+    updateSource();
 }
 
+void GammaLevelsWidget::updateSource()
+{
+	plot->update();
+
+	if (source)
+		source->setGamma(plot->gamma, plot->xmin, plot->xmax, plot->ymin, plot->ymax);
+}
 
 GammaPlotArea::GammaPlotArea(QWidget *parent) : QWidget(parent), gamma(1.0), xmin(0.0), xmax(1.0), ymin(0.0), ymax(1.0)
 {
@@ -232,8 +193,6 @@ QSize GammaPlotArea::sizeHint() const
 {
     return QSize(200, 200);
 }
-
-
 
 void GammaPlotArea::setPen(const QPen &pen)
 {
@@ -254,14 +213,18 @@ void GammaPlotArea::mouseMoveEvent ( QMouseEvent * event )
 	if (event->buttons() != Qt::NoButton)
 	{
 		int y = qBound( 0, event->y(), this->height());
-		slider->setValue( (1.f - ((float) y / (float) this->height()) ) * (float)slider->maximum() + slider->minimum() );
+		gamma = ScaleToGamma( (1.f - ((float) y / (float) this->height()) ) * 1000.0 );
+		emit gammaChanged();
 	}
 }
 
 
 void GammaPlotArea::wheelEvent ( QWheelEvent * event )
 {
-	slider->setValue( slider->value() + event->delta() / 2);
+	int lg = GammaToScale(gamma) + event->delta() / 2;
+
+	gamma = ScaleToGamma( qBound(0, lg, 1000) );
+	emit gammaChanged();
 }
 
 void GammaPlotArea::paintEvent(QPaintEvent * /* event */)

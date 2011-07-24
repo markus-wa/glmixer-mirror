@@ -245,6 +245,8 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 	else
 		qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not working on this hardware."
 							"\n\nThe program cannot operate properly.\n\nExiting...")));
+
+	qDebug()<< "RenderingManager|"  << tr("Frame buffer set to ") << size.width() << "x" << size.height();
 }
 
 
@@ -255,75 +257,74 @@ double RenderingManager::getFrameBufferAspectRatio() const{
 
 void RenderingManager::postRenderToFrameBuffer() {
 
-	// save the frame to file (the recorder knows if it is active or not)
-	_recorder->addFrame();
 
 	// skip loop back if disabled
 	if (previousframe_fbo) {
 
 		// frame delay
 		previousframe_index++;
+		if (!(previousframe_index % previousframe_delay)) {
 
-		if (previousframe_index % previousframe_delay)
-			return;
+			previousframe_index = 0;
 
-		previousframe_index = 0;
-
-		if (RenderingManager::blit_fbo_extension)
-		// use the accelerated GL_EXT_framebuffer_blit if available
-		{
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
-			// TODO : Can we draw in different texture buffer so we can keep an history of
-			// several frames, and each loopback source could use a different one
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
-
-			glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
-					previousframe_fbo->width(), previousframe_fbo->height(),
-					GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		} else
-		// 	Draw quad with fbo texture in a more basic OpenGL way
-		{
-			glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-			glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
-
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
-			glLoadIdentity();
-			gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
-
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
-
-			glColor4f(1.0, 1.0, 1.0, 1.0);
-
-			// render to the frame buffer object
-			if (previousframe_fbo->bind())
+			if (RenderingManager::blit_fbo_extension)
+			// use the accelerated GL_EXT_framebuffer_blit if available
 			{
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
+				// TODO : Can we draw in different texture buffer so we can keep an history of
+				// several frames, and each loopback source could use a different one
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
 
-				glClearColor(0.f, 0.f, 0.f, 1.f);
-				glClear(GL_COLOR_BUFFER_BIT);
+				glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
+						previousframe_fbo->width(), previousframe_fbo->height(),
+						GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-				glEnable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-				glCallList(ViewRenderWidget::quad_texured);
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			} else
+			// 	Draw quad with fbo texture in a more basic OpenGL way
+			{
+				glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-				previousframe_fbo->release();
+				glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
+
+				glMatrixMode(GL_PROJECTION);
+				glPushMatrix();
+				glLoadIdentity();
+				gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+
+				glMatrixMode(GL_MODELVIEW);
+				glPushMatrix();
+				glLoadIdentity();
+
+				glColor4f(1.0, 1.0, 1.0, 1.0);
+
+				// render to the frame buffer object
+				if (previousframe_fbo->bind())
+				{
+
+					glClearColor(0.f, 0.f, 0.f, 1.f);
+					glClear(GL_COLOR_BUFFER_BIT);
+
+					glEnable(GL_TEXTURE_2D);
+					glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+					glCallList(ViewRenderWidget::quad_texured);
+
+					previousframe_fbo->release();
+				}
+
+				// pop the projection matrix and GL state back for rendering the current view
+				// to the actual widget
+				glPopAttrib();
+				glMatrixMode(GL_PROJECTION);
+				glPopMatrix();
+				glMatrixMode(GL_MODELVIEW);
+				glPopMatrix();
 			}
-
-			// pop the projection matrix and GL state back for rendering the current view
-			// to the actual widget
-			glPopAttrib();
-			glMatrixMode(GL_PROJECTION);
-			glPopMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
 		}
 	}
 
+	// save the frame to file (the recorder knows if it is active or not)
+	_recorder->addFrame();
 
 }
 

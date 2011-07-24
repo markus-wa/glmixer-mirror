@@ -1527,7 +1527,7 @@ void GLMixer::openSessionFile(QString filename)
     		action4_3_aspect_ratio->trigger();
     	}
     	float g = renderConfig.attribute("gammaShift", "1").toFloat();
-    	gammaShiftSlider->setValue(GammaToSlider(g));
+    	gammaShiftSlider->setValue(GammaToScale(g));
     	gammaShiftText->setText( QString().setNum( g, 'f', 2) );
     	RenderingManager::getInstance()->setGammaShift(g);
     	// read the list of sources
@@ -2034,7 +2034,7 @@ QByteArray GLMixer::getPreferences() const {
 
 void GLMixer::on_gammaShiftSlider_valueChanged(int val)
 {
-	float g = SliderToGamma(val);
+	float g = ScaleToGamma(val);
 	gammaShiftText->setText( QString().setNum( g, 'f', 2) );
 	RenderingManager::getInstance()->setGammaShift(g);
 }
