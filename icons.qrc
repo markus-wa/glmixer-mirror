@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/hplit.png</file>
+    <file>icons/vplit.png</file>
     <file>icons/textcopy.png</file>
     <file>icons/clean.png</file>
     <file>icons/warning.png</file>
