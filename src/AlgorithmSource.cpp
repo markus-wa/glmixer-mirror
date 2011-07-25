@@ -296,8 +296,8 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int 
     Q_CHECK_PTR(cond);
 	thread = new AlgorithmThread(this);
     Q_CHECK_PTR(thread);
-    thread->setPriority(QThread::LowPriority);
 	thread->start();
+    thread->setPriority(QThread::LowPriority);
 }
 
 AlgorithmSource::~AlgorithmSource() {

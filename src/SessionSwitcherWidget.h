@@ -46,6 +46,7 @@ public Q_SLOTS:
     void restoreSettings();
 
     void setAllowedAspectRatio(const standardAspectRatio ar);
+    void setAvailable();
 
 Q_SIGNALS:
 	void sessionTriggered(QString);

@@ -70,6 +70,11 @@ void SessionSwitcher::render() {
 }
 
 
+bool SessionSwitcher::transitionActive() const
+{
+	return (overlayAnimation->state() == QAbstractAnimation::Running );
+}
+
 void SessionSwitcher::setTransitionCurve(int curveType)
 {
 	overlayAnimation->setEasingCurve( (QEasingCurve::Type) qBound( (int) QEasingCurve::Linear, curveType, (int) QEasingCurve::OutInBounce));

@@ -101,8 +101,8 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
     Q_CHECK_PTR(cond);
 	thread = new CameraThread(this);
     Q_CHECK_PTR(thread);
-    thread->setPriority(QThread::LowPriority);
 	thread->start();
+    thread->setPriority(QThread::LowPriority);
 }
 
 

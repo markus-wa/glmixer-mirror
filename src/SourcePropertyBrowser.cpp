@@ -1133,7 +1133,7 @@ void SourcePropertyBrowser::ctxMenuGroup(const QPoint &pos){
         menu->addSeparator();
         menu->addAction(tr("Reset all properties"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
     }
-    menu->exec(mapToGlobal(pos));
+    menu->exec(propertyGroupEditor->mapToGlobal(pos));
 }
 
 
@@ -1152,7 +1152,7 @@ void SourcePropertyBrowser::ctxMenuTree(const QPoint &pos){
         // use QtAbstractPropertyBrowser :  propertyTreeEditor->currentItem()->property();
     }
 
-    menu->exec(mapToGlobal(pos));
+    menu->exec( propertyTreeEditor->mapToGlobal(pos) );
 }
 
 void SourcePropertyBrowser::switchToTreeView(){

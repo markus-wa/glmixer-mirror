@@ -34,6 +34,7 @@ public:
 
 	int transitionDuration() const;
 	int transitionCurve() const ;
+	bool transitionActive() const;
 
 	void setTransitionColor(QColor c) { customTransitionColor = c; }
 	QColor transitionColor() const { return customTransitionColor; }

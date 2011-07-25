@@ -159,7 +159,6 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), automatic
 	// create encoding thread
 	encoder = new EncodingThread();
     Q_CHECK_PTR(encoder);
-	encoder->setPriority(QThread::HighPriority);
 }
 
 RenderingEncoder::~RenderingEncoder() {
@@ -291,6 +290,7 @@ bool RenderingEncoder::start(){
 	timer.start();
 	elapseTimer = startTimer(1000); // emit the duration of recording every second
 	encoder->start();
+	encoder->setPriority(QThread::LowPriority);
 
 	// set status
 	started = true;

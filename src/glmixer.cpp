@@ -1442,9 +1442,10 @@ void GLMixer::actionLoad_RecentSession_triggered()
 
 void GLMixer::switchToSessionFile(QString filename){
 
-	if (filename.isEmpty()) {
+	if (filename.isEmpty())
 		newSession();
-	} else if (currentSessionFileName != filename) {
+	else
+	{
 		// setup filename
 		currentSessionFileName = filename;
 
@@ -1789,6 +1790,9 @@ void GLMixer::readSettings()
 
     if (settings.contains("OutputRenderWindow"))
     	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
+    if (settings.contains("logDockWidget"))
+    	logDockWidget->restoreGeometry(settings.value("logDockWidget").toByteArray());
+
     // dialogs configs
     if (settings.contains("vcontrolOptionSplitter"))
     	vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
@@ -1815,6 +1819,7 @@ void GLMixer::saveSettings()
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
     settings.setValue("OutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
+    settings.setValue("logDockWidget", logDockWidget->saveGeometry());
     // dialogs configs
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());

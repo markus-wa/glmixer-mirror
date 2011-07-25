@@ -326,7 +326,7 @@ void SessionSwitcherWidget::folderChanged( const QString & text )
     fillFolderModel(folderModel, text, allowedAspectRatio);
 
     // setup transition according to new folder
-	setTransitionMode(transitionTab->currentIndex());
+    setAvailable();
 }
 
 void SessionSwitcherWidget::openFolder()
@@ -359,17 +359,16 @@ void SessionSwitcherWidget::updateFolder()
 
 void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 {
-	static QModelIndex previous;
-	// avoid bug of repeated call (twice double clic event?)
-	// this also means that one cannot call twice the same session...
-	// TODO; find why startTransitionToSession is called twice when double clicked on item
-	if (index != previous) {
-		emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
-		previous = index;
-	}
+	// transfer info to glmixer
+	emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
 
-	// clear
+	// clear filter of proxyview
 	proxyView->leaveEvent(0);
+
+	// make sure no other events are accepted until the end of the transition
+    disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+    proxyView->setEnabled(false);
+	QTimer::singleShot( transitionSelection->currentIndex() > 0 ? transitionDuration->value() : 100, this, SLOT(setAvailable()));
 }
 
 void SessionSwitcherWidget::startTransitionToNextSession()
@@ -603,6 +602,10 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
 	}
 }
 
+void SessionSwitcherWidget::setAvailable()
+{
+	setTransitionMode(transitionTab->currentIndex());
+}
 
 void SessionSwitcherWidget::transitionSliderChanged(int t)
 {
