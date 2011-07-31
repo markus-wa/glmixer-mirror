@@ -169,6 +169,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 	 * Tab automatic
 	 */
 	transitionTab = new QTabWidget(this);
+	transitionTab->setTabPosition(QTabWidget::East);
 	transitionTab->setToolTip("Choose how you control the transition");
 	transitionTab->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
 
@@ -188,8 +189,9 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     easingCurvePicker->setFixedHeight(m_iconSize.height()+34);
 	easingCurvePicker->setCurrentRow(3);
 
-	transitionTab->addTab( new QWidget(), "Automatic");
+	transitionTab->addTab( new QWidget(), "Auto");
 	g = new QGridLayout;
+    g->setContentsMargins(6, 6, 6, 6);
 	g->addWidget(transitionDurationLabel, 1, 0);
 	g->addWidget(transitionDuration, 1, 1);
     g->addWidget(easingCurvePicker, 2, 0, 1, 2);
@@ -225,6 +227,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
 	transitionTab->addTab( new QWidget(), "Manual");
 	g = new QGridLayout;
+    g->setContentsMargins(6, 6, 6, 6);
     g->addWidget(currentSessionLabel, 0, 0);
     g->addWidget(overlayPreview, 0, 1);
     g->addWidget(nextSessionLabel, 0, 2);
@@ -294,6 +297,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     connect(transitionTab, SIGNAL(currentChanged(int)), this, SLOT(setTransitionMode(int)));
 
     QGridLayout *mainLayout = new QGridLayout;
+    mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->addWidget(transitionSelection, 0, 0, 1, 3);
     mainLayout->addWidget(customButton, 0, 3);
     mainLayout->addWidget(transitionTab, 1, 0, 1, 4);

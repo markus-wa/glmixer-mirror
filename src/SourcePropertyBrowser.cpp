@@ -76,6 +76,7 @@ QString getSizeString(float num);
 SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent), root(0), currentItem(0) {
 
 	layout = new QVBoxLayout(this);
+	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setObjectName(QString::fromUtf8("verticalLayout"));
 
 	// property Group Box

@@ -1093,7 +1093,15 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			QByteArray ba;
 			QBuffer buffer(&ba);
 			buffer.open(QIODevice::WriteOnly);
-			cs->image().save(&buffer, "JPG");
+
+			if (!QImageWriter::supportedImageFormats().count("JPG")){
+				qCritical() << cs->getName() << "|" << tr("Saving in JPG format is not supported; saving in BMP instead.\nThis may take a while...");
+				if (!cs->image().save(&buffer, "BMP") )
+					qWarning() << cs->getName() << "|" << tr("Could not save captured source (BMP format).");
+			} else
+				if (!cs->image().save(&buffer, "JPG") )
+					qWarning() << cs->getName()  << "|" << tr("Could not save captured source (JPG format).");
+
 			buffer.close();
 
 			QDomElement f = doc.createElement("Image");

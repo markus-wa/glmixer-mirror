@@ -32,8 +32,7 @@
 #include "common.h"
 #include "Source.h"
 
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/highgui/highgui.hpp>
 #include <stdexcept>
 
 #include <QMutex>
@@ -48,7 +47,7 @@ struct NoCameraIndexException : public std::runtime_error
 
 class OpencvSource: public QObject, public Source {
 
-    Q_OBJECT
+Q_OBJECT
 
     friend class CameraDialog;
     friend class RenderingManager;

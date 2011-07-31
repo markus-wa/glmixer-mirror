@@ -68,11 +68,10 @@ set(MYQT_UIS
 
 
 # If there is OpenCV, then this application will use OpenCV
-if (OpenCV_FOUND)
-  include_directories(${OpenCV_INCLUDE_DIR})
+if (USE_OPENCV)
   add_definitions(-DOPEN_CV )
   set( MYQT_SRCS  ${MYQT_SRCS} OpencvSource.cpp )
-endif (OpenCV_FOUND)
+endif (USE_OPENCV)
 
 # do the qt-cmake magic
 qt4_wrap_ui(MYQT_UIS_H ${MYQT_UIS})
@@ -104,7 +103,7 @@ if( APPLE )
 
 	# create a BUNDLE
 	add_executable(glmixer MACOSX_BUNDLE ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )	
-	# link the "qtproject" target against the Qt libraries. 
+	# link the target against the Qt libraries. 
 	target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
 
 	add_custom_target(bundle)
@@ -197,19 +196,19 @@ if( APPLE )
 	
 	
 	# the install of the binaries into the bundle 
-	if (OpenCV_FOUND)
+	if (USE_OPENCV)
 		glmixer_install_name_tool( ${GLMIXER_APP_BUNDLE_EXECUTABLE}
 		  TARGET bundle
-		  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg} Carbon QuickTime QuartzCore 
+		  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg} QuickTime QuartzCore 
 		  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqsvg.dylib libqtiff.dylib 
 		)
-	else (OpenCV_FOUND)
+	else (USE_OPENCV)
 		glmixer_install_name_tool( ${GLMIXER_APP_BUNDLE_EXECUTABLE}
 		  TARGET bundle
 		  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg}
 		  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqsvg.dylib libqtiff.dylib
 		)
-	endif (OpenCV_FOUND)
+	endif (USE_OPENCV)
 
 else ( APPLE )
 

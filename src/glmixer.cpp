@@ -368,7 +368,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 	// message handler
 	switch (type) {
 	case QtCriticalMsg:
-		QMessageBox::critical(0, tr("%1 -- Critical error").arg(QCoreApplication::applicationName()), txt.replace("|","\n") );
+		QMessageBox::critical(0, tr("%1 -- Critical error").arg(QCoreApplication::applicationName()), QString(txt).replace("|","\n") );
 		break;
 	case QtFatalMsg:
 		QMessageBox::critical(0, tr("%1 -- Fatal error").arg(QCoreApplication::applicationName()), txt);
@@ -1790,8 +1790,6 @@ void GLMixer::readSettings()
 
     if (settings.contains("OutputRenderWindow"))
     	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
-    if (settings.contains("logDockWidget"))
-    	logDockWidget->restoreGeometry(settings.value("logDockWidget").toByteArray());
 
     // dialogs configs
     if (settings.contains("vcontrolOptionSplitter"))
@@ -1819,7 +1817,7 @@ void GLMixer::saveSettings()
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
     settings.setValue("OutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
-    settings.setValue("logDockWidget", logDockWidget->saveGeometry());
+
     // dialogs configs
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());

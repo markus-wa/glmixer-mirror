@@ -21,13 +21,26 @@
     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true"> QMainWindow::separator {
+     background: palette(button);
+     width: 2px; /* when vertical */
+     height: 2px; /* when horizontal */
+ }
+
+ QMainWindow::separator:hover {
+     background: lightgray;
+ }
+
+QDockWidget::close-button, QDockWidget::float-button {
+     padding: 0px;
+     icon-size: 14px; /* maximum icon size */
+ }</string>
   </property>
   <property name="locale">
    <locale language="English" country="UnitedStates"/>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
-   <bool>false</bool>
+   <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="centralViewLayout">
@@ -275,10 +288,25 @@
     <string>Preview</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>2</number>
+    <number>1</number>
    </attribute>
    <widget class="QWidget" name="previewDockWidgetMainContents">
     <layout class="QVBoxLayout" name="verticalLayout_9">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>9</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>9</number>
+     </property>
+     <property name="bottomMargin">
+      <number>6</number>
+     </property>
      <item>
       <widget class="QWidget" name="previewDockWidgetContents" native="true">
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
@@ -287,6 +315,9 @@
         </property>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_8">
+          <property name="spacing">
+           <number>6</number>
+          </property>
           <item>
            <widget class="QLabel" name="gammaShiftText">
             <property name="sizePolicy">
@@ -301,14 +332,17 @@
             <property name="layoutDirection">
              <enum>Qt::RightToLeft</enum>
             </property>
+            <property name="styleSheet">
+             <string notr="true">font: 10pt;</string>
+            </property>
             <property name="text">
-             <string>1.0</string>
+             <string>1.00</string>
             </property>
             <property name="textFormat">
              <enum>Qt::PlainText</enum>
             </property>
             <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <set>Qt::AlignCenter</set>
             </property>
             <property name="indent">
              <number>5</number>
@@ -381,6 +415,9 @@
      </item>
      <item>
       <layout class="QHBoxLayout" name="previewDockWidgetButtonsLayout">
+       <property name="spacing">
+        <number>6</number>
+       </property>
        <item>
         <widget class="QToolButton" name="output_onair">
          <property name="toolTip">
@@ -531,23 +568,16 @@
      <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
    </property>
    <property name="toolTip">
-    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Lucida Grande'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;Controls for video playback of media sources.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>Controls for video playback of media sources.</string>
    </property>
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
-   </property>
-   <property name="styleSheet">
-    <string/>
    </property>
    <property name="features">
     <set>QDockWidget::DockWidgetFeatureMask</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::BottomDockWidgetArea</set>
+    <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>Control</string>
@@ -1737,11 +1767,8 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="sourceDockWidgetContents">
     <layout class="QVBoxLayout" name="sourceDockWidgetContentsLayout">
-     <property name="spacing">
-      <number>3</number>
-     </property>
      <property name="margin">
-      <number>1</number>
+      <number>0</number>
      </property>
     </layout>
    </widget>
@@ -1752,7 +1779,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1188</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2033,6 +2060,9 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="cursorDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="margin">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QStackedWidget" name="cursorOptionWidget">
        <property name="currentIndex">
@@ -2040,6 +2070,9 @@ Uncheck to display the restart frame when stopped.</string>
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="margin">
+          <number>6</number>
+         </property>
          <item>
           <widget class="QLabel" name="label_7">
            <property name="sizePolicy">
@@ -2070,6 +2103,9 @@ Uncheck to display the restart frame when stopped.</string>
        </widget>
        <widget class="QWidget" name="cursorSpringOptions">
         <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="margin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <item>
@@ -2133,6 +2169,9 @@ Uncheck to display the restart frame when stopped.</string>
        </widget>
        <widget class="QWidget" name="cursorDelayOptions">
         <layout class="QVBoxLayout" name="verticalLayout_6">
+         <property name="margin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
@@ -2228,6 +2267,9 @@ Uncheck to display the restart frame when stopped.</string>
        </widget>
        <widget class="QWidget" name="cursorMagnetOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
+         <property name="margin">
+          <number>6</number>
+         </property>
          <item>
           <widget class="QLabel" name="label_9">
            <property name="sizePolicy">
@@ -2258,6 +2300,9 @@ Uncheck to display the restart frame when stopped.</string>
        </widget>
        <widget class="QWidget" name="page">
         <layout class="QVBoxLayout" name="verticalLayout_10">
+         <property name="margin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_8">
            <item>
@@ -2350,6 +2395,9 @@ Uncheck to display the restart frame when stopped.</string>
        </widget>
        <widget class="QWidget" name="page_2">
         <layout class="QVBoxLayout" name="verticalLayout_11">
+         <property name="margin">
+          <number>6</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_15">
            <item>
@@ -2464,11 +2512,8 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="gammaDockWidgetContents">
     <layout class="QVBoxLayout" name="gammaDockWidgetContentsLayout">
-     <property name="spacing">
-      <number>3</number>
-     </property>
      <property name="margin">
-      <number>3</number>
+      <number>6</number>
      </property>
     </layout>
    </widget>
@@ -2485,15 +2530,12 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Session switcher</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>2</number>
+    <number>1</number>
    </attribute>
    <widget class="QWidget" name="switcherDockWidgetContents">
     <layout class="QVBoxLayout" name="switcherDockWidgetContentsLayout">
-     <property name="spacing">
-      <number>3</number>
-     </property>
      <property name="margin">
-      <number>3</number>
+      <number>6</number>
      </property>
     </layout>
    </widget>
@@ -2524,11 +2566,8 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionSave_snapshot"/>
   </widget>
   <widget class="QDockWidget" name="logDockWidget">
-   <property name="toolTip">
-    <string/>
-   </property>
    <property name="floating">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="features">
     <set>QDockWidget::AllDockWidgetFeatures</set>
@@ -2544,8 +2583,26 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_12">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="margin">
+      <number>0</number>
+     </property>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_16">
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>6</number>
+       </property>
        <item>
         <widget class="QToolButton" name="copyLogsToClipboard">
          <property name="toolTip">

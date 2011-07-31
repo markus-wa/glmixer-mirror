@@ -131,28 +131,32 @@ void CameraDialog::autodetectOpencvCameras(){
 
 	// clear the list of cameras
 	opencvComboBox->clear();
-
-	// loops to get as many cameras as possible...
-	int i = 0;
-	CvCapture* cvcap;
-	cvcap = cvCreateCameraCapture(i);
-	while (cvcap) {
-		opencvComboBox->addItem( QString("USB Camera %1").arg(i) );
-		cvReleaseCapture(&cvcap);
-		// next ?
-		++i;
-		cvcap = cvCreateCameraCapture(i);
-	}
-	cvReleaseCapture(&cvcap);
-
-	if ( opencvComboBox->count() > 0 ) {
-		currentCameraIndex = 0;
-        opencvComboBox->setEnabled(true);
-	}
-	else {
-		currentCameraIndex = -1;
-		opencvComboBox->setEnabled(false);
-	}
+//
+//	// loops to get as many cameras as possible...
+//	int i = 0;
+//	CvCapture* cvcap;
+//	cvcap = cvCreateCameraCapture(i);
+//	while (cvcap) {
+//		opencvComboBox->addItem( QString("USB Camera %1").arg(i) );
+//		cvReleaseCapture(&cvcap);
+//		// next ?
+//		++i;
+//		cvcap = cvCreateCameraCapture(i);
+//	}
+//	cvReleaseCapture(&cvcap);
+//
+//	if ( opencvComboBox->count() > 0 ) {
+//		currentCameraIndex = 0;
+//        opencvComboBox->setEnabled(true);
+//	}
+//	else {
+//		currentCameraIndex = -1;
+//		opencvComboBox->setEnabled(false);
+//	}
+//
+	opencvComboBox->setEnabled(true);
+	opencvComboBox->addItem( QString("USB Camera %1").arg(0) );
+	opencvComboBox->addItem( QString("USB Camera %1").arg(1) );
 }
 
 void CameraDialog::setOpencvCamera(int i){

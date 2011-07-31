@@ -77,14 +77,14 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 {
 
 	opencvCameraIndex = opencvIndex;
-	capture = cvCreateCameraCapture(opencvCameraIndex);
+	capture = cvCaptureFromCAM(opencvCameraIndex);
 	if (!capture) {
 		throw NoCameraIndexException();
 	}
 
-	width = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
-	height = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
-	aspectratio = (float)width / (float)height;
+//	width = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
+//	height = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
+//	aspectratio = (float)width / (float)height;
 
 	// fill in first frame
 	glActiveTexture(GL_TEXTURE0);
@@ -93,6 +93,10 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	frame = cvQueryFrame( capture );
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height,0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+
+	width = frame->width;
+	height = frame->height;
+	aspectratio = (float)width / (float)height;
 
 	// create thread
 	mutex = new QMutex;
