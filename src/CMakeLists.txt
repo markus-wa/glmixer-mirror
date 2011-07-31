@@ -93,6 +93,14 @@ qt4_automoc( ${MYQT_UIS_H} ${MYQT_SRCS})
 
 if( APPLE )
 	
+	if (USE_OPENCV)
+		find_package( QuickTime QUIET)
+		find_library( COCOA_LIBRARY NAMES Cocoa )
+		find_library( QUARTZCORE_LIBRARY NAMES QuartzCore )
+	
+		set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${QUICKTIME_LIBRARY} ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY}  )
+	endif (USE_OPENCV)
+	
 	SET(MACOSX_BUNDLE_INFO_STRING "GLMixer Bundle")
 	SET(MACOSX_BUNDLE_ICON_FILE "glmixer.icns")
 	SET(MACOSX_BUNDLE_LONG_VERSION_STRING "version 1.0")

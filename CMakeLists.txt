@@ -14,7 +14,11 @@ set(GLMIXER_VERSION "1.0")
 # may set these values without needing to manipulate the environment.
 SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} CACHE STRING "You may add additional search paths here. Use ; to separate multiple paths.")
 SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE STRING "You may add additional search paths here. Use ; to separate multiple paths.")
-SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")
+
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Configs" FORCE)
+if(DEFINED CMAKE_BUILD_TYPE)
+    set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
+endif()
 
 # avoid stupid cmake warning
 IF(COMMAND CMAKE_POLICY)
@@ -51,20 +55,6 @@ find_package( Qt4 REQUIRED)
 find_package( OpenGL REQUIRED)
 set( GLMIXER_LIBRARIES  ${OPENGL_LIBRARY})
 
-# HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
-if (USE_OPENCV)
-    find_package( OpenCV QUIET)
-    # If there is OpenCV, then this application will use OpenCV
-	if (OpenCV_FOUND)
-	  message(STATUS "OpenCV Library found OK")
-	  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OpenCV_LIBS}  )
-	else (OpenCV_FOUND)
-		message (STATUS "OpenCV Library not found")
-	endif (OpenCV_FOUND)
-endif( USE_OPENCV )
-
-
-
 # SOME HINTS FOR THE FIND_LIBRARY BELLOW
 set( CMAKE_INCLUDE_PATH 
   /opt/local/include
@@ -75,7 +65,7 @@ set( CMAKE_INCLUDE_PATH
   ${CMAKE_SYSTEM_INCLUDE_PATH}
 )
 set( CMAKE_FIND_LIBRARY_PREFIXES "" lib )
-set( CMAKE_FIND_LIBRARY_SUFFIXES .a .dll .lib .lib64 .so .so.0)
+set( CMAKE_FIND_LIBRARY_SUFFIXES .a .dll .lib .lib64 .so .so.0 .framework)
 set( CMAKE_LIBRARY_PATH 
   /opt/local/lib
   /opt/lib
@@ -83,8 +73,39 @@ set( CMAKE_LIBRARY_PATH
   /usr/lib
   /mingw/bin 
   /mingw/lib 
+  ~/Library/Frameworks
+  /System/Library/Frameworks
   ${CMAKE_SYSTEM_LIBRARY_PATH}
 )
+
+# HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
+set(USE_OPENCV false)
+find_library( OPENCV_CORE_LIBRARY NAMES opencv_core)
+find_library( OPENCV_IMGPROC_LIBRARY NAMES opencv_imgproc)
+find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_highgui)
+# if we find the opencv libs required, then use opencv
+if (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
+	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY})
+	message(STATUS "OpenCV libraries found")
+	
+	if( APPLE )
+		find_package( QuickTime QUIET)
+		find_library( COCOA_LIBRARY NAMES Cocoa )
+		find_library( QUARTZCORE_LIBRARY NAMES QuartzCore )
+		if (QUICKTIME_LIBRARY AND COCOA_LIBRARY AND QUARTZCORE_LIBRARY )
+			set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${QUICKTIME_LIBRARY} ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY}  )
+			message(STATUS "OpenCV OSX dependencies found")
+			set(USE_OPENCV true)
+		endif (QUICKTIME_LIBRARY AND COCOA_LIBRARY AND QUARTZCORE_LIBRARY )
+	else ( APPLE )
+		set(USE_OPENCV true)
+	endif ( APPLE )
+	
+endif (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
+
+if (USE_OPENCV)
+	message(STATUS "Using OpenCV.")
+endif (USE_OPENCV)
 
 # HERE IS THE GLEW DEPENDENCY
 find_library( GLEW_LIBRARY NAMES GLEW glew glew32)
