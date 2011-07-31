@@ -90,17 +90,8 @@ include_directories(${LIBQTPROPERTY_SOURCE_DIR} )
 qt4_automoc( ${MYQT_UIS_H} ${MYQT_SRCS})
 
 
-
 if( APPLE )
-	
-	if (USE_OPENCV)
-		find_package( QuickTime QUIET)
-		find_library( COCOA_LIBRARY NAMES Cocoa )
-		find_library( QUARTZCORE_LIBRARY NAMES QuartzCore )
-	
-		set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${QUICKTIME_LIBRARY} ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY}  )
-	endif (USE_OPENCV)
-	
+		
 	SET(MACOSX_BUNDLE_INFO_STRING "GLMixer Bundle")
 	SET(MACOSX_BUNDLE_ICON_FILE "glmixer.icns")
 	SET(MACOSX_BUNDLE_LONG_VERSION_STRING "version 1.0")
@@ -131,7 +122,6 @@ if( APPLE )
 	    COMMAND cp ARGS -Rf ${CMAKE_SOURCE_DIR}/icons/glmixer.icns ${GLMIXER_APP_BUNDLE_ROOT}/Contents/Resources/
 	    COMMAND cp ARGS -Rf ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib ${GLMIXER_APP_BUNDLE_ROOT}/Contents/Resources/
 	)
-	
 	
 	# Qt FRAMEWORKS
 	glmixer_install_qt4_framework(QtCore
@@ -167,56 +157,48 @@ if( APPLE )
 	# QT Plugins
 	GLMIXER_INSTALL_DYLIB(libqjpeg.dylib
 	  TARGET bundle NAME libqjpeg.dylib
-	  LIBRARY /Developer/Applications/Qt/plugins/imageformats/libqjpeg.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/libqjpeg.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	GLMIXER_INSTALL_DYLIB(libqico.dylib
 	  TARGET bundle NAME libqico.dylib
-	  LIBRARY /Developer/Applications/Qt/plugins/imageformats/libqico.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/libqico.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	GLMIXER_INSTALL_DYLIB(libqgif.dylib
 	  TARGET bundle NAME libqgif.dylib
-	  LIBRARY /Developer/Applications/Qt/plugins/imageformats/libqgif.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/libqgif.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	GLMIXER_INSTALL_DYLIB(libqmng.dylib
 	  TARGET bundle NAME libqmng.dylib
-	  LIBRARY /Developer/Applications/Qt/plugins/imageformats/libqmng.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/libqmng.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	GLMIXER_INSTALL_DYLIB(libqsvg.dylib
 	  TARGET bundle NAME libqsvg.dylib
-	  LIBRARY /Developer/Applications/Qt/plugins/imageformats/libqsvg.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/libqsvg.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	GLMIXER_INSTALL_DYLIB(libqtiff.dylib
 	  TARGET bundle NAME libqtiff.dylib
-	  LIBRARY /Developer/Applications/Qt/plugins/imageformats/libqtiff.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/libqtiff.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	
 	
 	# the install of the binaries into the bundle 
-	if (USE_OPENCV)
-		glmixer_install_name_tool( ${GLMIXER_APP_BUNDLE_EXECUTABLE}
-		  TARGET bundle
-		  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg} QuickTime QuartzCore 
-		  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqsvg.dylib libqtiff.dylib 
-		)
-	else (USE_OPENCV)
-		glmixer_install_name_tool( ${GLMIXER_APP_BUNDLE_EXECUTABLE}
-		  TARGET bundle
-		  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg}
-		  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqsvg.dylib libqtiff.dylib
-		)
-	endif (USE_OPENCV)
+	glmixer_install_name_tool( ${GLMIXER_APP_BUNDLE_EXECUTABLE}
+	  TARGET bundle
+	  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg}
+	  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqsvg.dylib libqtiff.dylib
+	)
 
 else ( APPLE )
 
