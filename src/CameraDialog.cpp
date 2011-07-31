@@ -33,26 +33,17 @@
 
 //#include <QtGui/QComboBox>
 
-CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent), currentDriver(UNKNOWN), s(0)
+CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent), s(0)
 {
     setupUi(this);
 
     preview = new SourceDisplayWidget(this);
-    verticalLayout->insertWidget(1, preview);
+    verticalLayout->insertWidget(0, preview);
 
 #ifdef OPEN_CV
     currentCameraIndex = -1;
     QObject::connect(opencvComboBox, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
-
-	autodetectOpencvCameras();
-#else
-	//	ifnot def opencv, disable tab
-	startTabIndex = 1;
-	tabWidget->setTabEnabled(0, false);
 #endif
-
-    tabWidget->setCurrentIndex ( startTabIndex );
-    on_tabWidget_currentChanged( startTabIndex );
 
 }
 
@@ -60,10 +51,6 @@ CameraDialog::~CameraDialog() {
 	delete preview;
 	//	if (s)
 	//		delete s;
-}
-
-CameraDialog::driver CameraDialog::getDriver(){
-	return currentDriver;
 }
 
 
@@ -76,8 +63,6 @@ void CameraDialog::createSource(){
 		s = 0;
 	}
 
-	switch (currentDriver) {
-	case OPENCV_CAMERA:
 #ifdef OPEN_CV
 		try {
 			if (currentCameraIndex >= 0)
@@ -86,30 +71,12 @@ void CameraDialog::createSource(){
 			s = 0;
 		}
 #endif
-		break;
-	case FIREWIRE_CAMERA:
-		break;
-	case UNKNOWN:
-	default:
-		break;
-	}
 
 	// apply the source to the preview
 	if (s)
 		preview->setSource(s);
 }
 
-void CameraDialog::on_tabWidget_currentChanged(int tabID){
-
-	if (tabID == 0) { // OpenCV
-		currentDriver = OPENCV_CAMERA;
-	}
-	else if (tabID == 1) { // Firewire
-		currentDriver = FIREWIRE_CAMERA;
-	}
-
-	createSource();
-}
 
 void CameraDialog::accept(){
 
@@ -122,43 +89,6 @@ void CameraDialog::accept(){
 
 #ifdef OPEN_CV
 
-void CameraDialog::on_opencvRefreshButton_clicked(){
-	autodetectOpencvCameras();
-	createSource();
-}
-
-void CameraDialog::autodetectOpencvCameras(){
-
-	// clear the list of cameras
-	opencvComboBox->clear();
-//
-//	// loops to get as many cameras as possible...
-//	int i = 0;
-//	CvCapture* cvcap;
-//	cvcap = cvCreateCameraCapture(i);
-//	while (cvcap) {
-//		opencvComboBox->addItem( QString("USB Camera %1").arg(i) );
-//		cvReleaseCapture(&cvcap);
-//		// next ?
-//		++i;
-//		cvcap = cvCreateCameraCapture(i);
-//	}
-//	cvReleaseCapture(&cvcap);
-//
-//	if ( opencvComboBox->count() > 0 ) {
-//		currentCameraIndex = 0;
-//        opencvComboBox->setEnabled(true);
-//	}
-//	else {
-//		currentCameraIndex = -1;
-//		opencvComboBox->setEnabled(false);
-//	}
-//
-	opencvComboBox->setEnabled(true);
-	opencvComboBox->addItem( QString("USB Camera %1").arg(0) );
-	opencvComboBox->addItem( QString("USB Camera %1").arg(1) );
-}
-
 void CameraDialog::setOpencvCamera(int i){
 
 	currentCameraIndex = i;
@@ -168,10 +98,6 @@ void CameraDialog::setOpencvCamera(int i){
 }
 
 #endif
-
-void CameraDialog::autodetectFirewireCameras(){
-
-}
 
 
 

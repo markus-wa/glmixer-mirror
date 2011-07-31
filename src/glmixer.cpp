@@ -706,10 +706,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 	CameraDialog cd(this);
 
 	if (cd.exec() == QDialog::Accepted) {
-		// create a source according to the selected driver :
-
 #ifdef OPEN_CV
-		if (cd.getDriver() == CameraDialog::OPENCV_CAMERA && cd.indexOpencvCamera() >= 0)
 		{
 			SourceSet::iterator sit = RenderingManager::getInstance()->getBegin();
 			// check for the existence of an opencv source which would already be on this same index
