@@ -157,47 +157,40 @@ if( APPLE )
 	# QT Plugins
 	GLMIXER_INSTALL_DYLIB(libqjpeg.dylib
 	  TARGET bundle NAME libqjpeg.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/libqjpeg.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqjpeg.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	GLMIXER_INSTALL_DYLIB(libqico.dylib
 	  TARGET bundle NAME libqico.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/libqico.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqico.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	GLMIXER_INSTALL_DYLIB(libqgif.dylib
 	  TARGET bundle NAME libqgif.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/libqgif.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqgif.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	GLMIXER_INSTALL_DYLIB(libqmng.dylib
 	  TARGET bundle NAME libqmng.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/libqmng.dylib
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
-	)
-	GLMIXER_INSTALL_DYLIB(libqsvg.dylib
-	  TARGET bundle NAME libqsvg.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/libqsvg.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqmng.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
 	GLMIXER_INSTALL_DYLIB(libqtiff.dylib
 	  TARGET bundle NAME libqtiff.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/libqtiff.dylib
+	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqtiff.dylib
 	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
 	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
 	)
-	
 	
 	# the install of the binaries into the bundle 
 	glmixer_install_name_tool( ${GLMIXER_APP_BUNDLE_EXECUTABLE}
 	  TARGET bundle
 	  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg}
-	  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqsvg.dylib libqtiff.dylib
+	  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqtiff.dylib
 	)
 
 else ( APPLE )
