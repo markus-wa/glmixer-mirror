@@ -63,11 +63,11 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef __APPLE__
-    // add local bundled lib directory as library path (Qt Plugins)
-    QDir dir(QApplication::applicationDirPath());
-	dir.cdUp();
-	dir.cd("lib");
-	QApplication::setLibraryPaths(QStringList(dir.absolutePath()));
+//    // add local bundled lib directory as library path (Qt Plugins)
+//    QDir dir(QApplication::applicationDirPath());
+//	dir.cdUp();
+//	dir.cd("lib");
+//	QApplication::setLibraryPaths(QStringList(dir.absolutePath()));
 #endif
 
     // 0. A splash screen to wait

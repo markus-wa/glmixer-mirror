@@ -98,7 +98,7 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 		throw NoCameraIndexException();
 
 	if ( raw->depth != IPL_DEPTH_8U || raw->nChannels != 3 || raw->widthStep > 3 * raw->width + 1) {
-		qWarning()<< getName() << '|' << tr("Using a bit of CPU to convert camera frames (not in RGB 8U).");
+		qWarning()<< "OpenCV" << '|' << tr("Video capture slowed down by image format conversion.");
 		frame = cvCreateImage(cvSize(raw->width, raw->height), IPL_DEPTH_8U, 3);
 		cvCopy(raw, frame);
 		needFrameCopy = true;

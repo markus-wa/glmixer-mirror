@@ -1095,9 +1095,9 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			buffer.open(QIODevice::WriteOnly);
 
 			if (!QImageWriter::supportedImageFormats().count("JPG")){
-				qCritical() << cs->getName() << "|" << tr("Saving in JPG format is not supported; saving in BMP instead.\nThis may take a while...");
-				if (!cs->image().save(&buffer, "BMP") )
-					qWarning() << cs->getName() << "|" << tr("Could not save captured source (BMP format).");
+				qWarning() << cs->getName() << "|" << tr("Qt JPEG plugin not found; using XPM format (slower).");
+				if (!cs->image().save(&buffer, "XPM") )
+					qWarning() << cs->getName() << "|" << tr("Could not save captured source (XPM format).");
 			} else
 				if (!cs->image().save(&buffer, "JPG") )
 					qWarning() << cs->getName()  << "|" << tr("Could not save captured source (JPG format).");
@@ -1331,7 +1331,11 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			QImage image;
 			QByteArray data =  img.text().toLatin1();
 
-			if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "JPG") )
+			if (!QImageReader::supportedImageFormats().count("JPG")){
+				if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "XPM") )
+					newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
+			}
+			else if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "JPG") )
 				newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
 
 			if (!newsource) {
