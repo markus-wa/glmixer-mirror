@@ -56,10 +56,10 @@ void CameraThread::run(){
 
 		cvs->mutex->lock();
 		if (!cvs->frameChanged) {
-			if (cvGrabFrame( cvs->capture )){
-				cvs->frame = cvRetrieveFrame( cvs->capture );
+			cvs->frame = cvQueryFrame( cvs->capture );
+			if (cvs->frame)
 				cvs->frameChanged = true;
-			} else
+			else
 				end = true;
 			cvs->cond->wait(cvs->mutex);
 		}
@@ -78,13 +78,8 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 
 	opencvCameraIndex = opencvIndex;
 	capture = cvCaptureFromCAM(opencvCameraIndex);
-	if (!capture) {
+	if (!capture)
 		throw NoCameraIndexException();
-	}
-
-//	width = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
-//	height = (int) cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
-//	aspectratio = (float)width / (float)height;
 
 	// fill in first frame
 	glActiveTexture(GL_TEXTURE0);
@@ -92,10 +87,27 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	frame = cvQueryFrame( capture );
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height,0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+	if (!frame)
+		throw NoCameraIndexException();
 
 	width = frame->width;
 	height = frame->height;
+
+	qDebug() << tr("OpenCV frames channels")<< frame->nChannels;
+	qDebug() << tr("OpenCV frames depth")<< frame->depth;
+	qDebug() << tr("OpenCV frames widthStep")<< frame->widthStep;
+	qDebug() << tr("OpenCV frames width")<< frame->width;
+	qDebug() << tr("OpenCV frames height")<< frame->height;
+	qDebug() << tr("OpenCV frames nSize")<< frame->nSize;
+	qDebug() << tr("OpenCV frames dataOrder")<< frame->dataOrder;
+
+	if ( frame->depth == IPL_DEPTH_8U && frame->nChannels == 3 && frame->dataOrder == IPL_DATA_ORDER_PIXEL)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+	else {
+		qWarning() << tr("Unsupported OpenCV image format from camera ")<< opencvCameraIndex;
+		throw NoCameraIndexException();
+	}
+
 	aspectratio = (float)width / (float)height;
 
 	// create thread
