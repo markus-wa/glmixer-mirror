@@ -25,6 +25,8 @@
 
 #include "OpencvSource.moc"
 
+#include "opencv2/imgproc/imgproc_c.h"
+
 Source::RTTI OpencvSource::type = Source::CAMERA_SOURCE;
 bool OpencvSource::playable = true;
 
@@ -50,16 +52,21 @@ void CameraThread::run(){
 
 	QTime t;
 	int f = 0;
+	IplImage *raw;
 
 	t.start();
 	while (!end) {
 
 		cvs->mutex->lock();
 		if (!cvs->frameChanged) {
-			cvs->frame = cvQueryFrame( cvs->capture );
-			if (cvs->frame)
+			raw = cvQueryFrame( cvs->capture );
+			if (raw) {
+				if (cvs->needFrameCopy)
+					cvCopy(raw, cvs->frame);
+				else
+					cvs->frame = raw;
 				cvs->frameChanged = true;
-			else
+			} else
 				end = true;
 			cvs->cond->wait(cvs->mutex);
 		}
@@ -73,7 +80,7 @@ void CameraThread::run(){
 	}
 }
 
-OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(texture, d), framerate(0.0)
+OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(texture, d), framerate(0.0), needFrameCopy(false)
 {
 
 	opencvCameraIndex = opencvIndex;
@@ -86,28 +93,22 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	frame = cvQueryFrame( capture );
-	if (!frame)
+	IplImage *raw = cvQueryFrame( capture );
+	if (!raw)
 		throw NoCameraIndexException();
+
+	if ( raw->depth != IPL_DEPTH_8U || raw->nChannels != 3 || raw->widthStep > 3 * raw->width + 1) {
+		qWarning()<< getName() << '|' << tr("Using a bit of CPU to convert camera frames (not in RGB 8U).");
+		frame = cvCreateImage(cvSize(raw->width, raw->height), IPL_DEPTH_8U, 3);
+		cvCopy(raw, frame);
+		needFrameCopy = true;
+	} else
+		frame = raw;
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 
 	width = frame->width;
 	height = frame->height;
-
-	qDebug() << tr("OpenCV frames channels")<< frame->nChannels;
-	qDebug() << tr("OpenCV frames depth")<< frame->depth;
-	qDebug() << tr("OpenCV frames widthStep")<< frame->widthStep;
-	qDebug() << tr("OpenCV frames width")<< frame->width;
-	qDebug() << tr("OpenCV frames height")<< frame->height;
-	qDebug() << tr("OpenCV frames nSize")<< frame->nSize;
-	qDebug() << tr("OpenCV frames dataOrder")<< frame->dataOrder;
-
-	if ( frame->depth == IPL_DEPTH_8U && frame->nChannels == 3 && frame->dataOrder == IPL_DATA_ORDER_PIXEL)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
-	else {
-		qWarning() << tr("Unsupported OpenCV image format from camera ")<< opencvCameraIndex;
-		throw NoCameraIndexException();
-	}
-
 	aspectratio = (float)width / (float)height;
 
 	// create thread
@@ -124,17 +125,18 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 
 OpencvSource::~OpencvSource() {
 
+	// end capture
 	play(false);
-	delete cond;
-	delete mutex;
-	delete thread;
-
-	// should delete
-	if (capture)
-		cvReleaseCapture(&capture);
+	cvReleaseCapture(&capture);
 
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);
+
+//	if (needFrameCopy)
+//		delete frame;
+	delete cond;
+	delete mutex;
+	delete thread;
 }
 
 
@@ -152,7 +154,7 @@ void OpencvSource::play(bool on){
 		cond->wakeAll();
 		frameChanged = false;
 		mutex->unlock();
-		thread->wait(500);
+		thread->wait(300);
 	}
 }
 
