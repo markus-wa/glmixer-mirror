@@ -45,9 +45,11 @@ int main(int argc, char **argv)
 
     // this redirects qDebug qWarning etc.
     qInstallMsgHandler(GLMixer::msgHandler);
-    // these redirect both cout/cerr
+#ifndef __APPLE__
+    // these redirect both cout/cerr (seems to crash under OSX :( )
     QLogStream qout(std::cout, GLMixer::msgHandler, QtDebugMsg);
     QLogStream qerr(std::cerr, GLMixer::msgHandler, QtWarningMsg);
+#endif
 
     // -1. sets global application name ; this is used application wide (e.g. QSettings)
     a.setOrganizationName("bhbn");
@@ -92,7 +94,6 @@ int main(int argc, char **argv)
 	// 1. The application GUI : it integrates the Rendering Manager QGLWidget
     GLMixer::getInstance()->setWindowTitle(a.applicationName());
     qAddPostRoutine(GLMixer::exitHandler);
-
     GLMixer::getInstance()->readSettings();
 
 	// 2. The output rendering window ; the rendering manager widget has to be existing

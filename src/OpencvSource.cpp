@@ -132,8 +132,6 @@ OpencvSource::~OpencvSource() {
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);
 
-//	if (needFrameCopy)
-//		delete frame;
 	delete cond;
 	delete mutex;
 	delete thread;
