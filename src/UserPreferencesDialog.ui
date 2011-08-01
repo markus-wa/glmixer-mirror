@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>760</width>
-    <height>589</height>
+    <width>754</width>
+    <height>568</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,10 +27,10 @@
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Lucida Grande'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:12pt; font-weight:600;&quot;&gt;GLMixer&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:12pt;&quot;&gt; was not configured yet. Please adjust the rendering performance parameters bellow to match with your &lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:12pt; font-style:italic;&quot;&gt;graphics hardware capabilities&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:12pt;&quot;&gt; (OpenGL performances). Default values are (very) conservative but shall always work.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'MS Shell Dlg 2'; font-size:12pt;&quot;&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:12pt;&quot;&gt;This dialog is shown only once, but you can always modify these settings in the &lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:12pt; font-style:italic;&quot;&gt;Preference&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:12pt;&quot;&gt; menu. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-weight:600;&quot;&gt;GLMixer&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt; was not configured yet. Please adjust the rendering performance parameters bellow to match with your &lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-style:italic;&quot;&gt;graphics hardware capabilities&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt; (OpenGL performances). Default values are (very) conservative but shall always work.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'MS Shell Dlg 2';&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt;This dialog is shown only once, but you can always modify these settings in the &lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-style:italic;&quot;&gt;Preference&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt; menu. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="textFormat">
       <enum>Qt::RichText</enum>
@@ -54,7 +54,7 @@ p, li { white-space: pre-wrap; }
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="QWidget" name="layoutWidget">
+     <widget class="QWidget" name="layoutWidgetA">
       <layout class="QVBoxLayout" name="LayoutLeft">
        <item>
         <widget class="QListWidget" name="listWidget">
@@ -425,18 +425,18 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_5">
+            <widget class="QGroupBox" name="Performance">
              <property name="title">
               <string>Performance</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_8">
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <layout class="QHBoxLayout" name="horizontalLayoutFrameRate">
                 <property name="spacing">
                  <number>10</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="label_6">
+                 <widget class="QLabel" name="labelFrameRate">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                     <horstretch>0</horstretch>
@@ -515,7 +515,7 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_3">
+            <spacer name="verticalSpacerRendering">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -532,7 +532,7 @@ p, li { white-space: pre-wrap; }
          <widget class="QWidget" name="PageRecording">
           <layout class="QVBoxLayout" name="verticalLayout_9">
            <item>
-            <widget class="QGroupBox" name="groupBox">
+            <widget class="QGroupBox" name="groupBoxFormat">
              <property name="toolTip">
               <string>Format of video file generated</string>
              </property>
@@ -586,12 +586,12 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_7">
+               <layout class="QHBoxLayout" name="horizontalLayoutFPS">
                 <property name="spacing">
                  <number>10</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="label_7">
+                 <widget class="QLabel" name="targetfps">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                     <horstretch>0</horstretch>
@@ -647,14 +647,14 @@ p, li { white-space: pre-wrap; }
                </layout>
               </item>
               <item>
-               <widget class="QLabel" name="label_8">
+               <widget class="QLabel" name="warning1">
                 <property name="text">
                  <string>NB: RAW and FFVHUFF are looseless and the fastest recording methods.</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_9">
+               <widget class="QLabel" name="warning2">
                 <property name="text">
                  <string>Other codec are more CPU hungry (risk of frame rate drop) and may be lossy.</string>
                 </property>
@@ -707,7 +707,7 @@ the user to select a file name</string>
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_4">
+            <spacer name="verticalSpacerRecording">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -724,7 +724,7 @@ the user to select a file name</string>
          <widget class="QWidget" name="PageSources">
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
-            <widget class="QGroupBox" name="groupBox_6">
+            <widget class="QGroupBox" name="groupBoxSource">
              <property name="toolTip">
               <string>Initial properties at the creation of sources</string>
              </property>
@@ -739,7 +739,7 @@ the user to select a file name</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_3">
+            <widget class="QGroupBox" name="groupBoxDrop">
              <property name="title">
               <string>Dropping options</string>
              </property>
@@ -758,9 +758,9 @@ the user to select a file name</string>
                </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <layout class="QHBoxLayout" name="horizontalLayoutScaling">
                 <item>
-                 <widget class="QLabel" name="label_5">
+                 <widget class="QLabel" name="ScalingLabel">
                   <property name="text">
                    <string>Scaling of sources : </string>
                   </property>
@@ -799,7 +799,7 @@ the user to select a file name</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_4">
+            <widget class="QGroupBox" name="groupBoxLoopback">
              <property name="title">
               <string>Loopback source</string>
              </property>
@@ -850,7 +850,7 @@ the user to select a file name</string>
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer">
+            <spacer name="verticalSpacerSource">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -876,21 +876,21 @@ the user to select a file name</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
-               <widget class="QLabel" name="label_4">
+               <widget class="QLabel" name="instructions1">
                 <property name="text">
                  <string>To specify how you want to perform an action, place the cursor on the</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_10">
+               <widget class="QLabel" name="instructions2">
                 <property name="text">
                  <string>corresponding box  and clic using the mouse button(s) you want:</string>
                 </property>
                </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_8">
+               <layout class="QHBoxLayout" name="horizontalLayoutTest">
                 <item>
                  <widget class="QLabel" name="label_11">
                   <property name="sizePolicy">
@@ -918,7 +918,7 @@ font: 75;</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pushButton_2">
+                 <widget class="QPushButton" name="pushButtonReset">
                   <property name="toolTip">
                    <string>Reset all actions</string>
                   </property>
@@ -949,7 +949,7 @@ font: 75;</string>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_12">
+               <widget class="QLabel" name="instructions3">
                 <property name="styleSheet">
                  <string notr="true">font: italic;</string>
                 </property>
@@ -962,15 +962,15 @@ font: 75;</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_2">
+            <widget class="QGroupBox" name="groupBoxWheel">
              <property name="title">
               <string>Mouse wheel zoom</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_10">
               <item>
-               <layout class="QVBoxLayout" name="verticalLayout_12">
+               <layout class="QVBoxLayout" name="verticalLayoutWheelOptions">
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <layout class="QHBoxLayout" name="horizontalLayoutSpeed">
                   <item>
                    <widget class="QLabel" name="label_13">
                     <property name="text">
@@ -1049,7 +1049,7 @@ font: 75;</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_11">
+               <layout class="QHBoxLayout" name="horizontalLayoutOptions">
                 <item>
                  <widget class="QCheckBox" name="antiAliasing">
                   <property name="toolTip">
@@ -1085,7 +1085,7 @@ font: 75;</string>
                </layout>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout">
+               <layout class="QHBoxLayout" name="horizontalLayoutStipple">
                 <item>
                  <widget class="QRadioButton" name="FINE">
                   <property name="toolTip">
@@ -1175,7 +1175,7 @@ font: 75;</string>
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_2">
+            <spacer name="verticalSpacerInterface">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -1192,7 +1192,7 @@ font: 75;</string>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <layout class="QHBoxLayout" name="horizontalLayoutButtonBox">
          <item>
           <widget class="QPushButton" name="defaultValuesButton">
            <property name="text">
@@ -1350,7 +1350,7 @@ font: 75;</string>
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_2</sender>
+   <sender>pushButtonReset</sender>
    <signal>clicked()</signal>
    <receiver>ButtonTestFrame</receiver>
    <slot>unset()</slot>

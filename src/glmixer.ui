@@ -22,7 +22,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true"> QMainWindow::separator {
-     background: palette(button);
+     background: palette(window);
      width: 2px; /* when vertical */
      height: 2px; /* when horizontal */
  }
@@ -1779,7 +1779,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1188</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

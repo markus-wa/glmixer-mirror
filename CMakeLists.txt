@@ -1,7 +1,11 @@
-project(glmixer) # the name of your project
-
+##
+## CMake configuration
+## 
+project(glmixer)
 cmake_minimum_required(VERSION 2.6.0)
+include(${CMAKE_SOURCE_DIR}/macros.cmake)
 
+# Use SVN to read repository version
 FIND_PACKAGE(Subversion)
 IF(Subversion_FOUND)
   Subversion_WC_INFO(${PROJECT_SOURCE_DIR} GLMIXER)
@@ -15,6 +19,7 @@ set(GLMIXER_VERSION "1.0")
 SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} CACHE STRING "You may add additional search paths here. Use ; to separate multiple paths.")
 SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE STRING "You may add additional search paths here. Use ; to separate multiple paths.")
 
+# Propose two build configurations
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Configs" FORCE)
 if(DEFINED CMAKE_BUILD_TYPE)
     set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
@@ -24,6 +29,10 @@ endif()
 IF(COMMAND CMAKE_POLICY)
     CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
+
+##
+## COMPILATION SETTINGS
+##
 
 # force GCC to produce single-line errors for CDT
 IF(CMAKE_COMPILER_IS_GNUCC)
@@ -40,14 +49,15 @@ SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -mingw32 -Wl,-
 SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mingw32 -Wl,-subsystem,windows")
 ENDIF(WIN32)
 
-# turn on verbose build to enable path autodiscovery in CDT
-#SET(CMAKE_VERBOSE_MAKEFILE ON)
-
 # defines used by preprocessor to integrate program version and SVN revision into the application
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION}" )
 IF(GLMIXER_WC_REVISION)
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${GLMIXER_WC_REVISION}" )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${GLMIXER_WC_REVISION}" )
 ENDIF(GLMIXER_WC_REVISION)
+
+##
+## LIBRARIES 
+##
 
 # HERE ARE THE BASIC DEPENDENCIES
 set( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -91,7 +101,7 @@ find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_highgui)
 # if we find the opencv libs required, then use opencv
 if (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY})
-	message(STATUS "OpenCV libraries found")
+	message(STATUS "Found OpenCV libraries (${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY}).")
 	
 	if( APPLE )
 	    SET(USE_QUICKTIME ${USE_QUICKTIME} CACHE BOOL "CHECK if you want to compile with QuickTime library")
@@ -105,14 +115,14 @@ if (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 			find_library( QTKIT_LIBRARY NAMES QTKit )
 			if(QTKIT_LIBRARY)
 				set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${QTKIT_LIBRARY} )
-				message(STATUS "QTKit framework found")
+				message(STATUS "Found QTKit framework.")
 			endif(QTKIT_LIBRARY)
 		endif(USE_QUICKTIME)
 		find_library( COCOA_LIBRARY NAMES Cocoa )
 		find_library( QUARTZCORE_LIBRARY NAMES QuartzCore )
 		if (COCOA_LIBRARY AND QUARTZCORE_LIBRARY)
 			set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY}  )
-			message(STATUS "OpenCV OSX dependencies found")
+			message(STATUS "OpenCV OSX dependencies OK.")
 			set(USE_OPENCV true)
 		endif (COCOA_LIBRARY AND QUARTZCORE_LIBRARY)
 	else ( APPLE )
@@ -131,134 +141,42 @@ if (GLEW_LIBRARY)
   set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${GLEW_LIBRARY} )
   find_path( GLEW_INCLUDE NAMES GL/glew.h )
   include_directories(${GLEW_INCLUDE})
+  message( STATUS "Found glew library (${GLEW_LIBRARY}).")
 else (GLEW_LIBRARY)
-  message(FATAL_ERROR "No GLEW library found.")
+  message(FATAL_ERROR "GLEW library NOT found but required.")
 endif (GLEW_LIBRARY)
 
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
 
-find_library( AVFORMAT_LIBRARY NAMES avformat)
-if (AVFORMAT_LIBRARY)
-  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${AVFORMAT_LIBRARY} )
-else (AVFORMAT_LIBRARY)
-  message(FATAL_ERROR "No avformat library found.")
-endif (AVFORMAT_LIBRARY)
+SET(GLMIXER_DEPENDENCIES avformat avcodec avutil swscale)
+    
+FOREACH(GLMIXER_DEPENDENCY ${GLMIXER_DEPENDENCIES})
+    STRING(TOUPPER ${GLMIXER_DEPENDENCY} _upper_glmixer_dependency)
+    find_library(${_upper_glmixer_dependency}_LIBRARY ${GLMIXER_DEPENDENCY})
+	if (${_upper_glmixer_dependency}_LIBRARY)
+		set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${${_upper_glmixer_dependency}_LIBRARY} )
+		message( STATUS "Found ${GLMIXER_DEPENDENCY} library (${${_upper_glmixer_dependency}_LIBRARY}).")
+	else (${_upper_glmixer_dependency}_LIBRARY)
+	    message( FATAL_ERROR "${GLMIXER_DEPENDENCY} library NOT found but required.")
+	endif (${_upper_glmixer_dependency}_LIBRARY)
+ENDFOREACH(GLMIXER_DEPENDENCY)
 
-find_library( AVCODEC_LIBRARY NAMES avcodec)
-if (AVCODEC_LIBRARY)
-  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${AVCODEC_LIBRARY} )
-  find_path( FFMPEG_INCLUDE NAMES libavcodec/avcodec.h )
-  include_directories(${FFMPEG_INCLUDE})
-else (AVCODEC_LIBRARY)
-  message(FATAL_ERROR "No avcodec library found.")
-endif (AVCODEC_LIBRARY)
-
-find_library( AVUTIL_LIBRARY NAMES avutil)
-if (AVUTIL_LIBRARY)
-  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${AVUTIL_LIBRARY} )
-else (AVUTIL_LIBRARY)
-  message(FATAL_ERROR "No avutil library found.")
-endif (AVUTIL_LIBRARY)
-
-find_library( SWSCALE_LIBRARY NAMES swscale)
-if (SWSCALE_LIBRARY)
-  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${SWSCALE_LIBRARY} )
-else (SWSCALE_LIBRARY)
-  message(FATAL_ERROR "No swscale library found.")
-endif (SWSCALE_LIBRARY)
-
-find_library( AVCORE_LIBRARY NAMES avcore)
-if (AVCORE_LIBRARY)
-	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${AVCORE_LIBRARY} )
-endif (AVCORE_LIBRARY)
 
 # BELLOW IS THE LIST OF FFMPEG OPTIONNAL DEPENDENCIES.
 # ADD THE LIBRARIES AS REQUIRED BY YOUR INSTALLATION OF FFMPEG
 
-find_library( THEORA_LIBRARY NAMES theora theoraenc theoradec)
-if (THEORA_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${THEORA_LIBRARY} )
-endif (THEORA_LIBRARY)
-
-find_library( X264_LIBRARY NAMES x264)
-if (X264_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${X264_LIBRARY} )
-endif (X264_LIBRARY)
-
-find_library( XVID_LIBRARY NAMES xvidcore)
-if (XVID_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${XVID_LIBRARY} )
-endif (XVID_LIBRARY)
-
-find_library( FAAC_LIBRARY NAMES faac)
-if (FAAC_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${FAAC_LIBRARY} )
-endif (FAAC_LIBRARY)
-
-find_library( MP3LAME_LIBRARY NAMES mp3lame)
-if (MP3LAME_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${MP3LAME_LIBRARY} )
-endif (MP3LAME_LIBRARY)
-
-find_library( VORBIS_LIBRARY NAMES vorbis)
-if (VORBIS_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${VORBIS_LIBRARY} )
-endif (VORBIS_LIBRARY)
-
-find_library( VORBISENC_LIBRARY NAMES vorbisenc)
-if (VORBISENC_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${VORBISENC_LIBRARY} )
-endif (VORBISENC_LIBRARY)
-
-find_library( OGG_LIBRARY NAMES ogg)
-if (OGG_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OGG_LIBRARY} )
-endif (OGG_LIBRARY)
-
-find_library( ORC_LIBRARY NAMES orc-0.4)
-if (ORC_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${ORC_LIBRARY} )
-endif (ORC_LIBRARY)
-
-find_library( SCHROEDINGER_LIBRARY NAMES schroedinger-1.0)
-if (SCHROEDINGER_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${SCHROEDINGER_LIBRARY} )
-endif (SCHROEDINGER_LIBRARY)
-
-find_library( SPEEDX_LIBRARY NAMES speex)
-if (SPEEDX_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${SPEEDX_LIBRARY} )
-endif (SPEEDX_LIBRARY)
-
-find_library( DIRACENC_LIBRARY NAMES dirac_encoder)
-if (DIRACENC_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${DIRACENC_LIBRARY} )
-endif (DIRACENC_LIBRARY)
-
-find_library( JPEG_LIBRARY NAMES jpeg)
-if (JPEG_LIBRARY)
-set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${JPEG_LIBRARY} )
-endif (JPEG_LIBRARY)
-
-find_library( OPENJPEG_LIBRARY NAMES openjpeg)
-if (OPENJPEG_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENJPEG_LIBRARY} )
-endif (OPENJPEG_LIBRARY)
-
-find_library( VPX_LIBRARY NAMES vpx)
-if (VPX_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${VPX_LIBRARY} )
-endif (VPX_LIBRARY)
-
-find_library( BZ2_LIBRARY NAMES bz2)
-if (BZ2_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${BZ2_LIBRARY} )
-endif (BZ2_LIBRARY)
-
-find_library( Z_LIBRARY NAMES z)
-if (Z_LIBRARY)
-set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${Z_LIBRARY} )
-endif (Z_LIBRARY)
+SET(GLMIXER_UTILITIES avcore theora theoraenc theoradec x264 xvidcore faac
+                      mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0
+                      speex dirac_encoder jpeg openjpeg vpx bz2 z)
+    
+FOREACH(GLMIXER_UTILITY ${GLMIXER_UTILITIES})
+    STRING(TOUPPER ${GLMIXER_UTILITY} _upper_glmixer_utility)
+    find_library(${_upper_glmixer_utility}_LIBRARY ${GLMIXER_UTILITY})
+	if (${_upper_glmixer_utility}_LIBRARY)
+		set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${${_upper_glmixer_utility}_LIBRARY} )
+		message( STATUS "Found ${GLMIXER_UTILITY} library (${${_upper_glmixer_utility}_LIBRARY}).")
+	endif (${_upper_glmixer_utility}_LIBRARY)
+ENDFOREACH(GLMIXER_UTILITY)
 
 # HERE IS THE INSTALLATION WINDOWS SOCK LIB 
 
@@ -266,9 +184,9 @@ if (WIN32)
   set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
 endif (WIN32)
 
-# tell cmake to process CMakeLists.txt in those subdirectories
-
-include(${CMAKE_SOURCE_DIR}/macros.cmake)
+##
+## tell cmake to process CMakeLists.txt in those subdirectories
+##
 
 add_subdirectory(libQtProperty)
 add_subdirectory(src)
