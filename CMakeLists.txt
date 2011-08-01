@@ -65,7 +65,12 @@ set( CMAKE_INCLUDE_PATH
   ${CMAKE_SYSTEM_INCLUDE_PATH}
 )
 set( CMAKE_FIND_LIBRARY_PREFIXES "" lib )
-set( CMAKE_FIND_LIBRARY_SUFFIXES .a .dll .lib .lib64 .so .so.0 .framework)
+if( APPLE )
+	set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .framework)
+else( APPLE)
+	set( CMAKE_FIND_LIBRARY_SUFFIXES .lib .lib64 .so .so.0 .so.1 .a )
+endif( APPLE )
+
 set( CMAKE_LIBRARY_PATH 
   /opt/local/lib
   /opt/lib
@@ -230,10 +235,10 @@ if (DIRACENC_LIBRARY)
 set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${DIRACENC_LIBRARY} )
 endif (DIRACENC_LIBRARY)
 
-#find_library( JPEG_LIBRARY NAMES jpeg)
-#if (JPEG_LIBRARY)
-#set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${JPEG_LIBRARY} )
-#endif (JPEG_LIBRARY)
+find_library( JPEG_LIBRARY NAMES jpeg)
+if (JPEG_LIBRARY)
+set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${JPEG_LIBRARY} )
+endif (JPEG_LIBRARY)
 
 find_library( OPENJPEG_LIBRARY NAMES openjpeg)
 if (OPENJPEG_LIBRARY)
