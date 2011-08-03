@@ -80,7 +80,6 @@ qt4_add_resources(MYQT_RCS_SRCS ${MYQT_RCS})
 # Don't forget to include output directory, otherwise
 # the UI file won't be wrapped!
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # this application uses the library QtProperty
 include_directories(${LIBQTPROPERTY_SOURCE_DIR} )
@@ -89,116 +88,33 @@ include_directories(${LIBQTPROPERTY_SOURCE_DIR} )
 # note: this assumes that you use #include "header.moc" in your files
 qt4_automoc( ${MYQT_UIS_H} ${MYQT_SRCS})
 
+# create the application
+add_executable(glmixer ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )	
+
+# link the target against the libraries. 
+target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
+
 
 if( APPLE )
 		
-	SET(MACOSX_BUNDLE_INFO_STRING "GLMixer Bundle")
-	SET(MACOSX_BUNDLE_ICON_FILE "glmixer.icns")
-	SET(MACOSX_BUNDLE_LONG_VERSION_STRING "version 1.0")
-	SET(MACOSX_BUNDLE_BUNDLE_NAME "GLMixer")
-	SET(MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
-	SET(MACOSX_BUNDLE_BUNDLE_VERSION "1.0")
-	SET(MACOSX_BUNDLE_COPYRIGHT "Bruno Herbelin")
+		
+	install(TARGETS glmixer DESTINATION bin)
+	install(FILES runglmixer DESTINATION bin
+	
+	set (CPACK_BUNDLE_NAME GLMixer)
+	set (CPACK_BUNDLE_ICON )
+	set (CPACK_BUNDLE_PLIST )
+	set (CPACK_BUNDLE_STARTUP_COMMAND )
+	
+	#set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
+	set (CPACK_PACKAGE_VERSION_MAJOR "${GLMIXER_VERSION_MAJOR}")
+	set (CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
+	
+	include (CPack)
+		
 
-	# create a BUNDLE
-	add_executable(glmixer MACOSX_BUNDLE ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )	
-	# link the target against the Qt libraries. 
-	target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
-
-	add_custom_target(bundle)
-	set(GLMIXER_APP_BUNDLE_ROOT "${CMAKE_BINARY_DIR}/src/glmixer.app/") 
-	set(GLMIXER_APP_BUNDLE_EXECUTABLE "${GLMIXER_APP_BUNDLE_ROOT}/Contents/MacOS/glmixer") 
-	
-	# pre and post build commands to create folders and ressources
-	ADD_CUSTOM_COMMAND(
-	    TARGET glmixer
-	    PRE_BUILD
-	    COMMAND mkdir ARGS -p ${GLMIXER_APP_BUNDLE_ROOT}/Contents/MacOS/
-	)
-	ADD_CUSTOM_COMMAND(
-	    TARGET bundle
-	    POST_BUILD
-	    COMMAND mkdir ARGS -p ${GLMIXER_APP_BUNDLE_ROOT}/Contents/Resources/
-	    COMMAND cp ARGS -Rf ${CMAKE_SOURCE_DIR}/icons/glmixer.icns ${GLMIXER_APP_BUNDLE_ROOT}/Contents/Resources/
-	    COMMAND cp ARGS -Rf ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib ${GLMIXER_APP_BUNDLE_ROOT}/Contents/Resources/
-	)
-	
-	# Qt FRAMEWORKS
-	glmixer_install_qt4_framework(QtCore
-	  TARGET bundle NAME QtCore
-	  LIBRARY ${QT_QTCORE_LIBRARY_RELEASE}/QtCore
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	)
-	glmixer_install_qt4_framework(QtGui
-	  TARGET bundle NAME QtGui
-	  LIBRARY ${QT_QTGUI_LIBRARY_RELEASE}/QtGui
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtCore}
-	)
-	glmixer_install_qt4_framework(QtOpenGL
-	  TARGET bundle NAME QtOpenGL
-	  LIBRARY ${QT_QTOPENGL_LIBRARY_RELEASE}/QtOpenGL
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
-	)
-	glmixer_install_qt4_framework(QtXml
-	  TARGET bundle NAME QtXml
-	  LIBRARY ${QT_QTXML_LIBRARY_RELEASE}/QtXml
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtCore}
-	)
-	glmixer_install_qt4_framework(QtSvg
-	  TARGET bundle NAME QtSvg
-	  LIBRARY ${QT_QTSVG_LIBRARY_RELEASE}/QtSvg
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
-	)
-	
-	# QT Plugins
-	GLMIXER_INSTALL_DYLIB(libqjpeg.dylib
-	  TARGET bundle NAME libqjpeg.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqjpeg.dylib
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
-	)
-	GLMIXER_INSTALL_DYLIB(libqico.dylib
-	  TARGET bundle NAME libqico.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqico.dylib
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
-	)
-	GLMIXER_INSTALL_DYLIB(libqgif.dylib
-	  TARGET bundle NAME libqgif.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqgif.dylib
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
-	)
-	GLMIXER_INSTALL_DYLIB(libqmng.dylib
-	  TARGET bundle NAME libqmng.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqmng.dylib
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
-	)
-	GLMIXER_INSTALL_DYLIB(libqtiff.dylib
-	  TARGET bundle NAME libqtiff.dylib
-	  LIBRARY ${QT_PLUGINS_DIR}/imageformats/libqtiff.dylib
-	  APP_BUNDLE ${GLMIXER_APP_BUNDLE_ROOT}
-	  DEPENDS_FRAMEWORKS ${QtGui} ${QtCore}
-	)
-	
-	# the install of the binaries into the bundle 
-	glmixer_install_name_tool( ${GLMIXER_APP_BUNDLE_EXECUTABLE}
-	  TARGET bundle
-	  FRAMEWORKS ${QtCore} ${QtGui} ${QtOpenGL} ${QtXml} ${QtSvg}
-	  LIBRARIES libqjpeg.dylib libqico.dylib libqgif.dylib libqmng.dylib libqtiff.dylib
-	)
 
 else ( APPLE )
-
-	# create the application
-	add_executable(glmixer ${MYQT_SRCS} ${MYQT_UIS_H} ${MYQT_RCS_SRCS} )	
-	# link the "qtproject" target against the Qt libraries. 
-	target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
 	
 	install(TARGETS glmixer DESTINATION /usr/local/bin)
 

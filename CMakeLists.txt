@@ -12,7 +12,8 @@ IF(Subversion_FOUND)
   MESSAGE("Current revision is ${GLMIXER_WC_REVISION}")
 ENDIF(Subversion_FOUND)
 
-set(GLMIXER_VERSION "1.0")
+set(GLMIXER_VERSION_MAJOR 1)
+set(GLMIXER_VERSION_MINOR 0)
 
 # Expose CMAKE_INCLUDE_PATH and CMAKE_LIBARY_PATH to the GUI so users
 # may set these values without needing to manipulate the environment.
@@ -50,7 +51,7 @@ SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mingw32 -
 ENDIF(WIN32)
 
 # defines used by preprocessor to integrate program version and SVN revision into the application
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION}" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}" )
 IF(GLMIXER_WC_REVISION)
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${GLMIXER_WC_REVISION}" )
 ENDIF(GLMIXER_WC_REVISION)
