@@ -72,20 +72,21 @@ void CameraDialog::createSource(){
 
 	if (currentCameraIndex >= 0) {
 
-		s = OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex);
-		if ( !s ) {
+		if ( ! OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex) ) {
 			try {
 				s = (Source *) new OpencvSource(currentCameraIndex, preview->getNewTextureIndex(), 0);
 			} catch (NoCameraIndexException) {
 				s = 0;
 			}
-		}
+			// apply the source to the preview
+			preview->setSource(s);
+		} else
+			preview->setSource( OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex) );
 	}
 #endif
 
-	// apply the source to the preview
-	if (s)
-		preview->setSource(s);
+
+
 }
 
 
@@ -93,8 +94,7 @@ void CameraDialog::showEvent(QShowEvent *e){
 
 	QWidget::showEvent(e);
 
-    showPreview->setChecked(false);
-    opencvComboBox->setCurrentIndex(0);
+    setOpencvCamera(opencvComboBox->currentIndex());
 
 }
 
@@ -131,7 +131,7 @@ void CameraDialog::setPreviewEnabled(bool on){
 
 void CameraDialog::setOpencvCamera(int i){
 
-	currentCameraIndex = i-1;
+	currentCameraIndex = i;
 
 	// create the source
 	if (showPreview->isChecked())

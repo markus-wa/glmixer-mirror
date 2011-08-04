@@ -56,11 +56,6 @@
      </property>
      <item>
       <property name="text">
-       <string>Select camera</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
        <string>Camera 0</string>
       </property>
      </item>
