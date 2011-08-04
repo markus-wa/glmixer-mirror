@@ -136,16 +136,6 @@ if (USE_OPENCV)
 	message(STATUS "Using OpenCV.")
 endif (USE_OPENCV)
 
-# HERE IS THE GLEW DEPENDENCY
-find_library( GLEW_LIBRARY NAMES GLEW glew glew32)
-if (GLEW_LIBRARY)
-  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${GLEW_LIBRARY} )
-  find_path( GLEW_INCLUDE NAMES GL/glew.h )
-  include_directories(${GLEW_INCLUDE})
-  message( STATUS "Found glew library (${GLEW_LIBRARY}).")
-else (GLEW_LIBRARY)
-  message(FATAL_ERROR "GLEW library NOT found but required.")
-endif (GLEW_LIBRARY)
 
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
 
@@ -182,8 +172,22 @@ ENDFOREACH(GLMIXER_UTILITY)
 # HERE IS THE INSTALLATION WINDOWS SOCK LIB 
 
 if (WIN32)
-  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
+	# HERE IS THE INSTALLATION WINDOWS SOCK LIB 
+ 	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
+  	# allow to search for dlls; this is weird but necessary to link with glew :(...
+  	set( CMAKE_FIND_LIBRARY_SUFFIXES .dll ${CMAKE_FIND_LIBRARY_SUFFIXES})
 endif (WIN32)
+
+# HERE IS THE GLEW DEPENDENCY
+find_library( GLEW_LIBRARY NAMES GLEW glew glew32)
+if (GLEW_LIBRARY)
+  set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${GLEW_LIBRARY} )
+  find_path( GLEW_INCLUDE NAMES GL/glew.h )
+  include_directories(${GLEW_INCLUDE})
+  message( STATUS "Found glew library (${GLEW_LIBRARY}).")
+else (GLEW_LIBRARY)
+  message(FATAL_ERROR "GLEW library NOT found but required.")
+endif (GLEW_LIBRARY)
 
 ##
 ## tell cmake to process CMakeLists.txt in those subdirectories
