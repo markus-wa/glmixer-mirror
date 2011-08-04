@@ -915,7 +915,7 @@ void GLMixer::on_actionDeleteSource_triggered()
 	if ( RenderingManager::getInstance()->isValid(cs) ) {
 		// if the current source is in the selection, delete the whole selection
 		if ( View::hasSelection()  && View::isInSelection(*cs) ) {
-			// make a copy of the selection (to make sure we do not mess with pointers)
+			// make a copy of the selection (to make sure we do not mess with pointers when removing from selection)
 			todelete = View::copySelection();
 		}
 		else
@@ -925,19 +925,23 @@ void GLMixer::on_actionDeleteSource_triggered()
 
 	// remove all the source in the list todelete
 	for(SourceList::iterator  its = todelete.begin(); its != todelete.end(); its++) {
-		// test for clones of this source
-		int numclones = (*its)->getClones()->size();
-		// popup a question dialog 'are u sure' if there are clones attached;
-		if ( numclones ){
-			QString msg = tr("This source was cloned %1 times; Do you want to delete all the clones too?").arg(numclones);
-			if ( QMessageBox::question(this," Are you sure?", msg, QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
-				numclones = 0;
-		}
 
-		if ( !numclones ){
-			QString d = (*its)->getName();
-			RenderingManager::getInstance()->removeSource((*its)->getId());
-			statusbar->showMessage( tr("Source %1 deleted.").arg( d ), 3000 );
+		SourceSet::iterator sit = RenderingManager::getInstance()->getById((*its)->getId());
+		if ( RenderingManager::getInstance()->isValid(sit) ) {
+			// test for clones of this source
+			int numclones = (*sit)->getClones()->size();
+			// popup a question dialog 'are u sure' if there are clones attached;
+			if ( numclones ){
+				QString msg = tr("This source was cloned %1 times; Do you want to delete all the clones too?").arg(numclones);
+				if ( QMessageBox::question(this," Are you sure?", msg, QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
+					numclones = 0;
+			}
+
+			if ( !numclones ){
+				QString d = (*sit)->getName();
+				RenderingManager::getInstance()->removeSource(sit);
+				statusbar->showMessage( tr("Source %1 deleted.").arg( d ), 3000 );
+			}
 		}
 	}
 }

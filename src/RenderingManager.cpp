@@ -718,7 +718,10 @@ void RenderingManager::removeSource(const GLuint idsource){
 
 void RenderingManager::removeSource(SourceSet::iterator itsource) {
 
-	// remove from all selections
+	if (!isValid(itsource))
+		return;
+
+	// remove from selection and group
 	_renderwidget->removeFromSelections(*itsource);
 
 	// if we are removing the current source, ensure it is not the current one anymore
