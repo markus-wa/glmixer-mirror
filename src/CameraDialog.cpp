@@ -31,14 +31,22 @@
 #include "OpencvSource.h"
 #endif
 
-//#include <QtGui/QComboBox>
+#include <QtGui>
 
-CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent), s(0)
+#define CAMERA_PREVIEW 1
+
+CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent), s(0), preview(0)
 {
     setupUi(this);
 
+#ifndef CAMERA_PREVIEW
+    preview = 0;
+    showPreview->setEnabled(false);
+#else
     preview = new SourceDisplayWidget(this);
-    verticalLayout->insertWidget(0, preview);
+    preview->hide();
+    QObject::connect(showPreview, SIGNAL(toggled(bool)), this, SLOT(setPreviewEnabled(bool)));
+#endif
 
 #ifdef OPEN_CV
     currentCameraIndex = -1;
@@ -47,14 +55,10 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
 
 }
 
-CameraDialog::~CameraDialog() {
-	delete preview;
-	//	if (s)
-	//		delete s;
-}
-
-
 void CameraDialog::createSource(){
+
+	if (!preview)
+		return;
 
 	if(s) {
 		preview->setSource(0);
@@ -64,12 +68,19 @@ void CameraDialog::createSource(){
 	}
 
 #ifdef OPEN_CV
-		try {
-			if (currentCameraIndex >= 0)
+
+
+	if (currentCameraIndex >= 0) {
+
+		s = OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex);
+		if ( !s ) {
+			try {
 				s = (Source *) new OpencvSource(currentCameraIndex, preview->getNewTextureIndex(), 0);
-		} catch (NoCameraIndexException){
-			s = 0;
+			} catch (NoCameraIndexException) {
+				s = 0;
+			}
 		}
+	}
 #endif
 
 	// apply the source to the preview
@@ -78,23 +89,53 @@ void CameraDialog::createSource(){
 }
 
 
+void CameraDialog::showEvent(QShowEvent *e){
+
+	QWidget::showEvent(e);
+
+    showPreview->setChecked(false);
+    opencvComboBox->setCurrentIndex(0);
+
+}
+
 void CameraDialog::accept(){
 
-	preview->setSource(0);
-	if (s)
+	if (preview)
+		preview->setSource(0);
+	if (s) {
 		delete s;
-
+		s = 0;
+	}
 	QDialog::accept();
+}
+
+void CameraDialog::setPreviewEnabled(bool on){
+
+	// remove the top item
+	verticalLayout->itemAt(0)->widget()->hide();
+	verticalLayout->removeItem(verticalLayout->itemAt(0));
+
+	// add a top idem according to preview mode
+	if(on) {
+	    verticalLayout->insertWidget(0, preview);
+		createSource();
+	} else {
+	    verticalLayout->insertWidget(0, nopreview);
+	}
+
+	verticalLayout->itemAt(0)->widget()->show();
+
 }
 
 #ifdef OPEN_CV
 
 void CameraDialog::setOpencvCamera(int i){
 
-	currentCameraIndex = i;
+	currentCameraIndex = i-1;
 
 	// create the source
-	createSource();
+	if (showPreview->isChecked())
+		createSource();
 }
 
 #endif

@@ -703,39 +703,32 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 void GLMixer::on_actionCameraSource_triggered() {
 
-	CameraDialog cd(this);
+	static CameraDialog *cd = 0;
+	if (!cd)
+		cd = new CameraDialog(this);
 
-	if (cd.exec() == QDialog::Accepted) {
+	if (cd->exec() == QDialog::Accepted) {
 #ifdef OPEN_CV
-		{
-			SourceSet::iterator sit = RenderingManager::getInstance()->getBegin();
-			// check for the existence of an opencv source which would already be on this same index
-			for ( ; RenderingManager::getInstance()->notAtEnd(sit); sit++){
-				OpencvSource *cvs = dynamic_cast<OpencvSource *>(*sit);
-				if (cvs && cvs->getOpencvCameraIndex() == cd.indexOpencvCamera())
-					break;
+	int selectedCamIndex = cd->indexOpencvCamera();
+	if (selectedCamIndex > -1 ) {
+
+		Source *s = RenderingManager::getInstance()->newOpencvSource(selectedCamIndex);
+		if ( s ) {
+			RenderingManager::getInstance()->addSourceToBasket(s);
+
+			CloneSource *cs = dynamic_cast<CloneSource*> (s);
+			if (cs) {
+				qDebug() << s->getName() <<  tr("|OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
+				statusbar->showMessage( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
+			} else {
+				qDebug() << s->getName() <<  tr("|New OpenCV source created (device index %2).").arg(selectedCamIndex);
+				statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
 			}
-			// if we find one, just clone the source
-			if ( RenderingManager::getInstance()->notAtEnd(sit)) {
-				Source *s = RenderingManager::getInstance()->newCloneSource(sit);
-				if ( s ) {
-					RenderingManager::getInstance()->addSourceToBasket(s);
-					qDebug() << s->getName() <<  tr("|Clone of source %1 created.").arg((*sit)->getName());
-					statusbar->showMessage( tr("New clone created of the source with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()), 3000 );
-				} else
-					qCritical() << tr("Could not clone source %1. ").arg((*sit)->getName());
-			}
-			//else create a new opencv source :
-			else {
-				Source *s = RenderingManager::getInstance()->newOpencvSource(cd.indexOpencvCamera());
-				if ( s ) {
-					RenderingManager::getInstance()->addSourceToBasket(s);
-					qDebug() << s->getName() <<  tr("|New OpenCV source created (device index %2).").arg(cd.indexOpencvCamera());
-					statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(cd.indexOpencvCamera()), 3000 );
-				} else
-					qCritical() << tr("Could not open OpenCV device index %2. ").arg(cd.indexOpencvCamera());
-			}
-		}
+		} else
+			qCritical() << tr("Could not open OpenCV device index %2. ").arg(selectedCamIndex);
+
+	}
+
 #endif
 
 	}

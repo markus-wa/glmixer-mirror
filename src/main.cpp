@@ -62,14 +62,6 @@ int main(int argc, char **argv)
     a.setApplicationVersion( "Beta" );
 #endif
 
-#ifdef __APPLE__
-//    // add local bundled lib directory as library path (Qt Plugins)
-//    QDir dir(QApplication::applicationDirPath());
-//	dir.cdUp();
-//	dir.cd("lib");
-//	QApplication::setLibraryPaths(QStringList(dir.absolutePath()));
-#endif
-
     // 0. A splash screen to wait
     QPixmap pixmap(":/glmixer/images/glmixer_splash.png");
     QSplashScreen splash(pixmap);
@@ -83,9 +75,7 @@ int main(int argc, char **argv)
     // fill in the list of extensions by creating a dummy glwidget
     QGLWidget *glw = new QGLWidget();
     glw->makeCurrent();
-#ifdef GLEWAPI
     glewInit();
-#endif
 	QString allextensions = QString( (char *) glGetString(GL_EXTENSIONS));
 	listofextensions = allextensions.split(" ", QString::SkipEmptyParts);
 	delete glw;

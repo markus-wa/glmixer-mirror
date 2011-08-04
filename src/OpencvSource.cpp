@@ -29,6 +29,7 @@
 
 Source::RTTI OpencvSource::type = Source::CAMERA_SOURCE;
 bool OpencvSource::playable = true;
+QMap<int, OpencvSource*> OpencvSource::_existingSources;
 
 #include <QThread>
 #include <QTime>
@@ -82,6 +83,9 @@ void CameraThread::run(){
 
 OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(texture, d), framerate(0.0), needFrameCopy(false)
 {
+	// prevent from creation of duplicated opencv sources and from creation of more than 2 sources
+	if (  OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() >= 2)
+		throw NoCameraIndexException();
 
 	opencvCameraIndex = opencvIndex;
 	capture = cvCaptureFromCAM(opencvCameraIndex);
@@ -120,6 +124,9 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
     Q_CHECK_PTR(thread);
 	thread->start();
     thread->setPriority(QThread::LowPriority);
+
+    // store this pointer to the global list
+    OpencvSource::_existingSources[opencvCameraIndex] = this;
 }
 
 
@@ -131,6 +138,9 @@ OpencvSource::~OpencvSource() {
 
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);
+
+    // remove this element from the global list
+    OpencvSource::_existingSources.remove(opencvCameraIndex);
 
 	delete cond;
 	delete mutex;
@@ -168,14 +178,20 @@ void OpencvSource::update(){
 
 	if( frameChanged )
 	{
-    	// update the texture
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
 		mutex->lock();
 		frameChanged = false;
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frame->width, frame->height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 		cond->wakeAll();
 		mutex->unlock();
 	}
 
 }
+
+OpencvSource *OpencvSource::getExistingSourceForCameraIndex(int index){
+
+	if (  OpencvSource::_existingSources.contains(index) )
+		return OpencvSource::_existingSources[index];
+
+	return 0;
+}
+

@@ -35,6 +35,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <stdexcept>
 
+#include <QMap>
 #include <QMutex>
 #include <QWaitCondition>
 
@@ -65,6 +66,8 @@ public:
 	int getFrameWidth() const { return width; }
 	int getFrameHeight() const { return height; }
 
+	static OpencvSource *getExistingSourceForCameraIndex(int);
+
 public Q_SLOTS:
 	void play(bool on);
 
@@ -88,6 +91,8 @@ protected:
     CameraThread *thread;
     QMutex *mutex;
     QWaitCondition *cond;
+
+    static QMap<int, OpencvSource*> _existingSources;
 };
 
 #endif

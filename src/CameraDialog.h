@@ -44,10 +44,11 @@ class CameraDialog : public QDialog, Ui_CameraDialog
 	public:
 
 		CameraDialog(QWidget *parent = 0, int startTabIndex = 0);
-		virtual ~CameraDialog();
 
 	public Q_SLOTS:
 		void accept();
+		void setPreviewEnabled(bool);
+
 
 #ifdef OPEN_CV
 		void setOpencvCamera(int i);
@@ -58,6 +59,9 @@ class CameraDialog : public QDialog, Ui_CameraDialog
 	private:
 		int currentCameraIndex;
 #endif
+
+	protected:
+		void showEvent(QShowEvent *);
 
 	private:
 		Source *s;

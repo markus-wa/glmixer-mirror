@@ -500,6 +500,11 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 	GLuint textureIndex;
 	OpencvSource *s = 0;
 
+	s = OpencvSource::getExistingSourceForCameraIndex(opencvIndex);
+	if ( s ) {
+		return newCloneSource(getById(s->getId()), depth);
+	}
+
 	// try to create the OpenCV source
 	try {
 		// create the texture for this source
@@ -511,7 +516,7 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 
 		// try to create the opencv source
 		s = new OpencvSource(opencvIndex, textureIndex, getAvailableDepthFrom(depth));
-		s->setName( _defaultSource->getName() + "Opencv");
+		s->setName( _defaultSource->getName() + tr("Camera%1").arg(opencvIndex) );
 
 	} catch (NoCameraIndexException){
 

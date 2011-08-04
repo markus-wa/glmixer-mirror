@@ -119,7 +119,7 @@ if( APPLE )
 	  FROM ${QT_PLUGINS_DIR}/imageformats TO lib 
 	)
 	
-	install(DIRECTORY ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib DESTINATION .)
+	install(DIRECTORY ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib DESTINATION lib/Resources)
 	
 	set (CPACK_GENERATOR Bundle)
 	SET(CPACK_PACKAGE_FILE_NAME "GLMixer_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}_r${GLMIXER_WC_REVISION}_OSX_${CMAKE_OSX_ARCHITECTURES}")
