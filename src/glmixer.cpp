@@ -33,6 +33,7 @@
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
 #include "AlgorithmSelectionDialog.h"
+#include "SharedMemoryDialog.h"
 #include "UserPreferencesDialog.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
@@ -758,6 +759,20 @@ void GLMixer::on_actionSvgSource_triggered(){
 			statusbar->showMessage( tr("Source created with the vector graphics file %1.").arg( fileName ), 3000 );
 		} else
 			qCritical() << fileName << tr("|Could not create a vector graphics source with this file.");
+	}
+}
+
+
+void GLMixer::on_actionShmSource_triggered(){
+
+	// popup a question dialog to select the shared memory block
+	static SharedMemoryDialog *shmd = 0;
+	if(!shmd)
+		shmd = new SharedMemoryDialog(this);
+
+	if (shmd->exec() == QDialog::Accepted) {
+
+		qDebug() << tr("shmd accepted");
 	}
 }
 

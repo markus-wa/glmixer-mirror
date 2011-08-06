@@ -48,6 +48,8 @@ public:
 
 public Q_SLOTS:
 
+	void done(int r);
+
 	void on_AlgorithmComboBox_currentIndexChanged(int algo);
 	void on_customUpdateFrequency_toggled(bool flag);
 	void on_frequencySlider_valueChanged(int v);
@@ -56,14 +58,15 @@ public Q_SLOTS:
 	void on_heightSpinBox_valueChanged(int h);
 	void on_presetsSizeComboBox_currentIndexChanged(int preset);
 
+protected:
+	void showEvent(QShowEvent *);
+
 private:
 	AlgorithmSource *s;
 	SourceDisplayWidget *preview;
 
 	void createSource();
 
-	static int _algo, _width, _height, _preset, _variability;
-	static unsigned long _update;
 };
 
 #endif /* ALGORITHMSELECTIONDIALOG_H_ */

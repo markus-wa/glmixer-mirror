@@ -140,7 +140,8 @@ unsigned char randDisp(double disp) {
 class AlgorithmThread: public QThread {
 public:
 	AlgorithmThread(AlgorithmSource *source) :
-        QThread(), as(source), end(false) {
+        QThread(), as(source), end(false), phase(0),
+        i(0.0), j(0.0), k(0.0), l(0.0), di(0.5), dj(0.4), dk(0.3), dl(0.7) {
 
     }
 
@@ -149,6 +150,9 @@ public:
     AlgorithmSource* as;
     bool end;
 
+private:
+    int phase;
+    double i, j, k, l, di, dj, dk, dl;
 };
 
 
@@ -175,7 +179,6 @@ void AlgorithmThread::run(){
 
 				} else
 				if ( as->algotype == AlgorithmSource::BW_COSBARS ){
-					static int phase = 0;
 					phase = ( phase + int (as->variability * 36.0) ) % (360);
 					unsigned char c = 0;
 
@@ -190,7 +193,6 @@ void AlgorithmThread::run(){
 
 				} else
 				if ( as->algotype == AlgorithmSource::BW_COSCHECKER ){
-					static int phase = 0;
 					phase = ( phase + int (as->variability * 36.0) ) % (360);
 					unsigned char c = 0;
 
@@ -209,7 +211,6 @@ void AlgorithmThread::run(){
 				} else
 				if ( as->algotype == AlgorithmSource::PERLIN_BW_NOISE ){
 
-					static double i = 0.0, di = 0.5;
 					i += di * as->variability; // / RenderingManager::getRenderingWidget()->getFPS();
 					if (i > 100000.0 || i < 0.0)   di = -di;
 					for (int x = 0; x < as->width; ++x)
@@ -220,12 +221,10 @@ void AlgorithmThread::run(){
 				} else
 					if ( as->algotype == AlgorithmSource::PERLIN_COLOR_NOISE ){
 
-						static double i = 0.0, j = 0.0, k = 0.0, l = 0.0;
-						static double di = 0.3, dj = 0.4, dk = 0.5, dl = 0.7;
-						i += as->variability * di;;
-						j += as->variability * dj;;
-						k += as->variability * dk;;
-						l += as->variability * dl;;
+						i += as->variability * di;
+						j += as->variability * dj;
+						k += as->variability * dk;
+						l += as->variability * dl;
 						if (i > 100000.0 || i < 0.0)   di = -di;
 						for (int x = 0; x < as->width; ++x)
 							for (int y = 0; y < as->height; ++y) {
@@ -240,7 +239,7 @@ void AlgorithmThread::run(){
 							}
 					} else
 						if ( as->algotype == AlgorithmSource::TURBULENCE ){
-							static double i = 0.0, di = 0.5;
+
 							i += as->variability * di; // / RenderingManager::getRenderingWidget()->getFPS();
 							if (i > 100000.0 || i < 0.0)   di = -di;
 							for (int x = 0; x < as->width; ++x)

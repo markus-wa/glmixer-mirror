@@ -42,7 +42,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1" rowspan="6">
+   <item row="0" column="1" rowspan="7">
     <widget class="VideoFileDisplayWidget" name="previewWidget" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -77,6 +77,9 @@
      </property>
      <property name="text">
       <string>Codec</string>
+     </property>
+     <property name="buddy">
+      <cstring>CodecNameLineEdit</cstring>
      </property>
     </widget>
    </item>
@@ -116,6 +119,9 @@
      <property name="text">
       <string>Duration</string>
      </property>
+     <property name="buddy">
+      <cstring>endLineEdit</cstring>
+     </property>
     </widget>
    </item>
    <item row="1" column="3" rowspan="2">
@@ -140,13 +146,13 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0" rowspan="4">
+   <item row="2" column="0" rowspan="5">
     <widget class="QFrame" name="videoControlFrame">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+      <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -206,6 +212,19 @@
         </property>
        </widget>
       </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
      </layout>
     </widget>
    </item>
@@ -222,6 +241,9 @@
      </property>
      <property name="text">
       <string>Width</string>
+     </property>
+     <property name="buddy">
+      <cstring>widthLineEdit</cstring>
      </property>
     </widget>
    </item>
@@ -261,6 +283,9 @@
      <property name="text">
       <string>Height</string>
      </property>
+     <property name="buddy">
+      <cstring>heightLineEdit</cstring>
+     </property>
     </widget>
    </item>
    <item row="4" column="3">
@@ -285,14 +310,8 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="2" colspan="2">
+   <item row="6" column="2" colspan="2">
     <widget class="QCheckBox" name="customSizeCheckBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
      <property name="toolTip">
       <string>Convert dimensions to the closest power-of-two
 (necessary for some OpenGL rendering).</string>
@@ -307,6 +326,19 @@
       <bool>false</bool>
      </property>
     </widget>
+   </item>
+   <item row="5" column="3">
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

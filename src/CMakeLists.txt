@@ -24,6 +24,7 @@ set(GLMIXER_SRCS
     SvgSource.cpp
     AlgorithmSource.cpp
     AlgorithmSelectionDialog.cpp
+    SharedMemoryDialog.cpp
     SourceDisplayWidget.cpp
     View.cpp
     MixerView.cpp
@@ -64,6 +65,7 @@ set(GLMIXER_UIS
     AlgorithmSelectionDialog.ui
     UserPreferencesDialog.ui
     GammaLevelsDialog.ui
+    SharedMemoryDialog.ui
 )
 
 

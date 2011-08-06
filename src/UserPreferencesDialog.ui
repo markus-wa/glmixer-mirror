@@ -179,6 +179,9 @@ p, li { white-space: pre-wrap; }
                 <property name="text">
                  <string>Select the quality (resolution will be set according to rendering aspect ratio)</string>
                 </property>
+                <property name="buddy">
+                 <cstring>resolutionTable</cstring>
+                </property>
                </widget>
               </item>
               <item>
@@ -446,6 +449,9 @@ p, li { white-space: pre-wrap; }
                   <property name="text">
                    <string>Targeted display frame rate  </string>
                   </property>
+                  <property name="buddy">
+                   <cstring>updatePeriod</cstring>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -600,6 +606,9 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <property name="text">
                    <string>Targeted file frame rate  </string>
+                  </property>
+                  <property name="buddy">
+                   <cstring>recordingUpdatePeriod</cstring>
                   </property>
                  </widget>
                 </item>
@@ -764,6 +773,9 @@ the user to select a file name</string>
                   <property name="text">
                    <string>Scaling of sources : </string>
                   </property>
+                  <property name="buddy">
+                   <cstring>scalingModeSelection</cstring>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -817,6 +829,9 @@ the user to select a file name</string>
                 </property>
                 <property name="text">
                  <string> Number of frames to skip</string>
+                </property>
+                <property name="buddy">
+                 <cstring>numberOfFramesRendering</cstring>
                 </property>
                </widget>
               </item>
@@ -975,6 +990,9 @@ font: 75;</string>
                    <widget class="QLabel" name="label_13">
                     <property name="text">
                      <string>Speed</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>speedZoom</cstring>
                     </property>
                    </widget>
                   </item>

@@ -29,53 +29,42 @@
 #include "AlgorithmSource.h"
 
 
-int AlgorithmSelectionDialog::_algo = 0, AlgorithmSelectionDialog::_variability = 30;
-int AlgorithmSelectionDialog::_width = 160, AlgorithmSelectionDialog::_height = 120, AlgorithmSelectionDialog::_preset = 8;
-unsigned long AlgorithmSelectionDialog::_update = 40;
-
 AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(parent), s(0), preview(0){
 
     setupUi(this);
 
     preview = new SourceDisplayWidget(this);
-    verticalLayout->insertWidget(1, preview);
-
-	preview->setMinimumSize(_width, _height);
-
-    // recall choices
-    presetsSizeComboBox->setCurrentIndex(_preset);
-    if (_preset == 0) {
-		heightSpinBox->setValue(_height);
-		widthSpinBox->setValue(_width);
-    }
-    variabilitySlider->setValue(_variability);
+    verticalLayout->insertWidget(0, preview);
 
     AlgorithmComboBox->clear();
     // create sources with selected algo
     for (int i = 0; i < AlgorithmSource::NONE; ++i)
     	AlgorithmComboBox->addItem(AlgorithmSource::getAlgorithmDescription(i));
 
-    _algo = AlgorithmComboBox->currentIndex();
-    createSource();
-
-	// change update
-	frequencySlider->setValue(_update);
-	customUpdateFrequency->setChecked(_update != 60);
 }
 
 AlgorithmSelectionDialog::~AlgorithmSelectionDialog() {
 	delete preview;
-	if (s)
-		delete s;
-
-	// remember choices
-	_preset = presetsSizeComboBox->currentIndex();
-	_width = getSelectedWidth();
-	_height = getSelectedHeight();
-	_algo = getSelectedAlgorithmIndex();
-	_update = frequencySlider->value();
-	_variability = variabilitySlider->value();
 }
+
+void AlgorithmSelectionDialog::showEvent(QShowEvent *e){
+
+	createSource();
+
+	QWidget::showEvent(e);
+}
+
+void AlgorithmSelectionDialog::done(int r){
+
+	if (preview)
+		preview->setSource(0);
+	if (s) {
+		delete s;
+		s = 0;
+	}
+	QDialog::done(r);
+}
+
 
 void AlgorithmSelectionDialog::createSource(){
 
@@ -125,11 +114,11 @@ void  AlgorithmSelectionDialog::on_heightSpinBox_valueChanged(int h){
 void AlgorithmSelectionDialog::on_presetsSizeComboBox_currentIndexChanged(int preset){
 
 	if (preset == 0) {
-		heightSpinBox->setReadOnly(false);
-		widthSpinBox->setReadOnly(false);
+		heightSpinBox->setEnabled(true);
+		widthSpinBox->setEnabled(true);
 	} else {
-		heightSpinBox->setReadOnly(true);
-		widthSpinBox->setReadOnly(true);
+		heightSpinBox->setEnabled(false);
+		widthSpinBox->setEnabled(false);
 
 		switch (preset) {
 		case 1:

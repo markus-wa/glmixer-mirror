@@ -42,6 +42,8 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
 #ifndef CAMERA_PREVIEW
     preview = 0;
     showPreview->setEnabled(false);
+    showPreview->hide();
+    nopreview->setText(tr("Preview disabled in this version."));
 #else
     preview = new SourceDisplayWidget(this);
     preview->hide();
@@ -53,6 +55,12 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
     QObject::connect(opencvComboBox, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
 #endif
 
+}
+
+
+CameraDialog::~CameraDialog() {
+	if (preview)
+		delete preview;
 }
 
 void CameraDialog::createSource(){
@@ -68,8 +76,6 @@ void CameraDialog::createSource(){
 	}
 
 #ifdef OPEN_CV
-
-
 	if (currentCameraIndex >= 0) {
 
 		if ( ! OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex) ) {
@@ -85,28 +91,27 @@ void CameraDialog::createSource(){
 	}
 #endif
 
-
-
 }
 
 
 void CameraDialog::showEvent(QShowEvent *e){
 
-	QWidget::showEvent(e);
-
     setOpencvCamera(opencvComboBox->currentIndex());
 
+	QWidget::showEvent(e);
 }
 
-void CameraDialog::accept(){
+void CameraDialog::done(int r){
 
 	if (preview)
 		preview->setSource(0);
+
 	if (s) {
 		delete s;
 		s = 0;
 	}
-	QDialog::accept();
+
+	QDialog::done(r);
 }
 
 void CameraDialog::setPreviewEnabled(bool on){
@@ -124,7 +129,6 @@ void CameraDialog::setPreviewEnabled(bool on){
 	}
 
 	verticalLayout->itemAt(0)->widget()->show();
-
 }
 
 #ifdef OPEN_CV

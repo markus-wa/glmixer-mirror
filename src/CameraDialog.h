@@ -44,9 +44,10 @@ class CameraDialog : public QDialog, Ui_CameraDialog
 	public:
 
 		CameraDialog(QWidget *parent = 0, int startTabIndex = 0);
+		virtual ~CameraDialog();
 
 	public Q_SLOTS:
-		void accept();
+		void done(int r);
 		void setPreviewEnabled(bool);
 
 

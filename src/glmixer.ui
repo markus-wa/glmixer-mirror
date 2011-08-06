@@ -1868,6 +1868,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionCaptureSource"/>
     <addaction name="actionAlgorithmSource"/>
     <addaction name="actionSvgSource"/>
+    <addaction name="actionShmSource"/>
     <addaction name="separator"/>
     <addaction name="menuCurrent_source"/>
     <addaction name="actionSelect_Next"/>
@@ -1919,6 +1920,8 @@ Uncheck to display the restart frame when stopped.</string>
     </widget>
     <addaction name="actionToggleRenderingVisible"/>
     <addaction name="actionPause"/>
+    <addaction name="actionShare_to_RAM"/>
+    <addaction name="separator"/>
     <addaction name="actionRecord"/>
     <addaction name="actionPause_recording"/>
     <addaction name="actionSave_snapshot"/>
@@ -1959,6 +1962,7 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionCaptureSource"/>
    <addaction name="actionAlgorithmSource"/>
    <addaction name="actionSvgSource"/>
+   <addaction name="actionShmSource"/>
    <addaction name="actionCloneSource"/>
    <addaction name="separator"/>
    <addaction name="actionDeleteSource"/>
@@ -3117,9 +3121,6 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="text">
     <string>&amp;New source &amp;Algorithm</string>
    </property>
-   <property name="toolTip">
-    <string>Add an Algorithm source</string>
-   </property>
    <property name="statusTip">
     <string>Creates a new source using algorithms to generate graphics.</string>
    </property>
@@ -3899,6 +3900,37 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N, G</string>
+   </property>
+  </action>
+  <action name="actionShmSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/ram.png</normaloff>:/glmixer/icons/ram.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;New source shared &amp;Memory</string>
+   </property>
+   <property name="statusTip">
+    <string>Creates a source reading from shared memory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N, M</string>
+   </property>
+  </action>
+  <action name="actionShare_to_RAM">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/ram-record.png</normaloff>
+     <normalon>:/glmixer/icons/ram-recording.png</normalon>:/glmixer/icons/ram-record.png</iconset>
+   </property>
+   <property name="text">
+    <string>Share to RAM</string>
+   </property>
+   <property name="statusTip">
+    <string>Share the rendering to memory </string>
    </property>
   </action>
  </widget>
