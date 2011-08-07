@@ -110,7 +110,7 @@ SharedMemorySource::SharedMemorySource(GLuint texture, double d, QString key, QS
 	// fill first frame
 	if (shm->lock()) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,0, glformat, gltype, (unsigned char*) shm->constData());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, glformat, gltype, (unsigned char*) shm->constData());
 		shm->unlock();
 	}
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);

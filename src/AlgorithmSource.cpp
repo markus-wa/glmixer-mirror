@@ -282,7 +282,7 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int 
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,0, GL_BGRA, GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
 
 	// if no period given, set to default 60Hz
 	if (period <= 0)

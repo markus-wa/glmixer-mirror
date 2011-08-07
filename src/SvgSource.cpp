@@ -61,10 +61,10 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
 
 #if QT_VERSION >= 0x040700
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered.height(),
-				  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.constBits() );
+				  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.constBits() );
 #else
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
-				  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.bits() );
+				  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.bits() );
 #endif
 
 }

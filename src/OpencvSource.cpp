@@ -110,7 +110,7 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	} else
 		frame = raw;
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 
 	width = frame->width;
 	height = frame->height;

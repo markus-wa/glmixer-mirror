@@ -20,11 +20,11 @@ CaptureSource::CaptureSource(QImage capture, GLuint texture, double d): Source(t
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 #if QT_VERSION >= 0x040700
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _capture.width(), _capture. height(),
-				  0, GL_BGRA, GL_UNSIGNED_BYTE, _capture.constBits() );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  _capture.width(), _capture. height(),
+				  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _capture.constBits() );
 #else
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _capture.width(), _capture. height(),
-				  0, GL_BGRA, GL_UNSIGNED_BYTE, _capture.bits() );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  _capture.width(), _capture. height(),
+				  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _capture.bits() );
 #endif
 	aspectratio = double(_capture.width()) / double(_capture.height());
 

@@ -109,7 +109,7 @@ void VideoFileDisplayWidget::updateFrame (int i)
         if (vp && vp->isAllocated()) {
 
             if ( vp->getFormat() == PIX_FMT_RGBA)
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  vp->getWidth(),
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  vp->getWidth(),
                          vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
                          vp->getBuffer() );
             else

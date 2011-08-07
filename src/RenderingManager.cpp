@@ -223,7 +223,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 		// create second draw target texture for this FBO (for catalog)
 		glGenTextures(1, &_fboCatalogTexture);
 		glBindTexture(GL_TEXTURE_2D, _fboCatalogTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _fbo->width(), _fbo->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _fbo->width(), _fbo->height(), 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
