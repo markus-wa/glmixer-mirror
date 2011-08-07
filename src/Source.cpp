@@ -38,7 +38,7 @@ bool Source::playable = false;
 // innefective source just to get default parameters
 Source::Source() :
 			culled(false), standby(false), frameChanged(false), cropped(false), modifiable(true), textureIndex(0),
-			maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(0),
+			maskTextureIndex(0), x(0.0), y(0.0), z(0),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
 			pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
@@ -63,7 +63,7 @@ Source::Source() :
 // the 'REAL' source constructor.
 Source::Source(GLuint texture, double depth) :
 	culled(false), standby(false), frameChanged(true), cropped(false), modifiable(true), textureIndex(texture),
-	maskTextureIndex(0), iconIndex(0), x(0.0), y(0.0), z(depth),
+	maskTextureIndex(0), x(0.0), y(0.0), z(depth),
 	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
 	pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
@@ -87,9 +87,9 @@ Source::Source(GLuint texture, double depth) :
 	id = lastid++;
 
 	clones = new SourceList;
+	CHECK_PTR_EXCEPTION(clones)
 
 	z = CLAMP(z, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
-
 }
 
 Source::~Source() {

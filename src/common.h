@@ -98,5 +98,13 @@ class folderValidator : public QValidator
     }
 };
 
+class AllocationException : public QtConcurrent::Exception {
+public:
+	virtual QString message() { return "No memory"; }
+	void raise() const { throw *this; }
+	Exception *clone() const { return new AllocationException(*this); }
+};
+
+#define CHECK_PTR_EXCEPTION(ptr) if(!(ptr)) AllocationException().raise();
 
 #endif /*  COMMON_H_ */

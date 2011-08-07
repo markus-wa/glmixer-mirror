@@ -29,6 +29,14 @@
 #include "Source.h"
 #include <QtSvg>
 
+
+class SvgRenderingException : public SourceConstructorException {
+public:
+	virtual QString message() { return "Cannot render these vector graphics."; }
+	void raise() const { throw *this; }
+	Exception *clone() const { return new SvgRenderingException(*this); }
+};
+
 class SvgSource: public Source
 {
 	friend class RenderingManager;

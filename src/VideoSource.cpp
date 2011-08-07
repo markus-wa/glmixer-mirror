@@ -35,47 +35,31 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) : QObject(), So
 		is(f), bufferIndex(-1)
 {
 
-    if (videoSourceIconIndex == 0) {
+    if (!is)
+    	SourceConstructorException().raise();
 
-    	glActiveTexture(GL_TEXTURE0);
-    	glGenTextures(1, &videoSourceIconIndex);
-    	glBindTexture(GL_TEXTURE_2D, videoSourceIconIndex);
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    	QImage p( ":/glmixer/icons/video.png" );
-    	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  p.width(), p. height(),
-    	    		  0, GL_RGBA, GL_UNSIGNED_BYTE, p.bits() );
-    }
+	QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
+	aspectratio = is->getStreamAspectRatio();
 
-    iconIndex = videoSourceIconIndex;
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureIndex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    if (is) {
-        QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
+	// fills in the first frame
+	const VideoPicture *vp = is->getPictureAtIndex(-1);
+	if (vp && vp->isAllocated()) {
 
-        aspectratio = is->getStreamAspectRatio();
-
-		glActiveTexture(GL_TEXTURE0);
-    	glBindTexture(GL_TEXTURE_2D, textureIndex);
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    	// fills in the first frame
-        const VideoPicture *vp = is->getPictureAtIndex(-1);
-        if (vp && vp->isAllocated()) {
-
-        	// fill in the texture
-    		if ( vp->getFormat() == PIX_FMT_RGBA)
-    			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  vp->getWidth(),
-    					 vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
-    					 vp->getBuffer() );
-    		else
-    			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,  vp->getWidth(),
-    					 vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-    					 vp->getBuffer() );
-        }
-
-    }
-    // TODO : else through exeption
+		// fill in the texture
+		if ( vp->getFormat() == PIX_FMT_RGBA)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  vp->getWidth(),
+					 vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+					 vp->getBuffer() );
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,  vp->getWidth(),
+					 vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+					 vp->getBuffer() );
+	}
 
 }
 

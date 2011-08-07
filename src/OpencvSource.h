@@ -41,9 +41,11 @@
 
 class CameraThread;
 
-struct NoCameraIndexException : public std::runtime_error
-{
-	NoCameraIndexException() : std::runtime_error("OpenCV camera index unavailable.") {}
+class NoCameraIndexException : public SourceConstructorException {
+public:
+	virtual QString message() { return "Opencv index is not valid."; }
+	void raise() const { throw *this; }
+	Exception *clone() const { return new NoCameraIndexException(*this); }
 };
 
 class OpencvSource: public QObject, public Source {

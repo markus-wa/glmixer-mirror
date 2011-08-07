@@ -9,8 +9,11 @@
 #define SHAREDMEMORYDIALOG_H_
 
 
-#include <QDialog>
+#include <QtGui>
 #include "ui_SharedMemoryDialog.h"
+
+class Source;
+class SourceDisplayWidget;
 
 class SharedMemoryDialog : public QDialog, Ui::SharedMemoryDialog
 {
@@ -20,7 +23,29 @@ public:
 	SharedMemoryDialog(QWidget *parent = 0);
 	virtual ~SharedMemoryDialog();
 
+	QString getSelectedProcess();
+	QString getSelectedInfo();
+	QString getSelectedKey();
+	QSize getSelectedSize();
+	QImage::Format getSelectedFormat();
 
+public Q_SLOTS:
+
+	void done(int r);
+	void setCurrent(const QItemSelection & selected, const QItemSelection & deselected);
+
+protected:
+	void showEvent(QShowEvent *);
+    void timerEvent(QTimerEvent *event);
+
+private:
+	int updateListTimer;
+	Source *s;
+	SourceDisplayWidget *preview;
+    QStandardItemModel *listExistingShmModel;
+    QStandardItem *selectedItem;
+
+	void createSource();
 
 };
 

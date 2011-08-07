@@ -290,11 +290,11 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int 
 
 	// create thread
 	mutex = new QMutex;
-    Q_CHECK_PTR(mutex);
+    CHECK_PTR_EXCEPTION(mutex);
     cond = new QWaitCondition;
-    Q_CHECK_PTR(cond);
+    CHECK_PTR_EXCEPTION(cond);
 	thread = new AlgorithmThread(this);
-    Q_CHECK_PTR(thread);
+	CHECK_PTR_EXCEPTION(thread);
 	thread->start();
     thread->setPriority(QThread::LowPriority);
 }
@@ -366,6 +366,7 @@ void AlgorithmSource::initBuffer(){
 	}
 
 	buffer = new unsigned char [width * height * 4];
+	CHECK_PTR_EXCEPTION(buffer);
 	// CLEAR the buffer to white
 	memset((void *)buffer, std::numeric_limits<unsigned char>::max(), width * height * 4 );
 

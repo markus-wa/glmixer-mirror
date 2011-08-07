@@ -34,6 +34,7 @@
 #include "VideoFileDialog.h"
 #include "AlgorithmSelectionDialog.h"
 #include "SharedMemoryDialog.h"
+#include "SharedMemoryManager.h"
 #include "UserPreferencesDialog.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
@@ -318,11 +319,15 @@ GLMixer::~GLMixer()
 
 void GLMixer::exitHandler() {
 
-	_instance->saveSettings();
+	if (_instance) {
+		_instance->saveSettings();
+		delete _instance;
+	}
 
 	RenderingManager::deleteInstance();
 	OutputRenderWindow::deleteInstance();
-	delete _instance;
+	SharedMemoryManager::deleteInstance();
+
 }
 
 void GLMixer::closeEvent ( QCloseEvent * event ){
@@ -719,10 +724,10 @@ void GLMixer::on_actionCameraSource_triggered() {
 
 			CloneSource *cs = dynamic_cast<CloneSource*> (s);
 			if (cs) {
-				qDebug() << s->getName() <<  tr("|OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
+				qDebug() << s->getName() << '|' <<  tr("OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
 				statusbar->showMessage( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
 			} else {
-				qDebug() << s->getName() <<  tr("|New OpenCV source created (device index %2).").arg(selectedCamIndex);
+				qDebug() << s->getName() << '|' <<  tr("New OpenCV source created (device index %2).").arg(selectedCamIndex);
 				statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
 			}
 		} else
@@ -746,7 +751,7 @@ void GLMixer::on_actionSvgSource_triggered(){
 
 		QFileInfo file(fileName);
 		if ( !file.exists() || !file.isReadable()) {
-			qCritical() << fileName << tr("|File does not exist or is unreadable.");
+			qCritical() << fileName << '|' <<   tr("File does not exist or is unreadable.");
 			return;
 		}
 
@@ -755,10 +760,10 @@ void GLMixer::on_actionSvgSource_triggered(){
 		Source *s = RenderingManager::getInstance()->newSvgSource(svg);
 		if ( s ){
 			RenderingManager::getInstance()->addSourceToBasket(s);
-			qDebug() << s->getName() <<  tr("|New vector Graphics source created with file ")<< fileName;
+			qDebug() << s->getName() << '|' <<  tr("New vector Graphics source created with file ")<< fileName;
 			statusbar->showMessage( tr("Source created with the vector graphics file %1.").arg( fileName ), 3000 );
 		} else
-			qCritical() << fileName << tr("|Could not create a vector graphics source with this file.");
+			qCritical() << fileName << '|' <<  tr("Could not create a vector graphics source with this file.");
 	}
 }
 
@@ -771,8 +776,14 @@ void GLMixer::on_actionShmSource_triggered(){
 		shmd = new SharedMemoryDialog(this);
 
 	if (shmd->exec() == QDialog::Accepted) {
-
-		qDebug() << tr("shmd accepted");
+		Source *s = RenderingManager::getInstance()->newSharedMemorySource(shmd->getSelectedKey(), shmd->getSelectedSize(),
+																		   shmd->getSelectedFormat(), shmd->getSelectedProcess(), shmd->getSelectedInfo());
+		if ( s ){
+			RenderingManager::getInstance()->addSourceToBasket(s);
+			qDebug() << s->getName() << '|' <<  tr("New shared memory source created (")<< shmd->getSelectedProcess() << ").";
+			statusbar->showMessage( tr("Source created with the process %1.").arg( shmd->getSelectedProcess() ), 3000 );
+		} else
+			qCritical() << shmd->getSelectedProcess() << '|' << tr("Could not create shared memory source.");
 	}
 }
 
@@ -788,10 +799,10 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 					asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod());
 		if ( s ){
 			RenderingManager::getInstance()->addSourceToBasket(s);
-			qDebug() << s->getName() <<  tr("|New Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << ").";
+			qDebug() << s->getName() << '|' << tr("New Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << ").";
 			statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
 		} else
-			qCritical() << tr("Could not create algorithm source.");
+			qCritical() << AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << '|' << tr("Could not create algorithm source.");
 	}
 }
 

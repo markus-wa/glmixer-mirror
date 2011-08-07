@@ -89,6 +89,7 @@ public:
 #endif
 	Source *newSvgSource(QSvgRenderer *svg, double depth = -1.0);
 	Source *newAlgorithmSource(int type, int w, int h, double v, int p, double depth = -1.0);
+	Source *newSharedMemorySource(QString key, QSize s, QImage::Format f, QString process, QString info, double depth = -1.0);
 	Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
 	// insert the source into the scene
 	bool insertSource(Source *s);

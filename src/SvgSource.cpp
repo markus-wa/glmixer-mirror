@@ -31,42 +31,42 @@ Source::RTTI SvgSource::type = Source::SVG_SOURCE;
 SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(texture, d), _svg(svg) {
 
 	// if the svg renderer could load the file
-	if (_svg && _svg->isValid()) {
-		// get aspect ratio from orifinal box
-		QRectF vb = _svg->viewBoxF();
-		aspectratio = double(vb.width()) / double(vb.height());
+	if (!_svg || !_svg->isValid())
+		SourceConstructorException().raise();
 
-		// setup renderer resolution to match to rendering manager preference
-		int w = RenderingManager::getInstance()->getFrameBufferWidth();
-		_rendered = QImage(w, w * aspectratio, QImage::Format_ARGB32_Premultiplied);
+	// get aspect ratio from orifinal box
+	QRectF vb = _svg->viewBoxF();
+	aspectratio = double(vb.width()) / double(vb.height());
 
-		// render an image from the svg
-		QPainter imagePainter(&_rendered);
-		imagePainter.setRenderHint(QPainter::Antialiasing, true);
-		imagePainter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-		imagePainter.setRenderHint(QPainter::TextAntialiasing, true);
-		_svg->render(&imagePainter);
-		imagePainter.end();
+	// setup renderer resolution to match to rendering manager preference
+	int w = RenderingManager::getInstance()->getFrameBufferWidth();
+	_rendered = QImage(w, w * aspectratio, QImage::Format_ARGB32_Premultiplied);
 
-		// generate a texture from the rendered image
-		if (!_rendered.isNull()) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, textureIndex);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// render an image from the svg
+	QPainter imagePainter(&_rendered);
+	imagePainter.setRenderHint(QPainter::Antialiasing, true);
+	imagePainter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+	imagePainter.setRenderHint(QPainter::TextAntialiasing, true);
+	_svg->render(&imagePainter);
+	imagePainter.end();
+
+	if (_rendered.isNull())
+		SvgRenderingException().raise();
+
+	// generate a texture from the rendered image
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureIndex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 #if QT_VERSION >= 0x040700
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered.height(),
-					  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.constBits() );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered.height(),
+				  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.constBits() );
 #else
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
-					  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.bits() );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
+				  0, GL_BGRA, GL_UNSIGNED_BYTE, _rendered.bits() );
 #endif
 
-		}
-		// TODO : else through exception
-
-	}
-	// TODO : else through exception
 }
 
 SvgSource::~SvgSource()

@@ -56,6 +56,7 @@
 #include "ViewRenderWidget.h"
 #include "RenderingSource.h"
 #include "AlgorithmSource.h"
+#include "SharedMemorySource.h"
 #include "CaptureSource.h"
 #include "CloneSource.h"
 #include "VideoSource.h"
@@ -509,7 +510,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(property);
 		// Frame rate
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(fr);
-
 		// Frames size & aspect ratio
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(fs);
 		rttiToProperty[Source::CAMERA_SOURCE]->addSubProperty(ar);
@@ -524,7 +524,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(property);
 		// Frame rate
 		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(fr);
-
 		// Frames size & aspect ratio
 		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(fs);
 		rttiToProperty[Source::RENDERING_SOURCE]->addSubProperty(ar);
@@ -551,6 +550,22 @@ void SourcePropertyBrowser::createPropertyTree(){
 		idToProperty[property->propertyName()] = property;
 		intManager->setRange(property, 1, 60);
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(property);
+
+	rttiToProperty[Source::SHM_SOURCE] = groupManager->addProperty( QLatin1String("Shared Memory"));
+
+		// program Name
+		property = infoManager->addProperty( QLatin1String("Program") );
+		property->setItalics(true);
+		idToProperty[property->propertyName()] = property;
+		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(property);
+		// Info
+		property = infoManager->addProperty( QLatin1String("Info") );
+		property->setItalics(true);
+		idToProperty[property->propertyName()] = property;
+		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(property);
+		// Frames size & aspect ratio
+		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(fs);
+		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(ar);
 
 	rttiToProperty[Source::CLONE_SOURCE] = groupManager->addProperty( QLatin1String("Clone"));
 
@@ -724,6 +739,14 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 
 			intManager->setValue(idToProperty["Variability"], (int) ( as->getVariability() * 100.0 ) );
 			intManager->setValue(idToProperty["Update frequency"], (int) ( 1000000.0 / double(as->getPeriodicity()) ) );
+
+		} else
+		if (s->rtti() == Source::SHM_SOURCE) {
+
+			SharedMemorySource *shms = dynamic_cast<SharedMemorySource *>(s);
+			infoManager->setValue(idToProperty["Program"], shms->getProgram() );
+			infoManager->setValue(idToProperty["Info"], shms->getInfo() );
+			sizeManager->setValue(idToProperty["Resolution"], QSize(shms->getFrameWidth(), shms->getFrameHeight()) );
 
 		} else
 		if (s->rtti() == Source::CLONE_SOURCE) {

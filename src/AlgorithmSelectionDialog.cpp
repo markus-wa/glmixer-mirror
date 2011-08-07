@@ -75,8 +75,18 @@ void AlgorithmSelectionDialog::createSource(){
 		delete s;
 	}
 
-	// create a new source with a new texture index and the new parameters
-	s = new AlgorithmSource(AlgorithmComboBox->currentIndex(), preview->getNewTextureIndex(), 0, widthSpinBox->value(), heightSpinBox->value(), getSelectedVariability(), getUpdatePeriod());
+	GLuint tex = preview->getNewTextureIndex();
+	try {
+		// create a new source with a new texture index and the new parameters
+		s = new AlgorithmSource(AlgorithmComboBox->currentIndex(), tex, 0, widthSpinBox->value(), heightSpinBox->value(), getSelectedVariability(), getUpdatePeriod());
+
+	} catch (AllocationException &e){
+		qCritical() << "AlgorithmSelectionDialog|" << e.message();
+		// free the OpenGL texture
+		glDeleteTextures(1, &tex);
+		// return an invalid pointer
+		s = 0;
+	}
 
 	// apply the source to the preview
 	preview->setSource(s);

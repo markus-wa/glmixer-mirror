@@ -90,7 +90,7 @@ void SourceDisplayWidget::paintGL()
 }
 
 
-int SourceDisplayWidget::getNewTextureIndex() {
+GLuint SourceDisplayWidget::getNewTextureIndex() {
     GLuint textureIndex;
 	makeCurrent();
 	glGenTextures(1, &textureIndex);

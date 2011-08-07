@@ -28,6 +28,7 @@
 #include "common.h"
 
 #include "AlgorithmSource.h"
+#include "SharedMemorySource.h"
 #include "VideoFile.h"
 #include "VideoSource.h"
 #ifdef OPEN_CV
@@ -422,15 +423,24 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 
 Source *RenderingManager::newRenderingSource(double depth) {
 
+	RenderingSource *s = 0;
 	_renderwidget->makeCurrent();
+
 	// create the previous frame (frame buffer object) if needed
 	if (!previousframe_fbo) {
 		previousframe_fbo = new QGLFramebufferObject(_fbo->width(), _fbo->height());
 	}
 
-	// create a source appropriate
-	RenderingSource *s = new RenderingSource(previousframe_fbo->texture(), getAvailableDepthFrom(depth));
-	if (s) s->setName( _defaultSource->getName() + "Render");
+	try {
+		// create a source appropriate
+		s = new RenderingSource(previousframe_fbo->texture(), getAvailableDepthFrom(depth));
+		s->setName( _defaultSource->getName() + "Render");
+
+	} catch (AllocationException &e){
+		qWarning() << "RenderingManager|" << e.message();
+		// return an invalid pointer
+		s = 0;
+	}
 
 	return ( (Source *) s );
 }
@@ -444,6 +454,7 @@ QImage RenderingManager::captureFrameBuffer() {
 
 Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 
+	SvgSource *s = 0;
 	// create the texture for this source
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
@@ -452,15 +463,25 @@ Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &textureIndex, &highpriority);
 
-	// create a source appropriate
-	SvgSource *s = new SvgSource(svg, textureIndex, getAvailableDepthFrom(depth));
-	if (s) s->setName( _defaultSource->getName() + "Svg");
+	try {
+		// create a source appropriate
+		s = new SvgSource(svg, textureIndex, getAvailableDepthFrom(depth));
+		s->setName( _defaultSource->getName() + "Svg");
+
+	} catch (AllocationException &e){
+		qWarning() << "RenderingManager|" << e.message();
+		// free the OpenGL texture
+		glDeleteTextures(1, &textureIndex);
+		// return an invalid pointer
+		s = 0;
+	}
 
 	return ( (Source *) s );
 }
 
 Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 
+	CaptureSource *s = 0;
 	// create the texture for this source
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
@@ -469,16 +490,25 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 	GLclampf highpriority = 1.0;
 	glPrioritizeTextures(1, &textureIndex, &highpriority);
 
-	// create a source appropriate
-	CaptureSource *s = new CaptureSource(img, textureIndex, getAvailableDepthFrom(depth));
-	if (s) s->setName( _defaultSource->getName() + "Capture");
+	try {
+		// create a source appropriate
+		s = new CaptureSource(img, textureIndex, getAvailableDepthFrom(depth));
+		s->setName( _defaultSource->getName() + "Capture");
+
+	} catch (AllocationException &e){
+		qWarning() << "RenderingManager|" << e.message();
+		// free the OpenGL texture
+		glDeleteTextures(1, &textureIndex);
+		// return an invalid pointer
+		s = 0;
+	}
 
 	return ( (Source *) s );
 }
 
 Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 
-
+	VideoSource *s = 0;
 	// create the texture for this source
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
@@ -487,9 +517,18 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 	GLclampf lowpriority = 0.1;
 	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
-	// create a source appropriate for this videofile
-	VideoSource *s = new VideoSource(vf, textureIndex, getAvailableDepthFrom(depth) );
-	if (s) s->setName( _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
+	try {
+		// create a source appropriate for this videofile
+		s = new VideoSource(vf, textureIndex, getAvailableDepthFrom(depth) );
+		s->setName( _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
+
+	} catch (AllocationException &e){
+		qWarning() << "RenderingManager|" << e.message();
+		// free the OpenGL texture
+		glDeleteTextures(1, &textureIndex);
+		// return an invalid pointer
+		s = 0;
+	}
 
 	return ( (Source *) s );
 }
@@ -518,8 +557,8 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 		s = new OpencvSource(opencvIndex, textureIndex, getAvailableDepthFrom(depth));
 		s->setName( _defaultSource->getName() + tr("Camera%1").arg(opencvIndex) );
 
-	} catch (NoCameraIndexException){
-
+	} catch (AllocationException &e){
+		qWarning() << "RenderingManager|" << e.message();
 		// free the OpenGL texture
 		glDeleteTextures(1, &textureIndex);
 		// return an invalid pointer
@@ -531,8 +570,9 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 #endif
 
 Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
-		int p, double depth) {
+											 int p, double depth) {
 
+	AlgorithmSource *s = 0;
 	// create the texture for this source
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
@@ -540,18 +580,64 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 	GLclampf lowpriority = 0.1;
 	glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
-	// create a source appropriate
-	AlgorithmSource *s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p);
-	if (s) s->setName( _defaultSource->getName() + "Algo");
+	try {
+		// create a source appropriate
+		s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p);
+		s->setName( _defaultSource->getName() + "Algo");
+
+	} catch (AllocationException &e){
+		qWarning() << "RenderingManager|" << e.message();
+		// free the OpenGL texture
+		glDeleteTextures(1, &textureIndex);
+		// return an invalid pointer
+		s = 0;
+	}
+
+	return ( (Source *) s );
+}
+
+
+Source *RenderingManager::newSharedMemorySource(QString key, QSize size, QImage::Format f,
+												QString process, QString info, double depth) {
+
+	SharedMemorySource *s = 0;
+	// create the texture for this source
+	GLuint textureIndex;
+	_renderwidget->makeCurrent();
+	glGenTextures(1, &textureIndex);
+	GLclampf lowpriority = 0.1;
+	glPrioritizeTextures(1, &textureIndex, &lowpriority);
+
+	try {
+		// create a source appropriate
+		s = new SharedMemorySource(textureIndex, getAvailableDepthFrom(depth), key, size, f, process, info);
+		s->setName( _defaultSource->getName() + process);
+
+	} catch (AllocationException &e){
+		qWarning() << "RenderingManager|" << e.message();
+		// free the OpenGL texture
+		glDeleteTextures(1, &textureIndex);
+		// return an invalid pointer
+		s = 0;
+	}
 
 	return ( (Source *) s );
 }
 
 Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) {
 
-	// create a source appropriate for this videofile
-	CloneSource *s = new CloneSource(sit, getAvailableDepthFrom(depth));
-	if (s) s->setName( _defaultSource->getName() + "Clone");
+	CloneSource *s = 0;
+
+	try{
+		// create a source appropriate for this videofile
+		s = new CloneSource(sit, getAvailableDepthFrom(depth));
+		s->setName( _defaultSource->getName() + "Clone");
+
+	} catch (AllocationException &e){
+		qWarning() << "RenderingManager|" << e.message();
+		// return an invalid pointer
+		s = 0;
+	}
 
 	return ( (Source *) s );
 }
@@ -1095,6 +1181,24 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			x.setAttribute("Variability", as->getVariability());
 			specific.appendChild(x);
 		}
+		else if ((*its)->rtti() == Source::SHM_SOURCE) {
+			SharedMemorySource *shms = dynamic_cast<SharedMemorySource *> (*its);
+
+			QDomElement f = doc.createElement("SharedMemory");
+			f.setAttribute("Program", shms->getProgram());
+			f.setAttribute("Info", shms->getInfo());
+			QDomText key = doc.createTextNode(shms->getKey());
+			f.appendChild(key);
+			specific.appendChild(f);
+
+			// get size
+			QDomElement s = doc.createElement("Frame");
+			s.setAttribute("Format", (int) shms->getFormat());
+			s.setAttribute("Width", shms->getFrameWidth());
+			s.setAttribute("Height", shms->getFrameHeight());
+			specific.appendChild(s);
+
+		}
 		else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
 			CaptureSource *cs = dynamic_cast<CaptureSource *> (*its);
 
@@ -1323,6 +1427,21 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 		        errors++;
 			} else
 				qDebug() << child.attribute("name") << tr("|Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt()) << ").";
+		}
+		else if ( type == Source::SHM_SOURCE) {
+			// read the tags specific for an algorithm source
+			QDomElement SharedMemory = t.firstChildElement("SharedMemory");
+			QDomElement Frame = t.firstChildElement("Frame");
+
+			newsource = RenderingManager::getInstance()->newSharedMemorySource(SharedMemory.text(),
+					QSize(Frame.attribute("Width").toInt(), Frame.attribute("Height").toInt()),
+					(QImage::Format) Frame.attribute("Format").toInt(),
+					SharedMemory.attribute("Program"), SharedMemory.attribute("Info"), depth);
+			if (!newsource) {
+				qWarning() << child.attribute("name") << tr("|Could not create shared memory source.");
+		        errors++;
+			} else
+				qDebug() << child.attribute("name") << tr("|Shared memory source created (")<< SharedMemory.text() << ").";
 		}
 		else if ( type == Source::RENDERING_SOURCE) {
 			// no tags specific for a rendering source

@@ -85,21 +85,22 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 {
 	// prevent from creation of duplicated opencv sources and from creation of more than 2 sources
 	if (  OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() >= 2)
-		throw NoCameraIndexException();
+		NoCameraIndexException().raise();
 
 	opencvCameraIndex = opencvIndex;
 	capture = cvCaptureFromCAM(opencvCameraIndex);
 	if (!capture)
-		throw NoCameraIndexException();
+		NoCameraIndexException().raise();
 
 	// fill in first frame
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 	IplImage *raw = cvQueryFrame( capture );
 	if (!raw)
-		throw NoCameraIndexException();
+		NoCameraIndexException().raise();
 
 	if ( raw->depth != IPL_DEPTH_8U || raw->nChannels != 3 || raw->widthStep > 3 * raw->width + 1) {
 		qWarning()<< "OpenCV" << '|' << tr("Video capture slowed down by image format conversion.");
@@ -117,11 +118,11 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 
 	// create thread
 	mutex = new QMutex;
-    Q_CHECK_PTR(mutex);
+	CHECK_PTR_EXCEPTION(mutex)
     cond = new QWaitCondition;
-    Q_CHECK_PTR(cond);
+    CHECK_PTR_EXCEPTION(cond)
 	thread = new CameraThread(this);
-    Q_CHECK_PTR(thread);
+	CHECK_PTR_EXCEPTION(thread)
 	thread->start();
     thread->setPriority(QThread::LowPriority);
 

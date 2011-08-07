@@ -78,10 +78,17 @@ void CameraDialog::createSource(){
 #ifdef OPEN_CV
 	if (currentCameraIndex >= 0) {
 
-		if ( ! OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex) ) {
+		if ( !OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex) ) {
+
+			GLuint tex = preview->getNewTextureIndex();
 			try {
-				s = (Source *) new OpencvSource(currentCameraIndex, preview->getNewTextureIndex(), 0);
-			} catch (NoCameraIndexException) {
+				s = (Source *) new OpencvSource(currentCameraIndex, tex, 0);
+
+			} catch (AllocationException &e){
+				qCritical() << "CameraDialog|" << e.message();
+				// free the OpenGL texture
+				glDeleteTextures(1, &tex);
+				// return an invalid pointer
 				s = 0;
 			}
 			// apply the source to the preview

@@ -34,6 +34,13 @@
 
 #include "common.h"
 
+class SourceConstructorException : public AllocationException {
+public:
+	virtual QString message() { return "Could not allocate source"; }
+	void raise() const { throw *this; }
+	Exception *clone() const { return new SourceConstructorException(*this); }
+};
+
 class QtProperty;
 
 class Source;
@@ -71,7 +78,7 @@ public:
 		RENDERING_SOURCE,
 		CAPTURE_SOURCE,
 		SVG_SOURCE,
-		MIX_SOURCE
+		SHM_SOURCE
 	} RTTI;
 	virtual RTTI rtti() const { return type; }
 	virtual bool isPlayable() const { return playable; }
@@ -447,7 +454,7 @@ protected:
 	SourceList *clones;
 
 	// GL Stuff
-	GLuint textureIndex, maskTextureIndex, iconIndex;
+	GLuint textureIndex, maskTextureIndex;
 	GLdouble x, y, z;
 	GLdouble scalex, scaley;
 	GLdouble alphax, alphay;

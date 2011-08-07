@@ -42,7 +42,7 @@ public:
 	void setSource(Source *sourceptr);
 	void playSource(bool on);
 
-	int getNewTextureIndex();
+	GLuint getNewTextureIndex();
 	void useAspectRatio(bool on) { use_aspect_ratio = on; }
 
 private:
