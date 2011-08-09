@@ -57,9 +57,9 @@
 #define COLOR_FRAME 210, 30, 210
 #define COLOR_CURSOR 13, 148, 224
 
-
 #if defined(__WIN32__)
 #define WIN32_LEAN_AND_MEAN
+#define GLEWAPI extern
 #include <windows.h>
 #endif
 

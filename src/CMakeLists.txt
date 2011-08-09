@@ -108,12 +108,6 @@ set (CPACK_PACKAGE_VENDOR "Bruno Herbelin")
 	
 if( APPLE )
 
-# TODO : 
-#  foreach (it ${CMAKE_OSX_ARCHITECTURES})
-#   set(ditto_ARGS ${ditto_ARGS} --arch ${it})
-#  endforeach(it)
-
-
 	GLMIXER_INSTALL_FRAMEWORKS( NAMES QtCore QtGui QtOpenGL QtSvg QtXml
 	  FROM ${QT_LIBRARY_DIR} TO lib 
 	)

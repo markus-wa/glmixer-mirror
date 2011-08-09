@@ -75,11 +75,17 @@ set( CMAKE_INCLUDE_PATH
   /mingw/include
   ${CMAKE_SYSTEM_INCLUDE_PATH}
 )
-set( CMAKE_FIND_LIBRARY_PREFIXES "" lib )
+
+# set the possible suffix for library files, in favor of static libs
 if( APPLE )
 	set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .framework)
 else( APPLE)
-	set( CMAKE_FIND_LIBRARY_SUFFIXES .lib .lib64 .so .so.0 .so.1 .a )
+	if (WIN32)
+  		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .dll .lib .lib64 )
+  	else (WIN32)
+  		# not APPLE, not WINDOWS ; must be unix !
+		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .so.1  )
+	endif (WIN32)
 endif( APPLE )
 
 set( CMAKE_LIBRARY_PATH 
@@ -96,9 +102,9 @@ set( CMAKE_LIBRARY_PATH
 
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
 set(USE_OPENCV false)
-find_library( OPENCV_CORE_LIBRARY NAMES opencv_core)
-find_library( OPENCV_IMGPROC_LIBRARY NAMES opencv_imgproc)
-find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_highgui)
+find_library( OPENCV_CORE_LIBRARY NAMES opencv_core opencv_core230)
+find_library( OPENCV_IMGPROC_LIBRARY NAMES opencv_imgproc opencv_imgproc230)
+find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_highgui opencv_highgui230)
 # if we find the opencv libs required, then use opencv
 if (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY})
@@ -184,8 +190,6 @@ ENDFOREACH(GLMIXER_UTILITY)
 if (WIN32)
 	# HERE IS THE INSTALLATION WINDOWS SOCK LIB 
  	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
-  	# allow to search for dlls; this is weird but necessary to link with glew :(...
-  	set( CMAKE_FIND_LIBRARY_SUFFIXES .dll ${CMAKE_FIND_LIBRARY_SUFFIXES})
 endif (WIN32)
 
 # HERE IS THE GLEW DEPENDENCY
