@@ -164,17 +164,13 @@ RenderingManager::~RenderingManager() {
 	setFrameSharingEnabled(false);
 
 	clearSourceSet();
-
-	if (_renderwidget)
-		delete _renderwidget;
+	delete _defaultSource;
 
 	if (_fbo)
 		delete _fbo;
 
-	delete _propertyBrowser;
 	delete _recorder;
 	delete _switcher;
-	delete _defaultSource;
 }
 
 

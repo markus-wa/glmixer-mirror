@@ -321,6 +321,9 @@ GLMixer::~GLMixer()
 
 void GLMixer::exitHandler() {
 
+	// no message handling when quit
+	qInstallMsgHandler(0);
+
 	if (_instance) {
 		_instance->saveSettings();
 		delete _instance;
