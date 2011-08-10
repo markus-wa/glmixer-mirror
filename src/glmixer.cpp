@@ -375,9 +375,6 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 
 	// message handler
 	switch (type) {
-	case QtCriticalMsg:
-		QMessageBox::critical(0, tr("%1 -- Critical error").arg(QCoreApplication::applicationName()), QString(txt).replace("|","\n") );
-		break;
 	case QtFatalMsg:
 		QMessageBox::critical(0, tr("%1 -- Fatal error").arg(QCoreApplication::applicationName()), txt);
 		abort();
@@ -421,6 +418,8 @@ void GLMixer::Log(int type, QString msg)
 		item->setBackgroundColor(0, QColor(220, 90, 50, 50));
 		item->setBackgroundColor(1, QColor(220, 90, 50, 50));
 		item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
+		QMessageBox::warning(0, tr("%1 -- Problem").arg(QCoreApplication::applicationName()), QString(msg).replace("|","\n") +
+														QObject::tr("\n\nPlease check the logs for details.") );
 		break;
 	default:
 		break;
