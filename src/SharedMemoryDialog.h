@@ -23,11 +23,8 @@ public:
 	SharedMemoryDialog(QWidget *parent = 0);
 	virtual ~SharedMemoryDialog();
 
+	qint64 getSelectedId();
 	QString getSelectedProcess();
-	QString getSelectedInfo();
-	QString getSelectedKey();
-	QSize getSelectedSize();
-	QImage::Format getSelectedFormat();
 
 public Q_SLOTS:
 

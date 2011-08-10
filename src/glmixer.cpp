@@ -232,6 +232,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getRenderingWidget(), SLOT(setFaded(bool)));
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), vcontrolDockWidget, SLOT(setDisabled(bool)));
+	QObject::connect(actionShareToRAM, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setFrameSharingEnabled(bool)));
 
 	output_aspectratio->setMenu(menuAspect_Ratio);
 	output_onair->setDefaultAction(actionToggleRenderingVisible);
@@ -249,6 +250,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionRecord, SIGNAL(toggled(bool)), actionPause_recording, SLOT(setEnabled(bool)));
 	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
 	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
+
 
 	// connect to disable many actions, like quitting, opening session, preferences, etc.
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionNew_Session, SLOT(setDisabled(bool)));
@@ -776,8 +778,7 @@ void GLMixer::on_actionShmSource_triggered(){
 		shmd = new SharedMemoryDialog(this);
 
 	if (shmd->exec() == QDialog::Accepted) {
-		Source *s = RenderingManager::getInstance()->newSharedMemorySource(shmd->getSelectedKey(), shmd->getSelectedSize(),
-																		   shmd->getSelectedFormat(), shmd->getSelectedProcess(), shmd->getSelectedInfo());
+		Source *s = RenderingManager::getInstance()->newSharedMemorySource(shmd->getSelectedId());
 		if ( s ){
 			RenderingManager::getInstance()->addSourceToBasket(s);
 			qDebug() << s->getName() << '|' <<  tr("New shared memory source created (")<< shmd->getSelectedProcess() << ").";

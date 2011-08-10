@@ -563,11 +563,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 		property->setItalics(true);
 		idToProperty[property->propertyName()] = property;
 		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(property);
-		// attached or not
-		property = boolManager->addProperty("Attached");
-		property->setToolTip("Attach / detach from shared memory");
-		idToProperty[property->propertyName()] = property;
-		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(property);
 		// Frames size & aspect ratio
 		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(fs);
 		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(ar);
@@ -752,7 +747,6 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			infoManager->setValue(idToProperty["Program"], shms->getProgram() );
 			infoManager->setValue(idToProperty["Info"], shms->getInfo() );
 			sizeManager->setValue(idToProperty["Resolution"], QSize(shms->getFrameWidth(), shms->getFrameHeight()) );
-			boolManager->setValue(idToProperty["Attached"], shms->isAttached());
 
 		} else
 		if (s->rtti() == Source::CLONE_SOURCE) {
@@ -987,13 +981,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 		currentItem->setChromaKey(value);
 		idToProperty["Key Color"]->setEnabled(value);
 		idToProperty["Key Tolerance"]->setEnabled(value);
-	}
-	else if ( property == idToProperty["Attached"] ) {
-		if (currentItem->rtti() == Source::SHM_SOURCE) {
-			SharedMemorySource *shms = dynamic_cast<SharedMemorySource *>(currentItem);
-			if (shms != 0)
-				shms->setAttached(value);
-		}
 	}
 }
 

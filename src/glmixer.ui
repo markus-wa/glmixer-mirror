@@ -1920,7 +1920,7 @@ Uncheck to display the restart frame when stopped.</string>
     </widget>
     <addaction name="actionToggleRenderingVisible"/>
     <addaction name="actionPause"/>
-    <addaction name="actionShare_to_RAM"/>
+    <addaction name="actionShareToRAM"/>
     <addaction name="separator"/>
     <addaction name="actionRecord"/>
     <addaction name="actionPause_recording"/>
@@ -3917,7 +3917,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Ctrl+N, M</string>
    </property>
   </action>
-  <action name="actionShare_to_RAM">
+  <action name="actionShareToRAM">
    <property name="checkable">
     <bool>true</bool>
    </property>

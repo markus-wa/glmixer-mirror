@@ -76,24 +76,136 @@ void SharedMemoryManager::deleteInstance(){
 }
 
 
-QMap<qint64, QVariantMap> SharedMemoryManager::getSharedMap(){
+QMap<qint64, QVariantMap>  SharedMemoryManager::readMap(){
 
     QBuffer buffer;
-    QDataStream bufstream(&buffer);
+    QDataStream in(&buffer);
     QMap<qint64, QVariantMap> glmixerMap;
 
-    // read the current map
     glmixerShmMap->lock();
+
+    // read the current map
     buffer.setData((char*)glmixerShmMap->constData(), glmixerShmMap->size());
     buffer.open(QBuffer::ReadOnly);
-    bufstream >> glmixerMap;
-
-//    qDebug() << "read " << glmixerMap;
-
-    glmixerShmMap->unlock();
+    in >> glmixerMap;
     buffer.close();
 
-    return glmixerMap;
+    glmixerShmMap->unlock();
 
+    return glmixerMap;
+}
+
+void SharedMemoryManager::writeMap(QMap<qint64, QVariantMap> glmixerMap){
+
+    QBuffer bufferwrite;
+    QDataStream out(&bufferwrite);
+
+    glmixerShmMap->lock();
+
+    // write the new map
+    bufferwrite.open(QBuffer::ReadWrite);
+    out << glmixerMap;
+    bufferwrite.close();
+    char *to = (char*)glmixerShmMap->data();
+    const char *from = bufferwrite.data().data();
+    memcpy(to, from, qMin(glmixerShmMap->size(), (int) bufferwrite.size()));
+
+    glmixerShmMap->unlock();
+}
+
+//
+
+QVariantMap SharedMemoryManager::getItemSharedMap(qint64 pid){
+
+    // read the current map
+    QMap<qint64, QVariantMap> glmixerMap = readMap();
+    // find the wanted item
+    QMap<qint64, QVariantMap>::iterator item = glmixerMap.find(pid);
+
+    if (item != glmixerMap.end())
+    	return item.value();
+    else
+    	return QVariantMap();
+}
+
+QMap<qint64, QVariantMap> SharedMemoryManager::getSharedMap(){
+
+    // read the current map
+    QMap<qint64, QVariantMap> glmixerMap = readMap();
+
+    // test the viability of each entry, and remove the bad ones
+	QMapIterator<qint64, QVariantMap> i(glmixerMap);
+	while (i.hasNext()) {
+		i.next();
+
+		QSharedMemory *m_sharedMemory = new QSharedMemory(i.value()["key"].toString());
+
+		if( !m_sharedMemory->attach() ) {
+			qDebug() << "Deleted invalid shared memory map:" << i.value()["key"].toString();
+		    glmixerMap.remove(i.key());
+		}
+		delete m_sharedMemory;
+	}
+
+    // write the new map
+	writeMap(glmixerMap);
+
+    return glmixerMap;
+}
+
+
+void SharedMemoryManager::removeItemSharedMap(qint64 pid){
+
+    // read the current map
+    QMap<qint64, QVariantMap> glmixerMap = readMap();
+
+    // remove the element
+    glmixerMap.remove(pid);
+
+    // write the new map
+	writeMap(glmixerMap);
+}
+
+void SharedMemoryManager::addItemSharedMap(qint64 pid, QVariantMap descriptormap){
+
+    // read the current map
+    QMap<qint64, QVariantMap> glmixerMap = readMap();
+
+    // add the element
+    glmixerMap[pid] = descriptormap;
+
+    // write the new map
+	writeMap(glmixerMap);
+}
+
+
+qint64 SharedMemoryManager::findItemSharedMap(QString key){
+
+    // read the current map
+    QMap<qint64, QVariantMap> glmixerMap = readMap();
+
+    // test the viability of each entry, and remove the bad ones
+	QMapIterator<qint64, QVariantMap> i(glmixerMap);
+	while (i.hasNext()) {
+		i.next();
+
+		// found it ?
+		if (i.value()["key"] == key) {
+			bool found = true;
+			// test it !
+			QSharedMemory *m_sharedMemory = new QSharedMemory(i.value()["key"].toString());
+			if( !m_sharedMemory->attach() ) {
+				qDebug() << "Deleted invalid shared memory map:" << i.value()["key"].toString();
+				glmixerMap.remove(i.key());
+				found = false;
+			}
+			delete m_sharedMemory;
+			// if it passed the test, return it
+			if (found)
+				return i.key();
+		}
+	}
+
+	return 0;
 }
 

@@ -69,12 +69,14 @@ public:
 	// status
 	bool isActive() { return started; }
 	int getRecodingTime();
+	bool isRecording() { return started && !paused ; }
 
 	// file dialog state restoration
 	QByteArray saveState() const { return sfa.saveState(); }
 	bool restoreState(const QByteArray &state) { return sfa.restoreState(state); }
 
 public Q_SLOTS:
+	void setFrameSize(QSize s) { if (!started) framesSize = s; }
 	void setActive(bool on);
 	void setPaused(bool on);
 	void saveFile();
@@ -100,10 +102,8 @@ private:
 	QTime timer;
 	int elapseTimer, badframecount;
 
-	// opengl
-	unsigned int fbohandle;
-
 	// encoder
+	QSize framesSize;
     EncodingThread *encoder;
 
 	uint update, displayupdate;

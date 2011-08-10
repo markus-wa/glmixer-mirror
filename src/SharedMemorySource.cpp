@@ -24,6 +24,7 @@
  */
 
 #include <SharedMemorySource.h>
+#include <SharedMemoryManager.h>
 
 #include <QtDebug>
 #include <QSharedMemory>
@@ -82,17 +83,15 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 	}
 }
 
-SharedMemorySource::SharedMemorySource(GLuint texture, double d, QString key, QSize s, QImage::Format f, QString process, QString info):
-		Source(texture, d), shmKey(key), programName(process), infoString(info), format(f) {
+SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): Source(texture, d), id(shid), normalsize(0) {
 
-	width = s.width();
-	height = s.height();
-	aspectratio = double(width) / double(height);
+	QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
+	if (descriptor.empty())
+		SourceConstructorException().raise();
 
-	// create the texture
-	setGLFormat(f);
-	if (glformat == GL_INVALID_ENUM)
-		InvalidFormatException().raise();
+	shmKey = descriptor["key"].toString();
+	programName = descriptor["program"].toString();
+	infoString = descriptor["info"].toString();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -108,12 +107,32 @@ SharedMemorySource::SharedMemorySource(GLuint texture, double d, QString key, QS
 		SharedMemoryAttachException().raise();
 
 	// fill first frame
+	setupTexture(descriptor);
+
+	shm->detach();
+
+}
+
+void SharedMemorySource::setupTexture(QVariantMap descriptor) {
+
+	QSize s = descriptor["size"].toSize();
+	width = s.width();
+	height = s.height();
+	aspectratio = double(width) / double(height);
+
+	// create the texture
+	setGLFormat( (QImage::Format) descriptor["format"].toInt());
+	if (glformat == GL_INVALID_ENUM)
+		InvalidFormatException().raise();
+
 	if (shm->lock()) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, glformat, gltype, (unsigned char*) shm->constData());
 		shm->unlock();
 	}
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+	normalsize = shm->size();
 }
 
 SharedMemorySource::~SharedMemorySource()
@@ -127,36 +146,27 @@ void SharedMemorySource::update(){
 
 	Source::update();
 
-	// TODO : implement mechanism to check frame changed
+	if (!shm->attach(QSharedMemory::ReadOnly) )
+		return;
 
-	if (isAttached() && shm->lock()) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, glformat, gltype, (unsigned char*) shm->constData());
-		shm->unlock();
-	}
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-}
-
-
-void SharedMemorySource::setAttached(bool attach){
-
-	if(shm){
-		if (attach) {
-			if (!shm->attach(QSharedMemory::ReadOnly))
-				qWarning() << getName() << '|' << shm->errorString();
-		} else {
-			if (!shm->detach())
-				qWarning() << getName() << '|' << shm->errorString();
+	// bad case ; the size of the shared memory changed !! :(
+	if (shm->size() != normalsize) {
+		QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
+		if (!descriptor.empty()) {
+			// re-generate the texture to the new size (hopefully correct in shared memory manager)
+			setupTexture(descriptor);
+		} else
+			qWarning() << getName() << '|' << "Unavailable shared memory at" << shmKey;
+	} else {
+		// normal case ; fast replacement of texture content
+		if (shm->lock()) {
+			glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, glformat, gltype, (unsigned char*) shm->constData());
+			shm->unlock();
 		}
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	}
+
+	shm->detach();
 }
 
-bool SharedMemorySource::isAttached(){
-
-	if (shm)
-		return shm->isAttached();
-	else
-		return false;
-
-}

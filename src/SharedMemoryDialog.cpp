@@ -15,12 +15,6 @@
 
 #include "SharedMemoryDialog.moc"
 
-#define KEY_ROLE Qt::UserRole + 1
-#define SIZE_ROLE Qt::UserRole + 2
-#define FORMAT_ROLE Qt::UserRole + 3
-#define INFO_ROLE Qt::UserRole + 4
-
-
 void fillModel(QStandardItemModel *model, QMap<qint64, QVariantMap> map)
 {
 
@@ -50,12 +44,6 @@ void fillModel(QStandardItemModel *model, QMap<qint64, QVariantMap> map)
 		// create list item
 		QStandardItem  *item = new QStandardItem(QIcon(icon), i.value()["program"].toString());
 		item->setData(i.key(), Qt::UserRole );
-
-		// store user data in the item
-		item->setData(i.value()["key"].toString(), KEY_ROLE);
-		item->setData(i.value()["size"].toSize(), SIZE_ROLE);
-		item->setData(i.value()["format"].toInt(), FORMAT_ROLE);
-		item->setData(i.value()["info"].toString(), INFO_ROLE);
 
 		// setup a tooltip to inform user
 	    QString tooltip = QString("%1 (%2x%3)").arg(i.value()["info"].toString()).arg(i.value()["size"].toSize().width()).arg(i.value()["size"].toSize().height());
@@ -113,44 +101,20 @@ void SharedMemoryDialog::timerEvent(QTimerEvent *event) {
 }
 
 
+qint64 SharedMemoryDialog::getSelectedId(){
+
+	if (selectedItem)
+		return selectedItem->data(Qt::UserRole).toLongLong();
+
+	return 0;
+}
+
 QString SharedMemoryDialog::getSelectedProcess(){
 
 	if (selectedItem)
 		return selectedItem->data(Qt::DisplayRole).toString();
 
 	return QString();
-}
-
-QString SharedMemoryDialog::getSelectedKey(){
-
-	if (selectedItem)
-		return selectedItem->data(KEY_ROLE).toString();
-
-	return QString();
-}
-
-QString SharedMemoryDialog::getSelectedInfo(){
-
-	if (selectedItem)
-		return selectedItem->data(INFO_ROLE).toString();
-
-	return QString();
-}
-
-QSize SharedMemoryDialog::getSelectedSize(){
-
-	if (selectedItem)
-		return selectedItem->data(SIZE_ROLE).toSize();
-
-	return QSize();
-}
-
-QImage::Format SharedMemoryDialog::getSelectedFormat(){
-
-	if (selectedItem)
-		return (QImage::Format) selectedItem->data(FORMAT_ROLE).toInt();
-
-	return QImage::Format_Invalid;
 }
 
 void SharedMemoryDialog::showEvent(QShowEvent *e){
@@ -185,9 +149,7 @@ void SharedMemoryDialog::createSource(){
 		GLuint tex = preview->getNewTextureIndex();
 		try {
 			// create a new source with a new texture index and the new parameters
-			s = new SharedMemorySource(tex, 0, selectedItem->data(KEY_ROLE).toString(),
-					selectedItem->data(SIZE_ROLE).toSize(), (QImage::Format) selectedItem->data(FORMAT_ROLE).toInt(),
-					selectedItem->data(Qt::DisplayRole).toString(), selectedItem->data(INFO_ROLE).toString() );
+			s = new SharedMemorySource(tex, 0, selectedItem->data(Qt::UserRole).toLongLong() );
 
 		} catch (AllocationException &e){
 			qCritical() << "SharedMemoryDialog|" << e.message();

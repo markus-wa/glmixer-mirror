@@ -17,11 +17,23 @@ public:
 	static SharedMemoryManager *getInstance();
 	static void deleteInstance();
 
+	// get the full map of shm
 	QMap<qint64, QVariantMap> getSharedMap();
+	// get the item with the given ID
+	QVariantMap getItemSharedMap(qint64 pid);
+	// add / remove items
+	void addItemSharedMap(qint64 pid, QVariantMap descriptormap);
+	void removeItemSharedMap(qint64 pid);
+
+	// find in the map if there is a match for this key
+	qint64 findItemSharedMap(QString key);
 
 private:
 	SharedMemoryManager();
 	virtual ~SharedMemoryManager();
+
+	QMap<qint64, QVariantMap>  readMap();
+	void writeMap(QMap<qint64, QVariantMap> glmixerMap);
 
 	static SharedMemoryManager *_instance;
 

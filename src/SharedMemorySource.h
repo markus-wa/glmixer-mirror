@@ -55,32 +55,34 @@ public:
 	static RTTI type;
 	RTTI rtti() const { return type; }
 
-	void setAttached(bool attach);
-	bool isAttached();
 	int getFrameWidth() const { return width; }
 	int getFrameHeight() const { return height; }
 
-	QString getKey() { return shmKey; }
+	qint64  getId() { return id; }
 	QString getProgram() { return programName; }
 	QString getInfo() { return infoString; }
-	QImage::Format getFormat() { return format; }
+	QString getKey() { return shmKey; }
 
     // only friends can create a source
 protected:
 
-	SharedMemorySource(GLuint texture, double d, QString key, QSize s, QImage::Format f, QString process = QString(), QString info = QString());
+	SharedMemorySource(GLuint texture, double d, qint64 shid);
 	virtual ~SharedMemorySource();
 	void update();
 
 private:
+	qint64 id;
 	QString shmKey, programName, infoString;
 	class QSharedMemory *shm;
+	int normalsize;
 
 	int width, height;
 	QImage::Format format;
-	void setGLFormat(QImage::Format f);
 	GLenum glformat, gltype;
 	GLint glunpackalign;
+
+	void setGLFormat(QImage::Format f);
+	void setupTexture(QVariantMap descriptor);
 };
 
 #endif /* SHMSOURCE_H_ */

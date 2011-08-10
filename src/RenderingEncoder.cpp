@@ -147,7 +147,7 @@ void EncodingThread::run() {
 }
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), automaticSaving(false), started(false), paused(false),
-													elapseTimer(0), badframecount(0), fbohandle(0), update(40), displayupdate(33) {
+													elapseTimer(0), badframecount(0), update(40), displayupdate(33) {
 
 	// set default format
 	temporaryFileName = "glmixeroutput";
@@ -267,16 +267,12 @@ bool RenderingEncoder::start(){
 		 freq = fps;
 	}
 
-	// get access to the size of the renderer fbo
-	QSize fbosize = RenderingManager::getInstance()->getFrameBufferResolution();
-	fbohandle =  RenderingManager::getInstance()->getFrameBufferHandle();
-
 	// setup update period for recording
 	displayupdate = glRenderWidget::updatePeriod();
 	glRenderWidget::setUpdatePeriod( update );
 
 	// initialization of ffmpeg recorder
-	recorder = video_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), format, fbosize.width(), fbosize.height(), freq, errormessage);
+	recorder = video_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), format, framesSize.width(), framesSize.height(), freq, errormessage);
 	if (recorder == NULL)
 		return false;
 
@@ -321,11 +317,9 @@ void RenderingEncoder::addFrame(){
 	if (!started || paused || recorder == NULL)
 		return;
 
-	// bind rendering frame buffer object
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbohandle);
 	// read the pixels and store into the temporary buffer queue
 	// (get the pointer to the current writing buffer from the queue of the thread to know where to write)
-	glReadPixels((GLint)0, (GLint)0, (GLint) recorder->width, (GLint) recorder->height, GL_BGRA, GL_UNSIGNED_BYTE, encoder->pictq_top());
+	glReadPixels((GLint)0, (GLint)0, (GLint) recorder->width, (GLint) recorder->height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, encoder->pictq_top());
 	// inform the thread that a picture was pushed into the queue
 	encoder->pictq_push();
 

@@ -46,12 +46,14 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include "RenderingEncoder.h"
 #include "SourcePropertyBrowser.h"
 #include "SessionSwitcher.h"
+#include "SharedMemoryManager.h"
 
 
 #include <map>
 #include <algorithm>
 #include <QGLFramebufferObject>
 #include <QProgressDialog>
+#include <QSharedMemory>
 
 // static members
 RenderingManager *RenderingManager::_instance = 0;
@@ -122,7 +124,7 @@ void RenderingManager::deleteInstance() {
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
 			previousframe_index(0), previousframe_delay(1), clearWhite(false),
-			gammaShift(1.f), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true) {
+			gammaShift(1.f), m_sharedMemory(0), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true) {
 
 	// 1. Create the view rendering widget and its catalog view
 	_renderwidget = new ViewRenderWidget;
@@ -158,6 +160,8 @@ RenderingManager::RenderingManager() :
 }
 
 RenderingManager::~RenderingManager() {
+
+	setFrameSharingEnabled(false);
 
 	clearSourceSet();
 
@@ -242,6 +246,16 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
 		_renderwidget->_catalogView->viewport[1] = 0;
 		_renderwidget->_catalogView->viewport[3] = _fbo->height();
+
+		// setup recorder frames size
+		_recorder->setFrameSize(_fbo->size());
+
+		// re-setup shared memory
+		if(m_sharedMemory) {
+			setFrameSharingEnabled(false);
+			setFrameSharingEnabled(true);
+		}
+
 	}
 	else
 		qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not working on this hardware."
@@ -324,9 +338,22 @@ void RenderingManager::postRenderToFrameBuffer() {
 		}
 	}
 
-	// save the frame to file (the recorder knows if it is active or not)
-	_recorder->addFrame();
+	// save the frame to file or copy to SHM
+	if (_recorder->isRecording() || m_sharedMemory) {
+		// bind rendering frame buffer object
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
 
+		// read from the framebuferobject and record this frame (the recorder knows if it is active or not)
+		_recorder->addFrame();
+
+		// share to memory if needed
+		if (m_sharedMemory) {
+			 m_sharedMemory->lock();
+//			 glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, (GLvoid *) m_sharedMemory->data());
+			 glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, (GLvoid *) m_sharedMemory->data());
+			 m_sharedMemory->unlock();
+		}
+	}
 }
 
 
@@ -597,8 +624,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 }
 
 
-Source *RenderingManager::newSharedMemorySource(QString key, QSize size, QImage::Format f,
-												QString process, QString info, double depth) {
+Source *RenderingManager::newSharedMemorySource(qint64 id, double depth) {
 
 	SharedMemorySource *s = 0;
 	// create the texture for this source
@@ -610,8 +636,8 @@ Source *RenderingManager::newSharedMemorySource(QString key, QSize size, QImage:
 
 	try {
 		// create a source appropriate
-		s = new SharedMemorySource(textureIndex, getAvailableDepthFrom(depth), key, size, f, process, info);
-		s->setName( _defaultSource->getName() + process);
+		s = new SharedMemorySource(textureIndex, getAvailableDepthFrom(depth), id);
+		s->setName( _defaultSource->getName() + s->getProgram());
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -1191,13 +1217,6 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			f.appendChild(key);
 			specific.appendChild(f);
 
-			// get size
-			QDomElement s = doc.createElement("Frame");
-			s.setAttribute("Format", (int) shms->getFormat());
-			s.setAttribute("Width", shms->getFrameWidth());
-			s.setAttribute("Height", shms->getFrameHeight());
-			specific.appendChild(s);
-
 		}
 		else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
 			CaptureSource *cs = dynamic_cast<CaptureSource *> (*its);
@@ -1431,12 +1450,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 		else if ( type == Source::SHM_SOURCE) {
 			// read the tags specific for an algorithm source
 			QDomElement SharedMemory = t.firstChildElement("SharedMemory");
-			QDomElement Frame = t.firstChildElement("Frame");
 
-			newsource = RenderingManager::getInstance()->newSharedMemorySource(SharedMemory.text(),
-					QSize(Frame.attribute("Width").toInt(), Frame.attribute("Height").toInt()),
-					(QImage::Format) Frame.attribute("Format").toInt(),
-					SharedMemory.attribute("Program"), SharedMemory.attribute("Info"), depth);
+			qint64 id = SharedMemoryManager::getInstance()->findItemSharedMap(SharedMemory.text());
+			if (id != 0)
+				newsource = RenderingManager::getInstance()->newSharedMemorySource(id, depth);
 			if (!newsource) {
 				qWarning() << child.attribute("name") << tr("|Could not create shared memory source.");
 		        errors++;
@@ -1600,4 +1617,55 @@ void RenderingManager::pause(bool on){
 }
 
 
+void RenderingManager::setFrameSharingEnabled(bool on){
+
+	// delete shared memory object
+	if (m_sharedMemory) {
+		m_sharedMemory->detach();
+		delete m_sharedMemory;
+	}
+	m_sharedMemory = 0;
+
+
+	if (on) {
+		//
+		// create shared memory descriptor
+		//
+
+		// TODO  : manage id globally to avoid using the same pid
+		qint64 id = QCoreApplication::applicationPid();
+
+		QVariantMap processInformation;
+		processInformation["program"] = "GLMixer";
+		processInformation["size"] = _fbo->size();
+		processInformation["format"] = (int) QImage::Format_ARGB32;
+		processInformation["info"] = QString("Process id %1").arg(id);
+		QVariant variant = QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer.png"));
+		processInformation["icon"] = variant;
+
+		QString m_sharedMemoryKey = QString("glmixer%1").arg(id);
+		processInformation["key"] = m_sharedMemoryKey;
+
+		//
+		// Create the shared memory
+		//
+		m_sharedMemory = new QSharedMemory(m_sharedMemoryKey);
+
+		if (!m_sharedMemory->create( sizeof(unsigned int) * _fbo->width() * _fbo->height()) ) {
+			qWarning() << tr("Unable to create shared memory.") << m_sharedMemory->errorString();
+			qDebug() << tr("Trying to attach from shared memory.");
+			if ( !m_sharedMemory->attach()) {
+				 qWarning() << tr("Unable to attach shared memory.") << m_sharedMemory->errorString();
+				return;
+			}
+		}
+
+		SharedMemoryManager::getInstance()->addItemSharedMap(id, processInformation);
+
+	} else {
+
+		SharedMemoryManager::getInstance()->removeItemSharedMap(QCoreApplication::applicationPid());
+	}
+
+}
 
