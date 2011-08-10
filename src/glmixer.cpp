@@ -381,6 +381,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 	case QtFatalMsg:
 		QMessageBox::critical(0, tr("%1 -- Fatal error").arg(QCoreApplication::applicationName()), txt);
 		abort();
+		break;
 	default:
 		break;
 	}
@@ -1556,6 +1557,7 @@ void GLMixer::openSessionFile(QString filename)
     	default:
     	case ASPECT_RATIO_4_3:
     		action4_3_aspect_ratio->trigger();
+    		break;
     	}
     	float g = renderConfig.attribute("gammaShift", "1").toFloat();
     	gammaShiftSlider->setValue(GammaToScale(g));

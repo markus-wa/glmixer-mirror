@@ -34,6 +34,8 @@ bool AlgorithmSource::playable = true;
 #include <limits>
 #include <iostream>
 
+#include "common.h"
+
 #include <QMutex>
 #include <QWaitCondition>
 #include <QThread>
@@ -449,6 +451,7 @@ QString AlgorithmSource::getAlgorithmDescription(int t) {
 		break;
 	default:
 		description = QString("Undefined");
+		break;
 	}
 
 	return description;
