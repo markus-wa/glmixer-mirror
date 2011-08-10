@@ -187,11 +187,16 @@ void SourcePropertyBrowser::createPropertyTree(){
 	glequationToEnum[GL_MIN] = 3; enumToGlequation[3] = GL_MIN;
 	glequationToEnum[GL_MAX] = 4; enumToGlequation[4] = GL_MAX;
 	// the comboBox presents of combinations
-	presetBlending[1] = qMakePair( 1, 0 );
-	presetBlending[2] = qMakePair( 1, 2 );
-	presetBlending[3] = qMakePair( 8, 0 );
-	presetBlending[4] = qMakePair( 8, 2 );
-	presetBlending[5] = qMakePair( 7, 0 );
+	// color mix
+	presetBlending[1] = qMakePair( 1, 0 ); // GL_ONE                , GL_ZERO
+	// inverse color mix
+	presetBlending[2] = qMakePair( 1, 2 ); // GL_ONE                , GL_SRC_COLOR
+	// layer color mix
+	presetBlending[3] = qMakePair( 4, 0 ); // GL_DST_COLOR          , GL_ZERO
+	// layer inverse color mix
+	presetBlending[4] = qMakePair( 4, 2 ); // GL_DST_COLOR          , GL_SRC_COLOR
+	// alpha blending
+	presetBlending[5] = qMakePair( 7, 0 ); // GL_ONE_MINUS_SRC_ALPHA, GL_ZERO
 
 	QtProperty *property;
 

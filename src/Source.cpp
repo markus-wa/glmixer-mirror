@@ -348,8 +348,11 @@ void Source::endEffectsSection() const {
 
 void Source::blend() const {
 
-	glBlendEquation(blend_eq);
-	glBlendFunc(source_blend, destination_blend);
+//	glBlendEquation(blend_eq);
+	glBlendEquationSeparate(blend_eq, GL_MAX);
+
+//	glBlendFunc(source_blend, destination_blend);
+	glBlendFuncSeparate(source_blend, destination_blend, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
 
 
 	// activate texture 1 ; double texturing of the mask
