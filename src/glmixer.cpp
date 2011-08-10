@@ -321,18 +321,17 @@ GLMixer::~GLMixer()
 
 void GLMixer::exitHandler() {
 
+	_instance->saveSettings();
+
 	// no message handling when quit
 	qInstallMsgHandler(0);
 
 	RenderingManager::deleteInstance();
-
-	if (_instance) {
-		_instance->saveSettings();
-		delete _instance;
-	}
-
 	OutputRenderWindow::deleteInstance();
 	SharedMemoryManager::deleteInstance();
+
+	if (_instance)
+		delete _instance;
 
 }
 
