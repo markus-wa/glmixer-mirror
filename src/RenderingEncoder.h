@@ -61,9 +61,9 @@ public:
 	uint updatePeriod() { return update; }
 
 	// preferences saving mode
-	void setAutomaticSavingMode(bool on) { automaticSaving = on;}
+	void setAutomaticSavingMode(bool on);
 	bool automaticSavingMode() { return automaticSaving;}
-	void setAutomaticSavingFolder(QDir d) { savingFolder = d; }
+	void setAutomaticSavingFolder(QDir d);
 	QDir automaticSavingFolder() { return savingFolder; }
 
 	// status
@@ -94,7 +94,7 @@ private:
 	// files location
 	QString temporaryFileName;
 	QFileDialog sfa;
-	QDir savingFolder;
+	QDir savingFolder, temporaryFolder;
 	bool automaticSaving;
 
 	// state machine

@@ -146,16 +146,18 @@ void EncodingThread::run() {
 	}
 }
 
-RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), automaticSaving(false), started(false), paused(false),
+RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false),
 													elapseTimer(0), badframecount(0), update(40), displayupdate(33) {
 
 	// set default format
-	temporaryFileName = "glmixeroutput";
+	temporaryFileName = "__temp__";
 	setEncodingFormat(FORMAT_AVI_FFVHUFF);
 	// init file saving dir
+	savingFolder = QDir::currentPath();
 	sfa.setDirectory(QDir::currentPath());
 	sfa.setAcceptMode(QFileDialog::AcceptSave);
 	sfa.setFileMode(QFileDialog::AnyFile);
+	setAutomaticSavingMode(false);
 	// create encoding thread
 	encoder = new EncodingThread();
     Q_CHECK_PTR(encoder);
@@ -237,8 +239,8 @@ bool RenderingEncoder::start(){
 	}
 
 	// if the temporary file already exists, delete it.
-	if (QDir::temp().exists(temporaryFileName)){
-		QDir::temp().remove(temporaryFileName);
+	if (temporaryFolder.exists(temporaryFileName)){
+		temporaryFolder.remove(temporaryFileName);
 	}
 
 	// compute desired update frequency
@@ -272,7 +274,7 @@ bool RenderingEncoder::start(){
 	glRenderWidget::setUpdatePeriod( update );
 
 	// initialization of ffmpeg recorder
-	recorder = video_rec_init(qPrintable( QDir::temp().absoluteFilePath(temporaryFileName)), format, framesSize.width(), framesSize.height(), freq, errormessage);
+	recorder = video_rec_init(qPrintable(temporaryFolder.absoluteFilePath(temporaryFileName)), format, framesSize.width(), framesSize.height(), freq, errormessage);
 	if (recorder == NULL)
 		return false;
 
@@ -375,6 +377,27 @@ bool RenderingEncoder::close(){
 }
 
 
+void RenderingEncoder::setAutomaticSavingMode(bool on) {
+
+	automaticSaving = on;
+
+	// ensure the temporary file is in the same folder as the destination file
+	// to avoid copy (rename) of file accross drives
+	if (automaticSaving)
+		temporaryFolder = savingFolder;
+	else
+		temporaryFolder = QDir::temp();
+
+}
+
+
+void RenderingEncoder::setAutomaticSavingFolder(QDir d) {
+
+	savingFolder = d;
+
+	setAutomaticSavingMode(automaticSaving);
+}
+
 void RenderingEncoder::saveFile(){
 
 	QFileInfo infoFileDestination(savingFolder, QDateTime::currentDateTime().toString(Qt::ISODate) + '.' + recorder->suffix);
@@ -383,7 +406,7 @@ void RenderingEncoder::saveFile(){
 		infoFileDestination.dir().remove(infoFileDestination.fileName());
 	}
 	// move the temporaryFileName to newFileName
-	QDir::temp().rename(temporaryFileName, infoFileDestination.absoluteFilePath());
+	temporaryFolder.rename(temporaryFileName, infoFileDestination.absoluteFilePath());
 	emit status(tr("File %1 saved.").arg(infoFileDestination.absoluteFilePath()), 2000);
 	qDebug() << infoFileDestination.absoluteFilePath() << tr("|Recording saved.");
 }
@@ -406,7 +429,7 @@ void RenderingEncoder::saveFileAs(){
 				infoFileDestination.dir().remove(infoFileDestination.fileName());
 			}
 			// move the temporaryFileName to newFileName
-			QDir::temp().rename(temporaryFileName, newFileName);
+			temporaryFolder.rename(temporaryFileName, newFileName);
 			emit status(tr("File %1 saved.").arg(newFileName), 2000);
 			qDebug() << newFileName << tr("|Recording saved.");
 		}
