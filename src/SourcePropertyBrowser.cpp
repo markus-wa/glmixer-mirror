@@ -872,10 +872,20 @@ void SourcePropertyBrowser::setGlobalExpandState(bool expanded)
 }
 
 
+bool SourcePropertyBrowser::canChange(){
+
+	if (currentItem)
+		emit changed(currentItem);
+	else
+		return false;
+
+	return true;
+}
+
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, const QString &value){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	if ( property == idToProperty["Name"] ) {
@@ -886,7 +896,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QString &va
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, const QPointF &value){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	if ( property == idToProperty["Position"] ) {
@@ -905,7 +915,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QPointF &va
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, const QRectF &value){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	if ( property == idToProperty["Crop"] ) {
@@ -917,7 +927,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QRectF &val
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &value){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	if ( property == idToProperty["Color"] ) {
@@ -931,7 +941,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &val
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, double value){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	if ( property == idToProperty["Depth"] ) {
@@ -957,7 +967,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, double value){
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 
-	if (!currentItem)
+	if (!canChange())
 		return;
 
 	if ( property == idToProperty["Modifiable"] ) {
@@ -991,7 +1001,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	if ( property == idToProperty["Brightness"] ) {
@@ -1040,7 +1050,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 
 void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	if ( property == idToProperty["Blending"] ) {
@@ -1094,7 +1104,7 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 
 void SourcePropertyBrowser::updateMixingProperties(){
 
-	if (!currentItem)
+	if (!canChange())
 		return;
 
 	disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
@@ -1105,7 +1115,7 @@ void SourcePropertyBrowser::updateMixingProperties(){
 
 void SourcePropertyBrowser::updateGeometryProperties(){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
@@ -1122,7 +1132,7 @@ void SourcePropertyBrowser::updateGeometryProperties(){
 
 void SourcePropertyBrowser::updateLayerProperties(){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
@@ -1132,7 +1142,7 @@ void SourcePropertyBrowser::updateLayerProperties(){
 
 void SourcePropertyBrowser::updateMarksProperties(bool showFrames){
 
-	if (!currentItem)
+	if (!canChange())
 			return;
 
 	if (currentItem->rtti() == Source::VIDEO_SOURCE) {

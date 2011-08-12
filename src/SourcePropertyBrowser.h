@@ -77,6 +77,9 @@ public slots:
 
     void setPropertyEnabled(QString propertyName, bool enabled);
 
+Q_SIGNALS:
+	void changed(Source *s);
+
 private:
 
 	// property tree
@@ -92,6 +95,8 @@ private:
     void addProperty(QtProperty *property);
     void updateExpandState();
     Source *currentItem;
+
+    bool canChange();
 
 	// the property browsers
 	class QVBoxLayout *layout;

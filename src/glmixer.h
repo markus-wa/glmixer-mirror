@@ -112,6 +112,7 @@ public Q_SLOTS:
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
+	void sourceChanged(Source *s);
 
 	void Log(int, QString);
 	void readSettings();
@@ -140,7 +141,7 @@ private:
 	QString currentSessionFileName;
 	VideoFile *selectedSourceVideoFile;
 	QFileDialog *sfd;
-	bool usesystemdialogs;
+	bool usesystemdialogs, maybeSave;
 	class VideoFileDialog *mfd;
 	class OutputRenderWidget *outputpreview;
 	class UserPreferencesDialog *upd;

@@ -75,7 +75,7 @@ GLMixer *GLMixer::getInstance() {
 	return _instance;
 }
 
-GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), usesystemdialogs(0), refreshTimingTimer(0)
+GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), usesystemdialogs(false), maybeSave(true), refreshTimingTimer(0)
 {
     setupUi ( this );
     setAcceptDrops ( true );
@@ -177,6 +177,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	propertyBrowser->setParent(sourceDockWidgetContents);
 	sourceDockWidgetContentsLayout->addWidget(propertyBrowser);
     QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
+    QObject::connect(propertyBrowser, SIGNAL(changed(Source*)), this, SLOT(sourceChanged(Source*) ) );
 
 	// Setup the gamma levels toolbox
 	gammaAdjust = new GammaLevelsWidget(this);
@@ -709,6 +710,14 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	updateMarks();
 	// restart slider timer if necessary
 	updateRefreshTimerState();
+
+}
+
+
+void GLMixer::sourceChanged(Source *s) {
+
+	if (s)
+		maybeSave = true;
 
 }
 
@@ -1323,32 +1332,31 @@ void GLMixer::confirmSessionFileName(){
 
 void GLMixer::on_actionNew_Session_triggered()
 {
-// TODO : implement good mechanism to know if something was changed
-//	// inform the user that data might be lost
-//	int ret = QMessageBox::Discard;
-//	if (!currentStageFileName.isNull()) {
-//		 QMessageBox msgBox;
-//		 msgBox.setText("The session may have been modified.");
-//		 msgBox.setInformativeText("Do you want to save your changes?");
-//		 msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
-//		 msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-//		 msgBox.setDefaultButton(QMessageBox::Save);
-//		 ret = msgBox.exec();
-//	}
-//	// react according to user's answer
-//	switch (ret) {
-//	   case QMessageBox::Save:
-//		   // Save was clicked
-//		   on_actionSave_Session_triggered();
-//		   break;
-//	   case QMessageBox::Cancel:
-//		   // Cancel was clicked
-//		   return;
-//	   case QMessageBox::Discard:
-//	   default:
-//		   // keep on to create new session
-//		   break;
-//	}
+	// inform the user that data might be lost
+	int ret = QMessageBox::Discard;
+	if (maybeSave) {
+		 QMessageBox msgBox;
+		 msgBox.setText(tr("The session have been modified."));
+		 msgBox.setInformativeText(tr("Do you want to save your changes ?"));
+		 msgBox.setIconPixmap( QPixmap(QString::fromUtf8(":/glmixer/icons/question.png")) );
+		 msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+		 msgBox.setDefaultButton(QMessageBox::Save);
+		 ret = msgBox.exec();
+	}
+	// react according to user's answer
+	switch (ret) {
+	   case QMessageBox::Save:
+		   // Save was clicked
+		   on_actionSave_Session_triggered();
+		   break;
+	   case QMessageBox::Cancel:
+		   // Cancel was clicked
+		   return;
+	   case QMessageBox::Discard:
+	   default:
+		   // keep on to create new session
+		   break;
+	}
 
 	// make a new session
 	currentSessionFileName = QString();
@@ -1377,7 +1385,7 @@ void GLMixer::newSession()
 	outputpreview->refresh();
 	// reset
 	on_gammaShiftReset_clicked();
-
+	maybeSave = false;
 }
 
 
@@ -1423,6 +1431,8 @@ void GLMixer::on_actionSave_Session_triggered(){
 		statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
 		emit sessionSaved();
 	}
+
+	maybeSave = false;
 }
 
 void GLMixer::on_actionSave_Session_as_triggered()
@@ -1615,6 +1625,7 @@ void GLMixer::openSessionFile(QString filename)
 
     // broadcast that the session is loaded
 	emit sessionLoaded();
+	maybeSave = false;
 
 	// start the smooth transition
     RenderingManager::getSessionSwitcher()->startTransition(true);
@@ -1680,6 +1691,8 @@ void GLMixer::on_actionAppend_Session_triggered(){
 		// confirm the loading of the file
 		statusbar->showMessage( tr("Sources from %1 appended to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
 	}
+
+	maybeSave = true;
 }
 
 void GLMixer::dragEnterEvent(QDragEnterEvent *event)
@@ -1792,6 +1805,7 @@ void GLMixer::dropEvent(QDropEvent *event)
 	if (errors > 0)
 		qCritical() << tr("Not all the dropped files could be loaded.");
 
+	maybeSave = true;
 }
 
 void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
