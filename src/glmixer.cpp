@@ -320,6 +320,7 @@ GLMixer::~GLMixer()
     delete gammaAdjust;
 }
 
+
 void GLMixer::exitHandler() {
 
 	_instance->saveSettings();
@@ -2188,3 +2189,21 @@ bool GLMixer::useSystemDialogs()
 	return usesystemdialogs;
 }
 
+
+void GLMixer::on_actionFullscreenMode_toggled(bool on){
+
+	menubar->setVisible(!on);
+	actionFullscreen->setChecked(on);
+
+	// if ask fullscreen and already fullscreen
+	if (on && (windowState() & Qt::WindowFullScreen))
+		return;
+
+	// if ask NOT fullscreen and already NOT fullscreen
+	if (!on && !(windowState() & Qt::WindowFullScreen))
+		return;
+
+	// other cases ; need to switch fullscreen <-> not fullscreen
+	setWindowState(windowState() ^ Qt::WindowFullScreen);
+	update();
+}

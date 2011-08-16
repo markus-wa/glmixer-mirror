@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/fullscreenmode.png</file>
     <file>icons/ram.png</file>
     <file>icons/ram-recording.png</file>
     <file>icons/ram-record.png</file>

@@ -1779,7 +1779,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1188</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1801,6 +1801,15 @@ Uncheck to display the restart frame when stopped.</string>
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <widget class="QMenu" name="menuZoom">
+     <property name="title">
+      <string>Zoom</string>
+     </property>
+     <addaction name="actionZoomReset"/>
+     <addaction name="actionZoomIn"/>
+     <addaction name="actionZoomOut"/>
+     <addaction name="actionZoomBestFit"/>
+    </widget>
     <widget class="QMenu" name="menuCatalog">
      <property name="title">
       <string>Catalog</string>
@@ -1810,15 +1819,6 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionCatalogSmall"/>
      <addaction name="actionCatalogMedium"/>
      <addaction name="actionCatalogLarge"/>
-    </widget>
-    <widget class="QMenu" name="menuZoom">
-     <property name="title">
-      <string>Zoom</string>
-     </property>
-     <addaction name="actionZoomReset"/>
-     <addaction name="actionZoomIn"/>
-     <addaction name="actionZoomOut"/>
-     <addaction name="actionZoomBestFit"/>
     </widget>
     <widget class="QMenu" name="menuToolBars">
      <property name="title">
@@ -1833,6 +1833,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="menuZoom"/>
     <addaction name="menuCatalog"/>
     <addaction name="separator"/>
+    <addaction name="actionFullscreenMode"/>
     <addaction name="actionShowFPS"/>
     <addaction name="actionShow_frames"/>
     <addaction name="menuToolBars"/>
@@ -2016,6 +2017,7 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionLoad_Session"/>
    <addaction name="actionSave_Session"/>
    <addaction name="actionNew_Session"/>
+   <addaction name="actionFullscreenMode"/>
   </widget>
   <widget class="QToolBar" name="toolsToolBar">
    <property name="windowTitle">
@@ -3083,7 +3085,7 @@ Uncheck to display the restart frame when stopped.</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show FPS</string>
+    <string>Display Framerate</string>
    </property>
    <property name="toolTip">
     <string>Show FPS</string>
@@ -3933,6 +3935,21 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Share the rendering to memory </string>
    </property>
   </action>
+  <action name="actionFullscreenMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/fullscreenmode.png</normaloff>:/glmixer/icons/fullscreenmode.png</iconset>
+   </property>
+   <property name="text">
+    <string>Fullscreen mode</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -3957,8 +3974,8 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>911</x>
-     <y>73</y>
+     <x>985</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -3973,8 +3990,8 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>887</x>
-     <y>73</y>
+     <x>961</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -3989,8 +4006,8 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>863</x>
-     <y>73</y>
+     <x>937</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -4005,8 +4022,8 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>839</x>
-     <y>73</y>
+     <x>913</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -4022,11 +4039,11 @@ Uncheck to display the restart frame when stopped.</string>
    <hints>
     <hint type="sourcelabel">
      <x>1178</x>
-     <y>823</y>
+     <y>821</y>
     </hint>
     <hint type="destinationlabel">
      <x>1178</x>
-     <y>848</y>
+     <y>846</y>
     </hint>
    </hints>
   </connection>
@@ -4101,12 +4118,12 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>234</x>
-     <y>851</y>
+     <x>239</x>
+     <y>850</y>
     </hint>
     <hint type="destinationlabel">
-     <x>113</x>
-     <y>856</y>
+     <x>117</x>
+     <y>854</y>
     </hint>
    </hints>
   </connection>
@@ -4117,8 +4134,8 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>942</x>
-     <y>75</y>
+     <x>1009</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -4133,12 +4150,12 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>clear()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>143</x>
-     <y>96</y>
+     <x>72</x>
+     <y>466</y>
     </hint>
     <hint type="destinationlabel">
      <x>195</x>
-     <y>119</y>
+     <y>554</y>
     </hint>
    </hints>
   </connection>
@@ -4149,12 +4166,12 @@ Uncheck to display the restart frame when stopped.</string>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>249</x>
-     <y>95</y>
+     <x>246</x>
+     <y>466</y>
     </hint>
     <hint type="destinationlabel">
      <x>209</x>
-     <y>82</y>
+     <y>493</y>
     </hint>
    </hints>
   </connection>
