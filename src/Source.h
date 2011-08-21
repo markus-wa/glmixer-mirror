@@ -199,6 +199,9 @@ public:
 	void scaleBy(GLfloat fx, GLfloat fy);
 	void clampScale();
 
+	void setVerticalFlip(bool on) { flipVertical = on; }
+	bool verticalFlip() { return flipVertical; }
+
 	typedef enum { SCALE_CROP= 0, SCALE_FIT, SCALE_DEFORM, SCALE_PIXEL} scalingMode;
 	void resetScale(scalingMode sm = SCALE_CROP);
 
@@ -465,6 +468,7 @@ protected:
 	GLenum source_blend, destination_blend;
 	GLenum blend_eq;
 	QRectF textureCoordinates;
+	bool flipVertical;
 
 	// if should be set to GL_NEAREST
 	bool pixelated;

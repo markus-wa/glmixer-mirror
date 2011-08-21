@@ -175,6 +175,9 @@ public:
 		return clearWhite;
 	}
 
+	uint getSharedMemoryColorDepth();
+	void setSharedMemoryColorDepth(uint mode);
+
 	/**
 	 * save and load configuration
 	 */
@@ -236,7 +239,8 @@ protected:
     float gammaShift;
 
     // The shared memory buffer
-    class QSharedMemory *m_sharedMemory;
+    class QSharedMemory *_sharedMemory;
+    GLenum _sharedMemoryGLFormat, _sharedMemoryGLType;
 
 	// the set of sources
 	SourceSet _sources;

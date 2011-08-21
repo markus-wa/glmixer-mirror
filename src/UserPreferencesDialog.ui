@@ -89,7 +89,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="currentRow">
-          <number>0</number>
+          <number>-1</number>
          </property>
          <item>
           <property name="text">
@@ -108,7 +108,7 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <property name="text">
-           <string>Recording</string>
+           <string>Exporting</string>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -543,53 +543,67 @@ p, li { white-space: pre-wrap; }
               <string>Format of video file generated</string>
              </property>
              <property name="title">
-              <string>Recording format</string>
+              <string>Recording</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_10">
               <item>
-               <widget class="QComboBox" name="recordingFormatSelection">
-                <property name="toolTip">
-                 <string>Select the recording Codec</string>
-                </property>
-                <property name="currentIndex">
-                 <number>4</number>
-                </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
                 <item>
-                 <property name="text">
-                  <string>AVI       (RAW video)</string>
-                 </property>
+                 <widget class="QLabel" name="label_5">
+                  <property name="text">
+                   <string>File format (codec)</string>
+                  </property>
+                  <property name="buddy">
+                   <cstring>recordingFormatSelection</cstring>
+                  </property>
+                 </widget>
                 </item>
                 <item>
-                 <property name="text">
-                  <string>AVI       (FFVHUFF)</string>
-                 </property>
+                 <widget class="QComboBox" name="recordingFormatSelection">
+                  <property name="toolTip">
+                   <string>Select the recording Codec</string>
+                  </property>
+                  <property name="currentIndex">
+                   <number>4</number>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>AVI       (RAW video)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>AVI       (FFVHUFF)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>MPG   (MPEG1)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>MPG   (MPEG2)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>MP4    (MPEG4)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>WMV   (Windows Media Video 8)</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>FLV      (Flash Video FLV1)</string>
+                   </property>
+                  </item>
+                 </widget>
                 </item>
-                <item>
-                 <property name="text">
-                  <string>MPG   (MPEG1)</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>MPG   (MPEG2)</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>MP4    (MPEG4)</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>WMV   (Windows Media Video 8)</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>FLV      (Flash Video FLV1)</string>
-                 </property>
-                </item>
-               </widget>
+               </layout>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayoutFPS">
@@ -658,57 +672,106 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLabel" name="warning1">
                 <property name="text">
-                 <string>NB: RAW and FFVHUFF are looseless and the fastest recording methods.</string>
+                 <string>NB: RAW and FFVHUFF are looseless and fast recording methods.</string>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="warning2">
                 <property name="text">
-                 <string>Other codec are more CPU hungry (risk of frame rate drop) and may be lossy.</string>
+                 <string>Other codec may be lossy and slow, but are more portable.</string>
                 </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="recordingFolderBox">
+                <property name="toolTip">
+                 <string>Save recordings automatically without prompting
+the user to select a file name</string>
+                </property>
+                <property name="title">
+                 <string>Automatic saving in a folder</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                 <item>
+                  <widget class="QLineEdit" name="recordingFolderLine">
+                   <property name="toolTip">
+                    <string>Location where the files are saved</string>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">*[exists=&quot;false&quot;] { background-color: yellow }</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="recordingFolderButton">
+                   <property name="toolTip">
+                    <string>Select a folder</string>
+                   </property>
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </item>
              </layout>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="recordingFolderBox">
-             <property name="toolTip">
-              <string>Save recordings automatically without prompting
-the user to select a file name</string>
-             </property>
+            <widget class="QGroupBox" name="groupBox">
              <property name="title">
-              <string>Automatic saving in a folder</string>
+              <string>Shared Memory</string>
              </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-             <property name="checked">
-              <bool>false</bool>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <layout class="QVBoxLayout" name="verticalLayout_12">
               <item>
-               <widget class="QLineEdit" name="recordingFolderLine">
-                <property name="toolTip">
-                 <string>Location where the files are saved</string>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">*[exists=&quot;false&quot;] { background-color: yellow }</string>
-                </property>
-               </widget>
+               <layout class="QHBoxLayout" name="horizontalLayout">
+                <item>
+                 <widget class="QLabel" name="label_4">
+                  <property name="text">
+                   <string>Color depth</string>
+                  </property>
+                  <property name="buddy">
+                   <cstring>sharedMemoryColorDepth</cstring>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="sharedMemoryColorDepth">
+                  <item>
+                   <property name="text">
+                    <string>RGB 16bits</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>RBG 24bits</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>RGBA 32bits</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
-               <widget class="QToolButton" name="recordingFolderButton">
-                <property name="toolTip">
-                 <string>Select a folder</string>
-                </property>
+               <widget class="QLabel" name="label_6">
                 <property name="text">
-                 <string>...</string>
-                </property>
-                <property name="icon">
-                 <iconset resource="../icons.qrc">
-                  <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
+                 <string>NB: High color depth lead to slower copy and risk of low frame rate.</string>
                 </property>
                </widget>
               </item>
@@ -1278,8 +1341,8 @@ font: 75;</string>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>650</x>
-     <y>530</y>
+     <x>747</x>
+     <y>561</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -1294,8 +1357,8 @@ font: 75;</string>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>650</x>
-     <y>530</y>
+     <x>747</x>
+     <y>561</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -1326,12 +1389,12 @@ font: 75;</string>
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>613</x>
-     <y>304</y>
+     <x>315</x>
+     <y>146</y>
     </hint>
     <hint type="destinationlabel">
-     <x>640</x>
-     <y>305</y>
+     <x>326</x>
+     <y>146</y>
     </hint>
    </hints>
   </connection>
@@ -1342,8 +1405,8 @@ font: 75;</string>
    <slot>restoreDefaultPreferences()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>225</x>
-     <y>529</y>
+     <x>350</x>
+     <y>560</y>
     </hint>
     <hint type="destinationlabel">
      <x>0</x>
@@ -1358,12 +1421,12 @@ font: 75;</string>
    <slot>setText(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>380</x>
-     <y>225</y>
+     <x>326</x>
+     <y>169</y>
     </hint>
     <hint type="destinationlabel">
-     <x>316</x>
-     <y>201</y>
+     <x>261</x>
+     <y>124</y>
     </hint>
    </hints>
   </connection>
@@ -1374,12 +1437,12 @@ font: 75;</string>
    <slot>unset()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>610</x>
-     <y>188</y>
+     <x>325</x>
+     <y>124</y>
     </hint>
     <hint type="destinationlabel">
-     <x>603</x>
-     <y>219</y>
+     <x>326</x>
+     <y>169</y>
     </hint>
    </hints>
   </connection>
@@ -1390,8 +1453,8 @@ font: 75;</string>
    <slot>restoreAllDefaultPreferences()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>71</x>
-     <y>515</y>
+     <x>76</x>
+     <y>562</y>
     </hint>
     <hint type="destinationlabel">
      <x>-13</x>
@@ -1406,12 +1469,12 @@ font: 75;</string>
    <slot>setSpeed(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>372</x>
-     <y>330</y>
+     <x>310</x>
+     <y>141</y>
     </hint>
     <hint type="destinationlabel">
-     <x>429</x>
-     <y>335</y>
+     <x>326</x>
+     <y>139</y>
     </hint>
    </hints>
   </connection>
@@ -1422,12 +1485,12 @@ font: 75;</string>
    <slot>setCentered(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>308</x>
-     <y>350</y>
+     <x>311</x>
+     <y>142</y>
     </hint>
     <hint type="destinationlabel">
-     <x>432</x>
-     <y>354</y>
+     <x>326</x>
+     <y>139</y>
     </hint>
    </hints>
   </connection>

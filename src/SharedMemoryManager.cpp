@@ -12,6 +12,7 @@
 #include <QtDebug>
 #include <QDataStream>
 #include <QBuffer>
+#include <QPixmap>
 #include <QMap>
 
 SharedMemoryManager *SharedMemoryManager::_instance = 0;
@@ -33,6 +34,11 @@ SharedMemoryManager::SharedMemoryManager() {
     processInformation["width"] = 100000;
     processInformation["height"] = 100000;
     processInformation["format"] = 0;
+    processInformation["opengl"] = true;
+    processInformation["info"] = "dummy information string";
+	QVariant variant = QPixmap(QString::fromUtf8(":/glmixer/icons/gear.png"));
+	processInformation["icon"] = variant;
+
     for (qint64 i = 0; i < MAX_NUM_SHM; ++i)
     	glmixerMap[i] = processInformation;
     bufstream << glmixerMap;
@@ -209,3 +215,32 @@ qint64 SharedMemoryManager::findItemSharedMap(QString key){
 	return 0;
 }
 
+
+bool SharedMemoryManager::hasProgramSharedMap(QString program){
+
+    bool found = false;
+
+    // read the current map
+    QMap<qint64, QVariantMap> glmixerMap = readMap();
+
+    // test the viability of each entry, and remove the bad ones
+    QMapIterator<qint64, QVariantMap> i(glmixerMap);
+    while (i.hasNext()) {
+        i.next();
+
+        // found it ?
+        if (i.value()["program"] == program) {
+			// test it !
+			QSharedMemory *m_sharedMemory = new QSharedMemory(i.value()["key"].toString());
+			if( !m_sharedMemory->attach() ) {
+					qDebug() << "Deleted invalid shared memory map:" << i.value()["key"].toString();
+					glmixerMap.remove(i.key());
+			} else
+				found = true;
+
+			delete m_sharedMemory;
+        }
+    }
+
+    return found;
+}

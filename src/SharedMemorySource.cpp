@@ -26,6 +26,7 @@
 #include <SharedMemorySource.h>
 #include <SharedMemoryManager.h>
 
+#include "common.h"
 #include <QtDebug>
 #include <QSharedMemory>
 
@@ -46,13 +47,10 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 		glformat = GL_COLOR_INDEX;
 		gltype = GL_UNSIGNED_BYTE;
 		break;
-	case QImage::Format_RGB32	:		//The image is stored using a 32-bit RGB format (0xffRRGGBB).
-		glformat =  GL_RGB;
-		gltype = GL_UNSIGNED_BYTE;
-		break;
 	case QImage::Format_RGB16	: 		//The image is stored using a 16-bit RGB format (5-6-5).
 		glformat =  GL_RGB;
-		gltype = GL_UNSIGNED_SHORT_5_6_5_REV;
+		gltype = GL_UNSIGNED_SHORT_5_6_5;
+		glunpackalign = 1;
 		break;
 	case QImage::Format_RGB666	: 		//The image is stored using a 24-bit RGB format (6-6-6). The unused most significant bits is always zero.
 	case QImage::Format_RGB888	: 		//The image is stored using a 24-bit RGB format (8-8-8).
@@ -62,8 +60,9 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 		break;
 	case QImage::Format_ARGB32	: 		//The image is stored using a 32-bit ARGB format (0xAARRGGBB).
 	case QImage::Format_ARGB32_Premultiplied: //The image is stored using a premultiplied 32-bit ARGB format (0xAARRGGBB), i.e. the red, green, and blue channels are multiplied by the alpha component divided by 255. (If RR, GG, or BB has a higher value than the alpha channel, the results are undefined.) Certain operations (such as image composition using alpha blending) are faster using premultiplied ARGB32 than with plain ARGB32.
-		glformat =  GL_RGBA;
+		glformat =  GL_BGRA;
 		gltype = GL_UNSIGNED_INT_8_8_8_8_REV;
+		// this double inversion (BGRA and _REV) lead to the order ARGB !!!
 		break;
 	case QImage::Format_ARGB8555_Premultiplied: //The image is stored using a premultiplied 24-bit ARGB format (8-5-5-5).
 		glformat =  GL_RGBA;
@@ -73,6 +72,7 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 		glformat =  GL_RGBA;
 		gltype = GL_UNSIGNED_SHORT_4_4_4_4_REV;
 		break;
+	case QImage::Format_RGB32	:		//The image is stored using a 32-bit RGB format (0xffRRGGBB).
 	case QImage::Format_ARGB8565_Premultiplied: //The image is stored using a premultiplied 24-bit ARGB format (8-5-6-5).
 	case QImage::Format_ARGB6666_Premultiplied: //The image is stored using a premultiplied 24-bit ARGB format (6-6-6-6).
 	case QImage::Format_RGB444 : 		//The image is stored using a 16-bit RGB format (4-4-4). The unused bits are always zero.
@@ -83,20 +83,33 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 	}
 }
 
-SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): Source(texture, d), id(shid), normalsize(0) {
-
-	QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
-	if (descriptor.empty())
-		SourceConstructorException().raise();
-
-	shmKey = descriptor["key"].toString();
-	programName = descriptor["program"].toString();
-	infoString = descriptor["info"].toString();
+SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): Source(texture, d), id(shid), shm(0) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
+	if (descriptor.empty())
+		SourceConstructorException().raise();
+
+	setupSharedMemory(descriptor);
+
+}
+
+void SharedMemorySource::setupSharedMemory(QVariantMap descriptor) {
+
+    if (shm)
+        delete shm;
+
+	shmKey = descriptor["key"].toString();
+	programName = descriptor["program"].toString();
+	infoString = descriptor["info"].toString();
+
+	// vertical invert for opengl buffers
+	if ( descriptor.count("opengl") > 0 && descriptor["opengl"].toBool())
+		setVerticalFlip(true);
 
 	// creation and attachement to the shared memory
 	shm = new QSharedMemory(shmKey);
@@ -107,14 +120,6 @@ SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): S
 		SharedMemoryAttachException().raise();
 
 	// fill first frame
-	setupTexture(descriptor);
-
-	shm->detach();
-
-}
-
-void SharedMemorySource::setupTexture(QVariantMap descriptor) {
-
 	QSize s = descriptor["size"].toSize();
 	width = s.width();
 	height = s.height();
@@ -132,7 +137,8 @@ void SharedMemorySource::setupTexture(QVariantMap descriptor) {
 	}
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-	normalsize = shm->size();
+	shm->detach();
+
 }
 
 SharedMemorySource::~SharedMemorySource()
@@ -146,17 +152,20 @@ void SharedMemorySource::update(){
 
 	Source::update();
 
-	if (!shm->attach(QSharedMemory::ReadOnly) )
-		return;
-
-	// bad case ; the size of the shared memory changed !! :(
-	if (shm->size() != normalsize) {
+	// try to attach and check that the size is the same
+	if (!shm->attach(QSharedMemory::ReadOnly)) {
+		// bad case ; the shared memory changed !! :(
 		QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
 		if (!descriptor.empty()) {
-			// re-generate the texture to the new size (hopefully correct in shared memory manager)
-			setupTexture(descriptor);
+			try {
+				// re-generate the texture to the new size (hopefully correct in shared memory manager)
+				setupSharedMemory(descriptor);
+			} catch (SourceConstructorException &e){
+				qWarning() << getName() << '|' << e.message() << shmKey;
+			}
 		} else
-			qWarning() << getName() << '|' << "Unavailable shared memory at" << shmKey;
+			qWarning() << getName() << '|' << "Invalid shared memory key " << shmKey;
+
 	} else {
 		// normal case ; fast replacement of texture content
 		if (shm->lock()) {
@@ -165,8 +174,8 @@ void SharedMemorySource::update(){
 			shm->unlock();
 		}
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		shm->detach();
 	}
 
-	shm->detach();
 }
 

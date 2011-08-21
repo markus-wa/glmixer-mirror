@@ -92,10 +92,11 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 	}
 
 	if (stackedPreferences->currentWidget() == PageRecording) {
-		recordingFormatSelection->setCurrentIndex(0);
+		recordingFormatSelection->setCurrentIndex(4);
 		recordingUpdatePeriod->setValue(40);
 		recordingFolderBox->setChecked(false);
 		recordingFolderLine->clear();
+		sharedMemoryColorDepth->setCurrentIndex(0);
 	}
 
 	if (stackedPreferences->currentWidget() == PageSources) {
@@ -229,6 +230,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	bool usesystem = true;
 	stream >> usesystem;
 	useSystemDialogs->setChecked(usesystem);
+
+	// n. shared memory depth
+	uint shmdepth = 0;
+	stream >> shmdepth;
+	sharedMemoryColorDepth->setCurrentIndex(shmdepth);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -289,6 +295,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
 	// m. useSystemDialogs
 	stream << useSystemDialogs->isChecked();
+
+	// n. shared memory depth
+	stream << (uint) sharedMemoryColorDepth->currentIndex();
 
 	return data;
 }

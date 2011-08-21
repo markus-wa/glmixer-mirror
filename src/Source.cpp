@@ -40,7 +40,7 @@ Source::Source() :
 			culled(false), standby(false), frameChanged(false), cropped(false), modifiable(true), textureIndex(0),
 			maskTextureIndex(0), x(0.0), y(0.0), z(0),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
+			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
 			pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
 			brightness(0.f), contrast(1.f),	saturation(1.f),
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
@@ -65,7 +65,7 @@ Source::Source(GLuint texture, double depth) :
 	culled(false), standby(false), frameChanged(true), cropped(false), modifiable(true), textureIndex(texture),
 	maskTextureIndex(0), x(0.0), y(0.0), z(depth),
 	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
+	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
 	pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
 	brightness(0.f), contrast(1.f),	saturation(1.f),
 	gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
@@ -241,6 +241,8 @@ void Source::resetScale(scalingMode sm) {
 			scaley *= renderingAspectRatio / aspectratio;
 		}
 	}
+
+	scaley *= flipVertical ? -1.0 : 1.0;
 
 }
 

@@ -2016,6 +2016,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	// m. useSystemDialogs
 	stream >> usesystemdialogs;
 
+	//	 n. shared memory depth
+	uint shmdepth = 0;
+	stream >> shmdepth;
+	RenderingManager::getInstance()->setSharedMemoryColorDepth(shmdepth);
+
 	// Refresh widgets to make changes visible
 	OutputRenderWindow::getInstance()->refresh();
 	outputpreview->refresh();
@@ -2077,6 +2082,9 @@ QByteArray GLMixer::getPreferences() const {
 
 	// m. useSystemDialogs
 	stream << _instance->useSystemDialogs();
+
+	// n. shared memory color depth
+	stream << (uint)  RenderingManager::getInstance()->getSharedMemoryColorDepth();
 
 	return data;
 }

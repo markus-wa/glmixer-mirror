@@ -123,8 +123,9 @@ void RenderingManager::deleteInstance() {
 
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
-			previousframe_index(0), previousframe_delay(1), clearWhite(false),
-			gammaShift(1.f), m_sharedMemory(0), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true) {
+			previousframe_index(0), previousframe_delay(1), clearWhite(false), gammaShift(1.f),
+			_sharedMemory(0), _sharedMemoryGLFormat(GL_RGB), _sharedMemoryGLType(GL_UNSIGNED_SHORT_5_6_5),
+			_scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true) {
 
 	// 1. Create the view rendering widget and its catalog view
 	_renderwidget = new ViewRenderWidget;
@@ -247,7 +248,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 		_recorder->setFrameSize(_fbo->size());
 
 		// re-setup shared memory
-		if(m_sharedMemory) {
+		if(_sharedMemory) {
 			setFrameSharingEnabled(false);
 			setFrameSharingEnabled(true);
 		}
@@ -335,7 +336,7 @@ void RenderingManager::postRenderToFrameBuffer() {
 	}
 
 	// save the frame to file or copy to SHM
-	if (_recorder->isRecording() || m_sharedMemory) {
+	if (_recorder->isRecording() || _sharedMemory) {
 		// bind rendering frame buffer object
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
 
@@ -343,11 +344,10 @@ void RenderingManager::postRenderToFrameBuffer() {
 		_recorder->addFrame();
 
 		// share to memory if needed
-		if (m_sharedMemory) {
-			 m_sharedMemory->lock();
-//			 glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, (GLvoid *) m_sharedMemory->data());
-			 glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, (GLvoid *) m_sharedMemory->data());
-			 m_sharedMemory->unlock();
+		if (_sharedMemory) {
+			 _sharedMemory->lock();
+			 glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), _sharedMemoryGLFormat, _sharedMemoryGLType, (GLvoid *) _sharedMemory->data());
+			 _sharedMemory->unlock();
 		}
 	}
 }
@@ -376,9 +376,9 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 		//
 		if (first) {
 			if (clearWhite)
-				glClearColor(1.f, 1.f, 1.f, 1.f);
+				glClearColor(1.f, 1.f, 1.f, 0.f);
 			else
-				glClearColor(0.f, 0.f, 0.f, 1.f);
+				glClearColor(0.f, 0.f, 0.f, 0.f);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
@@ -1616,11 +1616,12 @@ void RenderingManager::pause(bool on){
 void RenderingManager::setFrameSharingEnabled(bool on){
 
 	// delete shared memory object
-	if (m_sharedMemory) {
-		m_sharedMemory->detach();
-		delete m_sharedMemory;
+	if (_sharedMemory) {
+		_sharedMemory->unlock();
+		_sharedMemory->detach();
+		delete _sharedMemory;
 	}
-	m_sharedMemory = 0;
+	_sharedMemory = 0;
 
 
 	if (on) {
@@ -1634,27 +1635,55 @@ void RenderingManager::setFrameSharingEnabled(bool on){
 		QVariantMap processInformation;
 		processInformation["program"] = "GLMixer";
 		processInformation["size"] = _fbo->size();
-		processInformation["format"] = (int) QImage::Format_ARGB32;
+	    processInformation["opengl"] = true;
 		processInformation["info"] = QString("Process id %1").arg(id);
 		QVariant variant = QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer.png"));
 		processInformation["icon"] = variant;
 
-		QString m_sharedMemoryKey = QString("glmixer%1").arg(id);
+		QString m_sharedMemoryKey = QString("glmixer%1").arg(qrand());
 		processInformation["key"] = m_sharedMemoryKey;
+
+		//
+		// setup format and size according to color depth
+		//
+		//			 glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), GL_RGB, GL_UNSIGNED_BYTE, (GLvoid *) m_sharedMemory->data());
+		//			 glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), GL_RGB, GL_UNSIGNED_SHORT_5_6_5, (GLvoid *) m_sharedMemory->data());
+		//			 glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, (GLvoid *) _sharedMemory->data());
+		int shmbytecount = 0;
+		switch (_sharedMemoryGLType) {
+		case GL_UNSIGNED_BYTE:
+			_sharedMemoryGLFormat = GL_RGB;
+			processInformation["format"] = (int) QImage::Format_RGB888;
+			shmbytecount = sizeof(unsigned char) * 3 * _fbo->width() * _fbo->height();
+			break;
+		case GL_UNSIGNED_SHORT_5_6_5:
+			_sharedMemoryGLFormat = GL_RGB;
+			processInformation["format"] = (int) QImage::Format_RGB16;
+			shmbytecount = sizeof(unsigned short) * _fbo->width() * _fbo->height();
+			break;
+		case GL_UNSIGNED_INT_8_8_8_8_REV:
+			_sharedMemoryGLFormat = GL_BGRA;
+			processInformation["format"] = (int) QImage::Format_ARGB32;
+			shmbytecount = sizeof(unsigned int) * _fbo->width() * _fbo->height();
+			break;
+		default:
+			qWarning() << tr("Invalid format for shared memory.");
+			return;
+		}
 
 		//
 		// Create the shared memory
 		//
-		m_sharedMemory = new QSharedMemory(m_sharedMemoryKey);
-
-		if (!m_sharedMemory->create( sizeof(unsigned int) * _fbo->width() * _fbo->height()) ) {
-			qWarning() << tr("Unable to create shared memory.") << m_sharedMemory->errorString();
-			qDebug() << tr("Trying to attach from shared memory.");
-			if ( !m_sharedMemory->attach()) {
-				 qWarning() << tr("Unable to attach shared memory.") << m_sharedMemory->errorString();
+		_sharedMemory = new QSharedMemory(m_sharedMemoryKey);
+		if (!_sharedMemory->create( shmbytecount ) ) {
+			qWarning() << tr("Unable to create shared memory:") << _sharedMemory->errorString();
+			if ( !_sharedMemory->attach()) {
+				 qWarning() << tr("Unable to attach shared memory:") << _sharedMemory->errorString();
 				return;
 			}
 		}
+
+		qDebug() << tr("Sharing to memory enabled (%1x%2, %3 bytes).").arg(_fbo->width()).arg(_fbo->height()).arg(_sharedMemory->size());
 
 		SharedMemoryManager::getInstance()->addItemSharedMap(id, processInformation);
 
@@ -1665,3 +1694,37 @@ void RenderingManager::setFrameSharingEnabled(bool on){
 
 }
 
+
+uint RenderingManager::getSharedMemoryColorDepth(){
+	switch (_sharedMemoryGLType) {
+	case GL_UNSIGNED_BYTE:
+		return 1;
+	case GL_UNSIGNED_INT_8_8_8_8_REV:
+		return 2;
+	default:
+	case GL_UNSIGNED_SHORT_5_6_5:
+		return 0;
+	}
+}
+
+void RenderingManager::setSharedMemoryColorDepth(uint mode){
+
+	switch (mode) {
+	case 1:
+		_sharedMemoryGLType =  GL_UNSIGNED_BYTE;
+		break;
+	case 2:
+		_sharedMemoryGLType =  GL_UNSIGNED_INT_8_8_8_8_REV;
+		break;
+	default:
+	case 0:
+		_sharedMemoryGLType =  GL_UNSIGNED_SHORT_5_6_5;
+		break;
+	}
+
+	// re-setup shared memory
+	if(_sharedMemory) {
+		setFrameSharingEnabled(false);
+		setFrameSharingEnabled(true);
+	}
+}

@@ -74,7 +74,6 @@ private:
 	qint64 id;
 	QString shmKey, programName, infoString;
 	class QSharedMemory *shm;
-	int normalsize;
 
 	int width, height;
 	QImage::Format format;
@@ -82,7 +81,7 @@ private:
 	GLint glunpackalign;
 
 	void setGLFormat(QImage::Format f);
-	void setupTexture(QVariantMap descriptor);
+	void setupSharedMemory(QVariantMap descriptor);
 };
 
 #endif /* SHMSOURCE_H_ */
