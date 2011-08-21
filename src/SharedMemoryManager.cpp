@@ -216,31 +216,32 @@ qint64 SharedMemoryManager::findItemSharedMap(QString key){
 }
 
 
-bool SharedMemoryManager::hasProgramSharedMap(QString program){
-
-    bool found = false;
+qint64 SharedMemoryManager::findProgramSharedMap(QString program){
 
     // read the current map
     QMap<qint64, QVariantMap> glmixerMap = readMap();
 
     // test the viability of each entry, and remove the bad ones
-    QMapIterator<qint64, QVariantMap> i(glmixerMap);
-    while (i.hasNext()) {
-        i.next();
+	QMapIterator<qint64, QVariantMap> i(glmixerMap);
+	while (i.hasNext()) {
+		i.next();
 
-        // found it ?
+		// found it ?
         if (i.value()["program"] == program) {
+			bool found = true;
 			// test it !
 			QSharedMemory *m_sharedMemory = new QSharedMemory(i.value()["key"].toString());
 			if( !m_sharedMemory->attach() ) {
-					qDebug() << "Deleted invalid shared memory map:" << i.value()["key"].toString();
-					glmixerMap.remove(i.key());
-			} else
-				found = true;
-
+				qDebug() << "Deleted invalid shared memory map:" << i.value()["key"].toString();
+				glmixerMap.remove(i.key());
+				found = false;
+			}
 			delete m_sharedMemory;
-        }
-    }
+			// if it passed the test, return it
+			if (found)
+				return i.key();
+		}
+	}
 
-    return found;
+	return 0;
 }

@@ -1207,9 +1207,8 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			SharedMemorySource *shms = dynamic_cast<SharedMemorySource *> (*its);
 
 			QDomElement f = doc.createElement("SharedMemory");
-			f.setAttribute("Program", shms->getProgram());
 			f.setAttribute("Info", shms->getInfo());
-			QDomText key = doc.createTextNode(shms->getKey());
+			QDomText key = doc.createTextNode(shms->getProgram());
 			f.appendChild(key);
 			specific.appendChild(f);
 
@@ -1447,11 +1446,11 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			// read the tags specific for an algorithm source
 			QDomElement SharedMemory = t.firstChildElement("SharedMemory");
 
-			qint64 id = SharedMemoryManager::getInstance()->findItemSharedMap(SharedMemory.text());
+			qint64 id = SharedMemoryManager::getInstance()->findProgramSharedMap(SharedMemory.text());
 			if (id != 0)
 				newsource = RenderingManager::getInstance()->newSharedMemorySource(id, depth);
 			if (!newsource) {
-				qWarning() << child.attribute("name") << tr("|Could not create shared memory source.");
+				qWarning() << child.attribute("name") << tr("|Could not connect to the program %1.").arg(SharedMemory.text());
 		        errors++;
 			} else
 				qDebug() << child.attribute("name") << tr("|Shared memory source created (")<< SharedMemory.text() << ").";

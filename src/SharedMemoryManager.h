@@ -28,8 +28,8 @@ public:
 	// find in the map if there is a match for this key
 	qint64 findItemSharedMap(QString key);
 
-    // test if there is a program of that name
-    bool hasProgramSharedMap(QString program);
+    // find in the map if there is a match for a program of that name
+	qint64 findProgramSharedMap(QString program);
 
 private:
 	SharedMemoryManager();

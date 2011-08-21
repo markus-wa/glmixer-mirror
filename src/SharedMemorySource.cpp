@@ -163,8 +163,7 @@ void SharedMemorySource::update(){
 			} catch (SourceConstructorException &e){
 				qWarning() << getName() << '|' << e.message() << shmKey;
 			}
-		} else
-			qWarning() << getName() << '|' << "Invalid shared memory key " << shmKey;
+		}
 
 	} else {
 		// normal case ; fast replacement of texture content
