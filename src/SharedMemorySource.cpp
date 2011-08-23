@@ -23,14 +23,16 @@
  *
  */
 
-#include <SharedMemorySource.h>
-#include <SharedMemoryManager.h>
+#include "SharedMemorySource.moc"
 
+#include "SharedMemoryManager.h"
 #include "common.h"
+
 #include <QtDebug>
 #include <QSharedMemory>
 
 Source::RTTI SharedMemorySource::type = Source::SHM_SOURCE;
+bool SharedMemorySource::playable = true;
 
 void SharedMemorySource::setGLFormat(QImage::Format f) {
 
@@ -90,18 +92,23 @@ SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): S
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+	// just a pre-test to make sure the shared id looks correct
 	QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
 	if (descriptor.empty())
 		SourceConstructorException().raise();
 
-	setupSharedMemory(descriptor);
-
+	// test the shared memory
+	play(true);
+	if (!shm)
+		SourceConstructorException().raise();
+	play(false);
 }
 
 void SharedMemorySource::setupSharedMemory(QVariantMap descriptor) {
 
     if (shm)
         delete shm;
+    shm = 0;
 
 	shmKey = descriptor["key"].toString();
 	programName = descriptor["program"].toString();
@@ -111,10 +118,15 @@ void SharedMemorySource::setupSharedMemory(QVariantMap descriptor) {
 	if ( descriptor.count("opengl") > 0 && descriptor["opengl"].toBool())
 		setVerticalFlip(true);
 
+	// configure the texture
+	setGLFormat( (QImage::Format) descriptor["format"].toInt());
+	if (glformat == GL_INVALID_ENUM)
+		InvalidFormatException().raise();
+
 	// creation and attachement to the shared memory
 	shm = new QSharedMemory(shmKey);
 	if (!shm)
-		SourceConstructorException().raise();
+		AllocationException().raise();
 
 	if (!shm->attach(QSharedMemory::ReadOnly))
 		SharedMemoryAttachException().raise();
@@ -124,11 +136,6 @@ void SharedMemorySource::setupSharedMemory(QVariantMap descriptor) {
 	width = s.width();
 	height = s.height();
 	aspectratio = double(width) / double(height);
-
-	// create the texture
-	setGLFormat( (QImage::Format) descriptor["format"].toInt());
-	if (glformat == GL_INVALID_ENUM)
-		InvalidFormatException().raise();
 
 	if (shm->lock()) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
@@ -143,7 +150,8 @@ void SharedMemorySource::setupSharedMemory(QVariantMap descriptor) {
 
 SharedMemorySource::~SharedMemorySource()
 {
-	delete shm;
+    if (shm)
+    	delete shm;
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);
 }
@@ -152,18 +160,14 @@ void SharedMemorySource::update(){
 
 	Source::update();
 
+	if (!shm)
+		return;
+
 	// try to attach and check that the size is the same
 	if (!shm->attach(QSharedMemory::ReadOnly)) {
 		// bad case ; the shared memory changed !! :(
-		QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
-		if (!descriptor.empty()) {
-			try {
-				// re-generate the texture to the new size (hopefully correct in shared memory manager)
-				setupSharedMemory(descriptor);
-			} catch (SourceConstructorException &e){
-				qWarning() << getName() << '|' << e.message() << shmKey;
-			}
-		}
+		// so, stop the source to let user restart it later
+		play(false);
 
 	} else {
 		// normal case ; fast replacement of texture content
@@ -175,6 +179,58 @@ void SharedMemorySource::update(){
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 		shm->detach();
 	}
+
+}
+
+
+void SharedMemorySource::play(bool on){
+
+	if ( isPlaying() == on )
+		return;
+
+	if ( on ) { // starts shared memory
+
+		QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
+		if (!descriptor.empty()) {
+			try {
+				// generate the texture to the frame size (hopefully correct in shared memory manager)
+				setupSharedMemory(descriptor);
+			} catch (InvalidFormatException &e){
+				qWarning() << getName() << '|' << e.message() << shmKey;
+			} catch (SharedMemoryAttachException &e){
+				qWarning() << getName() << '|' << e.message() << shmKey;
+				// delete and reset shm
+				delete shm;
+				shm = 0;
+			} catch (AllocationException &e){
+				qWarning() << getName() << '|' <<  "Could not create shared memory for " << shmKey;
+				// reset shm
+				shm = 0;
+			}
+
+			if (shm == 0)
+				qCritical() << getName() << '|' << tr ("Could not connect to program.\nRestart the source after fixing the problem.").arg(programName);
+
+		} else {
+			// the process id does not exists any more :(..
+			// try to find another program
+			id = SharedMemoryManager::getInstance()->findProgramSharedMap(programName);
+			if (id == 0)
+				qCritical() << getName() << '|' << tr ("The program %1 does not seem to be running.\nRestart the source after fixing the problem.").arg(programName);
+		}
+
+	} else { // stop play
+
+	    if (shm)
+	    	delete shm;
+	    shm = 0;
+
+	}
+}
+
+bool SharedMemorySource::isPlaying() const{
+
+	return shm != 0;
 
 }
 

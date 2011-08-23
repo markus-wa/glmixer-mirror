@@ -30,22 +30,24 @@
 #include "RenderingManager.h"
 
 
-class SharedMemoryAttachException : public SourceConstructorException {
+class SharedMemoryAttachException : public QtConcurrent::Exception {
 public:
-	virtual QString message() { return "Cannot attach to shared memory."; }
+	virtual QString message() { return "Cannot attach to shared memory to "; }
 	void raise() const { throw *this; }
 	Exception *clone() const { return new SharedMemoryAttachException(*this); }
 };
 
-class InvalidFormatException : public SourceConstructorException {
+class InvalidFormatException : public QtConcurrent::Exception {
 public:
-	virtual QString message() { return "Invalid image format from memory."; }
+	virtual QString message() { return "Invalid image format from program "; }
 	void raise() const { throw *this; }
 	Exception *clone() const { return new InvalidFormatException(*this); }
 };
 
-class SharedMemorySource: public Source
+class SharedMemorySource:  public QObject, public Source
 {
+	Q_OBJECT
+
 	friend class SharedMemoryDialog;
 	friend class RenderingManager;
     friend class OutputRenderWidget;
@@ -53,7 +55,10 @@ class SharedMemorySource: public Source
 public:
 
 	static RTTI type;
+	static bool playable;
 	RTTI rtti() const { return type; }
+	bool isPlayable() const { return playable; }
+	bool isPlaying() const;
 
 	int getFrameWidth() const { return width; }
 	int getFrameHeight() const { return height; }
@@ -62,6 +67,9 @@ public:
 	QString getProgram() { return programName; }
 	QString getInfo() { return infoString; }
 	QString getKey() { return shmKey; }
+
+public Q_SLOTS:
+	void play(bool on);
 
     // only friends can create a source
 protected:

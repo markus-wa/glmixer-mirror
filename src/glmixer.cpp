@@ -44,6 +44,7 @@
 #include "AlgorithmSource.h"
 #include "VideoSource.h"
 #include "SvgSource.h"
+#include "SharedMemorySource.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
@@ -556,6 +557,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		case Source::VIDEO_SOURCE:
 			QObject::disconnect(startButton, SIGNAL(toggled(bool)), dynamic_cast<VideoSource *>(playableSelection), SLOT(play(bool)));
 			break;
+		case Source::SHM_SOURCE:
+			QObject::disconnect(startButton, SIGNAL(toggled(bool)), dynamic_cast<SharedMemorySource *>(playableSelection), SLOT(play(bool)));
+			break;
 		default:
 			break;
 		}
@@ -630,6 +634,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 #endif
 			case Source::VIDEO_SOURCE:
 				QObject::connect(startButton, SIGNAL(toggled(bool)), dynamic_cast<VideoSource *>(playableSelection), SLOT(play(bool)));
+				break;
+			case Source::SHM_SOURCE:
+				QObject::connect(startButton, SIGNAL(toggled(bool)), dynamic_cast<SharedMemorySource *>(playableSelection), SLOT(play(bool)));
 				break;
 			default:
 				break;
