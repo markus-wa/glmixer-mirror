@@ -113,8 +113,8 @@ public:
 	void removeSource(const GLuint idsource);
 	bool isCurrentSource(Source *s);
 	bool isCurrentSource(SourceSet::iterator si);
-	bool setCurrentSource(SourceSet::iterator si);
-	bool setCurrentSource(GLuint name);
+	void setCurrentSource(SourceSet::iterator si);
+	void setCurrentSource(GLuint id);
 	inline SourceSet::iterator getCurrentSource()  const{
 		return _currentSource;
 	}
@@ -203,7 +203,7 @@ public Q_SLOTS:
 	void clearSourceSet();
 	void resetSource(SourceSet::iterator sit);
 	void resetCurrentSource();
-	void selectCurrentSource(GLuint name);
+	void startCurrentSource(bool on);
 	void toggleMofifiableCurrentSource();
 
 	void dropSourceWithAlpha(double alphax, double alphay);

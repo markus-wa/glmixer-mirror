@@ -694,7 +694,7 @@ void RenderingManager::addSourceToBasket(Source *s)
 	// scale the source to match the preferences
 	s->resetScale(_scalingMode);
 	// select no source
-	setCurrentSource( getEnd() );
+	unsetCurrentSource();
 }
 
 void RenderingManager::clearBasket()
@@ -715,12 +715,6 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
 }
 
 
-void RenderingManager::selectCurrentSource(GLuint name){
-
-	setCurrentSource(name);
-}
-
-
 void RenderingManager::toggleMofifiableCurrentSource(){
 
 	if(isValid(_currentSource)) {
@@ -736,6 +730,14 @@ void RenderingManager::resetCurrentSource(){
 		_propertyBrowser->showProperties(_currentSource);
 	}
 }
+
+void RenderingManager::startCurrentSource(bool on)
+{
+	if(isValid(_currentSource)) {
+		(*_currentSource)->play(on);
+	}
+}
+
 
 int RenderingManager::getSourceBasketSize() const{
 
@@ -898,21 +900,18 @@ bool RenderingManager::isCurrentSource(SourceSet::iterator si){
 
 }
 
-bool RenderingManager::setCurrentSource(SourceSet::iterator si) {
+void RenderingManager::setCurrentSource(SourceSet::iterator si) {
 
-	if (si != _currentSource) {
-
+	if (si != _currentSource)
+	{
 		_currentSource = si;
 		emit currentSourceChanged(_currentSource);
-
-		return true;
 	}
-	return false;
 }
 
-bool RenderingManager::setCurrentSource(GLuint id) {
+void RenderingManager::setCurrentSource(GLuint id) {
 
-	return setCurrentSource(getById(id));
+	setCurrentSource(getById(id));
 }
 
 
@@ -1550,7 +1549,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
     }
 
 	// set current source to none (end of list)
-	setCurrentSource( getEnd() );
+	unsetCurrentSource();
 	if (progress) delete progress;
 
 	return errors;

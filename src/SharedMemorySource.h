@@ -71,9 +71,8 @@ public:
 public Q_SLOTS:
 	void play(bool on);
 
-    // only friends can create a source
 protected:
-
+    // only friends can create a source
 	SharedMemorySource(GLuint texture, double d, qint64 shid);
 	virtual ~SharedMemorySource();
 	void update();
@@ -87,6 +86,7 @@ private:
 	QImage::Format format;
 	GLenum glformat, gltype;
 	GLint glunpackalign;
+	bool textureInitialized;
 
 	void setGLFormat(QImage::Format f);
 	void setupSharedMemory(QVariantMap descriptor);

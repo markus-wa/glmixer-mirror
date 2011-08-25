@@ -52,7 +52,6 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 	case QImage::Format_RGB16	: 		//The image is stored using a 16-bit RGB format (5-6-5).
 		glformat =  GL_RGB;
 		gltype = GL_UNSIGNED_SHORT_5_6_5;
-		glunpackalign = 1;
 		break;
 	case QImage::Format_RGB666	: 		//The image is stored using a 24-bit RGB format (6-6-6). The unused most significant bits is always zero.
 	case QImage::Format_RGB888	: 		//The image is stored using a 24-bit RGB format (8-8-8).
@@ -85,7 +84,7 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 	}
 }
 
-SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): Source(texture, d), id(shid), shm(0) {
+SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): Source(texture, d), id(shid), shm(0), textureInitialized(false) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -101,7 +100,7 @@ SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): S
 	play(true);
 	if (!shm)
 		SourceConstructorException().raise();
-	play(false);
+
 }
 
 void SharedMemorySource::setupSharedMemory(QVariantMap descriptor) {
@@ -122,29 +121,15 @@ void SharedMemorySource::setupSharedMemory(QVariantMap descriptor) {
 	setGLFormat( (QImage::Format) descriptor["format"].toInt());
 	if (glformat == GL_INVALID_ENUM)
 		InvalidFormatException().raise();
-
-	// creation and attachement to the shared memory
-	shm = new QSharedMemory(shmKey);
-	if (!shm)
-		AllocationException().raise();
-
-	if (!shm->attach(QSharedMemory::ReadOnly))
-		SharedMemoryAttachException().raise();
-
-	// fill first frame
 	QSize s = descriptor["size"].toSize();
 	width = s.width();
 	height = s.height();
 	aspectratio = double(width) / double(height);
 
-	if (shm->lock()) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, glformat, gltype, (unsigned char*) shm->constData());
-		shm->unlock();
-	}
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
-	shm->detach();
+	// creation and testing attachement to the shared memory
+	shm = new QSharedMemory(shmKey);
+	if (!shm)
+		AllocationException().raise();
 
 }
 
@@ -169,11 +154,21 @@ void SharedMemorySource::update(){
 		// so, stop the source to let user restart it later
 		play(false);
 
+		RenderingManager::getInstance()->unsetCurrentSource();
+		// FIXME: why doesn't this call selects this source as current ?
+//		RenderingManager::getInstance()->setCurrentSource(getId());
+		qWarning() << getName() << '|' << tr("Connection with program %1 interrupted. Source stopped").arg(programName);
+
 	} else {
 		// normal case ; fast replacement of texture content
 		if (shm->lock()) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, glformat, gltype, (unsigned char*) shm->constData());
+			if (textureInitialized)
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, glformat, gltype, (unsigned char*) shm->constData());
+			else {
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, glformat, gltype, (unsigned char*) shm->constData());
+				textureInitialized = true;
+			}
 			shm->unlock();
 		}
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
@@ -187,6 +182,8 @@ void SharedMemorySource::play(bool on){
 
 	if ( isPlaying() == on )
 		return;
+
+	textureInitialized = false;
 
 	if ( on ) { // starts shared memory
 
@@ -209,7 +206,7 @@ void SharedMemorySource::play(bool on){
 			}
 
 			if (shm == 0)
-				qCritical() << getName() << '|' << tr ("Could not connect to program.\nRestart the source after fixing the problem.").arg(programName);
+				qCritical() << getName() << '|' << tr ("Could not connect to program %1.\nRestart the source after fixing the problem.").arg(programName);
 
 		} else {
 			// the process id does not exists any more :(..
