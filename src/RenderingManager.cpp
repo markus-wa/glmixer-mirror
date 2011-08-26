@@ -620,7 +620,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 }
 
 
-Source *RenderingManager::newSharedMemorySource(qint64 id, double depth) {
+Source *RenderingManager::newSharedMemorySource(qint64 shmid, double depth) {
 
 	SharedMemorySource *s = 0;
 	// create the texture for this source
@@ -632,7 +632,7 @@ Source *RenderingManager::newSharedMemorySource(qint64 id, double depth) {
 
 	try {
 		// create a source appropriate
-		s = new SharedMemorySource(textureIndex, getAvailableDepthFrom(depth), id);
+		s = new SharedMemorySource(textureIndex, getAvailableDepthFrom(depth), shmid);
 		s->setName( _defaultSource->getName() + s->getProgram());
 
 	} catch (AllocationException &e){
@@ -902,8 +902,7 @@ bool RenderingManager::isCurrentSource(SourceSet::iterator si){
 
 void RenderingManager::setCurrentSource(SourceSet::iterator si) {
 
-	if (si != _currentSource)
-	{
+	if (si != _currentSource){
 		_currentSource = si;
 		emit currentSourceChanged(_currentSource);
 	}
@@ -1445,9 +1444,9 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			// read the tags specific for an algorithm source
 			QDomElement SharedMemory = t.firstChildElement("SharedMemory");
 
-			qint64 id = SharedMemoryManager::getInstance()->findProgramSharedMap(SharedMemory.text());
-			if (id != 0)
-				newsource = RenderingManager::getInstance()->newSharedMemorySource(id, depth);
+			qint64 shmid = SharedMemoryManager::getInstance()->findProgramSharedMap(SharedMemory.text());
+			if (shmid != 0)
+				newsource = RenderingManager::getInstance()->newSharedMemorySource(shmid, depth);
 			if (!newsource) {
 				qWarning() << child.attribute("name") << tr("|Could not connect to the program %1.").arg(SharedMemory.text());
 		        errors++;

@@ -84,7 +84,7 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 	}
 }
 
-SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): Source(texture, d), id(shid), shm(0), textureInitialized(false) {
+SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): Source(texture, d), shmId(shid), shm(0), textureInitialized(false) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -92,7 +92,7 @@ SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): S
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// just a pre-test to make sure the shared id looks correct
-	QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
+	QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(shmId);
 	if (descriptor.empty())
 		SourceConstructorException().raise();
 
@@ -155,8 +155,7 @@ void SharedMemorySource::update(){
 		play(false);
 
 		RenderingManager::getInstance()->unsetCurrentSource();
-		// FIXME: why doesn't this call selects this source as current ?
-//		RenderingManager::getInstance()->setCurrentSource(getId());
+		RenderingManager::getInstance()->setCurrentSource(getId());
 		qWarning() << getName() << '|' << tr("Connection with program %1 interrupted. Source stopped").arg(programName);
 
 	} else {
@@ -187,7 +186,7 @@ void SharedMemorySource::play(bool on){
 
 	if ( on ) { // starts shared memory
 
-		QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(id);
+		QVariantMap descriptor = SharedMemoryManager::getInstance()->getItemSharedMap(shmId);
 		if (!descriptor.empty()) {
 			try {
 				// generate the texture to the frame size (hopefully correct in shared memory manager)
@@ -205,15 +204,28 @@ void SharedMemorySource::play(bool on){
 				shm = 0;
 			}
 
-			if (shm == 0)
+			if (shm == 0) {
 				qCritical() << getName() << '|' << tr ("Could not connect to program %1.\nRestart the source after fixing the problem.").arg(programName);
+				// refresh status as play did not work
+				RenderingManager::getInstance()->unsetCurrentSource();
+				RenderingManager::getInstance()->setCurrentSource(getId());
+			}
 
 		} else {
 			// the process id does not exists any more :(..
+		    if (shm)
+		    	delete shm;
+		    shm = 0;
 			// try to find another program
-			id = SharedMemoryManager::getInstance()->findProgramSharedMap(programName);
-			if (id == 0)
+			shmId = SharedMemoryManager::getInstance()->findProgramSharedMap(programName);
+			if (shmId == 0) {
 				qCritical() << getName() << '|' << tr ("The program %1 does not seem to be running.\nRestart the source after fixing the problem.").arg(programName);
+				// refresh status as play did not work
+				RenderingManager::getInstance()->unsetCurrentSource();
+				RenderingManager::getInstance()->setCurrentSource(getId());
+			}
+			else
+				play(true);
 		}
 
 	} else { // stop play

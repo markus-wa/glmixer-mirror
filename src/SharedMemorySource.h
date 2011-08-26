@@ -63,7 +63,7 @@ public:
 	int getFrameWidth() const { return width; }
 	int getFrameHeight() const { return height; }
 
-	qint64  getId() { return id; }
+	qint64  getShmId() { return shmId; }
 	QString getProgram() { return programName; }
 	QString getInfo() { return infoString; }
 	QString getKey() { return shmKey; }
@@ -78,7 +78,7 @@ protected:
 	void update();
 
 private:
-	qint64 id;
+	qint64 shmId;
 	QString shmKey, programName, infoString;
 	class QSharedMemory *shm;
 
