@@ -103,8 +103,9 @@ void CameraDialog::createSource(){
 
 void CameraDialog::showEvent(QShowEvent *e){
 
+#ifdef OPEN_CV
     setOpencvCamera(opencvComboBox->currentIndex());
-
+#endif
 	QWidget::showEvent(e);
 }
 

@@ -101,7 +101,9 @@ set( CMAKE_LIBRARY_PATH
 )
 
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
-set(USE_OPENCV false)
+SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")
+
+if (USE_OPENCV)
 find_library( OPENCV_CORE_LIBRARY NAMES opencv_core opencv_core230)
 find_library( OPENCV_IMGPROC_LIBRARY NAMES opencv_imgproc opencv_imgproc230)
 find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_highgui opencv_highgui230)
@@ -147,6 +149,8 @@ if (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 	endif ( APPLE )
 	
 endif (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
+
+endif (USE_OPENCV)
 
 if (USE_OPENCV)
 	message(STATUS "Using OpenCV.")
