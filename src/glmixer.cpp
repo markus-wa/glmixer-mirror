@@ -1803,6 +1803,8 @@ void GLMixer::readSettings()
 
     if (settings.contains("OutputRenderWindow"))
     	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
+    else
+        settings.setValue("defaultOutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
 
     // dialogs configs
     if (settings.contains("vcontrolOptionSplitter"))
@@ -1851,6 +1853,7 @@ void GLMixer::on_actionResetToolbars_triggered()
 {
 	restoreGeometry(settings.value("defaultGeometry").toByteArray());
 	restoreState(settings.value("defaultWindowState").toByteArray());
+	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("defaultOutputRenderWindow").toByteArray());
 	restoreDockWidget(previewDockWidget);
 	restoreDockWidget(sourceDockWidget);
 	restoreDockWidget(vcontrolDockWidget);
