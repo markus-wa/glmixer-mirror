@@ -148,6 +148,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	actionFree_aspect_ratio->setData(ASPECT_RATIO_FREE);
     QObject::connect(aspectRatioActions, SIGNAL(triggered(QAction *)), this, SLOT(setAspectRatio(QAction *) ) );
 
+    QAction *nextSession = new QAction("Next Session", this);
+    nextSession->setShortcut(tr("Ctrl+Right"));
+    addAction(nextSession);
+    QAction *prevSession = new QAction("Previous Session", this);
+    prevSession->setShortcut(tr("Ctrl+Left"));
+    addAction(prevSession);
+
+
     // recent files history
     QMenu *recentFiles = new QMenu(this);
     Q_CHECK_PTR(recentFiles);
@@ -194,6 +202,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
 	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
 	switcherSession->restoreSettings();
+
+	QObject::connect(nextSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToNextSession()));
+	QObject::connect(prevSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToPreviousSession()));
+
 
 	setDockOptions(dockOptions () | QMainWindow::VerticalTabs);
 
