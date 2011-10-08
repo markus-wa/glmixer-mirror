@@ -153,8 +153,10 @@ void VideoSource::updateFrame (int i)
 void VideoSource::applyFilter(){
 	// if the video file is stopped or paused
 	if ( !is->isRunning() || is->isPaused()) {
-		// request to change the buffer from the new copy
-		is->getPictureAtIndex(bufferIndex)->refilter();
+		// re-filter all
+		for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i)
+			is->getPictureAtIndex(i)->refilter();
+		// request to redraw the buffer
 		frameChanged = true;
 	}
 }
