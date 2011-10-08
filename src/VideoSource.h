@@ -31,6 +31,7 @@
 #include "common.h"
 #include "Source.h"
 #include "VideoFile.h"
+#include "ViewRenderWidget.h"
 //class VideoFile;
 
 class VideoSource : public QObject, public Source {
@@ -60,6 +61,13 @@ public:
 	int getFrameHeight() const { return is->getFrameHeight(); }
 
 	double getStorageAspectRatio() const { return is->getStreamAspectRatio(); }
+
+	// Adjust brightness factor
+	void setBrightness(int b);
+	// Adjust contrast factor
+	void setContrast(int c) ;
+	// Adjust saturation factor
+	void setSaturation(int s) ;
 
 public Q_SLOTS:
 	void play(bool on);

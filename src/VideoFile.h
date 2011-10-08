@@ -569,11 +569,6 @@ Q_SIGNALS:
      * Signal emited when a mark (IN or OUT) has been moved.
      */
     void markingChanged();
-    /**
-     * Signal emmited when the pre-filtering has changed (brightness, contrast or saturation)
-     *
-     */
-    void prefilteringChanged();
 
 public Q_SLOTS:
     /**

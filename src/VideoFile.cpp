@@ -1613,8 +1613,6 @@ void VideoFile::setBrightness(int b){
 		brightness = (( b <<16) + 50)/100;
 		// apply it
 		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-
-		emit prefilteringChanged();
 	}
 }
 
@@ -1627,8 +1625,6 @@ void VideoFile::setContrast(int c){
 		contrast   = ((( c +100)<<16) + 50)/100;
 		// apply it
 		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-
-		emit prefilteringChanged();
 	}
 }
 
@@ -1642,8 +1638,6 @@ void VideoFile::setSaturation(int s){
 		saturation = ((( s +100)<<16) + 50)/100;
 		// apply it
 		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table, dstrange, brightness, contrast, saturation);
-
-		emit prefilteringChanged();
 	}
 
 }

@@ -23,7 +23,7 @@
  *
  */
 
-#include <SourcePropertyBrowser.moc>
+#include "SourcePropertyBrowser.moc"
 
 #include <QVBoxLayout>
 
@@ -74,7 +74,7 @@ QMap<int, QPair<int, int> > presetBlending;
 
 QString getSizeString(float num);
 
-SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent), root(0), currentItem(0) {
+SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent), root(0), filter(0), currentItem(0) {
 
 	layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
@@ -214,7 +214,15 @@ void SourcePropertyBrowser::createPropertyTree(){
 	modifyroperty->setToolTip("Can you modify this source?");
 	idToProperty[modifyroperty->propertyName()] = modifyroperty;
 	root->addSubProperty(modifyroperty);
-
+	{
+		// Alpha
+		property = doubleManager->addProperty("Alpha");
+		property->setToolTip("Opacity (0 = transparent)");
+		idToProperty[property->propertyName()] = property;
+		doubleManager->setRange(property, 0.0, 1.0);
+		doubleManager->setSingleStep(property, 0.01);
+		doubleManager->setDecimals(property, 4);
+		modifyroperty->addSubProperty(property);
 		// Position
 		property = pointManager->addProperty("Position");
 		idToProperty[property->propertyName()] = property;
@@ -264,15 +272,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 		idToProperty[property->propertyName()] = property;
 		doubleManager->setRange(property, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 		modifyroperty->addSubProperty(property);
-		// Alpha
-		property = doubleManager->addProperty("Alpha");
-		property->setToolTip("Opacity (0 = transparent)");
-		idToProperty[property->propertyName()] = property;
-		doubleManager->setRange(property, 0.0, 1.0);
-		doubleManager->setSingleStep(property, 0.01);
-		doubleManager->setDecimals(property, 4);
-		modifyroperty->addSubProperty(property);
-
+	}
 	// enum list of Destination blending func
 	QtProperty *blendingItem = enumManager->addProperty("Blending");
 	idToProperty[blendingItem->propertyName()] = blendingItem;
@@ -335,33 +335,30 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
 
+	// Brightness
+	property = intManager->addProperty( QLatin1String("Brightness") );
+	property->setToolTip("Brightness (from black to white)");
+	idToProperty[property->propertyName()] = property;
+	intManager->setRange(property, -100, 100);
+	intManager->setSingleStep(property, 10);
+	// Contrast
+	property = intManager->addProperty( QLatin1String("Contrast") );
+	property->setToolTip("Contrast (from uniform color to high deviation)");
+	idToProperty[property->propertyName()] = property;
+	intManager->setRange(property, -100, 100);
+	intManager->setSingleStep(property, 10);
+	// Saturation
+	property = intManager->addProperty( QLatin1String("Saturation") );
+	property->setToolTip("Saturation (from greyscale to enhanced colors)");
+	idToProperty[property->propertyName()] = property;
+	intManager->setRange(property, -100, 100);
+	intManager->setSingleStep(property, 10);
+
 	// Filtered on/off
-	QtProperty *filter = boolManager->addProperty("Filtered");
+	filter = boolManager->addProperty("Filtered");
 	filter->setToolTip("Use GLSL filters");
 	idToProperty[filter->propertyName()] = filter;
-	root->addSubProperty(filter);
 	{
-		// Brightness
-		property = intManager->addProperty( QLatin1String("Brightness") );
-		property->setToolTip("Brightness (from black to white)");
-		idToProperty[property->propertyName()] = property;
-		intManager->setRange(property, -100, 100);
-		intManager->setSingleStep(property, 10);
-		filter->addSubProperty(property);
-		// Contrast
-		property = intManager->addProperty( QLatin1String("Contrast") );
-		property->setToolTip("Contrast (from uniform color to high deviation)");
-		idToProperty[property->propertyName()] = property;
-		intManager->setRange(property, -100, 100);
-		intManager->setSingleStep(property, 10);
-		filter->addSubProperty(property);
-		// Saturation
-		property = intManager->addProperty( QLatin1String("Saturation") );
-		property->setToolTip("Saturation (from greyscale to enhanced colors)");
-		idToProperty[property->propertyName()] = property;
-		intManager->setRange(property, -100, 100);
-		intManager->setSingleStep(property, 10);
-		filter->addSubProperty(property);
 		// hue
 		property = intManager->addProperty( QLatin1String("Hue shift") );
 		property->setToolTip("Hue shift (circular shift of color Hue)");
@@ -588,6 +585,50 @@ void SourcePropertyBrowser::createPropertyTree(){
 }
 
 
+void SourcePropertyBrowser::setFilterPropertyEnabled(bool on) {
+
+	// remove all properties linked to filtering
+	QList<QtProperty *> pl = root->subProperties();
+	if (pl.contains(idToProperty["Saturation"])) {
+		root->removeSubProperty(idToProperty["Saturation"]);
+		root->removeSubProperty(idToProperty["Brightness"]);
+		root->removeSubProperty(idToProperty["Contrast"]);
+	}
+	if (pl.contains(filter)) {
+		root->removeSubProperty(filter);
+	}
+	pl = filter->subProperties();
+	if (pl.contains(idToProperty["Saturation"])) {
+		filter->removeSubProperty(idToProperty["Saturation"]);
+		filter->removeSubProperty(idToProperty["Brightness"]);
+		filter->removeSubProperty(idToProperty["Contrast"]);
+	}
+
+
+	// depending on the requested filtering enable, add the sub properties
+	if (on) {
+		root->insertSubProperty(filter, idToProperty["Pixelated"] );
+		filter->insertSubProperty(idToProperty["Saturation"], 0 );
+		filter->insertSubProperty(idToProperty["Brightness"], idToProperty["Saturation"] );
+		filter->insertSubProperty(idToProperty["Contrast"], idToProperty["Brightness"] );
+	} else {
+		root->insertSubProperty(idToProperty["Saturation"], idToProperty["Pixelated"] );
+		root->insertSubProperty(idToProperty["Brightness"], idToProperty["Saturation"] );
+		root->insertSubProperty(idToProperty["Contrast"], idToProperty["Brightness"] );
+	}
+
+
+	// Re- apply the filtering properties
+	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+
+		(*its)->setBrightness( (*its)->getBrightness() );
+		(*its)->setSaturation( (*its)->getSaturation() );
+		(*its)->setContrast( (*its)->getContrast() );
+	}
+
+}
+
+
 void SourcePropertyBrowser::setPropertyEnabled(QString propertyName, bool enabled){
 
 	if (idToProperty.contains(propertyName))
@@ -646,13 +687,13 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		infoManager->setValue(idToProperty["Aspect ratio"], aspectRatioToString(s->getAspectRatio()) );
 
 
-		idToProperty["Filtered"]->setEnabled(ViewRenderWidget::filteringEnabled());
 		if (ViewRenderWidget::filteringEnabled()) {
 
 			boolManager->setValue(idToProperty["Filtered"], s->isFiltered());
+
+			intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
 			intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
 			intManager->setValue(idToProperty["Contrast"], s->getContrast() );
-			intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
 			intManager->setValue(idToProperty["Hue shift"], s->getHueShift() );
 			intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
 			intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
@@ -663,12 +704,12 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
 
 			// enable / disable properties depending on their dependencies
-			idToProperty["Brightness"]->setEnabled(s->isFiltered());
-			idToProperty["Contrast"]->setEnabled(s->isFiltered());
 			idToProperty["Threshold"]->setEnabled(s->isFiltered());
 			idToProperty["Color inversion"]->setEnabled(s->isFiltered());
 			idToProperty["Filter"]->setEnabled(s->isFiltered());
 			idToProperty["Chroma key"]->setEnabled(s->isFiltered());
+			idToProperty["Brightness"]->setEnabled(s->isFiltered());
+			idToProperty["Contrast"]->setEnabled(s->isFiltered());
 
 			if (s->isFiltered()) {
 				idToProperty["Key Color"]->setEnabled(s->getChromaKey());
@@ -678,10 +719,23 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 				idToProperty["Posterize"]->setEnabled(s->getLuminanceThreshold() < 1);
 			} else {
 				idToProperty["Posterize"]->setEnabled(false);
-				idToProperty["Hue shift"]->setEnabled(false);
 				idToProperty["Saturation"]->setEnabled(false);
+				idToProperty["Hue shift"]->setEnabled(false);
 				idToProperty["Key Color"]->setEnabled(false);
 				idToProperty["Key Tolerance"]->setEnabled(false);
+			}
+		} else {
+			if (s->rtti() == Source::VIDEO_SOURCE) {
+				idToProperty["Saturation"]->setEnabled( true );
+				idToProperty["Brightness"]->setEnabled( true );
+				idToProperty["Contrast"]->setEnabled( true );
+				intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
+				intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
+				intManager->setValue(idToProperty["Contrast"], s->getContrast() );
+			} else {
+				idToProperty["Saturation"]->setEnabled( false );
+				idToProperty["Brightness"]->setEnabled( false );
+				idToProperty["Contrast"]->setEnabled( false );
 			}
 		}
 

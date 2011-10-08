@@ -76,6 +76,7 @@ public slots:
     void switchToGroupView();
 
     void setPropertyEnabled(QString propertyName, bool enabled);
+    void setFilterPropertyEnabled(bool on);
 
 Q_SIGNALS:
 	void changed(Source *s);
@@ -83,7 +84,7 @@ Q_SIGNALS:
 private:
 
 	// property tree
-    QtProperty *root;
+    QtProperty *root, *filter;
 	// utility lists of properties
     QMap<Source::RTTI, QtProperty *> rttiToProperty;
     QMap<QString, QtProperty *> idToProperty;

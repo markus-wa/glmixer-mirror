@@ -151,13 +151,47 @@ void VideoSource::updateFrame (int i)
 }
 
 void VideoSource::applyFilter(){
-
 	// if the video file is stopped or paused
 	if ( !is->isRunning() || is->isPaused()) {
 		// request to change the buffer from the new copy
+		is->getPictureAtIndex(bufferIndex)->refilter();
 		frameChanged = true;
-
 	}
 }
+
+// Adjust brightness factor
+void VideoSource::setBrightness(int b) {
+	Source::setBrightness(b);
+	if (ViewRenderWidget::filteringEnabled())
+		is->setBrightness(0);
+	else {
+		is->setBrightness(b);
+		applyFilter();
+	}
+}
+
+// Adjust contrast factor
+void VideoSource::setContrast(int c) {
+	Source::setContrast(c);
+	if (ViewRenderWidget::filteringEnabled())
+		is->setContrast(0);
+	else {
+		is->setContrast(c);
+		applyFilter();
+	}
+}
+
+// Adjust saturation factor
+void VideoSource::setSaturation(int s) {
+	Source::setSaturation(s);
+	if (ViewRenderWidget::filteringEnabled())
+		is->setSaturation(0);
+	else {
+		is->setSaturation(s);
+		applyFilter();
+	}
+}
+
+
 
 

@@ -1966,6 +1966,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	// better make the view render widget current before setting filtering enabled
 	RenderingManager::getRenderingWidget()->refresh();
 	RenderingManager::getRenderingWidget()->setFilteringEnabled(!disablefilter);
+	RenderingManager::getPropertyBrowserWidget()->setFilterPropertyEnabled(!disablefilter);
 
 	// j. antialiasing
 	bool antialiasing = true;
