@@ -44,10 +44,6 @@ extern "C"
 #endif
 }
 
-// Buffer between Parsing thread and Decoding thread
-#define MEGABYTE 1048576
-#define MAX_VIDEOQ_SIZE (3 * 1048576)
-
 #include "VideoFile.h"
 #include "VideoFile.moc"
 
@@ -61,6 +57,12 @@ extern "C"
 #include <QThread>
 #include <QDebug>
 #include <QFileInfo>
+
+// Buffer between Parsing thread and Decoding thread
+#define MEGABYTE 1048576
+#define MAX_VIDEOQ_SIZE (3 * 1048576)
+
+bool VideoFile::ffmpegregistered = false;
 
 class ParsingThread: public QThread
 {
@@ -99,20 +101,19 @@ private:
 };
 
 VideoPicture::VideoPicture() :
-	oldframe(0), width(0), height(0), allocated(false), usePalette(false), pts(
+	oldframe(0), width(0), height(0), allocated(false), convert_rgba_palette(false), pts(
 			0.0)
 {
-
 	img_convert_ctx_filtering = NULL;
 	rgb.data[0] = NULL;
 }
 
 bool VideoPicture::allocate(SwsContext *img_convert_ctx, int w, int h,
-		enum PixelFormat format, bool palettized)
+		enum PixelFormat format, bool rgba_palette)
 {
 
 	img_convert_ctx_filtering = img_convert_ctx;
-	usePalette = palettized;
+	convert_rgba_palette = rgba_palette;
 	width = w;
 	height = h;
 	pixelformat = format;
@@ -154,7 +155,6 @@ VideoPicture::~VideoPicture()
 
 void VideoPicture::saveToPPM(QString filename) const
 {
-
 	if (allocated && pixelformat != PIX_FMT_RGBA)
 	{
 		FILE *pFile;
@@ -179,7 +179,7 @@ void VideoPicture::saveToPPM(QString filename) const
 
 void VideoPicture::refilter() const
 {
-	if (!allocated || !oldframe || !img_convert_ctx_filtering || usePalette)
+	if (!allocated || !oldframe || !img_convert_ctx_filtering || convert_rgba_palette)
 		return;
 
 	sws_scale(img_convert_ctx_filtering, oldframe->data, oldframe->linesize, 0,
@@ -196,48 +196,45 @@ void VideoPicture::fill(AVPicture *frame, double timestamp)
 	// remember pts
 	pts = timestamp;
 
-	if (!usePalette)
+	if (!convert_rgba_palette)
 	{
 		// Convert the image with ffmpeg sws
 		sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0,
-				height, (uint8_t**) rgb.data, (int *) rgb.linesize);
+				  height, (uint8_t**) rgb.data, (int *) rgb.linesize);
 		return;
 	}
-	// I reimplement here sws_convertPalette8ToPacked32 which does not work...
+	// I reimplement here sws_convertPalette8ToPacked32 which does not work with alpha channel (RGBA)...
 	else
 	{
 		// get pointer to the palette
 		uint8_t *palette = frame->data[1];
-		// clear rgb to 0 when alpha is 0
-		for (int i = 0; i < 4 * 256; i += 4)
-		{
-			if (palette[i + 3] == 0)
+		if ( palette != 0 ) {
+			// clear RGB to zeros when alpha is 0 (optional but cleaner)
+			for (int i = 0; i < 4 * 256; i += 4)
 			{
-				palette[i + 0] = 0;
-				palette[i + 1] = 0;
-				palette[i + 2] = 0;
+				if (palette[i + 3] == 0)
+					palette[i + 0] = palette[i + 1] = palette[i + 2] = 0;
 			}
-		}
-		// copy BGR palette color from frame to RGB buffer of VideoPicture
-		uint8_t *map = frame->data[0];
-		uint8_t *bgr = rgb.data[0];
-		for (int y = 0; y < height; y++)
-		{
-			for (int x = 0; x < width; x++)
+			// copy BGR palette color from frame to RGBA buffer of VideoPicture
+			uint8_t *map = frame->data[0];
+			uint8_t *bgr = rgb.data[0];
+			for (int y = 0; y < height; y++)
 			{
-				*bgr++ = palette[4 * map[x] + 2]; // B
-				*bgr++ = palette[4 * map[x] + 1]; // G
-				*bgr++ = palette[4 * map[x]]; // R
-				if (pixelformat == PIX_FMT_RGBA)
-					*bgr++ = palette[4 * map[x] + 3]; // A
+				for (int x = 0; x < width; x++)
+				{
+					*bgr++ = palette[4 * map[x] + 2]; // B
+					*bgr++ = palette[4 * map[x] + 1]; // G
+					*bgr++ = palette[4 * map[x]];     // R
+					if (pixelformat == PIX_FMT_RGBA)
+						*bgr++ = palette[4 * map[x] + 3]; // A
+				}
+				map += frame->linesize[0];
 			}
-			map += frame->linesize[0];
 		}
 	}
 
 }
 
-bool VideoFile::ffmpegregistered = false;
 
 VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 		int swsConversionAlgorithm, int destinationWidth, int destinationHeight) :
@@ -279,16 +276,13 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 	pictq_cond = new QWaitCondition;
 	Q_CHECK_PTR(pictq_cond);
 
-	QObject::connect(parse_tid, SIGNAL(finished()), this,
-			SLOT(thread_terminated()));
-	QObject::connect(decod_tid, SIGNAL(finished()), this,
-			SLOT(thread_terminated()));
+	QObject::connect(parse_tid, SIGNAL(finished()), this, SLOT(thread_terminated()));
+	QObject::connect(decod_tid, SIGNAL(finished()), this, SLOT(thread_terminated()));
 
 	ptimer = new QTimer(this);
 	Q_CHECK_PTR(ptimer);
 	ptimer->setSingleShot(true);
-	QObject::connect(ptimer, SIGNAL(timeout()), this,
-			SLOT(video_refresh_timer()));
+	QObject::connect(ptimer, SIGNAL(timeout()), this, SLOT(video_refresh_timer()));
 
 	// initialize behavior
 	play_speed = 1.0; // normal play speed
@@ -378,7 +372,6 @@ void VideoFile::reset()
 
 void VideoFile::stop()
 {
-
 	if (!quit && pFormatCtx)
 	{
 		// request quit
@@ -408,7 +401,6 @@ void VideoFile::stop()
 
 void VideoFile::start()
 {
-
 	// nothing to play if there is ONE frame only...
 	if (getEnd() - getBegin() < 2)
 		return;
@@ -446,20 +438,14 @@ void VideoFile::start()
 
 void VideoFile::play(bool startorstop)
 {
-
 	if (startorstop)
-	{
 		start();
-	}
 	else
-	{
 		stop();
-	}
 }
 
 void VideoFile::setPlaySpeed(int playspeed)
 {
-
 	switch (playspeed)
 	{
 
@@ -497,7 +483,6 @@ void VideoFile::setPlaySpeed(int playspeed)
 
 int VideoFile::getPlaySpeed()
 {
-
 	if (play_speed - 0.25 < 0.1)
 		return SPEED_QUARTER;
 	if (play_speed - 0.333 < 0.1)
@@ -516,7 +501,6 @@ int VideoFile::getPlaySpeed()
 
 void VideoFile::thread_terminated()
 {
-
 	// recieved this message while 'quit' was not requested ?
 	if (!quit)
 	{
@@ -530,7 +514,6 @@ void VideoFile::thread_terminated()
 
 const VideoPicture *VideoFile::getPictureAtIndex(int index) const
 {
-
 	// return a firstPicture picture if wrong index (e.g. -1)
 	if (index < 0 || index > VIDEO_PICTURE_QUEUE_SIZE)
 		return (resetPicture);
@@ -538,10 +521,8 @@ const VideoPicture *VideoFile::getPictureAtIndex(int index) const
 	return (&pictq[index]);
 }
 
-bool VideoFile::open(QString file, int64_t markIn, int64_t markOut,
-		bool ignoreAlphaChannel)
+bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreAlphaChannel)
 {
-
 	AVFormatContext *_pFormatCtx;
 
 	filename = file;
@@ -618,10 +599,8 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut,
 	// if video_index not set (no video stream found) or stream open call failed
 	videoStream = stream_component_open(_pFormatCtx);
 	if (videoStream < 0)
-	{
 		//could not open Codecs (error message already emitted)
 		return false;
-	}
 
 	// Init the stream and timing info
 	video_st = _pFormatCtx->streams[videoStream];
@@ -664,54 +643,38 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut,
 
 	// Default targetFormat to PIX_FMT_RGB24, not using color palette
 	enum PixelFormat targetFormat = PIX_FMT_RGB24;
-	bool paletized = false;
+	bool rgba_palette = false;
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 	// if not requested otherwise, determine if the image has an alpha channel
 	if (!ignoreAlpha)
 	{
-		// Change target format to keep Alpha channel if exist
-		if (pixelFormatHasAlphaChannel()
-		// this is a fix for some jpeg formats with YUVJ format
-				|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h
-						> 0)
+		// Change target format to keep Alpha channel if already exists
+		if ( pixelFormatHasAlphaChannel()
+			// this is a fix for some jpeg formats with YUVJ format
+			|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h > 0
+			// special case of PALLETE and GREY pixel formats(converters exist for rgba)
+			|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL )
 		{
 			targetFormat = PIX_FMT_RGBA;
-		}
-		// special case of PALLETIZED pixel formats
-		else if (av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags
-				& PIX_FMT_PAL)
-		{
-			targetFormat = PIX_FMT_RGBA;
-			paletized = true;
-		}
-	}
-#else
-	if (!ignoreAlpha)
-	{
-		// Change target format to keep Alpha channel if exist
-		if (pixelFormatHasAlphaChannel())
-		{
-			targetFormat = PIX_FMT_RGBA;
-		}
-		// special case of PALLETIZED pixel formats
 
-		else if (video_st->codec->pix_fmt == PIX_FMT_PAL8 )
-		{
-			targetFormat = PIX_FMT_RGBA;
-			paletized = true;
+			// TODO ; find how to know if the palette has alpha channel
+//			// special case of PALETTE formats which have ALPHA channel in their colors
+//			if (video_st->codec->pix_fmt == PIX_FMT_PAL8) {
+//				rgba_palette = true;
+//			}
+
 		}
 	}
-#endif
+
 	// Decide for optimal scaling algo if it was not specified
 	// NB: the algo is used only if the conversion is scaled or with filter
 	// (i.e. optimal 'unscaled' converter is used by default)
 	if (conversionAlgorithm == 0)
 	{
-		if (getEnd() - getBegin() < 2)
+		if (getEnd() - getBegin() == 1)
 			conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
 		else
-			conversionAlgorithm = SWS_POINT; // optimal speed scaling for videos
+			conversionAlgorithm = SWS_POINT;   // optimal speed scaling for videos
 	}
 
 #ifndef NDEBUG
@@ -742,23 +705,20 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut,
 	if (img_convert_ctx == NULL)
 	{
 		// Cannot initialize the conversion context!
-		qWarning() << filename << tr(
-				"|Cannot create a suitable conversion context.");
+		qWarning() << filename << tr("|Cannot create a suitable conversion context.");
 		return false;
 	}
 
 	/* allocate the buffers */
-	// not need for the picture queue if there is ONE frame only...
+	// no need for the picture queue if there is less than 2 frame...
 	if (getEnd() - getBegin() > 1)
 	{
 		for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i)
 		{
-			if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight,
-					targetFormat, paletized))
+			if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette))
 			{
 				// Cannot allocate Video Pictures!
-				qWarning() << filename << tr(
-						"|Cannot allocate pictures buffer.");
+				qWarning() << filename << tr( "|Cannot allocate pictures buffer.");
 				return false;
 			}
 		}
@@ -774,7 +734,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut,
 
 	// we need a picture to display when not decoding
 	if (!firstPicture.allocate(img_convert_ctx, targetWidth, targetHeight,
-			targetFormat, paletized))
+			targetFormat, rgba_palette))
 	{
 		// Cannot allocate Video Pictures!
 		qWarning() << filename << tr("|Cannot allocate picture buffer.");

@@ -72,7 +72,7 @@ class VideoPicture {
     friend class VideoFile;
     AVPicture rgb, *oldframe;
     int width, height;
-    bool allocated, usePalette;
+    bool allocated, convert_rgba_palette;
     double pts;
     enum PixelFormat pixelformat;
     SwsContext *img_convert_ctx_filtering;
