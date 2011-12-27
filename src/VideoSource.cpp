@@ -94,31 +94,10 @@ bool VideoSource::isPaused() const
 
 void VideoSource::pause(bool on)
 {
-
 	if (on != isPaused())
 		is->pause(on);
 }
 
-void VideoSource::setStandby(bool on)
-{
-	if (isPlayable())
-	{
-		static bool wasplaying = true;
-
-		if (on)
-		{
-			if (!standby)
-			{
-				wasplaying = isPlaying();
-				play(false);
-			}
-		}
-		else if (standby)
-			play(wasplaying);
-	}
-
-	Source::setStandby(on);
-}
 
 // only Rendering Manager can call this
 void VideoSource::update()

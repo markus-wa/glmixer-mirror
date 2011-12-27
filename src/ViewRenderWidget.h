@@ -177,7 +177,7 @@ protected:
 	static GLuint border_thin, border_large, border_scale;
 	static GLuint frame_selection, frame_screen, frame_screen_thin;
 	static GLuint quad_texured, quad_window[2];
-	static GLuint circle_mixing, layerbg;
+	static GLuint circle_mixing, circle_limbo, layerbg;
 	static GLuint mask_textures[Source::CUSTOM_MASK];
 	static GLuint fading;
 	static GLuint stipplingMode;
@@ -219,6 +219,7 @@ private:
     GLuint buildLineList();
     GLuint buildTexturedQuadList();
     GLuint buildCircleList();
+    GLuint buildLimboCircleList();
     GLuint buildLayerbgList();
     GLuint buildFrameList();
     GLuint buildWindowList(GLubyte r, GLubyte g, GLubyte b);

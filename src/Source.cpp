@@ -45,7 +45,7 @@ Source::Source() :
 			brightness(0.f), contrast(1.f),	saturation(1.f),
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
 			hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
-			useChromaKey(false) {
+			wasplaying(true), useChromaKey(false) {
 
 	texcolor = Qt::white;
 	chromaKeyColor = Qt::green;
@@ -162,7 +162,7 @@ void Source::setAlphaCoordinates(double x, double y) {
 
 	// TODO : configure the mixing to be linear or quadratic , or with a custom curve ?
 	// Compute distance to the center
-	double d = ((x * x) + (y * y)) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE); // QUADRATIC
+	GLdouble d = ((x * x) + (y * y)) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE); // QUADRATIC
 
 	// adjust alpha according to distance to center
 	if (d < 1.0)
@@ -170,10 +170,25 @@ void Source::setAlphaCoordinates(double x, double y) {
 	else
 		texalpha = 0.0;
 
-	// set the source to stanby if it is in the limbo area (if there is no clone relying on its update)
-	// TODO ; make the threshold configurable
-	if (clones->size() < 1)
-		setStandby( d > (2.5 * 2.5) );
+}
+
+void Source::setStandby(bool on) {
+
+	bool wasstandby = standby;
+	// set the source to stanby if there is no clone relying on its update
+	standby = on && !isCloned();
+
+	if (isPlayable() && wasstandby != standby)
+	{
+		if (standby)
+		{
+			wasplaying = isPlaying();
+			play(false);
+		}
+		else
+			play(wasplaying);
+	}
+
 }
 
 void Source::setAlpha(GLfloat a) {
@@ -191,8 +206,7 @@ void Source::setAlpha(GLfloat a) {
 		dy = alphay / sqrt(alphax * alphax + alphay * alphay);
 	}
 
-	GLfloat da = sqrt((1.0 - texalpha) * (SOURCE_UNIT * SOURCE_UNIT
-			* CIRCLE_SIZE * CIRCLE_SIZE));
+	GLdouble da = sqrt((1.0 - texalpha) * (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE));
 
 	// set new alpha coordinates
 	alphax = dx * da;

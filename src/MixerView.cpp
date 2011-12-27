@@ -42,6 +42,7 @@ MixerView::MixerView() : View()
 	maxzoom = MAXZOOM;
 	maxpanx = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	maxpany = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
+	limboSize = MAX_LIMBO_SIZE;
 	currentAction = View::NONE;
 
 	drawRectangle = false;
@@ -64,9 +65,15 @@ void MixerView::paint()
 {
 	static double renderingAspectRatio = 1.0;
 	static bool first = true;
+	static GLdouble d = 0, squareDistance = SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE;
+	static GLdouble ax, ay;
 
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing);
+    glPushMatrix();
+    glScalef( limboSize,  limboSize, 1.0);
+    glCallList(ViewRenderWidget::circle_limbo);
+    glPopMatrix();
 
 	// The rectangle for selection
     if ( drawRectangle ) {
@@ -115,7 +122,9 @@ void MixerView::paint()
 			// 1. Render it into current view
 			//
 			glPushMatrix();
-			glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
+			ax = (*its)->getAlphaX();
+			ay = (*its)->getAlphaY();
+			glTranslated(ax, ay, (*its)->getDepth());
 
 			renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
 			if ( ABS(renderingAspectRatio) > 1.0)
@@ -129,6 +138,10 @@ void MixerView::paint()
 
 			// Blending Function For mixing like in the rendering window
 			(*its)->beginEffectsSection();
+
+			// test if the source is passed the stanby line
+			d = ((ax * ax) + (ay * ay)) / squareDistance;
+			(*its)->setStandby( d > (limboSize * limboSize) );
 
 			// bind the source texture and update its content
 			ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
@@ -922,6 +935,12 @@ QDomElement MixerView::getConfiguration(QDomDocument &doc){
 
 	QDomElement mixviewelem = View::getConfiguration(doc);
 
+	// Mixer View limbo size parameter
+	QDomElement l = doc.createElement("Limbo");
+	l.setAttribute("value", getLimboSize());
+	mixviewelem.appendChild(l);
+
+	// Mixer View groups
 	QDomElement groups = doc.createElement("Groups");
     for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
     	// if this group has more than 1 element
@@ -952,6 +971,9 @@ void MixerView::setConfiguration(QDomElement xmlconfig){
 	// apply generic View config
 	View::setConfiguration(xmlconfig);
 
+	// Mixer View limbo size parameter
+	setLimboSize(xmlconfig.firstChildElement("Limbo").attribute("value", "2.5").toFloat());
+
 	QDomElement groups = xmlconfig.firstChildElement("Groups");
 	// if there is a list of groups
 	if (!groups.isNull()){
@@ -979,5 +1001,12 @@ void MixerView::setConfiguration(QDomElement xmlconfig){
 
 }
 
+void MixerView::setLimboSize(GLdouble s) {
+	limboSize = CLAMP(s, MIN_LIMBO_SIZE, MAX_LIMBO_SIZE);
+	modified = true;
+}
 
+double MixerView::getLimboSize() {
+	return ( limboSize );
+}
 

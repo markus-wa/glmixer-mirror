@@ -36,17 +36,22 @@ CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_
 	_iconSize[SMALL] = 19.0;
 	_largeIconSize[SMALL] = 21.0;
 
-	_size[MEDIUM] = 61.0;
-	_iconSize[MEDIUM] = 23.0;
-	_largeIconSize[MEDIUM] = 26.0;
+	_size[MEDIUM] = 101.0;
+	_iconSize[MEDIUM] = 38.0;
+	_largeIconSize[MEDIUM] = 42.0;
 
-	_size[LARGE] = 101.0;
-	_iconSize[LARGE] = 38.0;
-	_largeIconSize[LARGE] = 42.0;
+	_size[LARGE] = 151.0;
+	_iconSize[LARGE] = 54.0;
+	_largeIconSize[LARGE] = 62.0;
 
-//	_size[LARGE] = 151.0;
-//	_iconSize[LARGE] = 54.0;
-//	_largeIconSize[LARGE] = 62.0;
+
+//	_size[MEDIUM] = 61.0;
+//	_iconSize[MEDIUM] = 23.0;
+//	_largeIconSize[MEDIUM] = 26.0;
+//
+//	_size[LARGE] = 101.0;
+//	_iconSize[LARGE] = 38.0;
+//	_largeIconSize[LARGE] = 42.0;
 
 	_currentSize = MEDIUM;
     title = "Catalog";

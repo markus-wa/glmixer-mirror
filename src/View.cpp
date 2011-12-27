@@ -38,8 +38,8 @@ QDomElement View::getConfiguration(QDomDocument &doc) {
 }
 
 void View::setConfiguration(QDomElement xmlconfig) {
-	setZoom(xmlconfig.firstChildElement("Zoom").attribute("value").toFloat());
-	setPanning(xmlconfig.firstChildElement("Panning").attribute("X").toFloat(), xmlconfig.firstChildElement("Panning").attribute("Y").toFloat());
+	setZoom(xmlconfig.firstChildElement("Zoom").attribute("value", "1").toFloat());
+	setPanning(xmlconfig.firstChildElement("Panning").attribute("X", "0").toFloat(), xmlconfig.firstChildElement("Panning").attribute("Y", "0").toFloat());
 }
 
 

@@ -126,6 +126,9 @@ public:
 	inline SourceList *getClones() const {
 		return clones;
 	}
+	inline bool isCloned() const {
+		return clones->size() > 0;
+	}
 
 	/**
 	 *  Geometry and deformation
@@ -209,6 +212,11 @@ public:
 		return culled;
 	}
 	void testGeometryCulling();
+
+	/**
+	 * standby
+	 */
+	virtual void setStandby(bool on);
 	inline bool isStandby() const {
 		return standby;
 	}
@@ -440,12 +448,6 @@ protected:
 	 *
 	 */
 	void setDepth(GLdouble v);
-	/**
-	 * standby is set internally
-	 */
-	virtual void setStandby(bool on) {
-		standby = on;
-	}
 	// RTTI
 	static RTTI type;
 	static bool playable;
@@ -487,7 +489,7 @@ protected:
 	GLfloat hueShift, chromaKeyTolerance;
 	int luminanceThreshold, numberOfColors;
 	QColor chromaKeyColor;
-	bool useChromaKey;
+	bool wasplaying, useChromaKey;
 
 
 	// statics

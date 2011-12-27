@@ -56,6 +56,9 @@ public:
 	QDomElement getConfiguration(QDomDocument &doc);
 	void setConfiguration(QDomElement xmlconfig);
 
+	GLdouble getLimboSize();
+	void setLimboSize(GLdouble s);
+
 private:
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
@@ -70,6 +73,7 @@ private:
 	SourceListArray groupSources;
 	QMap<SourceListArray::iterator, QColor> groupColor;
 	GLdouble selectionRectangleStart[2], selectionRectangleEnd[2];
+	GLdouble limboSize;
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */

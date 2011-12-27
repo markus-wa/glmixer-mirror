@@ -39,6 +39,8 @@
 #define SELECTBUFSIZE 512   // > MAX_SOURCE_COUNT * 4 + 3
 #define SOURCE_UNIT 10.0
 #define CIRCLE_SIZE 8.0
+#define MIN_LIMBO_SIZE 1.1
+#define MAX_LIMBO_SIZE 3.0
 #define MIN_DEPTH_LAYER 0.0
 #define MAX_DEPTH_LAYER 30.0
 #define MIN_SCALE 0.31

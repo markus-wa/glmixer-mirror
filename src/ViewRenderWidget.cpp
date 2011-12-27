@@ -46,7 +46,7 @@ GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
 GLuint ViewRenderWidget::border_scale = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_window[] = {0, 0};
 GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0, ViewRenderWidget::frame_screen_thin = 0;
-GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::layerbg = 0;
+GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::circle_limbo = 0, ViewRenderWidget::layerbg = 0;
 GLuint ViewRenderWidget::mask_textures[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 GLuint ViewRenderWidget::fading = 0;
 
@@ -204,6 +204,7 @@ void ViewRenderWidget::initializeGL()
 	border_large_shadow = border_thin_shadow + 1;
 	frame_selection = buildSelectList();
 	circle_mixing = buildCircleList();
+	circle_limbo = buildLimboCircleList();
 	layerbg = buildLayerbgList();
 	quad_window[0] = buildWindowList(0, 0, 0);
 	quad_window[1] = buildWindowList(255, 255, 255);
@@ -1259,13 +1260,49 @@ GLuint ViewRenderWidget::buildCircleList()
 			glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));
 		glEnd();
 
+		glPopMatrix();
+
+	glEndList();
+
+	// free quadric object
+	gluDeleteQuadric(quadObj);
+
+	return id;
+}
+
+
+GLuint ViewRenderWidget::buildLimboCircleList()
+{
+	GLuint id = glGenLists(1);
+	GLUquadricObj *quadObj = gluNewQuadric();
+
+	glNewList(id, GL_COMPILE);
+
+		glPushMatrix();
+		glTranslatef(0.0, 0.0, -1.0);
+
+		// blended antialiasing
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
+
 		//limbo
 		glColor4ub(COLOR_LIMBO, 180);
-		gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT * 2.5, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 50, 3);
+		gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 70, 3);
+
+		glLineWidth(3.0);
+		glColor4ub(COLOR_FADING, 255);
+		glBegin(GL_LINE_LOOP);
+		for (float i = 0; i < 2.0 * M_PI; i += 0.07)
+			glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));
+		glEnd();
 
 		glPopMatrix();
 
 	glEndList();
+
+	// free quadric object
+	gluDeleteQuadric(quadObj);
 
 	return id;
 }
