@@ -63,7 +63,7 @@ void MixerView::setModelview()
 void MixerView::paint()
 {
 	static double renderingAspectRatio = 1.0;
-	static bool first = true, last = false;
+	static bool first = true;
 
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing);
@@ -109,7 +109,6 @@ void MixerView::paint()
     // render in the depth order
     if (ViewRenderWidget::program->bind()) {
 		first = true;
-		last = false;
 		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
 			//

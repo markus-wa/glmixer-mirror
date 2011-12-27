@@ -56,8 +56,8 @@ protected:
 		// add this clone to the list of clones into the original source
 		std::pair<SourceList::iterator,bool> ret;
 		ret = original->getClones()->insert((Source *) this);
-		// TODO : Throw exception if (!ret.second)
-
+		if (!ret.second)
+			SourceConstructorException().raise();
 		aspectratio = original->getAspectRatio();
 	}
 

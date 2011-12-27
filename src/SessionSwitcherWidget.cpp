@@ -526,8 +526,8 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
     gradient.setColorAt(0.0, QColor(240, 240, 240));
     gradient.setColorAt(1.0, QColor(224, 224, 224));
     QBrush brush(gradient);
-    const QMetaObject &mo = QEasingCurve::staticMetaObject;
-    QMetaEnum metaEnum = mo.enumerator(mo.indexOfEnumerator("Type"));
+//    const QMetaObject &mo = QEasingCurve::staticMetaObject;
+//    QMetaEnum metaEnum = mo.enumerator(mo.indexOfEnumerator("Type"));
     // Skip QEasingCurve::Custom
     for (int i = 0; i < QEasingCurve::NCurveTypes - 3; ++i) {
         painter.fillRect(QRect(QPoint(0, 0), m_iconSize), brush);
