@@ -157,7 +157,11 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	rec->enc->v_st = av_new_stream(rec->enc->oc, 0);
 
 	rec->enc->v_ctx = rec->enc->v_st->codec;
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+	rec->enc->v_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
+#else
 	rec->enc->v_ctx->codec_type = CODEC_TYPE_VIDEO;
+#endif
 	rec->enc->v_ctx->codec_id = f_codec_id;
 
 	rec->enc->v_ctx->width = width;
@@ -318,7 +322,11 @@ rec_deliver_vframe(video_rec_t *rec, void *data)
 		pkt.pts = av_rescale_q(rec->enc->v_ctx->coded_frame->pts,  AV_TIME_BASE_Q, rec->enc->v_st->time_base);
 
 	if(rec->enc->v_ctx->coded_frame->key_frame)
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+		pkt.flags |= AV_PKT_FLAG_KEY;
+#else
 		pkt.flags |= PKT_FLAG_KEY;
+#endif
 
 	pkt.stream_index = rec->enc->v_st->index;
 	pkt.data = rec->enc->vbuf_ptr;
@@ -360,7 +368,11 @@ sws_rec_deliver_vframe(video_rec_t *rec, void *data)
 		pkt.pts = av_rescale_q(rec->enc->v_ctx->coded_frame->pts,  AV_TIME_BASE_Q, rec->enc->v_st->time_base);
 
 	if(rec->enc->v_ctx->coded_frame->key_frame)
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+		pkt.flags |= AV_PKT_FLAG_KEY;
+#else
 		pkt.flags |= PKT_FLAG_KEY;
+#endif
 
 	pkt.stream_index = rec->enc->v_st->index;
 	pkt.data = rec->enc->vbuf_ptr;

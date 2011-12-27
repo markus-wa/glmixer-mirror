@@ -19,7 +19,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   Copyright 2009, 2010 Bruno Herbelin
+ *   Copyright 2009, 2012 Bruno Herbelin
  *
  */
 
@@ -322,8 +322,9 @@ void VideoFile::close()
 
 VideoFile::~VideoFile()
 {
-
+	// make sure all is closed
 	close();
+	QObject::disconnect(this, 0, 0, 0);
 
 	// delete threads
 	delete parse_tid;
@@ -335,7 +336,10 @@ VideoFile::~VideoFile()
 	if (deinterlacing_buffer)
 		av_free(deinterlacing_buffer);
 
-	QObject::disconnect(this, 0, 0, 0);
+	// TODO : why does it crashes if I free the avformat context ?
+//	if (pFormatCtx)
+//		avformat_free_context(pFormatCtx);
+
 }
 
 void VideoFile::reset()
@@ -396,7 +400,6 @@ void VideoFile::stop()
 		qDebug() << filename << tr("|Video stopped.");
 
 	}
-
 }
 
 void VideoFile::start()
@@ -523,32 +526,29 @@ const VideoPicture *VideoFile::getPictureAtIndex(int index) const
 
 bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreAlphaChannel)
 {
-	AVFormatContext *_pFormatCtx;
+	int err = 0;
+	AVFormatContext *_pFormatCtx = 0;
 
 	filename = file;
 	ignoreAlpha = ignoreAlphaChannel;
 
 	// Check file
-	int err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0,
-			NULL);
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+	_pFormatCtx = avformat_alloc_context();
+	err = avformat_open_input(&_pFormatCtx, qPrintable(filename), NULL, NULL);
+#else
+	err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0, NULL);
+#endif
 	if (err < 0)
 	{
 		switch (err)
 		{
-		case AVERROR_NUMEXPECTED:
-			qWarning() << filename << tr(
-					"|Incorrect numbered image sequence syntax.");
-			break;
 		case AVERROR_INVALIDDATA:
 			qWarning() << filename << tr("|Error while parsing header.");
 			break;
-		case AVERROR_NOFMT:
-			qWarning() << filename << tr("|Unknown format.");
-			break;
 		case AVERROR(EIO):
 			qWarning() << filename
-					<< tr(
-							"|I/O error. Usually that means that input file is truncated and/or corrupted");
+					<< tr("|I/O error. Usually that means that input file is truncated and/or corrupted");
 			break;
 		case AVERROR(ENOMEM):
 			qWarning() << filename << tr("|Memory allocation error.");
@@ -568,20 +568,12 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 	{
 		switch (err)
 		{
-		case AVERROR_NUMEXPECTED:
-			qWarning() << filename << tr(
-					"|Incorrect numbered image sequence syntax.");
-			break;
 		case AVERROR_INVALIDDATA:
 			qWarning() << filename << tr("|Error while parsing header.");
 			break;
-		case AVERROR_NOFMT:
-			qWarning() << filename << tr("|Unknown format.");
-			break;
 		case AVERROR(EIO):
 			qWarning() << filename
-					<< tr(
-							"|I/O error. Usually that means that input file is truncated and/or corrupted");
+					<< tr("|I/O error. Usually that means that input file is truncated and/or corrupted");
 			break;
 		case AVERROR(ENOMEM):
 			qWarning() << filename << tr("|Memory allocation error");
@@ -834,7 +826,11 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 	// Find the first video stream index
 	for (int i = 0; i < (int) pFCtx->nb_streams; i++)
 	{
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+		if (pFCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+#else
 		if (pFCtx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
+#endif
 		{
 			stream_index = i;
 			break;
@@ -1162,8 +1158,7 @@ void ParsingThread::run()
 			if (is->seek_backward || is->seek_pos <= is->getCurrentFrameTime())
 				flags |= AVSEEK_FLAG_BACKWARD;
 
-			if (av_seek_frame(is->pFormatCtx, is->videoStream, is->seek_pos,
-					flags) < 0)
+			if (av_seek_frame(is->pFormatCtx, is->videoStream, is->seek_pos, flags) < 0)
 			{
 				qDebug() << is->filename
 						<< tr("|Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos);
@@ -1183,8 +1178,12 @@ void ParsingThread::run()
 			continue;
 		}
 
-		// avoid reading packet if we know its the end of the file!
+		// avoid reading packet if we know its the end of the file
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+		if (is->pFormatCtx->pb->eof_reached)
+#else
 		if (url_feof(is->pFormatCtx->pb))
+#endif
 		{
 			msleep(SLEEP_DELAY);
 			continue;
@@ -1360,11 +1359,14 @@ void DecodingThread::run()
 		is->video_st->codec->reordered_opaque = packet->pts;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-		len1 = avcodec_decode_video2(is->video_st->codec, _pFrame,
-				&frameFinished, packet);
+		len1 = avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, packet);
 #else
 		len1 = avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet->data, packet->size);
 #endif
+
+		// loop on error
+		if (len1 < 0)
+			continue;
 
 		// get decompression time stamp
 		// this is the code in ffplay:
@@ -1722,7 +1724,11 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 			break;
 		last_name = p2->name;
 
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+		if (decode && p2->type == AVMEDIA_TYPE_VIDEO)
+#else
 		if (decode && p2->type == CODEC_TYPE_VIDEO)
+#endif
 		{
 			formatitem = new QTreeWidgetItem(availableCodecsTreeWidget);
 			formatitem->setText(0, QString(p2->name));
@@ -1855,8 +1861,7 @@ QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const
 		ffmpegPixelFormat = video_st->codec->pix_fmt;
 
 	QString pfn(av_pix_fmt_descriptors[ffmpegPixelFormat].name);
-	pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel(
-			&av_pix_fmt_descriptors[ffmpegPixelFormat]));
+	pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[ffmpegPixelFormat]));
 
 	return pfn;
 }

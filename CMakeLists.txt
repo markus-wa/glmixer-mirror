@@ -13,7 +13,7 @@ IF(Subversion_FOUND)
 ENDIF(Subversion_FOUND)
 
 set(GLMIXER_VERSION_MAJOR 1)
-set(GLMIXER_VERSION_MINOR 0)
+set(GLMIXER_VERSION_MINOR 1)
 
 # Expose CMAKE_INCLUDE_PATH and CMAKE_LIBARY_PATH to the GUI so users
 # may set these values without needing to manipulate the environment.
@@ -176,7 +176,7 @@ ENDFOREACH(GLMIXER_DEPENDENCY)
 # BELLOW IS THE LIST OF FFMPEG OPTIONNAL DEPENDENCIES.
 # ADD THE LIBRARIES AS REQUIRED BY YOUR INSTALLATION OF FFMPEG
 
-SET(GLMIXER_UTILITIES avcore theora theoraenc theoradec x264 xvidcore faac
+SET(GLMIXER_UTILITIES avcore va theora theoraenc theoradec x264 xvidcore faac gsm
                       mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0
                       speex dirac_encoder jpeg openjpeg vpx bz2 z)
     
@@ -186,6 +186,8 @@ FOREACH(GLMIXER_UTILITY ${GLMIXER_UTILITIES})
 	if (${_upper_glmixer_utility}_LIBRARY)
 		set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${${_upper_glmixer_utility}_LIBRARY} )
 		message( STATUS "Found ${GLMIXER_UTILITY} library (${${_upper_glmixer_utility}_LIBRARY}).")
+	else (${_upper_glmixer_utility}_LIBRARY)
+		message( INFO " Library ${GLMIXER_UTILITY} not found.")
 	endif (${_upper_glmixer_utility}_LIBRARY)
 ENDFOREACH(GLMIXER_UTILITY)
 

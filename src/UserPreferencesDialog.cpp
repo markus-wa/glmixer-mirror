@@ -19,7 +19,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   Copyright 2009, 2010 Bruno Herbelin
+ *   Copyright 2009, 2012 Bruno Herbelin
  *
  */
 
