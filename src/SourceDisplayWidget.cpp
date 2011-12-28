@@ -73,7 +73,7 @@ void SourceDisplayWidget::paintGL()
 	    glLoadIdentity();
 
 	    glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
-		glScaled(1.0, s->verticalFlip() ? -1.0 : 1.0, 1.0);
+		glScaled(1.0, s->isVerticalFlip() ? -1.0 : 1.0, 1.0);
 		// update the texture of the source
 		s->update();
 

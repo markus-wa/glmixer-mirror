@@ -929,7 +929,7 @@ void GeometryView::scaleSource(Source *s, int X, int Y, int dx, int dy, char qua
 
 	if ( quadrant > 2 )					  // BOTTOM
 		h = -h;
-	sy = option ? sx : (ay + h) / (by + h);  // proportional scaling if option is ON
+	sy = (option || s->isFixedAspectRatio()) ? sx : (ay + h) / (by + h);  // proportional scaling if option is ON
 	ay = h * (sy - 1.0);
 
     // reverse rotation to apply translation shift in the world reference
@@ -1166,11 +1166,18 @@ void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool opti
 
 	if ( quadrant == 1 || quadrant == 4)   // LEFT
 		w = -w;
-	sx = (ax + w) / (bx + w);
-
 	if ( quadrant > 2 )					  // BOTTOM
 		h = -h;
-	sy = option ? sx : (ay + h) / (by + h);  // proportional scaling if option is ON
+
+	// compute x scaling factor
+	sx = (ax + w) / (bx + w);
+	// proportional scaling if option is ON or source has fixed aspect ratio,
+	// compute y scaling factor otherwise
+	if (option || s->isFixedAspectRatio()) {
+		sy = sx;
+		ay = sy * (by + h) - h;
+	} else
+		sy = (ay + h) / (by + h);
 
 	// translate
 	double tx = w * (sx - 1.0);

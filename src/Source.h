@@ -202,8 +202,11 @@ public:
 	void scaleBy(GLfloat fx, GLfloat fy);
 	void clampScale();
 
-	void setVerticalFlip(bool on) { flipVertical = on; }
-	bool verticalFlip() { return flipVertical; }
+	inline void setVerticalFlip(bool on) { flipVertical = on; }
+	inline bool isVerticalFlip() const { return flipVertical; }
+
+	inline void setFixedAspectRatio(bool on) { fixedAspectRatio = on; }
+	inline bool isFixedAspectRatio() const { return fixedAspectRatio; }
 
 	typedef enum { SCALE_CROP= 0, SCALE_FIT, SCALE_DEFORM, SCALE_PIXEL} scalingMode;
 	void resetScale(scalingMode sm = SCALE_CROP);
@@ -452,10 +455,14 @@ protected:
 	static RTTI type;
 	static bool playable;
 
-	// identity and properties
+	// identity
 	GLuint id;
 	QString name;
-	bool culled, standby, frameChanged, cropped, modifiable;
+
+	// flags for updating (or not)
+	bool culled, standby, wasplaying, frameChanged;
+	// properties and clone list
+	bool modifiable, fixedAspectRatio;
 	SourceList *clones;
 
 	// GL Stuff
@@ -470,6 +477,7 @@ protected:
 	GLenum source_blend, destination_blend;
 	GLenum blend_eq;
 	QRectF textureCoordinates;
+	// some textures are inverted
 	bool flipVertical;
 
 	// if should be set to GL_NEAREST
@@ -489,7 +497,7 @@ protected:
 	GLfloat hueShift, chromaKeyTolerance;
 	int luminanceThreshold, numberOfColors;
 	QColor chromaKeyColor;
-	bool wasplaying, useChromaKey;
+	bool useChromaKey;
 
 
 	// statics
@@ -497,7 +505,8 @@ protected:
 
 };
 
-
+// read and write of properties into data stream
+// (used for default source save and restore in preferences)
 QDataStream &operator<<(QDataStream &, const Source *);
 QDataStream &operator>>(QDataStream &, Source *);
 

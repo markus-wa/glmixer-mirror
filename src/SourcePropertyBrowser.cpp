@@ -241,6 +241,11 @@ void SourcePropertyBrowser::createPropertyTree(){
 		pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[0], 3);
 		pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], 3);
 		modifyroperty->addSubProperty(property);
+		// fixed aspect ratio on/off
+		property = boolManager->addProperty("Fixed aspect ratio");
+		property->setToolTip("Keep width/height proportion when scaling");
+		idToProperty[property->propertyName()] = property;
+		modifyroperty->addSubProperty(property);
 		// Rotation angle
 		property = doubleManager->addProperty("Angle");
 		property->setToolTip("Angle of rotation in degrees (counter clock wise)");
@@ -667,6 +672,10 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
 		idToProperty["Scale"]->setEnabled(s->isModifiable());
 		pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
+
+		idToProperty["Fixed aspect ratio"]->setEnabled(s->isModifiable());
+		boolManager->setValue(idToProperty["Fixed aspect ratio"], s->isFixedAspectRatio());
+
 		idToProperty["Crop"]->setEnabled(s->isModifiable());
 		rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
 		idToProperty["Depth"]->setEnabled(s->isModifiable());
@@ -1030,6 +1039,9 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 	}
 	else if ( property == idToProperty["Pixelated"] ) {
 		currentItem->setPixelated(value);
+	}
+	else if ( property == idToProperty["Fixed aspect ratio"] ) {
+		currentItem->setFixedAspectRatio(value);
 	}
 	else if ( property == idToProperty["Ignore alpha"] ) {
 		if (currentItem->rtti() == Source::VIDEO_SOURCE) {

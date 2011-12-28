@@ -37,15 +37,15 @@ bool Source::playable = false;
 
 // innefective source just to get default parameters
 Source::Source() :
-			culled(false), standby(false), frameChanged(false), cropped(false), modifiable(true), textureIndex(0),
-			maskTextureIndex(0), x(0.0), y(0.0), z(0),
+			culled(false), standby(false), wasplaying(true), frameChanged(false), modifiable(true), fixedAspectRatio(false),
+			textureIndex(0), maskTextureIndex(0), x(0.0), y(0.0), z(0),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
 			pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
 			brightness(0.f), contrast(1.f),	saturation(1.f),
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
 			hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
-			wasplaying(true), useChromaKey(false) {
+			useChromaKey(false) {
 
 	texcolor = Qt::white;
 	chromaKeyColor = Qt::green;
@@ -62,8 +62,8 @@ Source::Source() :
 
 // the 'REAL' source constructor.
 Source::Source(GLuint texture, double depth) :
-	culled(false), standby(false), frameChanged(true), cropped(false), modifiable(true), textureIndex(texture),
-	maskTextureIndex(0), x(0.0), y(0.0), z(depth),
+	culled(false), standby(false), wasplaying(true), frameChanged(true), modifiable(true), fixedAspectRatio(false),
+	textureIndex(texture), maskTextureIndex(0), x(0.0), y(0.0), z(depth),
 	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
 	pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
@@ -436,7 +436,9 @@ QDataStream &operator<<(QDataStream &stream, const Source *source){
 			<< source->getNumberOfColors()
 			<< source->getChromaKey()
 			<< source->getChromaKeyColor()
-			<< source->getChromaKeyTolerance();
+			<< source->getChromaKeyTolerance()
+			<< source->isModifiable()
+			<< source->isFixedAspectRatio();
 
 	return stream;
 }
@@ -485,6 +487,8 @@ QDataStream &operator>>(QDataStream &stream, Source *source){
 	stream >> boolValue;	source->setChromaKey(boolValue);
 	stream >> colorValue;	source->setChromaKeyColor(colorValue);
 	stream >> intValue;		source->setChromaKeyTolerance(intValue);
+	stream >> boolValue;	source->setModifiable(boolValue);
+	stream >> boolValue;	source->setFixedAspectRatio(boolValue);
 
 	return stream;
 }
@@ -503,12 +507,14 @@ void Source::copyPropertiesFrom(const Source *source){
 	destination_blend = source->destination_blend;
 	blend_eq =  source->blend_eq;
 	textureCoordinates = source->textureCoordinates;
+	flipVertical = source->flipVertical;
 	texcolor = source->texcolor;
 	brightness = source->brightness;
 	contrast = source->contrast;
 	saturation = source->saturation;
 	pixelated = source->pixelated;
 	filter = source->filter;
+	filtered = source->filtered;
 	invertMode = source->invertMode;
 	setMask( source->mask_type );
 
@@ -524,4 +530,6 @@ void Source::copyPropertiesFrom(const Source *source){
 	useChromaKey = source->useChromaKey;
 	chromaKeyTolerance = source->chromaKeyTolerance;
 
+	modifiable = source->modifiable;
+	fixedAspectRatio = source->fixedAspectRatio;
 }

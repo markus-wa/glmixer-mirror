@@ -139,19 +139,20 @@ void MixerView::paint()
 			// Blending Function For mixing like in the rendering window
 			(*its)->beginEffectsSection();
 
-			// test if the source is passed the stanby line
+			// test if the source is passed the standby line
 			d = ((ax * ax) + (ay * ay)) / squareDistance;
 			(*its)->setStandby( d > (limboSize * limboSize) );
 
-			// bind the source texture and update its content
+			// setup multi-texturing and effect drawing mode for active sources
 			ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
+
+			// bind the source texture and update its content
 			(*its)->update();
 
 			// draw surface
 			(*its)->draw();
 
 			if (!(*its)->isStandby()) {
-
 				// draw stippled version of the source on top
 				glEnable(GL_POLYGON_STIPPLE);
 				glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
@@ -168,6 +169,7 @@ void MixerView::paint()
 			//
 			// 3. draw border and handles if active
 			//
+			// disable multi-texturing and effect drawing mode
 			ViewRenderWidget::setSourceDrawingMode(false);
 
 			if (RenderingManager::getInstance()->isCurrentSource(its))
