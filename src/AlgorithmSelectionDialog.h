@@ -45,6 +45,7 @@ public:
 	int getSelectedHeight();
 	double getSelectedVariability();
 	unsigned long  getUpdatePeriod();
+	bool getIngoreAlpha();
 
 public Q_SLOTS:
 
@@ -52,6 +53,7 @@ public Q_SLOTS:
 
 	void on_AlgorithmComboBox_currentIndexChanged(int algo);
 	void on_customUpdateFrequency_toggled(bool flag);
+	void on_ignoreAlphaCheckbox_toggled(bool on);
 	void on_frequencySlider_valueChanged(int v);
 	void on_variabilitySlider_valueChanged(int v);
 	void on_widthSpinBox_valueChanged(int w);

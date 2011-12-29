@@ -40,13 +40,14 @@ void SourceDisplayWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
 
-#ifdef __APPLE__
 	setBackgroundColor(Qt::black);
-#else
-	setBackgroundColor(palette().color(QPalette::Window));
-#endif
-    glDisable(GL_BLEND);
 
+	glGenTextures(1, &_bgTexture);
+	glBindTexture(GL_TEXTURE_2D, _bgTexture);
+	QImage p(":/glmixer/textures/transparencygrid.png");
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  p.width(), p. height(), 0, GL_RGBA, GL_UNSIGNED_BYTE,  p.bits());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
 
 void SourceDisplayWidget::setSource(Source *sourceptr) {
@@ -67,28 +68,37 @@ void SourceDisplayWidget::paintGL()
 	if (!isEnabled())
 		return;
 
+	// draw the background
+	glLoadIdentity();
+	glScalef(aspectRatio, aspectRatio, 1.f);
+	glBindTexture(GL_TEXTURE_2D, _bgTexture);
+	glCallList(ViewRenderWidget::quad_texured);
+
 	if (s) {
-
-	    glMatrixMode(GL_MODELVIEW);
-	    glLoadIdentity();
-
-	    glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
-		glScaled(1.0, s->isVerticalFlip() ? -1.0 : 1.0, 1.0);
 		// update the texture of the source
 		s->update();
 
-		// paint it with respect of its aspect ratio
-		float aspectRatio = s->getAspectRatio();
-		float windowaspectratio = (float) width() / (float) height();
-		if (windowaspectratio < aspectRatio)
-			glScalef(1.0, windowaspectratio / aspectRatio, 1.f);
-		else
-			glScalef( aspectRatio / windowaspectratio, 1.0, 1.f);
-
+		// draw the source
+		glLoadIdentity();
+	    glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
+		glScalef( s->getAspectRatio(), s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
 		glCallList(ViewRenderWidget::quad_texured);
 	}
 }
 
+void SourceDisplayWidget::resizeGL(int w, int h)
+{
+    glViewport(0, 0, w, h);
+	aspectRatio = (float) w / (float) h;
+
+    // Setup specific projection and view for this window
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-aspectRatio, aspectRatio, -1.0, 1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+
+}
 
 GLuint SourceDisplayWidget::getNewTextureIndex() {
     GLuint textureIndex;

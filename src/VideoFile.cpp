@@ -637,26 +637,29 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 	enum PixelFormat targetFormat = PIX_FMT_RGB24;
 	bool rgba_palette = false;
 
-	// if not requested otherwise, determine if the image has an alpha channel
-	if (!ignoreAlpha)
+
+	// Change target format to keep Alpha channel if format requires
+	if ( pixelFormatHasAlphaChannel()
+		// this is a fix for some jpeg formats with YUVJ format
+		|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h > 0 )
 	{
-		// Change target format to keep Alpha channel if already exists
-		if ( pixelFormatHasAlphaChannel()
-			// this is a fix for some jpeg formats with YUVJ format
-			|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h > 0
-			// special case of PALLETE and GREY pixel formats(converters exist for rgba)
-			|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL )
-		{
+		// special case of PALETTE formats which have ALPHA channel in their colors
+		if (video_st->codec->pix_fmt == PIX_FMT_PAL8) {
+			// palette pictures are always treated as PIX_FMT_RGBA data
 			targetFormat = PIX_FMT_RGBA;
-
-			// TODO ; find how to know if the palette has alpha channel
-//			// special case of PALETTE formats which have ALPHA channel in their colors
-//			if (video_st->codec->pix_fmt == PIX_FMT_PAL8) {
-//				rgba_palette = true;
-//			}
-
+			// if should NOT ignore alpha channel, use rgba palette (flag used in VideoFile)
+			if (!ignoreAlpha)
+				rgba_palette = true;
+		}
+		// general case (pictures have alpha channel)
+		else {
+			// if should NOT ignore alpha channel, use alpha channel
+			if (!ignoreAlpha)
+				targetFormat = PIX_FMT_RGBA;
 		}
 	}
+
+
 
 	// Decide for optimal scaling algo if it was not specified
 	// NB: the algo is used only if the conversion is scaled or with filter
@@ -755,12 +758,13 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 
 bool VideoFile::pixelFormatHasAlphaChannel() const
 {
-
 	if (!video_st)
 		return false;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-	return (av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3);
+	return  (av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3)
+			// special case of PALLETE and GREY pixel formats(converters exist for rgba)
+			|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL;
 #else
 	return (video_st->codec->pix_fmt == PIX_FMT_RGBA || video_st->codec->pix_fmt == PIX_FMT_BGRA ||
 			video_st->codec->pix_fmt == PIX_FMT_ARGB || video_st->codec->pix_fmt == PIX_FMT_ABGR ||

@@ -783,7 +783,7 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 
 	if (asd->exec() == QDialog::Accepted) {
 		Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(),
-					asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod());
+					asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod(), asd->getIngoreAlpha());
 		if ( s ){
 			RenderingManager::getInstance()->addSourceToBasket(s);
 			qDebug() << s->getName() << '|' << tr("New Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << ").";

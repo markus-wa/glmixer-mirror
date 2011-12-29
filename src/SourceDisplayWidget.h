@@ -38,6 +38,7 @@ public:
 	SourceDisplayWidget(QWidget *parent = 0);
 
     virtual void initializeGL();
+    virtual void resizeGL(int w, int h);
     virtual void paintGL();
 	void setSource(Source *sourceptr);
 	void playSource(bool on);
@@ -48,6 +49,7 @@ public:
 private:
     Source *s;
     bool use_aspect_ratio;
+    GLuint _bgTexture;
 };
 
 #endif /* SOURCEDISPLAYWIDGET_H_ */

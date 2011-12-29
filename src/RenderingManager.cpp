@@ -593,7 +593,7 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 #endif
 
 Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
-											 int p, double depth) {
+											 int p, bool ia, double depth) {
 
 	AlgorithmSource *s = 0;
 	// create the texture for this source
@@ -605,7 +605,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 
 	try {
 		// create a source appropriate
-		s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p);
+		s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p, ia);
 		s->setName( _defaultSource->getName() + "Algo");
 
 	} catch (AllocationException &e){

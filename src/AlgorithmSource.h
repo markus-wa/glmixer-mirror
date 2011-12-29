@@ -52,20 +52,26 @@ public:
 	static QString getAlgorithmDescription(int t);
 
     inline algorithmType getAlgorithmType() const { return algotype; }
+
+    inline void setVariability(double v) { variability = CLAMP(v, 0.0, 1.0); }
 	inline double getVariability() const { return variability; }
+
+	inline void setPeriodicity(unsigned long u_seconds) {period = u_seconds;}
 	inline unsigned long getPeriodicity() const { return period; }
+
+	void setIgnoreAlpha(bool on);
+	inline bool getIgnoreAlpha() const { return ignoreAlpha; }
+
 	inline double getFrameRate() const { return framerate; }
 	int getFrameWidth() const;
 	int getFrameHeight() const;
 
 public Q_SLOTS:
 	void play(bool on);
-	void setPeriodicity(unsigned long u_seconds) {period = u_seconds;}
-	void setVariability(double v) { variability = CLAMP(v, 0.0, 1.0); }
 
     // only friends can create a source
 protected:
-	AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256, double v = 1.0, unsigned long p= 16666);
+	AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256, double v = 1.0, unsigned long p= 16666, bool ia=false);
 	virtual ~AlgorithmSource();
 
 	static RTTI type;
@@ -81,6 +87,7 @@ protected:
 	double framerate;
     double vertical, horizontal;
     double variability;
+    bool ignoreAlpha;
 
     AlgorithmThread *thread;
     QMutex *mutex;

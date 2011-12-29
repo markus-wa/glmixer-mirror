@@ -237,7 +237,8 @@ void AlgorithmThread::run(){
 								v = pnoise( double(x) * as->horizontal , double(y) * as->vertical , k );
 								as->buffer[(y * as->width + x) * 4 + 2 ] = (unsigned char) (128.0 * v  + 128);
 								v = pnoise( double(x) * as->horizontal , double(y) * as->vertical , l );
-								as->buffer[(y * as->width + x) * 4 + 3 ] = (unsigned char) 255;
+								as->buffer[(y * as->width + x) * 4 + 3 ] = (unsigned char) (128.0 * v  + 128);
+//								as->buffer[(y * as->width + x) * 4 + 3 ] = (unsigned char) 255;
 							}
 					} else
 						if ( as->algotype == AlgorithmSource::TURBULENCE ){
@@ -269,8 +270,8 @@ void AlgorithmThread::run(){
 }
 
 
-AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int h, double v, unsigned long  p) : Source(texture, d),
-		width(w), height(h), period(p), framerate(0), vertical(1.0), horizontal(1.0), variability(v) {
+AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int h, double v, unsigned long  p, bool ia) : Source(texture, d),
+		width(w), height(h), period(p), framerate(0), vertical(1.0), horizontal(1.0), variability(v), ignoreAlpha(ia) {
 
 	algotype = CLAMP(AlgorithmSource::algorithmType(type), AlgorithmSource::FLAT, AlgorithmSource::TURBULENCE);
 
@@ -284,7 +285,10 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int 
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+	if (ignoreAlpha)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,0, GL_BGRA, GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
 
 	// if no period given, set to default 60Hz
 	if (period <= 0)
@@ -439,3 +443,12 @@ QString AlgorithmSource::getAlgorithmDescription(int t) {
 	return description;
 }
 
+void AlgorithmSource::setIgnoreAlpha(bool on) {
+
+	ignoreAlpha = on;
+	glBindTexture(GL_TEXTURE_2D, textureIndex);
+	if (ignoreAlpha)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,0, GL_BGRA, GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+}

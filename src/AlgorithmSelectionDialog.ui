@@ -48,6 +48,19 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="ignoreAlphaCheckbox">
+     <property name="styleSheet">
+      <string notr="true">font: bold;</string>
+     </property>
+     <property name="text">
+      <string>Transparent</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="sizeGroupBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Maximum">

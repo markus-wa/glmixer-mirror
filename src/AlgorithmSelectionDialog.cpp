@@ -78,7 +78,8 @@ void AlgorithmSelectionDialog::createSource(){
 	GLuint tex = preview->getNewTextureIndex();
 	try {
 		// create a new source with a new texture index and the new parameters
-		s = new AlgorithmSource(AlgorithmComboBox->currentIndex(), tex, 0, widthSpinBox->value(), heightSpinBox->value(), getSelectedVariability(), getUpdatePeriod());
+		s = new AlgorithmSource(AlgorithmComboBox->currentIndex(), tex, 0, widthSpinBox->value(), heightSpinBox->value(),
+								getSelectedVariability(), getUpdatePeriod(), !ignoreAlphaCheckbox->isChecked());
 
 	} catch (AllocationException &e){
 		qCritical() << "AlgorithmSelectionDialog|" << e.message();
@@ -107,9 +108,12 @@ void AlgorithmSelectionDialog::on_variabilitySlider_valueChanged(int v){
 
 
 void  AlgorithmSelectionDialog::on_customUpdateFrequency_toggled(bool flag){
-
 	if (!flag)
 		frequencySlider->setValue(60);
+}
+
+void AlgorithmSelectionDialog::on_ignoreAlphaCheckbox_toggled(bool on){
+	s->setIgnoreAlpha(!on);
 }
 
 void  AlgorithmSelectionDialog::on_widthSpinBox_valueChanged(int w){
@@ -225,3 +229,7 @@ unsigned long  AlgorithmSelectionDialog::getUpdatePeriod(){
 
 }
 
+bool AlgorithmSelectionDialog::getIngoreAlpha(){
+
+	return !ignoreAlphaCheckbox->isChecked();
+}

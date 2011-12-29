@@ -547,6 +547,13 @@ void SourcePropertyBrowser::createPropertyTree(){
 		// Frames size & aspect ratio
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(fs);
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(ar);
+
+		// Ignore alpha channel
+		property = boolManager->addProperty("Transparent");
+		property->setToolTip("Generate patterns with alpha channel.");
+		idToProperty[property->propertyName()] = property;
+		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(property);
+
 		// Variability
 		property = intManager->addProperty( QLatin1String("Variability") );
 		idToProperty[property->propertyName()] = property;
@@ -805,6 +812,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			sizeManager->setValue(idToProperty["Resolution"], QSize(as->getFrameWidth(), as->getFrameHeight()) );
 			infoManager->setValue(idToProperty["Frame rate"], QString::number(as->getFrameRate() ) + QString(" fps"));
 
+			boolManager->setValue(idToProperty["Transparent"], !as->getIgnoreAlpha());
 			intManager->setValue(idToProperty["Variability"], (int) ( as->getVariability() * 100.0 ) );
 			intManager->setValue(idToProperty["Update frequency"], (int) ( 1000000.0 / double(as->getPeriodicity()) ) );
 
@@ -1051,6 +1059,14 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 				vf->stop();
 				vf->close();
 				vf->open(vf->getFileName(), vf->getMarkIn(), vf->getMarkOut(), value);
+			}
+		}
+	}
+	else if ( property == idToProperty["Transparent"] ) {
+		if (currentItem->rtti() == Source::ALGORITHM_SOURCE) {
+			AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(currentItem);
+			if (as != 0) {
+				as->setIgnoreAlpha(!value);
 			}
 		}
 	}
