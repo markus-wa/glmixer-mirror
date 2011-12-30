@@ -73,7 +73,10 @@ private:
 	SourceListArray groupSources;
 	QMap<SourceListArray::iterator, QColor> groupColor;
 	GLdouble selectionRectangleStart[2], selectionRectangleEnd[2];
+
+	// limbo area (where sources are in standy)
 	GLdouble limboSize;
+	bool scaleLimbo;
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */

@@ -172,24 +172,16 @@ ViewRenderWidget::ViewRenderWidget() :
 
 ViewRenderWidget::~ViewRenderWidget()
 {
-	if (_renderView)
-		delete _renderView;
-	if (_mixingView)
-		delete _mixingView;
-	if (_geometryView)
-		delete _geometryView;
-	if (_layersView)
-		delete _layersView;
-	if (_catalogView)
-		delete _catalogView;
-	if (_springCursor)
-		delete _springCursor;
-	if (_delayCursor)
-		delete _delayCursor;
-	if (_axisCursor)
-		delete _axisCursor;
-	if (_lineCursor)
-		delete _lineCursor;
+	delete _renderView;
+	delete _mixingView;
+	delete _geometryView;
+	delete _layersView;
+	delete _catalogView;
+	delete _springCursor;
+	delete _delayCursor;
+	delete _axisCursor;
+	delete _lineCursor;
+	delete _fuzzyCursor;
 }
 
 
@@ -1273,32 +1265,49 @@ GLuint ViewRenderWidget::buildCircleList()
 
 GLuint ViewRenderWidget::buildLimboCircleList()
 {
-	GLuint id = glGenLists(1);
+	GLuint id = glGenLists(2);
+	glListBase(id);
 	GLUquadricObj *quadObj = gluNewQuadric();
 
+	// limbo area
 	glNewList(id, GL_COMPILE);
-
 		glPushMatrix();
 		glTranslatef(0.0, 0.0, -1.0);
-
 		// blended antialiasing
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
-
-		//limbo
+		//limbo area
 		glColor4ub(COLOR_LIMBO, 180);
 		gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 70, 3);
-
+		// border
 		glLineWidth(3.0);
 		glColor4ub(COLOR_FADING, 255);
 		glBegin(GL_LINE_LOOP);
 		for (float i = 0; i < 2.0 * M_PI; i += 0.07)
 			glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));
 		glEnd();
-
 		glPopMatrix();
+	glEndList();
 
+	glNewList(id+1, GL_COMPILE);
+		glPushMatrix();
+		glTranslatef(0.0, 0.0, -1.0);
+		// blended antialiasing
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
+		//limbo area
+		glColor4ub(COLOR_LIMBO, 180);
+		gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 70, 3);
+		// border
+		glLineWidth(4.0);
+		glColor4ub(COLOR_DRAWINGS, 255);
+		glBegin(GL_LINE_LOOP);
+		for (float i = 0; i < 2.0 * M_PI; i += 0.07)
+			glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));
+		glEnd();
+		glPopMatrix();
 	glEndList();
 
 	// free quadric object

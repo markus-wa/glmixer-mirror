@@ -37,14 +37,14 @@
 
 MixerView::MixerView() : View()
 {
+	currentAction = View::NONE;
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
 	maxzoom = MAXZOOM;
 	maxpanx = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	maxpany = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
-	limboSize = MAX_LIMBO_SIZE;
-	currentAction = View::NONE;
-
+	limboSize = DEFAULT_LIMBO_SIZE;
+	scaleLimbo = false;
 	drawRectangle = false;
     selectionRectangleStart[0] = selectionRectangleEnd[0] = -maxpanx;
     selectionRectangleStart[1] = selectionRectangleEnd[1] = -maxpanx;
@@ -65,14 +65,16 @@ void MixerView::paint()
 {
 	static double renderingAspectRatio = 1.0;
 	static bool first = true;
-	static GLdouble d = 0, squareDistance = SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE;
 	static GLdouble ax, ay;
 
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing);
     glPushMatrix();
     glScalef( limboSize,  limboSize, 1.0);
-    glCallList(ViewRenderWidget::circle_limbo);
+    if (scaleLimbo)
+        glCallList(ViewRenderWidget::circle_limbo+1);
+    else
+    	glCallList(ViewRenderWidget::circle_limbo);
     glPopMatrix();
 
 	// The rectangle for selection
@@ -140,8 +142,7 @@ void MixerView::paint()
 			(*its)->beginEffectsSection();
 
 			// test if the source is passed the standby line
-			d = ((ax * ax) + (ay * ay)) / squareDistance;
-			(*its)->setStandby( d > (limboSize * limboSize) );
+			(*its)->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
 
 			// setup multi-texturing and effect drawing mode for active sources
 			ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
@@ -243,6 +244,7 @@ void MixerView::clear()
 
 	groupSources.clear();
 	groupColor.clear();
+	limboSize = DEFAULT_LIMBO_SIZE;
 
 }
 
@@ -474,6 +476,10 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 	}
 
+	// get coordinate of cursor
+	GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+
 	if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) )
 	{
 		// get the top most clicked source, if there is one
@@ -483,46 +489,53 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		else
 			clicked = 0;
 
-		// SELECT AREA (no clicked source)
+		// No source clicked but mouse button down
 		if ( !clicked ) {
 
-			drawRectangle = true;
-
-			// set coordinate of end of rectangle selection
-			double dumm;
-			gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleEnd, selectionRectangleEnd+1, &dumm);
-
-			// loop over every sources to check if it is in the rectangle area
-			SourceList rectSources;
-			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-			{
-				if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-					(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-					(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
-					(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
-					rectSources.insert(*its);
-				}
+			// Are we scaling the limbo area ?
+			if ( scaleLimbo ) {
+				GLdouble sqr_limboSize = CIRCLE_SQUARE_DIST(cursorx, cursory);
+				setLimboSize( sqrt(sqr_limboSize) );
 			}
+			// no, then we are SELECTING AREA
+			else {
+				drawRectangle = true;
 
-			SourceList result;
-			for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-				result.erase (result.begin (), result.end ());
-				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
-				// if the group is fully inside the rectangle selection
-				if ( (*itss).size() != result.size() ) {
-					// ensure none of the group source remain in the selection
+				// set coordinate of end of rectangle selection
+				selectionRectangleEnd[0] = cursorx;
+				selectionRectangleEnd[1] = cursory;
+
+				// loop over every sources to check if it is in the rectangle area
+				SourceList rectSources;
+				for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+				{
+					if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+						(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+						(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
+						(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
+						rectSources.insert(*its);
+					}
+				}
+
+				SourceList result;
+				for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
 					result.erase (result.begin (), result.end ());
-					std::set_difference(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
-					rectSources = SourceList(result);
+					std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
+					// if the group is fully inside the rectangle selection
+					if ( (*itss).size() != result.size() ) {
+						// ensure none of the group source remain in the selection
+						result.erase (result.begin (), result.end ());
+						std::set_difference(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+						rectSources = SourceList(result);
+					}
 				}
+
+				if ( currentAction == View::SELECT )
+					// extend selection
+					View::select(rectSources);
+				else  // new selection
+					View::setSelection(rectSources);
 			}
-
-			if ( currentAction == View::SELECT )
-				// extend selection
-				View::select(rectSources);
-			else  // new selection
-				View::setSelection(rectSources);
-
 		}
 		// clicked source not null and grab action
 		else if (currentAction == View::GRAB )
@@ -537,8 +550,11 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		//  change action cursor if over a source
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
 			setAction(View::OVER);
-		else
+		else {
 			setAction(View::NONE);
+			// on the border of the limbo area ?
+			scaleLimbo = ( CIRCLE_SQUARE_DIST(cursorx, cursory) > (limboSize * limboSize - 0.1) && CIRCLE_SQUARE_DIST(cursorx, cursory) < (limboSize * limboSize + 0.1)) ;
+		}
 	}
 
 	return false;
@@ -594,6 +610,7 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 
 bool MixerView::wheelEvent ( QWheelEvent * event )
 {
+	bool ret = false;
 	// remember position of cursor before zoom
     double bx, by, z;
     gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
@@ -615,30 +632,27 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 		setPanning((getPanningX() + ax - bx) * expfactor, (getPanningY() + ay - by) * expfactor );
 	}
 
-	// keep sources under the cursor if simultaneous grab & zoom
-	if (currentAction == View::GRAB ) {
-		// simulate a grab with no mouse movement but a delta movement:
-		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-		if ( RenderingManager::getInstance()->notAtEnd(cs)) {
+	// in case we were already performing an action
+	if ( currentAction == View::GRAB || scaleLimbo || drawRectangle ){
 
-			// where is the mouse cursor now (after zoom and panning)?
-			gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
-				modelview, projection, viewport, &ax, &ay, &z);
-			// this means we have a delta of mouse position
-			deltax = ax - bx;
-			deltay = ay - by;
+		// where is the mouse cursor now (after zoom and panning)?
+		gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+			modelview, projection, viewport, &ax, &ay, &z);
+		// this means we have a delta of mouse position
+		deltax = ax - bx;
+		deltay = ay - by;
 
-			// actually grab the source
-			grabSources(*cs, event->x(), (viewport[3] - event->y()), 0, 0);
+		// simulate a movement of the mouse
+		QMouseEvent *e = new QMouseEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, qtMouseButtons(INPUT_TOOL), qtMouseModifiers(INPUT_TOOL));
+		ret = mouseMoveEvent(e);
+		delete e;
 
-			// reset delta
-			deltax = 0;
-			deltay = 0;
-		}
-
+		// reset delta
+		deltax = 0;
+		deltay = 0;
 	}
 
-	return true;
+	return ret;
 }
 
 void MixerView::zoomReset()
