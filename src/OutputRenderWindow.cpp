@@ -264,12 +264,8 @@ void OutputRenderWindow::setFullScreen(bool on) {
 	// this is valid only for WINDOW widgets
 	if (windowFlags() & Qt::Window) {
 
-		// if ask fullscreen and already fullscreen
-		if (on && (windowState() & Qt::WindowFullScreen))
-			return;
-
-		// if ask NOT fullscreen and already NOT fullscreen
-		if (!on && !(windowState() & Qt::WindowFullScreen))
+		// discard non-changing state (NOT XOR)
+		if ( !(on ^ (windowState() & Qt::WindowFullScreen)) )
 			return;
 
 		// other cases ; need to switch fullscreen <-> not fullscreen

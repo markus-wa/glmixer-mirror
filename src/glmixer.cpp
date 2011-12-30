@@ -86,18 +86,18 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 #endif
 
     // add the show/hide menu items for the dock widgets
-    menuToolBars->addAction(previewDockWidget->toggleViewAction());
-    menuToolBars->addAction(sourceDockWidget->toggleViewAction());
-    menuToolBars->addAction(vcontrolDockWidget->toggleViewAction());
-    menuToolBars->addAction(cursorDockWidget->toggleViewAction());
-    menuToolBars->addAction(gammaDockWidget->toggleViewAction());
-    menuToolBars->addAction(switcherDockWidget->toggleViewAction());
-    menuToolBars->addAction(logDockWidget->toggleViewAction());
-    menuToolBars->addSeparator();
-    menuToolBars->addAction(sourceToolBar->toggleViewAction());
-    menuToolBars->addAction(viewToolBar->toggleViewAction());
-    menuToolBars->addAction(fileToolBar->toggleViewAction());
-    menuToolBars->addAction(toolsToolBar->toggleViewAction());
+    toolBarsMenu->addAction(previewDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(sourceDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(vcontrolDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(cursorDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(gammaDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(logDockWidget->toggleViewAction());
+    toolBarsMenu->addSeparator();
+    toolBarsMenu->addAction(sourceToolBar->toggleViewAction());
+    toolBarsMenu->addAction(viewToolBar->toggleViewAction());
+    toolBarsMenu->addAction(fileToolBar->toggleViewAction());
+    toolBarsMenu->addAction(toolsToolBar->toggleViewAction());
 
 	QActionGroup *viewActions = new QActionGroup(this);
     Q_CHECK_PTR(viewActions);
@@ -177,9 +177,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	setView(actionMixingView);
 	RenderingManager::getRenderingWidget()->setLabels(zoomLabel, fpsLabel);
 	// share menus as context menus of the main view
-	RenderingManager::getRenderingWidget()->setViewContextMenu(menuZoom);
-	RenderingManager::getRenderingWidget()->setCatalogContextMenu(menuCatalog);
-	RenderingManager::getRenderingWidget()->setSourceContextMenu(menuCurrent_source);
+	RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
+	RenderingManager::getRenderingWidget()->setCatalogContextMenu(catalogMenu);
+	RenderingManager::getRenderingWidget()->setSourceContextMenu(currentSourceMenu);
 
 	// Setup the property browser
 	SourcePropertyBrowser *propertyBrowser = RenderingManager::getPropertyBrowserWidget();
@@ -249,7 +249,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionPause, SIGNAL(toggled(bool)), vcontrolDockWidget, SLOT(setDisabled(bool)));
 	QObject::connect(actionShareToRAM, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setFrameSharingEnabled(bool)));
 
-	output_aspectratio->setMenu(menuAspect_Ratio);
+	output_aspectratio->setMenu(aspectRatioMenu);
 	output_onair->setDefaultAction(actionToggleRenderingVisible);
 	output_fullscreen->setDefaultAction(actionFullscreen);
 	QObject::connect(actionToggleRenderingVisible, SIGNAL(toggled(bool)), RenderingManager::getInstance()->getSessionSwitcher(), SLOT(smoothAlphaTransition(bool)));
@@ -273,7 +273,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionRecent_session, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionQuit, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionPreferences, SLOT(setDisabled(bool)));
-	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), menuAspect_Ratio, SLOT(setDisabled(bool)));
+	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), aspectRatioMenu, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), output_aspectratio, SLOT(setDisabled(bool)));
 
 	// do not allow to record without a fixed aspect ratio
@@ -596,7 +596,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 		// enable properties and actions on the current valid source
 		sourceDockWidgetContents->setEnabled(true);
-		menuCurrent_source->setEnabled(true);
+		currentSourceMenu->setEnabled(true);
 		toolButtonZoomCurrent->setEnabled(true);
 
 		// Enable start button if the source is playable
@@ -670,7 +670,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	} else {  // it is not a valid source
 
 		// disable panel widgets
-		menuCurrent_source->setEnabled(false);
+		currentSourceMenu->setEnabled(false);
 		toolButtonZoomCurrent->setEnabled(false);
 		vcontrolDockWidgetContents->setEnabled(false);
 		startButton->setEnabled( false );
@@ -684,6 +684,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	updateMarks();
 	// restart slider timer if necessary
 	updateRefreshTimerState();
+	// update the status (enabled / disabled) of source control actions
+	updateStatusControlActions();
 
 }
 
@@ -697,36 +699,33 @@ void GLMixer::sourceChanged(Source *s) {
 
 void GLMixer::on_actionCameraSource_triggered() {
 
+#ifdef OPEN_CV
 	static CameraDialog *cd = 0;
 	if (!cd)
 		cd = new CameraDialog(this);
 
 	if (cd->exec() == QDialog::Accepted) {
-#ifdef OPEN_CV
-	int selectedCamIndex = cd->indexOpencvCamera();
-	if (selectedCamIndex > -1 ) {
+		int selectedCamIndex = cd->indexOpencvCamera();
+		if (selectedCamIndex > -1 ) {
 
-		Source *s = RenderingManager::getInstance()->newOpencvSource(selectedCamIndex);
-		if ( s ) {
-			RenderingManager::getInstance()->addSourceToBasket(s);
+			Source *s = RenderingManager::getInstance()->newOpencvSource(selectedCamIndex);
+			if ( s ) {
+				RenderingManager::getInstance()->addSourceToBasket(s);
 
-			CloneSource *cs = dynamic_cast<CloneSource*> (s);
-			if (cs) {
-				qDebug() << s->getName() << '|' <<  tr("OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
-				statusbar->showMessage( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
-			} else {
-				qDebug() << s->getName() << '|' <<  tr("New OpenCV source created (device index %2).").arg(selectedCamIndex);
-				statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
-			}
-		} else
-			qCritical() << tr("Could not open OpenCV device index %2. ").arg(selectedCamIndex);
+				CloneSource *cs = dynamic_cast<CloneSource*> (s);
+				if (cs) {
+					qDebug() << s->getName() << '|' <<  tr("OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
+					statusbar->showMessage( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
+				} else {
+					qDebug() << s->getName() << '|' <<  tr("New OpenCV source created (device index %2).").arg(selectedCamIndex);
+					statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
+				}
+			} else
+				qCritical() << tr("Could not open OpenCV device index %2. ").arg(selectedCamIndex);
 
+		}
 	}
-
 #endif
-
-	}
-
 }
 
 
@@ -2141,7 +2140,6 @@ void GLMixer::on_actionSelectAll_triggered()
 	// check for the existence of an opencv source which would already be on this same index
 	for ( ; RenderingManager::getInstance()->notAtEnd(sit); sit++)
 		sl.insert(*sit);
-
 	View::select(sl);
 }
 
@@ -2169,6 +2167,43 @@ void GLMixer::on_actionSelectNone_triggered()
 	View::clearSelection();
 }
 
+void GLMixer::updateStatusControlActions() {
+
+	bool playEnabled = false, controlsEnabled = false;
+
+	// get current source
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+	if (RenderingManager::getInstance()->isValid(cs)) {
+		// test if the current source is playable ; if yes, enable action start/stop
+		if ( (*cs)->isPlayable() ) {
+			playEnabled = true;
+			// test if the current source is Media source ; the selectedSourceVideoFile has been set in currentChanged method
+			if (selectedSourceVideoFile)
+				// if yes, enable actions for media control (and return)
+				controlsEnabled = true;
+		}
+	}
+
+	// test the presence of playable source to enable action Start/Stop
+	// test the presence of Media source to enable actions for media control
+	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+
+		if ( (*its)->isPlayable() ) {
+			playEnabled = true;
+			if ( (*its)->rtti() == Source::VIDEO_SOURCE )
+				// enable actions for media control (and return)
+				controlsEnabled = true;
+		}
+	}
+
+	sourceControlMenu->setEnabled( playEnabled );
+	sourceControlToolBar->setEnabled( playEnabled );
+	actionSourceRestart->setEnabled( controlsEnabled );
+	actionSourceSeekBackward->setEnabled( controlsEnabled );
+	actionSourcePause->setEnabled( controlsEnabled );
+	actionSourceSeekForward->setEnabled( controlsEnabled );
+ }
+
 bool GLMixer::useSystemDialogs()
 {
 	return usesystemdialogs;
@@ -2177,18 +2212,85 @@ bool GLMixer::useSystemDialogs()
 
 void GLMixer::on_actionFullscreenMode_toggled(bool on){
 
-	menubar->setVisible(!on);
-	actionFullscreen->setChecked(on);
-
-	// if ask fullscreen and already fullscreen
-	if (on && (windowState() & Qt::WindowFullScreen))
-		return;
-
-	// if ask NOT fullscreen and already NOT fullscreen
-	if (!on && !(windowState() & Qt::WindowFullScreen))
+	// discard non-changing state (NOT XOR)
+	if ( !(on ^ (windowState() & Qt::WindowFullScreen)) )
 		return;
 
 	// other cases ; need to switch fullscreen <-> not fullscreen
+	menubar->setVisible(!on);
+	actionFullscreen->setChecked(on);
 	setWindowState(windowState() ^ Qt::WindowFullScreen);
 	update();
 }
+
+
+void GLMixer::on_actionSourcePlay_triggered(){
+
+	// toggle play/stop of current source
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+	if (RenderingManager::getInstance()->isValid(cs))
+		(*cs)->play(!(*cs)->isPlaying());
+
+	// loop over the selection and toggle play/stop of each source (but the current source already toggled)
+	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+		if (*its != *cs)
+			(*its)->play(!(*its)->isPlaying());
+}
+
+void GLMixer::on_actionSourceRestart_triggered(){
+
+	// apply action to current source
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+	if (RenderingManager::getInstance()->isValid(cs) && selectedSourceVideoFile )
+		selectedSourceVideoFile->seekBegin();
+
+	// loop over the selection and apply action of each source (but the current source already done)
+	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+		if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
+			VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
+			vf->seekBegin();
+		}
+}
+void GLMixer::on_actionSourceSeekBackward_triggered(){
+
+	// apply action to current source
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+	if (RenderingManager::getInstance()->isValid(cs) && selectedSourceVideoFile )
+		selectedSourceVideoFile->seekBackward();
+
+	// loop over the selection and apply action of each source (but the current source already done)
+	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+		if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
+			VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
+			vf->seekBackward();
+		}
+}
+void GLMixer::on_actionSourcePause_triggered(){
+
+	// toggle pause/resume of current source
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+	if (RenderingManager::getInstance()->isValid(cs) && selectedSourceVideoFile )
+		selectedSourceVideoFile->pause(!selectedSourceVideoFile->isPaused());
+
+	// loop over the selection and toggle pause/resume of each source (but the current source already toggled)
+	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+		if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
+			VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
+			vf->pause(!vf->isPaused());
+		}
+}
+void GLMixer::on_actionSourceSeekForward_triggered(){
+
+	// apply action to current source
+	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+	if (RenderingManager::getInstance()->isValid(cs) && selectedSourceVideoFile )
+		selectedSourceVideoFile->seekForward();
+
+	// loop over the selection and apply action of each source (but the current source already done)
+	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+		if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
+			VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
+			vf->seekForward();
+		}
+}
+

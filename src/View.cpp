@@ -6,6 +6,7 @@
  */
 
 #include "View.h"
+#include "glmixer.h"
 
 // list of sources in the selection
 SourceList View::_selectedSources;
@@ -45,6 +46,7 @@ void View::setConfiguration(QDomElement xmlconfig) {
 
 void View::clearSelection() {
 	_selectedSources.clear();
+	// update the selection source for geometry view
 	updateSelectionSource();
 }
 
@@ -69,12 +71,14 @@ void View::select(Source *s) {
 	else
 		View::_selectedSources.insert(s);
 
+	// update the selection source for geometry view
 	updateSelectionSource();
 }
 
 void View::deselect(Source *s) {
 	if ( _selectedSources.count(s) > 0)
 		_selectedSources.erase( s );
+	// update the selection source for geometry view
 	updateSelectionSource();
 }
 
@@ -87,6 +91,7 @@ void View::select(SourceList l)
 	std::set_union(View::_selectedSources.begin(), View::_selectedSources.end(), l.begin(), l.end(), std::inserter(result, result.begin()) );
 	// set new selection
 	View::_selectedSources = SourceList(result);
+	// update the selection source for geometry view
 	updateSelectionSource();
 }
 
@@ -99,6 +104,7 @@ void View::deselect(SourceList l)
 	std::set_difference(View::_selectedSources.begin(), View::_selectedSources.end(), l.begin(), l.end(), std::inserter(result, result.begin()) );
 	// set new selection
 	View::_selectedSources = SourceList(result);
+	// update the selection source for geometry view
 	updateSelectionSource();
 }
 
@@ -109,6 +115,7 @@ void View::setSelection(SourceList l)
 	l.erase(View::_selectionSource);
 	// set new selection
 	View::_selectedSources = SourceList(l);
+	// update the selection source for geometry view
 	updateSelectionSource();
 }
 
@@ -151,6 +158,9 @@ void View::computeBoundingBox(const SourceList &l, double bbox[2][2])
 
 void View::updateSelectionSource()
 {
+	// update the status (enabled / disabled) of source control actions
+	GLMixer::getInstance()->updateStatusControlActions();
+
 	// prepare vars
 	GLdouble point[2], bbox[2][2];
 

@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1188</width>
+    <width>1338</width>
     <height>895</height>
    </rect>
   </property>
@@ -631,7 +631,7 @@ QDockWidget::close-button, QDockWidget::float-button {
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
-          <number>3</number>
+          <number>1</number>
          </property>
          <property name="leftMargin">
           <number>5</number>
@@ -643,7 +643,7 @@ QDockWidget::close-button, QDockWidget::float-button {
           <number>5</number>
          </property>
          <property name="bottomMargin">
-          <number>3</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QToolButton" name="startButton">
@@ -666,10 +666,10 @@ QDockWidget::close-button, QDockWidget::float-button {
             </size>
            </property>
            <property name="toolTip">
-            <string>Starts / stops  the movie</string>
+            <string>Start / stops updating</string>
            </property>
            <property name="statusTip">
-            <string>Starts / stops  the movie</string>
+            <string>Starts / stops updating</string>
            </property>
            <property name="styleSheet">
             <string notr="true"> QToolButton { 
@@ -694,9 +694,6 @@ QDockWidget::close-button, QDockWidget::float-button {
              <width>24</width>
              <height>24</height>
             </size>
-           </property>
-           <property name="shortcut">
-            <string>Space</string>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -796,9 +793,6 @@ QDockWidget::close-button, QDockWidget::float-button {
                    <height>24</height>
                   </size>
                  </property>
-                 <property name="shortcut">
-                  <string>Home</string>
-                 </property>
                 </widget>
                </item>
                <item>
@@ -827,9 +821,6 @@ QDockWidget::close-button, QDockWidget::float-button {
                    <width>24</width>
                    <height>24</height>
                   </size>
-                 </property>
-                 <property name="shortcut">
-                  <string>[</string>
                  </property>
                 </widget>
                </item>
@@ -863,9 +854,6 @@ QDockWidget::close-button, QDockWidget::float-button {
                    <width>32</width>
                    <height>24</height>
                   </size>
-                 </property>
-                 <property name="shortcut">
-                  <string>P</string>
                  </property>
                  <property name="checkable">
                   <bool>true</bool>
@@ -908,9 +896,6 @@ QDockWidget::close-button, QDockWidget::float-button {
                    <height>24</height>
                   </size>
                  </property>
-                 <property name="shortcut">
-                  <string>\</string>
-                 </property>
                 </widget>
                </item>
                <item>
@@ -939,9 +924,6 @@ QDockWidget::close-button, QDockWidget::float-button {
                    <width>24</width>
                    <height>24</height>
                   </size>
-                 </property>
-                 <property name="shortcut">
-                  <string>]</string>
                  </property>
                 </widget>
                </item>
@@ -1778,11 +1760,11 @@ Uncheck to display the restart frame when stopped.</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1188</width>
-     <height>23</height>
+     <width>1338</width>
+     <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="fileMenu">
     <property name="title">
      <string>&amp;File</string>
     </property>
@@ -1797,11 +1779,11 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
-   <widget class="QMenu" name="menuView">
+   <widget class="QMenu" name="viewMenu">
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <widget class="QMenu" name="menuZoom">
+    <widget class="QMenu" name="zoomMenu">
      <property name="title">
       <string>Zoom</string>
      </property>
@@ -1810,7 +1792,7 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionZoomOut"/>
      <addaction name="actionZoomBestFit"/>
     </widget>
-    <widget class="QMenu" name="menuCatalog">
+    <widget class="QMenu" name="catalogMenu">
      <property name="title">
       <string>Catalog</string>
      </property>
@@ -1820,7 +1802,7 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionCatalogMedium"/>
      <addaction name="actionCatalogLarge"/>
     </widget>
-    <widget class="QMenu" name="menuToolBars">
+    <widget class="QMenu" name="toolBarsMenu">
      <property name="title">
       <string>Widgets &amp;&amp; Toolbars</string>
      </property>
@@ -1830,15 +1812,15 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
     <addaction name="actionLayersView"/>
-    <addaction name="menuZoom"/>
-    <addaction name="menuCatalog"/>
+    <addaction name="zoomMenu"/>
+    <addaction name="catalogMenu"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreenMode"/>
     <addaction name="actionShowFPS"/>
     <addaction name="actionShow_frames"/>
-    <addaction name="menuToolBars"/>
+    <addaction name="toolBarsMenu"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="helpMenu">
     <property name="title">
      <string>&amp;Help</string>
     </property>
@@ -1848,20 +1830,43 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionAbout"/>
     <addaction name="actionAbout_Qt"/>
    </widget>
-   <widget class="QMenu" name="menuSession">
+   <widget class="QMenu" name="sessionMenu">
     <property name="title">
      <string>&amp;Sources</string>
     </property>
-    <widget class="QMenu" name="menuCurrent_source">
+    <widget class="QMenu" name="currentSourceMenu">
      <property name="title">
       <string>Current source</string>
      </property>
+     <addaction name="actionZoomCurrentSource"/>
      <addaction name="actionSelectCurrent"/>
-     <addaction name="actionDeleteSource"/>
      <addaction name="actionCloneSource"/>
      <addaction name="actionToggle_fixed"/>
-     <addaction name="actionZoomCurrentSource"/>
      <addaction name="actionResetSource"/>
+     <addaction name="actionDeleteSource"/>
+    </widget>
+    <widget class="QMenu" name="sourceControlMenu">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="toolTip">
+      <string>Control selected sources</string>
+     </property>
+     <property name="statusTip">
+      <string>Control selected sources</string>
+     </property>
+     <property name="title">
+      <string>Control</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../icons.qrc">
+       <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
+     </property>
+     <addaction name="actionSourcePlay"/>
+     <addaction name="actionSourceRestart"/>
+     <addaction name="actionSourceSeekBackward"/>
+     <addaction name="actionSourcePause"/>
+     <addaction name="actionSourceSeekForward"/>
     </widget>
     <addaction name="actionMediaSource"/>
     <addaction name="actionCameraSource"/>
@@ -1871,15 +1876,17 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionSvgSource"/>
     <addaction name="actionShmSource"/>
     <addaction name="separator"/>
-    <addaction name="menuCurrent_source"/>
+    <addaction name="currentSourceMenu"/>
     <addaction name="actionSelect_Next"/>
     <addaction name="actionSelect_Previous"/>
     <addaction name="separator"/>
     <addaction name="actionSelectAll"/>
     <addaction name="actionSelectInvert"/>
     <addaction name="actionSelectNone"/>
+    <addaction name="separator"/>
+    <addaction name="sourceControlMenu"/>
    </widget>
-   <widget class="QMenu" name="menuAction">
+   <widget class="QMenu" name="actionMenu">
     <property name="title">
      <string>&amp;Tools</string>
     </property>
@@ -1895,11 +1902,11 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionCursorLine"/>
     <addaction name="actionCursorFuzzy"/>
    </widget>
-   <widget class="QMenu" name="menuRendering">
+   <widget class="QMenu" name="renderingMenu">
     <property name="title">
      <string>&amp;Rendering</string>
     </property>
-    <widget class="QMenu" name="menuAspect_Ratio">
+    <widget class="QMenu" name="aspectRatioMenu">
      <property name="toolTip">
       <string>Rendering aspect ratio</string>
      </property>
@@ -1928,15 +1935,15 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionSave_snapshot"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
-    <addaction name="menuAspect_Ratio"/>
+    <addaction name="aspectRatioMenu"/>
     <addaction name="actionWhite_background"/>
    </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuSession"/>
-   <addaction name="menuRendering"/>
-   <addaction name="menuView"/>
-   <addaction name="menuAction"/>
-   <addaction name="menuHelp"/>
+   <addaction name="fileMenu"/>
+   <addaction name="sessionMenu"/>
+   <addaction name="renderingMenu"/>
+   <addaction name="viewMenu"/>
+   <addaction name="actionMenu"/>
+   <addaction name="helpMenu"/>
   </widget>
   <widget class="QToolBar" name="sourceToolBar">
    <property name="windowTitle">
@@ -2632,7 +2639,7 @@ Uncheck to display the restart frame when stopped.</string>
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="toolButton_2">
+        <widget class="QToolButton" name="toolButtonClearLogs">
          <property name="toolTip">
           <string>Clear</string>
          </property>
@@ -2670,7 +2677,7 @@ Uncheck to display the restart frame when stopped.</string>
         </spacer>
        </item>
        <item>
-        <widget class="QToolButton" name="toolButton">
+        <widget class="QToolButton" name="toolButtonCloseLogs">
          <property name="toolTip">
           <string>Close</string>
          </property>
@@ -2748,6 +2755,25 @@ Uncheck to display the restart frame when stopped.</string>
      </item>
     </layout>
    </widget>
+  </widget>
+  <widget class="QToolBar" name="sourceControlToolBar">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionSourcePlay"/>
+   <addaction name="actionSourceRestart"/>
+   <addaction name="actionSourceSeekBackward"/>
+   <addaction name="actionSourcePause"/>
+   <addaction name="actionSourceSeekForward"/>
   </widget>
   <action name="actionQuit">
    <property name="icon">
@@ -3950,6 +3976,84 @@ Uncheck to display the restart frame when stopped.</string>
     <string>F11</string>
    </property>
   </action>
+  <action name="actionSourcePlay">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/media-playback-start.png</normaloff>:/glmixer/icons/media-playback-start.png</iconset>
+   </property>
+   <property name="text">
+    <string>Play / Stop</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Play / Stop (all selected sources)</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
+  </action>
+  <action name="actionSourceRestart">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/media-skip-backward.png</normaloff>:/glmixer/icons/media-skip-backward.png</iconset>
+   </property>
+   <property name="text">
+    <string>Restart</string>
+   </property>
+   <property name="toolTip">
+    <string>Restart (all selected sources)</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
+   </property>
+  </action>
+  <action name="actionSourceSeekBackward">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/media-seek-backward.png</normaloff>:/glmixer/icons/media-seek-backward.png</iconset>
+   </property>
+   <property name="text">
+    <string>Seek backward</string>
+   </property>
+   <property name="toolTip">
+    <string>Seek backward (all selected sources)</string>
+   </property>
+   <property name="shortcut">
+    <string>F7</string>
+   </property>
+  </action>
+  <action name="actionSourcePause">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/media-playback-pause.png</normaloff>:/glmixer/icons/media-playback-pause.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pause / Resume</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Pause / Resume (all selected sources)</string>
+   </property>
+   <property name="shortcut">
+    <string>F8</string>
+   </property>
+  </action>
+  <action name="actionSourceSeekForward">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/media-seek-forward.png</normaloff>:/glmixer/icons/media-seek-forward.png</iconset>
+   </property>
+   <property name="text">
+    <string>Seek forward</string>
+   </property>
+   <property name="toolTip">
+    <string>Seek forward (all selected sources)</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -4144,7 +4248,7 @@ Uncheck to display the restart frame when stopped.</string>
    </hints>
   </connection>
   <connection>
-   <sender>toolButton_2</sender>
+   <sender>toolButtonClearLogs</sender>
    <signal>clicked()</signal>
    <receiver>logTexts</receiver>
    <slot>clear()</slot>
@@ -4160,7 +4264,7 @@ Uncheck to display the restart frame when stopped.</string>
    </hints>
   </connection>
   <connection>
-   <sender>toolButton</sender>
+   <sender>toolButtonCloseLogs</sender>
    <signal>clicked()</signal>
    <receiver>logDockWidget</receiver>
    <slot>close()</slot>

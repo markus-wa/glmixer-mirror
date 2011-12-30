@@ -94,6 +94,12 @@ public Q_SLOTS:
 	void on_copyLogsToClipboard_clicked();
 	void on_actionFullscreenMode_toggled(bool on=false);
 
+	void on_actionSourcePlay_triggered();
+	void on_actionSourceRestart_triggered();
+	void on_actionSourceSeekBackward_triggered();
+	void on_actionSourcePause_triggered();
+	void on_actionSourceSeekForward_triggered();
+
 	// GUI interaction
 	void setView(QAction *a);
 	void setTool(QAction *a);
@@ -110,6 +116,7 @@ public Q_SLOTS:
 	void switchToSessionFile(QString filename);
 	void confirmSessionFileName();
 	bool useSystemDialogs();
+	void updateStatusControlActions();
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
