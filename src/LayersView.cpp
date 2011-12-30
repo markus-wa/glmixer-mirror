@@ -396,27 +396,25 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
 bool LayersView::wheelEvent ( QWheelEvent * event ){
 
-    int dx = event->x() - lastClicPos.x();
-    int dy = lastClicPos.y() - event->y();
+	bool ret = false;
     lastClicPos = event->pos();
 
 	float previous = zoom;
-	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (-1.0 * View::zoomSpeed() * maxzoom) );
+	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (-2.0 * View::zoomSpeed() * maxzoom) );
 
 	if (currentAction == View::GRAB) {
 		deltax = zoom - previous;
-		// simulate a grab with no mouse movement but a deltazoom :
-		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 
-		// if there is a current source, grab it (with other forward sources)
-		if ( RenderingManager::getInstance()->isValid(cs))
-			grabSources( *cs, event->x(), event->y(), dx, dy);
+		// simulate a movement of the mouse
+		QMouseEvent *e = new QMouseEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, qtMouseButtons(INPUT_TOOL), qtMouseModifiers(INPUT_TOOL));
+		ret = mouseMoveEvent(e);
+		delete e;
 
 		// reset deltazoom
 		deltax = 0;
 	}
 
-	return true;
+	return ret;
 }
 
 void LayersView::zoomReset() {

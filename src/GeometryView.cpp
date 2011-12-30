@@ -457,6 +457,7 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
 
 bool GeometryView::wheelEvent ( QWheelEvent * event ){
 
+	bool ret = false;
 	// remember position of cursor before zoom
     double bx, by, z;
     gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
@@ -477,36 +478,26 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
 	// keep sources under the cursor if simultaneous grab & zoom
 	if (currentAction == View::GRAB || currentAction == View::TOOL ){
 
-		Source *cs = getCurrentSource();
-		// if there is a current source
-		if ( cs ) {
+		// where is the mouse cursor now (after zoom and panning)?
+		gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0, modelview, projection, viewport, &ax, &ay, &z);
+		// this means we have a delta of mouse position
+		deltax = ax - bx;
+		deltay = ay - by;
 
-			// where is the mouse cursor now (after zoom and panning)?
-			gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0, modelview, projection, viewport, &ax, &ay, &z);
-			// this means we have a delta of mouse position
-			deltax = ax - bx;
-			deltay = ay - by;
+		// simulate a movement of the mouse
+		QMouseEvent *e = new QMouseEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, qtMouseButtons(INPUT_TOOL), qtMouseModifiers(INPUT_TOOL));
+		ret = mouseMoveEvent(e);
+		delete e;
 
-			// actually manipulate the current source according to the ongoing action
-			if (currentTool == GeometryView::MOVE || currentAction == View::GRAB)
-				grabSources(cs, event->x(), viewport[3] - event->y(), 0, 0);
-			else if (currentTool == GeometryView::SCALE)
-				scaleSources(cs, event->x(), viewport[3] - event->y(), 0, 0);
-			else if (currentTool == GeometryView::CROP)
-				cropSources(cs, event->x(), viewport[3] - event->y(), 0, 0);
-			else if (currentTool == GeometryView::ROTATE)
-				rotateSources(cs, event->x(), viewport[3] - event->y(), 0, 0);
-
-			// reset delta
-			deltax = 0;
-			deltay = 0;
-		}
+		// reset delta
+		deltax = 0;
+		deltay = 0;
 
 	} else
 		// do not show action indication (as it is likely to become invalid with view change)
 		borderType = ViewRenderWidget::border_large;
 
-	return true;
+	return ret;
 }
 
 
