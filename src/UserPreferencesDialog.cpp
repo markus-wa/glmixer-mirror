@@ -50,6 +50,8 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     recordingFolderLine->setValidator(new folderValidator(this));
 	recordingFolderLine->setProperty("exists", true);
     QObject::connect(recordingFolderLine, SIGNAL(textChanged(const QString &)), this, SLOT(recordingFolderPathChanged(const QString &)));
+
+
 }
 
 UserPreferencesDialog::~UserPreferencesDialog()
@@ -333,3 +335,20 @@ void UserPreferencesDialog::recordingFolderPathChanged(const QString &s)
 		recordingFolderLine->setStyleSheet("color: red");
 }
 
+// TODO ; GUI configuration for key shortcuts
+//// List of actions registered in GLMixer
+//QList<QAction *>actions = getActionsList( GLMixer::getInstance()->actions() );
+//actions += getActionsList( GLMixer::getInstance()->menuBar()->actions() );
+//qDebug("%d actions registered",actions.length());
+
+QList<QAction *> UserPreferencesDialog::getActionsList(QList<QAction *> actionlist)
+{
+	QList<QAction *> buildlist;
+	 for (int i = 0; i < actionlist.size(); ++i) {
+	     if (actionlist.at(i)->menu())
+	    	 buildlist += getActionsList(actionlist.at(i)->menu()->actions());
+	     else if (!actionlist.at(i)->isSeparator())
+	    	 buildlist += actionlist.at(i);
+	 }
+	 return buildlist;
+}

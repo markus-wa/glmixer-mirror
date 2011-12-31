@@ -42,6 +42,8 @@ public:
 
 	void setModeMinimal(bool on);
 
+	QList<QAction *> getActionsList(QList<QAction *> al);
+
 public Q_SLOTS:
 	void restoreDefaultPreferences();
 	void restoreAllDefaultPreferences();
