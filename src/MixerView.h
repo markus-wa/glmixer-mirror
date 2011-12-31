@@ -67,12 +67,13 @@ private:
     void panningBy(int x, int y, int dx, int dy) ;
 
     void setAction(ActionType a);
-    bool drawRectangle;
 
     // creation of groups from set of selection
 	SourceListArray groupSources;
 	QMap<SourceListArray::iterator, QColor> groupColor;
-	GLdouble selectionRectangleStart[2], selectionRectangleEnd[2];
+
+	// selection area
+	SelectionArea _selectionArea;
 
 	// limbo area (where sources are in standy)
 	GLdouble limboSize;

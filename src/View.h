@@ -306,4 +306,23 @@ private:
     static QMap<View::UserInput,Qt::KeyboardModifiers> _modifiermap;
 };
 
+class SelectionArea {
+
+	QRectF area;
+    bool enabled;
+
+public:
+
+    SelectionArea() : enabled(false) {
+    }
+    void draw();
+    void setEnabled(bool on) { enabled = on; }
+    bool isEnabled() { return enabled; }
+    void markStart(QPointF s);
+    void markEnd(QPointF e);
+    bool contains(GLdouble x, GLdouble y);
+    bool contains(QRectF box);
+};
+
+
 #endif /* VIEW_H_ */

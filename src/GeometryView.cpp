@@ -166,9 +166,22 @@ void GeometryView::paint()
 		// Draw selection source
 		glRotated(View::selectionSource()->getRotationAngle(), 0.0, 0.0, 1.0);
 		glScaled(View::selectionSource()->getScaleX(), View::selectionSource()->getScaleY(), 1.f);
-		if ( currentSource == View::selectionSource() )
+		if ( currentSource == View::selectionSource() ) {
 			glCallList(borderType + 6);
-		else
+			// Draw extra overlay information depending on tool
+			if (currentAction == View::TOOL ) {
+				// show that the source has a fixed aspect ratio
+				glCallList(ViewRenderWidget::border_tooloverlay + 1);
+				// show the rotation center when ROTATE
+				if (currentTool == GeometryView::ROTATE) {
+					glScalef(1.f / View::selectionSource()->getScaleX(), 1.f / View::selectionSource()->getScaleY(), 1.f);
+					glCallList(ViewRenderWidget::border_tooloverlay);
+				} else if (currentTool == GeometryView::CROP) {
+					glScalef( 1.f + 0.07 * ( SOURCE_UNIT / View::selectionSource()->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / View::selectionSource()->getScaleY() ), 1.f);
+					glCallList(ViewRenderWidget::border_tooloverlay + 2);
+				}
+			}
+		} else
 			glCallList(ViewRenderWidget::border_thin + 6);
 
 		glPopMatrix();
@@ -200,6 +213,8 @@ void GeometryView::paint()
 		glPopMatrix();
     }
 
+	// The rectangle for selection
+    _selectionArea.draw();
 }
 
 
@@ -227,6 +242,11 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 		return false;
 
 	lastClicPos = event->pos();
+
+	// remember coordinates of clic
+	GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+	_selectionArea.markStart(QPointF(cursorx,cursory));
 
 	//  panning
 	if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG)) {
@@ -386,7 +406,6 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	// SELECT MODE : no motion
-	// TODO : draw a rectangle to select multiple sources
 	if ( currentAction == View::SELECT )
 		return false;
 
@@ -410,6 +429,36 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 			grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
 
 		return true;
+	}
+
+	// other cause for action without a current source ; selection area
+	if ( isUserInput(event, INPUT_TOOL) ) {
+		// enable drawing of selection area
+		_selectionArea.setEnabled(true);
+
+		// get coordinate of cursor
+		GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+		gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+
+		// set coordinate of end of rectangle selection
+		_selectionArea.markEnd(QPointF(cursorx, cursory));
+
+		// loop over every sources to check if it is in the rectangle area
+		SourceList rectSources;
+		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+			SourceList singletonSource;
+			singletonSource.insert(*its);
+			if (_selectionArea.contains( getBoundingBox(singletonSource) ) )
+				rectSources.insert(*its);
+		}
+
+		if ( currentAction == View::SELECT )
+			// extend selection
+			View::select(rectSources);
+		else  // new selection
+			View::setSelection(rectSources);
+
+		return false;
 	}
 
 	// mouse over only if no user action (not selection)
@@ -465,6 +514,10 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
 	if ( cs )
 		cs->clampScale();
 
+	// end of selection area in any case
+	_selectionArea.setEnabled(false);
+
+	// end of individual manipulation mode in any case
 	individual = false;
 
 	return true;
@@ -706,11 +759,10 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 		std::copy( RenderingManager::getInstance()->getBegin(), RenderingManager::getInstance()->getEnd(), std::inserter( l, l.end() ) );
 
 	// 1. compute bounding box of every sources to consider
-	double bbox[2][2];
-	computeBoundingBox(l, bbox);
+	QRectF bbox = getBoundingBox(l);
 
 	// 2. Apply the panning to the new center
-	setPanning( -( bbox[0][0] + ABS(bbox[1][0] - bbox[0][0])/ 2.0 ),  -( bbox[0][1] + ABS(bbox[1][1] - bbox[0][1])/ 2.0 )  );
+	setPanning( -bbox.center().x(),  -bbox.center().y()  );
 
 	// 3. get the extend of the area covered in the viewport (the matrices have been updated just above)
     double LLcorner[3];
@@ -720,8 +772,8 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 
 	// 4. compute zoom factor to fit to the boundaries
     // initial value = a margin scale of 5%
-    double scalex = 0.98 * ABS(URcorner[0]-LLcorner[0]) / ABS(bbox[1][0]-bbox[0][0]);
-    double scaley = 0.98 * ABS(URcorner[1]-LLcorner[1]) / ABS(bbox[1][1]-bbox[0][1]);
+    double scalex = 0.98 * ABS(URcorner[0]-LLcorner[0]) / ABS(bbox.width());
+    double scaley = 0.98 * ABS(URcorner[1]-LLcorner[1]) / ABS(bbox.height());
     // depending on the axis having the largest extend
     // apply the scaling
 	setZoom( zoom * (scalex < scaley ? scalex : scaley  ));
@@ -1329,9 +1381,9 @@ Source *GeometryView::getCurrentSource()
 }
 
 
-void GeometryView::computeBoundingBox(const SourceList &l, double bbox[2][2])
+QRectF GeometryView::getBoundingBox(const SourceList &l)
 {
-	double cosa, sina;
+	double cosa, sina, bbox[2][2];
 	double point[2];
 
 	// init bbox to max size
@@ -1358,4 +1410,6 @@ void GeometryView::computeBoundingBox(const SourceList &l, double bbox[2][2])
 				bbox[1][1] = qMax( point[1], bbox[1][1]);
 			}
 	}
+
+	return QRectF(QPointF(bbox[0][0], bbox[0][1]), QPointF(bbox[1][0], bbox[1][1]));
 }

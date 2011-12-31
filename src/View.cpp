@@ -130,23 +130,18 @@ void View::updateSelectionSource()
 	// update the status (enabled / disabled) of source control actions
 	GLMixer::getInstance()->updateStatusControlActions();
 
-	// prepare vars
-	GLdouble point[2], bbox[2][2];
-
+	// ignore if no selected sources
 	if (_selectedSources.empty())
 		return;
 
-	GeometryView::computeBoundingBox(_selectedSources, bbox);
+	// get the bounding box of the selection
+	QRectF bbox = GeometryView::getBoundingBox(_selectedSources);
 
-	point[0] = (bbox[1][0] - bbox[0][0]) / 2.0;
-	point[1] = (bbox[1][1] - bbox[0][1]) / 2.0;
-
-	_selectionSource->setScaleX( point[0] );
-	_selectionSource->setScaleY( point[1] );
-
-	_selectionSource->setX( bbox[0][0] + point[0] );
-	_selectionSource->setY( bbox[0][1] + point[1] );
-
+	// setup the selection source to size and position of the bbox
+	_selectionSource->setScaleX( bbox.width() / 2.0 );
+	_selectionSource->setScaleY( bbox.height() / 2.0 );
+	_selectionSource->setX( bbox.center().x() );
+	_selectionSource->setY( bbox.center().y() );
 	_selectionSource->setRotationAngle( 0 );
 }
 
@@ -351,3 +346,40 @@ bool View::zoomCentered(){
 	return zoomcentered;
 }
 
+void SelectionArea::draw() {
+	// The rectangle for selection
+	if ( enabled ) {
+		glColor4ub(COLOR_SELECTION_AREA, 25);
+		GLdouble start[2], end[2];
+		start[0] = area.topLeft().x();
+		start[1] = area.topLeft().y();
+		end[0] = area.bottomRight().x();
+		end[1] = area.bottomRight().y();
+		glRectdv(start, end);
+		glLineWidth(0.5);
+		glColor4ub(COLOR_SELECTION_AREA, 125);
+		glBegin(GL_LINE_LOOP);
+		glVertex3d(start[0], start[1], 0.0);
+		glVertex3d(end[0], start[1], 0.0);
+		glVertex3d(end[0], end[1], 0.0);
+		glVertex3d(start[0], end[1], 0.0);
+		glEnd();
+	}
+}
+
+
+void SelectionArea::markStart(QPointF s){
+	area.setTopLeft(s);
+}
+
+void SelectionArea::markEnd(QPointF e){
+	area.setBottomRight(e);
+}
+
+bool SelectionArea::contains(GLdouble x, GLdouble y){
+	return area.contains(QPointF(x, y));
+}
+
+bool SelectionArea::contains(QRectF box){
+	return area.contains(box);
+}

@@ -56,7 +56,7 @@ public:
 	toolType getTool() { return currentTool; }
 
 	// utility method to get the bounding box of a list of sources in geometry view
-	static void computeBoundingBox(const SourceList &l, double bbox[2][2]);
+	static QRectF getBoundingBox(const SourceList &l);
 
 private:
 
@@ -76,6 +76,9 @@ private:
     // special management of current source ; the artificial selection source can be current too
     void setCurrentSource(Source *s);
     Source *getCurrentSource();
+
+	// selection area
+	SelectionArea _selectionArea;
 
     char quadrant;
     GLuint borderType;

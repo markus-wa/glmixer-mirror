@@ -45,9 +45,6 @@ MixerView::MixerView() : View()
 	maxpany = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	limboSize = DEFAULT_LIMBO_SIZE;
 	scaleLimbo = false;
-	drawRectangle = false;
-    selectionRectangleStart[0] = selectionRectangleEnd[0] = -maxpanx;
-    selectionRectangleStart[1] = selectionRectangleEnd[1] = -maxpanx;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
     title = " Mixing view";
@@ -76,20 +73,6 @@ void MixerView::paint()
     else
     	glCallList(ViewRenderWidget::circle_limbo);
     glPopMatrix();
-
-	// The rectangle for selection
-    if ( drawRectangle ) {
-		glColor4ub(COLOR_SELECTION_AREA, 25);
-		glRectdv(selectionRectangleStart, selectionRectangleEnd);
-		glLineWidth(0.5);
-		glColor4ub(COLOR_SELECTION_AREA, 125);
-	    glBegin(GL_LINE_LOOP);
-		glVertex3d(selectionRectangleStart[0], selectionRectangleStart[1], 0.0);
-		glVertex3d(selectionRectangleEnd[0], selectionRectangleStart[1], 0.0);
-		glVertex3d(selectionRectangleEnd[0], selectionRectangleEnd[1], 0.0);
-		glVertex3d(selectionRectangleStart[0], selectionRectangleEnd[1], 0.0);
-	    glEnd();
-    }
 
     // and the selection connection lines
     glLineStipple(1, 0x9999);
@@ -233,6 +216,9 @@ void MixerView::paint()
 		glCallList(ViewRenderWidget::border_large_shadow);
 		glPopMatrix();
     }
+
+	// The rectangle for selection
+    _selectionArea.draw();
 
 }
 
@@ -385,8 +371,9 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 		zoomBestFit(false);
 
 	// remember coordinates of clic
-	double dumm;
-	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleStart, selectionRectangleStart+1, &dumm);
+	GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+	_selectionArea.markStart(QPointF(cursorx,cursory));
 
 	return false;
 }
@@ -499,23 +486,17 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 			}
 			// no, then we are SELECTING AREA
 			else {
-				drawRectangle = true;
+				// enable drawing of selection area
+				_selectionArea.setEnabled(true);
 
 				// set coordinate of end of rectangle selection
-				selectionRectangleEnd[0] = cursorx;
-				selectionRectangleEnd[1] = cursory;
+				_selectionArea.markEnd(QPointF(cursorx, cursory));
 
 				// loop over every sources to check if it is in the rectangle area
 				SourceList rectSources;
 				for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-				{
-					if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-						(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-						(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
-						(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
+					if (_selectionArea.contains((*its)->getAlphaX(),(*its)->getAlphaY()) )
 						rectSources.insert(*its);
-					}
-				}
 
 				SourceList result;
 				for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
@@ -568,41 +549,44 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 		setAction(OVER);
 	else if (currentAction == View::PANNING)
 		setAction(previousAction);
-	else if (drawRectangle){
-
-		// set coordinate of end of rectangle selection
-		double dumm;
-	    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleEnd, selectionRectangleEnd+1, &dumm);
-
-	    // loop over every sources to check if it is in the rectangle area
-	    SourceList rectSources;
-	    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-	    {
-	    	if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-	    		(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-	    		(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
-	    		(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
-	    		rectSources.insert(*its);
-	    	}
-	    }
-
-	    if (rectSources.size() > 0) {
-
-			// set the last selected as current
-			RenderingManager::getInstance()->setCurrentSource( (*rectSources.begin())->getId() );
-
-			SourceList result;
-			for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end();) {
-				result.erase (result.begin (), result.end ());
-				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
-					itss++;
-			}
-	    }
-
-	} else if ( currentAction == View::SELECT && !getSourcesAtCoordinates(event->x(), viewport[3] - event->y()))
+//	else if (drawRectangle){
+//
+//		// set coordinate of end of rectangle selection
+//		double dumm;
+//	    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleEnd, selectionRectangleEnd+1, &dumm);
+//
+//	    // loop over every sources to check if it is in the rectangle area
+//	    SourceList rectSources;
+//	    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+//	    {
+//	    	if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+//	    		(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
+//	    		(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
+//	    		(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
+//	    		rectSources.insert(*its);
+//	    	}
+//	    }
+//
+//	    if (rectSources.size() > 0) {
+//
+//			// set the last selected as current
+//			RenderingManager::getInstance()->setCurrentSource( (*rectSources.begin())->getId() );
+//
+//			SourceList result;
+//			for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end();) {
+//				result.erase (result.begin (), result.end ());
+//				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
+//					itss++;
+//			}
+//	    }
+//	}
+	else if ( currentAction == View::SELECT && !getSourcesAtCoordinates(event->x(), viewport[3] - event->y()))
 		View::clearSelection();
 
-	drawRectangle = false;
+	// end of selection area in any case
+	_selectionArea.setEnabled(false);
+
+	// end of individual manipulation mode in any case
 	individual = false;
 
 	return true;
@@ -633,7 +617,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 	}
 
 	// in case we were already performing an action
-	if ( currentAction == View::GRAB || scaleLimbo || drawRectangle ){
+	if ( currentAction == View::GRAB || scaleLimbo || _selectionArea.isEnabled() ){
 
 		// where is the mouse cursor now (after zoom and panning)?
 		gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
