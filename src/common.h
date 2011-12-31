@@ -49,6 +49,7 @@
 #define MAX_SCALE 100.0
 #define DEPTH_EPSILON 0.1
 #define BORDER_SIZE 0.4
+#define CENTER_SIZE 1.2
 
 #define COLOR_SOURCE 230, 230, 0
 #define COLOR_SOURCE_STATIC 230, 40, 40

@@ -2792,6 +2792,9 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
    </property>
+   <property name="menuRole">
+    <enum>QAction::QuitRole</enum>
+   </property>
   </action>
   <action name="actionFormats_and_Codecs">
    <property name="icon">
@@ -2879,6 +2882,9 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="text">
     <string>About GLMixer</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::AboutRole</enum>
    </property>
   </action>
   <action name="actionMixingView">
@@ -3104,6 +3110,9 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="text">
     <string>About Qt</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::AboutQtRole</enum>
    </property>
   </action>
   <action name="actionShowFPS">
@@ -3519,6 +3528,9 @@ Uncheck to display the restart frame when stopped.</string>
    </property>
    <property name="statusTip">
     <string>Opens the preferences dialog.</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::PreferencesRole</enum>
    </property>
   </action>
   <action name="actionWhite_background">

@@ -55,6 +55,9 @@ public:
 	void setTool(toolType t);
 	toolType getTool() { return currentTool; }
 
+	// utility method to get the bounding box of a list of sources in geometry view
+	static void computeBoundingBox(const SourceList &l, double bbox[2][2]);
+
 private:
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY);

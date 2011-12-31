@@ -123,11 +123,26 @@ void GeometryView::paint()
 			glPushMatrix();
 			glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
 			glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
-			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.0);
 
-			if (RenderingManager::getInstance()->isCurrentSource(its))
+			if (RenderingManager::getInstance()->isCurrentSource(its)) {
 				glCallList(borderType + ((*its)->isModifiable() ? 0 : 3));
-			else
+				// Draw extra overlay information depending on tool
+				if (currentAction == View::TOOL ) {
+					// show that the source has a fixed aspect ratio
+					if ((*its)->isFixedAspectRatio() || currentTool == GeometryView::ROTATE ){
+						glCallList(ViewRenderWidget::border_tooloverlay + 1);
+					}
+					// show the rotation center when ROTATE
+					if (currentTool == GeometryView::ROTATE) {
+						glScalef(1.f / (*its)->getScaleX(), 1.f / (*its)->getScaleY(), 1.f);
+						glCallList(ViewRenderWidget::border_tooloverlay);
+					} else if (currentTool == GeometryView::CROP) {
+						glScalef( 1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.f);
+						glCallList(ViewRenderWidget::border_tooloverlay + 2);
+					}
+				}
+			} else
 				glCallList(ViewRenderWidget::border_thin + ((*its)->isModifiable() ? 0 : 3));
 
 			glPopMatrix();
@@ -692,7 +707,7 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 
 	// 1. compute bounding box of every sources to consider
 	double bbox[2][2];
-	View::computeBoundingBox(l, bbox);
+	computeBoundingBox(l, bbox);
 
 	// 2. Apply the panning to the new center
 	setPanning( -( bbox[0][0] + ABS(bbox[1][0] - bbox[0][0])/ 2.0 ),  -( bbox[0][1] + ABS(bbox[1][1] - bbox[0][1])/ 2.0 )  );
@@ -1313,3 +1328,34 @@ Source *GeometryView::getCurrentSource()
 		return currentSource;
 }
 
+
+void GeometryView::computeBoundingBox(const SourceList &l, double bbox[2][2])
+{
+	double cosa, sina;
+	double point[2];
+
+	// init bbox to max size
+	bbox[0][0] = SOURCE_UNIT * 5.0;
+	bbox[0][1] = SOURCE_UNIT * 5.0;
+	bbox[1][0] = -SOURCE_UNIT * 5.0;
+	bbox[1][1] = -SOURCE_UNIT * 5.0;
+
+	// compute Axis aligned bounding box of all sources in the list
+	for(SourceList::iterator  its = l.begin(); its != l.end(); its++) {
+    	if ((*its)->isStandby())
+    		continue;
+		cosa = cos((*its)->getRotationAngle() / 180.0 * M_PI);
+		sina = sin((*its)->getRotationAngle() / 180.0 * M_PI);
+		for (GLdouble i = -1.0; i < 2.0; i += 2.0)
+			for (GLdouble j = -1.0; j < 2.0; j += 2.0) {
+				// corner with apply rotation
+				point[0] = i * (*its)->getScaleX() * cosa - j * (*its)->getScaleY() * sina + (*its)->getX();
+				point[1] = j * (*its)->getScaleY() * cosa + i * (*its)->getScaleX() * sina + (*its)->getY();
+				// keep max and min
+				bbox[0][0] = qMin( point[0], bbox[0][0]);
+				bbox[0][1] = qMin( point[1], bbox[0][1]);
+				bbox[1][0] = qMax( point[0], bbox[1][0]);
+				bbox[1][1] = qMax( point[1], bbox[1][1]);
+			}
+	}
+}

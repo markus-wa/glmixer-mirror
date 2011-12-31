@@ -5,7 +5,7 @@
  *      Author: bh
  */
 
-#include "View.h"
+#include "GeometryView.h"
 #include "glmixer.h"
 
 // list of sources in the selection
@@ -125,37 +125,6 @@ bool View::isInSelection(Source *s)
 }
 
 
-void View::computeBoundingBox(const SourceList &l, double bbox[2][2])
-{
-	double cosa, sina;
-	double point[2];
-
-	// init bbox to max size
-	bbox[0][0] = SOURCE_UNIT * 5.0;
-	bbox[0][1] = SOURCE_UNIT * 5.0;
-	bbox[1][0] = -SOURCE_UNIT * 5.0;
-	bbox[1][1] = -SOURCE_UNIT * 5.0;
-
-	// compute Axis aligned bounding box of all sources in the list
-	for(SourceList::iterator  its = l.begin(); its != l.end(); its++) {
-    	if ((*its)->isStandby())
-    		continue;
-		cosa = cos((*its)->getRotationAngle() / 180.0 * M_PI);
-		sina = sin((*its)->getRotationAngle() / 180.0 * M_PI);
-		for (GLdouble i = -1.0; i < 2.0; i += 2.0)
-			for (GLdouble j = -1.0; j < 2.0; j += 2.0) {
-				// corner with apply rotation
-				point[0] = i * (*its)->getScaleX() * cosa - j * (*its)->getScaleY() * sina + (*its)->getX();
-				point[1] = j * (*its)->getScaleY() * cosa + i * (*its)->getScaleX() * sina + (*its)->getY();
-				// keep max and min
-				bbox[0][0] = qMin( point[0], bbox[0][0]);
-				bbox[0][1] = qMin( point[1], bbox[0][1]);
-				bbox[1][0] = qMax( point[0], bbox[1][0]);
-				bbox[1][1] = qMax( point[1], bbox[1][1]);
-			}
-	}
-}
-
 void View::updateSelectionSource()
 {
 	// update the status (enabled / disabled) of source control actions
@@ -167,18 +136,18 @@ void View::updateSelectionSource()
 	if (_selectedSources.empty())
 		return;
 
-	computeBoundingBox(_selectedSources, bbox);
+	GeometryView::computeBoundingBox(_selectedSources, bbox);
 
 	point[0] = (bbox[1][0] - bbox[0][0]) / 2.0;
 	point[1] = (bbox[1][1] - bbox[0][1]) / 2.0;
 
-	View::selectionSource()->setScaleX( point[0] );
-	View::selectionSource()->setScaleY( point[1] );
+	_selectionSource->setScaleX( point[0] );
+	_selectionSource->setScaleY( point[1] );
 
-	View::selectionSource()->setX( bbox[0][0] + point[0] );
-	View::selectionSource()->setY( bbox[0][1] + point[1] );
+	_selectionSource->setX( bbox[0][0] + point[0] );
+	_selectionSource->setY( bbox[0][1] + point[1] );
 
-	View::selectionSource()->setRotationAngle( 0 );
+	_selectionSource->setRotationAngle( 0 );
 }
 
 

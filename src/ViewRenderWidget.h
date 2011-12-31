@@ -174,7 +174,7 @@ protected:
 
 	// all the display lists
 	static GLuint border_thin_shadow, border_large_shadow;
-	static GLuint border_thin, border_large, border_scale;
+	static GLuint border_thin, border_large, border_scale, border_tooloverlay;
 	static GLuint frame_selection, frame_screen, frame_screen_thin;
 	static GLuint quad_texured, quad_window[2];
 	static GLuint circle_mixing, circle_limbo, layerbg;
@@ -224,6 +224,7 @@ private:
     GLuint buildFrameList();
     GLuint buildWindowList(GLubyte r, GLubyte g, GLubyte b);
     GLuint buildBordersList();
+    GLuint buildBordersTools();
     GLuint buildFadingList();
 
 };

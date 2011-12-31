@@ -43,7 +43,7 @@
 GLuint ViewRenderWidget::border_thin_shadow = 0,
 		ViewRenderWidget::border_large_shadow = 0;
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
-GLuint ViewRenderWidget::border_scale = 0;
+GLuint ViewRenderWidget::border_scale = 0, ViewRenderWidget::border_tooloverlay = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_window[] = {0, 0};
 GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0, ViewRenderWidget::frame_screen_thin = 0;
 GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::circle_limbo = 0, ViewRenderWidget::layerbg = 0;
@@ -205,6 +205,7 @@ void ViewRenderWidget::initializeGL()
 	border_thin = buildBordersList();
 	border_large = border_thin + 1;
 	border_scale = border_thin + 2;
+	border_tooloverlay = buildBordersTools();
 	fading = buildFadingList();
 
 	// Create mask textures
@@ -1626,14 +1627,99 @@ GLuint ViewRenderWidget::buildBordersList()
 	glScalef(1.01, 1.01, 1.01);
 	glCallList(base+2);
 	glDisable(GL_LINE_STIPPLE);
-	glPointSize(10);
-	glColor4ub(COLOR_SELECTION, 200);
-	glBegin(GL_POINTS);
-	glVertex2f(0,0);
-	glEnd();
+//	glPointSize(10);
+//	glColor4ub(COLOR_SELECTION, 200);
+//	glBegin(GL_POINTS);
+//	glVertex2f(0,0);
+//	glEnd();
 	glEndList();
 
 	return base + 3;
+}
+
+
+GLuint ViewRenderWidget::buildBordersTools()
+{
+	GLuint base = glGenLists(3);
+	glListBase(base);
+
+	// rotation center
+	glNewList(base, GL_COMPILE);
+	glLineWidth(1.0);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+	glLineStipple(1, 0x9999);
+	glEnable(GL_LINE_STIPPLE);
+	glBegin(GL_LINE_LOOP);
+	for (float i = 0; i < 2.0 * M_PI; i += 0.2)
+		glVertex2f(CENTER_SIZE * cos(i), CENTER_SIZE * sin(i));
+	glEnd();
+	glBegin(GL_LINES); // begin drawing a cross
+	glVertex2f(0.f, CENTER_SIZE);
+	glVertex2f(0.f, -CENTER_SIZE);
+	glVertex2f(CENTER_SIZE, 0.f);
+	glVertex2f(-CENTER_SIZE, 0.f);
+	glEnd();
+	glDisable(GL_LINE_STIPPLE);
+	glEndList();
+
+	// Proportionnal scaling
+	glNewList(base + 1, GL_COMPILE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+	glLineStipple(1, 0x9999);
+	glEnable(GL_LINE_STIPPLE);
+	glLineWidth(1.0);
+	glBegin(GL_LINES); // begin drawing handles
+	// Bottom Left
+	glVertex2f(-1.f, -1.f);
+	glVertex2f(-BORDER_SIZE, -BORDER_SIZE);
+	// Bottom Right
+	glVertex2f(1.f, -1.f);
+	glVertex2f(BORDER_SIZE, -BORDER_SIZE);
+	// Top Right
+	glVertex2f(1.f, 1.f);
+	glVertex2f(BORDER_SIZE, BORDER_SIZE);
+	// Top Left
+	glVertex2f(-1.f, 1.f);
+	glVertex2f(-BORDER_SIZE, BORDER_SIZE);
+	glEnd();
+	glDisable(GL_LINE_STIPPLE);
+	glEndList();
+
+	// Crop
+	glNewList(base + 2, GL_COMPILE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+	glLineStipple(1, 0x9999);
+	glEnable(GL_LINE_STIPPLE);
+	glLineWidth(1.0);
+	glBegin(GL_LINES); // begin drawing handles
+	// Bottom Left
+	glVertex2f(-BORDER_SIZE*2.f, -1.f);
+	glVertex2f(-1.f, -1.f);
+	glVertex2f(-1.f, -1.f);
+	glVertex2f(-1.0f, -BORDER_SIZE*2.f);
+	// Bottom Right
+	glVertex2f(1.0f, -BORDER_SIZE*2.f);
+	glVertex2f(1.f, -1.f);
+	glVertex2f(1.f, -1.f);
+	glVertex2f(BORDER_SIZE*2.f, -1.0f);
+	// Top Right
+	glVertex2f(BORDER_SIZE*2.f, 1.0f);
+	glVertex2f(1.f, 1.f);
+	glVertex2f(1.f, 1.f);
+	glVertex2f(1.0f, BORDER_SIZE*2.f);
+	// Top Left
+	glVertex2f(-BORDER_SIZE*2.f, 1.0f);
+	glVertex2f(-1.f, 1.f);
+	glVertex2f(-1.f, 1.f);
+	glVertex2f(-1.0f, BORDER_SIZE*2.f);
+	glEnd();
+	glDisable(GL_LINE_STIPPLE);
+	glEndList();
+
+	return base;
 }
 
 GLuint ViewRenderWidget::buildFadingList()
