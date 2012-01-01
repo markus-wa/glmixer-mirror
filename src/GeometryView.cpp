@@ -326,13 +326,11 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 			// if the currently active source is NOT in the set of clicked sources,
 			// then take the top most source clicked as current
 			// otherwise leave the current source as is
-			if ( cs == 0 || clickedSources.count(cs) == 0 ) {
+			if ( cs == 0 || clickedSources.count(cs) == 0 )
 				setCurrentSource(s);
-			}
 
 			// ready to use the current source
 			cs = getCurrentSource();
-
 
 			if ( isUserInput(event, INPUT_TOOL) || individual ) {
 
@@ -427,6 +425,12 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	Source *cs = getCurrentSource();
 
 	if ( cs && cs->isModifiable() && (currentAction == View::GRAB || currentAction == View::TOOL)) {
+
+		if (!individual && View::isInSelection(cs))
+			setCurrentSource(View::selectionSource());
+		// ready to use the current source
+		cs = getCurrentSource();
+
 		if (currentAction == View::TOOL) {
 			if (currentTool == GeometryView::MOVE)
 				grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
@@ -475,7 +479,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	// mouse over only if no user action (not selection)
-	if (isUserInput(event, INPUT_NONE) ) {
+	if ( isUserInput(event, INPUT_NONE) ) {
 		// by default, reset quadrant
 		quadrant = 0;
 		// mouse over which sources ? fill in clickedSources list (ingoring non-modifiable sources)
@@ -601,9 +605,8 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 	    	SourceSet::iterator clicked = clickedSources.begin();
 
 			// if there is no source selected, select the top most
-			if ( currentSource == 0 ) {
+			if ( currentSource == 0 )
 				setCurrentSource(*clicked);
-			}
 			// else, try to take another one bellow it
 			else {
 				// find where the current source is in the clickedSources

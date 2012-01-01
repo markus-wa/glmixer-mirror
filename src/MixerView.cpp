@@ -360,7 +360,6 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
     }
 
 	// click in background
-
 	// set current to none (end of list)
 	RenderingManager::getInstance()->unsetCurrentSource();
 	// back to no action
