@@ -128,20 +128,20 @@ void GeometryView::paint()
 			if (RenderingManager::getInstance()->isCurrentSource(its)) {
 				glCallList(borderType + ((*its)->isModifiable() ? 0 : 3));
 				// Draw extra overlay information depending on tool
-				if (currentAction == View::TOOL ) {
-					// show that the source has a fixed aspect ratio
-					if ((*its)->isFixedAspectRatio() || currentTool == GeometryView::ROTATE ){
-						glCallList(ViewRenderWidget::border_tooloverlay + 1);
-					}
-					// show the rotation center when ROTATE
-					if (currentTool == GeometryView::ROTATE) {
-						glScalef(1.f / (*its)->getScaleX(), 1.f / (*its)->getScaleY(), 1.f);
-						glCallList(ViewRenderWidget::border_tooloverlay);
-					} else if (currentTool == GeometryView::CROP) {
-						glScalef( 1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.f);
-						glCallList(ViewRenderWidget::border_tooloverlay + 2);
-					}
-				}
+//				if (currentAction == View::TOOL ) {
+//					// show that the source has a fixed aspect ratio
+//					if ((*its)->isFixedAspectRatio() || currentTool == GeometryView::ROTATE ){
+//						glCallList(ViewRenderWidget::border_tooloverlay + 1);
+//					}
+//					// show the rotation center when ROTATE
+//					if (currentTool == GeometryView::ROTATE) {
+//						glScalef(1.f / (*its)->getScaleX(), 1.f / (*its)->getScaleY(), 1.f);
+//						glCallList(ViewRenderWidget::border_tooloverlay);
+//					} else if (currentTool == GeometryView::CROP) {
+//						glScalef( 1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.f);
+//						glCallList(ViewRenderWidget::border_tooloverlay + 2);
+//					}
+//				}
 			} else
 				glCallList(ViewRenderWidget::border_thin + ((*its)->isModifiable() ? 0 : 3));
 
@@ -258,6 +258,8 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	// DRoP MODE ; explicitly do nothing
 	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 		setAction(View::DROP);
+		if (isUserInput(event, INPUT_CONTEXT_MENU))
+			RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_DROP, event->pos());
 		// don't interpret other mouse events in drop mode
 		return false;
 	}
@@ -265,19 +267,26 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	// if at least one source was clicked
 	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )	{
 
-		// get the top most clicked source
-		Source * s =  *clickedSources.begin();
-		if (!s)
-			return false;
+		// get the top most clicked source (always one as getSourcesAtCoordinates returned true)
+		Source *s =  *clickedSources.begin();
 
 		// SELECT MODE : add/remove from selection
 		if ( isUserInput(event, INPUT_SELECT) ) {
 
-			if ( View::isInSelection(s) )
-				View::deselect(s);
-			else
-				View::select(s);
+			// discard the selection source
+			clickedSources.erase(View::selectionSource());
 
+			// pick next source if possible
+			if (sourceClicked()) {
+				s = *clickedSources.begin();
+				// add remove this source from selection
+				if ( View::isInSelection(s) )
+					View::deselect(s);
+				else
+					View::select(s);
+			}
+
+			// set selection as current
 			setCurrentSource(View::selectionSource());
 		}
 		// not in selection (SELECT) action mode
@@ -322,11 +331,11 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
 			if ( isUserInput(event, INPUT_TOOL) || individual ) {
 
-				// manipulate the current source
+				// manipulate the current source if modifiable
 				if ( cs ){
 					quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
 					// now manipulate the current one ; the action depends on the quadrant clicked (4 corners).
-					if(quadrant == 0 || currentTool == MOVE) {
+					if (quadrant == 0 || currentTool == MOVE) {
 						setAction(View::GRAB);
 						borderType = ViewRenderWidget::border_large;
 					} else {
@@ -412,8 +421,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	// get current source
 	Source *cs = getCurrentSource();
 
-	if ( cs && (currentAction == View::GRAB || currentAction == View::TOOL) ) {
-
+	if ( cs && cs->isModifiable() && (currentAction == View::GRAB || currentAction == View::TOOL)) {
 		if (currentAction == View::TOOL) {
 			if (currentTool == GeometryView::MOVE)
 				grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
@@ -427,12 +435,12 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 			}
 		} else
 			grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
-
+		// the current source has been modified
 		return true;
 	}
 
 	// other cause for action without a current source ; selection area
-	if ( isUserInput(event, INPUT_TOOL) ) {
+	if ( !currentSource  && isUserInput(event, INPUT_TOOL) ) {
 		// enable drawing of selection area
 		_selectionArea.setEnabled(true);
 
@@ -463,29 +471,30 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 	// mouse over only if no user action (not selection)
 	if (isUserInput(event, INPUT_NONE) ) {
-		// mouse over (no buttons)
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
+		// by default, reset quadrant
+		quadrant = 0;
+		// mouse over which sources ? fill in clickedSources list (ingoring non-modifiable sources)
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), true) )
 		{
-			// if there was no current source
-			// OR
-			// if the currently active source is NOT in the set of sources under the cursor,
+			// if there is a current source
+			// AND
+			// if the currently active source is in the set of sources under the cursor,
 			// THEN
-			// set quadrant to 0 (grab)
-			// ELSE
 			// use the current source for quadrant computation
-			if ( cs == 0 || clickedSources.count( cs ) == 0 )
-				quadrant = 0;
-			else
+			if ( cs && clickedSources.count( cs ) > 0 )
 				quadrant = getSourceQuadrant(cs, event->x(), viewport[3] - event->y());
 
-			if(quadrant == 0 || currentTool == MOVE)
+			// deal with quadrant appropriately
+			if (quadrant == 0 || currentTool == MOVE)
 				borderType = ViewRenderWidget::border_large;
 			else
 				borderType = ViewRenderWidget::border_scale;
 
+			// show we are over a source
 			setAction(View::OVER);
 		}
 		else
+			// show we are not over a source
 			setAction(View::NONE);
 	}
 
@@ -664,6 +673,7 @@ void GeometryView::setTool(toolType t)
 
 	switch (t) {
 	case SCALE:
+	case CROP:
 		if ( quadrant % 2 )
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
 		else
@@ -684,13 +694,6 @@ void GeometryView::setTool(toolType t)
 		case 4:
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_BOTTOM_LEFT);
 		}
-
-		break;
-	case CROP:
-		if ( quadrant % 2 )
-			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
-		else
-			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_B);
 		break;
 	default:
 	case MOVE:
@@ -781,7 +784,7 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 }
 
 
-bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
+bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNonModifiable) {
 
 	// prepare variables
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
@@ -817,7 +820,7 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 	}
 
 	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-		if ((*its)->isStandby())
+		if ((*its)->isStandby() || (ignoreNonModifiable && !(*its)->isModifiable()))
 			continue;
 		glPushMatrix();
         // place and scale

@@ -60,16 +60,16 @@ public:
 
 private:
 
-    bool getSourcesAtCoordinates(int mouseX, int mouseY);
+    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNonModifiable = false);
     char getSourceQuadrant(Source *s, int mouseX, int mouseY);
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void grabSources(Source *s, int x, int y, int dx, int dy);
-    void scaleSource(Source *s, int x, int y, int dx, int dy, char quadrant, bool proportional = 0);
-    void scaleSources(Source *s, int x, int y, int dx, int dy, bool proportional = 0);
-    void rotateSource(Source *s, int x, int y, int dx, int dy, bool noscale = 0);
-    void rotateSources(Source *s, int x, int y, int dx, int dy, bool noscale = 0);
-    void cropSource(Source *s, int x, int y, int dx, int dy, bool proportional = 0);
-    void cropSources(Source *s, int x, int y, int dx, int dy, bool proportional = 0);
+    void scaleSource(Source *s, int x, int y, int dx, int dy, char quadrant, bool proportional = false);
+    void scaleSources(Source *s, int x, int y, int dx, int dy, bool proportional = false);
+    void rotateSource(Source *s, int x, int y, int dx, int dy, bool noscale = false);
+    void rotateSources(Source *s, int x, int y, int dx, int dy, bool noscale = false);
+    void cropSource(Source *s, int x, int y, int dx, int dy, bool proportional = false);
+    void cropSources(Source *s, int x, int y, int dx, int dy, bool proportional = false);
     void panningBy(int x, int y, int dx, int dy);
     void setAction(ActionType a);
 

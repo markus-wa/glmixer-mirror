@@ -372,11 +372,14 @@ void ViewRenderWidget::showContextMenu(ViewContextMenu m, const QPoint &pos)
 		break;
 	case CONTEXT_MENU_DROP:
 		{
-			QMenu menu(this);
-			QAction *newAct = new QAction(tr("Cancel"), this);
-			menu.addAction(newAct);
-			connect(newAct, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(clearBasket()));
-			menu.exec(mapToGlobal(pos));
+			static QMenu *dropMenu = 0;
+			if (!dropMenu) {
+				dropMenu = new QMenu(this);
+				QAction *newAct = new QAction(tr("Cancel drop"), this);
+				connect(newAct, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(clearBasket()));
+				dropMenu->addAction(newAct);
+			}
+			dropMenu->exec(mapToGlobal(pos));
 		}
 		break;
 	}

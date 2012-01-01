@@ -265,6 +265,8 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 		setAction(View::DROP);
 		// don't interpret other mouse events in drop mode
+		if (isUserInput(event, INPUT_CONTEXT_MENU))
+			RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_DROP, event->pos());
 		return false;
 	}
 

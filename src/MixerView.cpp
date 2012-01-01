@@ -300,6 +300,8 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	// DRoP MODE ; explicitly do nothing
 	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 		setAction(View::DROP);
+		if (isUserInput(event, INPUT_CONTEXT_MENU))
+			RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_DROP, event->pos());
 		// don't interpret other mouse events in drop mode
 		return false;
 	}

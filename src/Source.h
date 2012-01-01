@@ -61,7 +61,7 @@ class Source {
 	friend class RenderingManager;
 
 public:
-	Source();
+	Source(double depth = 0.0);
 	virtual ~Source();
 
 	bool operator==(Source s2) {
