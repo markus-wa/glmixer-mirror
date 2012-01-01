@@ -317,17 +317,22 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 				// then we shall manipulate the selection instead
 				s = View::selectionSource();
 			}
+			// else (the source is not in the selection) if this is not the selection source, then discard the selection
+			else if ( s != View::selectionSource() )
+				View::clearSelection();
 
 			// if there was no current source
 			// OR
 			// if the currently active source is NOT in the set of clicked sources,
 			// then take the top most source clicked as current
 			// otherwise leave the current source as is
-			if ( cs == 0 || clickedSources.count(cs) == 0 )
+			if ( cs == 0 || clickedSources.count(cs) == 0 ) {
 				setCurrentSource(s);
+			}
 
 			// ready to use the current source
 			cs = getCurrentSource();
+
 
 			if ( isUserInput(event, INPUT_TOOL) || individual ) {
 

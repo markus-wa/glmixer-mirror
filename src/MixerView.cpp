@@ -338,6 +338,10 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 			// not in selection (SELECT) action mode, then set the current active source
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
+			// if the source is not in the selection, discard the selection
+			if ( !View::isInSelection(clicked) )
+				View::clearSelection();
+
 			// tool
 			individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
 			if ( isUserInput(event, INPUT_TOOL) || individual ) {
