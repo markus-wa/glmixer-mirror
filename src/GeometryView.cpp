@@ -128,20 +128,20 @@ void GeometryView::paint()
 			if (RenderingManager::getInstance()->isCurrentSource(its)) {
 				glCallList(borderType + ((*its)->isModifiable() ? 0 : 3));
 				// Draw extra overlay information depending on tool
-//				if (currentAction == View::TOOL ) {
-//					// show that the source has a fixed aspect ratio
-//					if ((*its)->isFixedAspectRatio() || currentTool == GeometryView::ROTATE ){
-//						glCallList(ViewRenderWidget::border_tooloverlay + 1);
-//					}
-//					// show the rotation center when ROTATE
-//					if (currentTool == GeometryView::ROTATE) {
-//						glScalef(1.f / (*its)->getScaleX(), 1.f / (*its)->getScaleY(), 1.f);
-//						glCallList(ViewRenderWidget::border_tooloverlay);
-//					} else if (currentTool == GeometryView::CROP) {
-//						glScalef( 1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.f);
-//						glCallList(ViewRenderWidget::border_tooloverlay + 2);
-//					}
-//				}
+				if (currentAction == View::TOOL ) {
+					// show that the source has a fixed aspect ratio
+					if ((*its)->isFixedAspectRatio() || currentTool == GeometryView::ROTATE ){
+						glCallList(ViewRenderWidget::border_tooloverlay + 1);
+					}
+					// show the rotation center when ROTATE
+					if (currentTool == GeometryView::ROTATE) {
+						glScalef(1.f / (*its)->getScaleX(), 1.f / (*its)->getScaleY(), 1.f);
+						glCallList(ViewRenderWidget::border_tooloverlay);
+					} else if (currentTool == GeometryView::CROP) {
+						glScalef( 1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.f);
+						glCallList(ViewRenderWidget::border_tooloverlay + 2);
+					}
+				}
 			} else
 				glCallList(ViewRenderWidget::border_thin + ((*its)->isModifiable() ? 0 : 3));
 

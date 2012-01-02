@@ -533,7 +533,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 	ignoreAlpha = ignoreAlphaChannel;
 
 	// Check file
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
 	_pFormatCtx = avformat_alloc_context();
 	err = avformat_open_input(&_pFormatCtx, qPrintable(filename), NULL, NULL);
 #else
@@ -960,14 +960,13 @@ int64_t VideoFile::getCurrentFrameTime() const
 
 double VideoFile::getFrameRate() const
 {
-
 	//    if (video_st && video_st->avg_frame_rate.den > 0) // never true !!!
 	//        return ((double) (video_st->avg_frame_rate.num )/ (double) video_st->avg_frame_rate.den);
 	//    else
 	if (video_st && video_st->r_frame_rate.den > 0)
 		return ((double) av_q2d(video_st->r_frame_rate));
-	else
-		return 1.0;
+
+	return 1.0;
 }
 
 void VideoFile::setOptionAllowDirtySeek(bool dirty)
