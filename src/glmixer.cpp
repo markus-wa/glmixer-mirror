@@ -922,15 +922,15 @@ void GLMixer::on_actionDeleteSource_triggered()
 	// lisst of sources to delete
 	SourceList todelete;
 
+	// if the current source is valid, add it todelete
 	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-	// if there is a selection, delete the whole selection
-	if ( View::hasSelection())
+	if ( RenderingManager::getInstance()->isValid(cs) )
+		//  delete only the current
+		todelete.insert(*cs);
+	// if there is a selection and no source is current, delete the whole selection
+	else if ( View::hasSelection() )
 		// make a copy of the selection (to make sure we do not mess with pointers when removing from selection)
 		todelete = View::copySelection();
-	// else if the current source is valid, delete it
-	else if ( RenderingManager::getInstance()->isValid(cs) )
-		// else delete only the current
-		todelete.insert(*cs);
 
 	// remove all the source in the list todelete
 	for(SourceList::iterator  its = todelete.begin(); its != todelete.end(); its++) {
