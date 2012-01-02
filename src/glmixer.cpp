@@ -1786,6 +1786,12 @@ void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
 
 void GLMixer::readSettings()
 {
+    // preferences
+    if (settings.contains("UserPreferences"))
+    	restorePreferences(settings.value("UserPreferences").toByteArray());
+    else
+    	restorePreferences(QByteArray());
+
 	// windows config
     if (settings.contains("geometry"))
     	restoreGeometry(settings.value("geometry").toByteArray());
@@ -1817,13 +1823,15 @@ void GLMixer::readSettings()
     if (settings.contains("DisplayFramerate"))
     	actionShowFPS->setChecked(settings.value("DisplayFramerate").toBool());
 
-    // preferences
-	restorePreferences(settings.value("UserPreferences").toByteArray());
+
 	qDebug() << tr("All settings restored.");
 }
 
 void GLMixer::saveSettings()
 {
+    // preferences
+	settings.setValue("UserPreferences", getPreferences());
+
 	// windows config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
@@ -1837,8 +1845,6 @@ void GLMixer::saveSettings()
 	// boolean options
 	settings.setValue("DisplayTimeAsFrames", actionShow_frames->isChecked());
 	settings.setValue("DisplayFramerate", actionShowFPS->isChecked());
-    // preferences
-	settings.setValue("UserPreferences", getPreferences());
 	// make sure system saves settings NOW
     settings.sync();
 	qDebug() << tr("Settings saved.");
@@ -1875,8 +1881,18 @@ void GLMixer::on_actionPreferences_triggered()
 
 void GLMixer::restorePreferences(const QByteArray & state){
 
-	// no preference?
-    if (state.isEmpty()) {
+	const quint32 magicNumber = MAGIC_NUMBER;
+    const quint16 currentMajorVersion = QSETTING_PREFERENCE_VERSION;
+	quint32 storedMagicNumber = 0;
+    quint16 majorVersion = 0;
+
+    if (!state.isEmpty()) {
+    	QByteArray sd = state;
+		QDataStream stream(&sd, QIODevice::ReadOnly);
+		stream >> storedMagicNumber >> majorVersion;
+	}
+
+    if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion) {
 
     	// set dialog in minimal mode
     	upd->setModeMinimal(true);
@@ -1891,17 +1907,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 
 	QByteArray sd = state;
 	QDataStream stream(&sd, QIODevice::ReadOnly);
-
-	const quint32 magicNumber = MAGIC_NUMBER;
-    const quint16 currentMajorVersion = QSETTING_PREFERENCE_VERSION;
-	quint32 storedMagicNumber;
-    quint16 majorVersion = 0;
 	stream >> storedMagicNumber >> majorVersion;
-	if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion) {
-		// display dialog warning error
-		qCritical() << tr("Could not load preferences.");
-		return;
-	}
 
 	// a. Apply rendering preferences
 	uint RenderingQuality;
