@@ -268,28 +268,36 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )	{
 
 		// get the top most clicked source (always one as getSourcesAtCoordinates returned true)
-		Source *s =  *clickedSources.begin();
+		Source *clicked =  *clickedSources.begin();
+
+		// get the top most clicked source which is NOT the selection source
+		Source *clickedSource =  0;
+		// discard the selection source
+		clickedSources.erase(View::selectionSource());
+		// pick next source if possible
+		if (sourceClicked())
+			clickedSource = *clickedSources.begin();
+
 
 		// SELECT MODE : add/remove from selection
 		if ( isUserInput(event, INPUT_SELECT) ) {
-
-			// discard the selection source
-			clickedSources.erase(View::selectionSource());
-
-			// pick next source if possible
-			if (sourceClicked()) {
-				s = *clickedSources.begin();
-				// add remove this source from selection
-				if ( View::isInSelection(s) )
-					View::deselect(s);
-				else
-					View::select(s);
-			}
-
+			// add remove the clicked source from the selection
+			if ( View::isInSelection(clickedSource) )
+				View::deselect(clickedSource);
+			else
+				View::select(clickedSource);
 			// set selection as current
 			setCurrentSource(View::selectionSource());
 		}
-		// not in selection (SELECT) action mode
+		// context menu
+		else if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
+			// can show context menu only for regular sources
+			setCurrentSource(clickedSource);
+			if (currentSource)
+				RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
+
+		}
+		// not in selection or context menu action mode
 		else {
 
 			Source * cs = getCurrentSource();
@@ -299,26 +307,24 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 			// if individual source requested,
 			if (individual) {
 				// but if the source picked or the current source is the selection source
-				if (s == View::selectionSource() || cs == View::selectionSource() ) {
-					// discard the selection source
-					clickedSources.erase(View::selectionSource());
+				if (clicked == View::selectionSource() || cs == View::selectionSource() ) {
 					cs = 0;
-					// pick next source if possible
-					if (sourceClicked()) {
-						s = *clickedSources.begin();
-					} else {
+					// ignore the selection (use the pointer to the clickedSource instead)
+					clicked = clickedSource;
+					// no indivivual source is valid, the individual mode is meaningless
+					if (!clicked) {
 						setAction(View::NONE);
 						return false;
 					}
 				}
 			}
-			// not individual, but the source picked is part of the selection
-			else if (View::isInSelection(s)) {
+			// not individual, but the source clicked is part of the selection
+			else if (View::isInSelection(clickedSource)) {
 				// then we shall manipulate the selection instead
-				s = View::selectionSource();
+				clicked = View::selectionSource();
 			}
-			// else (the source is not in the selection) if this is not the selection source, then discard the selection
-			else if ( s != View::selectionSource() )
+			// else (the clicked item is not in the selection) if this is not the selection source, then discard the selection
+			else if ( clicked != View::selectionSource() )
 				View::clearSelection();
 
 			// if there was no current source
@@ -327,7 +333,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 			// then take the top most source clicked as current
 			// otherwise leave the current source as is
 			if ( cs == 0 || clickedSources.count(cs) == 0 )
-				setCurrentSource(s);
+				setCurrentSource(clicked);
 
 			// ready to use the current source
 			cs = getCurrentSource();
@@ -346,13 +352,6 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 						borderType = ViewRenderWidget::border_scale;
 					}
 				}
-			}
-			// context menu
-			else if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
-				// can show context menu only for regular sources
-				if (cs != View::selectionSource())
-					RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
-				// TODO: else show SELECTION context menu ?
 			}
 			// zoom
 			else if ( isUserInput(event, INPUT_ZOOM) )
@@ -479,7 +478,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	// mouse over only if no user action (not selection)
-	if ( isUserInput(event, INPUT_NONE) ) {
+//	if ( isUserInput(event, INPUT_NONE) ) {
 		// by default, reset quadrant
 		quadrant = 0;
 		// mouse over which sources ? fill in clickedSources list (ingoring non-modifiable sources)
@@ -505,7 +504,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		else
 			// show we are not over a source
 			setAction(View::NONE);
-	}
+//	}
 
 	return false;
 }

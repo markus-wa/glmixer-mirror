@@ -309,10 +309,8 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	// OTHER USER INPUT ; initiate action
 	if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) { // if at least one source icon was clicked
 
-    	// get the top most clicked source
-    	Source *clicked = *clickedSources.begin();
-    	if (!clicked )
-    		return false;
+		// get the top most clicked source (always one as getSourcesAtCoordinates returned true)
+		Source *clicked =  *clickedSources.begin();
 
 		// SELECT MODE : add/remove from selection
 		if ( isUserInput(event, INPUT_SELECT) ) {
@@ -334,28 +332,33 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 					View::select(*itss);
 			}
 		}
+		// not in selection (INPUT_SELECT) action mode,
 		else {
-			// not in selection (SELECT) action mode, then set the current active source
+			// then set the current active source
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
-			// if the source is not in the selection, discard the selection
-			if ( !View::isInSelection(clicked) )
-				View::clearSelection();
-
-			// tool
-			individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
-			if ( isUserInput(event, INPUT_TOOL) || individual ) {
-				// ready for grabbing the current source
-				if ( clicked->isModifiable() )
-					setAction(View::GRAB);
-			}
 			// context menu
-			else if ( isUserInput(event, INPUT_CONTEXT_MENU) )
+			if ( isUserInput(event, INPUT_CONTEXT_MENU) )
 				RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
 			// zoom
 			else if ( isUserInput(event, INPUT_ZOOM) )
 				zoomBestFit(true);
+			// other cases
+			else {
+				// if the source is not in the selection, discard the selection
+				if ( !View::isInSelection(clicked) )
+					View::clearSelection();
+
+				// tool
+				individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
+				if ( isUserInput(event, INPUT_TOOL) || individual ) {
+					// ready for grabbing the current source
+					if ( clicked->isModifiable() )
+						setAction(View::GRAB);
+				}
+			}
 		}
+		// current source changed in some way
 		return true;
     }
 
