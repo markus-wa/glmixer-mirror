@@ -26,6 +26,7 @@
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
+#include <libavutil/pixdesc.h>
 
 #include "video_rec.h"
 #include <stdio.h>
@@ -51,6 +52,7 @@ video_rec_t *
 video_rec_init(const char *filename, encodingformat f, int width, int height, int fps, char *errormessage)
 {
 	AVCodec *c = NULL;
+    char buf[1024];
 
 	video_rec_t *rec = calloc(1, sizeof(video_rec_t));
 	rec->enc = calloc(1, sizeof(struct encoder));
@@ -130,6 +132,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		rec->conv = NULL;
 		snprintf(rec->suffix, 6, "avi");
 		snprintf(rec->description, 64, "AVI Video (*.avi)");
+		break;
 	}
 
 	//
@@ -137,6 +140,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	//
 
     av_register_all();
+	avcodec_register_all();
 
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,60,0)
 	rec->enc->fmt = guess_stream_format(f_name, NULL, NULL);
@@ -154,9 +158,11 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	rec->enc->oc->oformat = rec->enc->fmt;
 	snprintf(rec->enc->oc->filename, sizeof(rec->enc->oc->filename), "%s", filename);
 
-	rec->enc->v_st = av_new_stream(rec->enc->oc, 0);
 
+	// create the stream for the encoder
+	rec->enc->v_st = av_new_stream(rec->enc->oc, 0);
 	rec->enc->v_ctx = rec->enc->v_st->codec;
+
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
 	rec->enc->v_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
 #else
@@ -172,29 +178,29 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	rec->enc->v_ctx->pix_fmt = f_pix_fmt;
 	rec->enc->v_ctx->coder_type = 1;
 
-	if(av_set_parameters(rec->enc->oc, NULL) < 0) {
-		snprintf(errormessage, 256, "Invalid output format parameters.\nUnable to start recording.");
-		video_rec_free(rec);
-		return NULL;
-	}
-
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
-	dump_format(rec->enc->oc, 0, filename, 1);
-#else
-	av_dump_format(rec->enc->oc, 0, filename, 1);
-#endif
-
-	avcodec_register_all();
-
-	c = avcodec_find_encoder(rec->enc->v_ctx->codec_id);
+	c = avcodec_find_encoder(f_codec_id);
 	if (c == NULL) {
 		snprintf(errormessage, 256, "Cannot find video codec for %s file.\nUnable to start recording.", f_name);
 		video_rec_free(rec);
 		return NULL;
 	}
 
+    // options for AVCodecContext
+    AVDictionary *codec_opts = NULL;
+
+    // parameters given
+     snprintf(buf, sizeof(buf), "%d/%d", 1, fps);
+     av_dict_set(&codec_opts, "time_base", buf, 0);
+     snprintf(buf, sizeof(buf), "%d", width);
+     av_dict_set(&codec_opts, "width", buf, 0);
+     snprintf(buf, sizeof(buf), "%d", height);
+     av_dict_set(&codec_opts, "height", buf, 0);
+
+     av_dict_set(&codec_opts, "codec_type", "AVMEDIA_TYPE_VIDEO", 0);
+     av_dict_set(&codec_opts, "pix_fmt", av_get_pix_fmt_name(f_pix_fmt), 0 );
+
 	if(avcodec_open(rec->enc->v_ctx, c) < 0) {
-		snprintf(errormessage, 256, "Cannot open video codec %s (at %d fps).\nUnable to start recording.", c->name, rec->enc->v_ctx->time_base.den);
+		snprintf(errormessage, 256, "Cannot open video codec %s (at %d fps).\nUnable to start recording. \n%s", c->name, fps, av_get_pix_fmt_name( f_pix_fmt ));
 		video_rec_free(rec);
 		return NULL;
 	}
@@ -209,8 +215,8 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		return NULL;
 	}
 
-	/* write the stream header, if any */
-	av_write_header(rec->enc->oc);
+    // no options for AVFormatContext
+	avformat_write_header(rec->enc->oc, NULL);
 
 	// if converter was created, we will need it !
 	if (rec->conv != NULL) {
@@ -267,7 +273,6 @@ int video_rec_stop(video_rec_t *rec)
 	for(; i < rec->enc->oc->nb_streams; i++) {
 		AVStream *st = rec->enc->oc->streams[i];
 		avcodec_close(st->codec);
-		avcodec_default_free_buffers (st->codec);
 		av_free(st->codec);
 		av_free(st);
 	}

@@ -181,7 +181,7 @@ void RenderingEncoder::setActive(bool on)
 {
 	if (on) {
 		if (!start())
-			qCritical() << "RenderingEncoder|" << tr("Error starting video recording; %s.", errormessage);
+			qCritical() << "RenderingEncoder|" << tr("Error starting video recording; %1.").arg(errormessage);
 	} else {
 		if (close()) {
 			if (automaticSaving)
