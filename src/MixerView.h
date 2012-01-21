@@ -59,6 +59,10 @@ public:
 	GLdouble getLimboSize();
 	void setLimboSize(GLdouble s);
 
+	static QRectF getBoundingBox(const SourceList &l);
+    void alignSelection(View::Axis a, View::RelativePoint p);
+    void distributeSelection(View::Axis a, View::RelativePoint p);
+
 private:
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);

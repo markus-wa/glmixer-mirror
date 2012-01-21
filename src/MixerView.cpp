@@ -1018,3 +1018,94 @@ double MixerView::getLimboSize() {
 	return ( limboSize );
 }
 
+
+QRectF MixerView::getBoundingBox(const SourceList &l)
+{
+	double bbox[2][2];
+
+	// init bbox to max size
+	bbox[0][0] = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
+	bbox[0][1] = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
+	bbox[1][0] = -2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
+	bbox[1][1] = -2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
+	// compute Axis aligned bounding box of all sources in the list
+	for(SourceList::iterator  its = l.begin(); its != l.end(); its++) {
+		// keep max and min
+		bbox[0][0] = qMin( (*its)->getAlphaX(), bbox[0][0]);
+		bbox[0][1] = qMin( (*its)->getAlphaY(), bbox[0][1]);
+		bbox[1][0] = qMax( (*its)->getAlphaX(), bbox[1][0]);
+		bbox[1][1] = qMax( (*its)->getAlphaY(), bbox[1][1]);
+
+	}
+	// return bottom-left ; top-right
+	return QRectF(QPointF(bbox[0][0], bbox[0][1]), QPointF(bbox[1][0], bbox[1][1]));
+}
+
+void MixerView::alignSelection(View::Axis a, View::RelativePoint p)
+{
+	QRectF bbox = MixerView::getBoundingBox(View::copySelection());
+
+	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++){
+
+		QPointF point = QPointF((*its)->getAlphaX(), (*its)->getAlphaY());
+
+		// only one alignement mode meaningfull in Mixing view (centered)
+		if (a==View::AXIS_HORIZONTAL)
+			point.setX( bbox.center().x());
+		else // View::VERTICAL (inverted y)
+			point.setY( bbox.center().y());
+
+	    // move icon
+		(*its)->setAlphaCoordinates( point.x() , point.y()  );
+	}
+}
+
+void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
+{
+	// get selection and discard useless operation
+	SourceList selection = View::copySelection();
+	if (selection.size() < 2)
+		return;
+
+	QMap< int, QPair<Source*, QPointF> > sortedlist;
+	// do this for horizontal alignment
+	if (a==View::AXIS_HORIZONTAL) {
+		for(SourceList::iterator i = View::selectionBegin(); i != View::selectionEnd(); i++){
+			QPointF point = QPointF((*i)->getAlphaX(), (*i)->getAlphaY());
+			sortedlist[int(point.x()*1000)] = qMakePair(*i, point);
+		}
+	}
+	// do this for the vertical alignment
+	else {
+		// sort the list of sources by  y (inverted)
+		for(SourceList::iterator i = View::selectionBegin(); i != View::selectionEnd(); i++){
+			QPointF point = QPointF((*i)->getAlphaX(), (*i)->getAlphaY());
+			sortedlist[int(point.y()*1000)] = qMakePair(*i, point);
+		}
+	}
+
+	// compute the step of translation
+	QSizeF s = getBoundingBox(selection).size() / float(sortedlist.count()-1);
+	QPointF translation(s.width(),s.height());
+	QPointF position = sortedlist[sortedlist.keys().first()].second;
+
+	// loop over source list, except bottom-left & top-right most
+	sortedlist.remove( sortedlist.keys().first() );
+	sortedlist.remove( sortedlist.keys().last() );
+	QMapIterator< int, QPair<Source*, QPointF> > its(sortedlist);
+	while (its.hasNext()) {
+		its.next();
+		position += translation;
+
+		QPointF point =  its.value().second;
+
+		if (a==View::AXIS_HORIZONTAL)
+			point.setX(position.x());
+		else // View::VERTICAL (inverted y)
+			point.setY(position.y());
+
+	    // move icon
+		its.value().first->setAlphaCoordinates( point.x() , point.y()  );
+	}
+
+}

@@ -712,4 +712,38 @@ void LayersView::panningBy(int x, int y, int dx, int dy) {
 
 }
 
+void LayersView::distributeSelection(View::Axis a, View::RelativePoint p)
+{
+	// get selection and discard useless operation
+	SourceList selection = View::copySelection();
+	if (selection.size() < 2)
+		return;
 
+	// use sourceset which is already depth sorted
+	SourceSet sortedlist;
+
+	// bounding box = min and max
+	double bbox[] = { MAX_DEPTH_LAYER, MIN_DEPTH_LAYER };
+	for(SourceList::iterator  its = selection.begin(); its != selection.end(); its++) {
+		bbox[0] = qMin( (*its)->getDepth(), bbox[0]);
+		bbox[1] = qMax( (*its)->getDepth(), bbox[1]);
+		// add the source to the sorted list
+		sortedlist.insert(*its);
+	}
+
+	// compute the step of translation
+	double step = (bbox[1] - bbox[0]) / float(selection.size()-1);
+	double position = bbox[0];
+
+	// loop over source list, except last
+	for(SourceList::iterator  its = sortedlist.begin(); its != sortedlist.end(); its++) {
+
+		// set new depth of source
+	    SourceSet::iterator currentSource = RenderingManager::getInstance()->getById((*its)->getId());
+		RenderingManager::getInstance()->changeDepth(currentSource, position);
+
+		// go to next position
+		position += step;
+	}
+
+}

@@ -1397,11 +1397,11 @@ QRectF GeometryView::getBoundingBox(const Source *s, bool invert_y)
 
 	// init bbox to max size
 	// bottom left (initialized to extreme top right)
-	bbox[0][0] = SOURCE_UNIT * 5.0;
-	bbox[0][1] = SOURCE_UNIT * 5.0;
+	bbox[0][0] = SOURCE_UNIT * MAXZOOM*2.0;
+	bbox[0][1] = SOURCE_UNIT * MAXZOOM*2.0;
 	// top right (initialized to extreme bottom left)
-	bbox[1][0] = -SOURCE_UNIT * 5.0;
-	bbox[1][1] = -SOURCE_UNIT * 5.0;
+	bbox[1][0] = -SOURCE_UNIT * MAXZOOM*2.0;
+	bbox[1][1] = -SOURCE_UNIT * MAXZOOM*2.0;
 
 	// compute Axis aligned bounding box
 	cosa = cos(s->getRotationAngle() / 180.0 * M_PI);
@@ -1434,10 +1434,10 @@ QRectF GeometryView::getBoundingBox(const SourceList &l, bool invert_y)
 	double point[2];
 
 	// init bbox to max size
-	bbox[0][0] = SOURCE_UNIT * 5.0;
-	bbox[0][1] = SOURCE_UNIT * 5.0;
-	bbox[1][0] = -SOURCE_UNIT * 5.0;
-	bbox[1][1] = -SOURCE_UNIT * 5.0;
+	bbox[0][0] = SOURCE_UNIT * MAXZOOM*2.0;
+	bbox[0][1] = SOURCE_UNIT * MAXZOOM*2.0;
+	bbox[1][0] = -SOURCE_UNIT * MAXZOOM*2.0;
+	bbox[1][1] = -SOURCE_UNIT * MAXZOOM*2.0;
 
 	// compute Axis aligned bounding box of all sources in the list
 	for(SourceList::iterator  its = l.begin(); its != l.end(); its++) {

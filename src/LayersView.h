@@ -50,6 +50,8 @@ public:
 
     void coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y);
 
+    void distributeSelection(View::Axis a, View::RelativePoint p);
+
 private:
     float lookatdistance;
     float forwardDisplacement;

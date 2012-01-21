@@ -479,6 +479,21 @@ void GLMixer::setView(QAction *a){
 		break;
 	}
 
+	// set status of alignment tools depending on view
+	// a bit dirty (should use signals) but clear and effective (and who cares anyway?)
+	alignHorizontalLeftButton->setEnabled(a == actionGeometryView);
+	alignHorizontalCenterButton->setDisabled(a == actionLayersView);
+	alignHorizontalRightButton->setEnabled(a == actionGeometryView);
+	alignVerticalBottomButton->setEnabled(a == actionGeometryView);
+	alignVerticalCenterButton->setDisabled(a == actionLayersView);
+	alignVerticalTopButton->setEnabled(a == actionGeometryView);
+	distributeHorizontalLeftButton->setEnabled(a == actionGeometryView);
+	distributeHorizontalRightButton->setEnabled(a == actionGeometryView);
+	distributeHorizontalGapsButton->setEnabled(a == actionGeometryView);
+	distributeVerticalBottomButton->setEnabled(a == actionGeometryView);
+	distributeVerticalCenterButton->setDisabled(a == actionLayersView);
+	distributeVerticalTopButton->setEnabled(a == actionGeometryView);
+	distributeVerticalGapsButton->setEnabled(a == actionGeometryView);
 }
 
 void GLMixer::setTool(QAction *a){
