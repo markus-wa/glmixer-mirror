@@ -56,7 +56,12 @@ public:
 	toolType getTool() { return currentTool; }
 
 	// utility method to get the bounding box of a list of sources in geometry view
-	static QRectF getBoundingBox(const SourceList &l);
+	static QRectF getBoundingBox(const Source *s, bool invert_y=false);
+	static QRectF getBoundingBox(const SourceList &l, bool invert_y=false);
+
+	void alignSource(Source *s, QRectF box, View::Axis a, View::RelativePoint p);
+    void alignSelection(View::Axis a, View::RelativePoint p);
+    void distributeSelection(View::Axis a, View::RelativePoint p);
 
 private:
 

@@ -31,8 +31,8 @@
 #include "common.h"
 #include "glRenderWidget.h"
 #include "SourceSet.h"
+#include "View.h"
 
-class View;
 class MixerView;
 class GeometryView;
 class LayersView;
@@ -162,6 +162,9 @@ public Q_SLOTS:
 	void setCatalogSizeLarge();
 	void setFaded(bool on) { faded = on; }
 	void setCursorEnabled(bool on);
+
+	void alignSelection(View::Axis a, View::RelativePoint p);
+	void distributeSelection(View::Axis a, View::RelativePoint p);
 
 protected:
 

@@ -249,6 +249,8 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 		av_register_all();
 #ifdef NDEBUG
 		av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
+#else
+		av_log_set_level( AV_LOG_DEBUG  ); /* print debug info from ffmpeg */
 #endif
 		ffmpegregistered = true;
 	}

@@ -226,6 +226,36 @@ public:
 	bool sourceClicked() { return !clickedSources.empty(); }
 
 	/**
+	 * ALIGN AND DISTRIBUTE
+	 */
+    typedef enum {
+    	ALIGN_CENTER = 0,
+    	ALIGN_BOTTOM_LEFT,
+    	ALIGN_TOP_RIGHT,
+    	ALIGN_EQUAL_GAPS
+    } RelativePoint;
+
+    typedef enum {
+    	AXIS_HORIZONTAL = 0,
+    	AXIS_VERTICAL
+    } Axis;
+
+	/**
+	 * Align the selected sources to the given edge (to be implemented by each view)
+	 */
+    virtual void alignSelection(Axis a, RelativePoint p) {}
+
+	/**
+	 * Distribute the selected sources to the given edge (to be implemented by each view)
+	 */
+    virtual void distributeSelection(Axis a, RelativePoint p) {}
+
+	/**
+	 * Equalize the selected sources to be of same size (to be implemented by each view)
+	 */
+    virtual void equalizeSelection(Axis a) {}
+
+	/**
 	 * CONFIGURATION
 	 */
 	virtual QDomElement getConfiguration(QDomDocument &doc);

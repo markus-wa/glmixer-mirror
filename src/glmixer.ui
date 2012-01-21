@@ -2775,6 +2775,402 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionSourcePause"/>
    <addaction name="actionSourceSeekForward"/>
   </widget>
+  <widget class="QDockWidget" name="alignDockWidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="windowIcon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/dialog-align-and-distribute.png</normaloff>:/glmixer/icons/dialog-align-and-distribute.png</iconset>
+   </property>
+   <property name="toolTip">
+    <string>Align and distribute sources of a selection</string>
+   </property>
+   <property name="windowTitle">
+    <string>Align and distribute</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QVBoxLayout" name="verticalLayout_13">
+     <item>
+      <widget class="QGroupBox" name="alignGroupBox">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="title">
+        <string>Align</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QToolButton" name="alignHorizontalLeftButton">
+          <property name="toolTip">
+           <string>Align to the left border</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/align-horizontal-left.png</normaloff>:/glmixer/icons/align-horizontal-left.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QToolButton" name="alignHorizontalCenterButton">
+          <property name="toolTip">
+           <string>Center horizontally</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/align-horizontal-center.png</normaloff>:/glmixer/icons/align-horizontal-center.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QToolButton" name="alignHorizontalRightButton">
+          <property name="toolTip">
+           <string>Align to the right border</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/align-horizontal-right.png</normaloff>:/glmixer/icons/align-horizontal-right.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QToolButton" name="alignVerticalBottomButton">
+          <property name="toolTip">
+           <string>Align to the bottom border</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/align-vertical-bottom.png</normaloff>:/glmixer/icons/align-vertical-bottom.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QToolButton" name="alignVerticalCenterButton">
+          <property name="toolTip">
+           <string>Center vertically</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/align-vertical-center.png</normaloff>:/glmixer/icons/align-vertical-center.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QToolButton" name="alignVerticalTopButton">
+          <property name="toolTip">
+           <string>Align to the top border</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/align-vertical-top.png</normaloff>:/glmixer/icons/align-vertical-top.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="distributeGroupBox">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="title">
+        <string>Distribute</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QToolButton" name="distributeHorizontalLeftButton">
+          <property name="toolTip">
+           <string>Distribute left edges equidistantly</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/distribute-horizontal-left.png</normaloff>:/glmixer/icons/distribute-horizontal-left.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QToolButton" name="distributeHorizontalCenterButton">
+          <property name="toolTip">
+           <string>Distribute centers horizontally</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/distribute-horizontal-center.png</normaloff>:/glmixer/icons/distribute-horizontal-center.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QToolButton" name="distributeHorizontalRightButton">
+          <property name="toolTip">
+           <string>Distribute right edges equidistantly</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/distribute-horizontal-right.png</normaloff>:/glmixer/icons/distribute-horizontal-right.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QToolButton" name="distributeHorizontalGapsButton">
+          <property name="toolTip">
+           <string>Make horizontal gaps equal</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QToolButton" name="distributeVerticalBottomButton">
+          <property name="toolTip">
+           <string>Distribute bottom edges equidistantly</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/distribute-vertical-bottom.png</normaloff>:/glmixer/icons/distribute-vertical-bottom.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QToolButton" name="distributeVerticalCenterButton">
+          <property name="toolTip">
+           <string>Distribute centers vertically</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/distribute-vertical-center.png</normaloff>:/glmixer/icons/distribute-vertical-center.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QToolButton" name="distributeVerticalTopButton">
+          <property name="toolTip">
+           <string>Distribute top edges equidistantly</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/distribute-vertical-top.png</normaloff>:/glmixer/icons/distribute-vertical-top.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QToolButton" name="distributeVerticalGapsButton">
+          <property name="toolTip">
+           <string>Make vertical gaps equal</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"> QToolButton { 
+     border: 0px;
+ }</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/distribute-vertical-gaps.png</normaloff>:/glmixer/icons/distribute-vertical-gaps.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>24</width>
+            <height>24</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionQuit">
    <property name="icon">
     <iconset resource="../icons.qrc">

@@ -1,5 +1,20 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/align-horizontal-center.png</file>
+    <file>icons/align-horizontal-left.png</file>
+    <file>icons/align-horizontal-right.png</file>
+    <file>icons/align-vertical-bottom.png</file>
+    <file>icons/align-vertical-center.png</file>
+    <file>icons/align-vertical-top.png</file>
+    <file>icons/distribute-horizontal-center.png</file>
+    <file>icons/distribute-horizontal-gaps.png</file>
+    <file>icons/distribute-horizontal-left.png</file>
+    <file>icons/distribute-horizontal-right.png</file>
+    <file>icons/distribute-vertical-bottom.png</file>
+    <file>icons/distribute-vertical-center.png</file>
+    <file>icons/distribute-vertical-gaps.png</file>
+    <file>icons/distribute-vertical-top.png</file>
+    <file>icons/dialog-align-and-distribute.png</file>
     <file>icons/fullscreenmode.png</file>
     <file>icons/ram.png</file>
     <file>icons/ram-recording.png</file>

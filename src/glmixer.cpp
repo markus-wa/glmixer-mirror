@@ -92,6 +92,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     toolBarsMenu->addAction(cursorDockWidget->toggleViewAction());
     toolBarsMenu->addAction(gammaDockWidget->toggleViewAction());
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(alignDockWidget->toggleViewAction());
     toolBarsMenu->addAction(logDockWidget->toggleViewAction());
     toolBarsMenu->addSeparator();
     toolBarsMenu->addAction(sourceToolBar->toggleViewAction());
@@ -2297,3 +2298,75 @@ void GLMixer::on_actionSourceSeekForward_triggered(){
 		}
 }
 
+//
+// Align and distribute toolbox
+//
+void GLMixer::on_alignHorizontalLeftButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_HORIZONTAL, View::ALIGN_BOTTOM_LEFT);
+}
+
+void GLMixer::on_alignHorizontalCenterButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_HORIZONTAL, View::ALIGN_CENTER);
+}
+
+void GLMixer::on_alignHorizontalRightButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_HORIZONTAL, View::ALIGN_TOP_RIGHT);
+}
+
+void GLMixer::on_alignVerticalBottomButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_VERTICAL, View::ALIGN_BOTTOM_LEFT);
+}
+
+void GLMixer::on_alignVerticalCenterButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_VERTICAL, View::ALIGN_CENTER);
+}
+
+void GLMixer::on_alignVerticalTopButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_VERTICAL, View::ALIGN_TOP_RIGHT);
+}
+
+void GLMixer::on_distributeHorizontalLeftButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_HORIZONTAL, View::ALIGN_BOTTOM_LEFT);
+}
+
+void GLMixer::on_distributeHorizontalCenterButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_HORIZONTAL, View::ALIGN_CENTER);
+}
+
+void GLMixer::on_distributeHorizontalGapsButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_HORIZONTAL, View::ALIGN_EQUAL_GAPS);
+}
+
+void GLMixer::on_distributeHorizontalRightButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_HORIZONTAL, View::ALIGN_TOP_RIGHT);
+}
+
+void GLMixer::on_distributeVerticalBottomButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_VERTICAL, View::ALIGN_BOTTOM_LEFT);
+}
+
+void GLMixer::on_distributeVerticalCenterButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_VERTICAL, View::ALIGN_CENTER);
+}
+
+void GLMixer::on_distributeVerticalGapsButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_VERTICAL, View::ALIGN_EQUAL_GAPS);
+}
+
+void GLMixer::on_distributeVerticalTopButton_clicked(){
+
+	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_VERTICAL, View::ALIGN_TOP_RIGHT);
+}

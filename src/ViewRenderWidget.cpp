@@ -881,6 +881,25 @@ void ViewRenderWidget::hideMessage()
 {
 	messageLabel->clear();
 }
+
+
+void ViewRenderWidget::alignSelection(View::Axis a, View::RelativePoint p)
+{
+	_currentView->alignSelection(a, p);
+
+	// update the selection source for geometry view
+	View::updateSelectionSource();
+}
+
+void ViewRenderWidget::distributeSelection(View::Axis a, View::RelativePoint p)
+{
+	_currentView->distributeSelection(a, p);
+
+	// update the selection source for geometry view
+	View::updateSelectionSource();
+}
+
+
 /**
  * save and load configuration
  */

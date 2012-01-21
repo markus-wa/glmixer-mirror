@@ -1390,8 +1390,45 @@ Source *GeometryView::getCurrentSource()
 		return currentSource;
 }
 
+QRectF GeometryView::getBoundingBox(const Source *s, bool invert_y)
+{
+	double cosa, sina, bbox[2][2];
+	double point[2];
 
-QRectF GeometryView::getBoundingBox(const SourceList &l)
+	// init bbox to max size
+	// bottom left (initialized to extreme top right)
+	bbox[0][0] = SOURCE_UNIT * 5.0;
+	bbox[0][1] = SOURCE_UNIT * 5.0;
+	// top right (initialized to extreme bottom left)
+	bbox[1][0] = -SOURCE_UNIT * 5.0;
+	bbox[1][1] = -SOURCE_UNIT * 5.0;
+
+	// compute Axis aligned bounding box
+	cosa = cos(s->getRotationAngle() / 180.0 * M_PI);
+	sina = sin(s->getRotationAngle() / 180.0 * M_PI);
+	for (GLdouble i = -1.0; i < 2.0; i += 2.0)
+		for (GLdouble j = -1.0; j < 2.0; j += 2.0) {
+			// corner with apply rotation
+			point[0] = i * s->getScaleX() * cosa - j * s->getScaleY() * sina + s->getX();
+			point[1] = j * s->getScaleY() * cosa + i * s->getScaleX() * sina + s->getY();
+			// keep max and min
+			bbox[0][0] = qMin( point[0], bbox[0][0]);
+			bbox[0][1] = qMin( point[1], bbox[0][1]);
+			bbox[1][0] = qMax( point[0], bbox[1][0]);
+			bbox[1][1] = qMax( point[1], bbox[1][1]);
+		}
+
+//	qDebug("%s  w= %.2f   bbw = %.2f", qPrintable(s->getName()), s->getScaleX()*2.0, QRectF(QPointF(bbox[0][0], -bbox[1][1]), QPointF(bbox[1][0], -bbox[0][1])).normalized().width());
+
+	if (invert_y)
+		// return top-left ; bottom-right (Qt compatible orientation)
+		return QRectF(QPointF(bbox[0][0], -bbox[1][1]), QPointF(bbox[1][0], -bbox[0][1])).normalized();
+	else
+		// return bottom-left ; top-right (OpenGL compatible orientation)
+		return QRectF(QPointF(bbox[0][0], bbox[0][1]), QPointF(bbox[1][0], bbox[1][1]));
+}
+
+QRectF GeometryView::getBoundingBox(const SourceList &l, bool invert_y)
 {
 	double cosa, sina, bbox[2][2];
 	double point[2];
@@ -1421,5 +1458,150 @@ QRectF GeometryView::getBoundingBox(const SourceList &l)
 			}
 	}
 
-	return QRectF(QPointF(bbox[0][0], bbox[0][1]), QPointF(bbox[1][0], bbox[1][1]));
+	if (invert_y)
+		// return top-left ; bottom-right (Qt compatible orientation)
+		return QRectF(QPointF(bbox[0][0], -bbox[1][1]), QPointF(bbox[1][0], -bbox[0][1])).normalized();
+	else
+		// return bottom-left ; top-right (OpenGL compatible orientation)
+		return QRectF(QPointF(bbox[0][0], bbox[0][1]), QPointF(bbox[1][0], bbox[1][1]));
+}
+
+void GeometryView::alignSource(Source *s, QRectF box, View::Axis a, View::RelativePoint p)
+{
+	QPointF delta;
+	QRectF sbox = getBoundingBox(s,true);
+
+	switch (p) {
+	case View::ALIGN_BOTTOM_LEFT:
+		delta = box.bottomLeft() - sbox.bottomLeft();
+		break;
+	case View::ALIGN_EQUAL_GAPS:
+	case View::ALIGN_TOP_RIGHT:
+		delta = box.topRight() - sbox.topRight();
+		break;
+	// View::CENTER (or View::GAPS)
+	default:
+		delta = box.center() - sbox.center();
+		break;
+	}
+
+	if (a==View::AXIS_HORIZONTAL)
+		s->setX( s->getX() + delta.x() );
+	else // View::VERTICAL (inverted y)
+		s->setY( s->getY() - delta.y() );
+}
+
+void GeometryView::alignSelection(View::Axis a, View::RelativePoint p)
+{
+	QRectF bbox = getBoundingBox(View::copySelection(), true);
+
+	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++){
+		alignSource(*its, bbox, a, p);
+	}
+}
+
+
+void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
+
+	// get selection and discard useless operation
+	SourceList selection = View::copySelection();
+	if (selection.size() < 2)
+		return;
+
+	QSizeF total(0.0, 0.0);
+	// sort the sources according to the requested relative point
+	// and keep a pair ( pointer to source, size to consider )
+	QMap< int, QPair<Source*, QSizeF> > sortedlist;
+	// do this for horizontal borders
+	if (a==View::AXIS_HORIZONTAL) {
+		for(SourceList::iterator i = View::selectionBegin(); i != View::selectionEnd(); i++){
+			QRectF sbox = getBoundingBox(*i, true);
+			switch (p) {
+			case View::ALIGN_BOTTOM_LEFT:
+				// sort the list of sources by increasing x of left border (left to right)
+				sortedlist[int(sbox.left()*1000)] = qMakePair(*i, sbox.size());
+				break;
+			case View::ALIGN_TOP_RIGHT:
+				// sort the list of sources by decreasing x of right border (right to left)
+				sortedlist[int(-sbox.right()*1000)] = qMakePair(*i, sbox.size());
+				break;
+			// View::CENTER (or View::GAPS)
+			default:
+				// sort the list of sources by increasing x of center (left to right)
+				sortedlist[int(sbox.center().x()*1000)] = qMakePair(*i, sbox.size() / 2.0);
+				break;
+			}
+			total += sbox.size();
+		}
+	}
+	// do this for the vertical borders
+	else {
+		// sort the list of sources by  y (inverted)
+		for(SourceList::iterator i = View::selectionBegin(); i != View::selectionEnd(); i++){
+			QRectF sbox = getBoundingBox(*i, true);
+			switch (p) {
+			case View::ALIGN_BOTTOM_LEFT:
+				sortedlist[int(-sbox.bottom()*1000)] = qMakePair(*i, sbox.size());
+				break;
+			case View::ALIGN_TOP_RIGHT:
+				sortedlist[int(sbox.top()*1000)] = qMakePair(*i, sbox.size());
+				break;
+			// View::CENTER (or View::GAPS)
+			default:
+				sortedlist[int(-sbox.center().y()*1000)] = qMakePair(*i, sbox.size() / 2.0);
+				break;
+			}
+			total += sbox.size();
+		}
+	}
+
+	// compute bbox of the two sources bounding the selection
+	// (avoid to take intermediate sources which may enlarge the bbox without being a border)
+	selection.clear();
+	selection.insert(sortedlist[sortedlist.keys().first()].first);
+	selection.insert(sortedlist[sortedlist.keys().last()].first);
+	QRectF targetbox = getBoundingBox(selection, true);
+
+	// compute the step of translation
+	QSizeF translation;
+	if (p == View::ALIGN_CENTER) {
+		// special case for centered
+		QSizeF s = sortedlist[sortedlist.keys().first()].second;
+		translation = (targetbox.size() - s - sortedlist[sortedlist.keys().last()].second ) / float(sortedlist.count()-1);
+		targetbox = QRectF(targetbox.bottomLeft() + QPointF(s.width(), -s.height()), QSizeF(0.0,0.0));
+
+	} else if (p == View::ALIGN_EQUAL_GAPS) {
+		// special case for GAPS
+		translation = (targetbox.size() - total) / float(sortedlist.count()-1);
+		QSizeF s = sortedlist[sortedlist.keys().first()].second * 2.0;
+		targetbox = QRectF(targetbox.bottomLeft() + QPointF(s.width(), -s.height()), QSizeF(0.0,0.0));
+	}
+	else
+		translation = (targetbox.size() - sortedlist[sortedlist.keys().last()].second ) / float(sortedlist.count()-1);
+
+	// loop over source list, except bottom-left & top-right most
+	sortedlist.remove( sortedlist.keys().first() );
+	sortedlist.remove( sortedlist.keys().last() );
+	QMapIterator< int, QPair<Source*, QSizeF> > its(sortedlist);
+	while (its.hasNext()) {
+		its.next();
+
+		// Translate bbox to the next position to be aligned with
+		switch (p) {
+		case View::ALIGN_TOP_RIGHT:
+			targetbox.translate(-translation.width(), translation.height());
+			break;
+		case View::ALIGN_EQUAL_GAPS:
+			targetbox.translate(its.value().second.width()*2.0, -its.value().second.height()*2.0);
+		case View::ALIGN_CENTER:
+		case View::ALIGN_BOTTOM_LEFT:
+			targetbox.translate(translation.width(), -translation.height());
+			break;
+		default:
+			break;
+		}
+
+		// align source to the border of the target box
+		alignSource(its.value().first, targetbox, a, p);
+	}
 }
