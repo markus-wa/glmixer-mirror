@@ -24,6 +24,14 @@
  */
 
 #include <QTimer>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QListView>
+#include <QDialogButtonBox>
+#include <QIcon>
+#include <QDialog>
+#include <QStringListModel>
+#include <QAbstractItemModel>
 
 #include "common.h"
 #include "glRenderWidget.h"

@@ -27,6 +27,10 @@
 #define VIEWRENDERWIDGET_H_
 
 #include <QDomElement>
+#include <QMenu>
+#include <QLabel>
+#include <QLabel>
+#include <QEvent>
 
 #include "common.h"
 #include "glRenderWidget.h"
@@ -37,6 +41,7 @@ class MixerView;
 class GeometryView;
 class LayersView;
 class CatalogView;
+class QGLShaderProgram;
 
 class Cursor;
 class SpringCursor;

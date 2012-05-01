@@ -80,7 +80,12 @@
 #include <GL/glext.h>
 #endif
 
-#include <QtOpenGL>
+#include <QGLWidget>
+#include <QGLFramebufferObject>
+#include <QGLShaderProgram>
+#include <QGLPixelBuffer>
+#include <QGLBuffer>
+#include <QtCore>
 #include <QtDebug>
 #include <QDir>
 #include <QValidator>

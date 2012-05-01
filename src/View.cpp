@@ -5,6 +5,9 @@
  *      Author: bh
  */
 
+
+#include <QMouseEvent>
+
 #include "GeometryView.h"
 #include "glmixer.h"
 

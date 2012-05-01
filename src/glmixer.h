@@ -31,6 +31,9 @@
 #include "VideoFile.h"
 #include "SourceSet.h"
 
+#include <QFileDialog>
+
+
 #define MAX_RECENT_FILES 7
 #define MAX_DROP_FILES 20
 

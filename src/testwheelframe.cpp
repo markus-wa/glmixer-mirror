@@ -23,6 +23,8 @@
  *
  */
 
+#include <QMouseEvent>
+
 #include "testwheelframe.moc"
 #include "common.h"
 
