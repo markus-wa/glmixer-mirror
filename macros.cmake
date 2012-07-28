@@ -49,22 +49,59 @@ macro(GLMIXER_INSTALL_FRAMEWORKS)
 endmacro(GLMIXER_INSTALL_FRAMEWORKS)
 
 
-## Copies the specified .dylib files into the .app bundle TO folder
+## Copies the specified .dylib files into the  TO folder
 
 macro(GLMIXER_INSTALL_DYLIBS)
-   parse_arguments(INSTALL_DYLIBS
-     "NAMES;FROM;TO" ""
-     ${ARGN}
-   )
+   parse_arguments(INSTALL_DYLIBS "NAMES;FROM;TO" ""  ${ARGN} )
  
-   set(libfiles "")
-   foreach (it ${INSTALL_DYLIBS_NAMES})
-     set(libfiles ${libfiles} ${INSTALL_DYLIBS_FROM}/${it})
-   endforeach(it)
+   # check the argument NAMES
+   string(STRIP "${INSTALL_DYLIBS_NAMES}" libnames)
+   string(LENGTH "${libnames}" has_libnames)
+   
+   # if NO NAMES are given, install all files of the FROM directory
+   if (${has_libnames} EQUAL 0)
+   
+     file(GLOB files "${INSTALL_DYLIBS_FROM}/lib*.dylib")
+     foreach (it ${files})
+   
+		get_filename_component(REALLIBNAME ${it} REALPATH)
+		get_filename_component(SHORTLIBNAME ${it} NAME)
+		install(FILES ${REALLIBNAME} DESTINATION ${INSTALL_LIBS_TO} RENAME ${SHORTLIBNAME})
+		message( STATUS "Installing library ${SHORTLIBNAME} (${REALLIBNAME}).")
+
+     endforeach(it)
  
-   install(FILES ${libfiles} DESTINATION ${INSTALL_DYLIBS_TO})
+   # if NAMES are given, install these files
+   else (${has_libnames} EQUAL 0)
+   
+     foreach (it ${INSTALL_DYLIBS_NAMES})
+   
+		get_filename_component(REALLIBNAME ${INSTALL_DYLIBS_FROM}/${it} REALPATH)
+		get_filename_component(SHORTLIBNAME ${INSTALL_DYLIBS_FROM}/${it} NAME)
+		install(FILES ${REALLIBNAME} DESTINATION ${INSTALL_LIBS_TO} RENAME ${SHORTLIBNAME})
+		message( STATUS "Installing library ${SHORTLIBNAME} (${REALLIBNAME}).")
+
+     endforeach(it)
+     
+   endif (${has_libnames} EQUAL 0)
  
 endmacro(GLMIXER_INSTALL_DYLIBS)
 
+macro(GLMIXER_INSTALL_LIBS)
+   parse_arguments(INSTALL_LIBS
+     "NAMES;TO" ""
+     ${ARGN}
+   )
+   
+   foreach (it ${INSTALL_LIBS_NAMES})
+    	
+		get_filename_component(REALLIBNAME ${it} REALPATH)
+		get_filename_component(SHORTLIBNAME ${it} NAME)
+		install(FILES ${REALLIBNAME} DESTINATION ${INSTALL_LIBS_TO} RENAME ${SHORTLIBNAME} )
+		message( STATUS "Installing library ${SHORTLIBNAME} (${REALLIBNAME}).")
+
+   endforeach(it)
+   
+endmacro(GLMIXER_INSTALL_LIBS)
  
  

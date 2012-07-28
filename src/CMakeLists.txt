@@ -107,20 +107,21 @@ set (CPACK_PACKAGE_VENDOR "Bruno Herbelin")
 	
 	
 if( APPLE )
-
-	GLMIXER_INSTALL_FRAMEWORKS( NAMES QtCore QtGui QtOpenGL QtSvg QtXml
-	  FROM ${QT_LIBRARY_DIR} TO lib 
-	)
+	# specify installation of qt libraries
+	GLMIXER_INSTALL_LIBS( NAMES ${QT_LIBRARIES} TO lib )
+	# specify installation of qt image format libraries
+	GLMIXER_INSTALL_DYLIBS( FROM ${QT_PLUGINS_DIR}/imageformats TO lib )
 	
-	GLMIXER_INSTALL_DYLIBS( NAMES libqjpeg.dylib libqico.dylib
-	  FROM ${QT_PLUGINS_DIR}/imageformats TO lib 
-	)
+	# specify installation of libpng14, a dependency of qt libraries
+	# TODO : automate the discovery of this dependencies
+	GLMIXER_INSTALL_DYLIBS( NAMES libpng14.dylib FROM ${QT_LIBRARY_DIR} TO lib )
 	
-	install(DIRECTORY ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib DESTINATION lib/Resources)
+	# specify installation of qt_menu resource
+	install(DIRECTORY ${QT_LIBRARY_DIR}/Resources/qt_menu.nib DESTINATION lib/Resources)
 	
 	set (CPACK_GENERATOR Bundle)
-	SET(CPACK_PACKAGE_FILE_NAME "GLMixer_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}_r${GLMIXER_WC_REVISION}_OSX_${CMAKE_OSX_ARCHITECTURES}")
-	SET(CPACK_SYSTEM_NAME "OSX")
+	set (CPACK_PACKAGE_FILE_NAME "GLMixer_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}_r${GLMIXER_WC_REVISION}_OSX_${CMAKE_OSX_ARCHITECTURES}")
+	set (CPACK_SYSTEM_NAME "OSX")
 	 	
 	set (CPACK_BUNDLE_NAME GLMixer)
 	set (CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/glmixer.icns)

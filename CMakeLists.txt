@@ -78,7 +78,7 @@ set( CMAKE_INCLUDE_PATH
 
 # set the possible suffix for library files, in favor of static libs
 if( APPLE )
-	set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .framework)
+	set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .dylib .framework)
 else( APPLE)
 	if (WIN32)
   		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .dll .lib .lib64 )
@@ -176,7 +176,7 @@ ENDFOREACH(GLMIXER_DEPENDENCY)
 # BELLOW IS THE LIST OF FFMPEG OPTIONNAL DEPENDENCIES.
 # ADD THE LIBRARIES AS REQUIRED BY YOUR INSTALLATION OF FFMPEG
 
-SET(GLMIXER_UTILITIES avcore va theora theoraenc theoradec x264 xvidcore faac gsm
+SET(GLMIXER_UTILITIES avcore theora modplug theoraenc theoradec x264 xvidcore faac gsm
                       mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0
                       speex dirac_encoder jpeg openjpeg vpx bz2 z)
     
