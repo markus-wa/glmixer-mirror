@@ -208,7 +208,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
 	if(url_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
 #else
-	if(avio_open(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
+	if(avio_open(&rec->enc->oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
 #endif
 		snprintf(errormessage, 256, "Cannot create temporary file %s.\nUnable to start recording.", filename);
 		video_rec_free(rec);
