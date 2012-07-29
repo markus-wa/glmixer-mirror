@@ -44,7 +44,7 @@ static QGLFormat glRenderWidgetFormat(QGL::AlphaChannel | QGL::NoDepthBuffer | Q
 // glRenderWidgetFormat.setSwapInterval(20);
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
-: QGLWidget(glRenderWidgetFormat, parent, shareWidget, f), aspectRatio(1.0)
+: QGLWidget(glRenderWidgetFormat, parent, shareWidget, f), aspectRatio(1.0), antialiasing(true)
 
 {
 	static bool testDone = false;

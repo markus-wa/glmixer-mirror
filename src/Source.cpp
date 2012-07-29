@@ -35,10 +35,10 @@ GLuint Source::lastid = 1;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 bool Source::playable = false;
 
-// innefective source just to get default parameters
+// Infective source just to get default parameters
 Source::Source(double depth) :
 			culled(false), standby(false), wasplaying(true), frameChanged(false), modifiable(true), fixedAspectRatio(false),
-			textureIndex(0), maskTextureIndex(0), x(0.0), y(0.0), z(depth),
+			clones(NULL), textureIndex(0), maskTextureIndex(0), x(0.0), y(0.0), z(depth),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
 			pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
@@ -46,6 +46,8 @@ Source::Source(double depth) :
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
 			hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
 			useChromaKey(false) {
+
+	id = -1;
 
 	texcolor = Qt::white;
 	chromaKeyColor = Qt::green;
@@ -254,6 +256,7 @@ void Source::resetScale(scalingMode sm) {
 			scalex *= renderingAspectRatio / aspectratio;
 			scaley *= renderingAspectRatio / aspectratio;
 		}
+		break;
 	}
 
 	scaley *= flipVertical ? -1.0 : 1.0;

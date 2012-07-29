@@ -232,6 +232,7 @@ void LayersView::setAction(ActionType a){
 		break;
 	default:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+		break;
 	}
 }
 

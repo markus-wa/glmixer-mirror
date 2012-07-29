@@ -27,7 +27,7 @@
 
 
 VideoFileDisplayWidget::VideoFileDisplayWidget(QWidget *parent)
-  : glRenderWidget(parent), is(NULL), textureIndex(0), useVideoAspectRatio(true)
+  : glRenderWidget(parent), is(NULL), squareDisplayList(-1), textureIndex(0), useVideoAspectRatio(true)
 
 {
 

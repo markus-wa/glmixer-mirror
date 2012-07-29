@@ -320,6 +320,7 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 	case ViewRenderWidget::NONE:
 	default:
 		_currentView = _renderView;
+		break;
 	}
 
 	_currentView->setAction(View::NONE);
@@ -433,6 +434,7 @@ void ViewRenderWidget::setCursorMode(cursorMode m){
 	default:
 	case ViewRenderWidget::CURSOR_NORMAL:
 		_currentCursor = 0;
+		break;
 	}
 
 	cursorEnabled = false;
@@ -641,7 +643,7 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
 			setCursorEnabled(true);
 		else
 		// if there is something to drop, inform the rendering manager that it can drop the source at the clic coordinates
-		if (RenderingManager::getInstance()->getSourceBasketTop() && event->buttons() & Qt::LeftButton)
+		if (RenderingManager::getInstance()->getSourceBasketTop() && ( event->buttons() & Qt::LeftButton ) )
 		{
 			double x = 0.0, y = 0.0;
 			_currentView->coordinatesFromMouse(event->x(), event->y(), &x, &y);

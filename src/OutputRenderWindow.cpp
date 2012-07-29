@@ -300,6 +300,7 @@ void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {
 		break;
 	default:
 		QWidget::keyPressEvent(event);
+		break;
 	}
 
 	event->accept();

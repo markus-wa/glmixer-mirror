@@ -81,6 +81,7 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 	default:
 		glformat =  GL_INVALID_ENUM;
 		gltype = GL_INVALID_ENUM;
+		break;
 	}
 }
 

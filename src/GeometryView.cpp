@@ -700,6 +700,7 @@ void GeometryView::setTool(toolType t)
 		default:
 		case 4:
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_BOTTOM_LEFT);
+			break;
 		}
 		break;
 	default:
@@ -708,6 +709,7 @@ void GeometryView::setTool(toolType t)
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
 		else
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
+		break;
 	}
 }
 
@@ -734,6 +736,7 @@ void GeometryView::setAction(ActionType a){
 		break;
 	default:
 		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+		break;
 	}
 }
 

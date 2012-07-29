@@ -101,8 +101,8 @@ private:
 };
 
 VideoPicture::VideoPicture() :
-	oldframe(0), width(0), height(0), allocated(false), convert_rgba_palette(false), pts(
-			0.0)
+	oldframe(0), width(0), height(0), allocated(false), convert_rgba_palette(false),
+	pts(0.0), pixelformat(PIX_FMT_NONE)
 {
 	img_convert_ctx_filtering = NULL;
 	rgb.data[0] = NULL;
@@ -472,6 +472,7 @@ void VideoFile::setPlaySpeed(int playspeed)
 	case SPEED_NORMAL:
 	default:
 		play_speed = 1.0;
+		break;
 	}
 
 	if (video_st)
@@ -766,7 +767,7 @@ bool VideoFile::pixelFormatHasAlphaChannel() const
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 	return  (av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3)
 			// special case of PALLETE and GREY pixel formats(converters exist for rgba)
-			|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL;
+			|| ( av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL );
 #else
 	return (video_st->codec->pix_fmt == PIX_FMT_RGBA || video_st->codec->pix_fmt == PIX_FMT_BGRA ||
 			video_st->codec->pix_fmt == PIX_FMT_ARGB || video_st->codec->pix_fmt == PIX_FMT_ABGR ||

@@ -125,6 +125,7 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
 	default:
 	case ASPECT_RATIO_4_3:
 		aspectRatio = "4:3";
+		break;
 	}
 
     file.close();

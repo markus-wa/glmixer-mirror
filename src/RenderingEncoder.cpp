@@ -22,8 +22,12 @@
 
 
 class EncodingThread: public QThread {
+
 public:
-	EncodingThread(int bufsize = 10) : QThread(), rec(NULL), period(40), pictq_max(bufsize), pictq_size(0), pictq_rindex(0), pictq_windex(0){
+
+	EncodingThread(int bufsize = 10) : QThread(), rec(NULL), period(40), quit(true), pictq_max(bufsize),
+		pictq_size(0), pictq_rindex(0), pictq_windex(0)
+	{
 		pictq = (char **) malloc( pictq_max * sizeof(char *) );
 		// create mutex
 	    pictq_mutex = new QMutex;

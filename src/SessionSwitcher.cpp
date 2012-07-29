@@ -190,12 +190,11 @@ void SessionSwitcher::setTransitionType(transitionType t) {
 			break;
 		case TRANSITION_CUSTOM_MEDIA:
 			// did we load a transition source?
-			if (customTransitionVideoSource) {
-				s = (Source *) customTransitionVideoSource;
-				break;
-			}
+			s = customTransitionVideoSource ? (Source *) customTransitionVideoSource : NULL;
+			break;
 		default:
 			s = NULL;
+			break;
 	}
 
 	setTransitionSource(s);
@@ -232,6 +231,7 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
 			// did we load a transition source?
 			if (customTransitionVideoSource)
 				customTransitionVideoSource->play(true);
+			break;
 		default:
 			break;
 	}

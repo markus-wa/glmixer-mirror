@@ -30,7 +30,8 @@
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
 
-SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()), s(0)
+SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()),
+	s(0), _bgTexture(0)
 {
 	use_aspect_ratio = true;
 }

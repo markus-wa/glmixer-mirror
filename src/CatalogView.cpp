@@ -29,7 +29,7 @@
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 
-CatalogView::CatalogView() : View(), _visible(true), _height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
+CatalogView::CatalogView() : View(), _visible(true), _width(0),_height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
 							first_index(0), last_index(0), sourceClicked(0), cause(0)
 {
 	_size[SMALL] = 49.0;

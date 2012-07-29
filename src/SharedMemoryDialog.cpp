@@ -75,7 +75,7 @@ void fillModel(QStandardItemModel *model, QMap<qint64, QVariantMap> map)
 }
 
 
-SharedMemoryDialog::SharedMemoryDialog(QWidget *parent) : QDialog(parent), s(0), preview(0), selectedItem(0)  {
+SharedMemoryDialog::SharedMemoryDialog(QWidget *parent) : QDialog(parent), updateListTimer(0), s(0), preview(0), selectedItem(0)  {
 
     setupUi(this);
 
