@@ -177,7 +177,7 @@ ENDFOREACH(GLMIXER_DEPENDENCY)
 # ADD THE LIBRARIES AS REQUIRED BY YOUR INSTALLATION OF FFMPEG
 
 SET(GLMIXER_UTILITIES avcore theora modplug theoraenc theoradec x264 xvidcore faac gsm
-                      mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0
+                      mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0 va
                       speex dirac_encoder jpeg openjpeg vpx bz2 z)
     
 FOREACH(GLMIXER_UTILITY ${GLMIXER_UTILITIES})
