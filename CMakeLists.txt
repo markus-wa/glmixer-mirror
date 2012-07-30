@@ -76,30 +76,6 @@ set( CMAKE_INCLUDE_PATH
   ${CMAKE_SYSTEM_INCLUDE_PATH}
 )
 
-# set the possible suffix for library files, in favor of static libs
-if( APPLE )
-	set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .dylib .framework)
-else( APPLE)
-	if (WIN32)
-  		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .dll .lib .lib64 )
-  	else (WIN32)
-  		# not APPLE, not WINDOWS ; must be unix !
-		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .so.1  )
-	endif (WIN32)
-endif( APPLE )
-
-set( CMAKE_LIBRARY_PATH 
-  /opt/local/lib
-  /opt/lib
-  /usr/local/lib
-  /usr/lib
-  /mingw/bin 
-  /mingw/lib 
-  ~/Library/Frameworks
-  /System/Library/Frameworks
-  ${CMAKE_SYSTEM_LIBRARY_PATH}
-)
-
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
 SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")
 
@@ -155,6 +131,30 @@ endif (USE_OPENCV)
 if (USE_OPENCV)
 	message(STATUS "Using OpenCV.")
 endif (USE_OPENCV)
+
+# set the possible suffix for library files, in favor of static libs
+if( APPLE )
+	set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .dylib .framework)
+else( APPLE)
+	if (WIN32)
+  		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .dll .lib .lib64 )
+  	else (WIN32)
+  		# not APPLE, not WINDOWS ; must be unix !
+		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .so.1  )
+	endif (WIN32)
+endif( APPLE )
+
+set( CMAKE_LIBRARY_PATH 
+  /opt/local/lib
+  /opt/lib
+  /usr/local/lib
+  /usr/lib
+  /mingw/bin 
+  /mingw/lib 
+  ~/Library/Frameworks
+  /System/Library/Frameworks
+  ${CMAKE_SYSTEM_LIBRARY_PATH}
+)
 
 
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
