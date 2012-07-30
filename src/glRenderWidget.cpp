@@ -80,12 +80,9 @@ void glRenderWidget::setAntiAliasing(bool on)
 		glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 		glEnable(GL_LINE_SMOOTH);
 		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-		glEnable(GL_POLYGON_SMOOTH);
-		glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 	} else {
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_POINT_SMOOTH);
-		glDisable(GL_POLYGON_SMOOTH);
 	}
 }
 
@@ -94,6 +91,7 @@ void glRenderWidget::initializeGL()
     // Set flat color shading without dithering
     glShadeModel(GL_FLAT);
     glDisable(GL_DITHER);
+	glDisable(GL_POLYGON_SMOOTH);
 
     // disable depth and lighting by default
     glDisable(GL_DEPTH_TEST);
