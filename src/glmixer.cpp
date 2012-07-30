@@ -69,7 +69,7 @@ GLMixer *GLMixer::_instance = 0;
 GLMixer *GLMixer::getInstance() {
 
 	if (_instance == 0) {
-		_instance = new GLMixer;
+		_instance = new GLMixer();
 		Q_CHECK_PTR(_instance);
 	}
 
@@ -218,7 +218,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
 
     // Setup dialogs
-    mfd = new VideoFileDialog(this, "Open a video or a picture", QDir::currentPath());
+    mfd = new VideoFileDialog(this, "Open videos or pictures", QDir::currentPath());
     Q_CHECK_PTR(mfd);
     sfd = new QFileDialog(this);
     Q_CHECK_PTR(sfd);
@@ -510,35 +510,31 @@ void GLMixer::setCursor(QAction *a){
 void GLMixer::on_actionMediaSource_triggered(){
 
 	QStringList fileNames;
+	bool generatePowerOfTwoRequested = false;
 
-#ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
-	if (mfd->exec())
+	// open dialog for openning media files> system QFileDialog, or custom (mfd)
+	if (usesystemdialogs) {
+		fileNames = QFileDialog::getOpenFileNames(this, tr("Open Files"), QDir::currentPath(),
+												  tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.mjpeg *.swf *.flv *.mod *.mkv *.xvid);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)") );
+	} else if (mfd->exec()) {
 		fileNames = mfd->selectedFiles();
-#else
-	fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"),
-													QDir::currentPath(),
-													tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv *.mod);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)");
+		generatePowerOfTwoRequested = mfd->configCustomSize();
+	}
 
-	d.setPath(fileNames.first());
-#endif
-
+	// open all files from the list
 	QStringListIterator fileNamesIt(fileNames);
 	while (fileNamesIt.hasNext()){
 
 	    VideoFile *newSourceVideoFile = NULL;
 	    QString filename = fileNamesIt.next();
 
-#ifndef NO_VIDEO_FILE_DIALOG_PREVIEW
-		if ( !mfd->configCustomSize() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
-#else
-		if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two")  )
-#endif
+	    // if the dialog did not request power of two generation of textures
+	    // and if the opengl supports the extension, then open the source normally
+		if ( !generatePowerOfTwoRequested && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
 			newSourceVideoFile = new VideoFile(this);
 		else
 			newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
 
-
-	    QString caption = tr("%1 Cannot create source").arg(QCoreApplication::applicationName());
 		// if the video file was created successfully
 		if (newSourceVideoFile){
 			// can we open the file ?

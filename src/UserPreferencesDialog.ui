@@ -161,7 +161,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QStackedWidget" name="stackedPreferences">
          <property name="currentIndex">
-          <number>0</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="PageRendering">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1134,13 +1134,13 @@ font: 75;</string>
                 <item>
                  <widget class="QCheckBox" name="antiAliasing">
                   <property name="toolTip">
-                   <string>Use anti alisasing in rendering</string>
+                   <string>Use anti alisasing for rendering interface (improves visual appearance)</string>
                   </property>
                   <property name="statusTip">
-                   <string>Use anti alisasing in rendering: activate to improve visual appearance</string>
+                   <string>Use anti alisasing for rendering interface (improves visual appearance)</string>
                   </property>
                   <property name="text">
-                   <string>Anti-aliasing</string>
+                   <string>Use Anti-aliasing</string>
                   </property>
                   <property name="checked">
                    <bool>true</bool>
@@ -1148,15 +1148,15 @@ font: 75;</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="useSystemDialogs">
+                 <widget class="QCheckBox" name="useCustomDialogs">
                   <property name="toolTip">
-                   <string>Use your operating system file dialog</string>
+                   <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
                   </property>
                   <property name="statusTip">
-                   <string>Use your operating system file dialog</string>
+                   <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
                   </property>
                   <property name="text">
-                   <string>Use system dialog boxes</string>
+                   <string>Use application dialogs</string>
                   </property>
                   <property name="checked">
                    <bool>true</bool>

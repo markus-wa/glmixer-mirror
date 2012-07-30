@@ -228,10 +228,10 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	stream >> zoomcentered;
 	centeredZoom->setChecked(zoomcentered);
 
-	// m. useSystemDialogs
-	bool usesystem = true;
+	// m. useCustomDialogs
+	bool usesystem = false;
 	stream >> usesystem;
-	useSystemDialogs->setChecked(usesystem);
+	useCustomDialogs->setChecked(!usesystem);
 
 	// n. shared memory depth
 	uint shmdepth = 0;
@@ -295,8 +295,8 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	stream << speedZoom->value();
 	stream << centeredZoom->isChecked();
 
-	// m. useSystemDialogs
-	stream << useSystemDialogs->isChecked();
+	// m. useCustomDialogs
+	stream << !useCustomDialogs->isChecked();
 
 	// n. shared memory depth
 	stream << (uint) sharedMemoryColorDepth->currentIndex();
