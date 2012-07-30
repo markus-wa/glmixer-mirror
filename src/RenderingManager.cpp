@@ -1189,6 +1189,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			QDomElement f = doc.createElement("Algorithm");
 			QDomText algo = doc.createTextNode(QString::number(as->getAlgorithmType()));
 			f.appendChild(algo);
+			f.setAttribute("IgnoreAlpha", as->getIgnoreAlpha());
 			specific.appendChild(f);
 
 			// get size
@@ -1435,7 +1436,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 			newsource = RenderingManager::getInstance()->newAlgorithmSource(Algorithm.text().toInt(),
 					Frame.attribute("Width").toInt(), Frame.attribute("Height").toInt(),
-					Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), depth);
+					Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha").toInt(), depth);
 			if (!newsource) {
 				qWarning() << child.attribute("name") << tr("|Could not create algorithm source.");
 		        errors++;
