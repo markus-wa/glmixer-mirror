@@ -21,11 +21,24 @@ SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} CACHE STRING "You may add additiona
 SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE STRING "You may add additional search paths here. Use ; to separate multiple paths.")
 
 # Propose two build configurations
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Compilation configuration" FORCE)
+#set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Compilation configuration" FORCE)
 if(DEFINED CMAKE_BUILD_TYPE)
-    set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
+    set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release" )
 endif()
 
+if( APPLE )
+
+#set(CMAKE_OSX_ARCHS "i386;x86_64" CACHE STRING "Compilation architecture" FORCE)
+if(DEFINED CMAKE_OSX_ARCHITECTURES)
+    set_property( CACHE CMAKE_OSX_ARCHITECTURES PROPERTY STRINGS "i386;x86_64" )
+endif()
+
+#set(CMAKE_OSX_TARGETS "10.5;10.6;10.7" CACHE STRING "Target OSX version (Min requirement)" FORCE)
+if(DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+	set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS "10.5;10.6;10.7" )
+endif()
+
+endif( APPLE )
 
 # avoid stupid cmake warning
 IF(COMMAND CMAKE_POLICY)
@@ -205,7 +218,7 @@ ENDFOREACH(GLMIXER_DEPENDENCY)
 # ADD THE LIBRARIES AS REQUIRED BY YOUR INSTALLATION OF FFMPEG
 
 SET(GLMIXER_UTILITIES avcore theora modplug theoraenc theoradec x264 xvidcore faac gsm
-                      mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0 va
+                      mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0 va png14
                       speex dirac_encoder jpeg openjpeg vpx bz2 z)
     
 FOREACH(GLMIXER_UTILITY ${GLMIXER_UTILITIES})
@@ -228,6 +241,7 @@ endif (WIN32)
 
 # HERE IS THE GLEW DEPENDENCY
 
+unset(GLEW_LIBRARY CACHE)
 find_library( GLEW_LIBRARY NAMES GLEW glew glew32)
 if (GLEW_LIBRARY)
   set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${GLEW_LIBRARY} )

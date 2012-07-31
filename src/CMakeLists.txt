@@ -6,8 +6,18 @@ set(QT_USE_QTOPENGL  TRUE)
 set(QT_USE_QTXML     TRUE)
 set(QT_USE_QTSVG     TRUE)
 set(QT_USE_QTMAIN    TRUE)
+
 # add the corresponding path to include
 include(${QT_USE_FILE})
+
+#--------------------------------------------------------------------------------
+# This sets the windows build that will need the special winmain@16 call. Qt provides
+#  this for us in the qtmain.lib file. Using this cmake code will ensure we have it
+#  linked into our build. Not needed on Unix/OS X/Linux which is why we have the 
+#  IF(WIN32) conditional.
+IF (WIN32)
+    SET (QT_USE_QTMAIN TRUE)
+ENDIF (WIN32)
 
 # the variable "qtproject_SRCS" contains all .cpp files of this project
 set(GLMIXER_SRCS
@@ -91,50 +101,113 @@ include_directories(${LIBQTPROPERTY_SOURCE_DIR} )
 # note: this assumes that you use #include "header.moc" in your files
 qt4_automoc( ${GLMIXER_UIS_H} ${GLMIXER_SRCS})
 
-# create the application
-add_executable(glmixer ${GLMIXER_SRCS} ${GLMIXER_UIS_H} ${GLMIXER_RCS_SRCS} )	
+#--------------------------------------------------------------------------------
+# For Apple set the icns file containing icons (to do before declaring executable MACOSX_BUNDLE)
+IF(APPLE)
+  # set how it shows up in the Info.plist file
+  SET(MACOSX_BUNDLE_ICON_FILE glmixer.icns) 
+  # set where in the bundle to put the icns file
+  SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/osx/glmixer.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  # include the icns file in the target
+  SET(GLMIXER_SRCS ${GLMIXER_SRCS} ${CMAKE_SOURCE_DIR}/osx/glmixer.icns)
+ENDIF(APPLE)
 
+# create the application
+add_executable(glmixer MACOSX_BUNDLE WIN32 
+	${GLMIXER_SRCS} 
+	${GLMIXER_UIS_H} 
+	${GLMIXER_RCS_SRCS} 
+)	
 # link the target against the libraries. 
 target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
 
-# what to install and where?
-install(TARGETS glmixer DESTINATION bin)
 
 # multiplatform cpack info
 set (CPACK_PACKAGE_VERSION_MAJOR "${GLMIXER_VERSION_MAJOR}")
 set (CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
 set (CPACK_PACKAGE_VENDOR "Bruno Herbelin")
-	
-	
-if( APPLE )
-	# specify installation of qt libraries
-	GLMIXER_INSTALL_LIBS( NAMES ${QT_LIBRARIES} TO lib )
-	# specify installation of qt image format libraries
-	GLMIXER_INSTALL_DYLIBS( FROM ${QT_PLUGINS_DIR}/imageformats TO lib )
-	
-	# specify installation of libpng14, a dependency of qt libraries
-	# TODO : automate the discovery of this dependencies
-	GLMIXER_INSTALL_DYLIBS( NAMES libpng14.dylib FROM ${QT_LIBRARY_DIR} TO lib )
-	
-	# specify installation of qt_menu resource
-	install(DIRECTORY ${QT_LIBRARY_DIR}/Resources/qt_menu.nib DESTINATION lib/Resources)
-	
-	set (CPACK_GENERATOR Bundle)
+
+# OSX cpack info
+IF(APPLE)
 	set (CPACK_PACKAGE_FILE_NAME "GLMixer_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}_r${GLMIXER_WC_REVISION}_OSX_${CMAKE_OSX_ARCHITECTURES}")
 	set (CPACK_SYSTEM_NAME "OSX")
-	 	
-	set (CPACK_BUNDLE_NAME GLMixer)
-	set (CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/glmixer.icns)
+	set (CPACK_BUNDLE_NAME glmixer)
 	set (CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
-	set (CPACK_BUNDLE_STARTUP_COMMAND ${CMAKE_SOURCE_DIR}/osx/runglmixer)
+	set (CPACK_BUNDLE_ICON osx/${MACOSX_BUNDLE_ICON_FILE}) 
+ENDIF(APPLE)
+
+#--------------------------------------------------------------------------------
+# Now the installation stuff below
+#--------------------------------------------------------------------------------
+SET(plugin_dest_dir bin)
+SET(qtconf_dest_dir bin)
+SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/glmixer")
+IF(APPLE)
+  SET(plugin_dest_dir GLMixer.app/Contents/MacOS)
+  SET(qtconf_dest_dir GLMixer.app/Contents/Resources)
+  SET(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
+ENDIF(APPLE)
+IF(WIN32)
+  SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/glmixer.exe")
+ENDIF(WIN32)
+
+#--------------------------------------------------------------------------------
+# Install the glmixer application, on Apple, the bundle is at the root of the
+# install tree, and on other platforms it'll go into the bin directory.
+INSTALL(TARGETS glmixer 
+    BUNDLE DESTINATION . COMPONENT Runtime
+    RUNTIME DESTINATION bin COMPONENT Runtime
+    )
+
+#--------------------------------------------------------------------------------
+# Install needed Qt plugins by copying directories from the qt installation
+# One can cull what gets copied by using 'REGEX "..." EXCLUDE'
+INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
+
+#--------------------------------------------------------------------------------
+# install a qt.conf file
+# this inserts some cmake code into the install script to write the file
+INSTALL(CODE "
+    file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"\")
+    " COMPONENT Runtime)
+    
+#--------------------------------------------------------------------------------
+# install a qt_menu.nib files structure
+INSTALL(CODE "
+    file(MAKE_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt_menu.nib\")
+    file(COPY \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}\" NO_SOURCE_PERMISSIONS )
+    " COMPONENT Runtime)    
+    
+#--------------------------------------------------------------------------------
+# Use BundleUtilities to get all other dependencies for the application to work.
+# It takes a bundle or executable along with possible plugins and inspects it
+# for dependencies.  If they are not system dependencies, they are copied.
+
+# directories to look for dependencies
+SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_LIBRARY_PATH})
+
+# Now the work of copying dependencies into the bundle/package
+# The quotes are escaped and variables to use at install time have their $ escaped
+# An alternative is the do a configure_file() on a script and use install(SCRIPT  ...).
+# Note that the image plugins depend on QtSvg and QtXml, and it got those copied
+# over.
+INSTALL(CODE "
+    file(GLOB_RECURSE QTPLUGINS
+      \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+    include(BundleUtilities)
+    fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
+    " COMPONENT Runtime)
+
+
+# To Create a package, one can run "cpack -G DragNDrop CPackConfig.cmake" on Mac OS X
+# where CPackConfig.cmake is created by including CPack
+# And then there's ways to customize this as well
+set(CPACK_BINARY_DRAGNDROP ON)
+include(CPack)
 	
-	#set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
 	
-	include (CPack)
-		
-endif( APPLE )
-
-
-
-
+	
+	
+	
+	
  

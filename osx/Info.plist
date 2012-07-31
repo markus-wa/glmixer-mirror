@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>GLMixer</string>
+	<string>glmixer</string>
 	<key>CFBundleGetInfoString</key>
 	<string>GLMixer Bundle</string>
 	<key>CFBundleIconFile</key>
-	<string>GLMixer.icns</string>
+	<string>glmixer.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string></string>
 	<key>CFBundleInfoDictionaryVersion</key>

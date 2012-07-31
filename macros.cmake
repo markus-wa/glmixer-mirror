@@ -67,7 +67,7 @@ macro(GLMIXER_INSTALL_DYLIBS)
 		get_filename_component(REALLIBNAME ${it} REALPATH)
 		get_filename_component(SHORTLIBNAME ${it} NAME)
 		install(FILES ${REALLIBNAME} DESTINATION ${INSTALL_LIBS_TO} RENAME ${SHORTLIBNAME})
-		message( STATUS "Installing library ${SHORTLIBNAME} (${REALLIBNAME}).")
+		message( STATUS "- ${SHORTLIBNAME} (${REALLIBNAME}).")
 
      endforeach(it)
  
@@ -79,7 +79,7 @@ macro(GLMIXER_INSTALL_DYLIBS)
 		get_filename_component(REALLIBNAME ${INSTALL_DYLIBS_FROM}/${it} REALPATH)
 		get_filename_component(SHORTLIBNAME ${INSTALL_DYLIBS_FROM}/${it} NAME)
 		install(FILES ${REALLIBNAME} DESTINATION ${INSTALL_LIBS_TO} RENAME ${SHORTLIBNAME})
-		message( STATUS "Installing library ${SHORTLIBNAME} (${REALLIBNAME}).")
+		message( STATUS "- ${SHORTLIBNAME} (${REALLIBNAME}).")
 
      endforeach(it)
      
@@ -97,9 +97,14 @@ macro(GLMIXER_INSTALL_LIBS)
     	
 		get_filename_component(REALLIBNAME ${it} REALPATH)
 		get_filename_component(SHORTLIBNAME ${it} NAME)
-		install(FILES ${REALLIBNAME} DESTINATION ${INSTALL_LIBS_TO} RENAME ${SHORTLIBNAME} )
-		message( STATUS "Installing library ${SHORTLIBNAME} (${REALLIBNAME}).")
-
+		
+	    # Install only shared dynamic libraries
+    	string(REGEX MATCH ".*dylib" IS_SHARED ${REALLIBNAME} )
+    	if( IS_SHARED )
+			install(FILES ${REALLIBNAME} DESTINATION ${INSTALL_LIBS_TO} RENAME ${SHORTLIBNAME} )
+			message( STATUS "- ${SHORTLIBNAME} (${REALLIBNAME}).")
+    	endif( IS_SHARED )
+    	
    endforeach(it)
    
 endmacro(GLMIXER_INSTALL_LIBS)
