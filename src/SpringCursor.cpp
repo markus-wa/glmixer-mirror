@@ -29,7 +29,9 @@
 
 SpringCursor::SpringCursor() : Cursor(), mass(5.0)
 {
-	t = 0.0;
+	viscousness = 0.01;
+	damping = 10000.0;
+	stiffness = 20.0;
 }
 
 
@@ -37,10 +39,6 @@ void SpringCursor::update(QMouseEvent *e){
 
 	Cursor::update(e);
 
-	if (e->type() == QEvent::MouseButtonPress){
-		// reset time
-		t = 0.0;
-	}
 }
 
 bool SpringCursor::apply(double fpsaverage){
@@ -52,18 +50,28 @@ bool SpringCursor::apply(double fpsaverage){
 
 		releasePos = mousePos;
 
-		t += dt;
+		//	fY -= viscousness * vY;
+		QVector2D dist = QVector2D(mousePos - shadowPos);
+		double len = dist.length();
 
-		double coef = 0.5;
+		// initial force = attract (or repulse) depending on rest length and spring stiffness
+		QVector2D force = dist.normalized();
+		force *=  stiffness * (len - 2.0);
 
-		if ((shadowPos - releasePos).manhattanLength() > 1.0)
-			coef += 1.0 / mass * (pressPos - shadowPos).manhattanLength() / (shadowPos - releasePos).manhattanLength();
+		// apply damping dynamics
+		force += damping * dt * dist.normalized();
 
-		// interpolation
-		shadowPos += dt * coef * (releasePos - shadowPos);
+		// diminish force by viscousness of substrate
+		force -= viscousness * force;
+
+		// compute new position according to physics
+		shadowPos += dt * force.toPointF() / mass;
+
+		// minimal implementation, with constant speed (kept here for historical reason)
+//		shadowPos += dt * (1.0 + 500.0 / mass) *  QVector2D(mousePos - shadowPos).normalized().toPointF();
 
 		// interpolation finished?
-		return ((shadowPos - releasePos).manhattanLength() > 4.0);
+		return ((shadowPos - mousePos).manhattanLength() > 4.0);
 	}
 
 	return false;
@@ -75,7 +83,7 @@ bool SpringCursor::wheelEvent(QWheelEvent * event){
 	if (!active)
 		return false;
 
-	mass += ((float) event->delta() * mass * MIN_MASS) / (60.0 * MAX_MASS) ;
+	mass += ((float) event->delta() * mass * MIN_MASS) / (30.0 * MAX_MASS) ;
 	mass = CLAMP(mass, MIN_MASS, MAX_MASS);
 
 	emit massChanged((int)mass);

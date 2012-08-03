@@ -58,7 +58,7 @@ private:
 	// parameters
 	double mass;
 	// timing
-	double t;
+	double viscousness, damping, stiffness;
 };
 
 #endif /* SPRINGCursor_H_ */

@@ -45,8 +45,6 @@ void DelayCursor::update(QMouseEvent *e){
 
 bool DelayCursor::apply(double fpsaverage){
 
-//	double dt = 1.0 / qMax(fpsaverage, 1.0);
-
 	// animate the shadow
 	if (active) {
 
@@ -61,7 +59,7 @@ bool DelayCursor::apply(double fpsaverage){
 		int i = 0;
 
 		// how many values would we have at SAMPLING_FREQ Hz instead of fpsaverage?
-		int numMousePos = (int) (SAMPLING_FREQ / fpsaverage);
+		int numMousePos = (int) round(SAMPLING_FREQ / fpsaverage);
 		// starting from last pushed position,
 		if (positions.empty())
 			pos = pressPos;

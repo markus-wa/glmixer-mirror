@@ -33,6 +33,7 @@ class Cursor {
 
 public:
 	Cursor() : event(0), updated(false), active(false) {
+		b = Qt::NoButton;
 		pressPos = QPointF(0,0);
 		releasePos = QPointF(0,0);
 		shadowPos = QPointF(0,0);
