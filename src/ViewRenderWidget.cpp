@@ -1269,7 +1269,7 @@ GLuint ViewRenderWidget::buildCircleList()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
-		glColor4ub(COLOR_DRAWINGS, 250);
+		glColor4ub(COLOR_CIRCLE, 250);
 		glLineWidth(5.0);
 
 		glBegin(GL_LINE_LOOP);
