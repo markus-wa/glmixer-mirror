@@ -29,7 +29,7 @@
 
 #include "LineCursor.moc"
 
-LineCursor::LineCursor() : Cursor(), speed(100.0), waitTime(1.0), t(0.0), duration(0.0)
+LineCursor::LineCursor() : Cursor(), speed(100.0), waitTime(1.0), pos(0)
 {
 
 }
@@ -40,36 +40,40 @@ void LineCursor::update(QMouseEvent *e){
 
 	if (e->type() == QEvent::MouseButtonPress){
 		// reset time
-		t = 0.0;
-		duration = 0.0;
+		targetTimer.start();
+		shadowTimer.invalidate();
+		shadowPos = pressPos;
+		pos = 0;
 	}
 }
 
 bool LineCursor::apply(double fpsaverage){
-
-	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
 
 	// animate the shadow
 	if (active) {
 
 		releasePos = mousePos;
 
-		if (duration < waitTime)
-			duration += dt;
-		else {
-			// time increment
-			t += dt;
+		// detect elapsed waiting time
+		if ( targetTimer.isValid() && targetTimer.hasExpired( qint64( waitTime * 1000.0) ) ) {
+			// detect first time starting shadow timer
+			if (!shadowTimer.isValid()) {
+				shadowTimer.start();
+				pos = 0;
+			} else {
 
-			// interpolation
-			shadowPos = pressPos + speed * t * (releasePos - pressPos) / euclidean(releasePos, pressPos) ;
+				// move by :  speed * delta T * direction vector
+				pos += speed * ( double(shadowTimer.restart()) / 1000.0 );
+				shadowPos = pressPos + pos * (releasePos - pressPos) / euclidean(releasePos, pressPos) ;
 
-			// interpolation finished?
-			if ( euclidean(pressPos, shadowPos) > euclidean(releasePos, pressPos)){
-				// reset all
-				pressPos = mousePos;
-				shadowPos = mousePos;
-				duration = 0.0;
-				t = 0.0;
+				// interpolation finished?
+				if ( euclidean(pressPos, shadowPos) > euclidean(releasePos, pressPos)){
+					// reset all
+					pressPos = mousePos;
+					shadowPos = mousePos;
+					targetTimer.restart();
+					shadowTimer.invalidate();
+				}
 			}
 		}
 		return true;
@@ -84,13 +88,12 @@ bool LineCursor::wheelEvent(QWheelEvent * event){
 	if (!active)
 		return false;
 
-	if (duration < waitTime) {
-		duration = 0.0;
+	// change value of speed
+	speed += ((double) event->delta() * speed * MIN_SPEED) / (240.0 * MAX_SPEED) ;
+	speed = CLAMP(speed, MIN_SPEED, MAX_SPEED);
 
-		speed += ((float) event->delta() * speed * MIN_SPEED) / (240.0 * MAX_SPEED) ;
-		speed = CLAMP(speed, MIN_SPEED, MAX_SPEED);
-		emit speedChanged((int)speed);
-	}
+	// speed changed !
+	emit speedChanged((int)speed);
 
 	return true;
 }
@@ -118,7 +121,7 @@ void LineCursor::draw(GLint viewport[4]) {
 	glBegin(GL_POINTS);
 	while( euclidean(releasePos, p) > speed ) {
 		glVertex2d(p.x(), (viewport[3] - p.y()));
-		p += speed * (releasePos - pressPos ) / euclidean(releasePos, pressPos) ;
+		p += speed/ euclidean(releasePos, pressPos)  * (releasePos - pressPos ) ;
 	}
 	glVertex2d(p.x(), (viewport[3] - p.y()));
 	glEnd();

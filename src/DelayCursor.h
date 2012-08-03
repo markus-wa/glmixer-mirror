@@ -32,7 +32,7 @@
 #define MIN_LATENCY 0.1
 #define MAX_LATENCY 3.0
 #define SAMPLING_FREQ 120.0
-#define AVERAGE_WINDOW 5
+#define AVERAGE_WINDOW 10
 
 class DelayCursor: public QObject, public Cursor
 {

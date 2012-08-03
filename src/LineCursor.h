@@ -27,6 +27,7 @@
 #define LineCursor_H_
 
 #include <QObject>
+#include <QElapsedTimer>
 
 #include "Cursor.h"
 #define MIN_SPEED 30
@@ -60,9 +61,10 @@ private:
 
 	double speed;
 	double waitTime;
+	double pos;
 
 	// timing
-	double t, duration;
+	QElapsedTimer targetTimer, shadowTimer;
 };
 
 #endif /* LineCursor_H_ */
