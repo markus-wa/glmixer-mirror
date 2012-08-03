@@ -122,20 +122,39 @@ add_executable(glmixer MACOSX_BUNDLE WIN32
 target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
 
 
+IF(UNIX)
+
+    IF(APPLE)
+        # OSX cpack info
+    	set (CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
+    	set (CPACK_BUNDLE_NAME glmixer)
+    	set (CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
+    	set (CPACK_BUNDLE_ICON osx/${MACOSX_BUNDLE_ICON_FILE}) 
+        set (CPACK_BINARY_DRAGNDROP ON)
+    ELSE(APPLE)
+        # Linux cpack info
+    	set (CPACK_SYSTEM_NAME "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+        set (CPACK_DEBIAN_PACKAGE_MAINTAINER "Bruno Herbelin") 
+        set (CPACK_DEBIAN_PACKAGE_NAME "GLMixer")
+        set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "Graphic Live Mixer: real-time video mixing software for live performance.")
+        set (CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://code.google.com/p/glmixer/")
+        set (CPACK_DEBIAN_PACKAGE_SECTION "Multimedia")
+        set (CPACK_DEBIAN_PACKAGE_VERSION "${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}.${GLMIXER_WC_REVISION}")
+        # autogenerate dependency information
+        set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    ENDIF(APPLE)
+
+ENDIF(UNIX)
+
+
 # multiplatform cpack info
+set (CPACK_PACKAGE_NAME "GLMixer")
 set (CPACK_PACKAGE_VERSION_MAJOR "${GLMIXER_VERSION_MAJOR}")
 set (CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
 set (CPACK_PACKAGE_VENDOR "Bruno Herbelin")
-
-# OSX cpack info
-IF(APPLE)
-	set (CPACK_PACKAGE_FILE_NAME "GLMixer_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}_r${GLMIXER_WC_REVISION}_OSX_${CMAKE_OSX_ARCHITECTURES}")
-	set (CPACK_SYSTEM_NAME "OSX")
-	set (CPACK_BUNDLE_NAME glmixer)
-	set (CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
-	set (CPACK_BUNDLE_ICON osx/${MACOSX_BUNDLE_ICON_FILE}) 
-ENDIF(APPLE)
-
+set (CPACK_PACKAGE_FILE_NAME "GLMixer_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}_${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
+	
+	
 #--------------------------------------------------------------------------------
 # Now the installation stuff below
 #--------------------------------------------------------------------------------
@@ -159,50 +178,55 @@ INSTALL(TARGETS glmixer
     RUNTIME DESTINATION bin COMPONENT Runtime
     )
 
-#--------------------------------------------------------------------------------
-# Install needed Qt plugins by copying directories from the qt installation
-# One can cull what gets copied by using 'REGEX "..." EXCLUDE'
-INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
+IF(APPLE)
 
-#--------------------------------------------------------------------------------
-# install a qt.conf file
-# this inserts some cmake code into the install script to write the file
-INSTALL(CODE "
-    file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"\")
-    " COMPONENT Runtime)
+    #--------------------------------------------------------------------------------
+    # Install needed Qt plugins by copying directories from the qt installation
+    # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
+    INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
     
-#--------------------------------------------------------------------------------
-# install a qt_menu.nib files structure
-INSTALL(CODE "
-    file(MAKE_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt_menu.nib\")
-    file(COPY \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}\" NO_SOURCE_PERMISSIONS )
-    " COMPONENT Runtime)    
+    #--------------------------------------------------------------------------------
+    # install a qt.conf file
+    # this inserts some cmake code into the install script to write the file
+    INSTALL(CODE "
+        file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"\")
+        " COMPONENT Runtime)
     
-#--------------------------------------------------------------------------------
-# Use BundleUtilities to get all other dependencies for the application to work.
-# It takes a bundle or executable along with possible plugins and inspects it
-# for dependencies.  If they are not system dependencies, they are copied.
+    
+    #--------------------------------------------------------------------------------
+    # install a qt_menu.nib files structure
+    INSTALL(CODE "
+        file(MAKE_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt_menu.nib\")
+        file(COPY \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}\" NO_SOURCE_PERMISSIONS )
+        " COMPONENT Runtime)    
+        
+    #--------------------------------------------------------------------------------
+    # Use BundleUtilities to get all other dependencies for the application to work.
+    # It takes a bundle or executable along with possible plugins and inspects it
+    # for dependencies.  If they are not system dependencies, they are copied.
+    
+    # directories to look for dependencies
+    SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_LIBRARY_PATH})
+    
+    # Now the work of copying dependencies into the bundle/package
+    # The quotes are escaped and variables to use at install time have their $ escaped
+    # An alternative is the do a configure_file() on a script and use install(SCRIPT  ...).
+    # Note that the image plugins depend on QtSvg and QtXml, and it got those copied
+    # over.
+    INSTALL(CODE "
+        file(GLOB_RECURSE QTPLUGINS
+          \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+        include(BundleUtilities)
+        fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
+        " COMPONENT Runtime)
+        
+ENDIF(APPLE)
 
-# directories to look for dependencies
-SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_LIBRARY_PATH})
-
-# Now the work of copying dependencies into the bundle/package
-# The quotes are escaped and variables to use at install time have their $ escaped
-# An alternative is the do a configure_file() on a script and use install(SCRIPT  ...).
-# Note that the image plugins depend on QtSvg and QtXml, and it got those copied
-# over.
-INSTALL(CODE "
-    file(GLOB_RECURSE QTPLUGINS
-      \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
-    include(BundleUtilities)
-    fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
-    " COMPONENT Runtime)
 
 
 # To Create a package, one can run "cpack -G DragNDrop CPackConfig.cmake" on Mac OS X
 # where CPackConfig.cmake is created by including CPack
 # And then there's ways to customize this as well
-set(CPACK_BINARY_DRAGNDROP ON)
 include(CPack)
 	
 	
