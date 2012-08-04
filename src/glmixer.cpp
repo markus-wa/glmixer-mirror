@@ -1829,11 +1829,54 @@ void GLMixer::readSettings()
     	sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
     if (settings.contains("RenderingEncoder"))
     	RenderingManager::getRecorder()->restoreState(settings.value("RenderingEncoder").toByteArray());
+
 	// boolean options
     if (settings.contains("DisplayTimeAsFrames"))
     	actionShow_frames->setChecked(settings.value("DisplayTimeAsFrames").toBool());
     if (settings.contains("DisplayFramerate"))
     	actionShowFPS->setChecked(settings.value("DisplayFramerate").toBool());
+
+    // Cursor status
+    if (settings.contains("CursorMode")) {
+		switch((ViewRenderWidget::cursorMode) settings.value("CursorMode").toInt()) {
+		case ViewRenderWidget::CURSOR_DELAY:
+			actionCursorDelay->trigger();
+			break;
+		case ViewRenderWidget::CURSOR_SPRING:
+			actionCursorSpring->trigger();
+			break;
+		case ViewRenderWidget::CURSOR_AXIS:
+			actionCursorAxis->trigger();
+			break;
+		case ViewRenderWidget::CURSOR_LINE:
+			actionCursorLine->trigger();
+			break;
+			break;
+		case ViewRenderWidget::CURSOR_FUZZY:
+			actionCursorFuzzy->trigger();
+			break;
+		default:
+		case ViewRenderWidget::CURSOR_NORMAL:
+			actionCursorNormal->trigger();
+			break;
+		}
+    }
+
+    if (settings.contains("CursorSpringMass"))
+    	cursorSpringMass->setValue(settings.value("CursorSpringMass").toInt());
+    if (settings.contains("cursorLineSpeed"))
+    	cursorLineSpeed->setValue(settings.value("cursorLineSpeed").toInt());
+    if (settings.contains("cursorLineWaitDuration"))
+    	cursorLineWaitDuration->setValue(settings.value("cursorLineWaitDuration").toInt());
+    if (settings.contains("cursorDelayLatency"))
+    	cursorDelayLatency->setValue(settings.value("cursorDelayLatency").toInt());
+    if (settings.contains("cursorDelayFiltering"))
+    	cursorDelayFiltering->setValue(settings.value("cursorDelayFiltering").toInt());
+    if (settings.contains("cursorFuzzyRadius"))
+    	cursorFuzzyRadius->setValue(settings.value("cursorFuzzyRadius").toInt());
+    if (settings.contains("cursorFuzzyFiltering"))
+    	cursorFuzzyFiltering->setValue(settings.value("cursorFuzzyFiltering").toInt());
+
 
 
 	qDebug() << tr("All settings restored.");
@@ -1854,9 +1897,21 @@ void GLMixer::saveSettings()
     settings.setValue("VideoFileDialog", mfd->saveState());
     settings.setValue("SessionFileDialog", sfd->saveState());
     settings.setValue("RenderingEncoder", RenderingManager::getRecorder()->saveState());
+
 	// boolean options
 	settings.setValue("DisplayTimeAsFrames", actionShow_frames->isChecked());
 	settings.setValue("DisplayFramerate", actionShowFPS->isChecked());
+
+    // Cursor status
+    settings.setValue("CursorMode", RenderingManager::getRenderingWidget()->getCursorMode() );
+    settings.setValue("CursorSpringMass", cursorSpringMass->value() );
+    settings.setValue("cursorLineSpeed", cursorLineSpeed->value() );
+    settings.setValue("cursorLineWaitDuration", cursorLineWaitDuration->value() );
+    settings.setValue("cursorDelayLatency", cursorDelayLatency->value() );
+    settings.setValue("cursorDelayFiltering", cursorDelayFiltering->value() );
+    settings.setValue("cursorFuzzyRadius", cursorFuzzyRadius->value() );
+    settings.setValue("cursorFuzzyFiltering", cursorFuzzyFiltering->value() );
+
 	// make sure system saves settings NOW
     settings.sync();
 	qDebug() << tr("Settings saved.");
