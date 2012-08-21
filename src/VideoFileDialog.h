@@ -31,6 +31,8 @@
 
 #include "VideoFileDialogPreview.h"
 
+#define VIDEOFILE_DIALOG_FORMATS "Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.mjpeg *.swf *.flv *.mod *.mkv *.xvid *.dv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp *.ppm);;Any file (*.*)"
+
 class VideoFileDialog: public QFileDialog
 {
     Q_OBJECT

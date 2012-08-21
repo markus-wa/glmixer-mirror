@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1338</width>
-    <height>895</height>
+    <height>856</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -295,17 +295,8 @@ QDockWidget::close-button, QDockWidget::float-button {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>9</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>9</number>
-     </property>
-     <property name="bottomMargin">
-      <number>6</number>
+     <property name="margin">
+      <number>3</number>
      </property>
      <item>
       <widget class="QWidget" name="previewDockWidgetContents" native="true">
@@ -418,6 +409,12 @@ QDockWidget::close-button, QDockWidget::float-button {
        <property name="spacing">
         <number>6</number>
        </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
        <item>
         <widget class="QToolButton" name="output_onair">
          <property name="toolTip">
@@ -427,9 +424,28 @@ QDockWidget::close-button, QDockWidget::float-button {
           <string>Output window is active when &quot;On air&quot;</string>
          </property>
          <property name="styleSheet">
-          <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -437,7 +453,7 @@ QDockWidget::close-button, QDockWidget::float-button {
          <property name="icon">
           <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/off.png</normaloff>
-           <activeoff>:/glmixer/icons/on.png</activeoff>:/glmixer/icons/off.png</iconset>
+           <normalon>:/glmixer/icons/on.png</normalon>:/glmixer/icons/off.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -510,6 +526,9 @@ QDockWidget::close-button, QDockWidget::float-button {
          <property name="checkable">
           <bool>false</bool>
          </property>
+         <property name="popupMode">
+          <enum>QToolButton::InstantPopup</enum>
+         </property>
         </widget>
        </item>
        <item>
@@ -521,14 +540,28 @@ QDockWidget::close-button, QDockWidget::float-button {
           <string>Sets the output window to fullscreen mode.</string>
          </property>
          <property name="styleSheet">
-          <string notr="true"> QToolButton { /* all types of tool button */
-     border: 2px solid #8f8f91;
-     border-radius: 6px;
- }
- QToolButton:checked {
-     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                       stop: 0 #8f8f91, stop: 1 #f6f7fa);
- }</string>
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -618,7 +651,7 @@ QDockWidget::close-button, QDockWidget::float-button {
        </property>
        <widget class="QWidget" name="vcontrolDockWidgetControls" native="true">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -626,7 +659,7 @@ QDockWidget::close-button, QDockWidget::float-button {
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>100</height>
+          <height>95</height>
          </size>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -655,8 +688,8 @@ QDockWidget::close-button, QDockWidget::float-button {
            </property>
            <property name="minimumSize">
             <size>
-             <width>60</width>
-             <height>0</height>
+             <width>56</width>
+             <height>40</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -672,14 +705,27 @@ QDockWidget::close-button, QDockWidget::float-button {
             <string>Starts / stops updating</string>
            </property>
            <property name="styleSheet">
-            <string notr="true"> QToolButton { 
-     border: 2px solid #8f8f91;
-     border-radius: 6px;
- }
- QToolButton:checked {
-     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                       stop: 0 #8f8f91, stop: 1 #f6f7fa);
- }
+            <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 32px;
+     min-width: 48px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
 </string>
            </property>
            <property name="text">
@@ -700,9 +746,6 @@ QDockWidget::close-button, QDockWidget::float-button {
            </property>
            <property name="toolButtonStyle">
             <enum>Qt::ToolButtonTextUnderIcon</enum>
-           </property>
-           <property name="arrowType">
-            <enum>Qt::NoArrow</enum>
            </property>
           </widget>
          </item>
@@ -727,6 +770,9 @@ QDockWidget::close-button, QDockWidget::float-button {
             <bool>false</bool>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="spacing">
+             <number>0</number>
+            </property>
             <property name="sizeConstraint">
              <enum>QLayout::SetDefaultConstraint</enum>
             </property>
@@ -761,10 +807,19 @@ QDockWidget::close-button, QDockWidget::float-button {
               </property>
               <layout class="QHBoxLayout">
                <property name="spacing">
-                <number>8</number>
+                <number>6</number>
                </property>
-               <property name="margin">
+               <property name="leftMargin">
                 <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>3</number>
                </property>
                <item>
                 <widget class="QToolButton" name="seekBeginButton">
@@ -772,13 +827,23 @@ QDockWidget::close-button, QDockWidget::float-button {
                   <string>Jump backward to movie start.</string>
                  </property>
                  <property name="styleSheet">
-                  <string> QToolButton { /* all types of tool button */
-     border: 1px solid #8f8f91;
-     border-radius: 3px;
- }
- QToolButton:pressed {
-     background-color: rgb(188, 188, 188)
- }</string>
+                  <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+
+</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -801,13 +866,23 @@ QDockWidget::close-button, QDockWidget::float-button {
                   <string>Jump backward</string>
                  </property>
                  <property name="styleSheet">
-                  <string> QToolButton { /* all types of tool button */
-     border: 1px solid #8f8f91;
-     border-radius: 3px;
- }
- QToolButton:pressed {
-     background-color: rgb(188, 188, 188)
- }</string>
+                  <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+
+</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -833,14 +908,28 @@ QDockWidget::close-button, QDockWidget::float-button {
                   <string>Pause/resume play</string>
                  </property>
                  <property name="styleSheet">
-                  <string notr="true"> QToolButton { 
-     border: 2px solid #8f8f91;
-     border-radius: 6px;
- }
- QToolButton:checked {
-     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                       stop: 0 #8f8f91, stop: 1 #f6f7fa);
- }</string>
+                  <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -875,13 +964,23 @@ QDockWidget::close-button, QDockWidget::float-button {
                   <string>Step by 1 frame</string>
                  </property>
                  <property name="styleSheet">
-                  <string notr="true"> QToolButton {
-     border: 1px solid #8f8f91;
-     border-radius: 3px;
- }
- QToolButton:pressed {
-     background-color: rgb(188, 188, 188)
- }</string>
+                  <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+
+</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -904,13 +1003,23 @@ QDockWidget::close-button, QDockWidget::float-button {
                   <string>Jump forward</string>
                  </property>
                  <property name="styleSheet">
-                  <string notr="true"> QToolButton {
-     border: 1px solid #8f8f91;
-     border-radius: 3px;
- }
- QToolButton:pressed {
-     background-color: rgb(188, 188, 188)
- }</string>
+                  <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+
+</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1127,14 +1236,28 @@ QDockWidget::close-button, QDockWidget::float-button {
                   <string>Loop to mark-in playback</string>
                  </property>
                  <property name="styleSheet">
-                  <string> QToolButton { /* all types of tool button */
-     border: 2px solid #8f8f91;
-     border-radius: 6px;
- }
- QToolButton:checked {
-     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                       stop: 0 #8f8f91, stop: 1 #f6f7fa);
- }</string>
+                  <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1247,22 +1370,10 @@ QDockWidget::close-button, QDockWidget::float-button {
               <item row="1" column="0">
                <widget class="QPushButton" name="markInButton">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>60</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
-                  <height>20</height>
-                 </size>
                 </property>
                 <property name="baseSize">
                  <size>
@@ -1277,13 +1388,22 @@ QDockWidget::close-button, QDockWidget::float-button {
                  <enum>Qt::RightToLeft</enum>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true"> QPushButton { 
-     border: 1px solid #8f8f91;
-     border-radius: 3px;
- }
- QPushButton:pressed {
-     background-color: rgb(188, 188, 188)
- }</string>
+                 <string notr="true">QPushButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     border-color: palette(button);
+     background: transparent;
+     font-size: 9pt;
+}
+
+QPushButton:pressed { 
+     border-style: inset;
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
                 </property>
                 <property name="text">
                  <string>Mark IN</string>
@@ -1323,13 +1443,21 @@ QDockWidget::close-button, QDockWidget::float-button {
                  <enum>Qt::RightToLeft</enum>
                 </property>
                 <property name="styleSheet">
-                 <string> QToolButton { /* all types of tool button */
-     border: 1px solid #8f8f91;
-     border-radius: 3px;
- }
- QToolButton:pressed {
-     background-color: rgb(188, 188, 188)
- }</string>
+                 <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:3px;
+	 padding: 3px;
+     border-color: palette(button);
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-style: inset;
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
                 </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
@@ -1349,22 +1477,10 @@ QDockWidget::close-button, QDockWidget::float-button {
                  <bool>true</bool>
                 </property>
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>60</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
-                  <height>20</height>
-                 </size>
                 </property>
                 <property name="baseSize">
                  <size>
@@ -1379,13 +1495,22 @@ QDockWidget::close-button, QDockWidget::float-button {
                  <enum>Qt::RightToLeft</enum>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true"> QPushButton { 
-     border: 1px solid #8f8f91;
-     border-radius: 3px;
- }
- QPushButton:pressed {
-     background-color: rgb(188, 188, 188)
- }</string>
+                 <string notr="true">QPushButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     border-color: palette(button);
+     background: transparent;
+	font-size: 9pt;
+}
+
+QPushButton:pressed { 
+     border-style: inset;
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
                 </property>
                 <property name="text">
                  <string>Mark OUT</string>
@@ -1431,13 +1556,21 @@ QDockWidget::close-button, QDockWidget::float-button {
                  <enum>Qt::RightToLeft</enum>
                 </property>
                 <property name="styleSheet">
-                 <string> QToolButton { /* all types of tool button */
-     border: 1px solid #8f8f91;
-     border-radius: 3px;
- }
- QToolButton:pressed {
-     background-color: rgb(188, 188, 188)
- }</string>
+                 <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:3px;
+	 padding: 3px;
+     border-color: palette(button);
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-style: inset;
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
                 </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
@@ -1761,7 +1894,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1338</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="fileMenu">
@@ -2049,13 +2182,6 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionToolScale"/>
    <addaction name="actionToolRotate"/>
    <addaction name="actionToolCut"/>
-   <addaction name="separator"/>
-   <addaction name="actionCursorNormal"/>
-   <addaction name="actionCursorSpring"/>
-   <addaction name="actionCursorDelay"/>
-   <addaction name="actionCursorAxis"/>
-   <addaction name="actionCursorLine"/>
-   <addaction name="actionCursorFuzzy"/>
   </widget>
   <widget class="QDockWidget" name="cursorDockWidget">
    <property name="windowIcon">
@@ -2073,9 +2199,448 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="cursorDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
-     <property name="margin">
+     <property name="leftMargin">
       <number>0</number>
      </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>6</number>
+     </property>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_20">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
+       </property>
+       <item>
+        <widget class="QToolButton" name="cursor_normal">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>33</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>33</width>
+           <height>33</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Normal cursor</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
+         </property>
+         <property name="text">
+          <string>Normal</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/normal-cursor.png</normaloff>:/glmixer/icons/normal-cursor.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="cursor_spring">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>33</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Elastic cursor</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
+         </property>
+         <property name="text">
+          <string>Elastic</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/spring-cursor.png</normaloff>:/glmixer/icons/spring-cursor.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="cursor_delay">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>33</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>33</width>
+           <height>33</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Delayed cursor</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
+         </property>
+         <property name="text">
+          <string>Delay</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/delay-cursor.png</normaloff>:/glmixer/icons/delay-cursor.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="cursor_axis">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>33</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>33</width>
+           <height>33</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Axis-aligned cursor</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
+         </property>
+         <property name="text">
+          <string>Axis</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/axis-cursor.png</normaloff>:/glmixer/icons/axis-cursor.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="cursor_line">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>33</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>33</width>
+           <height>33</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Line cursor</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
+         </property>
+         <property name="text">
+          <string>Line</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/line-cursor.png</normaloff>:/glmixer/icons/line-cursor.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="cursor_fuzzy">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>33</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>33</width>
+           <height>33</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Fuzzy cursor</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+</string>
+         </property>
+         <property name="text">
+          <string>Fuzzy</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/fuzzy-cursor.png</normaloff>:/glmixer/icons/fuzzy-cursor.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
      <item>
       <widget class="QStackedWidget" name="cursorOptionWidget">
        <property name="currentIndex">
@@ -2086,22 +2651,6 @@ Uncheck to display the restart frame when stopped.</string>
          <property name="margin">
           <number>6</number>
          </property>
-         <item>
-          <widget class="QLabel" name="label_7">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="../icons.qrc">:/glmixer/icons/normal-cursor.png</pixmap>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
@@ -2115,39 +2664,28 @@ Uncheck to display the restart frame when stopped.</string>
         </layout>
        </widget>
        <widget class="QWidget" name="cursorSpringOptions">
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <property name="margin">
-          <number>6</number>
-         </property>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
-           <item>
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="pixmap">
-              <pixmap resource="../icons.qrc">:/glmixer/icons/spring-cursor.png</pixmap>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Mass:</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Mass:</string>
+           </property>
+          </widget>
          </item>
-         <item>
+         <item row="0" column="1">
           <widget class="QSlider" name="cursorSpringMass">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Make the cursor heavy or lightweight</string>
            </property>
@@ -2165,15 +2703,15 @@ Uncheck to display the restart frame when stopped.</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="0" colspan="2">
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>53</height>
+             <width>218</width>
+             <height>39</height>
             </size>
            </property>
           </spacer>
@@ -2181,39 +2719,28 @@ Uncheck to display the restart frame when stopped.</string>
         </layout>
        </widget>
        <widget class="QWidget" name="cursorDelayOptions">
-        <layout class="QVBoxLayout" name="verticalLayout_6">
-         <property name="margin">
-          <number>6</number>
-         </property>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_7">
-           <item>
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="pixmap">
-              <pixmap resource="../icons.qrc">:/glmixer/icons/delay-cursor.png</pixmap>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_5">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Latency:</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Latency:</string>
+           </property>
+          </widget>
          </item>
-         <item>
+         <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="cursorDelayLatency">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>How late the cursor is behind the mouse.</string>
            </property>
@@ -2234,15 +2761,27 @@ Uncheck to display the restart frame when stopped.</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="0">
           <widget class="QLabel" name="label_6">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Filtering:</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="1">
           <widget class="QSpinBox" name="cursorDelayFiltering">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>How many frames used to smooth the path</string>
            </property>
@@ -2263,7 +2802,7 @@ Uncheck to display the restart frame when stopped.</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="2" column="0" colspan="2">
           <spacer name="verticalSpacer_3">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -2284,22 +2823,6 @@ Uncheck to display the restart frame when stopped.</string>
           <number>6</number>
          </property>
          <item>
-          <widget class="QLabel" name="label_9">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="../icons.qrc">:/glmixer/icons/axis-cursor.png</pixmap>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QLabel" name="label_8">
            <property name="text">
             <string>No option</string>
@@ -2312,39 +2835,28 @@ Uncheck to display the restart frame when stopped.</string>
         </layout>
        </widget>
        <widget class="QWidget" name="page">
-        <layout class="QVBoxLayout" name="verticalLayout_10">
-         <property name="margin">
-          <number>6</number>
-         </property>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_8">
-           <item>
-            <widget class="QLabel" name="label_10">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="pixmap">
-              <pixmap resource="../icons.qrc">:/glmixer/icons/line-cursor.png</pixmap>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_11">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Speed</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Speed</string>
+           </property>
+          </widget>
          </item>
-         <item>
+         <item row="0" column="1" colspan="2">
           <widget class="QSlider" name="cursorLineSpeed">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>Translation speed</string>
            </property>
@@ -2362,15 +2874,27 @@ Uncheck to display the restart frame when stopped.</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="0" colspan="2">
           <widget class="QLabel" name="label_12">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
-            <string>Trigerring delay</string>
+            <string>Triger delay</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="2">
           <widget class="QDoubleSpinBox" name="cursorLineWaitDuration">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>How long before the movement starts.</string>
            </property>
@@ -2391,7 +2915,7 @@ Uncheck to display the restart frame when stopped.</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="2" column="2">
           <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -2407,45 +2931,28 @@ Uncheck to display the restart frame when stopped.</string>
         </layout>
        </widget>
        <widget class="QWidget" name="page_2">
-        <layout class="QVBoxLayout" name="verticalLayout_11">
-         <property name="margin">
-          <number>6</number>
-         </property>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_15">
-           <item>
-            <widget class="QLabel" name="label_14">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="pixmap">
-              <pixmap resource="../icons.qrc">:/glmixer/icons/fuzzy-cursor.png</pixmap>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_13">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Radius</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+        <layout class="QGridLayout" name="gridLayout_7">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_13">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Radius</string>
+           </property>
+          </widget>
          </item>
-         <item>
+         <item row="0" column="1">
           <widget class="QSlider" name="cursorFuzzyRadius">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimum">
             <number>1</number>
            </property>
@@ -2466,15 +2973,27 @@ Uncheck to display the restart frame when stopped.</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="0">
           <widget class="QLabel" name="label_15">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Filtering</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="1">
           <widget class="QSpinBox" name="cursorFuzzyFiltering">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="suffix">
             <string> frames</string>
            </property>
@@ -2489,7 +3008,7 @@ Uncheck to display the restart frame when stopped.</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="2" column="0" colspan="2">
           <spacer name="verticalSpacer_5">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -2604,16 +3123,10 @@ Uncheck to display the restart frame when stopped.</string>
      </property>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_16">
-       <property name="leftMargin">
-        <number>12</number>
+       <property name="spacing">
+        <number>0</number>
        </property>
-       <property name="topMargin">
-        <number>6</number>
-       </property>
-       <property name="rightMargin">
-        <number>12</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>6</number>
        </property>
        <item>
@@ -2622,9 +3135,21 @@ Uncheck to display the restart frame when stopped.</string>
           <string>Copy to clipboard</string>
          </property>
          <property name="styleSheet">
-          <string notr="true"> QToolButton { 
-     border: 0px ;
- }</string>
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+}
+</string>
          </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
@@ -2644,9 +3169,21 @@ Uncheck to display the restart frame when stopped.</string>
           <string>Clear</string>
          </property>
          <property name="styleSheet">
-          <string notr="true"> QToolButton { 
-     border: 0px ;
- }</string>
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+}
+</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -2682,9 +3219,21 @@ Uncheck to display the restart frame when stopped.</string>
           <string>Close</string>
          </property>
          <property name="styleSheet">
-          <string notr="true"> QToolButton { 
-     border: 0px ;
- }</string>
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+}
+</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -2794,379 +3343,612 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QVBoxLayout" name="verticalLayout_13">
+     <property name="margin">
+      <number>6</number>
+     </property>
      <item>
-      <widget class="QGroupBox" name="alignGroupBox">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="title">
-        <string>Align</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
-         <widget class="QToolButton" name="alignHorizontalLeftButton">
-          <property name="toolTip">
-           <string>Align to the left border</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/align-horizontal-left.png</normaloff>:/glmixer/icons/align-horizontal-left.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QToolButton" name="alignHorizontalCenterButton">
-          <property name="toolTip">
-           <string>Center horizontally</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/align-horizontal-center.png</normaloff>:/glmixer/icons/align-horizontal-center.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QToolButton" name="alignHorizontalRightButton">
-          <property name="toolTip">
-           <string>Align to the right border</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/align-horizontal-right.png</normaloff>:/glmixer/icons/align-horizontal-right.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QToolButton" name="alignVerticalBottomButton">
-          <property name="toolTip">
-           <string>Align to the bottom border</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/align-vertical-bottom.png</normaloff>:/glmixer/icons/align-vertical-bottom.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QToolButton" name="alignVerticalCenterButton">
-          <property name="toolTip">
-           <string>Center vertically</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/align-vertical-center.png</normaloff>:/glmixer/icons/align-vertical-center.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QToolButton" name="alignVerticalTopButton">
-          <property name="toolTip">
-           <string>Align to the top border</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/align-vertical-top.png</normaloff>:/glmixer/icons/align-vertical-top.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_17">
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+font-size: 9pt;
+}</string>
+         </property>
+         <property name="text">
+          <string>Align</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::PlainText</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QGroupBox" name="distributeGroupBox">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="title">
-        <string>Distribute</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <widget class="QToolButton" name="distributeHorizontalLeftButton">
-          <property name="toolTip">
-           <string>Distribute left edges equidistantly</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/distribute-horizontal-left.png</normaloff>:/glmixer/icons/distribute-horizontal-left.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QToolButton" name="distributeHorizontalCenterButton">
-          <property name="toolTip">
-           <string>Distribute centers horizontally</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/distribute-horizontal-center.png</normaloff>:/glmixer/icons/distribute-horizontal-center.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QToolButton" name="distributeHorizontalRightButton">
-          <property name="toolTip">
-           <string>Distribute right edges equidistantly</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/distribute-horizontal-right.png</normaloff>:/glmixer/icons/distribute-horizontal-right.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="3">
-         <widget class="QToolButton" name="distributeHorizontalGapsButton">
-          <property name="toolTip">
-           <string>Make horizontal gaps equal</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QToolButton" name="distributeVerticalBottomButton">
-          <property name="toolTip">
-           <string>Distribute bottom edges equidistantly</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/distribute-vertical-bottom.png</normaloff>:/glmixer/icons/distribute-vertical-bottom.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QToolButton" name="distributeVerticalCenterButton">
-          <property name="toolTip">
-           <string>Distribute centers vertically</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/distribute-vertical-center.png</normaloff>:/glmixer/icons/distribute-vertical-center.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QToolButton" name="distributeVerticalTopButton">
-          <property name="toolTip">
-           <string>Distribute top edges equidistantly</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/distribute-vertical-top.png</normaloff>:/glmixer/icons/distribute-vertical-top.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QToolButton" name="distributeVerticalGapsButton">
-          <property name="toolTip">
-           <string>Make vertical gaps equal</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/distribute-vertical-gaps.png</normaloff>:/glmixer/icons/distribute-vertical-gaps.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>24</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QToolButton" name="alignHorizontalLeftButton">
+         <property name="toolTip">
+          <string>Align to the left border</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/align-horizontal-left.png</normaloff>:/glmixer/icons/align-horizontal-left.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QToolButton" name="alignHorizontalCenterButton">
+         <property name="toolTip">
+          <string>Center horizontally</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/align-horizontal-center.png</normaloff>:/glmixer/icons/align-horizontal-center.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QToolButton" name="alignHorizontalRightButton">
+         <property name="toolTip">
+          <string>Align to the right border</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/align-horizontal-right.png</normaloff>:/glmixer/icons/align-horizontal-right.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QToolButton" name="alignVerticalBottomButton">
+         <property name="toolTip">
+          <string>Align to the bottom border</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/align-vertical-bottom.png</normaloff>:/glmixer/icons/align-vertical-bottom.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QToolButton" name="alignVerticalCenterButton">
+         <property name="toolTip">
+          <string>Center vertically</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/align-vertical-center.png</normaloff>:/glmixer/icons/align-vertical-center.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QToolButton" name="alignVerticalTopButton">
+         <property name="toolTip">
+          <string>Align to the top border</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/align-vertical-top.png</normaloff>:/glmixer/icons/align-vertical-top.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_18">
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+font-size: 9pt;
+}</string>
+         </property>
+         <property name="text">
+          <string>Distribute</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::PlainText</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="QToolButton" name="distributeHorizontalLeftButton">
+         <property name="toolTip">
+          <string>Distribute left edges equidistantly</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/distribute-horizontal-left.png</normaloff>:/glmixer/icons/distribute-horizontal-left.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QToolButton" name="distributeHorizontalCenterButton">
+         <property name="toolTip">
+          <string>Distribute centers horizontally</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/distribute-horizontal-center.png</normaloff>:/glmixer/icons/distribute-horizontal-center.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QToolButton" name="distributeHorizontalRightButton">
+         <property name="toolTip">
+          <string>Distribute right edges equidistantly</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/distribute-horizontal-right.png</normaloff>:/glmixer/icons/distribute-horizontal-right.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QToolButton" name="distributeHorizontalGapsButton">
+         <property name="toolTip">
+          <string>Make horizontal gaps equal</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QToolButton" name="distributeVerticalBottomButton">
+         <property name="toolTip">
+          <string>Distribute bottom edges equidistantly</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/distribute-vertical-bottom.png</normaloff>:/glmixer/icons/distribute-vertical-bottom.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QToolButton" name="distributeVerticalCenterButton">
+         <property name="toolTip">
+          <string>Distribute centers vertically</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/distribute-vertical-center.png</normaloff>:/glmixer/icons/distribute-vertical-center.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QToolButton" name="distributeVerticalTopButton">
+         <property name="toolTip">
+          <string>Distribute top edges equidistantly</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/distribute-vertical-top.png</normaloff>:/glmixer/icons/distribute-vertical-top.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QToolButton" name="distributeVerticalGapsButton">
+         <property name="toolTip">
+          <string>Make vertical gaps equal</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+}
+</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/distribute-vertical-gaps.png</normaloff>:/glmixer/icons/distribute-vertical-gaps.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>

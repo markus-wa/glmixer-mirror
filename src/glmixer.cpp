@@ -99,6 +99,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     toolBarsMenu->addAction(viewToolBar->toggleViewAction());
     toolBarsMenu->addAction(fileToolBar->toggleViewAction());
     toolBarsMenu->addAction(toolsToolBar->toggleViewAction());
+    toolBarsMenu->addAction(renderingToolBar->toggleViewAction());
+    toolBarsMenu->addAction(sourceControlToolBar->toggleViewAction());
 
 	QActionGroup *viewActions = new QActionGroup(this);
     Q_CHECK_PTR(viewActions);
@@ -134,6 +136,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	cursorActions->addAction(actionCursorFuzzy);
 	actionCursorFuzzy->setData(ViewRenderWidget::CURSOR_FUZZY);
     QObject::connect(cursorActions, SIGNAL(triggered(QAction *)), this, SLOT(setCursor(QAction *) ) );
+
+	cursor_normal->setDefaultAction(actionCursorNormal);
+	cursor_spring->setDefaultAction(actionCursorSpring);
+	cursor_delay->setDefaultAction(actionCursorDelay);
+	cursor_axis->setDefaultAction(actionCursorAxis);
+	cursor_line->setDefaultAction(actionCursorLine);
+	cursor_fuzzy->setDefaultAction(actionCursorFuzzy);
 
 	QActionGroup *aspectRatioActions = new QActionGroup(this);
     Q_CHECK_PTR(aspectRatioActions);
@@ -514,8 +523,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 
 	// open dialog for openning media files> system QFileDialog, or custom (mfd)
 	if (usesystemdialogs) {
-		fileNames = QFileDialog::getOpenFileNames(this, tr("Open Files"), QDir::currentPath(),
-												  tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.mjpeg *.swf *.flv *.mod *.mkv *.xvid);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)") );
+		fileNames = QFileDialog::getOpenFileNames(this, tr("Open Files"), QDir::currentPath(), tr(VIDEOFILE_DIALOG_FORMATS) );
 	} else if (mfd->exec()) {
 		fileNames = mfd->selectedFiles();
 		generatePowerOfTwoRequested = mfd->configCustomSize();
