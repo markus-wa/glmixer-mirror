@@ -170,7 +170,7 @@ public:
 		return previousframe_delay;
 	}
 
-	QImage captureFrameBuffer();
+	QImage captureFrameBuffer(QImage::Format format = QImage::Format_RGB888);
 	inline bool clearToWhite() const {
 		return clearWhite;
 	}

@@ -468,10 +468,20 @@ Source *RenderingManager::newRenderingSource(double depth) {
 	return ( (Source *) s );
 }
 
-QImage RenderingManager::captureFrameBuffer() {
+QImage RenderingManager::captureFrameBuffer(QImage::Format format) {
+
+    QImage img(_fbo->size(), QImage::Format_RGB888);
 
 	_renderwidget->makeCurrent();
-	return _fbo->toImage();
+
+    _fbo->bind();
+    glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), GL_RGB, GL_UNSIGNED_BYTE, img.bits());
+    _fbo->release();
+
+    if (format != QImage::Format_RGB888)
+    	img = img.convertToFormat(format);
+
+    return img.mirrored();
 }
 
 

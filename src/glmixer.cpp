@@ -28,6 +28,7 @@
 #include <QApplication>
 #include <QDomDocument>
 #include <QtGui>
+#include <QFileDialog>
 
 #include "common.h"
 #include "CameraDialog.h"
@@ -66,6 +67,55 @@
 #include "glmixer.moc"
 
 GLMixer *GLMixer::_instance = 0;
+
+
+
+class CaptureDialog: public QDialog {
+
+public:
+	QImage img;
+
+	CaptureDialog(QWidget *parent, QImage capture, QString caption): QDialog(parent), img(capture) {
+
+		QVBoxLayout *verticalLayout;
+		QLabel *Question, *Display, *Info;
+		QDialogButtonBox *DecisionButtonBox;
+		setObjectName(QString::fromUtf8("CaptureDialog"));
+		resize(300, 179);
+		setWindowTitle(tr( "Frame captured"));
+		verticalLayout = new QVBoxLayout(this);
+		verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+		Question = new QLabel(this);
+		Question->setObjectName(QString::fromUtf8("Question"));
+		QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+		sizePolicy.setHorizontalStretch(0);
+		sizePolicy.setVerticalStretch(0);
+		sizePolicy.setHeightForWidth(Question->sizePolicy().hasHeightForWidth());
+		Question->setSizePolicy(sizePolicy);
+		Question->setText(caption);
+		verticalLayout->addWidget(Question);
+
+		Display = new QLabel(this);
+		Display->setObjectName(QString::fromUtf8("Display"));
+		Display->setPixmap(QPixmap::fromImage(img).scaledToWidth(300));
+		verticalLayout->addWidget(Display);
+
+		Info = new QLabel(this);
+		Info->setText(tr("%1 x %2 px").arg(img.width()).arg(img.height()) );
+		verticalLayout->addWidget(Info);
+
+		DecisionButtonBox = new QDialogButtonBox(this);
+		DecisionButtonBox->setObjectName(QString::fromUtf8("DecisionButtonBox"));
+		DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+
+		verticalLayout->addWidget(DecisionButtonBox);
+		QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
+		QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
+	}
+
+};
+
+
 
 GLMixer *GLMixer::getInstance() {
 
@@ -857,86 +907,12 @@ void GLMixer::on_actionCloneSource_triggered(){
 }
 
 
-CaptureDialog::CaptureDialog(QWidget *parent, QImage capture, QString caption) : QDialog(parent), img(capture) {
-
-	QVBoxLayout *verticalLayout;
-	QLabel *Question, *Display;
-	QDialogButtonBox *DecisionButtonBox;
-	setObjectName(QString::fromUtf8("CaptureDialog"));
-	resize(300, 179);
-	setWindowTitle(tr( "Frame captured"));
-	verticalLayout = new QVBoxLayout(this);
-	verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
-	Question = new QLabel(this);
-	Question->setObjectName(QString::fromUtf8("Question"));
-	QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
-	sizePolicy.setHorizontalStretch(0);
-	sizePolicy.setVerticalStretch(0);
-	sizePolicy.setHeightForWidth(Question->sizePolicy().hasHeightForWidth());
-	Question->setSizePolicy(sizePolicy);
-	Question->setText(caption);
-	verticalLayout->addWidget(Question);
-
-	Display = new QLabel(this);
-	Display->setObjectName(QString::fromUtf8("Display"));
-	Display->setPixmap(QPixmap::fromImage(img).scaledToWidth(300));
-	verticalLayout->addWidget(Display);
-
-	DecisionButtonBox = new QDialogButtonBox(this);
-	DecisionButtonBox->setObjectName(QString::fromUtf8("DecisionButtonBox"));
-	DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-
-	verticalLayout->addWidget(DecisionButtonBox);
-	QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
-	QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
-}
-
-
-QString CaptureDialog::saveImage()
-{
-	// keep a static instance of location and base file name
-	static QDir dname(QDir::currentPath());
-	static QString basename("capture");
-
-	// try to suggest an incremented file name
-	QFileInfo fname = QFileInfo( dname, basename + ".png");
-	for (int i = 1; fname.exists() && i<1000; i++)
-		fname = QFileInfo( dname, QString("%1_%2.png").arg(basename).arg(i));
-
-	// ask for file name
-	QFileDialog fd( parentWidget(), tr("Save captured image"),fname.absoluteFilePath(), "PNG image(*.png);;JPEG Image(*.jpg);;TIFF image(*.tiff);;XPM image(*.xpm)");
-	fd.setAcceptMode(QFileDialog::AcceptSave);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setDefaultSuffix("png");
-	fd.setOption(QFileDialog::DontUseNativeDialog, !GLMixer::getInstance()->useSystemDialogs());
-
-	if (fd.exec()) {
-	    QString filename = fd.selectedFiles().front();
-
-		// save the file
-		if (!filename.isEmpty()) {
-			if (!img.save(filename)) {
-				qCritical() << filename << tr("|Could not save file.");
-				return QString();
-			}
-			// remember location and base file name for next time
-			fname = QFileInfo( filename );
-			dname = fname.dir();
-			basename =  fname.baseName().section("_", 0, fname.baseName().count("_")-1);
-
-			return filename;
-		}
-	}
-
-	return QString();
-}
 
 
 void GLMixer::on_actionCaptureSource_triggered(){
 
 	// capture screen
-	QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
-	capture = capture.convertToFormat(QImage::Format_RGB32);
+	QImage capture = RenderingManager::getInstance()->captureFrameBuffer(QImage::Format_RGB32);
 
 	// display and request action with this capture
 	CaptureDialog cd(this, capture, tr("Create a source with this image ?"));
@@ -950,6 +926,53 @@ void GLMixer::on_actionCaptureSource_triggered(){
 		}
 		else
 			qCritical() << tr("Could not create capture source.");
+	}
+}
+
+void GLMixer::on_actionSave_snapshot_triggered(){
+
+	// capture screen
+	QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
+
+	// display and request action with this capture
+	CaptureDialog cd(this, capture, tr("Save this image ?"));
+
+	if (cd.exec() == QDialog::Accepted) {
+
+		QString filename;
+		// keep a static instance of location and base file name
+		static QDir dname(QDir::currentPath());
+		static QString basename("capture");
+
+		// try to suggest an incremented file name
+		QFileInfo fname = QFileInfo( dname, basename + ".png");
+		for (int i = 1; fname.exists() && i<1000; i++)
+			fname = QFileInfo( dname, QString("%1_%2.png").arg(basename).arg(i));
+
+		// ask for file name
+		QFileDialog fd( parentWidget(), tr("Save captured image"),fname.absoluteFilePath(), "PNG image(*.png);;JPEG Image(*.jpg);;TIFF image(*.tiff);;XPM image(*.xpm)");
+		fd.setAcceptMode(QFileDialog::AcceptSave);
+		fd.setFileMode(QFileDialog::AnyFile);
+		fd.setDefaultSuffix("png");
+		fd.setOption(QFileDialog::DontUseNativeDialog, !GLMixer::getInstance()->useSystemDialogs());
+
+		if (fd.exec()) {
+		    filename = fd.selectedFiles().front();
+
+			// save the file
+			if (!filename.isEmpty()) {
+				if (!capture.save(filename)) {
+					qCritical() << filename << tr("|Could not save file.");
+					return;
+				} else
+					qDebug() << filename << tr("|Snapshot saved.");
+				// remember location and base file name for next time
+				fname = QFileInfo( filename );
+				dname = fname.dir();
+				basename =  fname.baseName().section("_", 0, fname.baseName().count("_")-1);
+
+			}
+		}
 	}
 }
 
@@ -2189,22 +2212,6 @@ void GLMixer::on_controlOptionsButton_clicked()
 	vcontrolOptionSplitter->setSizes(splitSizes);
 }
 
-
-void GLMixer::on_actionSave_snapshot_triggered(){
-
-	// capture screen
-	QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
-	capture = capture.convertToFormat(QImage::Format_RGB32);
-
-	// display and request action with this capture
-	CaptureDialog cd(this, capture, tr("Save this image ?"));
-
-	if (cd.exec() == QDialog::Accepted) {
-		QString filename = cd.saveImage();
-		if (!filename.isEmpty())
-			qDebug() << filename << tr("|Snapshot saved.");
-	}
-}
 
 
 void GLMixer::on_output_alpha_valueChanged(int v){

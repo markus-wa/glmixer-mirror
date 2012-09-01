@@ -31,8 +31,6 @@
 #include "VideoFile.h"
 #include "SourceSet.h"
 
-#include <QFileDialog>
-
 
 #define MAX_RECENT_FILES 7
 #define MAX_DROP_FILES 20
@@ -167,8 +165,8 @@ private:
 
 	QString currentSessionFileName;
 	VideoFile *selectedSourceVideoFile;
-	QFileDialog *sfd;
 	bool usesystemdialogs, maybeSave;
+	class QFileDialog *sfd;
 	class VideoFileDialog *mfd;
 	class SourceDisplayWidget *sourcepreview;
 	class OutputRenderWidget *outputpreview;
@@ -184,15 +182,5 @@ private:
 
 };
 
-
-class CaptureDialog: public QDialog {
-	Q_OBJECT
-
-public:
-	QImage img;
-	CaptureDialog(QWidget *parent, QImage capture, QString caption);
-public Q_SLOTS:
-	QString saveImage();
-};
 
 #endif /* GLV_H_ */

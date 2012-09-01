@@ -29,6 +29,8 @@
 #include "glmixer.h"
 #include "Source.h"
 
+#include <QFileDialog>
+
 UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 {
     setupUi(this);
