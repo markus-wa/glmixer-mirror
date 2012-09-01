@@ -376,9 +376,9 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 		//
 		if (first) {
 			if (clearWhite)
-				glClearColor(1.f, 1.f, 1.f, 0.f);
+				glClearColor(1.f, 1.f, 1.f, 1.f);
 			else
-				glClearColor(0.f, 0.f, 0.f, 0.f);
+				glClearColor(0.f, 0.f, 0.f, 1.f);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
