@@ -40,7 +40,7 @@ Source::Source(double depth) :
 			culled(false), standby(false), wasplaying(true), frameChanged(false), modifiable(true), fixedAspectRatio(false),
 			clones(NULL), textureIndex(0), maskTextureIndex(0), x(0.0), y(0.0), z(depth),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
+			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), _fbo(NULL), flipVertical(false),
 			pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
 			brightness(0.f), contrast(1.f),	saturation(1.f),
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
@@ -67,7 +67,7 @@ Source::Source(GLuint texture, double depth) :
 	culled(false), standby(false), wasplaying(true), frameChanged(true), modifiable(true), fixedAspectRatio(false),
 	textureIndex(texture), maskTextureIndex(0), x(0.0), y(0.0), z(depth),
 	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
+	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), _fbo(NULL), flipVertical(false),
 	pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
 	brightness(0.f), contrast(1.f),	saturation(1.f),
 	gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
@@ -119,7 +119,7 @@ void Source::testGeometryCulling() {
 	else {
 		// not obviously visible
 		// but it might still be parly visible if the distance from the center to the borders is less than the width
-		int d = sqrt( scalex*scalex + scaley * scaley);
+		int d = sqrt( scalex*scalex + scaley*scaley);
 		if ((x + d < -w) || (x - d > w))
 			culled = true;
 		else if ((y + d < -h) || (y - d > h))
@@ -127,6 +127,7 @@ void Source::testGeometryCulling() {
 			else
 				culled = false;
 	}
+
 }
 
 void Source::setDepth(GLdouble v) {
@@ -136,24 +137,34 @@ void Source::setDepth(GLdouble v) {
 void Source::moveTo(GLdouble posx, GLdouble posy) {
 	x = posx;
 	y = posy;
+
+	// test for culling
+	testGeometryCulling();
 }
 
 void Source::setScale(GLdouble sx, GLdouble sy) {
 	scalex = sx;
 	scaley = sy;
+
+	// test for culling
+	testGeometryCulling();
 }
 
 void Source::scaleBy(float fx, float fy) {
 	scalex *= fx;
 	scaley *= fy;
+
+	// test for culling
+	testGeometryCulling();
 }
 
 void Source::clampScale() {
 
-	scalex = (scalex > 0 ? 1.0 : -1.0)
-			* CLAMP( ABS(scalex), MIN_SCALE, MAX_SCALE);
-	scaley = (scaley > 0 ? 1.0 : -1.0)
-			* CLAMP( ABS(scaley), MIN_SCALE, MAX_SCALE);
+	scalex = (scalex > 0 ? 1.0 : -1.0) * CLAMP( ABS(scalex), MIN_SCALE, MAX_SCALE);
+	scaley = (scaley > 0 ? 1.0 : -1.0) * CLAMP( ABS(scaley), MIN_SCALE, MAX_SCALE);
+
+	// test for culling
+	testGeometryCulling();
 }
 
 void Source::setAlphaCoordinates(double x, double y) {
@@ -261,6 +272,8 @@ void Source::resetScale(scalingMode sm) {
 
 	scaley *= flipVertical ? -1.0 : 1.0;
 
+	// test for culling
+	testGeometryCulling();
 }
 
 
@@ -298,11 +311,11 @@ void Source::draw(bool withalpha, GLenum mode) const
 
 void Source::update() {
 
-	glBindTexture(GL_TEXTURE_2D, textureIndex);
+ 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 
 	if (pixelated) {
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 }
 
