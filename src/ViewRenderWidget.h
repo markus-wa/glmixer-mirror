@@ -37,10 +37,6 @@
 #include "SourceSet.h"
 #include "View.h"
 
-class MixerView;
-class GeometryView;
-class LayersView;
-class CatalogView;
 class QGLShaderProgram;
 
 class Cursor;
@@ -56,6 +52,7 @@ class ViewRenderWidget: public glRenderWidget {
 
 	friend class RenderingManager;
 	friend class Source;
+	friend class RenderingView;
 	friend class MixerView;
 	friend class GeometryView;
 	friend class LayersView;
@@ -111,7 +108,7 @@ public:
 	/**
 	 * management of the manipulation views
 	 */
-	typedef enum {NONE = 0, MIXING=1, GEOMETRY=2, LAYER=3 } viewMode;
+	typedef enum {NONE = 0, MIXING=1, GEOMETRY=2, LAYER=3, RENDERING=4 } viewMode;
 	void setViewMode(viewMode mode);
 	View *getView() {return _currentView;}
 
@@ -171,8 +168,7 @@ public Q_SLOTS:
 	void alignSelection(View::Axis a, View::RelativePoint p);
 	void distributeSelection(View::Axis a, View::RelativePoint p);
 
-protected:
-
+public:
 	// Shading
     static GLfloat coords[12];
     static GLfloat texc[8];
@@ -180,10 +176,11 @@ protected:
     static QGLShaderProgram *program;
     static bool disableFiltering;
 
+protected:
 	// all the display lists
 	static GLuint border_thin_shadow, border_large_shadow;
 	static GLuint border_thin, border_large, border_scale, border_tooloverlay;
-	static GLuint frame_selection, frame_screen, frame_screen_thin;
+	static GLuint frame_selection, frame_screen, frame_screen_thin, frame_screen_mask;
 	static GLuint quad_texured, quad_window[2];
 	static GLuint circle_mixing, circle_limbo, layerbg;
 	static GLuint mask_textures[Source::CUSTOM_MASK];
@@ -196,10 +193,11 @@ protected:
 private:
     // V i e w s
 	View *_currentView, *_renderView;
-	MixerView *_mixingView;
-	GeometryView *_geometryView;
-	LayersView *_layersView;
-	CatalogView *_catalogView;
+	class MixerView *_mixingView;
+	class GeometryView *_geometryView;
+	class LayersView *_layersView;
+	class RenderingView *_renderingView;
+	class CatalogView *_catalogView;
 	bool faded;
 
 	// C u r s o r s

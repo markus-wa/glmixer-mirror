@@ -41,6 +41,7 @@ set(GLMIXER_SRCS
     MixerView.cpp
     GeometryView.cpp
     LayersView.cpp
+    RenderingView.cpp
     CatalogView.cpp
     ViewRenderWidget.cpp
     RenderingManager.cpp

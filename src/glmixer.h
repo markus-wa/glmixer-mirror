@@ -170,6 +170,7 @@ private:
 	QFileDialog *sfd;
 	bool usesystemdialogs, maybeSave;
 	class VideoFileDialog *mfd;
+	class SourceDisplayWidget *sourcepreview;
 	class OutputRenderWidget *outputpreview;
 	class UserPreferencesDialog *upd;
 	class GammaLevelsWidget *gammaAdjust;

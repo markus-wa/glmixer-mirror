@@ -94,8 +94,6 @@ void GeometryView::paint()
 			(*its)->beginEffectsSection();
 			// bind the source texture and update its content
 			(*its)->update();
-			// test for culling
-			(*its)->testGeometryCulling();
 			// Draw it !
 			(*its)->blend();
 			(*its)->draw();
@@ -108,55 +106,54 @@ void GeometryView::paint()
 
 			glPopMatrix();
 		}
-
-		// draw borders on top
-		ViewRenderWidget::setSourceDrawingMode(false);
-
-		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-			if ((*its)->isStandby())
-				continue;
-
-			//
-			// 3. draw border and handles if active
-			//
-			// place and scale
-			glPushMatrix();
-			glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
-			glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
-			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.0);
-
-			if (RenderingManager::getInstance()->isCurrentSource(its)) {
-				glCallList(borderType + ((*its)->isModifiable() ? 0 : 3));
-				// Draw extra overlay information depending on tool
-				if (currentAction == View::TOOL ) {
-					// show that the source has a fixed aspect ratio
-					if ((*its)->isFixedAspectRatio() || currentTool == GeometryView::ROTATE ){
-						glCallList(ViewRenderWidget::border_tooloverlay + 1);
-					}
-					// show the rotation center when ROTATE
-					if (currentTool == GeometryView::ROTATE) {
-						glScalef(1.f / (*its)->getScaleX(), 1.f / (*its)->getScaleY(), 1.f);
-						glCallList(ViewRenderWidget::border_tooloverlay);
-					} else if (currentTool == GeometryView::CROP) {
-						glScalef( 1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.f);
-						glCallList(ViewRenderWidget::border_tooloverlay + 2);
-					}
-				}
-			} else
-				glCallList(ViewRenderWidget::border_thin + ((*its)->isModifiable() ? 0 : 3));
-
-			glPopMatrix();
-
-		}
 		ViewRenderWidget::program->release();
     }
-	glActiveTexture(GL_TEXTURE0);
 
 	// if no source was rendered, clear anyway
 	RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
 
 	// post render draw (loop back and recorder)
 	RenderingManager::getInstance()->postRenderToFrameBuffer();
+
+	glActiveTexture(GL_TEXTURE0);
+
+
+	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+		if ((*its)->isStandby())
+			continue;
+
+		//
+		// 3. draw border and handles if active
+		//
+		// place and scale
+		glPushMatrix();
+		glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
+		glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
+		glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.0);
+
+		if (RenderingManager::getInstance()->isCurrentSource(its)) {
+			glCallList(borderType + ((*its)->isModifiable() ? 0 : 3));
+			// Draw extra overlay information depending on tool
+			if (currentAction == View::TOOL ) {
+				// show that the source has a fixed aspect ratio
+				if ((*its)->isFixedAspectRatio() || currentTool == GeometryView::ROTATE ){
+					glCallList(ViewRenderWidget::border_tooloverlay + 1);
+				}
+				// show the rotation center when ROTATE
+				if (currentTool == GeometryView::ROTATE) {
+					glScalef(1.f / (*its)->getScaleX(), 1.f / (*its)->getScaleY(), 1.f);
+					glCallList(ViewRenderWidget::border_tooloverlay);
+				} else if (currentTool == GeometryView::CROP) {
+					glScalef( 1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.f);
+					glCallList(ViewRenderWidget::border_tooloverlay + 2);
+				}
+			}
+		} else
+			glCallList(ViewRenderWidget::border_thin + ((*its)->isModifiable() ? 0 : 3));
+
+		glPopMatrix();
+
+	}
 
     // Then the selection outlines
 	if ( View::hasSelection() ) {

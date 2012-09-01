@@ -38,6 +38,7 @@
 #include "UserPreferencesDialog.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
+#include "SourceDisplayWidget.h"
 #include "OutputRenderWindow.h"
 #include "MixerView.h"
 #include "RenderingSource.h"
@@ -90,7 +91,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     toolBarsMenu->addAction(sourceDockWidget->toggleViewAction());
     toolBarsMenu->addAction(vcontrolDockWidget->toggleViewAction());
     toolBarsMenu->addAction(cursorDockWidget->toggleViewAction());
-    toolBarsMenu->addAction(gammaDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(mixingDockWidget->toggleViewAction());
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
     toolBarsMenu->addAction(alignDockWidget->toggleViewAction());
     toolBarsMenu->addAction(logDockWidget->toggleViewAction());
@@ -107,6 +108,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     viewActions->addAction(actionMixingView);
     viewActions->addAction(actionGeometryView);
     viewActions->addAction(actionLayersView);
+    viewActions->addAction(actionRenderingView);
     QObject::connect(viewActions, SIGNAL(triggered(QAction *)), this, SLOT(setView(QAction *) ) );
 
 	QActionGroup *toolActions = new QActionGroup(this);
@@ -216,7 +218,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(nextSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToNextSession()));
 	QObject::connect(prevSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToPreviousSession()));
 
-
+	// Set the docking tab vertical
 	setDockOptions(dockOptions () | QMainWindow::VerticalTabs);
 
 	// setup render window
@@ -234,9 +236,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     upd = new UserPreferencesDialog(this);
     Q_CHECK_PTR(upd);
 
-    // Create preview widget
+    // Create output preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
 	previewDockWidgetContentsLayout->insertWidget(0, outputpreview);
+
+    // Create source preview widget
+    sourcepreview = new SourceDisplayWidget(mixingDockWidgetContent);
+    mixingDockWidgetContentSplitter->insertWidget(0, sourcepreview);
+    sourcepreview->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     // Default state without source selected
     vcontrolDockWidgetContents->setEnabled(false);
@@ -468,6 +475,8 @@ void GLMixer::setView(QAction *a){
 		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::GEOMETRY);
 	else if (a == actionLayersView)
 		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::LAYER);
+	else if (a == actionRenderingView)
+		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::RENDERING);
 
 	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getView()->getIcon());
 	viewLabel->setText(RenderingManager::getRenderingWidget()->getView()->getTitle());
@@ -614,17 +623,22 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
+		// set the source to preview
+		sourcepreview->setSource(*csi);
+
 		// enable properties and actions on the current valid source
 		sourceDockWidgetContents->setEnabled(true);
 		currentSourceMenu->setEnabled(true);
 		toolButtonZoomCurrent->setEnabled(true);
+		mixingToolBox->setEnabled(true);
+
 
 		// Enable start button if the source is playable
 		startButton->setEnabled( (*csi)->isPlayable() );
 		vcontrolDockWidgetContents->setEnabled( (*csi)->isPlayable() );
 		vcontrolDockWidgetControls->setEnabled( (*csi)->isPlayable() );
 
-		// except for media source, these pannels are disabled
+		// except for media source, these panels are disabled
 		vcontrolDockWidgetOptions->setEnabled(false);
 		videoFrame->setEnabled(false);
 		timingControlFrame->setEnabled(false);
@@ -693,10 +707,14 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		currentSourceMenu->setEnabled(false);
 		toolButtonZoomCurrent->setEnabled(false);
 		vcontrolDockWidgetContents->setEnabled(false);
+		mixingToolBox->setEnabled(false);
 		startButton->setEnabled( false );
 		startButton->setChecked( false );
 
 		sourceDockWidgetContents->setEnabled(false);
+
+		// unset the source to preview
+		sourcepreview->setSource(0);
 	}
 
 	// update gui content from timings
@@ -1580,7 +1598,7 @@ void GLMixer::openSessionFile(QString filename)
     	// apply the views configuration
     	RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
     	// activate the view specified as 'current' in the xml config
-    	switch ( (ViewRenderWidget::viewMode) vconfig.attribute("current").toInt()){
+    	switch (vconfig.attribute("current").toInt()){
     	case (ViewRenderWidget::NONE):
     	case (ViewRenderWidget::MIXING):
     		actionMixingView->trigger();
@@ -1935,7 +1953,7 @@ void GLMixer::on_actionResetToolbars_triggered()
 	restoreDockWidget(sourceDockWidget);
 	restoreDockWidget(vcontrolDockWidget);
 	restoreDockWidget(cursorDockWidget);
-	restoreDockWidget(gammaDockWidget);
+	restoreDockWidget(mixingDockWidget);
 	restoreDockWidget(switcherDockWidget);
 	restoreDockWidget(logDockWidget);
 

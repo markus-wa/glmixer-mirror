@@ -29,6 +29,7 @@
 #include "MixerView.h"
 #include "GeometryView.h"
 #include "LayersView.h"
+#include "RenderingView.h"
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
 #include "CatalogView.h"
@@ -45,7 +46,8 @@ GLuint ViewRenderWidget::border_thin_shadow = 0,
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
 GLuint ViewRenderWidget::border_scale = 0, ViewRenderWidget::border_tooloverlay = 0;
 GLuint ViewRenderWidget::quad_texured = 0, ViewRenderWidget::quad_window[] = {0, 0};
-GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0, ViewRenderWidget::frame_screen_thin = 0;
+GLuint ViewRenderWidget::frame_selection = 0, ViewRenderWidget::frame_screen = 0;
+GLuint ViewRenderWidget::frame_screen_thin = 0, ViewRenderWidget::frame_screen_mask = 0;
 GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::circle_limbo = 0, ViewRenderWidget::layerbg = 0;
 GLuint ViewRenderWidget::mask_textures[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 GLuint ViewRenderWidget::fading = 0;
@@ -138,6 +140,8 @@ ViewRenderWidget::ViewRenderWidget() :
 	Q_CHECK_PTR(_geometryView);
 	_layersView = new LayersView;
 	Q_CHECK_PTR(_layersView);
+	_renderingView = new RenderingView;
+	Q_CHECK_PTR(_renderingView);
 	// sets the current view
 	_currentView = _renderView;
 
@@ -202,6 +206,7 @@ void ViewRenderWidget::initializeGL()
 	quad_window[1] = buildWindowList(255, 255, 255);
 	frame_screen = buildFrameList();
 	frame_screen_thin = frame_screen + 1;
+	frame_screen_mask = frame_screen + 2;
 	border_thin = buildBordersList();
 	border_large = border_thin + 1;
 	border_scale = border_thin + 2;
@@ -317,6 +322,9 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 	case ViewRenderWidget::LAYER:
 		_currentView = (View *) _layersView;
 		break;
+	case ViewRenderWidget::RENDERING:
+		_currentView = (View *) _renderingView;
+		break;
 	case ViewRenderWidget::NONE:
 	default:
 		_currentView = _renderView;
@@ -324,10 +332,12 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 	}
 
 	_currentView->setAction(View::NONE);
+	setMouseCursor(MOUSE_ARROW);
 
 	// update view to match with the changes in modelview and projection matrices (e.g. resized widget)
 	makeCurrent();
 	refresh();
+
 }
 
 void ViewRenderWidget::removeFromSelections(Source *s)
@@ -503,6 +513,7 @@ void ViewRenderWidget::refresh()
 
 	// default resize ; will refresh everything
 	_currentView->resize(width(), height());
+
 }
 
 void ViewRenderWidget::paintGL()
@@ -1427,10 +1438,26 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
  **/
 GLuint ViewRenderWidget::buildFrameList()
 {
-	GLuint base = glGenLists(2);
+	static GLuint texid = 0;
+
+	if (texid == 0) {
+		// generate the texture with optimal performance ;
+		glGenTextures(1, &texid);
+		glBindTexture(GL_TEXTURE_2D, texid);
+		QImage p(":/glmixer/textures/shadow_corner_selected.png");
+		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		GLclampf highpriority = 1.0;
+		glPrioritizeTextures(1, &texid, &highpriority);
+	}
+
+	GLuint base = glGenLists(3);
 	glListBase(base);
 
-	// default thik
+	// default thickness
 	glNewList(base, GL_COMPILE);
 
 	// blended antialiasing
@@ -1494,6 +1521,65 @@ GLuint ViewRenderWidget::buildFrameList()
 	glEnd();
 
 	glEndList();
+
+	// default thickness
+	glNewList(base + 2, GL_COMPILE);
+
+	// blended antialiasing
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+
+	// draw a mask around the window frame
+	glColor4ub(COLOR_BGROUND, 255);
+
+	// add shadow
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+	glBegin(GL_TRIANGLE_STRIP); // begin drawing the frame as triangle strip
+
+		glTexCoord2f(0.09, 0.09);
+		glVertex2f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT); // Top Left
+		glTexCoord2f(-5.0f, 5.0f);
+		glVertex2f(10.0f * SOURCE_UNIT, 10.0f * SOURCE_UNIT);
+		glTexCoord2f(0.09, 0.91f);
+		glVertex2f(1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT); // Top Right
+		glTexCoord2f(5.0f, 5.0f);
+		glVertex2f(10.0f * SOURCE_UNIT, -10.0f * SOURCE_UNIT);
+		glTexCoord2f(0.91f, 0.91f);
+		glVertex2f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT); // Bottom Right
+		glTexCoord2f(5.0f, -5.0f);
+		glVertex2f(-10.0f * SOURCE_UNIT, -10.0f * SOURCE_UNIT);
+		glTexCoord2f(0.91f, 0.09);
+		glVertex2f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT); // Bottom Left
+		glTexCoord2f(-5.0f, -5.0f);
+		glVertex2f(-10.0f * SOURCE_UNIT, 10.0f * SOURCE_UNIT);
+		glTexCoord2f(0.09, 0.09);
+		glVertex2f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT); // Top Left
+		glTexCoord2f(-5.0f, 5.0f);
+		glVertex2f(10.0f * SOURCE_UNIT, 10.0f * SOURCE_UNIT);
+
+	glEnd();
+
+	// back to normal texture mode
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glDisable(GL_TEXTURE_2D);
+
+	// draw a thin border
+	glLineWidth(1.0);
+	glColor4ub(0, 0, 0, 255);
+	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
+		glVertex2f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT); // Bottom Left
+		glVertex2f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT); // Bottom Right
+		glVertex2f(1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT); // Top Right
+		glVertex2f(-1.0f * SOURCE_UNIT, 1.0f * SOURCE_UNIT); // Top Left
+	glEnd();
+
+	glEndList();
+
+
 	return base;
 }
 
