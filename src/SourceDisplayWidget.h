@@ -45,10 +45,12 @@ public:
 
 	GLuint getNewTextureIndex();
 	void useAspectRatio(bool on) { use_aspect_ratio = on; }
+	void useFilters(bool on) { use_filters = on; }
 
 private:
     Source *s;
     bool use_aspect_ratio;
+    bool use_filters;
     GLuint _bgTexture;
 };
 

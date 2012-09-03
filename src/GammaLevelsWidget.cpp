@@ -13,7 +13,7 @@
 
 
 
-GammaLevelsWidget::GammaLevelsWidget(QWidget *parent) : QWidget(parent)
+GammaLevelsWidget::GammaLevelsWidget(QWidget *parent) : QWidget(parent), source(0)
 {
     setupUi(this);
 
@@ -30,8 +30,6 @@ GammaLevelsWidget::GammaLevelsWidget(QWidget *parent) : QWidget(parent)
     plot->setPen(QPen( palette().color(QPalette::Highlight) ));
     plot->setAntialiased(true);
 
-	setEnabled(false);
-	source = 0;
 }
 
 void GammaLevelsWidget::setAntialiasing(bool antialiased)

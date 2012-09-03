@@ -926,6 +926,8 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 		config.setAttribute("current", ViewRenderWidget::GEOMETRY);
 	else if (_currentView == _layersView)
 		config.setAttribute("current", ViewRenderWidget::LAYER);
+	else if (_currentView == _renderingView)
+		config.setAttribute("current", ViewRenderWidget::RENDERING);
 
 	QDomElement mix = _mixingView->getConfiguration(doc);
 	mix.setAttribute("name", "Mixing");

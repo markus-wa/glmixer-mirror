@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/downarrow.png</file>
     <file>icons/align-horizontal-center.png</file>
     <file>icons/align-horizontal-left.png</file>
     <file>icons/align-horizontal-right.png</file>

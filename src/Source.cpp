@@ -316,6 +316,9 @@ void Source::update() {
 	if (pixelated) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	} else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 }
 
@@ -360,12 +363,12 @@ void Source::beginEffectsSection() const {
 }
 
 void Source::endEffectsSection() const {
-
-	if (pixelated) {
-		glActiveTexture(GL_TEXTURE0);
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	}
+//
+//	if (pixelated) {
+//		glActiveTexture(GL_TEXTURE0);
+//    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//	}
 
 	// disable the mask
 	glActiveTexture(GL_TEXTURE1);

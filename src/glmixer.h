@@ -168,10 +168,9 @@ private:
 	bool usesystemdialogs, maybeSave;
 	class QFileDialog *sfd;
 	class VideoFileDialog *mfd;
-	class SourceDisplayWidget *sourcepreview;
 	class OutputRenderWidget *outputpreview;
 	class UserPreferencesDialog *upd;
-	class GammaLevelsWidget *gammaAdjust;
+	class MixingToolboxWidget *mixingToolBox;
 
 	QTimer *refreshTimingTimer;
 	bool waspaused;

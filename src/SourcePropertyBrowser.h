@@ -32,6 +32,9 @@
 #include "SourceSet.h"
 
 class QtProperty;
+class QToolButton;
+class QComboBox;
+class QListWidget;
 
 class SourcePropertyBrowser  : public QWidget {
 
@@ -39,6 +42,9 @@ class SourcePropertyBrowser  : public QWidget {
 
 public:
 	SourcePropertyBrowser(QWidget *parent = 0);
+	void linkToProperty(QToolButton *button, QString propertyName);
+	void linkToProperty(QComboBox *box, QString propertyName);
+	void linkToProperty(QListWidget *list, QString propertyName);
 
 public slots:
 	// Shows the properties in the browser for the given source (iterator in the Manager list)
@@ -56,8 +62,10 @@ public slots:
     // This concerns every properties editable in the browser
     void valueChanged(QtProperty *property, const QColor &value);
     void valueChanged(QtProperty *property, const QPointF &value);
+    void valueChanged(bool value);
     void valueChanged(QtProperty *property, bool value);
     void valueChanged(QtProperty *property, int value);
+    void enumChanged(int value);
     void enumChanged(QtProperty *property, int value);
 	void valueChanged(QtProperty *property, double value);
 	void valueChanged(QtProperty *property, const QString &value);
@@ -88,6 +96,8 @@ private:
 	// utility lists of properties
     QMap<Source::RTTI, QtProperty *> rttiToProperty;
     QMap<QString, QtProperty *> idToProperty;
+    QMap<QObject *, QString> objectToId;
+    QMap<QtProperty *, QObject *> propertyToObject;
     QMap<QString, bool> idToExpanded;
 
     // the link with sources

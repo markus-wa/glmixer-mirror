@@ -62,6 +62,7 @@ set(GLMIXER_SRCS
     video_rec.c
     testbuttonframe.cpp
     testwheelframe.cpp
+    MixingToolboxWidget.cpp
 )
 
 set(GLMIXER_RCS
@@ -78,6 +79,7 @@ set(GLMIXER_UIS
     UserPreferencesDialog.ui
     GammaLevelsDialog.ui
     SharedMemoryDialog.ui
+    MixingToolboxWidget.ui
 )
 
 

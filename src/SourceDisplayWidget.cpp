@@ -34,6 +34,7 @@ SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(paren
 	s(0), _bgTexture(0)
 {
 	use_aspect_ratio = true;
+	use_filters = false;
 }
 
 
@@ -84,6 +85,7 @@ void SourceDisplayWidget::paintGL()
 	    glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
 		glScalef( s->getAspectRatio(), s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
 		glCallList(ViewRenderWidget::quad_texured);
+
 	}
 }
 

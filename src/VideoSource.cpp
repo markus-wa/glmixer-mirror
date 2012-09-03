@@ -28,6 +28,8 @@
 #include "VideoFile.h"
 #include "RenderingManager.h"
 
+#include <QGLFramebufferObject>
+
 Source::RTTI VideoSource::type = Source::VIDEO_SOURCE;
 
 VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
@@ -36,6 +38,9 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
 	if (!is)
 		SourceConstructorException().raise();
 
+	// create an fbo (with internal automatic first texture attachment)
+//	_fbo = new QGLFramebufferObject( QSize( is->getFrameWidth(), is->getFrameHeight() ));
+
 	QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
 	aspectratio = is->getStreamAspectRatio();
 
@@ -43,6 +48,8 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+
 
 	// fills in the first frame
 	const VideoPicture *vp = is->getPictureAtIndex(-1);

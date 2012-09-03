@@ -13,7 +13,7 @@ IF(Subversion_FOUND)
 ENDIF(Subversion_FOUND)
 
 set(GLMIXER_VERSION_MAJOR 1)
-set(GLMIXER_VERSION_MINOR 1)
+set(GLMIXER_VERSION_MINOR 2)
 
 # Expose CMAKE_INCLUDE_PATH and CMAKE_LIBARY_PATH to the GUI so users
 # may set these values without needing to manipulate the environment.

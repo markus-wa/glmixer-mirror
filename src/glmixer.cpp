@@ -53,7 +53,6 @@
 #include "VideoFileDisplayWidget.h"
 #include "SourcePropertyBrowser.h"
 #include "CloneSource.h"
-#include "GammaLevelsWidget.h"
 #include "SessionSwitcherWidget.h"
 #include "CatalogView.h"
 #include "DelayCursor.h"
@@ -63,6 +62,8 @@
 #include "FuzzyCursor.h"
 #include "RenderingEncoder.h"
 #include "SessionSwitcher.h"
+#include "MixingToolboxWidget.h"
+#include "GammaLevelsWidget.h"
 
 #include "glmixer.moc"
 
@@ -80,35 +81,27 @@ public:
 		QVBoxLayout *verticalLayout;
 		QLabel *Question, *Display, *Info;
 		QDialogButtonBox *DecisionButtonBox;
+
 		setObjectName(QString::fromUtf8("CaptureDialog"));
-		resize(300, 179);
 		setWindowTitle(tr( "Frame captured"));
 		verticalLayout = new QVBoxLayout(this);
-		verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+
 		Question = new QLabel(this);
-		Question->setObjectName(QString::fromUtf8("Question"));
-		QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
-		sizePolicy.setHorizontalStretch(0);
-		sizePolicy.setVerticalStretch(0);
-		sizePolicy.setHeightForWidth(Question->sizePolicy().hasHeightForWidth());
-		Question->setSizePolicy(sizePolicy);
 		Question->setText(caption);
 		verticalLayout->addWidget(Question);
 
 		Display = new QLabel(this);
-		Display->setObjectName(QString::fromUtf8("Display"));
 		Display->setPixmap(QPixmap::fromImage(img).scaledToWidth(300));
 		verticalLayout->addWidget(Display);
 
 		Info = new QLabel(this);
-		Info->setText(tr("%1 x %2 px").arg(img.width()).arg(img.height()) );
+		Info->setText(tr("Original size: %1 x %2 px").arg(img.width()).arg(img.height()) );
 		verticalLayout->addWidget(Info);
 
 		DecisionButtonBox = new QDialogButtonBox(this);
-		DecisionButtonBox->setObjectName(QString::fromUtf8("DecisionButtonBox"));
 		DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-
 		verticalLayout->addWidget(DecisionButtonBox);
+
 		QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
 		QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
 	}
@@ -250,11 +243,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
     QObject::connect(propertyBrowser, SIGNAL(changed(Source*)), this, SLOT(sourceChanged(Source*) ) );
 
-	// Setup the gamma levels toolbox
-	gammaAdjust = new GammaLevelsWidget(this);
-    Q_CHECK_PTR(gammaAdjust);
-	gammaDockWidgetContentsLayout->addWidget(gammaAdjust);
-	QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), gammaAdjust, SLOT(connectSource(SourceSet::iterator) ) );
+    // setup the mixing toolbox
+    mixingToolBox = new MixingToolboxWidget(this);
+    mixingDockWidgetContentLayout->addWidget(mixingToolBox);
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), mixingToolBox, SLOT(connectSource(SourceSet::iterator) ) );
+
 
 	// Setup the session switcher toolbox
 	SessionSwitcherWidget *switcherSession = new SessionSwitcherWidget(this, &settings);
@@ -289,11 +282,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     // Create output preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
 	previewDockWidgetContentsLayout->insertWidget(0, outputpreview);
-
-    // Create source preview widget
-    sourcepreview = new SourceDisplayWidget(mixingDockWidgetContent);
-    mixingDockWidgetContentSplitter->insertWidget(0, sourcepreview);
-    sourcepreview->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     // Default state without source selected
     vcontrolDockWidgetContents->setEnabled(false);
@@ -397,7 +385,7 @@ GLMixer::~GLMixer()
     delete sfd;
     delete upd;
     delete refreshTimingTimer;
-    delete gammaAdjust;
+    delete mixingToolBox;
 }
 
 
@@ -672,9 +660,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
-		// set the source to preview
-		sourcepreview->setSource(*csi);
-
 		// enable properties and actions on the current valid source
 		sourceDockWidgetContents->setEnabled(true);
 		currentSourceMenu->setEnabled(true);
@@ -762,8 +747,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 		sourceDockWidgetContents->setEnabled(false);
 
-		// unset the source to preview
-		sourcepreview->setSource(0);
 	}
 
 	// update gui content from timings
@@ -1631,6 +1614,9 @@ void GLMixer::openSessionFile(QString filename)
     	case (ViewRenderWidget::LAYER):
     		actionLayersView->trigger();
     		break;
+    	case (ViewRenderWidget::RENDERING):
+    		actionRenderingView->trigger();
+    		break;
     	}
     	// show the catalog as specified in xlm config
     	QDomElement cat = vconfig.firstChildElement("Catalog");
@@ -2089,7 +2075,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	bool antialiasing = true;
 	stream >> antialiasing;
 	RenderingManager::getRenderingWidget()->setAntiAliasing(antialiasing);
-	gammaAdjust->setAntialiasing(antialiasing);
+	mixingToolBox->setAntialiasing(antialiasing);
 
 	// k. mouse buttons and modifiers
 	QMap<int, int> mousemap;

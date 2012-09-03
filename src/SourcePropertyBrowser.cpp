@@ -1036,6 +1036,12 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, double value){
 	}
 }
 
+void SourcePropertyBrowser::valueChanged(bool value)
+{
+	if ( objectToId.contains(sender()) )
+		boolManager->setValue(idToProperty[objectToId[sender()]], value);
+}
+
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 
 	if (!canChange())
@@ -1079,6 +1085,11 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 		idToProperty["Key Color"]->setEnabled(value);
 		idToProperty["Key Tolerance"]->setEnabled(value);
 	}
+
+	// Act on the object associated (if exists)
+	if (QToolButton *button = qobject_cast<QToolButton *>(propertyToObject[property]))
+		 button->setChecked(value);
+
 }
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
@@ -1128,6 +1139,12 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 			as->setPeriodicity( (unsigned long) ( 1000000.0 / double(value) ) );
 		}
 	}
+}
+
+void SourcePropertyBrowser::enumChanged(int value)
+{
+	if ( objectToId.contains(sender()) )
+		enumManager->setValue(idToProperty[objectToId[sender()]], value);
 }
 
 void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
@@ -1181,6 +1198,10 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 		currentItem->setInvertMode( (Source::invertModeType) value );
 
 	}
+
+	// Act on the object associated (if exists)
+	if (QComboBox *box = qobject_cast<QComboBox *>(propertyToObject[property]))
+		 box->setCurrentIndex(value);
 }
 
 
@@ -1308,5 +1329,30 @@ QString getSizeString(float num)
         num /= 1024.0;
     }
     return QString().setNum(num,'f',2)+" "+unit;
+}
+
+
+void SourcePropertyBrowser::linkToProperty(QToolButton *button, QString propertyName)
+{
+	propertyToObject[idToProperty[propertyName]] = (QObject *) button;
+	objectToId[(QObject *) button] = propertyName;
+	QObject::connect(button, SIGNAL(toggled(bool)), SLOT(valueChanged(bool)));
+
+}
+
+void SourcePropertyBrowser::linkToProperty(QComboBox *box, QString propertyName)
+{
+	propertyToObject[idToProperty[propertyName]] = (QObject *) box;
+	objectToId[(QObject *) box] = propertyName;
+	QObject::connect(box, SIGNAL(currentIndexChanged(int)), SLOT(enumChanged(int)));
+
+}
+
+void SourcePropertyBrowser::linkToProperty(QListWidget *list, QString propertyName)
+{
+	propertyToObject[idToProperty[propertyName]] = (QObject *) list;
+	objectToId[(QObject *) list] = propertyName;
+	QObject::connect(list, SIGNAL(currentRowChanged(int)), SLOT(enumChanged(int)));
+
 }
 
