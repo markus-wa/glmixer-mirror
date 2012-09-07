@@ -329,22 +329,11 @@ void Source::beginEffectsSection() const {
 	//             gamma levels : minInput, maxInput, minOutput, maxOutput:
 	ViewRenderWidget::program->setUniformValue("levels", gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut);
 
-	if (ViewRenderWidget::disableFiltering)
-		return;
-
-	if (!filtered) {
-		ViewRenderWidget::program->setUniformValue("filter", (GLint) -1);
-		return;
-	}
-
-	ViewRenderWidget::program->setUniformValue("step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
-
 	ViewRenderWidget::program->setUniformValue("contrast", contrast);
 	ViewRenderWidget::program->setUniformValue("brightness", brightness);
 	ViewRenderWidget::program->setUniformValue("saturation", saturation);
 	ViewRenderWidget::program->setUniformValue("hueshift", hueShift);
 
-	ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
 	ViewRenderWidget::program->setUniformValue("invertMode", (GLint) invertMode);
 	ViewRenderWidget::program->setUniformValue("nbColors", (GLint) numberOfColors);
 
@@ -359,6 +348,15 @@ void Source::beginEffectsSection() const {
 	} else
 		ViewRenderWidget::program->setUniformValue("chromakey", 0.f,0.f, 0.f );
 
+	if (ViewRenderWidget::disableFiltering)
+		return;
+
+	if (!filtered) {
+		ViewRenderWidget::program->setUniformValue("filter", (GLint) -1);
+	} else {
+		ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
+		ViewRenderWidget::program->setUniformValue("step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
+	}
 
 }
 

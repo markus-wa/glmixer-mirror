@@ -306,53 +306,59 @@ void main(void)
     float alpha = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a  * baseColor.a;
     vec3 transformedRGB;
     
-    if (filter < 0) {
-    	transformedRGB = LevelsControl(texture2D(sourceTexture, texc).rgb, levels.x, gamma, levels.y, levels.z, levels.w);
-	    gl_FragColor = vec4(transformedRGB  * baseColor.rgb, alpha );
-	    return;
-    }
-    
-    transformedRGB = mix(vec3(0.62), apply_filter(), contrast);
+    if (filter < 0) 
+        transformedRGB = mix(vec3(0.62), texture2D(sourceTexture, texc).rgb, contrast);
+    else 
+    	transformedRGB = mix(vec3(0.62), apply_filter(), contrast);
+    	
     transformedRGB += brightness;
     transformedRGB = LevelsControl(transformedRGB, levels.x, gamma, levels.y, levels.z, levels.w);
 
     if (invertMode==1)
        transformedRGB = vec3(1.0) - transformedRGB;
 
-   vec3 transformedHSL = RGBToHSL( transformedRGB );
+	if ( abs(saturation -1.0) > 0.01 || threshold > .0 || hueshift > 0.0 || nbColors > 0  || chromakey.z > 0.0 ) {
 
-    // Operations on HSL ; if threshold applied, others are not useful
-    if(threshold > 0.0) {
-        // level threshold
-        if (transformedHSL.z < threshold)
-        	transformedHSL = vec3(0.0, 0.0, 1.0);
-        else
-        	transformedHSL = vec3(0.0, 0.0, 0.0);
-    } else {
-        // perform hue shift
-        transformedHSL.x = transformedHSL.x + hueshift; 
+	   vec3 transformedHSL = RGBToHSL( transformedRGB );
+	
+	    // Operations on HSL ; if threshold applied, others are not useful
+	    if(threshold > 0.0) {
+	        // level threshold
+	        if (transformedHSL.z < threshold)
+	        	transformedHSL = vec3(0.0, 0.0, 1.0);
+	        else
+	        	transformedHSL = vec3(0.0, 0.0, 0.0);
+	    } else {
+	        // perform hue shift
+	        transformedHSL.x = transformedHSL.x + hueshift; 
+	
+	        // Saturation
+	        transformedHSL.y *= saturation;
+	
+	        // perform reduction of colors
+	        if (nbColors > 0) {
+	            transformedHSL *= vec3(nbColors);
+	            transformedHSL = floor(transformedHSL);
+	            transformedHSL /= vec3(nbColors);
+	        }
+	
+	        if (invertMode == 2)
+	            transformedHSL.z = 1.0 - transformedHSL.z;
+	
+	        if ( chromakey.z > 0.0 && all( lessThan( abs(transformedHSL - chromakey), vec3(chromadelta))) )
+	           // alpha *= 0.0;
+	           discard;
+	
+	    }
+	
+	    // after operations on HSL, convert back to RGB
+	    transformedRGB = HSLToRGB(transformedHSL);
 
-        // Saturation
-        transformedHSL.y *= saturation;
+    } 
+    
+    // apply base color
+    transformedRGB *= baseColor.rgb;
 
-        // perform reduction of colors
-        if (nbColors > 0) {
-            transformedHSL *= vec3(nbColors);
-            transformedHSL = floor(transformedHSL);
-            transformedHSL /= vec3(nbColors);
-        }
-
-        if (invertMode == 2)
-            transformedHSL.z = 1.0 - transformedHSL.z;
-
-        if ( chromakey.z > 0.0 && all( lessThan( abs(transformedHSL - chromakey), vec3(chromadelta))) )
-           // alpha *= 0.0;
-           discard;
-
-    }
-
-    // after operations on HSL, convert back to RGB
-    transformedRGB = HSLToRGB(transformedHSL) * baseColor.rgb;
 
     // bring back the original alpha for final fragment color
     gl_FragColor = vec4(transformedRGB, alpha );

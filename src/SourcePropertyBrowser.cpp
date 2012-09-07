@@ -346,53 +346,74 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
 	intManager->setSingleStep(property, 10);
+	root->addSubProperty(property);
 	// Contrast
 	property = intManager->addProperty( QLatin1String("Contrast") );
 	property->setToolTip("Contrast (from uniform color to high deviation)");
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
 	intManager->setSingleStep(property, 10);
+	root->addSubProperty(property);
 	// Saturation
 	property = intManager->addProperty( QLatin1String("Saturation") );
 	property->setToolTip("Saturation (from greyscale to enhanced colors)");
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
 	intManager->setSingleStep(property, 10);
+	root->addSubProperty(property);
+	// hue
+	property = intManager->addProperty( QLatin1String("Hue shift") );
+	property->setToolTip("Hue shift (circular shift of color Hue)");
+	idToProperty[property->propertyName()] = property;
+	intManager->setRange(property, 0, 360);
+	intManager->setSingleStep(property, 36);
+	root->addSubProperty(property);
+	// threshold
+	property = intManager->addProperty( QLatin1String("Threshold") );
+	property->setToolTip("Luminance threshold (convert to black & white, keeping colors above the threshold, 0 to keep original)");
+	idToProperty[property->propertyName()] = property;
+	intManager->setRange(property, 0, 100);
+	intManager->setSingleStep(property, 10);
+	root->addSubProperty(property);
+	// nb colors
+	property = intManager->addProperty( QLatin1String("Posterize") );
+	property->setToolTip("Posterize (reduce number of colors, 0 to keep original)");
+	idToProperty[property->propertyName()] = property;
+	intManager->setRange(property, 0, 256);
+	intManager->setSingleStep(property, 1);
+	root->addSubProperty(property);
+	// enum list of inversion types
+	property = enumManager->addProperty("Color inversion");
+	idToProperty[property->propertyName()] = property;
+	property->setToolTip("Invert colors or luminance");
+	enumNames.clear();
+	enumNames << "None" << "RGB invert" << "Luminance invert";
+	enumManager->setEnumNames(property, enumNames);
+	root->addSubProperty(property);
+
+	// Chroma key on/off
+	QtProperty *chroma = boolManager->addProperty("Chroma key");
+	chroma->setToolTip("Enables chroma-keying (removes a key color).");
+	idToProperty[chroma->propertyName()] = chroma;
+	root->addSubProperty(property);
+	// chroma key Color
+	property = colorManager->addProperty("Key Color");
+	idToProperty[property->propertyName()] = property;
+	property->setToolTip("Color used for the chroma-keying.");
+	chroma->addSubProperty(property);
+	// threshold
+	property = intManager->addProperty( QLatin1String("Key Tolerance") );
+	property->setToolTip("Percentage of tolerance around the key color");
+	idToProperty[property->propertyName()] = property;
+	intManager->setRange(property, 0, 100);
+	intManager->setSingleStep(property, 10);
+	chroma->addSubProperty(property);
 
 	// Filtered on/off
 	filter = boolManager->addProperty("Filtered");
 	filter->setToolTip("Use GLSL filters");
 	idToProperty[filter->propertyName()] = filter;
 	{
-		// hue
-		property = intManager->addProperty( QLatin1String("Hue shift") );
-		property->setToolTip("Hue shift (circular shift of color Hue)");
-		idToProperty[property->propertyName()] = property;
-		intManager->setRange(property, 0, 360);
-		intManager->setSingleStep(property, 36);
-		filter->addSubProperty(property);
-		// threshold
-		property = intManager->addProperty( QLatin1String("Threshold") );
-		property->setToolTip("Luminance threshold (convert to black & white, keeping colors above the threshold, 0 to keep original)");
-		idToProperty[property->propertyName()] = property;
-		intManager->setRange(property, 0, 100);
-		intManager->setSingleStep(property, 10);
-		filter->addSubProperty(property);
-		// nb colors
-		property = intManager->addProperty( QLatin1String("Posterize") );
-		property->setToolTip("Posterize (reduce number of colors, 0 to keep original)");
-		idToProperty[property->propertyName()] = property;
-		intManager->setRange(property, 0, 256);
-		intManager->setSingleStep(property, 1);
-		filter->addSubProperty(property);
-		// enum list of inversion types
-		property = enumManager->addProperty("Color inversion");
-		idToProperty[property->propertyName()] = property;
-		property->setToolTip("Invert colors or luminance");
-		enumNames.clear();
-		enumNames << "None" << "RGB invert" << "Luminance invert";
-		enumManager->setEnumNames(property, enumNames);
-		filter->addSubProperty(property);
 		// enum list of filters
 		property = enumManager->addProperty("Filter");
 		idToProperty[property->propertyName()] = property;
@@ -404,23 +425,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 				  << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7";
 		enumManager->setEnumNames(property, enumNames);
 		filter->addSubProperty(property);
-		// Chroma key on/off
-		QtProperty *chroma = boolManager->addProperty("Chroma key");
-		chroma->setToolTip("Enables chroma-keying (removes a key color).");
-		idToProperty[chroma->propertyName()] = chroma;
-		filter->addSubProperty(chroma);
-		// chroma key Color
-		property = colorManager->addProperty("Key Color");
-		idToProperty[property->propertyName()] = property;
-		property->setToolTip("Color used for the chroma-keying.");
-		chroma->addSubProperty(property);
-		// threshold
-		property = intManager->addProperty( QLatin1String("Key Tolerance") );
-		property->setToolTip("Percentage of tolerance around the key color");
-		idToProperty[property->propertyName()] = property;
-		intManager->setRange(property, 0, 100);
-		intManager->setSingleStep(property, 10);
-		chroma->addSubProperty(property);
 	}
 
 	// Frames size
@@ -601,41 +605,13 @@ void SourcePropertyBrowser::setFilterPropertyEnabled(bool on) {
 
 	// remove all properties linked to filtering
 	QList<QtProperty *> pl = root->subProperties();
-	if (pl.contains(idToProperty["Saturation"])) {
-		root->removeSubProperty(idToProperty["Saturation"]);
-		root->removeSubProperty(idToProperty["Brightness"]);
-		root->removeSubProperty(idToProperty["Contrast"]);
-	}
-	if (pl.contains(filter)) {
+
+	if (pl.contains(filter) and !on) {
 		root->removeSubProperty(filter);
 	}
-	pl = filter->subProperties();
-	if (pl.contains(idToProperty["Saturation"])) {
-		filter->removeSubProperty(idToProperty["Saturation"]);
-		filter->removeSubProperty(idToProperty["Brightness"]);
-		filter->removeSubProperty(idToProperty["Contrast"]);
-	}
 
-
-	// depending on the requested filtering enable, add the sub properties
-	if (on) {
-		root->insertSubProperty(filter, idToProperty["Pixelated"] );
-		filter->insertSubProperty(idToProperty["Saturation"], 0 );
-		filter->insertSubProperty(idToProperty["Brightness"], idToProperty["Saturation"] );
-		filter->insertSubProperty(idToProperty["Contrast"], idToProperty["Brightness"] );
-	} else {
-		root->insertSubProperty(idToProperty["Saturation"], idToProperty["Pixelated"] );
-		root->insertSubProperty(idToProperty["Brightness"], idToProperty["Saturation"] );
-		root->insertSubProperty(idToProperty["Contrast"], idToProperty["Brightness"] );
-	}
-
-
-	// Re- apply the filtering properties
-	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-
-		(*its)->setBrightness( (*its)->getBrightness() );
-		(*its)->setSaturation( (*its)->getSaturation() );
-		(*its)->setContrast( (*its)->getContrast() );
+	if (!pl.contains(filter) and on) {
+		root->addSubProperty(filter);
 	}
 
 }
@@ -706,54 +682,55 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		if (ViewRenderWidget::filteringEnabled()) {
 
 			boolManager->setValue(idToProperty["Filtered"], s->isFiltered());
-
-			intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
-			intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
-			intManager->setValue(idToProperty["Contrast"], s->getContrast() );
-			intManager->setValue(idToProperty["Hue shift"], s->getHueShift() );
-			intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
-			intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
-			enumManager->setValue(idToProperty["Color inversion"], (int) s->getInvertMode());
+//
+//			intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
+//			intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
+//			intManager->setValue(idToProperty["Contrast"], s->getContrast() );
+//			intManager->setValue(idToProperty["Hue shift"], s->getHueShift() );
+//			intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
+//			intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
+//			enumManager->setValue(idToProperty["Color inversion"], (int) s->getInvertMode());
 			enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
-			boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
-			colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
-			intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
-
-			// enable / disable properties depending on their dependencies
-			idToProperty["Threshold"]->setEnabled(s->isFiltered());
-			idToProperty["Color inversion"]->setEnabled(s->isFiltered());
+//			boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
+//			colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
+//			intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
+//
+//			// enable / disable properties depending on their dependencies
+//			idToProperty["Threshold"]->setEnabled(s->isFiltered());
+//			idToProperty["Color inversion"]->setEnabled(s->isFiltered());
 			idToProperty["Filter"]->setEnabled(s->isFiltered());
-			idToProperty["Chroma key"]->setEnabled(s->isFiltered());
-			idToProperty["Brightness"]->setEnabled(s->isFiltered());
-			idToProperty["Contrast"]->setEnabled(s->isFiltered());
-
-			if (s->isFiltered()) {
-				idToProperty["Key Color"]->setEnabled(s->getChromaKey());
-				idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
-				idToProperty["Saturation"]->setEnabled(s->getLuminanceThreshold() < 1);
-				idToProperty["Hue shift"]->setEnabled(s->getLuminanceThreshold() < 1);
-				idToProperty["Posterize"]->setEnabled(s->getLuminanceThreshold() < 1);
-			} else {
-				idToProperty["Posterize"]->setEnabled(false);
-				idToProperty["Saturation"]->setEnabled(false);
-				idToProperty["Hue shift"]->setEnabled(false);
-				idToProperty["Key Color"]->setEnabled(false);
-				idToProperty["Key Tolerance"]->setEnabled(false);
-			}
-		} else {
-			if (s->rtti() == Source::VIDEO_SOURCE) {
-				idToProperty["Saturation"]->setEnabled( true );
-				idToProperty["Brightness"]->setEnabled( true );
-				idToProperty["Contrast"]->setEnabled( true );
-				intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
-				intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
-				intManager->setValue(idToProperty["Contrast"], s->getContrast() );
-			} else {
-				idToProperty["Saturation"]->setEnabled( false );
-				idToProperty["Brightness"]->setEnabled( false );
-				idToProperty["Contrast"]->setEnabled( false );
-			}
+//			idToProperty["Chroma key"]->setEnabled(s->isFiltered());
+//			idToProperty["Brightness"]->setEnabled(s->isFiltered());
+//			idToProperty["Contrast"]->setEnabled(s->isFiltered());
+//
+//			if (s->isFiltered()) {
+//				idToProperty["Key Color"]->setEnabled(s->getChromaKey());
+//				idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
+//				idToProperty["Saturation"]->setEnabled(s->getLuminanceThreshold() < 1);
+//				idToProperty["Hue shift"]->setEnabled(s->getLuminanceThreshold() < 1);
+//				idToProperty["Posterize"]->setEnabled(s->getLuminanceThreshold() < 1);
+//			} else {
+//				idToProperty["Posterize"]->setEnabled(false);
+//				idToProperty["Saturation"]->setEnabled(false);
+//				idToProperty["Hue shift"]->setEnabled(false);
+//				idToProperty["Key Color"]->setEnabled(false);
+//				idToProperty["Key Tolerance"]->setEnabled(false);
+//			}
 		}
+//		else {
+//			if (s->rtti() == Source::VIDEO_SOURCE) {
+//				idToProperty["Saturation"]->setEnabled( true );
+//				idToProperty["Brightness"]->setEnabled( true );
+//				idToProperty["Contrast"]->setEnabled( true );
+//				intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
+//				intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
+//				intManager->setValue(idToProperty["Contrast"], s->getContrast() );
+//			} else {
+//				idToProperty["Saturation"]->setEnabled( false );
+//				idToProperty["Brightness"]->setEnabled( false );
+//				idToProperty["Contrast"]->setEnabled( false );
+//			}
+//		}
 
 		if (s->rtti() == Source::VIDEO_SOURCE) {
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Media file") );
