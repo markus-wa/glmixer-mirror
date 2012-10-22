@@ -323,9 +323,16 @@ void RenderingEncoder::addFrame(){
 	if (!started || paused || recorder == NULL)
 		return;
 
-	// read the pixels and store into the temporary buffer queue
+#ifdef USE_GLREADPIXELS
+	// read the pixels from the current frame buffer and store into the temporary buffer queue
 	// (get the pointer to the current writing buffer from the queue of the thread to know where to write)
 	glReadPixels((GLint)0, (GLint)0, (GLint) recorder->width, (GLint) recorder->height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, encoder->pictq_top());
+
+#else
+	// read the pixels from the texture
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, encoder->pictq_top());
+#endif
+
 	// inform the thread that a picture was pushed into the queue
 	encoder->pictq_push();
 

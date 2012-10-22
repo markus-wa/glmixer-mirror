@@ -125,7 +125,6 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	default:
 	case FORMAT_AVI_RAW:
 		snprintf(f_name, 9, "avi");
-//		snprintf(f_name, 9, "rawvideo");
 		f_codec_id = CODEC_ID_RAWVIDEO;
 		f_pix_fmt =  PIX_FMT_BGRA;
 		rec->pt2RecordingFunction = &rec_deliver_vframe;
@@ -174,6 +173,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	rec->enc->v_ctx->height = height;
 	rec->enc->v_ctx->time_base.den = fps;
 
+	rec->enc->v_ctx->bit_rate = width*height*4*fps;  // useless ?
 	rec->enc->v_ctx->time_base.num = 1;
 	rec->enc->v_ctx->pix_fmt = f_pix_fmt;
 	rec->enc->v_ctx->coder_type = 1;
@@ -204,6 +204,9 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		video_rec_free(rec);
 		return NULL;
 	}
+
+	snprintf(errormessage, 256, "bitrate is %d.", rec->enc->v_ctx->bit_rate);
+	return NULL;
 
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
 	if(url_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {

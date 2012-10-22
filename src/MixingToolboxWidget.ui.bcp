@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>246</width>
-    <height>348</height>
+    <width>250</width>
+    <height>388</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -69,23 +69,23 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>246</width>
-        <height>244</height>
+        <width>202</width>
+        <height>277</height>
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="tabSpacing">
-       <number>-1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="Blending">
        <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>236</width>
-         <height>126</height>
+         <width>240</width>
+         <height>136</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -316,10 +316,28 @@ QPushButton:pressed {
         <item>
          <widget class="QListWidget" name="blendingMaskListWidget">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>179</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="sizeIncrement">
+           <size>
+            <width>0</width>
+            <height>60</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>0</width>
+            <height>60</height>
+           </size>
           </property>
           <property name="toolTip">
            <string>Layer mask 
@@ -493,8 +511,8 @@ QPushButton:pressed {
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>236</width>
-         <height>126</height>
+         <width>240</width>
+         <height>182</height>
         </rect>
        </property>
        <attribute name="label">
@@ -514,593 +532,468 @@ QPushButton:pressed {
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>236</width>
-         <height>126</height>
+         <width>240</width>
+         <height>180</height>
         </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
        <attribute name="label">
         <string>Color</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QListWidget" name="listWidget">
+       <attribute name="toolTip">
+        <string>Color filtering and alteration</string>
+       </attribute>
+       <layout class="QFormLayout" name="formLayout">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <property name="labelAlignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="horizontalSpacing">
+         <number>-1</number>
+        </property>
+        <property name="verticalSpacing">
+         <number>3</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>12</number>
+        </property>
+        <property name="rightMargin">
+         <number>6</number>
+        </property>
+        <property name="bottomMargin">
+         <number>6</number>
+        </property>
+        <item row="2" column="0">
+         <widget class="QSpinBox" name="colorSaturationBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="toolTip">
-           <string>Adjust the color filters</string>
+           <string>Saturation 
+(from greyscale to enhaced color)</string>
           </property>
           <property name="statusTip">
-           <string>Adjust the color filters</string>
+           <string>Saturation \n(from greyscale to enhaced color)</string>
           </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
+          <property name="styleSheet">
+           <string notr="true">Background-color: transparent;</string>
           </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="editTriggers">
-           <set>QAbstractItemView::NoEditTriggers</set>
-          </property>
-          <property name="showDropIndicator" stdset="0">
+          <property name="frame">
            <bool>false</bool>
           </property>
-          <property name="dragDropMode">
-           <enum>QAbstractItemView::DragDrop</enum>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
           </property>
-          <property name="iconSize">
-           <size>
-            <width>60</width>
-            <height>60</height>
-           </size>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::NoButtons</enum>
           </property>
-          <property name="verticalScrollMode">
-           <enum>QAbstractItemView::ScrollPerPixel</enum>
+          <property name="correctionMode">
+           <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
           </property>
-          <property name="horizontalScrollMode">
-           <enum>QAbstractItemView::ScrollPerPixel</enum>
+          <property name="suffix">
+           <string notr="true">%</string>
           </property>
-          <property name="flow">
-           <enum>QListView::LeftToRight</enum>
+          <property name="prefix">
+           <string>Saturation </string>
           </property>
-          <property name="isWrapping" stdset="0">
-           <bool>true</bool>
+          <property name="minimum">
+           <number>-100</number>
           </property>
-          <property name="resizeMode">
-           <enum>QListView::Adjust</enum>
+          <property name="maximum">
+           <number>100</number>
           </property>
-          <property name="viewMode">
-           <enum>QListView::IconMode</enum>
-          </property>
-          <property name="uniformItemSizes">
-           <bool>true</bool>
-          </property>
-          <property name="currentRow">
-           <number>0</number>
-          </property>
-          <item>
-           <property name="text">
-            <string>Saturation</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../images.qrc">
-             <normaloff>:/glmixer/images/filter_saturation.png</normaloff>:/glmixer/images/filter_saturation.png</iconset>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Brightness</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../images.qrc">
-             <normaloff>:/glmixer/images/filter_brightness.png</normaloff>:/glmixer/images/filter_brightness.png</iconset>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Contrast</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../images.qrc">
-             <normaloff>:/glmixer/images/filter_contrast.png</normaloff>:/glmixer/images/filter_contrast.png</iconset>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Hue</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../images.qrc">
-             <normaloff>:/glmixer/images/filter_hue.png</normaloff>:/glmixer/images/filter_hue.png</iconset>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Posterize</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../images.qrc">
-             <normaloff>:/glmixer/images/filter_posterize.png</normaloff>:/glmixer/images/filter_posterize.png</iconset>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Threshold</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../images.qrc">
-             <normaloff>:/glmixer/images/filter_threshold.png</normaloff>:/glmixer/images/filter_threshold.png</iconset>
-           </property>
-          </item>
          </widget>
         </item>
-        <item>
-         <widget class="QStackedWidget" name="stackedWidget">
-          <property name="currentIndex">
+        <item row="2" column="1">
+         <widget class="QSlider" name="colorSaturationSlider">
+          <property name="toolTip">
+           <string>Saturation 
+(from greyscale to enhaced color)</string>
+          </property>
+          <property name="statusTip">
+           <string>Saturation \n(from greyscale to enhaced color)</string>
+          </property>
+          <property name="minimum">
+           <number>-100</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="singleStep">
+           <number>1</number>
+          </property>
+          <property name="pageStep">
+           <number>5</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QSpinBox" name="colorBrightnessBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Brightness (from black to white)</string>
+          </property>
+          <property name="statusTip">
+           <string>Brightness (from black to white)</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">Background-color: transparent;</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="correctionMode">
+           <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+          </property>
+          <property name="suffix">
+           <string notr="true">%</string>
+          </property>
+          <property name="prefix">
+           <string>Brightness </string>
+          </property>
+          <property name="minimum">
+           <number>-100</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QSlider" name="colorBrightnessSlider">
+          <property name="toolTip">
+           <string>Brightness (from black to white)</string>
+          </property>
+          <property name="statusTip">
+           <string>Brightness (from black to white)</string>
+          </property>
+          <property name="minimum">
+           <number>-100</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="singleStep">
+           <number>1</number>
+          </property>
+          <property name="pageStep">
+           <number>5</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QSpinBox" name="colorContrastBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Contrast (from uniform color to high variability)</string>
+          </property>
+          <property name="statusTip">
+           <string>Contrast (from uniform color to high variability)</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">Background-color: transparent;</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="correctionMode">
+           <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+          </property>
+          <property name="suffix">
+           <string notr="true">%</string>
+          </property>
+          <property name="prefix">
+           <string>Contrast </string>
+          </property>
+          <property name="minimum">
+           <number>-100</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QSlider" name="colorContrastSlider">
+          <property name="toolTip">
+           <string>Contrast (from uniform color to high variability)</string>
+          </property>
+          <property name="statusTip">
+           <string>Contrast (from uniform color to high variability)</string>
+          </property>
+          <property name="minimum">
+           <number>-100</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="singleStep">
+           <number>1</number>
+          </property>
+          <property name="pageStep">
+           <number>5</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QSpinBox" name="colorHueBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Hue shift 
+(circular variation of tint in the color wheel)</string>
+          </property>
+          <property name="statusTip">
+           <string>Hue shift \n(circular variation of tint in the color wheel)</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">Background-color: transparent;</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="correctionMode">
+           <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+          </property>
+          <property name="suffix">
+           <string notr="true">°</string>
+          </property>
+          <property name="prefix">
+           <string>Hue </string>
+          </property>
+          <property name="minimum">
            <number>0</number>
           </property>
-          <widget class="QWidget" name="pageSaturation">
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QToolButton" name="saturationReset">
-              <property name="toolTip">
-               <string>Reset saturation</string>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QToolButton {
-border:0px
-}</string>
-              </property>
-              <property name="text">
-               <string>Reset</string>
-              </property>
-              <property name="icon">
-               <iconset resource="../icons.qrc">
-                <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>16</width>
-                <height>16</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="saturationSlider">
-              <property name="toolTip">
-               <string>Adjust saturation</string>
-              </property>
-              <property name="minimum">
-               <number>-100</number>
-              </property>
-              <property name="maximum">
-               <number>100</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="saturationBox">
-              <property name="styleSheet">
-               <string notr="true">QSpinBox {
-Background-color: transparent;
-}</string>
-              </property>
-              <property name="frame">
-               <bool>false</bool>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::NoButtons</enum>
-              </property>
-              <property name="correctionMode">
-               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
-              </property>
-              <property name="suffix">
-               <string>%</string>
-              </property>
-              <property name="minimum">
-               <number>-100</number>
-              </property>
-              <property name="maximum">
-               <number>100</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="pageBrightness">
-           <layout class="QHBoxLayout" name="horizontalLayoutBrightness">
-            <item>
-             <widget class="QToolButton" name="brightnessReset">
-              <property name="toolTip">
-               <string>Reset brightness</string>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QToolButton {
-border:0px
-}</string>
-              </property>
-              <property name="text">
-               <string>Reset</string>
-              </property>
-              <property name="icon">
-               <iconset resource="../icons.qrc">
-                <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>16</width>
-                <height>16</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="brightnessSlider">
-              <property name="toolTip">
-               <string>Adjust brightness</string>
-              </property>
-              <property name="minimum">
-               <number>-100</number>
-              </property>
-              <property name="maximum">
-               <number>100</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="brightnessBox">
-              <property name="styleSheet">
-               <string notr="true">QSpinBox {
-Background-color: transparent;
-}</string>
-              </property>
-              <property name="frame">
-               <bool>false</bool>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::NoButtons</enum>
-              </property>
-              <property name="correctionMode">
-               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
-              </property>
-              <property name="suffix">
-               <string>%</string>
-              </property>
-              <property name="minimum">
-               <number>-100</number>
-              </property>
-              <property name="maximum">
-               <number>100</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="pageContrast">
-           <layout class="QHBoxLayout" name="horizontalLayoutcontrast">
-            <item>
-             <widget class="QToolButton" name="contrastReset">
-              <property name="toolTip">
-               <string>Reset contrast</string>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QToolButton {
-border:0px
-}</string>
-              </property>
-              <property name="text">
-               <string>Reset</string>
-              </property>
-              <property name="icon">
-               <iconset resource="../icons.qrc">
-                <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>16</width>
-                <height>16</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="contrastSlider">
-              <property name="toolTip">
-               <string>Adjust contrast</string>
-              </property>
-              <property name="minimum">
-               <number>-100</number>
-              </property>
-              <property name="maximum">
-               <number>100</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="contrastBox">
-              <property name="styleSheet">
-               <string notr="true">QSpinBox {
-Background-color: transparent;
-}</string>
-              </property>
-              <property name="frame">
-               <bool>false</bool>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::NoButtons</enum>
-              </property>
-              <property name="correctionMode">
-               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
-              </property>
-              <property name="suffix">
-               <string>%</string>
-              </property>
-              <property name="minimum">
-               <number>-100</number>
-              </property>
-              <property name="maximum">
-               <number>100</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="pageHue">
-           <layout class="QHBoxLayout" name="horizontalLayoutHue">
-            <item>
-             <widget class="QToolButton" name="hueReset">
-              <property name="toolTip">
-               <string>Reset hue</string>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QToolButton {
-border:0px
-}</string>
-              </property>
-              <property name="text">
-               <string>Reset</string>
-              </property>
-              <property name="icon">
-               <iconset resource="../icons.qrc">
-                <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>16</width>
-                <height>16</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="hueSlider">
-              <property name="toolTip">
-               <string>Adjust hue</string>
-              </property>
-              <property name="minimum">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <number>360</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="hueBox">
-              <property name="styleSheet">
-               <string notr="true">QSpinBox {
-Background-color: transparent;
-}</string>
-              </property>
-              <property name="frame">
-               <bool>false</bool>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::NoButtons</enum>
-              </property>
-              <property name="correctionMode">
-               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
-              </property>
-              <property name="suffix">
-               <string>°</string>
-              </property>
-              <property name="minimum">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <number>360</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="pageThreshold">
-           <layout class="QHBoxLayout" name="horizontalLayoutThreshold">
-            <item>
-             <widget class="QToolButton" name="thresholdReset">
-              <property name="toolTip">
-               <string>Reset threshold</string>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QToolButton {
-border:0px
-}</string>
-              </property>
-              <property name="text">
-               <string>Reset</string>
-              </property>
-              <property name="icon">
-               <iconset resource="../icons.qrc">
-                <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>16</width>
-                <height>16</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="thresholdSlider">
-              <property name="toolTip">
-               <string>Adjust threshold</string>
-              </property>
-              <property name="minimum">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <number>100</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="thresholdBox">
-              <property name="styleSheet">
-               <string notr="true">QSpinBox {
-Background-color: transparent;
-}</string>
-              </property>
-              <property name="frame">
-               <bool>false</bool>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::NoButtons</enum>
-              </property>
-              <property name="correctionMode">
-               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
-              </property>
-              <property name="suffix">
-               <string>%</string>
-              </property>
-              <property name="minimum">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <number>100</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="pagePosterize">
-           <layout class="QHBoxLayout" name="horizontalLayoutPosterize">
-            <item>
-             <widget class="QToolButton" name="PosterizeReset">
-              <property name="toolTip">
-               <string>Reset posterization</string>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QToolButton {
-border:0px
-}</string>
-              </property>
-              <property name="text">
-               <string>Reset</string>
-              </property>
-              <property name="icon">
-               <iconset resource="../icons.qrc">
-                <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>16</width>
-                <height>16</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSlider" name="posterizeSlider">
-              <property name="toolTip">
-               <string>Adjust threshold</string>
-              </property>
-              <property name="minimum">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <number>255</number>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="posterizeBox">
-              <property name="styleSheet">
-               <string notr="true">QSpinBox {
-Background-color: transparent;
-}</string>
-              </property>
-              <property name="frame">
-               <bool>false</bool>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::NoButtons</enum>
-              </property>
-              <property name="correctionMode">
-               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
-              </property>
-              <property name="suffix">
-               <string>/255</string>
-              </property>
-              <property name="minimum">
-               <number>0</number>
-              </property>
-              <property name="maximum">
-               <number>255</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
+          <property name="maximum">
+           <number>360</number>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QSlider" name="colorHueSlider">
+          <property name="toolTip">
+           <string>Hue shift 
+(circular variation of tint in the color wheel)</string>
+          </property>
+          <property name="statusTip">
+           <string>Hue shift \n(circular variation of tint in the color wheel)</string>
+          </property>
+          <property name="maximum">
+           <number>360</number>
+          </property>
+          <property name="singleStep">
+           <number>10</number>
+          </property>
+          <property name="pageStep">
+           <number>60</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QSpinBox" name="colorThresholdBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Luminance threshold 
+(convert to black and white, keeping pixels above threshold)</string>
+          </property>
+          <property name="statusTip">
+           <string>Luminance threshold \n(convert to black and white, keeping pixels above threshold)</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">Background-color: transparent;</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="correctionMode">
+           <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+          </property>
+          <property name="suffix">
+           <string notr="true">%</string>
+          </property>
+          <property name="prefix">
+           <string>Threshold </string>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QSlider" name="colorThresholdSlider">
+          <property name="toolTip">
+           <string>Luminance threshold 
+(convert to black and white, keeping pixels above threshold)</string>
+          </property>
+          <property name="statusTip">
+           <string>Luminance threshold \n(convert to black and white, keeping pixels above threshold)</string>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="pageStep">
+           <number>5</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QSpinBox" name="colorPosterizeBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Posterize (reduce the number of colors)</string>
+          </property>
+          <property name="statusTip">
+           <string>Posterize (reduce the number of colors)</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">Background-color: transparent;</string>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="correctionMode">
+           <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+          </property>
+          <property name="suffix">
+           <string notr="true">/255</string>
+          </property>
+          <property name="prefix">
+           <string>Posterize </string>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>255</number>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QSlider" name="colorPosterizeSlider">
+          <property name="toolTip">
+           <string>Posterize (reduce the number of colors)</string>
+          </property>
+          <property name="statusTip">
+           <string>Posterize (reduce the number of colors)</string>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>255</number>
+          </property>
+          <property name="pageStep">
+           <number>5</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
          </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="Effects">
+      <widget class="QWidget" name="Filter">
        <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>236</width>
-         <height>126</height>
+         <width>240</width>
+         <height>182</height>
         </rect>
        </property>
        <attribute name="label">
-        <string>Effects</string>
+        <string>Filter</string>
        </attribute>
        <attribute name="toolTip">
         <string>Imaging special effects</string>
@@ -1119,18 +1012,24 @@ Background-color: transparent;
          <number>6</number>
         </property>
         <item>
-         <widget class="QListWidget" name="EffectsList">
+         <widget class="QListWidget" name="filtersList">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>180</width>
-            <height>0</height>
+            <height>82</height>
            </size>
           </property>
           <property name="toolTip">
-           <string>Imaging effects (convolution and morphological operators)</string>
+           <string>Imaging filter (convolution and morphological operators)</string>
           </property>
           <property name="statusTip">
-           <string>Imaging effects (convolution and morphological operators)</string>
+           <string>Imaging filter (convolution and morphological operators)</string>
           </property>
           <property name="verticalScrollBarPolicy">
            <enum>Qt::ScrollBarAlwaysOn</enum>
@@ -1327,7 +1226,7 @@ Background-color: transparent;
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="EffectsInvertBox">
+         <widget class="QComboBox" name="filterInvertBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -1399,7 +1298,7 @@ QComboBox:!editable {
           </property>
           <item>
            <property name="text">
-            <string notr="true">No color effects</string>
+            <string notr="true">Original colors</string>
            </property>
            <property name="icon">
             <iconset resource="../images.qrc">
@@ -1440,18 +1339,194 @@ QComboBox:!editable {
  </resources>
  <connections>
   <connection>
-   <sender>listWidget</sender>
-   <signal>currentRowChanged(int)</signal>
-   <receiver>stackedWidget</receiver>
-   <slot>setCurrentIndex(int)</slot>
+   <sender>colorSaturationSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorSaturationBox</receiver>
+   <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>55</x>
-     <y>279</y>
+     <x>155</x>
+     <y>200</y>
     </hint>
     <hint type="destinationlabel">
-     <x>59</x>
-     <y>315</y>
+     <x>110</x>
+     <y>198</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorSaturationBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorSaturationSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>82</x>
+     <y>200</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>155</x>
+     <y>201</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorBrightnessBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorBrightnessSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>110</x>
+     <y>224</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>153</x>
+     <y>226</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorBrightnessSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorBrightnessBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>163</x>
+     <y>227</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>113</x>
+     <y>225</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorContrastBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorContrastSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>109</x>
+     <y>253</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>135</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorContrastSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorContrastBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>167</x>
+     <y>255</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>106</x>
+     <y>251</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorHueBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorHueSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>107</x>
+     <y>273</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>170</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorHueSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorHueBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>164</x>
+     <y>278</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>108</x>
+     <y>276</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorThresholdSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorThresholdBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>170</x>
+     <y>305</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>84</x>
+     <y>306</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorThresholdBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorThresholdSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>103</x>
+     <y>306</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>153</x>
+     <y>311</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorPosterizeBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorPosterizeSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>103</x>
+     <y>328</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>161</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorPosterizeSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>colorPosterizeBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>156</x>
+     <y>328</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>91</x>
+     <y>328</y>
     </hint>
    </hints>
   </connection>

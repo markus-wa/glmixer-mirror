@@ -1022,17 +1022,18 @@ void ViewRenderWidget::setFilteringEnabled(bool on)
 	program->setUniformValue("gamma", 1.f);
 	program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f); // gamma levels : minInput, maxInput, minOutput, maxOutput:
 
+	program->setUniformValue("contrast", 1.f);
+	program->setUniformValue("saturation", 1.f);
+	program->setUniformValue("brightness", 0.f);
+	program->setUniformValue("hueshift", 0.f);
+	program->setUniformValue("chromakey", 0.0, 0.0, 0.0 );
+	program->setUniformValue("chromadelta", 0.1f);
+	program->setUniformValue("threshold", 0.0f);
+	program->setUniformValue("nbColors", (GLint) -1);
+	program->setUniformValue("invertMode", (GLint) 0);
+
 	if (!disableFiltering) {
 		program->setUniformValue("step", 1.f / 640.f, 1.f / 480.f);
-		program->setUniformValue("contrast", 1.f);
-		program->setUniformValue("saturation", 1.f);
-		program->setUniformValue("brightness", 0.f);
-		program->setUniformValue("hueshift", 0.f);
-		program->setUniformValue("chromakey", 0.0, 0.0, 0.0 );
-		program->setUniformValue("chromadelta", 0.1f);
-		program->setUniformValue("threshold", 0.0f);
-		program->setUniformValue("nbColors", (GLint) -1);
-		program->setUniformValue("invertMode", (GLint) 0);
 		program->setUniformValue("filter", (GLint) 0);
 	}
 

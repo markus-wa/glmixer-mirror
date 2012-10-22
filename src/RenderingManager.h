@@ -26,6 +26,8 @@
 #ifndef RENDERINGMANAGER_H_
 #define RENDERINGMANAGER_H_
 
+//#define USE_GLREADPIXELS
+
 #include "common.h"
 #include "SourceSet.h"
 

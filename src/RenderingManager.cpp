@@ -55,6 +55,8 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include <QProgressDialog>
 #include <QSharedMemory>
 
+//#define USE_GLREADPIXELS
+
 // static members
 RenderingManager *RenderingManager::_instance = 0;
 bool RenderingManager::blit_fbo_extension = true;
@@ -313,7 +315,6 @@ void RenderingManager::postRenderToFrameBuffer() {
 				// render to the frame buffer object
 				if (previousframe_fbo->bind())
 				{
-
 					glClearColor(0.f, 0.f, 0.f, 1.f);
 					glClear(GL_COLOR_BUFFER_BIT);
 
@@ -337,17 +338,29 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 	// save the frame to file or copy to SHM
 	if (_recorder->isRecording() || _sharedMemory) {
-		// bind rendering frame buffer object
+
+#ifdef USE_GLREADPIXELS
+		// bind rendering FBO as the current frame buffer
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
+#else
+		glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+#endif
 
 		// read from the framebuferobject and record this frame (the recorder knows if it is active or not)
 		_recorder->addFrame();
 
 		// share to memory if needed
 		if (_sharedMemory) {
-			 _sharedMemory->lock();
-			 glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), _sharedMemoryGLFormat, _sharedMemoryGLType, (GLvoid *) _sharedMemory->data());
-			 _sharedMemory->unlock();
+			_sharedMemory->lock();
+#ifdef USE_GLREADPIXELS
+			// read the pixels from the current frame buffer
+			glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), _sharedMemoryGLFormat, _sharedMemoryGLType, (GLvoid *) _sharedMemory->data());
+#else
+			// read the pixels from the texture
+			glGetTexImage(GL_TEXTURE_2D, 0, _sharedMemoryGLFormat, _sharedMemoryGLType, (GLvoid *) _sharedMemory->data());
+#endif
+
+			_sharedMemory->unlock();
 		}
 	}
 }
