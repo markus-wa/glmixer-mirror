@@ -173,7 +173,7 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	rec->enc->v_ctx->height = height;
 	rec->enc->v_ctx->time_base.den = fps;
 
-	rec->enc->v_ctx->bit_rate = width*height*4*fps;  // useless ?
+//	rec->enc->v_ctx->bit_rate = width*height*4*fps;  // useless ?
 	rec->enc->v_ctx->time_base.num = 1;
 	rec->enc->v_ctx->pix_fmt = f_pix_fmt;
 	rec->enc->v_ctx->coder_type = 1;
@@ -205,8 +205,6 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		return NULL;
 	}
 
-	snprintf(errormessage, 256, "bitrate is %d.", rec->enc->v_ctx->bit_rate);
-	return NULL;
 
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
 	if(url_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
@@ -245,8 +243,8 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		}
 
 	}
-	// encoder buffer
-	rec->enc->vbuf_size = 2000000;
+	// encoder buffer : sized to fit the maximum resolution and frame rate.
+	rec->enc->vbuf_size = 20000000;
 	rec->enc->vbuf_ptr = av_malloc(rec->enc->vbuf_size);
 
 	return rec;
@@ -340,7 +338,9 @@ rec_deliver_vframe(video_rec_t *rec, void *data)
 	pkt.data = rec->enc->vbuf_ptr;
 	pkt.size = r;
 
-	av_interleaved_write_frame(rec->enc->oc, &pkt);
+	r = av_interleaved_write_frame(rec->enc->oc, &pkt);
+	if(r < 0)
+		return;
 
 	// one more frame done !
 	rec->framenum++;
@@ -386,7 +386,9 @@ sws_rec_deliver_vframe(video_rec_t *rec, void *data)
 	pkt.data = rec->enc->vbuf_ptr;
 	pkt.size = r;
 
-	av_interleaved_write_frame(rec->enc->oc, &pkt);
+	r = av_interleaved_write_frame(rec->enc->oc, &pkt);
+	if(r < 0)
+		return;
 
 	// one more frame done !
 	rec->framenum++;
