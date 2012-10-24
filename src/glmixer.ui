@@ -445,6 +445,9 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
+QToolButton:hover { 
+     border-color: palette(highlight);
+}
 </string>
          </property>
          <property name="text">
@@ -561,7 +564,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -664,13 +670,13 @@ QToolButton:pressed {
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
-          <number>1</number>
+          <number>4</number>
          </property>
          <property name="leftMargin">
           <number>5</number>
          </property>
          <property name="topMargin">
-          <number>3</number>
+          <number>5</number>
          </property>
          <property name="rightMargin">
           <number>5</number>
@@ -678,6 +684,28 @@ QToolButton:pressed {
          <property name="bottomMargin">
           <number>1</number>
          </property>
+         <item>
+          <widget class="SourceDisplayWidget" name="sourcePreview" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="baseSize">
+            <size>
+             <width>200</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QToolButton" name="startButton">
            <property name="sizePolicy">
@@ -718,7 +746,7 @@ QToolButton:pressed {
 
 QToolButton:checked { 
      border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
 QToolButton:pressed { 
@@ -726,7 +754,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
            </property>
            <property name="text">
             <string>Play</string>
@@ -843,7 +874,10 @@ QToolButton:pressed {
 background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -882,7 +916,10 @@ QToolButton:pressed {
 background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -929,7 +966,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -980,7 +1020,10 @@ QToolButton:pressed {
 background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1019,7 +1062,10 @@ QToolButton:pressed {
 background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1257,7 +1303,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -2269,7 +2318,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
          </property>
          <property name="text">
           <string>Normal</string>
@@ -2331,7 +2383,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
          </property>
          <property name="text">
           <string>Elastic</string>
@@ -2402,7 +2457,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
          </property>
          <property name="text">
           <string>Delay</string>
@@ -2473,7 +2531,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
          </property>
          <property name="text">
           <string>Axis</string>
@@ -2544,7 +2605,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
          </property>
          <property name="text">
           <string>Line</string>
@@ -2615,7 +2679,10 @@ QToolButton:pressed {
      background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
 }
 
-</string>
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
          </property>
          <property name="text">
           <string>Fuzzy</string>
@@ -5293,6 +5360,12 @@ Shortcut:                                    Right</string>
    <slots>
     <slot>changeUpdatePeriod(int)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>SourceDisplayWidget</class>
+   <extends>QWidget</extends>
+   <header>SourceDisplayWidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

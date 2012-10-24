@@ -16,12 +16,12 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     setupUi(this);
 	setEnabled(false);
 
-
 	// Setup the gamma levels toolbox
 	gammaAdjust = new GammaLevelsWidget(this);
     Q_CHECK_PTR(gammaAdjust);
 	gammaContentsLayout->addWidget(gammaAdjust);
 
+	// setup source preview
 
 }
 
@@ -37,6 +37,7 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi){
 		setEnabled(false);
 		source = 0;
 	}
+
 }
 
 

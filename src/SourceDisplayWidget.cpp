@@ -67,24 +67,38 @@ void SourceDisplayWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
-	if (!isEnabled())
-		return;
 
 	// draw the background
 	glLoadIdentity();
 	glScalef(aspectRatio, aspectRatio, 1.f);
 	glBindTexture(GL_TEXTURE_2D, _bgTexture);
 	glCallList(ViewRenderWidget::quad_texured);
+	glLoadIdentity();
+
+	if (!isEnabled())
+		return;
 
 	if (s) {
 		// update the texture of the source
 		s->update();
-
-		// draw the source
-		glLoadIdentity();
+		// compute aspect ratio of the window
+		float ar = float (width()) / float (height());
+		// scale the source to match aspect ratio
+		if (use_aspect_ratio) {
+			// adjust size to show all the square and ensure aspect ratio is preserved
+			if ( s->getAspectRatio() > ar )
+				glScalef( 1.f, ar / s->getAspectRatio(), 1.f);
+			else
+				glScalef( s->getAspectRatio() / ar, 1.f, 1.f);
+		}
+		// flip vertical if requested
+		glScalef( ar, s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
+		// use source color
 	    glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
-		glScalef( s->getAspectRatio(), s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
+	    // draw a quad with the texture
 		glCallList(ViewRenderWidget::quad_texured);
+		// revert color
+	    glColor4f(1.0, 1.0, 1.0, 1.0);
 
 	}
 }

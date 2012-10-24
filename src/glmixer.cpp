@@ -660,6 +660,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	// if we are given a valid iterator, we have a source to control
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
+		// display source preview
+		sourcePreview->setSource(*csi);
+
 		// enable properties and actions on the current valid source
 		sourceDockWidgetContents->setEnabled(true);
 		currentSourceMenu->setEnabled(true);

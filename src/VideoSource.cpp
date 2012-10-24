@@ -38,9 +38,6 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
 	if (!is)
 		SourceConstructorException().raise();
 
-	// create an fbo (with internal automatic first texture attachment)
-//	_fbo = new QGLFramebufferObject( QSize( is->getFrameWidth(), is->getFrameHeight() ));
-
 	QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
 	aspectratio = is->getStreamAspectRatio();
 
@@ -49,13 +46,10 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-
-
 	// fills in the first frame
 	const VideoPicture *vp = is->getPictureAtIndex(-1);
 	if (vp && vp->isAllocated())
 	{
-
 		// fill in the texture
 		if (vp->getFormat() == PIX_FMT_RGBA)
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, vp->getWidth(),

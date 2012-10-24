@@ -479,9 +479,6 @@ protected:
 	GLenum blend_eq;
 	QRectF textureCoordinates;
 
-	// the GL frame buffer
-	QGLFramebufferObject *_fbo;
-
 	// some textures are inverted
 	bool flipVertical;
 
