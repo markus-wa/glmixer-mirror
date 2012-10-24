@@ -567,7 +567,7 @@ void ViewRenderWidget::paintGL()
 	// 4. The extra information
 	//
 	// Catalog : show if visible and only in the appropriate views
-	if (_catalogView->visible() && (_currentView == (View *) _mixingView || _currentView == (View *) _geometryView) )
+	if (_catalogView->visible())
 		_catalogView->paint();
 
 	// FPS computation

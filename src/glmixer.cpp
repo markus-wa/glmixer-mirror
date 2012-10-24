@@ -506,6 +506,7 @@ void GLMixer::Log(int type, QString msg)
 
 void GLMixer::setView(QAction *a){
 
+	// setup the rendering Widget to the requested view
 	if (a == actionMixingView)
 		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::MIXING);
 	else if (a == actionGeometryView)
@@ -515,9 +516,15 @@ void GLMixer::setView(QAction *a){
 	else if (a == actionRenderingView)
 		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::RENDERING);
 
+	// show appropriate icon
 	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getView()->getIcon());
 	viewLabel->setText(RenderingManager::getRenderingWidget()->getView()->getTitle());
 
+	// disable / enable catalog view depending on the view
+	actionShow_Catalog->setEnabled(a == actionMixingView || a == actionGeometryView);
+	RenderingManager::getRenderingWidget()->setCatalogVisible(actionShow_Catalog->isEnabled() && actionShow_Catalog->isChecked() );
+
+	// get back the proper tool from former usage
 	switch ( RenderingManager::getRenderingWidget()->getToolMode() ){
 	case ViewRenderWidget::TOOL_SCALE:
 		actionToolScale->trigger();
