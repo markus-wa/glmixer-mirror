@@ -68,7 +68,6 @@ public Q_SLOTS:
 	void on_frameForwardButton_clicked();
 	void on_frameSlider_sliderPressed();
 	void on_frameSlider_sliderReleased();
-	void on_frameSlider_sliderMoved(int);
 	void on_frameSlider_actionTriggered(int);
 	void on_actionShow_frames_toggled(bool);
 	void on_actionShowFPS_toggled(bool);
@@ -174,7 +173,6 @@ private:
 
 	QTimer *refreshTimingTimer;
 	bool waspaused;
-	bool skipNextRefresh;
 
 	QSettings settings;
 	QAction *recentFileActs[MAX_RECENT_FILES];

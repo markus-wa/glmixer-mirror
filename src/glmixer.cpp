@@ -368,6 +368,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(cursorFuzzyFiltering, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setFiltering(int)) );
 
     // a Timer to update sliders and counters
+	frameSlider->setTracking(true);
     refreshTimingTimer = new QTimer(this);
     Q_CHECK_PTR(refreshTimingTimer);
     refreshTimingTimer->setInterval(150);
@@ -1056,27 +1057,60 @@ void GLMixer::refreshTiming(){
 		return;
 	}
 
-    if (!skipNextRefresh) {
+	int f_percent = (int) ( (double)( selectedSourceVideoFile->getCurrentFrameTime() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
+	frameSlider->setValue(f_percent);
 
-        int f_percent = (int) ( (double)( selectedSourceVideoFile->getCurrentFrameTime() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
-        frameSlider->setValue(f_percent);
-
-        if (actionShow_frames->isChecked())
-            timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
-        else
-            timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
-    }
-    else
-        skipNextRefresh = false;
+	if (actionShow_frames->isChecked())
+		timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
+	else
+		timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
 
 }
 
 
+void GLMixer::on_frameSlider_actionTriggered (int a) {
+
+    switch (a) {
+        case QAbstractSlider::SliderMove: // move slider or wheel
+        case QAbstractSlider::SliderSingleStepAdd :
+        case QAbstractSlider::SliderSingleStepSub :
+        case QAbstractSlider::SliderPageStepAdd : // clic forward
+        case QAbstractSlider::SliderPageStepSub : // clic backward
+
+			// compute where we should jump to
+			double percent = (double)(frameSlider->sliderPosition ())/ (double)frameSlider->maximum();
+			int64_t pos = (int64_t) ( selectedSourceVideoFile->getEnd()  * percent ) + selectedSourceVideoFile->getBegin();
+
+			// request seek ; we need to have the VideoFile process running to go there
+			selectedSourceVideoFile->seekToPosition(pos);
+
+			// show the time of the frame (refreshTiming disabled)
+			if (actionShow_frames->isChecked())
+				timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(pos) );
+			else
+				timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(pos) );
+
+			// let the VideoFile run till it displays the frame seeked
+			selectedSourceVideoFile->pause(false);
+
+        break;
+    }
+
+}
 
 void  GLMixer::on_frameSlider_sliderPressed (){
 
     // do not update slider position automatically anymore ; this interferes with user input
     refreshTimingTimer->stop();
+
+    // disconnect the button from the VideoFile signal ; this way when we will unpause (see below), the button will keep its state
+    QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
+
+    // the trick; call a method when the frame will be ready!
+    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
+
+    // pause because we want to move the slider
+    selectedSourceVideoFile->pause(true);
 }
 
 void  GLMixer::on_frameSlider_sliderReleased (){
@@ -1084,59 +1118,46 @@ void  GLMixer::on_frameSlider_sliderReleased (){
     // slider moved, frame was displayed, still paused; we un-pause if it was playing.
 	selectedSourceVideoFile->pause(pauseButton->isChecked());
 
+    // not following video file frame signals anymore
+	QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
+
+	// reconnect the pause button
+	QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
+
     // restart the refresh timer if it should be
     updateRefreshTimerState();
 }
 
-void GLMixer::on_frameSlider_sliderMoved (int v){
-    // compute where we should jump to
-    double percent = (double)(v)/ (double)frameSlider->maximum();
-    int64_t pos = (int64_t) ( selectedSourceVideoFile->getEnd()  * percent );
-    pos += selectedSourceVideoFile->getBegin();
+void GLMixer::pauseAfterFrame (){
 
-    // request seek ; we need to have the VideoFile process running to go there
-    selectedSourceVideoFile->seekToPosition(pos);
-
-    // disconnect the button from the VideoFile signal ; this way when we'll unpause bellow, the button will keep its state
-    QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-
-    // the trick; call a method when the frame will be ready!
-//    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
-    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
-
-    // let the VideoFile run till it displays the frame seeked
-    selectedSourceVideoFile->pause(false);
-
-    // cosmetics to show the time of the frame (refreshTiming disabled)
-    if (actionShow_frames->isChecked())
-        timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(pos) );
-    else
-        timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(pos) );
+	// do not keep calling pause method for each frame !
+	if (!selectedSourceVideoFile->isPaused())
+		selectedSourceVideoFile->pause(true);
 
 }
 
 void GLMixer::on_frameForwardButton_clicked(){
 
-    // disconnect the button from the VideoFile signal ; this way when we'll unpause bellow, the button will keep its state
-    QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-
-    // the trick; call a method when the frame will be ready!
-    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
-
-    // let the VideoFile run till it displays 1 frame
-    selectedSourceVideoFile->pause(false);
-
+	// let un-pause for one frame
+	unpauseBeforeSeek();
 }
 
-void GLMixer::pauseAfterFrame (){
+void GLMixer::pauseAfterSeek (){
 
-	selectedSourceVideoFile->pause(true);
+	// if the button 'Pause' is checked, we shall go back to pause once
+	// we'll have displayed the seeked frame
+	if (pauseButton->isChecked())
+	{
+		selectedSourceVideoFile->pause(true);
+		refreshTiming();
+	}
 
 	// do not keep calling pause method for each frame !
-	QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
+	QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
 	// reconnect the pause button
 	QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
 }
+
 
 void GLMixer::unpauseBeforeSeek() {
 
@@ -1151,51 +1172,6 @@ void GLMixer::unpauseBeforeSeek() {
 
 }
 
-void GLMixer::pauseAfterSeek (){
-
-	// if the button 'Pause' is checked, we shall go back to pause once
-	// we'll have displayed the seeked frame
-	if (pauseButton->isChecked()) {
-		selectedSourceVideoFile->pause(true);
-		refreshTiming();
-	}
-
-	// do not keep calling pause method for each frame !
-	QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
-	// reconnect the pause button
-	QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-}
-
-
-void GLMixer::on_frameSlider_actionTriggered (int a) {
-
-    switch (a) {
-        case QAbstractSlider::SliderMove: // wheel
-        case QAbstractSlider::SliderSingleStepAdd :
-        case QAbstractSlider::SliderSingleStepSub :
-        case QAbstractSlider::SliderPageStepAdd : // clic forward
-        case QAbstractSlider::SliderPageStepSub : // clic backward
-            // avoid jump in slider (due to timer refresh of the slider position from movie values)
-            skipNextRefresh = true;
-
-            if (pauseButton->isChecked()) {
-                on_frameSlider_sliderMoved (frameSlider->sliderPosition ());
-            } else {
-                // compute where we should jump to
-                double percent = (double)(frameSlider->sliderPosition ())/ (double)frameSlider->maximum();
-                int64_t pos = (int64_t) ( selectedSourceVideoFile->getEnd()  * percent );
-                pos += selectedSourceVideoFile->getBegin();
-
-                // request seek ; we need to have the VideoFile process running to go there
-                selectedSourceVideoFile->seekToPosition(pos);
-
-            }
-            // avoid jump in slider (due to timer refresh of the slider position from movie values)
-            skipNextRefresh = true;
-            break;
-    }
-
-}
 
 
 void GLMixer::updateMarks (){
