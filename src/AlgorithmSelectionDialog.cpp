@@ -109,7 +109,7 @@ void AlgorithmSelectionDialog::on_variabilitySlider_valueChanged(int v){
 
 void  AlgorithmSelectionDialog::on_customUpdateFrequency_toggled(bool flag){
 	if (!flag)
-		frequencySlider->setValue(60);
+		frequencySlider->setValue(40);
 }
 
 void AlgorithmSelectionDialog::on_ignoreAlphaCheckbox_toggled(bool on){
@@ -130,9 +130,13 @@ void AlgorithmSelectionDialog::on_presetsSizeComboBox_currentIndexChanged(int pr
 	if (preset == 0) {
 		heightSpinBox->setEnabled(true);
 		widthSpinBox->setEnabled(true);
+		h->setEnabled(true);
+		w->setEnabled(true);
 	} else {
 		heightSpinBox->setEnabled(false);
 		widthSpinBox->setEnabled(false);
+		h->setEnabled(false);
+		w->setEnabled(false);
 
 		switch (preset) {
 		case 1:

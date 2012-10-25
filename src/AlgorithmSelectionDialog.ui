@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>269</width>
-    <height>551</height>
+    <height>519</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -48,19 +48,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="ignoreAlphaCheckbox">
-     <property name="styleSheet">
-      <string notr="true">font: bold;</string>
-     </property>
-     <property name="text">
-      <string>Transparent</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QGroupBox" name="sizeGroupBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -69,13 +56,36 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Dimensions</string>
+      <string>Properties</string>
      </property>
      <property name="flat">
       <bool>true</bool>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="ignoreAlphaCheckbox">
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Transparent</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Size   </string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
        <widget class="QComboBox" name="presetsSizeComboBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -163,10 +173,13 @@
         </item>
        </widget>
       </item>
-      <item>
+      <item row="2" column="0" colspan="2">
        <layout class="QGridLayout" name="sizeGridLayout">
         <item row="0" column="0">
          <widget class="QLabel" name="w">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Width</string>
           </property>
@@ -209,6 +222,9 @@
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="h">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Height</string>
           </property>
@@ -231,98 +247,105 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Frame variability</string>
+      <string>Animation</string>
      </property>
      <property name="flat">
       <bool>true</bool>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QVBoxLayout" name="verticalLayout2">
       <item>
-       <widget class="QSlider" name="variabilitySlider">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="pageStep">
-         <number>10</number>
-        </property>
-        <property name="value">
-         <number>30</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="variability">
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>30</string>
+         <string>Frame variability</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="fps_2">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QSlider" name="variabilitySlider">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="pageStep">
+           <number>10</number>
+          </property>
+          <property name="value">
+           <number>30</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="variability">
+          <property name="text">
+           <string>30</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="fps_2">
+          <property name="text">
+           <string>%</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="customUpdateFrequency">
         <property name="text">
-         <string>%</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="customUpdateFrequency">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="title">
-      <string>Custom update frequency</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <item>
-       <widget class="QSlider" name="frequencySlider">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>60</number>
-        </property>
-        <property name="value">
-         <number>40</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <string>Custom update frequency</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="value">
-        <property name="text">
-         <string>40</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="fps">
-        <property name="text">
-         <string>fps</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QSlider" name="frequencySlider">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>60</number>
+          </property>
+          <property name="value">
+           <number>40</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="value">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>40</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="fps">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>fps</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -350,8 +373,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>265</x>
-     <y>364</y>
+     <x>164</x>
+     <y>546</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -366,8 +389,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>265</x>
-     <y>364</y>
+     <x>164</x>
+     <y>546</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -382,12 +405,12 @@
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>212</x>
-     <y>318</y>
+     <x>174</x>
+     <y>396</y>
     </hint>
     <hint type="destinationlabel">
-     <x>232</x>
-     <y>318</y>
+     <x>192</x>
+     <y>396</y>
     </hint>
    </hints>
   </connection>
@@ -398,12 +421,60 @@
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>212</x>
-     <y>247</y>
+     <x>182</x>
+     <y>342</y>
     </hint>
     <hint type="destinationlabel">
-     <x>240</x>
-     <y>247</y>
+     <x>200</x>
+     <y>342</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>customUpdateFrequency</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>frequencySlider</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>110</x>
+     <y>359</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>107</x>
+     <y>376</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>customUpdateFrequency</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>value</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>191</x>
+     <y>359</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>188</x>
+     <y>380</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>customUpdateFrequency</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>fps</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>205</x>
+     <y>358</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>206</x>
+     <y>379</y>
     </hint>
    </hints>
   </connection>
