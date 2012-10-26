@@ -3166,7 +3166,7 @@ QToolButton:hover {
       <number>0</number>
      </property>
      <property name="margin">
-      <number>0</number>
+      <number>5</number>
      </property>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_16">
@@ -5461,12 +5461,12 @@ Shortcut:                                    Right</string>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>215</x>
-     <y>858</y>
+     <x>322</x>
+     <y>859</y>
     </hint>
     <hint type="destinationlabel">
-     <x>256</x>
-     <y>858</y>
+     <x>363</x>
+     <y>859</y>
     </hint>
    </hints>
   </connection>
@@ -5529,8 +5529,8 @@ Shortcut:                                    Right</string>
      <y>892</y>
     </hint>
     <hint type="destinationlabel">
-     <x>109</x>
-     <y>895</y>
+     <x>216</x>
+     <y>896</y>
     </hint>
    </hints>
   </connection>

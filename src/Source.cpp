@@ -343,10 +343,10 @@ void Source::beginEffectsSection() const {
 		ViewRenderWidget::program->setUniformValue("threshold", -1.f);
 
 	if (useChromaKey) {
-		ViewRenderWidget::program->setUniformValue("chromakey", chromaKeyColor.hueF(), chromaKeyColor.saturationF(), chromaKeyColor.lightnessF() );
+		ViewRenderWidget::program->setUniformValue("chromakey", chromaKeyColor.hueF(), chromaKeyColor.saturationF(), chromaKeyColor.lightnessF(), 1.f );
 		ViewRenderWidget::program->setUniformValue("chromadelta", chromaKeyTolerance);
 	} else
-		ViewRenderWidget::program->setUniformValue("chromakey", 0.f,0.f, 0.f );
+		ViewRenderWidget::program->setUniformValue("chromakey", 0.f, 0.f, 0.f, 0.f );
 
 	if (ViewRenderWidget::disableFiltering)
 		return;

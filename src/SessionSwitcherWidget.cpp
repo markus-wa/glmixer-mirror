@@ -225,7 +225,6 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     currentSessionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignBottom);
 
     overlayPreview = new SourceDisplayWidget(this);
-    overlayPreview->useAspectRatio(false);
     overlayPreview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     overlayPreview->setMinimumSize(QSize(80, 60));
 

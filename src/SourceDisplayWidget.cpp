@@ -26,15 +26,17 @@
 #include <QPalette>
 
 #include "SourceDisplayWidget.moc"
+
 #include "Source.h"
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
 
-SourceDisplayWidget::SourceDisplayWidget(QWidget *parent) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()),
-	s(0), _bgTexture(0)
+SourceDisplayWidget::SourceDisplayWidget(QWidget *parent, enum backgroundType bg) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()),
+	s(0), background(bg), _bgTexture(0)
 {
-	use_aspect_ratio = true;
-	use_filters = false;
+	function = GL_ONE_MINUS_SRC_ALPHA;
+	equation = GL_FUNC_ADD;
+
 }
 
 
@@ -42,7 +44,12 @@ void SourceDisplayWidget::initializeGL()
 {
 	glRenderWidget::initializeGL();
 
-	setBackgroundColor(Qt::black);
+	if (background == GRID)
+		setBackgroundColor( QColor(102, 102, 102) );
+	else if (background == WHITE)
+		setBackgroundColor(Qt::white);
+	else
+		setBackgroundColor(Qt::black);
 
 	glGenTextures(1, &_bgTexture);
 	glBindTexture(GL_TEXTURE_2D, _bgTexture);
@@ -52,49 +59,55 @@ void SourceDisplayWidget::initializeGL()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
 
-void SourceDisplayWidget::setSource(Source *sourceptr) {
+void SourceDisplayWidget::setSource(Source *sourceptr)
+{
 	s = sourceptr;
-
-	if (s && !use_aspect_ratio)
-		// adjust source AR to fill the area
-		s->setAspectRatio( double (width()) / double (height()) );
-
 }
 
-void SourceDisplayWidget::playSource(bool on) { s->play(on); }
+void SourceDisplayWidget::playSource(bool on)
+{
+	s->play(on);
+}
 
 void SourceDisplayWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
-
-	// draw the background
-	glLoadIdentity();
-	glScalef(aspectRatio, aspectRatio, 1.f);
-	glBindTexture(GL_TEXTURE_2D, _bgTexture);
-	glCallList(ViewRenderWidget::quad_texured);
-	glLoadIdentity();
-
 	if (!isEnabled())
 		return;
+
+	// reset
+	glLoadIdentity();
+	glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
+
+	if ( background == GRID) {
+		// draw the background
+		glScalef(2.f * aspectRatio, 2.f * aspectRatio, 1.f);
+		glBindTexture(GL_TEXTURE_2D, _bgTexture);
+		glCallList(ViewRenderWidget::quad_texured);
+		glLoadIdentity();
+	}
+
 
 	if (s) {
 		// update the texture of the source
 		s->update();
-		// compute aspect ratio of the window
-		float ar = float (width()) / float (height());
-		// scale the source to match aspect ratio
-		if (use_aspect_ratio) {
-			// adjust size to show all the square and ensure aspect ratio is preserved
-			if ( s->getAspectRatio() > ar )
-				glScalef( 1.f, ar / s->getAspectRatio(), 1.f);
-			else
-				glScalef( s->getAspectRatio() / ar, 1.f, 1.f);
-		}
+
+		// adjust size to show all the square and ensure aspect ratio is preserved
+		if ( s->getAspectRatio() > aspectRatio )
+			glScalef( 1.f, aspectRatio / s->getAspectRatio(), 1.f);
+		else
+			glScalef( s->getAspectRatio() / aspectRatio, 1.f, 1.f);
 		// flip vertical if requested
-		glScalef( ar, s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
+		glScalef( aspectRatio, s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
 		// use source color
 	    glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
+
+	    // blending
+		glBlendEquationSeparate(equation, GL_MAX);
+		glBlendFuncSeparate(GL_SRC_ALPHA, function, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
+
 	    // draw a quad with the texture
 		glCallList(ViewRenderWidget::quad_texured);
 		// revert color
@@ -122,5 +135,15 @@ GLuint SourceDisplayWidget::getNewTextureIndex() {
 	makeCurrent();
 	glGenTextures(1, &textureIndex);
 	return textureIndex;
+}
+
+void SourceDisplayWidget::setBlendingFunction(int functionindex)
+{
+	function = blendfunctionFromInt(functionindex);
+}
+
+void SourceDisplayWidget::setBlendingEquation(int equationindex)
+{
+	equation = blendequationFromInt(equationindex);
 }
 

@@ -25,13 +25,52 @@ public:
 
 public Q_SLOTS:
 
+	// get informed when a property is changed
     void connectSource(SourceSet::iterator);
-    void updateSource();
+    void propertyChanged(QString propertyname, bool);
+    void propertyChanged(QString propertyname, int);
+    void propertyChanged(QString propertyname, const QColor &);
+
+    //
+    // setup connections with property manager
+    //
+
+    // Blending Page
+    void on_blendingBox_currentIndexChanged(int);
+    void on_blendingColorButton_pressed();
+    void on_blendingCustomButton_pressed();
+    void on_blendingPixelatedButton_toggled(bool);
+    void on_blendingMaskList_currentRowChanged(int);
+
+    // Color page
+    void on_EffectsInvertBox_currentIndexChanged(int);
+    void on_saturationSlider_valueChanged(int);
+    void on_brightnessSlider_valueChanged(int);
+    void on_contrastSlider_valueChanged(int);
+    void on_hueSlider_valueChanged(int);
+    void on_thresholdSlider_valueChanged(int);
+    void on_posterizeSlider_valueChanged(int);
+    // and all reset buttons
+    void on_saturationReset_pressed();
+    void on_brightnessReset_pressed();
+    void on_contrastReset_pressed();
+    void on_hueReset_pressed();
+    void on_thresholdReset_pressed();
+    void on_posterizeReset_pressed();
+
+    // Effects page
+    void on_filterList_currentRowChanged(int);
+
+Q_SIGNALS:
+	// inform property manager when a property is modified here
+	void valueChanged(QString propertyname, bool value);
+	void valueChanged(QString propertyname, int value);
+	void valueChanged(QString propertyname, const QColor &value);
+	void enumChanged(QString propertyname, int value);
 
 private:
 
 	class GammaLevelsWidget *gammaAdjust;
-	class SourceDisplayWidget *sourcepreview;
     Source *source;
 };
 

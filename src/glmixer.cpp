@@ -247,7 +247,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     mixingToolBox = new MixingToolboxWidget(this);
     mixingDockWidgetContentLayout->addWidget(mixingToolBox);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), mixingToolBox, SLOT(connectSource(SourceSet::iterator) ) );
-
+    // bidirectional link between mixing toolbox and property manager
+    QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, bool)), propertyBrowser, SLOT(valueChanged(QString, bool)) );
+    QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, int)), propertyBrowser, SLOT(valueChanged(QString, int)) );
+    QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, const QColor &)), propertyBrowser, SLOT(valueChanged(QString, const QColor &)) );
+    QObject::connect(mixingToolBox, SIGNAL(enumChanged(QString, int)), propertyBrowser, SLOT(enumChanged(QString, int)) );
+    QObject::connect(propertyBrowser, SIGNAL(propertyChanged(QString, bool)), mixingToolBox, SLOT(propertyChanged(QString, bool)) );
+    QObject::connect(propertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
+    QObject::connect(propertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
 
 	// Setup the session switcher toolbox
 	SessionSwitcherWidget *switcherSession = new SessionSwitcherWidget(this, &settings);
@@ -1111,6 +1118,7 @@ void  GLMixer::on_frameSlider_sliderPressed (){
 
     // pause because we want to move the slider
     selectedSourceVideoFile->pause(true);
+
 }
 
 void  GLMixer::on_frameSlider_sliderReleased (){
@@ -1126,6 +1134,7 @@ void  GLMixer::on_frameSlider_sliderReleased (){
 
     // restart the refresh timer if it should be
     updateRefreshTimerState();
+
 }
 
 void GLMixer::pauseAfterFrame (){
@@ -2055,7 +2064,6 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	// better make the view render widget current before setting filtering enabled
 	RenderingManager::getRenderingWidget()->refresh();
 	RenderingManager::getRenderingWidget()->setFilteringEnabled(!disablefilter);
-	RenderingManager::getPropertyBrowserWidget()->setFilterPropertyEnabled(!disablefilter);
 
 	// j. antialiasing
 	bool antialiasing = true;

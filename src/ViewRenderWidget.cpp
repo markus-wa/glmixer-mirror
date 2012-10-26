@@ -1026,7 +1026,7 @@ void ViewRenderWidget::setFilteringEnabled(bool on)
 	program->setUniformValue("saturation", 1.f);
 	program->setUniformValue("brightness", 0.f);
 	program->setUniformValue("hueshift", 0.f);
-	program->setUniformValue("chromakey", 0.0, 0.0, 0.0 );
+	program->setUniformValue("chromakey", 0.f, 0.f, 0.f, 0.f );
 	program->setUniformValue("chromadelta", 0.1f);
 	program->setUniformValue("threshold", 0.0f);
 	program->setUniformValue("nbColors", (GLint) -1);

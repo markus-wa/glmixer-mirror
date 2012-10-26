@@ -94,6 +94,11 @@
 bool glSupportsExtension(QString extname);
 QStringList glSupportedExtensions();
 
+GLenum blendfunctionFromInt(int);
+int intFromBlendfunction(GLenum);
+GLenum blendequationFromInt(int);
+int intFromBlendequation(GLenum);
+
 class folderValidator : public QValidator
 {
   public:

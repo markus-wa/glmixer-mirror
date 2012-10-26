@@ -27,7 +27,7 @@ uniform float brightness;
 uniform float gamma;
 uniform vec4 levels;
 uniform float hueshift;
-uniform vec3 chromakey;
+uniform vec4 chromakey;
 uniform float chromadelta;
 uniform float threshold;
 uniform int nbColors;
@@ -317,39 +317,38 @@ void main(void)
     if (invertMode==1)
        transformedRGB = vec3(1.0) - transformedRGB;
 
-	if ( abs(saturation -1.0) > 0.01 || threshold > .0 || hueshift > 0.0 || nbColors > 0  || chromakey.z > 0.0 ) {
+	if ( abs(saturation -1.0) > 0.01 || threshold > .0 || hueshift > 0.0 || nbColors > 0  || chromakey.z > 0.0 || invertMode == 2 ) {
 
-	   vec3 transformedHSL = RGBToHSL( transformedRGB );
+	    vec3 transformedHSL = RGBToHSL( transformedRGB );
 	
-	    // Operations on HSL ; if threshold applied, others are not useful
+        if (invertMode == 2)
+            transformedHSL.z = 1.0 - transformedHSL.z;
+	            
+        // perform hue shift
+        transformedHSL.x = transformedHSL.x + hueshift; 
+
+        // Saturation
+        transformedHSL.y *= saturation;
+
+        // perform reduction of colors
+        if (nbColors > 0) {
+            transformedHSL *= vec3(nbColors);
+            transformedHSL = floor(transformedHSL);
+            transformedHSL /= vec3(nbColors);
+        }
+	        
 	    if(threshold > 0.0) {
 	        // level threshold
 	        if (transformedHSL.z < threshold)
 	        	transformedHSL = vec3(0.0, 0.0, 1.0);
 	        else
 	        	transformedHSL = vec3(0.0, 0.0, 0.0);
-	    } else {
-	        // perform hue shift
-	        transformedHSL.x = transformedHSL.x + hueshift; 
-	
-	        // Saturation
-	        transformedHSL.y *= saturation;
-	
-	        // perform reduction of colors
-	        if (nbColors > 0) {
-	            transformedHSL *= vec3(nbColors);
-	            transformedHSL = floor(transformedHSL);
-	            transformedHSL /= vec3(nbColors);
-	        }
-	
-	        if (invertMode == 2)
-	            transformedHSL.z = 1.0 - transformedHSL.z;
-	
-	        if ( chromakey.z > 0.0 && all( lessThan( abs(transformedHSL - chromakey), vec3(chromadelta))) )
-	           // alpha *= 0.0;
-	           discard;
-	
-	    }
+	    } 
+	    
+        if ( chromakey.w > 0.0 ) {
+        	if ( all( lessThan( abs(transformedHSL - chromakey.xyz), vec3(chromadelta))) )
+           		discard;
+   		}
 	
 	    // after operations on HSL, convert back to RGB
 	    transformedRGB = HSLToRGB(transformedHSL);

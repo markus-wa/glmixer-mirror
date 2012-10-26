@@ -66,10 +66,6 @@
 #endif
 
 
-QMap<GLenum, int> glblendToEnum;
-QMap<int, GLenum> enumToGlblend;
-QMap<GLenum, int> glequationToEnum;
-QMap<int, GLenum> enumToGlequation;
 QMap<int, QPair<int, int> > presetBlending;
 
 QString getSizeString(float num);
@@ -112,6 +108,16 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent)
     enumManager = new QtEnumPropertyManager(this);
     boolManager = new QtBoolPropertyManager(this);
     rectManager = new QtRectFPropertyManager(this);
+
+	connect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
+				this, SLOT(propertyValueChanged(QtProperty *, const QColor &)));
+	connect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
+				this, SLOT(propertyValueChanged(QtProperty *, int)));
+	connect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
+				this, SLOT(propertyValueChanged(QtProperty *, int)));
+	connect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
+				this, SLOT(propertyValueChanged(QtProperty *, bool)));
+
     // special managers which are not associated with a factory (i.e non editable)
     infoManager = new QtStringPropertyManager(this);
     sizeManager = new QtSizePropertyManager(this);
@@ -170,22 +176,6 @@ QString aspectRatioToString(double ar)
 
 void SourcePropertyBrowser::createPropertyTree(){
 
-	// we will need these for the correspondance between comboBox and GLenums:
-	glblendToEnum[GL_ZERO] = 0; enumToGlblend[0] = GL_ZERO;
-	glblendToEnum[GL_ONE] = 1; enumToGlblend[1] = GL_ONE;
-	glblendToEnum[GL_SRC_COLOR] = 2; enumToGlblend[2] = GL_SRC_COLOR;
-	glblendToEnum[GL_ONE_MINUS_SRC_COLOR] = 3; enumToGlblend[3] = GL_ONE_MINUS_SRC_COLOR;
-	glblendToEnum[GL_DST_COLOR] = 4; enumToGlblend[4] = GL_DST_COLOR;
-	glblendToEnum[GL_ONE_MINUS_DST_COLOR] = 5; enumToGlblend[5] = GL_ONE_MINUS_DST_COLOR;
-	glblendToEnum[GL_SRC_ALPHA] = 6; enumToGlblend[6] = GL_SRC_ALPHA;
-	glblendToEnum[GL_ONE_MINUS_SRC_ALPHA] = 7; enumToGlblend[7] = GL_ONE_MINUS_SRC_ALPHA;
-	glblendToEnum[GL_DST_ALPHA] = 8; enumToGlblend[8] = GL_DST_ALPHA;
-	glblendToEnum[GL_ONE_MINUS_DST_ALPHA] = 9; enumToGlblend[9] = GL_ONE_MINUS_DST_ALPHA;
-	glequationToEnum[GL_FUNC_ADD] = 0; enumToGlequation[0] = GL_FUNC_ADD;
-	glequationToEnum[GL_FUNC_SUBTRACT] = 1; enumToGlequation[1] = GL_FUNC_SUBTRACT;
-	glequationToEnum[GL_FUNC_REVERSE_SUBTRACT] = 2; enumToGlequation[2] = GL_FUNC_REVERSE_SUBTRACT;
-	glequationToEnum[GL_MIN] = 3; enumToGlequation[3] = GL_MIN;
-	glequationToEnum[GL_MAX] = 4; enumToGlequation[4] = GL_MAX;
 	// the comboBox presents of combinations
 	// color mix
 	presetBlending[1] = qMakePair( 1, 0 ); // GL_ONE                , GL_FUNC_ADD
@@ -253,13 +243,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 		doubleManager->setRange(property, 0, 360);
 		doubleManager->setSingleStep(property, 10.0);
 		modifyroperty->addSubProperty(property);
-		// Rotation center
-	//	property = pointManager->addProperty("Rotation center");
-	//	property->setToolTip("X and Y coordinates of the rotation center (relative to the center)");
-	//	idToProperty[property->propertyName()] = property;
-	//	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().first(), 0.1);
-	//	pointManager->subDoublePropertyManager()->setSingleStep(property->subProperties().last(), 0.1);
-	//	root->addSubProperty(property);
 		// Texture coordinates
 		property = rectManager->addProperty("Crop");
 		idToProperty[property->propertyName()] = property;
@@ -283,23 +266,23 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[blendingItem->propertyName()] = blendingItem;
 	blendingItem->setToolTip("How the colors are mixed with the sources in lower layers.");
 	QStringList enumNames;
-	enumNames << "Custom" << "Color mix" << "Inverse color mix" << "Layer color mix" << "Layer inverse color mix" << "Layer opacity";
+	enumNames << "Custom" << "Add" << "Subtract" << "Add layer" << "Subtract layer" << "Opacity layer";
 	enumManager->setEnumNames(blendingItem, enumNames);
 	// Custom Blending
-	// enum list of Destination blending func
-	property = enumManager->addProperty("Destination");
-	idToProperty[property->propertyName()] = property;
-	property->setToolTip("OpenGL blending function");
-	enumNames.clear();
-	enumNames << "Zero" << "One" << "Color" << "Invert color" << "Background color" << "Invert background color" << "Alpha" << "Invert alpha" << "Background Alpha" << "Invert background Alpha";
-	enumManager->setEnumNames(property, enumNames);
-	blendingItem->addSubProperty(property);
 	// enum list of blending Equations
 	property = enumManager->addProperty("Equation");
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("OpenGL blending equation");
 	enumNames.clear();
 	enumNames << "Add" << "Subtract" << "Reverse" << "Min" << "Max";
+	enumManager->setEnumNames(property, enumNames);
+	blendingItem->addSubProperty(property);
+	// enum list of Destination blending func
+	property = enumManager->addProperty("Destination");
+	idToProperty[property->propertyName()] = property;
+	property->setToolTip("OpenGL blending function");
+	enumNames.clear();
+	enumNames << "Zero" << "One" << "Color" << "Invert color" << "Background color" << "Invert background color" << "Alpha" << "Invert alpha" << "Background Alpha" << "Invert background Alpha";
 	enumManager->setEnumNames(property, enumNames);
 	blendingItem->addSubProperty(property);
 	// Confirm and add the blending item
@@ -310,7 +293,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	property->setToolTip("Layer mask (where black is opaque)");
 	enumNames.clear();
 	// TODO implement selection of custom file mask
-	enumNames << "None" <<"Rounded corners" <<  "Circle" << "Circular gradient" << "Square gradient" << "Left to right" << "Right to left" << "Top down" << "Bottom up"<< "Horizontal bar" << "Vertical bar" <<"Antialiasing";
+	enumNames << "None" <<"Round corners" <<  "Circle" << "Halo circular" << "Square" << "Left to right" << "Right to left" << "Top down" << "Bottom up"<< "Horizontal line" << "Vertical line" <<"Border Antialiasing";
 	enumManager->setEnumNames(property, enumNames);
     QMap<int, QIcon> enumIcons;
     enumIcons[0] = QIcon();
@@ -340,6 +323,21 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	root->addSubProperty(property);
 
+	// enum list of inversion types
+	property = enumManager->addProperty("Color inversion");
+	idToProperty[property->propertyName()] = property;
+	property->setToolTip("Invert colors or luminance");
+	enumNames.clear();
+	enumNames << "None" << "RGB invert" << "Luminance invert";
+	enumManager->setEnumNames(property, enumNames);
+	root->addSubProperty(property);
+	// Saturation
+	property = intManager->addProperty( QLatin1String("Saturation") );
+	property->setToolTip("Saturation (from greyscale to enhanced colors)");
+	idToProperty[property->propertyName()] = property;
+	intManager->setRange(property, -100, 100);
+	intManager->setSingleStep(property, 10);
+	root->addSubProperty(property);
 	// Brightness
 	property = intManager->addProperty( QLatin1String("Brightness") );
 	property->setToolTip("Brightness (from black to white)");
@@ -350,13 +348,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 	// Contrast
 	property = intManager->addProperty( QLatin1String("Contrast") );
 	property->setToolTip("Contrast (from uniform color to high deviation)");
-	idToProperty[property->propertyName()] = property;
-	intManager->setRange(property, -100, 100);
-	intManager->setSingleStep(property, 10);
-	root->addSubProperty(property);
-	// Saturation
-	property = intManager->addProperty( QLatin1String("Saturation") );
-	property->setToolTip("Saturation (from greyscale to enhanced colors)");
 	idToProperty[property->propertyName()] = property;
 	intManager->setRange(property, -100, 100);
 	intManager->setSingleStep(property, 10);
@@ -382,12 +373,16 @@ void SourcePropertyBrowser::createPropertyTree(){
 	intManager->setRange(property, 0, 256);
 	intManager->setSingleStep(property, 1);
 	root->addSubProperty(property);
-	// enum list of inversion types
-	property = enumManager->addProperty("Color inversion");
+
+	// enum list of filters
+	property = enumManager->addProperty("Filter");
 	idToProperty[property->propertyName()] = property;
-	property->setToolTip("Invert colors or luminance");
+	property->setToolTip("Imaging filters (convolutions & morphological operators)");
 	enumNames.clear();
-	enumNames << "None" << "RGB invert" << "Luminance invert";
+	enumNames << "None" << "Gaussian blur" << "Median blur" << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
+			  << "Medium edge detect"<< "Hard edge detect"<<"Emboss"<<"Edge emboss"
+			  << "Erosion 3x3"<< "Erosion 5x5"<< "Erosion 7x7"
+			  << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7";
 	enumManager->setEnumNames(property, enumNames);
 	root->addSubProperty(property);
 
@@ -395,7 +390,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	QtProperty *chroma = boolManager->addProperty("Chroma key");
 	chroma->setToolTip("Enables chroma-keying (removes a key color).");
 	idToProperty[chroma->propertyName()] = chroma;
-	root->addSubProperty(property);
+	root->addSubProperty(chroma);
 	// chroma key Color
 	property = colorManager->addProperty("Key Color");
 	idToProperty[property->propertyName()] = property;
@@ -408,24 +403,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 	intManager->setRange(property, 0, 100);
 	intManager->setSingleStep(property, 10);
 	chroma->addSubProperty(property);
-
-	// Filtered on/off
-	filter = boolManager->addProperty("Filtered");
-	filter->setToolTip("Use GLSL filters");
-	idToProperty[filter->propertyName()] = filter;
-	{
-		// enum list of filters
-		property = enumManager->addProperty("Filter");
-		idToProperty[property->propertyName()] = property;
-		property->setToolTip("Imaging filters (convolutions & morphological operators)");
-		enumNames.clear();
-		enumNames << "None" << "Gaussian blur" << "Median blur" << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
-				  << "Medium edge detect"<< "Hard edge detect"<<"Emboss"<<"Edge emboss"
-				  << "Erosion 3x3"<< "Erosion 5x5"<< "Erosion 7x7"
-				  << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7";
-		enumManager->setEnumNames(property, enumNames);
-		filter->addSubProperty(property);
-	}
 
 	// Frames size
 	QtProperty *fs = sizeManager->addProperty( QLatin1String("Resolution") );
@@ -601,22 +578,6 @@ void SourcePropertyBrowser::createPropertyTree(){
 }
 
 
-void SourcePropertyBrowser::setFilterPropertyEnabled(bool on) {
-
-	// remove all properties linked to filtering
-	QList<QtProperty *> pl = root->subProperties();
-
-	if (pl.contains(filter) and !on) {
-		root->removeSubProperty(filter);
-	}
-
-	if (!pl.contains(filter) and on) {
-		root->addSubProperty(filter);
-	}
-
-}
-
-
 void SourcePropertyBrowser::setPropertyEnabled(QString propertyName, bool enabled){
 
 	if (idToProperty.contains(propertyName))
@@ -626,39 +587,42 @@ void SourcePropertyBrowser::setPropertyEnabled(QString propertyName, bool enable
 
 void SourcePropertyBrowser::updatePropertyTree(Source *s){
 
-    // connect the managers to the corresponding value change
-    disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
-                this, SLOT(valueChanged(QtProperty *, double)));
-    disconnect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
-                this, SLOT(valueChanged(QtProperty *, const QString &)));
-    disconnect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
-                this, SLOT(valueChanged(QtProperty *, const QColor &)));
-    disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)),
-                this, SLOT(valueChanged(QtProperty *, const QPointF &)));
-    disconnect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
-                this, SLOT(enumChanged(QtProperty *, int)));
-    disconnect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
-                this, SLOT(valueChanged(QtProperty *, int)));
-    disconnect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
-                this, SLOT(valueChanged(QtProperty *, bool)));
-    disconnect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
-                this, SLOT(valueChanged(QtProperty *, const QRectF &)));
-
+	// if source is valid,
+	// then set the properties to the corresponding values from the source
 	if (s) {
+
+		// disconnect the managers to the corresponding value change
+		// because otherwise the source is modified by loopback calls to valueChanged slots.
+		disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
+					this, SLOT(valueChanged(QtProperty *, double)));
+		disconnect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
+					this, SLOT(valueChanged(QtProperty *, const QString &)));
+		disconnect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
+					this, SLOT(valueChanged(QtProperty *, const QColor &)));
+		disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)),
+					this, SLOT(valueChanged(QtProperty *, const QPointF &)));
+		disconnect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
+					this, SLOT(enumChanged(QtProperty *, int)));
+		disconnect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
+					this, SLOT(valueChanged(QtProperty *, int)));
+		disconnect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
+					this, SLOT(valueChanged(QtProperty *, bool)));
+		disconnect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
+					this, SLOT(valueChanged(QtProperty *, const QRectF &)));
+
+		// general properties
 		stringManager->setValue(idToProperty["Name"], s->getName() );
+
+		// modification properties
 		boolManager->setValue(idToProperty["Modifiable"], s->isModifiable() );
 		idToProperty["Position"]->setEnabled(s->isModifiable());
 		pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
-//		idToProperty["Rotation center"]->setEnabled(s->isModifiable());
-//		pointManager->setValue(idToProperty["Rotation center"], QPointF( s->getCenterX() / SOURCE_UNIT, s->getCenterY() / SOURCE_UNIT));
 		idToProperty["Angle"]->setEnabled(s->isModifiable());
 		doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
 		idToProperty["Scale"]->setEnabled(s->isModifiable());
 		pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
-
 		idToProperty["Fixed aspect ratio"]->setEnabled(s->isModifiable());
 		boolManager->setValue(idToProperty["Fixed aspect ratio"], s->isFixedAspectRatio());
-
 		idToProperty["Crop"]->setEnabled(s->isModifiable());
 		rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
 		idToProperty["Depth"]->setEnabled(s->isModifiable());
@@ -666,57 +630,44 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		idToProperty["Alpha"]->setEnabled(s->isModifiable());
 		doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
 
-		int preset = presetBlending.key( qMakePair( glblendToEnum[s->getBlendFuncDestination()], glequationToEnum[s->getBlendEquation()] ) );
+		// properties of blending
+		int preset = presetBlending.key( qMakePair( intFromBlendfunction(s->getBlendFuncDestination()), intFromBlendequation(s->getBlendEquation()) ) );
 		enumManager->setValue(idToProperty["Blending"], preset );
-		enumManager->setValue(idToProperty["Destination"], glblendToEnum[ s->getBlendFuncDestination() ]);
-		enumManager->setValue(idToProperty["Equation"], glequationToEnum[ s->getBlendEquation() ]);
+		enumManager->setValue(idToProperty["Destination"], intFromBlendfunction( s->getBlendFuncDestination() ));
+		enumManager->setValue(idToProperty["Equation"], intFromBlendequation( s->getBlendEquation() ));
 		idToProperty["Destination"]->setEnabled(preset == 0);
 		idToProperty["Equation"]->setEnabled(preset == 0);
-
 		enumManager->setValue(idToProperty["Mask"], s->getMask());
 		colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
 		boolManager->setValue(idToProperty["Pixelated"], s->isPixelated());
 		infoManager->setValue(idToProperty["Aspect ratio"], aspectRatioToString(s->getAspectRatio()) );
 
+		// properties of color effects
+		enumManager->setValue(idToProperty["Color inversion"], (int) s->getInvertMode() );
+		intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
+		intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
+		intManager->setValue(idToProperty["Contrast"], s->getContrast() );
+		intManager->setValue(idToProperty["Hue shift"], s->getHueShift());
+		intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
+		intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
+		boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
+		colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
+		intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
 
+		// properties of filters
 		if (ViewRenderWidget::filteringEnabled()) {
+			idToProperty["Filter"]->setEnabled( true );
 
-			boolManager->setValue(idToProperty["Filtered"], s->isFiltered());
-//
-//			intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
-//			intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
-//			intManager->setValue(idToProperty["Contrast"], s->getContrast() );
-//			intManager->setValue(idToProperty["Hue shift"], s->getHueShift() );
-//			intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
-//			intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
-//			enumManager->setValue(idToProperty["Color inversion"], (int) s->getInvertMode());
-			enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
-//			boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
-//			colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
-//			intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
-//
-//			// enable / disable properties depending on their dependencies
-//			idToProperty["Threshold"]->setEnabled(s->isFiltered());
-//			idToProperty["Color inversion"]->setEnabled(s->isFiltered());
-			idToProperty["Filter"]->setEnabled(s->isFiltered());
-//			idToProperty["Chroma key"]->setEnabled(s->isFiltered());
-//			idToProperty["Brightness"]->setEnabled(s->isFiltered());
-//			idToProperty["Contrast"]->setEnabled(s->isFiltered());
-//
-//			if (s->isFiltered()) {
-//				idToProperty["Key Color"]->setEnabled(s->getChromaKey());
-//				idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
-//				idToProperty["Saturation"]->setEnabled(s->getLuminanceThreshold() < 1);
-//				idToProperty["Hue shift"]->setEnabled(s->getLuminanceThreshold() < 1);
-//				idToProperty["Posterize"]->setEnabled(s->getLuminanceThreshold() < 1);
-//			} else {
-//				idToProperty["Posterize"]->setEnabled(false);
-//				idToProperty["Saturation"]->setEnabled(false);
-//				idToProperty["Hue shift"]->setEnabled(false);
-//				idToProperty["Key Color"]->setEnabled(false);
-//				idToProperty["Key Tolerance"]->setEnabled(false);
-//			}
+			if (s->isFiltered())
+				enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
+			else
+				enumManager->setValue(idToProperty["Filter"], 0);
+
+		} else {
+			idToProperty["Filter"]->setEnabled( false );
 		}
+
+// TODO : should we use the ffmpeg color filtering ?
 //		else {
 //			if (s->rtti() == Source::VIDEO_SOURCE) {
 //				idToProperty["Saturation"]->setEnabled( true );
@@ -732,6 +683,9 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 //			}
 //		}
 
+		//
+		// per-type properties
+		//
 		if (s->rtti() == Source::VIDEO_SOURCE) {
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Media file") );
 
@@ -820,27 +774,43 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 			sizeManager->setValue(idToProperty["Resolution"], QSize(cs->getFrameWidth(), cs->getFrameHeight()) );
 		}
 
-	    // reconnect the managers to the corresponding value change
-	    connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
-	                this, SLOT(valueChanged(QtProperty *, double)));
-	    connect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
-	                this, SLOT(valueChanged(QtProperty *, const QString &)));
-	    connect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
-	                this, SLOT(valueChanged(QtProperty *, const QColor &)));
-	    connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)),
-	                this, SLOT(valueChanged(QtProperty *, const QPointF &)));
-	    connect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
-	                this, SLOT(enumChanged(QtProperty *, int)));
-	    connect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
-	                this, SLOT(valueChanged(QtProperty *, int)));
-	    connect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
-	                this, SLOT(valueChanged(QtProperty *, bool)));
-	    connect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
-	                this, SLOT(valueChanged(QtProperty *, const QRectF &)));
+		// reconnect the managers to the corresponding value change
+		connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
+					this, SLOT(valueChanged(QtProperty *, double)));
+		connect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
+					this, SLOT(valueChanged(QtProperty *, const QString &)));
+		connect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
+					this, SLOT(valueChanged(QtProperty *, const QColor &)));
+		connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)),
+					this, SLOT(valueChanged(QtProperty *, const QPointF &)));
+		connect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
+					this, SLOT(enumChanged(QtProperty *, int)));
+		connect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
+					this, SLOT(valueChanged(QtProperty *, int)));
+		connect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
+					this, SLOT(valueChanged(QtProperty *, bool)));
+		connect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
+					this, SLOT(valueChanged(QtProperty *, const QRectF &)));
 	}
 }
 
-void SourcePropertyBrowser::showProperties(SourceSet::iterator sourceIt){
+void SourcePropertyBrowser::propertyValueChanged(QtProperty *property, bool value)
+{
+	emit( propertyChanged( property->propertyName(), value) );
+}
+
+void SourcePropertyBrowser::propertyValueChanged(QtProperty *property, int value)
+{
+	emit( propertyChanged( property->propertyName(), value) );
+}
+
+void SourcePropertyBrowser::propertyValueChanged(QtProperty *property, const QColor &value)
+{
+	emit( propertyChanged( property->propertyName(), value) );
+}
+
+void SourcePropertyBrowser::showProperties(SourceSet::iterator sourceIt)
+{
 	// this slot is called only when a different source is clicked (or when none is clicked)
 
 	// remember expanding state
@@ -972,6 +942,11 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QRectF &val
 }
 
 
+void SourcePropertyBrowser::valueChanged(QString propertyname, const QColor &value)
+{
+	colorManager->setValue(idToProperty[propertyname], value);
+}
+
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &value){
 
@@ -982,8 +957,9 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QColor &val
 		currentItem->setColor(value);
 	}
 	else if ( property == idToProperty["Key Color"] ) {
-			currentItem->setChromaKeyColor(value);
+		currentItem->setChromaKeyColor(value);
 	}
+
 }
 
 
@@ -1013,10 +989,9 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, double value){
 	}
 }
 
-void SourcePropertyBrowser::valueChanged(bool value)
+void SourcePropertyBrowser::valueChanged(QString propertyname, bool value)
 {
-	if ( objectToId.contains(sender()) )
-		boolManager->setValue(idToProperty[objectToId[sender()]], value);
+	boolManager->setValue(idToProperty[propertyname], value);
 }
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
@@ -1053,20 +1028,17 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 			}
 		}
 	}
-	else if ( property == idToProperty["Filtered"] ) {
-		currentItem->setFiltered(value);
-		updatePropertyTree(currentItem);
-	}
 	else if ( property == idToProperty["Chroma key"] ) {
 		currentItem->setChromaKey(value);
 		idToProperty["Key Color"]->setEnabled(value);
 		idToProperty["Key Tolerance"]->setEnabled(value);
 	}
 
-	// Act on the object associated (if exists)
-	if (QToolButton *button = qobject_cast<QToolButton *>(propertyToObject[property]))
-		 button->setChecked(value);
+}
 
+void SourcePropertyBrowser::valueChanged(QString propertyname, int value)
+{
+	intManager->setValue(idToProperty[propertyname], value);
 }
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
@@ -1088,15 +1060,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 	}
 	else if ( property == idToProperty["Threshold"] ) {
 		currentItem->setLuminanceThreshold(value);
-		if (value > 0) {
-			idToProperty["Saturation"]->setEnabled(false);
-			idToProperty["Hue shift"]->setEnabled(false);
-			idToProperty["Posterize"]->setEnabled(false);
-		} else {
-			idToProperty["Saturation"]->setEnabled(true);
-			idToProperty["Hue shift"]->setEnabled(true);
-			idToProperty["Posterize"]->setEnabled(true);
-		}
 	}
 	else if ( property == idToProperty["Posterize"] ) {
 		currentItem->setNumberOfColors(value);
@@ -1116,12 +1079,13 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 			as->setPeriodicity( (unsigned long) ( 1000000.0 / double(value) ) );
 		}
 	}
+
 }
 
-void SourcePropertyBrowser::enumChanged(int value)
+
+void SourcePropertyBrowser::enumChanged(QString propertyname, int value)
 {
-	if ( objectToId.contains(sender()) )
-		enumManager->setValue(idToProperty[objectToId[sender()]], value);
+	enumManager->setValue(idToProperty[propertyname], value);
 }
 
 void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
@@ -1132,10 +1096,10 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 	if ( property == idToProperty["Blending"] ) {
 
 		if ( value != 0) {
-			currentItem->setBlendFunc(GL_SRC_ALPHA, enumToGlblend[ presetBlending[value].first ] );
-			currentItem->setBlendEquation( enumToGlequation[ presetBlending[value].second ] );
-			enumManager->setValue(idToProperty["Destination"], glblendToEnum[ currentItem->getBlendFuncDestination() ]);
-			enumManager->setValue(idToProperty["Equation"], glequationToEnum[ currentItem->getBlendEquation() ]);
+			currentItem->setBlendFunc(GL_SRC_ALPHA, blendfunctionFromInt( presetBlending[value].first ) );
+			currentItem->setBlendEquation( blendequationFromInt( presetBlending[value].second ) );
+			enumManager->setValue(idToProperty["Destination"], intFromBlendfunction( currentItem->getBlendFuncDestination() ) );
+			enumManager->setValue(idToProperty["Equation"], intFromBlendequation( currentItem->getBlendEquation() ));
 		}
 		idToProperty["Destination"]->setEnabled(value == 0);
 		idToProperty["Equation"]->setEnabled(value == 0);
@@ -1143,11 +1107,11 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 	}
 	else if ( property == idToProperty["Destination"] ) {
 
-		currentItem->setBlendFunc(GL_SRC_ALPHA, enumToGlblend[value]);
+		currentItem->setBlendFunc(GL_SRC_ALPHA, blendfunctionFromInt(value));
 	}
 	else if ( property == idToProperty["Equation"] ) {
 
-		currentItem->setBlendEquation(enumToGlequation[value]);
+		currentItem->setBlendEquation( blendequationFromInt(value) );
 	}
 	else if ( property == idToProperty["Mask"] ) {
 
@@ -1161,11 +1125,13 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 //					d.setPath(fileName);
 //				}
 //			} else
-			currentItem->setMask( (Source::maskType) value );
+		currentItem->setMask( (Source::maskType) value );
 
 	}
 	else if ( property == idToProperty["Filter"] ) {
-
+		// if filter is not None, enable filtering
+		currentItem->setFiltered( value != 0 );
+		// set the current filter
 		currentItem->setFilter( (Source::filterType) value );
 		// indicate that this change affects performance
 		property->setModified(value != 0);
@@ -1176,9 +1142,6 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 
 	}
 
-	// Act on the object associated (if exists)
-	if (QComboBox *box = qobject_cast<QComboBox *>(propertyToObject[property]))
-		 box->setCurrentIndex(value);
 }
 
 
@@ -1308,28 +1271,4 @@ QString getSizeString(float num)
     return QString().setNum(num,'f',2)+" "+unit;
 }
 
-
-void SourcePropertyBrowser::linkToProperty(QToolButton *button, QString propertyName)
-{
-	propertyToObject[idToProperty[propertyName]] = (QObject *) button;
-	objectToId[(QObject *) button] = propertyName;
-	QObject::connect(button, SIGNAL(toggled(bool)), SLOT(valueChanged(bool)));
-
-}
-
-void SourcePropertyBrowser::linkToProperty(QComboBox *box, QString propertyName)
-{
-	propertyToObject[idToProperty[propertyName]] = (QObject *) box;
-	objectToId[(QObject *) box] = propertyName;
-	QObject::connect(box, SIGNAL(currentIndexChanged(int)), SLOT(enumChanged(int)));
-
-}
-
-void SourcePropertyBrowser::linkToProperty(QListWidget *list, QString propertyName)
-{
-	propertyToObject[idToProperty[propertyName]] = (QObject *) list;
-	objectToId[(QObject *) list] = propertyName;
-	QObject::connect(list, SIGNAL(currentRowChanged(int)), SLOT(enumChanged(int)));
-
-}
 

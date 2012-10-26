@@ -35,23 +35,30 @@ class SourceDisplayWidget: public glRenderWidget {
     Q_OBJECT
 
 public:
-	SourceDisplayWidget(QWidget *parent = 0);
+
+    enum backgroundType { BLACK = 0, WHITE, GRID};
+
+	SourceDisplayWidget(QWidget *parent = 0, enum backgroundType bg = GRID);
 
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
     virtual void paintGL();
+
 	void setSource(Source *sourceptr);
 	void playSource(bool on);
 
 	GLuint getNewTextureIndex();
-	void useAspectRatio(bool on) { use_aspect_ratio = on; }
-	void useFilters(bool on) { use_filters = on; }
+
+public Q_SLOTS:
+
+	void setBlendingFunction(int functionindex);
+	void setBlendingEquation(int equationindex);
 
 private:
     Source *s;
-    bool use_aspect_ratio;
-    bool use_filters;
+    enum backgroundType background;
     GLuint _bgTexture;
+    GLenum function, equation;
 };
 
 #endif /* SOURCEDISPLAYWIDGET_H_ */

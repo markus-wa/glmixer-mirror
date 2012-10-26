@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>254</width>
-    <height>252</height>
+    <height>274</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,11 +40,11 @@
      <property name="minimumSize">
       <size>
        <width>246</width>
-       <height>244</height>
+       <height>272</height>
       </size>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <property name="tabSpacing">
       <number>-1</number>
@@ -54,8 +54,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>240</width>
-        <height>130</height>
+        <width>242</width>
+        <height>154</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -143,7 +143,7 @@ QComboBox:!editable {
  }</string>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>1</number>
            </property>
            <property name="iconSize">
             <size>
@@ -156,7 +156,16 @@ QComboBox:!editable {
            </property>
            <item>
             <property name="text">
-             <string notr="true">Mix</string>
+             <string>Custom</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../images.qrc">
+              <normaloff>:/glmixer/images/blend_custom.png</normaloff>:/glmixer/images/blend_custom.png</iconset>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string notr="true">Add</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -165,7 +174,7 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Invert</string>
+             <string notr="true">Subtract</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -174,7 +183,7 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Mix layer</string>
+             <string notr="true">Add layer</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -183,7 +192,7 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Invert layer</string>
+             <string notr="true">Subtract layer</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -192,13 +201,30 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Alpha</string>
+             <string notr="true">Opacity</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
               <normaloff>:/glmixer/images/blend_layeropacity.png</normaloff>:/glmixer/images/blend_layeropacity.png</iconset>
             </property>
            </item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="blendingCustomButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>46</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/tools.png</normaloff>:/glmixer/icons/tools.png</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -227,7 +253,7 @@ QComboBox:!editable {
      border-width: 1px;
      border-style: solid;
      border-color: palette(button);
-     background-color: rgb(255, 255, 255);
+     background-color: palette(window);
      border-radius: 5px;
 }
 
@@ -245,7 +271,7 @@ QPushButton:pressed {
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="blendeingPixelatedButton">
+          <widget class="QToolButton" name="blendingPixelatedButton">
            <property name="maximumSize">
             <size>
              <width>40</width>
@@ -284,9 +310,9 @@ QPushButton:pressed {
         </layout>
        </item>
        <item>
-        <widget class="QListWidget" name="blendingMaskListWidget">
+        <widget class="QListWidget" name="blendingMaskList">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -354,14 +380,20 @@ QPushButton:pressed {
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_antialiasing.png</normaloff>:/glmixer/textures/mask_antialiasing.png</iconset>
           </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
          </item>
          <item>
           <property name="text">
-           <string>Rounded</string>
+           <string>Round</string>
           </property>
           <property name="icon">
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_roundcorner.png</normaloff>:/glmixer/textures/mask_roundcorner.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
           </property>
          </item>
          <item>
@@ -372,6 +404,9 @@ QPushButton:pressed {
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_circle.png</normaloff>:/glmixer/textures/mask_circle.png</iconset>
           </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
          </item>
          <item>
           <property name="text">
@@ -380,6 +415,9 @@ QPushButton:pressed {
           <property name="icon">
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_linear_circle.png</normaloff>:/glmixer/textures/mask_linear_circle.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
           </property>
          </item>
          <item>
@@ -390,6 +428,9 @@ QPushButton:pressed {
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_linear_square.png</normaloff>:/glmixer/textures/mask_linear_square.png</iconset>
           </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
          </item>
          <item>
           <property name="text">
@@ -398,6 +439,9 @@ QPushButton:pressed {
           <property name="icon">
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_linear_left.png</normaloff>:/glmixer/textures/mask_linear_left.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
           </property>
          </item>
          <item>
@@ -408,6 +452,9 @@ QPushButton:pressed {
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_linear_right.png</normaloff>:/glmixer/textures/mask_linear_right.png</iconset>
           </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
          </item>
          <item>
           <property name="text">
@@ -416,6 +463,9 @@ QPushButton:pressed {
           <property name="icon">
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_linear_top.png</normaloff>:/glmixer/textures/mask_linear_top.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
           </property>
          </item>
          <item>
@@ -426,6 +476,9 @@ QPushButton:pressed {
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_linear_bottom.png</normaloff>:/glmixer/textures/mask_linear_bottom.png</iconset>
           </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
          </item>
          <item>
           <property name="text">
@@ -434,6 +487,9 @@ QPushButton:pressed {
           <property name="icon">
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_linear_horizontal.png</normaloff>:/glmixer/textures/mask_linear_horizontal.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
           </property>
          </item>
          <item>
@@ -444,6 +500,9 @@ QPushButton:pressed {
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_linear_vertical.png</normaloff>:/glmixer/textures/mask_linear_vertical.png</iconset>
           </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
          </item>
          <item>
           <property name="text">
@@ -452,6 +511,9 @@ QPushButton:pressed {
           <property name="icon">
            <iconset resource="../textures.qrc">
             <normaloff>:/glmixer/textures/mask_antialiasing.png</normaloff>:/glmixer/textures/mask_antialiasing.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
           </property>
          </item>
         </widget>
@@ -464,7 +526,7 @@ QPushButton:pressed {
         <x>0</x>
         <y>0</y>
         <width>242</width>
-        <height>132</height>
+        <height>154</height>
        </rect>
       </property>
       <attribute name="label">
@@ -484,8 +546,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>129</width>
-        <height>119</height>
+        <width>225</width>
+        <height>154</height>
        </rect>
       </property>
       <attribute name="label">
@@ -493,7 +555,113 @@ QPushButton:pressed {
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
+        <widget class="QComboBox" name="EffectsInvertBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>26</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Color inversion mode</string>
+         </property>
+         <property name="statusTip">
+          <string>Color inversion mode</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QComboBox {
+     border: 1px solid palette(button);
+     border-radius: 6px;
+     padding: 1px 3px 1px 3px;
+     icon-size: 40px;
+ }
+
+QComboBox:!editable {
+      background: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+ }
+
+ QComboBox:!editable:on {
+     background: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.9, stop: 0 palette(dark), stop: 1 transparent );
+ }
+
+ QComboBox:on { /* shift the text when the popup opens */
+     padding-top: 3px;
+     padding-left: 4px;
+ }
+
+ QComboBox::drop-down {
+     subcontrol-origin: padding;
+     subcontrol-position: top right;
+     width: 15px;
+
+     border-left-width: 1px;
+     border-left-color: palette(dark);
+     border-left-style: solid; /* just a single line */
+     border-top-right-radius: 6px; /* same radius as the QComboBox */
+     border-bottom-right-radius: 6px;
+ }
+
+ QComboBox::down-arrow {
+     image: url(:/glmixer/icons/downarrow.png);
+ }
+
+ QComboBox::down-arrow:on { /* shift the arrow when popup is open */
+     top: 1px;
+     left: 1px;
+ }</string>
+         </property>
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string notr="true">No color effects</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/rgb.png</normaloff>:/glmixer/images/rgb.png</iconset>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string notr="true">Invert RGB</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/invertrgb.png</normaloff>:/glmixer/images/invertrgb.png</iconset>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string notr="true">Invert luminance</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/invertvalue.png</normaloff>:/glmixer/images/invertvalue.png</iconset>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
         <widget class="QListWidget" name="listWidget">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>85</height>
+          </size>
+         </property>
          <property name="toolTip">
           <string>Adjust the color filters</string>
          </property>
@@ -553,6 +721,9 @@ QPushButton:pressed {
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_saturation.png</normaloff>:/glmixer/images/filter_saturation.png</iconset>
           </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
          </item>
          <item>
           <property name="text">
@@ -561,6 +732,9 @@ QPushButton:pressed {
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_brightness.png</normaloff>:/glmixer/images/filter_brightness.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
           </property>
          </item>
          <item>
@@ -571,6 +745,9 @@ QPushButton:pressed {
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_contrast.png</normaloff>:/glmixer/images/filter_contrast.png</iconset>
           </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
          </item>
          <item>
           <property name="text">
@@ -579,6 +756,21 @@ QPushButton:pressed {
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_hue.png</normaloff>:/glmixer/images/filter_hue.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Threshold</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_threshold.png</normaloff>:/glmixer/images/filter_threshold.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
           </property>
          </item>
          <item>
@@ -589,14 +781,8 @@ QPushButton:pressed {
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_posterize.png</normaloff>:/glmixer/images/filter_posterize.png</iconset>
           </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Threshold</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/filter_threshold.png</normaloff>:/glmixer/images/filter_threshold.png</iconset>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
           </property>
          </item>
         </widget>
@@ -608,6 +794,12 @@ QPushButton:pressed {
          </property>
          <widget class="QWidget" name="pageSaturation">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
            <item>
             <widget class="QToolButton" name="saturationReset">
              <property name="toolTip">
@@ -683,6 +875,12 @@ Background-color: transparent;
          </widget>
          <widget class="QWidget" name="pageBrightness">
           <layout class="QHBoxLayout" name="horizontalLayoutBrightness">
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
            <item>
             <widget class="QToolButton" name="brightnessReset">
              <property name="toolTip">
@@ -758,6 +956,12 @@ Background-color: transparent;
          </widget>
          <widget class="QWidget" name="pageContrast">
           <layout class="QHBoxLayout" name="horizontalLayoutcontrast">
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
            <item>
             <widget class="QToolButton" name="contrastReset">
              <property name="toolTip">
@@ -833,6 +1037,12 @@ Background-color: transparent;
          </widget>
          <widget class="QWidget" name="pageHue">
           <layout class="QHBoxLayout" name="horizontalLayoutHue">
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
            <item>
             <widget class="QToolButton" name="hueReset">
              <property name="toolTip">
@@ -908,6 +1118,12 @@ Background-color: transparent;
          </widget>
          <widget class="QWidget" name="pageThreshold">
           <layout class="QHBoxLayout" name="horizontalLayoutThreshold">
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
            <item>
             <widget class="QToolButton" name="thresholdReset">
              <property name="toolTip">
@@ -983,8 +1199,14 @@ Background-color: transparent;
          </widget>
          <widget class="QWidget" name="pagePosterize">
           <layout class="QHBoxLayout" name="horizontalLayoutPosterize">
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
            <item>
-            <widget class="QToolButton" name="PosterizeReset">
+            <widget class="QToolButton" name="posterizeReset">
              <property name="toolTip">
               <string>Reset posterization</string>
              </property>
@@ -1060,17 +1282,17 @@ Background-color: transparent;
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="Effects">
+     <widget class="QWidget" name="Filter">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>192</width>
-        <height>115</height>
+        <width>242</width>
+        <height>154</height>
        </rect>
       </property>
       <attribute name="label">
-       <string>Effects</string>
+       <string>Filter</string>
       </attribute>
       <attribute name="toolTip">
        <string>Imaging special effects</string>
@@ -1089,7 +1311,7 @@ Background-color: transparent;
         <number>6</number>
        </property>
        <item>
-        <widget class="QListWidget" name="EffectsList">
+        <widget class="QListWidget" name="filterList">
          <property name="minimumSize">
           <size>
            <width>180</width>
@@ -1296,106 +1518,6 @@ Background-color: transparent;
          </item>
         </widget>
        </item>
-       <item>
-        <widget class="QComboBox" name="EffectsInvertBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>26</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>Color inversion mode</string>
-         </property>
-         <property name="statusTip">
-          <string>Color inversion mode</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QComboBox {
-     border: 1px solid palette(button);
-     border-radius: 6px;
-     padding: 1px 3px 1px 3px;
-     icon-size: 40px;
- }
-
-QComboBox:!editable {
-      background: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
- }
-
- QComboBox:!editable:on {
-     background: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.9, stop: 0 palette(dark), stop: 1 transparent );
- }
-
- QComboBox:on { /* shift the text when the popup opens */
-     padding-top: 3px;
-     padding-left: 4px;
- }
-
- QComboBox::drop-down {
-     subcontrol-origin: padding;
-     subcontrol-position: top right;
-     width: 15px;
-
-     border-left-width: 1px;
-     border-left-color: palette(dark);
-     border-left-style: solid; /* just a single line */
-     border-top-right-radius: 6px; /* same radius as the QComboBox */
-     border-bottom-right-radius: 6px;
- }
-
- QComboBox::down-arrow {
-     image: url(:/glmixer/icons/downarrow.png);
- }
-
- QComboBox::down-arrow:on { /* shift the arrow when popup is open */
-     top: 1px;
-     left: 1px;
- }</string>
-         </property>
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-         <item>
-          <property name="text">
-           <string notr="true">No color effects</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/rgb.png</normaloff>:/glmixer/images/rgb.png</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string notr="true">Invert luminance</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/invertvalue.png</normaloff>:/glmixer/images/invertvalue.png</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string notr="true">Invert RGB</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/invertrgb.png</normaloff>:/glmixer/images/invertrgb.png</iconset>
-          </property>
-         </item>
-        </widget>
-       </item>
       </layout>
      </widget>
     </widget>
@@ -1415,12 +1537,108 @@ QComboBox:!editable {
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>55</x>
-     <y>279</y>
+     <x>59</x>
+     <y>180</y>
     </hint>
     <hint type="destinationlabel">
-     <x>59</x>
-     <y>315</y>
+     <x>63</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>saturationSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>saturationBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>141</x>
+     <y>224</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>202</x>
+     <y>225</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>brightnessSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>brightnessBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>150</x>
+     <y>222</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>205</x>
+     <y>222</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>contrastSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>contrastBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>152</x>
+     <y>219</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>210</x>
+     <y>227</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hueSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>hueBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>167</x>
+     <y>229</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>215</x>
+     <y>228</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>thresholdSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>thresholdBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>135</x>
+     <y>226</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>209</x>
+     <y>226</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>posterizeSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>posterizeBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>149</x>
+     <y>223</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>200</x>
+     <y>223</y>
     </hint>
    </hints>
   </connection>

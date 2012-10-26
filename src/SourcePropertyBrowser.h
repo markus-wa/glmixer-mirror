@@ -35,6 +35,7 @@ class QtProperty;
 class QToolButton;
 class QComboBox;
 class QListWidget;
+class QSlider;
 
 class SourcePropertyBrowser  : public QWidget {
 
@@ -42,9 +43,6 @@ class SourcePropertyBrowser  : public QWidget {
 
 public:
 	SourcePropertyBrowser(QWidget *parent = 0);
-	void linkToProperty(QToolButton *button, QString propertyName);
-	void linkToProperty(QComboBox *box, QString propertyName);
-	void linkToProperty(QListWidget *list, QString propertyName);
 
 public slots:
 	// Shows the properties in the browser for the given source (iterator in the Manager list)
@@ -60,16 +58,23 @@ public slots:
 
     // Update the source when an action is performed on a property in the browser
     // This concerns every properties editable in the browser
+    void valueChanged(QString propertyName, const QColor &value);
     void valueChanged(QtProperty *property, const QColor &value);
     void valueChanged(QtProperty *property, const QPointF &value);
-    void valueChanged(bool value);
+    void valueChanged(QString propertyName, bool value);
     void valueChanged(QtProperty *property, bool value);
+    void valueChanged(QString propertyName, int value);
     void valueChanged(QtProperty *property, int value);
-    void enumChanged(int value);
+    void enumChanged(QString propertyName, int value);
     void enumChanged(QtProperty *property, int value);
 	void valueChanged(QtProperty *property, double value);
 	void valueChanged(QtProperty *property, const QString &value);
     void valueChanged(QtProperty *property, const QRectF &value);
+
+    // simple slots to always forward the property changed signals (to Mixing Tollbox for instance)
+	void propertyValueChanged(QtProperty *, bool);
+	void propertyValueChanged(QtProperty *, int);
+	void propertyValueChanged(QtProperty *, const QColor &);
 
     // force expanding or collapsing of the property tree items
     void setGlobalExpandState(bool expanded);
@@ -84,10 +89,12 @@ public slots:
     void switchToGroupView();
 
     void setPropertyEnabled(QString propertyName, bool enabled);
-    void setFilterPropertyEnabled(bool on);
 
 Q_SIGNALS:
 	void changed(Source *s);
+	void propertyChanged(QString, bool);
+	void propertyChanged(QString, int);
+	void propertyChanged(QString, const QColor &);
 
 private:
 
@@ -96,8 +103,6 @@ private:
 	// utility lists of properties
     QMap<Source::RTTI, QtProperty *> rttiToProperty;
     QMap<QString, QtProperty *> idToProperty;
-    QMap<QObject *, QString> objectToId;
-    QMap<QtProperty *, QObject *> propertyToObject;
     QMap<QString, bool> idToExpanded;
 
     // the link with sources

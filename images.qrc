@@ -1,5 +1,11 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>images/filter_saturation.png</file>
+    <file>images/filter_brightness.png</file>
+    <file>images/filter_contrast.png</file>
+    <file>images/filter_hue.png</file>
+    <file>images/filter_threshold.png</file>
+    <file>images/filter_posterize.png</file>
     <file>images/blend_custom.png</file>
     <file>images/nico_smooth.png</file>
     <file>images/invertrgb.png</file>
