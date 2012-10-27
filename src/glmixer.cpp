@@ -528,9 +528,9 @@ void GLMixer::setView(QAction *a){
 	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getView()->getIcon());
 	viewLabel->setText(RenderingManager::getRenderingWidget()->getView()->getTitle());
 
-	// disable / enable catalog view depending on the view
-	actionShow_Catalog->setEnabled(a == actionMixingView || a == actionGeometryView);
-	RenderingManager::getRenderingWidget()->setCatalogVisible(actionShow_Catalog->isEnabled() && actionShow_Catalog->isChecked() );
+//	// disable / enable catalog view depending on the view
+//	actionShow_Catalog->setEnabled(a == actionMixingView || a == actionGeometryView);
+//	RenderingManager::getRenderingWidget()->setCatalogVisible(actionShow_Catalog->isEnabled() && actionShow_Catalog->isChecked() );
 
 	// get back the proper tool from former usage
 	switch ( RenderingManager::getRenderingWidget()->getToolMode() ){

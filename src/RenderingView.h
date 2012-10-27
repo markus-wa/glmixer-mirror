@@ -33,10 +33,10 @@ public:
 	RenderingView();
 	virtual ~RenderingView();
 
+    void paint();
     void setModelview();
     void resize(int w = -1, int h = -1);
-
-    void paint();
+    bool mousePressEvent(QMouseEvent *event);
 
 };
 

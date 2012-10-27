@@ -104,6 +104,7 @@ public:
 	float getFramerate() { return f_p_s_; }
 	void showFramerate(bool on);
 	void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
+	int catalogWidth();
 
 	/**
 	 * management of the manipulation views

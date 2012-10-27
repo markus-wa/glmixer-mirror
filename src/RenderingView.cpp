@@ -38,11 +38,17 @@ void RenderingView::resize(int w, int h)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    double ar = (double) viewport[2] / (double) viewport[3];
+	// setup the view
+	double ar = (double) viewport[2] / (double) viewport[3];
+
     if ( ar > OutputRenderWindow::getInstance()->getAspectRatio())
          glOrtho(-SOURCE_UNIT* ar, SOURCE_UNIT*ar, -SOURCE_UNIT, SOURCE_UNIT, -MAX_DEPTH_LAYER, 1.0);
-     else
-         glOrtho(-SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(), OutputRenderWindow::getInstance()->getAspectRatio()*SOURCE_UNIT, -OutputRenderWindow::getInstance()->getAspectRatio()*SOURCE_UNIT/ar, OutputRenderWindow::getInstance()->getAspectRatio()*SOURCE_UNIT/ar, -MAX_DEPTH_LAYER, 1.0);
+    else
+         glOrtho(-SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(),
+        		 OutputRenderWindow::getInstance()->getAspectRatio()*SOURCE_UNIT,
+        		 -OutputRenderWindow::getInstance()->getAspectRatio()*SOURCE_UNIT/ar,
+        		 OutputRenderWindow::getInstance()->getAspectRatio()*SOURCE_UNIT/ar,
+        		 -MAX_DEPTH_LAYER, 1.0);
 
 	glGetDoublev(GL_PROJECTION_MATRIX, projection);
 }
@@ -50,6 +56,9 @@ void RenderingView::resize(int w, int h)
 void RenderingView::paint()
 {
 	static bool first = true;
+
+	glPushMatrix();
+	glTranslatef( -SOURCE_UNIT * RenderingManager::getRenderingWidget()->catalogWidth() / viewport[2], 0.f, 0.f);
 
     // first the background (as the rendering black clear color) with shadow
 	glPushMatrix();
@@ -82,10 +91,14 @@ void RenderingView::paint()
 			(*its)->beginEffectsSection();
 			// bind the source texture and update its content
 			(*its)->update();
-			// Draw it !
-			(*its)->blend();
-			(*its)->draw();
 
+			if ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
+				 || RenderingManager::getInstance()->isCurrentSource(its)
+				 || View::isInSelection(*its)) {
+				// Draw it !
+				(*its)->blend();
+				(*its)->draw();
+			}
 			//
 			// 2. Render it into FBO
 			//
@@ -110,4 +123,20 @@ void RenderingView::paint()
     glCallList(ViewRenderWidget::frame_screen_mask);
     glPopMatrix();
 
+    glPopMatrix();
+}
+
+
+bool RenderingView::mousePressEvent(QMouseEvent *event)
+{
+	if (!event)
+		return false;
+
+	// no current source
+	RenderingManager::getInstance()->unsetCurrentSource();
+
+	// clear selection
+	View::clearSelection();
+
+	return true;
 }

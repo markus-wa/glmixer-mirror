@@ -351,6 +351,14 @@ void ViewRenderWidget::setCatalogVisible(bool on)
 	_catalogView->setVisible(on);
 }
 
+int ViewRenderWidget::catalogWidth()
+{
+	if (_catalogView->visible())
+		return _catalogView->viewport[2];
+	else
+		return 0;
+}
+
 void ViewRenderWidget::setCatalogSizeSmall()
 {
 	_catalogView->setSize(CatalogView::SMALL);
@@ -496,7 +504,7 @@ void ViewRenderWidget::resizeGL(int w, int h)
 	// modify catalog view
 	_catalogView->resize(w, h);
 
-	// resize the view taking
+	// resize the current view itself
 	_currentView->resize(w, h);
 }
 
