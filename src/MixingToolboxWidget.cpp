@@ -79,7 +79,7 @@ public:
 	             << tr("Background color")
 	             << tr("Invert Background Color")
 	             << tr("Source Alpha")
-	             << tr( "Invert Source Alpha")
+	             << tr("Invert Source Alpha")
 	             << tr("Background Alpha")
 	             << tr("Invert Background Alpha")
 	            );

@@ -282,7 +282,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("OpenGL blending function");
 	enumNames.clear();
-	enumNames << "Zero" << "One" << "Color" << "Invert color" << "Background color" << "Invert background color" << "Alpha" << "Invert alpha" << "Background Alpha" << "Invert background Alpha";
+	enumNames << "Zero" << "One" << "Source Color" << "Invert source color" << "Background color" << "Invert background color" << "Source Alpha" << "Invert source alpha" << "Background Alpha" << "Invert background Alpha";
 	enumManager->setEnumNames(property, enumNames);
 	blendingItem->addSubProperty(property);
 	// Confirm and add the blending item
