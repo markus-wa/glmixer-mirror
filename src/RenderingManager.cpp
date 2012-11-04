@@ -1663,7 +1663,7 @@ void RenderingManager::setFrameSharingEnabled(bool on){
 		QVariant variant = QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer.png"));
 		processInformation["icon"] = variant;
 
-		QString m_sharedMemoryKey = QString("glmixer%1").arg(qrand());
+		QString m_sharedMemoryKey = QString("glmixer%1").arg(id);
 		processInformation["key"] = m_sharedMemoryKey;
 
 		//
