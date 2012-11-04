@@ -58,7 +58,8 @@ void RenderingView::paint()
 	static bool first = true;
 
 	glPushMatrix();
-	glTranslatef( -SOURCE_UNIT * RenderingManager::getRenderingWidget()->catalogWidth() / viewport[2], 0.f, 0.f);
+	glTranslatef( - 2.f * SOURCE_UNIT * RenderingManager::getRenderingWidget()->catalogWidth() / viewport[2], 0.f, 0.f);
+    glScalef( 1.0 - (float) RenderingManager::getRenderingWidget()->catalogWidth() / (float)viewport[2], 1.0 -(float) RenderingManager::getRenderingWidget()->catalogWidth() / (float)viewport[2], 1.0);
 
     // first the background (as the rendering black clear color) with shadow
 	glPushMatrix();

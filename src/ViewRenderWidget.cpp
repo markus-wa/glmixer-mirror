@@ -817,6 +817,10 @@ bool ViewRenderWidget::eventFilter(QObject *object, QEvent *event)
 				RenderingManager::getInstance()->setCurrentNext();
 			return true;
 		}
+		else if (keyEvent->key() == Qt::Key_Escape)
+		{
+			RenderingManager::getInstance()->unsetCurrentSource();
+		}
 	}
 
 	// standard event processing
