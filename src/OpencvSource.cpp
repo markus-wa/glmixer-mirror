@@ -92,6 +92,10 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	if (!capture)
 		NoCameraIndexException().raise();
 
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FPS, (double) 30);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, (double) 1024);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, (double) 768);
+
 	// fill in first frame
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
