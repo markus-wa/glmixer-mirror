@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/plus_source.png</file>
+    <file>icons/trash.png</file>
+    <file>icons/plus.png</file>
     <file>icons/downarrow.png</file>
     <file>icons/align-horizontal-center.png</file>
     <file>icons/align-horizontal-left.png</file>

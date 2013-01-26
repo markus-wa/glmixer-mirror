@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>254</width>
-    <height>274</height>
+    <width>237</width>
+    <height>277</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,23 +39,23 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>246</width>
-       <height>272</height>
+       <width>235</width>
+       <height>275</height>
       </size>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <property name="tabSpacing">
-      <number>-1</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="Blending">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>242</width>
-        <height>154</height>
+        <width>235</width>
+        <height>155</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -69,6 +69,9 @@
         <width>190</width>
         <height>0</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>Setup the source mixing mode and masks</string>
       </property>
       <attribute name="label">
        <string>Blending</string>
@@ -272,18 +275,25 @@ QPushButton:pressed {
          </item>
          <item>
           <widget class="QToolButton" name="blendingPixelatedButton">
-           <property name="maximumSize">
-            <size>
-             <width>40</width>
-             <height>40</height>
-            </size>
-           </property>
            <property name="toolTip">
             <string>Smoothed / Pixelated 
-(smooth or keep original pixels)</string>
+(smooth between pixels or show square pixels)</string>
            </property>
            <property name="statusTip">
-            <string>Smoothed / Pixelated \n(smooth or keep original pixels)</string>
+            <string>Smoothed / Pixelated \n(smooth between pixels or show square pixels)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 0px;
+    border-radius:2px;
+	 padding: 2px;
+     min-height: 40px;
+     min-width: 40px;
+     border-color: transparent;
+     background: transparent;
+}
+</string>
            </property>
            <property name="text">
             <string>Pixelated</string>
@@ -295,8 +305,8 @@ QPushButton:pressed {
            </property>
            <property name="iconSize">
             <size>
-             <width>60</width>
-             <height>60</height>
+             <width>40</width>
+             <height>40</height>
             </size>
            </property>
            <property name="checkable">
@@ -525,9 +535,12 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>242</width>
-        <height>154</height>
+        <width>235</width>
+        <height>155</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>Setup the gamma color filter</string>
       </property>
       <attribute name="label">
        <string>Gamma</string>
@@ -546,8 +559,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>225</width>
-        <height>154</height>
+        <width>235</width>
+        <height>155</height>
        </rect>
       </property>
       <attribute name="label">
@@ -565,11 +578,11 @@ QPushButton:pressed {
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>26</height>
+           <height>24</height>
           </size>
          </property>
          <property name="toolTip">
-          <string>Color inversion mode</string>
+          <string>Choose a color inversion mode</string>
          </property>
          <property name="statusTip">
           <string>Color inversion mode</string>
@@ -627,7 +640,7 @@ QComboBox:!editable {
          </property>
          <item>
           <property name="text">
-           <string notr="true">No color effects</string>
+           <string notr="true">No color inversion</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -659,7 +672,7 @@ QComboBox:!editable {
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>85</height>
+           <height>80</height>
           </size>
          </property>
          <property name="toolTip">
@@ -717,6 +730,9 @@ QComboBox:!editable {
           <property name="text">
            <string>Saturation</string>
           </property>
+          <property name="toolTip">
+           <string>Saturation (intensity of colors)</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_saturation.png</normaloff>:/glmixer/images/filter_saturation.png</iconset>
@@ -728,6 +744,9 @@ QComboBox:!editable {
          <item>
           <property name="text">
            <string>Brightness</string>
+          </property>
+          <property name="toolTip">
+           <string>Brightness (dark or light)</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -741,6 +760,9 @@ QComboBox:!editable {
           <property name="text">
            <string>Contrast</string>
           </property>
+          <property name="toolTip">
+           <string>Contrast (uniform or sharp)</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_contrast.png</normaloff>:/glmixer/images/filter_contrast.png</iconset>
@@ -752,6 +774,9 @@ QComboBox:!editable {
          <item>
           <property name="text">
            <string>Hue</string>
+          </property>
+          <property name="toolTip">
+           <string>Color hue (shift in color tint)</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -765,6 +790,9 @@ QComboBox:!editable {
           <property name="text">
            <string>Threshold</string>
           </property>
+          <property name="toolTip">
+           <string>Threshold by color (anything below threshold is black, above is white)</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_threshold.png</normaloff>:/glmixer/images/filter_threshold.png</iconset>
@@ -776,6 +804,9 @@ QComboBox:!editable {
          <item>
           <property name="text">
            <string>Posterize</string>
+          </property>
+          <property name="toolTip">
+           <string>Posterize the image (reduce the number of colors)</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -845,7 +876,16 @@ border:0px
             <widget class="QSpinBox" name="saturationBox">
              <property name="styleSheet">
               <string notr="true">QSpinBox {
-Background-color: transparent;
+	Background-color: transparent;
+     border-color: transparent;
+     border-width: 1px;
+	border-style: solid;
+    border-radius:5px;
+}
+
+QSpinBox:hover{
+	Background-color: palette(Light);
+     border-color: palette(Dark);
 }</string>
              </property>
              <property name="frame">
@@ -859,6 +899,9 @@ Background-color: transparent;
              </property>
              <property name="correctionMode">
               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+             </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
              </property>
              <property name="suffix">
               <string>%</string>
@@ -926,7 +969,16 @@ border:0px
             <widget class="QSpinBox" name="brightnessBox">
              <property name="styleSheet">
               <string notr="true">QSpinBox {
-Background-color: transparent;
+	Background-color: transparent;
+     border-color: transparent;
+     border-width: 1px;
+	border-style: solid;
+    border-radius:5px;
+}
+
+QSpinBox:hover{
+	Background-color: palette(Light);
+     border-color: palette(Dark);
 }</string>
              </property>
              <property name="frame">
@@ -940,6 +992,9 @@ Background-color: transparent;
              </property>
              <property name="correctionMode">
               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+             </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
              </property>
              <property name="suffix">
               <string>%</string>
@@ -1005,13 +1060,25 @@ border:0px
            </item>
            <item>
             <widget class="QSpinBox" name="contrastBox">
+             <property name="toolTip">
+              <string>Adjust contrast</string>
+             </property>
              <property name="styleSheet">
               <string notr="true">QSpinBox {
-Background-color: transparent;
+	Background-color: transparent;
+     border-color: transparent;
+     border-width: 1px;
+	border-style: solid;
+    border-radius:5px;
+}
+
+QSpinBox:hover{
+	Background-color: palette(Light);
+     border-color: palette(Dark);
 }</string>
              </property>
              <property name="frame">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1021,6 +1088,9 @@ Background-color: transparent;
              </property>
              <property name="correctionMode">
               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+             </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
              </property>
              <property name="suffix">
               <string>%</string>
@@ -1071,7 +1141,7 @@ border:0px
            <item>
             <widget class="QSlider" name="hueSlider">
              <property name="toolTip">
-              <string>Adjust hue</string>
+              <string>Adjust color hue</string>
              </property>
              <property name="minimum">
               <number>0</number>
@@ -1086,9 +1156,21 @@ border:0px
            </item>
            <item>
             <widget class="QSpinBox" name="hueBox">
+             <property name="toolTip">
+              <string>Adjust color hue</string>
+             </property>
              <property name="styleSheet">
               <string notr="true">QSpinBox {
-Background-color: transparent;
+	Background-color: transparent;
+     border-color: transparent;
+     border-width: 1px;
+	border-style: solid;
+    border-radius:5px;
+}
+
+QSpinBox:hover{
+	Background-color: palette(Light);
+     border-color: palette(Dark);
 }</string>
              </property>
              <property name="frame">
@@ -1096,6 +1178,9 @@ Background-color: transparent;
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+             <property name="readOnly">
+              <bool>false</bool>
              </property>
              <property name="buttonSymbols">
               <enum>QAbstractSpinBox::NoButtons</enum>
@@ -1169,7 +1254,16 @@ border:0px
             <widget class="QSpinBox" name="thresholdBox">
              <property name="styleSheet">
               <string notr="true">QSpinBox {
-Background-color: transparent;
+	Background-color: transparent;
+     border-color: transparent;
+     border-width: 1px;
+	border-style: solid;
+    border-radius:5px;
+}
+
+QSpinBox:hover{
+	Background-color: palette(Light);
+     border-color: palette(Dark);
 }</string>
              </property>
              <property name="frame">
@@ -1183,6 +1277,9 @@ Background-color: transparent;
              </property>
              <property name="correctionMode">
               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+             </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
              </property>
              <property name="suffix">
               <string>%</string>
@@ -1233,16 +1330,25 @@ border:0px
            <item>
             <widget class="QSlider" name="posterizeSlider">
              <property name="toolTip">
-              <string>Adjust threshold</string>
+              <string>Adjust number of colors</string>
              </property>
              <property name="minimum">
-              <number>0</number>
+              <number>1</number>
              </property>
              <property name="maximum">
               <number>255</number>
              </property>
+             <property name="value">
+              <number>255</number>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="invertedAppearance">
+              <bool>true</bool>
+             </property>
+             <property name="invertedControls">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -1250,7 +1356,16 @@ border:0px
             <widget class="QSpinBox" name="posterizeBox">
              <property name="styleSheet">
               <string notr="true">QSpinBox {
-Background-color: transparent;
+	Background-color: transparent;
+     border-color: transparent;
+     border-width: 1px;
+	border-style: solid;
+    border-radius:5px;
+}
+
+QSpinBox:hover{
+	Background-color: palette(Light);
+     border-color: palette(Dark);
 }</string>
              </property>
              <property name="frame">
@@ -1265,13 +1380,19 @@ Background-color: transparent;
              <property name="correctionMode">
               <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
              </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
              <property name="suffix">
               <string>/255</string>
              </property>
              <property name="minimum">
-              <number>0</number>
+              <number>1</number>
              </property>
              <property name="maximum">
+              <number>255</number>
+             </property>
+             <property name="value">
               <number>255</number>
              </property>
             </widget>
@@ -1287,9 +1408,12 @@ Background-color: transparent;
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>242</width>
-        <height>154</height>
+        <width>235</width>
+        <height>155</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>Setup image processing filters</string>
       </property>
       <attribute name="label">
        <string>Filter</string>
@@ -1298,17 +1422,8 @@ Background-color: transparent;
        <string>Imaging special effects</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_7">
-       <property name="leftMargin">
-        <number>6</number>
-       </property>
-       <property name="topMargin">
-        <number>3</number>
-       </property>
-       <property name="rightMargin">
-        <number>6</number>
-       </property>
-       <property name="bottomMargin">
-        <number>6</number>
+       <property name="margin">
+        <number>4</number>
        </property>
        <item>
         <widget class="QListWidget" name="filterList">
@@ -1376,6 +1491,9 @@ Background-color: transparent;
           <property name="text">
            <string>None</string>
           </property>
+          <property name="toolTip">
+           <string>No filter</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_none.png</normaloff>:/glmixer/images/filter_none.png</iconset>
@@ -1384,6 +1502,9 @@ Background-color: transparent;
          <item>
           <property name="text">
            <string>Blur</string>
+          </property>
+          <property name="toolTip">
+           <string>Gaussian blur</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -1394,6 +1515,9 @@ Background-color: transparent;
           <property name="text">
            <string>Blur +</string>
           </property>
+          <property name="toolTip">
+           <string>Median blur</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_medianblur.png</normaloff>:/glmixer/images/filter_medianblur.png</iconset>
@@ -1402,6 +1526,9 @@ Background-color: transparent;
          <item>
           <property name="text">
            <string>Sharpen</string>
+          </property>
+          <property name="toolTip">
+           <string>Sharpen 1x1</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -1412,6 +1539,9 @@ Background-color: transparent;
           <property name="text">
            <string>Sharpen +</string>
           </property>
+          <property name="toolTip">
+           <string>Sharpen 3x3</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_sharpenmore.png</normaloff>:/glmixer/images/filter_sharpenmore.png</iconset>
@@ -1420,6 +1550,9 @@ Background-color: transparent;
          <item>
           <property name="text">
            <string>Edge -</string>
+          </property>
+          <property name="toolTip">
+           <string>Gaussian edge detection</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -1430,6 +1563,9 @@ Background-color: transparent;
           <property name="text">
            <string>Edge</string>
           </property>
+          <property name="toolTip">
+           <string>Laplace edge detection</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_mediumedgedetect.png</normaloff>:/glmixer/images/filter_mediumedgedetect.png</iconset>
@@ -1438,6 +1574,9 @@ Background-color: transparent;
          <item>
           <property name="text">
            <string>Edge +</string>
+          </property>
+          <property name="toolTip">
+           <string>Laplace strong edge detection</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -1448,6 +1587,9 @@ Background-color: transparent;
           <property name="text">
            <string>Emboss</string>
           </property>
+          <property name="toolTip">
+           <string>Emboss </string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_emboss.png</normaloff>:/glmixer/images/filter_emboss.png</iconset>
@@ -1456,6 +1598,9 @@ Background-color: transparent;
          <item>
           <property name="text">
            <string>Emboss +</string>
+          </property>
+          <property name="toolTip">
+           <string>Emboss and edge detection</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -1466,6 +1611,9 @@ Background-color: transparent;
           <property name="text">
            <string>Erosion 3</string>
           </property>
+          <property name="toolTip">
+           <string>Erosion 3x3</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_erosion3x3.png</normaloff>:/glmixer/images/filter_erosion3x3.png</iconset>
@@ -1474,6 +1622,9 @@ Background-color: transparent;
          <item>
           <property name="text">
            <string>Erosion 5</string>
+          </property>
+          <property name="toolTip">
+           <string>Erosion 5x5</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -1484,6 +1635,9 @@ Background-color: transparent;
           <property name="text">
            <string>Erosion 7</string>
           </property>
+          <property name="toolTip">
+           <string>Erosion 7x7</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_erosion7x7.png</normaloff>:/glmixer/images/filter_erosion7x7.png</iconset>
@@ -1492,6 +1646,9 @@ Background-color: transparent;
          <item>
           <property name="text">
            <string>Dilation 3</string>
+          </property>
+          <property name="toolTip">
+           <string>Dilation 3x3</string>
           </property>
           <property name="icon">
            <iconset resource="../images.qrc">
@@ -1502,6 +1659,9 @@ Background-color: transparent;
           <property name="text">
            <string>Dilation 5</string>
           </property>
+          <property name="toolTip">
+           <string>Dilation 5x5</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_dilation5x5.png</normaloff>:/glmixer/images/filter_dilation5x5.png</iconset>
@@ -1511,11 +1671,215 @@ Background-color: transparent;
           <property name="text">
            <string>Dilation 7</string>
           </property>
+          <property name="toolTip">
+           <string>Dilation 7x7</string>
+          </property>
           <property name="icon">
            <iconset resource="../images.qrc">
             <normaloff>:/glmixer/images/filter_dilation7x7.png</normaloff>:/glmixer/images/filter_dilation7x7.png</iconset>
           </property>
          </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="Presets">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>235</width>
+        <height>155</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Presets</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="3" column="1">
+        <widget class="QToolButton" name="presetRemove">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Remove the selected preset from the list.</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/trash.png</normaloff>:/glmixer/icons/trash.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QToolButton" name="presetAdd">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>Create a new preset from the settings of the current source.</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/plus_source.png</normaloff>:/glmixer/icons/plus_source.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" rowspan="4">
+        <widget class="QListWidget" name="presetsList">
+         <property name="baseSize">
+          <size>
+           <width>2</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Double clic on a preset to apply it to the selected source(s).</string>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="showDropIndicator" stdset="0">
+          <bool>false</bool>
+         </property>
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="currentRow">
+          <number>-1</number>
+         </property>
+         <item>
+          <property name="text">
+           <string>Original</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Desaturated</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>hypersaturated</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Impressionnist</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QToolButton" name="presetsUpdate">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
+         </property>
         </widget>
        </item>
       </layout>
@@ -1537,12 +1901,12 @@ Background-color: transparent;
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>59</x>
-     <y>180</y>
+     <x>63</x>
+     <y>189</y>
     </hint>
     <hint type="destinationlabel">
-     <x>63</x>
-     <y>215</y>
+     <x>67</x>
+     <y>222</y>
     </hint>
    </hints>
   </connection>
@@ -1553,12 +1917,12 @@ Background-color: transparent;
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>141</x>
-     <y>224</y>
+     <x>145</x>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
-     <x>202</x>
-     <y>225</y>
+     <x>224</x>
+     <y>217</y>
     </hint>
    </hints>
   </connection>
@@ -1569,12 +1933,12 @@ Background-color: transparent;
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>150</x>
-     <y>222</y>
+     <x>89</x>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
-     <x>205</x>
-     <y>222</y>
+     <x>224</x>
+     <y>217</y>
     </hint>
    </hints>
   </connection>
@@ -1585,12 +1949,12 @@ Background-color: transparent;
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>152</x>
-     <y>219</y>
+     <x>89</x>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
-     <x>210</x>
-     <y>227</y>
+     <x>224</x>
+     <y>217</y>
     </hint>
    </hints>
   </connection>
@@ -1601,12 +1965,12 @@ Background-color: transparent;
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>167</x>
-     <y>229</y>
+     <x>90</x>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
-     <x>215</x>
-     <y>228</y>
+     <x>224</x>
+     <y>217</y>
     </hint>
    </hints>
   </connection>
@@ -1617,12 +1981,12 @@ Background-color: transparent;
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>135</x>
-     <y>226</y>
+     <x>89</x>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
-     <x>209</x>
-     <y>226</y>
+     <x>217</x>
+     <y>216</y>
     </hint>
    </hints>
   </connection>
@@ -1633,12 +1997,108 @@ Background-color: transparent;
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>149</x>
-     <y>223</y>
+     <x>89</x>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
-     <x>200</x>
-     <y>223</y>
+     <x>224</x>
+     <y>217</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>contrastBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>contrastSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>196</x>
+     <y>209</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>136</x>
+     <y>209</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hueBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>hueSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>193</x>
+     <y>210</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>173</x>
+     <y>210</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>thresholdBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>thresholdSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>194</x>
+     <y>211</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>166</x>
+     <y>210</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>posterizeBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>posterizeSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>209</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>209</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>saturationBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>saturationSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>190</x>
+     <y>210</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>155</x>
+     <y>208</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>brightnessBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>brightnessSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>182</x>
+     <y>209</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>148</x>
+     <y>209</y>
     </hint>
    </hints>
   </connection>

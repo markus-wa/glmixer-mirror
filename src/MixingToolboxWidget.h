@@ -35,6 +35,11 @@ public Q_SLOTS:
     // setup connections with property manager
     //
 
+    // Presets Page
+    void on_presetsList_itemDoubleClicked(QListWidgetItem *);
+    void on_presetsList_currentItemChanged(QListWidgetItem *item);
+
+
     // Blending Page
     void on_blendingBox_currentIndexChanged(int);
     void on_blendingColorButton_pressed();

@@ -317,7 +317,7 @@ void main(void)
     if (invertMode==1)
        transformedRGB = vec3(1.0) - transformedRGB;
 
-	if ( abs(saturation -1.0) > 0.01 || threshold > 0.0 || hueshift > 0.0 || nbColors > 0  || chromakey.z > 0.0 || invertMode == 2 ) {
+	if ( abs(saturation -1.0) > 0.01 || threshold > 0.0 || hueshift > 0.0 || nbColors > 0 || chromakey.z > 0.0 || invertMode == 2 ) {
 
 	    vec3 transformedHSL = RGBToHSL( transformedRGB );
 	

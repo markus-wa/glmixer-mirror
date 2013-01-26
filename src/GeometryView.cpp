@@ -394,6 +394,15 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 	}
 
+//	// Mouse over BORDER OF RENDER AREA
+//	// get coordinate of cursor
+//	GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+//	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+//	if ( qAbs( cursorx - OutputRenderWindow::getInstance()->getAspectRatio() * SOURCE_UNIT ) < 0.2 || qAbs( cursory - SOURCE_UNIT) < 0.2 ) {
+//		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+//		return false;
+//	}
+
 	// PANNING of the background
 	if ( currentAction == View::PANNING ) {
 		// panning background

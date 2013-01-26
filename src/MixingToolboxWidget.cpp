@@ -174,7 +174,7 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, int value)
 	else if (propertyname == "Threshold")
 		thresholdSlider->setValue(value);
 	else if (propertyname == "Posterize")
-		posterizeSlider->setValue(value);
+		posterizeSlider->setValue(value < 1 ? 255 : value);
 	else if (propertyname == "Hue shift")
 		hueSlider->setValue(value);
 	else if (propertyname == "Filter")
@@ -270,7 +270,7 @@ void MixingToolboxWidget::on_thresholdSlider_valueChanged(int value)
 
 void MixingToolboxWidget::on_posterizeSlider_valueChanged(int value)
 {
-	emit(valueChanged("Posterize", value));
+	emit(valueChanged("Posterize", value > 254 ? 0 : value));
 }
 
 void MixingToolboxWidget::on_saturationReset_pressed()
@@ -300,7 +300,7 @@ void MixingToolboxWidget::on_thresholdReset_pressed()
 
 void MixingToolboxWidget::on_posterizeReset_pressed()
 {
-	posterizeSlider->setValue(0);
+	posterizeSlider->setValue(255);
 }
 
 void MixingToolboxWidget::on_filterList_currentRowChanged(int value)
@@ -308,4 +308,18 @@ void MixingToolboxWidget::on_filterList_currentRowChanged(int value)
 	emit(enumChanged("Filter", value));
 }
 
+
+void MixingToolboxWidget::on_presetsList_itemDoubleClicked(QListWidgetItem *item){
+
+	qDebug( qPrintable(QString("Preset %1 applied").arg(item->text())) );
+
+}
+
+
+void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *item){
+
+	qDebug( qPrintable(QString("Preset %1 selected").arg(item->text())) );
+
+
+}
 
