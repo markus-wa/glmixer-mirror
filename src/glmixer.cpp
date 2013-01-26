@@ -399,10 +399,11 @@ GLMixer::~GLMixer()
 
 void GLMixer::exitHandler() {
 
-	_instance->saveSettings();
-
 	// no message handling when quit
 	qInstallMsgHandler(0);
+
+	// save window settings
+	_instance->saveSettings();
 
 	RenderingManager::deleteInstance();
 	OutputRenderWindow::deleteInstance();
@@ -1844,10 +1845,21 @@ void GLMixer::readSettings()
     else
         settings.setValue("defaultWindowState", saveState());
 
-    if (settings.contains("OutputRenderWindow"))
-    	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("OutputRenderWindow").toByteArray());
+    if (settings.contains("OutputRenderWindow_state")) {
+    	// special case for full screen
+    	if ( Qt::WindowFullScreen & (Qt::WindowStates) settings.value("OutputRenderWindow_state").toInt() ) {
+    		// apply the full screen
+    		actionFullscreen->setChecked(true);
+    	}
+    	else
+    		OutputRenderWindow::getInstance()->setWindowState( ( Qt::WindowStates) settings.value("OutputRenderWindow_state").toInt());
+    } else
+        settings.setValue("defaultOutputRenderWindow_state", 0);
+
+    if (settings.contains("OutputRenderWindow_geometry"))
+    	OutputRenderWindow::getInstance()->setGeometry(settings.value("OutputRenderWindow_geometry").toRect());
     else
-        settings.setValue("defaultOutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
+    	settings.setValue("defaultOutputRenderWindow_geometry", (OutputRenderWindow::getInstance())->geometry());
 
     // dialogs configs
     if (settings.contains("vcontrolOptionSplitter"))
@@ -1919,7 +1931,8 @@ void GLMixer::saveSettings()
 	// windows config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-    settings.setValue("OutputRenderWindow", (OutputRenderWindow::getInstance())->saveGeometry());
+    settings.setValue("OutputRenderWindow_geometry", (OutputRenderWindow::getInstance())->geometry());
+    settings.setValue("OutputRenderWindow_state", (int) (OutputRenderWindow::getInstance())->windowState());
 
     // dialogs configs
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
@@ -1951,7 +1964,8 @@ void GLMixer::on_actionResetToolbars_triggered()
 {
 	restoreGeometry(settings.value("defaultGeometry").toByteArray());
 	restoreState(settings.value("defaultWindowState").toByteArray());
-	OutputRenderWindow::getInstance()->restoreGeometry(settings.value("defaultOutputRenderWindow").toByteArray());
+	OutputRenderWindow::getInstance()->setGeometry(settings.value("defaultOutputRenderWindow_geometry").toRect());
+	OutputRenderWindow::getInstance()->setWindowState( ( Qt::WindowStates) settings.value("defaultOutputRenderWindow_state").toInt());
 	restoreDockWidget(previewDockWidget);
 	restoreDockWidget(sourceDockWidget);
 	restoreDockWidget(vcontrolDockWidget);

@@ -269,7 +269,7 @@ void OutputRenderWindow::setFullScreen(bool on) {
 			return;
 
 		// other cases ; need to switch fullscreen <-> not fullscreen
-		setWindowState(windowState() ^ Qt::WindowFullScreen);
+		setWindowState( windowState() ^ Qt::WindowFullScreen);
 		update();
 	}
 }
