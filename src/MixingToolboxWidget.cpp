@@ -309,6 +309,27 @@ void MixingToolboxWidget::on_filterList_currentRowChanged(int value)
 }
 
 
+void MixingToolboxWidget::on_presetApply_pressed()
+{
+
+}
+
+void MixingToolboxWidget::on_presetReApply_pressed()
+{
+
+}
+
+void MixingToolboxWidget::on_presetAdd_pressed()
+{
+
+}
+
+void MixingToolboxWidget::on_presetRemove_pressed()
+{
+
+}
+
+
 void MixingToolboxWidget::on_presetsList_itemDoubleClicked(QListWidgetItem *item){
 
 	qDebug( qPrintable(QString("Preset %1 applied").arg(item->text())) );
@@ -319,6 +340,8 @@ void MixingToolboxWidget::on_presetsList_itemDoubleClicked(QListWidgetItem *item
 void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *item){
 
 	qDebug( qPrintable(QString("Preset %1 selected").arg(item->text())) );
+
+
 
 
 }

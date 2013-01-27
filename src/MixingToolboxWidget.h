@@ -38,6 +38,10 @@ public Q_SLOTS:
     // Presets Page
     void on_presetsList_itemDoubleClicked(QListWidgetItem *);
     void on_presetsList_currentItemChanged(QListWidgetItem *item);
+    void on_presetApply_pressed();
+    void on_presetReApply_pressed();
+    void on_presetAdd_pressed();
+    void on_presetRemove_pressed();
 
 
     // Blending Page
@@ -77,6 +81,9 @@ private:
 
 	class GammaLevelsWidget *gammaAdjust;
     Source *source;
+
+
+
 };
 
 #endif /* MIXINGTOOLBOXWIDGET_H_ */

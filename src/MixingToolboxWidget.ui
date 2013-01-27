@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>237</width>
-    <height>277</height>
+    <height>292</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,11 +40,11 @@
      <property name="minimumSize">
       <size>
        <width>235</width>
-       <height>275</height>
+       <height>290</height>
       </size>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>4</number>
      </property>
      <property name="tabSpacing">
       <number>1</number>
@@ -55,7 +55,7 @@
         <x>0</x>
         <y>0</y>
         <width>235</width>
-        <height>155</height>
+        <height>170</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -371,7 +371,7 @@ QPushButton:pressed {
           <enum>QListView::Adjust</enum>
          </property>
          <property name="spacing">
-          <number>2</number>
+          <number>1</number>
          </property>
          <property name="viewMode">
           <enum>QListView::IconMode</enum>
@@ -536,7 +536,7 @@ QPushButton:pressed {
         <x>0</x>
         <y>0</y>
         <width>235</width>
-        <height>155</height>
+        <height>170</height>
        </rect>
       </property>
       <property name="toolTip">
@@ -560,7 +560,7 @@ QPushButton:pressed {
         <x>0</x>
         <y>0</y>
         <width>235</width>
-        <height>155</height>
+        <height>170</height>
        </rect>
       </property>
       <attribute name="label">
@@ -578,7 +578,7 @@ QPushButton:pressed {
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>24</height>
+           <height>30</height>
           </size>
          </property>
          <property name="toolTip">
@@ -716,6 +716,9 @@ QComboBox:!editable {
          </property>
          <property name="resizeMode">
           <enum>QListView::Adjust</enum>
+         </property>
+         <property name="spacing">
+          <number>1</number>
          </property>
          <property name="viewMode">
           <enum>QListView::IconMode</enum>
@@ -1409,7 +1412,7 @@ QSpinBox:hover{
         <x>0</x>
         <y>0</y>
         <width>235</width>
-        <height>155</height>
+        <height>170</height>
        </rect>
       </property>
       <property name="toolTip">
@@ -1477,6 +1480,9 @@ QSpinBox:hover{
          </property>
          <property name="resizeMode">
           <enum>QListView::Adjust</enum>
+         </property>
+         <property name="spacing">
+          <number>1</number>
          </property>
          <property name="viewMode">
           <enum>QListView::IconMode</enum>
@@ -1689,14 +1695,14 @@ QSpinBox:hover{
         <x>0</x>
         <y>0</y>
         <width>235</width>
-        <height>155</height>
+        <height>170</height>
        </rect>
       </property>
       <attribute name="label">
        <string>Presets</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="3" column="1">
+       <item row="5" column="1">
         <widget class="QToolButton" name="presetRemove">
          <property name="enabled">
           <bool>false</bool>
@@ -1746,7 +1752,146 @@ QToolButton:hover {
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
+       <item row="0" column="0" rowspan="6">
+        <widget class="QListWidget" name="presetsList">
+         <property name="baseSize">
+          <size>
+           <width>2</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Double clic on a preset to apply it to the selected source(s).</string>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="showDropIndicator" stdset="0">
+          <bool>false</bool>
+         </property>
+         <property name="spacing">
+          <number>1</number>
+         </property>
+         <property name="currentRow">
+          <number>-1</number>
+         </property>
+         <item>
+          <property name="text">
+           <string>Original</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Desaturated</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>hypersaturated</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Impressionnist</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QToolButton" name="presetReApply">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/re-apply.png</normaloff>:/glmixer/icons/re-apply.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QToolButton" name="presetApply">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/apply.png</normaloff>:/glmixer/icons/apply.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
         <widget class="QToolButton" name="presetAdd">
          <property name="enabled">
           <bool>true</bool>
@@ -1793,92 +1938,6 @@ QToolButton:hover {
            <width>24</width>
            <height>24</height>
           </size>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" rowspan="4">
-        <widget class="QListWidget" name="presetsList">
-         <property name="baseSize">
-          <size>
-           <width>2</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>Double clic on a preset to apply it to the selected source(s).</string>
-         </property>
-         <property name="editTriggers">
-          <set>QAbstractItemView::NoEditTriggers</set>
-         </property>
-         <property name="showDropIndicator" stdset="0">
-          <bool>false</bool>
-         </property>
-         <property name="spacing">
-          <number>2</number>
-         </property>
-         <property name="currentRow">
-          <number>-1</number>
-         </property>
-         <item>
-          <property name="text">
-           <string>Original</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Desaturated</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>hypersaturated</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Impressionnist</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QToolButton" name="presetsUpdate">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../icons.qrc">
-           <normaloff>:/glmixer/icons/view-refresh.png</normaloff>:/glmixer/icons/view-refresh.png</iconset>
          </property>
         </widget>
        </item>
@@ -1933,12 +1992,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>89</x>
-     <y>220</y>
+     <x>61</x>
+     <y>236</y>
     </hint>
     <hint type="destinationlabel">
-     <x>224</x>
-     <y>217</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
    </hints>
   </connection>
@@ -1949,12 +2008,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>89</x>
-     <y>220</y>
+     <x>61</x>
+     <y>236</y>
     </hint>
     <hint type="destinationlabel">
-     <x>224</x>
-     <y>217</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
    </hints>
   </connection>
@@ -1965,12 +2024,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>90</x>
-     <y>220</y>
+     <x>63</x>
+     <y>236</y>
     </hint>
     <hint type="destinationlabel">
-     <x>224</x>
-     <y>217</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
    </hints>
   </connection>
@@ -1981,12 +2040,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>89</x>
-     <y>220</y>
+     <x>61</x>
+     <y>236</y>
     </hint>
     <hint type="destinationlabel">
-     <x>217</x>
-     <y>216</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
    </hints>
   </connection>
@@ -1997,12 +2056,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>89</x>
-     <y>220</y>
+     <x>61</x>
+     <y>236</y>
     </hint>
     <hint type="destinationlabel">
-     <x>224</x>
-     <y>217</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
    </hints>
   </connection>
@@ -2013,12 +2072,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>196</x>
-     <y>209</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
     <hint type="destinationlabel">
-     <x>136</x>
-     <y>209</y>
+     <x>61</x>
+     <y>236</y>
     </hint>
    </hints>
   </connection>
@@ -2029,12 +2088,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>193</x>
-     <y>210</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
     <hint type="destinationlabel">
-     <x>173</x>
-     <y>210</y>
+     <x>63</x>
+     <y>236</y>
     </hint>
    </hints>
   </connection>
@@ -2045,12 +2104,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>194</x>
-     <y>211</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
     <hint type="destinationlabel">
-     <x>166</x>
-     <y>210</y>
+     <x>61</x>
+     <y>236</y>
     </hint>
    </hints>
   </connection>
@@ -2061,12 +2120,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>178</x>
-     <y>209</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>209</y>
+     <x>61</x>
+     <y>236</y>
     </hint>
    </hints>
   </connection>
@@ -2077,12 +2136,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>190</x>
-     <y>210</y>
+     <x>224</x>
+     <y>233</y>
     </hint>
     <hint type="destinationlabel">
      <x>155</x>
-     <y>208</y>
+     <y>235</y>
     </hint>
    </hints>
   </connection>
@@ -2093,12 +2152,12 @@ QToolButton:hover {
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>182</x>
-     <y>209</y>
+     <x>101</x>
+     <y>234</y>
     </hint>
     <hint type="destinationlabel">
-     <x>148</x>
-     <y>209</y>
+     <x>61</x>
+     <y>236</y>
     </hint>
    </hints>
   </connection>

@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="glmixer">
+    <file>icons/re-apply.png</file>
+    <file>icons/apply.png</file>
     <file>icons/plus_source.png</file>
     <file>icons/trash.png</file>
     <file>icons/plus.png</file>
