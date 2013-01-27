@@ -14,7 +14,7 @@
 // list of sources in the selection
 SourceList View::_selectedSources;
 // dummy source to interact with selection
-Source *View::_selectionSource = new Source(MAX_DEPTH_LAYER);
+Source *View::_selectionSource = new Source();
 // maps for button and modifiers
 QMap<View::UserInput,Qt::MouseButtons> View::_buttonmap = View::defaultMouseButtonsMap();
 QMap<View::UserInput,Qt::KeyboardModifiers> View::_modifiermap = View::defaultModifiersMap();

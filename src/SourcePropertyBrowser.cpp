@@ -656,14 +656,10 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 
 		// properties of filters
 		if (ViewRenderWidget::filteringEnabled()) {
+			enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
 			idToProperty["Filter"]->setEnabled( true );
-
-			if (s->isFiltered())
-				enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
-			else
-				enumManager->setValue(idToProperty["Filter"], 0);
-
 		} else {
+			enumManager->setValue(idToProperty["Filter"], 0);
 			idToProperty["Filter"]->setEnabled( false );
 		}
 
@@ -1129,8 +1125,6 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 
 	}
 	else if ( property == idToProperty["Filter"] ) {
-		// if filter is not None, enable filtering
-		currentItem->setFiltered( value != 0 );
 		// set the current filter
 		currentItem->setFilter( (Source::filterType) value );
 		// indicate that this change affects performance

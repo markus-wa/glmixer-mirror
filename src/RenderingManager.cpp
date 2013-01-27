@@ -157,9 +157,9 @@ RenderingManager::RenderingManager() :
 	setFrameBufferResolution( sizeOfFrameBuffer[renderingAspectRatio][renderingQuality] );
 
 	_currentSource = getEnd();
-
+	
 	// 4. Setup the default default values ! :)
-    _defaultSource = new Source;
+    _defaultSource = new Source();
 }
 
 RenderingManager::~RenderingManager() {
@@ -713,7 +713,7 @@ void RenderingManager::addSourceToBasket(Source *s)
 	// add the source into the basket
 	dropBasket.insert(s);
 	// apply default parameters
-	s->copyPropertiesFrom(_defaultSource);
+	s->importProperties(*_defaultSource);
 	// scale the source to match the preferences
 	s->resetScale(_scalingMode);
 	// select no source
@@ -731,7 +731,7 @@ void RenderingManager::clearBasket()
 void RenderingManager::resetSource(SourceSet::iterator sit){
 
 	// apply default parameters
-	(*sit)->copyPropertiesFrom(_defaultSource);
+	(*sit)->importProperties(*_defaultSource);
 	// scale the source to match the preferences
 	(*sit)->resetScale(_scalingMode);
 
@@ -1133,7 +1133,6 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 		sourceElem.appendChild(blend);
 
 		QDomElement filter = doc.createElement("Filter");
-		filter.setAttribute("Filtered", (*its)->isFiltered());
 		filter.setAttribute("Pixelated", (*its)->isPixelated());
 		filter.setAttribute("InvertMode", (*its)->getInvertMode());
 		filter.setAttribute("Filter", (*its)->getFilter());
@@ -1315,7 +1314,6 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 	newsource->setMask( (Source::maskType) tmp.attribute("Mask", "0").toInt() );
 
 	tmp = child.firstChildElement("Filter");
-	newsource->setFiltered( tmp.attribute("Filtered", "0").toInt() );
 	newsource->setPixelated( tmp.attribute("Pixelated", "0").toInt() );
 	newsource->setInvertMode( (Source::invertModeType) tmp.attribute("InvertMode", "0").toInt() );
 	newsource->setFilter( (Source::filterType) tmp.attribute("Filter", "0").toInt() );

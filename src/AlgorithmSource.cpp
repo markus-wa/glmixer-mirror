@@ -47,79 +47,77 @@ bool AlgorithmSource::playable = true;
 #include <cmath>
 
 static int p[512];
-static int permutation[] = { 151,160,137,91,90,15,
-131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,
-21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,
-35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,
-74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,
-230,220,105,92,41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,
-80,73,209,76,132,187,208,89,18,169,200,196,135,130,116,188,159,86,
-164,100,109,198,173,186,3,64,52,217,226,250,124,123,5,202,38,147,
-118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,
-183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,
-172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,
-218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,
-145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,84,204,176,
-115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,
-141,128,195,78,66,215,61,156,180
-};
+static int permutation[] = { 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96,
+		53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10,
+		23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203,
+		117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136,
+		171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158,
+		231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46,
+		245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76,
+		132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164,
+		100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38,
+		147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182,
+		189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70,
+		221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110,
+		79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242,
+		193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14,
+		239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115,
+		121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24,
+		72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180 };
 
 /* Function declarations */
-double   fade(double t);
-double   lerp(double t, double a, double b);
-double   grad(int hash, double x, double y, double z);
-void     init_pnoise();
-double   pnoise(double x, double y, double z);
+double fade(double t);
+double lerp(double t, double a, double b);
+double grad(int hash, double x, double y, double z);
+void init_pnoise();
+double pnoise(double x, double y, double z);
 
-void init_pnoise()
-{
-int i;
-for(i = 0; i < 256 ; i++)
-    p[256+i] = p[i] = permutation[i];
+void init_pnoise() {
+	int i;
+	for (i = 0; i < 256; i++)
+		p[256 + i] = p[i] = permutation[i];
 }
 
-double pnoise(double x, double y, double z)
-{
-int   X = (int)floor(x) & 255,             /* FIND UNIT CUBE THAT */
-      Y = (int)floor(y) & 255,             /* CONTAINS POINT.     */
-      Z = (int)floor(z) & 255;
-	  x -= floor(x);                       /* FIND RELATIVE X,Y,Z */
-	  y -= floor(y);                       /* OF POINT IN CUBE.   */
-	  z -= floor(z);
-double  u = fade(x),                       /* COMPUTE FADE CURVES */
-        v = fade(y),                       /* FOR EACH OF X,Y,Z.  */
-        w = fade(z);
-int  A = p[X]+Y,
-     AA = p[A]+Z,
-     AB = p[A+1]+Z, /* HASH COORDINATES OF */
-     B = p[X+1]+Y,
-     BA = p[B]+Z,
-     BB = p[B+1]+Z; /* THE 8 CUBE CORNERS, */
+double pnoise(double x, double y, double z) {
+	int X = (int) floor(x) & 255, /* FIND UNIT CUBE THAT */
+	Y = (int) floor(y) & 255, /* CONTAINS POINT.     */
+	Z = (int) floor(z) & 255;
+	x -= floor(x); /* FIND RELATIVE X,Y,Z */
+	y -= floor(y); /* OF POINT IN CUBE.   */
+	z -= floor(z);
+	double u = fade(x), /* COMPUTE FADE CURVES */
+	v = fade(y), /* FOR EACH OF X,Y,Z.  */
+	w = fade(z);
+	int A = p[X] + Y, AA = p[A] + Z, AB = p[A + 1] + Z, /* HASH COORDINATES OF */
+	B = p[X + 1] + Y, BA = p[B] + Z, BB = p[B + 1] + Z; /* THE 8 CUBE CORNERS, */
 
-return lerp(w,lerp(v,lerp(u, grad(p[AA  ], x, y, z),   /* AND ADD */
-                     grad(p[BA  ], x-1, y, z)),        /* BLENDED */
-             lerp(u, grad(p[AB  ], x, y-1, z),         /* RESULTS */
-                     grad(p[BB  ], x-1, y-1, z))),     /* FROM  8 */
-             lerp(v, lerp(u, grad(p[AA+1], x, y, z-1 ),/* CORNERS */
-                     grad(p[BA+1], x-1, y, z-1)),      /* OF CUBE */
-             lerp(u, grad(p[AB+1], x, y-1, z-1),
-                     grad(p[BB+1], x-1, y-1, z-1))));
+	return lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z), /* AND ADD */
+	grad(p[BA], x - 1, y, z)), /* BLENDED */
+	lerp(u, grad(p[AB], x, y - 1, z), /* RESULTS */
+	grad(p[BB], x - 1, y - 1, z))), /* FROM  8 */
+			lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1),/* CORNERS */
+			grad(p[BA + 1], x - 1, y, z - 1)), /* OF CUBE */
+					lerp(u, grad(p[AB + 1], x, y - 1, z - 1),
+							grad(p[BB + 1], x - 1, y - 1, z - 1))));
 }
 
-double fade(double t){ return t * t * t * (t * (t * 6 - 15) + 10); }
-double lerp(double t, double a, double b){ return a + t * (b - a); }
-double grad(int hash, double x, double y, double z)
-{
-int     h = hash & 15;       /* CONVERT LO 4 BITS OF HASH CODE */
-double  u = h < 8 ? x : y,   /* INTO 12 GRADIENT DIRECTIONS.   */
-        v = h < 4 ? y : h==12||h==14 ? x : z;
-return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
+double fade(double t) {
+	return t * t * t * (t * (t * 6 - 15) + 10);
+}
+double lerp(double t, double a, double b) {
+	return a + t * (b - a);
+}
+double grad(int hash, double x, double y, double z) {
+	int h = hash & 15; /* CONVERT LO 4 BITS OF HASH CODE */
+	double u = h < 8 ? x : y, /* INTO 12 GRADIENT DIRECTIONS.   */
+	v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+	return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
 
-double turb(double x, double y, double z, double minFreq, double maxFreq){
+double turb(double x, double y, double z, double minFreq, double maxFreq) {
 	double r = 0.0;
 	x += 123.456;
-	for (double freq = minFreq; freq < maxFreq; freq *= 2.0 * freq ){
+	for (double freq = minFreq; freq < maxFreq; freq *= 2.0 * freq) {
 		r += ABS( pnoise (x, y, z) ) / freq;
 		x *= 2.0;
 		y *= 2.0;
@@ -128,10 +126,9 @@ double turb(double x, double y, double z, double minFreq, double maxFreq){
 	return r - 0.3;
 }
 
-
 unsigned char randDisp(double disp) {
 
-    return (unsigned char) ( 127.0 *  disp);
+	return (unsigned char) (127.0 * disp);
 //    return (unsigned char) ( 127.0 * ( ((double)rand()) / ((double)RAND_MAX) ) *  disp);
 }
 
@@ -142,24 +139,22 @@ unsigned char randDisp(double disp) {
 class AlgorithmThread: public QThread {
 public:
 	AlgorithmThread(AlgorithmSource *source) :
-        QThread(), as(source), end(false), phase(0),
-        i(0.0), j(0.0), k(0.0), l(0.0), di(0.5), dj(0.4), dk(0.3), dl(0.7) {
+			QThread(), as(source), end(false), phase(0), i(0.0), j(0.0), k(0.0), l(
+					0.0), di(0.5), dj(0.4), dk(0.3), dl(0.7) {
 
-    }
+	}
 
-    void run();
+	void run();
 
-    AlgorithmSource* as;
-    bool end;
+	AlgorithmSource* as;
+	bool end;
 
 private:
-    int phase;
-    double i, j, k, l, di, dj, dk, dl;
+	int phase;
+	double i, j, k, l, di, dj, dk, dl;
 };
 
-
-
-void AlgorithmThread::run(){
+void AlgorithmThread::run() {
 
 	QTime t;
 	int f = 0;
@@ -167,101 +162,143 @@ void AlgorithmThread::run(){
 	t.start();
 	while (!end) {
 
-		as->mutex->lock();
+		as->_mutex->lock();
 		if (!as->frameChanged) {
 			// compute new frame
 
 			// Immediately discard the FLAT 'algo' ; it is the "do nothing" algorithm :)
-			if( as->algotype != AlgorithmSource::FLAT )
-			{
-				srand( t.elapsed() );
-				if ( as->algotype == AlgorithmSource::BW_NOISE ){
+			if (as->algotype != AlgorithmSource::FLAT) {
+				srand(t.elapsed());
+				if (as->algotype == AlgorithmSource::BW_NOISE) {
 					for (int i = 0; i < (as->width * as->height); ++i)
-						memset((void *) (as->buffer + i * 4), (unsigned char) ( as->variability * double(rand() % std::numeric_limits<unsigned char>::max()) + (1.0 - as->variability) * double(as->buffer[i * 4 + 0]) ), 4 );
+						memset((void *) (as->buffer + i * 4),
+								(unsigned char) (as->variability
+										* double(
+												rand()
+														% std::numeric_limits<
+																unsigned char>::max())
+										+ (1.0 - as->variability)
+												* double(as->buffer[i * 4 + 0])),
+								4);
 
-				} else
-				if ( as->algotype == AlgorithmSource::BW_COSBARS ){
-					phase = ( phase + int (as->variability * 36.0) ) % (360);
+				} else if (as->algotype == AlgorithmSource::BW_COSBARS) {
+					phase = (phase + int(as->variability * 36.0)) % (360);
 					unsigned char c = 0;
 
 					// fill in a line
 					for (int x = 0; x < as->width; ++x) {
-						c = (unsigned char) ( cos( double(phase) * M_PI / 180.0 + double(x) * 2.0 * M_PI / double(as->width)  ) * 127.0 + 128.0) ;
+						c = (unsigned char) (cos(
+								double(phase) * M_PI / 180.0
+										+ double(x) * 2.0 * M_PI
+												/ double(as->width)) * 127.0
+								+ 128.0);
 						memset((void *) (as->buffer + x * 4), c, 4);
 					}
 					// copy line in rows
 					for (int y = 1; y < as->height; ++y)
-						memcpy((void *) (as->buffer + y * as->width * 4), as->buffer , as->width * 4);
+						memcpy((void *) (as->buffer + y * as->width * 4),
+								as->buffer, as->width * 4);
 
-				} else
-				if ( as->algotype == AlgorithmSource::BW_COSCHECKER ){
-					phase = ( phase + int (as->variability * 36.0) ) % (360);
+				} else if (as->algotype == AlgorithmSource::BW_COSCHECKER) {
+					phase = (phase + int(as->variability * 36.0)) % (360);
 					unsigned char c = 0;
 
 					for (int x = 0; x < as->width; ++x)
 						for (int y = 0; y < as->height; ++y) {
-							c = (unsigned char) ( cos( double(phase) * M_PI / 180.0 + double(x) * 2.0 * M_PI / double(as->width)  ) * 63.0 + 64.0);
-							c += (unsigned char) ( cos( double(phase) * M_PI / 180.0 + double(y) * 2.0 * M_PI / double(as->height)  ) * 63.0 + 64.0);
-							memset((void *) (as->buffer + (y * as->width + x) * 4), c, 4);
+							c = (unsigned char) (cos(
+									double(phase) * M_PI / 180.0
+											+ double(x) * 2.0 * M_PI
+													/ double(as->width)) * 63.0
+									+ 64.0);
+							c += (unsigned char) (cos(
+									double(phase) * M_PI / 180.0
+											+ double(y) * 2.0 * M_PI
+													/ double(as->height)) * 63.0
+									+ 64.0);
+							memset(
+									(void *) (as->buffer
+											+ (y * as->width + x) * 4), c, 4);
 						}
 
-				} else
-				if ( as->algotype == AlgorithmSource::COLOR_NOISE ){
+				} else if (as->algotype == AlgorithmSource::COLOR_NOISE) {
 					for (int i = 0; i < (as->width * as->height * 4); ++i)
-						as->buffer[i] = (unsigned char) ( as->variability * double(rand() % std::numeric_limits<unsigned char>::max()) + (1.0 - as->variability) * double(as->buffer[i]) )  ;
+						as->buffer[i] = (unsigned char) (as->variability
+								* double(
+										rand()
+												% std::numeric_limits<
+														unsigned char>::max())
+								+ (1.0 - as->variability)
+										* double(as->buffer[i]));
 
-				} else
-				if ( as->algotype == AlgorithmSource::PERLIN_BW_NOISE ){
+				} else if (as->algotype == AlgorithmSource::PERLIN_BW_NOISE) {
 
 					i += di * as->variability; // / RenderingManager::getRenderingWidget()->getFPS();
-					if (i > 100000.0 || i < 0.0)   di = -di;
+					if (i > 100000.0 || i < 0.0)
+						di = -di;
 					for (int x = 0; x < as->width; ++x)
 						for (int y = 0; y < as->height; ++y) {
-							double v = pnoise( double(x) * as->horizontal , double(y) * as->vertical , i );
-							memset((void *) (as->buffer + (y * as->width + x) * 4), (unsigned char) (128.0 * v) + 128, 4);
+							double v = pnoise(double(x) * as->horizontal,
+									double(y) * as->vertical, i);
+							memset(
+									(void *) (as->buffer
+											+ (y * as->width + x) * 4),
+									(unsigned char) (128.0 * v) + 128, 4);
 						}
-				} else
-					if ( as->algotype == AlgorithmSource::PERLIN_COLOR_NOISE ){
+				} else if (as->algotype
+						== AlgorithmSource::PERLIN_COLOR_NOISE) {
 
-						i += as->variability * di;
-						j += as->variability * dj;
-						k += as->variability * dk;
-						l += as->variability * dl;
-						if (i > 100000.0 || i < 0.0)   di = -di;
-						for (int x = 0; x < as->width; ++x)
-							for (int y = 0; y < as->height; ++y) {
-								double v = pnoise( double(x) * as->horizontal , double(y) * as->vertical , i );
-								as->buffer[(y * as->width + x) * 4 + 0 ] = (unsigned char) (128.0 * v  + 128);
-								v = pnoise( double(x) * as->horizontal , double(y) * as->vertical , j );
-								as->buffer[(y * as->width + x) * 4 + 1 ] = (unsigned char) (128.0 * v  + 128);
-								v = pnoise( double(x) * as->horizontal , double(y) * as->vertical , k );
-								as->buffer[(y * as->width + x) * 4 + 2 ] = (unsigned char) (128.0 * v  + 128);
-								v = pnoise( double(x) * as->horizontal , double(y) * as->vertical , l );
-								as->buffer[(y * as->width + x) * 4 + 3 ] = (unsigned char) (128.0 * v  + 128);
+					i += as->variability * di;
+					j += as->variability * dj;
+					k += as->variability * dk;
+					l += as->variability * dl;
+					if (i > 100000.0 || i < 0.0)
+						di = -di;
+					for (int x = 0; x < as->width; ++x)
+						for (int y = 0; y < as->height; ++y) {
+							double v = pnoise(double(x) * as->horizontal,
+									double(y) * as->vertical, i);
+							as->buffer[(y * as->width + x) * 4 + 0] =
+									(unsigned char) (128.0 * v + 128);
+							v = pnoise(double(x) * as->horizontal,
+									double(y) * as->vertical, j);
+							as->buffer[(y * as->width + x) * 4 + 1] =
+									(unsigned char) (128.0 * v + 128);
+							v = pnoise(double(x) * as->horizontal,
+									double(y) * as->vertical, k);
+							as->buffer[(y * as->width + x) * 4 + 2] =
+									(unsigned char) (128.0 * v + 128);
+							v = pnoise(double(x) * as->horizontal,
+									double(y) * as->vertical, l);
+							as->buffer[(y * as->width + x) * 4 + 3] =
+									(unsigned char) (128.0 * v + 128);
 //								as->buffer[(y * as->width + x) * 4 + 3 ] = (unsigned char) 255;
-							}
-					} else
-						if ( as->algotype == AlgorithmSource::TURBULENCE ){
-
-							i += as->variability * di; // / RenderingManager::getRenderingWidget()->getFPS();
-							if (i > 100000.0 || i < 0.0)   di = -di;
-							for (int x = 0; x < as->width; ++x)
-								for (int y = 0; y < as->height; ++y) {
-									double v = turb( double(x) * as->horizontal , double(y) * as->vertical , i , 1.0, 16.0 );
-									memset((void *) (as->buffer + (y * as->width + x) * 4), (unsigned char) (128.0 * v) + 128, 4);
-								}
 						}
+				} else if (as->algotype == AlgorithmSource::TURBULENCE) {
+
+					i += as->variability * di; // / RenderingManager::getRenderingWidget()->getFPS();
+					if (i > 100000.0 || i < 0.0)
+						di = -di;
+					for (int x = 0; x < as->width; ++x)
+						for (int y = 0; y < as->height; ++y) {
+							double v = turb(double(x) * as->horizontal,
+									double(y) * as->vertical, i, 1.0, 16.0);
+							memset(
+									(void *) (as->buffer
+											+ (y * as->width + x) * 4),
+									(unsigned char) (128.0 * v) + 128, 4);
+						}
+				}
 
 			}
 			as->frameChanged = true;
-			as->cond->wait(as->mutex);
+			as->_cond->wait(as->_mutex);
 		}
-		as->mutex->unlock();
+		as->_mutex->unlock();
 
 		// wait for the period duration before updating next frame
 		usleep(as->period);
 
-		if ( ++f == 100 ) { // hundred frames to average the frame rate {
+		if (++f == 100) { // hundred frames to average the frame rate {
 			as->framerate = 100000.0 / (double) t.elapsed();
 			t.restart();
 			f = 0;
@@ -269,9 +306,10 @@ void AlgorithmThread::run(){
 	}
 }
 
-
-AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int h, double v, unsigned long  p, bool ia) : Source(texture, d),
-		width(w), height(h), period(p), framerate(0), vertical(1.0), horizontal(1.0), variability(v), ignoreAlpha(ia) {
+AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
+		int h, double v, unsigned long p, bool ia) :
+		Source(texture, d), width(w), height(h), period(p), framerate(0), vertical(
+				1.0), horizontal(1.0), variability(v), ignoreAlpha(ia) {
 
 	algotype = CLAMP(AlgorithmSource::algorithmType(type), AlgorithmSource::FLAT, AlgorithmSource::TURBULENCE);
 
@@ -286,123 +324,126 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w, int 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	if (ignoreAlpha)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,0, GL_BGRA, GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA,
+				GL_UNSIGNED_BYTE, (unsigned char*) buffer);
 	else
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA,
+				GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
 
 	// if no period given, set to default 60Hz
 	if (period <= 0)
-		period = 17000;
+		period = 16666;
 
 	// create thread
-	mutex = new QMutex;
-    CHECK_PTR_EXCEPTION(mutex);
-    cond = new QWaitCondition;
-    CHECK_PTR_EXCEPTION(cond);
-	thread = new AlgorithmThread(this);
-	CHECK_PTR_EXCEPTION(thread);
-	thread->start();
-    thread->setPriority(QThread::LowPriority);
+	_mutex = new QMutex;
+	CHECK_PTR_EXCEPTION(_mutex);
+	_cond = new QWaitCondition;
+	CHECK_PTR_EXCEPTION(_cond);
+	_thread = new AlgorithmThread(this);
+	CHECK_PTR_EXCEPTION(_thread);
+	_thread->start();
+	_thread->setPriority(QThread::LowPriority);
 }
 
 AlgorithmSource::~AlgorithmSource() {
 
 	// end the update thread
-	thread->end = true;
-	mutex->lock();
-	cond->wakeAll();
-	mutex->unlock();
-    thread->wait(500);
-	delete thread;
-	delete cond;
-	delete mutex;
+	_thread->end = true;
+	_mutex->lock();
+	_cond->wakeAll();
+	_mutex->unlock();
+	_thread->wait(100 + period / 1000); // wait for usleep pediod time + 100 ms buffer
+	delete _thread;
+	delete _cond;
+	delete _mutex;
 
 	// delete picture buffer
 	if (buffer)
-		delete [] buffer;
+		delete[] buffer;
 
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);
 }
 
+void AlgorithmSource::play(bool on) {
 
-void AlgorithmSource::play(bool on){
-
-	if ( isPlaying() == on )
+	if (isPlaying() == on)
 		return;
 
-	if ( on ) { // start play
-		thread->end = false;
-		thread->start();
+	if (on) { // start play
+		_thread->end = false;
+		_thread->start();
 	} else { // stop play
-		thread->end = true;
-		mutex->lock();
-		cond->wakeAll();
+		_thread->end = true;
+		_mutex->lock();
+		_cond->wakeAll();
 		frameChanged = false;
-		mutex->unlock();
-		thread->wait(500);
+		_mutex->unlock();
+		_thread->wait(100 + period / 1000);
 	}
 }
-
 
 bool AlgorithmSource::isPlaying() const {
 
-	return !thread->end;
+	return !_thread->end;
 
 }
 
-void AlgorithmSource::initBuffer(){
+void AlgorithmSource::initBuffer() {
 
 	QString description;
 	switch (algotype) {
-		case PERLIN_BW_NOISE:
-		case PERLIN_COLOR_NOISE:
-		case TURBULENCE:
-			horizontal = 0.001 * width;
-			vertical = 0.001 * height;
-			width = PERLIN_WIDTH;
-			height = PERLIN_HEIGHT;
-			init_pnoise();
-			break;
-		case FLAT:
-		case BW_NOISE:
-		case COLOR_NOISE:
-		default:
-			break;
+	case PERLIN_BW_NOISE:
+	case PERLIN_COLOR_NOISE:
+	case TURBULENCE:
+		horizontal = 0.001 * width;
+		vertical = 0.001 * height;
+		width = PERLIN_WIDTH;
+		height = PERLIN_HEIGHT;
+		init_pnoise();
+		break;
+	case FLAT:
+	case BW_NOISE:
+	case COLOR_NOISE:
+	default:
+		break;
 	}
 
-	buffer = new unsigned char [width * height * 4];
+	buffer = new unsigned char[width * height * 4];
 	CHECK_PTR_EXCEPTION(buffer);
 	// CLEAR the buffer to white
-	memset((void *)buffer, std::numeric_limits<unsigned char>::max(), width * height * 4 );
+	memset((void *) buffer, std::numeric_limits<unsigned char>::max(),
+			width * height * 4);
 
 }
 
-void AlgorithmSource::update(){
+void AlgorithmSource::update() {
 
 	Source::update();
 
-	if( frameChanged )
-	{
-		mutex->lock();
+	if (frameChanged) {
+		_mutex->lock();
 		frameChanged = false;
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, (unsigned char*) buffer);
-		cond->wakeAll();
-		mutex->unlock();
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
+				GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+		_cond->wakeAll();
+		_mutex->unlock();
 	}
 
 }
 
 int AlgorithmSource::getFrameWidth() const {
 
-	if (algotype == TURBULENCE || algotype == PERLIN_BW_NOISE || algotype == PERLIN_COLOR_NOISE)
+	if (algotype == TURBULENCE || algotype == PERLIN_BW_NOISE
+			|| algotype == PERLIN_COLOR_NOISE)
 		return (int) (horizontal * 1000.0);
 	return width;
 }
 
 int AlgorithmSource::getFrameHeight() const {
 
-	if (algotype == TURBULENCE || algotype == PERLIN_BW_NOISE || algotype == PERLIN_COLOR_NOISE)
+	if (algotype == TURBULENCE || algotype == PERLIN_BW_NOISE
+			|| algotype == PERLIN_COLOR_NOISE)
 		return (int) (vertical * 1000.0);
 	return height;
 }
@@ -448,7 +489,9 @@ void AlgorithmSource::setIgnoreAlpha(bool on) {
 	ignoreAlpha = on;
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
 	if (ignoreAlpha)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,0, GL_BGRA, GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA,
+				GL_UNSIGNED_BYTE, (unsigned char*) buffer);
 	else
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA,
+				GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
 }

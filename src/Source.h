@@ -62,7 +62,7 @@ class Source {
 	friend class RenderingManager;
 
 public:
-	Source(double depth = 0.0);
+	Source();
 	virtual ~Source();
 
 	bool operator==(Source s2) {
@@ -381,14 +381,6 @@ public:
 		return pixelated;
 	}
 
-	// use filters ?
-	inline void setFiltered(bool on) {
-		filtered = on;
-	}
-	inline bool isFiltered() const {
-		return filtered;
-	}
-
 	// select a color table
 	typedef enum {
 		INVERT_NONE = 0,
@@ -421,14 +413,16 @@ public:
 		FILTER_DILATION_7X7,
 		FILTER_DILATION_13X13
 	} filterType;
+
 	inline void setFilter(filterType c) {
 		filter = qBound(FILTER_NONE, c, FILTER_DILATION_13X13);
 	}
+
 	inline filterType getFilter() const {
 		return filter;
 	}
 
-	void copyPropertiesFrom(const Source *s);
+	void importProperties(const Source s, bool withGeometry = true);
 
 	virtual int getFrameWidth() const { return 1; }
 	virtual int getFrameHeight() const { return 1; }
@@ -484,8 +478,6 @@ protected:
 
 	// if should be set to GL_NEAREST
 	bool pixelated;
-	// if should use filters
-	bool filtered;
 	// which filter to apply?
 	filterType filter;
 	invertModeType invertMode;

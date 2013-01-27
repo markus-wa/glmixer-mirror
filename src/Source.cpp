@@ -36,18 +36,18 @@ Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 bool Source::playable = false;
 
 // Infective source just to get default parameters
-Source::Source(double depth) :
+Source::Source() :
 			culled(false), standby(false), wasplaying(true), frameChanged(false), modifiable(true), fixedAspectRatio(false),
-			clones(NULL), textureIndex(0), maskTextureIndex(0), x(0.0), y(0.0), z(depth),
+			clones(NULL), textureIndex(0), maskTextureIndex(0), x(0.0), y(0.0), z(MAX_DEPTH_LAYER),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
-			pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
+			pixelated(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
 			brightness(0.f), contrast(1.f),	saturation(1.f),
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
 			hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
-			useChromaKey(false) {
-
-	id = -1;
+			useChromaKey(false)
+{
+	id = 0;
 
 	texcolor = Qt::white;
 	chromaKeyColor = Qt::green;
@@ -59,44 +59,27 @@ Source::Source(double depth) :
 
 	// default name
 	name = QString("Source");
-
 }
 
 // the 'REAL' source constructor.
-Source::Source(GLuint texture, double depth) :
-	culled(false), standby(false), wasplaying(true), frameChanged(true), modifiable(true), fixedAspectRatio(false),
-	textureIndex(texture), maskTextureIndex(0), x(0.0), y(0.0), z(depth),
-	scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-	centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
-	pixelated(false), filtered(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
-	brightness(0.f), contrast(1.f),	saturation(1.f),
-	gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
-	hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
-	useChromaKey(false) {
+Source::Source(GLuint texture, double depth)
+{
+	*this = Source();
 
-	texcolor = Qt::white;
-	chromaKeyColor = Qt::green;
-	source_blend = GL_SRC_ALPHA;
-	destination_blend = GL_ONE;
-	blend_eq = GL_FUNC_ADD;
-
-	textureCoordinates.setCoords(0.0, 0.0, 1.0, 1.0);
-
-	// default name
-	name = QString("Source");
-
-	// give it a unique identifyer
-	id = lastid++;
+	// give it a unique identifier
+	id = Source::lastid++;
 
 	clones = new SourceList;
 	CHECK_PTR_EXCEPTION(clones)
 
-	z = CLAMP(z, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+	textureIndex = texture;
+	z = CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 }
 
 Source::~Source() {
 
-//	delete clones;
+//	if (clones)
+//		delete clones;  // TODO: why not clean clone list ?
 }
 
 void Source::setName(QString n) {
@@ -351,12 +334,10 @@ void Source::beginEffectsSection() const {
 	if (ViewRenderWidget::disableFiltering)
 		return;
 
-	if (!filtered) {
-		ViewRenderWidget::program->setUniformValue("filter", (GLint) -1);
-	} else {
-		ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
-		ViewRenderWidget::program->setUniformValue("step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
-	}
+	// else enabled filtering
+	ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
+	ViewRenderWidget::program->setUniformValue("step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
+
 
 }
 
@@ -511,42 +492,44 @@ QDataStream &operator>>(QDataStream &stream, Source *source){
 }
 
 
-void Source::copyPropertiesFrom(const Source *source){
+void Source::importProperties(const Source source, bool withGeometry){
 
-	x = source->x;
-	y = source->y;
-	centerx = source->centerx;
-	centery = source->centery;
-	rotangle = source->rotangle;
-//	scalex = source->scalex;
-//	scaley = source->scaley;
-	setAlpha(source->texalpha);
-	destination_blend = source->destination_blend;
-	blend_eq =  source->blend_eq;
-	textureCoordinates = source->textureCoordinates;
-	flipVertical = source->flipVertical;
-	texcolor = source->texcolor;
-	brightness = source->brightness;
-	contrast = source->contrast;
-	saturation = source->saturation;
-	pixelated = source->pixelated;
-	filter = source->filter;
-	filtered = source->filtered;
-	invertMode = source->invertMode;
-	setMask( source->mask_type );
+	destination_blend = source.destination_blend;
+	blend_eq =  source.blend_eq;
+	pixelated = source.pixelated;
+	texcolor = source.texcolor;
+	brightness = source.brightness;
+	contrast = source.contrast;
+	saturation = source.saturation;
+	hueShift = source.hueShift;
+	filter = source.filter;
+	invertMode = source.invertMode;
+	setMask( source.mask_type );
 
-	gamma = source->gamma;
-	gammaMinIn = source->gammaMinIn;
-	gammaMaxIn = source->gammaMaxIn;
-	gammaMinOut = source->gammaMinOut;
-	gammaMaxOut = source->gammaMaxOut;
-	hueShift = source->hueShift;
-	luminanceThreshold = source->luminanceThreshold;
-	numberOfColors = source->numberOfColors;
-	chromaKeyColor = source->chromaKeyColor;
-	useChromaKey = source->useChromaKey;
-	chromaKeyTolerance = source->chromaKeyTolerance;
+	gamma = source.gamma;
+	gammaMinIn = source.gammaMinIn;
+	gammaMaxIn = source.gammaMaxIn;
+	gammaMinOut = source.gammaMinOut;
+	gammaMaxOut = source.gammaMaxOut;
+	luminanceThreshold = source.luminanceThreshold;
+	numberOfColors = source.numberOfColors;
+	chromaKeyColor = source.chromaKeyColor;
+	useChromaKey = source.useChromaKey;
+	chromaKeyTolerance = source.chromaKeyTolerance;
 
-	modifiable = source->modifiable;
-	fixedAspectRatio = source->fixedAspectRatio;
+	if (withGeometry) {
+		x = source.x;
+		y = source.y;
+		centerx = source.centerx;
+		centery = source.centery;
+		rotangle = source.rotangle;
+	//	scalex = source.scalex;
+	//	scaley = source.scaley;
+		modifiable = source.modifiable;
+		fixedAspectRatio = source.fixedAspectRatio;
+
+		setAlpha(source.texalpha);
+		textureCoordinates = source.textureCoordinates;
+		flipVertical = source.flipVertical;
+	}
 }

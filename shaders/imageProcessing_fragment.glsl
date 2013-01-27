@@ -166,7 +166,7 @@ vec3 convolution()
 
 vec3 apply_filter() {
 
-    if (filter == 0 || filter > 15)
+    if (filter < 1 || filter > 15)
         return texture2D(sourceTexture, texc).rgb;
     else if (filter < 10)
         return convolution();
@@ -306,11 +306,7 @@ void main(void)
     float alpha = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a  * baseColor.a;
     vec3 transformedRGB;
     
-    if (filter < 0) 
-        transformedRGB = mix(vec3(0.62), texture2D(sourceTexture, texc).rgb, contrast);
-    else 
-    	transformedRGB = mix(vec3(0.62), apply_filter(), contrast);
-    	
+  	transformedRGB = mix(vec3(0.62), apply_filter(), contrast);
     transformedRGB += brightness;
     transformedRGB = LevelsControl(transformedRGB, levels.x, gamma, levels.y, levels.z, levels.w);
 

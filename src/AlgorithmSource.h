@@ -89,9 +89,9 @@ protected:
     double variability;
     bool ignoreAlpha;
 
-    AlgorithmThread *thread;
-    QMutex *mutex;
-    QWaitCondition *cond;
+    AlgorithmThread *_thread;
+    QMutex *_mutex;
+    QWaitCondition *_cond;
 
 };
 
