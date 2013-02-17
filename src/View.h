@@ -292,24 +292,6 @@ public:
 	static bool zoomCentered();
 
 
-	/**
-	 * Selection management
-	 */
-	static void select(Source *s);
-	static void deselect(Source *s);
-	static void select(SourceList l);
-	static void deselect(SourceList l);
-	static void clearSelection();
-	static bool isInSelection(Source *s);
-	static bool hasSelection() { return !_selectedSources.empty(); }
-	static void setSelection(SourceList l);
-	static SourceList::iterator selectionBegin() { return _selectedSources.begin(); }
-	static SourceList::iterator selectionEnd() { return _selectedSources.end(); }
-	static SourceList copySelection() { return SourceList (_selectedSources); }
-	static Source *selectionSource() { return _selectionSource; }
-	static void updateSelectionSource();
-
-
 protected:
 	float zoom, minzoom, maxzoom, deltax, deltay;
 	float panx, maxpanx, pany, maxpany, panz, maxpanz;
@@ -327,8 +309,7 @@ protected:
     ActionType currentAction, previousAction;
 
 private:
-	static SourceList _selectedSources;
-	static Source *_selectionSource;
+
 	static float zoomspeed;
 	static bool zoomcentered;
 

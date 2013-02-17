@@ -27,6 +27,7 @@
 
 #include "common.h"
 #include "RenderingManager.h"
+#include "SelectionManager.h"
 #include "ViewRenderWidget.h"
 #include "CatalogView.h"
 
@@ -80,7 +81,7 @@ void MixerView::paint()
     glLineWidth(2.0);
 	glColor4ub(COLOR_SELECTION, 255);
     glBegin(GL_LINE_LOOP);
-    for(SourceSet::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+    for(SourceSet::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
         glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
     }
     glEnd();
@@ -175,7 +176,7 @@ void MixerView::paint()
 	RenderingManager::getInstance()->postRenderToFrameBuffer();
 
     // Then the selection outlines
-    for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+    for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
 		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
@@ -324,13 +325,13 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 			}
 			// NOT in a source : add individual item clicked
 			if ( itss == groupSources.end() )
-				View::select(clicked);
+				SelectionManager::getInstance()->select(clicked);
 			// else add the full group attached to the clicked item
 			else {
-				if ( View::isInSelection(clicked) )
-					View::deselect(*itss);
+				if ( SelectionManager::getInstance()->isInSelection(clicked) )
+					SelectionManager::getInstance()->deselect(*itss);
 				else
-					View::select(*itss);
+					SelectionManager::getInstance()->select(*itss);
 			}
 		}
 		// not in selection (INPUT_SELECT) action mode,
@@ -347,8 +348,8 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 			// other cases
 			else {
 				// if the source is not in the selection, discard the selection
-				if ( !View::isInSelection(clicked) )
-					View::clearSelection();
+				if ( !SelectionManager::getInstance()->isInSelection(clicked) )
+					SelectionManager::getInstance()->clearSelection();
 
 				// tool
 				individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
@@ -368,7 +369,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	RenderingManager::getInstance()->unsetCurrentSource();
 	// back to no action
 	if ( currentAction == View::SELECT )
-		View::clearSelection();
+		SelectionManager::getInstance()->clearSelection();
 	else
 		setAction(View::NONE);
 
@@ -411,20 +412,20 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
             }
             // if double clic on a group ; convert group into selection
         	if ( itss != groupSources.end() ) {
-        		View::setSelection(*itss);
+        		SelectionManager::getInstance()->setSelection(*itss);
         		// erase group and its color
         		groupColor.remove(itss);
         		groupSources.erase(itss);
         	}
         	// if double clic NOT on a group ; convert selection into group
         	else {
-        		SourceList selection = View::copySelection();
+        		SourceList selection = SelectionManager::getInstance()->copySelection();
 				// if the clicked source is in the selection
 				if ( selection.count(clicked)>0 && selection.size()>1 ) {
 					//  create a group from the selection
 					groupSources.push_front(selection);
 					groupColor[groupSources.begin()] = QColor::fromHsv ( rand()%180 + 179, 250, 250);
-					View::clearSelection();
+					SelectionManager::getInstance()->clearSelection();
 				}
         	}
         	return true;
@@ -522,9 +523,9 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
 				if ( currentAction == View::SELECT )
 					// extend selection
-					View::select(rectSources);
+					SelectionManager::getInstance()->select(rectSources);
 				else  // new selection
-					View::setSelection(rectSources);
+					SelectionManager::getInstance()->setSelection(rectSources);
 			}
 		}
 		// clicked source not null and grab action
@@ -590,7 +591,7 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 //	    }
 //	}
 	else if ( currentAction == View::SELECT && !getSourcesAtCoordinates(event->x(), viewport[3] - event->y()))
-		View::clearSelection();
+		SelectionManager::getInstance()->clearSelection();
 
 	// end of selection area in any case
 	_selectionArea.setEnabled(false);
@@ -857,7 +858,7 @@ void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
 	// special (non-selection) modification
 	if ( individual ){
 		// if the source is in the selection AND in a group, then move the group individually
-		if ( itss != groupSources.end() && View::isInSelection(s) ){
+		if ( itss != groupSources.end() && SelectionManager::getInstance()->isInSelection(s) ){
 			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
 				grabSource( *its, x, y, dx, dy);
 			}
@@ -869,8 +870,8 @@ void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
 	// NORMAL : move selection or group
 	else {
 		// if the source is in the selection, move the selection
-		if ( View::isInSelection(s) ){
-			for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+		if ( SelectionManager::getInstance()->isInSelection(s) ){
+			for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
 				grabSource( *its, x, y, dx, dy);
 			}
 		}
@@ -1044,9 +1045,9 @@ QRectF MixerView::getBoundingBox(const SourceList &l)
 
 void MixerView::alignSelection(View::Axis a, View::RelativePoint p)
 {
-	QRectF bbox = MixerView::getBoundingBox(View::copySelection());
+	QRectF bbox = MixerView::getBoundingBox(SelectionManager::getInstance()->copySelection());
 
-	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++){
+	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
 
 		QPointF point = QPointF((*its)->getAlphaX(), (*its)->getAlphaY());
 
@@ -1064,14 +1065,14 @@ void MixerView::alignSelection(View::Axis a, View::RelativePoint p)
 void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
 {
 	// get selection and discard useless operation
-	SourceList selection = View::copySelection();
+	SourceList selection = SelectionManager::getInstance()->copySelection();
 	if (selection.size() < 2)
 		return;
 
 	QMap< int, QPair<Source*, QPointF> > sortedlist;
 	// do this for horizontal alignment
 	if (a==View::AXIS_HORIZONTAL) {
-		for(SourceList::iterator i = View::selectionBegin(); i != View::selectionEnd(); i++){
+		for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
 			QPointF point = QPointF((*i)->getAlphaX(), (*i)->getAlphaY());
 			sortedlist[int(point.x()*1000)] = qMakePair(*i, point);
 		}
@@ -1079,7 +1080,7 @@ void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
 	// do this for the vertical alignment
 	else {
 		// sort the list of sources by  y (inverted)
-		for(SourceList::iterator i = View::selectionBegin(); i != View::selectionEnd(); i++){
+		for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
 			QPointF point = QPointF((*i)->getAlphaX(), (*i)->getAlphaY());
 			sortedlist[int(point.y()*1000)] = qMakePair(*i, point);
 		}

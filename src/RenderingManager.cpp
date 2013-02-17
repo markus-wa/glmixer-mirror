@@ -777,71 +777,51 @@ Source *RenderingManager::getSourceBasketTop() const{
 
 void RenderingManager::dropSourceWithAlpha(double alphax, double alphay){
 
-	// nothing to drop ?
-	if (dropBasket.empty())
-		return;
-	// get the pointer to the source at the top of the list
-	Source *top = *dropBasket.begin();
-	// remove from the basket
-	dropBasket.erase(top);
-	// insert the source
-	if ( insertSource(top) ) {
-		// make it current
-		setCurrentSource(top->getId());
+	if (dropSource())
 		// apply the modifications
-		top->setAlphaCoordinates(alphax, alphay);
-		// start playing (according to preference)
-		top->play(_playOnDrop);
-	} else
-		delete top;
+		(*_currentSource)->setAlphaCoordinates(alphax, alphay);
 
 }
 
 void RenderingManager::dropSourceWithCoordinates(double x, double y){
 
-	// nothing to drop ?
-	if (dropBasket.empty())
-		return;
-
-	// get the pointer to the source at the top of the list
-	Source *top = *dropBasket.begin();
-	// remove from the basket
-	dropBasket.erase(top);
-	// insert the source
-	if ( insertSource(top) ) {
-		// make it current
-		setCurrentSource(top->getId());
+	if (dropSource()) {
 		// apply the modifications
-		top->setX(x);
-		top->setY(y);
-		// start playing (according to preference)
-		top->play(_playOnDrop);
-	} else
-		delete top;
+		(*_currentSource)->setX(x);
+		(*_currentSource)->setY(y);
+	}
 }
 
 void RenderingManager::dropSourceWithDepth(double depth){
 
-	// nothing to drop ?
-	if (dropBasket.empty())
-		return;
-
-	// get the pointer to the source at the top of the list
-	Source *top = *dropBasket.begin();
-	// remove from the basket
-	dropBasket.erase(top);
-	// insert the source
-	if ( insertSource(top) ) {
-		// make it current
-		setCurrentSource(top->getId());
+	if (dropSource())
 		// apply the modifications
-		top->setDepth(depth);
-		// start playing (according to preference)
-		top->play(_playOnDrop);
-	} else
-		delete top;
-
+		(*_currentSource)->setDepth(depth);
 }
+
+bool RenderingManager::dropSource(){
+
+	// something to drop ?
+	if (!dropBasket.empty()) {
+		// get the pointer to the source at the top of the list
+		Source *top = *dropBasket.begin();
+		// remove from the basket
+		dropBasket.erase(top);
+		// insert the source
+		if ( insertSource(top) ) {
+			// make it current
+			setCurrentSource(top->getId());
+			// start playing (according to preference)
+			top->play(_playOnDrop);
+			// ok
+			return true;
+		} else
+			delete top;
+	}
+
+	return false;
+}
+
 
 void RenderingManager::removeSource(const GLuint idsource){
 

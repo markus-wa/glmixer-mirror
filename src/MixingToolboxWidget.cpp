@@ -23,6 +23,7 @@
 
 #include "MixingToolboxWidget.moc"
 
+//QMap<QString, Source *> MixingToolboxWidget::_defaultPresets;
 
 
 class CustomBlendingWidget : public QDialog {
@@ -40,24 +41,31 @@ public:
 		QGridLayout *gridLayout = new QGridLayout(this);
 		QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+		QLabel *label = new QLabel(tr("On white"), this);
+        gridLayout->addWidget(label, 0, 2, 1, 1);
+		label = new QLabel(tr("Transparent"), this);
+        gridLayout->addWidget(label, 0, 1, 1, 1);
+		label = new QLabel(tr("On black"), this);
+        gridLayout->addWidget(label, 0, 0, 1, 1);
+
 		SourceDisplayWidget *previewWhitebg = new SourceDisplayWidget(this, SourceDisplayWidget::WHITE);
 		previewWhitebg->setSource(s);
         previewWhitebg->setMinimumSize(QSize(150, 100));
 		previewWhitebg->setSizePolicy(sizePolicy);
-        gridLayout->addWidget(previewWhitebg, 0, 0, 1, 1);
+        gridLayout->addWidget(previewWhitebg, 1, 2, 1, 1);
 		SourceDisplayWidget *previewTransparentbg = new SourceDisplayWidget(this, SourceDisplayWidget::GRID);
 		previewTransparentbg->setSource(s);
 		previewTransparentbg->setMinimumSize(QSize(150, 100));
 		previewTransparentbg->setSizePolicy(sizePolicy);
-        gridLayout->addWidget(previewTransparentbg, 0, 1, 1, 1);
+        gridLayout->addWidget(previewTransparentbg, 1, 1, 1, 1);
 		SourceDisplayWidget *previewBlackbg = new SourceDisplayWidget(this, SourceDisplayWidget::BLACK);
 		previewBlackbg->setSource(s);
 		previewBlackbg->setMinimumSize(QSize(150, 100));
 		previewBlackbg->setSizePolicy(sizePolicy);
-        gridLayout->addWidget(previewBlackbg, 0, 2, 1, 1);
+        gridLayout->addWidget(previewBlackbg, 1, 0, 1, 1);
 
 	    QLabel *labelEquation = new QLabel(tr("Equation :"), this);
-        gridLayout->addWidget(labelEquation, 1, 0, 1, 1);
+        gridLayout->addWidget(labelEquation, 2, 0, 1, 1);
 	    equationBox = new QComboBox(this);
         equationBox->insertItems(0, QStringList()
 				 << tr("Add")
@@ -66,10 +74,10 @@ public:
 				 << tr("Minimum")
 				 << tr("Maximum")
         );
-        gridLayout->addWidget(equationBox, 1, 1, 1, 2);
+        gridLayout->addWidget(equationBox, 2, 1, 1, 2);
 
 	    QLabel *labelFunction = new QLabel(tr("Destination :"), this);
-        gridLayout->addWidget(labelFunction, 2, 0, 1, 1);
+        gridLayout->addWidget(labelFunction, 3, 0, 1, 1);
 	    functionBox = new QComboBox(this);
 		functionBox->insertItems(0, QStringList()
 	             << tr("Zero")
@@ -83,15 +91,15 @@ public:
 	             << tr("Background Alpha")
 	             << tr("Invert Background Alpha")
 	            );
-        gridLayout->addWidget(functionBox, 2, 1, 1, 2);
+        gridLayout->addWidget(functionBox, 3, 1, 1, 2);
 
 	    QLabel *labelWarning = new QLabel(tr("Warning: some configurations do not allow to change\nthe transparency of the source anymore.\n"), this);
-        gridLayout->addWidget(labelWarning, 3, 0, 1, 3);
+        gridLayout->addWidget(labelWarning, 4, 0, 1, 3);
 
 	    QDialogButtonBox *dialogBox = new QDialogButtonBox(this);
         dialogBox->setOrientation(Qt::Horizontal);
         dialogBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-        gridLayout->addWidget(dialogBox, 4, 0, 1, 3);
+        gridLayout->addWidget(dialogBox, 5, 0, 1, 3);
 
         QObject::connect(functionBox, SIGNAL(currentIndexChanged(int)), previewWhitebg, SLOT(setBlendingFunction(int)));
         QObject::connect(equationBox, SIGNAL(currentIndexChanged(int)), previewWhitebg, SLOT(setBlendingEquation(int)));
@@ -121,6 +129,32 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
 
 	// hide custom blending button
 	blendingCustomButton->setVisible(false);
+
+	// create presets
+	_defaultPresets["Original"] = new Source();
+	_defaultPresets["Desaturated"] = new Source();
+	_defaultPresets["Desaturated"]->setSaturation(-100);
+	_defaultPresets["Hypersaturated"] = new Source();
+	_defaultPresets["Hypersaturated"]->setSaturation(100);
+//	_defaultPresets["Impressionnist"] = new Source();
+
+	presetsList->addItems(_defaultPresets.keys());
+
+//	 QMapIterator<QString, Source*> i(_defaultPresets);
+//	 while (i.hasNext()) {
+//	     i.next();
+//	     presetsList->insertItem(0, i.key());
+//	     // TODO : add tooltip with info on source settings.
+//	 }
+
+}
+
+MixingToolboxWidget::~MixingToolboxWidget()
+{
+	// clean presets list
+	foreach (Source *s, _defaultPresets)
+		delete s;
+
 
 }
 
@@ -311,6 +345,11 @@ void MixingToolboxWidget::on_filterList_currentRowChanged(int value)
 
 void MixingToolboxWidget::on_presetApply_pressed()
 {
+	QString i = presetsList->currentItem()->text();
+	if (_defaultPresets.contains(i) )
+		source->importProperties( *_defaultPresets[i], false );
+	else if ( _userPresets.contains(i) )
+		source->importProperties( *_userPresets[i], false );
 
 }
 
@@ -321,28 +360,41 @@ void MixingToolboxWidget::on_presetReApply_pressed()
 
 void MixingToolboxWidget::on_presetAdd_pressed()
 {
+	presetsList->insertItem(0, "tmp");
+	presetsList->item(0)->setFlags( presetsList->item(0)->flags () | Qt::ItemIsEditable );
 
 }
 
 void MixingToolboxWidget::on_presetRemove_pressed()
 {
-
+	QMap<QString, Source *>::iterator i = _userPresets.find(presetsList->currentItem()->text());
+	if ( i != _userPresets.end() ) {
+		presetsList->removeItemWidget(presetsList->currentItem());
+		_userPresets.erase(i);
+	}
 }
 
 
 void MixingToolboxWidget::on_presetsList_itemDoubleClicked(QListWidgetItem *item){
 
-	qDebug( qPrintable(QString("Preset %1 applied").arg(item->text())) );
-
+	on_presetApply_pressed();
 }
 
 
 void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *item){
 
-	qDebug( qPrintable(QString("Preset %1 selected").arg(item->text())) );
+	if (item) {
+		presetApply->setEnabled(true);
 
-
-
+		if ( _userPresets.contains(item->text()) ) {
+			presetRemove->setEnabled(true);
+			presetReApply->setEnabled(true);
+		} else {
+			presetRemove->setEnabled(false);
+			presetReApply->setEnabled(false);
+		}
+	} else
+		presetApply->setEnabled(false);
 
 }
 

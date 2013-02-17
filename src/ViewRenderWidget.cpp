@@ -31,6 +31,7 @@
 #include "LayersView.h"
 #include "RenderingView.h"
 #include "RenderingManager.h"
+#include "SelectionManager.h"
 #include "OutputRenderWindow.h"
 #include "CatalogView.h"
 #include "Cursor.h"
@@ -342,7 +343,7 @@ void ViewRenderWidget::setViewMode(viewMode mode)
 
 void ViewRenderWidget::removeFromSelections(Source *s)
 {
-	View::deselect(s);
+	SelectionManager::getInstance()->deselect(s);
 	_mixingView->removeFromGroup(s);
 }
 
@@ -913,7 +914,7 @@ void ViewRenderWidget::alignSelection(View::Axis a, View::RelativePoint p)
 	_currentView->alignSelection(a, p);
 
 	// update the selection source for geometry view
-	View::updateSelectionSource();
+	SelectionManager::getInstance()->updateSelectionSource();
 }
 
 void ViewRenderWidget::distributeSelection(View::Axis a, View::RelativePoint p)
@@ -921,7 +922,7 @@ void ViewRenderWidget::distributeSelection(View::Axis a, View::RelativePoint p)
 	_currentView->distributeSelection(a, p);
 
 	// update the selection source for geometry view
-	View::updateSelectionSource();
+	SelectionManager::getInstance()->updateSelectionSource();
 }
 
 

@@ -85,7 +85,7 @@
 #include <QGLFramebufferObject>
 #include <QGLShaderProgram>
 #include <QGLPixelBuffer>
-#include <QGLBuffer>
+//#include <QGLBuffer>
 #include <QtCore>
 #include <QtDebug>
 #include <QDir>

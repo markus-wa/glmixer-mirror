@@ -8,6 +8,7 @@
 #include "RenderingView.h"
 
 #include "RenderingManager.h"
+#include "SelectionManager.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 
@@ -73,10 +74,6 @@ void RenderingView::paint()
 		// The icons of the sources (reversed depth order)
 		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-			// draw the source only if not culled and alpha not null
-			if ((*its)->isStandby() || (*its)->isCulled() || !(*its)->getAlpha() > 0.0)
-				continue;
-
 			//
 			// 1. Render it into current view
 			//
@@ -93,12 +90,20 @@ void RenderingView::paint()
 			// bind the source texture and update its content
 			(*its)->update();
 
-			if ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
-				 || RenderingManager::getInstance()->isCurrentSource(its)
-				 || View::isInSelection(*its)) {
-				// Draw it !
-				(*its)->blend();
-				(*its)->draw();
+			// draw only if it is the current source
+			if ( RenderingManager::getInstance()->isCurrentSource(its)
+				// OR it is selected
+			     || SelectionManager::getInstance()->isInSelection(*its)
+			     // OR if there is no current source and no selection (i.e default case draw everything)
+				 || ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
+				    && !SelectionManager::getInstance()->hasSelection() )  ) {
+
+				// draw the source only if not culled and alpha not null
+				if ( !(*its)->isStandby() && !(*its)->isCulled() && (*its)->getAlpha() > 0.0 ) {
+					// Draw it !
+					(*its)->blend();
+					(*its)->draw();
+				}
 			}
 			//
 			// 2. Render it into FBO
@@ -125,6 +130,12 @@ void RenderingView::paint()
     glPopMatrix();
 
     glPopMatrix();
+
+
+	// DROP any source loaded
+	if ( RenderingManager::getInstance()->getSourceBasketTop() )
+		RenderingManager::getInstance()->dropSource();
+
 }
 
 
@@ -137,7 +148,7 @@ bool RenderingView::mousePressEvent(QMouseEvent *event)
 	RenderingManager::getInstance()->unsetCurrentSource();
 
 	// clear selection
-	View::clearSelection();
+	SelectionManager::getInstance()->clearSelection();
 
 	return true;
 }

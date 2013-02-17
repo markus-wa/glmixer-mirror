@@ -27,6 +27,7 @@
 #include "CatalogView.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
+#include "SelectionManager.h"
 #include "OutputRenderWindow.h"
 
 CatalogView::CatalogView() : View(), _visible(true), _width(0),_height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
@@ -193,7 +194,7 @@ void CatalogView::drawSource(Source *s, int index)
 		else
 			glCallList(ViewRenderWidget::border_thin + (s->isModifiable() ? 0 : 3));
 
-		if ( View::isInSelection(s) )
+		if ( SelectionManager::getInstance()->isInSelection(s) )
 			glCallList(ViewRenderWidget::frame_selection);
 
 		// was it clicked ?
@@ -320,7 +321,7 @@ bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 
 		// detect select mode
 		if ( isUserInput(cause, INPUT_SELECT) )
-			View::select(sourceClicked);
+			SelectionManager::getInstance()->select(sourceClicked);
 		else if ( isUserInput(cause, INPUT_TOOL) || isUserInput(cause, INPUT_TOOL_INDIVIDUAL) ||  isUserInput(cause, INPUT_ZOOM) ) {
 			// make this source the current
 			RenderingManager::getInstance()->setCurrentSource(sourceClicked->getId());

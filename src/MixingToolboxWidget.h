@@ -21,6 +21,7 @@ class MixingToolboxWidget: public QWidget, public Ui::MixingToolboxWidget {
 public:
 
     MixingToolboxWidget(QWidget *parent);
+    ~MixingToolboxWidget();
     void setAntialiasing(bool antialiased);
 
 public Q_SLOTS:
@@ -82,7 +83,8 @@ private:
 	class GammaLevelsWidget *gammaAdjust;
     Source *source;
 
-
+    QMap<QString, Source *> _defaultPresets;
+    QMap<QString, Source *> _userPresets;
 
 };
 

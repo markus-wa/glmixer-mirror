@@ -39,6 +39,7 @@
 #include "UserPreferencesDialog.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
+#include "SelectionManager.h"
 #include "SourceDisplayWidget.h"
 #include "OutputRenderWindow.h"
 #include "MixerView.h"
@@ -327,7 +328,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
 	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
 
-
 	// connect to disable many actions, like quitting, opening session, preferences, etc.
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionNew_Session, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionLoad_Session, SLOT(setDisabled(bool)));
@@ -373,6 +373,17 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SIGNAL(radiusChanged(int)), cursorFuzzyRadius, SLOT(setValue(int)) );
 	QObject::connect(cursorFuzzyRadius, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setRadius(int)) );
 	QObject::connect(cursorFuzzyFiltering, SIGNAL(valueChanged(int)), dynamic_cast<FuzzyCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_FUZZY)), SLOT(setFiltering(int)) );
+
+	// connect actions with selectionManager
+	QObject::connect(actionSelectAll, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectAll()));
+	QObject::connect(actionSelectInvert, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(invertSelection()));
+	QObject::connect(actionSelectCurrent, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(selectCurrentSource()));
+	QObject::connect(actionSelectNone, SIGNAL(triggered()), SelectionManager::getInstance(), SLOT(clearSelection()));
+
+	QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), this, SLOT(updateStatusControlActions()));
+	QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectInvert, SLOT(setEnabled(bool)));
+	QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectNone, SLOT(setEnabled(bool)));
+
 
     // a Timer to update sliders and counters
 	frameSlider->setTracking(true);
@@ -684,7 +695,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		currentSourceMenu->setEnabled(true);
 		toolButtonZoomCurrent->setEnabled(true);
 		mixingToolBox->setEnabled(true);
-
+		currentSourceMenu->setEnabled(true);
 
 		// Enable start button if the source is playable
 		startButton->setEnabled( (*csi)->isPlayable() );
@@ -765,6 +776,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		startButton->setChecked( false );
 
 		sourceDockWidgetContents->setEnabled(false);
+		currentSourceMenu->setEnabled(false);
 
 	}
 
@@ -990,9 +1002,9 @@ void GLMixer::on_actionDeleteSource_triggered()
 		//  delete only the current
 		todelete.insert(*cs);
 	// if there is a selection and no source is current, delete the whole selection
-	else if ( View::hasSelection() )
+	else if ( SelectionManager::getInstance()->hasSelection() )
 		// make a copy of the selection (to make sure we do not mess with pointers when removing from selection)
-		todelete = View::copySelection();
+		todelete = SelectionManager::getInstance()->copySelection();
 
 	// remove all the source in the list todelete
 	for(SourceList::iterator  its = todelete.begin(); its != todelete.end(); its++) {
@@ -2229,40 +2241,6 @@ void GLMixer::on_output_alpha_valueChanged(int v){
 }
 
 
-void GLMixer::on_actionSelectAll_triggered()
-{
-	SourceList sl;
-	SourceSet::iterator sit = RenderingManager::getInstance()->getBegin();
-	// check for the existence of an opencv source which would already be on this same index
-	for ( ; RenderingManager::getInstance()->notAtEnd(sit); sit++)
-		sl.insert(*sit);
-	View::select(sl);
-}
-
-void GLMixer::on_actionSelectInvert_triggered()
-{
-	SourceSet::iterator sit = RenderingManager::getInstance()->getBegin();
-	// check for the existence of an opencv source which would already be on this same index
-	for ( ; RenderingManager::getInstance()->notAtEnd(sit); sit++)
-		View::select(*sit);
-}
-
-void GLMixer::on_actionSelectCurrent_triggered()
-{
-	SourceSet::iterator sit = RenderingManager::getInstance()->getCurrentSource();
-	if ( RenderingManager::getInstance()->isValid(sit)) {
-		if (View::isInSelection(*sit))
-			View::deselect(*sit);
-		else
-			View::select(*sit);
-	}
-}
-
-void GLMixer::on_actionSelectNone_triggered()
-{
-	View::clearSelection();
-}
-
 void GLMixer::updateStatusControlActions() {
 
 	bool playEnabled = false, controlsEnabled = false;
@@ -2282,7 +2260,7 @@ void GLMixer::updateStatusControlActions() {
 
 	// test the presence of playable source to enable action Start/Stop
 	// test the presence of Media source to enable actions for media control
-	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
 
 		if ( (*its)->isPlayable() ) {
 			playEnabled = true;
@@ -2328,7 +2306,7 @@ void GLMixer::on_actionSourcePlay_triggered(){
 		(*cs)->play(!(*cs)->isPlaying());
 
 	// loop over the selection and toggle play/stop of each source (but the current source already toggled)
-	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
 		if (*its != *cs)
 			(*its)->play(!(*its)->isPlaying());
 }
@@ -2341,7 +2319,7 @@ void GLMixer::on_actionSourceRestart_triggered(){
 		selectedSourceVideoFile->seekBegin();
 
 	// loop over the selection and apply action of each source (but the current source already done)
-	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
 		if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
 			VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
 			vf->seekBegin();
@@ -2355,7 +2333,7 @@ void GLMixer::on_actionSourceSeekBackward_triggered(){
 		selectedSourceVideoFile->seekBackward();
 
 	// loop over the selection and apply action of each source (but the current source already done)
-	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
 		if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
 			VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
 			vf->seekBackward();
@@ -2369,7 +2347,7 @@ void GLMixer::on_actionSourcePause_triggered(){
 		selectedSourceVideoFile->pause(!selectedSourceVideoFile->isPaused());
 
 	// loop over the selection and toggle pause/resume of each source (but the current source already toggled)
-	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
 		if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
 			VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
 			vf->pause(!vf->isPaused());
@@ -2383,7 +2361,7 @@ void GLMixer::on_actionSourceSeekForward_triggered(){
 		selectedSourceVideoFile->seekForward();
 
 	// loop over the selection and apply action of each source (but the current source already done)
-	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
 		if (*its != *cs && (*its)->rtti() == Source::VIDEO_SOURCE ){
 			VideoFile *vf = (dynamic_cast<VideoSource *>(*its))->getVideoFile();
 			vf->seekForward();

@@ -44,6 +44,7 @@ set(GLMIXER_SRCS
     RenderingView.cpp
     CatalogView.cpp
     ViewRenderWidget.cpp
+    SelectionManager.cpp
     RenderingManager.cpp
     RenderingEncoder.cpp
     OutputRenderWindow.cpp

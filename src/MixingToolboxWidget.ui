@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>237</width>
-    <height>292</height>
+    <width>240</width>
+    <height>294</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,17 +17,8 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <property name="leftMargin">
+   <property name="margin">
     <number>2</number>
-   </property>
-   <property name="topMargin">
-    <number>2</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
    </property>
    <item>
     <widget class="QToolBox" name="mixingToolBox">
@@ -39,12 +30,12 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>235</width>
+       <width>236</width>
        <height>290</height>
       </size>
      </property>
      <property name="currentIndex">
-      <number>4</number>
+      <number>3</number>
      </property>
      <property name="tabSpacing">
       <number>1</number>
@@ -54,8 +45,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>235</width>
-        <height>170</height>
+        <width>226</width>
+        <height>132</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -80,6 +71,18 @@
        <string>Combination of colors and transparency</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
@@ -535,8 +538,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>235</width>
-        <height>170</height>
+        <width>226</width>
+        <height>160</height>
        </rect>
       </property>
       <property name="toolTip">
@@ -549,8 +552,20 @@ QPushButton:pressed {
        <string>Gamma correction of image luminance</string>
       </attribute>
       <layout class="QVBoxLayout" name="gammaContentsLayout">
-       <property name="margin">
-        <number>3</number>
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
        </property>
       </layout>
      </widget>
@@ -559,14 +574,29 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>235</width>
-        <height>170</height>
+        <width>226</width>
+        <height>160</height>
        </rect>
       </property>
       <attribute name="label">
        <string>Color</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>-1</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QComboBox" name="EffectsInvertBox">
          <property name="sizePolicy">
@@ -1411,8 +1441,8 @@ QSpinBox:hover{
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>235</width>
-        <height>170</height>
+        <width>226</width>
+        <height>160</height>
        </rect>
       </property>
       <property name="toolTip">
@@ -1425,8 +1455,17 @@ QSpinBox:hover{
        <string>Imaging special effects</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_7">
-       <property name="margin">
-        <number>4</number>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
        </property>
        <item>
         <widget class="QListWidget" name="filterList">
@@ -1694,14 +1733,26 @@ QSpinBox:hover{
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>235</width>
-        <height>170</height>
+        <width>226</width>
+        <height>160</height>
        </rect>
       </property>
       <attribute name="label">
        <string>Presets</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item row="5" column="1">
         <widget class="QToolButton" name="presetRemove">
          <property name="enabled">
@@ -1769,32 +1820,15 @@ QToolButton:hover {
          <property name="showDropIndicator" stdset="0">
           <bool>false</bool>
          </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
          <property name="spacing">
           <number>1</number>
          </property>
          <property name="currentRow">
           <number>-1</number>
          </property>
-         <item>
-          <property name="text">
-           <string>Original</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Desaturated</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>hypersaturated</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Impressionnist</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="3" column="1">

@@ -175,6 +175,7 @@ GLenum blendequationFromInt(int i){
 	case 4:
 		return GL_MAX;
 	}
+	return 0;
 }
 
 int intFromBlendequation(GLenum e){
@@ -190,5 +191,6 @@ int intFromBlendequation(GLenum e){
 	case GL_MAX:
 		return 4;
 	}
+	return 0;
 }
 

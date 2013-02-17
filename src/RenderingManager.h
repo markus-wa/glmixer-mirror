@@ -208,6 +208,7 @@ public Q_SLOTS:
 	void startCurrentSource(bool on);
 	void toggleMofifiableCurrentSource();
 
+	bool dropSource();
 	void dropSourceWithAlpha(double alphax, double alphay);
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);

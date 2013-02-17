@@ -26,6 +26,7 @@
 #include "GeometryView.h"
 
 #include "RenderingManager.h"
+#include "SelectionManager.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 #include <algorithm>
@@ -156,14 +157,14 @@ void GeometryView::paint()
 	}
 
     // Then the selection outlines
-	if ( View::hasSelection() ) {
+	if ( SelectionManager::getInstance()->hasSelection() ) {
 		// Draw center point
 		glPushMatrix();
-		glTranslated(View::selectionSource()->getX(), View::selectionSource()->getY(), 0);
+		glTranslated(SelectionManager::getInstance()->selectionSource()->getX(), SelectionManager::getInstance()->selectionSource()->getY(), 0);
 		// Draw selection source
-		glRotated(View::selectionSource()->getRotationAngle(), 0.0, 0.0, 1.0);
-		glScaled(View::selectionSource()->getScaleX(), View::selectionSource()->getScaleY(), 1.f);
-		if ( currentSource == View::selectionSource() ) {
+		glRotated(SelectionManager::getInstance()->selectionSource()->getRotationAngle(), 0.0, 0.0, 1.0);
+		glScaled(SelectionManager::getInstance()->selectionSource()->getScaleX(), SelectionManager::getInstance()->selectionSource()->getScaleY(), 1.f);
+		if ( currentSource == SelectionManager::getInstance()->selectionSource() ) {
 			glCallList(borderType + 6);
 			// Draw extra overlay information depending on tool
 			if (currentAction == View::TOOL ) {
@@ -171,10 +172,10 @@ void GeometryView::paint()
 				glCallList(ViewRenderWidget::border_tooloverlay + 1);
 				// show the rotation center when ROTATE
 				if (currentTool == GeometryView::ROTATE) {
-					glScalef(1.f / View::selectionSource()->getScaleX(), 1.f / View::selectionSource()->getScaleY(), 1.f);
+					glScalef(1.f / SelectionManager::getInstance()->selectionSource()->getScaleX(), 1.f / SelectionManager::getInstance()->selectionSource()->getScaleY(), 1.f);
 					glCallList(ViewRenderWidget::border_tooloverlay);
 				} else if (currentTool == GeometryView::CROP) {
-					glScalef( 1.f + 0.07 * ( SOURCE_UNIT / View::selectionSource()->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / View::selectionSource()->getScaleY() ), 1.f);
+					glScalef( 1.f + 0.07 * ( SOURCE_UNIT / SelectionManager::getInstance()->selectionSource()->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / SelectionManager::getInstance()->selectionSource()->getScaleY() ), 1.f);
 					glCallList(ViewRenderWidget::border_tooloverlay + 2);
 				}
 			}
@@ -270,7 +271,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 		// get the top most clicked source which is NOT the selection source
 		Source *clickedSource =  0;
 		// discard the selection source
-		clickedSources.erase(View::selectionSource());
+		clickedSources.erase(SelectionManager::getInstance()->selectionSource());
 		// pick next source if possible
 		if (sourceClicked())
 			clickedSource = *clickedSources.begin();
@@ -279,12 +280,12 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 		// SELECT MODE : add/remove from selection
 		if ( isUserInput(event, INPUT_SELECT) ) {
 			// add remove the clicked source from the selection
-			if ( View::isInSelection(clickedSource) )
-				View::deselect(clickedSource);
+			if ( SelectionManager::getInstance()->isInSelection(clickedSource) )
+				SelectionManager::getInstance()->deselect(clickedSource);
 			else
-				View::select(clickedSource);
+				SelectionManager::getInstance()->select(clickedSource);
 			// set selection as current
-			setCurrentSource(View::selectionSource());
+			setCurrentSource(SelectionManager::getInstance()->selectionSource());
 		}
 		// context menu
 		else if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
@@ -304,7 +305,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 			// if individual source requested,
 			if (individual) {
 				// but if the source picked or the current source is the selection source
-				if (clicked == View::selectionSource() || cs == View::selectionSource() ) {
+				if (clicked == SelectionManager::getInstance()->selectionSource() || cs == SelectionManager::getInstance()->selectionSource() ) {
 					cs = 0;
 					// ignore the selection (use the pointer to the clickedSource instead)
 					clicked = clickedSource;
@@ -316,13 +317,13 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 				}
 			}
 			// not individual, but the source clicked is part of the selection
-			else if (View::isInSelection(clickedSource)) {
+			else if (SelectionManager::getInstance()->isInSelection(clickedSource)) {
 				// then we shall manipulate the selection instead
-				clicked = View::selectionSource();
+				clicked = SelectionManager::getInstance()->selectionSource();
 			}
 			// else (the clicked item is not in the selection) if this is not the selection source, then discard the selection
-			else if ( clicked != View::selectionSource() )
-				View::clearSelection();
+			else if ( clicked != SelectionManager::getInstance()->selectionSource() )
+				SelectionManager::getInstance()->clearSelection();
 
 			// if there was no current source
 			// OR
@@ -364,7 +365,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
 	// clear selection or back to no action
 	if ( currentAction == View::SELECT )
-		View::clearSelection();
+		SelectionManager::getInstance()->clearSelection();
 	else
 		setAction(View::NONE);
 
@@ -413,8 +414,8 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
 			}
-			if ( View::hasSelection() )
-				grabSource( View::selectionSource(), event->x(), viewport[3] - event->y(), -dx, -dy);
+			if ( SelectionManager::getInstance()->hasSelection() )
+				grabSource( SelectionManager::getInstance()->selectionSource(), event->x(), viewport[3] - event->y(), -dx, -dy);
 			// return true as we may have moved the current source
 			return true;
 		}
@@ -431,8 +432,8 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 	if ( cs && cs->isModifiable() && (currentAction == View::GRAB || currentAction == View::TOOL)) {
 
-		if (!individual && View::isInSelection(cs))
-			setCurrentSource(View::selectionSource());
+		if (!individual && SelectionManager::getInstance()->isInSelection(cs))
+			setCurrentSource(SelectionManager::getInstance()->selectionSource());
 		// ready to use the current source
 		cs = getCurrentSource();
 
@@ -476,9 +477,9 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 		if ( currentAction == View::SELECT )
 			// extend selection
-			View::select(rectSources);
+			SelectionManager::getInstance()->select(rectSources);
 		else  // new selection
-			View::setSelection(rectSources);
+			SelectionManager::getInstance()->setSelection(rectSources);
 
 		return false;
 	}
@@ -764,9 +765,9 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
     SourceList l;
     if ( onlyClickedSource ) {
 
-    	if (currentSource == View::selectionSource())
+    	if (currentSource == SelectionManager::getInstance()->selectionSource())
     		// list the selection
-    		l = View::copySelection();
+    		l = SelectionManager::getInstance()->copySelection();
     	else if ( RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd() )
     		// add only the current source in the list
     		l.insert(*RenderingManager::getInstance()->getCurrentSource());
@@ -825,13 +826,13 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNo
     // rendering for select mode
     glMatrixMode(GL_MODELVIEW);
 
-	if ( View::hasSelection() ) {
+	if ( SelectionManager::getInstance()->hasSelection() ) {
 		glPushMatrix();
         // place and scale
-        glTranslated(View::selectionSource()->getX(), View::selectionSource()->getY(), 40);
-        glRotated(View::selectionSource()->getRotationAngle(), 0.0, 0.0, 1.0);
-        glScaled(View::selectionSource()->getScaleX(), View::selectionSource()->getScaleY(), 1.f);
-        View::selectionSource()->draw(false, GL_SELECT);
+        glTranslated(SelectionManager::getInstance()->selectionSource()->getX(), SelectionManager::getInstance()->selectionSource()->getY(), 40);
+        glRotated(SelectionManager::getInstance()->selectionSource()->getRotationAngle(), 0.0, 0.0, 1.0);
+        glScaled(SelectionManager::getInstance()->selectionSource()->getScaleX(), SelectionManager::getInstance()->selectionSource()->getScaleY(), 1.f);
+        SelectionManager::getInstance()->selectionSource()->draw(false, GL_SELECT);
         glPopMatrix();
 	}
 
@@ -861,8 +862,8 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNo
 	clickedSources.clear();
 	while (hits != 0) {
 		GLuint id = selectBuf[ (hits-1) * 4 + 3];
-		if ( id == View::selectionSource()->getId() )
-			clickedSources.insert(View::selectionSource());
+		if ( id == SelectionManager::getInstance()->selectionSource()->getId() )
+			clickedSources.insert(SelectionManager::getInstance()->selectionSource());
 		else
 			clickedSources.insert( *(RenderingManager::getInstance()->getById(id)) );
 		hits--;
@@ -929,19 +930,19 @@ void GeometryView::grabSources(Source *s, int x, int y, int dx, int dy) {
 	grabSource(s, x, y, dx, dy);
 
 	// if the source is the selection, move the selection too
-	if ( s == View::selectionSource() ) {
-		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++){
+	if ( s == SelectionManager::getInstance()->selectionSource() ) {
+		for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
 			// discard non modifiable source
 			if (!(*its)->isModifiable()) {
-				View::updateSelectionSource();
+				SelectionManager::getInstance()->updateSelectionSource();
 				continue;
 			}
 			grabSource( *its, x, y, dx, dy);
 		}
 	}
 	// otherwise, update selection source if we move a source of the selection
-	else if (View::isInSelection(s))
-		View::updateSelectionSource();
+	else if (SelectionManager::getInstance()->isInSelection(s))
+		SelectionManager::getInstance()->updateSelectionSource();
 
 }
 
@@ -1032,18 +1033,18 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
 	double sy = s->getY();
 
 	// move the source individually (proportional scale if is selection source)
-	scaleSource(s, x, y, dx, dy, quadrant, s == View::selectionSource());
+	scaleSource(s, x, y, dx, dy, quadrant, s == SelectionManager::getInstance()->selectionSource());
 
 	// if the source is the View::selection, move the selection
-	if ( s == View::selectionSource() ) {
+	if ( s == SelectionManager::getInstance()->selectionSource() ) {
 		// ratio of scaling now / before
 		sxratio *= s->getScaleX();
 		syratio *= s->getScaleY();
 		// apply scaling to all sources
-		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+		for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
 			// discard non modifiable source
 			if (!(*its)->isModifiable()) {
-				View::updateSelectionSource();
+				SelectionManager::getInstance()->updateSelectionSource();
 				continue;
 			}
 			(*its)->setX( s->getX() + ((*its)->getX() - sx) * sxratio);
@@ -1052,8 +1053,8 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
 		}
 	}
 	// otherwise, update selection source if we move a source of the selection
-	else if (View::isInSelection(s))
-		View::updateSelectionSource();
+	else if (SelectionManager::getInstance()->isInSelection(s))
+		SelectionManager::getInstance()->updateSelectionSource();
 
 }
 
@@ -1149,7 +1150,7 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
 	rotateSource(s, x, y, dx, dy, option);
 
 	// if the source is the View::selection, move the selection
-	if ( s == View::selectionSource() ) {
+	if ( s == SelectionManager::getInstance()->selectionSource() ) {
 
 		// ratio of scaling now / before
 		sxratio *= s->getScaleX();
@@ -1157,11 +1158,11 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
 		angle -= s->getRotationAngle();
 		angle -= (double)( (int) angle / 360 ) * 360.0;
 
-		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++) {
+		for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
 
 			// discard non modifiable source
 			if (!(*its)->isModifiable()) {
-				View::updateSelectionSource();
+				SelectionManager::getInstance()->updateSelectionSource();
 				continue;
 			}
 			(*its)->scaleBy(sxratio , syratio);
@@ -1182,8 +1183,8 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
 		}
 	}
 	// otherwise, update selection source if we move a source of the selection
-	else if (View::isInSelection(s))
-		View::updateSelectionSource();
+	else if (SelectionManager::getInstance()->isInSelection(s))
+		SelectionManager::getInstance()->updateSelectionSource();
 
 }
 
@@ -1306,13 +1307,13 @@ void GeometryView::cropSources(Source *s, int x, int y, int dx, int dy, bool opt
 	cropSource(s, x, y, dx, dy, option);
 
 	// if the source is the View::selection, move the selection
-	if ( s == View::selectionSource() ) {
-		for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++)
+	if ( s == SelectionManager::getInstance()->selectionSource() ) {
+		for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
 			cropSource( *its, x, y, dx, dy, option);
 	}
 	// otherwise, update selection source if we move a source of the selection
-	else if (View::isInSelection(s))
-		View::updateSelectionSource();
+	else if (SelectionManager::getInstance()->isInSelection(s))
+		SelectionManager::getInstance()->updateSelectionSource();
 
 }
 
@@ -1373,7 +1374,7 @@ void GeometryView::setCurrentSource(Source *s)
 	currentSource = s;
 
 	// is the current set to a valid pointer ?
-	if (currentSource && currentSource != View::selectionSource())
+	if (currentSource && currentSource != SelectionManager::getInstance()->selectionSource())
 		// set the current source of the rendering manager too
 		RenderingManager::getInstance()->setCurrentSource( s->getId() );
 	else
@@ -1391,7 +1392,7 @@ Source *GeometryView::getCurrentSource()
 		currentSource = *RenderingManager::getInstance()->getCurrentSource();
 
 	// if current source is a valid source
-	if (currentSource && currentSource != View::selectionSource())
+	if (currentSource && currentSource != SelectionManager::getInstance()->selectionSource())
 		// return it only if modifiable
 		return currentSource->isModifiable() ? currentSource : 0;
 	else
@@ -1502,9 +1503,9 @@ void GeometryView::alignSource(Source *s, QRectF box, View::Axis a, View::Relati
 
 void GeometryView::alignSelection(View::Axis a, View::RelativePoint p)
 {
-	QRectF bbox = getBoundingBox(View::copySelection(), true);
+	QRectF bbox = getBoundingBox(SelectionManager::getInstance()->copySelection(), true);
 
-	for(SourceList::iterator  its = View::selectionBegin(); its != View::selectionEnd(); its++){
+	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
 		alignSource(*its, bbox, a, p);
 	}
 }
@@ -1513,7 +1514,7 @@ void GeometryView::alignSelection(View::Axis a, View::RelativePoint p)
 void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 
 	// get selection and discard useless operation
-	SourceList selection = View::copySelection();
+	SourceList selection = SelectionManager::getInstance()->copySelection();
 	if (selection.size() < 2)
 		return;
 
@@ -1523,7 +1524,7 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 	QMap< int, QPair<Source*, QSizeF> > sortedlist;
 	// do this for horizontal borders
 	if (a==View::AXIS_HORIZONTAL) {
-		for(SourceList::iterator i = View::selectionBegin(); i != View::selectionEnd(); i++){
+		for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
 			QRectF sbox = getBoundingBox(*i, true);
 			switch (p) {
 			case View::ALIGN_BOTTOM_LEFT:
@@ -1546,7 +1547,7 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 	// do this for the vertical borders
 	else {
 		// sort the list of sources by  y (inverted)
-		for(SourceList::iterator i = View::selectionBegin(); i != View::selectionEnd(); i++){
+		for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
 			QRectF sbox = getBoundingBox(*i, true);
 			switch (p) {
 			case View::ALIGN_BOTTOM_LEFT:

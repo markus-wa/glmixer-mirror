@@ -27,6 +27,7 @@
 
 #include "common.h"
 #include "RenderingManager.h"
+#include "SelectionManager.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 
@@ -127,7 +128,7 @@ void LayersView::paint()
 				glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2));
 
 			// draw border for selection
-			if (View::isInSelection(*its))
+			if (SelectionManager::getInstance()->isInSelection(*its))
 				glCallList(ViewRenderWidget::frame_selection);
 
 			ViewRenderWidget::setSourceDrawingMode(true);
@@ -243,8 +244,8 @@ void LayersView::bringForward(Source *s)
 		forwardDisplacement = 0;
 
 	// if the source is part of a selection, set the whole selection to be forward
-	if (!individual && (View::isInSelection(s) && View::isInSelection(*RenderingManager::getInstance()->getCurrentSource())) )
-		forwardSources = View::copySelection();
+	if (!individual && (SelectionManager::getInstance()->isInSelection(s) && SelectionManager::getInstance()->isInSelection(*RenderingManager::getInstance()->getCurrentSource())) )
+		forwardSources = SelectionManager::getInstance()->copySelection();
 	else {
 		// else only this source is forward
 		forwardSources = SourceList();
@@ -281,15 +282,15 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 
 		// CTRL clic = add/remove from selection
 		if ( isUserInput(event, INPUT_SELECT) )
-			View::select(clicked);
+			SelectionManager::getInstance()->select(clicked);
 		// else not SELECTION ; normal action
 		else {
 			// not in selection (SELECT) action mode, then set the current active source
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
 			// if the source is not in the selection, discard the selection
-			if ( !View::isInSelection(clicked) )
-				View::clearSelection();
+			if ( !SelectionManager::getInstance()->isInSelection(clicked) )
+				SelectionManager::getInstance()->clearSelection();
 
 			// tool
 			individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
@@ -323,7 +324,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 
 	// back to no action
 	if ( currentAction == View::SELECT )
-		View::clearSelection();
+		SelectionManager::getInstance()->clearSelection();
 	else
 		setAction(View::NONE);
 
@@ -716,7 +717,7 @@ void LayersView::panningBy(int x, int y, int dx, int dy) {
 void LayersView::distributeSelection(View::Axis a, View::RelativePoint p)
 {
 	// get selection and discard useless operation
-	SourceList selection = View::copySelection();
+	SourceList selection = SelectionManager::getInstance()->copySelection();
 	if (selection.size() < 2)
 		return;
 

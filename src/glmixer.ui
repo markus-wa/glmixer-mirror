@@ -2018,6 +2018,9 @@ Uncheck to display the restart frame when stopped.</string>
      <string>&amp;Sources</string>
     </property>
     <widget class="QMenu" name="currentSourceMenu">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="title">
       <string>Current source</string>
      </property>
@@ -5146,6 +5149,9 @@ Shortcut:                                    Tab</string>
    </property>
   </action>
   <action name="actionSelectInvert">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/selectinvert.png</normaloff>:/glmixer/icons/selectinvert.png</iconset>
@@ -5164,6 +5170,9 @@ Shortcut:                                    Tab</string>
    </property>
   </action>
   <action name="actionSelectNone">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Clear selection</string>
    </property>
