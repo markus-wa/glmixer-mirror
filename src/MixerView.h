@@ -65,6 +65,7 @@ public:
 
 private:
 
+    bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble scale = 1.0, GLdouble tolerance = 1.0 );
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void grabSources(Source *s, int x, int y, int dx, int dy);
@@ -81,7 +82,8 @@ private:
 
 	// limbo area (where sources are in standy)
 	GLdouble limboSize;
-	bool scaleLimbo;
+	bool _modeScaleLimbo;
+	bool _modeMoveCircle;
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */

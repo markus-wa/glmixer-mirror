@@ -34,7 +34,7 @@
 #define MINZOOM 0.1
 #define MAXZOOM 3.0
 #define DEFAULTZOOM 0.5
-#define DEFAULT_PANNING 0.f, 0.f
+#define DEFAULT_PANNING 0.0, 0.0
 
 GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE), currentSource(0)
 {
@@ -44,6 +44,7 @@ GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE), currentS
 	maxpanx = SOURCE_UNIT*MAXZOOM*2.0;
 	maxpany = SOURCE_UNIT*MAXZOOM*2.0;
 	currentAction = View::NONE;
+	_modeMoveFrame = false;
 
 	borderType = ViewRenderWidget::border_large;
 
@@ -56,7 +57,7 @@ GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE), currentS
 void GeometryView::setModelview()
 {
 	View::setModelview();
-    glScalef(zoom, zoom, zoom);
+    glScaled(zoom, zoom, zoom);
     glTranslatef(getPanningX(), getPanningY(), 0.0);
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 }
@@ -67,7 +68,7 @@ void GeometryView::paint()
 
     // first the background (as the rendering black clear color) with shadow
 	glPushMatrix();
-    glScalef( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
+    glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
     glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
     glPopMatrix();
 
@@ -142,10 +143,10 @@ void GeometryView::paint()
 				}
 				// show the rotation center when ROTATE
 				if (currentTool == GeometryView::ROTATE) {
-					glScalef(1.f / (*its)->getScaleX(), 1.f / (*its)->getScaleY(), 1.f);
+					glScaled(1.0 / (*its)->getScaleX(), 1.0 / (*its)->getScaleY(), 1.0);
 					glCallList(ViewRenderWidget::border_tooloverlay);
 				} else if (currentTool == GeometryView::CROP) {
-					glScalef( 1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.f);
+					glScaled( 1.0 + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.0 + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.0);
 					glCallList(ViewRenderWidget::border_tooloverlay + 2);
 				}
 			}
@@ -172,10 +173,10 @@ void GeometryView::paint()
 				glCallList(ViewRenderWidget::border_tooloverlay + 1);
 				// show the rotation center when ROTATE
 				if (currentTool == GeometryView::ROTATE) {
-					glScalef(1.f / SelectionManager::getInstance()->selectionSource()->getScaleX(), 1.f / SelectionManager::getInstance()->selectionSource()->getScaleY(), 1.f);
+					glScaled(1.0 / SelectionManager::getInstance()->selectionSource()->getScaleX(), 1.0 / SelectionManager::getInstance()->selectionSource()->getScaleY(), 1.0);
 					glCallList(ViewRenderWidget::border_tooloverlay);
 				} else if (currentTool == GeometryView::CROP) {
-					glScalef( 1.f + 0.07 * ( SOURCE_UNIT / SelectionManager::getInstance()->selectionSource()->getScaleX() ),  1.f + 0.07 * ( SOURCE_UNIT / SelectionManager::getInstance()->selectionSource()->getScaleY() ), 1.f);
+					glScaled( 1.0 + 0.07 * ( SOURCE_UNIT / SelectionManager::getInstance()->selectionSource()->getScaleX() ),  1.0 + 0.07 * ( SOURCE_UNIT / SelectionManager::getInstance()->selectionSource()->getScaleY() ), 1.0);
 					glCallList(ViewRenderWidget::border_tooloverlay + 2);
 				}
 			}
@@ -187,8 +188,8 @@ void GeometryView::paint()
 
     // last the frame thing
 	glPushMatrix();
-    glScalef( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
-    glCallList(ViewRenderWidget::frame_screen);
+    glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
+    glCallList(ViewRenderWidget::frame_screen + (_modeMoveFrame ? 1 : 0) );
     glPopMatrix();
 
     // the source dropping icon
@@ -206,7 +207,7 @@ void GeometryView::paint()
 				glCallList(ViewRenderWidget::border_thin);
 			}
 			glPopMatrix();
-		glScalef( s->getScaleX(), s->getScaleY(), 1.f);
+		glScaled( s->getScaleX(), s->getScaleY(), 1.f);
 		glCallList(ViewRenderWidget::border_large);
 		glPopMatrix();
     }
@@ -247,7 +248,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	_selectionArea.markStart(QPointF(cursorx,cursory));
 
 	//  panning
-	if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG)) {
+	if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) || _modeMoveFrame) {
 		// priority to panning of the view (even in drop mode)
 		setAction(View::PANNING);
 		return false;
@@ -395,21 +396,19 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 	}
 
-//	// Mouse over BORDER OF RENDER AREA
-//	// get coordinate of cursor
-//	GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-//	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
-//	if ( qAbs( cursorx - OutputRenderWindow::getInstance()->getAspectRatio() * SOURCE_UNIT ) < 0.2 || qAbs( cursory - SOURCE_UNIT) < 0.2 ) {
-//		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
-//		return false;
-//	}
+	// Mouse over BORDER OF RENDER AREA
+	// are we over the border of the frame ?
+	_modeMoveFrame = hasObjectAtCoordinates(event->x(), viewport[3] - event->y(), ViewRenderWidget::frame_screen, 5.0);
+	if ( _modeMoveFrame ) {
+		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+	}
 
 	// PANNING of the background
 	if ( currentAction == View::PANNING ) {
 		// panning background
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 		// DRAG ?
-		if ( isUserInput(event, INPUT_DRAG) ) {
+		if ( isUserInput(event, INPUT_DRAG)  || _modeMoveFrame) {
 			// special move ; move the sources in the opposite
 			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
@@ -423,9 +422,9 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 	}
 
-	// SELECT MODE : no motion
-	if ( currentAction == View::SELECT )
-		return false;
+//	// SELECT MODE : no motion
+//	if ( currentAction == View::SELECT )
+//		return false;
 
 	// get current source
 	Source *cs = getCurrentSource();
@@ -456,12 +455,13 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 	// other cause for action without a current source ; selection area
 	if ( !currentSource  && isUserInput(event, INPUT_TOOL) ) {
-		// enable drawing of selection area
-		_selectionArea.setEnabled(true);
 
 		// get coordinate of cursor
 		GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
 		gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+
+		// enable drawing of selection area
+		_selectionArea.setEnabled(true);
 
 		// set coordinate of end of rectangle selection
 		_selectionArea.markEnd(QPointF(cursorx, cursory));
@@ -511,6 +511,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		else
 			// show we are not over a source
 			setAction(View::NONE);
+
 //	}
 
 	return false;
@@ -555,7 +556,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
     gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &bx, &by, &z);
 
-	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (View::zoomSpeed() * maxzoom) );
+	setZoom (zoom + ((double) event->delta() * zoom * minzoom) / (View::zoomSpeed() * maxzoom) );
 
 	double ax, ay;
 	gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
@@ -798,6 +799,48 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
     // apply the scaling
 	setZoom( zoom * (scalex < scaley ? scalex : scaley  ));
 
+}
+
+
+bool GeometryView::hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble tolerance)
+{
+	// prepare variables
+	GLuint selectBuf[SELECTBUFSIZE] = { 0 };
+	GLint hits = 0;
+
+	// init picking
+	glSelectBuffer(SELECTBUFSIZE, selectBuf);
+	(void) glRenderMode(GL_SELECT);
+
+	// picking in name 0, labels set later
+	glInitNames();
+	glPushName(0);
+
+	// use the projection as it is, but remember it.
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	// setup the projection for picking
+	glLoadIdentity();
+	gluPickMatrix((GLdouble) mouseX, (GLdouble) mouseY, tolerance, tolerance, viewport);
+	glMultMatrixd(projection);
+
+	// rendering for select mode
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+    glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
+	glCallList(objectdisplaylist);
+
+	// compute picking . return to rendering mode
+	hits = glRenderMode(GL_RENDER);
+
+	// set the matrices back
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	return hits > 0;
 }
 
 
@@ -1577,17 +1620,17 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 	if (p == View::ALIGN_CENTER) {
 		// special case for centered
 		QSizeF s = sortedlist[sortedlist.keys().first()].second;
-		translation = (targetbox.size() - s - sortedlist[sortedlist.keys().last()].second ) / float(sortedlist.count()-1);
+		translation = (targetbox.size() - s - sortedlist[sortedlist.keys().last()].second ) / double(sortedlist.count()-1);
 		targetbox = QRectF(targetbox.bottomLeft() + QPointF(s.width(), -s.height()), QSizeF(0.0,0.0));
 
 	} else if (p == View::ALIGN_EQUAL_GAPS) {
 		// special case for GAPS
-		translation = (targetbox.size() - total) / float(sortedlist.count()-1);
+		translation = (targetbox.size() - total) / double(sortedlist.count()-1);
 		QSizeF s = sortedlist[sortedlist.keys().first()].second * 2.0;
 		targetbox = QRectF(targetbox.bottomLeft() + QPointF(s.width(), -s.height()), QSizeF(0.0,0.0));
 	}
 	else
-		translation = (targetbox.size() - sortedlist[sortedlist.keys().last()].second ) / float(sortedlist.count()-1);
+		translation = (targetbox.size() - sortedlist[sortedlist.keys().last()].second ) / double(sortedlist.count()-1);
 
 	// loop over source list, except bottom-left & top-right most
 	sortedlist.remove( sortedlist.keys().first() );

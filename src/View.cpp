@@ -16,7 +16,7 @@
 QMap<View::UserInput,Qt::MouseButtons> View::_buttonmap = View::defaultMouseButtonsMap();
 QMap<View::UserInput,Qt::KeyboardModifiers> View::_modifiermap = View::defaultModifiersMap();
 bool View::zoomcentered = false;
-float View::zoomspeed = 120.0;
+double View::zoomspeed = 120.0;
 
 
 #if QT_VERSION > 0x040602
@@ -44,7 +44,7 @@ void View::setConfiguration(QDomElement xmlconfig) {
 }
 
 
-void View::setPanning(float x, float y, float z) {
+void View::setPanning(double x, double y, double z) {
 	panx = CLAMP(x, -maxpanx, maxpanx);
 	pany = CLAMP(y, - maxpany, maxpany);
 	if (z > 0)
@@ -242,10 +242,10 @@ QString View::userInputDescription(View::UserInput ab, QMap<View::UserInput,Qt::
 	return text;
 }
 
-void View::setZoomSpeed(float zs){
+void View::setZoomSpeed(double zs){
 	zoomspeed = CLAMP(zs, 20.0, 220.0);
 }
-float View::zoomSpeed(){
+double View::zoomSpeed(){
 	return zoomspeed;
 }
 void View::setZoomCentered(bool on){

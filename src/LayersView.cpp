@@ -204,7 +204,7 @@ void LayersView::resize(int w, int h)
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(50.0f, (float)  viewport[2] / (float)  viewport[3], 0.1f, lookatdistance * 10.0f);
+    gluPerspective(50.0f, (double)  viewport[2] / (double)  viewport[3], 0.1f, lookatdistance * 10.0f);
 
 	glGetDoublev(GL_PROJECTION_MATRIX, projection);
 
@@ -408,8 +408,8 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 	bool ret = false;
     lastClicPos = event->pos();
 
-	float previous = zoom;
-	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (-2.0 * View::zoomSpeed() * maxzoom) );
+	double previous = zoom;
+	setZoom (zoom + ((double) event->delta() * zoom * minzoom) / (-2.0 * View::zoomSpeed() * maxzoom) );
 
 	if (currentAction == View::GRAB) {
 		deltax = zoom - previous;
@@ -734,7 +734,7 @@ void LayersView::distributeSelection(View::Axis a, View::RelativePoint p)
 	}
 
 	// compute the step of translation
-	double step = (bbox[1] - bbox[0]) / float(selection.size()-1);
+	double step = (bbox[1] - bbox[0]) / double(selection.size()-1);
 	double position = bbox[0];
 
 	// loop over source list, except last

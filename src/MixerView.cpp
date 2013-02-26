@@ -45,7 +45,8 @@ MixerView::MixerView() : View()
 	maxpanx = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	maxpany = 2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	limboSize = DEFAULT_LIMBO_SIZE;
-	scaleLimbo = false;
+	_modeScaleLimbo = false;
+	_modeMoveCircle = false;
 
     icon.load(QString::fromUtf8(":/glmixer/icons/mixer.png"));
     title = " Mixing view";
@@ -54,8 +55,8 @@ MixerView::MixerView() : View()
 void MixerView::setModelview()
 {
 	View::setModelview();
-	glScalef(zoom, zoom, zoom);
-	glTranslatef(getPanningX(), getPanningY(), 0.0);
+	glScaled(zoom, zoom, zoom);
+	glTranslated(getPanningX(), getPanningY(), 0.0);
 	glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 }
 
@@ -67,12 +68,14 @@ void MixerView::paint()
 
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing);
+    if (_modeMoveCircle)
+    	glCallList(ViewRenderWidget::circle_mixing + 1);
+
     glPushMatrix();
-    glScalef( limboSize,  limboSize, 1.0);
-    if (scaleLimbo)
-        glCallList(ViewRenderWidget::circle_limbo+1);
-    else
-    	glCallList(ViewRenderWidget::circle_limbo);
+    glScaled( limboSize,  limboSize, 1.0);
+	glCallList(ViewRenderWidget::circle_limbo);
+    if (_modeScaleLimbo)
+        glCallList(ViewRenderWidget::circle_limbo + 1);
     glPopMatrix();
 
     // and the selection connection lines
@@ -293,7 +296,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	//  panning
-	if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG)) {
+	if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) || _modeMoveCircle ) {
 		// priority to panning of the view (even in drop mode)
 		setAction(View::PANNING);
 		return false;
@@ -363,27 +366,32 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 		// current source changed in some way
 		return true;
     }
-
+	// else
 	// click in background
-	// set current to none (end of list)
-	RenderingManager::getInstance()->unsetCurrentSource();
-	// back to no action
-	if ( currentAction == View::SELECT )
-		SelectionManager::getInstance()->clearSelection();
-	else
-		setAction(View::NONE);
-
-	// context menu
-	if ( isUserInput(event, INPUT_CONTEXT_MENU) )
-		RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
-	// zoom
-	else if ( isUserInput(event, INPUT_ZOOM) )
-		zoomBestFit(false);
 
 	// remember coordinates of clic
 	GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
 	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
 	_selectionArea.markStart(QPointF(cursorx,cursory));
+
+	// context menu on the background
+	if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
+		RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
+		return false;
+	}
+	// zoom button in the background : zoom best fit
+	else if ( isUserInput(event, INPUT_ZOOM) ) {
+		zoomBestFit(false);
+		return false;
+	}
+	// selection mode, clic background is ineffective
+	else if ( isUserInput(event, INPUT_SELECT) )
+		return false;
+
+	// set current to none (end of list)
+	RenderingManager::getInstance()->unsetCurrentSource();
+	// back to no action
+	setAction(View::NONE);
 
 	return false;
 }
@@ -462,9 +470,9 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		// panning background
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 		// SHIFT ?
-		if ( isUserInput(event, INPUT_DRAG) ) {
+		if ( isUserInput(event, INPUT_DRAG) || _modeMoveCircle ) {
 			// special move ; move the sources in the opposite
-			for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+			for(SourceSet::iterator its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
 				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
 			// return true as we may have moved the current source
 			return true;
@@ -473,14 +481,11 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 	}
 
-	// get coordinate of cursor
-	GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
 
-	if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) )
+	if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) ||  isUserInput(event, INPUT_SELECT) )
 	{
 		// get the top most clicked source, if there is one
-		static Source *clicked = 0;
+		Source *clicked = 0;
 		if (sourceClicked())
 			clicked = *clickedSources.begin();
 		else
@@ -489,8 +494,12 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		// No source clicked but mouse button down
 		if ( !clicked ) {
 
+			// get coordinate of cursor
+			GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+			gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+
 			// Are we scaling the limbo area ?
-			if ( scaleLimbo ) {
+			if ( _modeScaleLimbo ) {
 				GLdouble sqr_limboSize = CIRCLE_SQUARE_DIST(cursorx, cursory);
 				setLimboSize( sqrt(sqr_limboSize) );
 			}
@@ -521,7 +530,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 					}
 				}
 
-				if ( currentAction == View::SELECT )
+				if ( isUserInput(event, INPUT_SELECT) )
 					// extend selection
 					SelectionManager::getInstance()->select(rectSources);
 				else  // new selection
@@ -539,12 +548,16 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	// Show mouse over cursor only if no user input
 	if ( isUserInput(event, INPUT_NONE)) {
 		//  change action cursor if over a source
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
+		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) ) {
 			setAction(View::OVER);
-		else {
+			_modeScaleLimbo = _modeMoveCircle = false;
+		} else {
 			setAction(View::NONE);
 			// on the border of the limbo area ?
-			scaleLimbo = ( CIRCLE_SQUARE_DIST(cursorx, cursory) > (limboSize * limboSize - 0.1) && CIRCLE_SQUARE_DIST(cursorx, cursory) < (limboSize * limboSize + 0.1)) ;
+			_modeScaleLimbo = hasObjectAtCoordinates(event->x(), viewport[3] - event->y(), ViewRenderWidget::circle_limbo + 1, limboSize, 4.0);
+
+			// on the border of the cirle area ?
+			_modeMoveCircle = hasObjectAtCoordinates(event->x(), viewport[3] - event->y(), ViewRenderWidget::circle_mixing + 1, 1.0, 4.0);
 		}
 	}
 
@@ -559,38 +572,7 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 		setAction(OVER);
 	else if (currentAction == View::PANNING)
 		setAction(previousAction);
-//	else if (drawRectangle){
-//
-//		// set coordinate of end of rectangle selection
-//		double dumm;
-//	    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, selectionRectangleEnd, selectionRectangleEnd+1, &dumm);
-//
-//	    // loop over every sources to check if it is in the rectangle area
-//	    SourceList rectSources;
-//	    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-//	    {
-//	    	if ((*its)->getAlphaX() > MINI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-//	    		(*its)->getAlphaX() < MAXI(selectionRectangleStart[0], selectionRectangleEnd[0]) &&
-//	    		(*its)->getAlphaY() > MINI(selectionRectangleStart[1], selectionRectangleEnd[1]) &&
-//	    		(*its)->getAlphaY() < MAXI(selectionRectangleStart[1], selectionRectangleEnd[1]) ){
-//	    		rectSources.insert(*its);
-//	    	}
-//	    }
-//
-//	    if (rectSources.size() > 0) {
-//
-//			// set the last selected as current
-//			RenderingManager::getInstance()->setCurrentSource( (*rectSources.begin())->getId() );
-//
-//			SourceList result;
-//			for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end();) {
-//				result.erase (result.begin (), result.end ());
-//				std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
-//					itss++;
-//			}
-//	    }
-//	}
-	else if ( currentAction == View::SELECT && !getSourcesAtCoordinates(event->x(), viewport[3] - event->y()))
+	else if ( currentAction == View::SELECT && !sourceClicked() && !_selectionArea.isEnabled())
 		SelectionManager::getInstance()->clearSelection();
 
 	// end of selection area in any case
@@ -611,7 +593,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
             modelview, projection, viewport, &bx, &by, &z);
 
     // apply zoom
-	setZoom (zoom + ((float) event->delta() * zoom * minzoom) / (View::zoomSpeed() * maxzoom) );
+	setZoom (zoom + ((double) event->delta() * zoom * minzoom) / (View::zoomSpeed() * maxzoom) );
 
 	// compute position of cursor after zoom
 	double ax, ay;
@@ -622,12 +604,12 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 		// Center view on cursor when zooming ( panning = panning + ( cursor position after zoom - position before zoom ) )
 		// BUT with a non linear correction factor when approaching to MINZOOM (close to 0) which allows
 		// to re-center the view on the center when zooming out maximally
-		float expfactor = 1.0 / ( 1.0 + exp(7.0 - 100.0 * zoom) );
+		double expfactor = 1.0 / ( 1.0 + exp(7.0 - 100.0 * zoom) );
 		setPanning((getPanningX() + ax - bx) * expfactor, (getPanningY() + ay - by) * expfactor );
 	}
 
 	// in case we were already performing an action
-	if ( currentAction == View::GRAB || scaleLimbo || _selectionArea.isEnabled() ){
+	if ( currentAction == View::GRAB || _modeScaleLimbo || _modeMoveCircle || _selectionArea.isEnabled() ){
 
 		// where is the mouse cursor now (after zoom and panning)?
 		gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
@@ -778,6 +760,48 @@ void MixerView::removeFromGroup(Source *s)
 		}
 	}
 
+}
+
+
+bool MixerView::hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble scale, GLdouble tolerance)
+{
+	// prepare variables
+	GLuint selectBuf[SELECTBUFSIZE] = { 0 };
+	GLint hits = 0;
+
+	// init picking
+	glSelectBuffer(SELECTBUFSIZE, selectBuf);
+	(void) glRenderMode(GL_SELECT);
+
+	// picking in name 0, labels set later
+	glInitNames();
+	glPushName(0);
+
+	// use the projection as it is, but remember it.
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	// setup the projection for picking
+	glLoadIdentity();
+	gluPickMatrix((GLdouble) mouseX, (GLdouble) mouseY, tolerance, tolerance, viewport);
+	glMultMatrixd(projection);
+
+	// rendering for select mode
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+	glScaled(scale, scale, 1.0);
+	glCallList(objectdisplaylist);
+
+	// compute picking . return to rendering mode
+	hits = glRenderMode(GL_RENDER);
+
+	// set the matrices back
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	return hits > 0;
 }
 
 bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
@@ -1087,7 +1111,7 @@ void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
 	}
 
 	// compute the step of translation
-	QSizeF s = getBoundingBox(selection).size() / float(sortedlist.count()-1);
+	QSizeF s = getBoundingBox(selection).size() / double(sortedlist.count()-1);
 	QPointF translation(s.width(),s.height());
 	QPointF position = sortedlist[sortedlist.keys().first()].second;
 

@@ -141,13 +141,13 @@ public:
 	 *
 	 */
 	virtual void zoomIn() {
-		setZoom(zoom + (2.f * zoom * minzoom) / maxzoom);
+		setZoom(zoom + (2.0 * zoom * minzoom) / maxzoom);
 	}
 	/**
 	 *
 	 */
 	virtual void zoomOut() {
-		setZoom(zoom - (2.f * zoom * minzoom) / maxzoom);
+		setZoom(zoom - (2.0 * zoom * minzoom) / maxzoom);
 	}
 	/**
 	 *
@@ -162,7 +162,7 @@ public:
 	/**
 	 *
 	 */
-	inline void setZoom(float z) {
+	inline void setZoom(double z) {
 		zoom = CLAMP(z, minzoom, maxzoom);
 		setModelview();
 		modified = true;
@@ -170,35 +170,35 @@ public:
 	/**
 	 *
 	 */
-	inline float getZoom() {
+	inline double getZoom() {
 		return ( zoom );
 	}
 	/**
 	 *
 	 */
-	inline float getZoomPercent() {
-		return ( (zoom - minzoom) * 100.f / (maxzoom - minzoom) );
+	inline double getZoomPercent() {
+		return ( (zoom - minzoom) * 100.0 / (maxzoom - minzoom) );
 	}
 	/**
 	 *
 	 */
-	void setPanning(float x, float y, float z = -1.f);
+	void setPanning(double x, double y, double z = -1.0);
 	/**
 	 *
 	 */
-	inline float getPanningX() {
+	inline double getPanningX() {
 		return panx;
 	}
 	/**
 	 *
 	 */
-	inline float getPanningY() {
+	inline double getPanningY() {
 		return pany;
 	}
 	/**
 	 *
 	 */
-	inline float getPanningZ() {
+	inline double getPanningZ() {
 		return panz;
 	}
 	/**
@@ -286,15 +286,15 @@ public:
 	static void setMouseButtonsMap(QMap<int, int> m) ;
     static void setMouseModifiersMap(QMap<int, int> m) ;
     static bool isUserInput(QMouseEvent *event, UserInput ab);
-	static void setZoomSpeed(float zs);
-	static float zoomSpeed();
+	static void setZoomSpeed(double zs);
+	static double zoomSpeed();
 	static void setZoomCentered(bool on);
 	static bool zoomCentered();
 
 
 protected:
-	float zoom, minzoom, maxzoom, deltax, deltay;
-	float panx, maxpanx, pany, maxpany, panz, maxpanz;
+	double zoom, minzoom, maxzoom, deltax, deltay;
+	double panx, maxpanx, pany, maxpany, panz, maxpanz;
 	bool modified, individual;
 
 	GLint viewport[4];
@@ -310,7 +310,7 @@ protected:
 
 private:
 
-	static float zoomspeed;
+	static GLdouble zoomspeed;
 	static bool zoomcentered;
 
     static QMap<View::UserInput,Qt::MouseButtons> _buttonmap;

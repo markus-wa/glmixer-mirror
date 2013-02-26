@@ -66,6 +66,7 @@ public:
 private:
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNonModifiable = false);
+    bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble tolerance = 1.0 );
     char getSourceQuadrant(Source *s, int mouseX, int mouseY);
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void grabSources(Source *s, int x, int y, int dx, int dy);
@@ -90,6 +91,8 @@ private:
     toolType currentTool;
 
     Source *currentSource;
+
+    bool _modeMoveFrame;
 
 };
 

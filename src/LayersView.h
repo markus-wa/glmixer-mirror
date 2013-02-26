@@ -53,8 +53,8 @@ public:
     void distributeSelection(View::Axis a, View::RelativePoint p);
 
 private:
-    float lookatdistance;
-    float forwardDisplacement;
+    double lookatdistance;
+    double forwardDisplacement;
     SourceList forwardSources;
 
     void bringForward(Source *s);
