@@ -242,10 +242,6 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
 	lastClicPos = event->pos();
 
-	// remember coordinates of clic
-	GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
-	_selectionArea.markStart(QPointF(cursorx,cursory));
 
 	//  panning
 	if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) || _modeMoveFrame) {
@@ -361,21 +357,31 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 	}
 
 	// click in background
+
+	// remember coordinates of clic
+	GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+	gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+	_selectionArea.markStart(QPointF(cursorx,cursory));
+
+	// context menu on the background
+	if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
+		RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
+		return false;
+	}
+	// zoom button in the background : zoom best fit
+	else if ( isUserInput(event, INPUT_ZOOM) ) {
+		zoomBestFit(false);
+		return false;
+	}
+	// selection mode, clic background is ineffective
+	else if ( isUserInput(event, INPUT_SELECT) )
+		return false;
+
 	// set current to none
 	setCurrentSource(0);
 
-	// clear selection or back to no action
-	if ( currentAction == View::SELECT )
-		SelectionManager::getInstance()->clearSelection();
-	else
-		setAction(View::NONE);
-
-	// context menu
-	if ( isUserInput(event, INPUT_CONTEXT_MENU) )
-		RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
-	// zoom
-	else if ( isUserInput(event, INPUT_ZOOM) )
-		zoomBestFit(false);
+	// back to no action
+	setAction(View::NONE);
 
 	return false;
 }
@@ -396,12 +402,6 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		return false;
 	}
 
-	// Mouse over BORDER OF RENDER AREA
-	// are we over the border of the frame ?
-	_modeMoveFrame = hasObjectAtCoordinates(event->x(), viewport[3] - event->y(), ViewRenderWidget::frame_screen, 5.0);
-	if ( _modeMoveFrame ) {
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
-	}
 
 	// PANNING of the background
 	if ( currentAction == View::PANNING ) {
@@ -421,10 +421,6 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		// return false as nothing changed
 		return false;
 	}
-
-//	// SELECT MODE : no motion
-//	if ( currentAction == View::SELECT )
-//		return false;
 
 	// get current source
 	Source *cs = getCurrentSource();
@@ -485,11 +481,16 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	// mouse over only if no user action (not selection)
-//	if ( isUserInput(event, INPUT_NONE) ) {
+	if ( isUserInput(event, INPUT_NONE) ) {
+
+		// Mouse over BORDER OF RENDER AREA
+		// are we over the border of the frame ?
+		_modeMoveFrame = hasObjectAtCoordinates(event->x(), viewport[3] - event->y(), ViewRenderWidget::frame_screen, 5.0);
+
 		// by default, reset quadrant
 		quadrant = 0;
 		// mouse over which sources ? fill in clickedSources list (ingoring non-modifiable sources)
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), true) )
+		if ( !_modeMoveFrame && getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), true) )
 		{
 			// if there is a current source
 			// AND
@@ -512,7 +513,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 			// show we are not over a source
 			setAction(View::NONE);
 
-//	}
+	}
 
 	return false;
 }

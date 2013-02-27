@@ -62,7 +62,7 @@
 #define COLOR_LIMBO 35, 35, 35
 #define COLOR_FADING 25, 25, 25
 #define COLOR_FRAME 210, 30, 210
-#define COLOR_FRAME_MOVE 250, 100, 250
+#define COLOR_FRAME_MOVE 255, 30, 200
 #define COLOR_CURSOR 13, 148, 224
 
 #if defined(__WIN32__)

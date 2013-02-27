@@ -723,7 +723,7 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 			default:
 				return false;
 		}
-		grabSource(*its, 0, 0, dx, dy);
+		grabSources(*its, 0, 0, dx, dy);
 
 		return true;
 	}

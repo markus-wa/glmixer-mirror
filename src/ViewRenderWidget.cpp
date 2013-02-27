@@ -1520,7 +1520,7 @@ GLuint ViewRenderWidget::buildFrameList()
 	glEnd();
 
 	glPointSize(4);
-	glBegin(GL_POINTS); // begin drawing the frame (with marks on axis)
+	glBegin(GL_POINTS);  // draw the corners to make them nice
 		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
 		glVertex2f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Right
 		glVertex2f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Right
@@ -1559,7 +1559,7 @@ GLuint ViewRenderWidget::buildFrameList()
 	glEnd();
 
 	glPointSize(5);
-	glBegin(GL_POINTS); // begin drawing the frame (with marks on axis)
+	glBegin(GL_POINTS); // draw the corners to make them nice
 		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
 		glVertex2f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Right
 		glVertex2f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Right

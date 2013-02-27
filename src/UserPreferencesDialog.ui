@@ -161,7 +161,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QStackedWidget" name="stackedPreferences">
          <property name="currentIndex">
-          <number>3</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="PageRendering">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1032,7 +1032,7 @@ font: 75;</string>
                  <string notr="true">font: italic;</string>
                 </property>
                 <property name="text">
-                 <string>NB: you can also use modifier keys (SHIFT, CONTROL, ALT, etc.)</string>
+                 <string>NB: you can combine multiple buttons and use modifier keys (SHIFT, CMD, ALT, etc.)</string>
                 </property>
                </widget>
               </item>

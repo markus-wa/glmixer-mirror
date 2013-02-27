@@ -317,23 +317,30 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 
 	// clicked in the background
 
+
+	// context menu on the background
+	if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
+		RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
+		return false;
+	}
+	// zoom button in the background : zoom best fit
+	else if ( isUserInput(event, INPUT_ZOOM) ) {
+		zoomBestFit(false);
+		return false;
+	}
+	// selection mode, clic background is ineffective
+	else if ( isUserInput(event, INPUT_SELECT) )
+		return false;
+
+
 	// set current source to none (end of list)
 	RenderingManager::getInstance()->unsetCurrentSource();
+
 	// clear the list of sources forward
 	forwardSources.clear();
 
 	// back to no action
-	if ( currentAction == View::SELECT )
-		SelectionManager::getInstance()->clearSelection();
-	else
-		setAction(View::NONE);
-
-	// context menu
-	if ( isUserInput(event, INPUT_CONTEXT_MENU) )
-		RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
-	// zoom
-	else if ( isUserInput(event, INPUT_ZOOM) )
-		zoomBestFit(false);
+	setAction(View::NONE);
 
 	return false;
 }
@@ -359,7 +366,6 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	// SELECT MODE : no motion
-	// TODO : draw a rectangle to select multiple sources
 	if ( currentAction == View::SELECT )
 		return false;
 
