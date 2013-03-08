@@ -470,7 +470,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
 	try {
 		// create a source appropriate
 		s = new RenderingSource(previousframe_fbo->texture(), getAvailableDepthFrom(depth));
-		s->setName( _defaultSource->getName() + "Render");
+		renameSource( s, _defaultSource->getName() + "Render");
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -512,7 +512,7 @@ Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 	try {
 		// create a source appropriate
 		s = new SvgSource(svg, textureIndex, getAvailableDepthFrom(depth));
-		s->setName( _defaultSource->getName() + "Svg");
+		renameSource( s, _defaultSource->getName() + "Svg");
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -539,7 +539,7 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 	try {
 		// create a source appropriate
 		s = new CaptureSource(img, textureIndex, getAvailableDepthFrom(depth));
-		s->setName( _defaultSource->getName() + "Capture");
+		renameSource( s, _defaultSource->getName() + "Capture");
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -566,7 +566,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 	try {
 		// create a source appropriate for this videofile
 		s = new VideoSource(vf, textureIndex, getAvailableDepthFrom(depth) );
-		s->setName( _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
+		renameSource( s, _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -601,7 +601,7 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 
 		// try to create the opencv source
 		s = new OpencvSource(opencvIndex, textureIndex, getAvailableDepthFrom(depth));
-		s->setName( _defaultSource->getName() + tr("Camera%1").arg(opencvIndex) );
+		renameSource( s, _defaultSource->getName() + tr("Camera%1").arg(opencvIndex) );
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -629,7 +629,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 	try {
 		// create a source appropriate
 		s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p, ia);
-		s->setName( _defaultSource->getName() + "Algo");
+		renameSource( s, _defaultSource->getName() + "Algo");
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -656,7 +656,7 @@ Source *RenderingManager::newSharedMemorySource(qint64 shmid, double depth) {
 	try {
 		// create a source appropriate
 		s = new SharedMemorySource(textureIndex, getAvailableDepthFrom(depth), shmid);
-		s->setName( _defaultSource->getName() + s->getProgram());
+		renameSource( s, _defaultSource->getName() + s->getProgram());
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -676,7 +676,7 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 	try{
 		// create a source appropriate for this videofile
 		s = new CloneSource(sit, getAvailableDepthFrom(depth));
-		s->setName( _defaultSource->getName() + "Clone");
+		renameSource( s, _defaultSource->getName() + "Clone");
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -1263,10 +1263,10 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 	return config;
 }
 
-void applySourceConfig(Source *newsource, QDomElement child) {
+void RenderingManager::applySourceConfig(Source *newsource, QDomElement child) {
 
 	QDomElement tmp;
-	newsource->setName( child.attribute("name") );
+	renameSource( newsource, child.attribute("name") );
 	newsource->play( child.attribute("playing", "1").toInt() );
 	newsource->setModifiable( child.attribute("modifiable", "1").toInt() );
 	newsource->setFixedAspectRatio( child.attribute("fixedAR", "0").toInt() );
@@ -1729,3 +1729,12 @@ void RenderingManager::setSharedMemoryColorDepth(uint mode){
 		setFrameSharingEnabled(true);
 	}
 }
+
+
+QString RenderingManager::renameSource(Source *s, const QString name){
+
+	s->setName( getAvailableNameFrom(name) );
+
+	return s->getName();
+}
+

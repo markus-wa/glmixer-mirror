@@ -82,6 +82,8 @@ public:
 	/**
 	* Management of the sources
 	**/
+	QString renameSource(Source *s, const QString name);
+
 	// create source per type :
 	Source *newRenderingSource(double depth = -1.0);
 	Source *newCaptureSource(QImage img, double depth = -1.0);
@@ -225,6 +227,7 @@ private:
 	static RenderingManager *_instance;
 
 	void setFrameBufferResolution(QSize size);
+	void applySourceConfig(Source *newsource, QDomElement child);
 
 protected:
 	// the rendering area

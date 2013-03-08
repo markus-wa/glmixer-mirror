@@ -379,10 +379,23 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("Imaging filters (convolutions & morphological operators)");
 	enumNames.clear();
-	enumNames << "None" << "Gaussian blur" << "Median blur" << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
-			  << "Medium edge detect"<< "Hard edge detect"<<"Emboss"<<"Edge emboss"
-			  << "Erosion 3x3"<< "Erosion 5x5"<< "Erosion 7x7"
-			  << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7";
+	enumNames << Source::getFilterName( Source::FILTER_NONE )
+			  << Source::getFilterName( Source::FILTER_BLUR_GAUSSIAN )
+			  << Source::getFilterName( Source::FILTER_BLUR_MEAN )
+			  << Source::getFilterName( Source::FILTER_SHARPEN )
+			  << Source::getFilterName( Source::FILTER_SHARPEN_MORE )
+			  << Source::getFilterName( Source::FILTER_EDGE_GAUSSIAN )
+			  << Source::getFilterName( Source::FILTER_EDGE_LAPLACE )
+			  << Source::getFilterName( Source::FILTER_EDGE_LAPLACE_2 )
+			  << Source::getFilterName( Source::FILTER_EMBOSS )
+			  << Source::getFilterName( Source::FILTER_EMBOSS_EDGE )
+			  << Source::getFilterName( Source::FILTER_EROSION_3X3 )
+			  << Source::getFilterName( Source::FILTER_EROSION_5X5 )
+			  << Source::getFilterName( Source::FILTER_EROSION_7X7 )
+			  << Source::getFilterName( Source::FILTER_DILATION_3X3 )
+			  << Source::getFilterName( Source::FILTER_DILATION_5X5 )
+			  << Source::getFilterName( Source::FILTER_DILATION_7X7 ) ;
+
 	enumManager->setEnumNames(property, enumNames);
 	root->addSubProperty(property);
 
@@ -903,7 +916,8 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QString &va
 			return;
 
 	if ( property == idToProperty["Name"] ) {
-		currentItem->setName(value);
+		RenderingManager::getInstance()->renameSource(currentItem, value);
+		updatePropertyTree(currentItem);
 	}
 }
 
@@ -1127,8 +1141,6 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 	else if ( property == idToProperty["Filter"] ) {
 		// set the current filter
 		currentItem->setFilter( (Source::filterType) value );
-		// indicate that this change affects performance
-		property->setModified(value != 0);
 	}
 	else if ( property == idToProperty["Color inversion"] ) {
 

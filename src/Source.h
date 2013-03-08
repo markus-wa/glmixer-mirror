@@ -121,7 +121,6 @@ public:
 	inline QString getName() const {
 		return name;
 	}
-	void setName(QString n);
 
 	// returns the list of clones of this source (used to delete them)
 	inline SourceList *getClones() const {
@@ -407,20 +406,22 @@ public:
 		FILTER_EMBOSS,
 		FILTER_EMBOSS_EDGE,
 		FILTER_EROSION_3X3,
+		FILTER_EROSION_5X5,
 		FILTER_EROSION_7X7,
-		FILTER_EROSION_13X13,
 		FILTER_DILATION_3X3,
-		FILTER_DILATION_7X7,
-		FILTER_DILATION_13X13
+		FILTER_DILATION_5X5,
+		FILTER_DILATION_7X7
 	} filterType;
 
 	inline void setFilter(filterType c) {
-		filter = qBound(FILTER_NONE, c, FILTER_DILATION_13X13);
+		filter = qBound(FILTER_NONE, c, FILTER_DILATION_7X7);
 	}
 
 	inline filterType getFilter() const {
 		return filter;
 	}
+
+	static QString getFilterName(filterType c);
 
 	void importProperties(const Source s, bool withGeometry = true);
 
@@ -446,6 +447,12 @@ protected:
 	 *
 	 */
 	void setDepth(GLdouble v);
+	/*
+	 * also name should only be modified by Rendering Manager
+	 *
+	 */
+	void setName(QString n);
+
 	// RTTI
 	static RTTI type;
 	static bool playable;
