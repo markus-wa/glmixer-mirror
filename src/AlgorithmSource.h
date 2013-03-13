@@ -44,8 +44,8 @@ class AlgorithmSource: public QObject, public Source {
 
 public:
 
-	RTTI rtti() const { return type; }
-	bool isPlayable() const { return playable; }
+	RTTI rtti() const { return AlgorithmSource::type; }
+	bool isPlayable() const { return AlgorithmSource::playable; }
 	bool isPlaying() const;
 
 	typedef enum {FLAT = 0, BW_COSBARS, BW_COSCHECKER, BW_NOISE, COLOR_NOISE, PERLIN_BW_NOISE, PERLIN_COLOR_NOISE, TURBULENCE, NONE} algorithmType;

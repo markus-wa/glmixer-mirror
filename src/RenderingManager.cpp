@@ -1263,10 +1263,9 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 	return config;
 }
 
-void RenderingManager::applySourceConfig(Source *newsource, QDomElement child) {
+void applySourceConfig(Source *newsource, QDomElement child) {
 
 	QDomElement tmp;
-	renameSource( newsource, child.attribute("name") );
 	newsource->play( child.attribute("playing", "1").toInt() );
 	newsource->setModifiable( child.attribute("modifiable", "1").toInt() );
 	newsource->setFixedAspectRatio( child.attribute("fixedAR", "0").toInt() );
@@ -1506,6 +1505,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 		}
 
 		if (newsource) {
+			renameSource( newsource, child.attribute("name") );
 			// insert the source in the scene
 			if ( insertSource(newsource) )
 				// Apply parameters to the created source
@@ -1534,6 +1534,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
     	if (isValid(cloneof)) {
     		clonesource = RenderingManager::getInstance()->newCloneSource(cloneof, depth);
     		if (clonesource) {
+    			renameSource( clonesource, c.attribute("name") );
     			// Apply parameters to the created source
     			applySourceConfig(clonesource, c);
     			// insert the source in the scene

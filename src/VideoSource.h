@@ -49,7 +49,7 @@ protected:
 
 public:
 
-	RTTI rtti() const { return type; }
+	RTTI rtti() const { return VideoSource::type; }
 	bool isPlayable() const;
 	bool isPlaying() const;
 	bool isPaused() const;

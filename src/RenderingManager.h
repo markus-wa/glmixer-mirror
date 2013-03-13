@@ -227,7 +227,6 @@ private:
 	static RenderingManager *_instance;
 
 	void setFrameBufferResolution(QSize size);
-	void applySourceConfig(Source *newsource, QDomElement child);
 
 protected:
 	// the rendering area

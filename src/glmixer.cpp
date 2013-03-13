@@ -1931,6 +1931,10 @@ void GLMixer::readSettings()
     	cursorFuzzyFiltering->setValue(settings.value("cursorFuzzyFiltering").toInt());
 
 
+    // Mixing presets
+    if (settings.contains("MixingPresets"))
+    	mixingToolBox->restoreState(settings.value("MixingPresets").toByteArray());
+
 
 	qDebug() << tr("All settings restored.");
 }
@@ -1965,6 +1969,9 @@ void GLMixer::saveSettings()
     settings.setValue("cursorDelayFiltering", cursorDelayFiltering->value() );
     settings.setValue("cursorFuzzyRadius", cursorFuzzyRadius->value() );
     settings.setValue("cursorFuzzyFiltering", cursorFuzzyFiltering->value() );
+
+    // Mixing presets
+    settings.setValue("MixingPresets", mixingToolBox->saveState());
 
 	// make sure system saves settings NOW
     settings.sync();
