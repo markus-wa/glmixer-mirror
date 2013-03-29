@@ -35,7 +35,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>4</number>
      </property>
      <property name="tabSpacing">
       <number>1</number>
@@ -575,7 +575,7 @@ QPushButton:pressed {
         <x>0</x>
         <y>0</y>
         <width>226</width>
-        <height>160</height>
+        <height>149</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1759,7 +1759,7 @@ QSpinBox:hover{
           <bool>false</bool>
          </property>
          <property name="toolTip">
-          <string>Remove the selected preset from the list.</string>
+          <string>Remove this preset.</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QToolButton { 
@@ -1815,7 +1815,7 @@ QToolButton:hover {
           <string>Double clic on a preset to apply it to the selected source(s).</string>
          </property>
          <property name="editTriggers">
-          <set>QAbstractItemView::NoEditTriggers</set>
+          <set>QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
          </property>
          <property name="showDropIndicator" stdset="0">
           <bool>false</bool>
@@ -1835,6 +1835,9 @@ QToolButton:hover {
         <widget class="QToolButton" name="presetReApply">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Update this preset with  the settings of the current source.</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QToolButton { 
@@ -1882,6 +1885,9 @@ QToolButton:hover {
         <widget class="QToolButton" name="presetApply">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Apply the preset to the current source</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QToolButton { 

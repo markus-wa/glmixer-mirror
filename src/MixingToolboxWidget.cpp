@@ -131,21 +131,21 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
 	blendingCustomButton->setVisible(false);
 
 	// create presets
-	_defaultPresets["Original"] = new Source();
-	_defaultPresets["Desaturated"] = new Source();
-	_defaultPresets["Desaturated"]->setSaturation(-100);
-	_defaultPresets["Hypersaturated"] = new Source();
-	_defaultPresets["Hypersaturated"]->setSaturation(100);
+
 //	_defaultPresets["Impressionnist"] = new Source();
 
-	presetsList->addItems(_defaultPresets.keys());
+	presetsList->insertItem(0, "Hypersaturated");
+	_defaultPresets[presetsList->item(0)] = new Source();
+	_defaultPresets[presetsList->item(0)]->setSaturation(100);
 
-//	 QMapIterator<QString, Source*> i(_defaultPresets);
-//	 while (i.hasNext()) {
-//	     i.next();
-//	     presetsList->insertItem(0, i.key());
-//	     // TODO : add tooltip with info on source settings.
-//	 }
+	presetsList->insertItem(0, "Desaturated");
+	_defaultPresets[presetsList->item(0)] = new Source();
+	_defaultPresets[presetsList->item(0)]->setSaturation(-100);
+
+	presetsList->insertItem(0, "Original");
+	_defaultPresets[presetsList->item(0)] = new Source();
+
+
 
 }
 
@@ -155,6 +155,8 @@ MixingToolboxWidget::~MixingToolboxWidget()
 	foreach (Source *s, _defaultPresets)
 		delete s;
 
+	foreach (Source *s, _userPresets)
+		delete s;
 
 }
 
@@ -173,6 +175,7 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
 		propertyChanged("Color", source->getColor());
 	} else {
 		setEnabled(false);
+		presetsList->setCurrentItem(0);
 		source = 0;
 		propertyChanged("Color", palette().color(QPalette::Window));
 	}
@@ -343,41 +346,94 @@ void MixingToolboxWidget::on_filterList_currentRowChanged(int value)
 }
 
 
-void MixingToolboxWidget::on_presetApply_pressed()
-{
-	QString i = presetsList->currentItem()->text();
-	if (_defaultPresets.contains(i) )
-		source->importProperties( *_defaultPresets[i], false );
-	else if ( _userPresets.contains(i) )
-		source->importProperties( *_userPresets[i], false );
-
-}
-
-void MixingToolboxWidget::on_presetReApply_pressed()
-{
-
-}
-
-void MixingToolboxWidget::on_presetAdd_pressed()
-{
-	presetsList->insertItem(0, "tmp");
-	presetsList->item(0)->setFlags( presetsList->item(0)->flags () | Qt::ItemIsEditable );
-
-}
-
-void MixingToolboxWidget::on_presetRemove_pressed()
-{
-	QMap<QString, Source *>::iterator i = _userPresets.find(presetsList->currentItem()->text());
-	if ( i != _userPresets.end() ) {
-		presetsList->removeItemWidget(presetsList->currentItem());
-		_userPresets.erase(i);
-	}
-}
-
 
 void MixingToolboxWidget::on_presetsList_itemDoubleClicked(QListWidgetItem *item){
 
 	on_presetApply_pressed();
+}
+
+void MixingToolboxWidget::on_presetApply_pressed()
+{
+	if (source) {
+		if (_defaultPresets.contains(presetsList->currentItem()) )
+			source->importProperties( *_defaultPresets[presetsList->currentItem()], false );
+		else if ( _userPresets.contains(presetsList->currentItem()) )
+			source->importProperties( *_userPresets[presetsList->currentItem()], false );
+	}
+}
+
+void MixingToolboxWidget::on_presetReApply_pressed()
+{
+	QStringList tooltip;
+	if ( source->getColor() != QColor(255, 255, 255, 255)  )
+		tooltip << QString("R%1:G%2:B%3").arg(source->getColor().red()).arg(source->getColor().green()).arg(source->getColor().blue());
+	if ( source->getInvertMode() == Source::INVERT_COLOR )
+		tooltip << QString("Invert RGB");
+	else if ( source->getInvertMode() == Source::INVERT_LUMINANCE )
+		tooltip << QString("Invert Luminance");
+	if ( qAbs(source->getGamma() - 1.0) > 0.001  )
+		tooltip << QString("%1 \tGamma").arg(source->getGamma());
+	if ( source->getSaturation() != 0 )
+		tooltip << QString("%1 % \tSaturation").arg(source->getSaturation());
+	if ( source->getBrightness() != 0 )
+		tooltip << QString("%1 % \tBrightness").arg(source->getBrightness());
+	if ( source->getContrast() != 0 )
+		tooltip << QString("%1 % \tContrast").arg(source->getContrast());
+	if ( source->getHueShift() != 0 )
+		tooltip << QString("%1 \tHue Shift").arg(source->getHueShift());
+	if ( source->getLuminanceThreshold() != 0 )
+		tooltip << QString("%1 % \tThreshold").arg(source->getLuminanceThreshold());
+	if ( source->getNumberOfColors() != 0 )
+		tooltip << QString("%1 \tPosterize").arg(source->getNumberOfColors());
+	if ( source->getFilter() != Source::FILTER_NONE )
+		tooltip << Source::getFilterName( source->getFilter() ) + " filter";
+
+	 presetsList->currentItem()->setToolTip(tooltip.join("\n"));
+
+	_userPresets[ presetsList->currentItem() ]->importProperties( *source, false);
+}
+
+void MixingToolboxWidget::on_presetAdd_pressed()
+{
+	if (source) {
+		// create list item with default name
+		QListWidgetItem *item = new QListWidgetItem( source->getName(), presetsList);
+		item->setFlags( presetsList->item(0)->flags () | Qt::ItemIsEditable );
+
+		// add the item to the list and offer user to edit the name
+		presetsList->addItem( item );
+		presetsList->setCurrentItem( item );
+		presetsList->editItem( item );
+
+		// associate the properties of a source imported from the current source
+		_userPresets[item] = new Source();
+		on_presetReApply_pressed();
+
+		// ready GUI
+		presetRemove->setEnabled(true);
+		presetReApply->setEnabled(true);
+	}
+}
+
+void MixingToolboxWidget::on_presetRemove_pressed()
+{
+	// take the element out of the list
+	QListWidgetItem *it = presetsList->takeItem( presetsList->currentRow() );
+
+	QMap<QListWidgetItem *, Source *>::iterator i = _userPresets.find(it);
+	if ( i != _userPresets.end() ) {
+		// free the source
+		delete _userPresets[it];
+		// remove element
+		_userPresets.erase(i);
+	}
+}
+
+void MixingToolboxWidget::on_presetsList_itemChanged(QListWidgetItem *item){
+
+	if ( presetsList->findItems( item->text(), Qt::MatchFixedString ).length() > 1 )
+		item->setText( item->text() + "_bis" );
+
 }
 
 
@@ -386,15 +442,32 @@ void MixingToolboxWidget::on_presetsList_currentItemChanged(QListWidgetItem *ite
 	if (item) {
 		presetApply->setEnabled(true);
 
-		if ( _userPresets.contains(item->text()) ) {
+		if ( _userPresets.contains(item) ) {
 			presetRemove->setEnabled(true);
 			presetReApply->setEnabled(true);
 		} else {
 			presetRemove->setEnabled(false);
 			presetReApply->setEnabled(false);
 		}
-	} else
+	} else {
 		presetApply->setEnabled(false);
+		presetRemove->setEnabled(false);
+		presetReApply->setEnabled(false);
+
+	}
 
 }
+
+QByteArray MixingToolboxWidget::saveState() const {
+	QByteArray ba;
+
+	return ba;
+}
+
+
+bool MixingToolboxWidget::restoreState(const QByteArray &state) {
+
+	return true;
+}
+
 

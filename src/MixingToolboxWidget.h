@@ -39,6 +39,7 @@ public Q_SLOTS:
     // Presets Page
     void on_presetsList_itemDoubleClicked(QListWidgetItem *);
     void on_presetsList_currentItemChanged(QListWidgetItem *item);
+    void on_presetsList_itemChanged(QListWidgetItem *item);
     void on_presetApply_pressed();
     void on_presetReApply_pressed();
     void on_presetAdd_pressed();
@@ -71,6 +72,10 @@ public Q_SLOTS:
     // Effects page
     void on_filterList_currentRowChanged(int);
 
+	// state restoration
+	QByteArray saveState() const;
+	bool restoreState(const QByteArray &state);
+
 Q_SIGNALS:
 	// inform property manager when a property is modified here
 	void valueChanged(QString propertyname, bool value);
@@ -83,8 +88,8 @@ private:
 	class GammaLevelsWidget *gammaAdjust;
     Source *source;
 
-    QMap<QString, Source *> _defaultPresets;
-    QMap<QString, Source *> _userPresets;
+    QMap<QListWidgetItem *, Source *> _defaultPresets;
+    QMap<QListWidgetItem *, Source *> _userPresets;
 
 };
 
