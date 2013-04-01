@@ -610,7 +610,7 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
 	    	// get the top most clicked source
-	    	SourceSet::iterator clicked = clickedSources.begin();
+            reverseSourceSet::iterator clicked = clickedSources.begin();
 
 			// if there is no source selected, select the top most
 			if ( currentSource == 0 )
@@ -1494,7 +1494,7 @@ QRectF GeometryView::getBoundingBox(const SourceList &l, bool invert_y)
 	bbox[1][1] = -SOURCE_UNIT * MAXZOOM*2.0;
 
 	// compute Axis aligned bounding box of all sources in the list
-	for(SourceList::iterator  its = l.begin(); its != l.end(); its++) {
+    for(SourceList::const_iterator  its = l.begin(); its != l.end(); its++) {
     	if ((*its)->isStandby())
     		continue;
 		cosa = cos((*its)->getRotationAngle() / 180.0 * M_PI);

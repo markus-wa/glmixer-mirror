@@ -98,19 +98,19 @@ public:
 	// insert the source into the scene
 	bool insertSource(Source *s);
 
-	SourceSet::iterator getById(const GLuint id) const;
-	SourceSet::iterator getByName(const QString name) const;
-	bool notAtEnd(SourceSet::iterator itsource) const;
-	bool isValid(SourceSet::iterator itsource) const;
+    SourceSet::iterator getBegin();
+    SourceSet::iterator getEnd();
+    SourceSet::const_iterator getBegin() const;
+    SourceSet::const_iterator getEnd() const;
+    SourceSet::iterator getById(const GLuint id);
+    SourceSet::iterator getByName(const QString name);
+    SourceSet::const_iterator getByName(const QString name) const;
+    bool notAtEnd(SourceSet::const_iterator itsource) const;
+    bool isValid(SourceSet::const_iterator itsource) const;
 	QString getAvailableNameFrom(QString name) const;
 	double getAvailableDepthFrom(double depth = -1) const;
 	SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
-	inline SourceSet::iterator getBegin()  const{
-		return _sources.begin();
-	}
-	inline SourceSet::iterator getEnd()  const{
-		return _sources.end();
-	}
+
 	inline bool empty() const { return _sources.empty(); }
 
 	void removeSource(SourceSet::iterator itsource);

@@ -84,7 +84,7 @@ void MixerView::paint()
     glLineWidth(2.0);
 	glColor4ub(COLOR_SELECTION, 255);
     glBegin(GL_LINE_LOOP);
-    for(SourceSet::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+    for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
         glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
     }
     glEnd();
@@ -1055,7 +1055,7 @@ QRectF MixerView::getBoundingBox(const SourceList &l)
 	bbox[1][0] = -2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	bbox[1][1] = -2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	// compute Axis aligned bounding box of all sources in the list
-	for(SourceList::iterator  its = l.begin(); its != l.end(); its++) {
+    for(SourceList::const_iterator  its = l.begin(); its != l.end(); its++) {
 		// keep max and min
 		bbox[0][0] = qMin( (*its)->getAlphaX(), bbox[0][0]);
 		bbox[0][1] = qMin( (*its)->getAlphaY(), bbox[0][1]);

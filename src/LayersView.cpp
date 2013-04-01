@@ -744,7 +744,7 @@ void LayersView::distributeSelection(View::Axis a, View::RelativePoint p)
 	double position = bbox[0];
 
 	// loop over source list, except last
-	for(SourceList::iterator  its = sortedlist.begin(); its != sortedlist.end(); its++) {
+    for(SourceSet::iterator  its = sortedlist.begin(); its != sortedlist.end(); its++) {
 
 		// set new depth of source
 	    SourceSet::iterator currentSource = RenderingManager::getInstance()->getById((*its)->getId());

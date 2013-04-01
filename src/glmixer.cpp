@@ -467,7 +467,10 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 	QString txt = QString(msg).remove("\"");
 
 	// message handler
-	switch (type) {
+    switch (type) {
+    case QtCriticalMsg:
+        QMessageBox::warning(0, tr("%1 -- Error").arg(QCoreApplication::applicationName()), txt);
+        break;
 	case QtFatalMsg:
 		QMessageBox::critical(0, tr("%1 -- Fatal error").arg(QCoreApplication::applicationName()), txt);
 		abort();

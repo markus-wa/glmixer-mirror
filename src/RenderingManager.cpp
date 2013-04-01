@@ -877,11 +877,11 @@ void RenderingManager::clearSourceSet() {
 	qDebug("RenderingManager|--------------- clear --------------------");
 }
 
-bool RenderingManager::notAtEnd(SourceSet::iterator itsource)  const{
+bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
 	return (itsource != _sources.end());
 }
 
-bool RenderingManager::isValid(SourceSet::iterator itsource)  const{
+bool RenderingManager::isValid(SourceSet::const_iterator itsource)  const{
 
 	if (notAtEnd(itsource))
 		return (_sources.find(*itsource) != _sources.end());
@@ -1041,14 +1041,35 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
 	return _sources.end();
 }
 
-SourceSet::iterator RenderingManager::getById(const GLuint id) const {
+SourceSet::iterator RenderingManager::getBegin() {
+    return _sources.begin();
+}
+
+SourceSet::iterator RenderingManager::getEnd() {
+    return _sources.end();
+}
+
+SourceSet::const_iterator RenderingManager::getBegin() const{
+    return _sources.begin();
+}
+
+SourceSet::const_iterator RenderingManager::getEnd() const{
+    return _sources.end();
+}
+
+SourceSet::iterator RenderingManager::getById(const GLuint id) {
 
 	return std::find_if(_sources.begin(), _sources.end(), hasId(id));
 }
 
-SourceSet::iterator RenderingManager::getByName(const QString name) const{
+SourceSet::iterator RenderingManager::getByName(const QString name){
 
-	return std::find_if(_sources.begin(), _sources.end(), hasName(name));
+    return std::find_if(_sources.begin(), _sources.end(), hasName(name));
+}
+
+SourceSet::const_iterator RenderingManager::getByName(const QString name) const {
+
+    return std::find_if(_sources.begin(), _sources.end(), hasName(name));
 }
 /**
  * save and load configuration
