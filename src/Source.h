@@ -258,22 +258,7 @@ public:
 		blend_eq = eq;
 	}
 
-	typedef enum {
-		NO_MASK = 0,
-		ROUNDCORNER_MASK,
-		CIRCLE_MASK,
-		GRADIENT_CIRCLE_MASK,
-		GRADIENT_SQUARE_MASK,
-		GRADIENT_LEFT_MASK,
-		GRADIENT_RIGHT_MASK,
-		GRADIENT_TOP_MASK,
-		GRADIENT_BOTTOM_MASK,
-		GRADIENT_HORIZONTAL_MASK,
-		GRADIENT_VERTICAL_MASK,
-		ANTIALIASING_MASK,
-		CUSTOM_MASK
-	} maskType;
-	void setMask(maskType t, GLuint texture = 0);
+    void setMask(int maskType, GLuint texture = 0);
 	int getMask() const {
 		return (int) mask_type;
 	}
@@ -489,7 +474,7 @@ protected:
 	filterType filter;
 	invertModeType invertMode;
 	// which mask to use ?
-	maskType mask_type;
+    int mask_type;
 	// Brightness, contrast and saturation
 	GLfloat brightness, contrast, saturation;
 	// gamma and its levels

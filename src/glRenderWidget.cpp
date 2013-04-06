@@ -52,12 +52,12 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 		if (!glRenderWidgetFormat.rgba())
           qFatal( "%s", qPrintable( tr("Your OpenGL drivers could not set RGBA buffer; cannot perform OpenGL rendering.") ));
 		if (!glRenderWidgetFormat.directRendering())
-          qCritical() << tr("Your OpenGL drivers could not set direct rendering.\nRendering will be slow.");
+          qCritical() << tr("Your OpenGL drivers could not set direct rendering.\nRendering will be (very) slow.");
 		if (!glRenderWidgetFormat.doubleBuffer())
           qCritical() << tr("Your OpenGL drivers could not set double buffering.\nRendering will be slow.");
 		if (glRenderWidgetFormat.swapInterval() > 0)
           qCritical() << tr("Your OpenGL drivers are configured with VSYNC enabled.\nRendering will be slow.\n\nDisable VSYNC in your system graphics properties to avoid this problem.");
-        if (!glSupportsExtension("_EXT_gpu_shader4"))
+        if (!glSupportsExtension("GL_EXT_gpu_shader4"))
           qCritical() << tr("Your OpenGL drivers do not support GLSL shading version 4.\nRendering will be slow.");
         testDone = true;
 	}

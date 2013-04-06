@@ -237,10 +237,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	RenderingManager::getRenderingWidget()->setCatalogContextMenu(catalogMenu);
 	RenderingManager::getRenderingWidget()->setSourceContextMenu(currentSourceMenu);
 
-	// Setup the property browser
-	SourcePropertyBrowser *propertyBrowser = RenderingManager::getPropertyBrowserWidget();
-	propertyBrowser->setParent(sourceDockWidgetContents);
-	sourceDockWidgetContentsLayout->addWidget(propertyBrowser);
+    // Setup the property browser
+    SourcePropertyBrowser *propertyBrowser = RenderingManager::getPropertyBrowserWidget();
+    propertyBrowser->setParent(sourceDockWidgetContents);
+    sourceDockWidgetContentsLayout->addWidget(propertyBrowser);
     QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
     QObject::connect(propertyBrowser, SIGNAL(changed(Source*)), this, SLOT(sourceChanged(Source*) ) );
 
@@ -358,8 +358,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionZoomReset, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomReset()));
 	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
 	QObject::connect(actionZoomCurrentSource, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomCurrentSource()));
-	QObject::connect(actionToggle_fixed, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(toggleMofifiableCurrentSource()));
-	QObject::connect(actionResetSource, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
+    QObject::connect(actionToggle_fixed, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(toggleMofifiableCurrentSource()));
+//    QObject::connect(actionToggle_FixedAspectRatio, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(fixAspectRatioCurrentSource(bool)));
+    QObject::connect(actionResetSource, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
 
 	// Signals between cursors and their configuration gui
 	QObject::connect(dynamic_cast<LineCursor*>(RenderingManager::getRenderingWidget()->getCursor(ViewRenderWidget::CURSOR_LINE)), SIGNAL(speedChanged(int)), cursorLineSpeed, SLOT(setValue(int)) );
@@ -697,8 +698,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		sourceDockWidgetContents->setEnabled(true);
 		currentSourceMenu->setEnabled(true);
 		toolButtonZoomCurrent->setEnabled(true);
-		mixingToolBox->setEnabled(true);
-		currentSourceMenu->setEnabled(true);
+        mixingToolBox->setEnabled(true);
 
 		// Enable start button if the source is playable
 		startButton->setEnabled( (*csi)->isPlayable() );
@@ -778,8 +778,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		startButton->setEnabled( false );
 		startButton->setChecked( false );
 
-		sourceDockWidgetContents->setEnabled(false);
-		currentSourceMenu->setEnabled(false);
+        sourceDockWidgetContents->setEnabled(false);
 
 	}
 

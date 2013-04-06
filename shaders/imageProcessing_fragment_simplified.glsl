@@ -1,6 +1,3 @@
-
-#extension GL_EXT_gpu_shader4 : require
-
 varying vec2 texc;
 varying vec2 maskc;
 varying vec4 baseColor;

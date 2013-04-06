@@ -41,7 +41,7 @@ Source::Source() :
 			clones(NULL), textureIndex(0), maskTextureIndex(0), x(0.0), y(0.0), z(MAX_DEPTH_LAYER),
 			scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
 			centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
-			pixelated(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(NO_MASK),
+            pixelated(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(0),
 			brightness(0.f), contrast(1.f),	saturation(1.f),
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
 			hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
@@ -351,7 +351,7 @@ void Source::endEffectsSection() const {
 
 	// disable the mask
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[Source::NO_MASK]);
+    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[0]);
 	glActiveTexture(GL_TEXTURE0);
 
 //	// reset the blending
@@ -380,16 +380,13 @@ void Source::blend() const {
 
 }
 
-void Source::setMask(maskType t, GLuint texture) {
+void Source::setMask(int maskType, GLuint texture) {
 
-	mask_type = CLAMP(t, Source::NO_MASK, Source::CUSTOM_MASK);
+    mask_type = maskType;
 
-	if (mask_type == Source::CUSTOM_MASK) {
-		if (texture != 0)
-			maskTextureIndex = texture;
-		else
-			maskTextureIndex = ViewRenderWidget::mask_textures[Source::NO_MASK];
-	} else
+    if (texture != 0)
+        maskTextureIndex = texture;
+    else
 		maskTextureIndex = ViewRenderWidget::mask_textures[mask_type];
 
 }
@@ -474,7 +471,7 @@ QDataStream &operator>>(QDataStream &stream, Source *source){
 	stream >> boolValue;	source->setPixelated(boolValue);
 	stream >> uintValue;	source->setFilter( (Source::filterType) uintValue);
 	stream >> uintValue;	source->setInvertMode( (Source::invertModeType) uintValue);
-	stream >> intValue;		source->setMask( (Source::maskType) intValue);
+    stream >> intValue;		source->setMask(intValue);
 	stream >> intValue;		source->setBrightness(intValue);
 	stream >> intValue;		source->setContrast(intValue);
 	stream >> intValue;		source->setSaturation(intValue);

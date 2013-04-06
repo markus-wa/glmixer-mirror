@@ -1311,7 +1311,7 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 	tmp = child.firstChildElement("Blending");
 	newsource->setBlendEquation( (GLenum) tmp.attribute("Equation", "32774").toInt()  );
 	newsource->setBlendFunc( GL_SRC_ALPHA, (GLenum) tmp.attribute("Function", "1").toInt() );
-	newsource->setMask( (Source::maskType) tmp.attribute("Mask", "0").toInt() );
+    newsource->setMask( tmp.attribute("Mask", "0").toInt() );
 
 	tmp = child.firstChildElement("Filter");
 	newsource->setPixelated( tmp.attribute("Pixelated", "0").toInt() );

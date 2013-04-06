@@ -35,7 +35,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <property name="tabSpacing">
       <number>1</number>
@@ -46,7 +46,7 @@
         <x>0</x>
         <y>0</y>
         <width>226</width>
-        <height>132</height>
+        <height>160</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -354,8 +354,8 @@ QPushButton:pressed {
          </property>
          <property name="iconSize">
           <size>
-           <width>32</width>
-           <height>32</height>
+           <width>60</width>
+           <height>60</height>
           </size>
          </property>
          <property name="verticalScrollMode">
@@ -383,152 +383,8 @@ QPushButton:pressed {
           <bool>true</bool>
          </property>
          <property name="currentRow">
-          <number>0</number>
+          <number>-1</number>
          </property>
-         <item>
-          <property name="text">
-           <string>None</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_antialiasing.png</normaloff>:/glmixer/textures/mask_antialiasing.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Round</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_roundcorner.png</normaloff>:/glmixer/textures/mask_roundcorner.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Circle</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_circle.png</normaloff>:/glmixer/textures/mask_circle.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Halo</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_linear_circle.png</normaloff>:/glmixer/textures/mask_linear_circle.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Square</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_linear_square.png</normaloff>:/glmixer/textures/mask_linear_square.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Left</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_linear_left.png</normaloff>:/glmixer/textures/mask_linear_left.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Right</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_linear_right.png</normaloff>:/glmixer/textures/mask_linear_right.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Top</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_linear_top.png</normaloff>:/glmixer/textures/mask_linear_top.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Botom</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_linear_bottom.png</normaloff>:/glmixer/textures/mask_linear_bottom.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>H line</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_linear_horizontal.png</normaloff>:/glmixer/textures/mask_linear_horizontal.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>V line</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_linear_vertical.png</normaloff>:/glmixer/textures/mask_linear_vertical.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Border</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../textures.qrc">
-            <normaloff>:/glmixer/textures/mask_antialiasing.png</normaloff>:/glmixer/textures/mask_antialiasing.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
         </widget>
        </item>
       </layout>
@@ -575,7 +431,7 @@ QPushButton:pressed {
         <x>0</x>
         <y>0</y>
         <width>226</width>
-        <height>149</height>
+        <height>160</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1988,9 +1844,8 @@ QToolButton:hover {
   </layout>
  </widget>
  <resources>
-  <include location="../images.qrc"/>
-  <include location="../textures.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

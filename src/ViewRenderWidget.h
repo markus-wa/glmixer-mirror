@@ -125,6 +125,7 @@ public:
 	cursorMode getCursorMode();
 	Cursor *getCursor(cursorMode m = CURSOR_NORMAL);
 
+
 	/**
 	 * save and load configuration
 	 */
@@ -176,6 +177,8 @@ public:
     static GLfloat maskc[8];
     static QGLShaderProgram *program;
     static bool disableFiltering;
+    static const QMap<int, QPair<QString, QString> > getMaskDecription();
+    static void setSourceDrawingMode(bool on);
 
 protected:
 	// all the display lists
@@ -183,13 +186,14 @@ protected:
 	static GLuint border_thin, border_large, border_scale, border_tooloverlay;
 	static GLuint frame_selection, frame_screen, frame_screen_thin, frame_screen_mask;
 	static GLuint quad_texured, quad_window[2];
-	static GLuint circle_mixing, circle_limbo, layerbg;
-	static GLuint mask_textures[Source::CUSTOM_MASK];
+    static GLuint circle_mixing, circle_limbo, layerbg;
 	static GLuint fading;
 	static GLuint stipplingMode;
-	static GLubyte stippling[];
+    static GLubyte stippling[];
 
-    static void setSourceDrawingMode(bool on);
+    // shared mask textures
+    static QMap<int, GLuint> mask_textures;
+    static QMap<int, QPair<QString, QString> > mask_description;
 
 private:
     // V i e w s
@@ -234,6 +238,7 @@ private:
     GLuint buildBordersTools();
     GLuint buildFadingList();
 
+    void createMask(QString description, QString texture = NULL);
 };
 
 #endif /* VIEWRENDERWIDGET_H_ */

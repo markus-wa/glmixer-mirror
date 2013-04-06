@@ -7,10 +7,10 @@
         <file>textures/layerbg.png</file>
         <file>textures/mask_circle.png</file>
         <file>textures/mask_roundcorner.png</file>
-        <file>textures/mask_linear_circle.png</file>        
-        <file>textures/mask_linear_square.png</file> 
+        <file>textures/mask_linear_circle.png</file>
+        <file>textures/mask_linear_square.png</file>
         <file>textures/mask_linear_left.png</file>
-        <file>textures/mask_linear_right.png</file> 
+        <file>textures/mask_linear_right.png</file>
         <file>textures/mask_linear_top.png</file>
         <file>textures/mask_linear_bottom.png</file>
         <file>textures/mask_linear_horizontal.png</file>
@@ -20,5 +20,15 @@
         <file>shaders/imageProcessing_fragment.glsl</file>
         <file>shaders/imageProcessing_fragment_simplified.glsl</file>
         <file>shaders/imageProcessing_vertex.glsl</file>
+        <file>textures/mask_scratch.png</file>
+        <file>textures/mask_dirty.png</file>
+        <file>textures/mask_tv.png</file>
+        <file>textures/mask_sand.png</file>
+        <file>textures/mask_diapo.png</file>
+        <file>textures/mask_paper.png</file>
+        <file>textures/mask_says.png</file>
+        <file>textures/mask_think.png</file>
+        <file>textures/mask_ink.png</file>
+        <file>textures/mask_towel.png</file>
     </qresource>
-</RCC> 
+</RCC>

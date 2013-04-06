@@ -291,24 +291,15 @@ void SourcePropertyBrowser::createPropertyTree(){
 	property = enumManager->addProperty("Mask");
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("Layer mask (where black is opaque)");
-	enumNames.clear();
-	// TODO implement selection of custom file mask
-	enumNames << "None" <<"Round corners" <<  "Circle" << "Halo circular" << "Square" << "Left to right" << "Right to left" << "Top down" << "Bottom up"<< "Horizontal line" << "Vertical line" <<"Border Antialiasing";
-	enumManager->setEnumNames(property, enumNames);
+    enumNames.clear();
     QMap<int, QIcon> enumIcons;
-    enumIcons[0] = QIcon();
-    enumIcons[1] = QIcon(":/glmixer/textures/mask_roundcorner.png");
-    enumIcons[2] = QIcon(":/glmixer/textures/mask_circle.png");
-    enumIcons[3] = QIcon(":/glmixer/textures/mask_linear_circle.png");
-    enumIcons[4] = QIcon(":/glmixer/textures/mask_linear_square.png");
-    enumIcons[5] = QIcon(":/glmixer/textures/mask_linear_left.png");
-    enumIcons[6] = QIcon(":/glmixer/textures/mask_linear_right.png");
-    enumIcons[7] = QIcon(":/glmixer/textures/mask_linear_top.png");
-    enumIcons[8] = QIcon(":/glmixer/textures/mask_linear_bottom.png");
-    enumIcons[9] = QIcon(":/glmixer/textures/mask_linear_horizontal.png");
-    enumIcons[10] = QIcon(":/glmixer/textures/mask_linear_vertical.png");
-    enumIcons[11] = QIcon(":/glmixer/textures/mask_antialiasing.png");
-//    enumIcons[9] = QIcon(":/glmixer/icons/fileopen.png");
+    QMapIterator<int, QPair<QString, QString> > i(ViewRenderWidget::getMaskDecription());
+    while (i.hasNext()) {
+        i.next();
+        enumNames << i.value().first;
+        enumIcons[ i.key() ] = QIcon( i.value().second );
+    }
+    enumManager->setEnumNames(property, enumNames);
     enumManager->setEnumIcons(property, enumIcons);
 	root->addSubProperty(property);
 	// Color
@@ -1125,18 +1116,7 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 	}
 	else if ( property == idToProperty["Mask"] ) {
 
-// TODO : implement custom file mask
-//			if ( (Source::maskType) value == Source::CUSTOM_MASK ) {
-//				static QDir d = QDir::home();
-//				qDebug("CUSTOM MASK");
-//				QString fileName = QFileDialog::getOpenFileName(0, tr("Open File"), d.absolutePath(),
-//															   tr("Image (*.png *.tif *.tiff *.gif *.tga)"));
-//				if (!fileName.isEmpty()) {
-//					d.setPath(fileName);
-//				}
-//			} else
-		currentItem->setMask( (Source::maskType) value );
-
+        currentItem->setMask( value );
 	}
 	else if ( property == idToProperty["Filter"] ) {
 		// set the current filter
@@ -1145,9 +1125,7 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 	else if ( property == idToProperty["Color inversion"] ) {
 
 		currentItem->setInvertMode( (Source::invertModeType) value );
-
 	}
-
 }
 
 

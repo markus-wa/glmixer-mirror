@@ -25,6 +25,38 @@
 
 //QMap<QString, Source *> MixingToolboxWidget::_defaultPresets;
 
+void setPresetItemTooltip(QListWidgetItem *item, Source *source)
+{
+    QStringList tooltip;
+    if ( source->getColor() != QColor(255, 255, 255, 255)  )
+        tooltip << QString("R%1:G%2:B%3").arg(source->getColor().red()).arg(source->getColor().green()).arg(source->getColor().blue());
+    if ( source->getMask() != 0 )
+        tooltip << ViewRenderWidget::getMaskDecription()[source->getMask()].first  + "\tmask";
+    if ( source->getInvertMode() == Source::INVERT_COLOR )
+        tooltip << QString("Invert RGB");
+    else if ( source->getInvertMode() == Source::INVERT_LUMINANCE )
+        tooltip << QString("Invert Luminance");
+    if ( qAbs(source->getGamma() - 1.0) > 0.001  )
+        tooltip << QString("%1 \tGamma").arg(source->getGamma());
+    if ( source->getSaturation() != 0 )
+        tooltip << QString("%1 % \tSaturation").arg(source->getSaturation());
+    if ( source->getBrightness() != 0 )
+        tooltip << QString("%1 % \tBrightness").arg(source->getBrightness());
+    if ( source->getContrast() != 0 )
+        tooltip << QString("%1 % \tContrast").arg(source->getContrast());
+    if ( source->getHueShift() != 0 )
+        tooltip << QString("%1 \tHue Shift").arg(source->getHueShift());
+    if ( source->getLuminanceThreshold() != 0 )
+        tooltip << QString("%1 % \tThreshold").arg(source->getLuminanceThreshold());
+    if ( source->getNumberOfColors() != 0 )
+        tooltip << QString("%1 \tPosterize").arg(source->getNumberOfColors());
+    if ( source->getFilter() != Source::FILTER_NONE )
+        tooltip << Source::getFilterName( source->getFilter() ) + " filter";
+
+    item->setToolTip(tooltip.join("\n"));
+}
+
+
 
 class CustomBlendingWidget : public QDialog {
 
@@ -116,10 +148,19 @@ public:
 	}
 };
 
-
 MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), source(0)
 {
 	setupUi(this);
+
+    // fill the list of masks
+    QMapIterator<int, QPair<QString, QString> > i(ViewRenderWidget::getMaskDecription());
+    while (i.hasNext()) {
+        i.next();
+        QListWidgetItem *item = new QListWidgetItem( QIcon(i.value().second), i.value().first);
+        item->setToolTip(i.value().first);
+        blendingMaskList->addItem( item );
+    }
+
 	setEnabled(false);
 
 	// Setup the gamma levels toolbox
@@ -128,24 +169,25 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
 	gammaContentsLayout->addWidget(gammaAdjust);
 
 	// hide custom blending button
-	blendingCustomButton->setVisible(false);
+    blendingCustomButton->setVisible(false);
 
-	// create presets
+    // create presets
 
 //	_defaultPresets["Impressionnist"] = new Source();
 
-	presetsList->insertItem(0, "Hypersaturated");
-	_defaultPresets[presetsList->item(0)] = new Source();
-	_defaultPresets[presetsList->item(0)]->setSaturation(100);
+    presetsList->insertItem(0, "Hypersaturated");
+    _defaultPresets[presetsList->item(0)] = new Source();
+    _defaultPresets[presetsList->item(0)]->setSaturation(100);
+    setPresetItemTooltip(presetsList->item(0), _defaultPresets[presetsList->item(0)]);
 
-	presetsList->insertItem(0, "Desaturated");
-	_defaultPresets[presetsList->item(0)] = new Source();
-	_defaultPresets[presetsList->item(0)]->setSaturation(-100);
+    presetsList->insertItem(0, "Desaturated");
+    _defaultPresets[presetsList->item(0)] = new Source();
+    _defaultPresets[presetsList->item(0)]->setSaturation(-100);
+    setPresetItemTooltip(presetsList->item(0), _defaultPresets[presetsList->item(0)]);
 
-	presetsList->insertItem(0, "Original");
-	_defaultPresets[presetsList->item(0)] = new Source();
-
-
+    presetsList->insertItem(0, "Original");
+    _defaultPresets[presetsList->item(0)] = new Source();
+    setPresetItemTooltip(presetsList->item(0), _defaultPresets[presetsList->item(0)]);
 
 }
 
@@ -362,34 +404,11 @@ void MixingToolboxWidget::on_presetApply_pressed()
 	}
 }
 
+
+
 void MixingToolboxWidget::on_presetReApply_pressed()
-{
-	QStringList tooltip;
-	if ( source->getColor() != QColor(255, 255, 255, 255)  )
-		tooltip << QString("R%1:G%2:B%3").arg(source->getColor().red()).arg(source->getColor().green()).arg(source->getColor().blue());
-	if ( source->getInvertMode() == Source::INVERT_COLOR )
-		tooltip << QString("Invert RGB");
-	else if ( source->getInvertMode() == Source::INVERT_LUMINANCE )
-		tooltip << QString("Invert Luminance");
-	if ( qAbs(source->getGamma() - 1.0) > 0.001  )
-		tooltip << QString("%1 \tGamma").arg(source->getGamma());
-	if ( source->getSaturation() != 0 )
-		tooltip << QString("%1 % \tSaturation").arg(source->getSaturation());
-	if ( source->getBrightness() != 0 )
-		tooltip << QString("%1 % \tBrightness").arg(source->getBrightness());
-	if ( source->getContrast() != 0 )
-		tooltip << QString("%1 % \tContrast").arg(source->getContrast());
-	if ( source->getHueShift() != 0 )
-		tooltip << QString("%1 \tHue Shift").arg(source->getHueShift());
-	if ( source->getLuminanceThreshold() != 0 )
-		tooltip << QString("%1 % \tThreshold").arg(source->getLuminanceThreshold());
-	if ( source->getNumberOfColors() != 0 )
-		tooltip << QString("%1 \tPosterize").arg(source->getNumberOfColors());
-	if ( source->getFilter() != Source::FILTER_NONE )
-		tooltip << Source::getFilterName( source->getFilter() ) + " filter";
-
-	 presetsList->currentItem()->setToolTip(tooltip.join("\n"));
-
+{    
+    setPresetItemTooltip(presetsList->currentItem(), source);
 	_userPresets[ presetsList->currentItem() ]->importProperties( *source, false);
 }
 
