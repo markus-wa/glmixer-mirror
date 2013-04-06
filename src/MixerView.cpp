@@ -470,7 +470,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		// panning background
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 		// SHIFT ?
-		if ( isUserInput(event, INPUT_DRAG) || _modeMoveCircle ) {
+        if ( isUserInput(event, INPUT_DRAG) || ( isUserInput(event, INPUT_NAVIGATE) && _modeMoveCircle ) ) {
 			// special move ; move the sources in the opposite
 			for(SourceSet::iterator its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
 				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
