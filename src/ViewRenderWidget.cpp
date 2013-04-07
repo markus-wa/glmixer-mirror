@@ -185,7 +185,7 @@ ViewRenderWidget::ViewRenderWidget() :
     createMask("Horizontal", ":/glmixer/textures/mask_linear_horizontal.png");
     createMask("Vertical", ":/glmixer/textures/mask_linear_vertical.png");
     createMask("Smooth", ":/glmixer/textures/mask_antialiasing.png");
-    createMask("Scratch", ":/glmixer/textures/mask_scratch.png");
+    createMask("Scratch", ":/glmixer/textures/mask_scratch.png"); // 12
     createMask("Dirty", ":/glmixer/textures/mask_dirty.png");
     createMask("TV", ":/glmixer/textures/mask_tv.png");
     createMask("Paper", ":/glmixer/textures/mask_paper.png");
@@ -266,11 +266,13 @@ void ViewRenderWidget::initializeGL()
         if (i.value().second.isNull()) {
             const char * const black_xpm[] = { "2 2 1 1", ". c #000000", "..", ".."};
             ViewRenderWidget::mask_textures[i.key()] = bindTexture(QPixmap(black_xpm), GL_TEXTURE_2D);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         } else {
             ViewRenderWidget::mask_textures[i.key()] = bindTexture(QPixmap(i.value().second), GL_TEXTURE_2D);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         }
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	}

@@ -175,6 +175,24 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
 
 //	_defaultPresets["Impressionnist"] = new Source();
 
+    presetsList->insertItem(0, "Sepia Photo");
+    _defaultPresets[presetsList->item(0)] = new Source();
+    _defaultPresets[presetsList->item(0)]->setSaturation(-100);
+    _defaultPresets[presetsList->item(0)]->setColor(QColor(154, 131, 104));
+    _defaultPresets[presetsList->item(0)]->setGamma(0.936, 0.1, 0.9, 0.0, 1.0);
+    _defaultPresets[presetsList->item(0)]->setMask(13);
+    _defaultPresets[presetsList->item(0)]->setContrast(20);
+    _defaultPresets[presetsList->item(0)]->setBrightness(25);
+    setPresetItemTooltip(presetsList->item(0), _defaultPresets[presetsList->item(0)]);
+
+    presetsList->insertItem(0, "BW Photo");
+    _defaultPresets[presetsList->item(0)] = new Source();
+    _defaultPresets[presetsList->item(0)]->setSaturation(-100);
+    _defaultPresets[presetsList->item(0)]->setGamma(1.175, 0.0, 1.0, 0.0, 1.0);
+    _defaultPresets[presetsList->item(0)]->setMask(15);
+    _defaultPresets[presetsList->item(0)]->setContrast(20);
+    setPresetItemTooltip(presetsList->item(0), _defaultPresets[presetsList->item(0)]);
+
     presetsList->insertItem(0, "Hypersaturated");
     _defaultPresets[presetsList->item(0)] = new Source();
     _defaultPresets[presetsList->item(0)]->setSaturation(100);
