@@ -166,6 +166,7 @@ private:
 	class OutputRenderWidget *outputpreview;
 	class UserPreferencesDialog *upd;
 	class MixingToolboxWidget *mixingToolBox;
+    class SessionSwitcherWidget *switcherSession;
 
 	QTimer *refreshTimingTimer;
 	bool waspaused;

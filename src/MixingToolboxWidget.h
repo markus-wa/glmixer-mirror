@@ -45,7 +45,6 @@ public Q_SLOTS:
     void on_presetAdd_pressed();
     void on_presetRemove_pressed();
 
-
     // Blending Page
     void on_blendingBox_currentIndexChanged(int);
     void on_blendingColorButton_pressed();

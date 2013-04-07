@@ -89,7 +89,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="currentRow">
-          <number>-1</number>
+          <number>0</number>
          </property>
          <item>
           <property name="text">
@@ -1329,9 +1329,8 @@ font: 75;</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
-  <include location="../textures.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

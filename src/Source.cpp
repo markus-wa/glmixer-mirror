@@ -433,7 +433,8 @@ QDataStream &operator<<(QDataStream &stream, const Source *source){
 			<< source->getChromaKeyColor()
 			<< source->getChromaKeyTolerance()
 			<< source->isModifiable()
-			<< source->isFixedAspectRatio();
+            << source->isFixedAspectRatio()
+            << source->getName();
 
 	return stream;
 }
@@ -484,6 +485,7 @@ QDataStream &operator>>(QDataStream &stream, Source *source){
 	stream >> intValue;		source->setChromaKeyTolerance(intValue);
 	stream >> boolValue;	source->setModifiable(boolValue);
 	stream >> boolValue;	source->setFixedAspectRatio(boolValue);
+    stream >> stringValue;  source->setName(stringValue);
 
 	return stream;
 }

@@ -258,13 +258,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(propertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
 
 	// Setup the session switcher toolbox
-	SessionSwitcherWidget *switcherSession = new SessionSwitcherWidget(this, &settings);
+    switcherSession = new SessionSwitcherWidget(this, &settings);
 	switcherDockWidgetContentsLayout->addWidget(switcherSession);
 	QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
 	QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
 	QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
 	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
-	switcherSession->restoreSettings();
 
 	QObject::connect(nextSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToNextSession()));
 	QObject::connect(prevSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToPreviousSession()));
@@ -486,7 +485,9 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 		static int methodIndex = _instance->metaObject()->indexOfSlot("Log(int,QString)");
 		static QMetaMethod method = _instance->metaObject()->method(methodIndex);
 		method.invoke(_instance, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
-	}
+    }
+ //   else QMessageBox::information(0, tr("%1 -- Debug").arg(QCoreApplication::applicationName()), txt);
+
 }
 
 void GLMixer::Log(int type, QString msg)
@@ -496,13 +497,13 @@ void GLMixer::Log(int type, QString msg)
 	logTexts->addTopLevelItem( item );
 
 	// reads the text passed and split into object|message
-	QStringList message = msg.split('|', QString::SkipEmptyParts);
+    QStringList message = msg.split('|', QString::SkipEmptyParts);
 	if (message.count() > 1 ) {
-		item->setText(0, message[1]);
-		item->setText(1, message[0]);
+        item->setText(0, message[1].simplified());
+        item->setText(1, message[0].simplified());
 	} else {
-		item->setText(0, message[0]);
-		item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
+        item->setText(0, message[0].simplified());
+        item->setIcon(1, QIcon(":/glmixer/icons/info.png"));
 	}
 
 	// adjust color and show dialog according to message type
@@ -510,12 +511,12 @@ void GLMixer::Log(int type, QString msg)
 	case QtWarningMsg:
 		 item->setBackgroundColor(0, QColor(220, 180, 50, 50));
 		 item->setBackgroundColor(1, QColor(220, 180, 50, 50));
-		 item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
+         item->setIcon(1, QIcon(":/glmixer/icons/warning.png"));
 		 break;
 	case QtCriticalMsg:
 		item->setBackgroundColor(0, QColor(220, 90, 50, 50));
 		item->setBackgroundColor(1, QColor(220, 90, 50, 50));
-		item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
+        item->setIcon(1, QIcon(":/glmixer/icons/warning.png"));
 		QMessageBox::warning(0, tr("%1 -- Problem").arg(QCoreApplication::applicationName()), QString(msg).replace("|","\n") +
 														QObject::tr("\n\nPlease check the logs for details.") );
 		break;
@@ -1937,6 +1938,8 @@ void GLMixer::readSettings()
     if (settings.contains("MixingPresets"))
     	mixingToolBox->restoreState(settings.value("MixingPresets").toByteArray());
 
+    // Switcher session
+    switcherSession->restoreSettings();
 
 	qDebug() << tr("All settings restored.");
 }

@@ -86,6 +86,12 @@ public:
 	virtual bool isPlaying() const { return false; }
 	virtual void play(bool on) {}
 
+    /*
+     * Source Name
+     *
+     */
+    void setName(QString n);
+
 	/**
 	 *  Rendering
 	 */
@@ -431,12 +437,7 @@ protected:
 	 * also depth should only be modified by Rendering Manager
 	 *
 	 */
-	void setDepth(GLdouble v);
-	/*
-	 * also name should only be modified by Rendering Manager
-	 *
-	 */
-	void setName(QString n);
+    void setDepth(GLdouble v);
 
 	// RTTI
 	static RTTI type;
