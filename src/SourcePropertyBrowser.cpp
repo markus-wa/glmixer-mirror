@@ -66,8 +66,6 @@
 #endif
 
 
-QMap<int, QPair<int, int> > presetBlending;
-
 QString getSizeString(float num);
 
 SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent), root(0), filter(0), currentItem(0) {
@@ -176,18 +174,6 @@ QString aspectRatioToString(double ar)
 
 void SourcePropertyBrowser::createPropertyTree(){
 
-	// the comboBox presents of combinations
-	// color mix
-	presetBlending[1] = qMakePair( 1, 0 ); // GL_ONE                , GL_FUNC_ADD
-	// inverse color mix
-	presetBlending[2] = qMakePair( 1, 2 ); // GL_ONE                , GL_FUNC_REVERSE_SUBTRACT
-	// layer color mix
-	presetBlending[3] = qMakePair( 4, 0 ); // GL_DST_COLOR          , GL_FUNC_ADD
-	// layer inverse color mix
-	presetBlending[4] = qMakePair( 4, 2 ); // GL_DST_COLOR          , GL_FUNC_REVERSE_SUBTRACT
-	// alpha blending
-	presetBlending[5] = qMakePair( 7, 0 ); // GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD
-
 	QtProperty *property;
 
 	// the top property holding all the source sub-properties
@@ -266,7 +252,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	idToProperty[blendingItem->propertyName()] = blendingItem;
 	blendingItem->setToolTip("How the colors are mixed with the sources in lower layers.");
 	QStringList enumNames;
-	enumNames << "Custom" << "Add" << "Subtract" << "Add layer" << "Subtract layer" << "Opacity layer";
+    enumNames << namePresetFromInt(0) << namePresetFromInt(1) << namePresetFromInt(2) << namePresetFromInt(3) << namePresetFromInt(4) << namePresetFromInt(5);
 	enumManager->setEnumNames(blendingItem, enumNames);
 	// Custom Blending
 	// enum list of blending Equations
@@ -635,7 +621,7 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
 
 		// properties of blending
-		int preset = presetBlending.key( qMakePair( intFromBlendfunction(s->getBlendFuncDestination()), intFromBlendequation(s->getBlendEquation()) ) );
+        int preset = intFromBlendingPreset( s->getBlendFuncDestination(), s->getBlendEquation() );
 		enumManager->setValue(idToProperty["Blending"], preset );
 		enumManager->setValue(idToProperty["Destination"], intFromBlendfunction( s->getBlendFuncDestination() ));
 		enumManager->setValue(idToProperty["Equation"], intFromBlendequation( s->getBlendEquation() ));
@@ -1097,8 +1083,9 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
 	if ( property == idToProperty["Blending"] ) {
 
 		if ( value != 0) {
-			currentItem->setBlendFunc(GL_SRC_ALPHA, blendfunctionFromInt( presetBlending[value].first ) );
-			currentItem->setBlendEquation( blendequationFromInt( presetBlending[value].second ) );
+            QPair<int, int> preset = blendingPresetFromInt(value);
+            currentItem->setBlendFunc(GL_SRC_ALPHA, blendfunctionFromInt( preset.first ) );
+            currentItem->setBlendEquation( blendequationFromInt( preset.second ) );
 			enumManager->setValue(idToProperty["Destination"], intFromBlendfunction( currentItem->getBlendFuncDestination() ) );
 			enumManager->setValue(idToProperty["Equation"], intFromBlendequation( currentItem->getBlendEquation() ));
 		}

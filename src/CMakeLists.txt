@@ -21,6 +21,7 @@ ENDIF (WIN32)
 
 # the variable "qtproject_SRCS" contains all .cpp files of this project
 set(GLMIXER_SRCS
+    common.cpp
     glRenderWidget.cpp
     CameraDialog.cpp
     VideoFileDialogPreview.cpp

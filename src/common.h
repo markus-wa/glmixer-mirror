@@ -93,6 +93,7 @@
 #include <QDir>
 #include <QValidator>
 
+void initListOfExtension();
 bool glSupportsExtension(QString extname);
 QStringList glSupportedExtensions();
 
@@ -100,6 +101,10 @@ GLenum blendfunctionFromInt(int);
 int intFromBlendfunction(GLenum);
 GLenum blendequationFromInt(int);
 int intFromBlendequation(GLenum);
+QPair<int, int> blendingPresetFromInt(int);
+QString namePresetFromInt(int);
+int intFromBlendingPreset(GLenum, GLenum);
+
 
 class folderValidator : public QValidator
 {

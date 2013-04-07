@@ -2031,6 +2031,9 @@ void GLMixer::restorePreferences(const QByteArray & state){
     	// set dialog in minimal mode
     	upd->setModeMinimal(true);
 
+        // make sure we reset preferences
+        upd->restoreDefaultPreferences();
+
     	// show the dialog and apply preferences
     	upd->exec();
 		restorePreferences( upd->getUserPreferences() );

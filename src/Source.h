@@ -86,12 +86,6 @@ public:
 	virtual bool isPlaying() const { return false; }
 	virtual void play(bool on) {}
 
-    /*
-     * Source Name
-     *
-     */
-    void setName(QString n);
-
 	/**
 	 *  Rendering
 	 */
@@ -119,11 +113,20 @@ public:
 
 	/**
 	 * Manipulation
-	 */
-	// return the unique ID of this source
+     */
+
+    /*
+     * unique ID of this source
+     *
+     */
 	inline GLuint getId() const {
 		return id;
 	}
+    /*
+     * Source Name
+     *
+     */
+    void setName(QString n);
 	inline QString getName() const {
 		return name;
 	}
