@@ -134,7 +134,8 @@ public Q_SLOTS:
 	void connectSource(SourceSet::iterator csi);
 	void sourceChanged(Source *s);
 
-	void Log(int, QString);
+    void Log(int, QString);
+    void screenshotView();
 	void readSettings();
 	void saveSettings();
 

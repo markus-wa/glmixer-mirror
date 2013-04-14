@@ -205,11 +205,16 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(aspectRatioActions, SIGNAL(triggered(QAction *)), this, SLOT(setAspectRatio(QAction *) ) );
 
     QAction *nextSession = new QAction("Next Session", this);
-    nextSession->setShortcut(tr("Ctrl+Right"));
+    nextSession->setShortcut(QKeySequence("Ctrl+Right"));
     addAction(nextSession);
     QAction *prevSession = new QAction("Previous Session", this);
-    prevSession->setShortcut(tr("Ctrl+Left"));
+    prevSession->setShortcut(QKeySequence("Ctrl+Left"));
     addAction(prevSession);
+
+    QAction *screenshot = new QAction("Screenshot", this);
+    screenshot->setShortcut(QKeySequence("Ctrl+<,<"));
+    addAction(screenshot);
+    QObject::connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshotView() ) );
 
 
     // recent files history
@@ -2454,4 +2459,21 @@ void GLMixer::on_distributeVerticalGapsButton_clicked(){
 void GLMixer::on_distributeVerticalTopButton_clicked(){
 
 	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_VERTICAL, View::ALIGN_TOP_RIGHT);
+}
+
+void GLMixer::screenshotView(){
+
+    // get screenshot from view GLWidget
+    /*RenderingManager::getRenderingWidget()->makeCurrent();
+    QImage s = RenderingManager::getRenderingWidget()->grabFrameBuffer();*/
+    QPixmap s = QPixmap::grabWindow(RenderingManager::getRenderingWidget()->winId());
+    // paint a cursor at the curent mouse coordinates
+    QPainter p(&s);
+    QPoint c = RenderingManager::getRenderingWidget()->mapFromGlobal( RenderingManager::getRenderingWidget()->cursor().pos() );
+    p.drawPixmap(c, RenderingManager::getRenderingWidget()->cursor().pixmap());
+    // create a unique filename and save to file
+    QString f = QString("glmixer_%1_%2.png").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
+    s.save( f );
+    // log
+    qDebug() << "Saved screenshot" << f;
 }
