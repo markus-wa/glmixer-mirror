@@ -222,6 +222,20 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     // make sure it is not sorting alphabetically the list
     presetsList->setSortingEnabled(false);
 
+
+    // create default presets
+    QByteArray ba = static_presets;
+    QDataStream stream(&ba, QIODevice::ReadOnly);
+    while(! stream.atEnd()) {
+        Source *s = new Source();
+        stream >> s;
+        presetsList->insertItem(0, s->getName());
+        _defaultPresets[presetsList->item(0)] = s;
+        setPresetItemTooltip(presetsList->item(0), s);
+        QFont f = presetsList->item(0)->font();
+        f.setItalic(true);
+        presetsList->item(0)->setFont( f );
+    }
 }
 
 MixingToolboxWidget::~MixingToolboxWidget()
@@ -431,13 +445,18 @@ void MixingToolboxWidget::on_presetApply_pressed()
 			source->importProperties( *_defaultPresets[presetsList->currentItem()], false );
 		else if ( _userPresets.contains(presetsList->currentItem()) )
 			source->importProperties( *_userPresets[presetsList->currentItem()], false );
+
+
+        emit presetApplied( RenderingManager::getInstance()->getById( source->getId()) );
 	}
 }
 
 void MixingToolboxWidget::on_presetReApply_pressed()
 {    
-    setPresetItemTooltip(presetsList->currentItem(), source);
-	_userPresets[ presetsList->currentItem() ]->importProperties( *source, false);
+    if (source) {
+        setPresetItemTooltip(presetsList->currentItem(), source);
+        _userPresets[ presetsList->currentItem() ]->importProperties( *source, false);
+    }
 }
 
 void MixingToolboxWidget::on_presetAdd_pressed()
@@ -528,23 +547,6 @@ QByteArray MixingToolboxWidget::saveState() const {
 
 
 bool MixingToolboxWidget::restoreState(const QByteArray &state) {
-
-    if (_defaultPresets.isEmpty()) {
-        QByteArray ba = static_presets;
-        QDataStream stream(&ba, QIODevice::ReadOnly);
-
-        // read all source stored and add to default presets
-        while(! stream.atEnd()) {
-            Source *s = new Source();
-            stream >> s;
-            presetsList->insertItem(0, s->getName());
-            _defaultPresets[presetsList->item(0)] = s;
-            setPresetItemTooltip(presetsList->item(0), s);
-            QFont f = presetsList->item(0)->font();
-            f.setItalic(true);
-            presetsList->item(0)->setFont( f );
-        }
-    }
 
     QByteArray sd = state;
     QDataStream stream(&sd, QIODevice::ReadOnly);
