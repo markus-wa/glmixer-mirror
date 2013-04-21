@@ -73,6 +73,7 @@ int main(int argc, char **argv)
     GLMixer::getInstance()->setWindowTitle(a.applicationName());
     qAddPostRoutine(GLMixer::exitHandler);
     GLMixer::getInstance()->readSettings();
+    a.processEvents();
 
     if(!SharedMemoryManager::getInstance())
     	qWarning() << QObject::tr("Could not initiate shared memory manager");

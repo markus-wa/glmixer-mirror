@@ -49,7 +49,7 @@ public Q_SLOTS:
 	void refresh();
 
 protected:
-	bool useAspectRatio, useWindowAspectRatio;
+    bool useAspectRatio, useWindowAspectRatio;
 	int rx, ry, rw, rh;
 
 };
@@ -63,15 +63,24 @@ public:
 	static OutputRenderWindow *getInstance();
 	static void deleteInstance();
 
+    int getFullScreenMonitor() { return fullscreenMonitorIndex; }
+
     void initializeGL();
     void resizeGL(int w = 0, int h = 0);
+    void moveEvent ( QMoveEvent * ) ;
+    void resizeEvent ( QResizeEvent * ) ;
 
 	// events handling
 	void keyPressEvent(QKeyEvent * event);
-	void mouseDoubleClickEvent(QMouseEvent * event);
+    void mouseDoubleClickEvent(QMouseEvent *);
+
+    // file dialog state restoration
+    QByteArray saveState();
+    bool restoreState(const QByteArray &state);
 
 public Q_SLOTS:
 	void setFullScreen(bool on);
+    void setFullScreenMonitor(int index);
 
 Q_SIGNALS:
 	void resized();
@@ -85,6 +94,8 @@ Q_SIGNALS:
 private:
 	OutputRenderWindow();
 	static OutputRenderWindow *_instance;
+    int fullscreenMonitorIndex;
+    QRect windowGeometry;
 
 };
 

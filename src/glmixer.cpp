@@ -253,6 +253,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     mixingToolBox = new MixingToolboxWidget(this);
     mixingDockWidgetContentLayout->addWidget(mixingToolBox);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), mixingToolBox, SLOT(connectSource(SourceSet::iterator) ) );
+    QObject::connect(mixingToolBox, SIGNAL( presetApplied(SourceSet::iterator)), RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)) );
     // bidirectional link between mixing toolbox and property manager
     QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, bool)), propertyBrowser, SLOT(valueChanged(QString, bool)) );
     QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, int)), propertyBrowser, SLOT(valueChanged(QString, int)) );
@@ -1865,21 +1866,10 @@ void GLMixer::readSettings()
     else
         settings.setValue("defaultWindowState", saveState());
 
-    if (settings.contains("OutputRenderWindow_state")) {
-    	// special case for full screen
-    	if ( Qt::WindowFullScreen & (Qt::WindowStates) settings.value("OutputRenderWindow_state").toInt() ) {
-    		// apply the full screen
-    		actionFullscreen->setChecked(true);
-    	}
-    	else
-    		OutputRenderWindow::getInstance()->setWindowState( ( Qt::WindowStates) settings.value("OutputRenderWindow_state").toInt());
-    } else
-        settings.setValue("defaultOutputRenderWindow_state", 0);
-
-    if (settings.contains("OutputRenderWindow_geometry"))
-    	OutputRenderWindow::getInstance()->setGeometry(settings.value("OutputRenderWindow_geometry").toRect());
+    if (settings.contains("OutputRenderWindowState"))
+        OutputRenderWindow::getInstance()->restoreState( settings.value("OutputRenderWindowState").toByteArray() );
     else
-    	settings.setValue("defaultOutputRenderWindow_geometry", (OutputRenderWindow::getInstance())->geometry());
+        settings.setValue("defaultOutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
 
     // dialogs configs
     if (settings.contains("vcontrolOptionSplitter"))
@@ -1957,8 +1947,7 @@ void GLMixer::saveSettings()
 	// windows config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-    settings.setValue("OutputRenderWindow_geometry", (OutputRenderWindow::getInstance())->geometry());
-    settings.setValue("OutputRenderWindow_state", (int) (OutputRenderWindow::getInstance())->windowState());
+    settings.setValue("OutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
 
     // dialogs configs
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
@@ -1993,8 +1982,7 @@ void GLMixer::on_actionResetToolbars_triggered()
 {
 	restoreGeometry(settings.value("defaultGeometry").toByteArray());
 	restoreState(settings.value("defaultWindowState").toByteArray());
-	OutputRenderWindow::getInstance()->setGeometry(settings.value("defaultOutputRenderWindow_geometry").toRect());
-	OutputRenderWindow::getInstance()->setWindowState( ( Qt::WindowStates) settings.value("defaultOutputRenderWindow_state").toInt());
+    OutputRenderWindow::getInstance()->restoreState( settings.value("defaultOutputRenderWindowState").toByteArray() );
 	restoreDockWidget(previewDockWidget);
 	restoreDockWidget(sourceDockWidget);
 	restoreDockWidget(vcontrolDockWidget);
@@ -2141,6 +2129,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	stream >> shmdepth;
 	RenderingManager::getInstance()->setSharedMemoryColorDepth(shmdepth);
 
+    // o. fullscreen monitor index
+    uint fsmi = 0;
+    stream >> fsmi;
+    OutputRenderWindow::getInstance()->setFullScreenMonitor(fsmi);
+
 	// Refresh widgets to make changes visible
 	OutputRenderWindow::getInstance()->refresh();
 	outputpreview->refresh();
@@ -2203,8 +2196,11 @@ QByteArray GLMixer::getPreferences() const {
 	// m. useSystemDialogs
 	stream << _instance->useSystemDialogs();
 
-	// n. shared memory color depth
-	stream << (uint)  RenderingManager::getInstance()->getSharedMemoryColorDepth();
+    // n. shared memory color depth
+    stream << (uint) RenderingManager::getInstance()->getSharedMemoryColorDepth();
+
+    // o. fullscreen monitor index
+    stream << (uint) OutputRenderWindow::getInstance()->getFullScreenMonitor();
 
 	return data;
 }

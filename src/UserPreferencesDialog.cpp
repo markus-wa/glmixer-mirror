@@ -28,8 +28,11 @@
 #include "common.h"
 #include "glmixer.h"
 #include "Source.h"
+#include "OutputRenderWindow.h"
 
 #include <QFileDialog>
+#include <QApplication>
+#include <QDesktopWidget>
 
 UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 {
@@ -53,6 +56,10 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 	recordingFolderLine->setProperty("exists", true);
     QObject::connect(recordingFolderLine, SIGNAL(textChanged(const QString &)), this, SLOT(recordingFolderPathChanged(const QString &)));
 
+    // set number of available monitors
+    fullscreenMonitor->clear();
+    for( int i = 0; i < QApplication::desktop()->screenCount(); ++i)
+        fullscreenMonitor->addItem(QString("Monitor %1").arg(i));
 
 }
 
@@ -235,10 +242,15 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 	stream >> usesystem;
 	useCustomDialogs->setChecked(!usesystem);
 
-	// n. shared memory depth
-	uint shmdepth = 0;
-	stream >> shmdepth;
-	sharedMemoryColorDepth->setCurrentIndex(shmdepth);
+    // n. shared memory depth
+    uint shmdepth = 0;
+    stream >> shmdepth;
+    sharedMemoryColorDepth->setCurrentIndex(shmdepth);
+
+    // o. fullscreen monitor index
+    uint fsmi = 0;
+    stream >> fsmi;
+    fullscreenMonitor->setCurrentIndex(fsmi);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -300,8 +312,11 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	// m. useCustomDialogs
 	stream << !useCustomDialogs->isChecked();
 
-	// n. shared memory depth
-	stream << (uint) sharedMemoryColorDepth->currentIndex();
+    // n. shared memory depth
+    stream << (uint) sharedMemoryColorDepth->currentIndex();
+
+    // o. fullscreen monitor index
+    stream << (uint) fullscreenMonitor->currentIndex();
 
 	return data;
 }
@@ -353,4 +368,10 @@ QList<QAction *> UserPreferencesDialog::getActionsList(QList<QAction *> actionli
 	    	 buildlist += actionlist.at(i);
 	 }
 	 return buildlist;
+}
+
+void UserPreferencesDialog::on_fullscreenMonitor_currentIndexChanged(int i)
+{
+//    OutputRenderWindow::getInstance()->setFullScreenMonitor(i);
+//    qDebug() << "OutputRenderWindow|Default fullscreen Monitor set to " << i;
 }

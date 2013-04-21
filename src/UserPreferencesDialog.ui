@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>754</width>
-    <height>568</height>
+    <width>682</width>
+    <height>496</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -447,7 +447,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Targeted display frame rate  </string>
+                   <string>Target frame rate  </string>
                   </property>
                   <property name="buddy">
                    <cstring>updatePeriod</cstring>
@@ -503,7 +503,7 @@ p, li { white-space: pre-wrap; }
                  <string>Check this if your hardware supports it (save, try, and keep it on if all seems to work).</string>
                 </property>
                 <property name="text">
-                 <string>Blit frame buffer (faster if graphics card supports it in hardware, buggy otherwise)</string>
+                 <string>Blit frame buffer (faster if graphics card supports it in hardware)</string>
                 </property>
                 <property name="checked">
                  <bool>false</bool>
@@ -515,6 +515,46 @@ p, li { white-space: pre-wrap; }
                 <property name="text">
                  <string>Disable filters (needed only for some hardware)</string>
                 </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>Fullscreen</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <item>
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>Target computer screen </string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="fullscreenMonitor">
+                <item>
+                 <property name="text">
+                  <string>1</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>2</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>3</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>4</string>
+                 </property>
+                </item>
                </widget>
               </item>
              </layout>
@@ -671,6 +711,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLabel" name="warning1">
+                <property name="styleSheet">
+                 <string notr="true">font: italic;</string>
+                </property>
                 <property name="text">
                  <string>NB: RAW and FFVHUFF are looseless and fast recording methods.</string>
                 </property>
@@ -678,6 +721,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QLabel" name="warning2">
+                <property name="styleSheet">
+                 <string notr="true">font: italic;</string>
+                </property>
                 <property name="text">
                  <string>Other codec may be lossy and slow, but are more portable.</string>
                 </property>
@@ -770,6 +816,9 @@ the user to select a file name</string>
               </item>
               <item>
                <widget class="QLabel" name="label_6">
+                <property name="styleSheet">
+                 <string notr="true">font: italic;</string>
+                </property>
                 <property name="text">
                  <string>NB: High color depth lead to slower copy and risk of low frame rate.</string>
                 </property>

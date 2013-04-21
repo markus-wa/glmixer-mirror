@@ -29,6 +29,8 @@
 #include "ViewRenderWidget.h"
 
 #include <QGLFramebufferObject>
+#include <QApplication>
+#include <QDesktopWidget>
 
 
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
@@ -226,7 +228,11 @@ OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)Re
 	// this is not a windet, but a window
 	useWindowAspectRatio = false;
 	setCursor(Qt::BlankCursor);
-
+    fullscreenMonitorIndex = 0;
+    setMinimumSize(160,120);
+    // set initial geometry
+    windowGeometry = QRect(0,0,640,480);
+    setGeometry( windowGeometry );
 }
 
 OutputRenderWindow *OutputRenderWindow::getInstance() {
@@ -251,7 +257,7 @@ void OutputRenderWindow::initializeGL()
 	// one little line for a big alpha blending problem !
 	// the modulation of alpha of the fbo texture should NOT take into
 	// account the alpha of this texture (not be transparent with the background)
-	// although the polygon itself should be blender.
+    // although the polygon itself should be blended.
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
 
     // setup default background color to black
@@ -261,23 +267,45 @@ void OutputRenderWindow::initializeGL()
 
 void OutputRenderWindow::setFullScreen(bool on) {
 
-	// this is valid only for WINDOW widgets
-	if (windowFlags() & Qt::Window) {
+    // this is valid only for WINDOW widgets
+    if ( windowFlags().testFlag(Qt::Window) ) {
 
-		// discard non-changing state (NOT XOR)
-		if ( !(on ^ (windowState() & Qt::WindowFullScreen)) )
-			return;
+        // discard non-changing state (NOT XOR)
+        if ( !(on ^ (windowState() & Qt::WindowFullScreen)) )
+            return;
 
-		// other cases ; need to switch fullscreen <-> not fullscreen
-		setWindowState( windowState() ^ Qt::WindowFullScreen);
-		update();
-	}
+        // apply fullscreen
+        setWindowState( windowState() ^ Qt::WindowFullScreen );
+
+        if (on)
+            // use geometry from selected desktop for fullscreen
+            setGeometry( QApplication::desktop()->screenGeometry(fullscreenMonitorIndex) );
+        else
+            // use saved & previous window geometry otherwise
+            setGeometry( windowGeometry );
+
+        update();
+    }
 }
 
-void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent * event) {
 
-	// switch fullscreen / window
-	if (windowFlags() & Qt::Window)
+void OutputRenderWindow::setFullScreenMonitor(int index)
+{
+    if ( index <= QApplication::desktop()->screenCount() ) {
+
+        fullscreenMonitorIndex = index;
+        // if already fullscreen, apply the change by a quick switch
+        if (windowState().testFlag(Qt::WindowFullScreen) ) {
+            setFullScreen( false );
+            setFullScreen( true	);
+        }
+    }
+}
+
+void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent *) {
+
+    // toggle fullscreen / window on double clic
+    if ( windowFlags().testFlag(Qt::Window) )
 		emit toggleFullscreen(! (windowState() & Qt::WindowFullScreen) 	);
 
 }
@@ -287,9 +315,9 @@ void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {
 	switch (event->key()) {
 	case Qt::Key_Escape:
 		emit toggleFullscreen(false);
-		break;
-	case Qt::Key_Enter:
-	case Qt::Key_Space:
+        break;
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
 		emit toggleFullscreen(true);
 		break;
 	case Qt::Key_Right:
@@ -305,5 +333,57 @@ void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {
 
 	event->accept();
 }
+
+
+void OutputRenderWindow::resizeEvent ( QResizeEvent * e )
+{
+    this->OutputRenderWidget::resizeEvent(e);
+
+    // store the geometry of the window when it is not fullscreen (to revert back to it)
+    if ( ! windowState().testFlag(Qt::WindowFullScreen) )
+        windowGeometry.setSize( e->size() );
+}
+
+
+void OutputRenderWindow::moveEvent ( QMoveEvent * e )
+{
+    this->OutputRenderWidget::moveEvent(e);
+
+    // store the geometry of the window when it is not fullscreen (to revert back to it)
+    if ( ! windowState().testFlag(Qt::WindowFullScreen) )
+        windowGeometry.setTopLeft( e->pos() );
+}
+
+QByteArray OutputRenderWindow::saveState()  {
+
+    QByteArray data;
+    QDataStream stream(&data, QIODevice::WriteOnly);
+
+    if ( ! windowState().testFlag(Qt::WindowFullScreen) )
+        windowGeometry = geometry();
+
+    // window geometry
+    stream << windowGeometry;
+
+    qDebug() << "OutputRenderWindow|Saved state " <<  windowGeometry;
+
+    return data;
+}
+
+bool OutputRenderWindow::restoreState(const QByteArray &state) {
+
+    QByteArray sd = state;
+    QDataStream stream(&sd, QIODevice::ReadOnly);
+
+    // window geometry
+    stream >> windowGeometry;
+
+    setGeometry(windowGeometry);
+
+    qDebug() << "OutputRenderWindow|Restored state"<<  windowGeometry;
+
+    return true;
+}
+
 
 
