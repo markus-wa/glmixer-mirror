@@ -238,7 +238,7 @@ private:
     GLuint buildBordersTools();
     GLuint buildFadingList();
 
-    void createMask(QString description, QString texture = NULL);
+    void createMask(QString description, QString texture = QString::null);
 };
 
 #endif /* VIEWRENDERWIDGET_H_ */
