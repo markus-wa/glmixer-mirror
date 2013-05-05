@@ -26,6 +26,7 @@
 #ifndef VIEWRENDERWIDGET_H_
 #define VIEWRENDERWIDGET_H_
 
+
 #include <QDomElement>
 #include <QMenu>
 #include <QLabel>
@@ -176,6 +177,7 @@ public:
     static GLfloat texc[8];
     static GLfloat maskc[8];
     static QGLShaderProgram *program;
+    static GLfloat filter_kernel[10][3][3];
     static bool disableFiltering;
     static const QMap<int, QPair<QString, QString> > getMaskDecription();
     static void setSourceDrawingMode(bool on);
@@ -220,7 +222,7 @@ private:
 	QMenu *viewMenu, *catalogMenu, *sourceMenu;
 
 	// F P S    d i s p l a y
-	QTime fpsTime_;
+    QElapsedTimer fpsTime_;
 	unsigned int fpsCounter_;
 	float f_p_s_;
 	bool showFps_;
@@ -239,6 +241,7 @@ private:
     GLuint buildFadingList();
 
     void createMask(QString description, QString texture = QString::null);
+
 };
 
 #endif /* VIEWRENDERWIDGET_H_ */

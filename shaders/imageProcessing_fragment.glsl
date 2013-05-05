@@ -1,12 +1,18 @@
-#define KERNEL_BLUR_GAUSSIAN 0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625
-#define KERNEL_BLUR_MEAN 0.111111,0.111111,0.111111,0.111111,0.111111,0.111111,0.111111,0.111111,0.111111
-#define KERNEL_SHARPEN 0.0, -1.0, 0.0, -1.0, 5.0, -1.0, 0.0, -1.0, 0.0
-#define KERNEL_SHARPEN_MORE -1.0, -1.0, -1.0, -1.0, 9.0, -1.0, -1.0, -1.0, -1.0
-#define KERNEL_EDGE_GAUSSIAN -0.0943852, -0.155615, -0.0943852, -0.155615, 1.0, -0.155615, -0.0943852, -0.155615, -0.0943852
-#define KERNEL_EDGE_LAPLACE 0.0, -1.0, 0.0, -1.0, 4.0, -1.0, 0.0, -1.0, 0.0
-#define KERNEL_EDGE_LAPLACE_2 -2.0, 1.0, -2.0, 1.0, 4.0, 1.0, -2.0, 1.0, -2.0
-#define KERNEL_EMBOSS -2.0, -1.0, 0.0, -1.0, 1.0, 1.0, 0.0, 1.0, 2.0
-#define KERNEL_EMBOSS_EDGE 5.0, -3.0, -3.0, 5.0, 0.0, -3.0, 5.0, -3.0, -3.0
+/*
+** Gamma correction
+** Details: http://blog.mouaif.org/2009/01/22/photoshop-gamma-correction-shader/
+*/
+#define GammaCorrection(color, gamma) pow( color, 1.0 / vec3(gamma))
+
+/*
+** Levels control (input (+gamma), output)
+** Details: http://blog.mouaif.org/2009/01/28/levels-control-shader/
+*/
+#define LevelsControlInputRange(color, minInput, maxInput)  min(max(color - vec3(minInput), 0.0) / (vec3(maxInput) - vec3(minInput)), 1.0)
+#define LevelsControlInput(color, minInput, gamma, maxInput) GammaCorrection(LevelsControlInputRange(color, minInput, maxInput), gamma)
+#define LevelsControlOutputRange(color, minOutput, maxOutput)  mix(vec3(minOutput), vec3(maxOutput), color)
+#define LevelsControl(color, minInput, gamma, maxInput, minOutput, maxOutput)   LevelsControlOutputRange(LevelsControlInput(color, minInput, gamma, maxInput), minOutput, maxOutput)
+
 
 varying vec2 texc;
 varying vec2 maskc;
@@ -16,7 +22,6 @@ uniform sampler2D sourceTexture;
 uniform sampler2D maskTexture;
 uniform sampler2D utilityTexture;
 
-uniform vec2 step;
 uniform bool sourceDrawing;
 uniform float contrast;
 uniform float saturation;
@@ -28,55 +33,58 @@ uniform vec4 chromakey;
 uniform float chromadelta;
 uniform float threshold;
 uniform int nbColors;
-uniform int invertMode; 
+uniform int invertMode;
+
+uniform vec2 filter_step;
 uniform int filter;
+uniform mat3 filter_kernel;
 
 
 vec3 erosion(int N)
 {
     vec3 minValue = vec3(1.0);
 
-	minValue = min(texture2D(sourceTexture, texc + vec2 (0, 0) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (0,-1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-1, 0) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (1, 0) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (0, 1) * step ).rgb, minValue);
-	if (N == 3)
-		return minValue;
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-1, -2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (0,-2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (1,-2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-1,2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (0, 2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (1, 2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-2, 1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-1, 1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 ( 1, 1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, 1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-2, -1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-1, -1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 ( 1, -1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, -1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-2, 0) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, 0) * step ).rgb, minValue);
-	if (N == 5)
-		return minValue;
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-1, -3) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (0,-3) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (1,-3) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-1,3) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (0, 3) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (1, 3) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-2, 2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, 2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-2, -2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, -2) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-3, -1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (3, -1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-3, 1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 ( 3, 1) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 (-3, 0) * step ).rgb, minValue);
-	minValue = min(texture2D(sourceTexture, texc + vec2 ( 3, 0) * step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (0, 0) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (0,-1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-1, 0) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (1, 0) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (0, 1) * filter_step ).rgb, minValue);
+        if (N == 3)
+                return minValue;
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-1, -2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (0,-2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (1,-2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-1,2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (0, 2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (1, 2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-2, 1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-1, 1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 ( 1, 1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, 1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-2, -1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-1, -1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 ( 1, -1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, -1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-2, 0) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, 0) * filter_step ).rgb, minValue);
+        if (N == 5)
+                return minValue;
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-1, -3) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (0,-3) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (1,-3) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-1,3) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (0, 3) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (1, 3) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-2, 2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, 2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-2, -2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 ( 2, -2) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-3, -1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (3, -1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-3, 1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 ( 3, 1) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 (-3, 0) * filter_step ).rgb, minValue);
+        minValue = min(texture2D(sourceTexture, texc + vec2 ( 3, 0) * filter_step ).rgb, minValue);
 
     return minValue;
 }
@@ -85,47 +93,47 @@ vec3 dilation(int N)
 {
     vec3 maxValue = vec3(0.0);
 
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (0, 0) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (0,-1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, 0) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (1, 0) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (0, 1) * step ).rgb, maxValue);
-	if (N == 3)
-		return maxValue;
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, -2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (0,-2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (1,-2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-1,2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (0, 2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (1, 2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, 1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, 1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 ( 1, 1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, 1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, -1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, -1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 ( 1, -1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, -1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, 0) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, 0) * step ).rgb, maxValue);
-	if (N == 5)
-		return maxValue;
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, -3) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (0,-3) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (1,-3) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-1,3) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (0, 3) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (1, 3) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, 2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, 2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, -2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, -2) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-3, -1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (3, -1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-3, 1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 ( 3, 1) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 (-3, 0) * step ).rgb, maxValue);
-	maxValue = max(texture2D(sourceTexture, texc + vec2 ( 3, 0) * step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (0, 0) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (0,-1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, 0) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (1, 0) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (0, 1) * filter_step ).rgb, maxValue);
+        if (N == 3)
+                return maxValue;
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, -2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (0,-2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (1,-2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-1,2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (0, 2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (1, 2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, 1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, 1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 ( 1, 1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, 1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, -1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, -1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 ( 1, -1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, -1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, 0) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, 0) * filter_step ).rgb, maxValue);
+        if (N == 5)
+                return maxValue;
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-1, -3) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (0,-3) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (1,-3) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-1,3) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (0, 3) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (1, 3) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, 2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, 2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-2, -2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 ( 2, -2) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-3, -1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (3, -1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-3, 1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 ( 3, 1) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 (-3, 0) * filter_step ).rgb, maxValue);
+        maxValue = max(texture2D(sourceTexture, texc + vec2 ( 3, 0) * filter_step ).rgb, maxValue);
 
     return maxValue;
 }
@@ -134,32 +142,13 @@ vec3 convolution()
 {
     int i = 0, j = 0;
     vec3 sum = vec3(0.0);
-    mat3 kernel = mat3(KERNEL_BLUR_GAUSSIAN);
-    
-	if (filter == 2)
-	        kernel = mat3(KERNEL_BLUR_MEAN);
-	else if (filter == 3)
-	        kernel = mat3(KERNEL_SHARPEN); 
-	else if (filter == 4)
-	        kernel = mat3(KERNEL_SHARPEN_MORE); 
-	else if (filter == 5)
-	        kernel = mat3(KERNEL_EDGE_GAUSSIAN); 
-	else if (filter == 6)
-	        kernel = mat3(KERNEL_EDGE_LAPLACE); 
-	else if (filter == 7)
-	        kernel = mat3(KERNEL_EDGE_LAPLACE_2);
-	else if (filter == 8)
-	        kernel = mat3(KERNEL_EMBOSS);
-	else if (filter == 9)
-	        kernel = mat3(KERNEL_EMBOSS_EDGE);
-        
+
     for (i = 0; i<3; ++i)
-        for (j = 0; j<3; ++j) 
-            sum += texture2D(sourceTexture, texc + step * vec2 (i-1, j-1) ).rgb * kernel[i][j];
+        for (j = 0; j<3; ++j)
+            sum += texture2D(sourceTexture, texc + filter_step * vec2 (i-1, j-1) ).rgb * filter_kernel[i][j];
 
     return sum;
 }
-
 
 vec3 apply_filter() {
 
@@ -167,193 +156,117 @@ vec3 apply_filter() {
         return texture2D(sourceTexture, texc).rgb;
     else if (filter < 10)
         return convolution();
-    else if (filter == 10)
-        	return erosion(3);
-    else if (filter == 11)
-        	return erosion(5);
-    else if (filter == 12)
-        	return erosion(7);
-    else if (filter == 13)
-        	return dilation(3);
-    else if (filter == 14)
-        	return dilation(5);
-    else if (filter == 15)
-        	return dilation(7);
-    
+    else if (filter < 13)
+        return erosion( 3 + (filter -10) * 2 );
+    else
+        return dilation( 3 + (filter -13) * 2  );
 }
 
 /*
-** Hue, saturation, luminance
+** Hue, saturation, luminance <=> Red Green Blue
 */
-
-vec3 RGBToHSL(vec3 color)
-{
-    vec3 hsl = vec3(0.0, 0.0, 0.0); // init to 0 to avoid warnings ? (and reverse if + remove first part)
-
-    float fmin = min(min(color.r, color.g), color.b);    //Min. value of RGB
-    float fmax = max(max(color.r, color.g), color.b);    //Max. value of RGB
-    float delta = fmax - fmin;             //Delta RGB value
-
-    hsl.z = (fmax + fmin) / 2.0; // Luminance
-
-    if (delta == 0.0)       //This is a gray, no chroma...
-    {
-        hsl.x = -1.0;    // Hue
-        hsl.y = 0.0;    // Saturation
-    }
-    else                    //Chromatic data...
-    {
-        if (hsl.z < 0.5)
-            hsl.y = delta / (fmax + fmin); // Saturation
-        else
-            hsl.y = delta / (2.0 - fmax - fmin); // Saturation
-
-        float deltaR = (((fmax - color.r) / 6.0) + (delta / 2.0)) / delta;
-        float deltaG = (((fmax - color.g) / 6.0) + (delta / 2.0)) / delta;
-        float deltaB = (((fmax - color.b) / 6.0) + (delta / 2.0)) / delta;
-
-        if (color.r == fmax )
-            hsl.x = deltaB - deltaG; // Hue
-        else if (color.g == fmax)
-            hsl.x = (1.0 / 3.0) + deltaR - deltaB; // Hue
-        else if (color.b == fmax)
-            hsl.x = (2.0 / 3.0) + deltaG - deltaR; // Hue
-
-        if (hsl.x < 0.0)
-            hsl.x += 1.0; // Hue
-        else if (hsl.x > 1.0)
-            hsl.x -= 1.0; // Hue
-    }
-
-    return hsl;
-}
 
 float HueToRGB(float f1, float f2, float hue)
 {
-    if (hue < 0.0)
-        hue += 1.0;
-    else if (hue > 1.0)
-        hue -= 1.0;
     float res;
-    if ((6.0 * hue) < 1.0)
-        res = f1 + (f2 - f1) * 6.0 * hue;
-    else if ((2.0 * hue) < 1.0)
-        res = f2;
-    else if ((3.0 * hue) < 2.0)
-        res = f1 + (f2 - f1) * ((2.0 / 3.0) - hue) * 6.0;
-    else
-        res = f1;
-    return res;
+
+    hue += mix( 1.0, -step(1.0, hue), step(0.0, hue) );
+
+    res = mix( f1, mix( f1 + (f2 - f1) * ((2.0 / 3.0) - hue) * 6.0, mix(f2, f1 + (f2 - f1) * 6.0 * hue, float((6.0 * hue) < 1.0)),  float((2.0 * hue) < 1.0)), float((3.0 * hue) < 2.0) );
+
+    return clamp(res, 0.0, 1.0);
 }
 
-vec3 HSLToRGB(vec3 hsl)
+vec3 HSV2RGB(vec3 hsl)
 {
     vec3 rgb;
+    float f1, f2;
 
-    if (hsl.y == 0.0)
-        rgb = vec3(hsl.z); // Luminance
-    else
-    {
-        float f1, f2;
+    f2 = mix( (hsl.z + hsl.y) - (hsl.y * hsl.z), hsl.z * (1.0 + hsl.y), float(hsl.z < 0.5) );
 
-        if (hsl.z < 0.5)
-            f2 = hsl.z * (1.0 + hsl.y);
-        else
-            f2 = (hsl.z + hsl.y) - (hsl.y * hsl.z);
+    f1 = 2.0 * hsl.z - f2;
 
-        f1 = 2.0 * hsl.z - f2;
+    rgb.r = HueToRGB(f1, f2, hsl.x + (1.0/3.0));
+    rgb.g = HueToRGB(f1, f2, hsl.x);
+    rgb.b = HueToRGB(f1, f2, hsl.x - (1.0/3.0));
 
-        rgb.r = HueToRGB(f1, f2, hsl.x + (1.0/3.0));
-        rgb.g = HueToRGB(f1, f2, hsl.x);
-        rgb.b = HueToRGB(f1, f2, hsl.x - (1.0/3.0));
-    }
+    rgb = mix( rgb, vec3(hsl.z), float(hsl.y == 0.0));
 
     return rgb;
 }
 
+vec3 RGB2HSV( vec3 color )
+{
+    vec3 hsl = vec3(0.0); // init to 0
+
+    float fmin = min(min(color.r, color.g), color.b);    //Min. value of RGB
+    float fmax = max(max(color.r, color.g), color.b);    //Max. value of RGB
+    float delta = fmax - fmin;             //Delta RGB value
+    vec3 deltaRGB = ((( vec3(fmax) - color ) / 6.0 ) + vec3(delta / 2.0)) / delta ;
+
+    hsl.z = (fmax + fmin) / 2.0; // Luminance
+
+    hsl.y = clamp( mix ( delta / mix( 2.0 - fmax - fmin, fmax + fmin, float(hsl.z < 0.5)), 0.0, float(delta==0.0) ), 0.0, 1.0);
+
+    hsl.x = mix ( mix( deltaRGB.b - deltaRGB.g, mix( (1.0 / 3.0) + deltaRGB.r - deltaRGB.b, mix( (2.0 / 3.0) + deltaRGB.g - deltaRGB.r, hsl.x, float(color.b < fmax)), float(color.g < fmax)), float(color.r < fmax)) + mix( 1.0, -step(1.0, hsl.x), step(0.0, hsl.x)  ), -1.0, float(delta==0.0) );
 
 /*
-** Gamma correction
-** Details: http://blog.mouaif.org/2009/01/22/photoshop-gamma-correction-shader/
+    hsl.y = delta / mix( 2.0 - fmax - fmin, fmax + fmin, float(hsl.z < 0.5));
+
+    hsl.x = mix( deltaRGB.b - deltaRGB.g, hsl.x, float(color.r < fmax));
+    hsl.x = mix( (1.0 / 3.0) + deltaRGB.r - deltaRGB.b, hsl.x, float(color.g < fmax));
+    hsl.x = mix( (2.0 / 3.0) + deltaRGB.g - deltaRGB.r, hsl.x, float(color.b < fmax));
+
+    hsl.x += mix( 1.0, -step(1.0, hsl.x), step(0.0, hsl.x)  );
+
+    hsl = clamp( hsl, 0.0, 1.0);
+    hsl = mix ( hsl, vec3(-1.0, 0.0, hsl.z), float(delta<0.00001) );
 */
-
-#define GammaCorrection(color, gamma) pow( color, 1.0 / vec3(gamma))
-
-/*
-** Levels control (input (+gamma), output)
-** Details: http://blog.mouaif.org/2009/01/28/levels-control-shader/
-*/
-
-
-#define LevelsControlInputRange(color, minInput, maxInput)  min(max(color - vec3(minInput), 0.0) / (vec3(maxInput) - vec3(minInput)), 1.0)
-#define LevelsControlInput(color, minInput, gamma, maxInput) GammaCorrection(LevelsControlInputRange(color, minInput, maxInput), gamma)
-#define LevelsControlOutputRange(color, minOutput, maxOutput)  mix(vec3(minOutput), vec3(maxOutput), color)
-#define LevelsControl(color, minInput, gamma, maxInput, minOutput, maxOutput)   LevelsControlOutputRange(LevelsControlInput(color, minInput, gamma, maxInput), minOutput, maxOutput)
+    return hsl;
+}
 
 
 void main(void)
 {
-
-	if (!sourceDrawing) {
-		gl_FragColor = texture2D(utilityTexture, maskc) + baseColor;
-		return;
-	}
+    if (!sourceDrawing) {
+            gl_FragColor = texture2D(utilityTexture, maskc) + baseColor;
+            return;
+    }
 
     // deal with alpha separately
     float alpha = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a  * baseColor.a;
     vec3 transformedRGB;
-    
-  	transformedRGB = mix(vec3(0.62), apply_filter(), contrast);
-    transformedRGB += brightness;
+
+    transformedRGB = mix(vec3(0.62), apply_filter(), contrast) + brightness;
     transformedRGB = LevelsControl(transformedRGB, levels.x, gamma, levels.y, levels.z, levels.w);
 
-    if (invertMode==1)
-       transformedRGB = vec3(1.0) - transformedRGB;
+    // RGB invert
+    transformedRGB = vec3(float(invertMode==1)) + ( transformedRGB * vec3(1.0 - 2.0 * float(invertMode==1)) );
 
-	if ( abs(saturation -1.0) > 0.01 || threshold > 0.0 || hueshift > 0.0 || nbColors > 0 || chromakey.z > 0.0 || invertMode == 2 ) {
+    // Convert to HSL
+    vec3 transformedHSL = RGB2HSV( transformedRGB );
 
-	    vec3 transformedHSL = RGBToHSL( transformedRGB );
-	
-        if (invertMode == 2)
-            transformedHSL.z = 1.0 - transformedHSL.z;
-	            
-        // perform hue shift
-        transformedHSL.x = transformedHSL.x + hueshift; 
+    // Luminance invert
+    transformedHSL.z = float(invertMode==2) +  transformedHSL.z * (1.0 - 2.0 * float(invertMode==2) );
+    // perform hue shift
+    transformedHSL.x = transformedHSL.x + hueshift;
 
-        // Saturation
-        transformedHSL.y *= saturation;
+    // Saturation
+    transformedHSL.y *= saturation;
 
-        // perform reduction of colors
-        if (nbColors > 0) {
-            transformedHSL *= vec3(nbColors);
-            transformedHSL = floor(transformedHSL);
-            transformedHSL /= vec3(nbColors);
-        }
-	        
-	    if(threshold > 0.0) {
-	        // level threshold
-	        if (transformedHSL.z < threshold)
-	        	transformedHSL = vec3(0.0, 0.0, 1.0);
-	        else
-	        	transformedHSL = vec3(0.0, 0.0, 0.0);
-	    } 
-	    
-        if ( chromakey.w > 0.0 ) {
-        	if ( all( lessThan( abs(transformedHSL - chromakey.xyz), vec3(chromadelta))) )
-           		discard;
-   		}
-	
-	    // after operations on HSL, convert back to RGB
-	    transformedRGB = HSLToRGB(transformedHSL);
+    // perform reduction of colors
+    transformedHSL = mix( transformedHSL, floor(transformedHSL * vec3(nbColors)) / vec3(nbColors-1),  float( nbColors > 0 ) );
 
-    } 
-    
-    // apply base color
-    transformedRGB *= baseColor.rgb;
+    // level threshold
+    transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > 0.0));
 
+    // after operations on HSL, convert back to RGB
+    transformedRGB = HSV2RGB(transformedHSL);
+
+    // apply base color and
     // bring back the original alpha for final fragment color
-    gl_FragColor = vec4(transformedRGB, alpha );
-
+    gl_FragColor = vec4(transformedRGB * baseColor.rgb, alpha );
 }
+
 
 

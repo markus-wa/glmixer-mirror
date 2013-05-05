@@ -41,7 +41,6 @@
 #include "LineCursor.h"
 #include "FuzzyCursor.h"
 
-
 GLuint ViewRenderWidget::border_thin_shadow = 0,
 		ViewRenderWidget::border_large_shadow = 0;
 GLuint ViewRenderWidget::border_thin = 0, ViewRenderWidget::border_large = 0;
@@ -123,6 +122,32 @@ GLfloat ViewRenderWidget::texc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 GLfloat ViewRenderWidget::maskc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 QGLShaderProgram *ViewRenderWidget::program = 0;
 bool ViewRenderWidget::disableFiltering = false;
+
+
+/*
+** FILTERS CONVOLUTION KERNELS
+*/
+#define KERNEL_DEFAULT {0.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}
+#define KERNEL_BLUR_GAUSSIAN {0.0625, 0.125, 0.0625}, {0.125, 0.25, 0.125}, {0.0625, 0.125, 0.0625}
+#define KERNEL_BLUR_MEAN {0.111111,0.111111,0.111111},{0.111111,0.111111,0.111111},{0.111111,0.111111,0.111111}
+#define KERNEL_SHARPEN {0.0, -1.0, 0.0}, {-1.0, 5.0, -1.0}, {0.0, -1.0, 0.0}
+#define KERNEL_SHARPEN_MORE {-1.0, -1.0, -1.0}, {-1.0, 9.0, -1.0}, {-1.0, -1.0, -1.0}
+#define KERNEL_EDGE_GAUSSIAN {-0.0943852, -0.155615, -0.0943852}, {-0.155615, 1.0, -0.155615}, {-0.0943852, -0.155615, -0.0943852}
+#define KERNEL_EDGE_LAPLACE {0.0, -1.0, 0.0}, {-1.0, 4.0, -1.0}, {0.0, -1.0, 0.0}
+#define KERNEL_EDGE_LAPLACE_2 {-2.0, 1.0, -2.0}, {1.0, 4.0, 1.0}, {-2.0, 1.0, -2.0}
+#define KERNEL_EMBOSS {-2.0, -1.0, 0.0}, {-1.0, 1.0, 1.0}, {0.0, 1.0, 2.0}
+#define KERNEL_EMBOSS_EDGE {5.0, -3.0, -3.0}, {5.0, 0.0, -3.0}, {5.0, -3.0, -3.0}
+
+GLfloat ViewRenderWidget::filter_kernel[10][3][3] = { {KERNEL_DEFAULT},
+                                                      {KERNEL_BLUR_GAUSSIAN},
+                                                      {KERNEL_BLUR_MEAN},
+                                                      {KERNEL_SHARPEN},
+                                                      {KERNEL_SHARPEN_MORE},
+                                                      {KERNEL_EDGE_GAUSSIAN},
+                                                      {KERNEL_EDGE_LAPLACE},
+                                                      {KERNEL_EDGE_LAPLACE_2},
+                                                      {KERNEL_EMBOSS},
+                                                      {KERNEL_EMBOSS_EDGE } };
 
 ViewRenderWidget::ViewRenderWidget() :
 	glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
@@ -565,7 +590,8 @@ void ViewRenderWidget::paintGL()
 	// FPS computation
 	if (++fpsCounter_ == 10)
 	{
-		f_p_s_ = 1000.0 * 10.0 / fpsTime_.restart();
+        f_p_s_ = 10000.0 / float(fpsTime_.restart());
+
 		fpsCounter_ = 0;
 
 		if (fpsLabel && showFps_) {
@@ -986,7 +1012,7 @@ void ViewRenderWidget::setFilteringEnabled(bool on)
 	if (disableFiltering)
 		fshfile = ":/glmixer/shaders/imageProcessing_fragment_simplified.glsl";
 	else
-		fshfile = ":/glmixer/shaders/imageProcessing_fragment.glsl";
+        fshfile = ":/glmixer/shaders/imageProcessing_fragment.glsl";
 
 	if (!program->addShaderFromSourceFile(QGLShader::Fragment, fshfile))
 		qFatal( "%s", qPrintable( tr("OpenGL GLSL error in fragment shader; \n\n%1").arg(program->log()) ) );
@@ -1029,8 +1055,9 @@ void ViewRenderWidget::setFilteringEnabled(bool on)
 	program->setUniformValue("invertMode", (GLint) 0);
 
 	if (!disableFiltering) {
-		program->setUniformValue("step", 1.f / 640.f, 1.f / 480.f);
-		program->setUniformValue("filter", (GLint) 0);
+        program->setUniformValue("filter_step", 1.f / 640.f, 1.f / 480.f);
+        program->setUniformValue("filter", (GLint) 0);
+        program->setUniformValue("filter_kernel", filter_kernel[0]);
 	}
 
 	program->release();

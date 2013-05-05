@@ -336,8 +336,8 @@ void Source::beginEffectsSection() const {
 
 	// else enabled filtering
 	ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
-	ViewRenderWidget::program->setUniformValue("step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
-
+    ViewRenderWidget::program->setUniformValue("filter_step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
+    ViewRenderWidget::program->setUniformValue("filter_kernel", ViewRenderWidget::filter_kernel[filter]);
 
 }
 
