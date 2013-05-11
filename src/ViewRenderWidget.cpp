@@ -40,6 +40,7 @@
 #include "AxisCursor.h"
 #include "LineCursor.h"
 #include "FuzzyCursor.h"
+#include "glmixer.h"
 
 GLuint ViewRenderWidget::border_thin_shadow = 0,
 		ViewRenderWidget::border_large_shadow = 0;
@@ -153,6 +154,7 @@ ViewRenderWidget::ViewRenderWidget() :
 	glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
 {
 
+    setAcceptDrops ( true );
 	setMouseTracking(true);
 	setFocusPolicy(Qt::ClickFocus);
 	setMouseCursor(MOUSE_ARROW);
@@ -2228,4 +2230,24 @@ void ViewRenderWidget::setMouseCursor(mouseCursor c)
 	case MOUSE_ARROW:
 		setCursor(arrowCursor);
 	}
+}
+
+void ViewRenderWidget::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    event->accept();
+}
+
+void ViewRenderWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void ViewRenderWidget::dragMoveEvent(QDragMoveEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void ViewRenderWidget::dropEvent(QDropEvent *event)
+{
+    GLMixer::getInstance()->drop(event);
 }

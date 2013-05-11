@@ -139,16 +139,15 @@ public Q_SLOTS:
 	void readSettings();
 	void saveSettings();
 
+    void drop(QDropEvent *event);
+
 Q_SIGNALS:
 	void sourceMarksModified(bool);
 	void sessionSaved();
 	void sessionLoaded();
 
 protected:
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dragMoveEvent(QDragMoveEvent *event);
-    void dragLeaveEvent(QDragLeaveEvent *event);
-    void dropEvent(QDropEvent *event);
+
 	void closeEvent(QCloseEvent * event);
 
 	void restorePreferences(const QByteArray & state);

@@ -402,8 +402,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     currentSessionFileName = QString();
     confirmSessionFileName();
 
-    // accept drag'n drop
-    setAcceptDrops ( true );
 }
 
 GLMixer::~GLMixer()
@@ -1730,17 +1728,8 @@ void GLMixer::on_actionAppend_Session_triggered(){
 	maybeSave = true;
 }
 
-void GLMixer::dragEnterEvent(QDragEnterEvent *event)
-{
-    event->acceptProposedAction();
-}
 
-void GLMixer::dragMoveEvent(QDragMoveEvent *event)
-{
-    event->acceptProposedAction();
-}
-
-void GLMixer::dropEvent(QDropEvent *event)
+void GLMixer::drop(QDropEvent *event)
 {
     const QMimeData *mimeData = event->mimeData();
 	QStringList mediaFiles;
@@ -1843,12 +1832,6 @@ void GLMixer::dropEvent(QDropEvent *event)
         qCritical() << tr("Not all the dropped files could be loaded.");
 
 }
-
-void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
-{
-    event->accept();
-}
-
 
 void GLMixer::readSettings()
 {

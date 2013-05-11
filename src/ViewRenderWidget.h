@@ -182,6 +182,11 @@ public:
     static const QMap<int, QPair<QString, QString> > getMaskDecription();
     static void setSourceDrawingMode(bool on);
 
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dragMoveEvent(QDragMoveEvent *event);
+    void dragLeaveEvent(QDragLeaveEvent *event);
+    void dropEvent(QDropEvent *event);
+
 protected:
 	// all the display lists
 	static GLuint border_thin_shadow, border_large_shadow;
