@@ -29,7 +29,9 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(54,0,0)
 #include <libavutil/time.h>
+#endif
 }
 
 #include <QObject>
