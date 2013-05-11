@@ -65,7 +65,11 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 
 	// setup according to format
 	char f_name[9] = "";
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,0,0)
 	enum CodecID f_codec_id = CODEC_ID_NONE;
+#else
+    enum AVCodecID f_codec_id = CODEC_ID_NONE;
+#endif
 	enum PixelFormat f_pix_fmt =  PIX_FMT_NONE;
 	switch (f){
 	case FORMAT_MPG_MPEG1:
@@ -199,7 +203,13 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
      av_dict_set(&codec_opts, "codec_type", "AVMEDIA_TYPE_VIDEO", 0);
      av_dict_set(&codec_opts, "pix_fmt", av_get_pix_fmt_name(f_pix_fmt), 0 );
 
-	if(avcodec_open(rec->enc->v_ctx, c) < 0) {
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,0,0)
+    if (avcodec_open(rec->enc->v_ctx, c) < 0)
+#else
+    AVDictionary *d = NULL;
+    if (avcodec_open2(rec->enc->v_ctx, c, &d) < 0)
+#endif
+    {
 		snprintf(errormessage, 256, "Cannot open video codec %s (at %d fps).\nUnable to start recording. \n%s", c->name, fps, av_get_pix_fmt_name( f_pix_fmt ));
 		video_rec_free(rec);
 		return NULL;

@@ -853,13 +853,19 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 	// Get a pointer to the codec context for the video stream
 	codecCtx = pFCtx->streams[stream_index]->codec;
 
-	codec = avcodec_find_decoder(codecCtx->codec_id);
+    codec = avcodec_find_decoder(codecCtx->codec_id);
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,0,0)
 	if (!codec || (avcodec_open(codecCtx, codec) < 0))
+#else
+    AVDictionary *d = NULL;
+    if (!codec || (avcodec_open2(codecCtx, codec, &d) < 0))
+#endif
 	{
 		qWarning() << filename << tr("|The codec ") << codecCtx->codec_name
 				<< tr("is not supported.");
 		return -1;
-	}
+    }
 
 	codecname = QString(codec->name);
 
