@@ -57,8 +57,6 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
           qCritical() << tr("Your OpenGL drivers could not set double buffering.\nRendering will be slow.");
 		if (glRenderWidgetFormat.swapInterval() > 0)
           qCritical() << tr("Your OpenGL drivers are configured with VSYNC enabled.\nRendering will be slow.\n\nDisable VSYNC in your system graphics properties to avoid this problem.");
-        if (!glSupportsExtension("GL_EXT_gpu_shader4"))
-          qCritical() << tr("Your OpenGL drivers do not support GLSL shading version 4.\nRendering will be slow.");
         testDone = true;
 	}
 

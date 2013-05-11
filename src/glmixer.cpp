@@ -1862,7 +1862,7 @@ void GLMixer::readSettings()
     	settings.setValue("defaultGeometry", saveGeometry());
 
     if (settings.contains("windowState"))
-    	restoreState(settings.value("windowState").toByteArray());
+        restoreState(settings.value("windowState").toByteArray());
     else
         settings.setValue("defaultWindowState", saveState());
 
@@ -1981,7 +1981,7 @@ void GLMixer::saveSettings()
 void GLMixer::on_actionResetToolbars_triggered()
 {
 	restoreGeometry(settings.value("defaultGeometry").toByteArray());
-	restoreState(settings.value("defaultWindowState").toByteArray());
+    restoreState(settings.value("defaultWindowState").toByteArray());
     OutputRenderWindow::getInstance()->restoreState( settings.value("defaultOutputRenderWindowState").toByteArray() );
 	restoreDockWidget(previewDockWidget);
 	restoreDockWidget(sourceDockWidget);
@@ -2302,15 +2302,15 @@ bool GLMixer::useSystemDialogs()
 
 void GLMixer::on_actionFullscreenMode_toggled(bool on){
 
-	// discard non-changing state (NOT XOR)
-	if ( !(on ^ (windowState() & Qt::WindowFullScreen)) )
-		return;
+    // hide border
+    setWindowFlags(windowFlags() ^ Qt::FramelessWindowHint );
+    show();
 
-	// other cases ; need to switch fullscreen <-> not fullscreen
-	menubar->setVisible(!on);
-	actionFullscreen->setChecked(on);
-	setWindowState(windowState() ^ Qt::WindowFullScreen);
-	update();
+    // maximize
+    if (on)
+        setWindowState(Qt::WindowMaximized);
+    else
+        setWindowState(Qt::WindowNoState);
 }
 
 
