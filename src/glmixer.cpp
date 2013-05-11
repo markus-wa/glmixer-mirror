@@ -124,7 +124,6 @@ GLMixer *GLMixer::getInstance() {
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), usesystemdialogs(false), maybeSave(true), refreshTimingTimer(0)
 {
     setupUi ( this );
-    setAcceptDrops ( true );
 
 #ifndef OPEN_CV
     actionCameraSource->setVisible(false);
@@ -402,6 +401,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     // start with new file
     currentSessionFileName = QString();
     confirmSessionFileName();
+
+    // accept drag'n drop
+    setAcceptDrops ( true );
 }
 
 GLMixer::~GLMixer()
@@ -475,7 +477,9 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 	// message handler
     switch (type) {
     case QtCriticalMsg:
-        QMessageBox::warning(0, tr("%1 -- Error").arg(QCoreApplication::applicationName()), txt);
+        QMessageBox::warning(0, tr("%1 -- Problem").arg(QCoreApplication::applicationName()), QString(txt).replace("|","\n") +
+                                                        QObject::tr("\n\nPlease check the logs for details.") );
+
         break;
 	case QtFatalMsg:
 		QMessageBox::critical(0, tr("%1 -- Fatal error").arg(QCoreApplication::applicationName()), txt);
@@ -523,8 +527,6 @@ void GLMixer::Log(int type, QString msg)
 		item->setBackgroundColor(0, QColor(220, 90, 50, 50));
 		item->setBackgroundColor(1, QColor(220, 90, 50, 50));
         item->setIcon(1, QIcon(":/glmixer/icons/warning.png"));
-		QMessageBox::warning(0, tr("%1 -- Problem").arg(QCoreApplication::applicationName()), QString(msg).replace("|","\n") +
-														QObject::tr("\n\nPlease check the logs for details.") );
 		break;
 	default:
 		break;
@@ -1763,8 +1765,8 @@ void GLMixer::dropEvent(QDropEvent *event)
 				if ( urlname.suffix() == "glm") {
 					if (glmfile.isNull())
 						glmfile = urlname.absoluteFilePath();
-					else
-						break;
+                    else
+                        qWarning() << urlname.absoluteFilePath() <<  "|[" << ++errors << "]" << tr("File ignored (already loading another session).");
 				}
 				else if ( urlname.suffix() == "svg") {
 					svgFiles.append(urlname.absoluteFilePath());
@@ -1777,7 +1779,7 @@ void GLMixer::dropEvent(QDropEvent *event)
 		}
 	}
 	else
-		return;
+        qWarning() << "|[" << ++errors << "]" << tr("Not a valid drop; Ignoring.");
 
 	if (!glmfile.isNull()) {
 		currentSessionFileName = glmfile;
@@ -1794,7 +1796,7 @@ void GLMixer::dropEvent(QDropEvent *event)
 		if (!mediaFiles.isEmpty() || !svgFiles.isEmpty())
 			qWarning() <<  "[" << ++errors << "]" << tr("Discarding %1 media files and %2 svg files; only loading the glm session.").arg(mediaFiles.count()).arg(svgFiles.count());
 
-	} else {
+    } else if (!mediaFiles.isEmpty() || !svgFiles.isEmpty()) {
 		// loading Media files
 		int i = 0;
 		for (; i < mediaFiles.size(); ++i)
@@ -1833,12 +1835,13 @@ void GLMixer::dropEvent(QDropEvent *event)
 				delete svg;
 			}
 		}
+
+        maybeSave = true;
 	}
 
 	if (errors > 0)
-		qCritical() << tr("Not all the dropped files could be loaded.");
+        qCritical() << tr("Not all the dropped files could be loaded.");
 
-	maybeSave = true;
 }
 
 void GLMixer::dragLeaveEvent(QDragLeaveEvent *event)
