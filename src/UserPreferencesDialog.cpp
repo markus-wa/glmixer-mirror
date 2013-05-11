@@ -97,7 +97,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 
 	if (stackedPreferences->currentWidget() == PageRendering) {
 		resolutionTable->selectRow(0);
-	    activateBlitFrameBuffer->setChecked(glSupportsExtension("GL_EXT_framebuffer_blit"));
+        activateBlitFrameBuffer->setChecked(!glSupportsExtension("GL_EXT_framebuffer_blit"));
 		updatePeriod->setValue(20);
 		disableFiltering->setChecked(false);
 	}
@@ -153,7 +153,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 
 	bool useBlitFboExtension = true;
 	stream >> useBlitFboExtension;
-	activateBlitFrameBuffer->setChecked(useBlitFboExtension);
+    activateBlitFrameBuffer->setChecked(!useBlitFboExtension);
 
 	int tfr = 20;
 	stream >> tfr;
@@ -262,7 +262,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 	stream << magicNumber << majorVersion;
 
 	// a. write the rendering preferences
-	stream << resolutionTable->currentRow() << activateBlitFrameBuffer->isChecked();
+    stream << resolutionTable->currentRow() << !activateBlitFrameBuffer->isChecked();
 	stream << updatePeriod->value();
 
 	// b. Write the default source properties

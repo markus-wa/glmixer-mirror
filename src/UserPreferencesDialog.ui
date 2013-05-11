@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>682</width>
-    <height>496</height>
+    <height>564</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -472,7 +472,10 @@ p, li { white-space: pre-wrap; }
                    <number>65</number>
                   </property>
                   <property name="value">
-                   <number>33</number>
+                   <number>20</number>
+                  </property>
+                  <property name="sliderPosition">
+                   <number>20</number>
                   </property>
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -488,7 +491,7 @@ p, li { white-space: pre-wrap; }
                 <item>
                  <widget class="QLabel" name="frameRateString">
                   <property name="text">
-                   <string>30 fps</string>
+                   <string>50 fps</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -498,12 +501,19 @@ p, li { white-space: pre-wrap; }
                </layout>
               </item>
               <item>
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>Options for low-end graphics hardware:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QCheckBox" name="activateBlitFrameBuffer">
                 <property name="toolTip">
                  <string>Check this if your hardware supports it (save, try, and keep it on if all seems to work).</string>
                 </property>
                 <property name="text">
-                 <string>Blit frame buffer (faster if graphics card supports it in hardware)</string>
+                 <string>Disable frame buffer Blit</string>
                 </property>
                 <property name="checked">
                  <bool>false</bool>
@@ -513,7 +523,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QCheckBox" name="disableFiltering">
                 <property name="text">
-                 <string>Disable filters (needed only for some hardware)</string>
+                 <string>Disable filters </string>
                 </property>
                </widget>
               </item>
@@ -535,26 +545,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QComboBox" name="fullscreenMonitor">
-                <item>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>2</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>3</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>4</string>
-                 </property>
-                </item>
+                <property name="currentIndex">
+                 <number>-1</number>
+                </property>
                </widget>
               </item>
              </layout>
