@@ -540,7 +540,7 @@ QByteArray MixingToolboxWidget::saveState() const {
         stream << i.value();
     }
     // for copy paste of user presets into Hex of default presets
-    qDebug() << "User presets" << ba.toHex();
+ //   qDebug() << "User presets" << ba.toHex();
 
 	return ba;
 }
