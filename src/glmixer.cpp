@@ -70,8 +70,6 @@
 
 GLMixer *GLMixer::_instance = 0;
 
-
-
 class CaptureDialog: public QDialog {
 
 public:
@@ -2007,6 +2005,9 @@ void GLMixer::restorePreferences(const QByteArray & state){
 
     if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion) {
 
+        // hide logs on first show
+        logDockWidget->hide();
+
     	// set dialog in minimal mode
     	upd->setModeMinimal(true);
 
@@ -2283,20 +2284,6 @@ void GLMixer::updateStatusControlActions() {
 bool GLMixer::useSystemDialogs()
 {
 	return usesystemdialogs;
-}
-
-
-void GLMixer::on_actionFullscreenMode_toggled(bool on){
-
-    // hide border
-    setWindowFlags(windowFlags() ^ Qt::FramelessWindowHint );
-    show();
-
-    // maximize
-    if (on)
-        setWindowState(Qt::WindowMaximized);
-    else
-        setWindowState(Qt::WindowNoState);
 }
 
 

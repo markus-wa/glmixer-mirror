@@ -87,8 +87,7 @@ public Q_SLOTS:
 	void on_controlOptionsButton_clicked();
 	void on_actionSave_snapshot_triggered();
 	void on_output_alpha_valueChanged(int);
-	void on_copyLogsToClipboard_clicked();
-	void on_actionFullscreenMode_toggled(bool on=false);
+    void on_copyLogsToClipboard_clicked();
 
 	void on_actionSourcePlay_triggered();
 	void on_actionSourceRestart_triggered();
