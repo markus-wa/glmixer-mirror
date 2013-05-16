@@ -1411,6 +1411,7 @@ void GLMixer::newSession()
 	RenderingManager::getInstance()->clearSourceSet();
 	actionWhite_background->setChecked(false);
 	RenderingManager::getRenderingWidget()->clearViews();
+    blocNoteEdit->setPlainText("");
 
 	// refreshes the rendering areas
 	outputpreview->refresh();
@@ -1449,9 +1450,14 @@ void GLMixer::on_actionSave_Session_triggered(){
 		QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
 		root.appendChild(viewConfig);
 
-		QDomElement rendering = doc.createElement("Rendering");
-		rendering.setAttribute("clearToWhite", (int) RenderingManager::getInstance()->clearToWhite());
-		root.appendChild(rendering);
+        QDomElement rendering = doc.createElement("Rendering");
+        rendering.setAttribute("clearToWhite", (int) RenderingManager::getInstance()->clearToWhite());
+        root.appendChild(rendering);
+
+        QDomElement notes = doc.createElement("Notes");
+        QDomText text = doc.createTextNode(blocNoteEdit->toPlainText());
+        notes.appendChild(text);
+        root.appendChild(notes);
 
 		doc.appendChild(root);
 		doc.save(out, 4);
@@ -1651,11 +1657,18 @@ void GLMixer::openSessionFile(QString filename)
     		break;
     	}
     }
-    // finally, read the rendering configuration
+    // read the rendering configuration
     QDomElement rconfig = root.firstChildElement("Rendering");
     if (!rconfig.isNull()) {
     	actionWhite_background->setChecked(rconfig.attribute("clearToWhite").toInt());
 	}
+
+    // read the notes text
+    QString text;
+    QDomElement notes = root.firstChildElement("Notes");
+    if (!notes.isNull())
+        text = notes.text();
+    blocNoteEdit->setPlainText(text);
 
     // broadcast that the session is loaded
 	emit sessionLoaded();
@@ -1851,7 +1864,6 @@ void GLMixer::readSettings()
     if (settings.contains("windowState"))
         restoreState(settings.value("windowState").toByteArray());
     else
-        //settings.setValue("defaultWindowState", saveState());
         restoreState(static_windowstate);
 
     if (settings.contains("OutputRenderWindowState"))
