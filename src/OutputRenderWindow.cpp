@@ -233,6 +233,7 @@ OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)Re
     // set initial geometry
     windowGeometry = QRect(0,0,640,480);
     setGeometry( windowGeometry );
+    switching = false;
 }
 
 OutputRenderWindow *OutputRenderWindow::getInstance() {
@@ -274,18 +275,22 @@ void OutputRenderWindow::setFullScreen(bool on) {
         if ( !(on ^ (windowState() & Qt::WindowFullScreen)) )
             return;
 
-        // apply fullscreen
-        setWindowState( windowState() ^ Qt::WindowFullScreen );
-
-        if (on)
+        if (on) {
+            switching = true;
             // use geometry from selected desktop for fullscreen
             setGeometry( QApplication::desktop()->screenGeometry(fullscreenMonitorIndex) );
-        else
+            // apply fullscreen
+            setWindowState(Qt::WindowFullScreen);
+            show();
+        }else{
+            setWindowState(Qt::WindowNoState );
             // use saved & previous window geometry otherwise
             setGeometry( windowGeometry );
-
-        update();
+            show();
+            switching = false;
+        }
     }
+
 }
 
 
@@ -340,8 +345,8 @@ void OutputRenderWindow::resizeEvent ( QResizeEvent * e )
     this->OutputRenderWidget::resizeEvent(e);
 
     // store the geometry of the window when it is not fullscreen (to revert back to it)
-    if ( ! windowState().testFlag(Qt::WindowFullScreen) )
-        windowGeometry.setSize( e->size() );
+    if ( ! switching )
+        windowGeometry = geometry();
 }
 
 
@@ -350,8 +355,8 @@ void OutputRenderWindow::moveEvent ( QMoveEvent * e )
     this->OutputRenderWidget::moveEvent(e);
 
     // store the geometry of the window when it is not fullscreen (to revert back to it)
-    if ( ! windowState().testFlag(Qt::WindowFullScreen) )
-        windowGeometry.setTopLeft( e->pos() );
+    if ( ! switching )
+        windowGeometry = geometry();
 }
 
 QByteArray OutputRenderWindow::saveState()  {

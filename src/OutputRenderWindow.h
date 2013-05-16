@@ -96,7 +96,7 @@ private:
 	static OutputRenderWindow *_instance;
     int fullscreenMonitorIndex;
     QRect windowGeometry;
-
+    bool switching;
 };
 
 #endif /* OUTPUTRENDERWINDOW_H_ */
