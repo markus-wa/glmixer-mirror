@@ -351,16 +351,25 @@ void SessionSwitcherWidget::folderChanged( const QString & text )
     setAvailable();
 }
 
-void SessionSwitcherWidget::openFolder()
+void SessionSwitcherWidget::openFolder(QString directory)
 {
-  QString dirName = QFileDialog::getExistingDirectory(this, tr("Select a directory"), QDir::currentPath(),
+    QString dirName;
+    if ( directory.isNull() )
+        dirName = QFileDialog::getExistingDirectory(this, tr("Select a directory"), QDir::currentPath(),
 		  	  	  	  	  	  	  	  	  	  	  	  GLMixer::getInstance()->useSystemDialogs() ? QFileDialog::ShowDirsOnly : QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
-  if ( dirName.isEmpty() )
-	return;
+    else
+        dirName = directory;
 
-   folderHistory->insertItem(0, dirName);
-   folderHistory->setCurrentIndex(0);
+    if ( dirName.isEmpty() )
+        return;
 
+    int index = folderHistory->findText(dirName);
+    if ( index < 0 ) {
+        index = 0;
+        folderHistory->insertItem(0, dirName);
+    }
+
+    folderHistory->setCurrentIndex(index);
 }
 
 void SessionSwitcherWidget::discardFolder()

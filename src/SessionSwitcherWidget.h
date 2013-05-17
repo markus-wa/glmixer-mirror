@@ -41,7 +41,7 @@ public:
 public Q_SLOTS:
 
 	void updateFolder();
-    void openFolder();
+    void openFolder(QString directory = QString::null);
     void discardFolder();
     void folderChanged( const QString & text );
 

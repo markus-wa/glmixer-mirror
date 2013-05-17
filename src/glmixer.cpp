@@ -1355,9 +1355,12 @@ void GLMixer::confirmSessionFileName(){
 
 	settings.setValue("recentFileList", files);
 
-	// message
-	statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
-
+    if (!currentSessionFileName.isEmpty()) {
+        // add path to session switcher
+        switcherSession->openFolder( QFileInfo(currentSessionFileName).absolutePath() );
+        // message
+        statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
+    }
 }
 
 
