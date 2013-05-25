@@ -28,15 +28,15 @@ endif()
 
 if( APPLE )
 
-#set(CMAKE_OSX_ARCHS "i386;x86_64" CACHE STRING "Compilation architecture" FORCE)
-if(DEFINED CMAKE_OSX_ARCHITECTURES)
-    set_property( CACHE CMAKE_OSX_ARCHITECTURES PROPERTY STRINGS "i386;x86_64" )
-endif()
+    #set(CMAKE_OSX_ARCHS "i386;x86_64" CACHE STRING "Compilation architecture" FORCE)
+    if(DEFINED CMAKE_OSX_ARCHITECTURES)
+        set_property( CACHE CMAKE_OSX_ARCHITECTURES PROPERTY STRINGS "i386;x86_64" )
+    endif()
 
-#set(CMAKE_OSX_TARGETS "10.5;10.6;10.7" CACHE STRING "Target OSX version (Min requirement)" FORCE)
-if(DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
-	set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS "10.5;10.6;10.7" )
-endif()
+    #set(CMAKE_OSX_TARGETS "10.5;10.6;10.7" CACHE STRING "Target OSX version (Min requirement)" FORCE)
+    if(DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+            set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS "10.5;10.6;10.7" )
+    endif()
 
 endif( APPLE )
 
@@ -138,17 +138,17 @@ set( CMAKE_INCLUDE_PATH
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
 SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")
 
-if (USE_OPENCV)
+if(USE_OPENCV)
 
-unset(OPENCV_CORE_LIBRARY CACHE)
-unset(OPENCV_IMGPROC_LIBRARY CACHE)
-unset(OPENCV_HIGHGUI_LIBRARY CACHE)
+    unset(OPENCV_CORE_LIBRARY CACHE)
+    unset(OPENCV_IMGPROC_LIBRARY CACHE)
+    unset(OPENCV_HIGHGUI_LIBRARY CACHE)
 
-find_library( OPENCV_CORE_LIBRARY NAMES opencv_core opencv_core230)
-find_library( OPENCV_IMGPROC_LIBRARY NAMES opencv_imgproc opencv_imgproc230)
-find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_highgui opencv_highgui230)
-# if we find the opencv libs required, then use opencv
-if (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
+    find_library( OPENCV_CORE_LIBRARY NAMES opencv_core cxcore200 opencv_core230)
+    find_library( OPENCV_IMGPROC_LIBRARY NAMES opencv_imgproc cvaux200 opencv_imgproc230)
+    find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_highgui highgui200 opencv_highgui230)
+    # if we find the opencv libs required, then use opencv
+    if(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY})
 	message(STATUS "Found OpenCV libraries (${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY}).")
 	
@@ -174,7 +174,7 @@ if (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 			message(STATUS "OpenCV OSX dependencies OK.")
 			set(USE_OPENCV true)
 		endif (COCOA_LIBRARY AND QUARTZCORE_LIBRARY)
-	else ( APPLE )
+        else( APPLE )
 		if( UNIX )
 			find_library( V4L_LIBRARY NAMES v4l1 )
 			if (V4L_LIBRARY)
@@ -186,15 +186,19 @@ if (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 			set(USE_OPENCV true)
 		endif( UNIX )
 	
-	endif ( APPLE )
-	
-endif (OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
+        endif( APPLE )
 
-endif (USE_OPENCV)
+    else(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 
-if (USE_OPENCV)
+        SET(USE_OPENCV OFF)
+
+    endif(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
+
+endif(USE_OPENCV)
+
+if(USE_OPENCV)
 	message(STATUS "Using OpenCV.")
-endif (USE_OPENCV)
+endif(USE_OPENCV)
 
 
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
@@ -205,12 +209,12 @@ FOREACH(GLMIXER_DEPENDENCY ${GLMIXER_DEPENDENCIES})
     STRING(TOUPPER ${GLMIXER_DEPENDENCY} _upper_glmixer_dependency)
     unset(${_upper_glmixer_dependency}_LIBRARY CACHE)
     find_library(${_upper_glmixer_dependency}_LIBRARY ${GLMIXER_DEPENDENCY})
-	if (${_upper_glmixer_dependency}_LIBRARY)
+        if(${_upper_glmixer_dependency}_LIBRARY)
 		set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${${_upper_glmixer_dependency}_LIBRARY} )
 		message( STATUS "Found ${GLMIXER_DEPENDENCY}: ${${_upper_glmixer_dependency}_LIBRARY}")
-	else (${_upper_glmixer_dependency}_LIBRARY)
+        else(${_upper_glmixer_dependency}_LIBRARY)
 	    message( FATAL_ERROR "${GLMIXER_DEPENDENCY} library NOT found but required.")
-	endif (${_upper_glmixer_dependency}_LIBRARY)
+        endif(${_upper_glmixer_dependency}_LIBRARY)
 ENDFOREACH(GLMIXER_DEPENDENCY)
 
 
@@ -226,32 +230,32 @@ FOREACH(GLMIXER_UTILITY ${GLMIXER_UTILITIES})
     # unset the variable to force the search for the library
     unset(${_upper_glmixer_utility}_LIBRARY CACHE)
     find_library(${_upper_glmixer_utility}_LIBRARY ${GLMIXER_UTILITY})
-	if (${_upper_glmixer_utility}_LIBRARY)
-		set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${${_upper_glmixer_utility}_LIBRARY} )
-		message( STATUS "Found ${GLMIXER_UTILITY}: ${${_upper_glmixer_utility}_LIBRARY}")
-	endif (${_upper_glmixer_utility}_LIBRARY)
+        if(${_upper_glmixer_utility}_LIBRARY)
+            set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${${_upper_glmixer_utility}_LIBRARY} )
+            message( STATUS "Found ${GLMIXER_UTILITY}: ${${_upper_glmixer_utility}_LIBRARY}")
+        endif(${_upper_glmixer_utility}_LIBRARY)
 ENDFOREACH(GLMIXER_UTILITY)
 
 # HERE IS THE INSTALLATION OF WINDOWS SOCK LIB 
 
-if (WIN32)
-	# HERE IS THE INSTALLATION WINDOWS SOCK LIB 
- 	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
-endif (WIN32)
+if(WIN32)
+    # HERE IS THE INSTALLATION WINDOWS SOCK LIB
+    set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
+endif(WIN32)
 
 
 # HERE IS THE GLEW DEPENDENCY
 
 unset(GLEW_LIBRARY CACHE)
 find_library( GLEW_LIBRARY NAMES GLEW glew glew32)
-if (GLEW_LIBRARY)
+if(GLEW_LIBRARY)
   set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${GLEW_LIBRARY} )
   find_path( GLEW_INCLUDE NAMES GL/glew.h )
   include_directories(${GLEW_INCLUDE})
   message( STATUS "Found GLEW: ${GLEW_LIBRARY}.")
-else (GLEW_LIBRARY)
+else(GLEW_LIBRARY)
   message(FATAL_ERROR "GLEW library NOT found but required.")
-endif (GLEW_LIBRARY)
+endif(GLEW_LIBRARY)
 
 ##
 ## tell cmake to process CMakeLists.txt in those subdirectories

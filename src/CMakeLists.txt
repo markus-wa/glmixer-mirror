@@ -1,17 +1,17 @@
-# the next line sets up include and link directories and defines some variables that we will use.
+# the next line SETs up include and link directories and defines some variables that we will use.
 
 # this application uses QT with the following modules:
-set(QT_USE_OPENGL    TRUE)
-set(QT_USE_QTOPENGL  TRUE)
-set(QT_USE_QTXML     TRUE)
-set(QT_USE_QTSVG     TRUE)
-set(QT_USE_QTMAIN    TRUE)
+SET(QT_USE_OPENGL    TRUE)
+SET(QT_USE_QTOPENGL  TRUE)
+SET(QT_USE_QTXML     TRUE)
+SET(QT_USE_QTSVG     TRUE)
+SET(QT_USE_QTMAIN    TRUE)
 
 # add the corresponding path to include
 include(${QT_USE_FILE})
 
 #--------------------------------------------------------------------------------
-# This sets the windows build that will need the special winmain@16 call. Qt provides
+# This SETs the windows build that will need the special winmain@16 call. Qt provides
 #  this for us in the qtmain.lib file. Using this cmake code will ensure we have it
 #  linked into our build. Not needed on Unix/OS X/Linux which is why we have the 
 #  IF(WIN32) conditional.
@@ -20,7 +20,7 @@ IF (WIN32)
 ENDIF (WIN32)
 
 # the variable "qtproject_SRCS" contains all .cpp files of this project
-set(GLMIXER_SRCS
+SET(GLMIXER_SRCS
     common.cpp
     glRenderWidget.cpp
     CameraDialog.cpp
@@ -67,13 +67,13 @@ set(GLMIXER_SRCS
     MixingToolboxWidget.cpp
 )
 
-set(GLMIXER_RCS
+SET(GLMIXER_RCS
     ../icons.qrc
     ../textures.qrc
     ../images.qrc
 )
 
-set(GLMIXER_UIS
+SET(GLMIXER_UIS
     glmixer.ui
     VideoFileDialog.ui
     CameraDialog.ui
@@ -88,7 +88,7 @@ set(GLMIXER_UIS
 # If there is OpenCV, then this application will use OpenCV
 if (USE_OPENCV)
   add_definitions(-DOPEN_CV )
-  set( GLMIXER_SRCS  ${GLMIXER_SRCS} OpencvSource.cpp )
+  SET( GLMIXER_SRCS  ${GLMIXER_SRCS} OpencvSource.cpp )
 endif (USE_OPENCV)
 
 # do the qt-cmake magic
@@ -106,74 +106,124 @@ include_directories(${LIBQTPROPERTY_SOURCE_DIR} )
 # note: this assumes that you use #include "header.moc" in your files
 qt4_automoc( ${GLMIXER_UIS_H} ${GLMIXER_SRCS})
 
+
+# multiplatform cpack info
+SET(CPACK_PACKAGE_NAME "GLMixer")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Graphic Live Mixer")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING.txt")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${GLMIXER_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${GLMIXER_WC_REVISION}")
+SET(CPACK_PACKAGE_VENDOR "bhbn")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}")
+
 #--------------------------------------------------------------------------------
 # For Apple set the icns file containing icons (to do before declaring executable MACOSX_BUNDLE)
 IF(APPLE)
-  # set how it shows up in the Info.plist file
-  SET(MACOSX_BUNDLE_ICON_FILE glmixer.icns) 
-  # set where in the bundle to put the icns file
-  SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/osx/glmixer.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-  # include the icns file in the target
-  SET(GLMIXER_SRCS ${GLMIXER_SRCS} ${CMAKE_SOURCE_DIR}/osx/glmixer.icns)
+    # set how it shows up in the Info.plist file
+    SET(MACOSX_BUNDLE_ICON_FILE glmixer.icns)
+    # set where in the bundle to put the icns file
+    SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/osx/glmixer.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    # include the icns file in the target
+    SET(GLMIXER_SRCS ${GLMIXER_SRCS} ${CMAKE_SOURCE_DIR}/osx/glmixer.icns)
+
+    # create the application
+    add_executable(glmixer MACOSX_BUNDLE
+            ${GLMIXER_SRCS}
+            ${GLMIXER_UIS_H}
+            ${GLMIXER_RCS_SRCS}
+    )
+
+    # OSX cpack info
+    SET (CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
+    SET (CPACK_BUNDLE_NAME glmixer)
+    SET (CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
+    SET (CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
+    SET (CPACK_BINARY_DRAGNDROP ON)
+
+ELSE(APPLE)
+
+    IF(WIN32)
+
+        # This sets up the exe icon for windows under mingw.
+        set(RES_FILES "")
+        if(MINGW)
+            set(RES_FILES "${CMAKE_SOURCE_DIR}/win/glmixer.rc")
+            set(CMAKE_RC_COMPILER_INIT windres)
+            ENABLE_LANGUAGE(RC)
+            SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
+        endif(MINGW)
+
+        # create the application
+        add_executable(glmixer WIN32
+                ${GLMIXER_SRCS}
+                ${GLMIXER_UIS_H}
+                ${GLMIXER_RCS_SRCS}
+                ${RES_FILES}
+        )
+
+        SET(CPACK_SYSTEM_NAME "windows")
+        SET(CPACK_GENERATOR "NSIS")
+        SET(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/win\\\\glmixer.ico")
+        SET(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/win\\\\glmixer.ico")
+        SET(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/win\\\\glmixer.png")
+        SET(CPACK_NSIS_INSTALLED_ICON_NAME "${CMAKE_SOURCE_DIR}/win\\\\glmixer.ico")
+        SET(CPACK_NSIS_DISPLAY_NAME "GLMixer ${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}")
+        SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\code.google.com\\\\p\\\\glmixer")
+        SET(CPACK_NSIS_CONTACT "bruno.herbelin@gmail.com")
+        SET(CPACK_NSIS_MODIFY_PATH OFF)
+        SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL  ON)
+        SET(CPACK_NSIS_MUI_FINISHPAGE_RUN "glmixer.exe")
+        SET(CPACK_NSIS_MENU_LINKS "https://code.google.com/p/glmixer" "GLMixer Web Site")
+
+    ELSE(WIN32)
+
+        # create the application
+        add_executable(glmixer
+                ${GLMIXER_SRCS}
+                ${GLMIXER_UIS_H}
+                ${GLMIXER_RCS_SRCS}
+        )
+
+        # Linux cpack info
+        SET (CPACK_SYSTEM_NAME "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+        SET (CPACK_DEBIAN_PACKAGE_MAINTAINER "Bruno Herbelin")
+        SET (CPACK_DEBIAN_PACKAGE_NAME "GLMixer")
+        SET (CPACK_DEBIAN_PACKAGE_DESCRIPTION "Graphic Live Mixer: real-time video mixing software for live performance.")
+        SET (CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://code.google.com/p/glmixer/")
+        SET (CPACK_DEBIAN_PACKAGE_SECTION "Multimedia")
+        SET (CPACK_DEBIAN_PACKAGE_VERSION "${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}.${GLMIXER_WC_REVISION}")
+        # autogenerate dependency information
+        SET (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+    ENDIF(WIN32)
+
 ENDIF(APPLE)
 
-# create the application
-add_executable(glmixer MACOSX_BUNDLE WIN32 
-	${GLMIXER_SRCS} 
-	${GLMIXER_UIS_H} 
-	${GLMIXER_RCS_SRCS} 
-)	
 # link the target against the libraries. 
 target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
 
 
-IF(UNIX)
-
-    IF(APPLE)
-        # OSX cpack info
-    	set (CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
-    	set (CPACK_BUNDLE_NAME glmixer)
-    	set (CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
-        set (CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
-        set (CPACK_BINARY_DRAGNDROP ON)
-    ELSE(APPLE)
-        # Linux cpack info
-    	set (CPACK_SYSTEM_NAME "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
-        set (CPACK_DEBIAN_PACKAGE_MAINTAINER "Bruno Herbelin") 
-        set (CPACK_DEBIAN_PACKAGE_NAME "GLMixer")
-        set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "Graphic Live Mixer: real-time video mixing software for live performance.")
-        set (CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://code.google.com/p/glmixer/")
-        set (CPACK_DEBIAN_PACKAGE_SECTION "Multimedia")
-        set (CPACK_DEBIAN_PACKAGE_VERSION "${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}.${GLMIXER_WC_REVISION}")
-        # autogenerate dependency information
-        set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-    ENDIF(APPLE)
-
-ENDIF(UNIX)
-
-
-# multiplatform cpack info
-set (CPACK_PACKAGE_NAME "GLMixer")
-set (CPACK_PACKAGE_VERSION_MAJOR "${GLMIXER_VERSION_MAJOR}")
-set (CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
-set (CPACK_PACKAGE_VENDOR "Bruno Herbelin")
-set (CPACK_PACKAGE_FILE_NAME "GLMixer_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}_${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
-	
 	
 #--------------------------------------------------------------------------------
 # Now the installation stuff below
 #--------------------------------------------------------------------------------
+SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}_${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
 SET(plugin_dest_dir bin)
 SET(qtconf_dest_dir bin)
-SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/glmixer")
+
 IF(APPLE)
-  SET(plugin_dest_dir GLMixer.app/Contents/MacOS)
-  SET(qtconf_dest_dir GLMixer.app/Contents/Resources)
-  SET(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
+      SET(plugin_dest_dir GLMixer.app/Contents/MacOS)
+      SET(qtconf_dest_dir GLMixer.app/Contents/Resources)
+      SET(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
+ELSE(APPLE)
+    IF(WIN32)
+        SET(APPS "\${CMAKE_INSTALL_PREFIX}/glmixer.exe")
+        SET(CPACK_PACKAGE_EXECUTABLES "glmixer" "GLMixer")
+    ELSE(WIN32)
+        SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/glmixer")
+    ENDIF(WIN32)
 ENDIF(APPLE)
-IF(WIN32)
-  SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/glmixer.exe")
-ENDIF(WIN32)
 
 #--------------------------------------------------------------------------------
 # Install the glmixer application, on Apple, the bundle is at the root of the
@@ -224,7 +274,35 @@ IF(APPLE)
         include(BundleUtilities)
         fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
         " COMPONENT Runtime)
-        
+
+ELSE(APPLE)
+
+  IF(WIN32)
+
+    # uninstall step to remove registry entry
+    SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "DeleteRegKey HKCU 'Software\\\\bhbn'")
+
+    # apparently useless, but harmless too..
+    INCLUDE(InstallRequiredSystemLibraries)
+
+    # use cmake tools for getting DLL dependencies : I use a custom GetPrerequisites.cmake to support MINGW objdump
+    INCLUDE(GetPrerequisites)
+
+    # read full name of executable
+    GET_TARGET_PROPERTY(GLMIXER_BINARY_LOCATION glmixer LOCATION)
+
+    # call the function get_prerequisites to fill the list DEPENDENCIES
+    message( STATUS "Looking for DLL dependencies:" )
+    GET_PREREQUISITES(@GLMIXER_BINARY_LOCATION@ DEPENDENCIES 1 0 "" "")
+
+    # request the installation of each dll file of the DEPENDENCIES list
+    FOREACH(DEPENDENCY ${DEPENDENCIES})
+        message(STATUS "  - ${DEPENDENCY}")
+        INSTALL(FILES ${DEPENDENCY} DESTINATION bin COMPONENT Runtime)
+    ENDFOREACH(DEPENDENCY)
+
+  ENDIF(WIN32)
+
 ENDIF(APPLE)
 
 
