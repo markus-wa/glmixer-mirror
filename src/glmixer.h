@@ -72,8 +72,9 @@ public Q_SLOTS:
 	void on_actionShow_frames_toggled(bool);
 	void on_actionShowFPS_toggled(bool);
 	void on_actionAbout_triggered();
-	void on_actionPreferences_triggered();
-	void on_actionNew_Session_triggered();
+    void on_actionPreferences_triggered();
+    void on_actionNew_Session_triggered();
+    void on_actionClose_Session_triggered();
 	void on_actionSave_Session_triggered();
 	void on_actionSave_Session_as_triggered();
 	void on_actionLoad_Session_triggered();

@@ -2079,12 +2079,13 @@ Uncheck to display the restart frame when stopped.</string>
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="actionNew_Session"/>
     <addaction name="actionLoad_Session"/>
     <addaction name="actionRecent_session"/>
     <addaction name="actionAppend_Session"/>
     <addaction name="actionSave_Session"/>
     <addaction name="actionSave_Session_as"/>
-    <addaction name="actionNew_Session"/>
+    <addaction name="actionClose_Session"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
@@ -2336,9 +2337,10 @@ Uncheck to display the restart frame when stopped.</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionNew_Session"/>
    <addaction name="actionLoad_Session"/>
    <addaction name="actionSave_Session"/>
-   <addaction name="actionNew_Session"/>
+   <addaction name="actionClose_Session"/>
   </widget>
   <widget class="QToolBar" name="toolsToolBar">
    <property name="windowTitle">
@@ -4218,6 +4220,10 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
    </widget>
   </widget>
   <widget class="QDockWidget" name="blocnoteDockWidget">
+   <property name="windowIcon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/notes.png</normaloff>:/glmixer/icons/notes.png</iconset>
+   </property>
    <property name="windowTitle">
     <string>Bloc note</string>
    </property>
@@ -4444,16 +4450,13 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
      <normaloff>:/glmixer/icons/filenew.png</normaloff>:/glmixer/icons/filenew.png</iconset>
    </property>
    <property name="text">
-    <string>Close session</string>
+    <string>New session</string>
    </property>
    <property name="toolTip">
-    <string>Close session</string>
+    <string>Create a new session</string>
    </property>
    <property name="statusTip">
     <string>Close current and starts a new Session</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+W</string>
    </property>
   </action>
   <action name="actionLoad_Session">
@@ -5575,6 +5578,18 @@ Shortcut:                                    Right</string>
    </property>
    <property name="shortcut">
     <string>F4</string>
+   </property>
+  </action>
+  <action name="actionClose_Session">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/fileclosed.png</normaloff>:/glmixer/icons/fileclosed.png</iconset>
+   </property>
+   <property name="text">
+    <string>Close session</string>
+   </property>
+   <property name="statusTip">
+    <string>Close current session</string>
    </property>
   </action>
  </widget>

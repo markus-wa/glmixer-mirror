@@ -219,7 +219,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshotView() ) );
 
     QAction *setGLSLFragmentShader = new QAction("setGLSLFragmentShader", this);
-    setGLSLFragmentShader->setShortcut(QKeySequence("Ctrl+G,F"));
+    setGLSLFragmentShader->setShortcut(QKeySequence("Shift+Ctrl+G,F"));
     addAction(setGLSLFragmentShader);
     QObject::connect(setGLSLFragmentShader, SIGNAL(triggered()), this, SLOT(selectGLSLFragmentShader()) );
 
@@ -341,8 +341,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
 	QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
 
 	// connect to disable many actions, like quitting, opening session, preferences, etc.
-	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionNew_Session, SLOT(setDisabled(bool)));
-	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionLoad_Session, SLOT(setDisabled(bool)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionNew_Session, SLOT(setDisabled(bool)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionClose_Session, SLOT(setDisabled(bool)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionLoad_Session, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionRecent_session, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionQuit, SLOT(setDisabled(bool)));
 	QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionPreferences, SLOT(setDisabled(bool)));
@@ -1372,6 +1373,13 @@ void GLMixer::confirmSessionFileName(){
 
 
 void GLMixer::on_actionNew_Session_triggered()
+{
+    on_actionClose_Session_triggered();
+
+    setView(actionMixingView);
+}
+
+void GLMixer::on_actionClose_Session_triggered()
 {
 	// inform the user that data might be lost
 	int ret = QMessageBox::Discard;
