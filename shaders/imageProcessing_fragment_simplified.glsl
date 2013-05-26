@@ -13,6 +13,10 @@
 #define LevelsControlOutputRange(color, minOutput, maxOutput)  mix(vec3(minOutput), vec3(maxOutput), color)
 #define LevelsControl(color, minInput, gamma, maxInput, minOutput, maxOutput)   LevelsControlOutputRange(LevelsControlInput(color, minInput, gamma, maxInput), minOutput, maxOutput)
 
+#define ONETHIRD 0.333333
+#define TWOTHIRD 0.666666
+#define EPSILON  0.000001
+
 varying vec2 texc;
 varying vec2 maskc;
 varying vec4 baseColor;
@@ -35,6 +39,7 @@ uniform int nbColors;
 uniform int invertMode; 
 
 
+
 /*
 ** Hue, saturation, luminance <=> Red Green Blue
 */
@@ -43,11 +48,11 @@ float HueToRGB(float f1, float f2, float hue)
 {
     float res;
 
-    hue += mix( 1.0, -step(1.0, hue), step(0.0, hue) );
+    hue += mix( -float( hue > 1.0 ), 1.0, float(hue < 0.0) );
 
-    res = mix( f1, mix( f1 + (f2 - f1) * ((2.0 / 3.0) - hue) * 6.0, mix(f2, f1 + (f2 - f1) * 6.0 * hue, float((6.0 * hue) < 1.0)),  float((2.0 * hue) < 1.0)), float((3.0 * hue) < 2.0) );
+    res = mix( f1, mix( clamp( f1 + (f2 - f1) * ((2.0 / 3.0) - hue) * 6.0, 0.0, 1.0) , mix( f2,  clamp(f1 + (f2 - f1) * 6.0 * hue, 0.0, 1.0), float((6.0 * hue) < 1.0)),  float((2.0 * hue) < 1.0)), float((3.0 * hue) < 2.0) );
 
-    return clamp(res, 0.0, 1.0);
+    return res;
 }
 
 vec3 HSV2RGB(vec3 hsl)
@@ -59,11 +64,11 @@ vec3 HSV2RGB(vec3 hsl)
 
     f1 = 2.0 * hsl.z - f2;
 
-    rgb.r = HueToRGB(f1, f2, hsl.x + (1.0/3.0));
+    rgb.r = HueToRGB(f1, f2, hsl.x + ONETHIRD);
     rgb.g = HueToRGB(f1, f2, hsl.x);
-    rgb.b = HueToRGB(f1, f2, hsl.x - (1.0/3.0));
+    rgb.b = HueToRGB(f1, f2, hsl.x - ONETHIRD);
 
-    rgb = mix( rgb, vec3(hsl.z), float(hsl.y == 0.0));
+    rgb =  mix( rgb, vec3(hsl.z), float(hsl.y < EPSILON));
 
     return rgb;
 }
@@ -74,27 +79,21 @@ vec3 RGB2HSV( vec3 color )
 
     float fmin = min(min(color.r, color.g), color.b);    //Min. value of RGB
     float fmax = max(max(color.r, color.g), color.b);    //Max. value of RGB
-    float delta = fmax - fmin;             //Delta RGB value
-    vec3 deltaRGB = ((( vec3(fmax) - color ) / 6.0 ) + vec3(delta / 2.0)) / delta ;
+    float delta = fmax - fmin + EPSILON;             //Delta RGB value
+
+    vec3 deltaRGB = ( ( vec3(fmax) - color ) / 6.0  + vec3(delta) / 2.0 ) / delta ;
 
     hsl.z = (fmax + fmin) / 2.0; // Luminance
 
-    hsl.y = clamp(mix ( delta / mix( 2.0 - fmax - fmin, fmax + fmin, float(hsl.z < 0.5)), 0.0, float(delta==0.0) ), 0.0, 1.0);
+    hsl.y = delta / ( EPSILON + mix( 2.0 - fmax - fmin, fmax + fmin, float(hsl.z < 0.5)) );
 
-    hsl.x = mix ( mix( deltaRGB.b - deltaRGB.g, mix( (1.0 / 3.0) + deltaRGB.r - deltaRGB.b, mix( (2.0 / 3.0) + deltaRGB.g - deltaRGB.r, hsl.x, float(color.b < fmax)), float(color.g < fmax)), float(color.r < fmax)) + mix( 1.0, -step(1.0, hsl.x), step(0.0, hsl.x)  ), -1.0, float(delta==0.0) );
+    hsl.x = mix( hsl.x, TWOTHIRD + deltaRGB.g - deltaRGB.r, float(color.b == fmax));
+    hsl.x = mix( hsl.x, ONETHIRD + deltaRGB.r - deltaRGB.b, float(color.g == fmax));
+    hsl.x = mix( hsl.x, deltaRGB.b - deltaRGB.g,  float(color.r == fmax));
 
-/*
-    hsl.y = delta / mix( 2.0 - fmax - fmin, fmax + fmin, float(hsl.z < 0.5));
+    hsl.x += mix( - float( hsl.x > 1.0 ), 1.0, float(hsl.x < 0.0) );
 
-    hsl.x = mix( deltaRGB.b - deltaRGB.g, hsl.x, float(color.r < fmax));
-    hsl.x = mix( (1.0 / 3.0) + deltaRGB.r - deltaRGB.b, hsl.x, float(color.g < fmax));
-    hsl.x = mix( (2.0 / 3.0) + deltaRGB.g - deltaRGB.r, hsl.x, float(color.b < fmax));
-
-    hsl.x += mix( 1.0, -step(1.0, hsl.x), step(0.0, hsl.x)  );
-
-    hsl = clamp( hsl, 0.0, 1.0);
-    hsl = mix ( hsl, vec3(-1.0, 0.0, hsl.z), float(delta<0.00001) );
-*/
+    hsl = mix ( hsl, vec3(-1.0, 0.0, hsl.z), float(delta<EPSILON) );
 
     return hsl;
 }
@@ -118,7 +117,7 @@ void main(void)
         transformedRGB = vec3(float(invertMode==1)) + ( transformedRGB * vec3(1.0 - 2.0 * float(invertMode==1)) );
 
         // Convert to HSL
-        vec3 transformedHSL = RGB2HSV( transformedRGB );
+        vec3 transformedHSL = RGB2HSV(transformedRGB);
 
         // Luminance invert
         transformedHSL.z = float(invertMode==2) +  transformedHSL.z * (1.0 - 2.0 * float(invertMode==2) );
@@ -132,14 +131,17 @@ void main(void)
         transformedHSL = mix( transformedHSL, floor(transformedHSL * vec3(nbColors)) / vec3(nbColors-1),  float( nbColors > 0 ) );
 
         // level threshold
-        transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > 0.0));
+        transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > EPSILON));
+
+        // chromakey
+        alpha -= mix( 0.0, abs( chromadelta * 0.707106781187 /  distance(transformedHSL, chromakey.xyz) ), float(chromakey.w > 0.0) );
 
         // after operations on HSL, convert back to RGB
         transformedRGB = HSV2RGB(transformedHSL);
 
         // apply base color and
         // bring back the original alpha for final fragment color
-        gl_FragColor = vec4(transformedRGB * baseColor.rgb, alpha );
+        gl_FragColor =  vec4(transformedRGB * baseColor.rgb, alpha );
     }
 }
 
