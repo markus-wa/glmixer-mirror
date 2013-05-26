@@ -992,15 +992,12 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 	// NB: the catalog is restored in GLMixer::openSessionFile because GLMixer has access to the actions
 }
 
-void ViewRenderWidget::setFilteringEnabled(bool on)
+void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
 {
 	makeCurrent();
 
 	// if the GLSL program was already created, delete it
-	if( program ) {
-		// except if the filtering is already at the same configuration
-		if ( disableFiltering == !on )
-			return;
+    if( program ) {
 		program->release();
 		delete program;
 	}
@@ -1011,10 +1008,14 @@ void ViewRenderWidget::setFilteringEnabled(bool on)
 	program = new QGLShaderProgram(this);
 
 	QString fshfile;
-	if (disableFiltering)
-		fshfile = ":/glmixer/shaders/imageProcessing_fragment_simplified.glsl";
-	else
-        fshfile = ":/glmixer/shaders/imageProcessing_fragment.glsl";
+    if (glslfilename.isNull()) {
+        if (disableFiltering)
+            fshfile = ":/glmixer/shaders/imageProcessing_fragment_simplified.glsl";
+        else
+            fshfile = ":/glmixer/shaders/imageProcessing_fragment.glsl";
+    }
+    else
+        fshfile = glslfilename;
 
 	if (!program->addShaderFromSourceFile(QGLShader::Fragment, fshfile))
 		qFatal( "%s", qPrintable( tr("OpenGL GLSL error in fragment shader; \n\n%1").arg(program->log()) ) );

@@ -32,6 +32,7 @@
 #include <QLabel>
 #include <QLabel>
 #include <QEvent>
+#include <QString>
 
 #include "common.h"
 #include "glRenderWidget.h"
@@ -137,7 +138,7 @@ public:
 	static inline void setStipplingMode(unsigned int m) { stipplingMode = CLAMP(m, 0, 3); }
 
 	static inline bool filteringEnabled() { return !disableFiltering; }
-	void setFilteringEnabled(bool on);
+    void setFilteringEnabled(bool on, QString glslfilename = QString());
 
 	void removeFromSelections(Source *s);
 

@@ -134,11 +134,13 @@ public Q_SLOTS:
 	void sourceChanged(Source *s);
 
     void Log(int, QString);
-    void screenshotView();
 	void readSettings();
 	void saveSettings();
 
     void drop(QDropEvent *event);
+
+    void screenshotView();
+    void selectGLSLFragmentShader();
 
 Q_SIGNALS:
 	void sourceMarksModified(bool);
@@ -151,6 +153,7 @@ protected:
 
 	void restorePreferences(const QByteArray & state);
 	QByteArray getPreferences() const;
+
 
 private:
 	GLMixer(QWidget *parent = 0);

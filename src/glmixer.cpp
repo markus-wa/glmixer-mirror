@@ -211,11 +211,17 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     prevSession->setShortcut(QKeySequence("Ctrl+Left"));
     addAction(prevSession);
 
+    // HIDDEN actions
+    // for debugging and development purposes
     QAction *screenshot = new QAction("Screenshot", this);
     screenshot->setShortcut(QKeySequence("Ctrl+<,<"));
     addAction(screenshot);
     QObject::connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshotView() ) );
 
+    QAction *setGLSLFragmentShader = new QAction("setGLSLFragmentShader", this);
+    setGLSLFragmentShader->setShortcut(QKeySequence("Ctrl+G,F"));
+    addAction(setGLSLFragmentShader);
+    QObject::connect(setGLSLFragmentShader, SIGNAL(triggered()), this, SLOT(selectGLSLFragmentShader()) );
 
     // recent files history
     QMenu *recentFiles = new QMenu(this);
@@ -2467,3 +2473,15 @@ void GLMixer::screenshotView(){
     // log
     qDebug() << "Saved screenshot" << f;
 }
+
+
+void GLMixer::selectGLSLFragmentShader()
+{
+    QString newfile = QFileDialog::getOpenFileName(this, tr("Open GLSL File"), QDir::currentPath(),
+                                        tr("GLSL Fragment Shader (*.glsl *.fsh *.txt)"), 0,  QFileDialog::DontUseNativeDialog);
+    if ( QFileInfo(newfile).exists())
+        RenderingManager::getRenderingWidget()->setFilteringEnabled(true, newfile);
+    else
+        RenderingManager::getRenderingWidget()->setFilteringEnabled(RenderingManager::getRenderingWidget()->filteringEnabled());
+}
+
