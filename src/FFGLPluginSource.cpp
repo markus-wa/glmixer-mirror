@@ -17,10 +17,15 @@ FFGLPluginSource::FFGLPluginSource(QString filename, unsigned int textureIndex, 
 {
     //load plugin (does not instantiate!)
     _plugin = FFGLPluginInstance::New();
-    CHECK_PTR_EXCEPTION(_plugin)
-
-    if (_plugin->Load(filename.toUtf8())==FF_FAIL)
+    if (!_plugin){
+        qWarning()<< "FreeframeGL plugin could be instanciated (" << _filename <<")";
         FFGLPluginException().raise();
+    }
+
+    if (_plugin->Load(filename.toUtf8())==FF_FAIL){
+        qWarning()<< "FreeframeGL plugin could not be loaded (" << _filename <<")";
+        FFGLPluginException().raise();
+    }
 
     _inputTexture.Handle = (GLuint) textureIndex;
     _inputTexture.Width = w;
@@ -43,15 +48,10 @@ FFGLPluginSource::~FFGLPluginSource()
 
 void FFGLPluginSource::update()
 {
-    if (!initialize()) {
-        qDebug()<< "FFGL plugin cannot initialize (" << _filename <<")";
-        return;
-    }
-
-    if (_fbo->bind())
+    if (initialize() && _fbo->bind())
     {
-        glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
-//        glPushAttrib(GL_ALL_ATTRIB_BITS);
+//        glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
 
         glViewport(0, 0, _fbo->width(), _fbo->height());
 
@@ -92,8 +92,7 @@ void FFGLPluginSource::update()
         processStruct.HostFBO = _fbo->handle();
 
         //call the plugin's ProcessOpenGL
-        if ( _plugin->CallProcessOpenGL(processStruct) != FF_SUCCESS )
-            qDebug()<< "FFGL plugin call failed (" << _filename <<")";
+        FFResult callresult = _plugin->CallProcessOpenGL(processStruct);
 
         // make sure we restore state
         glPopAttrib();
@@ -107,14 +106,21 @@ void FFGLPluginSource::update()
         //deactivate rendering to the fbo
         //(this re-activates rendering to the window)
         _fbo->release();
+
+        // through exception once opengl has returned to normal
+        if ( callresult != FF_SUCCESS ){
+            qWarning()<< "FreeframeGL plugin could not process OpenGL (" << _filename <<")";
+            FFGLPluginException().raise();
+        }
     }
 }
 
 
 void FFGLPluginSource::bind() const
 {
-    // bind the FBO texture
-    glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+    if (_initialized)
+        // bind the FBO texture
+        glBindTexture(GL_TEXTURE_2D, _fbo->texture());
 }
 
 bool FFGLPluginSource::initialize()
@@ -139,17 +145,18 @@ bool FFGLPluginSource::initialize()
                 timer = Timer::New();
 
                 _initialized = true;
-                qDebug()<< "FFGL plugin initialized (" << _filename <<")";
-                qDebug()<< "FFGLPlugin is " << _fbo->width()<< _fbo->height();
+                qDebug()<< "FreeframeGL plugin initialized (" << _filename <<")";
 
             }
-            else
-                qDebug()<< "FFGL plugin cannot instanciate GL (" << _filename <<")";
-
+            else {
+                qWarning()<< "FreeframeGL plugin could not be initialized (" << _filename <<")";
+                FFGLPluginException().raise();
+            }
         }
-        else
-            qDebug()<< "FFGL plugin cannot create FBO (" << _filename <<")";
-
+        else{
+            qWarning()<< "FreeframeGL plugin could not create FBO (" << _filename <<")";
+            FFGLPluginException().raise();
+        }
     }
 
     return _initialized;

@@ -105,6 +105,7 @@ void MixerView::paint()
     // render in the depth order
     if (ViewRenderWidget::program->bind()) {
 		first = true;
+        // The icons of the sources (reversed depth order)
 		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
 			//
@@ -114,37 +115,35 @@ void MixerView::paint()
 			ax = (*its)->getAlphaX();
 			ay = (*its)->getAlphaY();
 			glTranslated(ax, ay, (*its)->getDepth());
-
 			renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
 			if ( ABS(renderingAspectRatio) > 1.0)
 				glScaled(SOURCE_UNIT, SOURCE_UNIT / renderingAspectRatio,  1.0);
 			else
 				glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
 
-			// standard transparency blending
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glBlendEquation(GL_FUNC_ADD);
-
-			// Blending Function For mixing like in the rendering window
-			(*its)->beginEffectsSection();
-
 			// test if the source is passed the standby line
 			(*its)->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
 
-			// setup multi-texturing and effect drawing mode for active sources
-			ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
+            // setup multi-texturing and effect drawing mode for active sources
+            ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
 
+            // Blending Function For mixing like in the rendering window
+            (*its)->beginEffectsSection();
             // bind the source texture
             (*its)->bind();
+            // standard transparency blending
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendEquation(GL_FUNC_ADD);
 			// draw surface
 			(*its)->draw();
 
-			if (!(*its)->isStandby()) {
+            if (!(*its)->isStandby())
+            {
 				// draw stippled version of the source on top
-				glEnable(GL_POLYGON_STIPPLE);
-				glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-				(*its)->draw(false);
-				glDisable(GL_POLYGON_STIPPLE);
+                glEnable(GL_POLYGON_STIPPLE);
+                glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+                (*its)->draw(false);
+                glDisable(GL_POLYGON_STIPPLE);
 
 				//
 				// 2. Render it into FBO
@@ -169,7 +168,6 @@ void MixerView::paint()
 
 		ViewRenderWidget::program->release();
     }
-	glActiveTexture(GL_TEXTURE0);
 
 	// if no source was rendered, clear anyway
 	RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
@@ -177,16 +175,18 @@ void MixerView::paint()
 	// post render draw (loop back and recorder)
 	RenderingManager::getInstance()->postRenderToFrameBuffer();
 
+    glActiveTexture(GL_TEXTURE0);
+
     // Then the selection outlines
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-		renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
-		if ( ABS(renderingAspectRatio) > 1.0)
-			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
-		else
-			glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
-		glCallList(ViewRenderWidget::frame_selection);
+        renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+        if ( ABS(renderingAspectRatio) > 1.0)
+            glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
+        else
+            glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
+        glCallList(ViewRenderWidget::frame_selection);
         glPopMatrix();
 
     }

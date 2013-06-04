@@ -5,9 +5,9 @@
 #include "FFGL.h"
 #include <QString>
 
-class FFGLPluginException : public AllocationException {
+class FFGLPluginException : public QtConcurrent::Exception {
 public:
-    virtual QString message() { return "Could not load FreeframeGL plugin"; }
+    virtual QString message() { return "FreeframeGL plugin crashed."; }
     void raise() const { throw *this; }
     Exception *clone() const { return new FFGLPluginException(*this); }
 };

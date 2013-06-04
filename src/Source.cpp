@@ -380,8 +380,15 @@ void Source::bind() const {
 
 void Source::update()  {
 #ifdef FFGL
-    if (ffgl_plugin)
-        ffgl_plugin->update();
+    if (ffgl_plugin) {
+        try{
+            ffgl_plugin->update();
+        } catch (FFGLPluginException &e) {
+            qCritical() <<  e.message();
+            delete ffgl_plugin;
+            ffgl_plugin = NULL;
+        }
+    }
 #endif
 }
 
@@ -581,8 +588,11 @@ void Source::setFreeframeGLPlugin(QString filename) {
         ffgl_plugin = NULL;
     }
 
-    if (filename.isEmpty() || !QFileInfo(filename).isFile()) {
-        qDebug() << "FreeFrameGL plugin not loaded ("<< filename <<")";
+    if (filename.isEmpty())
+        return;
+
+    if ( !QFileInfo(filename).isFile()) {
+        qCritical() << "FreeFrameGL plugin given an invalid file ("<< filename <<")";
         return;
     }
 
@@ -592,7 +602,7 @@ void Source::setFreeframeGLPlugin(QString filename) {
     }
     catch (FFGLPluginException &e)  {
         ffgl_plugin = NULL;
-        qWarning() << e.message();
+        qCritical() << e.message();
     }
 
 }
