@@ -393,7 +393,7 @@ void SourcePropertyBrowser::createPropertyTree(){
 	intManager->setRange(property, 0, 100);
 	intManager->setSingleStep(property, 10);
 	chroma->addSubProperty(property);
-
+#ifdef FFGL
     // FreeFrameGL Plugin on/off
     QtProperty *ffgl = boolManager->addProperty("FreeframeGL");
     ffgl->setToolTip("Enables FreeFrameGL Plugin.");
@@ -403,7 +403,7 @@ void SourcePropertyBrowser::createPropertyTree(){
     property = infoManager->addProperty( QLatin1String("Plugin file") );
     idToProperty[property->propertyName()] = property;
     ffgl->addSubProperty(property);
-
+#endif
 	// Frames size
 	QtProperty *fs = sizeManager->addProperty( QLatin1String("Resolution") );
 	fs->setToolTip("Width & height of frames");
@@ -653,11 +653,11 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
 		colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
 		intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
-
+#ifdef FFGL
         // properties for FFGL plugin
         boolManager->setValue(idToProperty["FreeframeGL"], !s->getFreeframeGLPlugin().isEmpty() );
         infoManager->setValue(idToProperty["Plugin file"], s->getFreeframeGLPlugin() );
-
+#endif
 		// properties of filters
 		if (ViewRenderWidget::filteringEnabled()) {
 			enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
@@ -1034,6 +1034,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 		idToProperty["Key Color"]->setEnabled(value);
 		idToProperty["Key Tolerance"]->setEnabled(value);
 	}
+#ifdef FFGL
     else if ( property == idToProperty["FreeframeGL"] ) {
         QString fileName = "";
         if (value) {
@@ -1043,7 +1044,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
         currentItem->setFreeframeGLPlugin(fileName);
         infoManager->setValue(idToProperty["Plugin file"], fileName );
     }
-
+#endif
 }
 
 void SourcePropertyBrowser::valueChanged(QString propertyname, int value)

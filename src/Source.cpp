@@ -370,18 +370,19 @@ void Source::endEffectsSection() const {
 }
 
 void Source::bind() const {
-
+#ifdef FFGL
     if (ffgl_plugin)
         ffgl_plugin->bind();
     else
+#endif
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 }
 
 void Source::update()  {
-
+#ifdef FFGL
     if (ffgl_plugin)
         ffgl_plugin->update();
-
+#endif
 }
 
 void Source::blend() const {
