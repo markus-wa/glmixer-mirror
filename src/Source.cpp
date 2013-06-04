@@ -379,10 +379,9 @@ void Source::bind() const {
 
 void Source::update()  {
 
-    glBindTexture(GL_TEXTURE_2D, textureIndex);
-
     if (ffgl_plugin)
         ffgl_plugin->update();
+
 }
 
 void Source::blend() const {

@@ -113,10 +113,8 @@ void FFGLPluginSource::update()
 
 void FFGLPluginSource::bind() const
 {
-    glActiveTexture(GL_TEXTURE0);
-    // bind the FBO texture (instead of the source texture)
+    // bind the FBO texture
     glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-
 }
 
 bool FFGLPluginSource::initialize()

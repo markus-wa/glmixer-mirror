@@ -35,9 +35,6 @@
 #include "common.h"
 #include "defines.h"
 
-#ifdef FFGL
-#include "FFGLPluginSource.h"
-#endif
 
 class SourceConstructorException : public AllocationException {
 public:

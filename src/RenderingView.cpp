@@ -79,16 +79,16 @@ void RenderingView::paint()
 			//
 			ViewRenderWidget::setSourceDrawingMode(true);
 
-			// place and scale
-			glPushMatrix();
-			glTranslated((*its)->getX(), (*its)->getY(), 0);
-			glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
-			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+            // place and scale
+            glPushMatrix();
+            glTranslated((*its)->getX(), (*its)->getY(), 0);
+            glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
+            glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
-			// Blending Function For mixing like in the rendering window
-			(*its)->beginEffectsSection();
-			// bind the source texture and update its content
-			(*its)->update();
+            // Blending Function For mixing like in the rendering window
+            (*its)->beginEffectsSection();
+            // bind the source texture
+            (*its)->bind();
 
 			// draw only if it is the current source
 			if ( RenderingManager::getInstance()->isCurrentSource(its)
@@ -96,7 +96,7 @@ void RenderingView::paint()
 			     || SelectionManager::getInstance()->isInSelection(*its)
 			     // OR if there is no current source and no selection (i.e default case draw everything)
 				 || ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
-				    && !SelectionManager::getInstance()->hasSelection() )  ) {
+                    && !SelectionManager::getInstance()->hasSelection() )  ) {
 
 				// draw the source only if not culled and alpha not null
 				if ( !(*its)->isStandby() && !(*its)->isCulled() && (*its)->getAlpha() > 0.0 ) {

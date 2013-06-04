@@ -31,9 +31,6 @@
 #include "OutputRenderWindow.h"
 #include <algorithm>
 
-// TOREMOVE
-#include "FFGLPluginSource.h"
-
 #define MINZOOM 0.1
 #define MAXZOOM 3.0
 #define DEFAULTZOOM 0.5

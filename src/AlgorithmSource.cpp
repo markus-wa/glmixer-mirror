@@ -420,19 +420,17 @@ void AlgorithmSource::initBuffer() {
 void AlgorithmSource::update() {
 
 	if (frameChanged) {
-		_mutex->lock();
-		frameChanged = false;
-
         glBindTexture(GL_TEXTURE_2D, textureIndex);
+
+        _mutex->lock();
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
 				GL_UNSIGNED_BYTE, (unsigned char*) buffer);
 		_cond->wakeAll();
 		_mutex->unlock();
 
-#ifdef FFGL
-        if (ffgl_plugin)
-            ffgl_plugin->update();
-#endif
+        frameChanged = false;
+
+        Source::update();
 	}
 }
 

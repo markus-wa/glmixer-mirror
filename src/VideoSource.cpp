@@ -124,10 +124,8 @@ void VideoSource::update()
                         vp->getBuffer());
             // shouldn't update next time unless requested
             frameChanged = false;
-#ifdef FFGL
-            if (ffgl_plugin)
-                ffgl_plugin->update();
-#endif
+
+            Source::update();
         }
     }
 }

@@ -58,6 +58,13 @@ protected:
 		RenderingManager::getInstance()->countRenderingSource--;
 	}
 
+    int getFrameWidth() const {
+        return RenderingManager::getInstance()->getFrameBufferWidth();
+    }
+
+    int getFrameHeight() const {
+        return RenderingManager::getInstance()->getFrameBufferHeight();
+    }
 };
 
 #endif /* RENDERINGSOURCE_H_ */

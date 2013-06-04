@@ -157,7 +157,7 @@ void SharedMemorySource::update(){
 		RenderingManager::getInstance()->setCurrentSource(getId());
 		qWarning() << getName() << '|' << tr("Connection with program %1 interrupted. Source stopped").arg(programName);
 
-	} else {
+    } else {
 		// normal case ; fast replacement of texture content
 		if (shm->lock()) {
             glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -170,10 +170,8 @@ void SharedMemorySource::update(){
 			}
 			shm->unlock();
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-#ifdef FFGL
-            if (ffgl_plugin)
-                ffgl_plugin->update();
-#endif
+
+            Source::update();
         }
 		shm->detach();
 	}

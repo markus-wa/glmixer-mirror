@@ -92,7 +92,7 @@ void SourceDisplayWidget::paintGL()
 
     if (s) {
         // update the texture of the source
-        s->Source::update();
+        s->bind();
 
 		// adjust size to show all the square and ensure aspect ratio is preserved
 		if ( s->getAspectRatio() > aspectRatio )
