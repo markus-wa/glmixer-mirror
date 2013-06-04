@@ -34,7 +34,6 @@
 #include <QEvent>
 #include <QString>
 
-#include "common.h"
 #include "glRenderWidget.h"
 #include "SourceSet.h"
 #include "View.h"

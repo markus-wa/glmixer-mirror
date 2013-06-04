@@ -29,7 +29,6 @@
 
 #ifdef OPEN_CV
 
-#include "common.h"
 #include "Source.h"
 
 #include <opencv2/highgui/highgui.hpp>

@@ -31,6 +31,10 @@
 #include <QtProperty>
 #include <QtVariantPropertyManager>
 
+#ifdef FFGL
+#include "FFGLPluginSource.h"
+#endif
+
 GLuint Source::lastid = 1;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 bool Source::playable = false;
@@ -57,6 +61,10 @@ Source::Source() :
 
 	textureCoordinates.setCoords(0.0, 0.0, 1.0, 1.0);
 
+#ifdef FFGL
+    ffgl_plugin = NULL;
+#endif
+
 	// default name
 	name = QString("Source");
 }
@@ -78,8 +86,14 @@ Source::Source(GLuint texture, double depth)
 
 Source::~Source() {
 
-//	if (clones)
-//		delete clones;  // TODO: why not clean clone list ?
+    if (clones)
+        delete clones;  // TODO: why not clean clone list ?
+
+#ifdef FFGL
+    // if exists delete existing plugin
+    if (ffgl_plugin)
+        delete ffgl_plugin;
+#endif
 }
 
 void Source::setName(QString n) {
@@ -269,39 +283,34 @@ void Source::draw(bool withalpha, GLenum mode) const
 		glCallList(ViewRenderWidget::quad_texured);
 	}
 	else {
+
+        if (pixelated) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        }
+
 		// set transparency and color
 		if (!standby) {
 			glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(),
 					withalpha ? texalpha : 1.0);
 
 			// texture coordinate changes
-			ViewRenderWidget::texc[0] = textureCoordinates.left();
-			ViewRenderWidget::texc[1] = textureCoordinates.top();
-			ViewRenderWidget::texc[2] = textureCoordinates.right();
-			ViewRenderWidget::texc[3] = textureCoordinates.top();
-			ViewRenderWidget::texc[4] = textureCoordinates.right();
-			ViewRenderWidget::texc[5] = textureCoordinates.bottom();
-			ViewRenderWidget::texc[6] = textureCoordinates.left();
-			ViewRenderWidget::texc[7] = textureCoordinates.bottom();
+            ViewRenderWidget::texc[0] = textureCoordinates.left();
+            ViewRenderWidget::texc[1] = textureCoordinates.top();
+            ViewRenderWidget::texc[2] = textureCoordinates.right();
+            ViewRenderWidget::texc[3] = textureCoordinates.top();
+            ViewRenderWidget::texc[4] = textureCoordinates.right();
+            ViewRenderWidget::texc[5] = textureCoordinates.bottom();
+            ViewRenderWidget::texc[6] = textureCoordinates.left();
+            ViewRenderWidget::texc[7] = textureCoordinates.bottom();
 		}
 		else
 			glColor4f(0.0, 0.0, 0.0, 1.0);
 
 	    glDrawArrays(GL_QUADS, 0, 4);
-	}
-}
-
-
-void Source::update() {
-
- 	glBindTexture(GL_TEXTURE_2D, textureIndex);
-
-	if (pixelated) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	} else {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 }
 
@@ -350,7 +359,7 @@ void Source::endEffectsSection() const {
 //	}
 
 	// disable the mask
-	glActiveTexture(GL_TEXTURE1);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[0]);
 	glActiveTexture(GL_TEXTURE0);
 
@@ -358,6 +367,22 @@ void Source::endEffectsSection() const {
 //	glBlendEquation(GL_FUNC_ADD);
 //	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+}
+
+void Source::bind() const {
+
+    if (ffgl_plugin)
+        ffgl_plugin->bind();
+    else
+        glBindTexture(GL_TEXTURE_2D, textureIndex);
+}
+
+void Source::update()  {
+
+    glBindTexture(GL_TEXTURE_2D, textureIndex);
+
+    if (ffgl_plugin)
+        ffgl_plugin->update();
 }
 
 void Source::blend() const {
@@ -372,11 +397,9 @@ void Source::blend() const {
 	// activate texture 1 ; double texturing of the mask
 	glActiveTexture(GL_TEXTURE1);
 	// select and enable the texture corresponding to the mask
-	glBindTexture(GL_TEXTURE_2D, maskTextureIndex);
-
+    glBindTexture(GL_TEXTURE_2D, maskTextureIndex);
 	// back to texture 0 for the following // not needed
-//		glActiveTexture(GL_TEXTURE0);
-
+    glActiveTexture(GL_TEXTURE0);
 
 }
 
@@ -545,3 +568,40 @@ QString Source::getFilterName(filterType c) {
 	return enumNames[int(c)];
 
 }
+
+
+// freeframe gl plugin
+#ifdef FFGL
+
+void Source::setFreeframeGLPlugin(QString filename) {
+
+    // if already exists delete existing plugin
+    if (ffgl_plugin) {
+        delete ffgl_plugin;
+        ffgl_plugin = NULL;
+    }
+
+    if (filename.isEmpty() || !QFileInfo(filename).isFile()) {
+        qDebug() << "FreeFrameGL plugin not loaded ("<< filename <<")";
+        return;
+    }
+
+    try {
+        // create new plugin with this file
+        ffgl_plugin = new FFGLPluginSource(filename, textureIndex, getFrameWidth(), getFrameHeight());
+    }
+    catch (FFGLPluginException &e)  {
+        ffgl_plugin = NULL;
+        qWarning() << e.message();
+    }
+
+}
+
+QString Source::getFreeframeGLPlugin() {
+
+    return ffgl_plugin == NULL ? "" : ffgl_plugin->fileName();
+}
+
+
+#endif
+

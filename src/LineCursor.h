@@ -29,6 +29,7 @@
 #include <QObject>
 #include <QElapsedTimer>
 
+#include "defines.h"
 #include "Cursor.h"
 #define MIN_SPEED 30
 #define MAX_SPEED 250

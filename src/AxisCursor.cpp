@@ -23,8 +23,9 @@
  *
  */
 
-#include <cmath>
+#include "defines.h"
 
+#include <cmath>
 #define euclidean(P1, P2)  sqrt( (P1.x()-P2.x()) * (P1.x()-P2.x()) +  (P1.y()-P2.y()) * (P1.y()-P2.y()) )
 
 #include "AxisCursor.moc"

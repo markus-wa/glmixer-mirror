@@ -179,15 +179,19 @@ bool OpencvSource::isPlaying() const{
 
 void OpencvSource::update(){
 
-	Source::update();
-
 	if( frameChanged )
 	{
 		mutex->lock();
 		frameChanged = false;
+        glBindTexture(GL_TEXTURE_2D, textureIndex);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 		cond->wakeAll();
 		mutex->unlock();
+
+#ifdef FFGL
+        if (ffgl_plugin)
+            ffgl_plugin->update();
+#endif
 	}
 
 }

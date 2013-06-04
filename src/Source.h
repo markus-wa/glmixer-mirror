@@ -33,6 +33,11 @@
 #include <QRectF>
 
 #include "common.h"
+#include "defines.h"
+
+#ifdef FFGL
+#include "FFGLPluginSource.h"
+#endif
 
 class SourceConstructorException : public AllocationException {
 public:
@@ -91,11 +96,13 @@ public:
 	 */
 	// to be called in the OpenGL loop to bind the source texture before drawing
 	// In subclasses of Source, the texture content is also updated
-	virtual void update();
+    virtual void update();
 	// Request update explicitly (e.g. after changing a filter)
 	inline void requestUpdate() {
 		frameChanged = true;
 	}
+    // bind the texture
+    void bind() const;
 	// apply the blending (including mask)
 	// to be called in the OpenGL loop before drawing if the source shall be blended
 	void blend() const;
@@ -430,6 +437,11 @@ public:
 		return modifiable;
 	}
 
+#ifdef FFGL
+    // freeframe gl plugin
+    void setFreeframeGLPlugin(QString filename);
+    QString getFreeframeGLPlugin();
+#endif
 
 protected:
 	/*
@@ -489,7 +501,10 @@ protected:
 	QColor chromaKeyColor;
 	bool useChromaKey;
 
-
+#ifdef FFGL
+    // freeframe plugin
+    class FFGLPluginSource *ffgl_plugin;
+#endif
 	// statics
 	static GLuint lastid;
 

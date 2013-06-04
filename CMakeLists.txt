@@ -13,7 +13,7 @@ IF(Subversion_FOUND)
 ENDIF(Subversion_FOUND)
 
 set(GLMIXER_VERSION_MAJOR 1)
-set(GLMIXER_VERSION_MINOR 2)
+set(GLMIXER_VERSION_MINOR 3)
 
 # Expose CMAKE_INCLUDE_PATH and CMAKE_LIBARY_PATH to the GUI so users
 # may set these values without needing to manipulate the environment.
@@ -121,12 +121,13 @@ set( CMAKE_LIBRARY_PATH
 
 # HERE ARE THE BASIC DEPENDENCIES
 set( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
-find_package( Qt4 REQUIRED)
+find_package( Qt REQUIRED)
 find_package( OpenGL REQUIRED)
 set( GLMIXER_LIBRARIES  ${OPENGL_LIBRARY})
 
 # SOME HINTS FOR THE FIND_LIBRARY BELLOW
 set( CMAKE_INCLUDE_PATH 
+  ${CMAKE_INCLUDE_PATH}
   /opt/local/include
   /opt/include
   /usr/local/include
@@ -169,28 +170,24 @@ if(USE_OPENCV)
 		endif(USE_QUICKTIME)
 		find_library( COCOA_LIBRARY NAMES Cocoa )
 		find_library( QUARTZCORE_LIBRARY NAMES QuartzCore )
-		if (COCOA_LIBRARY AND QUARTZCORE_LIBRARY)
+                if(COCOA_LIBRARY AND QUARTZCORE_LIBRARY)
 			set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY}  )
-			message(STATUS "OpenCV OSX dependencies OK.")
-			set(USE_OPENCV true)
-		endif (COCOA_LIBRARY AND QUARTZCORE_LIBRARY)
+                        message(STATUS "OpenCV OSX dependencies OK.")
+                endif(COCOA_LIBRARY AND QUARTZCORE_LIBRARY)
         else( APPLE )
 		if( UNIX )
 			find_library( V4L_LIBRARY NAMES v4l1 )
-			if (V4L_LIBRARY)
+                        if(V4L_LIBRARY)
 				set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${V4L_LIBRARY}  )
-				message(STATUS "OpenCV UNIX dependencies OK.")
-				set(USE_OPENCV true)
-			endif (V4L_LIBRARY)
-		else( UNIX )
-			set(USE_OPENCV true)
+                                message(STATUS "OpenCV UNIX dependencies OK.")
+                        endif(V4L_LIBRARY)
 		endif( UNIX )
-	
         endif( APPLE )
 
     else(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 
-        SET(USE_OPENCV OFF)
+        unset(USE_OPENCV CACHE)
+        set(USE_OPENCV OFF CACHE BOOL)
 
     endif(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 
@@ -201,9 +198,33 @@ if(USE_OPENCV)
 endif(USE_OPENCV)
 
 
+# HERE IS THE OPTIONNAL INSTALLATION OF FREEFRAMEGL
+SET(USE_FREEFRAMEGL ${USE_FREEFRAMEGL} CACHE BOOL "CHECK if you want to compile with FreeFrame GL library")
+
+if(USE_FREEFRAMEGL)
+    SET(FREEFRAMEGL_PATH ${FREEFRAMEGL_PATH} CACHE STRING "Please enter the path to the FFGL-SDK/ folder (sources of freeframeGL).")
+
+    unset(FREEFRAMEGL_INCLUDE CACHE)
+    find_path( FREEFRAMEGL_INCLUDE "FFGL.h" HINTS "${FREEFRAMEGL_PATH}/Include" )
+    find_path( FREEFRAMEGL_INSTANCE_INCLUDE "FFGLPluginInstance.h" HINTS "${FREEFRAMEGL_PATH}/Source/FFGLHost" )
+
+    if(FREEFRAMEGL_INCLUDE)
+        message(STATUS "Using FreeframeGL.")
+        include_directories(${FREEFRAMEGL_INCLUDE} ${FREEFRAMEGL_INSTANCE_INCLUDE})
+        SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} dl)
+
+    else(FREEFRAMEGL_INCLUDE)
+        message(STATUS "Could not locate FFGL.h in FREEFRAMEGL_PATH : ${FREEFRAMEGL_PATH} ")
+        unset(USE_FREEFRAMEGL CACHE)
+        set(USE_FREEFRAMEGL OFF CACHE BOOL)
+
+    endif(FREEFRAMEGL_INCLUDE)
+
+endif(USE_FREEFRAMEGL)
+
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
 
-SET(GLMIXER_DEPENDENCIES avformat avcodec avutil swscale)
+SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} avformat avcodec avutil swscale)
     
 FOREACH(GLMIXER_DEPENDENCY ${GLMIXER_DEPENDENCIES})
     STRING(TOUPPER ${GLMIXER_DEPENDENCY} _upper_glmixer_dependency)

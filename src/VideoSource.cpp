@@ -103,8 +103,6 @@ void VideoSource::pause(bool on)
 // only Rendering Manager can call this
 void VideoSource::update()
 {
-	Source::update();
-
 	// update texture
 	if (frameChanged && is)
 	{
@@ -114,7 +112,7 @@ void VideoSource::update()
 		// is the picture good ?
 		if (vp && vp->isAllocated())
 		{
-
+            glBindTexture(GL_TEXTURE_2D, textureIndex);
 			// use it for OpenGL
 			if (vp->getFormat() == PIX_FMT_RGBA)
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
@@ -123,11 +121,15 @@ void VideoSource::update()
 			else
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
 						vp->getHeight(), GL_RGB, GL_UNSIGNED_BYTE,
-						vp->getBuffer());
-		}
-		// shouldn't update next time unless requested
-		frameChanged = false;
-	}
+                        vp->getBuffer());
+            // shouldn't update next time unless requested
+            frameChanged = false;
+#ifdef FFGL
+            if (ffgl_plugin)
+                ffgl_plugin->update();
+#endif
+        }
+    }
 }
 
 void VideoSource::updateFrame(int i)

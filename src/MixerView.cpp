@@ -134,9 +134,8 @@ void MixerView::paint()
 			// setup multi-texturing and effect drawing mode for active sources
 			ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
 
-			// bind the source texture and update its content
-			(*its)->update();
-
+            // bind the source texture
+            (*its)->bind();
 			// draw surface
 			(*its)->draw();
 

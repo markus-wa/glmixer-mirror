@@ -549,6 +549,12 @@ void ViewRenderWidget::paintGL()
 		// update modelview-projection matrix of the shader
 //		program->setUniformValue("ModelViewProjectionMatrix",QMatrix4x4 (_currentView->projection) * QMatrix4x4 (_currentView->modelview) );
 	}
+
+    // update the content of the sources
+    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+         (*its)->update();
+    }
+
 	// draw the view
 	_currentView->paint();
 

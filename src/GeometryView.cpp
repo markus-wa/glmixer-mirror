@@ -31,6 +31,9 @@
 #include "OutputRenderWindow.h"
 #include <algorithm>
 
+// TOREMOVE
+#include "FFGLPluginSource.h"
+
 #define MINZOOM 0.1
 #define MAXZOOM 3.0
 #define DEFAULTZOOM 0.5
@@ -90,12 +93,12 @@ void GeometryView::paint()
 			glPushMatrix();
 			glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
 			glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
-			glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+            glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
 			// Blending Function For mixing like in the rendering window
 			(*its)->beginEffectsSection();
-			// bind the source texture and update its content
-			(*its)->update();
+            // bind the source texture
+            (*its)->bind();
 			// Draw it !
 			(*its)->blend();
 			(*its)->draw();
@@ -103,7 +106,7 @@ void GeometryView::paint()
 			//
 			// 2. Render it into FBO
 			//
-			RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+            RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
 			first = false;
 
 			glPopMatrix();

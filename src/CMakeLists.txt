@@ -84,12 +84,26 @@ SET(GLMIXER_UIS
     MixingToolboxWidget.ui
 )
 
+# If FreeframeGL was set, then link with its source files
+if(USE_FREEFRAMEGL)
+    add_definitions(-DFFGL)
+    SET(FREEFRAMEGL_DIR_HOST "${FREEFRAMEGL_PATH}/Source/FFGLHost/Linux/")
+    SET(FREEFRAMEGL_DIR_COMMON "${FREEFRAMEGL_PATH}/Source/Common")
+    SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
+            ${FREEFRAMEGL_DIR_HOST}/LinuxPluginInstance.cpp
+            ${FREEFRAMEGL_DIR_HOST}/LinuxTimer.cpp
+            ${FREEFRAMEGL_DIR_HOST}/../FFGLPluginInstance.cpp
+            ${FREEFRAMEGL_DIR_COMMON}/FFGLExtensions.cpp
+            ${FREEFRAMEGL_DIR_COMMON}/FFGLFBO.cpp
+            FFGLPluginSource.cpp
+            )
+endif(USE_FREEFRAMEGL)
 
 # If there is OpenCV, then this application will use OpenCV
-if (USE_OPENCV)
+if(USE_OPENCV)
   add_definitions(-DOPEN_CV )
   SET( GLMIXER_SRCS  ${GLMIXER_SRCS} OpencvSource.cpp )
-endif (USE_OPENCV)
+endif(USE_OPENCV)
 
 # do the qt-cmake magic
 qt4_wrap_ui(GLMIXER_UIS_H ${GLMIXER_UIS})

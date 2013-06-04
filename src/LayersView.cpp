@@ -107,11 +107,11 @@ void LayersView::paint()
 					forwardDisplacement += ( MAXDISPLACEMENT + 0.1 - forwardDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
 				glTranslatef( forwardDisplacement, 0.0, 0.0);
 			}
-			else {
-				// draw stippled version of the source on top
-				glEnable(GL_POLYGON_STIPPLE);
-				glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-			}
+//			else {
+//				// draw stippled version of the source on top
+//                glEnable(GL_POLYGON_STIPPLE);
+//                glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+//			}
 
 			glTranslatef( 0.0, 0.0,  1.0 + (*its)->getDepth());
 	        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
@@ -135,18 +135,21 @@ void LayersView::paint()
 
 			// Blending Function for mixing like in the rendering window
 			(*its)->beginEffectsSection();
-			// bind the source texture and update its content
-			(*its)->update();
-
+            // bind the source texture
+            (*its)->bind();
 			// draw surface
-			(*its)->blend();
+            (*its)->blend();
 			(*its)->draw();
 
-			// draw stippled version of the source on top
-//			glEnable(GL_POLYGON_STIPPLE);
-//			glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-			(*its)->draw(false);
-			glDisable(GL_POLYGON_STIPPLE);
+            // standard transparency blending
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendEquation(GL_FUNC_ADD);
+
+            // draw stippled version of the source on top
+            glEnable(GL_POLYGON_STIPPLE);
+            glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
+            (*its)->draw(false);
+            glDisable(GL_POLYGON_STIPPLE);
 
 			glPopMatrix();
 

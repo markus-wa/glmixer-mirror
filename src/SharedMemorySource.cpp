@@ -144,8 +144,6 @@ SharedMemorySource::~SharedMemorySource()
 
 void SharedMemorySource::update(){
 
-	Source::update();
-
 	if (!shm)
 		return;
 
@@ -162,6 +160,7 @@ void SharedMemorySource::update(){
 	} else {
 		// normal case ; fast replacement of texture content
 		if (shm->lock()) {
+            glBindTexture(GL_TEXTURE_2D, textureIndex);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
 			if (textureInitialized)
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, glformat, gltype, (unsigned char*) shm->constData());
@@ -170,11 +169,14 @@ void SharedMemorySource::update(){
 				textureInitialized = true;
 			}
 			shm->unlock();
-		}
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+#ifdef FFGL
+            if (ffgl_plugin)
+                ffgl_plugin->update();
+#endif
+        }
 		shm->detach();
 	}
-
 }
 
 

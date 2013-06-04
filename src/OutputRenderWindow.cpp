@@ -195,7 +195,7 @@ void OutputRenderWidget::paintGL()
 		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
 
 		// draw the polygon with texture
-		glCallList(ViewRenderWidget::quad_texured);
+        glCallList(ViewRenderWidget::quad_texured);
 	}
 
 	// draw the pause symbol on top

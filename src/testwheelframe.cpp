@@ -23,10 +23,12 @@
  *
  */
 
+#include <QPainter>
 #include <QMouseEvent>
 
+#include "defines.h"
+
 #include "testwheelframe.moc"
-#include "common.h"
 
 #define MINSCALE 4.0
 #define MAXSCALE 100.0

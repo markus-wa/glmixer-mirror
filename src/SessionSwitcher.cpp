@@ -79,7 +79,7 @@ void SessionSwitcher::render() {
 		glColor4f(overlaySource->getColor().redF(), overlaySource->getColor().greenF(), overlaySource->getColor().blueF(), overlayAlpha);
 		glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_TEXTURE_2D);
-		overlaySource->update();
+        overlaySource->bind();
 		glScaled( OutputRenderWindow::getInstance()->getAspectRatio() * overlaySource->getScaleX(), overlaySource->getScaleY(), 1.0);
 		glCallList(ViewRenderWidget::quad_texured);
 		glDisable(GL_TEXTURE_2D);

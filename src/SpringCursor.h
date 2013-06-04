@@ -28,6 +28,7 @@
 
 #include <QObject>
 
+#include "defines.h"
 #include "Cursor.h"
 #define MIN_MASS 1
 #define MAX_MASS 20

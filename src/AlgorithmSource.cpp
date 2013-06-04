@@ -170,16 +170,16 @@ void AlgorithmThread::run() {
 			if (as->algotype != AlgorithmSource::FLAT) {
 				srand(t.elapsed());
 				if (as->algotype == AlgorithmSource::BW_NOISE) {
-					for (int i = 0; i < (as->width * as->height); ++i)
-						memset((void *) (as->buffer + i * 4),
-								(unsigned char) (as->variability
-										* double(
-												rand()
-														% std::numeric_limits<
-																unsigned char>::max())
-										+ (1.0 - as->variability)
-												* double(as->buffer[i * 4 + 0])),
-								4);
+                    for (int i = 0; i < (as->width * as->height); ++i)
+                        memset((void *) (as->buffer + i * 4),
+                                (unsigned char) (as->variability
+                                        * double(
+                                                rand()
+                                                        % std::numeric_limits<
+                                                                unsigned char>::max())
+                                        + (1.0 - as->variability)
+                                                * double(as->buffer[i * 4 + 0])),
+                                4);
 
 				} else if (as->algotype == AlgorithmSource::BW_COSBARS) {
 					phase = (phase + int(as->variability * 36.0)) % (360);
@@ -419,17 +419,21 @@ void AlgorithmSource::initBuffer() {
 
 void AlgorithmSource::update() {
 
-	Source::update();
-
 	if (frameChanged) {
 		_mutex->lock();
 		frameChanged = false;
+
+        glBindTexture(GL_TEXTURE_2D, textureIndex);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
 				GL_UNSIGNED_BYTE, (unsigned char*) buffer);
 		_cond->wakeAll();
 		_mutex->unlock();
-	}
 
+#ifdef FFGL
+        if (ffgl_plugin)
+            ffgl_plugin->update();
+#endif
+	}
 }
 
 int AlgorithmSource::getFrameWidth() const {

@@ -28,6 +28,7 @@
 
 #include <QObject>
 
+#include "defines.h"
 #include "Cursor.h"
 #define MIN_RADIUS 1
 #define MAX_RADIUS 250

@@ -28,7 +28,6 @@
 
 #include <QObject>
 
-#include "common.h"
 #include "Source.h"
 #include "VideoFile.h"
 #include "ViewRenderWidget.h"
