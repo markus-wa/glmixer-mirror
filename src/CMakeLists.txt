@@ -87,16 +87,27 @@ SET(GLMIXER_UIS
 # If FreeframeGL was set, then link with its source files
 if(USE_FREEFRAMEGL)
     add_definitions(-DFFGL)
-    SET(FREEFRAMEGL_DIR_HOST "${FREEFRAMEGL_PATH}/Source/FFGLHost/Linux/")
-    SET(FREEFRAMEGL_DIR_COMMON "${FREEFRAMEGL_PATH}/Source/Common")
+    SET(FREEFRAMEGL_DIR_HOST "${FREEFRAMEGL_PATH}/Source/FFGLHost/")
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
-            ${FREEFRAMEGL_DIR_HOST}/LinuxPluginInstance.cpp
-            ${FREEFRAMEGL_DIR_HOST}/LinuxTimer.cpp
-            ${FREEFRAMEGL_DIR_HOST}/../FFGLPluginInstance.cpp
-            ${FREEFRAMEGL_DIR_COMMON}/FFGLExtensions.cpp
-            ${FREEFRAMEGL_DIR_COMMON}/FFGLFBO.cpp
-            FFGLPluginSource.cpp
-            )
+        ${FREEFRAMEGL_DIR_HOST}/FFGLPluginInstance.cpp
+        FFGLPluginSource.cpp )
+
+    if( APPLE )
+        SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+            ${FREEFRAMEGL_DIR_HOST}/OSX/OSXPluginInstance.cpp
+            ${FREEFRAMEGL_DIR_HOST}/OSX/OSXTimer.cpp )
+    else( APPLE )
+        if( WIN32 )
+            SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+                ${FREEFRAMEGL_DIR_HOST}/Win32/WinPluginInstance.cpp
+                ${FREEFRAMEGL_DIR_HOST}/Win32/WinTimer.cpp )
+        else( WIN32 )
+            SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+                ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxPluginInstance.cpp
+                ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxTimer.cpp )
+        endif( WIN32 )
+    endif( APPLE )
+
 endif(USE_FREEFRAMEGL)
 
 # If there is OpenCV, then this application will use OpenCV

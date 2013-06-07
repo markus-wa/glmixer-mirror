@@ -5,6 +5,7 @@
 #include "FFGL.h"
 #include <QString>
 
+
 class FFGLPluginException : public QtConcurrent::Exception {
 public:
     virtual QString message() { return "FreeframeGL plugin crashed."; }
@@ -31,10 +32,11 @@ private:
     //this represents the texture (on the GPU) that we feed to the plugins
     FFGLTextureStruct _inputTexture;
 
-    // these are the FFGL specialized objects for plugin
+    // FFGL specialized objects for plugin
     class FFGLPluginInstance *_plugin;
     class Timer *timer;
 
+    // Frame buffer objet
     class QGLFramebufferObject *_fbo;
 
 };

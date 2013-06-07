@@ -3,13 +3,11 @@
 
 #include "FFGLPluginSource.h"
 #include "Timer.h"
-#include "FFGLFBO.h"
 #include "FFGLPluginInstance.h"
-
 
 #include <QGLFramebufferObject>
 
-#include <GL/glu.h>
+//#include <GL/glu.h>
 
 
 FFGLPluginSource::FFGLPluginSource(QString filename, unsigned int textureIndex, int w, int h)
