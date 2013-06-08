@@ -95,16 +95,19 @@ if(USE_FREEFRAMEGL)
     if( APPLE )
         SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
             ${FREEFRAMEGL_DIR_HOST}/OSX/OSXPluginInstance.cpp
-            ${FREEFRAMEGL_DIR_HOST}/OSX/OSXTimer.cpp )
+#            ${FREEFRAMEGL_DIR_HOST}/OSX/OSXTimer.cpp
+            )
     else( APPLE )
         if( WIN32 )
             SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
                 ${FREEFRAMEGL_DIR_HOST}/Win32/WinPluginInstance.cpp
-                ${FREEFRAMEGL_DIR_HOST}/Win32/WinTimer.cpp )
+#                ${FREEFRAMEGL_DIR_HOST}/Win32/WinTimer.cpp
+                )
         else( WIN32 )
             SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
                 ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxPluginInstance.cpp
-                ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxTimer.cpp )
+#                ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxTimer.cpp
+                )
         endif( WIN32 )
     endif( APPLE )
 

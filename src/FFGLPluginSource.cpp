@@ -1,56 +1,55 @@
 #include <QDebug>
-#include <QElapsedTimer>
 
 #include "FFGLPluginSource.h"
-#include "Timer.h"
 #include "FFGLPluginInstance.h"
 
 #include <QGLFramebufferObject>
-
-//#include <GL/glu.h>
 
 
 FFGLPluginSource::FFGLPluginSource(QString filename, unsigned int textureIndex, int w, int h)
     : _filename(filename), _initialized(false)
 {
-    //load plugin (does not instantiate!)
+    // create plugin object (does not instanciate dll)
     _plugin = FFGLPluginInstance::New();
     if (!_plugin){
         qWarning()<< "FreeframeGL plugin could be instanciated (" << _filename <<")";
         FFGLPluginException().raise();
     }
 
+    // load dll plugin
     if (_plugin->Load(filename.toUtf8())==FF_FAIL){
         qWarning()<< "FreeframeGL plugin could not be loaded (" << _filename <<")";
         FFGLPluginException().raise();
     }
 
+    // descriptor for the source texture, used also to store size
     _inputTexture.Handle = (GLuint) textureIndex;
     _inputTexture.Width = w;
     _inputTexture.Height = h;
     _inputTexture.HardwareWidth = w;
     _inputTexture.HardwareHeight = h;
-
 }
 
 FFGLPluginSource::~FFGLPluginSource()
 {
-    // FFGL exit sequence
     _plugin->DeInstantiateGL();
     _plugin->Unload();
 
     // deletes
     delete _plugin;
-    delete _fbo;
+    if (_fbo)
+        delete _fbo;
 }
 
 void FFGLPluginSource::update()
 {
     if (initialize() && _fbo->bind())
     {
-//        glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
+        // Safer to push all attribs because who knows what is done in the puglin!!
+        // (but slower)
         glPushAttrib(GL_ALL_ATTRIB_BITS);
 
+        // draw in the viewport area
         glViewport(0, 0, _fbo->width(), _fbo->height());
 
         //make sure all the matrices are reset
@@ -69,9 +68,11 @@ void FFGLPluginSource::update()
         glClear(GL_COLOR_BUFFER_BIT);
 
         //tell plugin about the current time
-        _plugin->SetTime(timer->GetElapsedTime());
+        _plugin->SetTime(((double) timer.elapsed()) / 1000.0 );
 
-        _plugin->SetFloatParameter(0, 0.5);
+        // TEMPORARY : initialize all parameters to 0.5
+        for(int i = 0; !QString(_plugin->GetParameterName(i)).isEmpty(); ++i )
+            _plugin->SetFloatParameter(i, 0.5);
 
         //create the array of OpenGLTextureStruct * to be passed
         //to the plugin
@@ -90,7 +91,13 @@ void FFGLPluginSource::update()
         processStruct.HostFBO = _fbo->handle();
 
         //call the plugin's ProcessOpenGL
+#ifdef FF_FAIL
+        // FFGL 1.5
+        DWORD callresult = _plugin->CallProcessOpenGL(processStruct);
+#else
+        // FFGL 1.6
         FFResult callresult = _plugin->CallProcessOpenGL(processStruct);
+#endif
 
         // make sure we restore state
         glPopAttrib();
@@ -140,8 +147,9 @@ bool FFGLPluginSource::initialize()
             if ( _plugin->InstantiateGL( &_fboViewport ) == FF_SUCCESS ) {
 
                 // one timer per FFGLPluginSource
-                timer = Timer::New();
+                timer.start();
 
+                // remember successful initialization
                 _initialized = true;
                 qDebug()<< "FreeframeGL plugin initialized (" << _filename <<")";
 
@@ -160,6 +168,7 @@ bool FFGLPluginSource::initialize()
     return _initialized;
 }
 
+// for getting debug messages from FFGL code
 void FFDebugMessage(const char *msg)
 {
     qDebug()<<msg;

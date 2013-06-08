@@ -1,10 +1,11 @@
 #ifndef FFGLPLUGINSOURCE_H
 #define FFGLPLUGINSOURCE_H
 
-#include "defines.h"
 #include "FFGL.h"
-#include <QString>
 
+#include <QtCore>
+#include <QString>
+#include <QElapsedTimer>
 
 class FFGLPluginException : public QtConcurrent::Exception {
 public:
@@ -34,7 +35,9 @@ private:
 
     // FFGL specialized objects for plugin
     class FFGLPluginInstance *_plugin;
-    class Timer *timer;
+
+    // timer
+    QElapsedTimer timer;
 
     // Frame buffer objet
     class QGLFramebufferObject *_fbo;

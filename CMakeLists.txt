@@ -212,7 +212,10 @@ if(USE_FREEFRAMEGL)
     if(FREEFRAMEGL_INCLUDE)
         message(STATUS "Using FreeframeGL.")
         include_directories(${FREEFRAMEGL_INCLUDE} ${FREEFRAMEGL_INSTANCE_INCLUDE})
-        SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} dl)
+
+        if(UNIX)
+            SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} dl)
+        endif(UNIX)
 
     else(FREEFRAMEGL_INCLUDE)
         message(STATUS "Could not locate FFGL.h in FREEFRAMEGL_PATH : ${FREEFRAMEGL_PATH} ")

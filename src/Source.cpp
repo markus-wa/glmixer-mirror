@@ -604,6 +604,10 @@ void Source::setFreeframeGLPlugin(QString filename) {
         ffgl_plugin = NULL;
         qCritical() << e.message();
     }
+    catch (...)  {
+        ffgl_plugin = NULL;
+        qCritical() << "Unknown error in FreeframeGL plugin.";
+    }
 
 }
 
