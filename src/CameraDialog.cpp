@@ -93,6 +93,7 @@ void CameraDialog::createSource(){
 			}
 			// apply the source to the preview
 			preview->setSource(s);
+            preview->playSource(true);
 		} else
 			preview->setSource( OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex) );
 	}

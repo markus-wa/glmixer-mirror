@@ -170,9 +170,9 @@ void SharedMemoryDialog::createSource(){
 			// create a new source with a new texture index and the new parameters
 			s = new SharedMemorySource(tex, 0, selectedItem->data(Qt::UserRole).toLongLong() );
 
-			s->play(true);
-			// apply the source to the preview
-			preview->setSource(s);
+            // apply the source to the preview
+            preview->setSource(s);
+            preview->playSource(true);
 
 		} catch (AllocationException &e){
 			qCritical() << "SharedMemoryDialog|" << e.message();
@@ -181,11 +181,7 @@ void SharedMemoryDialog::createSource(){
 			// return an invalid pointer
 			s = 0;
 		}
-
-
-
 	}
-
 }
 
 

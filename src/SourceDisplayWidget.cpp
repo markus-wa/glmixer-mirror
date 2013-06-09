@@ -32,7 +32,7 @@
 #include "ViewRenderWidget.h"
 
 SourceDisplayWidget::SourceDisplayWidget(QWidget *parent, enum backgroundType bg) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()),
-	s(0), background(bg), _bgTexture(0)
+    s(0), background(bg), _bgTexture(0),_playSource(false)
 {
 	function = GL_ONE_MINUS_SRC_ALPHA;
 	equation = GL_FUNC_ADD;
@@ -66,7 +66,9 @@ void SourceDisplayWidget::setSource(Source *sourceptr)
 
 void SourceDisplayWidget::playSource(bool on)
 {
-	s->play(on);
+    if (s)
+        s->play(on);
+    _playSource = on;
 }
 
 void SourceDisplayWidget::paintGL()
@@ -92,6 +94,10 @@ void SourceDisplayWidget::paintGL()
 
     if (s) {
         // update the texture of the source
+        if(_playSource)
+            s->update();
+
+        // bind texture
         s->bind();
 
 		// adjust size to show all the square and ensure aspect ratio is preserved
