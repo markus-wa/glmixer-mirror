@@ -711,8 +711,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		sourcePreview->setSource(*csi);
 
 		// enable properties and actions on the current valid source
-		sourceDockWidgetContents->setEnabled(true);
-		currentSourceMenu->setEnabled(true);
+        sourceDockWidgetContents->setEnabled(true);
+        currentSourceMenu->setEnabled(true);
+        actionCloneSource->setEnabled(true);
 		toolButtonZoomCurrent->setEnabled(true);
         mixingToolBox->setEnabled(true);
 
@@ -788,6 +789,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
 		// disable panel widgets
 		currentSourceMenu->setEnabled(false);
+        actionCloneSource->setEnabled(false);
 		toolButtonZoomCurrent->setEnabled(false);
 		vcontrolDockWidgetContents->setEnabled(false);
 		mixingToolBox->setEnabled(false);

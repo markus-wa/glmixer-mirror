@@ -49,16 +49,18 @@ public:
     // only RenderingManager can create a source
 protected:
 	CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->getTextureIndex(), d), original(*sit) {
-		// when cloning a clone, get back to the original ;
+        // clone the properties
+        importProperties(original, true);
+        // when cloning a clone, get back to the original ;
 		CloneSource *tmp = dynamic_cast<CloneSource *>(original);
-		if (tmp)
+        if (tmp)
 			original = tmp->original;
-		// add this clone to the list of clones into the original source
-		std::pair<SourceList::iterator,bool> ret;
-		ret = original->getClones()->insert((Source *) this);
-		if (!ret.second)
-			SourceConstructorException().raise();
-		aspectratio = original->getAspectRatio();
+        // add this clone to the list of clones into the original source
+        std::pair<SourceList::iterator,bool> ret;
+        ret = original->getClones()->insert((Source *) this);
+        if (!ret.second)
+            SourceConstructorException().raise();
+        aspectratio = original->getAspectRatio();
 	}
 
 	~CloneSource() {

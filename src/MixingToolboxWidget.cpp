@@ -442,10 +442,9 @@ void MixingToolboxWidget::on_presetApply_pressed()
 {
 	if (source) {
 		if (_defaultPresets.contains(presetsList->currentItem()) )
-			source->importProperties( *_defaultPresets[presetsList->currentItem()], false );
+            source->importProperties( _defaultPresets[presetsList->currentItem()], false );
 		else if ( _userPresets.contains(presetsList->currentItem()) )
-			source->importProperties( *_userPresets[presetsList->currentItem()], false );
-
+            source->importProperties( _userPresets[presetsList->currentItem()], false );
 
         emit presetApplied( RenderingManager::getInstance()->getById( source->getId()) );
 	}
@@ -455,7 +454,7 @@ void MixingToolboxWidget::on_presetReApply_pressed()
 {    
     if (source) {
         setPresetItemTooltip(presetsList->currentItem(), source);
-        _userPresets[ presetsList->currentItem() ]->importProperties( *source, false);
+        _userPresets[ presetsList->currentItem() ]->importProperties(source, false);
     }
 }
 

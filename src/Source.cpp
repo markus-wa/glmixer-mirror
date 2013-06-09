@@ -521,45 +521,45 @@ QDataStream &operator>>(QDataStream &stream, Source *source){
 }
 
 
-void Source::importProperties(const Source source, bool withGeometry){
+void Source::importProperties(const Source *source, bool withGeometry){
 
-	destination_blend = source.destination_blend;
-	blend_eq =  source.blend_eq;
-	pixelated = source.pixelated;
-	texcolor = source.texcolor;
-	brightness = source.brightness;
-	contrast = source.contrast;
-	saturation = source.saturation;
-	hueShift = source.hueShift;
-	filter = source.filter;
-	invertMode = source.invertMode;
-	setMask( source.mask_type );
+    destination_blend = source->destination_blend;
+    blend_eq =  source->blend_eq;
+    pixelated = source->pixelated;
+    texcolor = source->texcolor;
+    brightness = source->brightness;
+    contrast = source->contrast;
+    saturation = source->saturation;
+    hueShift = source->hueShift;
+    filter = source->filter;
+    invertMode = source->invertMode;
+    setMask( source->mask_type );
 
-	gamma = source.gamma;
-	gammaMinIn = source.gammaMinIn;
-	gammaMaxIn = source.gammaMaxIn;
-	gammaMinOut = source.gammaMinOut;
-	gammaMaxOut = source.gammaMaxOut;
-	luminanceThreshold = source.luminanceThreshold;
-	numberOfColors = source.numberOfColors;
-	chromaKeyColor = source.chromaKeyColor;
-	useChromaKey = source.useChromaKey;
-	chromaKeyTolerance = source.chromaKeyTolerance;
+    gamma = source->gamma;
+    gammaMinIn = source->gammaMinIn;
+    gammaMaxIn = source->gammaMaxIn;
+    gammaMinOut = source->gammaMinOut;
+    gammaMaxOut = source->gammaMaxOut;
+    luminanceThreshold = source->luminanceThreshold;
+    numberOfColors = source->numberOfColors;
+    chromaKeyColor = source->chromaKeyColor;
+    useChromaKey = source->useChromaKey;
+    chromaKeyTolerance = source->chromaKeyTolerance;
 
 	if (withGeometry) {
-		x = source.x;
-		y = source.y;
-		centerx = source.centerx;
-		centery = source.centery;
-		rotangle = source.rotangle;
-	//	scalex = source.scalex;
-	//	scaley = source.scaley;
-		modifiable = source.modifiable;
-		fixedAspectRatio = source.fixedAspectRatio;
+        x = source->x;
+        y = source->y;
+        centerx = source->centerx;
+        centery = source->centery;
+        rotangle = source->rotangle;
+        scalex = source->scalex;
+        scaley = source->scaley;
+        modifiable = source->modifiable;
+        fixedAspectRatio = source->fixedAspectRatio;
 
-		setAlpha(source.texalpha);
-		textureCoordinates = source.textureCoordinates;
-		flipVertical = source.flipVertical;
+        setAlpha(source->texalpha);
+        textureCoordinates = source->textureCoordinates;
+        flipVertical = source->flipVertical;
 	}
 }
 

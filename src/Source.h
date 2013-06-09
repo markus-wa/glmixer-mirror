@@ -61,7 +61,7 @@ typedef std::set<Source *> SourceList;
  */
 class Source {
 
-	friend class RenderingManager;
+    friend class RenderingManager;
 
 public:
 	Source();
@@ -421,7 +421,7 @@ public:
 
 	static QString getFilterName(filterType c);
 
-	void importProperties(const Source s, bool withGeometry = true);
+    void importProperties(const Source *s, bool withGeometry = true);
 
 	virtual int getFrameWidth() const { return 1; }
 	virtual int getFrameHeight() const { return 1; }

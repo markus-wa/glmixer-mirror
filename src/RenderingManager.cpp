@@ -676,7 +676,12 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 	try{
 		// create a source appropriate for this videofile
 		s = new CloneSource(sit, getAvailableDepthFrom(depth));
-		renameSource( s, _defaultSource->getName() + "Clone");
+
+        if ((*sit)->rtti() == Source::CLONE_SOURCE) {
+            CloneSource *o = dynamic_cast<CloneSource *>(*sit);
+            renameSource( s, o->getOriginalName() + "Clone");
+        } else
+            renameSource( s, (*sit)->getName() + "Clone");
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -712,10 +717,14 @@ void RenderingManager::addSourceToBasket(Source *s)
 {
 	// add the source into the basket
 	dropBasket.insert(s);
-	// apply default parameters
-	s->importProperties(*_defaultSource);
-	// scale the source to match the preferences
-	s->resetScale(_scalingMode);
+
+    if (s->rtti() != Source::CLONE_SOURCE) {
+        // apply default parameters
+        s->importProperties(_defaultSource);
+        // scale the source to match the preferences
+        s->resetScale(_scalingMode);
+    }
+
 	// select no source
 	unsetCurrentSource();
 }
@@ -731,10 +740,9 @@ void RenderingManager::clearBasket()
 void RenderingManager::resetSource(SourceSet::iterator sit){
 
 	// apply default parameters
-	(*sit)->importProperties(*_defaultSource);
+    (*sit)->importProperties(_defaultSource);
 	// scale the source to match the preferences
 	(*sit)->resetScale(_scalingMode);
-
 }
 
 
