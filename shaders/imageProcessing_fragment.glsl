@@ -259,11 +259,22 @@ void main(void)
         // level threshold
         transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > 0.0));
                 
-        // chromakey
-        alpha -= mix( 0.0, abs( chromadelta * 0.707106781187 /  distance(transformedHSL, chromakey.xyz) ), float(chromakey.w > 0.0) );
 
         // after operations on HSL, convert back to RGB
         transformedRGB = HSV2RGB(transformedHSL);
+
+        // chromakey
+//        alpha -= mix( 0.0, step( chromadelta , distance(transformedHSL, chromakey.xyz) ), float(chromakey.w > 0.0) );
+//        alpha = step(  chromadelta * 1.4142135f,  length(transformedHSL - chromakey.xyz));
+
+        transformedHSL = abs(chromakey.xyz - transformedRGB);
+
+        alpha -= mix( 0.0, 1.0 -smoothstep( 0.0, chromadelta, max(transformedHSL.x, max(transformedHSL.y, transformedHSL.z)) ), float(chromakey.w > 0.0) );
+//        alpha -= mix( 0.0, 1.0 - smoothstep( 0.0, 1.0 , chromadelta * abs(chromakey.x - transformedHSL.x) ), float(chromakey.w > 0.0) );
+//        alpha -= mix( 0.0, smoothstep( chromakey.xyz -vec3(chromadelta), vec3(1.0) - transformedHSL, chromakey.xyz + vec3(chromadelta) ), float(chromakey.w > 0.0) );
+
+//        alpha -= mix( 0.0, step( distance(transformedRGB, chromakey.xyz), chromadelta ), float(chromakey.w > 0.0) );
+//        alpha -= mix( 0.0, smoothstep( chromakey.xyz -vec3(chromadelta), transformedRGB, chromakey.xyz + vec3(chromadelta) ), float(chromakey.w > 0.0) );
 
         // apply base color and
         // bring back the original alpha for final fragment color
