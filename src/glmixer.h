@@ -68,9 +68,7 @@ public Q_SLOTS:
 	void on_frameForwardButton_clicked();
 	void on_frameSlider_sliderPressed();
 	void on_frameSlider_sliderReleased();
-	void on_frameSlider_actionTriggered(int);
-	void on_actionShow_frames_toggled(bool);
-	void on_actionShowFPS_toggled(bool);
+    void on_frameSlider_actionTriggered(int);
 	void on_actionAbout_triggered();
     void on_actionPreferences_triggered();
     void on_actionNew_Session_triggered();
@@ -124,8 +122,9 @@ public Q_SLOTS:
 	void pauseAfterSeek();
 	void refreshTiming();
 	void newSession();
-	void openSessionFile(QString filename = QString());
+    void openSessionFile();
 	void switchToSessionFile(QString filename);
+    QString getRestorelastSessionFilename();
 	void confirmSessionFileName();
 	bool useSystemDialogs();
 	void updateStatusControlActions();
@@ -172,7 +171,7 @@ private:
     class SessionSwitcherWidget *switcherSession;
 
 	QTimer *refreshTimingTimer;
-	bool waspaused;
+    bool _displayTimeAsFrame, _restoreLastSession;
 
 	QSettings settings;
 	QAction *recentFileActs[MAX_RECENT_FILES];

@@ -118,5 +118,6 @@
         <file>icons/image-collection.png</file>
         <file>icons/fileclosed.png</file>
         <file>icons/notes.png</file>
+        <file>icons/movieformat.png</file>
     </qresource>
 </RCC>

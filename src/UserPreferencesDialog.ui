@@ -112,7 +112,7 @@ p, li { white-space: pre-wrap; }
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/record_disabled.png</normaloff>:/glmixer/icons/record_disabled.png</iconset>
+            <normaloff>:/glmixer/icons/movieformat.png</normaloff>:/glmixer/icons/movieformat.png</iconset>
           </property>
          </item>
          <item>
@@ -129,7 +129,7 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <property name="text">
-           <string>Interface</string>
+           <string>User input</string>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -137,6 +137,15 @@ p, li { white-space: pre-wrap; }
           </property>
           <property name="flags">
            <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Options</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/tools.png</normaloff>:/glmixer/icons/tools.png</iconset>
           </property>
          </item>
         </widget>
@@ -508,24 +517,31 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="activateBlitFrameBuffer">
-                <property name="toolTip">
-                 <string>Check this if your hardware supports it (save, try, and keep it on if all seems to work).</string>
-                </property>
-                <property name="text">
-                 <string>Disable frame buffer Blit</string>
-                </property>
-                <property name="checked">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="disableFiltering">
-                <property name="text">
-                 <string>Disable filters </string>
-                </property>
-               </widget>
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <item>
+                 <widget class="QCheckBox" name="disableFiltering">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable filters if the rendering is too slow; the filters will not be available anymore.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Disable filters </string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="activateBlitFrameBuffer">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable this if the rendering output window does not show the anything. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Disable Frame Buffer Blit</string>
+                  </property>
+                  <property name="checked">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -1166,46 +1182,43 @@ font: 75;</string>
             </widget>
            </item>
            <item>
+            <spacer name="verticalSpacerInterface">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="PageOptions">
+          <layout class="QVBoxLayout" name="verticalLayout_14">
+           <item>
             <widget class="QGroupBox" name="VisualsGroupBox">
              <property name="title">
               <string>Visual appearance</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayoutOptions">
-                <item>
-                 <widget class="QCheckBox" name="antiAliasing">
-                  <property name="toolTip">
-                   <string>Use anti alisasing for rendering interface (improves visual appearance)</string>
-                  </property>
-                  <property name="statusTip">
-                   <string>Use anti alisasing for rendering interface (improves visual appearance)</string>
-                  </property>
-                  <property name="text">
-                   <string>Use Anti-aliasing</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="useCustomDialogs">
-                  <property name="toolTip">
-                   <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
-                  </property>
-                  <property name="statusTip">
-                   <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
-                  </property>
-                  <property name="text">
-                   <string>Use application dialogs</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QCheckBox" name="antiAliasing">
+                <property name="toolTip">
+                 <string>Use anti alisasing for rendering interface (improves visual appearance)</string>
+                </property>
+                <property name="statusTip">
+                 <string>Use anti alisasing for rendering interface (improves visual appearance)</string>
+                </property>
+                <property name="text">
+                 <string>Use Anti-aliasing</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayoutStipple">
@@ -1298,14 +1311,72 @@ font: 75;</string>
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacerInterface">
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>System</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="useCustomDialogs">
+                <property name="toolTip">
+                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
+                </property>
+                <property name="statusTip">
+                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
+                </property>
+                <property name="text">
+                 <string>Use improved dialogs</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1" rowspan="2">
+               <widget class="QCheckBox" name="displayFramerate">
+                <property name="toolTip">
+                 <string>Shows the framerate in the upper right corner.</string>
+                </property>
+                <property name="text">
+                 <string>Display framerate</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0" rowspan="2">
+               <widget class="QCheckBox" name="restoreLastSession">
+                <property name="toolTip">
+                 <string>Re-open the last session when launching GLMixer.</string>
+                </property>
+                <property name="text">
+                 <string>Restore last session</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="displayTimeAsFrame">
+                <property name="toolTip">
+                 <string>Shows time information as frame count instead of hh:mm:ss.</string>
+                </property>
+                <property name="text">
+                 <string>Display time as frame</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
                <width>20</width>
-               <height>40</height>
+               <height>130</height>
               </size>
              </property>
             </spacer>

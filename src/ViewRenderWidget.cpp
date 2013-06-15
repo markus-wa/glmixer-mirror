@@ -656,7 +656,7 @@ void ViewRenderWidget::displayFramerate()
 }
 
 
-void ViewRenderWidget::showFramerate(bool on)
+void ViewRenderWidget::setFramerateVisible(bool on)
 {
 	showFps_ = on;
 
@@ -1516,35 +1516,35 @@ GLuint ViewRenderWidget::buildFrameList()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glLineWidth(5.0);
+    glLineWidth(5.0);
 	glColor4ub(COLOR_FRAME, 250);
 
-	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
-		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
-		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
-		glVertex2f(0.0f, -1.07f * SOURCE_UNIT);
-		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
-		glVertex2f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Right
-		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
-		glVertex2f(1.05f * SOURCE_UNIT, 0.0f);
-		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
-		glVertex2f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Right
-		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
-		glVertex2f(0.0f, 1.07f * SOURCE_UNIT);
-		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
-		glVertex2f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Left
-		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
-		glVertex2f(-1.05f * SOURCE_UNIT, 0.0f);
-		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
-	glEnd();
+    glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
+        glVertex2f(-1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Left
+        glVertex2f(0.0f, -1.00001f * SOURCE_UNIT);
+        glVertex2f(0.0f, -1.07f * SOURCE_UNIT);
+        glVertex2f(0.0f, -1.00001f * SOURCE_UNIT);
+        glVertex2f(1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Right
+        glVertex2f(1.00001f * SOURCE_UNIT, 0.0f);
+        glVertex2f(1.05f * SOURCE_UNIT, 0.0f);
+        glVertex2f(1.00001f * SOURCE_UNIT, 0.0f);
+        glVertex2f(1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Right
+        glVertex2f(0.0f, 1.00001f * SOURCE_UNIT);
+        glVertex2f(0.0f, 1.07f * SOURCE_UNIT);
+        glVertex2f(0.0f, 1.00001f * SOURCE_UNIT);
+        glVertex2f(-1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Left
+        glVertex2f(-1.00001f * SOURCE_UNIT, 0.0f);
+        glVertex2f(-1.05f * SOURCE_UNIT, 0.0f);
+        glVertex2f(-1.00001f * SOURCE_UNIT, 0.0f);
+    glEnd();
 
-	glPointSize(4);
-	glBegin(GL_POINTS);  // draw the corners to make them nice
-		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
-		glVertex2f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Right
-		glVertex2f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Right
-		glVertex2f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Left
-	glEnd();
+    glPointSize(4);
+    glBegin(GL_POINTS);  // draw the corners to make them nice
+        glVertex2f(-1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Left
+        glVertex2f(1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Right
+        glVertex2f(1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Right
+        glVertex2f(-1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Left
+    glEnd();
 
 	glEndList();
 
@@ -1555,34 +1555,34 @@ GLuint ViewRenderWidget::buildFrameList()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
-	glLineWidth(6.0);
+    glLineWidth(5.0);
 	glColor4ub(COLOR_FRAME_MOVE, 250);
 
-	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
-		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
-		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
-		glVertex2f(0.0f, -1.07f * SOURCE_UNIT);
-		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
-		glVertex2f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Right
-		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
-		glVertex2f(1.05f * SOURCE_UNIT, 0.0f);
-		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
-		glVertex2f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Right
-		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
-		glVertex2f(0.0f, 1.07f * SOURCE_UNIT);
-		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
-		glVertex2f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Left
-		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
-		glVertex2f(-1.05f * SOURCE_UNIT, 0.0f);
-		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
-	glEnd();
+    glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
+        glVertex2f(-1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Left
+        glVertex2f(0.0f, -1.00001f * SOURCE_UNIT);
+        glVertex2f(0.0f, -1.07f * SOURCE_UNIT);
+        glVertex2f(0.0f, -1.00001f * SOURCE_UNIT);
+        glVertex2f(1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Right
+        glVertex2f(1.00001f * SOURCE_UNIT, 0.0f);
+        glVertex2f(1.05f * SOURCE_UNIT, 0.0f);
+        glVertex2f(1.00001f * SOURCE_UNIT, 0.0f);
+        glVertex2f(1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Right
+        glVertex2f(0.0f, 1.00001f * SOURCE_UNIT);
+        glVertex2f(0.0f, 1.07f * SOURCE_UNIT);
+        glVertex2f(0.0f, 1.00001f * SOURCE_UNIT);
+        glVertex2f(-1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Left
+        glVertex2f(-1.00001f * SOURCE_UNIT, 0.0f);
+        glVertex2f(-1.05f * SOURCE_UNIT, 0.0f);
+        glVertex2f(-1.00001f * SOURCE_UNIT, 0.0f);
+    glEnd();
 
-	glPointSize(5);
+    glPointSize(4);
 	glBegin(GL_POINTS); // draw the corners to make them nice
-		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
-		glVertex2f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Right
-		glVertex2f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Right
-		glVertex2f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Left
+        glVertex2f(-1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Left
+        glVertex2f(1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Right
+        glVertex2f(1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Right
+        glVertex2f(-1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Left
 	glEnd();
 
 	glEndList();
@@ -1595,24 +1595,24 @@ GLuint ViewRenderWidget::buildFrameList()
 	glLineWidth(1.0);
 	glColor4ub(COLOR_FRAME, 250);
 
-	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
-		glVertex2f(-1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Left
-		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
-		glVertex2f(0.0f, -1.05f * SOURCE_UNIT);
-		glVertex2f(0.0f, -1.01f * SOURCE_UNIT);
-		glVertex2f(1.01f * SOURCE_UNIT, -1.01f * SOURCE_UNIT); // Bottom Right
-		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
-		glVertex2f(1.05f * SOURCE_UNIT, 0.0f);
-		glVertex2f(1.01f * SOURCE_UNIT, 0.0f);
-		glVertex2f(1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Right
-		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
-		glVertex2f(0.0f, 1.05f * SOURCE_UNIT);
-		glVertex2f(0.0f, 1.01f * SOURCE_UNIT);
-		glVertex2f(-1.01f * SOURCE_UNIT, 1.01f * SOURCE_UNIT); // Top Left
-		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
-		glVertex2f(-1.05f * SOURCE_UNIT, 0.0f);
-		glVertex2f(-1.01f * SOURCE_UNIT, 0.0f);
-	glEnd();
+    glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
+        glVertex2f(-1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Left
+        glVertex2f(0.0f, -1.00001f * SOURCE_UNIT);
+        glVertex2f(0.0f, -1.07f * SOURCE_UNIT);
+        glVertex2f(0.0f, -1.00001f * SOURCE_UNIT);
+        glVertex2f(1.00001f * SOURCE_UNIT, -1.00001f * SOURCE_UNIT); // Bottom Right
+        glVertex2f(1.00001f * SOURCE_UNIT, 0.0f);
+        glVertex2f(1.05f * SOURCE_UNIT, 0.0f);
+        glVertex2f(1.00001f * SOURCE_UNIT, 0.0f);
+        glVertex2f(1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Right
+        glVertex2f(0.0f, 1.00001f * SOURCE_UNIT);
+        glVertex2f(0.0f, 1.07f * SOURCE_UNIT);
+        glVertex2f(0.0f, 1.00001f * SOURCE_UNIT);
+        glVertex2f(-1.00001f * SOURCE_UNIT, 1.00001f * SOURCE_UNIT); // Top Left
+        glVertex2f(-1.00001f * SOURCE_UNIT, 0.0f);
+        glVertex2f(-1.05f * SOURCE_UNIT, 0.0f);
+        glVertex2f(-1.00001f * SOURCE_UNIT, 0.0f);
+    glEnd();
 
 	glEndList();
 

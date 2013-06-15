@@ -103,7 +103,8 @@ public:
      */
     void displayFramerate();
 	float getFramerate() { return f_p_s_; }
-	void showFramerate(bool on);
+    void setFramerateVisible(bool on);
+    bool getFramerateVisible(){ return showFps_; }
 	void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
 	int catalogWidth();
 

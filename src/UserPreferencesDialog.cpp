@@ -121,13 +121,19 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 		numberOfFramesRendering->setValue(1);
 	}
 
-	if (stackedPreferences->currentWidget() == PageInterface){
-		FINE->setChecked(true);
-		antiAliasing->setChecked(true);
-		ButtonTestFrame->reset();
-		speedZoom->setValue(120);
-		centeredZoom->setChecked(true);
-	}
+    if (stackedPreferences->currentWidget() == PageInterface){
+        ButtonTestFrame->reset();
+        speedZoom->setValue(120);
+        centeredZoom->setChecked(true);
+    }
+
+    if (stackedPreferences->currentWidget() == PageOptions){
+        FINE->setChecked(true);
+        antiAliasing->setChecked(true);
+        displayFramerate->setChecked(false);
+        restoreLastSession->setChecked(true);
+        displayTimeAsFrame->setChecked(false);
+    }
 }
 
 void UserPreferencesDialog::showPreferences(const QByteArray & state){
@@ -251,6 +257,14 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     uint fsmi = 0;
     stream >> fsmi;
     fullscreenMonitor->setCurrentIndex(fsmi);
+
+    // p. options
+    bool fs, taf, rs = false;
+    stream >> fs >> taf >> rs;
+    displayFramerate->setChecked(fs);
+    displayTimeAsFrame->setChecked(taf);
+    restoreLastSession->setChecked(rs);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -318,19 +332,22 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     // o. fullscreen monitor index
     stream << (uint) fullscreenMonitor->currentIndex();
 
+    // p. options
+    stream << displayFramerate->isChecked() << displayTimeAsFrame->isChecked() << restoreLastSession->isChecked();
+
 	return data;
 }
 
 
 void UserPreferencesDialog::on_updatePeriod_valueChanged(int period)
 {
-	frameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(updatePeriod->value()) ) ) );
+    frameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(period) ) ) );
 }
 
 
 void UserPreferencesDialog::on_recordingUpdatePeriod_valueChanged(int period)
 {
-	recordingFrameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(recordingUpdatePeriod->value()) ) ) );
+    recordingFrameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(period) ) ) );
 }
 
 

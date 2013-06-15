@@ -1047,19 +1047,16 @@ QString VideoFile::getTimeFromFrame(int64_t t) const
 
 QString VideoFile::getExactFrameFromFrame(int64_t t) const
 {
-
 	if (video_st->nb_frames > 0)
-		return (QString("Frame; %1").arg((int) (video_st->nb_frames * double(t
+        return (QString("Frame %1").arg((int) (video_st->nb_frames * double(t
 				- video_st->start_time) / double(video_st->duration))));
 	else
-		return (QString("Frame; %1").arg(
+        return (QString("Frame %1").arg(
 				(int) (double(t - video_st->start_time) / getFrameRate())));
-
 }
 
 int64_t VideoFile::getFrameFromTime(QString t) const
 {
-
 	QStringList list1 = t.split(":");
 
 	if (list1.size() > 3)

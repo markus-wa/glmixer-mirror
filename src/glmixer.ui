@@ -245,13 +245,6 @@ QDockWidget::close-button, QDockWidget::float-button {
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="fpsLabel">
          <property name="styleSheet">
           <string notr="true">color: rgb(128, 128, 128);</string>
@@ -2128,8 +2121,6 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="zoomMenu"/>
     <addaction name="catalogMenu"/>
     <addaction name="separator"/>
-    <addaction name="actionShowFPS"/>
-    <addaction name="actionShow_frames"/>
     <addaction name="toolBarsMenu"/>
    </widget>
    <widget class="QMenu" name="helpMenu">
@@ -4299,20 +4290,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
     <string>Display the list of video codecs that can be read.</string>
    </property>
   </action>
-  <action name="actionShow_frames">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Display time as frames</string>
-   </property>
-   <property name="statusTip">
-    <string>Display time as frames intead of hh:mm::ss</string>
-   </property>
-  </action>
   <action name="actionOpenGL_extensions">
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -4601,23 +4578,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
    </property>
    <property name="menuRole">
     <enum>QAction::AboutQtRole</enum>
-   </property>
-  </action>
-  <action name="actionShowFPS">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Display Framerate</string>
-   </property>
-   <property name="toolTip">
-    <string>Show FPS</string>
-   </property>
-   <property name="statusTip">
-    <string>Displays the update frequency in the corner of the views.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+F</string>
    </property>
   </action>
   <action name="actionCaptureSource">

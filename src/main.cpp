@@ -61,38 +61,40 @@ int main(int argc, char **argv)
     splash.show();
     a.processEvents();
 
-    // Test OpenGL support
+    // 0. Test OpenGL support
     if (!QGLFormat::hasOpenGL() )
     	qFatal( "%s", qPrintable( QObject::tr("This system does not support OpenGL and this program cannot work without it.")) );
-
-    // fill List Of OpenGL Extensions
     initListOfExtension();
     a.processEvents();
 
-	// 1. The application GUI : it integrates the Rendering Manager QGLWidget
-    GLMixer::getInstance()->setWindowTitle(a.applicationName());
+    // 1. The application GUI : it integrates the Rendering Manager QGLWidget
     qAddPostRoutine(GLMixer::exitHandler);
     GLMixer::getInstance()->readSettings();
     a.processEvents();
 
     if(!SharedMemoryManager::getInstance())
     	qWarning() << QObject::tr("Could not initiate shared memory manager");
+    a.processEvents();
 
 	// 2. The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow::getInstance()->setWindowTitle(QString("Output Window"));
     OutputRenderWindow::getInstance()->show();
+    a.processEvents();
 
-    // 3. load eventual session file provided in argument
-    QStringList params = a.arguments();
-    if ( params.count() > 1) {
-    	// try to read a file with the first argument
-    	GLMixer::getInstance()->openSessionFile(params[1]);
-    }
-
-	// 4. show the GUI in front
+    // 3. show the GUI in front
     GLMixer::getInstance()->show();
     splash.finish(GLMixer::getInstance());
+    a.processEvents();
 
+    // 4. load eventual session file provided in argument or restore last session
+    QString filename = QString::null;
+    if ( a.arguments().count()>1 )
+        filename = a.arguments()[1];
+    else
+        filename = GLMixer::getInstance()->getRestorelastSessionFilename();
+    GLMixer::getInstance()->switchToSessionFile(filename);
+
+    // start
     return a.exec();
 }
 

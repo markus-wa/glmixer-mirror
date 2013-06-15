@@ -122,7 +122,9 @@ GLMixer *GLMixer::getInstance() {
 	return _instance;
 }
 
-GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideoFile(NULL), usesystemdialogs(false), maybeSave(true), refreshTimingTimer(0)
+GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
+    selectedSourceVideoFile(NULL), usesystemdialogs(false), maybeSave(true),
+    refreshTimingTimer(0), _displayTimeAsFrame(false), _restoreLastSession(true)
 {
     setupUi ( this );
 
@@ -408,7 +410,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ), selectedSourceVideo
     QObject::connect(vcontrolDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(updateRefreshTimerState()));
 
     // start with new file
-    currentSessionFileName = QString();
+    currentSessionFileName = QString::null;
     confirmSessionFileName();
 
 }
@@ -780,9 +782,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 				QObject::connect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
 				QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
 
-				// display info (time or frames)
-				on_actionShow_frames_toggled(actionShow_frames->isChecked());
-
 			} // end video file
 		} // end video source
 	} else {  // it is not a valid source
@@ -1064,13 +1063,13 @@ void GLMixer::on_actionSelect_Previous_triggered(){
 }
 
 
-void GLMixer::on_actionShow_frames_toggled(bool on){
+//void GLMixer::on_actionShow_frames_toggled(bool on){
 
-	if (selectedSourceVideoFile) {
-	    // update property for marks in / out
-	    emit sourceMarksModified(on);
-	}
-}
+//	if (selectedSourceVideoFile) {
+//	    // update property for marks in / out
+//	    emit sourceMarksModified(on);
+//	}
+//}
 
 void GLMixer::on_markInSlider_sliderReleased (){
 
@@ -1100,7 +1099,7 @@ void GLMixer::refreshTiming(){
 	int f_percent = (int) ( (double)( selectedSourceVideoFile->getCurrentFrameTime() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
 	frameSlider->setValue(f_percent);
 
-	if (actionShow_frames->isChecked())
+    if (_displayTimeAsFrame)
 		timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
 	else
 		timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
@@ -1125,7 +1124,7 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
 			selectedSourceVideoFile->seekToPosition(pos);
 
 			// show the time of the frame (refreshTiming disabled)
-			if (actionShow_frames->isChecked())
+            if (_displayTimeAsFrame)
 				timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(pos) );
 			else
 				timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(pos) );
@@ -1234,13 +1233,7 @@ void GLMixer::updateMarks (){
     markOutSlider->setValue(o_percent);
 
     // update property for marks in / out
-    emit sourceMarksModified(actionShow_frames->isChecked());
-}
-
-
-void GLMixer::on_actionShowFPS_toggled(bool on){
-
-	RenderingManager::getRenderingWidget()->showFramerate(on);
+    emit sourceMarksModified(_displayTimeAsFrame);
 }
 
 
@@ -1552,7 +1545,19 @@ void GLMixer::switchToSessionFile(QString filename){
 	}
 }
 
-void GLMixer::openSessionFile(QString filename)
+
+QString GLMixer::getRestorelastSessionFilename()
+{
+    // recent files history
+    QStringList files = settings.value("recentFileList").toStringList();
+    // if the option to restore last session is ON, give the name of the session file top of the recent list
+    if (_restoreLastSession && files.size() > 0)
+        return files[0];
+    else
+        return QString();
+}
+
+void GLMixer::openSessionFile()
 {
 	// unpause if it was
 	actionPause->setChecked ( false );
@@ -1561,10 +1566,6 @@ void GLMixer::openSessionFile(QString filename)
 	QObject::disconnect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );
 	RenderingManager::getSessionSwitcher()->setOverlay(1.0);
 	actionToggleRenderingVisible->setEnabled(true);
-
-	// in case the argument is valid, use it
-	if (!filename.isNull())
-		currentSessionFileName = filename;
 
 	// Ok, ready to load XML ?
 	QDomDocument doc;
@@ -1901,12 +1902,6 @@ void GLMixer::readSettings()
     if (settings.contains("RenderingEncoder"))
     	RenderingManager::getRecorder()->restoreState(settings.value("RenderingEncoder").toByteArray());
 
-	// boolean options
-    if (settings.contains("DisplayTimeAsFrames"))
-    	actionShow_frames->setChecked(settings.value("DisplayTimeAsFrames").toBool());
-    if (settings.contains("DisplayFramerate"))
-    	actionShowFPS->setChecked(settings.value("DisplayFramerate").toBool());
-
     // Cursor status
     if (settings.contains("CursorMode")) {
 		switch((ViewRenderWidget::cursorMode) settings.value("CursorMode").toInt()) {
@@ -1975,10 +1970,6 @@ void GLMixer::saveSettings()
     settings.setValue("VideoFileDialog", mfd->saveState());
     settings.setValue("SessionFileDialog", sfd->saveState());
     settings.setValue("RenderingEncoder", RenderingManager::getRecorder()->saveState());
-
-	// boolean options
-	settings.setValue("DisplayTimeAsFrames", actionShow_frames->isChecked());
-	settings.setValue("DisplayFramerate", actionShowFPS->isChecked());
 
     // Cursor status
     settings.setValue("CursorMode", RenderingManager::getRenderingWidget()->getCursorMode() );
@@ -2158,6 +2149,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> fsmi;
     OutputRenderWindow::getInstance()->setFullScreenMonitor(fsmi);
 
+    // p. options
+    bool fs = false;
+    stream >> fs >> _displayTimeAsFrame >> _restoreLastSession;
+    RenderingManager::getRenderingWidget()->setFramerateVisible(fs);
+
 	// Refresh widgets to make changes visible
 	OutputRenderWindow::getInstance()->refresh();
 	outputpreview->refresh();
@@ -2225,6 +2221,9 @@ QByteArray GLMixer::getPreferences() const {
 
     // o. fullscreen monitor index
     stream << (uint) OutputRenderWindow::getInstance()->getFullScreenMonitor();
+
+    // p. options
+    stream << RenderingManager::getRenderingWidget()->getFramerateVisible() << _displayTimeAsFrame << _restoreLastSession;
 
 	return data;
 }
