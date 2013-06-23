@@ -90,23 +90,22 @@ if(USE_FREEFRAMEGL)
     SET(FREEFRAMEGL_DIR_HOST "${FREEFRAMEGL_PATH}/Source/FFGLHost/")
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         ${FREEFRAMEGL_DIR_HOST}/FFGLPluginInstance.cpp
-        FFGLPluginSource.cpp )
+        FFGLPluginSourceStack.cpp
+        FFGLPluginSource.cpp
+        FFGLSource.cpp )
 
     if( APPLE )
         SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
             ${FREEFRAMEGL_DIR_HOST}/OSX/OSXPluginInstance.cpp
-#            ${FREEFRAMEGL_DIR_HOST}/OSX/OSXTimer.cpp
             )
     else( APPLE )
         if( WIN32 )
             SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
                 ${FREEFRAMEGL_DIR_HOST}/Win32/WinPluginInstance.cpp
-#                ${FREEFRAMEGL_DIR_HOST}/Win32/WinTimer.cpp
                 )
         else( WIN32 )
             SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
                 ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxPluginInstance.cpp
-#                ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxTimer.cpp
                 )
         endif( WIN32 )
     endif( APPLE )

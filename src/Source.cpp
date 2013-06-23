@@ -61,10 +61,6 @@ Source::Source() :
 
 	textureCoordinates.setCoords(0.0, 0.0, 1.0, 1.0);
 
-#ifdef FFGL
-    ffgl_plugin = NULL;
-#endif
-
 	// default name
 	name = QString("Source");
 }
@@ -87,13 +83,8 @@ Source::Source(GLuint texture, double depth)
 Source::~Source() {
 
     if (clones)
-        delete clones;  // TODO: why not clean clone list ?
+        delete clones;
 
-#ifdef FFGL
-    // if exists delete existing plugin
-    if (ffgl_plugin)
-        delete ffgl_plugin;
-#endif
 }
 
 void Source::setName(QString n) {
@@ -371,8 +362,10 @@ void Source::endEffectsSection() const {
 
 void Source::bind() const {
 #ifdef FFGL
-    if (ffgl_plugin)
-        ffgl_plugin->bind();
+    // if there are plugins, then the texture to bind is the
+    // texture of the top of the plugins stack
+    if ( !_ffgl_plugins.isEmpty() )
+        _ffgl_plugins.top()->bind();
     else
 #endif
         glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -380,15 +373,8 @@ void Source::bind() const {
 
 void Source::update()  {
 #ifdef FFGL
-    if (ffgl_plugin) {
-        try{
-            ffgl_plugin->update();
-        } catch (FFGLPluginException &e) {
-            qCritical() <<  e.message();
-            delete ffgl_plugin;
-            ffgl_plugin = NULL;
-        }
-    }
+    // to be called at the end of the update of the source itself
+    _ffgl_plugins.update();
 #endif
 }
 
@@ -580,40 +566,29 @@ QString Source::getFilterName(filterType c) {
 // freeframe gl plugin
 #ifdef FFGL
 
-void Source::setFreeframeGLPlugin(QString filename) {
 
-    // if already exists delete existing plugin
-    if (ffgl_plugin) {
-        delete ffgl_plugin;
-        ffgl_plugin = NULL;
-    }
+void Source::addFreeframeGLPlugin(QString filename) {
 
-    if (filename.isEmpty())
-        return;
+    // descriptor for the source texture, used also to store size
+    FFGLTextureStruct it;
+    it.Handle = (GLuint) getTextureIndex();
+    it.Width = getFrameWidth();
+    it.Height = getFrameHeight();
+    it.HardwareWidth = getFrameWidth();
+    it.HardwareHeight = getFrameHeight();
 
-    if ( !QFileInfo(filename).isFile()) {
-        qCritical() << "FreeFrameGL plugin given an invalid file ("<< filename <<")";
-        return;
-    }
-
-    try {
-        // create new plugin with this file
-        ffgl_plugin = new FFGLPluginSource(filename, textureIndex, getFrameWidth(), getFrameHeight());
-    }
-    catch (FFGLPluginException &e)  {
-        ffgl_plugin = NULL;
-        qCritical() << e.message();
-    }
-    catch (...)  {
-        ffgl_plugin = NULL;
-        qCritical() << "Unknown error in FreeframeGL plugin.";
-    }
+    _ffgl_plugins.pushNewPlugin(filename, getFrameWidth(), getFrameHeight(), it);
 
 }
 
-QString Source::getFreeframeGLPlugin() {
+//QStringList Source::getFreeframeGLPluginList() {
 
-    return ffgl_plugin == NULL ? "" : ffgl_plugin->fileName();
+
+//}
+
+bool Source::hasFreeframeGLPlugin() {
+
+    return !_ffgl_plugins.isEmpty();
 }
 
 

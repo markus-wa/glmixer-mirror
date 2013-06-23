@@ -655,8 +655,13 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
 #ifdef FFGL
         // properties for FFGL plugin
-        boolManager->setValue(idToProperty["FreeframeGL"], !s->getFreeframeGLPlugin().isEmpty() );
-        infoManager->setValue(idToProperty["Plugin file"], s->getFreeframeGLPlugin() );
+        if (s->hasFreeframeGLPlugin()) {
+            boolManager->setValue(idToProperty["FreeframeGL"], true);
+//            infoManager->setValue(idToProperty["Plugin file"], s->getFreeframeGLPlugin()->filename() );
+        } else {
+            boolManager->setValue(idToProperty["FreeframeGL"], false);
+//            infoManager->setValue(idToProperty["Plugin file"], "");
+        }
 #endif
 		// properties of filters
 		if (ViewRenderWidget::filteringEnabled()) {
@@ -1041,7 +1046,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
             fileName = QFileDialog::getOpenFileName(0, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
             idToProperty["Plugin file"]->setEnabled(value);
         }
-        currentItem->setFreeframeGLPlugin(fileName);
+        currentItem->addFreeframeGLPlugin(fileName);
         infoManager->setValue(idToProperty["Plugin file"], fileName );
     }
 #endif

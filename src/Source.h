@@ -35,6 +35,9 @@
 #include "common.h"
 #include "defines.h"
 
+#ifdef FFGL
+#include "FFGLPluginSourceStack.h"
+#endif
 
 class SourceConstructorException : public AllocationException {
 public:
@@ -81,7 +84,8 @@ public:
 		RENDERING_SOURCE,
 		CAPTURE_SOURCE,
 		SVG_SOURCE,
-		SHM_SOURCE
+        SHM_SOURCE,
+        FFGL_SOURCE
 	} RTTI;
 	virtual RTTI rtti() const { return type; }
 	virtual bool isPlayable() const { return playable; }
@@ -113,12 +117,7 @@ public:
 	// OpenGL access to the texture index
 	inline GLuint getTextureIndex() {
 		return textureIndex;
-	}
-
-	/**
-	 * Manipulation
-     */
-
+    }
     /*
      * unique ID of this source
      *
@@ -436,8 +435,8 @@ public:
 
 #ifdef FFGL
     // freeframe gl plugin
-    void setFreeframeGLPlugin(QString filename);
-    QString getFreeframeGLPlugin();
+    void addFreeframeGLPlugin(QString filename);
+    bool hasFreeframeGLPlugin();
 #endif
 
 protected:
@@ -500,7 +499,7 @@ protected:
 
 #ifdef FFGL
     // freeframe plugin
-    class FFGLPluginSource *ffgl_plugin;
+    FFGLPluginSourceStack _ffgl_plugins;
 #endif
 	// statics
 	static GLuint lastid;

@@ -40,6 +40,9 @@
 Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "CloneSource.h"
 Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
+#ifdef FFGL
+#include "FFGLSource.h"
+#endif
 
 #include "ViewRenderWidget.h"
 #include "CatalogView.h"
@@ -612,6 +615,50 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 	}
 
 	return ( (Source *) s );
+}
+#endif
+
+#ifdef FFGL
+Source *RenderingManager::newFreeframeGLSource(QString pluginFileName, int w, int h, double depth) {
+
+    GLuint textureIndex;
+    FFGLSource *s = 0;
+
+    if ( !QFileInfo(pluginFileName).isFile()) {
+        qCritical() << "RenderingManager|Invalid Freeframe plugin file ("<< pluginFileName <<")";
+        return 0;
+    }
+
+    // try to create the FFGL source
+    try {
+        // create the texture for this source
+        _renderwidget->makeCurrent();
+        glGenTextures(1, &textureIndex);
+        GLclampf lowpriority = 0.1;
+
+        glPrioritizeTextures(1, &textureIndex, &lowpriority);
+
+        // try to create the opencv source
+        s = new FFGLSource(pluginFileName, getAvailableDepthFrom(depth), w, h);
+        renameSource( s, _defaultSource->getName() + tr("FFGL") );
+
+    } catch (AllocationException &e){
+        qCritical() << "RenderingManager|Allocation Exception:" << e.message();
+        // return an invalid pointer
+        s = 0;
+    }
+    catch (FFGLPluginException &e)  {
+        qCritical() << "RenderingManager|Freeframe plugin error:" << e.message();
+        // return an invalid pointer
+        s = 0;
+    }
+    catch (...)  {
+        qCritical() << "RenderingManager|Unknown error in FreeframeGL plugin.";
+        // return an invalid pointer
+        s = 0;
+    }
+
+    return ( (Source *) s );
 }
 #endif
 

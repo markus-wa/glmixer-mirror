@@ -119,5 +119,6 @@
         <file>icons/fileclosed.png</file>
         <file>icons/notes.png</file>
         <file>icons/movieformat.png</file>
+        <file>icons/ffgl-source.png</file>
     </qresource>
 </RCC>

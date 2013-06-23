@@ -2181,6 +2181,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionAlgorithmSource"/>
     <addaction name="actionSvgSource"/>
     <addaction name="actionShmSource"/>
+    <addaction name="actionFreeframeSource"/>
     <addaction name="separator"/>
     <addaction name="currentSourceMenu"/>
     <addaction name="actionSelect_Next"/>
@@ -2277,6 +2278,7 @@ Uncheck to display the restart frame when stopped.</string>
    <addaction name="actionAlgorithmSource"/>
    <addaction name="actionSvgSource"/>
    <addaction name="actionShmSource"/>
+   <addaction name="actionFreeframeSource"/>
    <addaction name="actionCloneSource"/>
    <addaction name="separator"/>
    <addaction name="actionDeleteSource"/>
@@ -5550,6 +5552,18 @@ Shortcut:                                    Right</string>
    </property>
    <property name="statusTip">
     <string>Close current session</string>
+   </property>
+  </action>
+  <action name="actionFreeframeSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/ffgl-source.png</normaloff>:/glmixer/icons/ffgl-source.png</iconset>
+   </property>
+   <property name="text">
+    <string>New source Freeframe plugin</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N, F</string>
    </property>
   </action>
  </widget>

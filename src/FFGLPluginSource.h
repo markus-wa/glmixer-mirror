@@ -17,13 +17,16 @@ public:
 class FFGLPluginSource {
 public:
 
-    FFGLPluginSource(QString filename, unsigned int textureIndex, int w, int h);
+    FFGLPluginSource(QString filename, int w, int h, FFGLTextureStruct inputTexture);
     ~FFGLPluginSource();
 
     bool initialize();
     void update();
     void bind() const;
     inline QString fileName() { return _filename; }
+
+    FFGLTextureStruct FBOTextureStruct();
+    void setPaused(bool pause);
 
 private:
     // self management
@@ -38,10 +41,12 @@ private:
 
     // timer
     QElapsedTimer timer;
+    qint64 _elapsedtime;
+    bool _pause;
 
     // Frame buffer objet
     class QGLFramebufferObject *_fbo;
-
+    QSize _fboSize;
 };
 
 

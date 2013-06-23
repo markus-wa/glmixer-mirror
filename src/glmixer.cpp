@@ -132,6 +132,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     actionCameraSource->setVisible(false);
 #endif
 
+#ifndef FFGL
+    actionFreeframeSource->setVisible(false);
+#endif
+
     // add the show/hide menu items for the dock widgets
     toolBarsMenu->addAction(previewDockWidget->toggleViewAction());
     toolBarsMenu->addAction(sourceDockWidget->toggleViewAction());
@@ -892,6 +896,27 @@ void GLMixer::on_actionShmSource_triggered(){
 			qCritical() << shmd->getSelectedProcess() << '|' << tr("Could not create shared memory source.");
 	}
 }
+
+
+void GLMixer::on_actionFreeframeSource_triggered(){
+
+#ifdef FFGL
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+
+    int w = 256, h = 256;
+
+    if (!fileName.isEmpty()) {
+        Source *s = RenderingManager::getInstance()->newFreeframeGLSource(fileName, w, h);
+        if ( s ){
+            RenderingManager::getInstance()->addSourceToBasket(s);
+            qDebug() << s->getName() << '|' <<  tr("New FreeframeGL source created (")<< fileName << ").";
+            statusbar->showMessage( tr("Source created with the Freeframe GL plugin %1.").arg( fileName ), 3000 );
+        } else
+            qCritical() << fileName << '|' << tr("Could not create FreeframeGL source.");
+    }
+#endif
+}
+
 
 void GLMixer::on_actionAlgorithmSource_triggered(){
 
