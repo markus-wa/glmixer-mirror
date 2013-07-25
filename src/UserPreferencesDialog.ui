@@ -1199,6 +1199,82 @@ font: 75;</string>
          <widget class="QWidget" name="PageOptions">
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <item>
+            <widget class="QGroupBox" name="groupBox_4">
+             <property name="title">
+              <string>Language</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_13">
+              <item>
+               <widget class="QComboBox" name="languageSelection">
+                <item>
+                 <property name="text">
+                  <string>English (default)</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>System</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="useCustomDialogs">
+                <property name="toolTip">
+                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
+                </property>
+                <property name="statusTip">
+                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
+                </property>
+                <property name="text">
+                 <string>Use improved dialogs</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1" rowspan="2">
+               <widget class="QCheckBox" name="displayFramerate">
+                <property name="toolTip">
+                 <string>Shows the framerate in the upper right corner.</string>
+                </property>
+                <property name="text">
+                 <string>Display framerate</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0" rowspan="2">
+               <widget class="QCheckBox" name="restoreLastSession">
+                <property name="toolTip">
+                 <string>Re-open the last session when launching GLMixer.</string>
+                </property>
+                <property name="text">
+                 <string>Restore last session</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="displayTimeAsFrame">
+                <property name="toolTip">
+                 <string>Shows time information as frame count instead of hh:mm:ss.</string>
+                </property>
+                <property name="text">
+                 <string>Display time as frame</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
             <widget class="QGroupBox" name="VisualsGroupBox">
              <property name="title">
               <string>Visual appearance</string>
@@ -1311,64 +1387,6 @@ font: 75;</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_3">
-             <property name="title">
-              <string>System</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout">
-              <item row="0" column="0">
-               <widget class="QCheckBox" name="useCustomDialogs">
-                <property name="toolTip">
-                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
-                </property>
-                <property name="statusTip">
-                 <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
-                </property>
-                <property name="text">
-                 <string>Use improved dialogs</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1" rowspan="2">
-               <widget class="QCheckBox" name="displayFramerate">
-                <property name="toolTip">
-                 <string>Shows the framerate in the upper right corner.</string>
-                </property>
-                <property name="text">
-                 <string>Display framerate</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0" rowspan="2">
-               <widget class="QCheckBox" name="restoreLastSession">
-                <property name="toolTip">
-                 <string>Re-open the last session when launching GLMixer.</string>
-                </property>
-                <property name="text">
-                 <string>Restore last session</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QCheckBox" name="displayTimeAsFrame">
-                <property name="toolTip">
-                 <string>Shows time information as frame count instead of hh:mm:ss.</string>
-                </property>
-                <property name="text">
-                 <string>Display time as frame</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
             <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1442,8 +1460,8 @@ font: 75;</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -61,6 +61,11 @@ int main(int argc, char **argv)
     splash.show();
     a.processEvents();
 
+    QTranslator translator;
+    translator.load(QString("trans_") + "fr");
+    a.installTranslator(&translator);
+    a.processEvents();
+
     // 0. Test OpenGL support
     if (!QGLFormat::hasOpenGL() )
     	qFatal( "%s", qPrintable( QObject::tr("This system does not support OpenGL and this program cannot work without it.")) );

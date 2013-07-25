@@ -19,6 +19,11 @@ IF (WIN32)
     SET (QT_USE_QTMAIN TRUE)
 ENDIF (WIN32)
 
+SET(LANG
+    "${CMAKE_SOURCE_DIR}/locals/trans_fr.ts"
+    "${CMAKE_SOURCE_DIR}/locals/trans_cz.ts"
+)
+
 # the variable "qtproject_SRCS" contains all .cpp files of this project
 SET(GLMIXER_SRCS
     common.cpp
@@ -122,6 +127,8 @@ endif(USE_OPENCV)
 qt4_wrap_ui(GLMIXER_UIS_H ${GLMIXER_UIS})
 qt4_add_resources(GLMIXER_RCS_SRCS ${GLMIXER_RCS})
 
+qt4_create_translation(GLMIXER_QM ${GLMIXER_SRCS} ${GLMIXER_UIS_H} ${LANG})
+
 # Don't forget to include output directory, otherwise
 # the UI file won't be wrapped!
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
@@ -210,6 +217,7 @@ ELSE(APPLE)
                 ${GLMIXER_SRCS}
                 ${GLMIXER_UIS_H}
                 ${GLMIXER_RCS_SRCS}
+                ${GLMIXER_QM}
         )
 
         # Linux cpack info

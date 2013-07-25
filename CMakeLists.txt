@@ -287,4 +287,9 @@ endif(GLEW_LIBRARY)
 ##
 
 add_subdirectory(libQtProperty)
+
+if(USE_FREEFRAMEGL)
+    add_subdirectory(FreeFramePlugins)
+endif(USE_FREEFRAMEGL)
+
 add_subdirectory(src)

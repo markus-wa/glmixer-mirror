@@ -50,13 +50,13 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
 	static bool testDone = false;
 	if (!testDone) {
 		if (!glRenderWidgetFormat.rgba())
-          qFatal( "%s", qPrintable( tr("Your OpenGL drivers could not set RGBA buffer; cannot perform OpenGL rendering.") ));
+          qFatal( "%s", qPrintable( QObject::tr("Your OpenGL drivers could not set RGBA buffer; cannot perform OpenGL rendering.") ));
 		if (!glRenderWidgetFormat.directRendering())
-          qCritical() << tr("Your OpenGL drivers could not set direct rendering.\nRendering will be (very) slow.");
+          qCritical() << QObject::tr("Your OpenGL drivers could not set direct rendering.\nRendering will be (very) slow.");
 		if (!glRenderWidgetFormat.doubleBuffer())
-          qCritical() << tr("Your OpenGL drivers could not set double buffering.\nRendering will be slow.");
+          qCritical() << QObject::tr("Your OpenGL drivers could not set double buffering.\nRendering will be slow.");
 		if (glRenderWidgetFormat.swapInterval() > 0)
-          qCritical() << tr("Your OpenGL drivers are configured with VSYNC enabled.\nRendering will be slow.\n\nDisable VSYNC in your system graphics properties to avoid this problem.");
+          qCritical() << QObject::tr("Your OpenGL drivers are configured with VSYNC enabled.\nRendering will be slow.\n\nDisable VSYNC in your system graphics properties to avoid this problem.");
         testDone = true;
 	}
 
@@ -195,8 +195,8 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
 
     verticalLayout->addWidget(buttonBox);
 
-    openglExtensionsDialog->setWindowTitle(tr("OpenGL Extensions"));
-    label->setText(tr("Running with OpenGL version %1\n\nSupported extensions:").arg((char *)glGetString(GL_VERSION)));
+    openglExtensionsDialog->setWindowTitle(QObject::tr("OpenGL Extensions"));
+    label->setText(QObject::tr("Running with OpenGL version %1\n\nSupported extensions:").arg((char *)glGetString(GL_VERSION)));
 
     QAbstractItemModel *model = new QStringListModel(glSupportedExtensions());
     extensionsListView->setModel(model);

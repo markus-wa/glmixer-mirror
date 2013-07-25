@@ -117,16 +117,16 @@ public:
 	CustomBlendingWidget(QWidget *parent, Source *s): QDialog(parent) {
 
 		setObjectName(QString::fromUtf8("CustomBlendingWidget"));
-		setWindowTitle(tr( "Custom blending"));
+        setWindowTitle(QObject::tr( "Custom blending"));
 
 		QGridLayout *gridLayout = new QGridLayout(this);
 		QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-		QLabel *label = new QLabel(tr("On white"), this);
+        QLabel *label = new QLabel(QObject::tr("On white"), this);
         gridLayout->addWidget(label, 0, 2, 1, 1);
-		label = new QLabel(tr("Transparent"), this);
+        label = new QLabel(QObject::tr("Transparent"), this);
         gridLayout->addWidget(label, 0, 1, 1, 1);
-		label = new QLabel(tr("On black"), this);
+        label = new QLabel(QObject::tr("On black"), this);
         gridLayout->addWidget(label, 0, 0, 1, 1);
 
 		SourceDisplayWidget *previewWhitebg = new SourceDisplayWidget(this, SourceDisplayWidget::WHITE);
@@ -145,36 +145,36 @@ public:
 		previewBlackbg->setSizePolicy(sizePolicy);
         gridLayout->addWidget(previewBlackbg, 1, 0, 1, 1);
 
-	    QLabel *labelEquation = new QLabel(tr("Equation :"), this);
+        QLabel *labelEquation = new QLabel(QObject::tr("Equation :"), this);
         gridLayout->addWidget(labelEquation, 2, 0, 1, 1);
 	    equationBox = new QComboBox(this);
         equationBox->insertItems(0, QStringList()
-				 << tr("Add")
-				 << tr("Subtract")
-				 << tr("Reverse")
-				 << tr("Minimum")
-				 << tr("Maximum")
+                 << QObject::tr("Add")
+                 << QObject::tr("SubQObject::tract")
+                 << QObject::tr("Reverse")
+                 << QObject::tr("Minimum")
+                 << QObject::tr("Maximum")
         );
         gridLayout->addWidget(equationBox, 2, 1, 1, 2);
 
-	    QLabel *labelFunction = new QLabel(tr("Destination :"), this);
+        QLabel *labelFunction = new QLabel(QObject::tr("Destination :"), this);
         gridLayout->addWidget(labelFunction, 3, 0, 1, 1);
 	    functionBox = new QComboBox(this);
 		functionBox->insertItems(0, QStringList()
-	             << tr("Zero")
-	             << tr("One")
-	             << tr("Source Color")
-	             << tr("Invert Source Color ")
-	             << tr("Background color")
-	             << tr("Invert Background Color")
-	             << tr("Source Alpha")
-	             << tr("Invert Source Alpha")
-	             << tr("Background Alpha")
-	             << tr("Invert Background Alpha")
+                 << QObject::tr("Zero")
+                 << QObject::tr("One")
+                 << QObject::tr("Source Color")
+                 << QObject::tr("Invert Source Color ")
+                 << QObject::tr("Background color")
+                 << QObject::tr("Invert Background Color")
+                 << QObject::tr("Source Alpha")
+                 << QObject::tr("Invert Source Alpha")
+                 << QObject::tr("Background Alpha")
+                 << QObject::tr("Invert Background Alpha")
 	            );
         gridLayout->addWidget(functionBox, 3, 1, 1, 2);
 
-	    QLabel *labelWarning = new QLabel(tr("Warning: some configurations do not allow to change\nthe transparency of the source anymore.\n"), this);
+        QLabel *labelWarning = new QLabel(QObject::tr("Warning: some configurations do not allow to change\nthe transparency of the source anymore.\n"), this);
         gridLayout->addWidget(labelWarning, 4, 0, 1, 3);
 
 	    QDialogButtonBox *dialogBox = new QDialogButtonBox(this);

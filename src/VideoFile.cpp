@@ -1170,11 +1170,11 @@ void ParsingThread::run()
 			if (av_seek_frame(is->pFormatCtx, is->videoStream, is->seek_pos, flags) < 0)
 			{
 				qDebug() << is->filename
-						<< tr("|Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos);
+                        << QObject::tr("|Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos);
 			}
 			// after seek,  we'll have to flush buffers
 			if (!is->videoq.flush())
-				qWarning() << is->filename << tr("|Flushing error.");
+                qWarning() << is->filename << QObject::tr("|Flushing error.");
 
 			is->seek_backward = false;
 			is->seek_req = false;
@@ -1204,7 +1204,7 @@ void ParsingThread::run()
 			// if could NOT read full frame, was it an error?
 			if (is->pFormatCtx->pb->error)
 			{
-				qWarning() << is->filename << tr("|Could not read frame.");
+                qWarning() << is->filename << QObject::tr("|Could not read frame.");
 				break;
 			}
 			// no error; just wait a bit for the end of the packet and continue
@@ -1223,7 +1223,7 @@ void ParsingThread::run()
 
 	// request flushing of the video queue (this will end the decoding thread)
 	if (!is->videoq.flush())
-		qWarning() << is->filename << tr("|Flushing error at end.");
+        qWarning() << is->filename << QObject::tr("|Flushing error at end.");
 
 }
 

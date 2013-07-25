@@ -85,7 +85,7 @@ public:
 		QDialogButtonBox *DecisionButtonBox;
 
 		setObjectName(QString::fromUtf8("CaptureDialog"));
-		setWindowTitle(tr( "Frame captured"));
+        setWindowTitle(QObject::tr( "Frame captured"));
 		verticalLayout = new QVBoxLayout(this);
 
 		Question = new QLabel(this);
@@ -97,7 +97,7 @@ public:
 		verticalLayout->addWidget(Display);
 
 		Info = new QLabel(this);
-		Info->setText(tr("Original size: %1 x %2 px").arg(img.width()).arg(img.height()) );
+        Info->setText(QObject::tr("Original size: %1 x %2 px").arg(img.width()).arg(img.height()) );
 		verticalLayout->addWidget(Info);
 
 		DecisionButtonBox = new QDialogButtonBox(this);
