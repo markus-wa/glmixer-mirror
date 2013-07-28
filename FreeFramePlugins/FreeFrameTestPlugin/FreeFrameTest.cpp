@@ -39,27 +39,50 @@ FreeFrameTest::FreeFrameTest()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-FFResult FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
+#ifdef FF_FAIL
+    // FFGL 1.5
+    DWORD   FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
+#else
+    // FFGL 1.6
+    FFResult FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
+#endif
 {
 
     return FF_SUCCESS;
 }
 
 
-FFResult FreeFrameTest::DeInitGL()
+#ifdef FF_FAIL
+    // FFGL 1.5
+    DWORD   FreeFrameTest::DeInitGL()
+#else
+    // FFGL 1.6
+    FFResult FreeFrameTest::DeInitGL()
+#endif
 {
 
   return FF_SUCCESS;
 }
 
-FFResult FreeFrameTest::SetTime(double time)
+#ifdef FF_FAIL
+    // FFGL 1.5
+    DWORD   FreeFrameTest::SetTime(double time)
+#else
+    // FFGL 1.6
+    FFResult FreeFrameTest::SetTime(double time)
+#endif
 {
   m_curTime = time;
   return FF_SUCCESS;
 }
 
-FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+#ifdef FF_FAIL
+    // FFGL 1.5
+    DWORD	FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+#else
+    // FFGL 1.6
+    FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+#endif
 {
   if (pGL->numInputTextures<1)
     return FF_FAIL;
