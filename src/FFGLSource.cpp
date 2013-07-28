@@ -39,7 +39,7 @@ FFGLSource::FFGLSource(QString pluginFileName, double d, int w, int h):
     aspectratio = double(w) / double(h);
 
     if ( !QFileInfo(pluginFileName).isFile()) {
-        qCritical() << "FFGLSource given an invalid file ("<< pluginFileName <<")";
+        qCritical() << tr("FFGLSource given an invalid file") << " ("<< pluginFileName <<")";
         SourceConstructorException().raise();
     }
 
@@ -53,7 +53,8 @@ FFGLSource::FFGLSource(QString pluginFileName, double d, int w, int h):
     _plugin = new FFGLPluginSource(pluginFileName, w, h, it);
 
     // no exceptions raised, continue with the plugin
-    _plugin->initialize();
+    // try to update
+    _plugin->update();
 
     // this source behaves like a normal source, except the texture index
     // comes from the plugin's FBO
@@ -93,9 +94,15 @@ void FFGLSource::play(bool on)
 
 void FFGLSource::update() {
 
-    if (_plugin && _playing)
+    try {
         // call the update on the ffgl plugin
-        _plugin->update();
+        if (_plugin && _playing)
+            _plugin->update();
+    }
+    catch (FFGLPluginException &e) {
+        this->play(false);
+        qCritical() <<  e.message() << QObject::tr("\nThe source was stopped.");
+    }
 
     // normal update (other ffgl plugins)
     Source::update();

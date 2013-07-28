@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     a.processEvents();
 
     QTranslator translator;
-    translator.load(QString("trans_") + "fr");
+    translator.load(QString("trans_") + QLocale::system().name());
     a.installTranslator(&translator);
     a.processEvents();
 
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
     a.processEvents();
 
 	// 2. The output rendering window ; the rendering manager widget has to be existing
-    OutputRenderWindow::getInstance()->setWindowTitle(QString("Output Window"));
+    OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("Output Window"));
     OutputRenderWindow::getInstance()->show();
     a.processEvents();
 

@@ -24,7 +24,7 @@ SET(LANG
     "${CMAKE_SOURCE_DIR}/locals/trans_cz.ts"
 )
 
-# the variable "qtproject_SRCS" contains all .cpp files of this project
+# the variable "GLMIXER_SRCS" contains all .cpp files of this project
 SET(GLMIXER_SRCS
     common.cpp
     glRenderWidget.cpp
@@ -166,6 +166,7 @@ IF(APPLE)
             ${GLMIXER_SRCS}
             ${GLMIXER_UIS_H}
             ${GLMIXER_RCS_SRCS}
+            ${GLMIXER_QM}
     )
 
     # OSX cpack info
@@ -193,6 +194,7 @@ ELSE(APPLE)
                 ${GLMIXER_SRCS}
                 ${GLMIXER_UIS_H}
                 ${GLMIXER_RCS_SRCS}
+                ${GLMIXER_QM}
                 ${RES_FILES}
         )
 

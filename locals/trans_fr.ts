@@ -6,7 +6,7 @@
     <message>
         <location filename="../src/glmixer.cpp" line="1318"/>
         <source>Graphic Live Mixer</source>
-        <translation type="unfinished">Graphic Live Mixer</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/glmixer.cpp" line="1319"/>
@@ -21,17 +21,7 @@ License: 	GNU GPL version 3&lt;/p&gt;
 &lt;p&gt;Copyright 2009-2011 Bruno Herbelin&lt;/p&gt;
 &lt;p&gt;Updates and source code at: &lt;br&gt;
    	&lt;a href=&quot;http://code.google.com/p/glmixer/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#7d400a;&quot;&gt;http://code.google.com/p/glmixer/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;GLMixer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation.&lt;/p&gt;&lt;p&gt;GLMixer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details (see http://www.gnu.org/licenses).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Sans Serif&apos;; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p&gt;GLMixer is a video mixing software for live performance.&lt;/p&gt;
-&lt;p&gt;Author:	Bruno Herbelin&lt;br&gt;
-Contact:	bruno.herbelin@gmail.com&lt;br&gt;
-License: 	GNU GPL version 3&lt;/p&gt;
-&lt;p&gt;Copyright 2009-2011 Bruno Herbelin&lt;/p&gt;
-&lt;p&gt;Updates and source code at: &lt;br&gt;
-   	&lt;a href=&quot;http://code.google.com/p/glmixer/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#7d400a;&quot;&gt;http://code.google.com/p/glmixer/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;GLMixer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation.&lt;/p&gt;&lt;p&gt;GLMixer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details (see http://www.gnu.org/licenses).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/glmixer.cpp" line="1339"/>
@@ -185,11 +175,6 @@ License: 	GNU GPL version 3&lt;/p&gt;
 <context>
     <name>CameraDialog</name>
     <message>
-        <location filename="../src/CameraDialog.cpp" line="46"/>
-        <source>Preview disabled in this version.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_CameraDialog.h" line="90"/>
         <source>Camera Selection Dialog</source>
         <translation type="unfinished"></translation>
@@ -219,436 +204,22 @@ License: 	GNU GPL version 3&lt;/p&gt;
         <source>Camera 3</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../src/CameraDialog.cpp" line="46"/>
+        <source>Preview disabled in this version.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FFGLSource</name>
+    <message>
+        <location filename="../src/FFGLSource.cpp" line="42"/>
+        <source>FFGLSource given an invalid file</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>GLMixer</name>
-    <message>
-        <location filename="../src/glmixer.cpp" line="493"/>
-        <source>%1 -- Problem</source>
-        <translation>%1 -- Problème</translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="498"/>
-        <source>%1 -- Fatal error</source>
-        <translation>%1 -- Erreur fatale</translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="625"/>
-        <source>Open Files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="653"/>
-        <location filename="../src/glmixer.cpp" line="1863"/>
-        <source>|New media source created with file </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="655"/>
-        <source>|Could not create media source with this file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="659"/>
-        <source>|The file could not be loaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="667"/>
-        <source>%1 media source(s) created; you can now drop them.</source>
-        <translation>%1 source(s) crées; vous pouvez maintenant les déposer.</translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="841"/>
-        <source>OpenCV device source %1 was cloned.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="842"/>
-        <source>The device source %1 was cloned.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="844"/>
-        <source>New OpenCV source created (device index %2).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="845"/>
-        <source>Source created with OpenCV drivers for Camera %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="848"/>
-        <source>Could not open OpenCV device index %2. </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="859"/>
-        <source>OpenSVG file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="859"/>
-        <source>Scalable Vector Graphics (*.svg)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="865"/>
-        <source>File does not exist or is unreadable.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="874"/>
-        <source>New vector Graphics source created with file </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="875"/>
-        <source>Source created with the vector graphics file %1.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="877"/>
-        <source>Could not create a vector graphics source with this file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="893"/>
-        <source>New shared memory source created (</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="894"/>
-        <source>Source created with the process %1.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="896"/>
-        <source>Could not create shared memory source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="904"/>
-        <source>Choose FFGL Plugin file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="904"/>
-        <source>Freeframe GL Plugin (*.so *.dll *.bundle)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="912"/>
-        <source>New FreeframeGL source created (</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="913"/>
-        <source>Source created with the Freeframe GL plugin %1.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="915"/>
-        <source>Could not create FreeframeGL source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="933"/>
-        <source>New Algorithm source created (</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="934"/>
-        <source>Source created with the algorithm %1.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="936"/>
-        <source>Could not create algorithm source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="946"/>
-        <source>|New rendering loopback source created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="947"/>
-        <source>Source created with the rendering output loopback.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="949"/>
-        <source>Could not create rendering loopback source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="960"/>
-        <source>|New clone of source %1 created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="961"/>
-        <source>The current source has been cloned.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="963"/>
-        <source>Could not clone source %1.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="976"/>
-        <source>Create a source with this image ?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="983"/>
-        <source>|New capture source created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="986"/>
-        <source>Could not create capture source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="996"/>
-        <source>Save this image ?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1011"/>
-        <source>Save captured image</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1023"/>
-        <source>|Could not save file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1026"/>
-        <source>|Snapshot saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1062"/>
-        <source>This source was cloned %1 times; Do you want to delete all the clones too?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1070"/>
-        <source>Source %1 deleted.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1080"/>
-        <location filename="../src/glmixer.cpp" line="1086"/>
-        <source>Source %1 selected.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1376"/>
-        <source>&amp;%1 - %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1390"/>
-        <source>Session file %1 loaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1408"/>
-        <source>The session have been modified.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1409"/>
-        <source>Do you want to save your changes ?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1470"/>
-        <source>| Problem writing; </source>
-        <translation>| Problème d&apos;écriture;</translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1471"/>
-        <source>|Cannot save file %1.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1506"/>
-        <source>File %1 saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1517"/>
-        <location filename="../src/glmixer.cpp" line="1534"/>
-        <location filename="../src/glmixer.cpp" line="1738"/>
-        <source>GLMixer session (*.glm)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1604"/>
-        <location filename="../src/glmixer.cpp" line="1747"/>
-        <source>|Problem reading file; </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1605"/>
-        <location filename="../src/glmixer.cpp" line="1612"/>
-        <location filename="../src/glmixer.cpp" line="1622"/>
-        <location filename="../src/glmixer.cpp" line="1748"/>
-        <location filename="../src/glmixer.cpp" line="1754"/>
-        <location filename="../src/glmixer.cpp" line="1763"/>
-        <source>|Cannot open file.</source>
-        <translation>|Impossible d&apos;ouvrir le fichier.</translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1611"/>
-        <location filename="../src/glmixer.cpp" line="1753"/>
-        <source>|XML parsing error line </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1621"/>
-        <source>|This is not a GLMixer session file; </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1626"/>
-        <location filename="../src/glmixer.cpp" line="1766"/>
-        <source>|The version of the file is </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1626"/>
-        <location filename="../src/glmixer.cpp" line="1766"/>
-        <source> instead of </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1627"/>
-        <location filename="../src/glmixer.cpp" line="1767"/>
-        <source>|Incorrect file version. Trying to read what is compatible.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1634"/>
-        <location filename="../src/glmixer.cpp" line="1774"/>
-        <source>|There is no source to load.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1660"/>
-        <source>|Loading session.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1664"/>
-        <location filename="../src/glmixer.cpp" line="1782"/>
-        <source> error(s) occurred when reading session.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1671"/>
-        <source>|No configuration specified.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1762"/>
-        <source>|This is not a GLMixer session file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1779"/>
-        <source>|Adding list of sources.</source>
-        <translation>|Liste de sources ajoutée.</translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1785"/>
-        <source>Sources from %1 appended to %2.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1808"/>
-        <source>Cannot open more than %1 files at a time.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1818"/>
-        <source>File ignored (already loading another session).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1827"/>
-        <source>Not a valid file; Ignoring.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1831"/>
-        <source>Not a valid drop; Ignoring.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1846"/>
-        <source>Discarding %1 media files and %2 svg files; only loading the glm session.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1865"/>
-        <location filename="../src/glmixer.cpp" line="1883"/>
-        <source>Could not be created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1869"/>
-        <source>Could not be loaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1881"/>
-        <source>|New vector Graphics source created with file </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1892"/>
-        <source>Not all the dropped files could be loaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1979"/>
-        <source>All settings restored.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="2014"/>
-        <source>Settings saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="2031"/>
-        <source>Default layout restored.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="2188"/>
-        <source>Preferences loaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="2514"/>
-        <source>Open GLSL File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="2515"/>
-        <source>GLSL Fragment Shader (*.glsl *.fsh *.txt)</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="2969"/>
         <source>&amp;Quit</source>
@@ -2079,17 +1650,17 @@ Uncheck to display the restart frame when stopped.</source>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3603"/>
         <source>&amp;File</source>
-        <translation>&amp;Fichier</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3604"/>
         <source>&amp;View</source>
-        <translation>&amp;Vues</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3605"/>
         <source>Zoom</source>
-        <translation>Zoom</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3606"/>
@@ -2104,7 +1675,7 @@ Uncheck to display the restart frame when stopped.</source>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3608"/>
         <source>&amp;Help</source>
-        <translation>Aide</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3609"/>
@@ -2125,12 +1696,12 @@ Uncheck to display the restart frame when stopped.</source>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3618"/>
         <source>&amp;Tools</source>
-        <translation>Ou&amp;tils</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3619"/>
         <source>&amp;Rendering</source>
-        <translation>&amp;Rendu graphique</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3621"/>
@@ -2471,6 +2042,433 @@ Uncheck to display the restart frame when stopped.</source>
         <source>Personnal notes for this session</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="493"/>
+        <source>%1 -- Problem</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="498"/>
+        <source>%1 -- Fatal error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="625"/>
+        <source>Open Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="653"/>
+        <location filename="../src/glmixer.cpp" line="1863"/>
+        <source>|New media source created with file </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="655"/>
+        <source>|Could not create media source with this file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="659"/>
+        <source>|The file could not be loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="667"/>
+        <source>%1 media source(s) created; you can now drop them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="841"/>
+        <source>OpenCV device source %1 was cloned.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="842"/>
+        <source>The device source %1 was cloned.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="844"/>
+        <source>New OpenCV source created (device index %2).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="845"/>
+        <source>Source created with OpenCV drivers for Camera %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="848"/>
+        <source>Could not open OpenCV device index %2. </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="859"/>
+        <source>OpenSVG file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="859"/>
+        <source>Scalable Vector Graphics (*.svg)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="865"/>
+        <source>File does not exist or is unreadable.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="874"/>
+        <source>New vector Graphics source created with file </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="875"/>
+        <source>Source created with the vector graphics file %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="877"/>
+        <source>Could not create a vector graphics source with this file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="893"/>
+        <source>New shared memory source created (</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="894"/>
+        <source>Source created with the process %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="896"/>
+        <source>Could not create shared memory source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="904"/>
+        <source>Choose FFGL Plugin file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="904"/>
+        <source>Freeframe GL Plugin (*.so *.dll *.bundle)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="912"/>
+        <source>New FreeframeGL source created (</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="913"/>
+        <source>Source created with the Freeframe GL plugin %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="915"/>
+        <source>Could not create FreeframeGL source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="933"/>
+        <source>New Algorithm source created (</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="934"/>
+        <source>Source created with the algorithm %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="936"/>
+        <source>Could not create algorithm source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="946"/>
+        <source>|New rendering loopback source created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="947"/>
+        <source>Source created with the rendering output loopback.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="949"/>
+        <source>Could not create rendering loopback source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="960"/>
+        <source>|New clone of source %1 created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="961"/>
+        <source>The current source has been cloned.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="963"/>
+        <source>Could not clone source %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="976"/>
+        <source>Create a source with this image ?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="983"/>
+        <source>|New capture source created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="986"/>
+        <source>Could not create capture source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="996"/>
+        <source>Save this image ?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1011"/>
+        <source>Save captured image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1023"/>
+        <source>|Could not save file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1026"/>
+        <source>|Snapshot saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1062"/>
+        <source>This source was cloned %1 times; Do you want to delete all the clones too?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1070"/>
+        <source>Source %1 deleted.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1080"/>
+        <location filename="../src/glmixer.cpp" line="1086"/>
+        <source>Source %1 selected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1376"/>
+        <source>&amp;%1 - %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1390"/>
+        <source>Session file %1 loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1408"/>
+        <source>The session have been modified.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1409"/>
+        <source>Do you want to save your changes ?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1470"/>
+        <source>| Problem writing; </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1471"/>
+        <source>|Cannot save file %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1506"/>
+        <source>File %1 saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1517"/>
+        <location filename="../src/glmixer.cpp" line="1534"/>
+        <location filename="../src/glmixer.cpp" line="1738"/>
+        <source>GLMixer session (*.glm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1604"/>
+        <location filename="../src/glmixer.cpp" line="1747"/>
+        <source>|Problem reading file; </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1605"/>
+        <location filename="../src/glmixer.cpp" line="1612"/>
+        <location filename="../src/glmixer.cpp" line="1622"/>
+        <location filename="../src/glmixer.cpp" line="1748"/>
+        <location filename="../src/glmixer.cpp" line="1754"/>
+        <location filename="../src/glmixer.cpp" line="1763"/>
+        <source>|Cannot open file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1611"/>
+        <location filename="../src/glmixer.cpp" line="1753"/>
+        <source>|XML parsing error line </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1621"/>
+        <source>|This is not a GLMixer session file; </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1626"/>
+        <location filename="../src/glmixer.cpp" line="1766"/>
+        <source>|The version of the file is </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1626"/>
+        <location filename="../src/glmixer.cpp" line="1766"/>
+        <source> instead of </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1627"/>
+        <location filename="../src/glmixer.cpp" line="1767"/>
+        <source>|Incorrect file version. Trying to read what is compatible.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1634"/>
+        <location filename="../src/glmixer.cpp" line="1774"/>
+        <source>|There is no source to load.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1660"/>
+        <source>|Loading session.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1664"/>
+        <location filename="../src/glmixer.cpp" line="1782"/>
+        <source> error(s) occurred when reading session.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1671"/>
+        <source>|No configuration specified.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1762"/>
+        <source>|This is not a GLMixer session file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1779"/>
+        <source>|Adding list of sources.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1785"/>
+        <source>Sources from %1 appended to %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1808"/>
+        <source>Cannot open more than %1 files at a time.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1818"/>
+        <source>File ignored (already loading another session).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1827"/>
+        <source>Not a valid file; Ignoring.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1831"/>
+        <source>Not a valid drop; Ignoring.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1846"/>
+        <source>Discarding %1 media files and %2 svg files; only loading the glm session.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1865"/>
+        <location filename="../src/glmixer.cpp" line="1883"/>
+        <source>Could not be created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1869"/>
+        <source>Could not be loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1881"/>
+        <source>|New vector Graphics source created with file </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1892"/>
+        <source>Not all the dropped files could be loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1979"/>
+        <source>All settings restored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="2014"/>
+        <source>Settings saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="2031"/>
+        <source>Default layout restored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="2188"/>
+        <source>Preferences loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="2514"/>
+        <source>Open GLSL File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="2515"/>
+        <source>GLSL Fragment Shader (*.glsl *.fsh *.txt)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>GammaLevelsWidget</name>
@@ -2503,16 +2501,6 @@ Uncheck to display the restart frame when stopped.</source>
 </context>
 <context>
     <name>MixingToolboxWidget</name>
-    <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="563"/>
-        <source>MixingToolboxWidget|Mixing presets restored (</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="563"/>
-        <source> user presets)</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="998"/>
         <source>Mixing</source>
@@ -2988,6 +2976,16 @@ Uncheck to display the restart frame when stopped.</source>
         <source>Presets</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../src/MixingToolboxWidget.cpp" line="563"/>
+        <source>MixingToolboxWidget|Mixing presets restored (</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/MixingToolboxWidget.cpp" line="563"/>
+        <source> user presets)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>OpencvSource</name>
@@ -3200,7 +3198,7 @@ the transparency of the source anymore.
     <message>
         <location filename="../src/View.cpp" line="109"/>
         <source>Zoom</source>
-        <translation type="unfinished">Zoom</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/View.cpp" line="111"/>
@@ -3296,6 +3294,68 @@ Please check the logs for details.</source>
     <message>
         <location filename="../src/main.cpp" line="81"/>
         <source>Could not initiate shared memory manager</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="85"/>
+        <source>Output Window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="15"/>
+        <source>FreeframeGL plugin could not be instanciated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="21"/>
+        <source>FreeframeGL plugin could not be loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="32"/>
+        <source>FreeframeGL plugin created</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="141"/>
+        <source>FreeframeGL plugin could not process OpenGL. Probably missing an input texture.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="177"/>
+        <source>FreeframeGL plugin initialized</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="181"/>
+        <source>FreeframeGL plugin could not be initialized</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="186"/>
+        <source>FreeframeGL plugin could not create FBO</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="18"/>
+        <source>FreeFrameGL plugin given an invalid file name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="39"/>
+        <source>Unknown error in FreeframeGL plugin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="55"/>
+        <source>
+The plugin was removed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLSource.cpp" line="104"/>
+        <source>
+The source was stopped.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3470,167 +3530,193 @@ Exiting...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="643"/>
-        <source>FFGL</source>
+        <location filename="../src/RenderingManager.cpp" line="628"/>
+        <source>RenderingManager|Invalid Freeframe plugin file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="754"/>
+        <location filename="../src/RenderingManager.cpp" line="648"/>
+        <source>RenderingManager|New FreeframeGL plugin source: Allocation Exception.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="653"/>
+        <source>RenderingManager|New FreeframeGL plugin source: FFGL error.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="658"/>
+        <source>RenderingManager|New FreeframeGL plugin source: Unknown error.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="681"/>
+        <source>Algo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="731"/>
+        <location filename="../src/RenderingManager.cpp" line="733"/>
+        <source>Clone</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="756"/>
         <source>RenderingManager|Not enough memory to insert the source into the stack.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="757"/>
+        <location filename="../src/RenderingManager.cpp" line="759"/>
         <source>RenderingManager|You have reached the maximum amount of source supported (%1).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="909"/>
+        <location filename="../src/RenderingManager.cpp" line="911"/>
         <source>|Source deleted.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1302"/>
+        <location filename="../src/RenderingManager.cpp" line="1304"/>
         <source>Qt JPEG plugin not found; using XPM format (slower).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1304"/>
+        <location filename="../src/RenderingManager.cpp" line="1306"/>
         <source>Could not save captured source (XPM format).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1307"/>
+        <location filename="../src/RenderingManager.cpp" line="1309"/>
         <source>Could not save captured source (JPG format).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1468"/>
+        <location filename="../src/RenderingManager.cpp" line="1470"/>
         <source>|Media source created with </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1471"/>
+        <location filename="../src/RenderingManager.cpp" line="1473"/>
         <source>|Could not be created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1476"/>
+        <location filename="../src/RenderingManager.cpp" line="1478"/>
         <source>|Could not load </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1481"/>
+        <location filename="../src/RenderingManager.cpp" line="1483"/>
         <source>|No file named %1 or %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1491"/>
+        <location filename="../src/RenderingManager.cpp" line="1493"/>
         <source>|Could not allocate memory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1501"/>
+        <location filename="../src/RenderingManager.cpp" line="1503"/>
         <source>|Could not open OpenCV device index %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1504"/>
+        <location filename="../src/RenderingManager.cpp" line="1506"/>
         <source>|OpenCV source created (device index %2).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1517"/>
+        <location filename="../src/RenderingManager.cpp" line="1519"/>
         <source>|Could not create algorithm source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1520"/>
+        <location filename="../src/RenderingManager.cpp" line="1522"/>
         <source>|Algorithm source created (</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1530"/>
+        <location filename="../src/RenderingManager.cpp" line="1532"/>
         <source>|Could not connect to the program %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1533"/>
+        <location filename="../src/RenderingManager.cpp" line="1535"/>
         <source>|Shared memory source created (</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1539"/>
+        <location filename="../src/RenderingManager.cpp" line="1541"/>
         <source>|Could not create rendering loop-back source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1542"/>
+        <location filename="../src/RenderingManager.cpp" line="1544"/>
         <source>|Rendering loop-back source created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1558"/>
+        <location filename="../src/RenderingManager.cpp" line="1560"/>
         <source>|Could not create capture source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1561"/>
+        <location filename="../src/RenderingManager.cpp" line="1563"/>
         <source>|Capture source created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1573"/>
+        <location filename="../src/RenderingManager.cpp" line="1575"/>
         <source>|Could not create vector graphics source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1576"/>
+        <location filename="../src/RenderingManager.cpp" line="1578"/>
         <source>|Vector graphics source created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1620"/>
+        <location filename="../src/RenderingManager.cpp" line="1622"/>
         <source>|Clone of source %1 created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1622"/>
+        <location filename="../src/RenderingManager.cpp" line="1624"/>
         <source>|Could not create clone source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1626"/>
+        <location filename="../src/RenderingManager.cpp" line="1628"/>
         <source>|Cannot clone %2 ; no such source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1690"/>
+        <location filename="../src/RenderingManager.cpp" line="1692"/>
         <source>All sources paused.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1690"/>
+        <location filename="../src/RenderingManager.cpp" line="1692"/>
         <source>All source un-paused.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1748"/>
+        <location filename="../src/RenderingManager.cpp" line="1750"/>
         <source>Invalid format for shared memory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1757"/>
+        <location filename="../src/RenderingManager.cpp" line="1759"/>
         <source>Unable to create shared memory:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1759"/>
+        <location filename="../src/RenderingManager.cpp" line="1761"/>
         <source>Unable to attach shared memory:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1764"/>
+        <location filename="../src/RenderingManager.cpp" line="1766"/>
         <source>Sharing to memory enabled (%1x%2, %3 bytes).</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3789,11 +3875,6 @@ Restart the source after fixing the problem.</source>
 </context>
 <context>
     <name>UserPreferencesDialog</name>
-    <message>
-        <location filename="../src/UserPreferencesDialog.cpp" line="356"/>
-        <source>Select a directory</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="936"/>
         <source>User preferences</source>
@@ -4342,30 +4423,6 @@ the user to select a file name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1167"/>
-        <source>Visual appearance</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1169"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1172"/>
-        <source>Use anti alisasing for rendering interface (improves visual appearance)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1174"/>
-        <source>Use Anti-aliasing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1176"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1180"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1184"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1188"/>
-        <source>Representation of icon transparency in mixing view</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1147"/>
         <source>System</source>
         <translation type="unfinished"></translation>
@@ -4412,8 +4469,37 @@ the user to select a file name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1167"/>
+        <source>Visual appearance</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1169"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1172"/>
+        <source>Use anti alisasing for rendering interface (improves visual appearance)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1174"/>
+        <source>Use Anti-aliasing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1176"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1180"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1184"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1188"/>
+        <source>Representation of icon transparency in mixing view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_UserPreferencesDialog.h" line="1191"/>
         <source>Defaults values</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/UserPreferencesDialog.cpp" line="359"/>
+        <source>Select a directory</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4459,7 +4545,7 @@ the user to select a file name</source>
     <message>
         <location filename="../src/VideoFile.cpp" line="563"/>
         <source>|Cannot open file.</source>
-        <translation type="unfinished">|Impossible d&apos;ouvrir le fichier.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/VideoFile.cpp" line="582"/>

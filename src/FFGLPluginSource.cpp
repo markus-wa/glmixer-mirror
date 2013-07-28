@@ -12,13 +12,13 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     // create plugin object (does not instanciate dll)
     _plugin = FFGLPluginInstance::New();
     if (!_plugin){
-        qWarning()<< _filename << "| FreeframeGL plugin could be instanciated.";
+        qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not be instanciated");
         FFGLPluginException().raise();
     }
 
     // load dll plugin
     if (_plugin->Load(filename.toUtf8())==FF_FAIL){
-        qWarning()<< _filename << "| FreeframeGL plugin could not be loaded.";
+        qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not be loaded");
         FFGLPluginException().raise();
     }
 
@@ -29,7 +29,7 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     _inputTexture.HardwareWidth = inputTexture.HardwareWidth;
     _inputTexture.HardwareHeight = inputTexture.HardwareHeight;
 
-   qDebug() << _filename << "| FreeframeGL plugin created ("<< _inputTexture.Handle <<", "<< _inputTexture.Width << _inputTexture.Height <<")";
+    qDebug() << _filename << "| " << QObject::tr("FreeframeGL plugin created") << " ("<< _inputTexture.Handle <<", "<< _inputTexture.Width << _inputTexture.Height <<")";
 }
 
 FFGLPluginSource::~FFGLPluginSource()
@@ -138,7 +138,7 @@ void FFGLPluginSource::update()
 
         // through exception once opengl has returned to normal
         if ( callresult != FF_SUCCESS ){
-            qWarning()<< _filename << "| FreeframeGL plugin could not process OpenGL.";
+            qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not process OpenGL. Probably missing an input texture.");
             FFGLPluginException().raise();
         }
     }
@@ -170,18 +170,20 @@ bool FFGLPluginSource::initialize()
             //the FBO (plugin is rendered into our FBO)
             if ( _plugin->InstantiateGL( &_fboViewport ) == FF_SUCCESS ) {
 
+                timer.start();
+
                 // remember successful initialization
                 _initialized = true;
-                qDebug()<< _filename << "| FreeframeGL plugin initialized.";
+                qDebug()<< _filename << "| " << QObject::tr("FreeframeGL plugin initialized");
 
             }
             else {
-                qWarning()<< _filename << "| FreeframeGL plugin could not be initialized.";
+                qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not be initialized");
                 FFGLPluginException().raise();
             }
         }
         else{
-            qWarning()<< _filename << "| FreeframeGL plugin could not create FBO.";
+            qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not create FBO");
             FFGLPluginException().raise();
         }
     }

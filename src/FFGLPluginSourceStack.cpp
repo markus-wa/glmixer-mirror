@@ -15,7 +15,7 @@ FFGLPluginSourceStack::~FFGLPluginSourceStack()
 void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int height, FFGLTextureStruct inputTexture){
 
     if (filename.isEmpty() || !QFileInfo(filename).isFile()) {
-        qCritical() << "FreeFrameGL plugin given an invalid file name ('"<< filename <<"')";
+        qCritical() << QObject::tr("FreeFrameGL plugin given an invalid file name") << " ('"<< filename <<"')";
         return;
     }
 
@@ -36,7 +36,7 @@ void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int heigh
         qCritical() << e.message();
     }
     catch (...)  {
-        qCritical() << "Unknown error in FreeframeGL plugin.";
+        qCritical() << QObject::tr("Unknown error in FreeframeGL plugin");
     }
 
 }
@@ -46,12 +46,13 @@ void FFGLPluginSourceStack::update(){
 
     // update in the staking order, from original to top
     for (QStack::iterator it = begin(); it != end(); ) {
-        try{
+        try {
             (*it)->update();
             ++it;
-        } catch (FFGLPluginException &e) {
+        }
+        catch (FFGLPluginException &e) {
             erase(it);
-            qCritical() <<  e.message() << "\nThe plugin was removed";
+            qCritical() <<  e.message() << QObject::tr("\nThe plugin was removed");
         }
     }
 

@@ -61,6 +61,9 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     for( int i = 0; i < QApplication::desktop()->screenCount(); ++i)
         fullscreenMonitor->addItem(QString("Monitor %1").arg(i));
 
+    // fill in the list of available languages
+
+
 }
 
 UserPreferencesDialog::~UserPreferencesDialog()

@@ -625,7 +625,7 @@ Source *RenderingManager::newFreeframeGLSource(QString pluginFileName, int w, in
     FFGLSource *s = 0;
 
     if ( !QFileInfo(pluginFileName).isFile()) {
-        qCritical() << "RenderingManager|Invalid Freeframe plugin file ("<< pluginFileName <<")";
+        qCritical() << tr("RenderingManager|Invalid Freeframe plugin file") << " ("<< pluginFileName <<")";
         return 0;
     }
 
@@ -640,20 +640,22 @@ Source *RenderingManager::newFreeframeGLSource(QString pluginFileName, int w, in
 
         // try to create the opencv source
         s = new FFGLSource(pluginFileName, getAvailableDepthFrom(depth), w, h);
-        renameSource( s, _defaultSource->getName() + tr("FFGL") );
+
+        // all good, give it a name
+        renameSource( s, _defaultSource->getName() + QString("FFGL") );
 
     } catch (AllocationException &e){
-        qCritical() << "RenderingManager|Allocation Exception:" << e.message();
+        qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Allocation Exception.") << e.message();
         // return an invalid pointer
         s = 0;
     }
     catch (FFGLPluginException &e)  {
-        qCritical() << "RenderingManager|Freeframe plugin error:" << e.message();
+        qWarning() << tr("RenderingManager|New FreeframeGL plugin source: FFGL error.") << e.message();
         // return an invalid pointer
         s = 0;
     }
     catch (...)  {
-        qCritical() << "RenderingManager|Unknown error in FreeframeGL plugin.";
+        qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Unknown error.");
         // return an invalid pointer
         s = 0;
     }
@@ -676,7 +678,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 	try {
 		// create a source appropriate
 		s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p, ia);
-		renameSource( s, _defaultSource->getName() + "Algo");
+        renameSource( s, _defaultSource->getName() + tr("Algo"));
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
@@ -726,9 +728,9 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 
         if ((*sit)->rtti() == Source::CLONE_SOURCE) {
             CloneSource *o = dynamic_cast<CloneSource *>(*sit);
-            renameSource( s, o->getOriginalName() + "Clone");
+            renameSource( s, o->getOriginalName() + tr("Clone"));
         } else
-            renameSource( s, (*sit)->getName() + "Clone");
+            renameSource( s, (*sit)->getName() + tr("Clone"));
 
 	} catch (AllocationException &e){
 		qWarning() << "RenderingManager|" << e.message();
