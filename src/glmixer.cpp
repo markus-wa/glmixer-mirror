@@ -278,7 +278,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 	// Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);
 	switcherDockWidgetContentsLayout->addWidget(switcherSession);
-	QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
+    QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
 	QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
 	QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
 	QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
@@ -1573,13 +1573,12 @@ void GLMixer::switchToSessionFile(QString filename){
 
 QString GLMixer::getRestorelastSessionFilename()
 {
-    // recent files history
-    QStringList files = settings.value("recentFileList").toStringList();
-    // if the option to restore last session is ON, give the name of the session file top of the recent list
-    if (_restoreLastSession && files.size() > 0)
-        return files[0];
+    // if the option to restore last session is ON, give the name of the last session file
+    if (_restoreLastSession && settings.contains("lastSessionFileName"))
+        return settings.value("lastSessionFileName").toString();
     else
         return QString();
+
 }
 
 void GLMixer::openSessionFile()
@@ -2008,6 +2007,9 @@ void GLMixer::saveSettings()
 
     // Mixing presets
     settings.setValue("MixingPresets", mixingToolBox->saveState());
+
+    // last session file name
+    settings.setValue("lastSessionFileName", currentSessionFileName);
 
 	// make sure system saves settings NOW
     settings.sync();
