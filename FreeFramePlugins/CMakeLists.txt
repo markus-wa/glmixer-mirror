@@ -20,8 +20,7 @@ else(WIN32)
 
     else(APPLE)
         add_subdirectory(FreeFrameQtPlugin)
-     #   add_subdirectory(video4LinuxFFGLPlugin)
-
+        add_subdirectory(video4LinuxFFGLPlugin)
     endif(APPLE)
 
 endif(WIN32)
