@@ -6,11 +6,97 @@
 #include <QGLFramebufferObject>
 
 
+class FFGLPluginSourceInstance : public FFGLPluginInstance {
+
+public:
+
+    FFGLPluginSourceInstance() : FFGLPluginInstance() {}
+
+    bool hasProcessOpenGLCapability() {
+
+        FFMixed arg;
+        arg.UIntValue = FF_CAP_PROCESSOPENGL;
+        FFUInt32 returned = m_ffPluginMain(FF_GETPLUGINCAPS,arg,0).UIntValue;
+
+        return returned == FF_SUPPORTED;
+    }
+
+
+    QVariantHash getInfo() {
+        QVariantHash mapinfo;
+        FFMixed arg;
+        void *result = m_ffPluginMain(FF_GETINFO, arg, 0).PointerValue;
+        if (result!=NULL) {
+            PluginInfoStructTag *plugininfo = (PluginInfoStructTag*) result;
+            mapinfo.insert("Name", plugininfo->PluginName);
+            mapinfo.insert("Type", plugininfo->PluginType);
+        }
+        return mapinfo;
+    }
+
+    QVariantHash getExtendedInfo() {
+        QVariantHash mapinfo;
+        FFMixed arg;
+        void *result = m_ffPluginMain(FF_GETEXTENDEDINFO, arg, 0).PointerValue;
+        if (result!=NULL) {
+            PluginExtendedInfoStructTag *plugininfo = (PluginExtendedInfoStructTag*) result;
+            mapinfo.insert("Description", plugininfo->Description);
+            mapinfo.insert("About", plugininfo->About);
+            mapinfo.insert("VersionMajor", plugininfo->PluginMajorVersion);
+            mapinfo.insert("VersionMinor", plugininfo->PluginMinorVersion);
+        }
+        return mapinfo;
+    }
+
+    QVariantHash getParameters() {
+        QVariantHash params;
+
+        // fill in parameter map with default values
+        unsigned int i;
+        FFMixed arg;
+        FFUInt32 returned;
+        for (i=0; i<MAX_PARAMETERS && i<m_numParameters; i++)
+        {
+            arg.UIntValue = i;
+            FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
+            QVariant value;
+            switch ( ffParameterType ) {
+                case FF_TYPE_BOOLEAN:
+                    returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
+                    value.setValue(  *((bool *)&returned)  );
+                break;
+
+                case FF_TYPE_TEXT:
+                value.setValue( QString( (const char*) m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).PointerValue ) );
+                break;
+
+                default:
+                case FF_TYPE_STANDARD:
+                    returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
+                    value.setValue( *((float *)&returned) );
+                break;
+            }
+
+            // add it to the list
+            params.insert( QString(GetParameterName(i)), value);
+        }
+
+        return params;
+    }
+
+    unsigned int getNumParameters() {
+        return m_numParameters;
+    }
+
+
+};
+
+
 FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureStruct inputTexture)
     : _filename(filename), _initialized(false), _elapsedtime(0), _pause(false), _fboSize(w,h)
 {
     // create plugin object (does not instanciate dll)
-    _plugin = FFGLPluginInstance::New();
+    _plugin = (FFGLPluginSourceInstance *) FFGLPluginInstance::New();
     if (!_plugin){
         qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not be instanciated");
         FFGLPluginException().raise();
@@ -22,6 +108,23 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
         FFGLPluginException().raise();
     }
 
+    // ensure functionnalities plugin
+    if ( !_plugin->hasProcessOpenGLCapability()){
+        qWarning()<< _filename << "| " << QObject::tr("Invalid FreeframeGL plugin: does not have OpenGL support.");
+        FFGLPluginException().raise();
+    }
+
+    // fill in the information about this plugin
+    info = _plugin->getInfo();
+    info.unite(_plugin->getExtendedInfo());
+
+//    qDebug() << info;
+
+    // fill in the list of parameters
+    parameters = _plugin->getParameters();
+
+//    qDebug() << parameters;
+
     // descriptor for the source texture, used also to store size
     _inputTexture.Handle = inputTexture.Handle;
     _inputTexture.Width = inputTexture.Width;
@@ -29,7 +132,7 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     _inputTexture.HardwareWidth = inputTexture.HardwareWidth;
     _inputTexture.HardwareHeight = inputTexture.HardwareHeight;
 
-    qDebug() << _filename << "| " << QObject::tr("FreeframeGL plugin created") << " ("<< _inputTexture.Handle <<", "<< _inputTexture.Width << _inputTexture.Height <<")";
+    qDebug() << _filename << "| " << QObject::tr("FreeframeGL plugin created") << " ("<< info["Name"].toString() <<", "<< _inputTexture.Width << _inputTexture.Height <<")";
 }
 
 FFGLPluginSource::~FFGLPluginSource()

@@ -14,6 +14,8 @@ public:
     Exception *clone() const { return new FFGLPluginException(*this); }
 };
 
+
+
 class FFGLPluginSource {
 public:
 
@@ -28,6 +30,9 @@ public:
     FFGLTextureStruct FBOTextureStruct();
     void setPaused(bool pause);
 
+    QVariantHash parameters;
+    QVariantHash info;
+
 private:
     // self management
     QString _filename;
@@ -37,7 +42,7 @@ private:
     FFGLTextureStruct _inputTexture;
 
     // FFGL specialized objects for plugin
-    class FFGLPluginInstance *_plugin;
+    class FFGLPluginSourceInstance *_plugin;
 
     // timer
     QElapsedTimer timer;
