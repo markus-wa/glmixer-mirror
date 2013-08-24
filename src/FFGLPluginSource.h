@@ -28,13 +28,24 @@ public:
     inline QString fileName() { return _filename; }
 
     FFGLTextureStruct FBOTextureStruct();
-    void setPaused(bool pause);
 
-    QVariantHash parameters;
-    QVariantHash info;
+    // pause update
+    void setPaused(bool pause);
+    bool isPaused() { return _pause;}
+
+    // parameters
+    QVariantHash getParameters();
+    QVariantHash getParametersDefaults() { return parametersDefaults; }
+    QVariantHash getInfo() { return info; }
+    void setParameter(int parameterNum, QVariant value);
+
+    // reset
+    void restoreDefaults();
 
 private:
     // self management
+    QVariantHash parametersDefaults;
+    QVariantHash info;
     QString _filename;
     bool _initialized;
 

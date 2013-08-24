@@ -2059,7 +2059,7 @@ Uncheck to display the restart frame when stopped.</source>
     </message>
     <message>
         <location filename="../src/glmixer.cpp" line="653"/>
-        <location filename="../src/glmixer.cpp" line="1863"/>
+        <location filename="../src/glmixer.cpp" line="1862"/>
         <source>|New media source created with file </source>
         <translation type="unfinished"></translation>
     </message>
@@ -2307,165 +2307,165 @@ Uncheck to display the restart frame when stopped.</source>
     <message>
         <location filename="../src/glmixer.cpp" line="1517"/>
         <location filename="../src/glmixer.cpp" line="1534"/>
-        <location filename="../src/glmixer.cpp" line="1738"/>
+        <location filename="../src/glmixer.cpp" line="1737"/>
         <source>GLMixer session (*.glm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1604"/>
-        <location filename="../src/glmixer.cpp" line="1747"/>
+        <location filename="../src/glmixer.cpp" line="1603"/>
+        <location filename="../src/glmixer.cpp" line="1746"/>
         <source>|Problem reading file; </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1605"/>
-        <location filename="../src/glmixer.cpp" line="1612"/>
-        <location filename="../src/glmixer.cpp" line="1622"/>
-        <location filename="../src/glmixer.cpp" line="1748"/>
-        <location filename="../src/glmixer.cpp" line="1754"/>
-        <location filename="../src/glmixer.cpp" line="1763"/>
+        <location filename="../src/glmixer.cpp" line="1604"/>
+        <location filename="../src/glmixer.cpp" line="1611"/>
+        <location filename="../src/glmixer.cpp" line="1621"/>
+        <location filename="../src/glmixer.cpp" line="1747"/>
+        <location filename="../src/glmixer.cpp" line="1753"/>
+        <location filename="../src/glmixer.cpp" line="1762"/>
         <source>|Cannot open file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1611"/>
-        <location filename="../src/glmixer.cpp" line="1753"/>
+        <location filename="../src/glmixer.cpp" line="1610"/>
+        <location filename="../src/glmixer.cpp" line="1752"/>
         <source>|XML parsing error line </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1621"/>
+        <location filename="../src/glmixer.cpp" line="1620"/>
         <source>|This is not a GLMixer session file; </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1626"/>
-        <location filename="../src/glmixer.cpp" line="1766"/>
+        <location filename="../src/glmixer.cpp" line="1625"/>
+        <location filename="../src/glmixer.cpp" line="1765"/>
         <source>|The version of the file is </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1626"/>
-        <location filename="../src/glmixer.cpp" line="1766"/>
+        <location filename="../src/glmixer.cpp" line="1625"/>
+        <location filename="../src/glmixer.cpp" line="1765"/>
         <source> instead of </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1627"/>
-        <location filename="../src/glmixer.cpp" line="1767"/>
+        <location filename="../src/glmixer.cpp" line="1626"/>
+        <location filename="../src/glmixer.cpp" line="1766"/>
         <source>|Incorrect file version. Trying to read what is compatible.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1634"/>
-        <location filename="../src/glmixer.cpp" line="1774"/>
+        <location filename="../src/glmixer.cpp" line="1633"/>
+        <location filename="../src/glmixer.cpp" line="1773"/>
         <source>|There is no source to load.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1660"/>
+        <location filename="../src/glmixer.cpp" line="1659"/>
         <source>|Loading session.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1664"/>
-        <location filename="../src/glmixer.cpp" line="1782"/>
+        <location filename="../src/glmixer.cpp" line="1663"/>
+        <location filename="../src/glmixer.cpp" line="1781"/>
         <source> error(s) occurred when reading session.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1671"/>
+        <location filename="../src/glmixer.cpp" line="1670"/>
         <source>|No configuration specified.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1762"/>
+        <location filename="../src/glmixer.cpp" line="1761"/>
         <source>|This is not a GLMixer session file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1779"/>
+        <location filename="../src/glmixer.cpp" line="1778"/>
         <source>|Adding list of sources.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1785"/>
+        <location filename="../src/glmixer.cpp" line="1784"/>
         <source>Sources from %1 appended to %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1808"/>
+        <location filename="../src/glmixer.cpp" line="1807"/>
         <source>Cannot open more than %1 files at a time.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1818"/>
+        <location filename="../src/glmixer.cpp" line="1817"/>
         <source>File ignored (already loading another session).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1827"/>
+        <location filename="../src/glmixer.cpp" line="1826"/>
         <source>Not a valid file; Ignoring.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1831"/>
+        <location filename="../src/glmixer.cpp" line="1830"/>
         <source>Not a valid drop; Ignoring.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1846"/>
+        <location filename="../src/glmixer.cpp" line="1845"/>
         <source>Discarding %1 media files and %2 svg files; only loading the glm session.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1865"/>
-        <location filename="../src/glmixer.cpp" line="1883"/>
+        <location filename="../src/glmixer.cpp" line="1864"/>
+        <location filename="../src/glmixer.cpp" line="1882"/>
         <source>Could not be created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1869"/>
+        <location filename="../src/glmixer.cpp" line="1868"/>
         <source>Could not be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1881"/>
+        <location filename="../src/glmixer.cpp" line="1880"/>
         <source>|New vector Graphics source created with file </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1892"/>
+        <location filename="../src/glmixer.cpp" line="1891"/>
         <source>Not all the dropped files could be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1979"/>
+        <location filename="../src/glmixer.cpp" line="1978"/>
         <source>All settings restored.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="2014"/>
+        <location filename="../src/glmixer.cpp" line="2016"/>
         <source>Settings saved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="2031"/>
+        <location filename="../src/glmixer.cpp" line="2033"/>
         <source>Default layout restored.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="2188"/>
+        <location filename="../src/glmixer.cpp" line="2190"/>
         <source>Preferences loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="2514"/>
+        <location filename="../src/glmixer.cpp" line="2516"/>
         <source>Open GLSL File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="2515"/>
+        <location filename="../src/glmixer.cpp" line="2517"/>
         <source>GLSL Fragment Shader (*.glsl *.fsh *.txt)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2502,608 +2502,687 @@ Uncheck to display the restart frame when stopped.</source>
 <context>
     <name>MixingToolboxWidget</name>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="998"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1157"/>
         <source>Mixing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1000"/>
-        <source>Setup the source mixing mode and masks</source>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1161"/>
+        <source>Blending &amp; masking</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1002"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1162"/>
         <source>Custom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1005"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1165"/>
         <source>Blending mode
 (how the colors are mixed with other sources)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1009"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1169"/>
         <source>Blending mode\n(how the colors are mixed with other sources)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1011"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1240"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1247"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1251"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1255"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1171"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1392"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1401"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1405"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1409"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1413"/>
         <source>...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1013"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1173"/>
         <source>Base color 
 (tint of the source)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1017"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1177"/>
         <source>Base color \n(tint of the source)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1020"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1180"/>
         <source>Smoothed / Pixelated 
 (smooth between pixels or show square pixels)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1024"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1184"/>
         <source>Smoothed / Pixelated \n(smooth between pixels or show square pixels)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1026"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1186"/>
         <source>Pixelated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1028"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1188"/>
         <source>Layer mask 
 (smooth blending following an alpha mask)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1031"/>
-        <source>Blending</source>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1192"/>
+        <source>Gamma color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1032"/>
-        <source>Combination of colors and transparency</source>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1194"/>
+        <source>Color effects</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1034"/>
-        <source>Setup the gamma color filter</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1036"/>
-        <source>Gamma</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1037"/>
-        <source>Gamma correction of image luminance</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1040"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1197"/>
         <source>Choose a color inversion mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1043"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1200"/>
         <source>Color inversion mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1049"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1206"/>
         <source>Saturation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1051"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1208"/>
         <source>Saturation (intensity of colors)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1054"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1211"/>
         <source>Brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1056"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1213"/>
         <source>Brightness (dark or light)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1059"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1216"/>
         <source>Contrast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1061"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1218"/>
         <source>Contrast (uniform or sharp)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1064"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1221"/>
         <source>Hue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1066"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1223"/>
         <source>Color hue (shift in color tint)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1069"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1226"/>
         <source>Threshold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1071"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1228"/>
         <source>Threshold by color (anything below threshold is black, above is white)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1074"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1231"/>
         <source>Posterize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1076"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1233"/>
         <source>Posterize the image (reduce the number of colors)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1081"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1084"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1238"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1241"/>
         <source>Adjust the color filters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1087"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1244"/>
         <source>Reset saturation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1089"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1097"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1105"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1116"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1127"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1135"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1246"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1254"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1262"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1273"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1284"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1292"/>
         <source>Reset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1091"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1248"/>
         <source>Adjust saturation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1093"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1101"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1112"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1131"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1250"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1258"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1269"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1288"/>
         <source>%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1095"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1252"/>
         <source>Reset brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1099"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1256"/>
         <source>Adjust brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1103"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1260"/>
         <source>Reset contrast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1107"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1110"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1264"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1267"/>
         <source>Adjust contrast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1114"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1271"/>
         <source>Reset hue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1118"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1121"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1275"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1278"/>
         <source>Adjust color hue</source>
         <translation type="unfinished"></translation>
     </message>
     <message utf8="true">
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1123"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1280"/>
         <source>°</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1125"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1282"/>
         <source>Reset threshold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1129"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1286"/>
         <source>Adjust threshold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1133"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1290"/>
         <source>Reset posterization</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1137"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1294"/>
         <source>Adjust number of colors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1139"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1296"/>
         <source>/255</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1140"/>
-        <source>Color</source>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1298"/>
+        <source>Filters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1142"/>
-        <source>Setup image processing filters</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1148"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1303"/>
         <source>None</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1150"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1305"/>
         <source>No filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1153"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1308"/>
         <source>Blur</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1155"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1310"/>
         <source>Gaussian blur</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1158"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1313"/>
         <source>Blur +</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1160"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1315"/>
         <source>Median blur</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1163"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1318"/>
         <source>Sharpen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1165"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1320"/>
         <source>Sharpen 1x1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1168"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1323"/>
         <source>Sharpen +</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1170"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1325"/>
         <source>Sharpen 3x3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1173"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1328"/>
         <source>Edge -</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1175"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1330"/>
         <source>Gaussian edge detection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1178"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1333"/>
         <source>Edge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1180"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1335"/>
         <source>Laplace edge detection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1183"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1338"/>
         <source>Edge +</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1185"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1340"/>
         <source>Laplace strong edge detection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1188"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1343"/>
         <source>Emboss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1190"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1345"/>
         <source>Emboss </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1193"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1348"/>
         <source>Emboss +</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1195"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1350"/>
         <source>Emboss and edge detection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1198"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1353"/>
         <source>Erosion 3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1200"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1355"/>
         <source>Erosion 3x3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1203"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1358"/>
         <source>Erosion 5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1205"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1360"/>
         <source>Erosion 5x5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1208"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1363"/>
         <source>Erosion 7</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1210"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1365"/>
         <source>Erosion 7x7</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1213"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1368"/>
         <source>Dilation 3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1215"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1370"/>
         <source>Dilation 3x3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1218"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1373"/>
         <source>Dilation 5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1220"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1375"/>
         <source>Dilation 5x5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1223"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1378"/>
         <source>Dilation 7</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1225"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1380"/>
         <source>Dilation 7x7</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1230"/>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1233"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1385"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1388"/>
         <source>Imaging effects (convolution and morphological operators)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1235"/>
-        <source>Filter</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1236"/>
-        <source>Imaging special effects</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1238"/>
-        <source>Remove this preset.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1242"/>
-        <source>Double clic on a preset to apply it to the selected source(s).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1245"/>
-        <source>Update this preset with  the settings of the current source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1249"/>
-        <source>Apply the preset to the current source</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1253"/>
-        <source>Create a new preset from the settings of the current source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1256"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1394"/>
         <source>Presets</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="563"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1411"/>
+        <source>Remove this preset.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1396"/>
+        <source>Double clic on a preset to apply it to the selected source(s).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1391"/>
+        <source>FreeFrameGL plugins</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1407"/>
+        <source>Update this preset with  the settings of the current source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1403"/>
+        <source>Apply the preset to the current source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_MixingToolboxWidget.h" line="1399"/>
+        <source>Create a new preset from the settings of the current source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/MixingToolboxWidget.cpp" line="581"/>
         <source>MixingToolboxWidget|Mixing presets restored (</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="563"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="581"/>
         <source> user presets)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/MixingToolboxWidget.cpp" line="588"/>
+        <source>Choose FFGL Plugin file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/MixingToolboxWidget.cpp" line="588"/>
+        <source>Freeframe GL Plugin (*.so *.dll *.bundle)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>OpencvSource</name>
+    <name>PropertyBrowser</name>
     <message>
-        <location filename="../src/OpencvSource.cpp" line="110"/>
-        <source>Video capture slowed down by image format conversion.</source>
+        <location filename="../src/PropertyBrowser.cpp" line="128"/>
+        <source>Switch to Tree view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/PropertyBrowser.cpp" line="121"/>
+        <source>Switch to Groups view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/PropertyBrowser.cpp" line="115"/>
+        <source>Default value</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/PropertyBrowser.cpp" line="119"/>
+        <location filename="../src/PropertyBrowser.cpp" line="126"/>
+        <source>Reset all</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/PropertyBrowser.cpp" line="122"/>
+        <source>Expand tree</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/PropertyBrowser.cpp" line="123"/>
+        <source>Collapse tree</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="120"/>
+        <location filename="../src/FFGLPluginSource.cpp" line="183"/>
+        <source>FreeframeGL plugin could not be instanciated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="189"/>
+        <source>FreeframeGL plugin could not be loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="195"/>
+        <source>Invalid FreeframeGL plugin: does not have OpenGL support.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="214"/>
+        <source>FreeframeGL plugin created</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="319"/>
+        <source>FreeframeGL plugin could not process OpenGL. Probably missing an input texture.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="355"/>
+        <source>FreeframeGL plugin initialized</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="359"/>
+        <source>FreeframeGL plugin could not be initialized</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="364"/>
+        <source>FreeframeGL plugin could not create FBO</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="381"/>
+        <source>Parameter could not be set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="18"/>
+        <source>FreeFrameGL plugin given an invalid file name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="39"/>
+        <source>Unknown error in FreeframeGL plugin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="55"/>
+        <source>
+The plugin was removed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLSource.cpp" line="104"/>
+        <source>
+The source was stopped.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/MixingToolboxWidget.cpp" line="124"/>
         <source>Custom blending</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="125"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="129"/>
         <source>On white</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="127"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="131"/>
         <source>Transparent</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="129"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="133"/>
         <source>On black</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="148"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="152"/>
         <source>Equation :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="152"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="156"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="153"/>
-        <source>SubQObject::tract</source>
+        <location filename="../src/MixingToolboxWidget.cpp" line="157"/>
+        <source>Subtract</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="154"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="158"/>
         <source>Reverse</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="155"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="159"/>
         <source>Minimum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="156"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="160"/>
         <source>Maximum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="160"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="164"/>
         <source>Destination :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="164"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="168"/>
         <source>Zero</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="165"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="169"/>
         <source>One</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="166"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="170"/>
         <source>Source Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="167"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="171"/>
         <source>Invert Source Color </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="168"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="172"/>
         <source>Background color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="169"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="173"/>
         <source>Invert Background Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="170"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="174"/>
         <source>Source Alpha</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="171"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="175"/>
         <source>Invert Source Alpha</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="172"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="176"/>
         <source>Background Alpha</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="173"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="177"/>
         <source>Invert Background Alpha</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/MixingToolboxWidget.cpp" line="177"/>
+        <location filename="../src/MixingToolboxWidget.cpp" line="181"/>
         <source>Warning: some configurations do not allow to change
 the transparency of the source anymore.
 </source>
@@ -3299,63 +3378,6 @@ Please check the logs for details.</source>
     <message>
         <location filename="../src/main.cpp" line="85"/>
         <source>Output Window</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="15"/>
-        <source>FreeframeGL plugin could not be instanciated</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="21"/>
-        <source>FreeframeGL plugin could not be loaded</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="32"/>
-        <source>FreeframeGL plugin created</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="141"/>
-        <source>FreeframeGL plugin could not process OpenGL. Probably missing an input texture.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="177"/>
-        <source>FreeframeGL plugin initialized</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="181"/>
-        <source>FreeframeGL plugin could not be initialized</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="186"/>
-        <source>FreeframeGL plugin could not create FBO</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSourceStack.cpp" line="18"/>
-        <source>FreeFrameGL plugin given an invalid file name</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSourceStack.cpp" line="39"/>
-        <source>Unknown error in FreeframeGL plugin</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLPluginSourceStack.cpp" line="55"/>
-        <source>
-The plugin was removed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/FFGLSource.cpp" line="104"/>
-        <source>
-The source was stopped.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3738,13 +3760,13 @@ Exiting...</source>
     </message>
     <message>
         <location filename="../src/SessionSwitcherWidget.cpp" line="223"/>
-        <source>100% current</source>
+        <source>100%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/SessionSwitcherWidget.cpp" line="232"/>
-        <location filename="../src/SessionSwitcherWidget.cpp" line="606"/>
-        <source>No selection</source>
+        <location filename="../src/SessionSwitcherWidget.cpp" line="601"/>
+        <source>None</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3773,13 +3795,13 @@ Exiting...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/SessionSwitcherWidget.cpp" line="654"/>
+        <location filename="../src/SessionSwitcherWidget.cpp" line="649"/>
         <source>%1% %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/SessionSwitcherWidget.cpp" line="686"/>
-        <source>%1% current</source>
+        <location filename="../src/SessionSwitcherWidget.cpp" line="681"/>
+        <source>%1%</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3819,49 +3841,13 @@ Restart the source after fixing the problem.</source>
 <context>
     <name>SourcePropertyBrowser</name>
     <message>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="720"/>
+        <location filename="../src/SourcePropertyBrowser.cpp" line="626"/>
         <source>Yes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="720"/>
+        <location filename="../src/SourcePropertyBrowser.cpp" line="626"/>
         <source>No</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="1046"/>
-        <source>Choose FFGL Plugin file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="1046"/>
-        <source>Freeframe GL Plugin (*.so *.dll *.bundle)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="1214"/>
-        <source>Switch to Tree view</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="1216"/>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="1231"/>
-        <source>Reset all properties</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="1227"/>
-        <source>Switch to Groups view</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="1228"/>
-        <source>Expand tree</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/SourcePropertyBrowser.cpp" line="1229"/>
-        <source>Collapse tree</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

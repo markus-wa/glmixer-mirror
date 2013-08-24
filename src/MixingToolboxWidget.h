@@ -60,7 +60,6 @@ public Q_SLOTS:
     void on_hueSlider_valueChanged(int);
     void on_thresholdSlider_valueChanged(int);
     void on_posterizeSlider_valueChanged(int);
-    // and all reset buttons
     void on_saturationReset_pressed();
     void on_brightnessReset_pressed();
     void on_contrastReset_pressed();
@@ -70,6 +69,9 @@ public Q_SLOTS:
 
     // Effects page
     void on_filterList_currentRowChanged(int);
+
+    // Plugin page
+    void on_addPlugin_pressed();
 
 	// state restoration
 	QByteArray saveState() const;
@@ -92,6 +94,9 @@ private:
     QMap<QListWidgetItem *, Source *> _defaultPresets;
     QMap<QListWidgetItem *, Source *> _userPresets;
 
+#ifdef FFGL
+    class FFGLPluginBrowser *pluginBrowser;
+#endif
 };
 
 #endif /* MIXINGTOOLBOXWIDGET_H_ */

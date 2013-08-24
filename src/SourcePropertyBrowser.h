@@ -26,18 +26,11 @@
 #ifndef SOURCEPROPERTYBROWSER_H_
 #define SOURCEPROPERTYBROWSER_H_
 
-#include <QWidget>
-#include <QtCore/QMap>
-
+#include "PropertyBrowser.h"
 #include "SourceSet.h"
 
-class QtProperty;
-class QToolButton;
-class QComboBox;
-class QListWidget;
-class QSlider;
 
-class SourcePropertyBrowser  : public QWidget {
+class SourcePropertyBrowser  : public PropertyBrowser {
 
 	Q_OBJECT
 
@@ -56,81 +49,33 @@ public slots:
     void updateLayerProperties();
     void updateMarksProperties(bool showFrames);
 
-    // Update the source when an action is performed on a property in the browser
-    // This concerns every properties editable in the browser
-    void valueChanged(QString propertyName, const QColor &value);
     void valueChanged(QtProperty *property, const QColor &value);
     void valueChanged(QtProperty *property, const QPointF &value);
-    void valueChanged(QString propertyName, bool value);
     void valueChanged(QtProperty *property, bool value);
-    void valueChanged(QString propertyName, int value);
     void valueChanged(QtProperty *property, int value);
-    void enumChanged(QString propertyName, int value);
     void enumChanged(QtProperty *property, int value);
-	void valueChanged(QtProperty *property, double value);
-	void valueChanged(QtProperty *property, const QString &value);
+    void valueChanged(QtProperty *property, double value);
+    void valueChanged(QtProperty *property, const QString &value);
     void valueChanged(QtProperty *property, const QRectF &value);
-
-    // simple slots to always forward the property changed signals (to Mixing Tollbox for instance)
-	void propertyValueChanged(QtProperty *, bool);
-	void propertyValueChanged(QtProperty *, int);
-	void propertyValueChanged(QtProperty *, const QColor &);
-
-    // force expanding or collapsing of the property tree items
-    void setGlobalExpandState(bool expanded);
-    // utility slot for expanding all tree items
-    void expandAll() { setGlobalExpandState(true); }
-    // utility slot for collapsing all tree items
-    void collapseAll() { setGlobalExpandState(false); }
-    // Context menu actions
-    void ctxMenuGroup(const QPoint &);
-    void ctxMenuTree(const QPoint &);
-    void switchToTreeView();
-    void switchToGroupView();
-
-    void setPropertyEnabled(QString propertyName, bool enabled);
+    void resetAll();
+    void defaultValue();
 
 Q_SIGNALS:
-	void changed(Source *s);
-	void propertyChanged(QString, bool);
-	void propertyChanged(QString, int);
-	void propertyChanged(QString, const QColor &);
+    void changed(Source *s);
 
 private:
 
-	// property tree
-    QtProperty *root, *filter;
-	// utility lists of properties
-    QMap<Source::RTTI, QtProperty *> rttiToProperty;
-    QMap<QString, QtProperty *> idToProperty;
-    QMap<QString, bool> idToExpanded;
+    // property tree
+    QtProperty *root;
 
-    // the link with sources
-    void createPropertyTree();
-    void updatePropertyTree(Source *s);
-    void addProperty(QtProperty *property);
-    void updateExpandState();
-    Source *currentItem;
-
+    // implementation methods
     bool canChange();
 
-	// the property browsers
-	class QVBoxLayout *layout;
-	class QScrollArea *propertyGroupArea;
-	class QtTreePropertyBrowser *propertyTreeEditor;
-	class QtGroupBoxPropertyBrowser *propertyGroupEditor;
-
-    // managers for different data types
-    class QtGroupPropertyManager *groupManager;
-    class QtDoublePropertyManager *doubleManager;
-    class QtIntPropertyManager *intManager;
-    class QtStringPropertyManager *stringManager, *infoManager;
-    class QtColorPropertyManager *colorManager;
-    class QtPointFPropertyManager *pointManager;
-    class QtSizePropertyManager *sizeManager;
-    class QtEnumPropertyManager *enumManager;
-    class QtBoolPropertyManager *boolManager;
-    class QtRectFPropertyManager *rectManager;
+    // the link with sources
+    QMap<Source::RTTI, QtProperty *> rttiToProperty;
+    Source *currentItem;
+    void createSourcePropertyTree();
+    void updatePropertyTree();
 
 };
 

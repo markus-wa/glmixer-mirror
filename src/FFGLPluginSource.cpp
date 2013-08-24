@@ -42,14 +42,16 @@ public:
             PluginExtendedInfoStructTag *plugininfo = (PluginExtendedInfoStructTag*) result;
             mapinfo.insert("Description", plugininfo->Description);
             mapinfo.insert("About", plugininfo->About);
-            mapinfo.insert("VersionMajor", plugininfo->PluginMajorVersion);
-            mapinfo.insert("VersionMinor", plugininfo->PluginMinorVersion);
+            mapinfo.insert("Version", QString("%1.%2").arg(plugininfo->PluginMajorVersion).arg(plugininfo->PluginMinorVersion));
         }
         return mapinfo;
     }
 
-    QVariantHash getParameters() {
+    QVariantHash getParametersDefaults() {
         QVariantHash params;
+
+        if (m_ffPluginMain==NULL)
+            return params;
 
         // fill in parameter map with default values
         unsigned int i;
@@ -67,7 +69,7 @@ public:
                 break;
 
                 case FF_TYPE_TEXT:
-                value.setValue( QString( (const char*) m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).PointerValue ) );
+                    value.setValue( QString( (const char*) m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).PointerValue ) );
                 break;
 
                 default:
@@ -84,10 +86,90 @@ public:
         return params;
     }
 
+    QVariantHash getParameters()
+    {
+        QVariantHash params;
+
+        if (m_ffInstanceID==INVALIDINSTANCE)
+            return getParametersDefaults();
+
+        // fill in parameter map with default values
+        unsigned int i;
+        FFMixed arg;
+        FFUInt32 returned;
+        for (i=0; i<MAX_PARAMETERS && i<m_numParameters; i++)
+        {
+            arg.UIntValue = i;
+            FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
+            QVariant value;
+            switch ( ffParameterType ) {
+                case FF_TYPE_BOOLEAN:
+                    returned = m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID).UIntValue;
+                    value.setValue(  *((bool *)&returned)  );
+                break;
+
+                case FF_TYPE_TEXT:
+                    value.setValue( QString( (const char*) m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID).PointerValue ) );
+                break;
+
+                default:
+                case FF_TYPE_STANDARD:
+                    returned = m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID).UIntValue;
+                    value.setValue( *((float *)&returned) );
+                break;
+            }
+
+            // add it to the list
+            params.insert( QString(GetParameterName(i)), value);
+        }
+
+        qDebug() << params;
+        return params;
+    }
+
     unsigned int getNumParameters() {
         return m_numParameters;
     }
 
+    bool setParameter(unsigned int paramNum, QVariant value)
+    {
+        if (paramNum<0 || paramNum>=m_numParameters ||
+            m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
+            return false;
+
+        FFMixed arg;
+        arg.UIntValue = paramNum;
+        FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
+
+        SetParameterStruct ArgStruct;
+        ArgStruct.ParameterNumber = paramNum;
+        arg.PointerValue = &ArgStruct;
+
+        // depending on type assign value in data structure
+        if ( ffParameterType == FF_TYPE_STANDARD && value.canConvert(QVariant::Double) )
+        {
+            // Cast to pack our float into FFUInt32
+            float v = value.toFloat();
+            ArgStruct.NewParameterValue.UIntValue = *(FFUInt32 *)&v;
+            m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
+        }
+        else if ( ffParameterType == FF_TYPE_TEXT && value.canConvert(QVariant::String) )
+        {
+            // Cast to string
+            ArgStruct.NewParameterValue.PointerValue = value.toString().toAscii().data();
+            m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
+        }
+        else if ( ffParameterType == FF_TYPE_BOOLEAN && value.canConvert(QVariant::UInt) )
+        {
+            // Cast to unsigned int
+            ArgStruct.NewParameterValue.UIntValue = value.toUInt();
+            m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
+        }
+        else
+            return false;
+
+        return true;
+    }
 
 };
 
@@ -117,13 +199,10 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     // fill in the information about this plugin
     info = _plugin->getInfo();
     info.unite(_plugin->getExtendedInfo());
-
 //    qDebug() << info;
 
-    // fill in the list of parameters
-    parameters = _plugin->getParameters();
-
-//    qDebug() << parameters;
+    // remember default values
+    parametersDefaults = _plugin->getParametersDefaults();
 
     // descriptor for the source texture, used also to store size
     _inputTexture.Handle = inputTexture.Handle;
@@ -190,10 +269,6 @@ void FFGLPluginSource::update()
 
         //tell plugin about the current time
         _plugin->SetTime(((double) _elapsedtime) / 1000.0 );
-
-        // TEMPORARY : initialize all parameters to 0.5
-        for(int i = 0; !QString(_plugin->GetParameterName(i)).isEmpty(); ++i )
-            _plugin->SetFloatParameter(i, 0.5);
 
         //prepare the structure used to call
         //the plugin's ProcessOpenGL method
@@ -294,6 +369,31 @@ bool FFGLPluginSource::initialize()
     return _initialized;
 }
 
+
+QVariantHash FFGLPluginSource::getParameters()
+{
+    return _plugin->getParameters();
+}
+
+void FFGLPluginSource::setParameter(int parameterNum, QVariant value)
+{
+    if( !_plugin->setParameter(parameterNum, value) )
+        qWarning()<< _filename << "| " << QObject::tr("Parameter could not be set.");
+
+}
+
+void FFGLPluginSource::restoreDefaults()
+{
+    // iterate over the list of parameters
+    QHashIterator<QString, QVariant> i(parametersDefaults);
+    unsigned int paramNum = 0;
+    while (i.hasNext()) {
+        i.next();
+        setParameter(paramNum, i.value());
+        // increment paramNum
+        paramNum++;
+    }
+}
 
 void FFGLPluginSource::setPaused(bool pause) {
 

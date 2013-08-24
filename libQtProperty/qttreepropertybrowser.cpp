@@ -458,6 +458,9 @@ void QtTreePropertyBrowserPrivate::init(QWidget *parent)
     m_treeWidget->header()->setMovable(false);
     m_treeWidget->header()->setResizeMode(QHeaderView::Stretch);
 
+    // BHBN
+    m_treeWidget->setTextElideMode(Qt::ElideMiddle);
+
     m_expandIcon = drawIndicatorIcon(q_ptr->palette(), q_ptr->style());
 
     QObject::connect(m_treeWidget, SIGNAL(collapsed(const QModelIndex &)), q_ptr, SLOT(slotCollapsed(const QModelIndex &)));

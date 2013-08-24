@@ -205,7 +205,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 	easingCurvePicker->setViewMode(QListView::IconMode);
 	easingCurvePicker->setWrapping (false);
     easingCurvePicker->setIconSize(m_iconSize);
-    easingCurvePicker->setFixedHeight(m_iconSize.height()+34);
+    easingCurvePicker->setFixedHeight(m_iconSize.height()+24);
 	easingCurvePicker->setCurrentRow(3);
 
 	transitionTab->addTab( new QWidget(), "Auto");
@@ -220,7 +220,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
      * Tab manual
      */
     currentSessionLabel = new QLabel;
-    currentSessionLabel->setText(tr("100% current"));
+    currentSessionLabel->setText(tr("100%"));
     currentSessionLabel->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
     currentSessionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignBottom);
 
@@ -229,7 +229,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     overlayPreview->setMinimumSize(QSize(80, 60));
 
     nextSessionLabel = new QLabel;
-    nextSessionLabel->setText(tr("No selection"));
+    nextSessionLabel->setText(tr("None"));
     nextSessionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     nextSessionLabel->setAlignment(Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing);
     nextSessionLabel->setStyleSheet("QLabel::disabled {\ncolor: rgb(128, 0, 0);\n}");
@@ -289,7 +289,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 	folderHistory->setValidator(new folderValidator(this));
 	folderHistory->setInsertPolicy (QComboBox::InsertAtTop);
 	folderHistory->setMaxCount(MAX_RECENT_FOLDERS);
-	folderHistory->setMaximumWidth(250);
+//	folderHistory->setMaximumWidth(250);
 	folderHistory->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	folderHistory->setDuplicatesEnabled(false);
 
@@ -301,8 +301,8 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyView->setModel(proxyFolderModel);
     proxyView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     proxyView->resizeColumnToContents(1);
-    proxyView->resizeColumnToContents(2);
-    proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
+//    proxyView->resizeColumnToContents(2);
+//    proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
 
     connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
     connect(dirDeleteButton, SIGNAL(clicked()),  this, SLOT(discardFolder()));
@@ -531,17 +531,12 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
 	QListWidget *easingCurvePicker = new QListWidget;
     QPixmap pix(m_iconSize);
     QPainter painter(&pix);
-    QLinearGradient gradient(0,0, 0, m_iconSize.height());
-    gradient.setColorAt(0.0, QColor(240, 240, 240));
-    gradient.setColorAt(1.0, QColor(224, 224, 224));
-    QBrush brush(gradient);
-//    const QMetaObject &mo = QEasingCurve::staticMetaObject;
-//    QMetaEnum metaEnum = mo.enumerator(mo.indexOfEnumerator("Type"));
+
     // Skip QEasingCurve::Custom
     for (int i = 0; i < QEasingCurve::NCurveTypes - 3; ++i) {
-        painter.fillRect(QRect(QPoint(0, 0), m_iconSize), brush);
+        painter.fillRect(QRect(QPoint(0, 0), m_iconSize), QApplication::palette().base());
         QEasingCurve curve((QEasingCurve::Type)i);
-        painter.setPen(QColor(0, 0, 255, 64));
+        painter.setPen(QApplication::palette().alternateBase().color());
         qreal xAxis = m_iconSize.height()/1.15;
         qreal yAxis = m_iconSize.width()/5.5;
         painter.drawLine(0, xAxis, m_iconSize.width(),  xAxis);
@@ -570,7 +565,7 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
             curvePath.lineTo(to);
         }
         painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.strokePath(curvePath, QColor(32, 32, 32));
+        painter.strokePath(curvePath, QApplication::palette().text().color());
         painter.setRenderHint(QPainter::Antialiasing, false);
         QListWidgetItem *item = new QListWidgetItem;
         item->setIcon(QIcon(pix));
@@ -603,7 +598,7 @@ void SessionSwitcherWidget::resetTransitionSlider()
 	// ensure correct re-display
 	if (!nextSessionSelected) {
 		RenderingManager::getSessionSwitcher()->setTransitionType(RenderingManager::getSessionSwitcher()->getTransitionType());
-		nextSessionLabel->setText(tr("No selection"));
+        nextSessionLabel->setText(tr("None"));
 	}
 }
 
@@ -683,7 +678,7 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 			overlayPreview->playSource(true);
 		}
 		// show percent of mixing
-	    currentSessionLabel->setText(tr("%1% current").arg(ABS(t)));
+        currentSessionLabel->setText(tr("%1%").arg(ABS(t)));
 	}
 }
 

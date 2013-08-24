@@ -5,7 +5,7 @@
 
 #include "FreeFrameDelay.h"
 
-
+#define FFPARAM_DELAY 1.0
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,6 +37,10 @@ FreeFrameDelay::FreeFrameDelay()
     SetMinInputs(1);
     SetMaxInputs(1);
     SetTimeSupported(true);
+
+    // Parameters
+    SetParamInfo(FFPARAM_DELAY, "Delay", FF_TYPE_STANDARD, 0.5f);
+    delay = 0.5f;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,4 +141,30 @@ FreeFrameDelay::FreeFrameDelay()
   glDisable(GL_TEXTURE_2D);
 
   return FF_SUCCESS;
+}
+
+
+#ifdef FF_FAIL
+    // FFGL 1.5
+    DWORD	FreeFrameDelay::SetFloatParameter(unsigned int index, float value)
+#else
+    // FFGL 1.6
+    FFResult FreeFrameDelay::SetFloatParameter(unsigned int index, float value)
+#endif
+{
+    if (index == FFPARAM_DELAY) {
+        delay = value;
+        return FF_SUCCESS;
+    }
+
+    return FF_FAIL;
+}
+
+
+float FreeFrameDelay::GetFloatParameter(unsigned int index)
+{
+    if (index == FFPARAM_DELAY)
+        return delay;
+
+    return 0.0;
 }

@@ -66,91 +66,19 @@
 #endif
 
 
-QString getSizeString(float num);
 
-SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : QWidget (parent), root(0), filter(0), currentItem(0) {
+SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : PropertyBrowser(parent) {
 
-	layout = new QVBoxLayout(this);
-	layout->setContentsMargins(0, 0, 0, 0);
-	layout->setObjectName(QString::fromUtf8("verticalLayout"));
+    currentItem = NULL;
 
-	// property Group Box
-	propertyGroupEditor = new QtGroupBoxPropertyBrowser(this);
-	propertyGroupEditor->setObjectName(QString::fromUtf8("Property Groups"));
-	propertyGroupEditor->setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(propertyGroupEditor, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenuGroup(const QPoint &)));
+    // the top property holding all the sub-properties
+    root = groupManager->addProperty( QLatin1String("root") );
 
-	propertyGroupArea = new QScrollArea(this);
-	propertyGroupArea->setWidgetResizable(true);
-	propertyGroupArea->setWidget(propertyGroupEditor);
-	propertyGroupArea->setVisible(false);
-
-	// property TREE
-    propertyTreeEditor = new QtTreePropertyBrowser(this);
-    propertyTreeEditor->setObjectName(QString::fromUtf8("Property Tree"));
-    propertyTreeEditor->setContextMenuPolicy(Qt::CustomContextMenu);
-    propertyTreeEditor->setResizeMode(QtTreePropertyBrowser::Interactive);
-	connect(propertyTreeEditor, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenuTree(const QPoint &)));
-
-	// TODO ; read default from application config
-	propertyTreeEditor->setVisible(true);
-    layout->addWidget(propertyTreeEditor);
-
-    // create the property managers for every possible types
-    groupManager = new QtGroupPropertyManager(this);
-    doubleManager = new QtDoublePropertyManager(this);
-    intManager = new QtIntPropertyManager(this);
-    stringManager = new QtStringPropertyManager(this);
-    colorManager = new QtColorPropertyManager(this);
-    pointManager = new QtPointFPropertyManager(this);
-    enumManager = new QtEnumPropertyManager(this);
-    boolManager = new QtBoolPropertyManager(this);
-    rectManager = new QtRectFPropertyManager(this);
-
-	connect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
-				this, SLOT(propertyValueChanged(QtProperty *, const QColor &)));
-	connect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
-				this, SLOT(propertyValueChanged(QtProperty *, int)));
-	connect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
-				this, SLOT(propertyValueChanged(QtProperty *, int)));
-	connect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
-				this, SLOT(propertyValueChanged(QtProperty *, bool)));
-
-    // special managers which are not associated with a factory (i.e non editable)
-    infoManager = new QtStringPropertyManager(this);
-    sizeManager = new QtSizePropertyManager(this);
-
-    // use the managers to create the property tree
-	createPropertyTree();
-
-    // specify the factory for each of the property managers
-    QtDoubleSpinBoxFactory *doubleSpinBoxFactory = new QtDoubleSpinBoxFactory(this);    // for double
-    QtCheckBoxFactory *checkBoxFactory = new QtCheckBoxFactory(this);					// for bool
-    QtSpinBoxFactory *spinBoxFactory = new QtSpinBoxFactory(this);                      // for int
-    QtSliderFactory *sliderFactory = new QtSliderFactory(this);							// for int
-    QtLineEditFactory *lineEditFactory = new QtLineEditFactory(this);					// for text
-    QtEnumEditorFactory *comboBoxFactory = new QtEnumEditorFactory(this);				// for enum
-    QtColorEditorFactory *colorFactory = new QtColorEditorFactory(this);				// for color
-
-    propertyTreeEditor->setFactoryForManager(doubleManager, doubleSpinBoxFactory);
-    propertyTreeEditor->setFactoryForManager(intManager, spinBoxFactory);
-    propertyTreeEditor->setFactoryForManager(stringManager, lineEditFactory);
-    propertyTreeEditor->setFactoryForManager(colorManager, colorFactory);
-    propertyTreeEditor->setFactoryForManager(pointManager->subDoublePropertyManager(), doubleSpinBoxFactory);
-    propertyTreeEditor->setFactoryForManager(enumManager, comboBoxFactory);
-    propertyTreeEditor->setFactoryForManager(boolManager, checkBoxFactory);
-    propertyTreeEditor->setFactoryForManager(rectManager->subDoublePropertyManager(), doubleSpinBoxFactory);
-
-    propertyGroupEditor->setFactoryForManager(doubleManager, doubleSpinBoxFactory);
-    propertyGroupEditor->setFactoryForManager(intManager, sliderFactory);
-    propertyGroupEditor->setFactoryForManager(stringManager, lineEditFactory);
-    propertyGroupEditor->setFactoryForManager(colorManager, colorFactory);
-    propertyGroupEditor->setFactoryForManager(pointManager->subDoublePropertyManager(), doubleSpinBoxFactory);
-    propertyGroupEditor->setFactoryForManager(enumManager, comboBoxFactory);
-    propertyGroupEditor->setFactoryForManager(boolManager, checkBoxFactory);
-    propertyGroupEditor->setFactoryForManager(rectManager->subDoublePropertyManager(), doubleSpinBoxFactory);
+   // use the managers to create the property tree
+    createSourcePropertyTree();
 
 }
+
 
 QString aspectRatioToString(double ar)
 {
@@ -172,12 +100,9 @@ QString aspectRatioToString(double ar)
 }
 
 
-void SourcePropertyBrowser::createPropertyTree(){
+void SourcePropertyBrowser::createSourcePropertyTree(){
 
 	QtProperty *property;
-
-	// the top property holding all the source sub-properties
-	root = groupManager->addProperty( QLatin1String("Source root") );
 
 	// Name
 	property = stringManager->addProperty( QLatin1String("Name") );
@@ -578,37 +503,18 @@ void SourcePropertyBrowser::createPropertyTree(){
 }
 
 
-void SourcePropertyBrowser::setPropertyEnabled(QString propertyName, bool enabled){
 
-	if (idToProperty.contains(propertyName))
-		idToProperty[propertyName]->setEnabled(enabled);
-
-}
-
-void SourcePropertyBrowser::updatePropertyTree(Source *s){
+void SourcePropertyBrowser::updatePropertyTree(){
 
 	// if source is valid,
 	// then set the properties to the corresponding values from the source
-	if (s) {
+    if (currentItem) {
+
+        Source *s = currentItem;
 
 		// disconnect the managers to the corresponding value change
 		// because otherwise the source is modified by loopback calls to valueChanged slots.
-		disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
-					this, SLOT(valueChanged(QtProperty *, double)));
-		disconnect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
-					this, SLOT(valueChanged(QtProperty *, const QString &)));
-		disconnect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
-					this, SLOT(valueChanged(QtProperty *, const QColor &)));
-		disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)),
-					this, SLOT(valueChanged(QtProperty *, const QPointF &)));
-		disconnect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
-					this, SLOT(enumChanged(QtProperty *, int)));
-		disconnect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
-					this, SLOT(valueChanged(QtProperty *, int)));
-		disconnect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
-					this, SLOT(valueChanged(QtProperty *, bool)));
-		disconnect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
-					this, SLOT(valueChanged(QtProperty *, const QRectF &)));
+        disconnectManagers();
 
 		// general properties
 		stringManager->setValue(idToProperty["Name"], s->getName() );
@@ -780,46 +686,17 @@ void SourcePropertyBrowser::updatePropertyTree(Source *s){
 		}
 
 		// reconnect the managers to the corresponding value change
-		connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)),
-					this, SLOT(valueChanged(QtProperty *, double)));
-		connect(stringManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
-					this, SLOT(valueChanged(QtProperty *, const QString &)));
-		connect(colorManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
-					this, SLOT(valueChanged(QtProperty *, const QColor &)));
-		connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)),
-					this, SLOT(valueChanged(QtProperty *, const QPointF &)));
-		connect(enumManager, SIGNAL(valueChanged(QtProperty *, int)),
-					this, SLOT(enumChanged(QtProperty *, int)));
-		connect(intManager, SIGNAL(valueChanged(QtProperty *, int)),
-					this, SLOT(valueChanged(QtProperty *, int)));
-		connect(boolManager, SIGNAL(valueChanged(QtProperty *, bool)),
-					this, SLOT(valueChanged(QtProperty *, bool)));
-		connect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)),
-					this, SLOT(valueChanged(QtProperty *, const QRectF &)));
+        connectManagers();
 	}
 }
 
-void SourcePropertyBrowser::propertyValueChanged(QtProperty *property, bool value)
-{
-	emit( propertyChanged( property->propertyName(), value) );
-}
-
-void SourcePropertyBrowser::propertyValueChanged(QtProperty *property, int value)
-{
-	emit( propertyChanged( property->propertyName(), value) );
-}
-
-void SourcePropertyBrowser::propertyValueChanged(QtProperty *property, const QColor &value)
-{
-	emit( propertyChanged( property->propertyName(), value) );
-}
 
 void SourcePropertyBrowser::showProperties(SourceSet::iterator sourceIt)
 {
 	// this slot is called only when a different source is clicked (or when none is clicked)
 
 	// remember expanding state
-    updateExpandState();
+    updateExpandState(propertyTreeEditor->topLevelItems());
 
 	// clear the GUI
     propertyTreeEditor->clear();
@@ -832,12 +709,13 @@ void SourcePropertyBrowser::showProperties(SourceSet::iterator sourceIt)
 
 }
 
-void SourcePropertyBrowser::showProperties(Source *source) {
+void SourcePropertyBrowser::showProperties(Source *source)
+{
+    currentItem = source;
 
-	currentItem = source;
-	updatePropertyTree( source );
+    if (currentItem) {
 
-	if (source) {
+        updatePropertyTree();
 
 		// show all the Properties into the browser:
 		QListIterator<QtProperty *> it(root->subProperties());
@@ -846,57 +724,21 @@ void SourcePropertyBrowser::showProperties(Source *source) {
 		addProperty(it.next());
 
 		// add the sub tree of the properties related to this source type
-		if ( rttiToProperty.contains(source->rtti()) )
-			addProperty( rttiToProperty[ source->rtti() ] );
+        if ( rttiToProperty.contains(currentItem->rtti()) )
+            addProperty( rttiToProperty[ currentItem->rtti() ] );
 
 		// the rest of the properties
 		while (it.hasNext()) {
 			addProperty(it.next());
 		}
 
+        restoreExpandState(propertyTreeEditor->topLevelItems());
 	}
 }
 
 
-void SourcePropertyBrowser::addProperty(QtProperty *property)
+bool SourcePropertyBrowser::canChange()
 {
-	// add to the group view
-    propertyGroupEditor->addProperty(property);
-
-    // add to the tree view
-    QtBrowserItem *item = propertyTreeEditor->addProperty(property);
-    if (idToExpanded.contains(property->propertyName()))
-    	propertyTreeEditor->setExpanded(item, idToExpanded[property->propertyName()]);
-    else
-    	propertyTreeEditor->setExpanded(item, false);
-}
-
-
-void SourcePropertyBrowser::updateExpandState()
-{
-    QList<QtBrowserItem *> list = propertyTreeEditor->topLevelItems();
-    QListIterator<QtBrowserItem *> it(list);
-    while (it.hasNext()) {
-        QtBrowserItem *item = it.next();
-        idToExpanded[item->property()->propertyName()] = propertyTreeEditor->isExpanded(item);
-    }
-}
-
-
-void SourcePropertyBrowser::setGlobalExpandState(bool expanded)
-{
-    QList<QtBrowserItem *> list = propertyTreeEditor->topLevelItems();
-    QListIterator<QtBrowserItem *> it(list);
-    while (it.hasNext()) {
-        QtBrowserItem *item = it.next();
-        idToExpanded[item->property()->propertyName()] = expanded;
-        propertyTreeEditor->setExpanded(item, expanded);
-    }
-}
-
-
-bool SourcePropertyBrowser::canChange(){
-
 	if (currentItem)
 		emit changed(currentItem);
 	else
@@ -913,7 +755,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QString &va
 
 	if ( property == idToProperty["Name"] ) {
 		RenderingManager::getInstance()->renameSource(currentItem, value);
-		updatePropertyTree(currentItem);
+        updatePropertyTree();
 	}
 }
 
@@ -945,12 +787,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QRectF &val
 	if ( property == idToProperty["Crop"] ) {
 		currentItem->setTextureCoordinates(value);
 	}
-}
-
-
-void SourcePropertyBrowser::valueChanged(QString propertyname, const QColor &value)
-{
-	colorManager->setValue(idToProperty[propertyname], value);
 }
 
 
@@ -995,11 +831,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, double value){
 	}
 }
 
-void SourcePropertyBrowser::valueChanged(QString propertyname, bool value)
-{
-	boolManager->setValue(idToProperty[propertyname], value);
-}
-
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 
 	if (!canChange())
@@ -1007,7 +838,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 
 	if ( property == idToProperty["Modifiable"] ) {
 		currentItem->setModifiable(value);
-		updatePropertyTree(currentItem);
+        updatePropertyTree();
 	}
 	else if ( property == idToProperty["Pixelated"] ) {
 		currentItem->setPixelated(value);
@@ -1041,20 +872,15 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 	}
 #ifdef FFGL
     else if ( property == idToProperty["FreeframeGL"] ) {
-        QString fileName = "";
-        if (value) {
-            fileName = QFileDialog::getOpenFileName(0, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
-            idToProperty["Plugin file"]->setEnabled(value);
-        }
-        currentItem->addFreeframeGLPlugin(fileName);
-        infoManager->setValue(idToProperty["Plugin file"], fileName );
+//        QString fileName = "";
+//        if (value) {
+//            fileName = QFileDialog::getOpenFileName(0, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+//            idToProperty["Plugin file"]->setEnabled(value);
+//        }
+//        currentItem->addFreeframeGLPlugin(fileName);
+//        infoManager->setValue(idToProperty["Plugin file"], fileName );
     }
 #endif
-}
-
-void SourcePropertyBrowser::valueChanged(QString propertyname, int value)
-{
-	intManager->setValue(idToProperty[propertyname], value);
 }
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
@@ -1096,12 +922,6 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
 		}
 	}
 
-}
-
-
-void SourcePropertyBrowser::enumChanged(QString propertyname, int value)
-{
-	enumManager->setValue(idToProperty[propertyname], value);
 }
 
 void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
@@ -1205,70 +1025,13 @@ void SourcePropertyBrowser::updateMarksProperties(bool showFrames){
 	}
 }
 
-
-void SourcePropertyBrowser::ctxMenuGroup(const QPoint &pos){
-
-    static QMenu *menu = 0;
-    if (!menu) {
-    	menu = new QMenu;
-    	menu->addAction(tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
-        menu->addSeparator();
-        menu->addAction(tr("Reset all properties"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
-    }
-    menu->exec(propertyGroupEditor->mapToGlobal(pos));
-}
-
-
-void SourcePropertyBrowser::ctxMenuTree(const QPoint &pos){
-
-    static QMenu *menu = 0;
-    if (!menu) {
-    	menu = new QMenu;
-        menu->addAction(tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
-        menu->addAction(tr("Expand tree"), this, SLOT(expandAll()));
-        menu->addAction(tr("Collapse tree"), this, SLOT(collapseAll()));
-        menu->addSeparator();
-        menu->addAction(tr("Reset all properties"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
-        // TODO ; context entry to reset the current property
-//        menu->addAction(tr("Reset this property"), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
-        // use QtAbstractPropertyBrowser :  propertyTreeEditor->currentItem()->property();
-    }
-
-    menu->exec( propertyTreeEditor->mapToGlobal(pos) );
-}
-
-void SourcePropertyBrowser::switchToTreeView(){
-
-	propertyGroupArea->setVisible(false);
-	layout->removeWidget(propertyGroupArea);
-
-    layout->addWidget(propertyTreeEditor);
-    propertyTreeEditor->setVisible(true);
-}
-
-void SourcePropertyBrowser::switchToGroupView(){
-
-	propertyTreeEditor->setVisible(false);
-	layout->removeWidget(propertyTreeEditor);
-
-    layout->addWidget(propertyGroupArea);
-    propertyGroupArea->setVisible(true);
-}
-
-QString getSizeString(float num)
+void SourcePropertyBrowser::resetAll()
 {
-    QStringList list;
-    list << "KB" << "MB" << "GB" << "TB";
-
-    QStringListIterator i(list);
-    QString unit("bytes");
-
-    while(num >= 1024.0 && i.hasNext())
-     {
-        unit = i.next();
-        num /= 1024.0;
-    }
-    return QString().setNum(num,'f',2)+" "+unit;
+    RenderingManager::getInstance()->resetCurrentSource();
 }
 
+void SourcePropertyBrowser::defaultValue()
+{
+//    RenderingManager::getInstance()->resetCurrentSource();
+}
 

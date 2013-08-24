@@ -49,7 +49,7 @@ Source::Source() :
 			brightness(0.f), contrast(1.f),	saturation(1.f),
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
 			hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
-			useChromaKey(false)
+            useChromaKey(false), _ffgl_plugins(NULL)
 {
 	id = 0;
 
@@ -85,6 +85,11 @@ Source::~Source() {
     if (clones)
         delete clones;
 
+#ifdef FFGL
+    // delete all plugins in the stack
+    if ( _ffgl_plugins )
+        delete _ffgl_plugins;
+#endif
 }
 
 void Source::setName(QString n) {
@@ -364,8 +369,8 @@ void Source::bind() const {
 #ifdef FFGL
     // if there are plugins, then the texture to bind is the
     // texture of the top of the plugins stack
-    if ( !_ffgl_plugins.isEmpty() )
-        _ffgl_plugins.top()->bind();
+    if ( _ffgl_plugins && !_ffgl_plugins->isEmpty() )
+        _ffgl_plugins->top()->bind();
     else
 #endif
         glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -374,7 +379,8 @@ void Source::bind() const {
 void Source::update()  {
 #ifdef FFGL
     // to be called at the end of the update of the source itself
-    _ffgl_plugins.update();
+    if ( _ffgl_plugins )
+        _ffgl_plugins->update();
 #endif
 }
 
@@ -566,8 +572,10 @@ QString Source::getFilterName(filterType c) {
 // freeframe gl plugin
 #ifdef FFGL
 
-
 void Source::addFreeframeGLPlugin(QString filename) {
+
+    if (!_ffgl_plugins)
+        _ffgl_plugins = new FFGLPluginSourceStack();
 
     // descriptor for the source texture, used also to store size
     FFGLTextureStruct it;
@@ -577,18 +585,18 @@ void Source::addFreeframeGLPlugin(QString filename) {
     it.HardwareWidth = getFrameWidth();
     it.HardwareHeight = getFrameHeight();
 
-    _ffgl_plugins.pushNewPlugin(filename, getFrameWidth(), getFrameHeight(), it);
+    _ffgl_plugins->pushNewPlugin(filename, getFrameWidth(), getFrameHeight(), it);
 
 }
 
-//QStringList Source::getFreeframeGLPluginList() {
+FFGLPluginSourceStack *Source::getFreeframeGLPluginStack() {
 
-
-//}
+    return _ffgl_plugins;
+}
 
 bool Source::hasFreeframeGLPlugin() {
 
-    return !_ffgl_plugins.isEmpty();
+    return (_ffgl_plugins && !_ffgl_plugins->isEmpty());
 }
 
 

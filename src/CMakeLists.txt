@@ -54,6 +54,7 @@ SET(GLMIXER_SRCS
     RenderingManager.cpp
     RenderingEncoder.cpp
     OutputRenderWindow.cpp
+    PropertyBrowser.cpp
     SourcePropertyBrowser.cpp
     SpringCursor.cpp
     DelayCursor.cpp
@@ -97,6 +98,7 @@ if(USE_FREEFRAMEGL)
         ${FREEFRAMEGL_DIR_HOST}/FFGLPluginInstance.cpp
         FFGLPluginSourceStack.cpp
         FFGLPluginSource.cpp
+        FFGLPluginBrowser.cpp
         FFGLSource.cpp )
 
     if( APPLE )

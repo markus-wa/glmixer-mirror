@@ -120,5 +120,10 @@
         <file>icons/notes.png</file>
         <file>icons/movieformat.png</file>
         <file>icons/ffgl-source.png</file>
+        <file>icons/colors.png</file>
+        <file>icons/gamma.png</file>
+        <file>icons/blending.png</file>
+        <file>icons/filters.png</file>
+        <file>icons/ffgl.png</file>
     </qresource>
 </RCC>

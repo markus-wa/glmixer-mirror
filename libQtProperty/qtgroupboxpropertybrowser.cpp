@@ -254,7 +254,9 @@ void QtGroupBoxPropertyBrowserPrivate::propertyInserted(QtBrowserItem *index, Qt
     }
 
     newItem->label = new QLabel(parentWidget);
-    newItem->label->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+    // bhbn
+//    newItem->label->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+    newItem->label->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed));
     newItem->widget = createEditor(index->property(), parentWidget);
     if (!newItem->widget) {
         newItem->widgetLabel = new QLabel(parentWidget);
@@ -427,6 +429,7 @@ void QtGroupBoxPropertyBrowserPrivate::updateItem(WidgetItem *item)
         // bhbn
         font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->label->setFont(font);
+        item->label->setWordWrap(true);
         item->label->setText(property->propertyName());
         item->label->setToolTip(property->toolTip());
         item->label->setStatusTip(property->statusTip());
@@ -439,6 +442,7 @@ void QtGroupBoxPropertyBrowserPrivate::updateItem(WidgetItem *item)
         // bhbn
         font.setStyle( property->isItalics() ? QFont::StyleItalic : QFont::StyleNormal);
         item->widgetLabel->setFont(font);
+        item->widgetLabel->setWordWrap(true);
         item->widgetLabel->setText(property->valueText());
         item->widgetLabel->setEnabled(property->isEnabled());
     }

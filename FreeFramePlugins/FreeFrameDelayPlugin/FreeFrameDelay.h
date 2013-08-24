@@ -18,13 +18,17 @@ public:
     DWORD   SetTime(double time);
     DWORD   InitGL(const FFGLViewportStruct *vp);
     DWORD   DeInitGL();
+    DWORD	SetFloatParameter(unsigned int index, float value);
 #else
     // FFGL 1.6
     FFResult    ProcessOpenGL(ProcessOpenGLStruct* pGL);
     FFResult    SetTime(double time);
     FFResult    InitGL(const FFGLViewportStruct *vp);
     FFResult    DeInitGL();
+    FFResult	SetFloatParameter(unsigned int index, float value);
 #endif
+
+    float		GetFloatParameter(unsigned int index);
 	///////////////////////////////////////////////////
 	// Factory method
 	///////////////////////////////////////////////////
@@ -46,6 +50,7 @@ public:
 protected:
     // Time
     double m_curTime;
+    double delay;
 };
 
 

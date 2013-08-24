@@ -21,6 +21,10 @@
 #include "ViewRenderWidget.h"
 #include "glmixer.h"
 
+#ifdef FFGL
+#include "FFGLPluginBrowser.h"
+#endif
+
 #include "MixingToolboxWidget.moc"
 
 // some presets as a string of Hex values: to get from console on program exit
@@ -150,7 +154,7 @@ public:
 	    equationBox = new QComboBox(this);
         equationBox->insertItems(0, QStringList()
                  << QObject::tr("Add")
-                 << QObject::tr("SubQObject::tract")
+                 << QObject::tr("Subtract")
                  << QObject::tr("Reverse")
                  << QObject::tr("Minimum")
                  << QObject::tr("Maximum")
@@ -222,6 +226,13 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     // make sure it is not sorting alphabetically the list
     presetsList->setSortingEnabled(false);
 
+#ifdef FFGL
+    // Setup the FFGL plugin property browser
+    pluginBrowser = new FFGLPluginBrowser(Plugin);
+    pluginBrowserLayout->addWidget(pluginBrowser);
+#else
+    mixingToolBox->removeTab( mixingToolBox->indexOf(Plugin) );
+#endif
 
     // create default presets
     QByteArray ba = static_presets;
@@ -238,6 +249,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     }
 }
 
+
 MixingToolboxWidget::~MixingToolboxWidget()
 {
 	// clean presets list
@@ -252,7 +264,7 @@ MixingToolboxWidget::~MixingToolboxWidget()
 void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
 {
 	// show or hide Filter effetcs section
-	mixingToolBox->setItemEnabled(3, ViewRenderWidget::filteringEnabled());
+    mixingToolBox->setTabEnabled(3, ViewRenderWidget::filteringEnabled());
 
 	// connect gamma adjustment to the current source
 	gammaAdjust->connectSource(csi);
@@ -261,12 +273,18 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
 	if (RenderingManager::getInstance()->isValid(csi)) {
 		setEnabled(true);
 		source = *csi;
-		propertyChanged("Color", source->getColor());
+        propertyChanged("Color", source->getColor());
+#ifdef FFGL
+        pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
+#endif
 	} else {
 		setEnabled(false);
 		presetsList->setCurrentItem(0);
 		source = 0;
-		propertyChanged("Color", palette().color(QPalette::Window));
+        propertyChanged("Color", palette().color(QPalette::Window));
+#ifdef FFGL
+        pluginBrowser->showProperties( );
+#endif
 	}
 
 }
@@ -562,6 +580,18 @@ bool MixingToolboxWidget::restoreState(const QByteArray &state) {
 
     qDebug() << tr("MixingToolboxWidget|Mixing presets restored (") << _userPresets.count() << tr(" user presets)");
 	return true;
+}
+
+void MixingToolboxWidget::on_addPlugin_pressed(){
+
+#ifdef FFGL
+    QString fileName = QFileDialog::getOpenFileName(0, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+    QFileInfo pluginfile(fileName);
+    if (source && pluginfile.isFile()) {
+        source->addFreeframeGLPlugin(fileName);
+        pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
+    }
+#endif
 }
 
 
