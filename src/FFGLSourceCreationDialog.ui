@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FFGLSourceCreationDialog</class>
+ <widget class="QDialog" name="FFGLSourceCreationDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>412</width>
+    <height>567</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>FreeframeGL source</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../icons.qrc">
+    <normaloff>:/glmixer/icons/ffgl-source.png</normaloff>:/glmixer/icons/ffgl-source.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="FFGLSourceCreationLayout">
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>FreeframeGL plugin</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QComboBox" name="pluginFileList">
+          <property name="editable">
+           <bool>true</bool>
+          </property>
+          <property name="insertPolicy">
+           <enum>QComboBox::InsertAtTop</enum>
+          </property>
+          <property name="frame">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="openfile">
+          <property name="toolTip">
+           <string>Browse your computer</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Select a file name or browse to open a shared library file (.dll, .so or .bundle).</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="sizeGroupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>Properties</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="PropertiesLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Size   </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="presetsSizeComboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="currentIndex">
+           <number>5</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Custom</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>2 x 2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>8 x 8</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>16 x 16</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>32 x 32</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>64 x 64</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>128 x 128</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>256 x 256</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>160 x 120</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>320 x 240  (QVGA)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>640 x 480  (VGA)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>720 x 480  (NTSC)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>768 x 576  (PAL)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>800 x 600  (SVGA)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>1024 x 768 (XGA)</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="sizeGridLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="w">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Width</string>
+          </property>
+          <property name="buddy">
+           <cstring>widthSpinBox</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="widthSpinBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <number>2</number>
+          </property>
+          <property name="maximum">
+           <number>1024</number>
+          </property>
+          <property name="value">
+           <number>64</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="heightSpinBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <number>2</number>
+          </property>
+          <property name="maximum">
+           <number>1024</number>
+          </property>
+          <property name="value">
+           <number>64</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="h">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Height</string>
+          </property>
+          <property name="buddy">
+           <cstring>heightSpinBox</cstring>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Parameters</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::PlainText</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../icons.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>236</x>
+     <y>561</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>304</x>
+     <y>561</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>openfile</sender>
+   <signal>clicked()</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>browse()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>313</x>
+     <y>63</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pluginFileList</sender>
+   <signal>editTextChanged(QString)</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>updatePlugin(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>64</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>394</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>widthSpinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>updateSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>250</x>
+     <y>187</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>324</x>
+     <y>190</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>heightSpinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>updateSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>260</x>
+     <y>222</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>332</x>
+     <y>231</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>presetsSizeComboBox</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>selectSizePreset(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>279</x>
+     <y>155</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>327</x>
+     <y>163</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>updatePlugin(QString)</slot>
+  <slot>browse()</slot>
+  <slot>updateSourcePreview()</slot>
+  <slot>selectSizePreset(int)</slot>
+ </slots>
+</ui>

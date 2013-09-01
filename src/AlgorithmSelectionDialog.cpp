@@ -91,6 +91,7 @@ void AlgorithmSelectionDialog::createSource(){
 
 	// apply the source to the preview
 	preview->setSource(s);
+    preview->playSource(true);
 }
 
 void AlgorithmSelectionDialog::on_AlgorithmComboBox_currentIndexChanged(int algo){

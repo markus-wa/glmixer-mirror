@@ -259,6 +259,8 @@ MixingToolboxWidget::~MixingToolboxWidget()
 	foreach (Source *s, _userPresets)
 		delete s;
 
+    delete pluginBrowser;
+    delete gammaAdjust;
 }
 
 void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
@@ -283,7 +285,7 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
 		source = 0;
         propertyChanged("Color", palette().color(QPalette::Window));
 #ifdef FFGL
-        pluginBrowser->showProperties( );
+        pluginBrowser->clear();
 #endif
 	}
 

@@ -1221,6 +1221,28 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 		Gamma.setAttribute("maxOutput", (*its)->getGammaMaxOutput());
 		sourceElem.appendChild(Gamma);
 
+// freeframe gl plugin
+#ifdef FFGL
+        QDomElement ffgl = doc.createElement("FreeframeGL");
+
+        // list of plugins
+        FFGLPluginSourceStack plugins = (*its)->getFreeframeGLPluginStack();
+        for (FFGLPluginSourceStack::iterator it = plugins.begin(); it != plugins.end(); ++it ) {
+            QDomElement p = doc.createElement("Plugin");
+            p.setAttribute("Filename", (*it)->fileName());
+
+            // iterate over the list of parameters
+            QHashIterator<QString, QVariant> i((*it)->getParameters());
+            while (i.hasNext()) {
+                i.next();
+                p.setAttribute( i.key(), i.value().toString() );
+            }
+
+            ffgl.appendChild(p);
+        }
+        sourceElem.appendChild(ffgl);
+#endif
+
 		QDomElement specific = doc.createElement("TypeSpecific");
 		specific.setAttribute("type", (*its)->rtti());
 
@@ -1233,7 +1255,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			f.setAttribute("PowerOfTwo", (int) vf->getPowerOfTwoConversion());
 			f.setAttribute("IgnoreAlpha", (int) vf->ignoresAlphaChannel());
 			f.setAttribute("Relative", current.relativeFilePath(vf->getFileName()) );
-			QDomText filename = doc.createTextNode(vf->getFileName());
+            QDomText filename = doc.createTextNode( current.absoluteFilePath( vf->getFileName() ));
 			f.appendChild(filename);
 			specific.appendChild(f);
 
@@ -1323,20 +1345,29 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			QDomText name = doc.createTextNode(cs->getOriginalName());
 			f.appendChild(name);
 			specific.appendChild(f);
-		}
-		else if ((*its)->rtti() == Source::SVG_SOURCE) {
-			SvgSource *svgs = dynamic_cast<SvgSource *> (*its);
-			QByteArray ba = svgs->getDescription();
+        }
+        else if ((*its)->rtti() == Source::SVG_SOURCE) {
+            SvgSource *svgs = dynamic_cast<SvgSource *> (*its);
+            QByteArray ba = svgs->getDescription();
 
-			QDomElement f = doc.createElement("Svg");
-			QDomText name = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
-			f.appendChild(name);
-			specific.appendChild(f);
-		}
+            QDomElement f = doc.createElement("Svg");
+            QDomText name = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
+            f.appendChild(name);
+            specific.appendChild(f);
+        }
+#ifdef FFGL
+        else if ((*its)->rtti() == Source::FFGL_SOURCE) {
+//            FFGLSource *ffs = dynamic_cast<FFGLSource *> (*its);
+
+            QDomElement f = doc.createElement("FFGL");
+
+            specific.appendChild(f);
+        }
+#endif
+
 		sourceElem.appendChild(specific);
-
 		config.appendChild(sourceElem);
-	}
+    }
 
 	return config;
 }
@@ -1395,6 +1426,18 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 			tmp.attribute("minOutput", "0").toFloat(),
 			tmp.attribute("maxOutput", "1").toFloat());
 
+// freeframe gl plugin
+#ifdef FFGL
+
+    tmp = child.firstChildElement("FreeframeGL");
+    // start loop of plugins to load
+    QDomElement p = tmp.firstChildElement("Plugin");
+    while (!p.isNull()) {
+        newsource->addFreeframeGLPlugin( p.attribute("Filename") );
+        p = p.nextSiblingElement("Plugin");
+    }
+
+#endif
 }
 
 int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
@@ -1592,7 +1635,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 				delete newsource;
 		}
 
-		child = child.nextSiblingElement();
+        child = child.nextSiblingElement("Source");
 	}
 	// end loop on sources to create
 	if (progress) progress->setValue(xmlconfig.childNodes().count());

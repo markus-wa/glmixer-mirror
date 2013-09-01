@@ -28,6 +28,7 @@
         <file>icons/hplit.png</file>
         <file>icons/vplit.png</file>
         <file>icons/textcopy.png</file>
+        <file>icons/textpaste.png</file>
         <file>icons/clean.png</file>
         <file>icons/warning.png</file>
         <file>icons/svg.png</file>
@@ -105,6 +106,7 @@
         <file>icons/history.png</file>
         <file>icons/gear.png</file>
         <file>icons/filesave.png</file>
+        <file>icons/folderopen.png</file>
         <file>icons/fileopen.png</file>
         <file>icons/fileclose.png</file>
         <file>icons/edit-copy.png</file>

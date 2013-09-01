@@ -84,8 +84,8 @@ void SourceDisplayWidget::paintGL()
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
 
 	if ( background == GRID) {
-		// draw the background
-		glScalef(2.f * aspectRatio, 2.f * aspectRatio, 1.f);
+        // draw the background
+        glScalef(2.f * aspectRatio, 2.f * aspectRatio, 1.f);
 		glBindTexture(GL_TEXTURE_2D, _bgTexture);
 		glCallList(ViewRenderWidget::quad_texured);
 		glLoadIdentity();

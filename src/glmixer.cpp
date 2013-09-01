@@ -66,6 +66,10 @@
 #include "MixingToolboxWidget.h"
 #include "GammaLevelsWidget.h"
 
+#ifdef FFGL
+#include "FFGLSourceCreationDialog.h"
+#endif
+
 #include "glmixer.moc"
 
 GLMixer *GLMixer::_instance = 0;
@@ -472,16 +476,22 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
 
 void GLMixer::on_copyLogsToClipboard_clicked() {
 
-	if (logTexts->topLevelItemCount() > 0) {
-		QString logs;
-		QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
-		while (*it) {
-			logs.append( QString("%1:%2\n").arg((*it)->text(0)).arg((*it)->text(1)) );
-			++it;
-		}
-		QApplication::clipboard()->setText(logs);
-	}
+    if (logTexts->topLevelItemCount() > 0) {
+        QString logs;
+        QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
+        while (*it) {
+            logs.append( QString("%1:%2\n").arg((*it)->text(0)).arg((*it)->text(1)) );
+            ++it;
+        }
+        QApplication::clipboard()->setText(logs);
+    }
 }
+
+void GLMixer::on_copyNotes_clicked() {
+
+    QApplication::clipboard()->setText( blocNoteEdit->toPlainText() );
+}
+
 
 void GLMixer::msgHandler(QtMsgType type, const char *msg)
 {
@@ -901,19 +911,29 @@ void GLMixer::on_actionShmSource_triggered(){
 void GLMixer::on_actionFreeframeSource_triggered(){
 
 #ifdef FFGL
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+    // popup a question dialog to select the type of algorithm
+    static FFGLSourceCreationDialog *ffgld = 0;
+    if (!ffgld)
+        ffgld = new FFGLSourceCreationDialog(this);
 
-    int w = 256, h = 256;
 
-    if (!fileName.isEmpty()) {
-        Source *s = RenderingManager::getInstance()->newFreeframeGLSource(fileName, w, h);
-        if ( s ){
-            RenderingManager::getInstance()->addSourceToBasket(s);
-            qDebug() << s->getName() << '|' <<  tr("New FreeframeGL source created (")<< fileName << ").";
-            statusbar->showMessage( tr("Source created with the Freeframe GL plugin %1.").arg( fileName ), 3000 );
-        } else
-            qCritical() << fileName << '|' << tr("Could not create FreeframeGL source.");
+    if (ffgld->exec() == QDialog::Accepted) {
+
     }
+
+//    QString fileName = QFileDialog::getOpenFileName(this, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+
+//    int w = 256, h = 256;
+
+//    if (!fileName.isEmpty()) {
+//        Source *s = RenderingManager::getInstance()->newFreeframeGLSource(fileName, w, h);
+//        if ( s ){
+//            RenderingManager::getInstance()->addSourceToBasket(s);
+//            qDebug() << s->getName() << '|' <<  tr("New FreeframeGL source created (")<< fileName << ").";
+//            statusbar->showMessage( tr("Source created with the Freeframe GL plugin %1.").arg( fileName ), 3000 );
+//        } else
+//            qCritical() << fileName << '|' << tr("Could not create FreeframeGL source.");
+//    }
 #endif
 }
 

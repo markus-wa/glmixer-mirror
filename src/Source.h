@@ -436,8 +436,8 @@ public:
 #ifdef FFGL
     // freeframe gl plugin
     void addFreeframeGLPlugin(QString filename);
-    FFGLPluginSourceStack *getFreeframeGLPluginStack();
-    bool hasFreeframeGLPlugin();
+    virtual FFGLPluginSourceStack getFreeframeGLPluginStack();
+    virtual bool hasFreeframeGLPlugin();
 #endif
 
 protected:
@@ -500,7 +500,7 @@ protected:
 
 #ifdef FFGL
     // freeframe plugin
-    FFGLPluginSourceStack *_ffgl_plugins;
+    FFGLPluginSourceStack _ffgl_plugins;
 #endif
 	// statics
 	static GLuint lastid;

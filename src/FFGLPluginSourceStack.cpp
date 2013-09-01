@@ -1,15 +1,10 @@
 #include "FFGLPluginSourceStack.h"
 
-FFGLPluginSourceStack::FFGLPluginSourceStack()
+FFGLPluginSourceStack::FFGLPluginSourceStack( FFGLPluginSource *ffgl_plugin )
 {
+    this->push(ffgl_plugin);
 }
 
-FFGLPluginSourceStack::~FFGLPluginSourceStack()
-{
-    // delete all plugins of the stack
-    while (!isEmpty())
-        delete pop();
-}
 
 
 void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int height, FFGLTextureStruct inputTexture){
@@ -56,4 +51,14 @@ void FFGLPluginSourceStack::update(){
         }
     }
 
+}
+
+
+QStringList FFGLPluginSourceStack::namesList()
+{
+    QStringList pluginlist;
+    for (FFGLPluginSourceStack::iterator it = begin(); it != end(); ++it )
+        pluginlist.append( QFileInfo((*it)->fileName()).baseName() );
+
+    return pluginlist;
 }

@@ -107,3 +107,15 @@ void FFGLSource::update() {
     // normal update (other ffgl plugins)
     Source::update();
 }
+
+FFGLPluginSourceStack FFGLSource::getFreeframeGLPluginStack() {
+
+    FFGLPluginSourceStack tmp(_ffgl_plugins);
+    tmp.push_front(_plugin);
+    return  tmp;
+}
+
+bool FFGLSource::hasFreeframeGLPlugin() {
+
+    return true;
+}

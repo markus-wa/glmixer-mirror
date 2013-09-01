@@ -99,7 +99,8 @@ if(USE_FREEFRAMEGL)
         FFGLPluginSourceStack.cpp
         FFGLPluginSource.cpp
         FFGLPluginBrowser.cpp
-        FFGLSource.cpp )
+        FFGLSource.cpp
+        FFGLSourceCreationDialog.cpp )
 
     if( APPLE )
         SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
@@ -116,6 +117,8 @@ if(USE_FREEFRAMEGL)
                 )
         endif( WIN32 )
     endif( APPLE )
+
+    SET( GLMIXER_UIS  ${GLMIXER_UIS} FFGLSourceCreationDialog.ui)
 
 endif(USE_FREEFRAMEGL)
 

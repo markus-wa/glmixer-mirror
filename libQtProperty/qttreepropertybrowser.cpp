@@ -460,6 +460,8 @@ void QtTreePropertyBrowserPrivate::init(QWidget *parent)
 
     // BHBN
     m_treeWidget->setTextElideMode(Qt::ElideMiddle);
+//    m_treeWidget->setHeaderHidden(true);
+    m_treeWidget->header()->setDefaultSectionSize(120);
 
     m_expandIcon = drawIndicatorIcon(q_ptr->palette(), q_ptr->style());
 

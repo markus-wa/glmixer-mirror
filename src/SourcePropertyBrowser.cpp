@@ -320,12 +320,12 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
 	chroma->addSubProperty(property);
 #ifdef FFGL
     // FreeFrameGL Plugin on/off
-    QtProperty *ffgl = boolManager->addProperty("FreeframeGL");
-    ffgl->setToolTip("Enables FreeFrameGL Plugin.");
+    QtProperty *ffgl = groupManager->addProperty("FreeframeGL");
+    ffgl->setToolTip("FreeFrameGL Plugin");
     idToProperty[ffgl->propertyName()] = ffgl;
     root->addSubProperty(ffgl);
-    // File Name
-    property = infoManager->addProperty( QLatin1String("Plugin file") );
+    // list of plugins
+    property = infoManager->addProperty( QLatin1String("Plugin list") );
     idToProperty[property->propertyName()] = property;
     ffgl->addSubProperty(property);
 #endif
@@ -560,13 +560,15 @@ void SourcePropertyBrowser::updatePropertyTree(){
 		colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
 		intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
 #ifdef FFGL
-        // properties for FFGL plugin
-        if (s->hasFreeframeGLPlugin()) {
-            boolManager->setValue(idToProperty["FreeframeGL"], true);
-//            infoManager->setValue(idToProperty["Plugin file"], s->getFreeframeGLPlugin()->filename() );
-        } else {
-            boolManager->setValue(idToProperty["FreeframeGL"], false);
-//            infoManager->setValue(idToProperty["Plugin file"], "");
+        // enable and fill in the FFGL properties if exist
+        if(s->hasFreeframeGLPlugin()) {
+            idToProperty["FreeframeGL"]->setEnabled(true);
+            // fill in list of FFGL plugins "Plugin list"
+            infoManager->setValue(idToProperty["Plugin list"], s->getFreeframeGLPluginStack().namesList().join(", ") );
+        }
+        else {
+            idToProperty["FreeframeGL"]->setEnabled(false);
+            infoManager->setValue(idToProperty["Plugin list"], "");
         }
 #endif
 		// properties of filters
@@ -870,17 +872,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
 		idToProperty["Key Color"]->setEnabled(value);
 		idToProperty["Key Tolerance"]->setEnabled(value);
 	}
-#ifdef FFGL
-    else if ( property == idToProperty["FreeframeGL"] ) {
-//        QString fileName = "";
-//        if (value) {
-//            fileName = QFileDialog::getOpenFileName(0, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
-//            idToProperty["Plugin file"]->setEnabled(value);
-//        }
-//        currentItem->addFreeframeGLPlugin(fileName);
-//        infoManager->setValue(idToProperty["Plugin file"], fileName );
-    }
-#endif
+
 }
 
 void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){

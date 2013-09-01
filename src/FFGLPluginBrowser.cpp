@@ -88,7 +88,7 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
     }
 
     // Add the informations on this plugin
-    QtProperty *info = groupManager->addProperty( QLatin1String("Info") );
+    QtProperty *info = groupManager->addProperty( QString("About ")+pluginfile.baseName() );
 
     // iterate over the plugin infos
     QVariantHash informations = plugin->getInfo();
@@ -99,7 +99,7 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
        infoManager->setValue(property, j.value().toString());
        info->addSubProperty(property);
     }
-    property = infoManager->addProperty( QLatin1String("File name") );
+    property = infoManager->addProperty( QLatin1String("File") );
     infoManager->setValue(property, pluginfile.absoluteFilePath());
     info->addSubProperty(property);
 
@@ -109,7 +109,7 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
 }
 
 
-void FFGLPluginBrowser::showProperties(FFGLPluginSourceStack *plugins)
+void FFGLPluginBrowser::clear()
 {
     // remember expanding state
     updateExpandState(propertyTreeEditor->topLevelItems());
@@ -124,20 +124,24 @@ void FFGLPluginBrowser::showProperties(FFGLPluginSourceStack *plugins)
     doubleManager->clear();
     infoManager->clear();
 
+}
+
+void FFGLPluginBrowser::showProperties(FFGLPluginSourceStack plugins)
+{
+    clear();
+
     // disconnect the managers to the corresponding value change
     disconnectManagers();
 
     // set the new current stack of plugins
     currentStack = plugins;
 
-    // if a valid pointer was provided
-    if (currentStack) {
+    // if a there is something to do
+    if (currentStack.count() > 0) {
 
         // loop over the stack
-        for (FFGLPluginSourceStack::iterator it = currentStack->begin(); it != currentStack->end(); ++it ) {
-
+        for (FFGLPluginSourceStack::iterator it = currentStack.begin(); it != currentStack.end(); ++it )
             addProperty( createPluginPropertyTree(*it) );
-        }
 
         // reconnect the managers to the corresponding value change
         connectManagers();
@@ -148,11 +152,7 @@ void FFGLPluginBrowser::showProperties(FFGLPluginSourceStack *plugins)
 
 bool FFGLPluginBrowser::canChange()
 {
-    if (currentStack && !currentStack->isEmpty())
-//        emit changed(currentItem);
-        return true;
-    else
-        return false;
+    return (currentStack.count() > 0 );
 }
 
 void FFGLPluginBrowser::valueChanged(QtProperty *property, bool value)
@@ -186,7 +186,7 @@ void FFGLPluginBrowser::valueChanged(QtProperty *property, const QString &value)
 void FFGLPluginBrowser::resetAll()
 {
     // loop over the stack
-    for (FFGLPluginSourceStack::iterator it = currentStack->begin(); it != currentStack->end(); ++it )
+    for (FFGLPluginSourceStack::iterator it = currentStack.begin(); it != currentStack.end(); ++it )
         (*it)->restoreDefaults();
 
     // refresh display

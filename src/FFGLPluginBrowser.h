@@ -13,8 +13,9 @@ public:
     FFGLPluginBrowser(QWidget *parent = 0);
 
 public slots:
-    
-    void showProperties(FFGLPluginSourceStack *plugins = NULL);
+
+    void clear();
+    void showProperties(FFGLPluginSourceStack plugins);
 
     // Update the plugin when an action is performed on a property in the browser
     // This concerns every properties editable in the browser
@@ -35,7 +36,7 @@ private:
     bool canChange();
 
     // the link with plugin
-    FFGLPluginSourceStack *currentStack;
+    FFGLPluginSourceStack currentStack;
     QMap<QtProperty *, QPair<FFGLPluginSource *, int> > propertyToPluginParameter;
 
     QtProperty *createPluginPropertyTree(FFGLPluginSource *plugin);

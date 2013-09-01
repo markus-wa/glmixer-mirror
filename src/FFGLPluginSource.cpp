@@ -192,7 +192,7 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
 
     // ensure functionnalities plugin
     if ( !_plugin->hasProcessOpenGLCapability()){
-        qWarning()<< _filename << "| " << QObject::tr("Invalid FreeframeGL plugin: does not have OpenGL support.");
+        qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("Invalid FreeframeGL plugin: does not have OpenGL support.");
         FFGLPluginException().raise();
     }
 
@@ -211,7 +211,7 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     _inputTexture.HardwareWidth = inputTexture.HardwareWidth;
     _inputTexture.HardwareHeight = inputTexture.HardwareHeight;
 
-    qDebug() << _filename << "| " << QObject::tr("FreeframeGL plugin created") << " ("<< info["Name"].toString() <<", "<< _inputTexture.Width << _inputTexture.Height <<")";
+//    qDebug() << _filename << "| " << QObject::tr("FreeframeGL plugin created") << " ("<< info["Name"].toString() <<", "<< _inputTexture.Width << _inputTexture.Height <<")";
 }
 
 FFGLPluginSource::~FFGLPluginSource()
@@ -228,12 +228,14 @@ FFGLPluginSource::~FFGLPluginSource()
 FFGLTextureStruct FFGLPluginSource::FBOTextureStruct(){
 
     FFGLTextureStruct it;
-    it.Handle = _fbo->texture();
-    it.Width = _fbo->width();
-    it.Height = _fbo->height();
-    it.HardwareWidth = _fbo->width();
-    it.HardwareHeight = _fbo->height();
 
+    if (initialize()) {
+        it.Handle = _fbo->texture();
+        it.Width = _fbo->width();
+        it.Height = _fbo->height();
+        it.HardwareWidth = _fbo->width();
+        it.HardwareHeight = _fbo->height();
+    }
     return it;
 }
 
@@ -316,7 +318,7 @@ void FFGLPluginSource::update()
 
         // through exception once opengl has returned to normal
         if ( callresult != FF_SUCCESS ){
-            qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not process OpenGL. Probably missing an input texture.");
+            qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("FreeframeGL plugin could not process OpenGL. Probably missing an input texture.");
             FFGLPluginException().raise();
         }
     }
@@ -352,16 +354,16 @@ bool FFGLPluginSource::initialize()
 
                 // remember successful initialization
                 _initialized = true;
-                qDebug()<< _filename << "| " << QObject::tr("FreeframeGL plugin initialized");
+//                qDebug()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("FreeframeGL plugin initialized");
 
             }
             else {
-                qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not be initialized");
+                qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("FreeframeGL plugin could not be initialized");
                 FFGLPluginException().raise();
             }
         }
         else{
-            qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not create FBO");
+            qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("FreeframeGL plugin could not create FBO");
             FFGLPluginException().raise();
         }
     }
@@ -378,7 +380,7 @@ QVariantHash FFGLPluginSource::getParameters()
 void FFGLPluginSource::setParameter(int parameterNum, QVariant value)
 {
     if( !_plugin->setParameter(parameterNum, value) )
-        qWarning()<< _filename << "| " << QObject::tr("Parameter could not be set.");
+        qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("Parameter could not be set.");
 
 }
 

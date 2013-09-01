@@ -36,6 +36,7 @@ class FFGLSource : public QObject, public Source
 
     friend class RenderingManager;
     friend class OutputRenderWidget;
+    friend class FFGLSourceCreationDialog;
 
 protected:
     // only friends can create a source
@@ -44,6 +45,9 @@ protected:
     void update();
 
 public:
+
+    FFGLPluginSourceStack getFreeframeGLPluginStack();
+    bool hasFreeframeGLPlugin();
 
     RTTI rtti() const { return type; }
     bool isPlayable() const { return playable; }

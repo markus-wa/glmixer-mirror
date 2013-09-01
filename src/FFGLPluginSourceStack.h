@@ -8,12 +8,12 @@ class FFGLPluginSourceStack: public QStack<FFGLPluginSource *>
 {
 
 public:
-    FFGLPluginSourceStack();
-    ~FFGLPluginSourceStack();
+    FFGLPluginSourceStack() {}
+    FFGLPluginSourceStack(FFGLPluginSource *);
 
+    QStringList namesList();
 
     void pushNewPlugin(QString filename, int widht, int height, FFGLTextureStruct inputTexture);
-
     void update();
 
 private:
