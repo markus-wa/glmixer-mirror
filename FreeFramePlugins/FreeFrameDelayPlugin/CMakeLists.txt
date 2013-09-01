@@ -21,3 +21,4 @@ set(LIBFFGLDELAY_SRCS
 
 add_library (ffdelay SHARED ${LIBFFGLDELAY_SRCS})
 
+target_link_libraries(ffdelay ${OPENGL_LIBRARY} ${GLEW_LIBRARY}) 
