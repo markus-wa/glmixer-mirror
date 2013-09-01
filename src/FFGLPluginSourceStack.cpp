@@ -40,7 +40,7 @@ void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int heigh
 void FFGLPluginSourceStack::update(){
 
     // update in the staking order, from original to top
-    for (QStack::iterator it = begin(); it != end(); ) {
+    for (FFGLPluginSourceStack::iterator it = begin(); it != end(); ) {
         try {
             (*it)->update();
             ++it;

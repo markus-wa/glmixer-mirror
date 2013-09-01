@@ -29,7 +29,7 @@ public:
         if (result!=NULL) {
             PluginInfoStructTag *plugininfo = (PluginInfoStructTag*) result;
             mapinfo.insert("Name", plugininfo->PluginName);
-            mapinfo.insert("Type", plugininfo->PluginType);
+            mapinfo.insert("Type", (uint) plugininfo->PluginType);
         }
         return mapinfo;
     }
