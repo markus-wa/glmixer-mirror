@@ -2285,7 +2285,7 @@ void GLMixer::on_gammaShiftSlider_valueChanged(int val)
 
 void GLMixer::on_gammaShiftReset_clicked()
 {
-	gammaShiftSlider->setValue( 470 );
+    gammaShiftSlider->setValue( GammaToScale(1.0) );
 	RenderingManager::getInstance()->setGammaShift(1.0);
 }
 
