@@ -495,14 +495,25 @@ void GLMixer::on_copyNotes_clicked() {
 
 void GLMixer::msgHandler(QtMsgType type, const char *msg)
 {
-	QString txt = QString(msg).remove("\"");
+    QString txt = QString(msg).remove("\"");
 
 	// message handler
     switch (type) {
     case QtCriticalMsg:
-        QMessageBox::warning(0, tr("%1 -- Problem").arg(QCoreApplication::applicationName()), QString(txt).replace("|","\n") +
-                                                        QObject::tr("\n\nPlease check the logs for details.") );
+//        QMessageBox::warning(0, tr("%1 -- Problem").arg(QCoreApplication::applicationName()), QString(txt).replace("|","\n") +
+//                                                        QObject::tr("\n\nPlease check the logs for details.") );
+        {
+         QMessageBox msgBox(QMessageBox::Warning,
+                           tr("%1 warning").arg(QCoreApplication::applicationName()),
+                           tr("Warning !"), QMessageBox::Ok);
+         msgBox.setInformativeText(tr("From \n") + QString(txt).replace("|",";\n"));
+         msgBox.setDefaultButton(QMessageBox::Ok);
+         QPushButton *logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
+         msgBox.exec();
+         if (msgBox.clickedButton() == logButton)
+              GLMixer::getInstance()->logDockWidget->setVisible(true);
 
+        }
         break;
 	case QtFatalMsg:
 		QMessageBox::critical(0, tr("%1 -- Fatal error").arg(QCoreApplication::applicationName()), txt);
