@@ -13,6 +13,7 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent) :
     ui(new Ui::FFGLSourceCreationDialog)
 {
     ui->setupUi(this);
+    ui->labelWarninEffect->setVisible(false);
 
     preview = new SourceDisplayWidget(this);
     ui->FFGLSourceCreationLayout->insertWidget(0, preview);
@@ -57,6 +58,7 @@ void FFGLSourceCreationDialog::done(int r){
 void FFGLSourceCreationDialog::updateSourcePreview(){
 
     if(s) {
+        ui->labelWarninEffect->setVisible(false);
         // remove source from preview: this deletes the texture in the preview
         preview->setSource(0);
         // delete the source:
@@ -70,9 +72,12 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
         GLuint tex = preview->getNewTextureIndex();
         try {
             // create a new source with a new texture index and the new parameters
-            s = new FFGLSource(_filename, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
+            s = new FFGLSource(_filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
 
             pluginBrowser->showProperties( s->getFreeframeGLPluginStack() );
+
+            if (!s->getFreeframeGLPluginStack().isEmpty())
+                ui->labelWarninEffect->setVisible( !s->getFreeframeGLPluginStack().top()->isSourceType() );
 
         }
         catch (...)  {
@@ -84,7 +89,7 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
 
     }
 
-    // apply the source to the preview
+    // apply the source to the preview (null pointer is ok to reset preview)
     preview->setSource(s);
     preview->playSource(true);
 }
@@ -109,6 +114,11 @@ void FFGLSourceCreationDialog::browse() {
         ui->pluginFileList->setCurrentIndex(0);
     }
 
+}
+
+QString  FFGLSourceCreationDialog::getFreeframeFileName(){
+
+    return _filename;
 }
 
 int  FFGLSourceCreationDialog::getSelectedWidth(){

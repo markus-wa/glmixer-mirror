@@ -64,7 +64,7 @@
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
-            <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
+            <normaloff>:/glmixer/icons/folderopen.png</normaloff>:/glmixer/icons/folderopen.png</iconset>
           </property>
          </widget>
         </item>
@@ -77,6 +77,22 @@
         </property>
         <property name="wordWrap">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelWarninEffect">
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning: &lt;/span&gt;&lt;/p&gt;&lt;p&gt;The selected plugin is an &lt;span style=&quot; font-style:italic;&quot;&gt;effect&lt;/span&gt; filter; it may not generate any graphics.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="indent">
+         <number>10</number>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::NoTextInteraction</set>
         </property>
        </widget>
       </item>

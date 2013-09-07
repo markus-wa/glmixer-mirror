@@ -76,16 +76,7 @@
        <string/>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="leftMargin">
-        <number>2</number>
-       </property>
-       <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
-        <number>2</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>2</number>
        </property>
        <item>
@@ -445,16 +436,7 @@ QListWidget::item:hover {
        <property name="spacing">
         <number>0</number>
        </property>
-       <property name="leftMargin">
-        <number>2</number>
-       </property>
-       <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
-        <number>2</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>2</number>
        </property>
        <item>
@@ -481,16 +463,7 @@ QListWidget::item:hover {
        <property name="spacing">
         <number>6</number>
        </property>
-       <property name="leftMargin">
-        <number>2</number>
-       </property>
-       <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
-        <number>2</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>2</number>
        </property>
        <item>
@@ -1386,16 +1359,7 @@ QSpinBox:hover{
        <string/>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_7">
-       <property name="leftMargin">
-        <number>2</number>
-       </property>
-       <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
-        <number>2</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>2</number>
        </property>
        <item>
@@ -1709,16 +1673,7 @@ QListWidget::item:hover {
        <string/>
       </attribute>
       <layout class="QVBoxLayout" name="pluginBrowserLayout">
-       <property name="leftMargin">
-        <number>2</number>
-       </property>
-       <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
-        <number>2</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>2</number>
        </property>
        <item>
@@ -1735,12 +1690,39 @@ QListWidget::item:hover {
          </item>
          <item>
           <widget class="QToolButton" name="addPlugin">
+           <property name="styleSheet">
+            <string notr="true">QToolButton { 
+     border-style: inset;
+     border-width: 1px;
+    border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
            <property name="icon">
             <iconset resource="../icons.qrc">
-             <normaloff>:/glmixer/icons/plus.png</normaloff>:/glmixer/icons/plus.png</iconset>
+             <normaloff>:/glmixer/icons/folderopen.png</normaloff>:/glmixer/icons/folderopen.png</iconset>
            </property>
           </widget>
          </item>
@@ -1757,16 +1739,7 @@ QListWidget::item:hover {
        <string/>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
-       <property name="leftMargin">
-        <number>2</number>
-       </property>
-       <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
-        <number>2</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>2</number>
        </property>
        <item>

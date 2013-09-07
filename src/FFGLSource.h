@@ -40,7 +40,7 @@ class FFGLSource : public QObject, public Source
 
 protected:
     // only friends can create a source
-    FFGLSource(QString pluginFileName, double d, int w = 256, int h = 256);
+    FFGLSource(QString pluginFileName, GLuint texture, double d, int w = 256, int h = 256);
     virtual ~FFGLSource();
     void update();
 
@@ -65,6 +65,8 @@ private:
 
     class FFGLPluginSource *_plugin;
     bool _playing;
+    unsigned char *_buffer;
+    GLuint _sourceTextureIndex;
 };
 
 #endif // FFGLSOURCE_H

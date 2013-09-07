@@ -309,7 +309,7 @@ void AlgorithmThread::run() {
 AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
 		int h, double v, unsigned long p, bool ia) :
 		Source(texture, d), width(w), height(h), period(p), framerate(0), vertical(
-				1.0), horizontal(1.0), variability(v), ignoreAlpha(ia) {
+                1.0), horizontal(1.0), variability(v) {
 
 	algotype = CLAMP(AlgorithmSource::algorithmType(type), AlgorithmSource::FLAT, AlgorithmSource::TURBULENCE);
 
@@ -320,15 +320,9 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
 
 	// apply the texture
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureIndex);
+    setIgnoreAlpha(ia);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	if (ignoreAlpha)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA,
-				GL_UNSIGNED_BYTE, (unsigned char*) buffer);
-	else
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA,
-				GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// if no period given, set to default 60Hz
 	if (period <= 0)
@@ -423,8 +417,10 @@ void AlgorithmSource::update() {
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
         _mutex->lock();
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
-				GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
+                    GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+
 		_cond->wakeAll();
 		_mutex->unlock();
 

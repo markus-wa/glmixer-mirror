@@ -33,8 +33,8 @@ Source::RTTI FFGLSource::type = Source::FFGL_SOURCE;
 bool FFGLSource::playable = true;
 
 
-FFGLSource::FFGLSource(QString pluginFileName, double d, int w, int h):
-    QObject(), Source(0, d), _plugin(0), _playing(true)
+FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, int h):
+    QObject(), Source(texture, d), _plugin(0), _playing(true), _buffer(0)
 {
     aspectratio = double(w) / double(h);
 
@@ -45,12 +45,26 @@ FFGLSource::FFGLSource(QString pluginFileName, double d, int w, int h):
 
     // create new plugin with this file
     FFGLTextureStruct it;
-    it.Handle = 0;
+    it.Handle = texture;
     it.Width = 0;
     it.Height = 0;
     it.HardwareWidth = 0;
     it.HardwareHeight = 0;
     _plugin = new FFGLPluginSource(pluginFileName, w, h, it);
+
+    // if plugin not of type source, create a buffer and a texture for applying effect
+    if (!_plugin->isSourceType()) {
+        _buffer = new unsigned char[w * h * 4];
+        CHECK_PTR_EXCEPTION(_buffer);
+        // CLEAR the buffer to transparent black
+        memset((void *) _buffer, 0, w * h * 4);
+        // apply buffer to the texture
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_BGRA,
+                GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) _buffer);
+    }
 
     // no exceptions raised, continue with the plugin
     // try to update
@@ -58,12 +72,20 @@ FFGLSource::FFGLSource(QString pluginFileName, double d, int w, int h):
 
     // this source behaves like a normal source, except the texture index
     // comes from the plugin's FBO
+    _sourceTextureIndex = texture;
     textureIndex = _plugin->FBOTextureStruct().Handle;
 
 }
 
 FFGLSource::~FFGLSource()
 {
+    // free the OpenGL texture
+    glDeleteTextures(1, &_sourceTextureIndex);
+
+    // delete picture buffer
+    if (_buffer)
+        delete[] _buffer;
+
     if (_plugin)
         delete _plugin;
 }

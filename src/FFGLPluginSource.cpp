@@ -123,7 +123,6 @@ public:
             params.insert( QString(GetParameterName(i)), value);
         }
 
-        qDebug() << params;
         return params;
     }
 
@@ -175,7 +174,7 @@ public:
 
 
 FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureStruct inputTexture)
-    : _filename(filename), _initialized(false), _elapsedtime(0), _pause(false), _fboSize(w,h)
+    : _filename(filename), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _fboSize(w,h)
 {
     // create plugin object (does not instanciate dll)
     _plugin = (FFGLPluginSourceInstance *) FFGLPluginInstance::New();
@@ -198,6 +197,7 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
 
     // fill in the information about this plugin
     info = _plugin->getInfo();
+    _isFreeframeTypeSource = info["Type"].toUInt() > 0;
     info.unite(_plugin->getExtendedInfo());
 //    qDebug() << info;
 
@@ -260,6 +260,7 @@ void FFGLPluginSource::update()
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
+        glScalef(1.f, -1.f, 1.f);
 
         //clear color buffers
         glClearColor(0.f, 0.f, 0.f, 1.f);

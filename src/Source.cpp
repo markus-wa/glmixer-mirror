@@ -294,7 +294,7 @@ void Source::draw(bool withalpha, GLenum mode) const
 			glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(),
 					withalpha ? texalpha : 1.0);
 
-			// texture coordinate changes
+            // texture coordinate changes
             ViewRenderWidget::texc[0] = textureCoordinates.left();
             ViewRenderWidget::texc[1] = textureCoordinates.top();
             ViewRenderWidget::texc[2] = textureCoordinates.right();

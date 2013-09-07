@@ -545,13 +545,15 @@ void GLMixer::Log(int type, QString msg)
 
 	// reads the text passed and split into object|message
     QStringList message = msg.split('|', QString::SkipEmptyParts);
-	if (message.count() > 1 ) {
+    if (message.count() > 1 ) {
         item->setText(0, message[1].simplified());
+        item->setToolTip(0, message[1].simplified());
         item->setText(1, message[0].simplified());
-	} else {
+    } else {
         item->setText(0, message[0].simplified());
+        item->setToolTip(0, message[0].simplified());
         item->setIcon(1, QIcon(":/glmixer/icons/info.png"));
-	}
+    }
 
 	// adjust color and show dialog according to message type
 	switch ( (QtMsgType) type) {
@@ -933,21 +935,20 @@ void GLMixer::on_actionFreeframeSource_triggered(){
 
     if (ffgld->exec() == QDialog::Accepted) {
 
+        QString fileName = ffgld->getFreeframeFileName();
+        int w = ffgld->getSelectedWidth();
+        int h = ffgld->getSelectedHeight();
+        if (!fileName.isEmpty()) {
+            Source *s = RenderingManager::getInstance()->newFreeframeGLSource(fileName, w, h);
+            if ( s ){
+                RenderingManager::getInstance()->addSourceToBasket(s);
+                qDebug() << s->getName() << '|' <<  tr("New FreeframeGL source created (")<< fileName << ").";
+                statusbar->showMessage( tr("Source created with the Freeframe GL plugin %1.").arg( fileName ), 3000 );
+            } else
+                qCritical() << fileName << '|' << tr("Could not create FreeframeGL source.");
+        }
     }
 
-//    QString fileName = QFileDialog::getOpenFileName(this, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
-
-//    int w = 256, h = 256;
-
-//    if (!fileName.isEmpty()) {
-//        Source *s = RenderingManager::getInstance()->newFreeframeGLSource(fileName, w, h);
-//        if ( s ){
-//            RenderingManager::getInstance()->addSourceToBasket(s);
-//            qDebug() << s->getName() << '|' <<  tr("New FreeframeGL source created (")<< fileName << ").";
-//            statusbar->showMessage( tr("Source created with the Freeframe GL plugin %1.").arg( fileName ), 3000 );
-//        } else
-//            qCritical() << fileName << '|' << tr("Could not create FreeframeGL source.");
-//    }
 #endif
 }
 

@@ -639,23 +639,29 @@ Source *RenderingManager::newFreeframeGLSource(QString pluginFileName, int w, in
         glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
         // try to create the opencv source
-        s = new FFGLSource(pluginFileName, getAvailableDepthFrom(depth), w, h);
+        s = new FFGLSource(pluginFileName, textureIndex, getAvailableDepthFrom(depth), w, h);
 
         // all good, give it a name
-        renameSource( s, _defaultSource->getName() + QString("FFGL") );
+        renameSource( s, _defaultSource->getName() + QString("Freeframe") );
 
     } catch (AllocationException &e){
         qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Allocation Exception.") << e.message();
+        // free the OpenGL texture
+        glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
         s = 0;
     }
     catch (FFGLPluginException &e)  {
         qWarning() << tr("RenderingManager|New FreeframeGL plugin source: FFGL error.") << e.message();
+        // free the OpenGL texture
+        glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
         s = 0;
     }
     catch (...)  {
         qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Unknown error.");
+        // free the OpenGL texture
+        glDeleteTextures(1, &textureIndex);
         // return an invalid pointer
         s = 0;
     }

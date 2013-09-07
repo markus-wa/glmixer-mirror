@@ -26,6 +26,7 @@ public:
     void update();
     void bind() const;
     inline QString fileName() { return _filename; }
+    inline bool isSourceType(){ return _isFreeframeTypeSource; }
 
     FFGLTextureStruct FBOTextureStruct();
 
@@ -47,7 +48,7 @@ private:
     QVariantHash parametersDefaults;
     QVariantHash info;
     QString _filename;
-    bool _initialized;
+    bool _initialized, _isFreeframeTypeSource;
 
     //this represents the texture (on the GPU) that we feed to the plugins
     FFGLTextureStruct _inputTexture;
