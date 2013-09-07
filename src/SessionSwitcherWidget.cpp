@@ -270,7 +270,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     QToolButton *dirButton = new QToolButton;
     dirButton->setToolTip("Add a folder to the list");
 	QIcon icon;
-	icon.addFile(QString::fromUtf8(":/glmixer/icons/fileopen.png"), QSize(), QIcon::Normal, QIcon::Off);
+    icon.addFile(QString::fromUtf8(":/glmixer/icons/folderopen.png"), QSize(), QIcon::Normal, QIcon::Off);
 	dirButton->setIcon(icon);
 
     QToolButton *dirDeleteButton = new QToolButton;

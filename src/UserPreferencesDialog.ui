@@ -774,7 +774,7 @@ the user to select a file name</string>
                    </property>
                    <property name="icon">
                     <iconset resource="../icons.qrc">
-                     <normaloff>:/glmixer/icons/fileopen.png</normaloff>:/glmixer/icons/fileopen.png</iconset>
+                     <normaloff>:/glmixer/icons/folderopen.png</normaloff>:/glmixer/icons/folderopen.png</iconset>
                    </property>
                   </widget>
                  </item>
@@ -1040,7 +1040,7 @@ the user to select a file name</string>
 font: 75;</string>
                   </property>
                   <property name="frameShape">
-                   <enum>QFrame::Box</enum>
+                   <enum>QFrame::StyledPanel</enum>
                   </property>
                   <property name="frameShadow">
                    <enum>QFrame::Plain</enum>

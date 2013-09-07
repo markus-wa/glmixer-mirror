@@ -496,28 +496,31 @@ void GLMixer::on_copyNotes_clicked() {
 void GLMixer::msgHandler(QtMsgType type, const char *msg)
 {
     QString txt = QString(msg).remove("\"");
-
 	// message handler
     switch (type) {
     case QtCriticalMsg:
-//        QMessageBox::warning(0, tr("%1 -- Problem").arg(QCoreApplication::applicationName()), QString(txt).replace("|","\n") +
-//                                                        QObject::tr("\n\nPlease check the logs for details.") );
         {
-         QMessageBox msgBox(QMessageBox::Warning,
-                           tr("%1 warning").arg(QCoreApplication::applicationName()),
-                           tr("Warning !"), QMessageBox::Ok);
-         msgBox.setInformativeText(tr("From \n") + QString(txt).replace("|",";\n"));
-         msgBox.setDefaultButton(QMessageBox::Ok);
-         QPushButton *logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
-         msgBox.exec();
-         if (msgBox.clickedButton() == logButton)
-              GLMixer::getInstance()->logDockWidget->setVisible(true);
+            QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),
+                           tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
+            QStringList message = txt.split('|', QString::SkipEmptyParts);
+            msgBox.setInformativeText(message[1].simplified() + tr("\n\nOrigin of the problem:\n") + message[0].simplified());
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            QPushButton *logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
+            msgBox.exec();
+            if (msgBox.clickedButton() == logButton && _instance)
+                _instance->logDockWidget->setVisible(true);
 
         }
         break;
 	case QtFatalMsg:
-		QMessageBox::critical(0, tr("%1 -- Fatal error").arg(QCoreApplication::applicationName()), txt);
-		abort();
+        {
+            QMessageBox msgBox(QMessageBox::Warning, tr("Error"),
+                           tr("<b>The application %1 crashed.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
+            msgBox.setInformativeText(txt.simplified() + tr("\n\nThe program will stop now."));
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            msgBox.exec();
+            abort();
+        }
 		break;
 	default:
 		break;
@@ -528,7 +531,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 		// invoke a delayed call (in Qt event loop) of the GLMixer real Message handler SLOT
 		static int methodIndex = _instance->metaObject()->indexOfSlot("Log(int,QString)");
 		static QMetaMethod method = _instance->metaObject()->method(methodIndex);
-		method.invoke(_instance, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
+        method.invoke(_instance, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
     }
  //   else QMessageBox::information(0, tr("%1 -- Debug").arg(QCoreApplication::applicationName()), txt);
 

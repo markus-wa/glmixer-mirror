@@ -106,13 +106,13 @@ RenderingManager *RenderingManager::getInstance() {
 
 	if (_instance == 0) {
 
-		if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+        if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
 			qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects are not supported on this graphics hardware."
-					"\n\nThe program cannot operate properly.\n\nExiting...") ));
+                    "\n\nThe program cannot operate properly without it.") ));
 
-		if (!glSupportsExtension("GL_ARB_vertex_program") || !glSupportsExtension("GL_ARB_fragment_program"))
+        if (!glSupportsExtension("GL_ARB_vertex_program") || !glSupportsExtension("GL_ARB_fragment_program"))
 			qFatal( "%s", qPrintable( tr("OpenGL GLSL programming is not supported on this graphics hardware."
-					"\n\nThe program cannot operate properly.\n\nExiting...")));
+                    "\n\nThe program cannot operate properly without it.")));
 
 		_instance = new RenderingManager;
 		Q_CHECK_PTR(_instance);
@@ -261,7 +261,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 	}
 	else
 		qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not working on this hardware."
-							"\n\nThe program cannot operate properly.\n\nExiting...")));
+                            "\n\nThe program cannot operate properly without it.")));
 
 	qDebug()<< "RenderingManager|"  << tr("Frame buffer set to ") << size.width() << "x" << size.height();
 }
@@ -449,7 +449,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 	}
 	else
 		qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible."
-			"\n\nThe program cannot operate properly.\n\nExiting...")));
+            "\n\nThe program cannot operate properly anymore.")));
 
 	// pop the projection matrix and GL state back for rendering the current view
 	// to the actual widget
