@@ -130,6 +130,17 @@ public:
         return m_numParameters;
     }
 
+    bool setParameter(QString paramName, QVariant value)
+    {
+        // find the parameter with that name
+        for (unsigned int i=0; i < m_numParameters; ++i){
+            if ( paramName.compare(GetParameterName(i), Qt::CaseInsensitive) == 0 )
+                return setParameter(i, value);
+        }
+
+        return false;
+    }
+
     bool setParameter(unsigned int paramNum, QVariant value)
     {
         if (paramNum<0 || paramNum>=m_numParameters ||
@@ -260,7 +271,7 @@ void FFGLPluginSource::update()
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
-        glScalef(1.f, -1.f, 1.f);
+//        glScalef(1.f, -1.f, 1.f);
 
         //clear color buffers
         glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -406,6 +417,57 @@ void FFGLPluginSource::setPaused(bool pause) {
         timer.restart();
 
 }
+
+
+QDomElement FFGLPluginSource::getConfiguration( QDir current )
+{
+    QDomDocument root;
+    QDomElement p = root.createElement("FreeFramePlugin");
+
+    // save filename of the plugin
+    QDomElement f = root.createElement("Filename");
+    if (current.isReadable())
+        f.setAttribute("Relative", current.relativeFilePath( fileName() ));
+    QDomText filename = root.createTextNode( QDir::root().absoluteFilePath( fileName() ));
+    f.appendChild(filename);
+    p.appendChild(f);
+
+    // iterate over the list of parameters
+    QHashIterator<QString, QVariant> i( getParameters());
+    while (i.hasNext()) {
+        i.next();
+
+        // save parameters as XML nodes
+        // e.g. <Parameter name='amplitude' type='float'>0.1</param>
+        QDomElement param = root.createElement("Parameter");
+        param.setAttribute( "name", i.key() );
+        param.setAttribute( "type", i.value().typeName() );
+        QDomText value = root.createTextNode( i.value().toString() );
+        param.appendChild(value);
+
+        p.appendChild(param);
+    }
+
+    return p;
+}
+
+void FFGLPluginSource::setConfiguration(QDomElement xml)
+{
+    initialize();
+
+    // start loop of parameters to read
+    QDomElement p = xml.firstChildElement("Parameter");
+    while (!p.isNull()) {
+
+        // read and apply parameter, if applicable
+        if ( !_plugin->setParameter( p.attribute("name"), QVariant(p.text()) ) )
+            qWarning()<< QFileInfo(_filename).baseName() << "| " << p.attribute("name") << QObject::tr(": parameter could not be set.");
+
+        p = p.nextSiblingElement("Parameter");
+    }
+}
+
+
 
 // for getting debug messages from FFGL code
 void FFDebugMessage(const char *msg)

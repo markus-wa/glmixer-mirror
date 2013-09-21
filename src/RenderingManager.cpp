@@ -1229,24 +1229,12 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 
 // freeframe gl plugin
 #ifdef FFGL
-        QDomElement ffgl = doc.createElement("FreeframeGL");
-
         // list of plugins
         FFGLPluginSourceStack plugins = (*its)->getFreeframeGLPluginStack();
         for (FFGLPluginSourceStack::iterator it = plugins.begin(); it != plugins.end(); ++it ) {
-            QDomElement p = doc.createElement("Plugin");
-            p.setAttribute("Filename", (*it)->fileName());
 
-            // iterate over the list of parameters
-            QHashIterator<QString, QVariant> i((*it)->getParameters());
-            while (i.hasNext()) {
-                i.next();
-                p.setAttribute( i.key(), i.value().toString() );
-            }
-
-            ffgl.appendChild(p);
+            sourceElem.appendChild( (*it)->getConfiguration(current) );
         }
-        sourceElem.appendChild(ffgl);
 #endif
 
 		QDomElement specific = doc.createElement("TypeSpecific");
@@ -1435,13 +1423,34 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 // freeframe gl plugin
 #ifdef FFGL
 
-    tmp = child.firstChildElement("FreeframeGL");
-    // start loop of plugins to load
-    QDomElement p = tmp.firstChildElement("Plugin");
-    while (!p.isNull()) {
-        newsource->addFreeframeGLPlugin( p.attribute("Filename") );
-        p = p.nextSiblingElement("Plugin");
-    }
+//    tmp = child.firstChildElement("FreeframeGL");
+//    // start loop of plugins to load
+//    QDomElement p = tmp.firstChildElement("Plugin");
+//    while (!p.isNull()) {
+
+
+//        if (attribs.contains("Filename")) {
+            
+//            newsource->addFreeframeGLPlugin( p.attribute("Filename") );
+            
+//            FFGLPluginSource *ffgl_plugin = newsource->getFreeframeGLPluginStack().top();
+//            // read and set parameters
+//            for (int i = 0; i < attribs.count(); ++i){
+
+//                // TODO: save parameters as XML nodes
+//                // e.g. <param name='amplitude' type='float'>0.1</param>
+
+////                QString param = attribs.item(i).nodeName();
+////                QString value = attribs.item(i).nodeValue();
+
+////                ffgl_plugin->setParameter(i, value.toFloat());
+
+//            }
+
+
+//        }
+//        p = p.nextSiblingElement("Plugin");
+//    }
 
 #endif
 }
@@ -1634,9 +1643,36 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 		if (newsource) {
 			renameSource( newsource, child.attribute("name") );
 			// insert the source in the scene
-			if ( insertSource(newsource) )
+            if ( insertSource(newsource) ) {
 				// Apply parameters to the created source
 				applySourceConfig(newsource, child);
+
+#ifdef FFGL
+                // apply FreeFrame plugins
+                // start loop of plugins to load
+                QDomElement p = child.firstChildElement("FreeFramePlugin");
+                while (!p.isNull()) {
+
+                    QDomElement Filename = p.firstChildElement("Filename");
+                    // first reads with the absolute file name
+                    QString fileNameToOpen = Filename.text();
+                    // if there is no such file, try generate a file name from the relative file name
+                    if (!QFileInfo(fileNameToOpen).exists())
+                        fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
+                    // if there is such a file
+                    if (QFileInfo(fileNameToOpen).exists()) {
+                        // create and push the plugin to the source
+                        newsource->addFreeframeGLPlugin( fileNameToOpen );
+                        // apply the configuration
+                        newsource->getFreeframeGLPluginStack().top()->setConfiguration(p);
+                    }
+                    else {
+                        qWarning() << child.attribute("name") << tr("|No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+                    }
+                    p = p.nextSiblingElement("FreeFramePlugin");
+                }
+#endif
+            }
 			else
 				delete newsource;
 		}

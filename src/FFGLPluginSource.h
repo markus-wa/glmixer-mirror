@@ -6,6 +6,7 @@
 #include <QtCore>
 #include <QString>
 #include <QElapsedTimer>
+#include <QDomElement>
 
 class FFGLPluginException : public QtConcurrent::Exception {
 public:
@@ -42,6 +43,10 @@ public:
 
     // reset
     void restoreDefaults();
+
+    // XML config
+    QDomElement getConfiguration(QDir current = QDir());
+    void setConfiguration(QDomElement xml);
 
 private:
     // self management
