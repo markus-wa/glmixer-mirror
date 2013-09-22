@@ -14,6 +14,8 @@ public:
     QStringList namesList();
 
     void pushNewPlugin(QString filename, int widht, int height, FFGLTextureStruct inputTexture);
+    void removePlugin(FFGLPluginSource *p);
+
     void update();
 
 private:

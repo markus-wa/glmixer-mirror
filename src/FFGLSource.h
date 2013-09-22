@@ -46,8 +46,8 @@ protected:
 
 public:
 
-    FFGLPluginSourceStack getFreeframeGLPluginStack();
-    bool hasFreeframeGLPlugin();
+//    FFGLPluginSourceStack *getFreeframeGLPluginStack();
+//    bool hasFreeframeGLPlugin();
 
     RTTI rtti() const { return type; }
     bool isPlayable() const { return playable; }

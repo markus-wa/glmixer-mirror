@@ -1230,8 +1230,8 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 // freeframe gl plugin
 #ifdef FFGL
         // list of plugins
-        FFGLPluginSourceStack plugins = (*its)->getFreeframeGLPluginStack();
-        for (FFGLPluginSourceStack::iterator it = plugins.begin(); it != plugins.end(); ++it ) {
+        FFGLPluginSourceStack *plugins = (*its)->getFreeframeGLPluginStack();
+        for (FFGLPluginSourceStack::iterator it = plugins->begin(); it != plugins->end(); ++it ) {
 
             sourceElem.appendChild( (*it)->getConfiguration(current) );
         }
@@ -1420,39 +1420,6 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 			tmp.attribute("minOutput", "0").toFloat(),
 			tmp.attribute("maxOutput", "1").toFloat());
 
-// freeframe gl plugin
-#ifdef FFGL
-
-//    tmp = child.firstChildElement("FreeframeGL");
-//    // start loop of plugins to load
-//    QDomElement p = tmp.firstChildElement("Plugin");
-//    while (!p.isNull()) {
-
-
-//        if (attribs.contains("Filename")) {
-            
-//            newsource->addFreeframeGLPlugin( p.attribute("Filename") );
-            
-//            FFGLPluginSource *ffgl_plugin = newsource->getFreeframeGLPluginStack().top();
-//            // read and set parameters
-//            for (int i = 0; i < attribs.count(); ++i){
-
-//                // TODO: save parameters as XML nodes
-//                // e.g. <param name='amplitude' type='float'>0.1</param>
-
-////                QString param = attribs.item(i).nodeName();
-////                QString value = attribs.item(i).nodeValue();
-
-////                ffgl_plugin->setParameter(i, value.toFloat());
-
-//            }
-
-
-//        }
-//        p = p.nextSiblingElement("Plugin");
-//    }
-
-#endif
 }
 
 int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
@@ -1664,7 +1631,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                         // create and push the plugin to the source
                         newsource->addFreeframeGLPlugin( fileNameToOpen );
                         // apply the configuration
-                        newsource->getFreeframeGLPluginStack().top()->setConfiguration(p);
+                        newsource->getFreeframeGLPluginStack()->top()->setConfiguration(p);
                     }
                     else {
                         qWarning() << child.attribute("name") << tr("|No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);

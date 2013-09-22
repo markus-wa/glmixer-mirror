@@ -16,7 +16,7 @@ void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int heigh
 
     // chaining the plugins means providing the texture index of the previous
     if ( ! isEmpty() )
-        inputTexture = top()->FBOTextureStruct();
+        inputTexture = top()->getOutputTextureStruct();
 
     // create the plugin itself
     try {
@@ -36,6 +36,32 @@ void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int heigh
 
 }
 
+void FFGLPluginSourceStack::removePlugin(FFGLPluginSource *p)
+{
+    // finds the index of the plugin in the list
+    int id = indexOf(p);
+
+    // if the plugin *p is in the stack
+    if (id > -1) {
+
+        // if there is a plugin after *p in the stack
+        // then we have to update the input texture of the one after *p
+        if (id+1 < count())  {
+            // if we remove the first in the stack
+            if ( id == 0 )
+                // set input texture of the next to be the one of the current first
+                at(1)->setInputTextureStruct(p->getInputTextureStruct());
+            else
+                // chain the plugin before with the plugin after
+                at(id+1)->setInputTextureStruct(at(id-1)->getOutputTextureStruct());
+        }
+
+        // now we can remove the plugin from the stack, and delete it
+        remove(id);
+        delete p;
+    }
+
+}
 
 void FFGLPluginSourceStack::update(){
 
@@ -46,8 +72,8 @@ void FFGLPluginSourceStack::update(){
             ++it;
         }
         catch (FFGLPluginException &e) {
-            erase(it);
-            qCritical() <<  e.message() << QObject::tr("\nThe plugin was removed");
+            it = erase(it);
+            qCritical() <<  e.message() << QObject::tr("\nThe plugin was removed after a crash");
         }
     }
 

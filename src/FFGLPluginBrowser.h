@@ -15,7 +15,7 @@ public:
 public slots:
 
     void clear();
-    void showProperties(FFGLPluginSourceStack plugins);
+    void showProperties(FFGLPluginSourceStack *plugins);
 
     // Update the plugin when an action is performed on a property in the browser
     // This concerns every properties editable in the browser
@@ -27,6 +27,9 @@ public slots:
     void resetAll();
     void defaultValue();
 
+    // Context menu actions
+    void removePlugin();
+
 //Q_SIGNALS:
    // void changed(FFGLPluginSource *plugin);
 
@@ -36,11 +39,11 @@ private:
     bool canChange();
 
     // the link with plugin
-    FFGLPluginSourceStack currentStack;
+    FFGLPluginSourceStack *currentStack;
     QMap<QtProperty *, QPair<FFGLPluginSource *, int> > propertyToPluginParameter;
 
     QtProperty *createPluginPropertyTree(FFGLPluginSource *plugin);
-
+    QAction *removeAction;
 };
 
 #endif // FFGLPLUGINBROWSER_H

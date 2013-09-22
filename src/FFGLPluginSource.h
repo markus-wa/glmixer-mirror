@@ -29,7 +29,9 @@ public:
     inline QString fileName() { return _filename; }
     inline bool isSourceType(){ return _isFreeframeTypeSource; }
 
-    FFGLTextureStruct FBOTextureStruct();
+    FFGLTextureStruct getOutputTextureStruct();
+    FFGLTextureStruct getInputTextureStruct();
+    void setInputTextureStruct(FFGLTextureStruct inputTexture);
 
     // pause update
     void setPaused(bool pause);

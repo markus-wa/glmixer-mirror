@@ -118,7 +118,9 @@ GLubyte ViewRenderWidget::stippling[] = {
 	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 
-//GLfloat ViewRenderWidget::coords[12] = {-1.f, -1.f, 0.f ,  1.f, -1.f, 0.f, 1.f, 1.f, 0.f,  -1.f, 1.f, 0.f  }
+//GLfloat ViewRenderWidget::coords[12] = {-1.f, -1.f, 0.f ,  1.f, -1.f, 0.f, 1.f, 1.f, 0.f,  -1.f, 1.f, 0.f  };
+//GLfloat ViewRenderWidget::texc[8] = {0.f, 1.f,  1.f, 1.f,  1.f, 0.f,  0.f, 0.f};
+
 GLfloat ViewRenderWidget::coords[12] = { -1.f, 1.f, 0.f,  1.f, 1.f, 0.f,  1.f, -1.f, 0.f,  -1.f, -1.f, 0.f };
 GLfloat ViewRenderWidget::texc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 GLfloat ViewRenderWidget::maskc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};

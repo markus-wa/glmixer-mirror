@@ -236,7 +236,7 @@ FFGLPluginSource::~FFGLPluginSource()
         delete _fbo;
 }
 
-FFGLTextureStruct FFGLPluginSource::FBOTextureStruct(){
+FFGLTextureStruct FFGLPluginSource::getOutputTextureStruct(){
 
     FFGLTextureStruct it;
 
@@ -250,11 +250,35 @@ FFGLTextureStruct FFGLPluginSource::FBOTextureStruct(){
     return it;
 }
 
+FFGLTextureStruct FFGLPluginSource::getInputTextureStruct(){
+
+    FFGLTextureStruct it;
+
+    it.Handle = _inputTexture.Handle;
+    it.Width = _inputTexture.Width;
+    it.Height = _inputTexture.Height;
+    it.HardwareWidth = _inputTexture.HardwareWidth;
+    it.HardwareHeight = _inputTexture.HardwareHeight;
+
+    return it;
+}
+
+
+void FFGLPluginSource::setInputTextureStruct(FFGLTextureStruct inputTexture)
+{
+    // descriptor for the source texture, used also to store size
+    _inputTexture.Handle = inputTexture.Handle;
+    _inputTexture.Width = inputTexture.Width;
+    _inputTexture.Height = inputTexture.Height;
+    _inputTexture.HardwareWidth = inputTexture.HardwareWidth;
+    _inputTexture.HardwareHeight = inputTexture.HardwareHeight;
+}
+
 void FFGLPluginSource::update()
 {
     if (initialize() && _fbo->bind())
     {
-        // Safer to push all attribs because who knows what is done in the puglin!!
+        // Safer to push all attribs ; who knows what is done in the puglin ?!!
         // (but slower)
         glPushAttrib(GL_ALL_ATTRIB_BITS);
 
@@ -271,7 +295,6 @@ void FFGLPluginSource::update()
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
-//        glScalef(1.f, -1.f, 1.f);
 
         //clear color buffers
         glClearColor(0.f, 0.f, 0.f, 1.f);

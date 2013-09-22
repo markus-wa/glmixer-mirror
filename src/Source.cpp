@@ -587,16 +587,15 @@ void Source::addFreeframeGLPlugin(QString filename) {
 
 }
 
-FFGLPluginSourceStack Source::getFreeframeGLPluginStack() {
+FFGLPluginSourceStack *Source::getFreeframeGLPluginStack() {
 
-    return _ffgl_plugins;
+    return &_ffgl_plugins;
 }
 
 bool Source::hasFreeframeGLPlugin() {
 
     return (_ffgl_plugins.count() > 0);
 }
-
 
 #endif
 

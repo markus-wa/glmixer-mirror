@@ -73,7 +73,7 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
     // this source behaves like a normal source, except the texture index
     // comes from the plugin's FBO
     _sourceTextureIndex = texture;
-    textureIndex = _plugin->FBOTextureStruct().Handle;
+    textureIndex = _plugin->getOutputTextureStruct().Handle;
 
 }
 
@@ -92,12 +92,12 @@ FFGLSource::~FFGLSource()
 
 int FFGLSource::getFrameWidth() const {
 
-    return _plugin->FBOTextureStruct().Width;
+    return _plugin->getOutputTextureStruct().Width;
 }
 
 int FFGLSource::getFrameHeight() const {
 
-    return _plugin->FBOTextureStruct().Height;
+    return _plugin->getOutputTextureStruct().Height;
 }
 
 
@@ -120,6 +120,7 @@ void FFGLSource::update() {
         // call the update on the ffgl plugin
         if (_plugin && _playing)
             _plugin->update();
+
     }
     catch (FFGLPluginException &e) {
         this->play(false);
@@ -130,14 +131,14 @@ void FFGLSource::update() {
     Source::update();
 }
 
-FFGLPluginSourceStack FFGLSource::getFreeframeGLPluginStack() {
+//FFGLPluginSourceStack *FFGLSource::getFreeframeGLPluginStack() {
 
-    FFGLPluginSourceStack tmp(_ffgl_plugins);
-    tmp.push_front(_plugin);
-    return  tmp;
-}
+//    FFGLPluginSourceStack tmp(_ffgl_plugins);
+//    tmp.push_front(_plugin);
+//    return  tmp;
+//}
 
-bool FFGLSource::hasFreeframeGLPlugin() {
+//bool FFGLSource::hasFreeframeGLPlugin() {
 
-    return true;
-}
+//    return true;
+//}

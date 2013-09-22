@@ -31,9 +31,14 @@
 
 
 
-FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent) : PropertyBrowser(parent) {
+FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent) : PropertyBrowser(parent), currentStack(0) {
 
+    // actions of context menus
+    removeAction = new QAction(tr("Remove"), this);
+    QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePlugin() ) );
 
+    menuTree.addSeparator();
+    menuTree.addAction(removeAction);
 }
 
 
@@ -44,6 +49,8 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
     // create the entry for this plugin
     QFileInfo pluginfile(plugin->fileName());
     QtProperty *pluginroot = groupManager->addProperty( pluginfile.baseName());
+    // keep correspondance between property and plugin
+    propertyToPluginParameter[pluginroot] = QPair<FFGLPluginSource *, int>(plugin, -1);
 
     // get the hash list of parameters for this plugin
     QVariantHash parameters = plugin->getParameters();
@@ -89,6 +96,8 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
 
     // Add the informations on this plugin
     QtProperty *info = groupManager->addProperty( QString("About ")+pluginfile.baseName() );
+    // keep correspondance between property and plugin
+    propertyToPluginParameter[info] = QPair<FFGLPluginSource *, int>(plugin, -1);
 
     // iterate over the plugin infos
     QVariantHash informations = plugin->getInfo();
@@ -98,10 +107,17 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
        property = infoManager->addProperty( j.key() );
        infoManager->setValue(property, j.value().toString());
        info->addSubProperty(property);
+       property->setItalics(true);
+       // keep correspondance between property and plugin
+       propertyToPluginParameter[property] = QPair<FFGLPluginSource *, int>(plugin, -1);
     }
     property = infoManager->addProperty( QLatin1String("File") );
-    infoManager->setValue(property, pluginfile.absoluteFilePath());
+    property->setToolTip(pluginfile.absoluteFilePath());
+    property->setItalics(true);
+    infoManager->setValue(property, pluginfile.fileName());
     info->addSubProperty(property);
+    // keep correspondance between property and plugin
+    propertyToPluginParameter[property] = QPair<FFGLPluginSource *, int>(plugin, -1);
 
     pluginroot->addSubProperty(info);
 
@@ -126,7 +142,7 @@ void FFGLPluginBrowser::clear()
 
 }
 
-void FFGLPluginBrowser::showProperties(FFGLPluginSourceStack plugins)
+void FFGLPluginBrowser::showProperties(FFGLPluginSourceStack *plugins)
 {
     clear();
 
@@ -137,10 +153,10 @@ void FFGLPluginBrowser::showProperties(FFGLPluginSourceStack plugins)
     currentStack = plugins;
 
     // if a there is something to do
-    if (currentStack.count() > 0) {
+    if (currentStack && currentStack->count() > 0) {
 
         // loop over the stack
-        for (FFGLPluginSourceStack::iterator it = currentStack.begin(); it != currentStack.end(); ++it )
+        for (FFGLPluginSourceStack::iterator it = currentStack->begin(); it != currentStack->end(); ++it )
             addProperty( createPluginPropertyTree(*it) );
 
         // reconnect the managers to the corresponding value change
@@ -152,7 +168,7 @@ void FFGLPluginBrowser::showProperties(FFGLPluginSourceStack plugins)
 
 bool FFGLPluginBrowser::canChange()
 {
-    return (currentStack.count() > 0 );
+    return (currentStack && currentStack->count() > 0 );
 }
 
 void FFGLPluginBrowser::valueChanged(QtProperty *property, bool value)
@@ -185,15 +201,29 @@ void FFGLPluginBrowser::valueChanged(QtProperty *property, const QString &value)
 
 void FFGLPluginBrowser::resetAll()
 {
-    // loop over the stack
-    for (FFGLPluginSourceStack::iterator it = currentStack.begin(); it != currentStack.end(); ++it )
-        (*it)->restoreDefaults();
+    if (currentStack) {
+        // loop over the stack
+        for (FFGLPluginSourceStack::iterator it = currentStack->begin(); it != currentStack->end(); ++it )
+            (*it)->restoreDefaults();
 
-    // refresh display
-    showProperties(currentStack);
+        // refresh display
+        showProperties(currentStack);
+    }
 }
 
 void FFGLPluginBrowser::defaultValue()
 {
 
+}
+
+void FFGLPluginBrowser::removePlugin()
+{
+    if (currentStack) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( propertyToPluginParameter.contains(property) ) {
+            currentStack->removePlugin(propertyToPluginParameter[property].first);
+        }
+    }
+    // refresh display
+    showProperties(currentStack);
 }

@@ -564,7 +564,7 @@ void SourcePropertyBrowser::updatePropertyTree(){
         if(s->hasFreeframeGLPlugin()) {
             idToProperty["FreeframeGL"]->setEnabled(true);
             // fill in list of FFGL plugins "Plugin list"
-            infoManager->setValue(idToProperty["Plugin list"], s->getFreeframeGLPluginStack().namesList().join(", ") );
+            infoManager->setValue(idToProperty["Plugin list"], s->getFreeframeGLPluginStack()->namesList().join(", ") );
         }
         else {
             idToProperty["FreeframeGL"]->setEnabled(false);

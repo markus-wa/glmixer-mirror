@@ -288,16 +288,25 @@ void PropertyBrowser::propertyValueChanged(QtProperty *property, double value)
 
 void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
 {
+    defaultValueAction->setEnabled( false );
+    if (propertyTreeEditor->currentItem() &&
+        propertyTreeEditor->currentItem()->children().count() == 0 &&
+        !propertyTreeEditor->currentItem()->property()->isItalics() )
+        defaultValueAction->setEnabled( true );
 
-    defaultValueAction->setEnabled( propertyGroupEditor->currentItem() );
     menuGroup.exec( propertyGroupEditor->mapToGlobal(pos) );
 }
 
 
 void PropertyBrowser::ctxMenuTree(const QPoint &pos)
 {
-   defaultValueAction->setEnabled( propertyTreeEditor->currentItem() );
-   menuTree.exec( propertyTreeEditor->mapToGlobal(pos) );
+    defaultValueAction->setEnabled(false);
+    if (propertyTreeEditor->currentItem() &&
+        propertyTreeEditor->currentItem()->children().count() == 0 &&
+        !propertyTreeEditor->currentItem()->property()->isItalics() )
+        defaultValueAction->setEnabled( true );
+
+    menuTree.exec( propertyTreeEditor->mapToGlobal(pos) );
 }
 
 void PropertyBrowser::switchToTreeView(){

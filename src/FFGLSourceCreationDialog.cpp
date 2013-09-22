@@ -74,10 +74,10 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
             // create a new source with a new texture index and the new parameters
             s = new FFGLSource(_filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
 
-            pluginBrowser->showProperties( s->getFreeframeGLPluginStack() );
+//            pluginBrowser->showProperties( s->getFreeframeGLPluginStack() );
 
-            if (!s->getFreeframeGLPluginStack().isEmpty())
-                ui->labelWarninEffect->setVisible( !s->getFreeframeGLPluginStack().top()->isSourceType() );
+//            if (!s->getFreeframeGLPluginStack()->isEmpty())
+//                ui->labelWarninEffect->setVisible( !s->getFreeframeGLPluginStack().top()->isSourceType() );
 
         }
         catch (...)  {
