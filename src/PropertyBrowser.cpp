@@ -289,9 +289,10 @@ void PropertyBrowser::propertyValueChanged(QtProperty *property, double value)
 void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
 {
     defaultValueAction->setEnabled( false );
-    if (propertyTreeEditor->currentItem() &&
-        propertyTreeEditor->currentItem()->children().count() == 0 &&
-        !propertyTreeEditor->currentItem()->property()->isItalics() )
+
+    if (propertyGroupEditor->currentItem() &&
+        propertyGroupEditor->currentItem()->children().count() == 0 &&
+        !propertyGroupEditor->currentItem()->property()->isItalics() )
         defaultValueAction->setEnabled( true );
 
     menuGroup.exec( propertyGroupEditor->mapToGlobal(pos) );

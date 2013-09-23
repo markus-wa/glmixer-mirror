@@ -1025,5 +1025,7 @@ void SourcePropertyBrowser::resetAll()
 void SourcePropertyBrowser::defaultValue()
 {
 //    RenderingManager::getInstance()->resetCurrentSource();
+
+
 }
 

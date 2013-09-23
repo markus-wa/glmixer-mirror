@@ -587,7 +587,12 @@ bool MixingToolboxWidget::restoreState(const QByteArray &state) {
 void MixingToolboxWidget::on_addPlugin_pressed(){
 
 #ifdef FFGL
-    QString fileName = QFileDialog::getOpenFileName(0, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+
+    QString fileName = QFileDialog::getOpenFileName(0, tr("Choose FFGL Plugin file"),
+                                                    QDir::currentPath(),
+                                                    tr("Freeframe GL Plugin (*.so *.dll *.bundle)"),
+                                                    0, GLMixer::getInstance()->useSystemDialogs() ? QFlags<QFileDialog::Option>() : QFileDialog::DontUseNativeDialog
+                                                    );
     QFileInfo pluginfile(fileName);
     if (source && pluginfile.isFile()) {
         source->addFreeframeGLPlugin(fileName);

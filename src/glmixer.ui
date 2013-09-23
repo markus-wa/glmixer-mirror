@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1424</width>
-    <height>931</height>
+    <height>928</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,16 +47,7 @@ QDockWidget::close-button, QDockWidget::float-button {
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <item>
@@ -297,31 +288,13 @@ QDockWidget::close-button, QDockWidget::float-button {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>3</number>
-     </property>
-     <property name="topMargin">
-      <number>3</number>
-     </property>
-     <property name="rightMargin">
-      <number>3</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>3</number>
      </property>
      <item>
       <widget class="QWidget" name="previewDockWidgetContents" native="true">
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
@@ -622,6 +595,12 @@ QToolButton:hover {
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
+   <property name="maximumSize">
+    <size>
+     <width>524287</width>
+     <height>99</height>
+    </size>
+   </property>
    <property name="windowIcon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
@@ -652,37 +631,32 @@ QToolButton:hover {
      </sizepolicy>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="spacing">
-      <number>0</number>
-     </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
      <item>
-      <widget class="QSplitter" name="vcontrolOptionSplitter">
+      <widget class="SourceDisplayWidget" name="sourcePreview" native="true">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="baseSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSplitter" name="vcontrolOptionSplitter">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="opaqueResize">
-        <bool>false</bool>
-       </property>
-       <property name="handleWidth">
-        <number>7</number>
        </property>
        <widget class="QWidget" name="vcontrolDockWidgetControls" native="true">
         <property name="sizePolicy">
@@ -698,43 +672,6 @@ QToolButton:hover {
          </size>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <property name="spacing">
-          <number>4</number>
-         </property>
-         <property name="leftMargin">
-          <number>5</number>
-         </property>
-         <property name="topMargin">
-          <number>5</number>
-         </property>
-         <property name="rightMargin">
-          <number>5</number>
-         </property>
-         <property name="bottomMargin">
-          <number>1</number>
-         </property>
-         <item>
-          <widget class="SourceDisplayWidget" name="sourcePreview" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>100</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="baseSize">
-            <size>
-             <width>200</width>
-             <height>0</height>
-            </size>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QToolButton" name="startButton">
            <property name="sizePolicy">
@@ -1135,16 +1072,7 @@ QToolButton:hover {
                <property name="spacing">
                 <number>4</number>
                </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
+               <property name="margin">
                 <number>0</number>
                </property>
                <item>
@@ -1163,16 +1091,7 @@ QToolButton:hover {
                  </property>
                  <widget class="QWidget" name="pageSpeed0">
                   <layout class="QHBoxLayout" name="horizontalLayout_14">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1192,16 +1111,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed1">
                   <layout class="QHBoxLayout" name="horizontalLayout_13">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1221,16 +1131,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed2">
                   <layout class="QHBoxLayout" name="horizontalLayout_12">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1250,16 +1151,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed3">
                   <layout class="QHBoxLayout" name="horizontalLayout_11">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1279,16 +1171,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed4">
                   <layout class="QHBoxLayout" name="horizontalLayout_10">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1308,16 +1191,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed5">
                   <layout class="QHBoxLayout" name="horizontalLayout_9">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1454,16 +1328,7 @@ QToolButton:hover {
             <property name="spacing">
              <number>3</number>
             </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
+            <property name="margin">
              <number>0</number>
             </property>
             <item>
@@ -1874,16 +1739,7 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
          </size>
         </property>
         <layout class="QVBoxLayout" name="_2">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -2041,16 +1897,7 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="sourceDockWidgetContents">
     <layout class="QVBoxLayout" name="sourceDockWidgetContentsLayout">
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
     </layout>
@@ -2062,7 +1909,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1424</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -2842,16 +2689,7 @@ QToolButton:hover {
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -3022,16 +2860,7 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorMagnetOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -3256,16 +3085,7 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="switcherDockWidgetContents">
     <layout class="QVBoxLayout" name="switcherDockWidgetContentsLayout">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
     </layout>
@@ -3317,16 +3137,7 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>5</number>
-     </property>
-     <property name="topMargin">
-      <number>5</number>
-     </property>
-     <property name="rightMargin">
-      <number>5</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>5</number>
      </property>
      <item>
@@ -3334,16 +3145,7 @@ QToolButton:hover {
        <property name="spacing">
         <number>0</number>
        </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>0</number>
        </property>
        <item>
@@ -3526,16 +3328,7 @@ QToolButton:pressed {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -4160,16 +3953,7 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
     </layout>
@@ -4193,16 +3977,7 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
        <property name="spacing">
         <number>0</number>
        </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>0</number>
        </property>
        <item>

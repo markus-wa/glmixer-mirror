@@ -98,7 +98,7 @@ void SourceDisplayWidget::paintGL()
             s->update();
 
         // bind texture
-        s->bind();
+        glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
 
 		// adjust size to show all the square and ensure aspect ratio is preserved
 		if ( s->getAspectRatio() > aspectRatio )

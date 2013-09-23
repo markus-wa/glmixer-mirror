@@ -740,7 +740,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 	if ( RenderingManager::getInstance()->isValid(csi) ) {
 
 		// display source preview
-		sourcePreview->setSource(*csi);
+        sourcePreview->setSource(*csi);
+        vcontrolDockWidgetContents->setEnabled( true );
 
 		// enable properties and actions on the current valid source
         sourceDockWidgetContents->setEnabled(true);
@@ -749,10 +750,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		toolButtonZoomCurrent->setEnabled(true);
         mixingToolBox->setEnabled(true);
 
-		// Enable start button if the source is playable
-		startButton->setEnabled( (*csi)->isPlayable() );
-		vcontrolDockWidgetContents->setEnabled( (*csi)->isPlayable() );
-		vcontrolDockWidgetControls->setEnabled( (*csi)->isPlayable() );
+        // Enable control pannels if the source is playable
+        vcontrolOptionSplitter->setEnabled( (*csi)->isPlayable() );
 
 		// except for media source, these panels are disabled
 		vcontrolDockWidgetOptions->setEnabled(false);
@@ -816,17 +815,19 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		} // end video source
 	} else {  // it is not a valid source
 
-		// disable panel widgets
-		currentSourceMenu->setEnabled(false);
-        actionCloneSource->setEnabled(false);
-		toolButtonZoomCurrent->setEnabled(false);
-		vcontrolDockWidgetContents->setEnabled(false);
-		mixingToolBox->setEnabled(false);
-		startButton->setEnabled( false );
+        // disable control panel widgets
+        vcontrolDockWidgetContents->setEnabled(false);
+        vcontrolOptionSplitter->setEnabled( false );
 		startButton->setChecked( false );
 
+        // disable source related toolboxes
+        mixingToolBox->setEnabled(false);
         sourceDockWidgetContents->setEnabled(false);
 
+        // disable options
+        currentSourceMenu->setEnabled(false);
+        actionCloneSource->setEnabled(false);
+        toolButtonZoomCurrent->setEnabled(false);
 	}
 
 	// update gui content from timings
