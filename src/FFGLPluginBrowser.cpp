@@ -213,7 +213,20 @@ void FFGLPluginBrowser::resetAll()
 
 void FFGLPluginBrowser::defaultValue()
 {
+    if (currentStack) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( propertyToPluginParameter.contains(property) &&
+             propertyToPluginParameter[property].second > 0) {
 
+            // read default value
+            QVariant val = propertyToPluginParameter[property].first->getParametersDefaults()[property->propertyName()];
+
+            propertyToPluginParameter[property].first->setParameter(propertyToPluginParameter[property].second, val);
+
+            // refresh display
+            showProperties(currentStack);
+        }
+    }
 }
 
 void FFGLPluginBrowser::removePlugin()

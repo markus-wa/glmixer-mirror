@@ -31,6 +31,7 @@
 #include "VideoFile.h"
 #include "SourceSet.h"
 
+#include <QFileDialog>
 
 #define MAX_RECENT_FILES 7
 #define MAX_DROP_FILES 20
@@ -139,10 +140,13 @@ public Q_SLOTS:
 	void readSettings();
 	void saveSettings();
 
+    // interaction
     void drop(QDropEvent *event);
+    QString getFileName(QString title, QString filters, QFileDialog::AcceptMode mode = QFileDialog::AcceptOpen);
 
-    void screenshotView();
-    void selectGLSLFragmentShader();
+    // hidden actions
+    void screenshotView();  // "Ctrl+<,<"
+    void selectGLSLFragmentShader();  // "Shift+Ctrl+G,F"
 
 Q_SIGNALS:
 	void sourceMarksModified(bool);

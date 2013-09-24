@@ -7,6 +7,7 @@
 #include "SourceDisplayWidget.h"
 #include "FFGLPluginBrowser.h"
 #include "FFGLSource.h"
+#include "glmixer.h"
 
 FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent) :
     QDialog(parent), s(0),
@@ -106,7 +107,8 @@ void FFGLSourceCreationDialog::updatePlugin(QString filename) {
 void FFGLSourceCreationDialog::browse() {
 
     // browse for a plugin file
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Choose FFGL Plugin file"), QDir::currentPath(), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+
     // if a file was selected
     if (!fileName.isEmpty()) {
         // add the filename to the pluginFileList

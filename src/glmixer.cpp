@@ -882,8 +882,8 @@ void GLMixer::on_actionCameraSource_triggered() {
 
 void GLMixer::on_actionSvgSource_triggered(){
 
-	QString current = currentSessionFileName.isEmpty() ? QDir::currentPath() : QFileInfo(currentSessionFileName).absolutePath();
-    QString fileName = QFileDialog::getOpenFileName(this, tr("OpenSVG file"), current, tr("Scalable Vector Graphics (*.svg)"), 0, usesystemdialogs ? QFlags<QFileDialog::Option>() : QFileDialog::DontUseNativeDialog);
+    QString fileName = getFileName(tr("Open SVG file"),
+                                   tr("Scalable Vector Graphics (*.svg)"));
 
 	if ( !fileName.isEmpty() ) {
 
@@ -1548,14 +1548,11 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 void GLMixer::on_actionSave_Session_as_triggered()
 {
-	sfd->setAcceptMode(QFileDialog::AcceptSave);
-	sfd->setFileMode(QFileDialog::AnyFile);
-	sfd->setFilter(tr("GLMixer session (*.glm)"));
-	sfd->setOption(QFileDialog::DontUseNativeDialog, !usesystemdialogs);
-	sfd->setDefaultSuffix("glm");
+    QString fileName = getFileName(tr("Save session"),
+                                   tr("GLMixer session (*.glm)" ),
+                                   QFileDialog::AcceptSave);
 
-	if (sfd->exec()) {
-	    QString fileName = sfd->selectedFiles().front();
+    if ( !fileName.isEmpty() ) {
 		// now we got a filename, save the file:
 		currentSessionFileName = fileName;
 		on_actionSave_Session_triggered();
@@ -1564,15 +1561,13 @@ void GLMixer::on_actionSave_Session_as_triggered()
 
 void GLMixer::on_actionLoad_Session_triggered()
 {
-	sfd->setAcceptMode(QFileDialog::AcceptOpen);
-	sfd->setFileMode(QFileDialog::ExistingFile);
-	sfd->setOption(QFileDialog::DontUseNativeDialog, !usesystemdialogs);
-	sfd->setFilter(tr("GLMixer session (*.glm)"));
+    QString fileName = getFileName(tr("Open session"),
+                                   tr("GLMixer session (*.glm)" ) );
 
-	if (sfd->exec()) {
+    if (QFileInfo(fileName).exists())
 		// get the first file name selected
 		switchToSessionFile( sfd->selectedFiles().front() );
-	}
+
 }
 
 
@@ -1957,8 +1952,10 @@ void GLMixer::readSettings()
     	vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
     if (settings.contains("VideoFileDialog"))
     	mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
-    if (settings.contains("SessionFileDialog"))
+    if (settings.contains("SessionFileDialog")) {
     	sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
+        sfd->setDirectory( sfd->history().last() );
+    }
     if (settings.contains("RenderingEncoder"))
     	RenderingManager::getRecorder()->restoreState(settings.value("RenderingEncoder").toByteArray());
 
@@ -2549,11 +2546,28 @@ void GLMixer::screenshotView(){
 
 void GLMixer::selectGLSLFragmentShader()
 {
-    QString newfile = QFileDialog::getOpenFileName(this, tr("Open GLSL File"), QDir::currentPath(),
-                                        tr("GLSL Fragment Shader (*.glsl *.fsh *.txt)"), 0,  QFileDialog::DontUseNativeDialog);
+    QString newfile = getFileName(tr("Open GLSL File"),
+                                      tr("GLSL Fragment Shader (*.glsl *.fsh *.txt)") );
     if ( QFileInfo(newfile).exists())
         RenderingManager::getRenderingWidget()->setFilteringEnabled(true, newfile);
     else
         RenderingManager::getRenderingWidget()->setFilteringEnabled(RenderingManager::getRenderingWidget()->filteringEnabled());
 }
 
+
+QString GLMixer::getFileName(QString title, QString filter, QFileDialog::AcceptMode mode)
+{
+    QString fileName;
+
+    sfd->setAcceptMode(mode);
+    sfd->setFileMode(mode == QFileDialog::AcceptOpen ? QFileDialog::ExistingFile : QFileDialog::AnyFile);
+
+    sfd->setNameFilter(filter);
+    sfd->setWindowTitle(title);
+    sfd->setOption(QFileDialog::DontUseNativeDialog, !usesystemdialogs);
+
+    if (sfd->exec())
+        fileName = sfd->selectedFiles().front();
+
+    return fileName;
+}
