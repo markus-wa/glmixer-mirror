@@ -29,7 +29,6 @@
 #include <QObject>
 #include <QTime>
 #include <QString>
-#include <QFileDialog>
 
 
 extern "C" {
@@ -71,9 +70,6 @@ public:
 	int getRecodingTime();
 	bool isRecording() { return started && !paused ; }
 
-	// file dialog state restoration
-	QByteArray saveState() const { return sfa.saveState(); }
-	bool restoreState(const QByteArray &state) { return sfa.restoreState(state); }
 
 public Q_SLOTS:
 	void setFrameSize(QSize s) { if (!started) framesSize = s; }
@@ -92,8 +88,7 @@ protected:
 
 private:
 	// files location
-	QString temporaryFileName;
-	QFileDialog sfa;
+    QString temporaryFileName;
 	QDir savingFolder, temporaryFolder;
 	bool automaticSaving;
 

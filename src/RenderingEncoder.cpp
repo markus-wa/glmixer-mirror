@@ -15,7 +15,6 @@
 #include <QSize>
 #include <QBuffer>
 #include <QFileInfo>
-#include <QFileDialog>
 #include <QMessageBox>
 #include <QGLFramebufferObject>
 #include <QThread>
@@ -156,11 +155,7 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(f
 	// set default format
 	temporaryFileName = "__temp__";
 	setEncodingFormat(FORMAT_AVI_FFVHUFF);
-	// init file saving dir
-	savingFolder = QDir::currentPath();
-	sfa.setDirectory(QDir::currentPath());
-	sfa.setAcceptMode(QFileDialog::AcceptSave);
-	sfa.setFileMode(QFileDialog::AnyFile);
+    // init file saving
 	setAutomaticSavingMode(false);
 	// create encoding thread
 	encoder = new EncodingThread();
@@ -296,7 +291,7 @@ bool RenderingEncoder::start(){
 
 	// set status
 	started = true;
-	qDebug() << "RenderingEncoder|" << tr("Start recording (%1).").arg(recorder->description);
+    qDebug() << "RenderingEncoder|" << tr("Start recording (%1).").arg(recorder->suffix);
 
 	return true;
 }
@@ -424,26 +419,22 @@ void RenderingEncoder::saveFile(){
 
 void RenderingEncoder::saveFileAs(){
 
-	sfa.setFilter(recorder->description);
-	sfa.setDefaultSuffix(recorder->suffix);
-	sfa.setOption(QFileDialog::DontUseNativeDialog, !GLMixer::getInstance()->useSystemDialogs());
+    QString newFileName = GLMixer::getInstance()->getFileName(tr("Save recorded video"),
+                                                              recorder->description,
+                                                              recorder->suffix);
 
-	// get file name
-	if (sfa.exec()) {
-	    QString newFileName = sfa.selectedFiles().front();
-		// now we got a filename, save the file:
-		if (!newFileName.isEmpty()) {
+    // if we got a filename, save the file:
+    if (!newFileName.isEmpty()) {
 
-			// delete file if exists
-			QFileInfo infoFileDestination(newFileName);
-			if (infoFileDestination.exists()){
-				infoFileDestination.dir().remove(infoFileDestination.fileName());
-			}
-			// move the temporaryFileName to newFileName
-			temporaryFolder.rename(temporaryFileName, newFileName);
-			emit status(tr("File %1 saved.").arg(newFileName), 2000);
-			qDebug() << newFileName << tr("|Recording saved.");
-		}
-	}
+        // delete file if exists
+        QFileInfo infoFileDestination(newFileName);
+        if (infoFileDestination.exists()){
+            infoFileDestination.dir().remove(infoFileDestination.fileName());
+        }
+        // move the temporaryFileName to newFileName
+        temporaryFolder.rename(temporaryFileName, newFileName);
+        emit status(tr("File %1 saved.").arg(newFileName), 2000);
+        qDebug() << newFileName << tr("|Recording saved.");
+    }
 
 }

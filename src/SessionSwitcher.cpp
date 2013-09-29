@@ -134,7 +134,7 @@ void SessionSwitcher::setTransitionSource(Source *s)
 }
 
 
-void SessionSwitcher::setTransitionMedia(QString filename)
+void SessionSwitcher::setTransitionMedia(QString filename, bool generatePowerOfTwoRequested)
 {
 	if (customTransitionVideoSource)
 		delete customTransitionVideoSource;
@@ -142,7 +142,7 @@ void SessionSwitcher::setTransitionMedia(QString filename)
 	customTransitionVideoSource = NULL;
 
     VideoFile *newSourceVideoFile = NULL;
-	if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two")  )
+    if ( !generatePowerOfTwoRequested && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
 		newSourceVideoFile = new VideoFile(this);
 	else
 		newSourceVideoFile = new VideoFile(this, true, SWS_POINT);

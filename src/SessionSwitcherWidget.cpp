@@ -443,7 +443,7 @@ void SessionSwitcherWidget::setTransitionType(int t)
 		customButton->setToolTip("Choose color");
 
 	} else if ( tt == SessionSwitcher::TRANSITION_CUSTOM_MEDIA ) {
-		customButton->setIcon(QIcon(QString::fromUtf8(":/glmixer/icons/fileopen.png")));
+        customButton->setIcon(QIcon(QString::fromUtf8(":/glmixer/icons/folderopen.png")));
 
 		if ( !QFileInfo(RenderingManager::getSessionSwitcher()->transitionMedia()).exists() )
 			customButton->setStyleSheet("QToolButton { border: 1px solid red }");
@@ -467,21 +467,24 @@ void SessionSwitcherWidget::customizeTransition()
 	}
 	else if (RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_CUSTOM_MEDIA ) {
 
-		QString oldfile = RenderingManager::getSessionSwitcher()->transitionMedia();
-		QString newfile = QFileDialog::getOpenFileName(this, tr("Open File"), oldfile.isEmpty() ? QDir::currentPath() : oldfile,
-											tr("Video (*.mov *.avi *.wmv *.mpeg *.mp4 *.mpg *.vob *.swf *.flv);;Image (*.png *.jpg *.jpeg *.tif *.tiff *.gif *.tga *.sgi *.bmp)"),
-											0,  QFileDialog::DontUseNativeDialog);
-		if ( QFileInfo(newfile).exists()) {
-			RenderingManager::getSessionSwitcher()->setTransitionMedia(newfile);
-			customButton->setStyleSheet("");
-		} else {
-			// not a valid file ; show a warning only if the QFileDialog did not return null (cancel)
-			if (!newfile.isNull())
-				qCritical() << newfile << tr("|File does not exist.");
-			// if no valid oldfile neither; show icon in red
-			if (oldfile.isEmpty())
-				customButton->setStyleSheet("QToolButton { border: 1px solid red }");
-		}
+        bool generatePowerOfTwoRequested = false;
+        QStringList fileNames = GLMixer::getInstance()->getMediaFileNames(generatePowerOfTwoRequested);
+
+        // media file dialog returns a list of filenames :
+        if (!fileNames.empty() && QFileInfo(fileNames.front()).exists()) {
+
+            RenderingManager::getSessionSwitcher()->setTransitionMedia(fileNames.front(), generatePowerOfTwoRequested);
+            customButton->setStyleSheet("");
+        }
+        // no valid file name was given
+        else {
+            // not a valid file ; show a warning only if the QFileDialog did not return null (cancel)
+            if (!fileNames.empty() && !fileNames.front().isNull())
+                qCritical() << fileNames.front() << tr("|File does not exist.");
+            // if no valid oldfile neither; show icon in red
+            if (RenderingManager::getSessionSwitcher()->transitionMedia().isEmpty())
+                customButton->setStyleSheet("QToolButton { border: 1px solid red }");
+        }
 	}
 	// remember
 	saveSettings();

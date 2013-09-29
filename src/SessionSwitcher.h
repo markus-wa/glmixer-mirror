@@ -57,7 +57,7 @@ public:
 	void setTransitionColor(QColor c) { customTransitionColor = c; }
 	QColor transitionColor() const { return customTransitionColor; }
 
-	void setTransitionMedia(QString filename);
+    void setTransitionMedia(QString filename, bool generatePowerOfTwoRequested = false);
 	QString transitionMedia() const ;
 
 	typedef enum {

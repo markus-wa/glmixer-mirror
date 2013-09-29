@@ -28,7 +28,6 @@
 #include <QApplication>
 #include <QDomDocument>
 #include <QtGui>
-#include <QFileDialog>
 
 #include "common.h"
 #include "CameraDialog.h"
@@ -302,7 +301,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 	QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
 
     // Setup dialogs
-    mfd = new VideoFileDialog(this, "Open videos or pictures", QDir::currentPath());
+    mfd = new VideoFileDialog(this, "Open videos or pictures");
     Q_CHECK_PTR(mfd);
     sfd = new QFileDialog(this);
     Q_CHECK_PTR(sfd);
@@ -643,16 +642,8 @@ void GLMixer::setCursor(QAction *a){
 
 void GLMixer::on_actionMediaSource_triggered(){
 
-	QStringList fileNames;
-	bool generatePowerOfTwoRequested = false;
-
-	// open dialog for openning media files> system QFileDialog, or custom (mfd)
-	if (usesystemdialogs) {
-		fileNames = QFileDialog::getOpenFileNames(this, tr("Open Files"), QDir::currentPath(), tr(VIDEOFILE_DIALOG_FORMATS) );
-	} else if (mfd->exec()) {
-		fileNames = mfd->selectedFiles();
-		generatePowerOfTwoRequested = mfd->configCustomSize();
-	}
+    bool generatePowerOfTwoRequested = false;
+    QStringList fileNames = getMediaFileNames(generatePowerOfTwoRequested);
 
 	// open all files from the list
 	QStringListIterator fileNamesIt(fileNames);
@@ -1550,7 +1541,7 @@ void GLMixer::on_actionSave_Session_as_triggered()
 {
     QString fileName = getFileName(tr("Save session"),
                                    tr("GLMixer session (*.glm)" ),
-                                   QFileDialog::AcceptSave);
+                                   QString('glm'));
 
     if ( !fileName.isEmpty() ) {
 		// now we got a filename, save the file:
@@ -1950,14 +1941,14 @@ void GLMixer::readSettings()
     // dialogs configs
     if (settings.contains("vcontrolOptionSplitter"))
     	vcontrolOptionSplitter->restoreState(settings.value("vcontrolOptionSplitter").toByteArray());
-    if (settings.contains("VideoFileDialog"))
+    if (settings.contains("VideoFileDialog")) {
     	mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
+        mfd->setDirectory( mfd->history().last() );
+    }
     if (settings.contains("SessionFileDialog")) {
     	sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
         sfd->setDirectory( sfd->history().last() );
     }
-    if (settings.contains("RenderingEncoder"))
-    	RenderingManager::getRecorder()->restoreState(settings.value("RenderingEncoder").toByteArray());
 
     // Cursor status
     if (settings.contains("CursorMode")) {
@@ -2026,7 +2017,6 @@ void GLMixer::saveSettings()
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());
     settings.setValue("SessionFileDialog", sfd->saveState());
-    settings.setValue("RenderingEncoder", RenderingManager::getRecorder()->saveState());
 
     // Cursor status
     settings.setValue("CursorMode", RenderingManager::getRenderingWidget()->getCursorMode() );
@@ -2555,19 +2545,44 @@ void GLMixer::selectGLSLFragmentShader()
 }
 
 
-QString GLMixer::getFileName(QString title, QString filter, QFileDialog::AcceptMode mode)
+QString GLMixer::getFileName(QString title, QString filter, QString saveExtention)
 {
     QString fileName;
+    QFileDialog::AcceptMode mode = QFileDialog::AcceptOpen;
+
+    sfd->setWindowTitle(title);
+    sfd->setNameFilter(filter);
+
+    // open file or save file?
+    // if a saving extension is provided, the dialog is in save file selection mode
+    if (!saveExtention.isNull()) {
+        mode = QFileDialog::AcceptSave;
+        sfd->setDefaultSuffix(saveExtention);
+    }
 
     sfd->setAcceptMode(mode);
     sfd->setFileMode(mode == QFileDialog::AcceptOpen ? QFileDialog::ExistingFile : QFileDialog::AnyFile);
 
-    sfd->setNameFilter(filter);
-    sfd->setWindowTitle(title);
     sfd->setOption(QFileDialog::DontUseNativeDialog, !usesystemdialogs);
 
     if (sfd->exec())
         fileName = sfd->selectedFiles().front();
 
     return fileName;
+}
+
+QStringList GLMixer::getMediaFileNames(bool &generatePowerOfTwoRequest) {
+
+    QStringList fileNames;
+
+    // open dialog for openning media files> system QFileDialog, or custom (mfd)
+    if (usesystemdialogs) {
+        fileNames = QFileDialog::getOpenFileNames(this, tr("Open media files"), QDir::currentPath(), tr(VIDEOFILE_DIALOG_FORMATS) );
+        generatePowerOfTwoRequest = false;
+    } else if (mfd->exec()) {
+        fileNames = mfd->selectedFiles();
+        generatePowerOfTwoRequest = mfd->configCustomSize();
+    }
+
+    return fileNames;
 }

@@ -142,7 +142,8 @@ public Q_SLOTS:
 
     // interaction
     void drop(QDropEvent *event);
-    QString getFileName(QString title, QString filters, QFileDialog::AcceptMode mode = QFileDialog::AcceptOpen);
+    QString getFileName(QString title, QString filters, QString saveExtention = QString());
+    QStringList getMediaFileNames(bool &generatePowerOfTwoRequest);
 
     // hidden actions
     void screenshotView();  // "Ctrl+<,<"
