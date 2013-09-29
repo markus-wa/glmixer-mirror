@@ -1,7 +1,6 @@
 #include "FFGLSourceCreationDialog.moc"
 #include "ui_FFGLSourceCreationDialog.h"
 
-#include <QFileDialog>
 #include <QFileInfo>
 
 #include "SourceDisplayWidget.h"
@@ -10,8 +9,8 @@
 #include "glmixer.h"
 
 FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent) :
-    QDialog(parent), s(0),
-    ui(new Ui::FFGLSourceCreationDialog)
+    QDialog(parent),
+    ui(new Ui::FFGLSourceCreationDialog), s(0)
 {
     ui->setupUi(this);
     ui->labelWarninEffect->setVisible(false);

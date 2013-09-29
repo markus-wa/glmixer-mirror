@@ -1541,7 +1541,7 @@ void GLMixer::on_actionSave_Session_as_triggered()
 {
     QString fileName = getFileName(tr("Save session"),
                                    tr("GLMixer session (*.glm)" ),
-                                   QString('glm'));
+                                   QString("glm"));
 
     if ( !fileName.isEmpty() ) {
 		// now we got a filename, save the file:
