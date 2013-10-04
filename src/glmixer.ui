@@ -2211,6 +2211,7 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionRecord"/>
     <addaction name="actionPause_recording"/>
     <addaction name="actionSave_snapshot"/>
+    <addaction name="actionCopy_snapshot"/>
     <addaction name="separator"/>
     <addaction name="actionShareToRAM"/>
    </widget>
@@ -5286,14 +5287,17 @@ Shortcut:                                    Tab</string>
    <property name="text">
     <string>Capture and save frame</string>
    </property>
+   <property name="iconText">
+    <string>Capture and save Frame</string>
+   </property>
    <property name="toolTip">
-    <string>Capture and save frame</string>
+    <string>Capture and save current rendered frame</string>
    </property>
    <property name="statusTip">
     <string>Capture the output frame as and save to image file.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+C</string>
+    <string>Ctrl+F</string>
    </property>
   </action>
   <action name="actionCursorLine">
@@ -5619,6 +5623,14 @@ Shortcut:                                    Right</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N, F</string>
+   </property>
+  </action>
+  <action name="actionCopy_snapshot">
+   <property name="text">
+    <string>Capture frame to clipboard</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
    </property>
   </action>
  </widget>

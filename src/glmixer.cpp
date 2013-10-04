@@ -1014,6 +1014,16 @@ void GLMixer::on_actionCaptureSource_triggered(){
 	}
 }
 
+
+void GLMixer::on_actionCopy_snapshot_triggered(){
+
+    // capture screen
+    QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
+    QApplication::clipboard()->setPixmap( QPixmap::fromImage(capture) );
+
+    statusbar->showMessage( tr("Current frame captured and copied to clipboard."), 3000 );
+}
+
 void GLMixer::on_actionSave_snapshot_triggered(){
 
 	// capture screen
