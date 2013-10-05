@@ -427,8 +427,19 @@ GLMixer::~GLMixer()
 	delete mfd;
     delete sfd;
     delete upd;
+
+    refreshTimingTimer->stop();
     delete refreshTimingTimer;
+
+    mixingToolBox->close();
     delete mixingToolBox;
+
+    switcherSession->close();
+    delete switcherSession;
+
+    outputpreview->close();
+    delete outputpreview;
+
 }
 
 
@@ -1034,40 +1045,19 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 
 	if (cd.exec() == QDialog::Accepted) {
 
-		QString filename;
-		// keep a static instance of location and base file name
-		static QDir dname(QDir::currentPath());
-		static QString basename("capture");
+        QString suggestion = QString("glmixerimage %1 %2").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
 
-		// try to suggest an incremented file name
-		QFileInfo fname = QFileInfo( dname, basename + ".png");
-		for (int i = 1; fname.exists() && i<1000; i++)
-			fname = QFileInfo( dname, QString("%1_%2.png").arg(basename).arg(i));
+        QString fileName = getFileName(tr("Save snapshot"),
+                                       tr("PNG image(*.png);;JPEG Image(*.jpg);;TIFF image(*.tiff);;XPM image(*.xpm)"),
+                                       QString("png"), suggestion);
 
-		// ask for file name
-		QFileDialog fd( parentWidget(), tr("Save captured image"),fname.absoluteFilePath(), "PNG image(*.png);;JPEG Image(*.jpg);;TIFF image(*.tiff);;XPM image(*.xpm)");
-		fd.setAcceptMode(QFileDialog::AcceptSave);
-		fd.setFileMode(QFileDialog::AnyFile);
-		fd.setDefaultSuffix("png");
-		fd.setOption(QFileDialog::DontUseNativeDialog, !GLMixer::getInstance()->useSystemDialogs());
+        if ( !fileName.isEmpty() ) {
+            if (!capture.save(fileName)) {
+                qCritical() << fileName << tr("|Could not save file.");
+            } else
+                qDebug() << fileName << tr("|Snapshot saved.");
+        }
 
-		if (fd.exec()) {
-		    filename = fd.selectedFiles().front();
-
-			// save the file
-			if (!filename.isEmpty()) {
-				if (!capture.save(filename)) {
-					qCritical() << filename << tr("|Could not save file.");
-					return;
-				} else
-					qDebug() << filename << tr("|Snapshot saved.");
-				// remember location and base file name for next time
-				fname = QFileInfo( filename );
-				dname = fname.dir();
-				basename =  fname.baseName().section("_", 0, fname.baseName().count("_")-1);
-
-			}
-		}
 	}
 }
 
@@ -1361,7 +1351,7 @@ void setupAboutDialog(QDialog *AboutGLMixer)
 	"<p>Author:	Bruno Herbelin<br>\n"
 	"Contact:	bruno.herbelin@gmail.com<br>\n"
 	"License: 	GNU GPL version 3</p>\n"
-	"<p>Copyright 2009-2011 Bruno Herbelin</p>\n"
+    "<p>Copyright 2009-2013 Bruno Herbelin</p>\n"
 	"<p>Updates and source code at: <br>\n"
 	"   	<a href=\"http://code.google.com/p/glmixer/\"><span style=\" text-decoration: underline; color:#7d400a;\">http://code.google.com/p/glmixer/</span>"
 	"</a></p>"
@@ -1549,9 +1539,11 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 void GLMixer::on_actionSave_Session_as_triggered()
 {
+    QString suggestion = QString("glmix %1 %2").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
+
     QString fileName = getFileName(tr("Save session"),
                                    tr("GLMixer session (*.glm)" ),
-                                   QString("glm"));
+                                   QString("glm"), suggestion);
 
     if ( !fileName.isEmpty() ) {
 		// now we got a filename, save the file:
@@ -2555,7 +2547,7 @@ void GLMixer::selectGLSLFragmentShader()
 }
 
 
-QString GLMixer::getFileName(QString title, QString filter, QString saveExtention)
+QString GLMixer::getFileName(QString title, QString filter, QString saveExtention, QString suggestion)
 {
     QString fileName;
     QFileDialog::AcceptMode mode = QFileDialog::AcceptOpen;
@@ -2568,6 +2560,8 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
     if (!saveExtention.isNull()) {
         mode = QFileDialog::AcceptSave;
         sfd->setDefaultSuffix(saveExtention);
+        if (!suggestion.isNull())
+            sfd->selectFile(suggestion);
     }
 
     sfd->setAcceptMode(mode);

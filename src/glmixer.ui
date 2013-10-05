@@ -2210,8 +2210,8 @@ Uncheck to display the restart frame when stopped.</string>
     </property>
     <addaction name="actionRecord"/>
     <addaction name="actionPause_recording"/>
-    <addaction name="actionSave_snapshot"/>
     <addaction name="actionCopy_snapshot"/>
+    <addaction name="actionSave_snapshot"/>
     <addaction name="separator"/>
     <addaction name="actionShareToRAM"/>
    </widget>
@@ -3265,7 +3265,6 @@ QToolButton:hover {
    <addaction name="actionPause"/>
    <addaction name="actionRecord"/>
    <addaction name="actionPause_recording"/>
-   <addaction name="actionSave_snapshot"/>
   </widget>
   <widget class="QDockWidget" name="logDockWidget">
    <property name="floating">
@@ -4578,7 +4577,7 @@ QToolButton:pressed {
     <string>Increment the zoom of the current view</string>
    </property>
    <property name="shortcut">
-    <string>PgUp</string>
+    <string>+</string>
    </property>
   </action>
   <action name="actionZoomOut">
@@ -4593,7 +4592,7 @@ QToolButton:pressed {
     <string>Decrement the zoom of the current view</string>
    </property>
    <property name="shortcut">
-    <string>PgDown</string>
+    <string>-</string>
    </property>
   </action>
   <action name="actionZoomReset">
@@ -4608,7 +4607,7 @@ QToolButton:pressed {
     <string>Resets the zoom of the current view</string>
    </property>
    <property name="shortcut">
-    <string>Home</string>
+    <string>Enter</string>
    </property>
   </action>
   <action name="actionZoomBestFit">
@@ -4623,7 +4622,7 @@ QToolButton:pressed {
     <string>Computes a zoom factor which allows to see every sources of the current view</string>
    </property>
    <property name="shortcut">
-    <string>End</string>
+    <string>.</string>
    </property>
   </action>
   <action name="actionAbout_Qt">
@@ -5285,19 +5284,13 @@ Shortcut:                                    Tab</string>
      <normaloff>:/glmixer/icons/photo-save.png</normaloff>:/glmixer/icons/photo-save.png</iconset>
    </property>
    <property name="text">
-    <string>Capture and save frame</string>
-   </property>
-   <property name="iconText">
-    <string>Capture and save Frame</string>
+    <string>Capture frame and save to file</string>
    </property>
    <property name="toolTip">
     <string>Capture and save current rendered frame</string>
    </property>
    <property name="statusTip">
     <string>Capture the output frame as and save to image file.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+F</string>
    </property>
   </action>
   <action name="actionCursorLine">
@@ -5509,7 +5502,7 @@ Shortcut:                                    Tab</string>
 Shortcut:                                    Space</string>
    </property>
    <property name="shortcut">
-    <string>Space</string>
+    <string notr="true">Space</string>
    </property>
   </action>
   <action name="actionSourceRestart">
@@ -5526,7 +5519,7 @@ Shortcut:                                    Space</string>
 Shortcut:                                    Up</string>
    </property>
    <property name="shortcut">
-    <string>Up</string>
+    <string>Home</string>
    </property>
   </action>
   <action name="actionSourceSeekBackward">
@@ -5543,7 +5536,7 @@ Shortcut:                                    Up</string>
 Shortcut:                                    Left</string>
    </property>
    <property name="shortcut">
-    <string>Left</string>
+    <string>PgUp</string>
    </property>
   </action>
   <action name="actionSourcePause">
@@ -5560,7 +5553,7 @@ Shortcut:                                    Left</string>
 Shortcut:                                    Down</string>
    </property>
    <property name="shortcut">
-    <string>Down</string>
+    <string>End</string>
    </property>
   </action>
   <action name="actionSourceSeekForward">
@@ -5577,7 +5570,7 @@ Shortcut:                                    Down</string>
 Shortcut:                                    Right</string>
    </property>
    <property name="shortcut">
-    <string>Right</string>
+    <string>PgDown</string>
    </property>
   </action>
   <action name="actionRenderingView">
@@ -5612,6 +5605,9 @@ Shortcut:                                    Right</string>
    <property name="statusTip">
     <string>Close current session</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
   </action>
   <action name="actionFreeframeSource">
    <property name="icon">
@@ -5626,6 +5622,10 @@ Shortcut:                                    Right</string>
    </property>
   </action>
   <action name="actionCopy_snapshot">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/photo.png</normaloff>:/glmixer/icons/photo.png</iconset>
+   </property>
    <property name="text">
     <string>Capture frame to clipboard</string>
    </property>

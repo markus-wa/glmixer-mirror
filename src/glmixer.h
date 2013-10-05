@@ -143,7 +143,7 @@ public Q_SLOTS:
 
     // interaction
     void drop(QDropEvent *event);
-    QString getFileName(QString title, QString filters, QString saveExtention = QString());
+    QString getFileName(QString title, QString filters, QString saveExtention = QString(), QString suggestion = QString());
     QStringList getMediaFileNames(bool &generatePowerOfTwoRequest);
 
     // hidden actions

@@ -419,9 +419,12 @@ void RenderingEncoder::saveFile(){
 
 void RenderingEncoder::saveFileAs(){
 
+    QString suggestion = QString("glmixervideo %1 %2").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
+
     QString newFileName = GLMixer::getInstance()->getFileName(tr("Save recorded video"),
                                                               recorder->description,
-                                                              recorder->suffix);
+                                                              recorder->suffix,
+                                                              suggestion);
 
     // if we got a filename, save the file:
     if (!newFileName.isEmpty()) {
