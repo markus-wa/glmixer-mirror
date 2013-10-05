@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>682</width>
-    <height>564</height>
+    <height>552</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1004,7 +1004,7 @@ the user to select a file name</string>
           <property name="enabled">
            <bool>true</bool>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_4">
+          <layout class="QVBoxLayout" name="verticalLayout_29">
            <item>
             <widget class="QGroupBox" name="MouseButtonsGroupBox">
              <property name="title">
@@ -1176,6 +1176,93 @@ font: 75;</string>
                 <property name="toolTip">
                  <string>Try the zoom using your mouse wheel here.</string>
                 </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_9">
+             <property name="title">
+              <string>Hidden keyboard actions</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_28">
+              <item>
+               <widget class="QTreeWidget" name="treeWidget">
+                <property name="indentation">
+                 <number>2</number>
+                </property>
+                <attribute name="headerDefaultSectionSize">
+                 <number>130</number>
+                </attribute>
+                <attribute name="headerMinimumSectionSize">
+                 <number>120</number>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Keyboard</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Action</string>
+                 </property>
+                </column>
+                <item>
+                 <property name="text">
+                  <string>Arrows</string>
+                 </property>
+                 <property name="text">
+                  <string>Move the current source in the canvas (LEFT, RIGHT, UP and DOWN arrows)</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsEnabled</set>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>CTRL + PageUp</string>
+                 </property>
+                 <property name="text">
+                  <string>Switch to previous session in the Session Switcher list</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsEnabled</set>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>CTRL + PageDown</string>
+                 </property>
+                 <property name="text">
+                  <string>Switch to next session in the Session Switcher list</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsEnabled</set>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>CTRL + &lt;, &lt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Save a screenshot of the current view</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsEnabled</set>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Shift+Ctrl+G,F</string>
+                 </property>
+                 <property name="text">
+                  <string>Load another fragment shader program</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsEnabled</set>
+                 </property>
+                </item>
                </widget>
               </item>
              </layout>
@@ -1387,49 +1474,6 @@ font: 75;</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_5">
-             <property name="title">
-              <string>Hidden options for programmers</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QTreeWidget" name="treeWidget">
-             <column>
-              <property name="text">
-               <string>Keyboard shortcut</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Option Description</string>
-              </property>
-             </column>
-             <item>
-              <property name="text">
-               <string>CTRL + &lt;, &lt;</string>
-              </property>
-              <property name="text">
-               <string>Save a screenshot of the current view</string>
-              </property>
-              <property name="flags">
-               <set>ItemIsEnabled</set>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Shift+Ctrl+G,F</string>
-              </property>
-              <property name="text">
-               <string>Load another fragment shader program</string>
-              </property>
-              <property name="flags">
-               <set>ItemIsEnabled</set>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item>
             <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1503,8 +1547,8 @@ font: 75;</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

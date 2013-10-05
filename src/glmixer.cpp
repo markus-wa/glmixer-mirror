@@ -214,10 +214,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(aspectRatioActions, SIGNAL(triggered(QAction *)), this, SLOT(setAspectRatio(QAction *) ) );
 
     QAction *nextSession = new QAction("Next Session", this);
-    nextSession->setShortcut(QKeySequence("Ctrl+Right"));
+    nextSession->setShortcut(QKeySequence("Ctrl+PgDown"));
     addAction(nextSession);
     QAction *prevSession = new QAction("Previous Session", this);
-    prevSession->setShortcut(QKeySequence("Ctrl+Left"));
+    prevSession->setShortcut(QKeySequence("Ctrl+PgUp"));
     addAction(prevSession);
 
     // HIDDEN actions
