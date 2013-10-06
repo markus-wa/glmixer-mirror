@@ -96,7 +96,7 @@ public:
 	Source *newSharedMemorySource(qint64 shmid, double depth = -1.0);
 	Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
 #ifdef FFGL
-    Source *newFreeframeGLSource(QString pluginFileName, int w, int h, double depth = -1.0);
+    Source *newFreeframeGLSource(QDomElement configuration, int w, int h, double depth = -1.0);
 #endif
 	// insert the source into the scene
 	bool insertSource(Source *s);

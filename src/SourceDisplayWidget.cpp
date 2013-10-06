@@ -66,9 +66,11 @@ void SourceDisplayWidget::setSource(Source *sourceptr)
 
 void SourceDisplayWidget::playSource(bool on)
 {
-    if (s)
-        s->play(on);
     _playSource = on;
+
+    // if already a source, start to play
+    if (s)
+        s->play(_playSource);
 }
 
 void SourceDisplayWidget::paintGL()

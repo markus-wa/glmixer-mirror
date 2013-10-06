@@ -938,17 +938,19 @@ void GLMixer::on_actionFreeframeSource_triggered(){
 
     if (ffgld->exec() == QDialog::Accepted) {
 
-        QString fileName = ffgld->getFreeframeFileName();
+        QDomElement config = ffgld->getFreeframePluginConfiguration();
         int w = ffgld->getSelectedWidth();
         int h = ffgld->getSelectedHeight();
-        if (!fileName.isEmpty()) {
-            Source *s = RenderingManager::getInstance()->newFreeframeGLSource(fileName, w, h);
+        if ( config.hasChildNodes() ) {
+
+            Source *s = RenderingManager::getInstance()->newFreeframeGLSource(config, w, h);
             if ( s ){
+                // add source
                 RenderingManager::getInstance()->addSourceToBasket(s);
-                qDebug() << s->getName() << '|' <<  tr("New FreeframeGL source created (")<< fileName << ").";
-                statusbar->showMessage( tr("Source created with the Freeframe GL plugin %1.").arg( fileName ), 3000 );
+                qDebug() << s->getName() << '|' <<  tr("New FreeframeGL source created (")<< ffgld->getFreeframePluginFileInfo().fileName() << ").";
+                statusbar->showMessage( tr("Source created with the Freeframe GL plugin %1.").arg( ffgld->getFreeframePluginFileInfo().baseName() ), 3000 );
             } else
-                qCritical() << fileName << '|' << tr("Could not create FreeframeGL source.");
+                qCritical() << ffgld->getFreeframePluginFileInfo().filePath() << '|' << tr("Could not create FreeframeGL source.");
         }
     }
 

@@ -10,26 +10,33 @@
 
 FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::FFGLSourceCreationDialog), s(0)
+    ui(new Ui::FFGLSourceCreationDialog), s(NULL)
 {
+    // create the preview with empty source
+//    preview = new SourceDisplayWidget(this);
+
+    // setup the user interface
     ui->setupUi(this);
     ui->labelWarninEffect->setVisible(false);
 
-    preview = new SourceDisplayWidget(this);
+    // add the preview widget in the ui
+    /*
     ui->FFGLSourceCreationLayout->insertWidget(0, preview);
     preview->setMinimumHeight(120);
-    preview->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Expanding);
+    preview->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);*/
 
     // Setup the FFGL plugin property browser
     pluginBrowser = new FFGLPluginBrowser(this);
     ui->PropertiesLayout->insertWidget( ui->PropertiesLayout->count(),  pluginBrowser);
     pluginBrowser->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    pluginBrowser->switchToGroupView();
+
 }
 
 
 FFGLSourceCreationDialog::~FFGLSourceCreationDialog()
 {
-    delete preview;
+//    delete preview;
     delete pluginBrowser;
     delete ui;
 }
@@ -44,12 +51,19 @@ void FFGLSourceCreationDialog::showEvent(QShowEvent *e){
 
 void FFGLSourceCreationDialog::done(int r){
 
-    if (preview)
-        preview->setSource(0);
+    ui->preview->setSource(0);
+
     if (s) {
+        // remember plugin config before deleting the source
+        pluginConfiguration = s->freeframeGLPlugin()->getConfiguration();
+
+        // delete source
         delete s;
-        s = 0;
+        s = NULL;
     }
+    else
+        pluginConfiguration = QDomElement();
+
     QDialog::done(r);
 }
 
@@ -60,38 +74,46 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
     if(s) {
         ui->labelWarninEffect->setVisible(false);
         // remove source from preview: this deletes the texture in the preview
-        preview->setSource(0);
+        ui->preview->setSource(0);
+        // clear plugin browser
+        pluginBrowser->clear();
+        delete pluginBrowserStack;
         // delete the source:
         delete s;
-        s = 0;
     }
 
+    s = NULL;
 
     if (QFileInfo(_filename).isFile()) {
 
-        GLuint tex = preview->getNewTextureIndex();
+        GLuint tex = ui->preview->getNewTextureIndex();
         try {
             // create a new source with a new texture index and the new parameters
             s = new FFGLSource(_filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
 
-//            pluginBrowser->showProperties( s->getFreeframeGLPluginStack() );
+            // create a plugin stack
+            pluginBrowserStack = new FFGLPluginSourceStack;
+            pluginBrowserStack->push(s->freeframeGLPlugin());
 
-//            if (!s->getFreeframeGLPluginStack()->isEmpty())
-//                ui->labelWarninEffect->setVisible( !s->getFreeframeGLPluginStack().top()->isSourceType() );
+            // show the plugin stack
+            pluginBrowser->showProperties( pluginBrowserStack );
+
+            // show warning if selected plugin is not of type 'Source'
+            ui->labelWarninEffect->setVisible( !s->freeframeGLPlugin()->isSourceType() );
 
         }
         catch (...)  {
             // free the OpenGL texture
             glDeleteTextures(1, &tex);
             // return an invalid pointer
-            s = 0;
+            s = NULL;
         }
 
     }
 
     // apply the source to the preview (null pointer is ok to reset preview)
-    preview->setSource(s);
-    preview->playSource(true);
+    ui->preview->setSource(s);
+    ui->preview->playSource(true);
 }
 
 void FFGLSourceCreationDialog::updatePlugin(QString filename) {
@@ -117,9 +139,14 @@ void FFGLSourceCreationDialog::browse() {
 
 }
 
-QString  FFGLSourceCreationDialog::getFreeframeFileName(){
+QFileInfo  FFGLSourceCreationDialog::getFreeframePluginFileInfo(){
 
-    return _filename;
+    return QFileInfo(_filename);
+}
+
+QDomElement FFGLSourceCreationDialog::getFreeframePluginConfiguration(){
+
+    return pluginConfiguration;
 }
 
 int  FFGLSourceCreationDialog::getSelectedWidth(){
@@ -137,15 +164,16 @@ int  FFGLSourceCreationDialog::getSelectedHeight(){
 void  FFGLSourceCreationDialog::selectSizePreset(int preset)
 {
     if (preset == 0) {
-        ui->heightSpinBox->setEnabled(true);
-        ui->widthSpinBox->setEnabled(true);
-        ui->h->setEnabled(true);
-        ui->w->setEnabled(true);
-    } else {
-        ui->heightSpinBox->setEnabled(false);
-        ui->widthSpinBox->setEnabled(false);
-        ui->h->setEnabled(false);
-        ui->w->setEnabled(false);
+        ui->sizeGrid->setVisible(true);
+
+        QObject::connect(ui->heightSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateSourcePreview()));
+        QObject::connect(ui->widthSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateSourcePreview()));
+    }
+    else {
+        ui->sizeGrid->setVisible(false);
+
+        QObject::disconnect(ui->heightSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateSourcePreview()));
+        QObject::disconnect(ui->widthSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateSourcePreview()));
 
         switch (preset) {
         case 1:
@@ -205,6 +233,8 @@ void  FFGLSourceCreationDialog::selectSizePreset(int preset)
             ui->heightSpinBox->setValue(768);
             break;
         }
+
+        updateSourcePreview();
     }
 
 }

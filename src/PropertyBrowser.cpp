@@ -43,6 +43,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     connect(propertyGroupEditor, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenuGroup(const QPoint &)));
 
     propertyGroupArea = new QScrollArea(this);
+    propertyGroupArea->setFrameShape(QFrame::NoFrame);
     propertyGroupArea->setWidgetResizable(true);
     propertyGroupArea->setWidget(propertyGroupEditor);
     propertyGroupArea->setVisible(false);

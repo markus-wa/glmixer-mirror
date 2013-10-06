@@ -619,52 +619,65 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 #endif
 
 #ifdef FFGL
-Source *RenderingManager::newFreeframeGLSource(QString pluginFileName, int w, int h, double depth) {
+Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w, int h, double depth) {
 
-    GLuint textureIndex;
     FFGLSource *s = 0;
 
-    if ( !QFileInfo(pluginFileName).isFile()) {
-        qCritical() << tr("RenderingManager|Invalid Freeframe plugin file") << " ("<< pluginFileName <<")";
-        return 0;
-    }
+    QDomElement Filename = configuration.firstChildElement("Filename");
+    if (!Filename.isNull()) {
 
-    // try to create the FFGL source
-    try {
-        // create the texture for this source
-        _renderwidget->makeCurrent();
-        glGenTextures(1, &textureIndex);
-        GLclampf lowpriority = 0.1;
+        // first reads with the absolute file name
+        QString fileNameToOpen = Filename.text();
+        // if there is such a file
+        if ( QFileInfo(fileNameToOpen).exists()) {
 
-        glPrioritizeTextures(1, &textureIndex, &lowpriority);
+            GLuint textureIndex;
+            // try to create the FFGL source
+            try {
+                // create the texture for this source
+                _renderwidget->makeCurrent();
+                glGenTextures(1, &textureIndex);
+                GLclampf lowpriority = 0.1;
 
-        // try to create the opencv source
-        s = new FFGLSource(pluginFileName, textureIndex, getAvailableDepthFrom(depth), w, h);
+                glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
-        // all good, give it a name
-        renameSource( s, _defaultSource->getName() + QString("Freeframe") );
+                // try to create the opencv source
+                s = new FFGLSource(fileNameToOpen, textureIndex, getAvailableDepthFrom(depth), w, h);
 
-    } catch (AllocationException &e){
-        qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Allocation Exception.") << e.message();
-        // free the OpenGL texture
-        glDeleteTextures(1, &textureIndex);
-        // return an invalid pointer
-        s = 0;
-    }
-    catch (FFGLPluginException &e)  {
-        qWarning() << tr("RenderingManager|New FreeframeGL plugin source: FFGL error.") << e.message();
-        // free the OpenGL texture
-        glDeleteTextures(1, &textureIndex);
-        // return an invalid pointer
-        s = 0;
-    }
-    catch (...)  {
-        qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Unknown error.");
-        // free the OpenGL texture
-        glDeleteTextures(1, &textureIndex);
-        // return an invalid pointer
-        s = 0;
-    }
+                // all good, set parameters
+                s->freeframeGLPlugin()->setConfiguration( configuration );
+
+                // give it a name
+                renameSource( s, _defaultSource->getName() + QString("Freeframe") );
+
+            } catch (AllocationException &e){
+                qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Allocation Exception.") << e.message();
+                // free the OpenGL texture
+                glDeleteTextures(1, &textureIndex);
+                // return an invalid pointer
+                s = 0;
+            }
+            catch (FFGLPluginException &e)  {
+                qWarning() << tr("RenderingManager|New FreeframeGL plugin source: FFGL error.") << e.message();
+                // free the OpenGL texture
+                glDeleteTextures(1, &textureIndex);
+                // return an invalid pointer
+                s = 0;
+            }
+            catch (...)  {
+                qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Unknown error.");
+                // free the OpenGL texture
+                glDeleteTextures(1, &textureIndex);
+                // return an invalid pointer
+                s = 0;
+            }
+
+        }
+        else
+            qCritical() << tr("RenderingManager|Invalid Freeframe plugin file") << " ("<< fileNameToOpen <<")";
+
+    } else
+        qCritical() << tr("RenderingManager|Invalid Freeframe plugin (no file name)");
 
     return ( (Source *) s );
 }
@@ -1351,11 +1364,17 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
         }
 #ifdef FFGL
         else if ((*its)->rtti() == Source::FFGL_SOURCE) {
-//            FFGLSource *ffs = dynamic_cast<FFGLSource *> (*its);
+            FFGLSource *ffs = dynamic_cast<FFGLSource *> (*its);
 
-            QDomElement f = doc.createElement("FFGL");
+            // get size
+            QDomElement s = doc.createElement("Frame");
+            s.setAttribute("Width", ffs->getFrameWidth());
+            s.setAttribute("Height", ffs->getFrameHeight());
+            specific.appendChild(s);
 
-            specific.appendChild(f);
+            // get FFGL plugin config
+            specific.appendChild(ffs->freeframeGLPlugin()->getConfiguration());
+
         }
 #endif
 
@@ -1538,8 +1557,8 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			QDomElement Update = t.firstChildElement("Update");
 
 			newsource = RenderingManager::getInstance()->newAlgorithmSource(Algorithm.text().toInt(),
-					Frame.attribute("Width").toInt(), Frame.attribute("Height").toInt(),
-					Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha").toInt(), depth);
+                                                                            Frame.attribute("Width", "64").toInt(), Frame.attribute("Height", "64").toInt(),
+                                                                            Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha", "0").toInt(), depth);
 			if (!newsource) {
 				qWarning() << child.attribute("name") << tr("|Could not create algorithm source.");
 		        errors++;
@@ -1602,6 +1621,23 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			} else
 				qDebug() << child.attribute("name") << tr("|Vector graphics source created.");
 		}
+#ifdef FFGL
+        else if (type == Source::FFGL_SOURCE ){
+
+            QDomElement Frame = t.firstChildElement("Frame");
+            QDomElement ffgl = t.firstChildElement("FreeFramePlugin");
+
+            newsource = RenderingManager::getInstance()->newFreeframeGLSource(ffgl,
+                                                                              Frame.attribute("Width", "64").toInt(),
+                                                                              Frame.attribute("Height", "64").toInt());
+
+            if (!newsource) {
+                qWarning() << child.attribute("name") << tr("|Could not create FreeframeGL source.");
+                errors++;
+            } else
+                qDebug() << child.attribute("name") << tr("|FreeframeGL source created.");
+        }
+#endif
 		else if ( type == Source::CLONE_SOURCE) {
 			// remember the node of the sources to clone
 			clones.push_back(child);

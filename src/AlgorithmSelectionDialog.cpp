@@ -36,6 +36,7 @@ AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(pa
     preview = new SourceDisplayWidget(this);
     verticalLayout->insertWidget(0, preview);
 
+    sizeGrid->setVisible(false);
     AlgorithmComboBox->clear();
     // create sources with selected algo
     for (int i = 0; i < AlgorithmSource::NONE; ++i)
@@ -129,15 +130,10 @@ void  AlgorithmSelectionDialog::on_heightSpinBox_valueChanged(int h){
 void AlgorithmSelectionDialog::on_presetsSizeComboBox_currentIndexChanged(int preset){
 
 	if (preset == 0) {
-		heightSpinBox->setEnabled(true);
-		widthSpinBox->setEnabled(true);
-		h->setEnabled(true);
-		w->setEnabled(true);
-	} else {
-		heightSpinBox->setEnabled(false);
-		widthSpinBox->setEnabled(false);
-		h->setEnabled(false);
-		w->setEnabled(false);
+        sizeGrid->setVisible(true);
+    }
+    else {
+        sizeGrid->setVisible(false);
 
 		switch (preset) {
 		case 1:
