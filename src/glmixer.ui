@@ -2175,7 +2175,7 @@ Uncheck to display the restart frame when stopped.</string>
    </widget>
    <widget class="QMenu" name="renderingMenu">
     <property name="title">
-     <string>&amp;Rendering</string>
+     <string>&amp;Render</string>
     </property>
     <widget class="QMenu" name="aspectRatioMenu">
      <property name="toolTip">
@@ -5579,7 +5579,7 @@ Shortcut:                                    Right</string>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/display.png</normaloff>:/glmixer/icons/display.png</iconset>
+     <normaloff>:/glmixer/icons/displayview.png</normaloff>:/glmixer/icons/displayview.png</iconset>
    </property>
    <property name="text">
     <string>Rendering view</string>

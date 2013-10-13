@@ -257,10 +257,13 @@ MixingToolboxWidget::~MixingToolboxWidget()
 		delete s;
 
 	foreach (Source *s, _userPresets)
-		delete s;
+        delete s;
 
-    delete pluginBrowser;
     delete gammaAdjust;
+
+#ifdef FFGL
+    delete pluginBrowser;
+#endif
 }
 
 void MixingToolboxWidget::connectSource(SourceSet::iterator csi)

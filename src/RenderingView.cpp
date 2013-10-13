@@ -132,7 +132,7 @@ void RenderingView::paint()
     // last the frame thing
     glPushMatrix();
     glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
-    glCallList(ViewRenderWidget::frame_screen_thin);
+ //   glCallList(ViewRenderWidget::frame_screen_thin);
     glPopMatrix();
 
     glPopMatrix();

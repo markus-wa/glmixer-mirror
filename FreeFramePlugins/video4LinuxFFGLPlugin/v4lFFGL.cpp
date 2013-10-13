@@ -59,7 +59,7 @@ struct v4lconvert_data *m_convertData;
 struct v4l2_format m_capSrcFormat;
 struct v4l2_format m_capDestFormat;
 
-void *update_thread();
+void *update_thread(void *);
 pthread_t thread;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 bool stop = true;
@@ -99,7 +99,7 @@ void process_image(const void *p, int size)
                            (unsigned char *)_glbuffer[draw_buffer], m_capDestFormat.fmt.pix.sizeimage);
 
     //fprintf(stderr, "%d error v4lconvert_convert", err);
-    if ( s == -1 || s != m_capDestFormat.fmt.pix.sizeimage )
+    if ( s == -1 || s != int(m_capDestFormat.fmt.pix.sizeimage) )
             errno_exit(v4lconvert_get_error_message(m_convertData));
 
 //    _glbuffer = (unsigned char *)p;
@@ -235,7 +235,7 @@ void update(void)
 }
 
 
-void *update_thread()
+void *update_thread(void *)
 {
     for(;;) {
 
@@ -245,6 +245,7 @@ void *update_thread()
             break;
     }
 
+    return 0;
 }
 
 void stop_capturing(void)
@@ -343,7 +344,7 @@ void uninit_device(void)
 
 void init_read(unsigned int buffer_size)
 {
-        buffers = calloc(1, sizeof(*buffers));
+        buffers = (buffer *) calloc(1, sizeof(*buffers));
 
         if (!buffers) {
                 fprintf(stderr, "Out of memory\n");
@@ -383,7 +384,7 @@ void init_mmap(void)
                 exit(EXIT_FAILURE);
         }
 
-        buffers = calloc(req.count, sizeof(*buffers));
+        buffers = (buffer *) calloc(req.count, sizeof(*buffers));
 
         if (!buffers) {
                 fprintf(stderr, "Out of memory\n");
@@ -435,7 +436,7 @@ void init_userp(unsigned int buffer_size)
                 }
         }
 
-        buffers = calloc(4, sizeof(*buffers));
+        buffers = (buffer *) calloc(4, sizeof(*buffers));
 
         if (!buffers) {
                 fprintf(stderr, "Out of memory\n");
@@ -580,8 +581,8 @@ void init_device(void)
                 errno_exit(v4lconvert_get_error_message(m_convertData));
 
         fprintf(stderr, "malloc %d ", m_capDestFormat.fmt.pix.sizeimage);
-        _glbuffer[0] = malloc(m_capDestFormat.fmt.pix.sizeimage);
-        _glbuffer[1] = malloc(m_capDestFormat.fmt.pix.sizeimage);
+        _glbuffer[0] = (unsigned char *) malloc(m_capDestFormat.fmt.pix.sizeimage);
+        _glbuffer[1] = (unsigned char *) malloc(m_capDestFormat.fmt.pix.sizeimage);
 
         fprintf(stderr, "init_device %d x %d : ", width, height);
         fprintf(stderr, " convert pixelformat  %c%c%c%c ",
@@ -695,8 +696,8 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
     // Start the update thread
     stop = false;
     draw_buffer = 1;
-    int rc;
-    if( (rc = pthread_create( &thread, NULL, &update_thread, NULL)) )
+    int rc = pthread_create( &thread, NULL, &update_thread, NULL);
+    if( rc != 0 )
     {
        fprintf(stderr,"Thread creation failed: %d\n", rc);
     }

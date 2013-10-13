@@ -127,5 +127,6 @@
         <file>icons/blending.png</file>
         <file>icons/filters.png</file>
         <file>icons/ffgl.png</file>
+        <file>icons/displayview.png</file>
     </qresource>
 </RCC>

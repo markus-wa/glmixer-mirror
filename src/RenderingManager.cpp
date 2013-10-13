@@ -1620,10 +1620,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 		        errors++;
 			} else
 				qDebug() << child.attribute("name") << tr("|Vector graphics source created.");
-		}
-#ifdef FFGL
+        }
         else if (type == Source::FFGL_SOURCE ){
 
+#ifdef FFGL
             QDomElement Frame = t.firstChildElement("Frame");
             QDomElement ffgl = t.firstChildElement("FreeFramePlugin");
 
@@ -1636,12 +1636,14 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                 errors++;
             } else
                 qDebug() << child.attribute("name") << tr("|FreeframeGL source created.");
-        }
+#else
+            qWarning() << child.attribute("name") << tr("|Could not create source: type FreeframeGL not supported.");
 #endif
+        }
 		else if ( type == Source::CLONE_SOURCE) {
 			// remember the node of the sources to clone
 			clones.push_back(child);
-		}
+        }
 
 		if (newsource) {
 			renameSource( newsource, child.attribute("name") );
@@ -1676,9 +1678,13 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                 }
 #endif
             }
-			else
+            else {
+                errors++;
 				delete newsource;
-		}
+            }
+		}        
+        else
+            errors++;
 
         child = child.nextSiblingElement("Source");
 	}

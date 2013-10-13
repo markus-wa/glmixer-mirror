@@ -79,4 +79,17 @@ private:
 
 };
 
+
+
+//class AlgorithmSourceBrowser : public PropertyBrowser {
+
+//    Q_OBJECT
+
+//public:
+//    AlgorithmSourceBrowser(QWidget *parent = 0);
+
+//public slots:
+//    Source *currentItem;
+//};
+
 #endif /* SOURCEPROPERTYBROWSER_H_ */

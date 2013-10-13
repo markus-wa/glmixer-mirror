@@ -30,8 +30,6 @@ public slots:
     // Context menu actions
     void removePlugin();
 
-//Q_SIGNALS:
-   // void changed(FFGLPluginSource *plugin);
 
 private:
 

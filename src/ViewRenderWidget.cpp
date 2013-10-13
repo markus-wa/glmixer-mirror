@@ -1310,8 +1310,8 @@ GLuint ViewRenderWidget::buildCircleList()
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
 		glColor4ub(255, 255, 255, 255);
-		gluQuadricTexture(quadObj, GL_TRUE);
-		gluDisk(quadObj, 0.0, CIRCLE_SIZE * SOURCE_UNIT, 50, 3);
+        gluQuadricTexture(quadObj, GL_TRUE);
+        gluDisk(quadObj, 0.0, CIRCLE_SIZE * SOURCE_UNIT, 80, 3);
 		glDisable(GL_TEXTURE_2D);
 
 		// blended antialiasing
@@ -1319,11 +1319,12 @@ GLuint ViewRenderWidget::buildCircleList()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
 		glColor4ub(COLOR_CIRCLE, 250);
-		glLineWidth(5.0);
+        glLineWidth(1.5);
 
-		glBegin(GL_LINE_LOOP);
-		for (float i = 0; i < 2.0 * M_PI; i += 0.07)
-			glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));
+        glRotatef(90.f, 0, 0, 1);
+        glBegin(GL_LINE_LOOP);
+        for (float i = 0.f; i < 2.f * M_PI; i += M_PI / 40.f )
+            glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));
 		glEnd();
 
 		glPopMatrix();
@@ -1340,10 +1341,11 @@ GLuint ViewRenderWidget::buildCircleList()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
 		glColor4ub(COLOR_CIRCLE_MOVE, 250);
-		glLineWidth(6.0);
+        glLineWidth(5.0);
 
-		glBegin(GL_LINE_LOOP);
-		for (float i = 0; i < 2.0 * M_PI; i += 0.07)
+        glRotatef(90.f, 0, 0, 1);
+        glBegin(GL_LINE_LOOP);
+        for (float i = 0.f; i < 2.f * M_PI; i += M_PI / 40.f )
 			glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));
 		glEnd();
 
@@ -1666,7 +1668,7 @@ GLuint ViewRenderWidget::buildFrameList()
 
 	// draw a thin border
 	glLineWidth(1.0);
-	glColor4ub(0, 0, 0, 255);
+    glColor4ub(COLOR_FRAME, 255);
 	glBegin(GL_LINE_LOOP); // begin drawing the frame (with marks on axis)
 		glVertex2f(-1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT); // Bottom Left
 		glVertex2f(1.0f * SOURCE_UNIT, -1.0f * SOURCE_UNIT); // Bottom Right

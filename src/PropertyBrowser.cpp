@@ -130,6 +130,12 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
 }
 
 
+void PropertyBrowser::setHeaderVisible(bool visible){
+
+    propertyTreeEditor->setHeaderVisible(visible);
+
+}
+
 void PropertyBrowser::setPropertyEnabled(QString propertyName, bool enabled){
 
     if (idToProperty.contains(propertyName))

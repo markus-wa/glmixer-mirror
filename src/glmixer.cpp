@@ -257,12 +257,23 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 	RenderingManager::getRenderingWidget()->setCatalogContextMenu(catalogMenu);
 	RenderingManager::getRenderingWidget()->setSourceContextMenu(currentSourceMenu);
 
-    // Setup the property browser
-    SourcePropertyBrowser *propertyBrowser = RenderingManager::getPropertyBrowserWidget();
-    propertyBrowser->setParent(sourceDockWidgetContents);
-    sourceDockWidgetContentsLayout->addWidget(propertyBrowser);
-    QObject::connect(this, SIGNAL(sourceMarksModified(bool)), propertyBrowser, SLOT(updateMarksProperties(bool) ) );
-    QObject::connect(propertyBrowser, SIGNAL(changed(Source*)), this, SLOT(sourceChanged(Source*) ) );
+    // Setup the property browsers
+    QSplitter *splitter = new QSplitter(this);
+    splitter->setOrientation(Qt::Vertical);
+
+    PropertyBrowser *specificBrowser = new PropertyBrowser();
+    specificBrowser->setParent(splitter);
+    splitter->addWidget(specificBrowser);
+
+    SourcePropertyBrowser *sourcePropertyBrowser = RenderingManager::getPropertyBrowserWidget();
+    sourcePropertyBrowser->setParent(splitter);
+    sourcePropertyBrowser->setHeaderVisible(false);
+    splitter->addWidget(sourcePropertyBrowser);
+    QObject::connect(this, SIGNAL(sourceMarksModified(bool)), sourcePropertyBrowser, SLOT(updateMarksProperties(bool) ) );
+    QObject::connect(sourcePropertyBrowser, SIGNAL(changed(Source*)), this, SLOT(sourceChanged(Source*) ) );
+
+
+    sourceDockWidgetContentsLayout->addWidget(splitter);
 
     // setup the mixing toolbox
     mixingToolBox = new MixingToolboxWidget(this);
@@ -270,13 +281,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), mixingToolBox, SLOT(connectSource(SourceSet::iterator) ) );
     QObject::connect(mixingToolBox, SIGNAL( presetApplied(SourceSet::iterator)), RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)) );
     // bidirectional link between mixing toolbox and property manager
-    QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, bool)), propertyBrowser, SLOT(valueChanged(QString, bool)) );
-    QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, int)), propertyBrowser, SLOT(valueChanged(QString, int)) );
-    QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, const QColor &)), propertyBrowser, SLOT(valueChanged(QString, const QColor &)) );
-    QObject::connect(mixingToolBox, SIGNAL(enumChanged(QString, int)), propertyBrowser, SLOT(enumChanged(QString, int)) );
-    QObject::connect(propertyBrowser, SIGNAL(propertyChanged(QString, bool)), mixingToolBox, SLOT(propertyChanged(QString, bool)) );
-    QObject::connect(propertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
-    QObject::connect(propertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
+    QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, bool)), sourcePropertyBrowser, SLOT(valueChanged(QString, bool)) );
+    QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, int)), sourcePropertyBrowser, SLOT(valueChanged(QString, int)) );
+    QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, const QColor &)), sourcePropertyBrowser, SLOT(valueChanged(QString, const QColor &)) );
+    QObject::connect(mixingToolBox, SIGNAL(enumChanged(QString, int)), sourcePropertyBrowser, SLOT(enumChanged(QString, int)) );
+    QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, bool)), mixingToolBox, SLOT(propertyChanged(QString, bool)) );
+    QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
+    QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
 
 	// Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);

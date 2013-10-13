@@ -47,6 +47,7 @@ public slots:
     // utility slot for expanding / collapsing all tree items
     void expandAll();
     void collapseAll();
+    void setHeaderVisible(bool);
 
     // Context menu actions
     void ctxMenuGroup(const QPoint &);

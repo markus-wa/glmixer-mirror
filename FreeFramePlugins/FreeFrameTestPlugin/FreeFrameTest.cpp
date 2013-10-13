@@ -103,7 +103,7 @@ FreeFrameTest::FreeFrameTest()
 
   //get the max s,t that correspond to the 
   //width,height of the used portion of the allocated texture space
-  FFGLTexCoords maxCoords = GetMaxGLTexCoords(Texture);
+ // FFGLTexCoords maxCoords = GetMaxGLTexCoords(Texture);
 
   //modulate texture colors with white (just show
   //the texture colors as they are)

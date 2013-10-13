@@ -318,8 +318,12 @@ void VideoFile::close()
 
 	// close file
 	if (pFormatCtx)
-		av_close_input_file(pFormatCtx);
 
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
+        avformat_close_input(&pFormatCtx);
+#else
+        av_close_input_file(pFormatCtx);
+#endif
 }
 
 VideoFile::~VideoFile()
@@ -566,7 +570,11 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 		return false;
 	}
 
-	err = av_find_stream_info(_pFormatCtx);
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
+    err = avformat_find_stream_info(_pFormatCtx, NULL);
+#else
+    err = av_find_stream_info(_pFormatCtx);
+#endif
 	if (err < 0)
 	{
 		switch (err)
@@ -660,9 +668,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 			if (!ignoreAlpha)
 				targetFormat = PIX_FMT_RGBA;
 		}
-	}
-
-
+    }
 
 	// Decide for optimal scaling algo if it was not specified
 	// NB: the algo is used only if the conversion is scaled or with filter
@@ -855,11 +861,11 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 
     codec = avcodec_find_decoder(codecCtx->codec_id);
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,0,0)
-	if (!codec || (avcodec_open(codecCtx, codec) < 0))
-#else
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
     AVDictionary *d = NULL;
     if (!codec || (avcodec_open2(codecCtx, codec, &d) < 0))
+#else
+    if (!codec || (avcodec_open(codecCtx, codec) < 0))
 #endif
 	{
 		qWarning() << filename << tr("|The codec ") << codecCtx->codec_name
