@@ -14,9 +14,16 @@ public:
 
     bool hasProcessOpenGLCapability() {
 
+#ifdef FF_FAIL
+        // FFGL 1.5
+        DWORD arg = FF_CAP_PROCESSOPENGL;
+        DWORD returned = m_ffPluginMain(FF_GETPLUGINCAPS,arg,0).ivalue;
+#else
+        // FFGL 1.6
         FFMixed arg;
         arg.UIntValue = FF_CAP_PROCESSOPENGL;
         FFUInt32 returned = m_ffPluginMain(FF_GETPLUGINCAPS,arg,0).UIntValue;
+#endif
 
         return returned == FF_SUPPORTED;
     }
@@ -24,11 +31,18 @@ public:
 
     QVariantHash getInfo() {
         QVariantHash mapinfo;
+#ifdef FF_FAIL
+        // FFGL 1.5
+        DWORD arg = 0;
+        void *result = m_ffPluginMain(FF_GETINFO,arg,0).PISvalue;
+#else
+        // FFGL 1.6
         FFMixed arg;
         void *result = m_ffPluginMain(FF_GETINFO, arg, 0).PointerValue;
+#endif
         if (result!=NULL) {
             PluginInfoStructTag *plugininfo = (PluginInfoStructTag*) result;
-            mapinfo.insert("Name", plugininfo->PluginName);
+            mapinfo.insert("Name", (char *) plugininfo->PluginName);
             mapinfo.insert("Type", (uint) plugininfo->PluginType);
         }
         return mapinfo;
@@ -36,8 +50,15 @@ public:
 
     QVariantHash getExtendedInfo() {
         QVariantHash mapinfo;
+#ifdef FF_FAIL
+        // FFGL 1.5
+        DWORD arg = 0;
+        void *result = m_ffPluginMain(FF_GETEXTENDEDINFO,arg,0).ivalue;
+#else
+        // FFGL 1.6
         FFMixed arg;
         void *result = m_ffPluginMain(FF_GETEXTENDEDINFO, arg, 0).PointerValue;
+#endif
         if (result!=NULL) {
             PluginExtendedInfoStructTag *plugininfo = (PluginExtendedInfoStructTag*) result;
             mapinfo.insert("Description", plugininfo->Description);
@@ -55,29 +76,49 @@ public:
 
         // fill in parameter map with default values
         unsigned int i;
-        FFMixed arg;
-        FFUInt32 returned;
-        for (i=0; i<MAX_PARAMETERS && i<m_numParameters; i++)
+        QVariant value;
+        for (i=0; i<MAX_PARAMETERS && i < (unsigned int) m_numParameters; i++)
         {
+
+#ifdef FF_FAIL
+            // FFGL 1.5;
+            DWORD ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, (DWORD)i, 0).ivalue;
+            plugMainUnion returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT, (DWORD)i, 0);
+            if (returned.ivalue != FF_FAIL) {
+                switch ( ffParameterType ) {
+                    case FF_TYPE_TEXT:
+                        value.setValue( QString( (char*) returned.svalue ) );
+                        break;
+                    case FF_TYPE_BOOLEAN:
+                        value.setValue( returned.fvalue > 0.0 );
+                        break;
+                    default:
+                    case FF_TYPE_STANDARD:
+                        value.setValue( returned.fvalue );
+                        break;
+                }
+            }
+#else
+            // FFGL 1.6
+            FFMixed arg;
+            FFUInt32 returned;
             arg.UIntValue = i;
             FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
-            QVariant value;
             switch ( ffParameterType ) {
+                case FF_TYPE_TEXT:
+                    value.setValue( QString( (const char*) m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).PointerValue ) );
+                    break;
                 case FF_TYPE_BOOLEAN:
                     returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
                     value.setValue(  *((bool *)&returned)  );
-                break;
-
-                case FF_TYPE_TEXT:
-                    value.setValue( QString( (const char*) m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).PointerValue ) );
-                break;
-
+                    break;
                 default:
                 case FF_TYPE_STANDARD:
                     returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
                     value.setValue( *((float *)&returned) );
-                break;
+                    break;
             }
+#endif
 
             // add it to the list
             params.insert( QString(GetParameterName(i)), value);
@@ -95,13 +136,33 @@ public:
 
         // fill in parameter map with default values
         unsigned int i;
-        FFMixed arg;
-        FFUInt32 returned;
-        for (i=0; i<MAX_PARAMETERS && i<m_numParameters; i++)
+        QVariant value;
+        for (i=0; i<MAX_PARAMETERS && i < (unsigned int) m_numParameters; i++)
         {
+#ifdef FF_FAIL
+            // FFGL 1.5;
+            DWORD ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, (DWORD)i, 0).ivalue;
+            plugMainUnion returned = m_ffPluginMain(FF_GETPARAMETER, (DWORD)i, 0);
+            if (returned.ivalue != FF_FAIL) {
+                switch ( ffParameterType ) {
+                    case FF_TYPE_TEXT:
+                        value.setValue( QString( (char*) returned.svalue ) );
+                        break;
+                    case FF_TYPE_BOOLEAN:
+                        value.setValue( returned.fvalue > 0.0 );
+                        break;
+                    default:
+                    case FF_TYPE_STANDARD:
+                        value.setValue( returned.fvalue );
+                        break;
+                }
+            }
+#else
+            // FFGL 1.6
+            FFMixed arg;
+            FFUInt32 returned;
             arg.UIntValue = i;
             FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
-            QVariant value;
             switch ( ffParameterType ) {
                 case FF_TYPE_BOOLEAN:
                     returned = m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID).UIntValue;
@@ -118,7 +179,7 @@ public:
                     value.setValue( *((float *)&returned) );
                 break;
             }
-
+#endif
             // add it to the list
             params.insert( QString(GetParameterName(i)), value);
         }
@@ -133,7 +194,7 @@ public:
     bool setParameter(QString paramName, QVariant value)
     {
         // find the parameter with that name
-        for (unsigned int i=0; i < m_numParameters; ++i){
+        for (unsigned int i=0; i < (unsigned int) m_numParameters; ++i){
             if ( paramName.compare(GetParameterName(i), Qt::CaseInsensitive) == 0 )
                 return setParameter(i, value);
         }
@@ -143,37 +204,60 @@ public:
 
     bool setParameter(unsigned int paramNum, QVariant value)
     {
-        if (paramNum<0 || paramNum>=m_numParameters ||
+        if (paramNum<0 || paramNum >= (unsigned int) m_numParameters ||
             m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
             return false;
 
+        SetParameterStruct ArgStruct;
+        ArgStruct.ParameterNumber = paramNum;
+
+#ifdef FF_FAIL
+        // FFGL 1.5
+        DWORD ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, (DWORD)paramNum, 0).ivalue;
+#else
+        // FFGL 1.6
         FFMixed arg;
         arg.UIntValue = paramNum;
         FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
 
-        SetParameterStruct ArgStruct;
-        ArgStruct.ParameterNumber = paramNum;
         arg.PointerValue = &ArgStruct;
+#endif
 
         // depending on type assign value in data structure
         if ( ffParameterType == FF_TYPE_STANDARD && value.canConvert(QVariant::Double) )
         {
-            // Cast to pack our float into FFUInt32
-            float v = value.toFloat();
+            // Cast to float
+            float v = value.toFloat();     
+#ifdef FF_FAIL
+            *((float *)(unsigned)&ArgStruct.NewParameterValue) = v;
+            m_ffPluginMain(FF_SETPARAMETER,(DWORD)(&ArgStruct), m_ffInstanceID);
+#else
+            // pack our float into FFUInt32
             ArgStruct.NewParameterValue.UIntValue = *(FFUInt32 *)&v;
             m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
+#endif
         }
         else if ( ffParameterType == FF_TYPE_TEXT && value.canConvert(QVariant::String) )
         {
             // Cast to string
+#ifdef FF_FAIL
+            ArgStruct.NewParameterValue = (char *) value.toString().toAscii().data();
+            m_ffPluginMain(FF_SETPARAMETER, (DWORD)(&ArgStruct), m_ffInstanceID);
+#else
             ArgStruct.NewParameterValue.PointerValue = value.toString().toAscii().data();
             m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
+#endif
         }
         else if ( ffParameterType == FF_TYPE_BOOLEAN && value.canConvert(QVariant::UInt) )
         {
             // Cast to unsigned int
+#ifdef FF_FAIL
+            ArgStruct.NewParameterValue = value.toUInt();
+            m_ffPluginMain(FF_SETPARAMETER, (DWORD)(&ArgStruct), m_ffInstanceID);
+#else
             ArgStruct.NewParameterValue.UIntValue = value.toUInt();
             m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
+#endif
         }
         else
             return false;

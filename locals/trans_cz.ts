@@ -211,6 +211,156 @@ License: 	GNU GPL version 3&lt;/p&gt;
     </message>
 </context>
 <context>
+    <name>FFGLPluginBrowser</name>
+    <message>
+        <location filename="../src/FFGLPluginBrowser.cpp" line="37"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FFGLSource</name>
+    <message>
+        <location filename="../src/FFGLSource.cpp" line="42"/>
+        <source>FFGLSource given an invalid file</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FFGLSourceCreationDialog</name>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="247"/>
+        <source>FreeframeGL source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="248"/>
+        <source>FreeframeGL plugin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="250"/>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="253"/>
+        <source>Select a file name or browse to open a shared library file (.dll, .so or .bundle).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="255"/>
+        <source>...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="256"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning: &lt;/span&gt;The selected plugin is an &lt;span style=&quot; font-style:italic;&quot;&gt;effect&lt;/span&gt; filter; it may not generate any graphics.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="257"/>
+        <source>Properties</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="258"/>
+        <source>Size   </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="261"/>
+        <source>Custom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="262"/>
+        <source>2 x 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="263"/>
+        <source>8 x 8</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="264"/>
+        <source>16 x 16</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="265"/>
+        <source>32 x 32</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="266"/>
+        <source>64 x 64</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="267"/>
+        <source>128 x 128</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="268"/>
+        <source>256 x 256</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="269"/>
+        <source>160 x 120</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="270"/>
+        <source>320 x 240  (QVGA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="271"/>
+        <source>640 x 480  (VGA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="272"/>
+        <source>720 x 480  (NTSC)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="273"/>
+        <source>768 x 576  (PAL)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="274"/>
+        <source>800 x 600  (SVGA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="275"/>
+        <source>1024 x 768 (XGA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="277"/>
+        <source>Width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../GraphicLiveMixer-build/src/ui_FFGLSourceCreationDialog.h" line="278"/>
+        <source>Height</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLSourceCreationDialog.cpp" line="131"/>
+        <source>Open FFGL Plugin file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLSourceCreationDialog.cpp" line="131"/>
+        <source>Freeframe GL Plugin (*.so *.dll *.bundle)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>GLMixer</name>
     <message>
         <location filename="../../GraphicLiveMixer-build/src/ui_glmixer.h" line="3033"/>
@@ -3046,6 +3196,68 @@ The program will stop now.</source>
 <context>
     <name>QObject</name>
     <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="277"/>
+        <source>FreeframeGL plugin could not be instanciated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="283"/>
+        <source>FreeframeGL plugin could not be loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="289"/>
+        <source>Invalid FreeframeGL plugin: does not have OpenGL support.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="440"/>
+        <source>FreeframeGL plugin could not process OpenGL. Probably missing an input texture.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="480"/>
+        <source>FreeframeGL plugin could not be initialized</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="485"/>
+        <source>FreeframeGL plugin could not create FBO</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="502"/>
+        <source>Parameter could not be set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSource.cpp" line="571"/>
+        <source>: parameter could not be set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="13"/>
+        <source>FreeFrameGL plugin given an invalid file name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="34"/>
+        <source>Unknown error in FreeframeGL plugin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="76"/>
+        <source>
+The plugin was removed after a crash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/FFGLSource.cpp" line="127"/>
+        <source>
+The source was stopped.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/MixingToolboxWidget.cpp" line="124"/>
         <source>Custom blending</source>
         <translation type="unfinished"></translation>
@@ -3663,13 +3875,17 @@ The program cannot operate properly anymore.</source>
     </message>
     <message>
         <location filename="../src/RenderingManager.cpp" line="1635"/>
-        <location filename="../src/RenderingManager.cpp" line="1640"/>
         <source>|Could not create FreeframeGL source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/RenderingManager.cpp" line="1638"/>
         <source>|FreeframeGL source created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1640"/>
+        <source>|Could not create source: type FreeframeGL not supported.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
