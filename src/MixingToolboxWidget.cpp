@@ -591,7 +591,17 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
 
 #ifdef FFGL
 
-    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), QObject::tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+    #ifdef __APPLE__
+    QString ext = tr("Freeframe GL Plugin (*.bundle)");
+    #else
+    #ifdef __WIN32__
+    QString ext = tr("Freeframe GL Plugin (*.dll)");
+    #else
+    QString ext = tr("Freeframe GL Plugin (*.so)");
+    #endif
+    #endif
+    // browse for a plugin file
+    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), ext);
 
     QFileInfo pluginfile(fileName);
     if (source && pluginfile.isFile()) {

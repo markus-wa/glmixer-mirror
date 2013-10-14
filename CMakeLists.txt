@@ -222,6 +222,10 @@ if(USE_FREEFRAMEGL)
             SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} dl)
         endif(UNIX)
 
+        if(APPLE)
+        add_definitions(-DTARGET_OS_MAC)
+        endif(APPLE)
+
     else(FREEFRAMEGL_INCLUDE)
         message(STATUS "Could not locate FFGL.h in FREEFRAMEGL_PATH : ${FREEFRAMEGL_PATH} ")
         set(USE_FREEFRAMEGL OFF CACHE BOOL)

@@ -279,7 +279,7 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     }
 
     // load dll plugin
-    if (_plugin->Load(filename.toUtf8())==FF_FAIL){
+    if (_plugin->Load(filename.toLatin1().data()) == FF_FAIL){
         qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not be loaded");
         FFGLPluginException().raise();
     }
