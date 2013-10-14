@@ -84,7 +84,7 @@
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>5</number>
+         <number>0</number>
         </property>
         <property name="sizeAdjustPolicy">
          <enum>QComboBox::AdjustToContents</enum>
@@ -96,72 +96,72 @@
         </item>
         <item>
          <property name="text">
-          <string>2 x 2</string>
+          <string notr="true">2 x 2</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>8 x 8</string>
+          <string notr="true">8 x 8</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>16 x 16</string>
+          <string notr="true">16 x 16</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>32 x 32</string>
+          <string notr="true">32 x 32</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>64 x 64</string>
+          <string notr="true">64 x 64</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>128 x 128</string>
+          <string notr="true">128 x 128</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>256 x 256</string>
+          <string notr="true">256 x 256</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>160 x 120</string>
+          <string notr="true">160 x 120</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>320 x 240  (QVGA)</string>
+          <string notr="true">320 x 240  (QVGA)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>640 x 480  (VGA)</string>
+          <string notr="true">640 x 480  (VGA)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>720 x 480  (NTSC)</string>
+          <string notr="true">720 x 480  (NTSC)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>768 x 576  (PAL)</string>
+          <string notr="true">768 x 576  (PAL)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>800 x 600  (SVGA)</string>
+          <string notr="true">800 x 600  (SVGA)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>1024 x 768 (XGA)</string>
+          <string notr="true">1024 x 768 (XGA)</string>
          </property>
         </item>
        </widget>
@@ -291,14 +291,23 @@
         <item>
          <widget class="QLabel" name="variability">
           <property name="text">
-           <string>30</string>
+           <string notr="true">30</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::PlainText</enum>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::NoTextInteraction</set>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QLabel" name="fps_2">
           <property name="text">
-           <string>%</string>
+           <string notr="true">%</string>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::NoTextInteraction</set>
           </property>
          </widget>
         </item>
@@ -338,7 +347,7 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>40</string>
+           <string notr="true">40</string>
           </property>
          </widget>
         </item>
@@ -348,7 +357,7 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>fps</string>
+           <string notr="true">Hz</string>
           </property>
          </widget>
         </item>

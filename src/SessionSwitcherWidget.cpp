@@ -355,7 +355,7 @@ void SessionSwitcherWidget::openFolder(QString directory)
 {
     QString dirName;
     if ( directory.isNull() )
-        dirName = QFileDialog::getExistingDirectory(this, tr("Select a directory"), QDir::currentPath(),
+        dirName = QFileDialog::getExistingDirectory(this, QObject::tr("Select a directory"), QDir::currentPath(),
 		  	  	  	  	  	  	  	  	  	  	  	  GLMixer::getInstance()->useSystemDialogs() ? QFileDialog::ShowDirsOnly : QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
     else
         dirName = directory;
@@ -421,7 +421,7 @@ void SessionSwitcherWidget::selectSession(const QModelIndex & index)
     currentSessionLabel->setEnabled(true);
     nextSessionLabel->setEnabled(true);
 	// display that we can do transition to new selected session
-    nextSessionLabel->setText(tr("0% %1").arg(QFileInfo(nextSession).baseName()));
+    nextSessionLabel->setText(QString("0% %1").arg(QFileInfo(nextSession).baseName()));
 }
 
 void SessionSwitcherWidget::setTransitionType(int t)
@@ -480,7 +480,7 @@ void SessionSwitcherWidget::customizeTransition()
         else {
             // not a valid file ; show a warning only if the QFileDialog did not return null (cancel)
             if (!fileNames.empty() && !fileNames.front().isNull())
-                qCritical() << fileNames.front() << tr("|File does not exist.");
+                qCritical() << fileNames.front() << QObject::tr("|File does not exist.");
             // if no valid oldfile neither; show icon in red
             if (RenderingManager::getSessionSwitcher()->transitionMedia().isEmpty())
                 customButton->setStyleSheet("QToolButton { border: 1px solid red }");
@@ -601,7 +601,7 @@ void SessionSwitcherWidget::resetTransitionSlider()
 	// ensure correct re-display
 	if (!nextSessionSelected) {
 		RenderingManager::getSessionSwitcher()->setTransitionType(RenderingManager::getSessionSwitcher()->getTransitionType());
-        nextSessionLabel->setText(tr("None"));
+        nextSessionLabel->setText(QObject::tr("None"));
 	}
 }
 
@@ -649,7 +649,7 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 	if ( nextSessionSelected ) {
 
 		// display that we can do transition to new selected session
-	    nextSessionLabel->setText(tr("%1% %2").arg(ABS(t)).arg(QFileInfo(nextSession).baseName()));
+        nextSessionLabel->setText(QString("%1% %2").arg(ABS(t)).arg(QFileInfo(nextSession).baseName()));
 
 		// prevent coming back to previous
 		if (t < 0) {
@@ -681,7 +681,7 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 			overlayPreview->playSource(true);
 		}
 		// show percent of mixing
-        currentSessionLabel->setText(tr("%1%").arg(ABS(t)));
+        currentSessionLabel->setText(QString("%1%").arg(ABS(t)));
 	}
 }
 

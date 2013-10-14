@@ -27,8 +27,10 @@
 #include "QLogStream.h"
 #include "glmixer.h"
 #include "RenderingManager.h"
-#include "SharedMemoryManager.h"
 #include "OutputRenderWindow.h"
+#ifdef SHM
+#include "SharedMemoryManager.h"
+#endif
 
 
 
@@ -77,9 +79,11 @@ int main(int argc, char **argv)
     GLMixer::getInstance()->readSettings();
     a.processEvents();
 
+#ifdef SHM
     if(!SharedMemoryManager::getInstance())
     	qWarning() << QObject::tr("Could not initiate shared memory manager");
     a.processEvents();
+#endif
 
 	// 2. The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("Output Window"));

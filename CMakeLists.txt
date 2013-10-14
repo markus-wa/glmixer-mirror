@@ -136,6 +136,9 @@ set( CMAKE_INCLUDE_PATH
   ${CMAKE_SYSTEM_INCLUDE_PATH}
 )
 
+# HERE IS THE OPTIONNAL USE OF SHARED MEMORY
+SET(USE_SHAREDMEMORY ${USE_SHAREDMEMORY} CACHE BOOL "CHECK if you want to compile with Shared Memory support")
+
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
 SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")
 
@@ -212,14 +215,15 @@ if(USE_FREEFRAMEGL)
     if(FREEFRAMEGL_INCLUDE)
         message(STATUS "Using FreeframeGL.")
         include_directories(${FREEFRAMEGL_INCLUDE} ${FREEFRAMEGL_INSTANCE_INCLUDE})
-
+        # when compiling freeframeGL, use the permissive compiler flag (or it does not compile)
+        set(CMAKE_CXX_FLAGS "-fpermissive ${CMAKE_CXX_FLAGS}" )
+        # add the dependency to dl library for linux comilation
         if(UNIX)
             SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} dl)
         endif(UNIX)
 
     else(FREEFRAMEGL_INCLUDE)
         message(STATUS "Could not locate FFGL.h in FREEFRAMEGL_PATH : ${FREEFRAMEGL_PATH} ")
-        unset(USE_FREEFRAMEGL CACHE)
         set(USE_FREEFRAMEGL OFF CACHE BOOL)
 
     endif(FREEFRAMEGL_INCLUDE)

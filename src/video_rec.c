@@ -26,6 +26,7 @@
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
+#include <libavutil/mathematics.h>
 #include <libavutil/pixdesc.h>
 
 #include "video_rec.h"
@@ -161,37 +162,39 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 	rec->enc->oc->oformat = rec->enc->fmt;
 	snprintf(rec->enc->oc->filename, sizeof(rec->enc->oc->filename), "%s", filename);
 
+    // find encoder AVCodec
+    c = avcodec_find_encoder(f_codec_id);
+    if (c == NULL) {
+        snprintf(errormessage, 256, "Cannot find video codec for %s file.\nUnable to start recording.", f_name);
+        video_rec_free(rec);
+        return NULL;
+    }
 
-	// create the stream for the encoder
-	rec->enc->v_st = av_new_stream(rec->enc->oc, 0);
-	rec->enc->v_ctx = rec->enc->v_st->codec;
+    // create the stream for this encoder
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+    rec->enc->v_st = avformat_new_stream(rec->enc->oc, c);
+#else
+    rec->enc->v_st = av_new_stream(rec->enc->oc, 0);
+#endif
+    rec->enc->v_ctx = rec->enc->v_st->codec;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-	rec->enc->v_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
+    rec->enc->v_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
 #else
-	rec->enc->v_ctx->codec_type = CODEC_TYPE_VIDEO;
+    rec->enc->v_ctx->codec_type = CODEC_TYPE_VIDEO;
 #endif
 	rec->enc->v_ctx->codec_id = f_codec_id;
-
 	rec->enc->v_ctx->width = width;
 	rec->enc->v_ctx->height = height;
 	rec->enc->v_ctx->time_base.den = fps;
-
 //	rec->enc->v_ctx->bit_rate = width*height*4*fps;  // useless ?
 	rec->enc->v_ctx->time_base.num = 1;
 	rec->enc->v_ctx->pix_fmt = f_pix_fmt;
 	rec->enc->v_ctx->coder_type = 1;
 
-	c = avcodec_find_encoder(f_codec_id);
-	if (c == NULL) {
-		snprintf(errormessage, 256, "Cannot find video codec for %s file.\nUnable to start recording.", f_name);
-		video_rec_free(rec);
-		return NULL;
-	}
 
     // options for AVCodecContext
     AVDictionary *codec_opts = NULL;
-
     // parameters given
      snprintf(buf, sizeof(buf), "%d/%d", 1, fps);
      av_dict_set(&codec_opts, "time_base", buf, 0);
@@ -199,11 +202,10 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
      av_dict_set(&codec_opts, "width", buf, 0);
      snprintf(buf, sizeof(buf), "%d", height);
      av_dict_set(&codec_opts, "height", buf, 0);
-
      av_dict_set(&codec_opts, "codec_type", "AVMEDIA_TYPE_VIDEO", 0);
      av_dict_set(&codec_opts, "pix_fmt", av_get_pix_fmt_name(f_pix_fmt), 0 );
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,0,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,0,0)
     if (avcodec_open(rec->enc->v_ctx, c) < 0)
 #else
     AVDictionary *d = NULL;
@@ -214,7 +216,6 @@ video_rec_init(const char *filename, encodingformat f, int width, int height, in
 		video_rec_free(rec);
 		return NULL;
 	}
-
 
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
 	if(url_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
@@ -366,14 +367,14 @@ sws_rec_deliver_vframe(video_rec_t *rec, void *data)
 	int r;
 	AVPacket pkt;
 
-	AVFrame frame;
+    AVPicture frame;
 	memset(&frame, 0, sizeof(frame));
 	int linesize = rec->width * 4;
 	frame.data[0] = data + linesize * (rec->height - 1);
 	frame.linesize[0] = -linesize;
 
 	// convert buffer to avcodec frame
-	sws_scale(rec->conv->img_convert_ctx, frame.data, frame.linesize, 0, rec->height, rec->conv->picture->data, rec->conv->picture->linesize);
+    sws_scale(rec->conv->img_convert_ctx, (const uint8_t * const*)frame.data, frame.linesize, 0, rec->height, rec->conv->picture->data, rec->conv->picture->linesize);
 	rec->conv->picture->pts = 1000000LL * rec->framenum / rec->fps;
 
 	r = avcodec_encode_video(rec->enc->v_ctx, rec->enc->vbuf_ptr, rec->enc->vbuf_size, rec->conv->picture);

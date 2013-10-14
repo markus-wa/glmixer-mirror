@@ -36,7 +36,7 @@ VideoFileDialog::VideoFileDialog( QWidget * parent, const QString & caption, con
 
     QLayout *grid = layout();
 
-    pv = new QCheckBox(tr("Preview"), this);
+    pv = new QCheckBox(QObject::tr("Preview"), this);
     grid->addWidget(pv);
 
     preview = new VideoFileDialogPreview(this);

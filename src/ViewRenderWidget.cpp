@@ -408,7 +408,7 @@ void ViewRenderWidget::showContextMenu(ViewContextMenu m, const QPoint &pos)
 			static QMenu *dropMenu = 0;
 			if (!dropMenu) {
 				dropMenu = new QMenu(this);
-				QAction *newAct = new QAction(tr("Cancel drop"), this);
+                QAction *newAct = new QAction(QObject::tr("Cancel drop"), this);
 				connect(newAct, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(clearBasket()));
 				dropMenu->addAction(newAct);
 			}
@@ -1027,20 +1027,20 @@ void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
         fshfile = glslfilename;
 
 	if (!program->addShaderFromSourceFile(QGLShader::Fragment, fshfile))
-		qFatal( "%s", qPrintable( tr("OpenGL GLSL error in fragment shader; \n\n%1").arg(program->log()) ) );
+        qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL error in fragment shader; \n\n%1").arg(program->log()) ) );
 	else if (program->log().contains("warning"))
-		qCritical() << fshfile << tr("|OpenGL GLSL warning in fragment shader;%1").arg(program->log());
+        qCritical() << fshfile << QObject::tr("|OpenGL GLSL warning in fragment shader;%1").arg(program->log());
 
 	if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl"))
-		qFatal( "%s", qPrintable( tr("OpenGL GLSL error in vertex shader; \n\n%1").arg(program->log()) ) );
+        qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL error in vertex shader; \n\n%1").arg(program->log()) ) );
 	else if (program->log().contains("warning"))
-		qCritical() << "imageProcessing_vertex.glsl" << tr("|OpenGL GLSL warning in vertex shader;%1").arg(program->log());
+        qCritical() << "imageProcessing_vertex.glsl" << QObject::tr("|OpenGL GLSL warning in vertex shader;%1").arg(program->log());
 
 	if (!program->link())
-		qFatal( "%s", qPrintable( tr("OpenGL GLSL linking error; \n\n%1").arg(program->log()) ) );
+        qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL linking error; \n\n%1").arg(program->log()) ) );
 
 	if (!program->bind())
-		qFatal( "%s", qPrintable( tr("OpenGL GLSL binding error; \n\n%1").arg(program->log()) ) );
+        qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL binding error; \n\n%1").arg(program->log()) ) );
 
 	// set the pointer to the array for the texture attributes
 	program->enableAttributeArray("texCoord");

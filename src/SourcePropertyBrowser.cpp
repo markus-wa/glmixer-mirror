@@ -470,7 +470,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
 		idToProperty[property->propertyName()] = property;
 		intManager->setRange(property, 1, 60);
 		rttiToProperty[Source::ALGORITHM_SOURCE]->addSubProperty(property);
-
+#ifdef SHM
 	rttiToProperty[Source::SHM_SOURCE] = groupManager->addProperty( QLatin1String("Shared Memory"));
 
 		// program Name
@@ -486,7 +486,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
 		// Frames size & aspect ratio
 		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(fs);
 		rttiToProperty[Source::SHM_SOURCE]->addSubProperty(ar);
-
+#endif
 	rttiToProperty[Source::CLONE_SOURCE] = groupManager->addProperty( QLatin1String("Clone"));
 
 		// Identifier
@@ -625,7 +625,7 @@ void SourcePropertyBrowser::updatePropertyTree(){
 			infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
 			infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
 			infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
-			infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? tr("Yes") : tr("No") );
+            infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? QObject::tr("Yes") : QObject::tr("No") );
 
 		} else
 #ifdef OPEN_CV
@@ -661,6 +661,7 @@ void SourcePropertyBrowser::updatePropertyTree(){
 			intManager->setValue(idToProperty["Update frequency"], (int) ( 1000000.0 / double(as->getPeriodicity()) ) );
 
 		} else
+#ifdef SHM
 		if (s->rtti() == Source::SHM_SOURCE) {
 
 			SharedMemorySource *shms = dynamic_cast<SharedMemorySource *>(s);
@@ -669,6 +670,7 @@ void SourcePropertyBrowser::updatePropertyTree(){
 			sizeManager->setValue(idToProperty["Resolution"], QSize(shms->getFrameWidth(), shms->getFrameHeight()) );
 
 		} else
+#endif
 		if (s->rtti() == Source::CLONE_SOURCE) {
 
 			infoManager->setValue(idToProperty["Type"], QLatin1String("Clone") );

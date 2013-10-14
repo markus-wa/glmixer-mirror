@@ -33,8 +33,6 @@
 #include "CameraDialog.h"
 #include "VideoFileDialog.h"
 #include "AlgorithmSelectionDialog.h"
-#include "SharedMemoryDialog.h"
-#include "SharedMemoryManager.h"
 #include "UserPreferencesDialog.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
@@ -46,10 +44,6 @@
 #include "AlgorithmSource.h"
 #include "VideoSource.h"
 #include "SvgSource.h"
-#include "SharedMemorySource.h"
-#ifdef OPEN_CV
-#include "OpencvSource.h"
-#endif
 #include "VideoFileDisplayWidget.h"
 #include "SourcePropertyBrowser.h"
 #include "CloneSource.h"
@@ -64,6 +58,16 @@
 #include "SessionSwitcher.h"
 #include "MixingToolboxWidget.h"
 #include "GammaLevelsWidget.h"
+
+#ifdef SHM
+#include "SharedMemorySource.h"
+#include "SharedMemoryDialog.h"
+#include "SharedMemoryManager.h"
+#endif
+
+#ifdef OPEN_CV
+#include "OpencvSource.h"
+#endif
 
 #ifdef FFGL
 #include "FFGLSourceCreationDialog.h"
@@ -130,6 +134,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     refreshTimingTimer(0), _displayTimeAsFrame(false), _restoreLastSession(true)
 {
     setupUi ( this );
+
+
+#ifndef SHM
+    actionShareToRAM->setVisible(false);
+    actionShmSource->setVisible(false);
+#endif
 
 #ifndef OPEN_CV
     actionCameraSource->setVisible(false);
@@ -464,8 +474,9 @@ void GLMixer::exitHandler() {
 
 	RenderingManager::deleteInstance();
 	OutputRenderWindow::deleteInstance();
+#ifdef SHM
 	SharedMemoryManager::deleteInstance();
-
+#endif
 	if (_instance)
 		delete _instance;
 
@@ -921,6 +932,7 @@ void GLMixer::on_actionSvgSource_triggered(){
 
 void GLMixer::on_actionShmSource_triggered(){
 
+#ifdef SHM
 	// popup a question dialog to select the shared memory block
 	static SharedMemoryDialog *shmd = 0;
 	if(!shmd)
@@ -935,6 +947,7 @@ void GLMixer::on_actionShmSource_triggered(){
 		} else
 			qCritical() << shmd->getSelectedProcess() << '|' << tr("Could not create shared memory source.");
 	}
+#endif
 }
 
 
@@ -1355,8 +1368,8 @@ void setupAboutDialog(QDialog *AboutGLMixer)
 	gridLayout->addWidget(validate, 3, 0, 1, 3);
 
 	Icon->setText(QString());
-	Title->setText(QApplication::translate("AboutGLMixer", "Graphic Live Mixer", 0, QApplication::UnicodeUTF8));
-	textBrowser->setHtml(QApplication::translate("AboutGLMixer", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+    Title->setText(QObject::tr("Graphic Live Mixer"));
+    textBrowser->setHtml(QObject::tr("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 	"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 	"p, li { white-space: pre-wrap; }\n"
 	"</style></head><body style=\" font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
@@ -1370,13 +1383,13 @@ void setupAboutDialog(QDialog *AboutGLMixer)
 	"</a></p>"
 	"<p>GLMixer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation.</p>"
 	"<p>GLMixer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details (see http://www.gnu.org/licenses).</p>"
-	"</body></html>", 0, QApplication::UnicodeUTF8));
+    "</body></html>"));
 
 	VERSION->setText( QString("%1").arg(QCoreApplication::applicationVersion()) );
 	
 #ifdef GLMIXER_REVISION
 	SVN->setText(QString("%1").arg(GLMIXER_REVISION));
-	textsvn->setText(QApplication::translate("AboutGLMixer", "SVN repository revision:", 0, QApplication::UnicodeUTF8));
+    textsvn->setText(QObject::tr("SVN repository revision:"));
 #endif
 	
 	QObject::connect(validate, SIGNAL(accepted()), AboutGLMixer, SLOT(accept()));
@@ -2207,8 +2220,9 @@ void GLMixer::restorePreferences(const QByteArray & state){
 	//	 n. shared memory depth
 	uint shmdepth = 0;
 	stream >> shmdepth;
+#ifdef SHM
 	RenderingManager::getInstance()->setSharedMemoryColorDepth(shmdepth);
-
+#endif
     // o. fullscreen monitor index
     uint fsmi = 0;
     stream >> fsmi;
@@ -2282,7 +2296,11 @@ QByteArray GLMixer::getPreferences() const {
 	stream << _instance->useSystemDialogs();
 
     // n. shared memory color depth
+#ifdef SHM
     stream << (uint) RenderingManager::getInstance()->getSharedMemoryColorDepth();
+#else
+    stream << 0;
+#endif
 
     // o. fullscreen monitor index
     stream << (uint) OutputRenderWindow::getInstance()->getFullScreenMonitor();

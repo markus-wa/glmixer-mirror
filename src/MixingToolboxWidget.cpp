@@ -583,7 +583,7 @@ bool MixingToolboxWidget::restoreState(const QByteArray &state) {
         setPresetItemTooltip(presetsList->item(0), s);
     }
 
-    qDebug() << tr("MixingToolboxWidget|Mixing presets restored (") << _userPresets.count() << tr(" user presets)");
+    qDebug() << tr("MixingToolboxWidget|Mixing presets restored (") << _userPresets.count() << QObject::tr(" user presets)");
 	return true;
 }
 
@@ -591,7 +591,7 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
 
 #ifdef FFGL
 
-    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
+    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), QObject::tr("Freeframe GL Plugin (*.so *.dll *.bundle)"));
 
     QFileInfo pluginfile(fileName);
     if (source && pluginfile.isFile()) {

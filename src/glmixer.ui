@@ -347,7 +347,7 @@ QDockWidget::close-button, QDockWidget::float-button {
              <string notr="true">font: 10pt;</string>
             </property>
             <property name="text">
-             <string>1.00</string>
+             <string notr="true">1.00</string>
             </property>
             <property name="textFormat">
              <enum>Qt::PlainText</enum>
@@ -3267,6 +3267,12 @@ QToolButton:hover {
    <addaction name="actionPause_recording"/>
   </widget>
   <widget class="QDockWidget" name="logDockWidget">
+   <property name="minimumSize">
+    <size>
+     <width>274</width>
+     <height>239</height>
+    </size>
+   </property>
    <property name="floating">
     <bool>true</bool>
    </property>
@@ -3439,6 +3445,12 @@ QToolButton:pressed {
        </property>
        <attribute name="headerVisible">
         <bool>true</bool>
+       </attribute>
+       <attribute name="headerDefaultSectionSize">
+        <number>400</number>
+       </attribute>
+       <attribute name="headerMinimumSectionSize">
+        <number>200</number>
        </attribute>
        <column>
         <property name="text">

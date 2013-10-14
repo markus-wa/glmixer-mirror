@@ -356,7 +356,7 @@ void UserPreferencesDialog::on_recordingUpdatePeriod_valueChanged(int period)
 
 void UserPreferencesDialog::on_recordingFolderButton_clicked(){
 
-	  QString dirName = QFileDialog::getExistingDirectory(this, tr("Select a directory"),
+      QString dirName = QFileDialog::getExistingDirectory(this, QObject::tr("Select a directory"),
 			  	  	  	  	  	  recordingFolderLine->text().isEmpty()?QDir::currentPath():recordingFolderLine->text(),
 	  	  	  	  	  	  	  	  GLMixer::getInstance()->useSystemDialogs() ? QFileDialog::ShowDirsOnly : QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
 	  if ( ! dirName.isEmpty() )

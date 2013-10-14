@@ -87,14 +87,17 @@ public:
 	// create source per type :
 	Source *newRenderingSource(double depth = -1.0);
 	Source *newCaptureSource(QImage img, double depth = -1.0);
-	Source *newMediaSource(VideoFile *vf, double depth = -1.0);
-#ifdef OPEN_CV
-	Source *newOpencvSource(int opencvIndex, double depth = -1.0);
-#endif
+    Source *newMediaSource(VideoFile *vf, double depth = -1.0);
 	Source *newSvgSource(QSvgRenderer *svg, double depth = -1.0);
 	Source *newAlgorithmSource(int type, int w, int h, double v, int p, bool ia, double depth = -1.0);
-	Source *newSharedMemorySource(qint64 shmid, double depth = -1.0);
-	Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
+    Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
+
+#ifdef OPEN_CV
+    Source *newOpencvSource(int opencvIndex, double depth = -1.0);
+#endif
+#ifdef SHM
+    Source *newSharedMemorySource(qint64 shmid, double depth = -1.0);
+#endif
 #ifdef FFGL
     Source *newFreeframeGLSource(QDomElement configuration, int w, int h, double depth = -1.0);
 #endif
@@ -182,8 +185,10 @@ public:
 		return clearWhite;
 	}
 
+#ifdef SHM
 	uint getSharedMemoryColorDepth();
 	void setSharedMemoryColorDepth(uint mode);
+#endif
 
 	/**
 	 * save and load configuration
@@ -218,8 +223,9 @@ public Q_SLOTS:
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);
 	void disableProgressBars(bool off) { _showProgressBar = !off; }
-
+#ifdef SHM
 	void setFrameSharingEnabled(bool on);
+#endif
 
 Q_SIGNALS:
 	void currentSourceChanged(SourceSet::iterator csi);
@@ -246,10 +252,11 @@ protected:
     standardAspectRatio renderingAspectRatio;
     float gammaShift;
 
+#ifdef SHM
     // The shared memory buffer
     class QSharedMemory *_sharedMemory;
     GLenum _sharedMemoryGLFormat, _sharedMemoryGLType;
-
+#endif
 	// the set of sources
 	SourceSet _sources;
     // the recorder

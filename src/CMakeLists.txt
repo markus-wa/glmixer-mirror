@@ -15,14 +15,9 @@ include(${QT_USE_FILE})
 #  this for us in the qtmain.lib file. Using this cmake code will ensure we have it
 #  linked into our build. Not needed on Unix/OS X/Linux which is why we have the 
 #  IF(WIN32) conditional.
-IF (WIN32)
+IF(WIN32)
     SET (QT_USE_QTMAIN TRUE)
-ENDIF (WIN32)
-
-SET(LANG
-    "${CMAKE_SOURCE_DIR}/locals/trans_fr.ts"
-    "${CMAKE_SOURCE_DIR}/locals/trans_cz.ts"
-)
+ENDIF(WIN32)
 
 # the variable "GLMIXER_SRCS" contains all .cpp files of this project
 SET(GLMIXER_SRCS
@@ -39,9 +34,6 @@ SET(GLMIXER_SRCS
     SvgSource.cpp
     AlgorithmSource.cpp
     AlgorithmSelectionDialog.cpp
-    SharedMemoryManager.cpp
-    SharedMemorySource.cpp
-    SharedMemoryDialog.cpp
     SourceDisplayWidget.cpp
     View.cpp
     MixerView.cpp
@@ -86,9 +78,26 @@ SET(GLMIXER_UIS
     AlgorithmSelectionDialog.ui
     UserPreferencesDialog.ui
     GammaLevelsDialog.ui
-    SharedMemoryDialog.ui
     MixingToolboxWidget.ui
 )
+
+# If SharedMemory was set, then link with its source files
+if(USE_SHAREDMEMORY)
+
+    add_definitions(-DSHM)
+    SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+        SharedMemoryManager.cpp
+        SharedMemorySource.cpp
+        SharedMemoryDialog.cpp
+    )
+
+    SET(GLMIXER_UIS  ${GLMIXER_UIS}
+        SharedMemoryDialog.ui
+    )
+
+elseif(USE_SHAREDMEMORY)
+    remove_definitions(-DSHM)
+endif(USE_SHAREDMEMORY)
 
 # If FreeframeGL was set, then link with its source files
 if(USE_FREEFRAMEGL)
@@ -105,34 +114,39 @@ if(USE_FREEFRAMEGL)
     if( APPLE )
         SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
             ${FREEFRAMEGL_DIR_HOST}/OSX/OSXPluginInstance.cpp
-            )
+        )
     else( APPLE )
         if( WIN32 )
             SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
                 ${FREEFRAMEGL_DIR_HOST}/Win32/WinPluginInstance.cpp
-                )
+            )
         else( WIN32 )
             SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
                 ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxPluginInstance.cpp
-                )
+            )
         endif( WIN32 )
     endif( APPLE )
 
     SET( GLMIXER_UIS  ${GLMIXER_UIS} FFGLSourceCreationDialog.ui)
 
+elseif(USE_FREEFRAMEGL)
+    remove_definitions(-DFFGL)
 endif(USE_FREEFRAMEGL)
 
 # If there is OpenCV, then this application will use OpenCV
 if(USE_OPENCV)
-  add_definitions(-DOPEN_CV )
-  SET( GLMIXER_SRCS  ${GLMIXER_SRCS} OpencvSource.cpp )
+    add_definitions(-DOPEN_CV )
+    SET( GLMIXER_SRCS  ${GLMIXER_SRCS} OpencvSource.cpp )
+elseif(USE_OPENCV)
+    remove_definitions(-DOPEN_CV)
 endif(USE_OPENCV)
+
+#include the current source dir
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # do the qt-cmake magic
 qt4_wrap_ui(GLMIXER_UIS_H ${GLMIXER_UIS})
 qt4_add_resources(GLMIXER_RCS_SRCS ${GLMIXER_RCS})
-
-qt4_create_translation(GLMIXER_QM ${GLMIXER_SRCS} ${GLMIXER_UIS_H} ${LANG})
 
 # Don't forget to include output directory, otherwise
 # the UI file won't be wrapped!
@@ -145,6 +159,13 @@ include_directories(${LIBQTPROPERTY_SOURCE_DIR} )
 # note: this assumes that you use #include "header.moc" in your files
 qt4_automoc( ${GLMIXER_UIS_H} ${GLMIXER_SRCS})
 
+# translations
+SET(LANG
+    "${CMAKE_SOURCE_DIR}/locals/trans_fr.ts"
+    "${CMAKE_SOURCE_DIR}/locals/trans_cz.ts"
+)
+qt4_create_translation(GLMIXER_QM  ${GLMIXER_UIS_H} ${GLMIXER_SRCS} ${LANG})
+qt4_add_translation(QM ${LANG})
 
 # multiplatform cpack info
 SET(CPACK_PACKAGE_NAME "GLMixer")

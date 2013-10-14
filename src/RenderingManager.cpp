@@ -28,18 +28,22 @@
 #include "common.h"
 
 #include "AlgorithmSource.h"
-#include "SharedMemorySource.h"
 #include "VideoFile.h"
 #include "VideoSource.h"
-#ifdef OPEN_CV
-#include "OpencvSource.h"
-#endif
 #include "CaptureSource.h"
 #include "SvgSource.h"
 #include "RenderingSource.h"
 Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "CloneSource.h"
 Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
+
+#ifdef SHM
+#include "SharedMemoryManager.h"
+#include "SharedMemorySource.h"
+#endif
+#ifdef OPEN_CV
+#include "OpencvSource.h"
+#endif
 #ifdef FFGL
 #include "FFGLSource.h"
 #endif
@@ -49,7 +53,6 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include "RenderingEncoder.h"
 #include "SourcePropertyBrowser.h"
 #include "SessionSwitcher.h"
-#include "SharedMemoryManager.h"
 
 
 #include <map>
@@ -129,7 +132,9 @@ void RenderingManager::deleteInstance() {
 RenderingManager::RenderingManager() :
 	QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
 			previousframe_index(0), previousframe_delay(1), clearWhite(false), gammaShift(1.f),
+#ifdef SHM
 			_sharedMemory(0), _sharedMemoryGLFormat(GL_RGB), _sharedMemoryGLType(GL_UNSIGNED_SHORT_5_6_5),
+#endif
 			_scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true) {
 
 	// 1. Create the view rendering widget and its catalog view
@@ -166,9 +171,9 @@ RenderingManager::RenderingManager() :
 }
 
 RenderingManager::~RenderingManager() {
-
+#ifdef SHM
 	setFrameSharingEnabled(false);
-
+#endif
 	clearSourceSet();
 	delete _defaultSource;
 
@@ -251,13 +256,13 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
 		// setup recorder frames size
 		_recorder->setFrameSize(_fbo->size());
-
+#ifdef SHM
 		// re-setup shared memory
 		if(_sharedMemory) {
 			setFrameSharingEnabled(false);
 			setFrameSharingEnabled(true);
 		}
-
+#endif
 	}
 	else
 		qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not working on this hardware."
@@ -340,7 +345,11 @@ void RenderingManager::postRenderToFrameBuffer() {
 	}
 
 	// save the frame to file or copy to SHM
-	if (_recorder->isRecording() || _sharedMemory) {
+    if ( _recorder->isRecording()
+#ifdef SHM
+            || _sharedMemory
+#endif
+            ) {
 
 #ifdef USE_GLREADPIXELS
 		// bind rendering FBO as the current frame buffer
@@ -352,6 +361,7 @@ void RenderingManager::postRenderToFrameBuffer() {
 		// read from the framebuferobject and record this frame (the recorder knows if it is active or not)
 		_recorder->addFrame();
 
+#ifdef SHM
 		// share to memory if needed
 		if (_sharedMemory) {
 			_sharedMemory->lock();
@@ -365,6 +375,7 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 			_sharedMemory->unlock();
 		}
+#endif
 	}
 }
 
@@ -710,7 +721,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
 	return ( (Source *) s );
 }
 
-
+#ifdef SHM
 Source *RenderingManager::newSharedMemorySource(qint64 shmid, double depth) {
 
 	SharedMemorySource *s = 0;
@@ -736,6 +747,7 @@ Source *RenderingManager::newSharedMemorySource(qint64 shmid, double depth) {
 
 	return ( (Source *) s );
 }
+#endif
 
 Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) {
 
@@ -1280,17 +1292,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			o.setAttribute("AllowDirtySeek", vf->getOptionAllowDirtySeek());
 			o.setAttribute("RestartToMarkIn", vf->getOptionRestartToMarkIn());
 			o.setAttribute("RevertToBlackWhenStop", vf->getOptionRevertToBlackWhenStop());
-			specific.appendChild(o);
-#ifdef OPEN_CV
-		}
-		else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
-			OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
-
-			QDomElement f = doc.createElement("CameraIndex");
-			QDomText id = doc.createTextNode(QString::number(cs->getOpencvCameraIndex()));
-			f.appendChild(id);
-			specific.appendChild(f);
-#endif
+            specific.appendChild(o);
 		}
 		else if ((*its)->rtti() == Source::ALGORITHM_SOURCE) {
 			AlgorithmSource *as = dynamic_cast<AlgorithmSource *> (*its);
@@ -1311,17 +1313,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			x.setAttribute("Periodicity", QString::number(as->getPeriodicity()) );
 			x.setAttribute("Variability", as->getVariability());
 			specific.appendChild(x);
-		}
-		else if ((*its)->rtti() == Source::SHM_SOURCE) {
-			SharedMemorySource *shms = dynamic_cast<SharedMemorySource *> (*its);
-
-			QDomElement f = doc.createElement("SharedMemory");
-			f.setAttribute("Info", shms->getInfo());
-			QDomText key = doc.createTextNode(shms->getProgram());
-			f.appendChild(key);
-			specific.appendChild(f);
-
-		}
+        }
 		else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
 			CaptureSource *cs = dynamic_cast<CaptureSource *> (*its);
 
@@ -1362,6 +1354,28 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             f.appendChild(name);
             specific.appendChild(f);
         }
+#ifdef OPEN_CV
+        else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
+            OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
+
+            QDomElement f = doc.createElement("CameraIndex");
+            QDomText id = doc.createTextNode(QString::number(cs->getOpencvCameraIndex()));
+            f.appendChild(id);
+            specific.appendChild(f);
+        }
+#endif
+#ifdef SHM
+        else if ((*its)->rtti() == Source::SHM_SOURCE) {
+            SharedMemorySource *shms = dynamic_cast<SharedMemorySource *> (*its);
+
+            QDomElement f = doc.createElement("SharedMemory");
+            f.setAttribute("Info", shms->getInfo());
+            QDomText key = doc.createTextNode(shms->getProgram());
+            f.appendChild(key);
+            specific.appendChild(f);
+
+        }
+#endif
 #ifdef FFGL
         else if ((*its)->rtti() == Source::FFGL_SOURCE) {
             FFGLSource *ffs = dynamic_cast<FFGLSource *> (*its);
@@ -1538,18 +1552,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 				errors++;
 			}
 
-#ifdef OPEN_CV
-		} else if ( type == Source::CAMERA_SOURCE ) {
-			QDomElement camera = t.firstChildElement("CameraIndex");
-
-			newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
-			if (!newsource) {
-				qWarning() << child.attribute("name") <<  tr("|Could not open OpenCV device index %2.").arg(camera.text());
-				errors ++;
-			} else
-				qDebug() << child.attribute("name") <<  tr("|OpenCV source created (device index %2).").arg(camera.text());
-#endif
-		}
+        }
 		else if ( type == Source::ALGORITHM_SOURCE) {
 			// read the tags specific for an algorithm source
 			QDomElement Algorithm = t.firstChildElement("Algorithm");
@@ -1564,20 +1567,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 		        errors++;
 			} else
 				qDebug() << child.attribute("name") << tr("|Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt()) << ").";
-		}
-		else if ( type == Source::SHM_SOURCE) {
-			// read the tags specific for an algorithm source
-			QDomElement SharedMemory = t.firstChildElement("SharedMemory");
-
-			qint64 shmid = SharedMemoryManager::getInstance()->findProgramSharedMap(SharedMemory.text());
-			if (shmid != 0)
-				newsource = RenderingManager::getInstance()->newSharedMemorySource(shmid, depth);
-			if (!newsource) {
-				qWarning() << child.attribute("name") << tr("|Could not connect to the program %1.").arg(SharedMemory.text());
-		        errors++;
-			} else
-				qDebug() << child.attribute("name") << tr("|Shared memory source created (")<< SharedMemory.text() << ").";
-		}
+        }
 		else if ( type == Source::RENDERING_SOURCE) {
 			// no tags specific for a rendering source
 			newsource = RenderingManager::getInstance()->newRenderingSource(depth);
@@ -1621,8 +1611,29 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			} else
 				qDebug() << child.attribute("name") << tr("|Vector graphics source created.");
         }
-        else if (type == Source::FFGL_SOURCE ){
+        else if ( type == Source::CLONE_SOURCE) {
+            // remember the node of the sources to clone
+            clones.push_back(child);
+        }
+        else if ( type == Source::SHM_SOURCE) {
+#ifdef SHM
+            // read the tags specific for an algorithm source
+            QDomElement SharedMemory = t.firstChildElement("SharedMemory");
 
+            qint64 shmid = SharedMemoryManager::getInstance()->findProgramSharedMap(SharedMemory.text());
+            if (shmid != 0)
+                newsource = RenderingManager::getInstance()->newSharedMemorySource(shmid, depth);
+            if (!newsource) {
+                qWarning() << child.attribute("name") << tr("|Could not connect to the program %1.").arg(SharedMemory.text());
+                errors++;
+            } else
+                qDebug() << child.attribute("name") << tr("|Shared memory source created (")<< SharedMemory.text() << ").";
+#else
+            qWarning() << child.attribute("name") << tr("|Could not create source: type Shared Memory not supported.");
+            errors++;
+#endif
+        }
+        else if (type == Source::FFGL_SOURCE ){
 #ifdef FFGL
             QDomElement Frame = t.firstChildElement("Frame");
             QDomElement ffgl = t.firstChildElement("FreeFramePlugin");
@@ -1638,11 +1649,23 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                 qDebug() << child.attribute("name") << tr("|FreeframeGL source created.");
 #else
             qWarning() << child.attribute("name") << tr("|Could not create source: type FreeframeGL not supported.");
+            errors++;
 #endif
         }
-		else if ( type == Source::CLONE_SOURCE) {
-			// remember the node of the sources to clone
-			clones.push_back(child);
+        else if ( type == Source::CAMERA_SOURCE ) {
+#ifdef OPEN_CV
+            QDomElement camera = t.firstChildElement("CameraIndex");
+
+            newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
+            if (!newsource) {
+                qWarning() << child.attribute("name") <<  tr("|Could not open OpenCV device index %2.").arg(camera.text());
+                errors ++;
+            } else
+                qDebug() << child.attribute("name") <<  tr("|OpenCV source created (device index %2).").arg(camera.text());
+#else
+            qWarning() << child.attribute("name") << tr("|Could not create source: type OpenCV not supported.");
+            errors++;
+#endif
         }
 
 		if (newsource) {
@@ -1652,12 +1675,11 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 				// Apply parameters to the created source
 				applySourceConfig(newsource, child);
 
-#ifdef FFGL
                 // apply FreeFrame plugins
                 // start loop of plugins to load
                 QDomElement p = child.firstChildElement("FreeFramePlugin");
                 while (!p.isNull()) {
-
+#ifdef FFGL
                     QDomElement Filename = p.firstChildElement("Filename");
                     // first reads with the absolute file name
                     QString fileNameToOpen = Filename.text();
@@ -1674,17 +1696,19 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                     else {
                         qWarning() << child.attribute("name") << tr("|No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
                     }
+#else
+                    qWarning() << child.attribute("name") << tr("|FreeframeGL plugin not supported.");
+                    errors++;
+#endif
                     p = p.nextSiblingElement("FreeFramePlugin");
                 }
-#endif
             }
             else {
+                qWarning() << child.attribute("name") << tr("|Could not insert source.");
                 errors++;
 				delete newsource;
             }
-		}        
-        else
-            errors++;
+        }
 
         child = child.nextSiblingElement("Source");
 	}
@@ -1786,7 +1810,7 @@ void RenderingManager::pause(bool on){
 	qDebug() << "RenderingManager|" << (on ? tr("All sources paused.") : tr("All source un-paused.") );
 }
 
-
+#ifdef SHM
 void RenderingManager::setFrameSharingEnabled(bool on){
 
 	// delete shared memory object
@@ -1902,7 +1926,7 @@ void RenderingManager::setSharedMemoryColorDepth(uint mode){
 		setFrameSharingEnabled(true);
 	}
 }
-
+#endif
 
 QString RenderingManager::renameSource(Source *s, const QString name){
 

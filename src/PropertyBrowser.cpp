@@ -113,20 +113,20 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     propertyGroupEditor->setFactoryForManager(rectManager->subDoublePropertyManager(), doubleSpinBoxFactory);
 
     // actions of context menus
-    defaultValueAction = new QAction(tr("Default value"), this);
+    defaultValueAction = new QAction(QObject::tr("Default value"), this);
     QObject::connect(defaultValueAction, SIGNAL(triggered()), this, SLOT(defaultValue() ) );
 
     menuTree.addAction(defaultValueAction);
-    menuTree.addAction(tr("Reset all"), this, SLOT(resetAll()));
+    menuTree.addAction(QObject::tr("Reset all"), this, SLOT(resetAll()));
     menuTree.addSeparator();
-    menuTree.addAction(tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
-    menuTree.addAction(tr("Expand tree"), this, SLOT(expandAll()));
-    menuTree.addAction(tr("Collapse tree"), this, SLOT(collapseAll()));
+    menuTree.addAction(QObject::tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
+    menuTree.addAction(QObject::tr("Expand tree"), this, SLOT(expandAll()));
+    menuTree.addAction(QObject::tr("Collapse tree"), this, SLOT(collapseAll()));
 
     menuGroup.addAction(defaultValueAction);
-    menuGroup.addAction(tr("Reset all"), this, SLOT(resetAll()));
+    menuGroup.addAction(QObject::tr("Reset all"), this, SLOT(resetAll()));
     menuGroup.addSeparator();
-    menuGroup.addAction(tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
+    menuGroup.addAction(QObject::tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
 }
 
 
