@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 
     // this redirects qDebug qWarning etc.
     qInstallMsgHandler(GLMixer::msgHandler);
-#ifndef __APPLE__
+#ifndef Q_OS_MAC
     // these redirect both cout/cerr (seems to crash under OSX :( )
     QLogStream qout(std::cout, GLMixer::msgHandler, QtDebugMsg);
     QLogStream qerr(std::cerr, GLMixer::msgHandler, QtWarningMsg);

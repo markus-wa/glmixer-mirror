@@ -157,3 +157,24 @@ QString namePresetFromInt(int i)
     }
     return 0;
 }
+
+
+void addPathToSystemPath(QByteArray path)
+{
+#ifdef Q_OS_MAC
+    const char* pathEnvironmentVariableName = "DYLD_LIBRARY_PATH";
+#else
+    const char* pathEnvironmentVariableName = "PATH";
+#endif
+    // read the environment variable for getting system path
+    QByteArray pathEnvironmentVariable = qgetenv( pathEnvironmentVariableName );
+
+    // does this path already exist in the environment variable ?
+    if ( ! QString(pathEnvironmentVariable).split(';').contains(path)  ) {
+        // does not exist so add it
+        pathEnvironmentVariable.append( ";" );
+        pathEnvironmentVariable.append( path );
+        // set the extended environment variable back
+        qputenv( pathEnvironmentVariableName, pathEnvironmentVariable);
+    }
+}

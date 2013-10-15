@@ -88,15 +88,24 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
 
         GLuint tex = ui->preview->getNewTextureIndex();
         try {
+
+            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview 0" ;
+
             // create a new source with a new texture index and the new parameters
             s = new FFGLSource(_filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
+
+            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview 1" ;
 
             // create a plugin stack
             pluginBrowserStack = new FFGLPluginSourceStack;
             pluginBrowserStack->push(s->freeframeGLPlugin());
 
+            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview 2" ;
+
             // show the plugin stack
             pluginBrowser->showProperties( pluginBrowserStack );
+
+            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview 3" ;
 
             // show warning if selected plugin is not of type 'Source'
             ui->labelWarninEffect->setVisible( !s->freeframeGLPlugin()->isSourceType() );
@@ -107,6 +116,10 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
             glDeleteTextures(1, &tex);
             // return an invalid pointer
             s = NULL;
+
+            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview catch" ;
+
+            qCritical() << _filename << tr("Not a FreeframeGL plugin.");
         }
 
     }
@@ -127,10 +140,10 @@ void FFGLSourceCreationDialog::updatePlugin(QString filename) {
 
 void FFGLSourceCreationDialog::browse() {
 
-    #ifdef __APPLE__
+    #ifdef Q_OS_MAC
     QString ext = tr("Freeframe GL Plugin (*)");
     #else
-    #ifdef __WIN32__
+    #ifdef Q_OS_WIN
     QString ext = tr("Freeframe GL Plugin (*.dll)");
     #else
     QString ext = tr("Freeframe GL Plugin (*.so)");

@@ -26,7 +26,9 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-#if defined(__WIN32__)
+#include <QtGlobal>
+
+#ifdef Q_OS_WIN
 #define WIN32_LEAN_AND_MEAN
 #define GLEWAPI extern
 #include <windows.h>
@@ -34,7 +36,7 @@
 
 #include <GL/glew.h>
 
-#ifdef __APPLE__
+#ifdef Q_OS_MAC
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <OpenGL/glext.h>
@@ -61,5 +63,7 @@ int intFromBlendequation(GLenum);
 QPair<int, int> blendingPresetFromInt(int);
 QString namePresetFromInt(int);
 int intFromBlendingPreset(GLenum, GLenum);
+
+void addPathToSystemPath(QByteArray path);
 
 #endif /*  COMMON_H_ */

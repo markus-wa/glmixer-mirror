@@ -63,7 +63,7 @@ void OutputRenderWidget::initializeGL() {
     // Turn blending off
     glDisable(GL_BLEND);
 
-#ifdef __APPLE__
+#ifdef Q_OS_MAC
 	setBackgroundColor(Qt::black);
 #else
 	setBackgroundColor(palette().color(QPalette::Window));

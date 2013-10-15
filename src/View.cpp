@@ -211,7 +211,7 @@ QString View::userInputDescription(View::UserInput ab, QMap<View::UserInput,Qt::
 	if (mm[ab] & Qt::ALT)
 		text.append("[ALT] + ");
 
-#ifdef __APPLE__
+#ifdef Q_OS_MAC
 	if (mm[ab] & Qt::META)
 		text.append("[CTRL] + ");
 	if (mm[ab] & Qt::CTRL)

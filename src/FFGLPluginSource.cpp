@@ -1,5 +1,6 @@
 #include <QDebug>
 
+#include "common.h"
 #include "FFGLPluginSource.h"
 #include "FFGLPluginInstance.h"
 
@@ -124,6 +125,8 @@ public:
             params.insert( QString(GetParameterName(i)), value);
         }
 
+        qDebug() << "getParametersDefaults" << params;
+
         return params;
     }
 
@@ -142,7 +145,7 @@ public:
 #ifdef FF_FAIL
             // FFGL 1.5;
             DWORD ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, (DWORD)i, 0).ivalue;
-            plugMainUnion returned = m_ffPluginMain(FF_GETPARAMETER, (DWORD)i, 0);
+            plugMainUnion returned = m_ffPluginMain(FF_GETPARAMETER, (DWORD)i, m_ffInstanceID);
             if (returned.ivalue != FF_FAIL) {
                 switch ( ffParameterType ) {
                     case FF_TYPE_TEXT:
@@ -184,6 +187,7 @@ public:
             params.insert( QString(GetParameterName(i)), value);
         }
 
+        qDebug() << "getParameters" << params;
         return params;
     }
 
@@ -227,7 +231,10 @@ public:
         if ( ffParameterType == FF_TYPE_STANDARD && value.canConvert(QVariant::Double) )
         {
             // Cast to float
-            float v = value.toFloat();     
+            float v = value.toFloat();
+
+            qDebug()<< "setparameter FF_TYPE_STANDARD "<< ArgStruct.ParameterNumber <<" = "<<v;
+
 #ifdef FF_FAIL
             *((float *)(unsigned)&ArgStruct.NewParameterValue) = v;
             m_ffPluginMain(FF_SETPARAMETER,(DWORD)(&ArgStruct), m_ffInstanceID);
@@ -271,6 +278,17 @@ public:
 FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureStruct inputTexture)
     : _filename(filename), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _fboSize(w,h)
 {
+    // check the file exists
+    QFileInfo pluginfile(filename);
+    if (!pluginfile.isFile()){
+        qWarning()<< _filename << "| " << QObject::tr("The file does not exist.");
+        FFGLPluginException().raise();
+    }
+
+    // if the plugin file exists, it might be accompanied by other DLLs
+    // and we should add the path for the system to find them
+    addPathToSystemPath( pluginfile.absolutePath().toUtf8() );
+
     // create plugin object (does not instanciate dll)
     _plugin = (FFGLPluginSourceInstance *) FFGLPluginInstance::New();
     if (!_plugin){

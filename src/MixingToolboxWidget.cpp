@@ -591,10 +591,10 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
 
 #ifdef FFGL
 
-    #ifdef __APPLE__
+    #ifdef Q_OS_MAC
     QString ext = tr("Freeframe GL Plugin (*.bundle)");
     #else
-    #ifdef __WIN32__
+    #ifdef Q_OS_WIN
     QString ext = tr("Freeframe GL Plugin (*.dll)");
     #else
     QString ext = tr("Freeframe GL Plugin (*.so)");
