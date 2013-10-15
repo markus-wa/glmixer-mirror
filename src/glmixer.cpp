@@ -1080,7 +1080,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 
 	if (cd.exec() == QDialog::Accepted) {
 
-        QString suggestion = QString("glmixerimage %1 %2").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
+        QString suggestion = QString("glmixerimage %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
         QString fileName = getFileName(tr("Save snapshot"),
                                        tr("PNG image(*.png);;JPEG Image(*.jpg);;TIFF image(*.tiff);;XPM image(*.xpm)"),
@@ -1574,7 +1574,7 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 void GLMixer::on_actionSave_Session_as_triggered()
 {
-    QString suggestion = QString("glmix %1 %2").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
+    QString suggestion = QString("glmix %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
     QString fileName = getFileName(tr("Save session"),
                                    tr("GLMixer session (*.glm)" ),
