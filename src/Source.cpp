@@ -84,8 +84,7 @@ Source::~Source() {
 
 #ifdef FFGL
     // delete all plugins in the stack
-    while (!_ffgl_plugins.isEmpty())
-        delete _ffgl_plugins.pop();
+    _ffgl_plugins.clear();
 #endif
 }
 

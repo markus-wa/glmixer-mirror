@@ -18,7 +18,8 @@ public:
     void removePlugin(FFGLPluginSource *p);
 
     void update();
-    void bind();
+    void bind() const;
+    void clear();
 
 private:
 

@@ -164,8 +164,8 @@ SET(LANG
     "${CMAKE_SOURCE_DIR}/locals/trans_fr.ts"
     "${CMAKE_SOURCE_DIR}/locals/trans_cz.ts"
 )
-qt4_create_translation(GLMIXER_QM  ${GLMIXER_UIS_H} ${GLMIXER_SRCS} ${LANG})
-qt4_add_translation(QM ${LANG})
+#qt4_create_translation(GLMIXER_QM  ${GLMIXER_UIS_H} ${GLMIXER_SRCS} ${LANG})
+qt4_add_translation(GLMIXER_QM ${LANG})
 
 # multiplatform cpack info
 SET(CPACK_PACKAGE_NAME "GLMixer")
