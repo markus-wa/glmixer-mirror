@@ -31,10 +31,6 @@
 #include <QtProperty>
 #include <QtVariantPropertyManager>
 
-#ifdef FFGL
-#include "FFGLPluginSource.h"
-#endif
-
 GLuint Source::lastid = 1;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 bool Source::playable = false;
@@ -371,7 +367,7 @@ void Source::bind() const {
     // if there are plugins, then the texture to bind is the
     // texture of the top of the plugins stack
     if (! _ffgl_plugins.isEmpty())
-        _ffgl_plugins.top()->bind();
+        _ffgl_plugins.bind();
     else
 #endif
         glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -575,15 +571,7 @@ QString Source::getFilterName(filterType c) {
 
 void Source::addFreeframeGLPlugin(QString filename) {
 
-    // descriptor for the source texture, used also to store size
-    FFGLTextureStruct it;
-    it.Handle = (GLuint) getTextureIndex();
-    it.Width = getFrameWidth();
-    it.Height = getFrameHeight();
-    it.HardwareWidth = getFrameWidth();
-    it.HardwareHeight = getFrameHeight();
-
-    _ffgl_plugins.pushNewPlugin(filename, getFrameWidth(), getFrameHeight(), it);
+    _ffgl_plugins.pushNewPlugin(filename, getFrameWidth(), getFrameHeight(), getTextureIndex());
 
 }
 

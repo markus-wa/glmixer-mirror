@@ -60,8 +60,8 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # force Linker to link with / without console under Windows
 IF(WIN32)
-SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -mingw32 -Wl,-subsystem,console")
-SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mingw32 -Wl,-subsystem,windows")
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --enable-auto-import -mingw32 -Wl,-subsystem,console")
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --enable-auto-import -mingw32 -Wl,-subsystem,windows")
 ENDIF(WIN32)
 
 # defines used by preprocessor to integrate program version and SVN revision into the application
@@ -87,7 +87,7 @@ if( GLMIXER_LINK_STATIC )
         if(WIN32)
       		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .lib .lib64 .dll )
         else(WIN32)
-      		# not APPLE, not WINDOWS ; must be unix !
+                # not APPLE, not WIN32 ; must be unix !
     		set( CMAKE_FIND_LIBRARY_SUFFIXES  .a .so .so.0 .so.1 )
         endif(WIN32)
     endif( APPLE )
@@ -100,7 +100,7 @@ else( GLMIXER_LINK_STATIC )
         if( WIN32 )
       		set( CMAKE_FIND_LIBRARY_SUFFIXES .dll .lib .lib64 .a )
         else( WIN32 )
-      		# not APPLE, not WINDOWS ; must be unix !
+                # not APPLE, not WIN32 ; must be unix !
     		set( CMAKE_FIND_LIBRARY_SUFFIXES  .so .so.0 .so.1 .a )
         endif( WIN32 )
     endif( APPLE )
@@ -269,10 +269,10 @@ FOREACH(GLMIXER_UTILITY ${GLMIXER_UTILITIES})
         endif(${_upper_glmixer_utility}_LIBRARY)
 ENDFOREACH(GLMIXER_UTILITY)
 
-# HERE IS THE INSTALLATION OF WINDOWS SOCK LIB 
+# HERE IS THE INSTALLATION OF WIN32 SOCK LIB
 
 if(WIN32)
-    # HERE IS THE INSTALLATION WINDOWS SOCK LIB
+    # HERE IS THE INSTALLATION WIN32 SOCK LIB
     set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} -lws2_32 )
 endif(WIN32)
 

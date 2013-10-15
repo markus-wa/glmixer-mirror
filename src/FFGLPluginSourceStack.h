@@ -2,7 +2,8 @@
 #define FFGLPLUGINSOURCESTACK_H
 
 #include <QStack>
-#include "FFGLPluginSource.h"
+
+class FFGLPluginSource;
 
 class FFGLPluginSourceStack: public QStack<FFGLPluginSource *>
 {
@@ -13,10 +14,11 @@ public:
 
     QStringList namesList();
 
-    void pushNewPlugin(QString filename, int widht, int height, FFGLTextureStruct inputTexture);
+    void pushNewPlugin(QString filename, int widht, int height, unsigned int inputTexture);
     void removePlugin(FFGLPluginSource *p);
 
     void update();
+    void bind();
 
 private:
 

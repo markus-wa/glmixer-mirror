@@ -379,7 +379,15 @@ void FFGLPluginSource::update()
         // (but slower)
         glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-        // draw in the viewport area
+        // setup a reasonnable default state
+        glColor4f(1.f, 1.f, 1.f, 1.f);
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glShadeModel(GL_SMOOTH);
+        glEnable(GL_DEPTH_TEST);
+
+        // constrain draw in the viewport area
         glViewport(0, 0, _fbo->width(), _fbo->height());
 
         //make sure all the matrices are reset
@@ -393,9 +401,10 @@ void FFGLPluginSource::update()
         glPushMatrix();
         glLoadIdentity();
 
-        //clear color buffers
+        //clear all buffers
         glClearColor(0.f, 0.f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClearDepth(0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // update time
         if (!_pause)
@@ -436,13 +445,14 @@ void FFGLPluginSource::update()
 #endif
 
         // make sure we restore state
-        glPopAttrib();
         glMatrixMode(GL_TEXTURE);
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
+
+        glPopAttrib();
 
         //deactivate rendering to the fbo
         //(this re-activates rendering to the window)

@@ -4,6 +4,7 @@
 #include <QFileInfo>
 
 #include "SourceDisplayWidget.h"
+#include "FFGLPluginSource.h"
 #include "FFGLPluginBrowser.h"
 #include "FFGLSource.h"
 #include "glmixer.h"

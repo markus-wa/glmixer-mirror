@@ -1,28 +1,39 @@
+#include "FFGLPluginSource.h"
 #include "FFGLPluginSourceStack.h"
+
 
 FFGLPluginSourceStack::FFGLPluginSourceStack( FFGLPluginSource *ffgl_plugin )
 {
     this->push(ffgl_plugin);
 }
 
-
-
-void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int height, FFGLTextureStruct inputTexture){
+void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int height, unsigned int inputTexture){
 
     if (filename.isEmpty() || !QFileInfo(filename).isFile()) {
         qCritical()<< filename << QChar(124).toLatin1()<< QObject::tr("FreeFrameGL plugin given an invalid file name");
         return;
     }
 
-    // chaining the plugins means providing the texture index of the previous
+    FFGLTextureStruct it;
+
+    // descriptor for the source texture, used also to store size
     if ( ! isEmpty() )
-        inputTexture = top()->getOutputTextureStruct();
+        // chaining the plugins means providing the texture index of the previous
+        it = top()->getOutputTextureStruct();
+    else {
+        it.Handle = (GLuint) inputTexture;
+        it.Width = width;
+        it.Height = height;
+        it.HardwareWidth = width;
+        it.HardwareHeight = height;
+    }
 
     // create the plugin itself
     try {
         FFGLPluginSource *ffgl_plugin = NULL;
+
         // create new plugin with this file
-        ffgl_plugin = new FFGLPluginSource(filename, width, height, inputTexture);
+        ffgl_plugin = new FFGLPluginSource(filename, width, height, it);
 
         // in case of success, add it to the stack
         this->push(ffgl_plugin);
@@ -61,6 +72,12 @@ void FFGLPluginSourceStack::removePlugin(FFGLPluginSource *p)
         delete p;
     }
 
+}
+
+
+void FFGLPluginSourceStack::bind(){
+    if (!isEmpty())
+        top()->bind();
 }
 
 void FFGLPluginSourceStack::update(){

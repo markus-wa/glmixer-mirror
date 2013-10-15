@@ -111,27 +111,27 @@
 <context>
     <name>FFGLSourceCreationDialog</name>
     <message>
-        <location filename="../src/FFGLSourceCreationDialog.cpp" line="111"/>
+        <location filename="../src/FFGLSourceCreationDialog.cpp" line="112"/>
         <source>Not a FreeframeGL plugin.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLSourceCreationDialog.cpp" line="133"/>
+        <location filename="../src/FFGLSourceCreationDialog.cpp" line="134"/>
         <source>Freeframe GL Plugin (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLSourceCreationDialog.cpp" line="136"/>
+        <location filename="../src/FFGLSourceCreationDialog.cpp" line="137"/>
         <source>Freeframe GL Plugin (*.dll)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLSourceCreationDialog.cpp" line="138"/>
+        <location filename="../src/FFGLSourceCreationDialog.cpp" line="139"/>
         <source>Freeframe GL Plugin (*.so)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLSourceCreationDialog.cpp" line="142"/>
+        <location filename="../src/FFGLSourceCreationDialog.cpp" line="143"/>
         <source>Open FFGL Plugin file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -316,111 +316,6 @@ The program will stop now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/glmixer.cpp" line="1019"/>
-        <source>New rendering loopback source created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1033"/>
-        <source>New clone of source %1 created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1056"/>
-        <source>New capture source created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1091"/>
-        <source>Could not save file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1093"/>
-        <source>Snapshot saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1532"/>
-        <source>Problem writing; </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1533"/>
-        <source>Cannot save session file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1662"/>
-        <location filename="../src/glmixer.cpp" line="1805"/>
-        <source>Problem reading file; </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1663"/>
-        <location filename="../src/glmixer.cpp" line="1670"/>
-        <location filename="../src/glmixer.cpp" line="1680"/>
-        <location filename="../src/glmixer.cpp" line="1806"/>
-        <location filename="../src/glmixer.cpp" line="1812"/>
-        <location filename="../src/glmixer.cpp" line="1821"/>
-        <source>Cannot open file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1669"/>
-        <location filename="../src/glmixer.cpp" line="1811"/>
-        <source>XML parsing error line </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1679"/>
-        <source>This is not a GLMixer session file; </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1684"/>
-        <location filename="../src/glmixer.cpp" line="1824"/>
-        <source>The version of the file is </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1685"/>
-        <location filename="../src/glmixer.cpp" line="1825"/>
-        <source>Incorrect file version. Trying to read what is compatible.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1692"/>
-        <location filename="../src/glmixer.cpp" line="1832"/>
-        <source>There is no source to load.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1718"/>
-        <source>Loading session.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1729"/>
-        <source>No configuration specified.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1820"/>
-        <source>This is not a GLMixer session file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1837"/>
-        <source>Adding list of sources.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/glmixer.cpp" line="1921"/>
-        <source>|New media source created with file </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src/glmixer.cpp" line="727"/>
         <source>%1 media source(s) created; you can now drop them.</source>
         <translation type="unfinished"></translation>
@@ -527,6 +422,11 @@ The program will stop now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/glmixer.cpp" line="1019"/>
+        <source>New rendering loopback source created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/glmixer.cpp" line="1020"/>
         <source>Source created with the rendering output loopback.</source>
         <translation type="unfinished"></translation>
@@ -534,6 +434,11 @@ The program will stop now.</source>
     <message>
         <location filename="../src/glmixer.cpp" line="1022"/>
         <source>Could not create rendering loopback source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1033"/>
+        <source>New clone of source %1 created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -549,6 +454,11 @@ The program will stop now.</source>
     <message>
         <location filename="../src/glmixer.cpp" line="1049"/>
         <source>Create a source with this image ?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1056"/>
+        <source>New capture source created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -574,6 +484,16 @@ The program will stop now.</source>
     <message>
         <location filename="../src/glmixer.cpp" line="1086"/>
         <source>PNG image(*.png);;JPEG Image(*.jpg);;TIFF image(*.tiff);;XPM image(*.xpm)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1091"/>
+        <source>Could not save file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1093"/>
+        <source>Snapshot saved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -613,6 +533,16 @@ The program will stop now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/glmixer.cpp" line="1532"/>
+        <source>Problem writing; </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1533"/>
+        <source>Cannot save session file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/glmixer.cpp" line="1568"/>
         <source>File %1 saved.</source>
         <translation type="unfinished"></translation>
@@ -637,15 +567,80 @@ The program will stop now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/glmixer.cpp" line="1662"/>
+        <location filename="../src/glmixer.cpp" line="1805"/>
+        <source>Problem reading file; </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1663"/>
+        <location filename="../src/glmixer.cpp" line="1670"/>
+        <location filename="../src/glmixer.cpp" line="1680"/>
+        <location filename="../src/glmixer.cpp" line="1806"/>
+        <location filename="../src/glmixer.cpp" line="1812"/>
+        <location filename="../src/glmixer.cpp" line="1821"/>
+        <source>Cannot open file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1669"/>
+        <location filename="../src/glmixer.cpp" line="1811"/>
+        <source>XML parsing error line </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1679"/>
+        <source>This is not a GLMixer session file; </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1684"/>
+        <location filename="../src/glmixer.cpp" line="1824"/>
+        <source>The version of the file is </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/glmixer.cpp" line="1684"/>
         <location filename="../src/glmixer.cpp" line="1824"/>
         <source> instead of </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/glmixer.cpp" line="1685"/>
+        <location filename="../src/glmixer.cpp" line="1825"/>
+        <source>Incorrect file version. Trying to read what is compatible.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1692"/>
+        <location filename="../src/glmixer.cpp" line="1832"/>
+        <source>There is no source to load.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1718"/>
+        <source>Loading session.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/glmixer.cpp" line="1722"/>
         <location filename="../src/glmixer.cpp" line="1840"/>
         <source> error(s) occurred when reading session.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1729"/>
+        <source>No configuration specified.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1820"/>
+        <source>This is not a GLMixer session file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1837"/>
+        <source>Adding list of sources.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -676,6 +671,11 @@ The program will stop now.</source>
     <message>
         <location filename="../src/glmixer.cpp" line="1904"/>
         <source>Discarding %1 media files and %2 svg files; only loading the glm session.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/glmixer.cpp" line="1921"/>
+        <source>|New media source created with file </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3075,27 +3075,27 @@ Uncheck to display the restart frame when stopped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="453"/>
+        <location filename="../src/FFGLPluginSource.cpp" line="463"/>
         <source>FreeframeGL plugin could not process OpenGL. Probably missing an input texture.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="493"/>
+        <location filename="../src/FFGLPluginSource.cpp" line="503"/>
         <source>FreeframeGL plugin could not be initialized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="498"/>
+        <location filename="../src/FFGLPluginSource.cpp" line="508"/>
         <source>FreeframeGL plugin could not create FBO</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="515"/>
+        <location filename="../src/FFGLPluginSource.cpp" line="525"/>
         <source>Parameter could not be set.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLPluginSource.cpp" line="584"/>
+        <location filename="../src/FFGLPluginSource.cpp" line="594"/>
         <source>: parameter could not be set.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3105,12 +3105,12 @@ Uncheck to display the restart frame when stopped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLPluginSourceStack.cpp" line="34"/>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="45"/>
         <source>Unknown error in FreeframeGL plugin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/FFGLPluginSourceStack.cpp" line="75"/>
+        <location filename="../src/FFGLPluginSourceStack.cpp" line="92"/>
         <source>
 The plugin was removed after a crash</source>
         <translation type="unfinished"></translation>
@@ -3270,6 +3270,11 @@ the transparency of the source anymore.
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/SessionSwitcher.cpp" line="158"/>
+        <source>Session file could not be loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/SessionSwitcherWidget.cpp" line="260"/>
         <source>Filename</source>
         <translation type="unfinished"></translation>
@@ -3313,6 +3318,26 @@ the transparency of the source anymore.
     <message>
         <location filename="../src/SourcePropertyBrowser.cpp" line="628"/>
         <source>No</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/VideoFile.cpp" line="1176"/>
+        <source>Could not seek to frame (%1); jumping where I can!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/VideoFile.cpp" line="1180"/>
+        <source>Flushing error.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/VideoFile.cpp" line="1210"/>
+        <source>Could not read frame.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/VideoFile.cpp" line="1229"/>
+        <source>Flushing error at end.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3416,15 +3441,15 @@ menu</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/ViewRenderWidget.cpp" line="1037"/>
-        <source>OpenGL GLSL warning in vertex shader;%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src/ViewRenderWidget.cpp" line="1035"/>
         <source>OpenGL GLSL error in vertex shader; 
 
 %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ViewRenderWidget.cpp" line="1037"/>
+        <source>OpenGL GLSL warning in vertex shader;%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3528,31 +3553,6 @@ License: 	GNU GPL version 3&lt;/p&gt;
         <source>Output Window</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="../src/SessionSwitcher.cpp" line="158"/>
-        <source>Session file could not be loaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/VideoFile.cpp" line="1176"/>
-        <source>Could not seek to frame (%1); jumping where I can!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/VideoFile.cpp" line="1180"/>
-        <source>Flushing error.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/VideoFile.cpp" line="1210"/>
-        <source>Could not read frame.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/VideoFile.cpp" line="1229"/>
-        <source>Flushing error at end.</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>RenderingEncoder</name>
@@ -3562,13 +3562,28 @@ License: 	GNU GPL version 3&lt;/p&gt;
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/RenderingEncoder.cpp" line="183"/>
+        <source>Error starting video recording; </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/RenderingEncoder.cpp" line="218"/>
         <source>Recording paused after %1 s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingEncoder.cpp" line="301"/>
-        <source>Recording time: %1 s</source>
+        <location filename="../src/RenderingEncoder.cpp" line="219"/>
+        <source>Recording paused after %1 s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingEncoder.cpp" line="224"/>
+        <source>Recording resumed at %1 s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingEncoder.cpp" line="225"/>
+        <source>Recording resumed at %1 s.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3603,28 +3618,13 @@ You can either agree to record at this lower frame rate, or retry later after so
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingEncoder.cpp" line="183"/>
-        <source>Error starting video recording; </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingEncoder.cpp" line="219"/>
-        <source>Recording paused after %1 s.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingEncoder.cpp" line="224"/>
-        <source>Recording resumed at %1 s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingEncoder.cpp" line="225"/>
-        <source>Recording resumed at %1 s.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src/RenderingEncoder.cpp" line="294"/>
         <source>Recording started (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingEncoder.cpp" line="301"/>
+        <source>Recording time: %1 s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3678,289 +3678,289 @@ The consequence is that timing of the movie will be incorrect (play too fast). T
 <context>
     <name>RenderingManager</name>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="101"/>
+        <location filename="../src/RenderingManager.cpp" line="102"/>
         <source>OpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware. Rendering speed be sub-optimal but all should work properly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="102"/>
+        <location filename="../src/RenderingManager.cpp" line="103"/>
         <source>Cannot use Blit framebuffer extension.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="113"/>
+        <location filename="../src/RenderingManager.cpp" line="114"/>
         <source>OpenGL Frame Buffer Objects are not supported on this graphics hardware.
 
 The program cannot operate properly without it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="117"/>
+        <location filename="../src/RenderingManager.cpp" line="118"/>
         <source>OpenGL GLSL programming is not supported on this graphics hardware.
 
 The program cannot operate properly without it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="268"/>
+        <location filename="../src/RenderingManager.cpp" line="269"/>
         <source>OpenGL Frame Buffer Objects is not working on this hardware.
 
 The program cannot operate properly without it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="271"/>
+        <location filename="../src/RenderingManager.cpp" line="272"/>
         <source>Frame buffer set to </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="462"/>
+        <location filename="../src/RenderingManager.cpp" line="463"/>
         <source>OpenGL Frame Buffer Objects is not accessible.
 
 The program cannot operate properly anymore.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="618"/>
+        <location filename="../src/RenderingManager.cpp" line="619"/>
         <source>Camera%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="665"/>
+        <location filename="../src/RenderingManager.cpp" line="666"/>
         <source>Cannot create FreeframeGL plugin source.
 Allocation Exception; </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="672"/>
+        <location filename="../src/RenderingManager.cpp" line="673"/>
         <source>Cannot create FreeframeGL plugin source.
 FFGL error; </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="679"/>
+        <location filename="../src/RenderingManager.cpp" line="680"/>
         <source>Cannot create FreeframeGL plugin source.
 Unknown error.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="688"/>
+        <location filename="../src/RenderingManager.cpp" line="689"/>
         <source>Invalid Freeframe plugin file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="691"/>
+        <location filename="../src/RenderingManager.cpp" line="692"/>
         <source>No file name provided to create Freeframe source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="787"/>
-        <source>Not enough memory to insert the source into the stack.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="790"/>
-        <source>You have reached the maximum amount of source supported (%1).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="942"/>
-        <source>Source deleted.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1528"/>
-        <source>Media source created with </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1531"/>
-        <source>Could not be created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1536"/>
-        <source>Could not load </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1541"/>
-        <source>No file named %1 or %2.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1551"/>
-        <source>Could not allocate memory.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1566"/>
-        <source>Could not create algorithm source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1569"/>
-        <source>Algorithm source created (</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1575"/>
-        <source>Could not create rendering loop-back source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1578"/>
-        <source>Rendering loop-back source created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1594"/>
-        <source>Could not create capture source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1597"/>
-        <source>Capture source created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1609"/>
-        <source>Could not create vector graphics source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1612"/>
-        <source>Vector graphics source created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1627"/>
-        <source>Could not connect to the program %1.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1630"/>
-        <source>Shared memory source created (</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1632"/>
-        <source>Could not create source: type Shared Memory not supported.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1646"/>
-        <source>Could not create FreeframeGL source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1649"/>
-        <source>FreeframeGL source created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1651"/>
-        <source>Could not create source: type FreeframeGL not supported.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1661"/>
-        <source>Could not open OpenCV device index %2.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1664"/>
-        <source>OpenCV source created (device index %2).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1666"/>
-        <source>Could not create source: type OpenCV not supported.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1697"/>
-        <source>No FreeFrame plugin file named %1 or %2.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1700"/>
-        <source>FreeframeGL plugin not supported.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1707"/>
-        <source>Could not insert source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1740"/>
-        <source>Clone of source %1 created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1742"/>
-        <source>Could not create clone source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="1746"/>
-        <source>Cannot clone %2 ; no such source.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/RenderingManager.cpp" line="711"/>
+        <location filename="../src/RenderingManager.cpp" line="712"/>
         <source>Algo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="762"/>
-        <location filename="../src/RenderingManager.cpp" line="764"/>
+        <location filename="../src/RenderingManager.cpp" line="763"/>
+        <location filename="../src/RenderingManager.cpp" line="765"/>
         <source>Clone</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1325"/>
+        <location filename="../src/RenderingManager.cpp" line="788"/>
+        <source>Not enough memory to insert the source into the stack.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="791"/>
+        <source>You have reached the maximum amount of source supported (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="943"/>
+        <source>Source deleted.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1326"/>
         <source>Qt JPEG plugin not found; using XPM format (slower).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1327"/>
+        <location filename="../src/RenderingManager.cpp" line="1328"/>
         <source>Could not save captured source (XPM format).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1330"/>
+        <location filename="../src/RenderingManager.cpp" line="1331"/>
         <source>Could not save captured source (JPG format).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1810"/>
+        <location filename="../src/RenderingManager.cpp" line="1529"/>
+        <source>Media source created with </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1532"/>
+        <source>Could not be created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1537"/>
+        <source>Could not load </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1542"/>
+        <source>No file named %1 or %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1552"/>
+        <source>Could not allocate memory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1567"/>
+        <source>Could not create algorithm source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1570"/>
+        <source>Algorithm source created (</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1576"/>
+        <source>Could not create rendering loop-back source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1579"/>
+        <source>Rendering loop-back source created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1595"/>
+        <source>Could not create capture source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1598"/>
+        <source>Capture source created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1610"/>
+        <source>Could not create vector graphics source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1613"/>
+        <source>Vector graphics source created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1628"/>
+        <source>Could not connect to the program %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1631"/>
+        <source>Shared memory source created (</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1633"/>
+        <source>Could not create source: type Shared Memory not supported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1647"/>
+        <source>Could not create FreeframeGL source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1650"/>
+        <source>FreeframeGL source created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1652"/>
+        <source>Could not create source: type FreeframeGL not supported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1662"/>
+        <source>Could not open OpenCV device index %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1665"/>
+        <source>OpenCV source created (device index %2).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1667"/>
+        <source>Could not create source: type OpenCV not supported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1698"/>
+        <source>No FreeFrame plugin file named %1 or %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1701"/>
+        <source>FreeframeGL plugin not supported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1708"/>
+        <source>Could not insert source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1741"/>
+        <source>Clone of source %1 created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1743"/>
+        <source>Could not create clone source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1747"/>
+        <source>Cannot clone %2 ; no such source.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/RenderingManager.cpp" line="1811"/>
         <source>All sources paused.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1810"/>
+        <location filename="../src/RenderingManager.cpp" line="1811"/>
         <source>All source un-paused.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1868"/>
+        <location filename="../src/RenderingManager.cpp" line="1869"/>
         <source>Invalid format for shared memory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1877"/>
+        <location filename="../src/RenderingManager.cpp" line="1878"/>
         <source>Unable to create shared memory:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1879"/>
+        <location filename="../src/RenderingManager.cpp" line="1880"/>
         <source>Unable to attach shared memory:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/RenderingManager.cpp" line="1884"/>
+        <location filename="../src/RenderingManager.cpp" line="1885"/>
         <source>Sharing to memory enabled (%1x%2, %3 bytes).</source>
         <translation type="unfinished"></translation>
     </message>

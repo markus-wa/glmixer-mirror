@@ -1074,16 +1074,16 @@ void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
 
 	program->release();
 
-	// create and enable the vertex array for drawing a QUAD
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, coords);
-
 }
 
 
 void ViewRenderWidget::setSourceDrawingMode(bool on)
 {
 	program->setUniformValue("sourceDrawing", on);
+
+    // enable the vertex array for drawing a QUAD
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, coords);
 
 	if (on)
 		glActiveTexture(GL_TEXTURE0);

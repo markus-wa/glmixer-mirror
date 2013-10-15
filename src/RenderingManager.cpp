@@ -45,6 +45,7 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include "OpencvSource.h"
 #endif
 #ifdef FFGL
+#include "FFGLPluginSource.h"
 #include "FFGLSource.h"
 #endif
 
