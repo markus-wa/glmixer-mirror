@@ -98,8 +98,8 @@ void RenderingManager::setUseFboBlitExtension(bool on){
        else {
                // if extension not supported but it is requested, show warning
                if (on) {
-            	   qWarning() << "RenderingManager|" << tr("OpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware. Rendering speed be sub-optimal but all should work properly.");
-            	   qCritical() << "RenderingManager|" << tr("Cannot use Blit framebuffer extension.");
+                   qWarning()  << tr("OpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware. Rendering speed be sub-optimal but all should work properly.");
+                   qCritical() << tr("Cannot use Blit framebuffer extension.");
                }
                RenderingManager::blit_fbo_extension = false;
        }
@@ -268,7 +268,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 		qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not working on this hardware."
                             "\n\nThe program cannot operate properly without it.")));
 
-	qDebug()<< "RenderingManager|"  << tr("Frame buffer set to ") << size.width() << "x" << size.height();
+    qDebug() << tr("Frame buffer set to ") << size.width() << "x" << size.height();
 }
 
 
@@ -487,7 +487,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
 		renameSource( s, _defaultSource->getName() + "Render");
 
 	} catch (AllocationException &e){
-		qWarning() << "RenderingManager|" << e.message();
+        qWarning() << "Cannot create Rendering source; " << e.message();
 		// return an invalid pointer
 		s = 0;
 	}
@@ -529,7 +529,7 @@ Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 		renameSource( s, _defaultSource->getName() + "Svg");
 
 	} catch (AllocationException &e){
-		qWarning() << "RenderingManager|" << e.message();
+        qWarning() << "Cannot create SVG source; " << e.message();
 		// free the OpenGL texture
 		glDeleteTextures(1, &textureIndex);
 		// return an invalid pointer
@@ -556,7 +556,7 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 		renameSource( s, _defaultSource->getName() + "Capture");
 
 	} catch (AllocationException &e){
-		qWarning() << "RenderingManager|" << e.message();
+        qWarning() << "Cannot create Capture source; " << e.message();
 		// free the OpenGL texture
 		glDeleteTextures(1, &textureIndex);
 		// return an invalid pointer
@@ -583,7 +583,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 		renameSource( s, _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
 
 	} catch (AllocationException &e){
-		qWarning() << "RenderingManager|" << e.message();
+        qWarning() << "Cannot create Media source; " << e.message();
 		// free the OpenGL texture
 		glDeleteTextures(1, &textureIndex);
 		// return an invalid pointer
@@ -618,7 +618,7 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 		renameSource( s, _defaultSource->getName() + tr("Camera%1").arg(opencvIndex) );
 
 	} catch (AllocationException &e){
-		qWarning() << "RenderingManager|" << e.message();
+        qWarning() << "Cannot create OpenCV source; " << e.message();
 		// free the OpenGL texture
 		glDeleteTextures(1, &textureIndex);
 		// return an invalid pointer
@@ -662,21 +662,21 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
                 renameSource( s, _defaultSource->getName() + QString("Freeframe") );
 
             } catch (AllocationException &e){
-                qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Allocation Exception.") << e.message();
+                qWarning() << tr("Cannot create FreeframeGL plugin source.\nAllocation Exception; ") << e.message();
                 // free the OpenGL texture
                 glDeleteTextures(1, &textureIndex);
                 // return an invalid pointer
                 s = 0;
             }
             catch (FFGLPluginException &e)  {
-                qWarning() << tr("RenderingManager|New FreeframeGL plugin source: FFGL error.") << e.message();
+                qWarning() << tr("Cannot create FreeframeGL plugin source.\nFFGL error; ") << e.message();
                 // free the OpenGL texture
                 glDeleteTextures(1, &textureIndex);
                 // return an invalid pointer
                 s = 0;
             }
             catch (...)  {
-                qWarning() << tr("RenderingManager|New FreeframeGL plugin source: Unknown error.");
+                qWarning() << tr("Cannot create FreeframeGL plugin source.\nUnknown error.");
                 // free the OpenGL texture
                 glDeleteTextures(1, &textureIndex);
                 // return an invalid pointer
@@ -685,10 +685,10 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
 
         }
         else
-            qCritical() << tr("RenderingManager|Invalid Freeframe plugin file") << " ("<< fileNameToOpen <<")";
+            qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("Invalid Freeframe plugin file");
 
     } else
-        qCritical() << tr("RenderingManager|Invalid Freeframe plugin (no file name)");
+        qCritical() << tr("No file name provided to create Freeframe source.");
 
     return ( (Source *) s );
 }
@@ -711,7 +711,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
         renameSource( s, _defaultSource->getName() + tr("Algo"));
 
 	} catch (AllocationException &e){
-		qWarning() << "RenderingManager|" << e.message();
+        qWarning() << "Cannot create Algorithm source; " << e.message();
 		// free the OpenGL texture
 		glDeleteTextures(1, &textureIndex);
 		// return an invalid pointer
@@ -738,7 +738,7 @@ Source *RenderingManager::newSharedMemorySource(qint64 shmid, double depth) {
 		renameSource( s, _defaultSource->getName() + s->getProgram());
 
 	} catch (AllocationException &e){
-		qWarning() << "RenderingManager|" << e.message();
+        qWarning() << "Cannot create Shared Memory source; " << e.message();
 		// free the OpenGL texture
 		glDeleteTextures(1, &textureIndex);
 		// return an invalid pointer
@@ -764,7 +764,7 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
             renameSource( s, (*sit)->getName() + tr("Clone"));
 
 	} catch (AllocationException &e){
-		qWarning() << "RenderingManager|" << e.message();
+        qWarning() << "Cannot clone source; " << e.message();
 		// return an invalid pointer
 		s = 0;
 	}
@@ -784,10 +784,10 @@ bool RenderingManager::insertSource(Source *s)
 				// inform of success
 				return true;
 			else
-				qWarning() << tr("RenderingManager|Not enough memory to insert the source into the stack.");
+                qWarning() << tr("Not enough memory to insert the source into the stack.");
 		}
 		else
-			qWarning() << tr("RenderingManager|You have reached the maximum amount of source supported (%1).").arg(MAX_SOURCE_COUNT);
+            qWarning() << tr("You have reached the maximum amount of source supported (%1).").arg(MAX_SOURCE_COUNT);
 	}
 
 	return false;
@@ -939,7 +939,7 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 				removeSource((*clone)->getId());
 			}
 		// then remove the source itself
-		qDebug() << (*itsource)->getName() << tr("|Source deleted.");
+        qDebug() << (*itsource)->getName() << QChar(124).toLatin1() << tr("Source deleted.");
 		_sources.erase(itsource);
 		delete (*itsource);
 	}
@@ -962,7 +962,7 @@ void RenderingManager::clearSourceSet() {
 	// reset the id counter
 	Source::lastid = 1;
 
-	qDebug("RenderingManager|--------------- clear --------------------");
+    qDebug("List of source cleared.");
 }
 
 bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
@@ -1322,12 +1322,12 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 			buffer.open(QIODevice::WriteOnly);
 
 			if (!QImageWriter::supportedImageFormats().count("JPG")){
-				qWarning() << cs->getName() << "|" << tr("Qt JPEG plugin not found; using XPM format (slower).");
+                qWarning() << cs->getName() << QChar(124).toLatin1() << tr("Qt JPEG plugin not found; using XPM format (slower).");
 				if (!cs->image().save(&buffer, "XPM") )
-					qWarning() << cs->getName() << "|" << tr("Could not save captured source (XPM format).");
+                    qWarning() << cs->getName() << QChar(124).toLatin1() << tr("Could not save captured source (XPM format).");
 			} else
 				if (!cs->image().save(&buffer, "JPG") )
-					qWarning() << cs->getName()  << "|" << tr("Could not save captured source (JPG format).");
+                    qWarning() << cs->getName()  << QChar(124).toLatin1() << tr("Could not save captured source (JPG format).");
 
 			buffer.close();
 
@@ -1525,20 +1525,20 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 							newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
 							newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
 
-							qDebug() << child.attribute("name") << tr("|Media source created with ") << QFileInfo(fileNameToOpen).fileName();
+                            qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Media source created with ") << QFileInfo(fileNameToOpen).fileName();
 						}
 						else {
-							qWarning() << child.attribute("name") << tr("|Could not be created.");
+                            qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not be created.");
 							errors++;
 						}
 					}
 					else {
-						qWarning() << child.attribute("name") << tr("|Could not load ")<< fileNameToOpen;
+                        qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not load ")<< fileNameToOpen;
 						errors++;
 					}
 				}
 				else {
-					qWarning() << child.attribute("name") << tr("|No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+                    qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
 					errors++;
 				}
 
@@ -1548,7 +1548,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
 			}
 			else {
-				qWarning() << child.attribute("name") << tr("|Could not allocate memory.");
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not allocate memory.");
 				errors++;
 			}
 
@@ -1563,19 +1563,19 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                                                                             Frame.attribute("Width", "64").toInt(), Frame.attribute("Height", "64").toInt(),
                                                                             Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha", "0").toInt(), depth);
 			if (!newsource) {
-				qWarning() << child.attribute("name") << tr("|Could not create algorithm source.");
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create algorithm source.");
 		        errors++;
 			} else
-				qDebug() << child.attribute("name") << tr("|Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt()) << ").";
+                qDebug() << child.attribute("name") << QChar(124).toLatin1() << tr("Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt()) << ").";
         }
 		else if ( type == Source::RENDERING_SOURCE) {
 			// no tags specific for a rendering source
 			newsource = RenderingManager::getInstance()->newRenderingSource(depth);
 			if (!newsource) {
-				qWarning() << child.attribute("name") << tr("|Could not create rendering loop-back source.");
+                qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not create rendering loop-back source.");
 				errors++;
 			} else
-				qDebug() << child.attribute("name") << tr("|Rendering loop-back source created.");
+                qDebug() << child.attribute("name") << QChar(124).toLatin1() <<  tr("Rendering loop-back source created.");
 		}
 		else if ( type == Source::CAPTURE_SOURCE) {
 
@@ -1591,10 +1591,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 				newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
 
 			if (!newsource) {
-				qWarning() << child.attribute("name") << tr("|Could not create capture source.");
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create capture source.");
 		        errors++;
 			} else
-				qDebug() << child.attribute("name") << tr("|Capture source created.");
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Capture source created.");
 		}
 		else if ( type == Source::SVG_SOURCE) {
 
@@ -1606,10 +1606,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 				newsource = RenderingManager::getInstance()->newSvgSource(rendersvg, depth);
 
 			if (!newsource) {
-				qWarning() << child.attribute("name") << tr("|Could not create vector graphics source.");
+                qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create vector graphics source.");
 		        errors++;
 			} else
-				qDebug() << child.attribute("name") << tr("|Vector graphics source created.");
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Vector graphics source created.");
         }
         else if ( type == Source::CLONE_SOURCE) {
             // remember the node of the sources to clone
@@ -1624,12 +1624,12 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
             if (shmid != 0)
                 newsource = RenderingManager::getInstance()->newSharedMemorySource(shmid, depth);
             if (!newsource) {
-                qWarning() << child.attribute("name") << tr("|Could not connect to the program %1.").arg(SharedMemory.text());
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the program %1.").arg(SharedMemory.text());
                 errors++;
             } else
-                qDebug() << child.attribute("name") << tr("|Shared memory source created (")<< SharedMemory.text() << ").";
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Shared memory source created (")<< SharedMemory.text() << ").";
 #else
-            qWarning() << child.attribute("name") << tr("|Could not create source: type Shared Memory not supported.");
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create source: type Shared Memory not supported.");
             errors++;
 #endif
         }
@@ -1643,12 +1643,12 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                                                                               Frame.attribute("Height", "64").toInt());
 
             if (!newsource) {
-                qWarning() << child.attribute("name") << tr("|Could not create FreeframeGL source.");
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create FreeframeGL source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name") << tr("|FreeframeGL source created.");
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("FreeframeGL source created.");
 #else
-            qWarning() << child.attribute("name") << tr("|Could not create source: type FreeframeGL not supported.");
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create source: type FreeframeGL not supported.");
             errors++;
 #endif
         }
@@ -1658,12 +1658,12 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 
             newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
             if (!newsource) {
-                qWarning() << child.attribute("name") <<  tr("|Could not open OpenCV device index %2.").arg(camera.text());
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()<<  tr("Could not open OpenCV device index %2.").arg(camera.text());
                 errors ++;
             } else
-                qDebug() << child.attribute("name") <<  tr("|OpenCV source created (device index %2).").arg(camera.text());
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()<<  tr("OpenCV source created (device index %2).").arg(camera.text());
 #else
-            qWarning() << child.attribute("name") << tr("|Could not create source: type OpenCV not supported.");
+            qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not create source: type OpenCV not supported.");
             errors++;
 #endif
         }
@@ -1694,17 +1694,17 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                         newsource->getFreeframeGLPluginStack()->top()->setConfiguration(p);
                     }
                     else {
-                        qWarning() << child.attribute("name") << tr("|No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+                        qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
                     }
 #else
-                    qWarning() << child.attribute("name") << tr("|FreeframeGL plugin not supported.");
+                    qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("FreeframeGL plugin not supported.");
                     errors++;
 #endif
                     p = p.nextSiblingElement("FreeFramePlugin");
                 }
             }
             else {
-                qWarning() << child.attribute("name") << tr("|Could not insert source.");
+                qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not insert source.");
                 errors++;
 				delete newsource;
             }
@@ -1737,13 +1737,13 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
     			if ( !insertSource(clonesource) )
     				delete clonesource;
     			else
-        			qDebug() << c.attribute("name") << tr("|Clone of source %1 created.").arg(f.text());
+                    qDebug() << c.attribute("name") << QChar(124).toLatin1() << tr("Clone of source %1 created.").arg(f.text());
     		}else {
-    			qWarning() << c.attribute("name") << tr("|Could not create clone source.");
+                qWarning() << c.attribute("name") << QChar(124).toLatin1() << tr("Could not create clone source.");
     	        errors++;
     		}
     	} else {
-    		qWarning() << c.attribute("name") << tr("|Cannot clone %2 ; no such source.").arg(f.text());
+            qWarning() << c.attribute("name") << QChar(124).toLatin1() << tr("Cannot clone %2 ; no such source.").arg(f.text());
     		errors++;
     	}
     }
@@ -1807,7 +1807,7 @@ void RenderingManager::pause(bool on){
 	if (!on)
 		sourcePlayStatus.clear();
 
-	qDebug() << "RenderingManager|" << (on ? tr("All sources paused.") : tr("All source un-paused.") );
+    qDebug() << (on ? tr("All sources paused.") : tr("All source un-paused.") );
 }
 
 #ifdef SHM

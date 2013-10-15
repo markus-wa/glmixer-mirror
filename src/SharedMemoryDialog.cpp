@@ -175,7 +175,7 @@ void SharedMemoryDialog::createSource(){
             preview->playSource(true);
 
 		} catch (AllocationException &e){
-			qCritical() << "SharedMemoryDialog|" << e.message();
+            qCritical() << "Error creating shared memory source; " << e.message();
 			// free the OpenGL texture
 			glDeleteTextures(1, &tex);
 			// return an invalid pointer

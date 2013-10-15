@@ -85,7 +85,7 @@ void CameraDialog::createSource(){
 				s = (Source *) new OpencvSource(currentCameraIndex, tex, 0);
 
 			} catch (AllocationException &e){
-				qCritical() << "CameraDialog|" << e.message();
+                qCritical() << "Error creating OpenCV camera source; " << e.message();
 				// free the OpenGL texture
 				glDeleteTextures(1, &tex);
 				// return an invalid pointer

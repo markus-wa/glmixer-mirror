@@ -480,7 +480,7 @@ void SessionSwitcherWidget::customizeTransition()
         else {
             // not a valid file ; show a warning only if the QFileDialog did not return null (cancel)
             if (!fileNames.empty() && !fileNames.front().isNull())
-                qCritical() << fileNames.front() << QObject::tr("|File does not exist.");
+                qCritical() << fileNames.front() << QChar(124).toLatin1() << QObject::tr("File does not exist.");
             // if no valid oldfile neither; show icon in red
             if (RenderingManager::getSessionSwitcher()->transitionMedia().isEmpty())
                 customButton->setStyleSheet("QToolButton { border: 1px solid red }");

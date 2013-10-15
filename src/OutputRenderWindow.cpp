@@ -370,7 +370,7 @@ QByteArray OutputRenderWindow::saveState()  {
     // window geometry
     stream << windowGeometry;
 
-    qDebug() << "OutputRenderWindow|Saved state " <<  windowGeometry;
+//    qDebug() << "OutputRenderWindow|Saved state " <<  windowGeometry;
 
     return data;
 }
@@ -385,7 +385,7 @@ bool OutputRenderWindow::restoreState(const QByteArray &state) {
 
     setGeometry(windowGeometry);
 
-    qDebug() << "OutputRenderWindow|Restored state"<<  windowGeometry;
+//    qDebug() << "OutputRenderWindow|Restored state"<<  windowGeometry;
 
     return true;
 }

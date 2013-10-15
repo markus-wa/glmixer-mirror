@@ -534,8 +534,15 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         {
             QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),
                            tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
-            QStringList message = txt.split('|', QString::SkipEmptyParts);
-            msgBox.setInformativeText(message[1].simplified() + tr("\n\nOrigin of the problem:\n") + message[0].simplified());
+            QStringList message = txt.split(QChar(124), QString::SkipEmptyParts);
+            QString informativeText;
+            if (message.count() > 1 )
+                informativeText = message[1].simplified() + tr("\n\nOrigin of the problem:\n") + message[0].simplified();
+            else if (message.count() > 0 )
+                informativeText = message[0].simplified();
+            else
+                informativeText = "Unknown error.";
+            msgBox.setInformativeText(informativeText);
             msgBox.setDefaultButton(QMessageBox::Ok);
             QPushButton *logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
             msgBox.exec();
@@ -576,14 +583,17 @@ void GLMixer::Log(int type, QString msg)
 	logTexts->addTopLevelItem( item );
 
 	// reads the text passed and split into object|message
-    QStringList message = msg.split('|', QString::SkipEmptyParts);
+    QStringList message = msg.split(QChar(124), QString::SkipEmptyParts);
     if (message.count() > 1 ) {
         item->setText(0, message[1].simplified());
         item->setToolTip(0, message[1].simplified());
         item->setText(1, message[0].simplified());
-    } else {
+    } else if (message.count() > 0 ) {
         item->setText(0, message[0].simplified());
         item->setToolTip(0, message[0].simplified());
+        item->setIcon(1, QIcon(":/glmixer/icons/info.png"));
+    } else {
+        item->setText(0, "");
         item->setIcon(1, QIcon(":/glmixer/icons/info.png"));
     }
 
@@ -700,13 +710,13 @@ void GLMixer::on_actionMediaSource_triggered(){
 				// create the source as it is a valid video file (this also set it to be the current source)
 				if ( s ) {
 					RenderingManager::getInstance()->addSourceToBasket(s);
-					qDebug() << s->getName() << tr("|New media source created with file ") << filename;
+                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New media source created with file ") << filename;
 				} else {
-			        qCritical() << filename << tr("|Could not create media source with this file.");
+                    qCritical() << filename <<  QChar(124).toLatin1() << tr("Could not create media source with this file.");
 			        delete newSourceVideoFile;
 				}
 			} else {
-				qCritical() << filename << tr("|The file could not be loaded.");
+                qCritical() << filename << QChar(124).toLatin1() << tr("The file could not be loaded.");
 				delete newSourceVideoFile;
 			}
 		}
@@ -889,14 +899,14 @@ void GLMixer::on_actionCameraSource_triggered() {
 
 				CloneSource *cs = dynamic_cast<CloneSource*> (s);
 				if (cs) {
-					qDebug() << s->getName() << '|' <<  tr("OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
+                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("OpenCV device source %1 was cloned.").arg(cs->getOriginalName());
 					statusbar->showMessage( tr("The device source %1 was cloned.").arg(cs->getOriginalName()), 3000 );
 				} else {
-					qDebug() << s->getName() << '|' <<  tr("New OpenCV source created (device index %2).").arg(selectedCamIndex);
+                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New OpenCV source created (device index %2).").arg(selectedCamIndex);
 					statusbar->showMessage( tr("Source created with OpenCV drivers for Camera %1").arg(selectedCamIndex), 3000 );
 				}
 			} else
-				qCritical() << tr("Could not open OpenCV device index %2. ").arg(selectedCamIndex);
+                qCritical() << tr("Could not open OpenCV device index %2. ").arg(selectedCamIndex);
 
 		}
 	}
@@ -906,14 +916,13 @@ void GLMixer::on_actionCameraSource_triggered() {
 
 void GLMixer::on_actionSvgSource_triggered(){
 
-    QString fileName = getFileName(tr("Open SVG file"),
-                                   tr("Scalable Vector Graphics (*.svg)"));
+    QString fileName = getFileName(tr("Open SVG file"), tr("Scalable Vector Graphics (*.svg)"));
 
 	if ( !fileName.isEmpty() ) {
 
 		QFileInfo file(fileName);
 		if ( !file.exists() || !file.isReadable()) {
-			qCritical() << fileName << '|' <<   tr("File does not exist or is unreadable.");
+            qCritical() << fileName <<  QChar(124).toLatin1() << tr("File does not exist or is unreadable.");
 			return;
 		}
 
@@ -922,10 +931,10 @@ void GLMixer::on_actionSvgSource_triggered(){
 		Source *s = RenderingManager::getInstance()->newSvgSource(svg);
 		if ( s ){
 			RenderingManager::getInstance()->addSourceToBasket(s);
-			qDebug() << s->getName() << '|' <<  tr("New vector Graphics source created with file ")<< fileName;
+            qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New vector Graphics source created with file ")<< fileName;
 			statusbar->showMessage( tr("Source created with the vector graphics file %1.").arg( fileName ), 3000 );
 		} else
-			qCritical() << fileName << '|' <<  tr("Could not create a vector graphics source with this file.");
+            qCritical() << fileName <<  QChar(124).toLatin1() << tr("Could not create a vector graphics source with this file.");
 	}
 }
 
@@ -942,10 +951,10 @@ void GLMixer::on_actionShmSource_triggered(){
 		Source *s = RenderingManager::getInstance()->newSharedMemorySource(shmd->getSelectedId());
 		if ( s ){
 			RenderingManager::getInstance()->addSourceToBasket(s);
-			qDebug() << s->getName() << '|' <<  tr("New shared memory source created (")<< shmd->getSelectedProcess() << ").";
+            qDebug() << s->getName() <<  QChar(124).toLatin1() <<  tr("New shared memory source created (")<< shmd->getSelectedProcess() << ").";
 			statusbar->showMessage( tr("Source created with the process %1.").arg( shmd->getSelectedProcess() ), 3000 );
 		} else
-			qCritical() << shmd->getSelectedProcess() << '|' << tr("Could not create shared memory source.");
+            qCritical() << shmd->getSelectedProcess() <<  QChar(124).toLatin1() << tr("Could not create shared memory source.");
 	}
 #endif
 }
@@ -971,10 +980,10 @@ void GLMixer::on_actionFreeframeSource_triggered(){
             if ( s ){
                 // add source
                 RenderingManager::getInstance()->addSourceToBasket(s);
-                qDebug() << s->getName() << '|' <<  tr("New FreeframeGL source created (")<< ffgld->getFreeframePluginFileInfo().fileName() << ").";
+                qDebug() << s->getName() << QChar(124).toLatin1() << tr("New FreeframeGL source created (")<< ffgld->getFreeframePluginFileInfo().fileName() << ").";
                 statusbar->showMessage( tr("Source created with the Freeframe GL plugin %1.").arg( ffgld->getFreeframePluginFileInfo().baseName() ), 3000 );
             } else
-                qCritical() << ffgld->getFreeframePluginFileInfo().filePath() << '|' << tr("Could not create FreeframeGL source.");
+                qCritical() << ffgld->getFreeframePluginFileInfo().filePath() <<  QChar(124).toLatin1() << tr("Could not create FreeframeGL source.");
         }
     }
 
@@ -994,10 +1003,10 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 					asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod(), asd->getIngoreAlpha());
 		if ( s ){
 			RenderingManager::getInstance()->addSourceToBasket(s);
-			qDebug() << s->getName() << '|' << tr("New Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << ").";
+            qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << ").";
 			statusbar->showMessage( tr("Source created with the algorithm %1.").arg( AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex())), 3000 );
 		} else
-			qCritical() << AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << '|' << tr("Could not create algorithm source.");
+            qCritical() << AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) <<  QChar(124).toLatin1() << tr("Could not create algorithm source.");
 	}
 }
 
@@ -1007,10 +1016,10 @@ void GLMixer::on_actionRenderingSource_triggered(){
 	Source *s = RenderingManager::getInstance()->newRenderingSource();
 	if ( s ){
 		RenderingManager::getInstance()->addSourceToBasket(s);
-		qDebug() << s->getName() <<  tr("|New rendering loopback source created.");
+        qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New rendering loopback source created.");
 		statusbar->showMessage( tr("Source created with the rendering output loopback."), 3000 );
-	}else
-		qCritical() << tr("Could not create rendering loopback source.");
+    } else
+        qCritical() << tr("Could not create rendering loopback source.");
 }
 
 
@@ -1021,10 +1030,10 @@ void GLMixer::on_actionCloneSource_triggered(){
 		if ( s ) {
 			QString name = (*RenderingManager::getInstance()->getCurrentSource())->getName();
 			RenderingManager::getInstance()->addSourceToBasket(s);
-			qDebug() << s->getName() << tr("|New clone of source %1 created.").arg(name);
+            qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New clone of source %1 created.").arg(name);
 			statusbar->showMessage( tr("The current source has been cloned."), 3000);
 		} else
-			qCritical() << tr("Could not clone source %1.").arg((*RenderingManager::getInstance()->getCurrentSource())->getName());
+            qCritical() << (*RenderingManager::getInstance()->getCurrentSource())->getName()<< QChar(124).toLatin1() << tr("Could not clone source %1.");
 	}
 }
 
@@ -1044,10 +1053,10 @@ void GLMixer::on_actionCaptureSource_triggered(){
 		Source *s = RenderingManager::getInstance()->newCaptureSource(cd.img);
 		if ( s ){
 			RenderingManager::getInstance()->addSourceToBasket(s);
-			qDebug() << s->getName() <<  tr("|New capture source created.");
+            qDebug() << s->getName()<< QChar(124).toLatin1() << tr("New capture source created.");
 		}
 		else
-			qCritical() << tr("Could not create capture source.");
+            qCritical() << tr("Could not create capture source.");
 	}
 }
 
@@ -1079,9 +1088,9 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 
         if ( !fileName.isEmpty() ) {
             if (!capture.save(fileName)) {
-                qCritical() << fileName << tr("|Could not save file.");
+                qCritical() << fileName << QChar(124).toLatin1()<< tr("Could not save file.");
             } else
-                qDebug() << fileName << tr("|Snapshot saved.");
+                qDebug() << fileName << QChar(124).toLatin1() << tr("Snapshot saved.");
         }
 
 	}
@@ -1520,8 +1529,8 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 		QFile file(currentSessionFileName);
 		if (!file.open(QFile::WriteOnly | QFile::Text) ) {
-			qWarning() << currentSessionFileName << tr("| Problem writing; ") << file.errorString();
-			qCritical() << currentSessionFileName << tr("|Cannot save file %1.");
+            qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("Problem writing; ") << file.errorString();
+            qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot save session file.");
 			return;
 		}
 		QTextStream out(&file);
@@ -1650,15 +1659,15 @@ void GLMixer::openSessionFile()
     // open file
 	QFile file(currentSessionFileName);
 	if (!file.open(QFile::ReadOnly | QFile::Text)) {
-		qWarning() << currentSessionFileName << tr("|Problem reading file; ") << file.errorString();
-		qCritical() << currentSessionFileName << tr("|Cannot open file.");
+        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("Problem reading file; ") << file.errorString();
+        qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot open file.");
 		currentSessionFileName = QString();
 		return;
 	}
 	// load content
     if (!doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
-		qWarning() << currentSessionFileName << tr("|XML parsing error line ") << errorLine << "(" << errorColumn << "); " << errorStr;
-		qCritical() << currentSessionFileName << tr("|Cannot open file.");
+        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("XML parsing error line ") << errorLine << "(" << errorColumn << "); " << errorStr;
+        qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot open file.");
     	currentSessionFileName = QString();
     	return;
     }
@@ -1667,20 +1676,20 @@ void GLMixer::openSessionFile()
     // verify it is a GLM file
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
-		qWarning() << currentSessionFileName << tr("|This is not a GLMixer session file; ");
-		qCritical() << currentSessionFileName << tr("|Cannot open file.");
+        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("This is not a GLMixer session file; ");
+        qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot open file.");
     	currentSessionFileName = QString();
         return;
     } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
-		qWarning() << currentSessionFileName << tr("|The version of the file is ") << root.attribute("version") << tr(" instead of ") <<XML_GLM_VERSION;
-		qCritical() << currentSessionFileName << tr("|Incorrect file version. Trying to read what is compatible.");
+        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("The version of the file is ") << root.attribute("version") << tr(" instead of ") <<XML_GLM_VERSION;
+        qCritical() << currentSessionFileName << QChar(124).toLatin1()<< tr("Incorrect file version. Trying to read what is compatible.");
     }
 	// if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
 	RenderingManager::getInstance()->clearSourceSet();
     // read the source list and its configuration
     QDomElement renderConfig = root.firstChildElement("SourceList");
     if (renderConfig.isNull())
-    	qWarning() << currentSessionFileName << tr("|There is no source to load.");
+        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load.");
     else {
     	standardAspectRatio ar = (standardAspectRatio) renderConfig.attribute("aspectRatio", "0").toInt();
     	switch(ar) {
@@ -1706,18 +1715,18 @@ void GLMixer::openSessionFile()
     	gammaShiftText->setText( QString().setNum( g, 'f', 2) );
     	RenderingManager::getInstance()->setGammaShift(g);
     	// read the list of sources
-    	qDebug() << currentSessionFileName << tr("|Loading session.");
+        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session.");
 	    // if we got up to here, it should be fine
 	    int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath());
 	    if ( errors > 0)
-	    	qCritical() << currentSessionFileName << "| " << errors << tr(" error(s) occurred when reading session.");
+            qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when reading session.");
 
     }
     // read the views configuration
 	RenderingManager::getRenderingWidget()->clearViews();
     QDomElement vconfig = root.firstChildElement("Views");
     if (vconfig.isNull())
-    	qDebug() << currentSessionFileName << tr("|No configuration specified.");
+        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("No configuration specified.");
     else  {
     	// apply the views configuration
     	RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
@@ -1793,14 +1802,14 @@ void GLMixer::on_actionAppend_Session_triggered(){
 		QFile file(fileName);
 
 		if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
-			qWarning() << fileName << tr("|Problem reading file; ") << file.errorString();
-			qCritical() << fileName << tr("|Cannot open file.");
+            qWarning() << fileName << QChar(124).toLatin1()<< tr("Problem reading file; ") << file.errorString();
+            qCritical() << fileName << QChar(124).toLatin1()<< tr("Cannot open file.");
 			return;
 		}
 
 		if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) ) {
-			qWarning() << fileName << tr("|XML parsing error line ") << errorLine << "(" << errorColumn << "); " << errorStr;
-			qCritical() << fileName << tr("|Cannot open file.");
+            qWarning() << fileName << QChar(124).toLatin1()<< tr("XML parsing error line ") << errorLine << "(" << errorColumn << "); " << errorStr;
+            qCritical() << fileName << QChar(124).toLatin1() << tr("Cannot open file.");
 			return;
 		}
 
@@ -1808,27 +1817,27 @@ void GLMixer::on_actionAppend_Session_triggered(){
 
 		QDomElement root = doc.documentElement();
 		if ( root.tagName() != "GLMixer" ) {
-			qWarning() << fileName << tr("|This is not a GLMixer session file.");
-			qCritical() << fileName << tr("|Cannot open file.");
+            qWarning() << fileName << QChar(124).toLatin1()<< tr("This is not a GLMixer session file.");
+            qCritical() << fileName << QChar(124).toLatin1()<< tr("Cannot open file.");
 			return;
 		} else if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION ) {
-			qWarning() << fileName << tr("|The version of the file is ") << root.attribute("version") << tr(" instead of ") <<XML_GLM_VERSION;
-			qCritical() << fileName << tr("|Incorrect file version. Trying to read what is compatible.");
+            qWarning() << fileName << QChar(124).toLatin1()<< tr("The version of the file is ") << root.attribute("version") << tr(" instead of ") <<XML_GLM_VERSION;
+            qCritical() << fileName << QChar(124).toLatin1() << tr("Incorrect file version. Trying to read what is compatible.");
 			return;
 		}
 
 		// read the content of the source list to make sure the file is correct :
 		QDomElement srcconfig = root.firstChildElement("SourceList");
 		if ( srcconfig.isNull() ) {
-			qWarning() << fileName << tr("|There is no source to load.");
+            qWarning() << fileName << QChar(124).toLatin1() << tr("There is no source to load.");
 			return;
 		}
 
 		// if we got up to here, it should be fine
-		qDebug() << fileName << tr("|Adding list of sources.");
+        qDebug() << fileName << QChar(124).toLatin1() << tr("Adding list of sources.");
 		int errors = RenderingManager::getInstance()->addConfiguration(srcconfig, QFileInfo(currentSessionFileName).canonicalPath());
 		if ( errors > 0)
-			qCritical() << currentSessionFileName << "|" << errors << tr(" error(s) occurred when reading session.");
+            qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when reading session.");
 
 		// confirm the loading of the file
 		statusbar->showMessage( tr("Sources from %1 appended to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
@@ -1864,7 +1873,7 @@ void GLMixer::drop(QDropEvent *event)
 					if (glmfile.isNull())
 						glmfile = urlname.absoluteFilePath();
                     else
-                        qWarning() << urlname.absoluteFilePath() <<  "|[" << ++errors << "]" << tr("File ignored (already loading another session).");
+                        qWarning() << urlname.absoluteFilePath()<< QChar(124).toLatin1() << "[" << ++errors << "]" << tr("File ignored (already loading another session).");
 				}
 				else if ( urlname.suffix() == "svg") {
 					svgFiles.append(urlname.absoluteFilePath());
@@ -1873,11 +1882,11 @@ void GLMixer::drop(QDropEvent *event)
 					mediaFiles.append(urlname.absoluteFilePath());
 			}
 			else
-				qWarning() << urlname.absoluteFilePath() <<  "|[" << ++errors << "]" << tr("Not a valid file; Ignoring.");
+                qWarning() << urlname.absoluteFilePath() << QChar(124).toLatin1() <<  "[" << ++errors << "]" << tr("Not a valid file; Ignoring.");
 		}
 	}
 	else
-        qWarning() << "|[" << ++errors << "]" << tr("Not a valid drop; Ignoring.");
+        qWarning() << "[" << ++errors << "]" << tr("Not a valid drop; Ignoring.");
 
 	if (!glmfile.isNull()) {
 		currentSessionFileName = glmfile;
@@ -1911,11 +1920,11 @@ void GLMixer::drop(QDropEvent *event)
 						RenderingManager::getInstance()->addSourceToBasket(s);
 						qDebug() << s->getName() << tr("|New media source created with file ") << mediaFiles.at(i);
 					} else {
-						qWarning() << mediaFiles.at(i) <<  "|[" << ++errors << "]" << tr("Could not be created.");
+                        qWarning() << mediaFiles.at(i) << QChar(124).toLatin1()<< "[" << ++errors << "]" << tr("The source could not be created.");
 						delete newSourceVideoFile;
 					}
 				} else {
-					qWarning() << mediaFiles.at(i) <<  "|[" << ++errors << "]" << tr("Could not be loaded.");
+                    qWarning() << mediaFiles.at(i) << QChar(124).toLatin1() << "[" << ++errors << "]" << tr("The file could not be loaded.");
 					delete newSourceVideoFile;
 				}
 			}
@@ -1927,9 +1936,9 @@ void GLMixer::drop(QDropEvent *event)
 			Source *s = RenderingManager::getInstance()->newSvgSource(svg);
 			if ( s ) {
 				RenderingManager::getInstance()->addSourceToBasket(s);
-				qDebug() << s->getName() <<  tr("|New vector Graphics source created with file ")<< svgFiles.at(i);
+                qDebug() << s->getName() << QChar(124).toLatin1()<< tr("New vector Graphics source created with file ")<< svgFiles.at(i);
 			} else {
-				qWarning() << svgFiles.at(i) <<  "|[" << ++errors << "]" << tr("Could not be created.");
+                qWarning() << svgFiles.at(i) << QChar(124).toLatin1() << "[" << ++errors << "]" << tr("The source could not be created.");
 				delete svg;
 			}
 		}
@@ -2563,7 +2572,7 @@ void GLMixer::screenshotView(){
     QString f = QString("glmixer_%1_%2.png").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
     s.save( f );
     // log
-    qDebug() << "Saved screenshot" << f;
+    qDebug() << f << QChar(124).toLatin1() << "Saved screenshot.";
 }
 
 

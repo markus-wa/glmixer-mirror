@@ -171,7 +171,7 @@ void RenderingEncoder::setEncodingFormat(encodingformat f){
 	if (!started) {
 		format = f;
 	} else {
-		qCritical() << "RenderingEncoder|" << tr ("Cannot change video recording format; Recorder is busy.");
+        qCritical() << tr ("Cannot change video recording format; Recorder is busy.");
 	}
 }
 
@@ -180,7 +180,7 @@ void RenderingEncoder::setActive(bool on)
 {
 	if (on) {
 		if (!start())
-			qCritical() << "RenderingEncoder|" << tr("Error starting video recording; %1.").arg(errormessage);
+            qCritical() << tr("Error starting video recording; ") << errormessage;
 	} else {
 		if (close()) {
 			if (automaticSaving)
@@ -216,13 +216,13 @@ void RenderingEncoder::setPaused(bool on)
 		elapsed = timer.elapsed();
 		killTimer(elapseTimer);
 		emit status(tr("Recording paused after %1 s").arg(elapsed/1000), 3000);
-		qDebug() << "RenderingEncoder|" << tr("Paused (%1s).").arg(elapsed/1000);
+        qDebug()  << tr("Recording paused after %1 s.").arg(elapsed/1000);
 	} else {
 		// restart a timer
 		timer = timer.addMSecs(timer.elapsed() - elapsed);
 		elapseTimer = startTimer(1000);
-	    emit status(tr("Recording time: %1 s").arg(timer.elapsed()/1000), 1000);
-		qDebug() << "RenderingEncoder|" << tr("Resumed (%1).").arg(elapsed/1000);
+        emit status(tr("Recording resumed at %1 s").arg(timer.elapsed()/1000), 1000);
+        qDebug() << tr("Recording resumed at %1 s.").arg(elapsed/1000);
 	}
 
 }
@@ -291,7 +291,7 @@ bool RenderingEncoder::start(){
 
 	// set status
 	started = true;
-    qDebug() << "RenderingEncoder|" << tr("Start recording (%1).").arg(recorder->suffix);
+    qDebug() << tr("Recording started (%1).").arg(recorder->suffix);
 
 	return true;
 }
@@ -414,7 +414,7 @@ void RenderingEncoder::saveFile(){
 	// move the temporaryFileName to newFileName
 	temporaryFolder.rename(temporaryFileName, infoFileDestination.absoluteFilePath());
 	emit status(tr("File %1 saved.").arg(infoFileDestination.absoluteFilePath()), 2000);
-	qDebug() << infoFileDestination.absoluteFilePath() << tr("|Recording saved.");
+    qDebug() << infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("Recording saved.");
 }
 
 void RenderingEncoder::saveFileAs(){
@@ -437,7 +437,7 @@ void RenderingEncoder::saveFileAs(){
         // move the temporaryFileName to newFileName
         temporaryFolder.rename(temporaryFileName, newFileName);
         emit status(tr("File %1 saved.").arg(newFileName), 2000);
-        qDebug() << newFileName << tr("|Recording saved.");
+        qDebug() << newFileName << QChar(124).toLatin1() << tr("Recording saved.");
     }
 
 }

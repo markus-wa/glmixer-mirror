@@ -1029,12 +1029,12 @@ void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
 	if (!program->addShaderFromSourceFile(QGLShader::Fragment, fshfile))
         qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL error in fragment shader; \n\n%1").arg(program->log()) ) );
 	else if (program->log().contains("warning"))
-        qCritical() << fshfile << QObject::tr("|OpenGL GLSL warning in fragment shader;%1").arg(program->log());
+        qCritical() << fshfile << QChar(124).toLatin1() << QObject::tr("OpenGL GLSL warning in fragment shader;%1").arg(program->log());
 
 	if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl"))
         qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL error in vertex shader; \n\n%1").arg(program->log()) ) );
 	else if (program->log().contains("warning"))
-        qCritical() << "imageProcessing_vertex.glsl" << QObject::tr("|OpenGL GLSL warning in vertex shader;%1").arg(program->log());
+        qCritical() << "imageProcessing_vertex.glsl" << QChar(124).toLatin1()<< QObject::tr("OpenGL GLSL warning in vertex shader;%1").arg(program->log());
 
 	if (!program->link())
         qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL linking error; \n\n%1").arg(program->log()) ) );

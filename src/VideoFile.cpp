@@ -402,8 +402,7 @@ void VideoFile::stop()
 
 		/* say if we are running or not */
 		emit
-		running(!quit);
-		qDebug() << filename << tr("|Video stopped.");
+        running(!quit);
 
 	}
 }
@@ -439,8 +438,7 @@ void VideoFile::start()
 
 		/* say if we are running or not */
 		emit
-		running(!quit);
-		qDebug() << filename << tr("|Video playing.");
+        running(!quit);
 	}
 
 }
@@ -515,7 +513,7 @@ void VideoFile::thread_terminated()
 	if (!quit)
 	{
 		//  this means an error occured...
-		qWarning() << filename << tr("|Decoding interrupted.");
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Decoding interrupted.");
 
 		// stop properly if possible
 		stop();
@@ -551,20 +549,20 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 		switch (err)
 		{
 		case AVERROR_INVALIDDATA:
-			qWarning() << filename << tr("|Error while parsing header.");
+            qWarning() << filename << QChar(124).toLatin1() << tr("Error while parsing header.");
 			break;
 		case AVERROR(EIO):
-			qWarning() << filename
-					<< tr("|I/O error. Usually that means that input file is truncated and/or corrupted");
+            qWarning() << filename << QChar(124).toLatin1()
+                    << tr("I/O error. Usually that means that input file is truncated and/or corrupted");
 			break;
 		case AVERROR(ENOMEM):
-			qWarning() << filename << tr("|Memory allocation error.");
+            qWarning() << filename << QChar(124).toLatin1()<< tr("Memory allocation error.");
 			break;
 		case AVERROR(ENOENT):
-			qWarning() << filename << tr("|No such file.");
+            qWarning() << filename << QChar(124).toLatin1()<< tr("No such file.");
 			break;
 		default:
-			qWarning() << filename << tr("|Cannot open file.");
+            qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
 			break;
 		}
 		return false;
@@ -580,20 +578,20 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 		switch (err)
 		{
 		case AVERROR_INVALIDDATA:
-			qWarning() << filename << tr("|Error while parsing header.");
+            qWarning() << filename << QChar(124).toLatin1()<< tr("Error while parsing header.");
 			break;
 		case AVERROR(EIO):
-			qWarning() << filename
-					<< tr("|I/O error. Usually that means that input file is truncated and/or corrupted");
+            qWarning() << filename<< QChar(124).toLatin1()
+                    << tr("I/O error. Usually that means that input file is truncated and/or corrupted");
 			break;
 		case AVERROR(ENOMEM):
-			qWarning() << filename << tr("|Memory allocation error");
+            qWarning() << filename << QChar(124).toLatin1()<< tr("Memory allocation error");
 			break;
 		case AVERROR(ENOENT):
-			qWarning() << filename << tr("|No such entry.");
+            qWarning() << filename << QChar(124).toLatin1()<< tr("No such entry.");
 			break;
 		default:
-			qWarning() << filename << tr("|Unsupported format.");
+            qWarning() << filename << QChar(124).toLatin1()<< tr("Unsupported format.");
 			break;
 		}
 		return false;
@@ -709,7 +707,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 	if (img_convert_ctx == NULL)
 	{
 		// Cannot initialize the conversion context!
-		qWarning() << filename << tr("|Cannot create a suitable conversion context.");
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot create a suitable conversion context.");
 		return false;
 	}
 
@@ -722,7 +720,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 			if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette))
 			{
 				// Cannot allocate Video Pictures!
-				qWarning() << filename << tr( "|Cannot allocate pictures buffer.");
+                qWarning() << filename << QChar(124).toLatin1()<< tr( "Cannot allocate pictures buffer.");
 				return false;
 			}
 		}
@@ -732,7 +730,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 	if (!blackPicture.allocate(0, targetWidth, targetHeight))
 	{
 		// Cannot allocate Video Pictures!
-		qWarning() << filename << tr("|Cannot allocate buffer.");
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot allocate buffer.");
 		return false;
 	}
 
@@ -741,7 +739,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 			targetFormat, rgba_palette))
 	{
 		// Cannot allocate Video Pictures!
-		qWarning() << filename << tr("|Cannot allocate picture buffer.");
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot allocate picture buffer.");
 		return false;
 	}
 
@@ -759,8 +757,7 @@ bool VideoFile::open(QString file, int64_t markIn, int64_t markOut, bool ignoreA
 	running(false);
 
 	// tells everybody we are set !
-	qDebug() << filename << tr("|Media opened (nb. %1).").arg(
-			getExactFrameFromFrame(getEnd()));
+    qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames).").arg( getExactFrameFromFrame(getEnd()));
 
 	return true;
 }
@@ -852,7 +849,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 
 	if (stream_index < 0 || stream_index >= (int) pFCtx->nb_streams)
 	{
-		qWarning() << filename << tr("|This is not a video or an image file.");
+        qWarning() << filename << QChar(124).toLatin1()<< tr("This is not a video or an image file.");
 		return -1;
 	}
 
@@ -868,7 +865,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
     if (!codec || (avcodec_open(codecCtx, codec) < 0))
 #endif
 	{
-		qWarning() << filename << tr("|The codec ") << codecCtx->codec_name
+        qWarning() << filename << QChar(124).toLatin1()<< tr("The codec ") << codecCtx->codec_name
 				<< tr("is not supported.");
 		return -1;
     }
@@ -1175,12 +1172,12 @@ void ParsingThread::run()
 
 			if (av_seek_frame(is->pFormatCtx, is->videoStream, is->seek_pos, flags) < 0)
 			{
-				qDebug() << is->filename
-                        << QObject::tr("|Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos);
+                qDebug() << is->filename << QChar(124).toLatin1()
+                        << QObject::tr("Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos);
 			}
 			// after seek,  we'll have to flush buffers
 			if (!is->videoq.flush())
-                qWarning() << is->filename << QObject::tr("|Flushing error.");
+                qWarning() << is->filename << QChar(124).toLatin1()<< QObject::tr("Flushing error.");
 
 			is->seek_backward = false;
 			is->seek_req = false;
@@ -1210,7 +1207,7 @@ void ParsingThread::run()
 			// if could NOT read full frame, was it an error?
 			if (is->pFormatCtx->pb->error)
 			{
-                qWarning() << is->filename << QObject::tr("|Could not read frame.");
+                qWarning() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not read frame.");
 				break;
 			}
 			// no error; just wait a bit for the end of the packet and continue
@@ -1229,7 +1226,7 @@ void ParsingThread::run()
 
 	// request flushing of the video queue (this will end the decoding thread)
 	if (!is->videoq.flush())
-        qWarning() << is->filename << QObject::tr("|Flushing error at end.");
+        qWarning() << is->filename << QChar(124).toLatin1() << QObject::tr("Flushing error at end.");
 
 }
 

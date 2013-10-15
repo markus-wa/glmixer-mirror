@@ -583,7 +583,7 @@ bool MixingToolboxWidget::restoreState(const QByteArray &state) {
         setPresetItemTooltip(presetsList->item(0), s);
     }
 
-    qDebug() << tr("MixingToolboxWidget|Mixing presets restored (") << _userPresets.count() << QObject::tr(" user presets)");
+    qDebug() << tr("Mixing presets restored (") << _userPresets.count() << QObject::tr(" user presets)");
 	return true;
 }
 

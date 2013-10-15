@@ -64,15 +64,15 @@ SharedMemoryManager::SharedMemoryManager() {
 
     // make sure we detach
     while (glmixerShmMap->isAttached()) {
-        qDebug() << "SharedMemoryManager|" << QObject::tr("Detaching shared memory map");
+//        qDebug() << QObject::tr("Detaching shared memory map");
         glmixerShmMap->detach();
     }
     // try to create or attach
     if (glmixerShmMap->create(buffer.size()))
-        qDebug() << "SharedMemoryManager|" << "Shared map created (" <<  glmixerShmMap->size() << "bytes).";
+        qDebug() << "Shared map created (" <<  glmixerShmMap->size() << "bytes).";
     else {
     	glmixerShmMap->attach(QSharedMemory::ReadWrite);
-    	qWarning() << "SharedMemoryManager|" << "Shared map existed (" <<  glmixerShmMap->size() << "bytes).";
+        qWarning() << "Shared map already existed; using it (" <<  glmixerShmMap->size() << "bytes).";
     }
 
 }

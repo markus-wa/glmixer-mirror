@@ -88,24 +88,15 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
 
         GLuint tex = ui->preview->getNewTextureIndex();
         try {
-
-            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview 0" ;
-
             // create a new source with a new texture index and the new parameters
             s = new FFGLSource(_filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
-
-            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview 1" ;
 
             // create a plugin stack
             pluginBrowserStack = new FFGLPluginSourceStack;
             pluginBrowserStack->push(s->freeframeGLPlugin());
 
-            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview 2" ;
-
             // show the plugin stack
             pluginBrowser->showProperties( pluginBrowserStack );
-
-            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview 3" ;
 
             // show warning if selected plugin is not of type 'Source'
             ui->labelWarninEffect->setVisible( !s->freeframeGLPlugin()->isSourceType() );
@@ -117,9 +108,7 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
             // return an invalid pointer
             s = NULL;
 
-            qDebug() << "FFGLSourceCreationDialog::updateSourcePreview catch" ;
-
-            qCritical() << _filename << tr("Not a FreeframeGL plugin.");
+            qCritical() << _filename << QChar(124).toLatin1() << tr("Not a FreeframeGL plugin.");
         }
 
     }

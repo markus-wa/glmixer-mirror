@@ -83,7 +83,7 @@ void AlgorithmSelectionDialog::createSource(){
 								getSelectedVariability(), getUpdatePeriod(), !ignoreAlphaCheckbox->isChecked());
 
 	} catch (AllocationException &e){
-		qCritical() << "AlgorithmSelectionDialog|" << e.message();
+        qCritical() << "Error creating an Algorithm source; " << e.message();
 		// free the OpenGL texture
 		glDeleteTextures(1, &tex);
 		// return an invalid pointer

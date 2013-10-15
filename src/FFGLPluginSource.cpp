@@ -125,8 +125,6 @@ public:
             params.insert( QString(GetParameterName(i)), value);
         }
 
-        qDebug() << "getParametersDefaults" << params;
-
         return params;
     }
 
@@ -187,7 +185,6 @@ public:
             params.insert( QString(GetParameterName(i)), value);
         }
 
-        qDebug() << "getParameters" << params;
         return params;
     }
 
@@ -232,8 +229,6 @@ public:
         {
             // Cast to float
             float v = value.toFloat();
-
-            qDebug()<< "setparameter FF_TYPE_STANDARD "<< ArgStruct.ParameterNumber <<" = "<<v;
 
 #ifdef FF_FAIL
             *((float *)(unsigned)&ArgStruct.NewParameterValue) = v;
@@ -281,7 +276,7 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     // check the file exists
     QFileInfo pluginfile(filename);
     if (!pluginfile.isFile()){
-        qWarning()<< _filename << "| " << QObject::tr("The file does not exist.");
+        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("The file does not exist.");
         FFGLPluginException().raise();
     }
 
@@ -292,19 +287,19 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     // create plugin object (does not instanciate dll)
     _plugin = (FFGLPluginSourceInstance *) FFGLPluginInstance::New();
     if (!_plugin){
-        qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not be instanciated");
+        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be instanciated");
         FFGLPluginException().raise();
     }
 
     // load dll plugin
     if (_plugin->Load(filename.toLatin1().data()) == FF_FAIL){
-        qWarning()<< _filename << "| " << QObject::tr("FreeframeGL plugin could not be loaded");
+        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be loaded");
         FFGLPluginException().raise();
     }
 
     // ensure functionnalities plugin
     if ( !_plugin->hasProcessOpenGLCapability()){
-        qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("Invalid FreeframeGL plugin: does not have OpenGL support.");
+        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Invalid FreeframeGL plugin: does not have OpenGL support.");
         FFGLPluginException().raise();
     }
 
@@ -455,7 +450,7 @@ void FFGLPluginSource::update()
 
         // through exception once opengl has returned to normal
         if ( callresult != FF_SUCCESS ){
-            qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("FreeframeGL plugin could not process OpenGL. Probably missing an input texture.");
+            qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not process OpenGL. Probably missing an input texture.");
             FFGLPluginException().raise();
         }
     }
@@ -495,12 +490,12 @@ bool FFGLPluginSource::initialize()
 
             }
             else {
-                qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("FreeframeGL plugin could not be initialized");
+                qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be initialized");
                 FFGLPluginException().raise();
             }
         }
         else{
-            qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("FreeframeGL plugin could not create FBO");
+            qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not create FBO");
             FFGLPluginException().raise();
         }
     }
@@ -517,7 +512,7 @@ QVariantHash FFGLPluginSource::getParameters()
 void FFGLPluginSource::setParameter(int parameterNum, QVariant value)
 {
     if( !_plugin->setParameter(parameterNum, value) )
-        qWarning()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("Parameter could not be set.");
+        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Parameter could not be set.");
 
 }
 
@@ -586,7 +581,7 @@ void FFGLPluginSource::setConfiguration(QDomElement xml)
 
         // read and apply parameter, if applicable
         if ( !_plugin->setParameter( p.attribute("name"), QVariant(p.text()) ) )
-            qWarning()<< QFileInfo(_filename).baseName() << "| " << p.attribute("name") << QObject::tr(": parameter could not be set.");
+            qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << p.attribute("name") << QObject::tr(": parameter could not be set.");
 
         p = p.nextSiblingElement("Parameter");
     }

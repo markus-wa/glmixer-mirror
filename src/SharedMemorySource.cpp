@@ -155,7 +155,7 @@ void SharedMemorySource::update(){
 
 		RenderingManager::getInstance()->unsetCurrentSource();
 		RenderingManager::getInstance()->setCurrentSource(getId());
-		qWarning() << getName() << '|' << tr("Connection with program %1 interrupted. Source stopped").arg(programName);
+        qWarning() << getName() << QChar(124).toLatin1() << tr("Connection with program %1 interrupted. Source stopped").arg(programName);
 
     } else {
 		// normal case ; fast replacement of texture content
@@ -193,20 +193,20 @@ void SharedMemorySource::play(bool on){
 				// generate the texture to the frame size (hopefully correct in shared memory manager)
 				setupSharedMemory(descriptor);
 			} catch (InvalidFormatException &e){
-				qWarning() << getName() << '|' << e.message() << shmKey;
+                qWarning() << getName() << QChar(124).toLatin1() << e.message() << shmKey;
 			} catch (SharedMemoryAttachException &e){
-				qWarning() << getName() << '|' << e.message() << shmKey;
+                qWarning() << getName() << QChar(124).toLatin1() << e.message() << shmKey;
 				// delete and reset shm
 				delete shm;
 				shm = 0;
 			} catch (AllocationException &e){
-				qWarning() << getName() << '|' <<  "Could not create shared memory for " << shmKey;
+                qWarning() << getName() << QChar(124).toLatin1() <<  "Could not create shared memory for " << shmKey;
 				// reset shm
 				shm = 0;
 			}
 
 			if (shm == 0) {
-				qCritical() << getName() << '|' << tr ("Could not connect to program %1.\nRestart the source after fixing the problem.").arg(programName);
+                qCritical() << getName() << QChar(124).toLatin1() << tr ("Could not connect to program %1.\nRestart the source after fixing the problem.").arg(programName);
 				// refresh status as play did not work
 				RenderingManager::getInstance()->unsetCurrentSource();
 				RenderingManager::getInstance()->setCurrentSource(getId());
@@ -220,7 +220,7 @@ void SharedMemorySource::play(bool on){
 			// try to find another program
 			shmId = SharedMemoryManager::getInstance()->findProgramSharedMap(programName);
 			if (shmId == 0) {
-				qCritical() << getName() << '|' << tr ("The program %1 does not seem to be running.\nRestart the source after fixing the problem.").arg(programName);
+                qCritical() << getName() << QChar(124).toLatin1() << tr ("The program %1 does not seem to be running.\nRestart the source after fixing the problem.").arg(programName);
 				// refresh status as play did not work
 				RenderingManager::getInstance()->unsetCurrentSource();
 				RenderingManager::getInstance()->setCurrentSource(getId());

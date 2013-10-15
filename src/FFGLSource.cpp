@@ -39,7 +39,7 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
     aspectratio = double(w) / double(h);
 
     if ( !QFileInfo(pluginFileName).isFile()) {
-        qCritical() << tr("FFGLSource given an invalid file") << " ("<< pluginFileName <<")";
+        qCritical() << pluginFileName << QChar(124).toLatin1() << tr("FFGLSource given an invalid file");
         SourceConstructorException().raise();
     }
 
@@ -124,7 +124,7 @@ void FFGLSource::update() {
     }
     catch (FFGLPluginException &e) {
         this->play(false);
-        qCritical() <<  e.message() << QObject::tr("\nThe source was stopped.");
+        qCritical() << this->getName() << QChar(124).toLatin1() <<  e.message() << QObject::tr("\nThe source was stopped.");
     }
 
     // normal update (other ffgl plugins)
