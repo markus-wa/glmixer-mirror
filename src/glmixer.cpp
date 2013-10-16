@@ -966,7 +966,7 @@ void GLMixer::on_actionFreeframeSource_triggered(){
     // popup a question dialog to select the type of algorithm
     static FFGLSourceCreationDialog *ffgld = 0;
     if (!ffgld)
-        ffgld = new FFGLSourceCreationDialog(this);
+        ffgld = new FFGLSourceCreationDialog(this, &settings);
 
 
     if (ffgld->exec() == QDialog::Accepted) {

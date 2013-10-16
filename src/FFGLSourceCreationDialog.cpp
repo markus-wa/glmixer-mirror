@@ -9,28 +9,23 @@
 #include "FFGLSource.h"
 #include "glmixer.h"
 
-FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::FFGLSourceCreationDialog), s(NULL)
+FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *settings) :
+    QDialog(parent), ui(new Ui::FFGLSourceCreationDialog), s(NULL), appSettings(settings)
 {
-    // create the preview with empty source
-//    preview = new SourceDisplayWidget(this);
-
     // setup the user interface
     ui->setupUi(this);
     ui->labelWarninEffect->setVisible(false);
-
-    // add the preview widget in the ui
-    /*
-    ui->FFGLSourceCreationLayout->insertWidget(0, preview);
-    preview->setMinimumHeight(120);
-    preview->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);*/
 
     // Setup the FFGL plugin property browser
     pluginBrowser = new FFGLPluginBrowser(this);
     ui->PropertiesLayout->insertWidget( ui->PropertiesLayout->count(),  pluginBrowser);
     pluginBrowser->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     pluginBrowser->switchToGroupView();
+
+    // restore settings
+    ui->pluginFileList->addItem("");
+    if (appSettings && appSettings->contains("recentFFGLPluginsList"))
+        ui->pluginFileList->addItems(appSettings->value("recentFFGLPluginsList").toStringList());
 
 }
 
@@ -65,6 +60,13 @@ void FFGLSourceCreationDialog::done(int r){
     }
     else
         pluginConfiguration = QDomElement();
+
+    if (appSettings) {
+        QStringList l;
+        for ( int i = 1; i < ui->pluginFileList->count(); ++i )
+            l.append(ui->pluginFileList->itemText(i));
+        appSettings->setValue("recentFFGLPluginsList", l);
+    }
 
     QDialog::done(r);
 }
@@ -149,8 +151,8 @@ void FFGLSourceCreationDialog::browse() {
     // if a file was selected
     if (!fileName.isEmpty()) {
         // add the filename to the pluginFileList
-        ui->pluginFileList->insertItem(0, fileName);
-        ui->pluginFileList->setCurrentIndex(0);
+        ui->pluginFileList->insertItem(1, fileName);
+        ui->pluginFileList->setCurrentIndex(1);
     }
 
 }
@@ -250,11 +252,8 @@ void  FFGLSourceCreationDialog::selectSizePreset(int preset)
             break;
         }
 
-        if (s) {
-
+        if (s)
             updateSourcePreview(s->freeframeGLPlugin()->getConfiguration());
-
-        }
         else
             updateSourcePreview();
     }

@@ -1,9 +1,8 @@
 #ifndef FFGLSOURCECREATIONDIALOG_H
 #define FFGLSOURCECREATIONDIALOG_H
 
-#include <QDialog>
 #include <QDomElement>
-#include <QFileInfo>
+#include <QtGui>
 
 namespace Ui {
 class FFGLSourceCreationDialog;
@@ -14,7 +13,7 @@ class FFGLSourceCreationDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit FFGLSourceCreationDialog(QWidget *parent = 0);
+    explicit FFGLSourceCreationDialog(QWidget *parent = 0, QSettings *settings = 0);
     ~FFGLSourceCreationDialog();
 
     QFileInfo getFreeframePluginFileInfo();
@@ -44,6 +43,7 @@ private:
 
     QString _filename;
     QDomElement pluginConfiguration;
+    QSettings *appSettings;
 };
 
 #endif // FFGLSOURCECREATIONDIALOG_H
