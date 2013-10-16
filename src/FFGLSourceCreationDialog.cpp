@@ -40,6 +40,7 @@ FFGLSourceCreationDialog::~FFGLSourceCreationDialog()
 //    delete preview;
     delete pluginBrowser;
     delete ui;
+
 }
 
 
@@ -70,7 +71,7 @@ void FFGLSourceCreationDialog::done(int r){
 
 
 
-void FFGLSourceCreationDialog::updateSourcePreview(){
+void FFGLSourceCreationDialog::updateSourcePreview(QDomElement config){
 
     if(s) {
         ui->labelWarninEffect->setVisible(false);
@@ -91,6 +92,9 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
         try {
             // create a new source with a new texture index and the new parameters
             s = new FFGLSource(_filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
+
+            if (!config.isNull())
+                s->freeframeGLPlugin()->setConfiguration(config);
 
             // create a plugin stack
             pluginBrowserStack = new FFGLPluginSourceStack;
@@ -246,7 +250,13 @@ void  FFGLSourceCreationDialog::selectSizePreset(int preset)
             break;
         }
 
-        updateSourcePreview();
+        if (s) {
+
+            updateSourcePreview(s->freeframeGLPlugin()->getConfiguration());
+
+        }
+        else
+            updateSourcePreview();
     }
 
 }

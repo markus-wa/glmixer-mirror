@@ -52,7 +52,6 @@ public:
     unsigned int     n_buffers;
     int              force_format;
 
-    // BHBN
     unsigned char *  _glbuffer[2];
     GLuint draw_buffer;
     GLuint read_buffer;
@@ -68,7 +67,9 @@ public:
     bool stop;
 
     video4LinuxFreeFrameGLData(){
-        io = IO_METHOD_USERPTR;
+
+        // Using MMAP method: apparently the most robust.
+        io = IO_METHOD_MMAP;
         fd = -1;
         force_format = false;
         draw_buffer = 0;
