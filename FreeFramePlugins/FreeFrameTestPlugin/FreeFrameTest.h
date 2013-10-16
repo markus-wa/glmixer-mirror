@@ -1,5 +1,5 @@
-#ifndef FFGLMirror_H
-#define FFGLMirror_H
+#ifndef FFGLFFTEST_H
+#define FFGLFFTEST_H
 
 #include <FFGLPluginSDK.h>
 

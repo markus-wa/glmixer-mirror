@@ -1,12 +1,8 @@
 #include <FFGL.h>
 #include <FFGLLib.h>
-
-#include <cmath>
-
 #include "FreeFrameTest.h"
 
-
-
+#include <cmath>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -14,13 +10,13 @@
 
 static CFFGLPluginInfo PluginInfo ( 
     FreeFrameTest::CreateInstance,	// Create method
-    "GLTE",								// Plugin unique ID
-	"FFGLMirror",			// Plugin name											
-	1,						   			// API major version number 													
-	000,								  // API minor version number	
-	1,										// Plugin major version number
-	000,									// Plugin minor version number
-	FF_EFFECT,						// Plugin type
+    "GLTE",             // Plugin unique ID
+    "FreeFrameTest",    // Plugin name
+    1,                  // API major version number
+    500,                // API minor version number
+    1,                  // Plugin major version number
+    000,                // Plugin minor version number
+    FF_EFFECT,          // Plugin type
     "Sample plugin",	 // Plugin description
     "by Bruno Herbelin"  // About
 );
@@ -34,8 +30,8 @@ FreeFrameTest::FreeFrameTest()
 : CFreeFrameGLPlugin()
 {
 	// Input properties
-    SetMinInputs(0);
-    SetMaxInputs(0);
+    SetMinInputs(1);
+    SetMaxInputs(1);
 
 }
 
@@ -43,11 +39,11 @@ FreeFrameTest::FreeFrameTest()
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD   FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
+// FFGL 1.5
+DWORD   FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
 #else
-    // FFGL 1.6
-    FFResult FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
+// FFGL 1.6
+FFResult FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
 
@@ -56,11 +52,11 @@ FreeFrameTest::FreeFrameTest()
 
 
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD   FreeFrameTest::DeInitGL()
+// FFGL 1.5
+DWORD   FreeFrameTest::DeInitGL()
 #else
-    // FFGL 1.6
-    FFResult FreeFrameTest::DeInitGL()
+// FFGL 1.6
+FFResult FreeFrameTest::DeInitGL()
 #endif
 {
 
@@ -68,11 +64,11 @@ FreeFrameTest::FreeFrameTest()
 }
 
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD   FreeFrameTest::SetTime(double time)
+// FFGL 1.5
+DWORD   FreeFrameTest::SetTime(double time)
 #else
-    // FFGL 1.6
-    FFResult FreeFrameTest::SetTime(double time)
+// FFGL 1.6
+FFResult FreeFrameTest::SetTime(double time)
 #endif
 {
   m_curTime = time;
@@ -80,11 +76,11 @@ FreeFrameTest::FreeFrameTest()
 }
 
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD	FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+// FFGL 1.5
+DWORD	FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 #else
-    // FFGL 1.6
-    FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+// FFGL 1.6
+FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
   if (pGL->numInputTextures<1)

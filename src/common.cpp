@@ -163,16 +163,23 @@ void addPathToSystemPath(QByteArray path)
 {
 #ifdef Q_OS_MAC
     const char* pathEnvironmentVariableName = "DYLD_LIBRARY_PATH";
+    const char separatorEnvironmentVariable = ':';
+#else
+#ifdef Q_OS_LINUX
+    const char* pathEnvironmentVariableName = "PATH";
+    const char separatorEnvironmentVariable = ':';
 #else
     const char* pathEnvironmentVariableName = "PATH";
+    const char separatorEnvironmentVariable = ';';
+#endif
 #endif
     // read the environment variable for getting system path
     QByteArray pathEnvironmentVariable = qgetenv( pathEnvironmentVariableName );
 
     // does this path already exist in the environment variable ?
-    if ( ! QString(pathEnvironmentVariable).split(';').contains(path)  ) {
+    if ( ! QString(pathEnvironmentVariable).split(separatorEnvironmentVariable).contains(path)  ) {
         // does not exist so add it
-        pathEnvironmentVariable.append( ";" );
+        pathEnvironmentVariable.append( separatorEnvironmentVariable );
         pathEnvironmentVariable.append( path );
         // set the extended environment variable back
         qputenv( pathEnvironmentVariableName, pathEnvironmentVariable);

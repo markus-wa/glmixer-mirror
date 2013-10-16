@@ -324,8 +324,6 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
 
 FFGLPluginSource::~FFGLPluginSource()
 {
-    qDebug() << "info";
-
     _plugin->DeInstantiateGL();
     _plugin->Unload();
 

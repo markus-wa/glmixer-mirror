@@ -41,28 +41,49 @@ struct buffer {
         size_t  length;
 };
 
-char             dev_name[256];
-enum io_method   io = IO_METHOD_USERPTR;
-int              fd = -1;
-struct buffer    *buffers;
-unsigned int     n_buffers;
-int              force_format = false;
+class video4LinuxFreeFrameGLData {
 
-// BHBN
-unsigned char *  _glbuffer[2];
-GLuint draw_buffer = 0;
-GLuint read_buffer = 1;
-GLuint textureIndex = 0;
-int width = 0;
-int height = 0;
-struct v4lconvert_data *m_convertData;
-struct v4l2_format m_capSrcFormat;
-struct v4l2_format m_capDestFormat;
+public:
 
-void *update_thread(void *);
-pthread_t thread;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-bool stop = true;
+    char             dev_name[256];
+    enum io_method   io;
+    int              fd;
+    struct buffer    *buffers;
+    unsigned int     n_buffers;
+    int              force_format;
+
+    // BHBN
+    unsigned char *  _glbuffer[2];
+    GLuint draw_buffer;
+    GLuint read_buffer;
+    GLuint textureIndex;
+    int width;
+    int height;
+    struct v4lconvert_data *m_convertData;
+    struct v4l2_format m_capSrcFormat;
+    struct v4l2_format m_capDestFormat;
+
+    pthread_t thread;
+    pthread_mutex_t mutex;
+    bool stop;
+
+    video4LinuxFreeFrameGLData(){
+        io = IO_METHOD_USERPTR;
+        fd = -1;
+        force_format = false;
+        draw_buffer = 0;
+        read_buffer = 1;
+        textureIndex = 0;
+        width = 0;
+        height = 0;
+        mutex = PTHREAD_MUTEX_INITIALIZER;
+        stop = true;
+    }
+
+};
+
+
+void *update_thread(void *c);
 
 #define FFPARAM_DEVICE 0
 
@@ -84,35 +105,35 @@ int xioctl(int fh, int request, void *arg)
 }
 
 
-void process_image(const void *p, int size)
+void process_image(const void *p, int size, video4LinuxFreeFrameGLData *current)
 {
 
-    pthread_mutex_lock( &mutex );
-    GLuint tmp = read_buffer;
-    read_buffer = draw_buffer;
-    draw_buffer = tmp;
-    pthread_mutex_unlock( &mutex );
+    pthread_mutex_lock( &(current->mutex) );
+    GLuint tmp = current->read_buffer;
+    current->read_buffer = current->draw_buffer;
+    current->draw_buffer = tmp;
+    pthread_mutex_unlock( &(current->mutex) );
 
     int s = 0;
-    s = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
+    s = v4lconvert_convert(current->m_convertData, &(current->m_capSrcFormat), &(current->m_capDestFormat),
                             (unsigned char *)p, size,
-                           (unsigned char *)_glbuffer[draw_buffer], m_capDestFormat.fmt.pix.sizeimage);
+                           (unsigned char *)current->_glbuffer[current->draw_buffer], current->m_capDestFormat.fmt.pix.sizeimage);
 
     //fprintf(stderr, "%d error v4lconvert_convert", err);
-    if ( s == -1 || s != int(m_capDestFormat.fmt.pix.sizeimage) )
-            errno_exit(v4lconvert_get_error_message(m_convertData));
+    if ( s == -1 || s != int(current->m_capDestFormat.fmt.pix.sizeimage) )
+            errno_exit(v4lconvert_get_error_message(current->m_convertData));
 
 //    _glbuffer = (unsigned char *)p;
 }
 
-int read_frame(void)
+int read_frame(video4LinuxFreeFrameGLData *current)
 {
         struct v4l2_buffer buf;
         unsigned int i;
 
-        switch (io) {
+        switch (current->io) {
         case IO_METHOD_READ:
-                if (-1 == read(fd, buffers[0].start, buffers[0].length)) {
+                if (-1 == read(current->fd, current->buffers[0].start, current->buffers[0].length)) {
                         switch (errno) {
                         case EAGAIN:
                                 return 0;
@@ -127,7 +148,7 @@ int read_frame(void)
                         }
                 }
 
-                process_image(buffers[0].start, buffers[0].length);
+                process_image(current->buffers[0].start, current->buffers[0].length, current);
                 break;
 
         case IO_METHOD_MMAP:
@@ -136,7 +157,7 @@ int read_frame(void)
                 buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 buf.memory = V4L2_MEMORY_MMAP;
 
-                if (-1 == xioctl(fd, VIDIOC_DQBUF, &buf)) {
+                if (-1 == xioctl(current->fd, VIDIOC_DQBUF, &buf)) {
                         switch (errno) {
                         case EAGAIN:
                                 return 0;
@@ -151,11 +172,11 @@ int read_frame(void)
                         }
                 }
 
-                assert(buf.index < n_buffers);
+                assert(buf.index < current->n_buffers);
 
-                process_image(buffers[buf.index].start, buf.bytesused);
+                process_image(current->buffers[buf.index].start, buf.bytesused, current);
 
-                if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
+                if (-1 == xioctl(current->fd, VIDIOC_QBUF, &buf))
                         errno_exit("VIDIOC_QBUF");
                 break;
 
@@ -165,7 +186,7 @@ int read_frame(void)
                 buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 buf.memory = V4L2_MEMORY_USERPTR;
 
-                if (-1 == xioctl(fd, VIDIOC_DQBUF, &buf)) {
+                if (-1 == xioctl(current->fd, VIDIOC_DQBUF, &buf)) {
                         switch (errno) {
                         case EAGAIN:
                                 return 0;
@@ -180,16 +201,16 @@ int read_frame(void)
                         }
                 }
 
-                for (i = 0; i < n_buffers; ++i)
-                        if (buf.m.userptr == (unsigned long)buffers[i].start
-                            && buf.length == buffers[i].length)
+                for (i = 0; i < current->n_buffers; ++i)
+                        if (buf.m.userptr == (unsigned long)current->buffers[i].start
+                            && buf.length == current->buffers[i].length)
                                 break;
 
-                assert(i < n_buffers);
+                assert(i < current->n_buffers);
 
-                process_image((void *)buf.m.userptr, buf.bytesused);
+                process_image((void *)buf.m.userptr, buf.bytesused, current);
 
-                if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
+                if (-1 == xioctl(current->fd, VIDIOC_QBUF, &buf))
                         errno_exit("VIDIOC_QBUF");
                 break;
         }
@@ -197,7 +218,7 @@ int read_frame(void)
         return 1;
 }
 
-void update(void)
+void update(video4LinuxFreeFrameGLData *current)
 {
 
     for (;;)
@@ -207,13 +228,13 @@ void update(void)
             int r;
 
             FD_ZERO(&fds);
-            FD_SET(fd, &fds);
+            FD_SET(current->fd, &fds);
 
             /* Timeout. */
             tv.tv_sec = 2;
             tv.tv_usec = 0;
 
-            r = select(fd + 1, &fds, NULL, NULL, &tv);
+            r = select(current->fd + 1, &fds, NULL, NULL, &tv);
 
             if (-1 == r) {
                     if (EINTR == errno)
@@ -226,7 +247,7 @@ void update(void)
                     exit(EXIT_FAILURE);
             }
 
-            if (read_frame())
+            if (read_frame(current))
                     break;
             /* EAGAIN - continue select loop. */
     }
@@ -235,24 +256,26 @@ void update(void)
 }
 
 
-void *update_thread(void *)
+void *update_thread(void *c)
 {
+    video4LinuxFreeFrameGLData *current = (video4LinuxFreeFrameGLData *) c;
+
     for(;;) {
 
-        update();
+        update(current);
 
-        if (stop)
+        if (current->stop)
             break;
     }
 
     return 0;
 }
 
-void stop_capturing(void)
+bool stop_capturing(video4LinuxFreeFrameGLData *current)
 {
         enum v4l2_buf_type type;
 
-        switch (io) {
+        switch (current->io) {
         case IO_METHOD_READ:
                 /* Nothing to do. */
                 break;
@@ -260,24 +283,25 @@ void stop_capturing(void)
         case IO_METHOD_MMAP:
         case IO_METHOD_USERPTR:
                 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-                if (-1 == xioctl(fd, VIDIOC_STREAMOFF, &type))
-                        errno_exit("VIDIOC_STREAMOFF");
+                if (-1 == xioctl(current->fd, VIDIOC_STREAMOFF, &type))
+                    return false;
                 break;
         }
+        return true;
 }
 
-void start_capturing(void)
+bool start_capturing(video4LinuxFreeFrameGLData *current)
 {
         unsigned int i;
         enum v4l2_buf_type type;
 
-        switch (io) {
+        switch (current->io) {
         case IO_METHOD_READ:
                 /* Nothing to do. */
                 break;
 
         case IO_METHOD_MMAP:
-                for (i = 0; i < n_buffers; ++i) {
+                for (i = 0; i < current->n_buffers; ++i) {
                         struct v4l2_buffer buf;
 
                         CLEAR(buf);
@@ -285,82 +309,88 @@ void start_capturing(void)
                         buf.memory = V4L2_MEMORY_MMAP;
                         buf.index = i;
 
-                        if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
+                        if (-1 == xioctl(current->fd, VIDIOC_QBUF, &buf))
                                 errno_exit("VIDIOC_QBUF");
                 }
                 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-                if (-1 == xioctl(fd, VIDIOC_STREAMON, &type))
-                        errno_exit("VIDIOC_STREAMON");
+                if (-1 == xioctl(current->fd, VIDIOC_STREAMON, &type))
+                    return false;
                 break;
 
         case IO_METHOD_USERPTR:
-                for (i = 0; i < n_buffers; ++i) {
+                for (i = 0; i < current->n_buffers; ++i) {
                         struct v4l2_buffer buf;
 
                         CLEAR(buf);
                         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                         buf.memory = V4L2_MEMORY_USERPTR;
                         buf.index = i;
-                        buf.m.userptr = (unsigned long)buffers[i].start;
-                        buf.length = buffers[i].length;
+                        buf.m.userptr = (unsigned long)current->buffers[i].start;
+                        buf.length = current->buffers[i].length;
 
-                        if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
-                                errno_exit("VIDIOC_QBUF");
+                        if (-1 == xioctl(current->fd, VIDIOC_QBUF, &buf))
+                            return false;
                 }
                 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-                if (-1 == xioctl(fd, VIDIOC_STREAMON, &type))
-                        errno_exit("VIDIOC_STREAMON");
+                if (-1 == xioctl(current->fd, VIDIOC_STREAMON, &type))
+                    return false;
                 break;
         }
+
+        return true;
 }
 
-void uninit_device(void)
+bool uninit_device(video4LinuxFreeFrameGLData *current)
 {
         unsigned int i;
 
-        switch (io) {
+        switch (current->io) {
         case IO_METHOD_READ:
-                free(buffers[0].start);
+                free(current->buffers[0].start);
                 break;
 
         case IO_METHOD_MMAP:
-                for (i = 0; i < n_buffers; ++i)
-                        if (-1 == munmap(buffers[i].start, buffers[i].length))
-                                errno_exit("munmap");
+                for (i = 0; i < current->n_buffers; ++i)
+                        if (-1 == munmap(current->buffers[i].start, current->buffers[i].length))
+                            return false;
                 break;
 
         case IO_METHOD_USERPTR:
-                for (i = 0; i < n_buffers; ++i)
-                        free(buffers[i].start);
+                for (i = 0; i < current->n_buffers; ++i)
+                        free(current->buffers[i].start);
                 break;
         }
 
-        free(buffers);
-        free(_glbuffer[0]);
-        free(_glbuffer[1]);
+        free(current->buffers);
+        free(current->_glbuffer[0]);
+        free(current->_glbuffer[1]);
 
-        v4lconvert_destroy(m_convertData);
+        v4lconvert_destroy(current->m_convertData);
+
+        return true;
 }
 
-void init_read(unsigned int buffer_size)
+bool init_read(unsigned int buffer_size, video4LinuxFreeFrameGLData *current)
 {
-        buffers = (buffer *) calloc(1, sizeof(*buffers));
+        current->buffers = (buffer *) calloc(1, sizeof(*(current->buffers)));
 
-        if (!buffers) {
+        if (!current->buffers) {
                 fprintf(stderr, "Out of memory\n");
-                exit(EXIT_FAILURE);
+                return false;
         }
 
-        buffers[0].length = buffer_size;
-        buffers[0].start = malloc(buffer_size);
+        current->buffers[0].length = buffer_size;
+        current->buffers[0].start = malloc(buffer_size);
 
-        if (!buffers[0].start) {
+        if (!current->buffers[0].start) {
                 fprintf(stderr, "Out of memory\n");
-                exit(EXIT_FAILURE);
+                return false;
         }
+
+        return true;
 }
 
-void init_mmap(void)
+bool init_mmap(video4LinuxFreeFrameGLData *current)
 {
         struct v4l2_requestbuffers req;
 
@@ -370,54 +400,54 @@ void init_mmap(void)
         req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         req.memory = V4L2_MEMORY_MMAP;
 
-        if (-1 == xioctl(fd, VIDIOC_REQBUFS, &req)) {
+        if (-1 == xioctl(current->fd, VIDIOC_REQBUFS, &req)) {
                 if (EINVAL == errno) {
-                        fprintf(stderr, "%s does not support memory mapping\n", dev_name);
-                        exit(EXIT_FAILURE);
-                } else {
-                        errno_exit("VIDIOC_REQBUFS");
+                        fprintf(stderr, "%s does not support memory mapping\n", current->dev_name);
                 }
+                return false;
         }
 
         if (req.count < 2) {
-                fprintf(stderr, "Insufficient buffer memory on %s\n", dev_name);
-                exit(EXIT_FAILURE);
+                fprintf(stderr, "Insufficient buffer memory on %s\n", current->dev_name);
+                return false;
         }
 
-        buffers = (buffer *) calloc(req.count, sizeof(*buffers));
+        current->buffers = (buffer *) calloc(req.count, sizeof(*(current->buffers)));
 
-        if (!buffers) {
+        if (!current->buffers) {
                 fprintf(stderr, "Out of memory\n");
-                exit(EXIT_FAILURE);
+                return false;
         }
 
-        for (n_buffers = 0; n_buffers < req.count; ++n_buffers) {
+        for (current->n_buffers = 0; current->n_buffers < req.count; ++current->n_buffers) {
                 struct v4l2_buffer buf;
 
                 CLEAR(buf);
 
                 buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 buf.memory      = V4L2_MEMORY_MMAP;
-                buf.index       = n_buffers;
+                buf.index       = current->n_buffers;
 
-                if (-1 == xioctl(fd, VIDIOC_QUERYBUF, &buf))
-                        errno_exit("VIDIOC_QUERYBUF");
+                if (-1 == xioctl(current->fd, VIDIOC_QUERYBUF, &buf))
+                    return false;
 
-                buffers[n_buffers].length = buf.length;
-                buffers[n_buffers].start =
+                current->buffers[current->n_buffers].length = buf.length;
+                current->buffers[current->n_buffers].start =
                         mmap(NULL /* start anywhere */,
                               buf.length,
                               PROT_READ | PROT_WRITE /* required */,
                               MAP_SHARED /* recommended */,
-                              fd, buf.m.offset);
+                              current->fd, buf.m.offset);
 
-                if (MAP_FAILED == buffers[n_buffers].start)
-                        errno_exit("mmap");
+                if (MAP_FAILED == current->buffers[current->n_buffers].start)
+                    return false;
                     // TODO unmap and free if not exit
         }
+
+        return true;
 }
 
-void init_userp(unsigned int buffer_size)
+bool init_userp(unsigned int buffer_size, video4LinuxFreeFrameGLData *current)
 {
         struct v4l2_requestbuffers req;
 
@@ -427,36 +457,37 @@ void init_userp(unsigned int buffer_size)
         req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         req.memory = V4L2_MEMORY_USERPTR;
 
-        if (-1 == xioctl(fd, VIDIOC_REQBUFS, &req)) {
+        if (-1 == xioctl(current->fd, VIDIOC_REQBUFS, &req)) {
                 if (EINVAL == errno) {
-                        fprintf(stderr, "%s does not support user pointer i/o\n", dev_name);
-                        exit(EXIT_FAILURE);
-                } else {
-                        errno_exit("VIDIOC_REQBUFS");
+                        fprintf(stderr, "%s does not support user pointer i/o\n", current->dev_name);
                 }
+
+                return false;
         }
 
-        buffers = (buffer *) calloc(4, sizeof(*buffers));
+        current->buffers = (buffer *) calloc(4, sizeof(*(current->buffers)));
 
-        if (!buffers) {
+        if (!current->buffers) {
                 fprintf(stderr, "Out of memory\n");
-                exit(EXIT_FAILURE);
+                return false;
         }
 
-        for (n_buffers = 0; n_buffers < 4; ++n_buffers) {
-                buffers[n_buffers].length = buffer_size;
-                buffers[n_buffers].start = malloc(buffer_size);
+        for (current->n_buffers = 0; current->n_buffers < 4; ++current->n_buffers) {
+                current->buffers[current->n_buffers].length = buffer_size;
+                current->buffers[current->n_buffers].start = malloc(buffer_size);
 
-                if (!buffers[n_buffers].start) {
+                if (!current->buffers[current->n_buffers].start) {
                         fprintf(stderr, "Out of memory\n");
-                        exit(EXIT_FAILURE);
+                        return false;
                 }
         }
 
         fprintf(stderr, "init userp %d x %d \n", 4, buffer_size);
+
+        return true;
 }
 
-void init_device(void)
+bool init_device(video4LinuxFreeFrameGLData *current)
 {
         struct v4l2_capability cap;
         struct v4l2_cropcap cropcap;
@@ -464,33 +495,31 @@ void init_device(void)
         struct v4l2_format fmt;
         unsigned int min;
 
-        if (-1 == xioctl(fd, VIDIOC_QUERYCAP, &cap)) {
+        if (-1 == xioctl(current->fd, VIDIOC_QUERYCAP, &cap)) {
                 if (EINVAL == errno) {
-                        fprintf(stderr, "%s is no V4L2 device\n", dev_name);
-                        exit(EXIT_FAILURE);
-                } else {
-                        errno_exit("VIDIOC_QUERYCAP");
+                        fprintf(stderr, "%s is no V4L2 device\n", current->dev_name);
                 }
+                return false;
         }
 
         if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-                fprintf(stderr, "%s is no video capture device\n", dev_name);
-                exit(EXIT_FAILURE);
+                fprintf(stderr, "%s is no video capture device\n", current->dev_name);
+                return false;
         }
 
-        switch (io) {
+        switch (current->io) {
         case IO_METHOD_READ:
                 if (!(cap.capabilities & V4L2_CAP_READWRITE)) {
-                        fprintf(stderr, "%s does not support read i/o\n",   dev_name);
-                        exit(EXIT_FAILURE);
+                        fprintf(stderr, "%s does not support read i/o\n", current->dev_name);
+                        return false;
                 }
                 break;
 
         case IO_METHOD_MMAP:
         case IO_METHOD_USERPTR:
                 if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
-                        fprintf(stderr, "%s does not support streaming i/o\n",  dev_name);
-                        exit(EXIT_FAILURE);
+                        fprintf(stderr, "%s does not support streaming i/o\n",  current->dev_name);
+                        return false;
                 }
                 break;
         }
@@ -503,11 +532,11 @@ void init_device(void)
 
         cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-        if (0 == xioctl(fd, VIDIOC_CROPCAP, &cropcap)) {
+        if (0 == xioctl(current->fd, VIDIOC_CROPCAP, &cropcap)) {
                 crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 crop.c = cropcap.defrect; /* reset to default */
 
-                if (-1 == xioctl(fd, VIDIOC_S_CROP, &crop)) {
+                if (-1 == xioctl(current->fd, VIDIOC_S_CROP, &crop)) {
                         switch (errno) {
                         case EINVAL:
                                 /* Cropping not supported. */
@@ -525,19 +554,19 @@ void init_device(void)
         CLEAR(fmt);
 
         fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        if (force_format) {
+        if (current->force_format) {
                 fmt.fmt.pix.width       = 320;
                 fmt.fmt.pix.height      = 240;
                 fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
-//                fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
+//                current->fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
 
-                if (-1 == xioctl(fd, VIDIOC_S_FMT, &fmt))
-                        errno_exit("VIDIOC_S_FMT");
+                if (-1 == xioctl(current->fd, VIDIOC_S_FMT, &fmt))
+                    return false;
                 /* Note VIDIOC_S_FMT may change width and height. */
         } else {
                 /* Preserve original settings as set by v4l2-ctl for example */
-                if (-1 == xioctl(fd, VIDIOC_G_FMT, &fmt))
-                        errno_exit("VIDIOC_G_FMT");
+                if (-1 == xioctl(current->fd, VIDIOC_G_FMT, &fmt))
+                    return false;
         }
 
         /* Buggy driver paranoia. */
@@ -548,81 +577,85 @@ void init_device(void)
         if (fmt.fmt.pix.sizeimage < min)
                 fmt.fmt.pix.sizeimage = min;
 
-        width = fmt.fmt.pix.width;
-        height = fmt.fmt.pix.height;
+        current->width = fmt.fmt.pix.width;
+        current->height = fmt.fmt.pix.height;
 
-        switch (io) {
+        switch (current->io) {
         case IO_METHOD_READ:
-                init_read(fmt.fmt.pix.sizeimage);
+                init_read(fmt.fmt.pix.sizeimage, current);
                 break;
 
         case IO_METHOD_MMAP:
-                init_mmap();
+                init_mmap(current);
                 break;
 
         case IO_METHOD_USERPTR:
-                init_userp(fmt.fmt.pix.sizeimage);
+                init_userp(fmt.fmt.pix.sizeimage,current);
                 break;
         }
 
         fprintf(stderr, "v4lconvert_create\n");
 
-        m_convertData = v4lconvert_create(fd);
+        current->m_convertData = v4lconvert_create(current->fd);
 
-        m_capSrcFormat = fmt;
-        m_capDestFormat = fmt;
-        m_capDestFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+        current->m_capSrcFormat = fmt;
+        current->m_capDestFormat = fmt;
+        current->m_capDestFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
 
 
         fprintf(stderr, "v4lconvert_try_format\n");
         int err = 0;
-        err = v4lconvert_try_format(m_convertData, &m_capDestFormat, &m_capSrcFormat);
+        err = v4lconvert_try_format(current->m_convertData, &(current->m_capDestFormat), &(current->m_capSrcFormat));
         if (err == -1)
-                errno_exit(v4lconvert_get_error_message(m_convertData));
+            return false;
 
-        fprintf(stderr, "malloc %d ", m_capDestFormat.fmt.pix.sizeimage);
-        _glbuffer[0] = (unsigned char *) malloc(m_capDestFormat.fmt.pix.sizeimage);
-        _glbuffer[1] = (unsigned char *) malloc(m_capDestFormat.fmt.pix.sizeimage);
+        fprintf(stderr, "malloc %d ", current->m_capDestFormat.fmt.pix.sizeimage);
+        current->_glbuffer[0] = (unsigned char *) malloc(current->m_capDestFormat.fmt.pix.sizeimage);
+        current->_glbuffer[1] = (unsigned char *) malloc(current->m_capDestFormat.fmt.pix.sizeimage);
 
-        fprintf(stderr, "init_device %d x %d : ", width, height);
+        fprintf(stderr, "init_device %d x %d : ", current->width, current->height);
         fprintf(stderr, " convert pixelformat  %c%c%c%c ",
                                         fmt.fmt.pix.pixelformat & 0xFF, (fmt.fmt.pix.pixelformat >> 8) & 0xFF,
                                         (fmt.fmt.pix.pixelformat >> 16) & 0xFF, (fmt.fmt.pix.pixelformat >> 24) & 0xFF);
         fprintf(stderr, " to  %c%c%c%c \n",
-                                        m_capDestFormat.fmt.pix.pixelformat & 0xFF, (m_capDestFormat.fmt.pix.pixelformat >> 8) & 0xFF,
-                                        (m_capDestFormat.fmt.pix.pixelformat >> 16) & 0xFF, (m_capDestFormat.fmt.pix.pixelformat >> 24) & 0xFF);
+                                        current->m_capDestFormat.fmt.pix.pixelformat & 0xFF, (current->m_capDestFormat.fmt.pix.pixelformat >> 8) & 0xFF,
+                                        (current->m_capDestFormat.fmt.pix.pixelformat >> 16) & 0xFF, (current->m_capDestFormat.fmt.pix.pixelformat >> 24) & 0xFF);
 
 
+        return true;
 }
 
-void close_device(void)
+bool close_device(video4LinuxFreeFrameGLData *current)
 {
-        if (-1 == close(fd))
-                errno_exit("close");
+    if (-1 == close(current->fd))
+        return false;
 
-        fd = -1;
+    current->fd = -1;
+
+    return true;
 }
 
-void open_device(void)
+bool open_device(video4LinuxFreeFrameGLData *current)
 {
-        struct stat st;
+    struct stat st;
 
-        if (-1 == stat(dev_name, &st)) {
-                fprintf(stderr, "Cannot identify '%s': %d, %s\n",  dev_name, errno, strerror(errno));
-                exit(EXIT_FAILURE);
-        }
+    if (-1 == stat(current->dev_name, &st)) {
+            fprintf(stderr, "Cannot identify '%s': %d, %s\n",  current->dev_name, errno, strerror(errno));
+            return false;
+    }
 
-        if (!S_ISCHR(st.st_mode)) {
-                fprintf(stderr, "%s is no device\n", dev_name);
-                exit(EXIT_FAILURE);
-        }
+    if (!S_ISCHR(st.st_mode)) {
+            fprintf(stderr, "%s is no device\n", current->dev_name);
+            return false;
+    }
 
-        fd = open(dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
+    current->fd = open(current->dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
 
-        if (-1 == fd) {
-                fprintf(stderr, "Cannot open '%s': %d, %s\n", dev_name, errno, strerror(errno));
-                exit(EXIT_FAILURE);
-        }
+    if (-1 == current->fd) {
+            fprintf(stderr, "Cannot open '%s': %d, %s\n", current->dev_name, errno, strerror(errno));
+            return false;
+    }
+    return true;
 }
 
 
@@ -651,13 +684,15 @@ static CFFGLPluginInfo PluginInfo (
 video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
 : CFreeFrameGLPlugin()
 {
+    data = new video4LinuxFreeFrameGLData;
+
 	// Input properties
     SetMinInputs(0);
     SetMaxInputs(0);
 
     // Parameters
     SetParamInfo(FFPARAM_DEVICE, "Device", FF_TYPE_TEXT, "/dev/video0");
-    sprintf(dev_name, "/dev/video0");
+    sprintf(data->dev_name, "/dev/video0");
 }
 
 
@@ -673,34 +708,8 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
 #endif
 {
 
-    open_device();
-    init_device();
-    start_capturing();
-
-
     glEnable(GL_TEXTURE);
     glActiveTexture(GL_TEXTURE0);
-
-    glGenTextures(1, &textureIndex);
-    glBindTexture(GL_TEXTURE_2D, textureIndex);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    read_buffer = 0;
-    draw_buffer = 0;
-    update();
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, _glbuffer[read_buffer]);
-
-    // Start the update thread
-    stop = false;
-    draw_buffer = 1;
-    int rc = pthread_create( &thread, NULL, &update_thread, NULL);
-    if( rc != 0 )
-    {
-       fprintf(stderr,"Thread creation failed: %d\n", rc);
-    }
 
     return FF_SUCCESS;
 }
@@ -715,13 +724,14 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
 #endif
 {
 
-    stop = true;
+    if (! data->stop) {
+        data->stop = true;
+        pthread_join( data->thread, NULL );
 
-    pthread_join( thread, NULL );
-
-    stop_capturing();
-    uninit_device();
-    close_device();
+        stop_capturing(data);
+        uninit_device(data);
+        close_device(data);
+    }
 
     return FF_SUCCESS;
 }
@@ -746,52 +756,55 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
     FFResult video4LinuxFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
+  glClear(GL_COLOR_BUFFER_BIT );
+
+  if (!data->stop) {
+
+      glEnable(GL_TEXTURE_2D);
+      glBindTexture(GL_TEXTURE_2D, data->textureIndex);
 
 
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, textureIndex);
+      pthread_mutex_lock( &(data->mutex) );
+      // get a new frame
+      GLuint tmp = data->read_buffer;
+      pthread_mutex_unlock( &(data->mutex) );
 
 
-  pthread_mutex_lock( &mutex );
-  // get a new frame
-  GLuint tmp = read_buffer;
-  pthread_mutex_unlock( &mutex );
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->width, data->height, GL_RGB, GL_UNSIGNED_BYTE, data->_glbuffer[tmp]);
 
 
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, _glbuffer[tmp]);
+      //modulate texture colors with white (just show
+      //the texture colors as they are)
+      glColor4f(1.f, 1.f, 1.f, 1.f);
+      //(default texturemapping behavior of OpenGL is to
+      //multiply texture colors by the current gl color)
 
+      glBegin(GL_QUADS);
 
-  //modulate texture colors with white (just show
-  //the texture colors as they are)
-  glColor4f(1.f, 1.f, 1.f, 1.f);
-  //(default texturemapping behavior of OpenGL is to
-  //multiply texture colors by the current gl color)
-  
-  glBegin(GL_QUADS);
+      //lower left
+      glTexCoord2d(0.0, 0.0);
+      glVertex2f(-1.0,-1);
 
-  //lower left
-  glTexCoord2d(0.0, 0.0);
-  glVertex2f(-1.0,-1);
+      //upper left
+      glTexCoord2d(0.0, 1.0);
+      glVertex2f(-1,1);
 
-  //upper left
-  glTexCoord2d(0.0, 1.0);
-  glVertex2f(-1,1);
+      //upper right
+      glTexCoord2d(1.0, 1.0);
+      glVertex2f(1,1);
 
-  //upper right
-  glTexCoord2d(1.0, 1.0);
-  glVertex2f(1,1);
+      //lower right
+      glTexCoord2d(1.0, 0.0);
+      glVertex2f(1,-1);
+      glEnd();
 
-  //lower right
-  glTexCoord2d(1.0, 0.0);
-  glVertex2f(1,-1);
-  glEnd();
+      //unbind the texture
+      glBindTexture(GL_TEXTURE_2D, 0);
 
-  //unbind the texture
-  glBindTexture(GL_TEXTURE_2D, 0);
+      //disable texturemapping
+      glDisable(GL_TEXTURE_2D);
 
-  //disable texturemapping
-  glDisable(GL_TEXTURE_2D);
-
+  }
 
   return FF_SUCCESS;
 }
@@ -806,9 +819,48 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
 {
     if (index == FFPARAM_DEVICE) {
 
-        if (stop)
-            sprintf(dev_name, "%s", value);
+        fprintf(stderr,"changing for device : %s\n", value);
+
         // TODO : stop and restart plugin if already running
+        if (! data->stop) {
+            data->stop = true;
+            pthread_join( data->thread, NULL );
+
+            if (stop_capturing(data))
+                if (uninit_device(data))
+                    close_device(data);
+        }
+
+        sprintf(data->dev_name, "%s", value);
+
+        if (open_device(data) && init_device(data) && start_capturing(data) ) {
+
+            if (data->textureIndex != 0)
+                glDeleteTextures(1, &(data->textureIndex));
+
+            glGenTextures(1, &(data->textureIndex));
+            glBindTexture(GL_TEXTURE_2D, data->textureIndex);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+            data->read_buffer = 0;
+            data->draw_buffer = 0;
+            update( data);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, data->width, data->height, 0, GL_RGB, GL_UNSIGNED_BYTE, data->_glbuffer[data->read_buffer]);
+
+            // start capturing thread
+            data->stop = false;
+            data->draw_buffer = 1;
+            int rc = pthread_create( &(data->thread), NULL, &update_thread, (void *) data);
+            if( rc != 0 )
+               fprintf(stderr,"Thread creation failed: %d\n", rc);
+
+        }
+        else
+            fprintf(stderr,"Failed to open: %s\n", value);
+
 
         return FF_SUCCESS;
     }
@@ -820,7 +872,7 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
 char* video4LinuxFreeFrameGL::GetTextParameter(unsigned int index)
 {
     if (index == FFPARAM_DEVICE)
-        return dev_name;
+        return data->dev_name;
 
     return (char *)FF_FAIL;
 }

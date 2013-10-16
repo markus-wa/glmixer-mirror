@@ -51,6 +51,8 @@ public:
 protected:
     // Time
     double m_curTime;
+
+    class video4LinuxFreeFrameGLData *data;
 };
 
 
