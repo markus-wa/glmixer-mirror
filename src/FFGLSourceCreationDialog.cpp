@@ -9,6 +9,9 @@
 #include "FFGLSource.h"
 #include "glmixer.h"
 
+
+#define MAX_RECENT_PLUGINS 10
+
 FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *settings) :
     QDialog(parent), ui(new Ui::FFGLSourceCreationDialog), s(NULL), appSettings(settings)
 {
@@ -24,9 +27,12 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
 
     // restore settings
     ui->pluginFileList->addItem("");
-    if (appSettings && appSettings->contains("recentFFGLPluginsList"))
-        ui->pluginFileList->addItems(appSettings->value("recentFFGLPluginsList").toStringList());
-
+    if (appSettings) {
+        if (appSettings->contains("recentFFGLPluginsList"))
+            ui->pluginFileList->addItems(appSettings->value("recentFFGLPluginsList").toStringList());
+        if (appSettings->contains("FFGLDialogLayout"))
+            ui->splitter->restoreState(appSettings->value("FFGLDialogLayout").toByteArray());
+    }
 }
 
 
@@ -63,9 +69,11 @@ void FFGLSourceCreationDialog::done(int r){
 
     if (appSettings) {
         QStringList l;
-        for ( int i = 1; i < ui->pluginFileList->count(); ++i )
+        for ( int i = 1; i < ui->pluginFileList->count() && i < MAX_RECENT_PLUGINS; ++i )
             l.append(ui->pluginFileList->itemText(i));
         appSettings->setValue("recentFFGLPluginsList", l);
+
+        appSettings->setValue("FFGLDialogLayout", ui->splitter->saveState());
     }
 
     QDialog::done(r);
@@ -150,9 +158,20 @@ void FFGLSourceCreationDialog::browse() {
 
     // if a file was selected
     if (!fileName.isEmpty()) {
-        // add the filename to the pluginFileList
-        ui->pluginFileList->insertItem(1, fileName);
-        ui->pluginFileList->setCurrentIndex(1);
+        // try to find the file in the recent plugins list
+        int i = 1;
+        for ( ; i < ui->pluginFileList->count(); ++i )
+            if ( ui->pluginFileList->itemText(i) == fileName ) {
+                // found it; use that entry
+                ui->pluginFileList->setCurrentIndex(i);
+                break;
+            }
+        // if the fileName was not found
+        if ( i == ui->pluginFileList->count() ) {
+            // add the filename to the pluginFileList
+            ui->pluginFileList->insertItem(1, fileName);
+            ui->pluginFileList->setCurrentIndex(1);
+        }
     }
 
 }
