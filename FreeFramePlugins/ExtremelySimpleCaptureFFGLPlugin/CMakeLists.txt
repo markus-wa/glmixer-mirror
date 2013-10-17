@@ -1,6 +1,6 @@
 
 cmake_minimum_required (VERSION 2.6)
-project (LIBFFGLTEST)
+project (LIBESCAPIFFGL)
 
 
 SET(FREEFRAMEGL_DIR_PLUGINS "${FREEFRAMEGL_PATH}/Source/FFGLPlugins/")
@@ -8,7 +8,7 @@ SET(FREEFRAMEGL_DIR_COMMON "${FREEFRAMEGL_PATH}/Source/Common/")
 
 include_directories(${FREEFRAMEGL_DIR_PLUGINS})
 
-set(LIBFFGLTEST_SRCS
+set(LIBESCAPIFFGL_SRCS
     ${FREEFRAMEGL_DIR_COMMON}/FFGLShader.cpp 
     ${FREEFRAMEGL_DIR_COMMON}/FFGLExtensions.cpp 
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginInfo.cpp 
@@ -16,13 +16,15 @@ set(LIBFFGLTEST_SRCS
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGL.cpp 
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginManager.cpp 
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginSDK.cpp
-    FreeFrameTest.cpp
+    escapi.cpp
+    escapiFFGL.cpp
+    escapiFFGL.def
 )
 
-if(WIN32)
-set(LIBFFGLTEST_SRCS ${LIBFFGLTEST_SRCS} FreeFrameTest.def)
-endif(WIN32)
+find_library( PTHREAD_LIBRARY pthread REQUIRED)
 
-add_library (fftest SHARED ${LIBFFGLTEST_SRCS})
+add_library (escapiffgl SHARED ${LIBESCAPIFFGL_SRCS} )
 
-target_link_libraries(fftest ${OPENGL_LIBRARY} ${GLEW_LIBRARY}) 
+target_link_libraries(escapiffgl ${OPENGL_LIBRARY} ${PTHREAD_LIBRARY} ${GLEW_LIBRARY})
+
+

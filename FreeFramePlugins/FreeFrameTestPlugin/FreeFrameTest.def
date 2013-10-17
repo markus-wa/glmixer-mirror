@@ -1,0 +1,2 @@
+LIBRARY libfftest
+EXPORTS plugMain

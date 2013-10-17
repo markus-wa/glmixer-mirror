@@ -29,7 +29,7 @@ static CFFGLPluginInfo PluginInfo (
 FreeFrameTest::FreeFrameTest()
 : CFreeFrameGLPlugin()
 {
-	// Input properties
+    // Input properties
     SetMinInputs(1);
     SetMaxInputs(1);
 

@@ -10,6 +10,8 @@ add_subdirectory(FreeFrameDelayPlugin)
 # platofm specific plugins
 if(WIN32)
 
+    add_subdirectory(ExtremelySimpleCaptureFFGLPlugin)
+
 else(WIN32)
 
     if(APPLE)
