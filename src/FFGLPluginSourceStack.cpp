@@ -77,7 +77,7 @@ void FFGLPluginSourceStack::removePlugin(FFGLPluginSource *p)
 void FFGLPluginSourceStack::clear(){
     while (!isEmpty())
         delete pop();
-    QStack::clear();
+    QStack<FFGLPluginSource *>::clear();
 }
 
 void FFGLPluginSourceStack::bind() const{

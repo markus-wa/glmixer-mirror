@@ -292,8 +292,8 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     }
 
     // load dll plugin
-    if (_plugin->Load(filename.toLatin1().data()) == FF_FAIL){
-        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be loaded");
+    if (_plugin->Load( pluginfile.absoluteFilePath().toLatin1().data()) == FF_FAIL){
+        qWarning()<< pluginfile.absoluteFilePath() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be loaded");
         FFGLPluginException().raise();
     }
 

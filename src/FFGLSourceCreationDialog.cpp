@@ -47,6 +47,7 @@ FFGLSourceCreationDialog::~FFGLSourceCreationDialog()
 
 void FFGLSourceCreationDialog::showEvent(QShowEvent *e){
 
+    ui->pluginFileList->setCurrentIndex(0);
     updateSourcePreview();
 
     QWidget::showEvent(e);
