@@ -1,8 +1,6 @@
 #include <FFGL.h>
 #include <FFGLLib.h>
 
-#include <cmath>
-
 #include "v4lFFGL.h"
 
 
@@ -10,9 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-
 #include <getopt.h>             /* getopt_long() */
-
 #include <fcntl.h>              /* low-level i/o */
 #include <unistd.h>
 #include <errno.h>
@@ -29,6 +25,10 @@
 
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
+
+
+#include "error_image.h"
+
 
 enum io_method {
         IO_METHOD_READ,
@@ -56,6 +56,7 @@ public:
     GLuint draw_buffer;
     GLuint read_buffer;
     GLuint textureIndex;
+    GLuint errorTextureIndex;
     int width;
     int height;
     struct v4lconvert_data *m_convertData;
@@ -75,6 +76,7 @@ public:
         draw_buffer = 0;
         read_buffer = 1;
         textureIndex = 0;
+        errorTextureIndex = 0;
         width = 0;
         height = 0;
         mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -696,6 +698,11 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
     sprintf(data->dev_name, "/dev/video0");
 }
 
+video4LinuxFreeFrameGL::~video4LinuxFreeFrameGL()
+{
+    delete data;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
@@ -711,6 +718,13 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
 
     glEnable(GL_TEXTURE);
     glActiveTexture(GL_TEXTURE0);
+
+    glGenTextures(1, &(data->errorTextureIndex));
+    glBindTexture(GL_TEXTURE_2D, data->errorTextureIndex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, error_image.width, error_image.height, 0,
+                                   GL_RGBA, GL_UNSIGNED_BYTE,(GLvoid*) error_image.pixel_data);
 
     return FF_SUCCESS;
 }
@@ -759,11 +773,9 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
 {
   glClear(GL_COLOR_BUFFER_BIT );
 
+  glEnable(GL_TEXTURE_2D);
+
   if (!data->stop) {
-
-      glEnable(GL_TEXTURE_2D);
-      glBindTexture(GL_TEXTURE_2D, data->textureIndex);
-
 
       pthread_mutex_lock( &(data->mutex) );
       // get a new frame
@@ -771,8 +783,14 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
       pthread_mutex_unlock( &(data->mutex) );
 
 
+      glBindTexture(GL_TEXTURE_2D, data->textureIndex);
       glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->width, data->height, GL_RGB, GL_UNSIGNED_BYTE, data->_glbuffer[tmp]);
 
+  } else {
+
+      glBindTexture(GL_TEXTURE_2D, data->errorTextureIndex);
+
+  }
 
       //modulate texture colors with white (just show
       //the texture colors as they are)
@@ -802,10 +820,11 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
       //unbind the texture
       glBindTexture(GL_TEXTURE_2D, 0);
 
-      //disable texturemapping
-      glDisable(GL_TEXTURE_2D);
 
-  }
+
+
+  //disable texturemapping
+  glDisable(GL_TEXTURE_2D);
 
   return FF_SUCCESS;
 }
@@ -860,8 +879,7 @@ video4LinuxFreeFrameGL::video4LinuxFreeFrameGL()
 
         }
         else
-            fprintf(stderr,"Failed to open: %s\n", value);
-
+            printf("Failed to open: %s\n", value);
 
         return FF_SUCCESS;
     }

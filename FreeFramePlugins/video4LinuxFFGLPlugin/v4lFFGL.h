@@ -7,7 +7,7 @@ class video4LinuxFreeFrameGL : public CFreeFrameGLPlugin
 {
 public:
     video4LinuxFreeFrameGL();
-    virtual ~video4LinuxFreeFrameGL() {}
+    virtual ~video4LinuxFreeFrameGL();
 
 	///////////////////////////////////////////////////
 	// FreeFrame plugin methods

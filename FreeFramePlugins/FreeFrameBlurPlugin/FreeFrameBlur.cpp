@@ -1,6 +1,6 @@
 
 #include <GL/glew.h>
-
+#define APIENTRY
 #include <FFGL.h>
 #include <FFGLLib.h>
 #include <stdio.h>
