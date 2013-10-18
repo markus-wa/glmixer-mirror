@@ -1,11 +1,11 @@
 #include <FFGL.h>
 #include <FFGLLib.h>
 
-#include <cmath>
+#include <stdio.h>
 
 #include "FreeFrameDelay.h"
 
-#define FFPARAM_DELAY 1.0
+#define FFPARAM_DELAY (0)
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ FreeFrameDelay::FreeFrameDelay()
     SetTimeSupported(true);
 
     // Parameters
-    SetParamInfo(FFPARAM_DELAY, "Delay", FF_TYPE_STANDARD, 0.5f);
+    SetParamInfo(FFPARAM_DELAY, "Delay", FF_TYPE_STANDARD, "0.5");
     delay = 0.5f;
 }
 
@@ -54,6 +54,8 @@ FreeFrameDelay::FreeFrameDelay()
     FFResult FreeFrameDelay::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
+
+//        fprintf(stderr, "init Plugin %d x %d \n", vp->width, vp->height);
 
     return FF_SUCCESS;
 }
@@ -146,25 +148,47 @@ FreeFrameDelay::FreeFrameDelay()
 
 #ifdef FF_FAIL
     // FFGL 1.5
-    DWORD	FreeFrameDelay::SetFloatParameter(unsigned int index, float value)
+    DWORD FreeFrameDelay::SetParameter(const SetParameterStruct* pParam)
+    {
+        if (pParam != NULL && pParam->ParameterNumber == FFPARAM_DELAY) {
+            delay = *((float *)(unsigned)&(pParam->NewParameterValue));
+            return FF_SUCCESS;
+        }
+
+        return FF_FAIL;
+    }
+
+    DWORD FreeFrameDelay::GetParameter(DWORD index)
+    {
+        DWORD dwRet = FF_FAIL;
+
+        if (index == FFPARAM_DELAY)
+            *((float *)(unsigned)&dwRet) = delay;
+
+        return dwRet;
+    }
+
 #else
     // FFGL 1.6
     FFResult FreeFrameDelay::SetFloatParameter(unsigned int index, float value)
-#endif
-{
-    if (index == FFPARAM_DELAY) {
-        delay = value;
-        return FF_SUCCESS;
+    {
+        if (index == FFPARAM_DELAY) {
+            delay = value;
+            return FF_SUCCESS;
+        }
+
+        return FF_FAIL;
     }
 
-    return FF_FAIL;
-}
+    float FreeFrameDelay::GetFloatParameter(unsigned int index)
+    {
+        if (index == FFPARAM_DELAY)
+            return delay;
+
+        return 0.0;
+    }
+#endif
 
 
-float FreeFrameDelay::GetFloatParameter(unsigned int index)
-{
-    if (index == FFPARAM_DELAY)
-        return delay;
 
-    return 0.0;
-}
+

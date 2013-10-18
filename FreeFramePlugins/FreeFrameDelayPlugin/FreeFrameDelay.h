@@ -18,7 +18,8 @@ public:
     DWORD   SetTime(double time);
     DWORD   InitGL(const FFGLViewportStruct *vp);
     DWORD   DeInitGL();
-    DWORD	SetFloatParameter(unsigned int index, float value);
+    DWORD	SetParameter(const SetParameterStruct* pParam);
+    DWORD	GetParameter(DWORD dwIndex);
 #else
     // FFGL 1.6
     FFResult    ProcessOpenGL(ProcessOpenGLStruct* pGL);
@@ -26,9 +27,9 @@ public:
     FFResult    InitGL(const FFGLViewportStruct *vp);
     FFResult    DeInitGL();
     FFResult	SetFloatParameter(unsigned int index, float value);
+    float		GetFloatParameter(unsigned int index);
 #endif
 
-    float		GetFloatParameter(unsigned int index);
 	///////////////////////////////////////////////////
 	// Factory method
 	///////////////////////////////////////////////////
