@@ -39,7 +39,7 @@ void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int heigh
         this->push(ffgl_plugin);
     }
     catch (FFGLPluginException &e)  {
-        qCritical() << filename << QChar(124).toLatin1()<< e.message();
+        qCritical() << filename << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
     }
     catch (...)  {
         qCritical() << filename << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
@@ -94,8 +94,11 @@ void FFGLPluginSourceStack::update(){
             ++it;
         }
         catch (FFGLPluginException &e) {
-            qCritical() << (*it)->fileName() << QChar(124).toLatin1() <<  e.message() << QObject::tr("\nThe plugin was removed after a crash");
-            it = erase(it);
+            // error on the plugin update : remove it
+            qCritical() << (*it)->fileName() << QChar(124).toLatin1() <<  e.message() << QObject::tr("\nThe plugin was removed.");
+            removePlugin(*it);
+            // the loop should be restarted as the linking of textures may have changed
+            it = begin();
         }
     }
 

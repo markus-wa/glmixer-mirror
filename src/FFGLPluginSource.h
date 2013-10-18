@@ -10,7 +10,7 @@
 
 class FFGLPluginException : public QtConcurrent::Exception {
 public:
-    virtual QString message() { return QObject::tr("FreeframeGL plugin crashed"); }
+    virtual QString message() { return QObject::tr("FreeframeGL plugin crashed."); }
     void raise() const { throw *this; }
     Exception *clone() const { return new FFGLPluginException(*this); }
 };

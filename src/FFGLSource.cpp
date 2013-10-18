@@ -68,7 +68,12 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
 
     // no exceptions raised, continue with the plugin
     // try to update
-    _plugin->update();
+    try {
+        _plugin->update();
+    }
+    catch (FFGLPluginException &e)  {
+        qCritical() << pluginFileName << QChar(124).toLatin1() << tr("FFGLSource : plugin crashed.");
+    }
 
     // this source behaves like a normal source, except the texture index
     // comes from the plugin's FBO
