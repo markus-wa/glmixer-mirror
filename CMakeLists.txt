@@ -227,7 +227,7 @@ if(USE_FREEFRAMEGL)
         endif(APPLE)
 
         if(WIN32)
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--enable-stdcall-fixup,--kill-at")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--kill-at")
         endif(WIN32)
 
     else(FREEFRAMEGL_INCLUDE)

@@ -18,7 +18,6 @@ set(LIBESCAPIFFGL_SRCS
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginSDK.cpp
     escapi.cpp
     escapiFFGL.cpp
-    escapiFFGL.def
 )
 
 find_library( PTHREAD_LIBRARY pthread REQUIRED)

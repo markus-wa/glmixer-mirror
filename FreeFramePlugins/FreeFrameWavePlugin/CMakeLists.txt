@@ -19,10 +19,6 @@ set(LIBFFGLWAVE_SRCS
     FreeFrameWave.cpp
 )
 
-if(WIN32)
-set(LIBFFGLWAVE_SRCS ${LIBFFGLWAVE_SRCS} FreeFrameWave.def)
-endif(WIN32)
-
 add_library (ffwave SHARED ${LIBFFGLWAVE_SRCS})
 
 target_link_libraries(ffwave ${OPENGL_LIBRARY})

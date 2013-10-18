@@ -19,10 +19,6 @@ set(LIBFFGLTEST_SRCS
     FreeFrameTest.cpp
 )
 
-if(WIN32)
-set(LIBFFGLTEST_SRCS ${LIBFFGLTEST_SRCS} FreeFrameTest.def)
-endif(WIN32)
-
 add_library (fftest SHARED ${LIBFFGLTEST_SRCS})
 
 target_link_libraries(fftest ${OPENGL_LIBRARY})
