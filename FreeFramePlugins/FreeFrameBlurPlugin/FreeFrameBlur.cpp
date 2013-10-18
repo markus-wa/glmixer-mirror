@@ -66,8 +66,8 @@ FreeFrameBlur::FreeFrameBlur()
     SetTimeSupported(true);
 
     // Parameters
-    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, "0.5");
-    blur = 0.5;
+    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, "0.7");
+    blur = 0.7;
     param_changed = true;
 }
 
@@ -149,6 +149,7 @@ FFResult FreeFrameBlur::DeInitGL()
     fbo1.FreeResources(glExtensions);
     fbo2.FreeResources(glExtensions);
 
+    glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
     glDeleteProgram(shaderProgram);
 
@@ -273,7 +274,7 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
   glUseProgram(shaderProgram);
 
   // PASS 1:  horizontal filter
-  glUniform2f(uniform_textureoffset, 1.0 / fbo2.GetTextureInfo().HardwareWidth,  0.0);
+  glUniform2f(uniform_textureoffset, 1.f / (float) fbo2.GetTextureInfo().HardwareWidth,  0.f);
 
   // activate the fbo1 as our render target
   if (!fbo1.BindAsRenderTarget(glExtensions))
@@ -283,7 +284,7 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
   drawQuad( fboViewport, fbo2.GetTextureInfo());
 
   // PASS 2 : vertical
-  glUniform2f(uniform_textureoffset, 0.0,  1.0 / fbo1.GetTextureInfo().HardwareHeight);
+  glUniform2f(uniform_textureoffset, 0.f,  1.f / (float) fbo1.GetTextureInfo().HardwareHeight);
 
   // activate the fbo2 as our render target
   if (!fbo2.BindAsRenderTarget(glExtensions))
