@@ -1400,7 +1400,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 	return config;
 }
 
-void applySourceConfig(Source *newsource, QDomElement child) {
+void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
 
 	QDomElement tmp;
 	newsource->play( child.attribute("playing", "1").toInt() );
@@ -1453,6 +1453,34 @@ void applySourceConfig(Source *newsource, QDomElement child) {
 			tmp.attribute("maxInput", "1").toFloat(),
 			tmp.attribute("minOutput", "0").toFloat(),
 			tmp.attribute("maxOutput", "1").toFloat());
+
+    // apply FreeFrame plugins
+    // start loop of plugins to load
+    QDomElement p = child.firstChildElement("FreeFramePlugin");
+    while (!p.isNull()) {
+#ifdef FFGL
+        QDomElement Filename = p.firstChildElement("Filename");
+        // first reads with the absolute file name
+        QString fileNameToOpen = Filename.text();
+        // if there is no such file, try generate a file name from the relative file name
+        if (!QFileInfo(fileNameToOpen).exists())
+            fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
+        // if there is such a file
+        if (QFileInfo(fileNameToOpen).exists()) {
+            // create and push the plugin to the source
+            newsource->addFreeframeGLPlugin( fileNameToOpen );
+            // apply the configuration
+            newsource->getFreeframeGLPluginStack()->top()->setConfiguration(p);
+        }
+        else {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+        }
+#else
+        qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
+        errors++;
+#endif
+        p = p.nextSiblingElement("FreeFramePlugin");
+    }
 
 }
 
@@ -1674,35 +1702,8 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 			// insert the source in the scene
             if ( insertSource(newsource) ) {
 				// Apply parameters to the created source
-				applySourceConfig(newsource, child);
+                applySourceConfig(newsource, child, current);
 
-                // apply FreeFrame plugins
-                // start loop of plugins to load
-                QDomElement p = child.firstChildElement("FreeFramePlugin");
-                while (!p.isNull()) {
-#ifdef FFGL
-                    QDomElement Filename = p.firstChildElement("Filename");
-                    // first reads with the absolute file name
-                    QString fileNameToOpen = Filename.text();
-                    // if there is no such file, try generate a file name from the relative file name
-                    if (!QFileInfo(fileNameToOpen).exists())
-                        fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
-                    // if there is such a file
-                    if (QFileInfo(fileNameToOpen).exists()) {
-                        // create and push the plugin to the source
-                        newsource->addFreeframeGLPlugin( fileNameToOpen );
-                        // apply the configuration
-                        newsource->getFreeframeGLPluginStack()->top()->setConfiguration(p);
-                    }
-                    else {
-                        qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
-                    }
-#else
-                    qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("FreeframeGL plugin not supported.");
-                    errors++;
-#endif
-                    p = p.nextSiblingElement("FreeFramePlugin");
-                }
             }
             else {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not insert source.");
@@ -1733,7 +1734,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
     		if (clonesource) {
     			renameSource( clonesource, c.attribute("name") );
     			// Apply parameters to the created source
-    			applySourceConfig(clonesource, c);
+                applySourceConfig(clonesource, c, current);
     			// insert the source in the scene
     			if ( !insertSource(clonesource) )
     				delete clonesource;

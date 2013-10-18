@@ -125,9 +125,10 @@ void VideoSource::update()
             // shouldn't update next time unless requested
             frameChanged = false;
 
-            Source::update();
         }
     }
+
+    Source::update();
 }
 
 void VideoSource::updateFrame(int i)

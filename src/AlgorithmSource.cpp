@@ -425,9 +425,9 @@ void AlgorithmSource::update() {
 		_mutex->unlock();
 
         frameChanged = false;
-
-        Source::update();
 	}
+
+    Source::update();
 }
 
 int AlgorithmSource::getFrameWidth() const {

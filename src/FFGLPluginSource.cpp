@@ -373,7 +373,7 @@ void FFGLPluginSource::setInputTextureStruct(FFGLTextureStruct inputTexture)
 
 void FFGLPluginSource::update()
 {
-    if (initialize() && _fbo->bind())
+    if (initialize() && _fbo && _fbo->bind())
     {
         // Safer to push all attribs ; who knows what is done in the puglin ?!!
         // (but slower)
