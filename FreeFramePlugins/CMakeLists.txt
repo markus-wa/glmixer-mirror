@@ -4,6 +4,7 @@ cmake_minimum_required (VERSION 2.6)
 
 # multiplatform plugins
 add_subdirectory(FreeFrameTestPlugin)
+add_subdirectory(FreeFrameWavePlugin)
 add_subdirectory(FreeFrameDelayPlugin)
 
 
