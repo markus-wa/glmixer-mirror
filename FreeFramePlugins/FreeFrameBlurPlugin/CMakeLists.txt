@@ -1,0 +1,25 @@
+
+cmake_minimum_required (VERSION 2.6)
+project (LIBFFGLBLUR)
+
+
+SET(FREEFRAMEGL_DIR_PLUGINS "${FREEFRAMEGL_PATH}/Source/FFGLPlugins/")
+SET(FREEFRAMEGL_DIR_COMMON "${FREEFRAMEGL_PATH}/Source/Common/")
+
+include_directories(${FREEFRAMEGL_DIR_PLUGINS})
+
+set(LIBFFGLBLUR_SRCS
+    ${FREEFRAMEGL_DIR_COMMON}/FFGLShader.cpp
+    ${FREEFRAMEGL_DIR_COMMON}/FFGLExtensions.cpp
+    ${FREEFRAMEGL_DIR_COMMON}/FFGLFBO.cpp
+    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginInfo.cpp 
+    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginInfoData.cpp 
+    ${FREEFRAMEGL_DIR_PLUGINS}/FFGL.cpp 
+    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginManager.cpp 
+    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginSDK.cpp
+    FreeFrameBlur.cpp
+)
+
+add_library (ffblur SHARED ${LIBFFGLBLUR_SRCS})
+
+target_link_libraries(ffblur ${OPENGL_LIBRARY})
