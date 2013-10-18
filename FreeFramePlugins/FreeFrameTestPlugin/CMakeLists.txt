@@ -25,4 +25,4 @@ endif(WIN32)
 
 add_library (fftest SHARED ${LIBFFGLTEST_SRCS})
 
-target_link_libraries(fftest ${OPENGL_LIBRARY} ${GLEW_LIBRARY}) 
+target_link_libraries(fftest ${OPENGL_LIBRARY})

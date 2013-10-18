@@ -25,4 +25,4 @@ endif(WIN32)
 
 add_library (ffwave SHARED ${LIBFFGLWAVE_SRCS})
 
-target_link_libraries(ffwave ${OPENGL_LIBRARY} ${GLEW_LIBRARY}) 
+target_link_libraries(ffwave ${OPENGL_LIBRARY})

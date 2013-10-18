@@ -60,8 +60,8 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # force Linker to link with / without console under Windows
 IF(WIN32)
-SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --enable-auto-import -mingw32 -Wl,-subsystem,console")
-SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --enable-auto-import -mingw32 -Wl,-subsystem,windows")
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}  -mingw32 -Wl,-subsystem,console,--enable-auto-import")
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mingw32 -Wl,-subsystem,windows,--enable-auto-import")
 ENDIF(WIN32)
 
 # defines used by preprocessor to integrate program version and SVN revision into the application
@@ -225,6 +225,10 @@ if(USE_FREEFRAMEGL)
         if(APPLE)
         add_definitions(-DTARGET_OS_MAC)
         endif(APPLE)
+
+        if(WIN32)
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--enable-stdcall-fixup,--kill-at")
+        endif(WIN32)
 
     else(FREEFRAMEGL_INCLUDE)
         message(STATUS "Could not locate FFGL.h in FREEFRAMEGL_PATH : ${FREEFRAMEGL_PATH} ")

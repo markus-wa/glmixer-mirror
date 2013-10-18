@@ -55,7 +55,7 @@ FreeFrameDelay::FreeFrameDelay()
 #endif
 {
 
-//        fprintf(stderr, "init Plugin %d x %d \n", vp->width, vp->height);
+    fprintf(stderr, "init Plugin %d x %d \n", vp->width, vp->height);
 
     return FF_SUCCESS;
 }

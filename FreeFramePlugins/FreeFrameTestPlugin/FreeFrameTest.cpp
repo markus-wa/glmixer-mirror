@@ -99,7 +99,7 @@ FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
   //get the max s,t that correspond to the 
   //width,height of the used portion of the allocated texture space
- // FFGLTexCoords maxCoords = GetMaxGLTexCoords(Texture);
+  FFGLTexCoords maxCoords = GetMaxGLTexCoords(Texture);
 
   //modulate texture colors with white (just show
   //the texture colors as they are)
@@ -110,19 +110,19 @@ FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
   glBegin(GL_QUADS);
 
   //lower left
-  glTexCoord2d( fabs(sin(m_curTime)), fabs(cos(m_curTime)));
+  glTexCoord2d(0.0, 0.0);
   glVertex2f(-1,-1);
 
   //upper left
-  glTexCoord2d(fabs(sin(m_curTime)), 1.0);
+  glTexCoord2d(0.0, maxCoords.t);
   glVertex2f(-1,1);
 
   //upper right
-  glTexCoord2d(1.0, 1.0);
+  glTexCoord2d(maxCoords.s, maxCoords.t);
   glVertex2f(1,1);
 
   //lower right
-  glTexCoord2d(1.0, fabs(cos(m_curTime)));
+  glTexCoord2d(maxCoords.s, 0.0);
   glVertex2f(1,-1);
   glEnd();
 
