@@ -57,7 +57,11 @@ protected:
     FFGLViewportStruct viewport;
     FFGLViewportStruct fboViewport;
     FFGLExtensions glExtensions;
-    FFGLFBO fbo;
+    FFGLFBO fbo1, fbo2;
+    GLuint shaderProgram;
+    GLuint vertexShader;
+    GLuint fragmentShader;
+    GLuint uniform_textureoffset;
 };
 
 

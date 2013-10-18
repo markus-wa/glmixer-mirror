@@ -9,6 +9,31 @@
 
 #define FFPARAM_BLUR (0)
 
+// texture coords interpolation via varying texc
+const GLchar *vertexShaderCode =    "varying vec2 texc;"
+                            "attribute vec2 texcoord2d;"
+                            "void main(void)"
+                            "{"
+                            "gl_Position = ftransform();"
+                            "texc = gl_MultiTexCoord0.st;"
+                            "}";
+
+// gaussian linear sampling blur
+// inspired from http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
+const GLchar *fragmentShaderCode =  "varying vec2 texc;"
+                            "uniform vec2 textureoffset;"
+                            "uniform sampler2D texture;"
+                            "void main(void)"
+                            "{"
+                            "vec3 sum = vec3(0.0);"
+                            "sum += 0.2270270270  * texture2D(texture, texc ).rgb ;"
+                            "sum += 0.3162162162  * texture2D(texture, texc + 1.3846153846 * textureoffset ).rgb ;"
+                            "sum += 0.3162162162  * texture2D(texture, texc  -1.3846153846 * textureoffset ).rgb ;"
+                            "sum += 0.0702702703  * texture2D(texture, texc + 3.2307692308 * textureoffset ).rgb ;"
+                            "sum += 0.0702702703  * texture2D(texture, texc -3.2307692308 * textureoffset ).rgb ;"
+                            "gl_FragColor = vec4(sum, 1.0);"
+                            "}";
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -46,6 +71,20 @@ FreeFrameBlur::FreeFrameBlur()
     param_changed = true;
 }
 
+void printLog(GLuint obj)
+{
+    int infologLength = 0;
+    char infoLog[1024];
+
+    if (glIsShader(obj))
+        glGetShaderInfoLog(obj, 1024, &infologLength, infoLog);
+    else
+        glGetProgramInfoLog(obj, 1024, &infologLength, infoLog);
+
+    if (infologLength > 0)
+        fprintf(stderr, "GLSL :: %s\n", infoLog);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,11 +101,37 @@ FFResult FreeFrameBlur::InitGL(const FFGLViewportStruct *vp)
     viewport.width = vp->width;
     viewport.height = vp->height;
 
-
     //init gl extensions
     glExtensions.Initialize();
     if (glExtensions.EXT_framebuffer_object==0)
       return FF_FAIL;
+
+    glewInit();
+    if (GLEW_VERSION_2_0)
+        fprintf(stderr, "INFO: OpenGL 2.0 supported, proceeding\n");
+    else
+    {
+        fprintf(stderr, "INFO: OpenGL 2.0 not supported. Exit\n");
+        return FF_FAIL;
+    }
+
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
+    glCompileShader(vertexShader);
+    printLog(vertexShader);
+
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
+    glCompileShader(fragmentShader);
+    printLog(fragmentShader);
+
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    printLog(shaderProgram);
+
+    uniform_textureoffset = glGetUniformLocation(shaderProgram, "textureoffset");
 
     return FF_SUCCESS;
 }
@@ -81,7 +146,11 @@ FFResult FreeFrameBlur::DeInitGL()
 #endif
 {
 
-    fbo.FreeResources(glExtensions);
+    fbo1.FreeResources(glExtensions);
+    fbo2.FreeResources(glExtensions);
+
+    glDeleteShader(fragmentShader);
+    glDeleteProgram(shaderProgram);
 
   return FF_SUCCESS;
 }
@@ -98,11 +167,16 @@ FFResult FreeFrameBlur::SetTime(double time)
   return FF_SUCCESS;
 }
 
-void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture )
+void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 {
+
     FFGLTexCoords maxCoords = GetMaxGLTexCoords(texture);
 
     glBindTexture(GL_TEXTURE_2D, texture.Handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     //modulate texture colors with white (just show
     //the texture colors as they are)
@@ -133,6 +207,7 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture )
     glVertex2f(1,-1);
     glEnd();
 
+
 }
 
 
@@ -161,6 +236,7 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
       glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
+
       fboViewport.x = 0;
       fboViewport.y = 0;
       fboViewport.width = (int)((double)viewport.width * (1.0 - blur) );
@@ -170,28 +246,60 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
       fboViewport.width = fboViewport.width < 1 ? 1 : fboViewport.width;
       fboViewport.height = fboViewport.height < 1 ? 1 : fboViewport.height;
 
-      fbo.FreeResources(glExtensions);
-      if (! fbo.Create( fboViewport.width, fboViewport.height, glExtensions) )
+
+      fbo1.FreeResources(glExtensions);
+      if (! fbo1.Create( fboViewport.width, fboViewport.height, glExtensions) )
           return FF_FAIL;
 
+      fbo2.FreeResources(glExtensions);
+      if (! fbo2.Create( fboViewport.width, fboViewport.height, glExtensions) )
+          return FF_FAIL;
       param_changed = false;
   }
-
-  // activate the fbo as our render target
-  if (!fbo.BindAsRenderTarget(glExtensions))
-    return FF_FAIL;
 
   // no depth test
   glDisable(GL_DEPTH_TEST);
 
-  //render the original texture on a quad
+
+
+  // activate the fbo2 as our render target
+  if (!fbo2.BindAsRenderTarget(glExtensions))
+    return FF_FAIL;
+
+  //render the original texture on a quad in fbo2
   drawQuad( fboViewport, Texture);
+
+  // use the blurring shader program
+  glUseProgram(shaderProgram);
+
+  // PASS 1:  horizontal filter
+  glUniform2f(uniform_textureoffset, 1.0 / fbo2.GetTextureInfo().HardwareWidth,  0.0);
+
+  // activate the fbo1 as our render target
+  if (!fbo1.BindAsRenderTarget(glExtensions))
+    return FF_FAIL;
+
+  //render the fbo2 texture on a quad in fbo1
+  drawQuad( fboViewport, fbo2.GetTextureInfo());
+
+  // PASS 2 : vertical
+  glUniform2f(uniform_textureoffset, 0.0,  1.0 / fbo1.GetTextureInfo().HardwareHeight);
+
+  // activate the fbo2 as our render target
+  if (!fbo2.BindAsRenderTarget(glExtensions))
+    return FF_FAIL;
+
+  // render the fbo1 texture on a quad in fbo2
+  drawQuad( fboViewport, fbo1.GetTextureInfo());
+
+  // disable shader program
+  glUseProgram(0);
 
   // (re)activate the HOST fbo as render target
   glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
 
-  // render the fbo texture texture on a quad
-  drawQuad( viewport, fbo.GetTextureInfo() );
+  // render the fbo2 texture texture on a quad in the host fbo
+  drawQuad( viewport, fbo2.GetTextureInfo() );
 
   //unbind the texture
   glBindTexture(GL_TEXTURE_2D, 0);

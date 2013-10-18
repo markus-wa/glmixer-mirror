@@ -22,4 +22,4 @@ set(LIBFFGLBLUR_SRCS
 
 add_library (ffblur SHARED ${LIBFFGLBLUR_SRCS})
 
-target_link_libraries(ffblur ${OPENGL_LIBRARY})
+target_link_libraries(ffblur ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
