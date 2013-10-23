@@ -170,14 +170,11 @@ FFResult FreeFrameBlur::SetTime(double time)
 
 void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 {
-
+    // use the texture coordinates provided
     FFGLTexCoords maxCoords = GetMaxGLTexCoords(texture);
 
+    // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture.Handle);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     //modulate texture colors with white (just show
     //the texture colors as they are)
@@ -237,7 +234,6 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
       glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-
       fboViewport.x = 0;
       fboViewport.y = 0;
       fboViewport.width = (int)((double)viewport.width * (1.0 - blur) );
@@ -247,7 +243,6 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
       fboViewport.width = fboViewport.width < 1 ? 1 : fboViewport.width;
       fboViewport.height = fboViewport.height < 1 ? 1 : fboViewport.height;
 
-
       fbo1.FreeResources(glExtensions);
       if (! fbo1.Create( fboViewport.width, fboViewport.height, glExtensions) )
           return FF_FAIL;
@@ -256,51 +251,58 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
       if (! fbo2.Create( fboViewport.width, fboViewport.height, glExtensions) )
           return FF_FAIL;
       param_changed = false;
+
   }
 
   // no depth test
   glDisable(GL_DEPTH_TEST);
 
+  if (blur >0)
+    {
+      // activate the fbo2 as our render target
+      if (!fbo2.BindAsRenderTarget(glExtensions))
+        return FF_FAIL;
 
+      //render the original texture on a quad in fbo2
+      drawQuad( fboViewport, Texture);
 
-  // activate the fbo2 as our render target
-  if (!fbo2.BindAsRenderTarget(glExtensions))
-    return FF_FAIL;
+      // use the blurring shader program
+      glUseProgram(shaderProgram);
 
-  //render the original texture on a quad in fbo2
-  drawQuad( fboViewport, Texture);
+      // PASS 1:  horizontal filter
+      glUniform2f(uniform_textureoffset, 1.f / (float) fbo2.GetTextureInfo().HardwareWidth,  0.f);
 
-  // use the blurring shader program
-  glUseProgram(shaderProgram);
+      // activate the fbo1 as our render target
+      if (!fbo1.BindAsRenderTarget(glExtensions))
+        return FF_FAIL;
 
-  // PASS 1:  horizontal filter
-  glUniform2f(uniform_textureoffset, 1.f / (float) fbo2.GetTextureInfo().HardwareWidth,  0.f);
+      //render the fbo2 texture on a quad in fbo1
+      drawQuad( fboViewport, fbo2.GetTextureInfo());
 
-  // activate the fbo1 as our render target
-  if (!fbo1.BindAsRenderTarget(glExtensions))
-    return FF_FAIL;
+      // PASS 2 : vertical
+      glUniform2f(uniform_textureoffset, 0.f,  1.f / (float) fbo1.GetTextureInfo().HardwareHeight);
 
-  //render the fbo2 texture on a quad in fbo1
-  drawQuad( fboViewport, fbo2.GetTextureInfo());
+      // activate the fbo2 as our render target
+      if (!fbo2.BindAsRenderTarget(glExtensions))
+        return FF_FAIL;
 
-  // PASS 2 : vertical
-  glUniform2f(uniform_textureoffset, 0.f,  1.f / (float) fbo1.GetTextureInfo().HardwareHeight);
+      // render the fbo1 texture on a quad in fbo2
+      drawQuad( fboViewport, fbo1.GetTextureInfo());
 
-  // activate the fbo2 as our render target
-  if (!fbo2.BindAsRenderTarget(glExtensions))
-    return FF_FAIL;
+      // disable shader program
+      glUseProgram(0);
 
-  // render the fbo1 texture on a quad in fbo2
-  drawQuad( fboViewport, fbo1.GetTextureInfo());
+      // (re)activate the HOST fbo as render target
+      glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
 
-  // disable shader program
-  glUseProgram(0);
-
-  // (re)activate the HOST fbo as render target
-  glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
-
-  // render the fbo2 texture texture on a quad in the host fbo
-  drawQuad( viewport, fbo2.GetTextureInfo() );
+      // render the fbo2 texture texture on a quad in the host fbo
+      drawQuad( viewport, fbo2.GetTextureInfo() );
+    }
+  else
+  {
+      // render the fbo2 texture texture on a quad in the host fbo
+      drawQuad( viewport, Texture );
+  }
 
   //unbind the texture
   glBindTexture(GL_TEXTURE_2D, 0);

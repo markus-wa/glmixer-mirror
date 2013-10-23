@@ -61,7 +61,7 @@ protected:
     GLuint shaderProgram;
     GLuint vertexShader;
     GLuint fragmentShader;
-    GLuint uniform_textureoffset;
+    GLuint uniform_textureoffset, uniform_texturemaxuv;
 };
 
 

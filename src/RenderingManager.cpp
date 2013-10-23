@@ -573,7 +573,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
 	// create the texture for this source
 	GLuint textureIndex;
 	_renderwidget->makeCurrent();
-	glGenTextures(1, &textureIndex);
+    glGenTextures(1, &textureIndex);
 	// low priority means high variability
 	GLclampf lowpriority = 0.1;
 	glPrioritizeTextures(1, &textureIndex, &lowpriority);
