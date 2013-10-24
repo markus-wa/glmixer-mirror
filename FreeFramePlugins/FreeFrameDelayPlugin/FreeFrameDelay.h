@@ -1,7 +1,10 @@
 #ifndef FFGLMirror_H
 #define FFGLMirror_H
 
+#define MAX_NUM_FRAMES 30
+
 #include <FFGLPluginSDK.h>
+#include <FFGLFBO.h>
 
 class FreeFrameDelay : public CFreeFrameGLPlugin
 {
@@ -52,6 +55,11 @@ protected:
     // Time
     double m_curTime;
     double delay;
+    FFGLViewportStruct viewport;
+    FFGLExtensions glExtensions;
+    FFGLFBO fbo[MAX_NUM_FRAMES];
+    double times[MAX_NUM_FRAMES];
+    unsigned int writeIndex, readIndex;
 };
 
 

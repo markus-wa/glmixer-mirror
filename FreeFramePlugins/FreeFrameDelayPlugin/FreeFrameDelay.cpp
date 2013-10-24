@@ -41,6 +41,11 @@ FreeFrameDelay::FreeFrameDelay()
     // Parameters
     SetParamInfo(FFPARAM_DELAY, "Delay", FF_TYPE_STANDARD, "0.5");
     delay = 0.5f;
+
+    // init
+    writeIndex = MAX_NUM_FRAMES-1;
+    readIndex = 0;
+    m_curTime = 0.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,8 +59,23 @@ FreeFrameDelay::FreeFrameDelay()
     FFResult FreeFrameDelay::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
+    viewport.x = 0;
+    viewport.y = 0;
+    viewport.width = vp->width;
+    viewport.height = vp->height;
 
-    fprintf(stderr, "init Plugin %d x %d \n", vp->width, vp->height);
+    //init gl extensions
+    glExtensions.Initialize();
+    if (glExtensions.EXT_framebuffer_object==0)
+      return FF_FAIL;
+
+    for (int n = 0; n < MAX_NUM_FRAMES; ++n)
+        if (! fbo[n].Create( viewport.width, viewport.height, glExtensions) )
+            return FF_FAIL;
+
+//    int m = 0;
+//    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &m);
+//    fprintf(stderr, "init Plugin delay max targets: %d \n", m);
 
     return FF_SUCCESS;
 }
@@ -70,6 +90,10 @@ FreeFrameDelay::FreeFrameDelay()
 #endif
 {
 
+    for (int n = 0; n < MAX_NUM_FRAMES; ++n)
+        fbo[n].FreeResources( glExtensions);
+
+
   return FF_SUCCESS;
 }
 
@@ -83,6 +107,46 @@ FreeFrameDelay::FreeFrameDelay()
 {
   m_curTime = time;
   return FF_SUCCESS;
+}
+
+void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
+{
+    // use the texture coordinates provided
+    FFGLTexCoords maxCoords = GetMaxGLTexCoords(texture);
+
+    // bind the texture to apply
+    glBindTexture(GL_TEXTURE_2D, texture.Handle);
+
+    //modulate texture colors with white (just show
+    //the texture colors as they are)
+    glColor4f(1.f, 1.f, 1.f, 1.f);
+
+    // setup display
+    glViewport(vp.x,vp.y,vp.width,vp.height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glBegin(GL_QUADS);
+    //lower left
+    glTexCoord2d(0.0, 0.0);
+    glVertex2f(-1,-1);
+
+    //upper left
+    glTexCoord2d(0.0, maxCoords.t);
+    glVertex2f(-1,1);
+
+    //upper right
+    glTexCoord2d(maxCoords.s, maxCoords.t);
+    glVertex2f(1,1);
+
+    //lower right
+    glTexCoord2d(maxCoords.s, 0.0);
+    glVertex2f(1,-1);
+    glEnd();
+
+
 }
 
 #ifdef FF_FAIL
@@ -101,46 +165,41 @@ FreeFrameDelay::FreeFrameDelay()
   
   FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
-  //bind the texture handle to its target
-  glBindTexture(GL_TEXTURE_2D, Texture.Handle);
-
   //enable texturemapping
   glEnable(GL_TEXTURE_2D);
 
-  //get the max s,t that correspond to the 
-  //width,height of the used portion of the allocated texture space
-  FFGLTexCoords maxCoords = GetMaxGLTexCoords(Texture);
+  // no depth test
+  glDisable(GL_DEPTH_TEST);
 
-  //modulate texture colors with white (just show
-  //the texture colors as they are)
-  glColor4f(1.f, 1.f, 1.f, 1.f);
-  //(default texturemapping behavior of OpenGL is to
-  //multiply texture colors by the current gl color)
-  
-  glBegin(GL_QUADS);
+  if (!fbo[writeIndex].BindAsRenderTarget(glExtensions))
+    return FF_FAIL;
 
-  //lower left
-  glTexCoord2d(0.0, 0.0);
-  glVertex2f(-1,-1);
+  drawQuad( viewport, Texture);
 
-  //upper left
-  glTexCoord2d(0.0, maxCoords.t);
-  glVertex2f(-1,1);
+  // (re)activate the HOST fbo as render target
+  glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
 
-  //upper right
-  glTexCoord2d(maxCoords.s, maxCoords.t);
-  glVertex2f(1,1);
+  drawQuad( viewport, fbo[readIndex].GetTextureInfo());
 
-  //lower right
-  glTexCoord2d(maxCoords.s, 0.0);
-  glVertex2f(1,-1);
-  glEnd();
+
+  writeIndex = (writeIndex + 1) % MAX_NUM_FRAMES;
+  readIndex = (readIndex + 1) % MAX_NUM_FRAMES;
 
   //unbind the texture
   glBindTexture(GL_TEXTURE_2D, 0);
 
   //disable texturemapping
   glDisable(GL_TEXTURE_2D);
+
+
+
+//  glBindFramebuffer(GL_READ_FRAMEBUFFER, fboId);
+//  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+//  glBlitFramebuffer(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT,
+//                    0, 0, screenWidth, screenHeight,
+//                    GL_COLOR_BUFFER_BIT,
+//                    GL_LINEAR);
+//  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
   return FF_SUCCESS;
 }
