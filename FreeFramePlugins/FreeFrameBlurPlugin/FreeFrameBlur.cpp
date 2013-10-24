@@ -66,7 +66,7 @@ FreeFrameBlur::FreeFrameBlur()
     SetTimeSupported(true);
 
     // Parameters
-    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, "0.7");
+    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, 0.7f);
     blur = 0.7;
     param_changed = true;
 }

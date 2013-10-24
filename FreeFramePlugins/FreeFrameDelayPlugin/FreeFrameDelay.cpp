@@ -21,7 +21,7 @@ static CFFGLPluginInfo PluginInfo (
 	1,										// Plugin major version number
 	000,									// Plugin minor version number
 	FF_EFFECT,						// Plugin type
-    "Delay the display of the provided input",	 // Plugin description
+    "Delay (in second) the display of the provided input",	 // Plugin description
     "by Bruno Herbelin"  // About
 );
 
@@ -39,7 +39,7 @@ FreeFrameDelay::FreeFrameDelay()
     SetTimeSupported(true);
 
     // Parameters
-    SetParamInfo(FFPARAM_DELAY, "Delay", FF_TYPE_STANDARD, "0.5");
+    SetParamInfo(FFPARAM_DELAY, "Delay", FF_TYPE_STANDARD, 0.5f);
     delay = 0.5f;
 
     // init
@@ -69,13 +69,12 @@ FreeFrameDelay::FreeFrameDelay()
     if (glExtensions.EXT_framebuffer_object==0)
       return FF_FAIL;
 
-    for (int n = 0; n < MAX_NUM_FRAMES; ++n)
+    // generate a buffer of FBOs with render buffers (& associated buffer of times)
+    for (int n = 0; n < MAX_NUM_FRAMES; ++n) {
         if (! fbo[n].Create( viewport.width, viewport.height, glExtensions) )
             return FF_FAIL;
-
-//    int m = 0;
-//    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &m);
-//    fprintf(stderr, "init Plugin delay max targets: %d \n", m);
+        times[n] = 0.0;
+    }
 
     return FF_SUCCESS;
 }
@@ -171,6 +170,8 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
   // no depth test
   glDisable(GL_DEPTH_TEST);
 
+  // recals the time of the writing of this frame into the fbo buffer
+  times[writeIndex] = m_curTime;
   if (!fbo[writeIndex].BindAsRenderTarget(glExtensions))
     return FF_FAIL;
 
@@ -179,11 +180,21 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
   // (re)activate the HOST fbo as render target
   glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
 
+ // readIndex = (readIndex + 1) % MAX_NUM_FRAMES;
+  // find the index where the time difference is just above the delay requested.
+  int i = (writeIndex - 1) < 0 ? MAX_NUM_FRAMES - 1 : writeIndex - 1;
+  while (i != writeIndex )  {
+      if ( m_curTime - times[i] > delay ) {
+          readIndex = i;
+          break;
+      }
+      i =  (i - 1) < 0 ? MAX_NUM_FRAMES - 1 : i - 1;
+  }
+  // draw this index
   drawQuad( viewport, fbo[readIndex].GetTextureInfo());
 
-
+  // next frame
   writeIndex = (writeIndex + 1) % MAX_NUM_FRAMES;
-  readIndex = (readIndex + 1) % MAX_NUM_FRAMES;
 
   //unbind the texture
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -192,7 +203,7 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
   glDisable(GL_TEXTURE_2D);
 
 
-
+// TODO : blit instead of draw ?
 //  glBindFramebuffer(GL_READ_FRAMEBUFFER, fboId);
 //  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 //  glBlitFramebuffer(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT,
