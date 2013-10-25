@@ -13,17 +13,17 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static CFFGLPluginInfo PluginInfo ( 
-    FreeFrameDelay::CreateInstance,	// Create method
-    "GLDLY",								// Plugin unique ID
-	"FFGLDelay",			// Plugin name											
-	1,						   			// API major version number 													
-	000,								  // API minor version number	
-	1,										// Plugin major version number
-	000,									// Plugin minor version number
-	FF_EFFECT,						// Plugin type
-    "Delay (in second) the display of the provided input",	 // Plugin description
-    "by Bruno Herbelin"  // About
-);
+        FreeFrameDelay::CreateInstance,	// Create method
+        "GLDLY",								// Plugin unique ID
+        "FFGLDelay",			// Plugin name
+        1,						   			// API major version number
+        500,								  // API minor version number
+        1,										// Plugin major version number
+        000,									// Plugin minor version number
+        FF_EFFECT,						// Plugin type
+        "Delay (in second) the display of the provided input",	 // Plugin description
+        "by Bruno Herbelin"  // About
+        );
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ static CFFGLPluginInfo PluginInfo (
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FreeFrameDelay::FreeFrameDelay()
-: CFreeFrameGLPlugin()
+    : CFreeFrameGLPlugin()
 {
     // Input properties
     SetMinInputs(1);
@@ -43,7 +43,7 @@ FreeFrameDelay::FreeFrameDelay()
     delay = 0.5f;
 
     // init
-    writeIndex = MAX_NUM_FRAMES-1;
+    writeIndex = 0;
     readIndex = 0;
     m_curTime = 0.0;
 }
@@ -52,11 +52,11 @@ FreeFrameDelay::FreeFrameDelay()
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD   FreeFrameDelay::InitGL(const FFGLViewportStruct *vp)
+// FFGL 1.5
+DWORD   FreeFrameDelay::InitGL(const FFGLViewportStruct *vp)
 #else
-    // FFGL 1.6
-    FFResult FreeFrameDelay::InitGL(const FFGLViewportStruct *vp)
+// FFGL 1.6
+FFResult FreeFrameDelay::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
     viewport.x = 0;
@@ -67,7 +67,7 @@ FreeFrameDelay::FreeFrameDelay()
     //init gl extensions
     glExtensions.Initialize();
     if (glExtensions.EXT_framebuffer_object==0)
-      return FF_FAIL;
+        return FF_FAIL;
 
     // generate a buffer of FBOs with render buffers (& associated buffer of times)
     for (int n = 0; n < MAX_NUM_FRAMES; ++n) {
@@ -81,11 +81,11 @@ FreeFrameDelay::FreeFrameDelay()
 
 
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD   FreeFrameDelay::DeInitGL()
+// FFGL 1.5
+DWORD   FreeFrameDelay::DeInitGL()
 #else
-    // FFGL 1.6
-    FFResult FreeFrameDelay::DeInitGL()
+// FFGL 1.6
+FFResult FreeFrameDelay::DeInitGL()
 #endif
 {
 
@@ -93,19 +93,19 @@ FreeFrameDelay::FreeFrameDelay()
         fbo[n].FreeResources( glExtensions);
 
 
-  return FF_SUCCESS;
+    return FF_SUCCESS;
 }
 
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD   FreeFrameDelay::SetTime(double time)
+// FFGL 1.5
+DWORD   FreeFrameDelay::SetTime(double time)
 #else
-    // FFGL 1.6
-    FFResult FreeFrameDelay::SetTime(double time)
+// FFGL 1.6
+FFResult FreeFrameDelay::SetTime(double time)
 #endif
 {
-  m_curTime = time;
-  return FF_SUCCESS;
+    m_curTime = time;
+    return FF_SUCCESS;
 }
 
 void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
@@ -149,116 +149,129 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 }
 
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD	FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+// FFGL 1.5
+DWORD	FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 #else
-    // FFGL 1.6
-    FFResult FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+// FFGL 1.6
+FFResult FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
-  if (pGL->numInputTextures<1)
-    return FF_FAIL;
+    if (pGL->numInputTextures<1)
+        return FF_FAIL;
 
-  if (pGL->inputTextures[0]==NULL)
-    return FF_FAIL;
-  
-  FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
+    if (pGL->inputTextures[0]==NULL)
+        return FF_FAIL;
 
-  //enable texturemapping
-  glEnable(GL_TEXTURE_2D);
+    FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
-  // no depth test
-  glDisable(GL_DEPTH_TEST);
+    //enable texturemapping
+    glEnable(GL_TEXTURE_2D);
 
-  // recals the time of the writing of this frame into the fbo buffer
-  times[writeIndex] = m_curTime;
-  if (!fbo[writeIndex].BindAsRenderTarget(glExtensions))
-    return FF_FAIL;
+    // no depth test
+    glDisable(GL_DEPTH_TEST);
 
-  drawQuad( viewport, Texture);
+    // recals the time of the writing of this frame into the fbo buffer
+    times[writeIndex] = m_curTime;
+    if (!fbo[writeIndex].BindAsRenderTarget(glExtensions))
+        return FF_FAIL;
 
-  // (re)activate the HOST fbo as render target
-  glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
+    // draw the input texture
+    drawQuad( viewport, Texture);
 
- // readIndex = (readIndex + 1) % MAX_NUM_FRAMES;
-  // find the index where the time difference is just above the delay requested.
-  int i = (writeIndex - 1) < 0 ? MAX_NUM_FRAMES - 1 : writeIndex - 1;
-  while (i != writeIndex )  {
-      if ( m_curTime - times[i] > delay ) {
-          readIndex = i;
-          break;
-      }
-      i =  (i - 1) < 0 ? MAX_NUM_FRAMES - 1 : i - 1;
-  }
-  // draw this index
-  drawQuad( viewport, fbo[readIndex].GetTextureInfo());
+    // find the read index where the time difference is just above the delay requested.
+    if ( delay > 0.0) {
+        // loop over the whole buffer
+        for (int i = (readIndex + 1)%MAX_NUM_FRAMES; i != readIndex; i = (i+1)%MAX_NUM_FRAMES) {
+            // break if found times corresponding to the delay
+            if ( m_curTime - times[(i+1)%MAX_NUM_FRAMES] < delay && m_curTime - times[i] > delay ) {
+                readIndex = i;
+                break;
+            }
+        }
+    } else
+        readIndex = writeIndex;
 
-  // next frame
-  writeIndex = (writeIndex + 1) % MAX_NUM_FRAMES;
+    // (re)activate the HOST fbo as render target
+    glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
 
-  //unbind the texture
-  glBindTexture(GL_TEXTURE_2D, 0);
+    // draw this index
+    drawQuad( viewport, fbo[readIndex].GetTextureInfo());
 
-  //disable texturemapping
-  glDisable(GL_TEXTURE_2D);
+    // next frame
+    writeIndex = (writeIndex + 1) % MAX_NUM_FRAMES;
+
+    //unbind the texture
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    //disable texturemapping
+    glDisable(GL_TEXTURE_2D);
 
 
-// TODO : blit instead of draw ?
-//  glBindFramebuffer(GL_READ_FRAMEBUFFER, fboId);
-//  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-//  glBlitFramebuffer(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT,
-//                    0, 0, screenWidth, screenHeight,
-//                    GL_COLOR_BUFFER_BIT,
-//                    GL_LINEAR);
-//  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    // TODO : blit instead of draw ?
+    //  glBindFramebuffer(GL_READ_FRAMEBUFFER, fboId);
+    //  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    //  glBlitFramebuffer(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT,
+    //                    0, 0, screenWidth, screenHeight,
+    //                    GL_COLOR_BUFFER_BIT,
+    //                    GL_LINEAR);
+    //  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
-  return FF_SUCCESS;
+    return FF_SUCCESS;
 }
 
 
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD FreeFrameDelay::SetParameter(const SetParameterStruct* pParam)
-    {
-        if (pParam != NULL && pParam->ParameterNumber == FFPARAM_DELAY) {
-            delay = *((float *)(unsigned)&(pParam->NewParameterValue));
-            return FF_SUCCESS;
-        }
-
-        return FF_FAIL;
+// FFGL 1.5
+DWORD FreeFrameDelay::SetParameter(const SetParameterStruct* pParam)
+{
+    if (pParam != NULL && pParam->ParameterNumber == FFPARAM_DELAY) {
+        delay = *((float *)(unsigned)&(pParam->NewParameterValue));
+        return FF_SUCCESS;
     }
 
-    DWORD FreeFrameDelay::GetParameter(DWORD index)
-    {
-        DWORD dwRet = FF_FAIL;
+    return FF_FAIL;
+}
 
-        if (index == FFPARAM_DELAY)
-            *((float *)(unsigned)&dwRet) = delay;
+DWORD FreeFrameDelay::GetParameter(DWORD index)
+{
+    DWORD dwRet = FF_FAIL;
 
-        return dwRet;
-    }
+    if (index == FFPARAM_DELAY)
+        *((float *)(unsigned)&dwRet) = delay;
+
+    return dwRet;
+}
 
 #else
-    // FFGL 1.6
-    FFResult FreeFrameDelay::SetFloatParameter(unsigned int index, float value)
-    {
-        if (index == FFPARAM_DELAY) {
-            delay = value;
-            return FF_SUCCESS;
-        }
-
-        return FF_FAIL;
+// FFGL 1.6
+FFResult FreeFrameDelay::SetFloatParameter(unsigned int index, float value)
+{
+    if (index == FFPARAM_DELAY) {
+        delay = value;
+        return FF_SUCCESS;
     }
 
-    float FreeFrameDelay::GetFloatParameter(unsigned int index)
-    {
-        if (index == FFPARAM_DELAY)
-            return delay;
+    return FF_FAIL;
+}
 
-        return 0.0;
-    }
+float FreeFrameDelay::GetFloatParameter(unsigned int index)
+{
+    if (index == FFPARAM_DELAY)
+        return delay;
+
+    return 0.0;
+}
 #endif
 
 
-
+// find the index where the time difference is just above the delay requested.
+//  int i = (writeIndex - 1) < 0 ? MAX_NUM_FRAMES - 1 : writeIndex - 1;
+//  while (i != writeIndex )  {
+//      if ( m_curTime - times[i] > delay ) {
+//          readIndex = (i + 1)%MAX_NUM_FRAMES;
+//          break;
+//      }
+//      N++;
+//      i =  (i - 1) < 0 ? MAX_NUM_FRAMES - 1 : i - 1;
+//  }
 
