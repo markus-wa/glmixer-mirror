@@ -1,22 +1,22 @@
 #ifndef GLSLCodeEditorWidget_H
 #define GLSLCodeEditorWidget_H
 
-#include <QDialog>
+#include <QWidget>
 
 namespace Ui {
-class GLSLCodeEditorWidget;
+class CodeEditorWidget;
 }
 
-class GLSLCodeEditorWidget : public QDialog
+class GLSLCodeEditorWidget : public QWidget
 {
     Q_OBJECT
     
 public:
-    explicit GLSLCodeEditorWidget(QWidget *parent = 0);
+    GLSLCodeEditorWidget(QWidget *parent = 0);
     ~GLSLCodeEditorWidget();
     
 private:
-    Ui::GLSLCodeEditorWidget *ui;
+    Ui::CodeEditorWidget *ui;
 };
 
 #endif // GLSLCodeEditorWidget_H

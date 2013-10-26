@@ -1,5 +1,5 @@
-#ifndef FFGLMirror_H
-#define FFGLMirror_H
+#ifndef FFGLQTGLSL_H
+#define FFGLQTGLSL_H
 
 #include <FFGLPluginSDK.h>
 
@@ -13,8 +13,7 @@ public:
 	// FreeFrame plugin methods
 	///////////////////////////////////////////////////
 	
-	FFResult	ProcessOpenGL(ProcessOpenGLStruct* pGL);
-    FFResult    SetTime(double time);
+    FFResult	ProcessOpenGL(ProcessOpenGLStruct* pGL);
 
     FFResult    InitGL(const FFGLViewportStruct *vp);
     FFResult    DeInitGL();
@@ -32,9 +31,8 @@ public:
     }
 
 protected:
-    // Time
-    double m_curTime;
-    class QWidget *w;
+    class GLSLCodeEditorWidget *w;
+
 };
 
 

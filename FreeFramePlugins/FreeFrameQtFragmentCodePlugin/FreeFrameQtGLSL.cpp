@@ -1,12 +1,8 @@
 #include <FFGL.h>
 #include <FFGLLib.h>
 
-#include <cmath>
-
 #include "FreeFrameQtGLSL.h"
-
 #include "GLSLCodeEditorWidget.h"
-#include <QWidget>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -14,10 +10,10 @@
 
 static CFFGLPluginInfo PluginInfo ( 
     FreeFrameQtGLSL::CreateInstance,	// Create method
-    "GLTE",								// Plugin unique ID
-	"FFGLMirror",			// Plugin name											
+    "GLQTGLSL",								// Plugin unique ID
+    "FFGLQtGLSL",			// Plugin name
 	1,						   			// API major version number 													
-	000,								  // API minor version number	
+    500,								  // API minor version number
 	1,										// Plugin major version number
 	000,									// Plugin minor version number
 	FF_EFFECT,						// Plugin type
@@ -34,8 +30,8 @@ FreeFrameQtGLSL::FreeFrameQtGLSL()
 : CFreeFrameGLPlugin()
 {
 	// Input properties
-    SetMinInputs(0);
-    SetMaxInputs(0);
+    SetMinInputs(1);
+    SetMaxInputs(1);
 
     // No Parameters
 
@@ -50,13 +46,7 @@ FreeFrameQtGLSL::FreeFrameQtGLSL()
 
 FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
 {
-//    InitializationDialog initdialog;
-//    initdialog.exec();
-
-//    t = new myThread;
-    w = new QWidget();
-//    w = new QWidget(qApp->allWidgets().first());
-    w->setFixedSize(300, 200);
+    w = new GLSLCodeEditorWidget();
 
     w->show();
 
@@ -73,11 +63,6 @@ FFResult FreeFrameQtGLSL::DeInitGL()
   return FF_SUCCESS;
 }
 
-FFResult FreeFrameQtGLSL::SetTime(double time)
-{
-  m_curTime = time;
-  return FF_SUCCESS;
-}
 
 FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 {

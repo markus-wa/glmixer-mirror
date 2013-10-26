@@ -1,10 +1,9 @@
 
-#include "ui_GLSLCodeEditorWidget.h"
-#include "GLSLCodeEditorWidget.h"
+#include "ui_CodeEditorWidget.h"
+#include "GLSLCodeEditorWidget.moc"
 
 GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::GLSLCodeEditorWidget)
+    QWidget(parent), ui(new Ui::CodeEditorWidget)
 {
     ui->setupUi(this);
 }
