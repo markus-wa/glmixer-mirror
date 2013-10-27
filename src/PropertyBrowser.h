@@ -18,6 +18,7 @@ class PropertyBrowser : public QWidget
 
 public:
     PropertyBrowser(QWidget *parent = 0);
+    ~PropertyBrowser();
 
 public slots:
     // Update the object when an action is performed on a property in the browser

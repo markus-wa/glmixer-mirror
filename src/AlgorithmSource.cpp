@@ -35,6 +35,7 @@ bool AlgorithmSource::playable = true;
 #include <iostream>
 
 #include "common.h"
+#include "SourcePropertyBrowser.h"
 
 #include <QMutex>
 #include <QWaitCondition>
@@ -493,3 +494,4 @@ void AlgorithmSource::setIgnoreAlpha(bool on) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA,
 				GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
 }
+

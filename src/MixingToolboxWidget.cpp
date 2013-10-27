@@ -230,6 +230,8 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     // Setup the FFGL plugin property browser
     pluginBrowser = new FFGLPluginBrowser(Plugin);
     pluginBrowserLayout->addWidget(pluginBrowser);
+    QObject::connect(pluginBrowser, SIGNAL( pluginChanged()), this, SLOT(changed()) );
+
 #else
     mixingToolBox->removeTab( mixingToolBox->indexOf(Plugin) );
 #endif
@@ -469,7 +471,7 @@ void MixingToolboxWidget::on_presetApply_pressed()
 		else if ( _userPresets.contains(presetsList->currentItem()) )
             source->importProperties( _userPresets[presetsList->currentItem()], false );
 
-        emit presetApplied( RenderingManager::getInstance()->getById( source->getId()) );
+        changed();
 	}
 }
 
@@ -587,6 +589,12 @@ bool MixingToolboxWidget::restoreState(const QByteArray &state) {
 	return true;
 }
 
+void MixingToolboxWidget::changed(){
+
+    emit sourceChanged( RenderingManager::getInstance()->getById( source->getId()) );
+
+}
+
 void MixingToolboxWidget::on_addPlugin_pressed(){
 
 #ifdef FFGL
@@ -607,6 +615,7 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
     if (source && pluginfile.isFile()) {
         source->addFreeframeGLPlugin(fileName);
         pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
+        changed();
     }
 #endif
 }

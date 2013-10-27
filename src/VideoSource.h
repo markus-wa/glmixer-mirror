@@ -57,6 +57,7 @@ public:
 
 	int getFrameWidth() const { return is->getFrameWidth(); }
 	int getFrameHeight() const { return is->getFrameHeight(); }
+    double getFrameRate() const { return is->getFrameRate(); }
 
 	double getStorageAspectRatio() const { return is->getStreamAspectRatio(); }
 

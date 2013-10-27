@@ -11,6 +11,8 @@ class FFGLPluginBrowser : public PropertyBrowser
 
 public:
     FFGLPluginBrowser(QWidget *parent = 0);
+    FFGLPluginBrowser(FFGLPluginSource  *plugin, QWidget *parent = 0);
+    ~FFGLPluginBrowser();
 
 public slots:
 
@@ -30,6 +32,9 @@ public slots:
     // Context menu actions
     void removePlugin();
 
+Q_SIGNALS:
+    // inform to refresh the GUI
+    void pluginChanged();
 
 private:
 

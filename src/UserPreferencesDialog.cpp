@@ -42,11 +42,11 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     // the default source property browser
     defaultSource = new Source;
     defaultProperties->showProperties(defaultSource);
-    defaultProperties->setPropertyEnabled("Type", false);
-    defaultProperties->setPropertyEnabled("Scale", false);
-    defaultProperties->setPropertyEnabled("Depth", false);
-    defaultProperties->setPropertyEnabled("Frames size", false);
-    defaultProperties->setPropertyEnabled("Aspect ratio", false);
+//    defaultProperties->setPropertyEnabled("Type", false);
+//    defaultProperties->setPropertyEnabled("Scale", false);
+//    defaultProperties->setPropertyEnabled("Depth", false);
+//    defaultProperties->setPropertyEnabled("Frames size", false);
+//    defaultProperties->setPropertyEnabled("Aspect ratio", false);
 
     // the rendering option for BLIT of frame buffer makes no sense if the computer does not supports it
     activateBlitFrameBuffer->setEnabled(glSupportsExtension("GL_EXT_framebuffer_blit"));

@@ -27,9 +27,14 @@
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
 #include "RenderingManager.h"
+#include "PropertyBrowser.h"
 
 #include <QtProperty>
 #include <QtVariantPropertyManager>
+
+#ifdef FFGL
+#include "FFGLPluginSource.h"
+#endif
 
 GLuint Source::lastid = 1;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
@@ -549,6 +554,16 @@ void Source::importProperties(const Source *source, bool withGeometry){
         textureCoordinates = source->textureCoordinates;
         flipVertical = source->flipVertical;
 	}
+
+#ifdef FFGL
+    _ffgl_plugins.clear();
+    for (FFGLPluginSourceStack::const_iterator it = source->_ffgl_plugins.begin(); it != source->_ffgl_plugins.end(); ++it) {
+
+        _ffgl_plugins.pushNewPlugin( (*it)->fileName(), (*it)->width(), (*it)->height(), (*it)->getInputTextureStruct().Handle );
+        _ffgl_plugins.top()->setConfiguration( (*it)->getConfiguration() );
+    }
+
+#endif
 }
 
 

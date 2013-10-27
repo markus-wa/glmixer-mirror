@@ -4,7 +4,7 @@
 #include <QVBoxLayout>
 #include <QScrollArea>
 #include <QMenu>
-
+#include <QDebug>
 #include <QtTreePropertyBrowser>
 #include <QtButtonPropertyBrowser>
 #include <QtGroupBoxPropertyBrowser>
@@ -127,6 +127,15 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     menuGroup.addAction(QObject::tr("Reset all"), this, SLOT(resetAll()));
     menuGroup.addSeparator();
     menuGroup.addAction(QObject::tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
+}
+
+
+PropertyBrowser::~PropertyBrowser()
+{
+    disconnectManagers();
+    // clear the GUI
+    propertyTreeEditor->clear();
+    propertyGroupEditor->clear();
 }
 
 

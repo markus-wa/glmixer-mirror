@@ -35,16 +35,16 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
 		SourceConstructorException().raise();
 
 	// get aspect ratio from orifinal box
-	QRectF vb = _svg->viewBoxF();
+    QRect vb = _svg->viewBox();
 	aspectratio = double(vb.width()) / double(vb.height());
 
 	// setup renderer resolution to match to rendering manager preference
-	int w = RenderingManager::getInstance()->getFrameBufferWidth();
-	_rendered = QImage(w, w * aspectratio, QImage::Format_ARGB32_Premultiplied);
+    int w = RenderingManager::getInstance()->getFrameBufferWidth();
+    _rendered = QImage(w, w / aspectratio, QImage::Format_ARGB32_Premultiplied);
 
 	// render an image from the svg
 	QPainter imagePainter(&_rendered);
-	imagePainter.setRenderHint(QPainter::Antialiasing, true);
+    imagePainter.setRenderHint(QPainter::HighQualityAntialiasing, true);
 	imagePainter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 	imagePainter.setRenderHint(QPainter::TextAntialiasing, true);
 	_svg->render(&imagePainter);

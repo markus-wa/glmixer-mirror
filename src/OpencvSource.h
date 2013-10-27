@@ -69,6 +69,8 @@ public:
 
 	static OpencvSource *getExistingSourceForCameraIndex(int);
 
+    static QString getOpencvVersion();
+
 public Q_SLOTS:
 	void play(bool on);
 

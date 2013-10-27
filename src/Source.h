@@ -90,7 +90,7 @@ public:
 	virtual RTTI rtti() const { return type; }
 	virtual bool isPlayable() const { return playable; }
 	virtual bool isPlaying() const { return false; }
-	virtual void play(bool on) {}
+    virtual void play(bool on) {}
 
 	/**
 	 *  Rendering
@@ -422,8 +422,9 @@ public:
 
     void importProperties(const Source *s, bool withGeometry = true);
 
-	virtual int getFrameWidth() const { return 1; }
-	virtual int getFrameHeight() const { return 1; }
+    virtual int getFrameWidth() const { return 1; }
+    virtual int getFrameHeight() const { return 1; }
+    virtual double getFrameRate() const { return 0.0; }
 
 	// stick the source
 	inline void setModifiable(bool on) {

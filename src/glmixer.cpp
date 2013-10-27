@@ -268,28 +268,24 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 	RenderingManager::getRenderingWidget()->setSourceContextMenu(currentSourceMenu);
 
     // Setup the property browsers
-    QSplitter *splitter = new QSplitter(this);
-    splitter->setOrientation(Qt::Vertical);
+    layoutPropertyBrowser = new QSplitter(this);
+    layoutPropertyBrowser->setOrientation(Qt::Vertical);
 
-    PropertyBrowser *specificBrowser = new PropertyBrowser();
-    specificBrowser->setParent(splitter);
-    splitter->addWidget(specificBrowser);
+    specificSourcePropertyBrowser = NULL;
 
     SourcePropertyBrowser *sourcePropertyBrowser = RenderingManager::getPropertyBrowserWidget();
-    sourcePropertyBrowser->setParent(splitter);
     sourcePropertyBrowser->setHeaderVisible(false);
-    splitter->addWidget(sourcePropertyBrowser);
+    layoutPropertyBrowser->addWidget(sourcePropertyBrowser);
     QObject::connect(this, SIGNAL(sourceMarksModified(bool)), sourcePropertyBrowser, SLOT(updateMarksProperties(bool) ) );
     QObject::connect(sourcePropertyBrowser, SIGNAL(changed(Source*)), this, SLOT(sourceChanged(Source*) ) );
 
-
-    sourceDockWidgetContentsLayout->addWidget(splitter);
+    sourceDockWidgetContentsLayout->addWidget(layoutPropertyBrowser);
 
     // setup the mixing toolbox
     mixingToolBox = new MixingToolboxWidget(this);
     mixingDockWidgetContentLayout->addWidget(mixingToolBox);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), mixingToolBox, SLOT(connectSource(SourceSet::iterator) ) );
-    QObject::connect(mixingToolBox, SIGNAL( presetApplied(SourceSet::iterator)), RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)) );
+    QObject::connect(mixingToolBox, SIGNAL( sourceChanged(SourceSet::iterator)), RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)) );
     // bidirectional link between mixing toolbox and property manager
     QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, bool)), sourcePropertyBrowser, SLOT(valueChanged(QString, bool)) );
     QObject::connect(mixingToolBox, SIGNAL(valueChanged(QString, int)), sourcePropertyBrowser, SLOT(valueChanged(QString, int)) );
@@ -733,6 +729,11 @@ void GLMixer::on_actionMediaSource_triggered(){
 // and to read the correct information and configuration options
 void GLMixer::connectSource(SourceSet::iterator csi){
 
+    if (specificSourcePropertyBrowser) {
+        delete specificSourcePropertyBrowser;
+        specificSourcePropertyBrowser = NULL;
+    }
+
 	// whatever happens, we will drop the control on the current source
 	//   (this slot is called by MainRenderWidget through signal currentSourceChanged
 	//    which is sent ONLY when the current source is changed)
@@ -776,6 +777,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		// display source preview
         sourcePreview->setSource(*csi);
         vcontrolDockWidgetContents->setEnabled( true );
+
+        // display property browser
+        specificSourcePropertyBrowser = createSpecificPropertyBrowser((*csi), layoutPropertyBrowser);
+        layoutPropertyBrowser->insertWidget(0, specificSourcePropertyBrowser);
 
 		// enable properties and actions on the current valid source
         sourceDockWidgetContents->setEnabled(true);

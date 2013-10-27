@@ -177,6 +177,8 @@ private:
 	class UserPreferencesDialog *upd;
 	class MixingToolboxWidget *mixingToolBox;
     class SessionSwitcherWidget *switcherSession;
+    class PropertyBrowser *specificSourcePropertyBrowser;
+    class QSplitter *layoutPropertyBrowser;
 
 	QTimer *refreshTimingTimer;
     bool _displayTimeAsFrame, _restoreLastSession;

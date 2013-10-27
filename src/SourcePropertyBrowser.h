@@ -79,17 +79,6 @@ private:
 
 };
 
-
-
-//class AlgorithmSourceBrowser : public PropertyBrowser {
-
-//    Q_OBJECT
-
-//public:
-//    AlgorithmSourceBrowser(QWidget *parent = 0);
-
-//public slots:
-//    Source *currentItem;
-//};
+PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent);
 
 #endif /* SOURCEPROPERTYBROWSER_H_ */

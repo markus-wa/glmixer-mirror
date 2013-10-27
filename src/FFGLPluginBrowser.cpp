@@ -41,6 +41,28 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent) : PropertyBrowser(parent),
     menuTree.addAction(removeAction);
 }
 
+// special constructor for the source property browser
+FFGLPluginBrowser::FFGLPluginBrowser(FFGLPluginSource *plugin, QWidget *parent): PropertyBrowser(parent), currentStack(0)
+{
+    // create a plugin stack
+    currentStack = new FFGLPluginSourceStack;
+    currentStack->push(plugin);
+
+    // show the plugin
+    showProperties( currentStack );
+    propertyTreeEditor->setExpanded( propertyTreeEditor->topLevelItems().first(), true);
+
+    // do not allow the remove action
+}
+
+
+FFGLPluginBrowser::~FFGLPluginBrowser() {
+
+    if(currentStack)
+       delete currentStack;
+
+}
+
 
 QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin)
 {
@@ -166,6 +188,8 @@ void FFGLPluginBrowser::showProperties(FFGLPluginSourceStack *plugins)
     }
 }
 
+
+
 bool FFGLPluginBrowser::canChange()
 {
     return (currentStack && currentStack->count() > 0 );
@@ -239,4 +263,6 @@ void FFGLPluginBrowser::removePlugin()
     }
     // refresh display
     showProperties(currentStack);
+
+    emit pluginChanged();
 }

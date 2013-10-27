@@ -65,6 +65,10 @@ protected:
     int getFrameHeight() const {
         return RenderingManager::getInstance()->getFrameBufferHeight();
     }
+
+    double getFrameRate() const {
+        return RenderingManager::getRenderingWidget()->getFramerate() / double(RenderingManager::getInstance()->getPreviousFrameDelay());
+    }
 };
 
 #endif /* RENDERINGSOURCE_H_ */

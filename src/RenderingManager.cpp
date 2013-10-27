@@ -824,6 +824,7 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
     (*sit)->importProperties(_defaultSource);
 	// scale the source to match the preferences
 	(*sit)->resetScale(_scalingMode);
+
 }
 
 

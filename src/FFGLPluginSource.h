@@ -26,8 +26,10 @@ public:
     bool initialize();
     void update();
     void bind() const;
-    inline QString fileName() { return _filename; }
-    inline bool isSourceType(){ return _isFreeframeTypeSource; }
+    inline QString fileName() const { return _filename; }
+    inline bool isSourceType() const { return _isFreeframeTypeSource; }
+    inline int width() const { return _fboSize.width(); }
+    inline int height() const { return _fboSize.height(); }
 
     FFGLTextureStruct getOutputTextureStruct();
     FFGLTextureStruct getInputTextureStruct();

@@ -322,13 +322,14 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
 //    qDebug() << _filename << "| " << QObject::tr("FreeframeGL plugin created") << " ("<< info["Name"].toString() <<", "<< _inputTexture.Width << _inputTexture.Height <<")";
 }
 
+
 FFGLPluginSource::~FFGLPluginSource()
 {
     _plugin->DeInstantiateGL();
     _plugin->Unload();
+    delete _plugin;
 
     // deletes
-    delete _plugin;
     if (_fbo)
         delete _fbo;
 }

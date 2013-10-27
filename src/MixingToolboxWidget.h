@@ -77,6 +77,8 @@ public Q_SLOTS:
 	QByteArray saveState() const;
 	bool restoreState(const QByteArray &state);
 
+    void changed();
+
 Q_SIGNALS:
 	// inform property manager when a property is modified here
 	void valueChanged(QString propertyname, bool value);
@@ -84,7 +86,7 @@ Q_SIGNALS:
 	void valueChanged(QString propertyname, const QColor &value);
 	void enumChanged(QString propertyname, int value);
     // inform when a preset is applied (to refresh the GUI)
-    void presetApplied(SourceSet::iterator);
+    void sourceChanged(SourceSet::iterator);
 
 private:
 
