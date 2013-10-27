@@ -71,7 +71,6 @@ private:
     bool canChange();
 
     // the link with sources
-    QMap<Source::RTTI, QtProperty *> rttiToProperty;
     Source *currentItem;
     void createSourcePropertyTree();
     void updatePropertyTree();
