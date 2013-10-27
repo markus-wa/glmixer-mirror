@@ -1477,7 +1477,8 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
             // create and push the plugin to the source
             newsource->addFreeframeGLPlugin( fileNameToOpen );
             // apply the configuration
-            newsource->getFreeframeGLPluginStack()->top()->setConfiguration(p);
+            if (newsource->hasFreeframeGLPlugin())
+                newsource->getFreeframeGLPluginStack()->top()->setConfiguration(p);
         }
         else {
             qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);

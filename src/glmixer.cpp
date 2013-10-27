@@ -1040,7 +1040,9 @@ void GLMixer::on_actionCloneSource_triggered(){
              it != (*original)->getFreeframeGLPluginStack()->end(); ++it) {
 
             s->addFreeframeGLPlugin( (*it)->fileName() );
-            s->getFreeframeGLPluginStack()->top()->setConfiguration( (*it)->getConfiguration() );
+            // set configuration
+            if (s->hasFreeframeGLPlugin())
+                s->getFreeframeGLPluginStack()->top()->setConfiguration( (*it)->getConfiguration() );
         }
 #endif
 

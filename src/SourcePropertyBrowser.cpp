@@ -1047,6 +1047,7 @@ private:
 PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent)
 {
     PropertyBrowser *pb = NULL;
+    static FFGLPluginSourceStack *pluginBrowserStack = NULL;
 
     if ( s->rtti() == Source::ALGORITHM_SOURCE ) {
         AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(s);
@@ -1096,7 +1097,18 @@ PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent)
     else if ( s->rtti() == Source::FFGL_SOURCE ) {
         FFGLSource *cs = dynamic_cast<FFGLSource *>(s);
         if (cs != 0) {
-            FFGLPluginBrowser *ffglpb = new FFGLPluginBrowser(cs->freeframeGLPlugin(), parent);
+            FFGLPluginBrowser *ffglpb = new FFGLPluginBrowser( parent, false);
+
+            if (pluginBrowserStack)
+                delete pluginBrowserStack;
+
+            // create a plugin stack
+            pluginBrowserStack = new FFGLPluginSourceStack;
+            pluginBrowserStack->push(cs->freeframeGLPlugin());
+
+            // show the plugin stack
+            ffglpb->showProperties( pluginBrowserStack );
+
             pb = (PropertyBrowser *)ffglpb;
         }
     }

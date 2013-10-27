@@ -10,9 +10,7 @@ class FFGLPluginBrowser : public PropertyBrowser
     Q_OBJECT
 
 public:
-    FFGLPluginBrowser(QWidget *parent = 0);
-    FFGLPluginBrowser(FFGLPluginSource  *plugin, QWidget *parent = 0);
-    ~FFGLPluginBrowser();
+    FFGLPluginBrowser(QWidget *parent = 0, bool allowRemove = true);
 
 public slots:
 

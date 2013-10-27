@@ -63,7 +63,7 @@ FreeFrameBlur::FreeFrameBlur()
     // Input properties
     SetMinInputs(1);
     SetMaxInputs(1);
-    SetTimeSupported(true);
+    SetTimeSupported(false);
 
     // Parameters
     SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, 0.7f);
@@ -156,17 +156,6 @@ FFResult FreeFrameBlur::DeInitGL()
   return FF_SUCCESS;
 }
 
-#ifdef FF_FAIL
-// FFGL 1.5
-DWORD   FreeFrameBlur::SetTime(double time)
-#else
-// FFGL 1.6
-FFResult FreeFrameBlur::SetTime(double time)
-#endif
-{
-  m_curTime = time;
-  return FF_SUCCESS;
-}
 
 void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 {
@@ -250,8 +239,8 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
       fbo2.FreeResources(glExtensions);
       if (! fbo2.Create( fboViewport.width, fboViewport.height, glExtensions) )
           return FF_FAIL;
-      param_changed = false;
 
+      param_changed = false;
   }
 
   // no depth test

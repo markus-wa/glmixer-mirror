@@ -31,35 +31,16 @@
 
 
 
-FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent) : PropertyBrowser(parent), currentStack(0) {
+FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : PropertyBrowser(parent), currentStack(0) {
 
-    // actions of context menus
-    removeAction = new QAction(tr("Remove"), this);
-    QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePlugin() ) );
+    if (allowRemove) {
+        // actions of context menus
+        removeAction = new QAction(tr("Remove"), this);
+        QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePlugin() ) );
 
-    menuTree.addSeparator();
-    menuTree.addAction(removeAction);
-}
-
-// special constructor for the source property browser
-FFGLPluginBrowser::FFGLPluginBrowser(FFGLPluginSource *plugin, QWidget *parent): PropertyBrowser(parent), currentStack(0)
-{
-    // create a plugin stack
-    currentStack = new FFGLPluginSourceStack;
-    currentStack->push(plugin);
-
-    // show the plugin
-    showProperties( currentStack );
-    propertyTreeEditor->setExpanded( propertyTreeEditor->topLevelItems().first(), true);
-
-    // do not allow the remove action
-}
-
-
-FFGLPluginBrowser::~FFGLPluginBrowser() {
-
-    if(currentStack)
-       delete currentStack;
+        menuTree.addSeparator();
+        menuTree.addAction(removeAction);
+    }
 
 }
 
