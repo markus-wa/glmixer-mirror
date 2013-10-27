@@ -829,6 +829,8 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
     // clear plugins
     (*sit)->clearFreeframeGLPlugin();
 #endif
+    // inform GUI
+    emit currentSourceChanged(sit);
 }
 
 
