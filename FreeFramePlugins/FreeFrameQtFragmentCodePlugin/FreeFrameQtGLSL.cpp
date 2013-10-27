@@ -4,6 +4,9 @@
 #include "FreeFrameQtGLSL.h"
 #include "GLSLCodeEditorWidget.h"
 
+#include <stdio.h>
+#include <QApplication>
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,8 +60,13 @@ FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
 FFResult FreeFrameQtGLSL::DeInitGL()
 {
 
+    fprintf(stderr, "DEINITGL");
+
     w->hide();
+    qApp->processEvents();
+
     delete w;
+
 
   return FF_SUCCESS;
 }
