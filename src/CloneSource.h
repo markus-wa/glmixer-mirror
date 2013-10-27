@@ -51,6 +51,7 @@ protected:
 	CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->getTextureIndex(), d), original(*sit) {
         // clone the properties
         importProperties(original, true);
+
         // when cloning a clone, get back to the original ;
 		CloneSource *tmp = dynamic_cast<CloneSource *>(original);
         if (tmp)

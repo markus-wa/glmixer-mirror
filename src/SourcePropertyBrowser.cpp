@@ -705,29 +705,6 @@ void SourcePropertyBrowser::updateLayerProperties(){
 	connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 }
 
-/// TODO
-
-void SourcePropertyBrowser::updateMarksProperties(bool showFrames){
-
-//	if (!canChange())
-//			return;
-
-//	if (currentItem->rtti() == Source::VIDEO_SOURCE) {
-//		VideoSource *vs = dynamic_cast<VideoSource *>(currentItem);
-//		if (vs != 0) {
-//			VideoFile *vf = vs->getVideoFile();
-//			if (showFrames) {
-//				infoManager->setValue(idToProperty["Duration"], vf->getExactFrameFromFrame(vf->getEnd()) );
-//				infoManager->setValue(idToProperty["Mark in"],  vf->getExactFrameFromFrame(vf->getMarkIn()) );
-//				infoManager->setValue(idToProperty["Mark out"], vf->getExactFrameFromFrame(vf->getMarkOut()) );
-//			} else {
-//				infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
-//				infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
-//				infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
-//			}
-//		}
-//	}
-}
 
 void SourcePropertyBrowser::resetAll()
 {
@@ -755,9 +732,11 @@ public:
         idToProperty["Transparency"]->setToolTip("Generate patterns with alpha channel.");
         // Variability
         idToProperty["Variability"] = intManager->addProperty( QLatin1String("Variability") );
+        idToProperty["Variability"]->setToolTip("Percentage of variability between frames.");
         intManager->setRange(idToProperty["Variability"], 0, 100);
         // Periodicity
         idToProperty["Frequency"] = intManager->addProperty( QLatin1String("Update frequency") );
+        idToProperty["Frequency"]->setToolTip("Frequency of update (Hz).");
         intManager->setRange(idToProperty["Frequency"], 1, 60);
 
         // Set values
@@ -811,36 +790,35 @@ public:
         idToProperty[property->propertyName()] = property;
         // File size
         property = infoManager->addProperty( QLatin1String("File size") );
+        property->setToolTip("Size of the file on disk.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         // Codec
         property = infoManager->addProperty( QLatin1String("Codec") );
+        property->setToolTip("Encoding codec of the media.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         // Pixel Format
         property = infoManager->addProperty( QLatin1String("Pixel format") );
+        property->setToolTip("Format of pixels of the media.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         // interlacing
         property = infoManager->addProperty( QLatin1String("Interlaced") );
+        property->setToolTip("Is the source encoded with interlaced frames?");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         // Frames size special case when power of two dimensions are generated
         property = sizeManager->addProperty( QLatin1String("Original size") );
+        property->setToolTip("Resolution of the original frames.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         // Duration
         property = infoManager->addProperty( QLatin1String("Duration") );
+        property->setToolTip("Duration of the media.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
-        // mark IN
-        property = infoManager->addProperty( QLatin1String("Mark in") );
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
-        // mark OUT
-        property = infoManager->addProperty( QLatin1String("Mark out") );
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
+
         // Ignore alpha channel
         property = boolManager->addProperty("Ignore alpha");
         property->setToolTip("Do not use the alpha channel of the images (black instead).");
@@ -853,8 +831,6 @@ public:
         infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
         infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
         infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
-        infoManager->setValue(idToProperty["Mark in"],  vf->getTimeFromFrame(vf->getMarkIn()) );
-        infoManager->setValue(idToProperty["Mark out"], vf->getTimeFromFrame(vf->getMarkOut()) );
         infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? QObject::tr("Yes") : QObject::tr("No") );
         boolManager->setValue(idToProperty["Ignore alpha"], vf->ignoresAlphaChannel());
         sizeManager->setValue(idToProperty["Original size"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
@@ -866,8 +842,6 @@ public:
         addProperty(idToProperty["Pixel format"]);
         addProperty(idToProperty["Interlaced"]);
         addProperty(idToProperty["Duration"]);
-        addProperty(idToProperty["Mark in"]);
-        addProperty(idToProperty["Mark out"]);
         if (vf->pixelFormatHasAlphaChannel())
             addProperty(idToProperty["Ignore alpha"]);
         if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight())
@@ -906,6 +880,7 @@ public:
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         property = infoManager->addProperty( QLatin1String("Frame delay") );
+        property->setToolTip("Number of frames of delay.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
@@ -933,9 +908,11 @@ public:
     {
         QtProperty *property;
         property = infoManager->addProperty( QLatin1String("Captured image") );
+        property->setToolTip("Size of the image stored in session file.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         property = infoManager->addProperty( QLatin1String("Color depth") );
+        property->setToolTip("Bytes per pixel.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
@@ -960,6 +937,7 @@ public:
     {
         QtProperty *property;
         property = infoManager->addProperty( QLatin1String("Vector graphics") );
+        property->setToolTip("Size of the frame generated by vector graphics.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
@@ -982,6 +960,7 @@ public:
     {
         QtProperty *property;
         property = infoManager->addProperty( QLatin1String("Clone of") );
+        property->setToolTip("Name of the source cloned.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
@@ -1006,9 +985,11 @@ public:
     {
         QtProperty *property;
         property = infoManager->addProperty( QLatin1String("Camera device") );
+        property->setToolTip("Identifier of the OpenCV camera input.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         property = infoManager->addProperty( QLatin1String("OpenCV") );
+        property->setToolTip("Version of OpenCV library.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
@@ -1037,9 +1018,11 @@ public:
     {
         QtProperty *property;
         property = infoManager->addProperty( QLatin1String("Shared Memory") );
+        property->setToolTip("Name of the program sharing memory.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
         property = infoManager->addProperty( QLatin1String("Info") );
+        property->setToolTip("Information about the program sharing memory.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
@@ -1058,35 +1041,6 @@ private:
 
 #endif
 
-//#ifdef FFGL
-
-//class FFGLSourcePropertyBrowser : public PropertyBrowser {
-
-//public:
-//    FFGLSourcePropertyBrowser(FFGLSource *source, QWidget *parent = 0):PropertyBrowser(parent), cs(source)
-//    {
-//        QtProperty *property;
-//        property = infoManager->addProperty( QLatin1String("FreeframeGL") );
-//        property->setItalics(true);
-//        idToProperty[property->propertyName()] = property;
-//        property = infoManager->addProperty( QLatin1String("Info") );
-//        property->setItalics(true);
-//        idToProperty[property->propertyName()] = property;
-
-//        infoManager->setValue(idToProperty["FreeframeGL"], cs->getProgram()  );
-//        infoManager->setValue(idToProperty["Info"], cs->getInfo()  );
-
-//        addProperty(idToProperty["FreeframeGL"]);
-//        addProperty(idToProperty["Info"]);
-//    }
-
-//private:
-
-//    FFGLSource *cs;
-
-//};
-
-//#endif
 
 PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent)
 {
@@ -1130,7 +1084,7 @@ PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent)
     }
 #endif
 #ifdef SHM
-    else if ( s->rtti() == Source::CAMERA_SOURCE ) {
+    else if ( s->rtti() == Source::SHM_SOURCE ) {
         SharedMemorySource *cs = dynamic_cast<SharedMemorySource *>(s);
         if (cs != 0)
             pb = new SharedMemorySourcePropertyBrowser(cs, parent);

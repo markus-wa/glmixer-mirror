@@ -47,7 +47,6 @@ public slots:
     void updateMixingProperties();
     void updateGeometryProperties();
     void updateLayerProperties();
-    void updateMarksProperties(bool showFrames);
 
     void valueChanged(QtProperty *property, const QColor &value);
     void valueChanged(QtProperty *property, const QPointF &value);

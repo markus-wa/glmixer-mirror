@@ -51,7 +51,6 @@ Source::Source() :
 			gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
 			hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
             useChromaKey(false)
-          //, _ffgl_plugins(NULL)
 {
 	id = 0;
 
@@ -555,15 +554,6 @@ void Source::importProperties(const Source *source, bool withGeometry){
         flipVertical = source->flipVertical;
 	}
 
-#ifdef FFGL
-    _ffgl_plugins.clear();
-    for (FFGLPluginSourceStack::const_iterator it = source->_ffgl_plugins.begin(); it != source->_ffgl_plugins.end(); ++it) {
-
-        _ffgl_plugins.pushNewPlugin( (*it)->fileName(), (*it)->width(), (*it)->height(), (*it)->getInputTextureStruct().Handle );
-        _ffgl_plugins.top()->setConfiguration( (*it)->getConfiguration() );
-    }
-
-#endif
 }
 
 
@@ -597,6 +587,11 @@ FFGLPluginSourceStack *Source::getFreeframeGLPluginStack() {
 bool Source::hasFreeframeGLPlugin() {
 
     return (_ffgl_plugins.count() > 0);
+}
+
+void Source::clearFreeframeGLPlugin() {
+
+    _ffgl_plugins.clear();
 }
 
 #endif

@@ -437,8 +437,9 @@ public:
 #ifdef FFGL
     // freeframe gl plugin
     void addFreeframeGLPlugin(QString filename);
-    virtual FFGLPluginSourceStack *getFreeframeGLPluginStack();
-    virtual bool hasFreeframeGLPlugin();
+    FFGLPluginSourceStack *getFreeframeGLPluginStack();
+    bool hasFreeframeGLPlugin();
+    void clearFreeframeGLPlugin();
 #endif
 
 protected:

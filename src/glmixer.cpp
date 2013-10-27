@@ -70,6 +70,7 @@
 #endif
 
 #ifdef FFGL
+#include "FFGLPluginSource.h"
 #include "FFGLSourceCreationDialog.h"
 #endif
 
@@ -270,15 +271,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // Setup the property browsers
     layoutPropertyBrowser = new QSplitter(this);
     layoutPropertyBrowser->setOrientation(Qt::Vertical);
-
     specificSourcePropertyBrowser = NULL;
-
     SourcePropertyBrowser *sourcePropertyBrowser = RenderingManager::getPropertyBrowserWidget();
     sourcePropertyBrowser->setHeaderVisible(false);
     layoutPropertyBrowser->addWidget(sourcePropertyBrowser);
-    QObject::connect(this, SIGNAL(sourceMarksModified(bool)), sourcePropertyBrowser, SLOT(updateMarksProperties(bool) ) );
+//    QObject::connect(this, SIGNAL(sourceMarksModified(bool)), sourcePropertyBrowser, SLOT(updateMarksProperties(bool) ) );
     QObject::connect(sourcePropertyBrowser, SIGNAL(changed(Source*)), this, SLOT(sourceChanged(Source*) ) );
-
     sourceDockWidgetContentsLayout->addWidget(layoutPropertyBrowser);
 
     // setup the mixing toolbox
@@ -1031,9 +1029,21 @@ void GLMixer::on_actionRenderingSource_triggered(){
 void GLMixer::on_actionCloneSource_triggered(){
 
 	if ( RenderingManager::getInstance()->notAtEnd(RenderingManager::getInstance()->getCurrentSource()) ) {
-		Source *s = RenderingManager::getInstance()->newCloneSource( RenderingManager::getInstance()->getCurrentSource());
+        SourceSet::iterator original = RenderingManager::getInstance()->getCurrentSource();
+        Source *s = RenderingManager::getInstance()->newCloneSource(original);
 		if ( s ) {
 			QString name = (*RenderingManager::getInstance()->getCurrentSource())->getName();
+
+#ifdef FFGL
+        // copy the Freeframe plugin stack
+        for (FFGLPluginSourceStack::const_iterator it = (*original)->getFreeframeGLPluginStack()->begin();
+             it != (*original)->getFreeframeGLPluginStack()->end(); ++it) {
+
+            s->addFreeframeGLPlugin( (*it)->fileName() );
+            s->getFreeframeGLPluginStack()->top()->setConfiguration( (*it)->getConfiguration() );
+        }
+#endif
+
 			RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New clone of source %1 created.").arg(name);
 			statusbar->showMessage( tr("The current source has been cloned."), 3000);

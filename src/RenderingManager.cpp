@@ -764,6 +764,7 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
         } else
             renameSource( s, (*sit)->getName() + tr("Clone"));
 
+
 	} catch (AllocationException &e){
         qWarning() << "Cannot clone source; " << e.message();
 		// return an invalid pointer
@@ -824,7 +825,10 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
     (*sit)->importProperties(_defaultSource);
 	// scale the source to match the preferences
 	(*sit)->resetScale(_scalingMode);
-
+#ifdef FFGL
+    // clear plugins
+    (*sit)->clearFreeframeGLPlugin();
+#endif
 }
 
 
