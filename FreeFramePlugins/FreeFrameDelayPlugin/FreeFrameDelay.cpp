@@ -234,12 +234,13 @@ DWORD FreeFrameDelay::SetParameter(const SetParameterStruct* pParam)
 
 DWORD FreeFrameDelay::GetParameter(DWORD index)
 {
-    DWORD dwRet = FF_FAIL;
+    DWORD dwRet;
+    *((float *)(unsigned)&dwRet) = delay;
 
     if (index == FFPARAM_DELAY)
-        *((float *)(unsigned)&dwRet) = delay;
-
-    return dwRet;
+        return dwRet;
+    else
+        return FF_FAIL;
 }
 
 #else

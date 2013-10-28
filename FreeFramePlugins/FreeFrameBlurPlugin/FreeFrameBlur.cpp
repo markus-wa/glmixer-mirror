@@ -318,12 +318,13 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     DWORD FreeFrameBlur::GetParameter(DWORD index)
     {
-        DWORD dwRet = FF_FAIL;
+        DWORD dwRet;
+        *((float *)(unsigned)&dwRet) = blur;
 
         if (index == FFPARAM_BLUR)
-            *((float *)(unsigned)&dwRet) = blur;
-
-        return dwRet;
+            return dwRet;
+        else
+            return FF_FAIL;
     }
 
 #else
