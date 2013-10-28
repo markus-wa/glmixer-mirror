@@ -46,8 +46,13 @@ FreeFrameQtGLSL::FreeFrameQtGLSL()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD   FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
+#else
+// FFGL 1.6
 FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
+#endif
 {
     w = new GLSLCodeEditorWidget();
 
@@ -56,8 +61,13 @@ FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
     return FF_SUCCESS;
 }
 
-
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD   FreeFrameQtGLSL::DeInitGL()
+#else
+// FFGL 1.6
 FFResult FreeFrameQtGLSL::DeInitGL()
+#endif
 {
 
     fprintf(stderr, "DEINITGL");
@@ -72,7 +82,13 @@ FFResult FreeFrameQtGLSL::DeInitGL()
 }
 
 
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD	FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+#else
+// FFGL 1.6
 FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+#endif
 {
 //    if(!t->isRunning())
 //        t->start();

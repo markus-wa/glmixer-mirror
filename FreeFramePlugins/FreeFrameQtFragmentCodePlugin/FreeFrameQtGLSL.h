@@ -12,17 +12,28 @@ public:
 	///////////////////////////////////////////////////
 	// FreeFrame plugin methods
 	///////////////////////////////////////////////////
-	
-    FFResult	ProcessOpenGL(ProcessOpenGLStruct* pGL);
-
+#ifdef FF_FAIL
+    // FFGL 1.5
+    DWORD	ProcessOpenGL(ProcessOpenGLStruct* pGL);
+    DWORD   InitGL(const FFGLViewportStruct *vp);
+    DWORD   DeInitGL();
+#else
+    // FFGL 1.6
+    FFResult    ProcessOpenGL(ProcessOpenGLStruct* pGL);
     FFResult    InitGL(const FFGLViewportStruct *vp);
     FFResult    DeInitGL();
+#endif
 
 	///////////////////////////////////////////////////
 	// Factory method
 	///////////////////////////////////////////////////
-
-	static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
+#ifdef FF_FAIL
+    // FFGL 1.5
+    static DWORD __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
+#else
+    // FFGL 1.6
+    static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
+#endif
     {
         *ppOutInstance = new FreeFrameQtGLSL();
         if (*ppOutInstance != NULL)

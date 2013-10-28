@@ -4,21 +4,26 @@ project (LIBFFGLQTGLSL)
 
 # add the corresponding path to include
 include(${QT_USE_FILE})
-IF (WIN32)
+
+IF(WIN32)
     SET (QT_USE_QTMAIN TRUE)
-ENDIF (WIN32)
+ENDIF(WIN32)
 
 set(LIBFFGLQTGLSL_SRCS
     FreeFrameQtGLSL.cpp
     GLSLCodeEditorWidget.cpp
 )
 
-# do the qt-cmake magic
-qt4_wrap_ui(LIBFFGLQTGLSL_UIS_H CodeEditorWidget.ui)
+set(LIBFFGLQTGLSL_UIS
+    CodeEditorWidget.ui
+)
 
 # Don't forget to include output directory, otherwise
 # the UI file won't be wrapped!
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+
+# do the qt-cmake magic
+qt4_wrap_ui(LIBFFGLQTGLSL_UIS_H ${LIBFFGLQTGLSL_UIS})
 
 # tell cmake to create .moc files for all files in the variable qtproject_SRCS that require such a file.
 # note: this assumes that you use #include "header.moc" in your files
@@ -41,5 +46,6 @@ set(LIBFFGLQTGLSL_SRCS
     ${LIBFFGLQTGLSL_SRCS}
 )
 
-add_library (ffglqtglsl SHARED ${LIBFFGLQTGLSL_SRCS})
+add_library(ffglqtglsl SHARED ${LIBFFGLQTGLSL_SRCS} ${LIBFFGLQTGLSL_UIS_H})
 
+target_link_libraries(ffglqtglsl ${OPENGL_LIBRARY} ${QT_LIBRARIES})

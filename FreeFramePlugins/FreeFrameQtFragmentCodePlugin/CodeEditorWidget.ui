@@ -24,7 +24,7 @@
    <item>
     <widget class="QPlainTextEdit" name="plainTextEdit">
      <property name="plainText">
-      <string>gl_FragColor = texture2D(texture, texc );</string>
+      <string>gl_FragColor = texture2D(texture, texc ); </string>
      </property>
     </widget>
    </item>
