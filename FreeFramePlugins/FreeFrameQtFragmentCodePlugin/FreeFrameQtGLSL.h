@@ -2,6 +2,7 @@
 #define FFGLQTGLSL_H
 
 #include <FFGLPluginSDK.h>
+#include <FFGLFBO.h>
 
 class FreeFrameQtGLSL : public CFreeFrameGLPlugin
 {
@@ -12,28 +13,17 @@ public:
 	///////////////////////////////////////////////////
 	// FreeFrame plugin methods
 	///////////////////////////////////////////////////
-#ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD	ProcessOpenGL(ProcessOpenGLStruct* pGL);
-    DWORD   InitGL(const FFGLViewportStruct *vp);
-    DWORD   DeInitGL();
-#else
-    // FFGL 1.6
-    FFResult    ProcessOpenGL(ProcessOpenGLStruct* pGL);
+	
+    FFResult	ProcessOpenGL(ProcessOpenGLStruct* pGL);
+
     FFResult    InitGL(const FFGLViewportStruct *vp);
     FFResult    DeInitGL();
-#endif
 
 	///////////////////////////////////////////////////
 	// Factory method
 	///////////////////////////////////////////////////
-#ifdef FF_FAIL
-    // FFGL 1.5
-    static DWORD __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
-#else
-    // FFGL 1.6
-    static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
-#endif
+
+	static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
     {
         *ppOutInstance = new FreeFrameQtGLSL();
         if (*ppOutInstance != NULL)
@@ -41,9 +31,21 @@ public:
         return FF_FAIL;
     }
 
+    void setFragmentProgramCode(char *code);
+
 protected:
     class GLSLCodeEditorWidget *w;
 
+
+    bool code_changed;
+    FFGLViewportStruct viewport;
+    FFGLExtensions glExtensions;
+    FFGLFBO frameBufferObject;
+    GLuint shaderProgram;
+    GLuint vertexShader;
+    GLuint fragmentShader;
+    GLuint uniform_texturesize;
+    char *fragmentShaderCode;
 };
 
 

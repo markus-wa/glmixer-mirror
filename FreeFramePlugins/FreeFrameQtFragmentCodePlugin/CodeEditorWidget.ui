@@ -17,16 +17,30 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;varying vec2 texc;&lt;/p&gt;&lt;p&gt;uniform sampler2D texture;&lt;/p&gt;&lt;p&gt;void main(void) {&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;(1) varying vec2 texc;&lt;/p&gt;&lt;p&gt;(2) uniform vec2 texturesize;&lt;/p&gt;&lt;p&gt;(3) uniform sampler2D texture;&lt;/p&gt;&lt;p&gt;(4) void main(void) {&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPlainTextEdit" name="plainTextEdit">
-     <property name="plainText">
-      <string>gl_FragColor = texture2D(texture, texc ); </string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>(5)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPlainTextEdit" name="codeTextEdit">
+       <property name="plainText">
+        <string>gl_FragColor = texture2D(texture, texc );</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QLabel" name="label_2">
@@ -38,7 +52,10 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="loadButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Load</string>
        </property>
@@ -58,7 +75,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="applyButton">
        <property name="text">
         <string>Apply</string>
        </property>
@@ -67,12 +84,9 @@
     </layout>
    </item>
    <item>
-    <widget class="QPlainTextEdit" name="plainTextEdit_2">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
+    <widget class="QPlainTextEdit" name="logText">
+     <property name="undoRedoEnabled">
+      <bool>false</bool>
      </property>
      <property name="readOnly">
       <bool>true</bool>
@@ -85,5 +99,25 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>applyButton</sender>
+   <signal>pressed()</signal>
+   <receiver>CodeEditorWidget</receiver>
+   <slot>applyCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>352</x>
+     <y>245</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>197</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>applyCode()</slot>
+ </slots>
 </ui>

@@ -4,26 +4,21 @@ project (LIBFFGLQTGLSL)
 
 # add the corresponding path to include
 include(${QT_USE_FILE})
-
-IF(WIN32)
+IF (WIN32)
     SET (QT_USE_QTMAIN TRUE)
-ENDIF(WIN32)
+ENDIF (WIN32)
 
 set(LIBFFGLQTGLSL_SRCS
     FreeFrameQtGLSL.cpp
     GLSLCodeEditorWidget.cpp
 )
 
-set(LIBFFGLQTGLSL_UIS
-    CodeEditorWidget.ui
-)
+# do the qt-cmake magic
+qt4_wrap_ui(LIBFFGLQTGLSL_UIS_H CodeEditorWidget.ui)
 
 # Don't forget to include output directory, otherwise
 # the UI file won't be wrapped!
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-
-# do the qt-cmake magic
-qt4_wrap_ui(LIBFFGLQTGLSL_UIS_H ${LIBFFGLQTGLSL_UIS})
 
 # tell cmake to create .moc files for all files in the variable qtproject_SRCS that require such a file.
 # note: this assumes that you use #include "header.moc" in your files
@@ -38,14 +33,15 @@ include_directories(${FREEFRAMEGL_DIR_PLUGINS})
 set(LIBFFGLQTGLSL_SRCS
     ${FREEFRAMEGL_DIR_COMMON}/FFGLShader.cpp 
     ${FREEFRAMEGL_DIR_COMMON}/FFGLExtensions.cpp 
+    ${FREEFRAMEGL_DIR_COMMON}/FFGLFBO.cpp
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginInfo.cpp 
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginInfoData.cpp 
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGL.cpp 
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginManager.cpp 
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginSDK.cpp
     ${LIBFFGLQTGLSL_SRCS}
+    ${LIBFFGLQTGLSL_UIS_H}
 )
 
-add_library(ffglqtglsl SHARED ${LIBFFGLQTGLSL_SRCS} ${LIBFFGLQTGLSL_UIS_H})
+add_library (ffglqtglsl SHARED ${LIBFFGLQTGLSL_SRCS} ${GLEW_LIBRARY})
 
-target_link_libraries(ffglqtglsl ${OPENGL_LIBRARY} ${QT_LIBRARIES})
