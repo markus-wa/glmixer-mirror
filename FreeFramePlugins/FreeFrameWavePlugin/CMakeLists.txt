@@ -19,6 +19,6 @@ set(LIBFFGLWAVE_SRCS
     FreeFrameWave.cpp
 )
 
-add_library (ffwave SHARED ${LIBFFGLWAVE_SRCS})
+add_library (ffglWave SHARED ${LIBFFGLWAVE_SRCS})
 
-target_link_libraries(ffwave ${OPENGL_LIBRARY})
+target_link_libraries(ffglWave ${OPENGL_LIBRARY})

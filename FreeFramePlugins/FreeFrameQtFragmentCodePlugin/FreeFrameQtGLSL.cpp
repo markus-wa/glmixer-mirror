@@ -25,6 +25,14 @@ char *fragmentShaderDefaultCode =  "varying vec2 texc;\n"
                             "gl_FragColor = texture2D(texture, texc);\n"
                             "}";
 
+// http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.165.6050&rep=rep1&type=pdf
+//vec3 c=texture2D(texture, texc, 0.0).rgb;
+//vec3 a=texture2D(texture, texc, 0.5).rgb;
+//c/=2.0*a;
+//c = pow(c, vec3(0.4545) );
+//gl_FragColor= vec4(a, 1.0);
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,7 +160,7 @@ FFResult FreeFrameQtGLSL::DeInitGL()
     glDeleteProgram(shaderProgram);
 
 
-    w->hide();
+   // w->hide();
 //    qApp->processEvents();
     delete w;
 

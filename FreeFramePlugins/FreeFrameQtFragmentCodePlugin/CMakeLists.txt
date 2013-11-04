@@ -43,5 +43,5 @@ set(LIBFFGLQTGLSL_SRCS
     ${LIBFFGLQTGLSL_UIS_H}
 )
 
-add_library (ffglqtglsl SHARED ${LIBFFGLQTGLSL_SRCS} ${GLEW_LIBRARY})
+add_library (ffglQtFragmentProgram SHARED ${LIBFFGLQTGLSL_SRCS} ${GLEW_LIBRARY})
 

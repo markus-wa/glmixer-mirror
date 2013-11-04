@@ -466,10 +466,10 @@ void GLMixer::exitHandler() {
 	// save window settings
 	_instance->saveSettings();
 
-	RenderingManager::deleteInstance();
-	OutputRenderWindow::deleteInstance();
+    RenderingManager::deleteInstance();
+    OutputRenderWindow::deleteInstance();
 #ifdef SHM
-	SharedMemoryManager::deleteInstance();
+    SharedMemoryManager::deleteInstance();
 #endif
 	if (_instance)
 		delete _instance;
@@ -478,7 +478,7 @@ void GLMixer::exitHandler() {
 
 void GLMixer::closeEvent ( QCloseEvent * event ){
 
-	OutputRenderWindow::getInstance()->close();
+    qApp->closeAllWindows ();
 	event->accept();
 }
 
