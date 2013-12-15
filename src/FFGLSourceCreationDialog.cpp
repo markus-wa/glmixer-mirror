@@ -11,7 +11,7 @@
 
 
 FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *settings) :
-    QDialog(parent), ui(new Ui::FFGLSourceCreationDialog), s(NULL), appSettings(settings)
+    QDialog(parent), ui(new Ui::FFGLSourceCreationDialog), pluginBrowserStack(NULL), s(NULL), appSettings(settings)
 {
     // setup the user interface
     ui->setupUi(this);
@@ -91,14 +91,18 @@ void FFGLSourceCreationDialog::updateSourcePreview(QDomElement config){
         ui->labelWarninEffect->setVisible(false);
         // remove source from preview: this deletes the texture in the preview
         ui->preview->setSource(0);
-        // clear plugin browser
-        pluginBrowser->clear();
-        delete pluginBrowserStack;
         // delete the source:
         delete s;
     }
 
+    if (pluginBrowserStack) {
+        // clear plugin browser
+        pluginBrowser->clear();
+        delete pluginBrowserStack;
+    }
+
     s = NULL;
+    pluginBrowserStack = NULL;
 
     if (QFileInfo(_filename).isFile()) {
 
