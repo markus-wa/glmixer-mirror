@@ -26,7 +26,7 @@ public Q_SLOTS:
     void done(int r);
 
     void browse();
-    void updatePlugin(QString);
+    void updatePlugin(int);
     void updateSourcePreview(QDomElement config = QDomElement());
     void selectSizePreset(int preset);
 

@@ -37,7 +37,7 @@
        </size>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QGroupBox" name="groupBox">
@@ -54,16 +54,7 @@
           <bool>true</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
-          <property name="leftMargin">
-           <number>3</number>
-          </property>
-          <property name="topMargin">
-           <number>3</number>
-          </property>
-          <property name="rightMargin">
-           <number>3</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>3</number>
           </property>
           <item>
@@ -71,13 +62,22 @@
             <item>
              <widget class="QComboBox" name="pluginFileList">
               <property name="toolTip">
-               <string>Select a file name or browse to open a shared library file (.dll, .so or .bundle).</string>
+               <string>Select a FreeFrame plugin</string>
               </property>
               <property name="editable">
-               <bool>true</bool>
+               <bool>false</bool>
+              </property>
+              <property name="maxCount">
+               <number>10</number>
               </property>
               <property name="insertPolicy">
                <enum>QComboBox::InsertAtTop</enum>
+              </property>
+              <property name="sizeAdjustPolicy">
+               <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+              </property>
+              <property name="duplicatesEnabled">
+               <bool>false</bool>
               </property>
               <property name="frame">
                <bool>true</bool>
@@ -87,7 +87,7 @@
             <item>
              <widget class="QToolButton" name="openfile">
               <property name="toolTip">
-               <string>Select a file name or browse to open a shared library file (.dll, .so or .bundle).</string>
+               <string>Browse to open a shared library file (.dll, .so or .bundle).</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -248,16 +248,7 @@
           <item>
            <widget class="QWidget" name="sizeGrid" native="true">
             <layout class="QGridLayout" name="sizeGridLayout">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
+             <property name="margin">
               <number>0</number>
              </property>
              <item row="0" column="0">
@@ -414,9 +405,9 @@
   </connection>
   <connection>
    <sender>pluginFileList</sender>
-   <signal>editTextChanged(QString)</signal>
+   <signal>currentIndexChanged(int)</signal>
    <receiver>FFGLSourceCreationDialog</receiver>
-   <slot>updatePlugin(QString)</slot>
+   <slot>updatePlugin(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>116</x>
@@ -446,7 +437,7 @@
   </connection>
  </connections>
  <slots>
-  <slot>updatePlugin(QString)</slot>
+  <slot>updatePlugin(int)</slot>
   <slot>browse()</slot>
   <slot>updateSourcePreview()</slot>
   <slot>selectSizePreset(int)</slot>

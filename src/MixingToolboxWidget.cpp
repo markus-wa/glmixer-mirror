@@ -77,14 +77,14 @@ void setPresetItemTooltip(QListWidgetItem *item, Source *source)
 {
     QStringList tooltip;
     tooltip << QString("Preset '%1'\n").arg(source->getName());
-    tooltip << QString("Blending\t\t%1").arg( namePresetFromInt(intFromBlendingPreset( source->getBlendFuncDestination(), source->getBlendEquation() ) )  );
+    tooltip << QString("Blending  \t%1").arg( namePresetFromInt(intFromBlendingPreset( source->getBlendFuncDestination(), source->getBlendEquation() ) )  );
 
     if ( source->isPixelated() )
         tooltip << QString("Pixelated\tON");
     if ( source->getColor() != QColor(255, 255, 255, 255)  )
-        tooltip << QString("Color\t\t(%1,%2,%3)").arg(source->getColor().red()).arg(source->getColor().green()).arg(source->getColor().blue());
+        tooltip << QString("Color   \t(%1,%2,%3)").arg(source->getColor().red()).arg(source->getColor().green()).arg(source->getColor().blue());
     if ( source->getMask() != 0 )
-        tooltip << QString("Mask\t\t%1").arg(ViewRenderWidget::getMaskDecription()[source->getMask()].first  );
+        tooltip << QString("Mask    \t%1").arg(ViewRenderWidget::getMaskDecription()[source->getMask()].first  );
     if ( source->getInvertMode() == Source::INVERT_COLOR )
         tooltip << QString("Inversion \tRGB");
     else if ( source->getInvertMode() == Source::INVERT_LUMINANCE )
@@ -104,7 +104,7 @@ void setPresetItemTooltip(QListWidgetItem *item, Source *source)
     if ( source->getNumberOfColors() != 0 )
         tooltip << QString("Posterize \t%1").arg(source->getNumberOfColors());
     if ( source->getFilter() != Source::FILTER_NONE )
-        tooltip << QString("Filter\t\t%1").arg(Source::getFilterName( source->getFilter() ) );
+        tooltip << QString("Filter   \t%1").arg(Source::getFilterName( source->getFilter() ) );
 
     item->setToolTip(tooltip.join("\n"));
 }
@@ -595,9 +595,10 @@ void MixingToolboxWidget::changed(){
 
 }
 
+#ifdef FFGL
+
 void MixingToolboxWidget::on_addPlugin_pressed(){
 
-#ifdef FFGL
 
     #ifdef Q_OS_MAC
     QString ext = tr("Freeframe GL Plugin (*.bundle)");
@@ -612,13 +613,16 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
     QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), ext);
 
     QFileInfo pluginfile(fileName);
-    if (source && pluginfile.isFile()) {
-        source->addFreeframeGLPlugin(fileName);
+#ifdef Q_OS_MAC
+    if (pluginfile.isBundle())
+        pluginfile.setFile( pluginfile.absoluteFilePath() + "/Contents/MacOS/" + pluginfile.baseName() );
+#endif
+    if (source && pluginfile.isFile()) {  
+        source->addFreeframeGLPlugin( pluginfile.absoluteFilePath() );
         pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
         changed();
     }
-#endif
 }
 
-
+#endif
 

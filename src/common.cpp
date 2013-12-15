@@ -162,7 +162,7 @@ QString namePresetFromInt(int i)
 void addPathToSystemPath(QByteArray path)
 {
 #ifdef Q_OS_MAC
-    const char* pathEnvironmentVariableName = "DYLD_LIBRARY_PATH";
+    const char* pathEnvironmentVariableName = "PATH";
     const char separatorEnvironmentVariable = ':';
 #else
 #ifdef Q_OS_LINUX

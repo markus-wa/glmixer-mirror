@@ -70,27 +70,29 @@ public Q_SLOTS:
     // Effects page
     void on_filterList_currentRowChanged(int);
 
+#ifdef FFGL
     // Plugin page
     void on_addPlugin_pressed();
+#endif
 
-	// state restoration
-	QByteArray saveState() const;
-	bool restoreState(const QByteArray &state);
+    // state restoration
+    QByteArray saveState() const;
+    bool restoreState(const QByteArray &state);
 
     void changed();
 
 Q_SIGNALS:
-	// inform property manager when a property is modified here
-	void valueChanged(QString propertyname, bool value);
-	void valueChanged(QString propertyname, int value);
-	void valueChanged(QString propertyname, const QColor &value);
-	void enumChanged(QString propertyname, int value);
+    // inform property manager when a property is modified here
+    void valueChanged(QString propertyname, bool value);
+    void valueChanged(QString propertyname, int value);
+    void valueChanged(QString propertyname, const QColor &value);
+    void enumChanged(QString propertyname, int value);
     // inform when a preset is applied (to refresh the GUI)
     void sourceChanged(SourceSet::iterator);
 
 private:
 
-	class GammaLevelsWidget *gammaAdjust;
+    class GammaLevelsWidget *gammaAdjust;
     Source *source;
 
     QMap<QListWidgetItem *, Source *> _defaultPresets;

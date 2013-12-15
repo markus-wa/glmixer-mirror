@@ -8,7 +8,7 @@ add_subdirectory(FreeFrameWavePlugin)
 add_subdirectory(FreeFrameBlurPlugin)
 add_subdirectory(FreeFrameDelayPlugin)
 add_subdirectory(FreeFrameQtScreenCapturePlugin)
-add_subdirectory(FreeFrameQtFragmentCodePlugin)
+#add_subdirectory(FreeFrameQtFragmentCodePlugin)
 
 # platofm specific plugins
 if(WIN32)
