@@ -2437,7 +2437,7 @@ void GLMixer::updateStatusControlActions() {
 
 bool GLMixer::useSystemDialogs()
 {
-	return usesystemdialogs;
+    return usesystemdialogs;
 }
 
 
@@ -2619,7 +2619,7 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
 {
     QString fileName = "";
 
-    if (usesystemdialogs)
+    if (usesystemdialogs || filter.contains("bundle"))
     {
         static QDir dir(QDir::home());
 

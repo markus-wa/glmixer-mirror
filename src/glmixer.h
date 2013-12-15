@@ -129,8 +129,8 @@ public Q_SLOTS:
     void openSessionFile();
 	void switchToSessionFile(QString filename);
     QString getRestorelastSessionFilename();
-	void confirmSessionFileName();
-	bool useSystemDialogs();
+    void confirmSessionFileName();
+    bool useSystemDialogs();
 	void updateStatusControlActions();
 
 	// source config
