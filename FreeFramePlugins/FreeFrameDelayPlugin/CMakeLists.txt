@@ -20,6 +20,6 @@ set(LIBFFGLDELAY_SRCS
     FreeFrameDelay.cpp
 )
 
-add_library (ffglDelay SHARED ${LIBFFGLDELAY_SRCS})
+add_library(ffglDelay MODULE ${LIBFFGLDELAY_SRCS})
 
 target_link_libraries(ffglDelay ${OPENGL_LIBRARY})

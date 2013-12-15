@@ -112,7 +112,13 @@ void FreeFrameQtGLSL::setFragmentProgramCode(char *code)
 
 }
 
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD   FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
+#else
+// FFGL 1.6
 FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
+#endif
 {
     viewport.x = 0;
     viewport.y = 0;
@@ -150,7 +156,13 @@ FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
 }
 
 
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD   FreeFrameQtGLSL::DeInitGL()
+#else
+// FFGL 1.6
 FFResult FreeFrameQtGLSL::DeInitGL()
+#endif
 {
 
     frameBufferObject.FreeResources(glExtensions);
@@ -168,6 +180,17 @@ FFResult FreeFrameQtGLSL::DeInitGL()
   return FF_SUCCESS;
 }
 
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD   FreeFrameQtGLSL::SetTime(double time)
+#else
+// FFGL 1.6
+FFResult FreeFrameQtGLSL::SetTime(double time)
+#endif
+{
+  m_curTime = time;
+  return FF_SUCCESS;
+}
 
 void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 {
@@ -210,7 +233,13 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 }
 
 
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD	FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+#else
+// FFGL 1.6
 FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+#endif
 {
 
   if (pGL->numInputTextures<1)
@@ -237,7 +266,7 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
       glCompileShader(vertexShader);
 
       fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-      glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
+  //    glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
       glCompileShader(fragmentShader);
       glGetShaderInfoLog(fragmentShader, 2048, &infologLength, infoLog);
       w->showLogs(infoLog);

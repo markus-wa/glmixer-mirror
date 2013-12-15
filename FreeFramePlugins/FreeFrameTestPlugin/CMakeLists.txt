@@ -19,6 +19,6 @@ set(LIBFFGLTEST_SRCS
     FreeFrameTest.cpp
 )
 
-add_library (fftest SHARED ${LIBFFGLTEST_SRCS})
+add_library(fftest MODULE ${LIBFFGLTEST_SRCS})
 
 target_link_libraries(fftest ${OPENGL_LIBRARY})

@@ -20,7 +20,7 @@ set(LIBFFGLBLUR_SRCS
     FreeFrameBlur.cpp
 )
 
-add_library(ffglBlur SHARED ${LIBFFGLBLUR_SRCS})
+add_library(ffglBlur MODULE ${LIBFFGLBLUR_SRCS})
 
 target_link_libraries(ffglBlur ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 

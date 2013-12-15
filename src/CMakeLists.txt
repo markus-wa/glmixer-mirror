@@ -1,14 +1,11 @@
 # the next line SETs up include and link directories and defines some variables that we will use.
 
 # this application uses QT with the following modules:
-SET(QT_USE_OPENGL    TRUE)
 SET(QT_USE_QTOPENGL  TRUE)
 SET(QT_USE_QTXML     TRUE)
 SET(QT_USE_QTSVG     TRUE)
-SET(QT_USE_QTMAIN    TRUE)
+SET(QT_USE_QTNETWORK    TRUE)
 
-# add the corresponding path to include
-include(${QT_USE_FILE})
 
 #--------------------------------------------------------------------------------
 # This SETs the windows build that will need the special winmain@16 call. Qt provides
@@ -18,6 +15,9 @@ include(${QT_USE_FILE})
 IF(WIN32)
     SET (QT_USE_QTMAIN TRUE)
 ENDIF(WIN32)
+
+# add the corresponding path to include
+include(${QT_USE_FILE})
 
 # the variable "GLMIXER_SRCS" contains all .cpp files of this project
 SET(GLMIXER_SRCS
@@ -63,6 +63,7 @@ SET(GLMIXER_SRCS
     testbuttonframe.cpp
     testwheelframe.cpp
     MixingToolboxWidget.cpp
+    OpenSoundControlManager.cpp
 )
 
 SET(GLMIXER_RCS
@@ -264,7 +265,7 @@ ELSE(APPLE)
 ENDIF(APPLE)
 
 # link the target against the libraries. 
-target_link_libraries(glmixer QtProperty ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
+target_link_libraries(glmixer QtProperty OSCPack ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
 
 
 	

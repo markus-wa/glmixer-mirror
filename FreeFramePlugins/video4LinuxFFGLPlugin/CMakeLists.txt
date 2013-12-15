@@ -23,7 +23,7 @@ find_library( V4L2_LIBRARY NAMES v4l2)
 find_library( V4L_CONVERT_LIBRARY NAMES v4lconvert)
 find_library( PTHREAD_LIBRARY pthread)
 
-add_library (ffglVideo4Linux SHARED ${LIBV4LFFGL_SRCS})
+add_library(ffglVideo4Linux MODULE ${LIBV4LFFGL_SRCS})
 
 target_link_libraries(ffglVideo4Linux  ${V4L2_LIBRARY} ${V4L_CONVERT_LIBRARY} ${PTHREAD_LIBRARY})
 
