@@ -2625,7 +2625,7 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
 
         // open file or save file?
         if (!saveExtention.isNull())
-            fileName = QFileDialog::getSaveFileName(this, title, dir.absolutePath() + '/' + suggestion + '.' + saveExtention, filter );
+            fileName = QFileDialog::getSaveFileName(this, title, dir.absolutePath() + "/" + suggestion, filter );
         else
             fileName = QFileDialog::getOpenFileName(this, title, dir.absolutePath(), filter );
 
