@@ -149,16 +149,16 @@ void FFGLSourceCreationDialog::updatePlugin(int index) {
 void FFGLSourceCreationDialog::browse() {
 
     #ifdef Q_OS_MAC
-    QString ext = tr("Freeframe GL Plugin (*.bundle)");
+    QString ext = "(*.bundle)";
     #else
     #ifdef Q_OS_WIN
-    QString ext = tr("Freeframe GL Plugin (*.dll)");
+    QString ext = "(*.dll)";
     #else
-    QString ext = tr("Freeframe GL Plugin (*.so)");
+    QString ext = "(*.so)";
     #endif
     #endif
     // browse for a plugin file
-    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), ext);
+    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), tr("Freeframe GL Plugin") + ext);
 
     QFileInfo pluginfile(fileName);
 #ifdef Q_OS_MAC
