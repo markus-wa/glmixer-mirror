@@ -2638,7 +2638,7 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
 
         sfd->setWindowTitle(title);
         sfd->setNameFilter(filter);
-        sfd->selectFile("");
+        sfd->selectFile(" ");
 
         // open file or save file?
         // if a saving extension is provided, the dialog is in save file selection mode
