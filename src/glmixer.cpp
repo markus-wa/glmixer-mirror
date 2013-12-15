@@ -320,6 +320,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     Q_CHECK_PTR(mfd);
     sfd = new QFileDialog(this);
     Q_CHECK_PTR(sfd);
+    sfd->setOption(QFileDialog::DontUseNativeDialog, true);
     upd = new UserPreferencesDialog(this);
     Q_CHECK_PTR(upd);
 
@@ -689,36 +690,38 @@ void GLMixer::on_actionMediaSource_triggered(){
 	    VideoFile *newSourceVideoFile = NULL;
 	    QString filename = fileNamesIt.next();
 
-	    // if the dialog did not request power of two generation of textures
-	    // and if the opengl supports the extension, then open the source normally
-		if ( !generatePowerOfTwoRequested && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
-			newSourceVideoFile = new VideoFile(this);
-		else
-			newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
+        if ( QFileInfo(filename).isFile() ){
 
-		// if the video file was created successfully
-		if (newSourceVideoFile){
-			// can we open the file ?
-			if ( newSourceVideoFile->open( filename ) ) {
-				Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
-				// create the source as it is a valid video file (this also set it to be the current source)
-				if ( s ) {
-					RenderingManager::getInstance()->addSourceToBasket(s);
-                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New media source created with file ") << filename;
-				} else {
-                    qCritical() << filename <<  QChar(124).toLatin1() << tr("Could not create media source with this file.");
-			        delete newSourceVideoFile;
-				}
-			} else {
-                qCritical() << filename << QChar(124).toLatin1() << tr("The file could not be loaded.");
-				delete newSourceVideoFile;
-			}
-		}
+            // if the dialog did not request power of two generation of textures
+            // and if the opengl supports the extension, then open the source normally
+            if ( !generatePowerOfTwoRequested && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
+                newSourceVideoFile = new VideoFile(this);
+            else
+                newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
 
+            // if the video file was created successfully
+            if (newSourceVideoFile){
+                // can we open the file ?
+                if ( newSourceVideoFile->open( filename ) ) {
+                    Source *s = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
+                    // create the source as it is a valid video file (this also set it to be the current source)
+                    if ( s ) {
+                        RenderingManager::getInstance()->addSourceToBasket(s);
+                        qDebug() << s->getName() << QChar(124).toLatin1() << tr("New media source created with file ") << filename;
+                    } else {
+                        qCritical() << filename <<  QChar(124).toLatin1() << tr("Could not create media source with this file.");
+                        delete newSourceVideoFile;
+                    }
+                } else {
+                    qCritical() << filename << QChar(124).toLatin1() << tr("The file could not be loaded.");
+                    delete newSourceVideoFile;
+                }
+            }
+        }
 	}
 
-	if (RenderingManager::getInstance()->getSourceBasketSize() > 0)
-		statusbar->showMessage( tr("%1 media source(s) created; you can now drop them.").arg( RenderingManager::getInstance()->getSourceBasketSize() ), 3000 );
+    if (RenderingManager::getInstance()->getSourceBasketSize() > 0)
+        statusbar->showMessage( tr("%1 media source(s) created; you can now drop them.").arg( RenderingManager::getInstance()->getSourceBasketSize() ), 3000 );
 }
 
 
@@ -919,7 +922,7 @@ void GLMixer::on_actionCameraSource_triggered() {
 
 void GLMixer::on_actionSvgSource_triggered(){
 
-    QString fileName = getFileName(tr("Open SVG file"), tr("Scalable Vector Graphics") + "(*.svg)");
+    QString fileName = getFileName(tr("Open SVG file"), tr("Scalable Vector Graphics") + " (*.svg)");
 
 	if ( !fileName.isEmpty() ) {
 
@@ -1100,7 +1103,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
         QString suggestion = QString("glmixerimage %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
         QString fileName = getFileName(tr("Save snapshot"),
-                                       tr("Image") + "(*.png *.jpg *.tiff *.xpm)",
+                                       tr("Image") + " (*.png *.jpg *.tiff *.xpm)",
                                        QString("png"), suggestion);
 
         if ( !fileName.isEmpty() ) {
@@ -1594,7 +1597,7 @@ void GLMixer::on_actionSave_Session_as_triggered()
     QString suggestion = QString("glmix %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
     QString fileName = getFileName(tr("Save session"),
-                                   tr("GLMixer session") + "(*.glm)",
+                                   tr("GLMixer session") + " (*.glm)",
                                    QString("glm"), suggestion);
 
     if ( !fileName.isEmpty() ) {
@@ -1607,12 +1610,13 @@ void GLMixer::on_actionSave_Session_as_triggered()
 void GLMixer::on_actionLoad_Session_triggered()
 {
     QString fileName = getFileName(tr("Open session"),
-                                   tr("GLMixer session" )+"(*.glm)" );
+                                   tr("GLMixer session" )+" (*.glm)" );
 
     if (QFileInfo(fileName).exists())
         // get the first file name selected
-        switchToSessionFile( sfd->selectedFiles().front() );
-
+        switchToSessionFile( fileName );
+    else
+        qWarning()<< fileName << QChar(124).toLatin1() << tr("File does not exist; ");
 }
 
 
@@ -1811,7 +1815,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
     int errorColumn;
 
     QString fileName = getFileName(tr("Open session"),
-                                   tr("GLMixer session" )+"(*.glm)" );
+                                   tr("GLMixer session" )+" (*.glm)" );
 
         if (QFileInfo(fileName).exists()) {
 
@@ -2597,7 +2601,7 @@ void GLMixer::screenshotView(){
 void GLMixer::selectGLSLFragmentShader()
 {
     QString newfile = getFileName(tr("Open GLSL File"),
-                                      tr("GLSL Fragment Shader") + "(*.glsl *.fsh *.txt)" );
+                                  tr("GLSL Fragment Shader") + " (*.glsl *.fsh *.txt)" );
     if ( QFileInfo(newfile).exists())
         RenderingManager::getRenderingWidget()->setFilteringEnabled(true, newfile);
     else
@@ -2607,32 +2611,46 @@ void GLMixer::selectGLSLFragmentShader()
 
 QString GLMixer::getFileName(QString title, QString filter, QString saveExtention, QString suggestion)
 {
+    QString fileName = "";
 
-    QString fileName;
-    QFileDialog::AcceptMode mode = QFileDialog::AcceptOpen;
+    if (usesystemdialogs)
+    {
+        static QDir dir(QDir::home());
 
-    sfd->setWindowTitle(title);
-    sfd->setFilter(QDir::Files);
-    sfd->setNameFilter(filter);
-    sfd->selectFile("");
+        // open file or save file?
+        if (!saveExtention.isNull())
+            fileName = QFileDialog::getSaveFileName(this, title, dir.absolutePath() + '/' + suggestion + '.' + saveExtention, filter );
+        else
+            fileName = QFileDialog::getOpenFileName(this, title, dir.absolutePath(), filter );
 
+        if (QFileInfo(fileName).exists())
+            dir = QFileInfo(fileName).absoluteDir();
 
-    // open file or save file?
-    // if a saving extension is provided, the dialog is in save file selection mode
-    if (!saveExtention.isNull()) {
-        mode = QFileDialog::AcceptSave;
-        sfd->setDefaultSuffix(saveExtention);
-        if (!suggestion.isNull())
-            sfd->selectFile(suggestion);
+    } else {
+
+        QFileDialog::AcceptMode mode = QFileDialog::AcceptOpen;
+
+        sfd->setWindowTitle(title);
+        sfd->setFilter(QDir::Files);
+        sfd->setNameFilter(filter);
+        sfd->selectFile("");
+
+        // open file or save file?
+        // if a saving extension is provided, the dialog is in save file selection mode
+        if (!saveExtention.isNull()) {
+            mode = QFileDialog::AcceptSave;
+            sfd->setDefaultSuffix(saveExtention);
+            if (!suggestion.isNull())
+                sfd->selectFile(suggestion);
+        }
+
+        sfd->setAcceptMode(mode);
+        sfd->setFileMode(mode == QFileDialog::AcceptOpen ? QFileDialog::ExistingFile : QFileDialog::AnyFile);
+
+        if (sfd->exec())
+            fileName = sfd->selectedFiles().front();
+
     }
-
-    sfd->setAcceptMode(mode);
-    sfd->setFileMode(mode == QFileDialog::AcceptOpen ? QFileDialog::ExistingFile : QFileDialog::AnyFile);
-
-    sfd->setOption(QFileDialog::DontUseNativeDialog, !usesystemdialogs);
-
-    if (sfd->exec())
-        fileName = sfd->selectedFiles().front();
 
     return fileName;
 }
@@ -2643,8 +2661,10 @@ QStringList GLMixer::getMediaFileNames(bool &generatePowerOfTwoRequest) {
 
     // open dialog for openning media files> system QFileDialog, or custom (mfd)
     if (usesystemdialogs) {
-        fileNames = QFileDialog::getOpenFileNames(this, tr("Open media files"), QDir::currentPath(), tr(VIDEOFILE_DIALOG_FORMATS) );
-        generatePowerOfTwoRequest = false;
+        static QDir dir(QDir::home());
+        fileNames = QFileDialog::getOpenFileNames(this, tr("Open media files"), dir.absolutePath(), tr(VIDEOFILE_DIALOG_FORMATS) );
+        if (!fileNames.isEmpty())
+            dir = QFileInfo(fileNames.front()).absoluteDir();
     } else if (mfd->exec()) {
         fileNames = mfd->selectedFiles();
         generatePowerOfTwoRequest = mfd->configCustomSize();

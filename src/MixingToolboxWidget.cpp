@@ -600,12 +600,12 @@ void MixingToolboxWidget::changed(){
 void MixingToolboxWidget::on_addPlugin_pressed(){
 
 #ifdef Q_OS_MAC
-    QString ext = "(*.bundle)";
+    QString ext = " (*.bundle)";
 #else
 #ifdef Q_OS_WIN
-    QString ext = "(*.dll)";
+    QString ext = " (*.dll)";
 #else
-    QString ext = "(*.so)";
+    QString ext = " (*.so)";
 #endif
 #endif
     // browse for a plugin file
