@@ -19,6 +19,10 @@ set(LIBFFGLWAVE_SRCS
     FreeFrameWave.cpp
 )
 
-add_library(ffglWave MODULE ${LIBFFGLWAVE_SRCS})
+if(WIN32)
+  add_library(ffglWave SHARED ${LIBFFGLWAVE_SRCS})
+else(WIN32)
+  add_library(ffglWave MODULE ${LIBFFGLWAVE_SRCS})
+endif(WIN32)
 
 target_link_libraries(ffglWave ${OPENGL_LIBRARY})

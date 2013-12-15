@@ -43,7 +43,11 @@ set(LIBFFGLQTGLSL_SRCS
     ${LIBFFGLQTGLSL_UIS_H}
 )
 
-add_library(ffglQtFragmentProgram MODULE ${LIBFFGLQTGLSL_SRCS} )
+if(WIN32)
+  add_library(ffglQtFragmentProgram SHARED ${LIBFFGLQTGLSL_SRCS})
+else(WIN32)
+  add_library(ffglQtFragmentProgram MODULE ${LIBFFGLQTGLSL_SRCS})
+endif(WIN32)
 
 target_link_libraries(ffglQtFragmentProgram ${OPENGL_LIBRARY} ${QT_LIBRARIES}  ${GLEW_LIBRARY})
 

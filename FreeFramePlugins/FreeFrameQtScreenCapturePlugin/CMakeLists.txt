@@ -24,7 +24,11 @@ set(LIBFFGLQTSCREENCAPTURE_SRCS
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginSDK.cpp
 )
 
-add_library(ffglQtScreenCapture MODULE ${LIBFFGLQTSCREENCAPTURE_SRCS} )
+if(WIN32)
+  add_library(ffglQtScreenCapture SHARED ${LIBFFGLQTSCREENCAPTURE_SRCS})
+else(WIN32)
+  add_library(ffglQtScreenCapture MODULE ${LIBFFGLQTSCREENCAPTURE_SRCS})
+endif(WIN32)
 
 target_link_libraries(ffglQtScreenCapture ${OPENGL_LIBRARY} ${QT_LIBRARIES} ${GLEW_LIBRARY} )
 
