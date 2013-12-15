@@ -25,7 +25,7 @@
 
 #include "OpencvSource.moc"
 
-#include "opencv2/imgproc/imgproc_c.h"
+#include <opencv2/imgproc/imgproc_c.h>
 #include <opencv2/core/version.hpp>
 
 Source::RTTI OpencvSource::type = Source::CAMERA_SOURCE;
@@ -205,5 +205,5 @@ OpencvSource *OpencvSource::getExistingSourceForCameraIndex(int index){
 
 QString OpencvSource::getOpencvVersion()
 {
-    return QString("%1.%2.%3").arg(CV_VERSION_EPOCH).arg(CV_VERSION_MAJOR).arg(CV_VERSION_MINOR);
+    return QString("%1").arg(CV_VERSION);
 }
