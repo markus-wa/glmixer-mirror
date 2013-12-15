@@ -33,6 +33,7 @@ VideoFileDialog::VideoFileDialog( QWidget * parent, const QString & caption, con
 
     setFilter(tr(VIDEOFILE_DIALOG_FORMATS));
     setOption(QFileDialog::DontUseNativeDialog, true);
+    setFilter(QDir::NoDotAndDotDot);
 
     QLayout *grid = layout();
 

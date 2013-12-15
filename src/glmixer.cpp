@@ -321,6 +321,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     sfd = new QFileDialog(this);
     Q_CHECK_PTR(sfd);
     sfd->setOption(QFileDialog::DontUseNativeDialog, true);
+    sfd->setFilter( QDir::AllEntries | QDir::NoDotAndDotDot);
     upd = new UserPreferencesDialog(this);
     Q_CHECK_PTR(upd);
 
@@ -2631,7 +2632,6 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
         QFileDialog::AcceptMode mode = QFileDialog::AcceptOpen;
 
         sfd->setWindowTitle(title);
-        sfd->setFilter(QDir::Files);
         sfd->setNameFilter(filter);
         sfd->selectFile("");
 

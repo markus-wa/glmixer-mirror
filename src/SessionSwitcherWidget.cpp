@@ -355,8 +355,7 @@ void SessionSwitcherWidget::openFolder(QString directory)
 {
     QString dirName;
     if ( directory.isNull() )
-        dirName = QFileDialog::getExistingDirectory(this, QObject::tr("Select a directory"), QDir::currentPath(),
-		  	  	  	  	  	  	  	  	  	  	  	  GLMixer::getInstance()->useSystemDialogs() ? QFileDialog::ShowDirsOnly : QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
+        dirName = QFileDialog::getExistingDirectory(0, QObject::tr("Select a directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly );
     else
         dirName = directory;
 
