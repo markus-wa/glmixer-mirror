@@ -1,13 +1,15 @@
+
+#include <GL/glew.h>
+#define APIENTRY
 #include <FFGL.h>
 #include <FFGLLib.h>
 
 #include "FreeFrameQtScreenCapture.h"
 
 #include <QApplication>
-#include <QThread>
-#include <QReadWriteLock>
-#include <QImage>
 #include <QDesktopWidget>
+#include <QPixmap>
+#include <QImage>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -55,7 +57,6 @@ FFResult FreeFrameQtScreenCapture::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
     glEnable(GL_TEXTURE);
-    glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &textureIndex);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

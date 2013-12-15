@@ -26,5 +26,5 @@ set(LIBFFGLQTSCREENCAPTURE_SRCS
 
 add_library(ffglQtScreenCapture MODULE ${LIBFFGLQTSCREENCAPTURE_SRCS} )
 
-target_link_libraries(ffglQtScreenCapture ${OPENGL_LIBRARY} ${QT_LIBRARIES} )
+target_link_libraries(ffglQtScreenCapture ${OPENGL_LIBRARY} ${QT_LIBRARIES} ${GLEW_LIBRARY} )
 
