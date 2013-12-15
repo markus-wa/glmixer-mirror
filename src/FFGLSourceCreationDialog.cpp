@@ -149,7 +149,7 @@ void FFGLSourceCreationDialog::updatePlugin(int index) {
 void FFGLSourceCreationDialog::browse() {
 
     #ifdef Q_OS_MAC
-    QString ext = " (*.bundle)";
+    QString ext = " (*.bundle *.so)";
     #else
     #ifdef Q_OS_WIN
     QString ext = " (*.dll)";
