@@ -58,6 +58,7 @@
 #include "SessionSwitcher.h"
 #include "MixingToolboxWidget.h"
 #include "GammaLevelsWidget.h"
+#include "OpenSoundControlManager.h"
 
 #ifdef SHM
 #include "SharedMemorySource.h"
@@ -928,7 +929,7 @@ void GLMixer::on_actionSvgSource_triggered(){
 	if ( !fileName.isEmpty() ) {
 
 		QFileInfo file(fileName);
-		if ( !file.exists() || !file.isReadable()) {
+        if ( !file.isFile() || !file.isReadable()) {
             qCritical() << fileName <<  QChar(124).toLatin1() << tr("File does not exist or is unreadable.");
 			return;
 		}
@@ -1613,11 +1614,11 @@ void GLMixer::on_actionLoad_Session_triggered()
     QString fileName = getFileName(tr("Open session"),
                                    tr("GLMixer session" )+" (*.glm)" );
 
-    if (QFileInfo(fileName).exists())
+    if (QFileInfo(fileName).isFile())
         // get the first file name selected
         switchToSessionFile( fileName );
     else
-        qWarning()<< fileName << QChar(124).toLatin1() << tr("File does not exist; ");
+        qWarning()<< fileName << QChar(124).toLatin1() << tr("Not a session file; ");
 }
 
 
@@ -1632,7 +1633,7 @@ void GLMixer::actionLoad_RecentSession_triggered()
 
 void GLMixer::switchToSessionFile(QString filename){
 
-	if (filename.isEmpty())
+    if (!QFileInfo(filename).isFile())
 		newSession();
 	else
 	{
@@ -1818,7 +1819,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
     QString fileName = getFileName(tr("Open session"),
                                    tr("GLMixer session" )+" (*.glm)" );
 
-        if (QFileInfo(fileName).exists()) {
+        if (QFileInfo(fileName).isFile()) {
 
 		QFile file(fileName);
 
@@ -2056,6 +2057,10 @@ void GLMixer::readSettings()
 
     // Switcher session
     switcherSession->restoreSettings();
+
+    // start O SC
+      qDebug() << "OpenSoundControlManager " ;
+    OpenSoundControlManager::getInstance()->setEnabled(true);
 
 	qDebug() << tr("All settings restored.");
 }
@@ -2603,7 +2608,7 @@ void GLMixer::selectGLSLFragmentShader()
 {
     QString newfile = getFileName(tr("Open GLSL File"),
                                   tr("GLSL Fragment Shader") + " (*.glsl *.fsh *.txt)" );
-    if ( QFileInfo(newfile).exists())
+    if ( QFileInfo(newfile).isFile())
         RenderingManager::getRenderingWidget()->setFilteringEnabled(true, newfile);
     else
         RenderingManager::getRenderingWidget()->setFilteringEnabled(RenderingManager::getRenderingWidget()->filteringEnabled());

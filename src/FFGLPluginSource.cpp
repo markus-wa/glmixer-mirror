@@ -292,7 +292,10 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
     }
 
     // load dll plugin
-    if (_plugin->Load( pluginfile.absoluteFilePath().toLatin1().data()) == FF_FAIL){
+
+    char fname[2048];
+    strcpy(fname,  pluginfile.absoluteFilePath().toLatin1().data());
+    if (_plugin->Load(fname) == FF_FAIL){
         qWarning()<< pluginfile.absoluteFilePath() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be loaded");
         FFGLPluginException().raise();
     }
@@ -443,6 +446,7 @@ void FFGLPluginSource::update()
 #else
         // FFGL 1.6
         FFResult callresult = _plugin->CallProcessOpenGL(processStruct);
+  //      FFResult callresult = FF_SUCCESS;
 #endif
 
         // make sure we restore state
