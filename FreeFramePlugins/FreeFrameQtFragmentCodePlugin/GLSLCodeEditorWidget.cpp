@@ -10,6 +10,7 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(FreeFrameQtGLSL *program, QWidget *pa
     ui->setupUi(this);
 
 
+
 }
 
 GLSLCodeEditorWidget::~GLSLCodeEditorWidget()
@@ -20,18 +21,18 @@ GLSLCodeEditorWidget::~GLSLCodeEditorWidget()
 void GLSLCodeEditorWidget::applyCode()
 {
     ui->logText->clear();
-
-    QString code;
-    code.append("varying vec2 texc;\nuniform vec2 texturesize;\nuniform sampler2D texture;\nvoid main(void){\n");
-    code.append(ui->codeTextEdit->toPlainText());
-    code.append("\n\n}");
-
-    _program->setFragmentProgramCode( qPrintable(code));
-
+    _program->setFragmentProgramCode( ui->codeTextEdit->toPlainText().toLatin1().data() );
 }
 
 
-void GLSLCodeEditorWidget::showLogs(char *logstring)
+void GLSLCodeEditorWidget::setCode(const char *code)
 {
-    ui->logText->appendPlainText(QString(logstring));
+    ui->codeTextEdit->clear();
+    ui->codeTextEdit->setFontFamily("courier");
+    ui->codeTextEdit->append(QString::fromLatin1(code));
+}
+
+void GLSLCodeEditorWidget::showLogs(const char *logstring)
+{
+    ui->logText->appendPlainText(QString::fromLatin1(logstring));
 }

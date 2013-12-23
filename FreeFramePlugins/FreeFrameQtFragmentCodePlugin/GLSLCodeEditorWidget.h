@@ -19,7 +19,8 @@ public:
 
 public Q_SLOTS:
     void applyCode();
-    void showLogs(char *logstring);
+    void showLogs(const char *logstring);
+    void setCode(const char *code);
 
 private:
     Ui::CodeEditorWidget *ui;

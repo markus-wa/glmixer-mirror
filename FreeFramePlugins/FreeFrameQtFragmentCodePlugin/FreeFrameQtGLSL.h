@@ -45,21 +45,25 @@ public:
         return FF_FAIL;
     }
 
-    void setFragmentProgramCode(char *code);
+    void setFragmentProgramCode(const char *code);
 
 protected:
     class GLSLCodeEditorWidget *w;
 
-
-    bool code_changed;
     FFGLViewportStruct viewport;
     FFGLExtensions glExtensions;
     FFGLFBO frameBufferObject;
     GLuint shaderProgram;
-    GLuint vertexShader;
     GLuint fragmentShader;
     GLuint uniform_texturesize;
+    GLuint uniform_viewportsize;
+    GLuint uniform_time;
+    GLuint uniform_channeltime;
+    GLuint uniform_date;
+
+    bool code_changed;
     char *fragmentShaderCode;
+
     // Time
     double m_curTime;
 };
