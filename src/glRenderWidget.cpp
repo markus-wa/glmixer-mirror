@@ -102,6 +102,11 @@ void glRenderWidget::initializeGL()
 	glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
 
+    // default texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);//We add these two lines
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); //because we don't have mipmaps.
+
     // ensure alpha channel is modulated ; otherwise the source is not mixed by its alpha channel
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);

@@ -280,14 +280,6 @@ void Source::draw(bool withalpha, GLenum mode) const
 	}
 	else {
 
-        if (pixelated) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        }
-
 		// set transparency and color
 		if (!standby) {
 			glColor4f(texcolor.redF(), texcolor.greenF(), texcolor.blueF(),
@@ -341,18 +333,12 @@ void Source::beginEffectsSection() const {
 
 	// else enabled filtering
 	ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
-    ViewRenderWidget::program->setUniformValue("filter_step", 1.f / (float) getFrameWidth(), 1.f / (float) getFrameHeight());
+    ViewRenderWidget::program->setUniformValue("filter_step", 1.0 / (float) getFrameWidth(), 1.0 / (float) getFrameHeight());
     ViewRenderWidget::program->setUniformValue("filter_kernel", ViewRenderWidget::filter_kernel[filter]);
 
 }
 
 void Source::endEffectsSection() const {
-//
-//	if (pixelated) {
-//		glActiveTexture(GL_TEXTURE0);
-//    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//	}
 
 	// disable the mask
     glActiveTexture(GL_TEXTURE1);
@@ -374,6 +360,10 @@ void Source::bind() const {
     else
 #endif
         glBindTexture(GL_TEXTURE_2D, textureIndex);
+
+    // magnification filter
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, pixelated ? GL_NEAREST : GL_LINEAR);
+
 }
 
 void Source::update()  {
@@ -391,7 +381,6 @@ void Source::blend() const {
 
 //	glBlendFunc(source_blend, destination_blend);
 	glBlendFuncSeparate(source_blend, destination_blend, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
-
 
 	// activate texture 1 ; double texturing of the mask
 	glActiveTexture(GL_TEXTURE1);

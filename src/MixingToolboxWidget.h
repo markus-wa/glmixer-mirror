@@ -53,7 +53,6 @@ public Q_SLOTS:
     void on_blendingMaskList_currentRowChanged(int);
 
     // Color page
-    void on_EffectsInvertBox_currentIndexChanged(int);
     void on_saturationSlider_valueChanged(int);
     void on_brightnessSlider_valueChanged(int);
     void on_contrastSlider_valueChanged(int);
@@ -66,6 +65,11 @@ public Q_SLOTS:
     void on_hueReset_pressed();
     void on_thresholdReset_pressed();
     void on_posterizeReset_pressed();
+    void on_invertReset_pressed();
+    void on_EffectsInvertBox_currentIndexChanged(int);
+    void on_chromakeyEnable_toggled(bool);
+    void on_chromakeyColor_pressed();
+    void on_chromakeySlider_valueChanged(int);
 
     // Effects page
     void on_filterList_currentRowChanged(int);
