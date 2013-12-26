@@ -407,18 +407,19 @@ public:
 		FILTER_EROSION_7X7,
 		FILTER_DILATION_3X3,
 		FILTER_DILATION_5X5,
-		FILTER_DILATION_7X7
+        FILTER_DILATION_7X7,
+        FILTER_CUSTOM_GLSL
 	} filterType;
 
 	inline void setFilter(filterType c) {
-		filter = qBound(FILTER_NONE, c, FILTER_DILATION_7X7);
+        filter = qBound(FILTER_NONE, c, FILTER_CUSTOM_GLSL);
 	}
 
 	inline filterType getFilter() const {
 		return filter;
 	}
 
-	static QString getFilterName(filterType c);
+    static QStringList getFilterNames();
 
     void importProperties(const Source *s, bool withGeometry = true);
 

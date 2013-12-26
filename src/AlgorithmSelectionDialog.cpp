@@ -187,11 +187,23 @@ void AlgorithmSelectionDialog::on_presetsSizeComboBox_currentIndexChanged(int pr
 		case 13:
 			widthSpinBox->setValue(800);
 			heightSpinBox->setValue(600);
-			break;
-		case 14:
-			widthSpinBox->setValue(1024);
-			heightSpinBox->setValue(768);
-			break;
+            break;
+        case 14:
+            widthSpinBox->setValue(1024);
+            heightSpinBox->setValue(768);
+            break;
+        case 15:
+            widthSpinBox->setValue(1280);
+            heightSpinBox->setValue(720);
+            break;
+        case 16:
+            widthSpinBox->setValue(1600);
+            heightSpinBox->setValue(1200);
+            break;
+        case 17:
+            widthSpinBox->setValue(1920);
+            heightSpinBox->setValue(1080);
+            break;
 		}
 	}
 

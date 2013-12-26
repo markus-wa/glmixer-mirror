@@ -286,23 +286,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
 	property = enumManager->addProperty("Filter");
 	idToProperty[property->propertyName()] = property;
 	property->setToolTip("Imaging filters (convolutions & morphological operators)");
-	enumNames.clear();
-	enumNames << Source::getFilterName( Source::FILTER_NONE )
-			  << Source::getFilterName( Source::FILTER_BLUR_GAUSSIAN )
-			  << Source::getFilterName( Source::FILTER_BLUR_MEAN )
-			  << Source::getFilterName( Source::FILTER_SHARPEN )
-			  << Source::getFilterName( Source::FILTER_SHARPEN_MORE )
-			  << Source::getFilterName( Source::FILTER_EDGE_GAUSSIAN )
-			  << Source::getFilterName( Source::FILTER_EDGE_LAPLACE )
-			  << Source::getFilterName( Source::FILTER_EDGE_LAPLACE_2 )
-			  << Source::getFilterName( Source::FILTER_EMBOSS )
-			  << Source::getFilterName( Source::FILTER_EMBOSS_EDGE )
-			  << Source::getFilterName( Source::FILTER_EROSION_3X3 )
-			  << Source::getFilterName( Source::FILTER_EROSION_5X5 )
-			  << Source::getFilterName( Source::FILTER_EROSION_7X7 )
-			  << Source::getFilterName( Source::FILTER_DILATION_3X3 )
-			  << Source::getFilterName( Source::FILTER_DILATION_5X5 )
-			  << Source::getFilterName( Source::FILTER_DILATION_7X7 ) ;
+    enumNames = Source::getFilterNames();
 
 	enumManager->setEnumNames(property, enumNames);
 	root->addSubProperty(property);

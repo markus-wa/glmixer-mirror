@@ -428,7 +428,7 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="4" column="3">
                  <property name="text">
-                  <string notr="true">1920x1080 HD</string>
+                  <string notr="true">1920x1080 FHD</string>
                  </property>
                 </item>
                </widget>

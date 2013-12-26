@@ -274,6 +274,18 @@ void  FFGLSourceCreationDialog::selectSizePreset(int preset)
             ui->widthSpinBox->setValue(1024);
             ui->heightSpinBox->setValue(768);
             break;
+        case 15:
+            ui->widthSpinBox->setValue(1280);
+            ui->heightSpinBox->setValue(720);
+            break;
+        case 16:
+            ui->widthSpinBox->setValue(1600);
+            ui->heightSpinBox->setValue(1200);
+            break;
+        case 17:
+            ui->widthSpinBox->setValue(1920);
+            ui->heightSpinBox->setValue(1080);
+            break;
         }
 
         if (s)
