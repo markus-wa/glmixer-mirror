@@ -60,7 +60,7 @@ public:
 	void setLimboSize(GLdouble s);
 
 	static QRectF getBoundingBox(const SourceList &l);
-    void alignSelection(View::Axis a, View::RelativePoint p);
+    void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);
 
 private:

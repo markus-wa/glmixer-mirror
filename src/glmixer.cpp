@@ -57,6 +57,7 @@
 #include "RenderingEncoder.h"
 #include "SessionSwitcher.h"
 #include "MixingToolboxWidget.h"
+#include "LayoutToolboxWidget.h"
 #include "GammaLevelsWidget.h"
 #include "OpenSoundControlManager.h"
 
@@ -158,7 +159,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(cursorDockWidget->toggleViewAction());
     toolBarsMenu->addAction(mixingDockWidget->toggleViewAction());
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
-    toolBarsMenu->addAction(alignDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
     toolBarsMenu->addAction(logDockWidget->toggleViewAction());
     toolBarsMenu->addSeparator();
     toolBarsMenu->addAction(sourceToolBar->toggleViewAction());
@@ -255,20 +256,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
         recentFiles->addAction(recentFileActs[i]);
     }
 
-    // Setup the central widget
-    centralViewLayout->removeWidget(mainRendering);
-	delete mainRendering;
-	mainRendering = (QGLWidget *) RenderingManager::getRenderingWidget();
-	mainRendering->setParent(centralwidget);
-	centralViewLayout->addWidget(mainRendering);
-	//activate the default view & share labels to display in
-	setView(actionMixingView);
-	RenderingManager::getRenderingWidget()->setLabels(zoomLabel, fpsLabel);
-	// share menus as context menus of the main view
-	RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
-	RenderingManager::getRenderingWidget()->setCatalogContextMenu(catalogMenu);
-	RenderingManager::getRenderingWidget()->setSourceContextMenu(currentSourceMenu);
-
     // Setup the property browsers
     layoutPropertyBrowser = new QSplitter(this);
     layoutPropertyBrowser->setOrientation(Qt::Vertical);
@@ -294,6 +281,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
     QObject::connect(sourcePropertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
 
+    // setup the layout toolbox
+    layoutToolBox = new LayoutToolboxWidget(this);
+    layoutDockWidgetContentLayout->addWidget(layoutToolBox);
+
 	// Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);
 	switcherDockWidgetContentsLayout->addWidget(switcherSession);
@@ -307,6 +298,20 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
 	// Set the docking tab vertical
 	setDockOptions(dockOptions () | QMainWindow::VerticalTabs);
+
+    // Setup the central widget
+    centralViewLayout->removeWidget(mainRendering);
+    delete mainRendering;
+    mainRendering = (QGLWidget *) RenderingManager::getRenderingWidget();
+    mainRendering->setParent(centralwidget);
+    centralViewLayout->addWidget(mainRendering);
+    //activate the default view & share labels to display in
+    setView(actionMixingView);
+    RenderingManager::getRenderingWidget()->setLabels(zoomLabel, fpsLabel);
+    // share menus as context menus of the main view
+    RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
+    RenderingManager::getRenderingWidget()->setCatalogContextMenu(catalogMenu);
+    RenderingManager::getRenderingWidget()->setSourceContextMenu(currentSourceMenu);
 
 	// setup render window
     QIcon icon;
@@ -618,16 +623,21 @@ void GLMixer::Log(int type, QString msg)
 void GLMixer::setView(QAction *a){
 
 	// setup the rendering Widget to the requested view
-	if (a == actionMixingView)
-		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::MIXING);
-	else if (a == actionGeometryView)
-		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::GEOMETRY);
-	else if (a == actionLayersView)
-		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::LAYER);
-	else if (a == actionRenderingView)
-		RenderingManager::getRenderingWidget()->setViewMode(ViewRenderWidget::RENDERING);
+    if (a == actionMixingView) {
+        RenderingManager::getRenderingWidget()->setViewMode(View::MIXING);
+        layoutToolBox->setViewMode(View::MIXING);
+    } else if (a == actionGeometryView) {
+        RenderingManager::getRenderingWidget()->setViewMode(View::GEOMETRY);
+        layoutToolBox->setViewMode(View::GEOMETRY);
+    } else if (a == actionLayersView) {
+        RenderingManager::getRenderingWidget()->setViewMode(View::LAYER);
+        layoutToolBox->setViewMode(View::LAYER);
+    } else if (a == actionRenderingView) {
+        RenderingManager::getRenderingWidget()->setViewMode(View::RENDERING);
+        layoutToolBox->setViewMode(View::RENDERING);
+    }
 
-	// show appropriate icon
+    // show appropriate icon
 	viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getView()->getIcon());
 	viewLabel->setText(RenderingManager::getRenderingWidget()->getView()->getTitle());
 
@@ -652,21 +662,6 @@ void GLMixer::setView(QAction *a){
 		break;
 	}
 
-	// set status of alignment tools depending on view
-	// a bit dirty (should use signals) but clear and effective (and who cares anyway?)
-	alignHorizontalLeftButton->setEnabled(a == actionGeometryView);
-	alignHorizontalCenterButton->setDisabled(a == actionLayersView);
-	alignHorizontalRightButton->setEnabled(a == actionGeometryView);
-	alignVerticalBottomButton->setEnabled(a == actionGeometryView);
-	alignVerticalCenterButton->setDisabled(a == actionLayersView);
-	alignVerticalTopButton->setEnabled(a == actionGeometryView);
-	distributeHorizontalLeftButton->setEnabled(a == actionGeometryView);
-	distributeHorizontalRightButton->setEnabled(a == actionGeometryView);
-	distributeHorizontalGapsButton->setEnabled(a == actionGeometryView);
-	distributeVerticalBottomButton->setEnabled(a == actionGeometryView);
-	distributeVerticalCenterButton->setDisabled(a == actionLayersView);
-	distributeVerticalTopButton->setEnabled(a == actionGeometryView);
-	distributeVerticalGapsButton->setEnabled(a == actionGeometryView);
 }
 
 void GLMixer::setTool(QAction *a){
@@ -1758,17 +1753,17 @@ void GLMixer::openSessionFile()
     	RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
     	// activate the view specified as 'current' in the xml config
     	switch (vconfig.attribute("current").toInt()){
-    	case (ViewRenderWidget::NONE):
-    	case (ViewRenderWidget::MIXING):
+        case (View::NULLVIEW):
+        case (View::MIXING):
     		actionMixingView->trigger();
     		break;
-    	case (ViewRenderWidget::GEOMETRY):
+        case (View::GEOMETRY):
     		actionGeometryView->trigger();
     		break;
-    	case (ViewRenderWidget::LAYER):
+        case (View::LAYER):
     		actionLayersView->trigger();
     		break;
-    	case (ViewRenderWidget::RENDERING):
+        case (View::RENDERING):
     		actionRenderingView->trigger();
     		break;
     	}
@@ -2516,75 +2511,7 @@ void GLMixer::on_actionSourceSeekForward_triggered(){
 //
 // Align and distribute toolbox
 //
-void GLMixer::on_alignHorizontalLeftButton_clicked(){
 
-	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_HORIZONTAL, View::ALIGN_BOTTOM_LEFT);
-}
-
-void GLMixer::on_alignHorizontalCenterButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_HORIZONTAL, View::ALIGN_CENTER);
-}
-
-void GLMixer::on_alignHorizontalRightButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_HORIZONTAL, View::ALIGN_TOP_RIGHT);
-}
-
-void GLMixer::on_alignVerticalBottomButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_VERTICAL, View::ALIGN_BOTTOM_LEFT);
-}
-
-void GLMixer::on_alignVerticalCenterButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_VERTICAL, View::ALIGN_CENTER);
-}
-
-void GLMixer::on_alignVerticalTopButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->alignSelection(View::AXIS_VERTICAL, View::ALIGN_TOP_RIGHT);
-}
-
-void GLMixer::on_distributeHorizontalLeftButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_HORIZONTAL, View::ALIGN_BOTTOM_LEFT);
-}
-
-void GLMixer::on_distributeHorizontalCenterButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_HORIZONTAL, View::ALIGN_CENTER);
-}
-
-void GLMixer::on_distributeHorizontalGapsButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_HORIZONTAL, View::ALIGN_EQUAL_GAPS);
-}
-
-void GLMixer::on_distributeHorizontalRightButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_HORIZONTAL, View::ALIGN_TOP_RIGHT);
-}
-
-void GLMixer::on_distributeVerticalBottomButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_VERTICAL, View::ALIGN_BOTTOM_LEFT);
-}
-
-void GLMixer::on_distributeVerticalCenterButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_VERTICAL, View::ALIGN_CENTER);
-}
-
-void GLMixer::on_distributeVerticalGapsButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_VERTICAL, View::ALIGN_EQUAL_GAPS);
-}
-
-void GLMixer::on_distributeVerticalTopButton_clicked(){
-
-	RenderingManager::getRenderingWidget()->distributeSelection(View::AXIS_VERTICAL, View::ALIGN_TOP_RIGHT);
-}
 
 void GLMixer::screenshotView(){
 

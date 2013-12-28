@@ -63,6 +63,7 @@ SET(GLMIXER_SRCS
     testbuttonframe.cpp
     testwheelframe.cpp
     MixingToolboxWidget.cpp
+    LayoutToolboxWidget.cpp
     OpenSoundControlManager.cpp
 )
 
@@ -80,6 +81,7 @@ SET(GLMIXER_UIS
     UserPreferencesDialog.ui
     GammaLevelsDialog.ui
     MixingToolboxWidget.ui
+    LayoutToolboxWidget.ui
 )
 
 # If SharedMemory was set, then link with its source files

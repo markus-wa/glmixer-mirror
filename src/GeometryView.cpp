@@ -540,8 +540,11 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
 	if ( cs )
 		cs->clampScale();
 
-	// end of selection area in any case
-	_selectionArea.setEnabled(false);
+    // end of selection area
+    if (_selectionArea.isEnabled()) {
+        _selectionArea.setEnabled(false);
+        setCurrentSource(SelectionManager::getInstance()->selectionSource());
+    }
 
 	// end of individual manipulation mode in any case
 	individual = false;
@@ -1102,28 +1105,6 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
 
 }
 
-// in case i want to implement it : center scaling
-
-//double x = (*currentSource)->getX();
-//double y = (*currentSource)->getY();
-//double cosa = cos(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
-//double sina = sin(-(*currentSource)->getRotationAngle() / 180.0 * M_PI);
-//
-//// convert to vectors ( source center -> clic position)
-//ax -= x; ay -= y;
-//bx -= x; by -= y;
-//
-//// rotate to compute scaling into the source orientation
-//dum = ax * cosa - ay * sina;
-//ay = ay  * cosa + ax * sina;
-//ax = dum;
-//
-//dum = bx * cosa - by * sina;
-//by = by  * cosa + bx * sina;
-//bx = dum;
-//
-//// Scaling
-//(*currentSource)->scaleBy(ax/bx, ay/by);
 
 /**
  * Rotation of the source
@@ -1539,21 +1520,102 @@ void GeometryView::alignSource(Source *s, QRectF box, View::Axis a, View::Relati
 		break;
 	}
 
-	if (a==View::AXIS_HORIZONTAL)
-		s->setX( s->getX() + delta.x() );
-	else // View::VERTICAL (inverted y)
-		s->setY( s->getY() - delta.y() );
+    // if the source is the selection, move the selection
+    if ( s == SelectionManager::getInstance()->selectionSource() ) {
+
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            // discard non modifiable source
+            if (!(*its)->isModifiable())
+                continue;
+            // move horizontally or vertically
+            if (a==View::AXIS_HORIZONTAL)
+                (*its)->setX( (*its)->getX() + delta.x() );
+            else // View::VERTICAL (inverted y)
+                (*its)->setY( (*its)->getY() - delta.y() );
+        }
+
+    }
+    // default case : move the source
+    else {
+        // move horizontally or vertically
+        if (a==View::AXIS_HORIZONTAL)
+            s->setX( s->getX() + delta.x() );
+        else // View::VERTICAL (inverted y)
+            s->setY( s->getY() - delta.y() );
+    }
+
 }
 
-void GeometryView::alignSelection(View::Axis a, View::RelativePoint p)
+void GeometryView::alignSelection(View::Axis a, View::RelativePoint p, View::Reference r)
 {
-	QRectF bbox = getBoundingBox(SelectionManager::getInstance()->copySelection(), true);
-
-	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-		alignSource(*its, bbox, a, p);
-	}
+    // move all the sources relative to each others
+    if (r == View::REFERENCE_SOURCES) {
+        // reference is the bounding box
+        QRectF ref = GeometryView::getBoundingBox(SelectionManager::getInstance()->copySelection(), true);
+        // loop over sources of the selection
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            // discard non modifiable source
+            if (!(*its)->isModifiable())
+                continue;
+            // perform the computations
+            alignSource(*its, ref, a, p);
+        }
+    }
+    // move the selection relative to the frame (View::REFERENCE_FRAME)
+    else {
+        // reference is the frame
+        QRectF ref = QRectF(-SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(),-SOURCE_UNIT, 2.0*SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(), 2.0*SOURCE_UNIT);
+        // perform the computations
+        alignSource(SelectionManager::getInstance()->selectionSource(), ref, a, p);
+    }
 }
 
+
+void GeometryView::resizeSelection(View::Axis a, View::Reference r)
+{
+    // resize all the sources
+    if (r == View::REFERENCE_SOURCES) {
+        // reference is the selection boundingbox
+        QRectF selection = GeometryView::getBoundingBox(SelectionManager::getInstance()->selectionSource(), true);
+        // perform the computations
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            // discard non modifiable source
+            if (!(*its)->isModifiable())
+                continue;
+
+            if (a==View::AXIS_HORIZONTAL) {
+                (*its)->setX( selection.center().x() );
+                (*its)->setScaleX( selection.width() / 2.0 );
+            } else { // View::VERTICAL (inverted y)
+                (*its)->setY( -selection.center().y() );
+                (*its)->setScaleY( selection.height() / 2.0);
+            }
+        }
+    }
+    // resize the selection to match size of the frame (View::REFERENCE_FRAME)
+    else {
+        // reference is the frame
+        QRectF target = QRectF(0, 0, 2.0*SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(), 2.0*SOURCE_UNIT);
+        QRectF selection = GeometryView::getBoundingBox(SelectionManager::getInstance()->selectionSource(), true);
+
+        // perform the computations
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            // discard non modifiable source
+            if (!(*its)->isModifiable())
+                continue;
+
+            if (a==View::AXIS_HORIZONTAL) {
+                (*its)->setX( selection.center().x() + ( (*its)->getX() - selection.center().x()) * target.width() / selection.width() );
+                (*its)->scaleBy( target.width() / selection.width(), 1.0 );
+            } else { // View::VERTICAL (inverted y)
+                (*its)->setY( selection.center().y() + ( (*its)->getY() - selection.center().y()) * target.height() / selection.height() );
+                (*its)->scaleBy( 1.0, target.height() / selection.height() );
+            }
+        }
+
+    }
+
+}
 
 void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 

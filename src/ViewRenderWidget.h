@@ -110,9 +110,8 @@ public:
 
 	/**
 	 * management of the manipulation views
-	 */
-	typedef enum {NONE = 0, MIXING=1, GEOMETRY=2, LAYER=3, RENDERING=4 } viewMode;
-	void setViewMode(viewMode mode);
+     */
+    void setViewMode(View::viewMode mode);
 	View *getView() {return _currentView;}
 
 	typedef enum {MOUSE_ARROW = 0, MOUSE_HAND_OPEN, MOUSE_HAND_CLOSED, MOUSE_SCALE_F, MOUSE_SCALE_B, MOUSE_ROT_TOP_RIGHT, MOUSE_ROT_TOP_LEFT, MOUSE_ROT_BOTTOM_RIGHT, MOUSE_ROT_BOTTOM_LEFT, MOUSE_QUESTION, MOUSE_SIZEALL, MOUSE_HAND_INDEX} mouseCursor;
@@ -127,7 +126,6 @@ public:
 	cursorMode getCursorMode();
 	Cursor *getCursor(cursorMode m = CURSOR_NORMAL);
 
-
 	/**
 	 * save and load configuration
 	 */
@@ -140,7 +138,13 @@ public:
 	static inline bool filteringEnabled() { return !disableFiltering; }
     void setFilteringEnabled(bool on, QString glslfilename = QString());
 
-	void removeFromSelections(Source *s);
+    /**
+     * selection and layout
+     */
+    void removeFromSelections(Source *s);
+    void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
+    void distributeSelection(View::Axis a, View::RelativePoint p);
+    void resizeSelection(View::Axis a, View::Reference r);
 
 Q_SIGNALS:
 	void sourceMixingModified();
@@ -168,9 +172,6 @@ public Q_SLOTS:
 	void setCatalogSizeLarge();
 	void setFaded(bool on) { faded = on; }
 	void setCursorEnabled(bool on);
-
-	void alignSelection(View::Axis a, View::RelativePoint p);
-	void distributeSelection(View::Axis a, View::RelativePoint p);
 
 public:
 	// Shading

@@ -128,5 +128,19 @@
         <file>icons/filters.png</file>
         <file>icons/ffgl.png</file>
         <file>icons/displayview.png</file>
+        <file>icons/align-horizontal-center-frame.png</file>
+        <file>icons/align-horizontal-left-frame.png</file>
+        <file>icons/align-horizontal-right-frame.png</file>
+        <file>icons/align-vertical-bottom-frame.png</file>
+        <file>icons/align-vertical-center-frame.png</file>
+        <file>icons/align-vertical-top-frame.png</file>
+        <file>icons/size-horizontal.png</file>
+        <file>icons/size-horizontal-frame.png</file>
+        <file>icons/size-vertical.png</file>
+        <file>icons/size-vertical-frame.png</file>
+        <file>icons/flip-horizontal.png</file>
+        <file>icons/flip-vertical.png</file>
+        <file>icons/rotate-90-clockwise.png</file>
+        <file>icons/rotate-90-counterclockwise.png</file>
     </qresource>
 </RCC>

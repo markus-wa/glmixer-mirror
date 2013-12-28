@@ -323,23 +323,23 @@ void ViewRenderWidget::initializeGL()
 
 }
 
-void ViewRenderWidget::setViewMode(viewMode mode)
+void ViewRenderWidget::setViewMode(View::viewMode mode)
 {
 	switch (mode)
 	{
-	case ViewRenderWidget::MIXING:
+    case View::MIXING:
 		_currentView = (View *) _mixingView;
 		break;
-	case ViewRenderWidget::GEOMETRY:
+    case View::GEOMETRY:
 		_currentView = (View *) _geometryView;
 		break;
-	case ViewRenderWidget::LAYER:
+    case View::LAYER:
 		_currentView = (View *) _layersView;
 		break;
-	case ViewRenderWidget::RENDERING:
+    case View::RENDERING:
 		_currentView = (View *) _renderingView;
 		break;
-	case ViewRenderWidget::NONE:
+    case View::NULLVIEW:
 	default:
 		_currentView = _renderView;
 		break;
@@ -929,20 +929,54 @@ void ViewRenderWidget::hideMessage()
 }
 
 
-void ViewRenderWidget::alignSelection(View::Axis a, View::RelativePoint p)
+void ViewRenderWidget::alignSelection(View::Axis a, View::RelativePoint p, View::Reference r)
 {
-	_currentView->alignSelection(a, p);
+    // if there is NO selection, temporarily select the current source
+    bool alignCurrentSource = ! SelectionManager::getInstance()->hasSelection();
+    if (alignCurrentSource)
+        SelectionManager::getInstance()->selectCurrentSource();
+
+    // apply on current view
+    _currentView->alignSelection(a, p, r);
+
+    // restore selection state
+    if (alignCurrentSource)
+        SelectionManager::getInstance()->clearSelection();
+    else
+        // update the selection source for geometry view
+        SelectionManager::getInstance()->updateSelectionSource();
+
+}
+
+void ViewRenderWidget::distributeSelection(View::Axis a, View::RelativePoint p)
+{
+    // ignore empty selection
+    if (! SelectionManager::getInstance()->hasSelection())
+        return;
+
+    // apply on current view
+    _currentView->distributeSelection(a, p);
 
 	// update the selection source for geometry view
 	SelectionManager::getInstance()->updateSelectionSource();
 }
 
-void ViewRenderWidget::distributeSelection(View::Axis a, View::RelativePoint p)
+void ViewRenderWidget::resizeSelection(View::Axis a, View::Reference r)
 {
-	_currentView->distributeSelection(a, p);
+    // if there is NO selection, temporarily select the current source
+    bool resizeCurrentSource = ! SelectionManager::getInstance()->hasSelection();
+    if (resizeCurrentSource)
+        SelectionManager::getInstance()->selectCurrentSource();
 
-	// update the selection source for geometry view
-	SelectionManager::getInstance()->updateSelectionSource();
+    // apply on current view
+    _currentView->resizeSelection(a, r);
+
+    // restore selection state
+    if (resizeCurrentSource)
+        SelectionManager::getInstance()->clearSelection();
+    else
+        // update the selection source for geometry view
+        SelectionManager::getInstance()->updateSelectionSource();
 }
 
 
@@ -954,13 +988,13 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 	QDomElement config = doc.createElement("Views");
 
 	if (_currentView == _mixingView)
-		config.setAttribute("current", ViewRenderWidget::MIXING);
+        config.setAttribute("current", View::MIXING);
 	else if (_currentView == _geometryView)
-		config.setAttribute("current", ViewRenderWidget::GEOMETRY);
+        config.setAttribute("current", View::GEOMETRY);
 	else if (_currentView == _layersView)
-		config.setAttribute("current", ViewRenderWidget::LAYER);
+        config.setAttribute("current", View::LAYER);
 	else if (_currentView == _renderingView)
-		config.setAttribute("current", ViewRenderWidget::RENDERING);
+        config.setAttribute("current", View::RENDERING);
 
 	QDomElement mix = _mixingView->getConfiguration(doc);
 	mix.setAttribute("name", "Mixing");

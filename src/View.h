@@ -52,6 +52,12 @@ public:
 		viewport[3] = 0;
 	}
 	virtual ~View() {};
+
+    /**
+    * types of view
+    */
+    typedef enum {NULLVIEW = 0, MIXING=1, GEOMETRY=2, LAYER=3, RENDERING=4 } viewMode;
+
 	/**
 	 * Apply the Modelview matrix
 	 */
@@ -236,14 +242,19 @@ public:
     } RelativePoint;
 
     typedef enum {
-    	AXIS_HORIZONTAL = 0,
-    	AXIS_VERTICAL
+        AXIS_HORIZONTAL = 0,
+        AXIS_VERTICAL
     } Axis;
+
+    typedef enum {
+        REFERENCE_SOURCES = 0,
+        REFERENCE_FRAME
+    } Reference;
 
 	/**
 	 * Align the selected sources to the given edge (to be implemented by each view)
 	 */
-    virtual void alignSelection(Axis a, RelativePoint p) {}
+    virtual void alignSelection(Axis a, RelativePoint p, Reference r) {}
 
 	/**
 	 * Distribute the selected sources to the given edge (to be implemented by each view)
@@ -253,7 +264,7 @@ public:
 	/**
 	 * Equalize the selected sources to be of same size (to be implemented by each view)
 	 */
-    virtual void equalizeSelection(Axis a) {}
+    virtual void resizeSelection(Axis a, Reference r) {}
 
 	/**
 	 * CONFIGURATION

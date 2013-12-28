@@ -98,22 +98,6 @@ public Q_SLOTS:
 	void on_actionSourcePause_triggered();
 	void on_actionSourceSeekForward_triggered();
 
-	void on_alignHorizontalLeftButton_clicked();
-	void on_alignHorizontalCenterButton_clicked();
-	void on_alignHorizontalRightButton_clicked();
-	void on_alignVerticalBottomButton_clicked();
-	void on_alignVerticalCenterButton_clicked();
-	void on_alignVerticalTopButton_clicked();
-	void on_distributeHorizontalLeftButton_clicked();
-	void on_distributeHorizontalCenterButton_clicked();
-	void on_distributeHorizontalRightButton_clicked();
-	void on_distributeHorizontalGapsButton_clicked();
-	void on_distributeVerticalBottomButton_clicked();
-	void on_distributeVerticalCenterButton_clicked();
-	void on_distributeVerticalTopButton_clicked();
-	void on_distributeVerticalGapsButton_clicked();
-
-
 	// GUI interaction
 	void setView(QAction *a);
 	void setTool(QAction *a);
@@ -174,8 +158,9 @@ private:
         class QFileDialog *sfd;
 	class VideoFileDialog *mfd;
 	class OutputRenderWidget *outputpreview;
-	class UserPreferencesDialog *upd;
-	class MixingToolboxWidget *mixingToolBox;
+    class UserPreferencesDialog *upd;
+    class MixingToolboxWidget *mixingToolBox;
+    class LayoutToolboxWidget *layoutToolBox;
     class SessionSwitcherWidget *switcherSession;
     class PropertyBrowser *specificSourcePropertyBrowser;
     class QSplitter *layoutPropertyBrowser;

@@ -1066,22 +1066,41 @@ QRectF MixerView::getBoundingBox(const SourceList &l)
 	return QRectF(QPointF(bbox[0][0], bbox[0][1]), QPointF(bbox[1][0], bbox[1][1]));
 }
 
-void MixerView::alignSelection(View::Axis a, View::RelativePoint p)
+void MixerView::alignSelection(View::Axis a, View::RelativePoint p, View::Reference r)
 {
-	QRectF bbox = MixerView::getBoundingBox(SelectionManager::getInstance()->copySelection());
+    // define the reference box
+    QRectF ref;
+    if (r == View::REFERENCE_SOURCES)
+        ref = MixerView::getBoundingBox(SelectionManager::getInstance()->copySelection());
+    else
+        ref = QRectF(-CIRCLE_SIZE * SOURCE_UNIT,-CIRCLE_SIZE * SOURCE_UNIT,2.0*CIRCLE_SIZE * SOURCE_UNIT, 2.0*CIRCLE_SIZE * SOURCE_UNIT);
 
+    // perform the computations
 	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
 
 		QPointF point = QPointF((*its)->getAlphaX(), (*its)->getAlphaY());
 
-		// only one alignement mode meaningfull in Mixing view (centered)
-		if (a==View::AXIS_HORIZONTAL)
-			point.setX( bbox.center().x());
-		else // View::VERTICAL (inverted y)
-			point.setY( bbox.center().y());
-
+        // CENTERED
+        if (p==View::ALIGN_CENTER) {
+            if (a==View::AXIS_HORIZONTAL)
+                point.setX( ref.center().x());
+            else
+                point.setY( ref.center().y());
+        } else if (p==View::ALIGN_BOTTOM_LEFT) {
+            // View::ALIGN_BOTTOM_LEFT (inverted y)
+            if (a==View::AXIS_HORIZONTAL)
+                point.setX( ref.topLeft().x());
+            else
+                point.setY( ref.topLeft().y());
+        } else if (p==View::ALIGN_TOP_RIGHT) {
+            // View::ALIGN_TOP_RIGHT (inverted y)
+            if (a==View::AXIS_HORIZONTAL)
+                point.setX( ref.bottomRight().x());
+            else
+                point.setY( ref.bottomRight().y());
+        }
 	    // move icon
-		(*its)->setAlphaCoordinates( point.x() , point.y()  );
+        (*its)->setAlphaCoordinates( point.x() , point.y() );
 	}
 }
 
@@ -1134,3 +1153,4 @@ void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
 	}
 
 }
+
