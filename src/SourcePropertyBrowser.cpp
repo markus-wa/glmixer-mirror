@@ -157,7 +157,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
 		property = doubleManager->addProperty("Angle");
 		property->setToolTip("Angle of rotation in degrees (counter clock wise)");
 		idToProperty[property->propertyName()] = property;
-		doubleManager->setRange(property, 0, 360);
+        doubleManager->setRange(property, 0, 360);
 		doubleManager->setSingleStep(property, 10.0);
 		modifyroperty->addSubProperty(property);
 		// Texture coordinates

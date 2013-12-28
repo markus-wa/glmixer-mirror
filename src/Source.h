@@ -199,7 +199,8 @@ public:
 		centery = v;
 	}
 	inline void setRotationAngle(GLdouble v) {
-		rotangle = v;
+        v += 360.0;
+        rotangle = ABS( v - (double)( (int) v / 360 ) * 360.0 );
 	}
 	void moveTo(GLdouble posx, GLdouble posy);
 

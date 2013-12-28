@@ -4,7 +4,7 @@
 #define MINI(a, b)  (((a) < (b)) ? (a) : (b))
 #define MAXI(a, b)  (((a) > (b)) ? (a) : (b))
 #define ABS(a)	   (((a) < 0) ? -(a) : (a))
-#define SIGN(a)	   (((a) < 0) ? -1 : 1)
+#define SIGN(a)	   (((a) < 0) ? -1.0 : 1.0)
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define EPSILON 0.00001
 #define FRAME_DURATION 15

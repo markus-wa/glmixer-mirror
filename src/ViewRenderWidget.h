@@ -144,7 +144,7 @@ public:
     void removeFromSelections(Source *s);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);
-    void resizeSelection(View::Axis a, View::Reference r);
+    void transformSelection(View::Transformation t, View::Axis a, View::Reference r);
 
 Q_SIGNALS:
 	void sourceMixingModified();

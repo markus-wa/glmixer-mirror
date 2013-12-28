@@ -59,10 +59,9 @@ public:
 	static QRectF getBoundingBox(const Source *s, bool invert_y=false);
 	static QRectF getBoundingBox(const SourceList &l, bool invert_y=false);
 
-	void alignSource(Source *s, QRectF box, View::Axis a, View::RelativePoint p);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);
-    void resizeSelection(View::Axis a, View::Reference r);
+    void transformSelection(View::Transformation t, View::Axis a, View::Reference r);
 
 private:
 

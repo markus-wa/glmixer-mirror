@@ -961,7 +961,7 @@ void ViewRenderWidget::distributeSelection(View::Axis a, View::RelativePoint p)
 	SelectionManager::getInstance()->updateSelectionSource();
 }
 
-void ViewRenderWidget::resizeSelection(View::Axis a, View::Reference r)
+void ViewRenderWidget::transformSelection(View::Transformation t, View::Axis a, View::Reference r)
 {
     // if there is NO selection, temporarily select the current source
     bool resizeCurrentSource = ! SelectionManager::getInstance()->hasSelection();
@@ -969,7 +969,7 @@ void ViewRenderWidget::resizeSelection(View::Axis a, View::Reference r)
         SelectionManager::getInstance()->selectCurrentSource();
 
     // apply on current view
-    _currentView->resizeSelection(a, r);
+    _currentView->transformSelection(t, a, r);
 
     // restore selection state
     if (resizeCurrentSource)

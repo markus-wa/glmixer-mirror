@@ -140,21 +140,40 @@ void LayoutToolboxWidget::on_distributeVerticalTopButton_clicked(){
 
 void LayoutToolboxWidget::on_sizeHorizontalButton_clicked(){
 
-    RenderingManager::getRenderingWidget()->resizeSelection(View::AXIS_HORIZONTAL, View::REFERENCE_SOURCES);
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_HORIZONTAL, View::REFERENCE_SOURCES);
 }
 
 void LayoutToolboxWidget::on_sizeHorizontalFrameButton_clicked(){
 
-    RenderingManager::getRenderingWidget()->resizeSelection(View::AXIS_HORIZONTAL, View::REFERENCE_FRAME);
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_HORIZONTAL, View::REFERENCE_FRAME);
 }
 
 void LayoutToolboxWidget::on_sizeVerticalButton_clicked(){
 
-    RenderingManager::getRenderingWidget()->resizeSelection(View::AXIS_VERTICAL, View::REFERENCE_SOURCES);
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_VERTICAL, View::REFERENCE_SOURCES);
 }
 
 void LayoutToolboxWidget::on_sizeVerticalFrameButton_clicked(){
 
-    RenderingManager::getRenderingWidget()->resizeSelection(View::AXIS_VERTICAL, View::REFERENCE_FRAME);
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_VERTICAL, View::REFERENCE_FRAME);
 }
 
+void LayoutToolboxWidget::on_rotateClockwiseButton_clicked(){
+
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_ROTATE, View::AXIS_HORIZONTAL, View::REFERENCE_SOURCES);
+}
+
+void LayoutToolboxWidget::on_rotateCounterclockwiseButton_clicked(){
+
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_ROTATE, View::AXIS_VERTICAL, View::REFERENCE_SOURCES);
+}
+
+void LayoutToolboxWidget::on_flipHorizontalButton_clicked(){
+
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_FLIP, View::AXIS_HORIZONTAL, View::REFERENCE_SOURCES);
+}
+
+void LayoutToolboxWidget::on_flipVerticalButton_clicked(){
+
+    RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_FLIP, View::AXIS_VERTICAL, View::REFERENCE_SOURCES);
+}

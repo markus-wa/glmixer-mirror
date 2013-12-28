@@ -251,6 +251,12 @@ public:
         REFERENCE_FRAME
     } Reference;
 
+    typedef enum {
+        TRANSFORM_SCALE = 0,
+        TRANSFORM_ROTATE,
+        TRANSFORM_FLIP
+    } Transformation;
+
 	/**
 	 * Align the selected sources to the given edge (to be implemented by each view)
 	 */
@@ -262,9 +268,9 @@ public:
     virtual void distributeSelection(Axis a, RelativePoint p) {}
 
 	/**
-	 * Equalize the selected sources to be of same size (to be implemented by each view)
+     * Transform the selected sources (to be implemented by each view)
 	 */
-    virtual void resizeSelection(Axis a, Reference r) {}
+    virtual void transformSelection(Transformation t, Axis a, Reference r) {}
 
 	/**
 	 * CONFIGURATION

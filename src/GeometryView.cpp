@@ -1152,12 +1152,8 @@ void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool op
 	// special case of opposing angles around 180
 	dum = (bx * ax) > 0 ? bx - ax : SIGN(ax) * (bx + ax);
 
-	// incremental relative rotation
-	dum += s->getRotationAngle() + 360.0;
-	// modulo 360
-	dum -= (double)( (int) dum / 360 ) * 360.0;
-
-	s->setRotationAngle( ABS(dum) );
+    // incremental relative rotation
+    s->setRotationAngle( s->getRotationAngle() + dum );
 
 }
 
@@ -1501,10 +1497,10 @@ QRectF GeometryView::getBoundingBox(const SourceList &l, bool invert_y)
 		return QRectF(QPointF(bbox[0][0], bbox[0][1]), QPointF(bbox[1][0], bbox[1][1]));
 }
 
-void GeometryView::alignSource(Source *s, QRectF box, View::Axis a, View::RelativePoint p)
+void alignSource(Source *s, QRectF box, View::Axis a, View::RelativePoint p)
 {
 	QPointF delta;
-	QRectF sbox = getBoundingBox(s,true);
+    QRectF sbox = GeometryView::getBoundingBox(s,true);
 
 	switch (p) {
 	case View::ALIGN_BOTTOM_LEFT:
@@ -1571,47 +1567,143 @@ void GeometryView::alignSelection(View::Axis a, View::RelativePoint p, View::Ref
 }
 
 
-void GeometryView::resizeSelection(View::Axis a, View::Reference r)
+void resizeSource(Source *s, QRectF box, View::Axis a)
+{
+    // if the source is the selection, move the selection
+    if ( s == SelectionManager::getInstance()->selectionSource() ) {
+
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            // discard non modifiable source
+            if (!(*its)->isModifiable())
+                continue;
+            // resize
+        }
+
+    }
+    // default case : resize the source
+    else {
+//        double ratio;
+        if (a==View::AXIS_HORIZONTAL) {
+            s->setX( box.center().x() );
+            s->setScaleX( box.width() / 2.0 );
+        } else { // View::VERTICAL
+            s->setY( box.center().y() );
+            s->setScaleY( box.height() / 2.0);
+        }
+    }
+}
+
+
+void rotate90Source(Source *s, QRectF box, View::Axis a)
+{
+    // if the source is the selection, rotate the selection
+    if ( s == SelectionManager::getInstance()->selectionSource() ) {
+
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            // discard non modifiable source
+            if (!(*its)->isModifiable())
+                continue;
+            // rotate by 90 degrees
+        }
+
+    }
+    // default case : rotate the source
+    else {
+        // rotate
+        if (a==View::AXIS_HORIZONTAL) {
+            // rotate CLOCKWISE
+            s->setRotationAngle( s->getRotationAngle() - 90.0);
+            // rotate 90 is inverting x and y
+            s->moveTo( s->getY() - box.center().y() + box.center().x(), - s->getX() + box.center().x() + box.center().y() );
+        } else {
+            // rotate COUNTER CLOCKWISE
+            s->setRotationAngle( s->getRotationAngle() + 90.0);
+            // rotate 90 is inverting x and y
+//            s->moveTo( -1.0 * s->getY(), s->getX() );
+            s->moveTo( - s->getY() + box.center().y() + box.center().x(), s->getX() - box.center().x() + box.center().y() );
+
+        }
+    }
+}
+
+void flipSource(Source *s, QRectF box, View::Axis a)
+{
+    // if the source is the selection, flip the selection
+    if ( s == SelectionManager::getInstance()->selectionSource() ) {
+
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            // discard non modifiable source
+            if (!(*its)->isModifiable())
+                continue;
+            // flip
+
+        }
+
+    }
+    // default case : flip the source
+    else {
+        // flip
+        if (a==View::AXIS_HORIZONTAL) {
+            s->setRotationAngle(-s->getRotationAngle());
+            s->setX( box.center().x() + ( box.center().x() - s->getX()) );
+            s->setScaleX( -s->getScaleX() );
+        } else { // View::VERTICAL
+            s->setRotationAngle(-s->getRotationAngle());
+            s->setY( box.center().y() + ( box.center().y() - s->getY()));
+            s->setScaleY( -s->getScaleY() );
+        }
+
+    }
+}
+
+void GeometryView::transformSelection(View::Transformation t, View::Axis a, View::Reference r)
 {
     // resize all the sources
     if (r == View::REFERENCE_SOURCES) {
         // reference is the selection boundingbox
-        QRectF selection = GeometryView::getBoundingBox(SelectionManager::getInstance()->selectionSource(), true);
+        QRectF ref = GeometryView::getBoundingBox(SelectionManager::getInstance()->selectionSource());
         // perform the computations
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
             // discard non modifiable source
             if (!(*its)->isModifiable())
                 continue;
-
-            if (a==View::AXIS_HORIZONTAL) {
-                (*its)->setX( selection.center().x() );
-                (*its)->setScaleX( selection.width() / 2.0 );
-            } else { // View::VERTICAL (inverted y)
-                (*its)->setY( -selection.center().y() );
-                (*its)->setScaleY( selection.height() / 2.0);
-            }
+            // perform the computations
+            if (t == View::TRANSFORM_SCALE )
+                resizeSource(*its, ref, a);
+            else if (t == View::TRANSFORM_ROTATE )
+                rotate90Source(*its, ref, a);
+            else if (t == View::TRANSFORM_FLIP )
+                flipSource(*its, ref, a);
         }
     }
     // resize the selection to match size of the frame (View::REFERENCE_FRAME)
     else {
         // reference is the frame
-        QRectF target = QRectF(0, 0, 2.0*SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(), 2.0*SOURCE_UNIT);
-        QRectF selection = GeometryView::getBoundingBox(SelectionManager::getInstance()->selectionSource(), true);
-
+        QRectF ref = QRectF(-SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(),-SOURCE_UNIT, 2.0*SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(), 2.0*SOURCE_UNIT);
         // perform the computations
-        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-            // discard non modifiable source
-            if (!(*its)->isModifiable())
-                continue;
+        if (t == View::TRANSFORM_SCALE )
+            resizeSource(SelectionManager::getInstance()->selectionSource(), ref, a);
+        else if (t == View::TRANSFORM_ROTATE )
+            rotate90Source(SelectionManager::getInstance()->selectionSource(), ref, a);
+        else if (t == View::TRANSFORM_FLIP )
+            flipSource(SelectionManager::getInstance()->selectionSource(), ref, a);
 
-            if (a==View::AXIS_HORIZONTAL) {
-                (*its)->setX( selection.center().x() + ( (*its)->getX() - selection.center().x()) * target.width() / selection.width() );
-                (*its)->scaleBy( target.width() / selection.width(), 1.0 );
-            } else { // View::VERTICAL (inverted y)
-                (*its)->setY( selection.center().y() + ( (*its)->getY() - selection.center().y()) * target.height() / selection.height() );
-                (*its)->scaleBy( 1.0, target.height() / selection.height() );
-            }
-        }
+//        QRectF selection = GeometryView::getBoundingBox(SelectionManager::getInstance()->selectionSource(), true);
+
+//        // perform the computations
+//        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+//            // discard non modifiable source
+//            if (!(*its)->isModifiable())
+//                continue;
+
+//            if (a==View::AXIS_HORIZONTAL) {
+//                (*its)->setX( selection.center().x() + ( (*its)->getX() - selection.center().x()) * target.width() / selection.width() );
+//                (*its)->scaleBy( target.width() / selection.width(), 1.0 );
+//            } else { // View::VERTICAL (inverted y)
+//                (*its)->setY( selection.center().y() + ( (*its)->getY() - selection.center().y()) * target.height() / selection.height() );
+//                (*its)->scaleBy( 1.0, target.height() / selection.height() );
+//            }
+//        }
 
     }
 
