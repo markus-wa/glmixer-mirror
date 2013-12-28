@@ -50,6 +50,7 @@ public:
 	void zoomReset();
 	void zoomBestFit( bool onlyClickedSource = false );
 
+    SourceListArray::iterator findGroup(Source *s);
     bool isInAGroup(Source *);
     void removeFromGroup(Source *s);
 

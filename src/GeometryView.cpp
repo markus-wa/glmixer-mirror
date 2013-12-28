@@ -297,10 +297,8 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
 			Source * cs = getCurrentSource();
 
-			// is the user action the individual tool ?
-			individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
 			// if individual source requested,
-			if (individual) {
+            if (isUserInput(event, INPUT_TOOL_INDIVIDUAL)) {
 				// but if the source picked or the current source is the selection source
 				if (clicked == SelectionManager::getInstance()->selectionSource() || cs == SelectionManager::getInstance()->selectionSource() ) {
 					cs = 0;
@@ -333,7 +331,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 			// ready to use the current source
 			cs = getCurrentSource();
 
-			if ( isUserInput(event, INPUT_TOOL) || individual ) {
+            if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) ) {
 
 				// manipulate the current source if modifiable
 				if ( cs ){
@@ -427,7 +425,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 
 	if ( cs && cs->isModifiable() && (currentAction == View::GRAB || currentAction == View::TOOL)) {
 
-		if (!individual && SelectionManager::getInstance()->isInSelection(cs))
+        if (!isUserInput(event, INPUT_TOOL_INDIVIDUAL) && SelectionManager::getInstance()->isInSelection(cs))
 			setCurrentSource(SelectionManager::getInstance()->selectionSource());
 		// ready to use the current source
 		cs = getCurrentSource();
@@ -546,10 +544,7 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
         setCurrentSource(SelectionManager::getInstance()->selectionSource());
     }
 
-	// end of individual manipulation mode in any case
-	individual = false;
-
-	return true;
+    return true;
 }
 
 bool GeometryView::wheelEvent ( QWheelEvent * event ){
@@ -606,9 +601,8 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 	if (currentAction == View::DROP)
 		return false;
 
-	// for double tool clic
-	individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
-	if ( isUserInput(event, INPUT_TOOL) || individual ) {
+    // for double tool clic
+    if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) ) {
 		// get the top most clicked source
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
@@ -641,46 +635,48 @@ bool GeometryView::mouseDoubleClickEvent ( QMouseEvent * event )
 
 bool GeometryView::keyPressEvent ( QKeyEvent * event ){
 
-	// detect select mode
-	if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) ){
-		setAction(View::SELECT);
-		return true;
-	}
+    // detect select mode
+    if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) ){
+        setAction(View::SELECT);
+        return true;
+    }
 
-	Source * cs = getCurrentSource();
-	if (cs) {
-		int dx =0, dy = 0, factor = 1;
-		switch (event->key()) {
-			case Qt::Key_Left:
-				dx = -factor;
-				break;
-			case Qt::Key_Right:
-				dx = factor;
-				break;
-			case Qt::Key_Down:
-				dy = -factor;
-				break;
-			case Qt::Key_Up:
-				dy = factor;
-				break;
-			default:
-				return false;
-		}
-		grabSources(cs, 0, 0, dx, dy);
+    // define custom behavior
+    Source * cs = getCurrentSource();
+    if (cs) {
+        int dx =0, dy = 0, factor = 1;
+        if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_TOOL_INDIVIDUAL)) )
+            factor *= 10;
+        switch (event->key()) {
+            case Qt::Key_Left:
+                dx = -factor;
+                break;
+            case Qt::Key_Right:
+                dx = factor;
+                break;
+            case Qt::Key_Down:
+                dy = -factor;
+                break;
+            case Qt::Key_Up:
+                dy = factor;
+                break;
+            default:
+                return false;
+        }
+        grabSources(cs, 0, 0, dx, dy);
+        return true;
+    }
 
-		return true;
-	}
-
-	return false;
+    return false;
 }
+
 
 bool GeometryView::keyReleaseEvent(QKeyEvent * event) {
 
-	// leave SELECT mode
-	if ( currentAction == View::SELECT )
-		setAction(previousAction);
+    if ( currentAction == View::SELECT && !(QApplication::keyboardModifiers() & View::qtMouseModifiers(INPUT_SELECT)) )
+        setAction(previousAction);
 
-	return false;
+    return false;
 }
 
 void GeometryView::setTool(toolType t)
@@ -714,8 +710,7 @@ void GeometryView::setTool(toolType t)
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_BOTTOM_LEFT);
 			break;
 		}
-		break;
-	default:
+        break;
 	case MOVE:
 		if (currentAction == View::TOOL  || currentAction == View::GRAB)
 			RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
@@ -1504,13 +1499,13 @@ void alignSource(Source *s, QRectF box, View::Axis a, View::RelativePoint p)
 
 	switch (p) {
 	case View::ALIGN_BOTTOM_LEFT:
-		delta = box.bottomLeft() - sbox.bottomLeft();
+        delta = box.bottomLeft() - sbox.bottomLeft();
 		break;
 	case View::ALIGN_EQUAL_GAPS:
 	case View::ALIGN_TOP_RIGHT:
-		delta = box.topRight() - sbox.topRight();
+        delta = box.topRight() - sbox.topRight();
 		break;
-	// View::CENTER (or View::GAPS)
+    // View::CENTER (or View::GAPS)
 	default:
 		delta = box.center() - sbox.center();
 		break;
@@ -1619,7 +1614,6 @@ void rotate90Source(Source *s, QRectF box, View::Axis a)
             // rotate COUNTER CLOCKWISE
             s->setRotationAngle( s->getRotationAngle() + 90.0);
             // rotate 90 is inverting x and y
-//            s->moveTo( -1.0 * s->getY(), s->getX() );
             s->moveTo( - s->getY() + box.center().y() + box.center().x(), s->getX() - box.center().x() + box.center().y() );
 
         }
@@ -1683,28 +1677,6 @@ void GeometryView::transformSelection(View::Transformation t, View::Axis a, View
         // perform the computations
         if (t == View::TRANSFORM_SCALE )
             resizeSource(SelectionManager::getInstance()->selectionSource(), ref, a);
-        else if (t == View::TRANSFORM_ROTATE )
-            rotate90Source(SelectionManager::getInstance()->selectionSource(), ref, a);
-        else if (t == View::TRANSFORM_FLIP )
-            flipSource(SelectionManager::getInstance()->selectionSource(), ref, a);
-
-//        QRectF selection = GeometryView::getBoundingBox(SelectionManager::getInstance()->selectionSource(), true);
-
-//        // perform the computations
-//        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-//            // discard non modifiable source
-//            if (!(*its)->isModifiable())
-//                continue;
-
-//            if (a==View::AXIS_HORIZONTAL) {
-//                (*its)->setX( selection.center().x() + ( (*its)->getX() - selection.center().x()) * target.width() / selection.width() );
-//                (*its)->scaleBy( target.width() / selection.width(), 1.0 );
-//            } else { // View::VERTICAL (inverted y)
-//                (*its)->setY( selection.center().y() + ( (*its)->getY() - selection.center().y()) * target.height() / selection.height() );
-//                (*its)->scaleBy( 1.0, target.height() / selection.height() );
-//            }
-//        }
-
     }
 
 }
@@ -1723,7 +1695,10 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 	// do this for horizontal borders
 	if (a==View::AXIS_HORIZONTAL) {
 		for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
-			QRectF sbox = getBoundingBox(*i, true);
+            // discard non modifiable source
+            if (!(*i)->isModifiable())
+                continue;
+            QRectF sbox = getBoundingBox(*i, true);
 			switch (p) {
 			case View::ALIGN_BOTTOM_LEFT:
 				// sort the list of sources by increasing x of left border (left to right)
@@ -1746,17 +1721,20 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 	else {
 		// sort the list of sources by  y (inverted)
 		for(SourceList::iterator i = SelectionManager::getInstance()->selectionBegin(); i != SelectionManager::getInstance()->selectionEnd(); i++){
-			QRectF sbox = getBoundingBox(*i, true);
+            // discard non modifiable source
+            if (!(*i)->isModifiable())
+                continue;
+            QRectF sbox = getBoundingBox(*i, true);
 			switch (p) {
 			case View::ALIGN_BOTTOM_LEFT:
-				sortedlist[int(-sbox.bottom()*1000)] = qMakePair(*i, sbox.size());
+                sortedlist[int(-sbox.bottom()*1000)] = qMakePair(*i, sbox.size());
 				break;
 			case View::ALIGN_TOP_RIGHT:
-				sortedlist[int(sbox.top()*1000)] = qMakePair(*i, sbox.size());
+                sortedlist[int(sbox.top()*1000)] = qMakePair(*i, sbox.size());
 				break;
 			// View::CENTER (or View::GAPS)
 			default:
-				sortedlist[int(-sbox.center().y()*1000)] = qMakePair(*i, sbox.size() / 2.0);
+                sortedlist[int(-sbox.center().y()*1000)] = qMakePair(*i, sbox.size() / 2.0);
 				break;
 			}
 			total += sbox.size();
@@ -1768,7 +1746,7 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 	selection.clear();
 	selection.insert(sortedlist[sortedlist.keys().first()].first);
 	selection.insert(sortedlist[sortedlist.keys().last()].first);
-	QRectF targetbox = getBoundingBox(selection, true);
+    QRectF targetbox = getBoundingBox(selection, true);
 
 	// compute the step of translation
 	QSizeF translation;
@@ -1776,13 +1754,13 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 		// special case for centered
 		QSizeF s = sortedlist[sortedlist.keys().first()].second;
 		translation = (targetbox.size() - s - sortedlist[sortedlist.keys().last()].second ) / double(sortedlist.count()-1);
-		targetbox = QRectF(targetbox.bottomLeft() + QPointF(s.width(), -s.height()), QSizeF(0.0,0.0));
+        targetbox = QRectF(targetbox.bottomLeft() + QPointF(s.width(), -s.height()), QSizeF(0.0,0.0));
 
 	} else if (p == View::ALIGN_EQUAL_GAPS) {
 		// special case for GAPS
 		translation = (targetbox.size() - total) / double(sortedlist.count()-1);
 		QSizeF s = sortedlist[sortedlist.keys().first()].second * 2.0;
-		targetbox = QRectF(targetbox.bottomLeft() + QPointF(s.width(), -s.height()), QSizeF(0.0,0.0));
+        targetbox = QRectF(targetbox.bottomLeft() + QPointF(s.width(), -s.height()), QSizeF(0.0,0.0));
 	}
 	else
 		translation = (targetbox.size() - sortedlist[sortedlist.keys().last()].second ) / double(sortedlist.count()-1);
@@ -1800,10 +1778,10 @@ void GeometryView::distributeSelection(View::Axis a, View::RelativePoint p){
 			targetbox.translate(-translation.width(), translation.height());
 			break;
 		case View::ALIGN_EQUAL_GAPS:
-			targetbox.translate(its.value().second.width()*2.0, -its.value().second.height()*2.0);
+            targetbox.translate(its.value().second.width()*2.0, -its.value().second.height()*2.0);
 		case View::ALIGN_CENTER:
 		case View::ALIGN_BOTTOM_LEFT:
-			targetbox.translate(translation.width(), -translation.height());
+            targetbox.translate(translation.width(), -translation.height());
 			break;
 		default:
 			break;

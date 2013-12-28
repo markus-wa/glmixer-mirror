@@ -57,7 +57,7 @@ void View::setPanning(double x, double y, double z) {
 
 bool View::keyPressEvent(QKeyEvent * event) {
 
-	return false;
+    return false;
 }
 
 bool View::keyReleaseEvent(QKeyEvent * event) {
@@ -156,7 +156,8 @@ void View::setMouseButtonsMap(QMap<int,int> m)
 	while ( i.hasNext() ) {
 		i.next();
 		 _buttonmap [ (View::UserInput) i.key() ] = Qt::MouseButtons(i.value());
-	}
+    }
+    _buttonmap[View::INPUT_NONE] = Qt::NoButton;
 }
 
 void View::setMouseModifiersMap(QMap<int,int> m)
@@ -165,7 +166,8 @@ void View::setMouseModifiersMap(QMap<int,int> m)
 	while ( i.hasNext() ) {
 		i.next();
 	     _modifiermap [ (View::UserInput) i.key() ] = Qt::KeyboardModifiers(i.value());
-	}
+    }
+    _modifiermap[View::INPUT_NONE] = Qt::NoModifier;
 }
 
 QMap<View::UserInput,Qt::MouseButtons> View::defaultMouseButtonsMap()
@@ -173,11 +175,11 @@ QMap<View::UserInput,Qt::MouseButtons> View::defaultMouseButtonsMap()
 	QMap<View::UserInput,Qt::MouseButtons> qbuttonmap;
 	qbuttonmap[View::INPUT_TOOL] = Qt::LeftButton;
 	qbuttonmap[View::INPUT_TOOL_INDIVIDUAL] = Qt::LeftButton;
-	qbuttonmap[View::INPUT_NAVIGATE] = QTMIDDLEBUTTON;
-	qbuttonmap[View::INPUT_DRAG] = QTMIDDLEBUTTON;
+    qbuttonmap[View::INPUT_NAVIGATE] = QTMIDDLEBUTTON;
+    qbuttonmap[View::INPUT_DRAG] = QTMIDDLEBUTTON;
 	qbuttonmap[View::INPUT_SELECT] = Qt::LeftButton;
-	qbuttonmap[View::INPUT_CONTEXT_MENU] = Qt::RightButton;
-	qbuttonmap[View::INPUT_ZOOM] = Qt::NoButton;
+    qbuttonmap[View::INPUT_CONTEXT_MENU] = Qt::RightButton;
+    qbuttonmap[View::INPUT_ZOOM] = Qt::NoButton;
 	return qbuttonmap;
 }
 
@@ -189,9 +191,9 @@ QMap<View::UserInput,Qt::KeyboardModifiers> View::defaultModifiersMap()
 	qmodifiermap[View::INPUT_NAVIGATE] = Qt::NoModifier;
 	qmodifiermap[View::INPUT_DRAG] = Qt::ShiftModifier;
 	qmodifiermap[View::INPUT_SELECT] = Qt::ControlModifier;
-	qmodifiermap[View::INPUT_CONTEXT_MENU] = Qt::NoModifier;
-	qmodifiermap[View::INPUT_ZOOM] = Qt::NoModifier;
-	return qmodifiermap;
+    qmodifiermap[View::INPUT_CONTEXT_MENU] = Qt::NoModifier;
+    qmodifiermap[View::INPUT_ZOOM] = Qt::NoModifier;
+    return qmodifiermap;
 }
 
 

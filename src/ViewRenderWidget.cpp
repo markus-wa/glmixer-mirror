@@ -345,7 +345,10 @@ void ViewRenderWidget::setViewMode(View::viewMode mode)
 		break;
 	}
 
-	_currentView->setAction(View::NONE);
+    // set action and reset previous action
+    _currentView->setAction(View::NONE);
+    _currentView->setAction(View::NONE);
+    // make sure mouse cursor is arrow
 	setMouseCursor(MOUSE_ARROW);
 
 	// update view to match with the changes in modelview and projection matrices (e.g. resized widget)
@@ -852,6 +855,7 @@ void ViewRenderWidget::leaveEvent ( QEvent * event ){
 
 	// cancel current action
 	_currentView->setAction(View::NONE);
+    _currentView->setAction(View::NONE);
 	// set the catalog  off
 	_catalogView->setTransparent(true);
 
@@ -859,8 +863,9 @@ void ViewRenderWidget::leaveEvent ( QEvent * event ){
 
 void ViewRenderWidget::enterEvent ( QEvent * event ){
 
-	// just to be 100% sure no action is current
-	_currentView->setAction(View::NONE);
+    // just to be 100% sure no action is current
+    _currentView->setAction(View::NONE);
+    _currentView->setAction(View::NONE);
 	setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
 
 }

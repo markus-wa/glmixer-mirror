@@ -247,7 +247,7 @@ void LayersView::bringForward(Source *s)
 		forwardDisplacement = 0;
 
 	// if the source is part of a selection, set the whole selection to be forward
-	if (!individual && (SelectionManager::getInstance()->isInSelection(s) && SelectionManager::getInstance()->isInSelection(*RenderingManager::getInstance()->getCurrentSource())) )
+    if (SelectionManager::getInstance()->isInSelection(s) && SelectionManager::getInstance()->isInSelection(*RenderingManager::getInstance()->getCurrentSource()) )
 		forwardSources = SelectionManager::getInstance()->copySelection();
 	else {
 		// else only this source is forward
@@ -284,23 +284,23 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
     		return false;
 
 		// CTRL clic = add/remove from selection
-		if ( isUserInput(event, INPUT_SELECT) )
-			SelectionManager::getInstance()->select(clicked);
-		// else not SELECTION ; normal action
-		else {
+        if ( isUserInput(event, INPUT_SELECT) ) {
+            SelectionManager::getInstance()->select(clicked);
+        }
+        // else not SELECTION ; normal action
+        else {
 			// not in selection (SELECT) action mode, then set the current active source
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
 			// if the source is not in the selection, discard the selection
-			if ( !SelectionManager::getInstance()->isInSelection(clicked) )
+            if ( !SelectionManager::getInstance()->isInSelection(clicked) || isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) )
 				SelectionManager::getInstance()->clearSelection();
 
-			// tool
-			individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
-			if ( isUserInput(event, INPUT_TOOL) || individual ) {
+            // tool
+            if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL)) {
 				// ready for grabbing the current source
 				if ( clicked->isModifiable() ){
-					// put this source in the forward list (single source if SHIFT)
+                    // put this source in the forward list
 					bringForward(clicked);
 					// ready for grabbing the current source
 					setAction(View::GRAB);
@@ -503,16 +503,14 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
 				return false;
 		}
 
-		// move all if not in individual mode
-		if (!individual) {
-			// move all the source placed forward
-			for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++) {
-				if ( (*its)->getId() == (*currentSource)->getId())
-					continue;
-				newdepth =  (*its)->getDepth() + dz;
-				RenderingManager::getInstance()->changeDepth(RenderingManager::getInstance()->getById((*its)->getId()), newdepth > 0 ? newdepth : 0.0);
-			}
-		}
+
+        // move the source placed forward
+        for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++) {
+            if ( (*its)->getId() == (*currentSource)->getId())
+                continue;
+            newdepth =  (*its)->getDepth() + dz;
+            RenderingManager::getInstance()->changeDepth(RenderingManager::getInstance()->getById((*its)->getId()), newdepth > 0 ? newdepth : 0.0);
+        }
 
 		// change depth of current source
 		newdepth =  (*currentSource)->getDepth() + dz;

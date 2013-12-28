@@ -44,14 +44,13 @@ public:
 	 */
 	View() :
 		zoom(0), minzoom(0), maxzoom(0), deltax(0), deltay(0), panx(0), maxpanx(0),
-		pany(0), maxpany(0), panz(0), maxpanz(0), modified(true), individual(false),
+        pany(0), maxpany(0), panz(0), maxpanz(0), modified(true),
 		currentAction(NONE), previousAction(NONE){
 		viewport[0] = 0;
 		viewport[1] = 0;
 		viewport[2] = 0;
 		viewport[3] = 0;
-	}
-	virtual ~View() {};
+    }
 
     /**
     * types of view
@@ -312,7 +311,7 @@ public:
 protected:
 	double zoom, minzoom, maxzoom, deltax, deltay;
 	double panx, maxpanx, pany, maxpany, panz, maxpanz;
-	bool modified, individual;
+    bool modified;
 
 	GLint viewport[4];
 	GLdouble projection[16];

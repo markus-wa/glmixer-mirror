@@ -78,28 +78,35 @@ void MixerView::paint()
         glCallList(ViewRenderWidget::circle_limbo + 1);
     glPopMatrix();
 
-    // and the selection connection lines
-    glLineStipple(1, 0x9999);
+    // the groups
+    glLineStipple(1, 0xFC00);
     glEnable(GL_LINE_STIPPLE);
     glLineWidth(2.0);
-	glColor4ub(COLOR_SELECTION, 255);
-    glBegin(GL_LINE_LOOP);
-    for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
-        glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
-    }
-    glEnd();
-    glDisable(GL_LINE_STIPPLE);
-
-    // the groups
-    glLineWidth(3.0);
     for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-    	glColor4f(groupColor[itss].redF(), groupColor[itss].greenF(),groupColor[itss].blueF(), 0.9);
-        glBegin(GL_LINE_LOOP);
-        for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-            glVertex3d((*its)->getAlphaX(), (*its)->getAlphaY(), 0.0);
+        glColor4f(groupColor[itss].redF(), groupColor[itss].greenF(),groupColor[itss].blueF(), 0.8);
+        glBegin(GL_LINES);
+        for(SourceList::iterator  its1 = (*itss).begin(); its1 != (*itss).end(); its1++) {
+            for(SourceList::iterator  its2 = its1; its2 != (*itss).end(); its2++) {
+                glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
+                glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
+            }
         }
         glEnd();
     }
+
+    // and the selection connection lines
+    glLineStipple(1, 0x00FC);
+    glLineWidth(2.0);
+	glColor4ub(COLOR_SELECTION, 255);
+    glBegin(GL_LINES);
+    for(SourceList::iterator  its1 = SelectionManager::getInstance()->selectionBegin(); its1 != SelectionManager::getInstance()->selectionEnd(); its1++) {
+        for(SourceList::iterator  its2 = its1; its2 != SelectionManager::getInstance()->selectionEnd(); its2++) {
+            glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
+            glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
+        }
+    }
+    glEnd();
+    glDisable(GL_LINE_STIPPLE);
 
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
@@ -295,7 +302,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	lastClicPos = event->pos();
 
 	//  panning
-	if (  isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) || _modeMoveCircle ) {
+    if (  isUserInput(event, View::INPUT_NAVIGATE) ||  isUserInput(event, View::INPUT_DRAG) || _modeMoveCircle ) {
 		// priority to panning of the view (even in drop mode)
 		setAction(View::PANNING);
 		return false;
@@ -304,7 +311,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	// DRoP MODE ; explicitly do nothing
 	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
 		setAction(View::DROP);
-		if (isUserInput(event, INPUT_CONTEXT_MENU))
+        if (isUserInput(event, View::INPUT_CONTEXT_MENU))
 			RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_DROP, event->pos());
 		// don't interpret other mouse events in drop mode
 		return false;
@@ -317,49 +324,51 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 		Source *clicked =  *clickedSources.begin();
 
 		// SELECT MODE : add/remove from selection
-		if ( isUserInput(event, INPUT_SELECT) ) {
+        if ( isUserInput(event, View::INPUT_SELECT) ) {
 
-			// test if source is in a group
-			SourceListArray::iterator itss = groupSources.begin();
-			for(; itss != groupSources.end(); itss++) {
-				if ( (*itss).count(clicked) > 0 )
-					break;
-			}
-			// NOT in a source : add individual item clicked
-			if ( itss == groupSources.end() )
-				SelectionManager::getInstance()->select(clicked);
-			// else add the full group attached to the clicked item
-			else {
 				if ( SelectionManager::getInstance()->isInSelection(clicked) )
-					SelectionManager::getInstance()->deselect(*itss);
+                    SelectionManager::getInstance()->deselect(clicked);
 				else
-					SelectionManager::getInstance()->select(*itss);
-			}
+                    SelectionManager::getInstance()->select(clicked);
 		}
-		// not in selection (INPUT_SELECT) action mode,
+        // not in (INPUT_SELECT) action mode,
 		else {
 			// then set the current active source
 			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
 			// context menu
-			if ( isUserInput(event, INPUT_CONTEXT_MENU) )
+            if ( isUserInput(event, View::INPUT_CONTEXT_MENU) )
 				RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
 			// zoom
-			else if ( isUserInput(event, INPUT_ZOOM) )
+            else if ( isUserInput(event, View::INPUT_ZOOM) )
 				zoomBestFit(true);
 			// other cases
-			else {
-				// if the source is not in the selection, discard the selection
-				if ( !SelectionManager::getInstance()->isInSelection(clicked) )
-					SelectionManager::getInstance()->clearSelection();
+            else {
 
-				// tool
-				individual = isUserInput(event, INPUT_TOOL_INDIVIDUAL);
-				if ( isUserInput(event, INPUT_TOOL) || individual ) {
+                if (isUserInput(event, View::INPUT_TOOL_INDIVIDUAL))
+                    // in individual selection mode, the selection is cleared
+                    SelectionManager::getInstance()->clearSelection();
+                else {
+                    // test if source is in a group
+                    SourceListArray::iterator itss = findGroup(clicked);
+                    // if the source is not in the selection
+                    if ( !SelectionManager::getInstance()->isInSelection(clicked) ) {
+                        // NOT in a selection but in a group : select only the group
+                        if (  itss != groupSources.end() ) {
+                            SelectionManager::getInstance()->clearSelection();
+                            SelectionManager::getInstance()->select(*itss);
+                        }
+                        // NOT in a selection and NOT in a group (single source clicked)
+                        else
+                            SelectionManager::getInstance()->clearSelection();
+                    }
+                }
+                // tool use
+                if ( isUserInput(event, View::INPUT_TOOL) || isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) ) {
 					// ready for grabbing the current source
 					if ( clicked->isModifiable() )
 						setAction(View::GRAB);
-				}
+                }
 			}
 		}
 		// current source changed in some way
@@ -374,17 +383,17 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 	_selectionArea.markStart(QPointF(cursorx,cursory));
 
 	// context menu on the background
-	if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
+    if ( isUserInput(event, View::INPUT_CONTEXT_MENU) ) {
 		RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
 		return false;
 	}
 	// zoom button in the background : zoom best fit
-	else if ( isUserInput(event, INPUT_ZOOM) ) {
+    else if ( isUserInput(event, View::INPUT_ZOOM) ) {
 		zoomBestFit(false);
 		return false;
 	}
 	// selection mode, clic background is ineffective
-	else if ( isUserInput(event, INPUT_SELECT) )
+    else if ( isUserInput(event, View::INPUT_SELECT) )
 		return false;
 
 	// set current to none (end of list)
@@ -404,7 +413,7 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
 		return false;
 
 	// for double tool clic
-	if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL)  ) {
+    if ( isUserInput(event, View::INPUT_TOOL) /*|| isUserInput(event, View::INPUT_TOOL_INDIVIDUAL)*/  ) {
 
 		// left double click on a source : change the group / selection
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
@@ -412,34 +421,41 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
 			// get the top most clicked source
 			Source *clicked = *clickedSources.begin();
 
-        	SourceListArray::iterator itss = groupSources.begin();
-            for(; itss != groupSources.end(); itss++) {
-            	if ( (*itss).count(clicked) > 0 )
-            		break;
-            }
-            // if double clic on a group ; convert group into selection
-        	if ( itss != groupSources.end() ) {
+            SourceListArray::iterator itss = findGroup(clicked);
+            // if double clic on a group which is not part of a selection ; convert group into selection
+            if ( itss != groupSources.end() && (*itss).size() >= SelectionManager::getInstance()->copySelection().size()  ) {
         		SelectionManager::getInstance()->setSelection(*itss);
         		// erase group and its color
         		groupColor.remove(itss);
         		groupSources.erase(itss);
         	}
-        	// if double clic NOT on a group ; convert selection into group
-        	else {
+            // if double clic on a selection ; convert selection into a new group
+            else {
         		SourceList selection = SelectionManager::getInstance()->copySelection();
-				// if the clicked source is in the selection
-				if ( selection.count(clicked)>0 && selection.size()>1 ) {
-					//  create a group from the selection
+                // convert every groups into selection
+                for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+                    SourceListArray::iterator itss = findGroup(*its);
+                    if (itss != groupSources.end()) {
+                        SourceList result;
+                        std::set_union(selection.begin(), selection.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
+                        // set new selection
+                        selection = SourceList(result);
+                        // remove old group
+                        removeFromGroup(*its);
+                    }
+                }
+                // if the selection is big enough to form a group
+                if ( selection.size()>1 ) {
+                    // create a new group from the selection
 					groupSources.push_front(selection);
-					groupColor[groupSources.begin()] = QColor::fromHsv ( rand()%180 + 179, 250, 250);
-					SelectionManager::getInstance()->clearSelection();
+                    groupColor[groupSources.begin()] = QColor::fromHsv ( rand()%180 + 179, 200, 255);
 				}
         	}
         	return true;
 		}
 	}
 	// zoom
-	else if ( isUserInput(event, INPUT_ZOOM) ) {
+    else if ( isUserInput(event, View::INPUT_ZOOM) ) {
 		zoomReset();
 		return true;
 	}
@@ -469,7 +485,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		// panning background
 		panningBy(event->x(), viewport[3] - event->y(), dx, dy);
 		// SHIFT ?
-        if ( isUserInput(event, INPUT_DRAG) || ( isUserInput(event, INPUT_NAVIGATE) && _modeMoveCircle ) ) {
+        if ( isUserInput(event, View::INPUT_DRAG) || ( isUserInput(event, View::INPUT_NAVIGATE) && _modeMoveCircle ) ) {
 			// special move ; move the sources in the opposite
 			for(SourceSet::iterator its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
 				grabSource( *its, event->x(), viewport[3] - event->y(), -dx, -dy);
@@ -481,7 +497,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 	}
 
 
-	if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) ||  isUserInput(event, INPUT_SELECT) )
+    if ( isUserInput(event, View::INPUT_TOOL) || isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) ||  isUserInput(event, View::INPUT_SELECT) )
 	{
 		// get the top most clicked source, if there is one
 		Source *clicked = 0;
@@ -516,20 +532,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 					if (_selectionArea.contains((*its)->getAlphaX(),(*its)->getAlphaY()) )
 						rectSources.insert(*its);
 
-				SourceList result;
-				for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-					result.erase (result.begin (), result.end ());
-					std::set_intersection(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()));
-					// if the group is fully inside the rectangle selection
-					if ( (*itss).size() != result.size() ) {
-						// ensure none of the group source remain in the selection
-						result.erase (result.begin (), result.end ());
-						std::set_difference(rectSources.begin(), rectSources.end(), (*itss).begin(), (*itss).end(), std::inserter(result, result.begin()) );
-						rectSources = SourceList(result);
-					}
-				}
-
-				if ( isUserInput(event, INPUT_SELECT) )
+                if ( isUserInput(event, View::INPUT_SELECT) )
 					// extend selection
 					SelectionManager::getInstance()->select(rectSources);
 				else  // new selection
@@ -544,8 +547,9 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 		return (bool) clicked;
 	}
 
-	// Show mouse over cursor only if no user input
-	if ( isUserInput(event, INPUT_NONE)) {
+    // Show mouse over cursor only if no user input
+    if ( isUserInput(event, View::INPUT_NONE ) )
+    {
 		//  change action cursor if over a source
 		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) ) {
 			setAction(View::OVER);
@@ -576,9 +580,6 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 
 	// end of selection area in any case
 	_selectionArea.setEnabled(false);
-
-	// end of individual manipulation mode in any case
-	individual = false;
 
 	return true;
 }
@@ -723,7 +724,6 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 				return false;
 		}
 		grabSources(*its, 0, 0, dx, dy);
-
 		return true;
 	}
 
@@ -738,15 +738,28 @@ bool MixerView::keyReleaseEvent(QKeyEvent * event) {
 	return false;
 }
 
+
+
+SourceListArray::iterator  MixerView::findGroup(Source *s){
+
+    SourceListArray::iterator itss = groupSources.begin();
+    for(; itss != groupSources.end(); itss++) {
+        if ( (*itss).count(s) > 0 )
+            break;
+    }
+    return ( itss );
+}
+
+bool MixerView::isInAGroup(Source *s){
+
+    return ( findGroup(s) != groupSources.end() );
+}
+
 void MixerView::removeFromGroup(Source *s)
 {
 
 	// find the group containing the source to delete
-	SourceListArray::iterator itss;
-	for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-		if ( (*itss).count(s) > 0 )
-			break;
-	}
+    SourceListArray::iterator itss = findGroup(s);
 
 	// if there is a group containing the source to delete
 	if(itss != groupSources.end()){
@@ -871,43 +884,15 @@ void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
 
 	if (!s) return;
 
-	// find if the source is in a group
-	SourceListArray::iterator itss;
-	for(itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-		if ( (*itss).count(s) > 0 )
-			break;
-	}
-
-	// special (non-selection) modification
-	if ( individual ){
-		// if the source is in the selection AND in a group, then move the group individually
-		if ( itss != groupSources.end() && SelectionManager::getInstance()->isInSelection(s) ){
-			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-				grabSource( *its, x, y, dx, dy);
-			}
-		}
-		else
-			// move the source individually
-			grabSource(s, x, y, dx, dy);
-	}
-	// NORMAL : move selection or group
-	else {
-		// if the source is in the selection, move the selection
-		if ( SelectionManager::getInstance()->isInSelection(s) ){
-			for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
-				grabSource( *its, x, y, dx, dy);
-			}
-		}
-		// else, if it is in a group, move the group
-		else if ( itss != groupSources.end() ) {
-			for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
-				grabSource( *its, x, y, dx, dy);
-			}
-		}
-		// nothing special, move the source individually
-		else
-			grabSource(s, x, y, dx, dy);
-	}
+    // if the source is in the selection, move the selection
+    if ( SelectionManager::getInstance()->isInSelection(s) ){
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+            grabSource( *its, x, y, dx, dy);
+        }
+    }
+    // nothing special, move the source individually
+    else
+        grabSource(s, x, y, dx, dy);
 
 }
 
@@ -952,17 +937,6 @@ void MixerView::panningBy(int x, int y, int dx, int dy) {
 
 }
 
-
-
-bool MixerView::isInAGroup(Source *s){
-
-	SourceListArray::iterator itss = groupSources.begin();
-    for(; itss != groupSources.end(); itss++) {
-    	if ( (*itss).count(s) > 0 )
-    		break;
-    }
-	return ( itss != groupSources.end() );
-}
 
 QDomElement MixerView::getConfiguration(QDomDocument &doc){
 
@@ -1068,40 +1042,63 @@ QRectF MixerView::getBoundingBox(const SourceList &l)
 
 void MixerView::alignSelection(View::Axis a, View::RelativePoint p, View::Reference r)
 {
-    // define the reference box
-    QRectF ref;
-    if (r == View::REFERENCE_SOURCES)
-        ref = MixerView::getBoundingBox(SelectionManager::getInstance()->copySelection());
-    else
-        ref = QRectF(-CIRCLE_SIZE * SOURCE_UNIT,-CIRCLE_SIZE * SOURCE_UNIT,2.0*CIRCLE_SIZE * SOURCE_UNIT, 2.0*CIRCLE_SIZE * SOURCE_UNIT);
+    QRectF selectionBox = MixerView::getBoundingBox(SelectionManager::getInstance()->copySelection());
+    if (r == View::REFERENCE_SOURCES) {
+        // perform the computations
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
 
-    // perform the computations
-	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+            QPointF point = QPointF((*its)->getAlphaX(), (*its)->getAlphaY());
 
-		QPointF point = QPointF((*its)->getAlphaX(), (*its)->getAlphaY());
-
-        // CENTERED
-        if (p==View::ALIGN_CENTER) {
-            if (a==View::AXIS_HORIZONTAL)
-                point.setX( ref.center().x());
-            else
-                point.setY( ref.center().y());
-        } else if (p==View::ALIGN_BOTTOM_LEFT) {
+            // CENTERED
+            if (p==View::ALIGN_CENTER) {
+                if (a==View::AXIS_HORIZONTAL)
+                    point.setX( selectionBox.center().x());
+                else
+                    point.setY( selectionBox.center().y());
+            }
             // View::ALIGN_BOTTOM_LEFT (inverted y)
-            if (a==View::AXIS_HORIZONTAL)
-                point.setX( ref.topLeft().x());
-            else
-                point.setY( ref.topLeft().y());
-        } else if (p==View::ALIGN_TOP_RIGHT) {
+            else if (p==View::ALIGN_BOTTOM_LEFT) {
+                if (a==View::AXIS_HORIZONTAL)
+                    point.setX( selectionBox.topLeft().x());
+                else
+                    point.setY( selectionBox.topLeft().y());
+            }
             // View::ALIGN_TOP_RIGHT (inverted y)
-            if (a==View::AXIS_HORIZONTAL)
-                point.setX( ref.bottomRight().x());
-            else
-                point.setY( ref.bottomRight().y());
+            else if (p==View::ALIGN_TOP_RIGHT) {
+                if (a==View::AXIS_HORIZONTAL)
+                    point.setX( selectionBox.bottomRight().x());
+                else
+                    point.setY( selectionBox.bottomRight().y());
+            }
+            // move icon
+            (*its)->setAlphaCoordinates( point.x() , point.y() );
         }
-	    // move icon
-        (*its)->setAlphaCoordinates( point.x() , point.y() );
-	}
+    }
+    // REFERENCE_FRAME
+    else {
+        QRectF circleBox = QRectF(-CIRCLE_SIZE * SOURCE_UNIT,-CIRCLE_SIZE * SOURCE_UNIT,2.0*CIRCLE_SIZE * SOURCE_UNIT, 2.0*CIRCLE_SIZE * SOURCE_UNIT);
+
+        QPointF delta;
+        // CENTERED
+        if (p==View::ALIGN_CENTER)
+            delta = circleBox.center() -selectionBox.center();
+        // View::ALIGN_BOTTOM_LEFT (inverted y)
+        else if (p==View::ALIGN_BOTTOM_LEFT)
+            delta = circleBox.topLeft() - selectionBox.topLeft();
+        // View::ALIGN_TOP_RIGHT (inverted y)
+        else if (p==View::ALIGN_TOP_RIGHT)
+            delta = circleBox.bottomRight() - selectionBox.bottomRight();
+
+        // perform the computations
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+
+            if (a==View::AXIS_HORIZONTAL)
+                (*its)->setAlphaCoordinates( (*its)->getAlphaX() + delta.x(), (*its)->getAlphaY() );
+            else
+                (*its)->setAlphaCoordinates( (*its)->getAlphaX(), (*its)->getAlphaY() + delta.y() );
+        }
+
+    }
 }
 
 void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
@@ -1129,7 +1126,7 @@ void MixerView::distributeSelection(View::Axis a, View::RelativePoint p)
 	}
 
 	// compute the step of translation
-	QSizeF s = getBoundingBox(selection).size() / double(sortedlist.count()-1);
+    QSizeF s = MixerView::getBoundingBox(selection).size() / double(sortedlist.count()-1);
 	QPointF translation(s.width(),s.height());
 	QPointF position = sortedlist[sortedlist.keys().first()].second;
 
