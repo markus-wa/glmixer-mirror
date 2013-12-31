@@ -1607,7 +1607,7 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
         }
 
     }
-    // default case : resize the source to match the size of the ref (selection)
+    // default case : resize the source to match the size of the ref
     else {
         double scale = 1.0;
 
@@ -1645,18 +1645,11 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
 
 void rotate90Source(Source *s, QRectF box, View::Axis a)
 {
-    // if the source is the selection, rotate the selection
+    // if the source is the selection, rotate the selection in reference to the frame
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
-
-        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-            // discard non modifiable source
-            if (!(*its)->isModifiable())
-                continue;
-            // rotate by 90 degrees
-        }
-
+        // NOT IMPLEMENTED
     }
-    // default case : rotate the source
+    // default case : rotate the sources in the selection
     else {
         // rotate
         if (a==View::AXIS_HORIZONTAL) {
@@ -1676,17 +1669,11 @@ void rotate90Source(Source *s, QRectF box, View::Axis a)
 
 void flipSource(Source *s, QRectF box, View::Axis a)
 {
-    // if the source is the selection, flip the selection
+    // if the source is the selection, flip the selection in reference to the frame
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
-
-        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-
-            // flip
-
-        }
-
+        // NOT IMPLEMENTED
     }
-    // default case : flip the source
+    // default case : flip the sources in the selection
     else {
         // flip
         if (a==View::AXIS_HORIZONTAL) {
@@ -1704,7 +1691,7 @@ void flipSource(Source *s, QRectF box, View::Axis a)
 
 void GeometryView::transformSelection(View::Transformation t, View::Axis a, View::Reference r)
 {
-    // resize all the sources
+    // transform all the sources in reference to the selection
     if (r == View::REFERENCE_SOURCES) {
 
         // reference is the selection boundingbox
@@ -1737,13 +1724,14 @@ void GeometryView::transformSelection(View::Transformation t, View::Axis a, View
                 resizeSource(*its, ref, a);
         }
     }
-    // resize the selection to match size of the frame (View::REFERENCE_FRAME)
+    // transform the selection in reference to the frame (View::REFERENCE_FRAME)
     else {
         // reference is the frame
         QRectF ref = QRectF(-SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(),-SOURCE_UNIT, 2.0*SOURCE_UNIT*OutputRenderWindow::getInstance()->getAspectRatio(), 2.0*SOURCE_UNIT);
         // perform the computations
         if (t == View::TRANSFORM_SCALE )
             resizeSource(SelectionManager::getInstance()->selectionSource(), ref, a);
+        // NB : not implemented (not meaningful?) for rotation and flip
     }
 
 }

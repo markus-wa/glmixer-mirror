@@ -142,5 +142,7 @@
         <file>icons/flip-vertical.png</file>
         <file>icons/rotate-90-clockwise.png</file>
         <file>icons/rotate-90-counterclockwise.png</file>
+        <file>icons/size-ratio-original.png</file>
+        <file>icons/size-ratio-frame.png</file>
     </qresource>
 </RCC>

@@ -842,6 +842,31 @@ void RenderingManager::toggleMofifiableCurrentSource(){
 	}
 }
 
+
+void RenderingManager::toggleFixAspectRatioCurrentSource(bool on){
+
+    if(isValid(_currentSource)) {
+        (*_currentSource)->setFixedAspectRatio( on );
+        _propertyBrowser->showProperties(_currentSource);
+    }
+}
+
+void RenderingManager::setOriginalAspectRatioCurrentSource(){
+
+    if(isValid(_currentSource)) {
+        (*_currentSource)->resetScale(Source::SCALE_FIT);
+        _propertyBrowser->showProperties(_currentSource);
+    }
+}
+
+void RenderingManager::setRenderingAspectRatioCurrentSource(){
+
+    if(isValid(_currentSource)) {
+        (*_currentSource)->resetScale(Source::SCALE_DEFORM);
+        _propertyBrowser->showProperties(_currentSource);
+    }
+}
+
 void RenderingManager::resetCurrentSource(){
 
 	if(isValid(_currentSource)) {

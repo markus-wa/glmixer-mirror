@@ -404,7 +404,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 	QObject::connect(actionZoomBestFit, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomBestFit()));
 	QObject::connect(actionZoomCurrentSource, SIGNAL(triggered()), RenderingManager::getRenderingWidget(), SLOT(zoomCurrentSource()));
     QObject::connect(actionToggle_fixed, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(toggleMofifiableCurrentSource()));
-//    QObject::connect(actionToggle_FixedAspectRatio, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(fixAspectRatioCurrentSource(bool)));
+//    QObject::connect(actionToggle_fixed, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(toggleFixAspectRatioCurrentSource()));
+    QObject::connect(actionAspectRatioResetOriginal, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(setOriginalAspectRatioCurrentSource()));
+    QObject::connect(actionAspectRatioSetRendering, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(setRenderingAspectRatioCurrentSource()));
+    QObject::connect(actionAspectRatioFixed, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(toggleFixAspectRatioCurrentSource(bool)));
     QObject::connect(actionResetSource, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(resetCurrentSource()));
 
 	// Signals between cursors and their configuration gui
@@ -786,6 +789,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         actionCloneSource->setEnabled(true);
 		toolButtonZoomCurrent->setEnabled(true);
         mixingToolBox->setEnabled(true);
+        actionAspectRatioFixed->setChecked( (*csi)->isFixedAspectRatio() );
 
         // Enable control pannels if the source is playable
         vcontrolOptionSplitter->setEnabled( (*csi)->isPlayable() );

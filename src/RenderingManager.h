@@ -215,8 +215,11 @@ public Q_SLOTS:
 	void clearSourceSet();
 	void resetSource(SourceSet::iterator sit);
 	void resetCurrentSource();
-	void startCurrentSource(bool on);
-	void toggleMofifiableCurrentSource();
+    void startCurrentSource(bool on);
+    void toggleMofifiableCurrentSource();
+    void toggleFixAspectRatioCurrentSource(bool);
+    void setOriginalAspectRatioCurrentSource();
+    void setRenderingAspectRatioCurrentSource();
 
 	bool dropSource();
 	void dropSourceWithAlpha(double alphax, double alphay);
