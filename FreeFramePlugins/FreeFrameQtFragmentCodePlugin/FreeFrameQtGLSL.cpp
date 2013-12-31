@@ -10,16 +10,16 @@
 #include "GLSLCodeEditorWidget.h"
 
 
-const char *fragmentShaderHeader =   "uniform vec3 iResolution;\n"
-        "uniform vec3 iChannelResolution[1];\n"
-        "uniform sampler2D iChannel0;\n"
-        "uniform float iGlobalTime;\n"
-        "uniform float iChannelTime[1];\n"
-        "uniform vec4  iDate;\n\0";
+const char *fragmentShaderHeader =  "uniform vec3      iResolution;           // viewport resolution (in pixels)\n"
+                                    "uniform float     iGlobalTime;           // shader playback time (in seconds)\n"
+                                    "uniform float     iChannelTime[1];       // channel playback time (in seconds)\n"
+                                    "uniform vec3      iChannelResolution[1]; // channel resolution (in pixels)\n"
+                                    "uniform sampler2D iChannel0;             // input channel.\n"
+                                    "uniform vec4      iDate;                 // (year, month, day, time in seconds)\n";
 
 const char *fragmentShaderDefaultCode = "void main(void){\n"
-        "vec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
-        "gl_FragColor = texture2D(iChannel0, uv);\n"
+        "\tvec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
+        "\tgl_FragColor = texture2D(iChannel0, uv);\n"
         "}\0";
 
 // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.165.6050&rep=rep1&type=pdf
@@ -136,6 +136,7 @@ FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
 
     w = new GLSLCodeEditorWidget(this);
     w->setCode(fragmentShaderCode);
+    w->setHeader(fragmentShaderHeader);
     w->show();
 
     return FF_SUCCESS;

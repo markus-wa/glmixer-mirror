@@ -2,6 +2,7 @@
 #define GLSLCodeEditorWidget_H
 
 #include <QWidget>
+#include <QTextEdit>
 
 namespace Ui {
 class CodeEditorWidget;
@@ -20,6 +21,8 @@ public:
 public Q_SLOTS:
     void applyCode();
     void showLogs(const char *logstring);
+
+    void setHeader(const char *header);
     void setCode(const char *code);
 
 private:
@@ -27,5 +30,7 @@ private:
 
     FreeFrameQtGLSL *_program;
 };
+
+
 
 #endif // GLSLCodeEditorWidget_H

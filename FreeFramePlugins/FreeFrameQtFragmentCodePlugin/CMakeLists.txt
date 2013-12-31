@@ -10,7 +10,9 @@ ENDIF (WIN32)
 
 set(LIBFFGLQTGLSL_SRCS
     FreeFrameQtGLSL.cpp
+    GLSLCodeEditor.cpp
     GLSLCodeEditorWidget.cpp
+    GLSLSyntaxHighlighter.cpp
 )
 
 # do the qt-cmake magic
