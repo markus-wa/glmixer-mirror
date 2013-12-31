@@ -52,6 +52,7 @@ public:
 		viewport[3] = 0;
     }
 
+    virtual ~View() {}
     /**
     * types of view
     */

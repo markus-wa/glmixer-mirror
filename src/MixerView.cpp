@@ -520,6 +520,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 			}
 			// no, then we are SELECTING AREA
 			else {
+//                setAction(View::SELECT);
 				// enable drawing of selection area
 				_selectionArea.setEnabled(true);
 
@@ -529,8 +530,8 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 				// loop over every sources to check if it is in the rectangle area
 				SourceList rectSources;
 				for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-					if (_selectionArea.contains((*its)->getAlphaX(),(*its)->getAlphaY()) )
-						rectSources.insert(*its);
+                    if (_selectionArea.contains((*its)->getAlphaX(),(*its)->getAlphaY()) )
+                        rectSources.insert(*its);
 
                 if ( isUserInput(event, View::INPUT_SELECT) )
 					// extend selection

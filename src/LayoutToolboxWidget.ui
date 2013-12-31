@@ -6,15 +6,24 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>156</width>
-    <height>384</height>
+    <width>160</width>
+    <height>424</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Mixing</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="margin">
+   <property name="leftMargin">
+    <number>1</number>
+   </property>
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
     <number>1</number>
    </property>
    <item>
@@ -26,13 +35,22 @@
       <bool>true</bool>
      </property>
      <layout class="QHBoxLayout" name="resizeLayout">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
        <number>3</number>
       </property>
       <item>
        <widget class="QToolButton" name="sizeHorizontalButton">
         <property name="toolTip">
-         <string>Resize to equal widths</string>
+         <string>Resize to equal widths (max)</string>
         </property>
         <property name="styleSheet">
          <string notr="true">QToolButton { 
@@ -70,7 +88,7 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
       <item>
        <widget class="QToolButton" name="sizeVerticalButton">
         <property name="toolTip">
-         <string>Resize to equal heights</string>
+         <string>Resize to equal heights (max)</string>
         </property>
         <property name="styleSheet">
          <string notr="true">QToolButton { 
@@ -193,7 +211,16 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
       <bool>true</bool>
      </property>
      <layout class="QHBoxLayout" name="rotateLayout">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
        <number>3</number>
       </property>
       <item>
@@ -360,7 +387,16 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
       <bool>true</bool>
      </property>
      <layout class="QGridLayout" name="alignLayout">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
        <number>3</number>
       </property>
       <item row="0" column="0">
@@ -831,7 +867,16 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
       <bool>true</bool>
      </property>
      <layout class="QGridLayout" name="distributeLayout">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
        <number>3</number>
       </property>
       <item row="0" column="0">

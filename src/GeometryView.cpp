@@ -1467,8 +1467,6 @@ QRectF GeometryView::getBoundingBox(const SourceList &l, bool invert_y)
 
 	// compute Axis aligned bounding box of all sources in the list
     for(SourceList::const_iterator  its = l.begin(); its != l.end(); its++) {
-    	if ((*its)->isStandby())
-    		continue;
 		cosa = cos((*its)->getRotationAngle() / 180.0 * M_PI);
 		sina = sin((*its)->getRotationAngle() / 180.0 * M_PI);
 		for (GLdouble i = -1.0; i < 2.0; i += 2.0)
@@ -1562,29 +1560,85 @@ void GeometryView::alignSelection(View::Axis a, View::RelativePoint p, View::Ref
 }
 
 
-void resizeSource(Source *s, QRectF box, View::Axis a)
+void resizeSource(Source *s, QRectF ref, View::Axis a)
 {
-    // if the source is the selection, move the selection
+    // if the source is the selection, resize the selection to match the reference (frame)
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
 
+        // get bounding box of the selection (to be scaled to match size of the ref)
+        QRectF selectionbox = GeometryView::getBoundingBox(SelectionManager::getInstance()->copySelection());
+
+        // compute rescaling and displacement of every source in the selection
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-            // discard non modifiable source
-            if (!(*its)->isModifiable())
-                continue;
-            // resize
+
+            double scale = 1.0;
+            // remember aspect ration of the original source
+            double ar = (*its)->getScaleX() / (*its)->getScaleY();
+
+            // resize the diagonal (pythagore) proportionnally
+            double K = 4.0 * (*its)->getScaleX() * (*its)->getScaleX() +  4.0 * (*its)->getScaleY()  *  (*its)->getScaleY();
+
+            // Compute scaling to target the scaling of the WIDTH
+            if (a == View::AXIS_HORIZONTAL) {
+                scale = ref.width() / selectionbox.width();
+                K *= scale * scale;
+                // appy aspect ratio of original source
+                K /= 1.0 + 1.0 / ( ar * ar );
+                (*its)->setScaleX( sqrt(K) / 2.0 );
+                // keep aspect ratio
+                (*its)->setScaleY( (*its)->getScaleX() / ar);
+            }
+            // Compute scaling to target the scaling of the HEIGHT (View::AXIS_VERTICAL)
+            else {
+                scale = ref.height() / selectionbox.height();
+                K *= scale * scale;
+                // appy aspect ratio of original source
+                K /= 1.0 + ar * ar ;
+                (*its)->setScaleY( sqrt(K) / 2.0 );
+                // keep aspect ratio
+                (*its)->setScaleX( (*its)->getScaleY() * ar);
+            }
+
+            // solves the rescaling of the bounding box to find the new position
+            QRectF sbox = GeometryView::getBoundingBox(*its);
+            (*its)->moveTo( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()),
+                            selectionbox.center().y() + scale * ( sbox.center().y() - selectionbox.center().y()) );
+
         }
 
     }
-    // default case : resize the source
+    // default case : resize the source to match the size of the ref (selection)
     else {
-//        double ratio;
-        if (a==View::AXIS_HORIZONTAL) {
-            s->setX( box.center().x() );
-            s->setScaleX( box.width() / 2.0 );
-        } else { // View::VERTICAL
-            s->setY( box.center().y() );
-            s->setScaleY( box.height() / 2.0);
+        double scale = 1.0;
+
+        // remember aspect ration of the original source
+        double ar = s->getScaleX() /  s->getScaleY() ;
+
+        // resize the diagonal (pythagore) proportionnally
+        double K = 4.0 * s->getScaleX() * s->getScaleX() +  4.0 * s->getScaleY()  *  s->getScaleY();
+
+        // Compute scaling to target the scaling of the WIDTH
+        if (a == View::AXIS_HORIZONTAL) {
+            scale = ref.width() / GeometryView::getBoundingBox(s).width();
+            K *= scale * scale;
+            // appy aspect ratio of original source
+            K /= 1.0 + 1.0 / ( ar * ar );
+            s->setScaleX( sqrt(K) / 2.0 );
+            // keep aspect ratio
+            s->setScaleY( s->getScaleX() / ar);
         }
+        // Compute scaling to target the scaling of the HEIGHT (View::AXIS_VERTICAL)
+        else {
+            scale = ref.height() / GeometryView::getBoundingBox(s).height();
+            K *= scale * scale;
+            // appy aspect ratio of original source
+            K /= 1.0 + ar * ar ;
+            s->setScaleY( sqrt(K) / 2.0 );
+            // keep aspect ratio
+            s->setScaleX( s->getScaleY() * ar);
+        }
+
+
     }
 }
 
@@ -1626,9 +1680,7 @@ void flipSource(Source *s, QRectF box, View::Axis a)
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
 
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
-            // discard non modifiable source
-            if (!(*its)->isModifiable())
-                continue;
+
             // flip
 
         }
@@ -1654,20 +1706,35 @@ void GeometryView::transformSelection(View::Transformation t, View::Axis a, View
 {
     // resize all the sources
     if (r == View::REFERENCE_SOURCES) {
+
         // reference is the selection boundingbox
         QRectF ref = GeometryView::getBoundingBox(SelectionManager::getInstance()->selectionSource());
+
+        // different logic for scaling:
+        if (t == View::TRANSFORM_SCALE ) {
+            // reference is the larger dimension of the sources in the selection, not the selection box itself
+            ref.setSize(QSizeF(0.0, 0.0));
+            for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
+                QRectF sbox = GeometryView::getBoundingBox(*its);
+                ref.setSize( QSizeF( qMax( ref.width(), sbox.width()), qMax(ref.height(), sbox.height()) ));
+            }
+        }
+
         // perform the computations
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
             // discard non modifiable source
             if (!(*its)->isModifiable())
                 continue;
             // perform the computations
-            if (t == View::TRANSFORM_SCALE )
-                resizeSource(*its, ref, a);
-            else if (t == View::TRANSFORM_ROTATE )
+            if (t == View::TRANSFORM_ROTATE )
+                // rotate by 90 the source into the selection ref
                 rotate90Source(*its, ref, a);
             else if (t == View::TRANSFORM_FLIP )
+                // flip the source into the selection ref
                 flipSource(*its, ref, a);
+            else if (t == View::TRANSFORM_SCALE )
+                // scale the source into the selection ref
+                resizeSource(*its, ref, a);
         }
     }
     // resize the selection to match size of the frame (View::REFERENCE_FRAME)

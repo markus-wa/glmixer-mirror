@@ -50,7 +50,7 @@ void SelectionManager::clearSelection() {
 void SelectionManager::select(Source *s) {
 
 	// Do not consider the _selectionSource in a selection
-	if (s == _selectionSource)
+    if (!s || s == _selectionSource )
 		return;
 
 	if ( SelectionManager::_selectedSources.count(s) > 0)
@@ -114,6 +114,12 @@ bool SelectionManager::isInSelection(Source *s)
 
 void SelectionManager::updateSelectionSource()
 {
+    // do not add sources which are not modifiable
+    for ( SourceSet::iterator sit = _selectedSources.begin(); sit != _selectedSources.end(); sit++) {
+        if ( !(*sit)->isModifiable() )
+            _selectedSources.erase(sit);
+    }
+
 	// inform of the status of the selection
 	emit selectionChanged( ! _selectedSources.empty());
 

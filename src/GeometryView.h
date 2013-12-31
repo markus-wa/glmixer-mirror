@@ -52,6 +52,7 @@ public:
 	void zoomReset();
 	void zoomBestFit( bool onlyClickedSource = false );
 
+    void setAction(ActionType a);
 	void setTool(toolType t);
 	toolType getTool() { return currentTool; }
 
@@ -77,7 +78,6 @@ private:
     void cropSource(Source *s, int x, int y, int dx, int dy, bool proportional = false);
     void cropSources(Source *s, int x, int y, int dx, int dy, bool proportional = false);
     void panningBy(int x, int y, int dx, int dy);
-    void setAction(ActionType a);
 
     // special management of current source ; the artificial selection source can be current too
     void setCurrentSource(Source *s);

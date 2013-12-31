@@ -425,6 +425,7 @@ void ViewRenderWidget::setToolMode(toolMode m){
 
 	if (_currentView == (View *) _geometryView) {
 		_geometryView->setTool( (GeometryView::toolType) m );
+        _geometryView->setAction( View::NONE );
 	}
 
 }
