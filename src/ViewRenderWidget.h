@@ -30,7 +30,6 @@
 #include <QDomElement>
 #include <QMenu>
 #include <QLabel>
-#include <QLabel>
 #include <QEvent>
 #include <QString>
 
@@ -199,6 +198,7 @@ protected:
 	static GLuint fading;
 	static GLuint stipplingMode;
     static GLubyte stippling[];
+    static GLuint vertex_array_coords;
 
     // shared mask textures
     static QMap<int, GLuint> mask_textures;

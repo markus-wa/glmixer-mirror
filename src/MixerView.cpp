@@ -122,7 +122,7 @@ void MixerView::paint()
 			ax = (*its)->getAlphaX();
 			ay = (*its)->getAlphaY();
 			glTranslated(ax, ay, (*its)->getDepth());
-			renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+            renderingAspectRatio = ABS( (*its)->getScaleX() / (*its)->getScaleY() );
 			if ( ABS(renderingAspectRatio) > 1.0)
 				glScaled(SOURCE_UNIT, SOURCE_UNIT / renderingAspectRatio,  1.0);
 			else
@@ -165,10 +165,10 @@ void MixerView::paint()
 			// disable multi-texturing and effect drawing mode
 			ViewRenderWidget::setSourceDrawingMode(false);
 
-			if (RenderingManager::getInstance()->isCurrentSource(its))
-				glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2) );
-			else
-				glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2) );
+            if (RenderingManager::getInstance()->isCurrentSource(its))
+                glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2) );
+            else
+                glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2) );
 
 			glPopMatrix();
 		}

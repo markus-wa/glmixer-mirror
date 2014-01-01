@@ -152,24 +152,24 @@ void CatalogView::drawSource(Source *s, int index)
 		// increment y height by the height of this source + margin
 		height = _height + 2.0 * sheight_pixels + 0.1 * _size[_currentSize] * v_unit;
 
-		// if getting out of available drawing area, skip this source and draw arrow instead
-		if (height > 2.0 * SOURCE_UNIT) {
-			if (_currentSize == LARGE)
-				setSize(MEDIUM);
-			else if (_currentSize == MEDIUM)
-				setSize(SMALL);
-			else {
-				glColor4ub(COLOR_DRAWINGS, 200);
-				glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
-				glLineWidth(2);
-				glBegin(GL_LINE_LOOP); // draw a triangle
-					glVertex2f(0.0, 0.50);
-					glVertex2f(0.50, 1.0);
-					glVertex2f(-0.50, 1.0);
-				glEnd();
-			}
-			return;
-		}
+        // if getting out of available drawing area, skip this source and draw arrow instead
+        if (height > 2.0 * SOURCE_UNIT) {
+            if (_currentSize == LARGE)
+                setSize(MEDIUM);
+            else if (_currentSize == MEDIUM)
+                setSize(SMALL);
+            else {
+                glColor4ub(COLOR_DRAWINGS, 200);
+                glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
+                glLineWidth(2);
+                glBegin(GL_LINE_LOOP); // draw a triangle
+                    glVertex2f(0.0, 0.50);
+                    glVertex2f(0.50, 1.0);
+                    glVertex2f(-0.50, 1.0);
+                glEnd();
+            }
+            return;
+        }
 
 		_height = height;
 
@@ -181,12 +181,12 @@ void CatalogView::drawSource(Source *s, int index)
 
 		// draw source texture (without shading)
 		glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
-	    glDisable(GL_BLEND);
-		glColor4f(0.0, 0.0, 0.0, 1.0);
+        glDisable(GL_BLEND);
+        glColor4f(0.0, 0.0, 0.0, 1.0);
 		glDrawArrays(GL_QUADS, 0, 4);
-	    glEnable(GL_BLEND);
+        glEnable(GL_BLEND);
 
-		ViewRenderWidget::setSourceDrawingMode(false);
+        glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[0]);
 
 	    // draw source border
 		if (iscurrent)
