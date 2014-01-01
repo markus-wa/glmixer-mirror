@@ -834,10 +834,10 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
 }
 
 
-void RenderingManager::toggleMofifiableCurrentSource(){
+void RenderingManager::toggleUnchangeableCurrentSource(bool on){
 
 	if(isValid(_currentSource)) {
-		(*_currentSource)->setModifiable( ! (*_currentSource)->isModifiable() );
+        (*_currentSource)->setModifiable( ! on );
 		_propertyBrowser->showProperties(_currentSource);
 	}
 }
