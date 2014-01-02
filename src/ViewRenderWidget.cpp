@@ -1143,7 +1143,7 @@ void ViewRenderWidget::setSourceDrawingMode(bool on)
  **/
 GLuint ViewRenderWidget::buildSelectList()
 {
-	GLuint base = glGenLists(1);
+    GLuint base = glGenLists(2);
 
 	// selected
 	glNewList(base, GL_COMPILE);
@@ -1153,18 +1153,34 @@ GLuint ViewRenderWidget::buildSelectList()
 
 		glLineWidth(2.0);
 		glColor4ub(COLOR_SELECTION, 255);
-		glLineStipple(1, 0x9999);
-		glEnable(GL_LINE_STIPPLE);
-
+        glLineStipple(1, 0x6666);
+        glEnable(GL_LINE_STIPPLE);
         glCallList(vertex_array_coords);
         glPushMatrix();
         glScalef(1.1, 1.1, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
         glPopMatrix();
-
-		glDisable(GL_LINE_STIPPLE);
+        glDisable(GL_LINE_STIPPLE);
 
 	glEndList();
+
+    // selected
+    glNewList(base + 1, GL_COMPILE);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
+
+        glLineWidth(2.0);
+        glLineStipple(1, 0x6186);
+        glEnable(GL_LINE_STIPPLE);
+        glCallList(vertex_array_coords);
+        glPushMatrix();
+        glScalef(1.1, 1.1, 1.0);
+        glDrawArrays(GL_LINE_LOOP, 0, 4);
+        glPopMatrix();
+        glDisable(GL_LINE_STIPPLE);
+
+    glEndList();
 
 	return base;
 }

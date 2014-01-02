@@ -78,26 +78,11 @@ void MixerView::paint()
         glCallList(ViewRenderWidget::circle_limbo + 1);
     glPopMatrix();
 
-    // the groups
-    glLineStipple(1, 0xFC00);
-    glEnable(GL_LINE_STIPPLE);
-    glLineWidth(2.0);
-    for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-        glColor4f(groupColor[itss].redF(), groupColor[itss].greenF(),groupColor[itss].blueF(), 0.8);
-        glBegin(GL_LINES);
-        for(SourceList::iterator  its1 = (*itss).begin(); its1 != (*itss).end(); its1++) {
-            for(SourceList::iterator  its2 = its1; its2 != (*itss).end(); its2++) {
-                glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
-                glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
-            }
-        }
-        glEnd();
-    }
-
     // and the selection connection lines
+    glEnable(GL_LINE_STIPPLE);
     glLineStipple(1, 0x00FC);
     glLineWidth(2.0);
-	glColor4ub(COLOR_SELECTION, 255);
+    glColor4ub(COLOR_SELECTION, 255);
     glBegin(GL_LINES);
     for(SourceList::iterator  its1 = SelectionManager::getInstance()->selectionBegin(); its1 != SelectionManager::getInstance()->selectionEnd(); its1++) {
         for(SourceList::iterator  its2 = its1; its2 != SelectionManager::getInstance()->selectionEnd(); its2++) {
@@ -107,6 +92,7 @@ void MixerView::paint()
     }
     glEnd();
     glDisable(GL_LINE_STIPPLE);
+
 
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
@@ -198,6 +184,32 @@ void MixerView::paint()
 
     }
 
+    // and the groups connection lines
+    glEnable(GL_LINE_STIPPLE);
+    glLineStipple(1, 0xFC00);
+    glLineWidth(2.0);
+    glPointSize(15);
+    for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+        for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+           // use color of the group
+           glColor4f(groupColor[itss].redF(), groupColor[itss].greenF(),groupColor[itss].blueF(), 0.8);
+           for(SourceList::iterator  its1 = (*itss).begin(); its1 != (*itss).end(); its1++) {
+               // Connect to every source
+               glBegin(GL_LINES);
+               for(SourceList::iterator  its2 = its1; its2 != (*itss).end(); its2++) {
+                   glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
+                   glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
+               }
+               glEnd();
+               // dot to identifiy source in the group
+               glBegin(GL_POINTS);
+               glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
+               glEnd();
+           }
+        }
+
+    }
+    glDisable(GL_LINE_STIPPLE);
 
     // the source dropping icon
 	Source *s = RenderingManager::getInstance()->getSourceBasketTop();
@@ -207,16 +219,16 @@ void MixerView::paint()
 				modelview, projection, viewport, &ax, &ay, &az);
 		glPushMatrix();
 		glTranslated( ax, ay, az);
-			glPushMatrix();
-			if ( ABS(s->getAspectRatio()) > 1.0)
-				glTranslated(SOURCE_UNIT + 1.0, -SOURCE_UNIT / s->getAspectRatio() + 1.0,  0.0);
-			else
-				glTranslated(SOURCE_UNIT * s->getAspectRatio() + 1.0, -SOURCE_UNIT + 1.0,  0.0);
-			for (int i = 1; i < RenderingManager::getInstance()->getSourceBasketSize(); ++i ) {
-				glTranslated(2.1, 0.0, 0.0);
-				glCallList(ViewRenderWidget::border_thin);
-			}
-			glPopMatrix();
+        glPushMatrix();
+        if ( ABS(s->getAspectRatio()) > 1.0)
+            glTranslated(SOURCE_UNIT + 1.0, -SOURCE_UNIT / s->getAspectRatio() + 1.0,  0.0);
+        else
+            glTranslated(SOURCE_UNIT * s->getAspectRatio() + 1.0, -SOURCE_UNIT + 1.0,  0.0);
+        for (int i = 1; i < RenderingManager::getInstance()->getSourceBasketSize(); ++i ) {
+            glTranslated(2.1, 0.0, 0.0);
+            glCallList(ViewRenderWidget::border_thin);
+        }
+        glPopMatrix();
 		renderingAspectRatio = s->getScaleX() / s->getScaleY();
 		if ( ABS(renderingAspectRatio) > 1.0)
 			glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
@@ -1030,12 +1042,27 @@ QRectF MixerView::getBoundingBox(const SourceList &l)
 	bbox[1][1] = -2.0*SOURCE_UNIT*MAXZOOM*CIRCLE_SIZE;
 	// compute Axis aligned bounding box of all sources in the list
     for(SourceList::const_iterator  its = l.begin(); its != l.end(); its++) {
-		// keep max and min
-		bbox[0][0] = qMin( (*its)->getAlphaX(), bbox[0][0]);
-		bbox[0][1] = qMin( (*its)->getAlphaY(), bbox[0][1]);
-		bbox[1][0] = qMax( (*its)->getAlphaX(), bbox[1][0]);
-		bbox[1][1] = qMax( (*its)->getAlphaY(), bbox[1][1]);
+        bbox[0][0] = qMin( (*its)->getAlphaX(), bbox[0][0]);
+        bbox[0][1] = qMin( (*its)->getAlphaY(), bbox[0][1]);
+        bbox[1][0] = qMax( (*its)->getAlphaX(), bbox[1][0]);
+        bbox[1][1] = qMax( (*its)->getAlphaY(), bbox[1][1]);
 
+//        double renderingAspectRatio = ABS( (*its)->getScaleX() / (*its)->getScaleY());
+//        if ( ABS(renderingAspectRatio) > 1.0) {
+
+//            bbox[0][0] = qMin( (*its)->getAlphaX() - SOURCE_UNIT, bbox[0][0]);
+//            bbox[0][1] = qMin( (*its)->getAlphaY() - SOURCE_UNIT / renderingAspectRatio, bbox[0][1]);
+//            bbox[1][0] = qMax( (*its)->getAlphaX() + SOURCE_UNIT, bbox[1][0]);
+//            bbox[1][1] = qMax( (*its)->getAlphaY() + SOURCE_UNIT / renderingAspectRatio, bbox[1][1]);
+
+//        } else {
+//            // keep max and min
+//            bbox[0][0] = qMin( (*its)->getAlphaX() - SOURCE_UNIT * renderingAspectRatio, bbox[0][0]);
+//            bbox[0][1] = qMin( (*its)->getAlphaY() - SOURCE_UNIT, bbox[0][1]);
+//            bbox[1][0] = qMax( (*its)->getAlphaX() + SOURCE_UNIT * renderingAspectRatio, bbox[1][0]);
+//            bbox[1][1] = qMax( (*its)->getAlphaY() + SOURCE_UNIT, bbox[1][1]);
+
+//        }
 	}
 	// return bottom-left ; top-right
 	return QRectF(QPointF(bbox[0][0], bbox[0][1]), QPointF(bbox[1][0], bbox[1][1]));
