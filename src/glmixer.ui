@@ -4024,7 +4024,7 @@ QToolButton:pressed {
     <string>Resets the zoom of the current view</string>
    </property>
    <property name="shortcut">
-    <string>Enter</string>
+    <string>*</string>
    </property>
   </action>
   <action name="actionZoomBestFit">
@@ -4039,7 +4039,7 @@ QToolButton:pressed {
     <string>Computes a zoom factor which allows to see every sources of the current view</string>
    </property>
    <property name="shortcut">
-    <string>.</string>
+    <string>/</string>
    </property>
   </action>
   <action name="actionAbout_Qt">
@@ -4089,7 +4089,7 @@ QToolButton:pressed {
   </action>
   <action name="actionCloneSource">
    <property name="enabled">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -4110,7 +4110,7 @@ QToolButton:pressed {
   </action>
   <action name="actionDeleteSource">
    <property name="enabled">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">

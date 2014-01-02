@@ -176,11 +176,11 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 	QGridLayout *g;
 
 	transitionSelection = new QComboBox;
-	transitionSelection->addItem("Transition - Instantaneous");
-	transitionSelection->addItem("Transition - Fade to black");
-	transitionSelection->addItem("Transition - Fade to custom color   -->");
-	transitionSelection->addItem("Transition - Fade with last frame");
-	transitionSelection->addItem("Transition - Fade with media file   -->");
+    transitionSelection->addItem("Instantaneous");
+    transitionSelection->addItem("Fade to black");
+    transitionSelection->addItem("Fade to custom color   -->");
+    transitionSelection->addItem("Fade with last frame");
+    transitionSelection->addItem("Fade with media file   -->");
 	transitionSelection->setToolTip("Select the transition type");
 	transitionSelection->setCurrentIndex(-1);
 
@@ -258,9 +258,9 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
     folderModel = new QStandardItemModel(0, 4, this);
     folderModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Filename"));
-    folderModel->setHeaderData(1, Qt::Horizontal, QObject::tr("n"));
+    folderModel->setHeaderData(1, Qt::Horizontal, QString("n"));
     folderModel->setHeaderData(2, Qt::Horizontal, QObject::tr("W:H"));
-    folderModel->setHeaderData(3, Qt::Horizontal, QObject::tr("Last modified"));
+    folderModel->setHeaderData(3, Qt::Horizontal, QObject::tr("Modified"));
 
     proxyFolderModel = new QSortFilterProxyModel;
     proxyFolderModel->setDynamicSortFilter(true);
@@ -297,11 +297,12 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyView->setRootIsDecorated(false);
     proxyView->setAlternatingRowColors(true);
     proxyView->setSortingEnabled(true);
-    proxyView->sortByColumn(0, Qt::AscendingOrder);
+    proxyView->sortByColumn(3, Qt::DescendingOrder);
     proxyView->setModel(proxyFolderModel);
     proxyView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    proxyView->resizeColumnToContents(1);
-//    proxyView->resizeColumnToContents(2);
+    proxyView->header()->setResizeMode(QHeaderView::Interactive);
+    proxyView->header()->resizeSection(1, 25);
+    proxyView->header()->resizeSection(2, 35);
 //    proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
 
     connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));

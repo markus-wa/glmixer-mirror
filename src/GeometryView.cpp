@@ -66,16 +66,17 @@ void GeometryView::paint()
 {
 	static bool first = true;
 
-    // first the background (as the rendering black clear color) with shadow
-	glPushMatrix();
-    glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
-    glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
-    glPopMatrix();
-
     // we use the shader to render sources
     if (ViewRenderWidget::program->bind()) {
-		first = true;
-		// The icons of the sources (reversed depth order)
+
+        // first the background (as the rendering black clear color) with shadow
+        glPushMatrix();
+        glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
+        glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
+        glPopMatrix();
+
+        // loop over the sources (reversed depth order)
+        first = true;
 		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
 			if ((*its)->isStandby())

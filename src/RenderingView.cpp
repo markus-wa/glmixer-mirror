@@ -13,7 +13,7 @@
 #include "OutputRenderWindow.h"
 
 RenderingView::RenderingView() : View() {
-    icon.load(QString::fromUtf8(":/glmixer/icons/display.png"));
+    icon.load(QString::fromUtf8(":/glmixer/icons/displayview.png"));
     title = " Rendering view";
     zoom = 0.9;
 }
@@ -26,7 +26,7 @@ RenderingView::~RenderingView() {
 void RenderingView::setModelview()
 {
 	View::setModelview();
-    glScalef(zoom, zoom, zoom);
+    glScalef(0.9, 0.9, 0.9);
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 }
 

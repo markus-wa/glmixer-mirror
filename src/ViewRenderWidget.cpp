@@ -1237,7 +1237,7 @@ GLuint ViewRenderWidget::buildLineList()
         glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
         glColor4f(0.0, 0.0, 0.0, 0.0);
         glPushMatrix();
-        glScalef(1.23, 1.23, 1.0);
+        glScalef(1.28, 1.28, 1.0);
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
@@ -1259,7 +1259,7 @@ GLuint ViewRenderWidget::buildLineList()
         glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
         glColor4f(0.0, 0.0, 0.0, 0.0);
         glPushMatrix();
-        glScalef(1.23, 1.23, 1.0);
+        glScalef(1.28, 1.28, 1.0);
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
@@ -1281,7 +1281,7 @@ GLuint ViewRenderWidget::buildLineList()
         glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
         glColor4f(0.0, 0.0, 0.0, 0.0);
         glPushMatrix();
-        glScalef(1.23, 1.23, 1.0);
+        glScalef(1.28, 1.28, 1.0);
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
@@ -1310,7 +1310,7 @@ GLuint ViewRenderWidget::buildLineList()
         glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
         glColor4f(0.0, 0.0, 0.0, 0.0);
         glPushMatrix();
-        glScalef(1.23, 1.23, 1.0);
+        glScalef(1.28, 1.28, 1.0);
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
@@ -1489,19 +1489,19 @@ GLuint ViewRenderWidget::buildLayerbgList()
  **/
 GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
 {
-	static GLuint texid = 0; // bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/shadow.png")), GL_TEXTURE_2D);
+    static GLuint texid = 0;
 
-	if (texid == 0) {
-		// generate the texture with optimal performance ;
-		glGenTextures(1, &texid);
-		glBindTexture(GL_TEXTURE_2D, texid);
-		QImage p(":/glmixer/textures/shadow.png");
-		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		GLclampf highpriority = 1.0;
-		glPrioritizeTextures(1, &texid, &highpriority);
-	}
+    if (texid == 0) {
+        // generate the texture with optimal performance ;
+        glGenTextures(1, &texid);
+        glBindTexture(GL_TEXTURE_2D, texid);
+        QImage p(":/glmixer/textures/shadow.png");
+        gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        GLclampf highpriority = 1.0;
+        glPrioritizeTextures(1, &texid, &highpriority);
+    }
 
 	GLuint id = glGenLists(1);
 	glNewList(id, GL_COMPILE);
@@ -1509,18 +1509,20 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
-		glActiveTexture(GL_TEXTURE0);
+
+        glActiveTexture(GL_TEXTURE2);
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-        glColor4ub(0, 0, 0, 200);
+        glColor4ub(0, 0, 0, 0);
+
         glCallList(vertex_array_coords);
         glPushMatrix();
         glTranslatef(0.02 * SOURCE_UNIT, -0.1 * SOURCE_UNIT, 0.1);
-        glScalef(1.5 * SOURCE_UNIT, 1.5 * SOURCE_UNIT, 1.0);
+        glScalef(1.4 * SOURCE_UNIT, 1.4 * SOURCE_UNIT, 1.0);
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
+        glDisable(GL_TEXTURE_2D);
 
-		glDisable(GL_TEXTURE_2D);
         glColor4ub(r, g, b, 255);
         glPushMatrix();
         glScalef(1.0 * SOURCE_UNIT, 1.0 * SOURCE_UNIT, 1.0);

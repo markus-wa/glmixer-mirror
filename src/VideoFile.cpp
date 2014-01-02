@@ -358,20 +358,19 @@ void VideoFile::reset()
 	pictq_size = 0;
 	pictq_rindex = 0;
 
-	pause_video = false;
+//	pause_video = false;
 	pause_video_last = true;
 	setPlaySpeed(getPlaySpeed());
 
 	if (video_st)
 	{
 		frame_last_delay = 1.0 / getFrameRate();
-		video_current_pts = (double) getBegin() * av_q2d(video_st->time_base)
-				/ play_speed;
+//        video_current_pts = (double) getBegin() * av_q2d(video_st->time_base) / play_speed;
 	}
 	else
 	{
 		frame_last_delay = 40e-3; // 40 ms
-		video_current_pts = 0.0;
+//        video_current_pts = 0.0;
 	}
 	frame_last_pts = video_current_pts;
 
@@ -392,7 +391,8 @@ void VideoFile::stop()
 		decod_tid->wait();
 
 		// remember where we are for next restart
-		mark_stop = getCurrentFrameTime();
+        mark_stop = getCurrentFrameTime();
+
 		if (!restart_where_stopped)
 		{
 			fill_first_frame(true);
@@ -421,12 +421,13 @@ void VideoFile::start()
 		// reset internal state
 		reset();
 
+
 		// where shall we (re)start ?
 		// enforces seek to the frame before ; it is needed because we may miss the good frame
 		seek_backward = true;
 		// restart where we where
-		if (restart_where_stopped && mark_stop < mark_out)
-			seekToPosition(mark_stop);
+        if (restart_where_stopped && mark_stop < mark_out)
+            seekToPosition(mark_stop);
 		// restart at beginning
 		else
 			seekToPosition(mark_in);
@@ -965,9 +966,7 @@ void VideoFile::video_refresh_timer()
 
 int64_t VideoFile::getCurrentFrameTime() const
 {
-
-	return ((int64_t) (play_speed * video_current_pts / av_q2d(
-			video_st->time_base)));
+    return ((int64_t) (play_speed * video_current_pts / av_q2d(video_st->time_base)));
 }
 
 double VideoFile::getFrameRate() const
@@ -1432,13 +1431,12 @@ void VideoFile::pause(bool pause)
 
 	if (!quit && pause != pause_video)
 	{
-		pause_video = pause;
+        pause_video = pause;
 
 		if (!pause_video)
-		{
-			video_current_pts = get_clock();
-			frame_timer += (av_gettime() - video_current_pts_time)
-					/ (double) AV_TIME_BASE;
+        {
+            video_current_pts = get_clock();
+            frame_timer += (av_gettime() - video_current_pts_time) / (double) AV_TIME_BASE;
 
 			ptimer->start(10);
 		}
@@ -1455,8 +1453,8 @@ double VideoFile::get_clock()
 	if (pause_video)
 		delta = 0.0;
 	else
-		delta = (double) (av_gettime() - video_current_pts_time)
-				/ (double) AV_TIME_BASE;
+        delta = (double) (av_gettime() - video_current_pts_time)
+                / (double) AV_TIME_BASE;
 
 	return video_current_pts + delta;
 }

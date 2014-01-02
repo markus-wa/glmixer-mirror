@@ -74,23 +74,23 @@ void LayersView::paint()
 	glBlendEquation(GL_FUNC_ADD);
     glCallList(ViewRenderWidget::layerbg);
 
-
-	glPushMatrix();
-
-	double renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
-	if ( renderingAspectRatio < 1.0)
-		glScaled(1.0 / SOURCE_UNIT , 1.0 / (renderingAspectRatio * SOURCE_UNIT),  1.0 / SOURCE_UNIT);
-	else
-		glScaled(renderingAspectRatio /  SOURCE_UNIT, 1.0 / SOURCE_UNIT,  1.0 / SOURCE_UNIT);
-	glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
-    glCallList(ViewRenderWidget::frame_screen_thin);
-	glPopMatrix();
-
-    // Second the icons of the sources (reversed depth order)
-    // render in the depth order
+    // Second the icons of the sources
+    // we use the shader to render sources
     if (ViewRenderWidget::program->bind()) {
 
-		first = true;
+        // the frame for layer 0
+        glPushMatrix();
+        double renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+        if ( renderingAspectRatio < 1.0)
+            glScaled(1.0 / SOURCE_UNIT , 1.0 / (renderingAspectRatio * SOURCE_UNIT),  1.0 / SOURCE_UNIT);
+        else
+            glScaled(renderingAspectRatio /  SOURCE_UNIT, 1.0 / SOURCE_UNIT,  1.0 / SOURCE_UNIT);
+        glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
+        glCallList(ViewRenderWidget::frame_screen_thin);
+        glPopMatrix();
+
+        // loop over the sources (reversed depth order)
+        first = true;
 		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
 			if ((*its)->isStandby())

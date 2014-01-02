@@ -875,13 +875,6 @@ void RenderingManager::resetCurrentSource(){
 	}
 }
 
-void RenderingManager::startCurrentSource(bool on)
-{
-	if(isValid(_currentSource)) {
-		(*_currentSource)->play(on);
-	}
-}
-
 
 int RenderingManager::getSourceBasketSize() const{
 

@@ -92,6 +92,7 @@ public Q_SLOTS:
     void on_copyLogsToClipboard_clicked();
     void on_copyNotes_clicked();
 
+    void on_startButton_toogled(bool);
 	void on_actionSourcePlay_triggered();
 	void on_actionSourceRestart_triggered();
 	void on_actionSourceSeekBackward_triggered();

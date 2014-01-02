@@ -79,7 +79,7 @@ bool VideoSource::isPlayable() const
 
 bool VideoSource::isPlaying() const
 {
-	return isPlayable() && is->isRunning();
+    return ( isPlayable() && is->isRunning() );
 }
 
 void VideoSource::play(bool on)
@@ -90,7 +90,7 @@ void VideoSource::play(bool on)
 
 bool VideoSource::isPaused() const
 {
-	return isPlaying() && is->isPaused();
+    return ( isPlaying() && is->isPaused() );
 }
 
 void VideoSource::pause(bool on)

@@ -257,11 +257,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     }
 
     // Setup the property browsers
-    layoutPropertyBrowser = new QSplitter(this);
-    layoutPropertyBrowser->setOrientation(Qt::Vertical);
     specificSourcePropertyBrowser = NULL;
+    layoutPropertyBrowser = new QSplitter(Qt::Vertical, this);
     SourcePropertyBrowser *sourcePropertyBrowser = RenderingManager::getPropertyBrowserWidget();
-    sourcePropertyBrowser->setHeaderVisible(false);
     layoutPropertyBrowser->addWidget(sourcePropertyBrowser);
 //    QObject::connect(this, SIGNAL(sourceMarksModified(bool)), sourcePropertyBrowser, SLOT(updateMarksProperties(bool) ) );
     QObject::connect(sourcePropertyBrowser, SIGNAL(changed(Source*)), this, SLOT(sourceChanged(Source*) ) );
@@ -341,7 +339,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
     // signals for source management with RenderingManager
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), this, SLOT(connectSource(SourceSet::iterator) ) );
-    QObject::connect(startButton, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(startCurrentSource(bool)));
 
 	// QUIT event
     QObject::connect(actionQuit, SIGNAL(triggered()), this, SLOT(close()));
@@ -730,7 +727,9 @@ void GLMixer::on_actionMediaSource_triggered(){
 // and to read the correct information and configuration options
 void GLMixer::connectSource(SourceSet::iterator csi){
 
+    static QByteArray layoutPropertyBrowserState;
     if (specificSourcePropertyBrowser) {
+        layoutPropertyBrowserState = layoutPropertyBrowser->saveState();
         delete specificSourcePropertyBrowser;
         specificSourcePropertyBrowser = NULL;
     }
@@ -781,12 +780,15 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
         // display property browser
         specificSourcePropertyBrowser = createSpecificPropertyBrowser((*csi), layoutPropertyBrowser);
-        layoutPropertyBrowser->insertWidget(0, specificSourcePropertyBrowser);
+        specificSourcePropertyBrowser->setHeaderVisible(false);
+        layoutPropertyBrowser->insertWidget(1, specificSourcePropertyBrowser);
+        layoutPropertyBrowser->restoreState(layoutPropertyBrowserState);
 
 		// enable properties and actions on the current valid source
         sourceDockWidgetContents->setEnabled(true);
         currentSourceMenu->setEnabled(true);
         actionCloneSource->setEnabled(true);
+        actionDeleteSource->setEnabled(true);
 		toolButtonZoomCurrent->setEnabled(true);
         mixingToolBox->setEnabled(true);
         actionAspectRatioFixed->setChecked( (*csi)->isFixedAspectRatio() );
@@ -801,9 +803,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 		timingControlFrame->setEnabled(false);
 
 		// Set the status of start button without circular call to startCurrentSource
-	    QObject::disconnect(startButton, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(startCurrentSource(bool)));
+        QObject::disconnect(startButton, SIGNAL(toggled(bool)), this, SLOT(on_startButton_toogled(bool)));
 		startButton->setChecked( (*csi)->isPlaying() );
-		QObject::connect(startButton, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(startCurrentSource(bool)));
+        QObject::connect(startButton, SIGNAL(toggled(bool)), this, SLOT(on_startButton_toogled(bool)));
 
 		// Among playable sources, there is the particular case of video sources :
 		if ((*csi)->isPlayable() && (*csi)->rtti() == Source::VIDEO_SOURCE ) {
@@ -869,6 +871,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         // disable options
         currentSourceMenu->setEnabled(false);
         actionCloneSource->setEnabled(false);
+        actionDeleteSource->setEnabled(false);
         toolButtonZoomCurrent->setEnabled(false);
 	}
 
@@ -1172,14 +1175,6 @@ void GLMixer::on_actionSelect_Previous_triggered(){
 }
 
 
-//void GLMixer::on_actionShow_frames_toggled(bool on){
-
-//	if (selectedSourceVideoFile) {
-//	    // update property for marks in / out
-//	    emit sourceMarksModified(on);
-//	}
-//}
-
 void GLMixer::on_markInSlider_sliderReleased (){
 
     double percent = (double)(markInSlider->value())/1000.0;
@@ -1198,12 +1193,12 @@ void GLMixer::on_markOutSlider_sliderReleased (){
 
 void GLMixer::refreshTiming(){
 
-	// reset to zero if no video file
-	if (!selectedSourceVideoFile) {
-		frameSlider->setValue(0);
-		timeLineEdit->setText( "" );
-		return;
-	}
+    // reset to zero if no video file
+    if (!selectedSourceVideoFile) {
+        frameSlider->setValue(0);
+        timeLineEdit->setText( "" );
+        return;
+    }
 
 	int f_percent = (int) ( (double)( selectedSourceVideoFile->getCurrentFrameTime() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
 	frameSlider->setValue(f_percent);
@@ -2441,12 +2436,25 @@ bool GLMixer::useSystemDialogs()
 }
 
 
+void GLMixer::on_startButton_toogled(bool on) {
+
+    // toggle play/stop of current source
+    SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+    if (RenderingManager::getInstance()->isValid(cs)) {
+        (*cs)->play(on);
+        // update gui content from timings
+        refreshTiming();
+        updateRefreshTimerState();
+    }
+
+}
+
 void GLMixer::on_actionSourcePlay_triggered(){
 
 	// toggle play/stop of current source
-	SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-	if (RenderingManager::getInstance()->isValid(cs))
-		(*cs)->play(!(*cs)->isPlaying());
+    SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+    if (RenderingManager::getInstance()->isValid(cs))
+        (*cs)->play(!(*cs)->isPlaying());
 
 	// loop over the selection and toggle play/stop of each source (but the current source already toggled)
 	for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)

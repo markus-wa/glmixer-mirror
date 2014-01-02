@@ -214,8 +214,7 @@ public Q_SLOTS:
 	void clearBasket();
 	void clearSourceSet();
 	void resetSource(SourceSet::iterator sit);
-	void resetCurrentSource();
-    void startCurrentSource(bool on);
+    void resetCurrentSource();
     void toggleUnchangeableCurrentSource(bool);
     void toggleFixAspectRatioCurrentSource(bool);
     void setOriginalAspectRatioCurrentSource();
