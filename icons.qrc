@@ -144,5 +144,8 @@
         <file>icons/rotate-90-counterclockwise.png</file>
         <file>icons/size-ratio-original.png</file>
         <file>icons/size-ratio-frame.png</file>
+        <file>icons/videocontrol.png</file>
+        <file>icons/listsources.png</file>
+        <file>icons/calendar.png</file>
     </qresource>
 </RCC>

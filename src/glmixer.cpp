@@ -160,6 +160,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(mixingDockWidget->toggleViewAction());
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
     toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());
     toolBarsMenu->addAction(logDockWidget->toggleViewAction());
     toolBarsMenu->addSeparator();
     toolBarsMenu->addAction(sourceToolBar->toggleViewAction());
@@ -524,6 +525,20 @@ void GLMixer::on_copyLogsToClipboard_clicked() {
 void GLMixer::on_copyNotes_clicked() {
 
     QApplication::clipboard()->setText( blocNoteEdit->toPlainText() );
+}
+
+void GLMixer::on_addDateToNotes_clicked() {
+
+    blocNoteEdit->append(QDateTime::currentDateTime().toString("dddd d MMMM yyyy"));
+}
+
+void GLMixer::on_addListToNotes_clicked() {
+
+    QString list;
+    for(SourceList::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+        list.append(QString("-  %1\n").arg( (*its)->getName() ));
+
+    blocNoteEdit->append(list);
 }
 
 
@@ -1528,13 +1543,23 @@ void GLMixer::newSession()
 	RenderingManager::getInstance()->clearSourceSet();
 	actionWhite_background->setChecked(false);
 	RenderingManager::getRenderingWidget()->clearViews();
-    blocNoteEdit->setPlainText("");
+    QString note = tr("Created on ");
+    note.append(QDateTime::currentDateTime().toString("dddd d MMMM yyyy"));
+    note.append(" by ");
+#ifdef Q_OS_WIN
+    note.append(getenv("USERNAME"));
+#else
+    note.append(getenv("USER"));
+#endif
+    note.append(".\n");
+    blocNoteEdit->setPlainText(note);
 
 	// refreshes the rendering areas
 	outputpreview->refresh();
 	// reset
 	on_gammaShiftReset_clicked();
 	maybeSave = false;
+
 }
 
 
@@ -1542,30 +1567,30 @@ void GLMixer::on_actionSave_Session_triggered(){
 
 	if (currentSessionFileName.isNull())
 		on_actionSave_Session_as_triggered();
-	else {
+    else {
 
-		QFile file(currentSessionFileName);
-		if (!file.open(QFile::WriteOnly | QFile::Text) ) {
+        QFile file(currentSessionFileName);
+        if (!file.open(QFile::WriteOnly | QFile::Text) ) {
             qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("Problem writing; ") << file.errorString();
             qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot save session file.");
-			return;
-		}
-		QTextStream out(&file);
+            return;
+        }
+        QTextStream out(&file);
 
-		QDomDocument doc;
-		QDomProcessingInstruction instr = doc.createProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
-		doc.appendChild(instr);
+        QDomDocument doc;
+        QDomProcessingInstruction instr = doc.createProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
+        doc.appendChild(instr);
 
-		QDomElement root = doc.createElement("GLMixer");
-		root.setAttribute("version", XML_GLM_VERSION);
+        QDomElement root = doc.createElement("GLMixer");
+        root.setAttribute("version", XML_GLM_VERSION);
 
-		QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(currentSessionFileName).canonicalPath());
-		renderConfig.setAttribute("aspectRatio", (int) RenderingManager::getInstance()->getRenderingAspectRatio());
-		renderConfig.setAttribute("gammaShift", RenderingManager::getInstance()->getGammaShift());
-		root.appendChild(renderConfig);
+        QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(currentSessionFileName).canonicalPath());
+        renderConfig.setAttribute("aspectRatio", (int) RenderingManager::getInstance()->getRenderingAspectRatio());
+        renderConfig.setAttribute("gammaShift", RenderingManager::getInstance()->getGammaShift());
+        root.appendChild(renderConfig);
 
-		QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
-		root.appendChild(viewConfig);
+        QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
+        root.appendChild(viewConfig);
 
         QDomElement rendering = doc.createElement("Rendering");
         rendering.setAttribute("clearToWhite", (int) RenderingManager::getInstance()->clearToWhite());
@@ -1576,14 +1601,14 @@ void GLMixer::on_actionSave_Session_triggered(){
         notes.appendChild(text);
         root.appendChild(notes);
 
-		doc.appendChild(root);
-		doc.save(out, 4);
+        doc.appendChild(root);
+        doc.save(out, 4);
 
-	    file.close();
+        file.close();
 
-		confirmSessionFileName();
-		statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
-		emit sessionSaved();
+        confirmSessionFileName();
+        statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
+        emit sessionSaved();
 	}
 
 	maybeSave = false;
@@ -2606,7 +2631,7 @@ QStringList GLMixer::getMediaFileNames(bool &generatePowerOfTwoRequest) {
 
     // open dialog for openning media files> system QFileDialog, or custom (mfd)
     if (usesystemdialogs) {
-        static QDir dir(QDir::home());
+        static QDir dir(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation));
         fileNames = QFileDialog::getOpenFileNames(this, tr("Open media files"), dir.absolutePath(), tr(VIDEOFILE_DIALOG_FORMATS) );
         if (!fileNames.isEmpty())
             dir = QFileInfo(fileNames.front()).absoluteDir();

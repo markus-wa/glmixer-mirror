@@ -91,6 +91,8 @@ public Q_SLOTS:
 	void on_output_alpha_valueChanged(int);
     void on_copyLogsToClipboard_clicked();
     void on_copyNotes_clicked();
+    void on_addDateToNotes_clicked();
+    void on_addListToNotes_clicked();
 
     void on_startButton_toogled(bool);
 	void on_actionSourcePlay_triggered();
@@ -124,7 +126,7 @@ public Q_SLOTS:
 
     void Log(int, QString);
 	void readSettings();
-	void saveSettings();
+    void saveSettings();
 
     // interaction
     void drop(QDropEvent *event);

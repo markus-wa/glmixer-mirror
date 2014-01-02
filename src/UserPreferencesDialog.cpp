@@ -33,6 +33,7 @@
 #include <QFileDialog>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QDesktopServices>
 
 UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 {
@@ -357,7 +358,7 @@ void UserPreferencesDialog::on_recordingUpdatePeriod_valueChanged(int period)
 void UserPreferencesDialog::on_recordingFolderButton_clicked(){
 
       QString dirName = QFileDialog::getExistingDirectory(this, QObject::tr("Select a directory"),
-			  	  	  	  	  	  recordingFolderLine->text().isEmpty()?QDir::currentPath():recordingFolderLine->text(),
+                                  recordingFolderLine->text().isEmpty() ? QDesktopServices::storageLocation(QDesktopServices::MoviesLocation) : recordingFolderLine->text(),
 	  	  	  	  	  	  	  	  GLMixer::getInstance()->useSystemDialogs() ? QFileDialog::ShowDirsOnly : QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
 	  if ( ! dirName.isEmpty() )
 		  recordingFolderLine->setText(dirName);
