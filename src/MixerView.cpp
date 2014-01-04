@@ -36,6 +36,12 @@
 #define DEFAULTZOOM 0.1
 #define DEFAULT_PANNING 0.f, 0.f
 
+
+bool MixerSelectionArea::contains(SourceSet::iterator s)
+{
+    return area.contains(QPointF((*s)->getAlphaX(),(*s)->getAlphaY()));
+}
+
 MixerView::MixerView() : View()
 {
 	currentAction = View::NONE;
@@ -531,8 +537,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 				setLimboSize( sqrt(sqr_limboSize) );
 			}
 			// no, then we are SELECTING AREA
-			else {
-//                setAction(View::SELECT);
+            else {
 				// enable drawing of selection area
 				_selectionArea.setEnabled(true);
 
@@ -542,7 +547,7 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 				// loop over every sources to check if it is in the rectangle area
 				SourceList rectSources;
 				for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-                    if (_selectionArea.contains((*its)->getAlphaX(),(*its)->getAlphaY()) )
+                    if (_selectionArea.contains(its) )
                         rectSources.insert(*its);
 
                 if ( isUserInput(event, View::INPUT_SELECT) )

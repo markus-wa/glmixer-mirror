@@ -28,6 +28,12 @@
 
 #include "View.h"
 
+class MixerSelectionArea: public SelectionArea {
+public:
+    bool contains(SourceSet::iterator s);
+};
+
+
 class MixerView: public View {
 
 public:
@@ -79,7 +85,7 @@ private:
 	QMap<SourceListArray::iterator, QColor> groupColor;
 
 	// selection area
-	SelectionArea _selectionArea;
+    MixerSelectionArea _selectionArea;
 
 	// limbo area (where sources are in standy)
 	GLdouble limboSize;

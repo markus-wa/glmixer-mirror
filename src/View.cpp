@@ -287,10 +287,6 @@ void SelectionArea::markEnd(QPointF e){
 	area.setBottomRight(e);
 }
 
-bool SelectionArea::contains(GLdouble x, GLdouble y){
-	return area.contains(QPointF(x, y));
-}
 
-bool SelectionArea::contains(QRectF box){
-	return area.contains(box);
-}
+
+

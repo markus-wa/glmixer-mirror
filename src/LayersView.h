@@ -28,6 +28,12 @@
 
 #include "View.h"
 
+class LayersSelectionArea: public SelectionArea {
+public:
+    void draw();
+    bool contains(SourceSet::iterator s);
+};
+
 class LayersView: public View {
 
 public:
@@ -58,13 +64,19 @@ private:
     SourceList forwardSources;
 
     void bringForward(Source *s);
-    void unProjectDepth(int x, int y, int dx, int dy, double *depth, double *depthBeforeDelta);
+    double unProjectDepth(int x, int y);
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
-    void grabSource(Source *s, int x, int y, int dx, int dy, bool setcurrent=true);
-    void grabSources(Source *s, int x, int y, int dx, int dy);
+    void moveSource(Source *s, double depth, bool setcurrent=true);
+    void grabSources(Source *s, double depth);
     void panningBy(int x, int y, int dx, int dy);
 
     void setAction(ActionType a);
+
+    // selection area
+    LayersSelectionArea _selectionArea;
+    QGLFramebufferObject *picking_fbo;
+    GLfloat *picking_fbo_map;
+    double picking_map_width, picking_grab_depth, picking_map_needsupdate;
 };
 
 #endif /* LAYERSVIEW_H_ */

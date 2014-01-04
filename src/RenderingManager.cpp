@@ -1111,6 +1111,8 @@ double RenderingManager::getAvailableDepthFrom(double depth) const {
 SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
 		double newdepth) {
 
+    newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+
 	if (itsource != _sources.end()) {
 		// verify that the depth value is not already taken, or too close to, and adjust in case.
 		SourceSet::iterator sb, se;
@@ -1503,7 +1505,6 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
         }
 #else
         qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
-        errors++;
 #endif
         p = p.nextSiblingElement("FreeFramePlugin");
     }

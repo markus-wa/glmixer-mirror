@@ -36,6 +36,15 @@
 #define DEFAULTZOOM 0.5
 #define DEFAULT_PANNING 0.0, 0.0
 
+
+bool GeometrySelectionArea::contains(SourceSet::iterator s)
+{
+    SourceList singletonSource;
+    singletonSource.insert(*s);
+    return area.contains( GeometryView::getBoundingBox(singletonSource) );
+}
+
+
 GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE), currentSource(0)
 {
 	zoom = DEFAULTZOOM;
@@ -464,9 +473,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
 		// loop over every sources to check if it is in the rectangle area
 		SourceList rectSources;
 		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-			SourceList singletonSource;
-			singletonSource.insert(*its);
-			if (_selectionArea.contains( getBoundingBox(singletonSource) ) )
+            if (_selectionArea.contains( its ) )
 				rectSources.insert(*its);
 		}
 

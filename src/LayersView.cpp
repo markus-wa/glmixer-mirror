@@ -37,21 +37,85 @@
 #define MIN_LOOKAT 3.0
 #define MAX_LOOKAT 9.0
 #define DEFAULT_LOOKAT 4.0
-#define DEFAULT_PANNING -2.f, 0.f, 0.f
+#define DEFAULT_PANNING -2.f, 0.f, 0.1f
+#define MAX_PANNING 4.0
+
+
+bool LayersSelectionArea::contains(SourceSet::iterator s)
+{
+    return area.contains( 1.0, (*s)->getDepth() );
+}
+
+void LayersSelectionArea::draw() {
+
+    // The rectangle for selection
+    if ( enabled ) {
+        GLdouble start[2], end[2];
+        start[0] = area.topLeft().x();
+        start[1] = area.topLeft().y();
+        end[0] = area.bottomRight().x();
+        end[1] = area.bottomRight().y();
+
+        glShadeModel(GL_SMOOTH);
+        //glRectdv(start, end);
+
+        glBegin(GL_QUADS);
+        glColor4ub(COLOR_SELECTION_AREA, 0);
+        glVertex3d(end[0], start[1], 0.0);
+        glVertex3d(end[0], end[1], 0.0);
+        glColor4ub(COLOR_SELECTION_AREA, 25);
+        glVertex3d(start[0], end[1], 0.0);
+        glVertex3d(start[0], start[1], 0.0);
+        glVertex3d(0.0, start[1], 0.0);
+        glVertex3d(0.0, end[1], 0.0);
+        glColor4ub(COLOR_SELECTION_AREA, 0);
+        glVertex3d(0.0, end[1], -2.0);
+        glVertex3d(0.0, start[1], -2.0);
+        glEnd();
+
+        glLineWidth(0.5);
+        glBegin(GL_LINES);
+        glColor4ub(COLOR_SELECTION_AREA, 225);
+        glVertex3d(start[0], start[1], 0.0);
+        glColor4ub(COLOR_SELECTION_AREA, 25);
+        glVertex3d(end[0], start[1], 0.0);
+        glColor4ub(COLOR_SELECTION_AREA, 25);
+        glVertex3d(end[0], end[1], 0.0);
+        glColor4ub(COLOR_SELECTION_AREA, 225);
+        glVertex3d(start[0], end[1], 0.0);
+        glColor4ub(COLOR_SELECTION_AREA, 225);
+        glVertex3d(0.0, start[1], 0.0);
+        glColor4ub(COLOR_SELECTION_AREA, 25);
+        glVertex3d(0.0, start[1], -2.0);
+        glColor4ub(COLOR_SELECTION_AREA, 225);
+        glVertex3d(0.0, end[1], 0.0);
+        glColor4ub(COLOR_SELECTION_AREA, 25);
+        glVertex3d(0.0, end[1], -2.0);
+        glEnd();
+
+        glShadeModel(GL_FLAT);
+    }
+}
+
 
 LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), forwardDisplacement(0) {
 
 	zoom = DEFAULTZOOM;
 	minzoom = MINZOOM;
 	maxzoom = MAX_DEPTH_LAYER;
-	maxpanx = lookatdistance;
-	maxpany = lookatdistance;
-	maxpanz = lookatdistance;
+    maxpanx = MAX_PANNING;
+    maxpany = MAX_PANNING;
+    maxpanz = MAX_PANNING;
 	zoomReset();
 	currentAction = View::NONE;
 
 	icon.load(QString::fromUtf8(":/glmixer/icons/depth.png"));
     title = " Layers view";
+
+    picking_fbo = NULL;
+    picking_fbo_map = NULL;
+    picking_map_width = 0.0;
+    picking_map_needsupdate = true;
 }
 
 
@@ -61,6 +125,9 @@ void LayersView::setModelview()
     glTranslatef(getPanningX(), getPanningY(), getPanningZ());
     gluLookAt(lookatdistance, lookatdistance, lookatdistance + zoom, 0.0, 0.0, zoom, 0.0, 1.0, 0.0);
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+
+    picking_map_needsupdate = true;
+    qDebug() << "picking_map_needsupdate setModelview";
 }
 
 
@@ -74,17 +141,26 @@ void LayersView::paint()
 	glBlendEquation(GL_FUNC_ADD);
     glCallList(ViewRenderWidget::layerbg);
 
+
+    // The rectangle for selection
+    double renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+    glPushMatrix();
+    glTranslated(-renderingAspectRatio, -1.0, 0.0);
+    glRotated(90.0, 1.0, 0.0, 0.0);
+    _selectionArea.draw();
+    glPopMatrix();
+
     // Second the icons of the sources
     // we use the shader to render sources
     if (ViewRenderWidget::program->bind()) {
 
         // the frame for layer 0
         glPushMatrix();
-        double renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
         if ( renderingAspectRatio < 1.0)
-            glScaled(1.0 / SOURCE_UNIT , 1.0 / (renderingAspectRatio * SOURCE_UNIT),  1.0 / SOURCE_UNIT);
+            glScaled(1.0 / SOURCE_UNIT , 1.0 / (renderingAspectRatio * SOURCE_UNIT),  1.0 );
         else
-            glScaled(renderingAspectRatio /  SOURCE_UNIT, 1.0 / SOURCE_UNIT,  1.0 / SOURCE_UNIT);
+            glScaled(renderingAspectRatio /  SOURCE_UNIT, 1.0 / SOURCE_UNIT,  1.0 );
+        glTranslated(0.0, 0.0, -0.5);
         glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
         glCallList(ViewRenderWidget::frame_screen_thin);
         glPopMatrix();
@@ -113,7 +189,7 @@ void LayersView::paint()
 //                glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
 //			}
 
-			glTranslatef( 0.0, 0.0,  1.0 + (*its)->getDepth());
+            glTranslatef( 0.0, 0.0, (*its)->getDepth());
 	        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
 
 			// standard transparency blending
@@ -177,12 +253,11 @@ void LayersView::paint()
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();
     if ( s ){
-    	double depth = 0.0, dumm = 0.0;
-    	unProjectDepth(lastClicPos.x(), lastClicPos.y(), 0.0, 0.0, &depth, &dumm);
+        double depth = unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y());
 
 		glPushMatrix();
 		forwardDisplacement = MAXDISPLACEMENT;
-		glTranslated( forwardDisplacement, 0.0, 1.0 + depth);
+        glTranslated( forwardDisplacement, 0.0, depth);
 			glPushMatrix();
 			glTranslated( s->getAspectRatio(), -0.9, 0.0);
 	        glScalef(0.1, 0.1, 1.0);
@@ -197,6 +272,108 @@ void LayersView::paint()
     }
 
 
+//    glShadeModel(GL_SMOOTH);
+
+//    double w = OutputRenderWindow::getInstance()->getAspectRatio();
+
+//    glPushMatrix();
+//    glTranslated(-w, 0.0, 0.0);
+////    glBegin(GL_LINE_LOOP);
+//    glBegin(GL_QUADS);
+
+
+//    // white upper limit
+//    glColor4f(1.0, 1.0, 1.0, 1.0);
+//    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
+//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER * 2.0);
+//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 2.0);
+//    glVertex3d(0, -1.0, MAX_DEPTH_LAYER / 2.0);
+//    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
+//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER * 2.0);
+//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 2.0);
+//    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER / 2.0);
+
+//    //  WALL on X = 0
+//    glVertex3d(0, 1.0, MAX_DEPTH_LAYER);
+//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER);
+//    glColor4f(1.0, 1.0, 0.0, 1.0);
+//    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+
+//    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER  / 3.0 );
+//    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glColor4f(0.0, 0.0, 1.0, 1.0);
+//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
+
+//    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
+//    glColor4f(0.0, 0.0, 0.0, 1.0);
+//    glVertex3d(0, 10.0, 0.0);
+//    glVertex3d(0, 1.0, 0.0);
+
+//    // Border up the bounding box
+//    glVertex3d(0.0, 1.0, 0.0);
+//    glVertex3d(picking_map_width, 1.0, 0.0);
+//    glColor4f(0.0, 0.0, 1.0, 1.0);
+//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
+
+//    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
+//    glColor4f(1.0, 1.0, 0.0, 1.0);
+//    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+
+//    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glColor4f(1.0, 1.0, 1.0, 1.0);
+//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER);
+//    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER);
+
+//    // Border right of the bounding box
+//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER);
+//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER);
+//    glColor4f(1.0, 1.0, 0.0, 1.0);
+//    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+
+//    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glColor4f(0.0, 0.0, 1.0, 1.0);
+//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
+
+//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
+//    glColor4f(0.0, 0.0, 0.0, 1.0);
+//    glVertex3d(picking_map_width, 1.0, 0.0);
+//    glVertex3d(picking_map_width, -1.0, 0.0);
+
+//    // wall Y = -1
+//    glVertex3d(picking_map_width, -1.0, 0.0);
+//    glVertex3d(10.0, -1.0, 0.0);
+//    glColor4f(0.0, 0.0, 1.0, 1.0);
+//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
+
+//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
+//    glColor4f(1.0, 1.0, 0.0, 1.0);
+//    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+
+//    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+//    glColor4f(1.0, 1.0, 1.0, 1.0);
+//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER);
+//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER);
+
+//    glEnd();
+//    glPopMatrix();
+
+//    glShadeModel(GL_FLAT);
+
 }
 
 void LayersView::resize(int w, int h)
@@ -210,6 +387,18 @@ void LayersView::resize(int w, int h)
     gluPerspective(50.0f, (double)  viewport[2] / (double)  viewport[3], 0.1f, lookatdistance * 10.0f);
 
 	glGetDoublev(GL_PROJECTION_MATRIX, projection);
+
+    // delete previous picking fbo
+    if (picking_fbo)
+        delete picking_fbo;
+    // create a picking fbo of the same size of the window
+    picking_fbo = new QGLFramebufferObject(QSize(w, h));
+    // do the same with the image to get the fbo texture into
+    if (picking_fbo_map)
+        delete picking_fbo_map;
+    picking_fbo_map = new GLfloat[ 3 * w * h];
+    // inform that the picking map needs to be recomputed
+    picking_map_needsupdate = true;
 
 }
 
@@ -260,6 +449,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 {
 	lastClicPos = event->pos();
 
+
 	// MIDDLE BUTTON ; panning cursor
 	if ( isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) ) {
 		setAction(View::PANNING);
@@ -302,8 +492,13 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 				if ( clicked->isModifiable() ){
                     // put this source in the forward list
 					bringForward(clicked);
+
+                    picking_map_width = clicked->getAspectRatio() + MAXDISPLACEMENT + OutputRenderWindow::getInstance()->getAspectRatio();
+                    picking_map_needsupdate = true;
+
 					// ready for grabbing the current source
 					setAction(View::GRAB);
+                    picking_grab_depth = unProjectDepth(event->x(), viewport[3] - event->y());
 				}
 			}
 			// context menu
@@ -318,7 +513,9 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 		return true;
     }
 
-	// clicked in the background
+    // clicked in the background
+    // initial depth of selection area
+    _selectionArea.markStart(QPointF(0.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y()) ));
 
 
 	// context menu on the background
@@ -341,6 +538,8 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 
 	// clear the list of sources forward
 	forwardSources.clear();
+    picking_map_width = 0;
+    picking_map_needsupdate = true;
 
 	// back to no action
 	setAction(View::NONE);
@@ -380,7 +579,29 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 
 		// if there is a current source, grab it (with other forward sources)
 		if ( currentAction == View::GRAB && RenderingManager::getInstance()->isValid(cs))
-			grabSources( *cs, event->x(), event->y(), dx, dy);
+            grabSources( *cs, unProjectDepth(event->x(), viewport[3] - event->y()));
+
+        else
+        // other cause for action without a current source ; selection area
+        {
+            // enable drawing of selection area
+            _selectionArea.setEnabled(true);
+
+            // get coordinate of cursor
+            _selectionArea.markEnd(QPointF(6.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y())));
+
+            // loop over every sources to check if it is in the rectangle area
+            SourceList rectSources;
+            for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+                if (_selectionArea.contains( its )  )
+                    rectSources.insert(*its);
+
+            if ( isUserInput(event, View::INPUT_SELECT) )
+                // extend selection
+                SelectionManager::getInstance()->select(rectSources);
+            else  // new selection
+                SelectionManager::getInstance()->setSelection(rectSources);
+        }
 
 		return true;
 	}
@@ -408,6 +629,10 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 	else if (currentAction == View::PANNING )
 		setAction(previousAction);
 
+    // end of selection area
+    if (_selectionArea.isEnabled())
+        _selectionArea.setEnabled(false);
+
 	return true;
 }
 
@@ -417,20 +642,20 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 	bool ret = false;
     lastClicPos = event->pos();
 
-	double previous = zoom;
-	setZoom (zoom + ((double) event->delta() * zoom * minzoom) / (-2.0 * View::zoomSpeed() * maxzoom) );
+    // wheel main effect is to change zoom
+    setZoom (zoom + ((double) event->delta() * zoom * minzoom) / (-2.0 * View::zoomSpeed() * maxzoom) );
 
-	if (currentAction == View::GRAB) {
-		deltax = zoom - previous;
-
+    // carry the selection
+    if (currentAction == View::GRAB) {
 		// simulate a movement of the mouse
 		QMouseEvent *e = new QMouseEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, qtMouseButtons(INPUT_TOOL), qtMouseModifiers(INPUT_TOOL));
 		ret = mouseMoveEvent(e);
 		delete e;
-
-		// reset deltazoom
-		deltax = 0;
 	}
+
+    // update selection area if enabled
+    if (_selectionArea.isEnabled())
+        _selectionArea.markEnd(QPointF(6.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y())));
 
 	return ret;
 }
@@ -464,17 +689,17 @@ void LayersView::zoomBestFit( bool onlyClickedSource ) {
 	// Compute bounding depths of every sources
     double z_min = 10000, z_max = -10000;
 	for(SourceSet::iterator  its = beginning; its != end; its++) {
-
-		if ((*its)->isStandby())
-			continue;
-
 		z_min = MINI (z_min, (*its)->getDepth());
 		z_max = MAXI (z_max, (*its)->getDepth());
 	}
 
-	setZoom	( z_max + 1.0);
+    // focus on the first
+    setZoom	( z_max - 1.0);
 
-	// TODO : LayersView::zoomBestFit() also adjust panning
+    // change lookat distance to cover the range max-min
+    setPanning(DEFAULT_PANNING);
+    lookatdistance = MAXI( (z_max - z_min) / 3.0, MIN_LOOKAT) ;
+
 }
 
 
@@ -514,7 +739,7 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
 
 		// change depth of current source
 		newdepth =  (*currentSource)->getDepth() + dz;
-		currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
+        currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth);
 		// we need to set current again
 		RenderingManager::getInstance()->setCurrentSource(currentSource);
 
@@ -565,10 +790,10 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 		glPushMatrix();
         // place and scale
 		if ( forwardSources.count(*its) > 0 )
-	        glTranslatef(forwardDisplacement, 0.0,  1.0 +(*its)->getDepth());
+            glTranslatef(forwardDisplacement, 0.0, (*its)->getDepth());
 		else
-			glTranslatef(0.0, 0.0,  1.0 +(*its)->getDepth());
-        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+            glTranslatef(0.0, 0.0, (*its)->getDepth());
+        glScalef((*its)->getAspectRatio() * 1.1, 1.1, 1.0);
 
         (*its)->draw(false, GL_SELECT);
         glPopMatrix();
@@ -599,79 +824,209 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
 void LayersView::coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y){
 
-	unProjectDepth(mouseX, mouseY, 0.0, 0.0, X, Y);
-
+    *X = unProjectDepth(mouseX, viewport[3] - mouseY);
+    *Y = *X;
 }
 
-void LayersView::unProjectDepth(int x, int y, int dx, int dy, double *depth, double *depthBeforeDelta){
+// the principle of the depth map is to render a gradient of color
+// following the depth of the layers view, and to pick the color to get
+// the depth. The depth map is made so that the RGB sum (R + G + B) is
+// linearily growing from (0,0,0) at deph 0 to (1,1,1) at MAX DEPTH LAYER
 
-	// Y correction between Qt and OpenGL coordinates
-	y = viewport[3] - y;
+void drawDepthMap(double width)
+{
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-	// in a perspective, we need to know the pseudo depth of the object of interest in order
-	// to use gluUnproject ; this is obtained by a quick pseudo rendering in FEEDBACK mode
+    //    glEnable(GL_BLEND);
+    glShadeModel(GL_SMOOTH);
 
-    // feedback rendering to determine a depth
-    GLfloat feedbuffer[4];
-    glFeedbackBuffer(4, GL_3D, feedbuffer);
-    (void) glRenderMode(GL_FEEDBACK);
+    glTranslated(-OutputRenderWindow::getInstance()->getAspectRatio(), 0.0, 0.0);
 
-    // Fake rendering of point (0,0,0)
-    glBegin(GL_POINTS);
-    glVertex3f(0, 0, zoom);
+    glBegin(GL_QUADS);
+    // white upper limit
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER * 2.0);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 2.0);
+    glVertex3d(0, -1.0, MAX_DEPTH_LAYER / 2.0);
+    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER * 2.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 2.0);
+    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER / 2.0);
+
+    //  WALL on X = 0
+    glVertex3d(0, 1.0, MAX_DEPTH_LAYER);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER);
+    glColor4f(1.0, 1.0, 0.0, 1.0);
+    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+
+    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER  / 3.0 );
+    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glColor4f(0.0, 0.0, 1.0, 1.0);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
+
+    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
+    glColor4f(0.0, 0.0, 0.0, 1.0);
+    glVertex3d(0, 10.0, 0.0);
+    glVertex3d(0, 1.0, 0.0);
+
+    // Border up the bounding box
+    glVertex3d(0.0, 1.0, 0.0);
+    glVertex3d(width, 1.0, 0.0);
+    glColor4f(0.0, 0.0, 1.0, 1.0);
+    glVertex3d(width, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
+
+    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(width, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glColor4f(1.0, 1.0, 0.0, 1.0);
+    glVertex3d(width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+
+    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glVertex3d(width, 1.0, MAX_DEPTH_LAYER);
+    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER);
+
+    // Border right of the bounding box
+    glVertex3d(width, -1.0, MAX_DEPTH_LAYER);
+    glVertex3d(width, 1.0, MAX_DEPTH_LAYER);
+    glColor4f(1.0, 1.0, 0.0, 1.0);
+    glVertex3d(width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+
+    glVertex3d(width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glColor4f(0.0, 0.0, 1.0, 1.0);
+    glVertex3d(width, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(width, -1.0, MAX_DEPTH_LAYER / 3.0);
+
+    glVertex3d(width, -1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(width, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glColor4f(0.0, 0.0, 0.0, 1.0);
+    glVertex3d(width, 1.0, 0.0);
+    glVertex3d(width, -1.0, 0.0);
+
+    // wall Y = -1
+    glVertex3d(width, -1.0, 0.0);
+    glVertex3d(10.0, -1.0, 0.0);
+    glColor4f(0.0, 0.0, 1.0, 1.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(width, -1.0, MAX_DEPTH_LAYER / 3.0);
+
+    glVertex3d(width, -1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
+    glColor4f(1.0, 1.0, 0.0, 1.0);
+    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+
+    glVertex3d(width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER);
+    glVertex3d(width, -1.0, MAX_DEPTH_LAYER);
+
     glEnd();
 
-    // dummy vars
-	double bx, by, ax, ay;
+}
 
-    // we can make the un-projection if we got the 4 values we need :
-    if (glRenderMode(GL_RENDER) == 4) {
-		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
-				feedbuffer[3], modelview, projection, viewport, &bx, &by, depthBeforeDelta);
-		gluUnProject((GLdouble) x, (GLdouble) y, feedbuffer[3],
-				modelview, projection, viewport, &ax, &ay, depth);
+double LayersView::unProjectDepth(int x, int y)
+{
+    // cannot perform picking without fbo and its map
+    if (!picking_fbo || !picking_fbo_map)
+        return -1.0;
 
+    if (picking_map_needsupdate)
+    {
+        if (!picking_fbo->bind())
+            qWarning() << "Cound not perform picking";
+
+        // make sure we render as in the view settings
+        glPushAttrib(GL_LIGHTING_BIT | GL_COLOR_BUFFER_BIT );
+        glViewport(0, 0, picking_fbo->width(), picking_fbo->height());
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadMatrixd(projection);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadMatrixd(modelview);
+
+        // draw the depth map into the FBO
+        drawDepthMap(picking_map_width);
+
+        // restore state
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+        glPopAttrib();
+
+        // done rendering into the fbo
+        picking_fbo->release();
+
+        // access the texture of the picking frame buffer object
+        glBindTexture(GL_TEXTURE_2D, picking_fbo->texture());
+        // store the texture of the picking fbo map into RAM for future use
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, picking_fbo_map);
+
+        // done updating the picking map : no need to update it
+        picking_map_needsupdate = false;
     }
-    // otherwise compute with a depth of 1.0 (this not correct but should never happen)
-    else {
-		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
-				1.0, modelview, projection, viewport, &bx, &by, depthBeforeDelta);
-		gluUnProject((GLdouble) x, (GLdouble) y, 1.0,
-				modelview, projection, viewport, &ax, &ay, depth);
-    }
+
+    // find the index in the depth map of the pixel of coordinates (x, y)
+    int pixelindex = (picking_fbo->width() * 3) * y  + x * 3;
+    // depth is encoded in the image as (R + G + B) / 3
+    return ( MAX_DEPTH_LAYER * (picking_fbo_map[pixelindex] + picking_fbo_map[pixelindex+1] + picking_fbo_map[pixelindex+2])/ 3.0 );
 
 }
+
+//        GLfloat pixel[27];
+//        glReadPixels(x-1, y-1, 3, 3, GL_RGB, GL_FLOAT, (void *)pixel);
+//        for ( int i = 1; i < 27 ; ++i)
+//            pixel[0] += pixel[i];
+//        depth =  MAX_DEPTH_LAYER * pixel[0] / 27.0;
+
+
+//        // dEBUG
+//        QImage img(picking_fbo->size(), QImage::Format_RGB888);
+//        glReadPixels((GLint)0, (GLint)0, (GLint) picking_fbo->width(), (GLint) picking_fbo->height(), GL_RGB, GL_UNSIGNED_BYTE, img.bits());
+//        QApplication::clipboard()->setPixmap( QPixmap::fromImage(img.mirrored()) );
 
 /**
  *
  **/
-void LayersView::grabSource(Source *s, int x, int y, int dx, int dy, bool setcurrent) {
+void LayersView::moveSource(Source *s, double depthchange, bool setcurrent)
+{
+    if (!s || !s->isModifiable()) return;
 
-	if (!s || !s->isModifiable()) return;
+    // new depth = source depth + delta
+    double newdepth = s->getDepth() + depthchange;
 
-	double bz = 0.0; // depth before delta movement
-	double az = 0.0; // depth at current x and y
-
-	unProjectDepth(x, y, dx, dy, &az, &bz);
-
-    // (az-bz) is the depth change caused by the mouse mouvement
-    // deltazoom is the depth change due to zooming in/out while grabbing
-    double newdepth = s->getDepth() +  az - bz  +  deltax;
-    SourceSet::iterator currentSource = RenderingManager::getInstance()->getById(s->getId());
-	currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth > 0 ? newdepth : 0.0);
+    // actually perform the depth change for the source
+    SourceSet::iterator grabbedSource = RenderingManager::getInstance()->getById(s->getId());
+    grabbedSource = RenderingManager::getInstance()->changeDepth(grabbedSource, newdepth);
 
 	// if we need to set current again
 	if (setcurrent)
-		RenderingManager::getInstance()->setCurrentSource(currentSource);
+        RenderingManager::getInstance()->setCurrentSource(grabbedSource);
 
 }
 
 
-void LayersView::grabSources(Source *s, int x, int y, int dx, int dy)
+void LayersView::grabSources(Source *s, double depth)
 {
+    // compute delta depth picking and keep the previous picking depth
+    double deltad = depth - picking_grab_depth;
+    picking_grab_depth = depth;
+
 	// move all the source placed forward
 	for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++) {
-		grabSource( *its, x, y, dx, dy, (*its)->getId() == s->getId());
+        moveSource( *its, deltad, (*its)->getId() == s->getId());
 		s = *RenderingManager::getInstance()->getCurrentSource();
 	}
 }
@@ -695,29 +1050,29 @@ void LayersView::panningBy(int x, int y, int dx, int dy) {
     glEnd();
 
     // dummy vars
-	double bx, by, ax, ay, bz, az;
+    double bx, by, ax, ay, bz, az;
 
     // we can make the un-projection if we got the 4 values we need :
     if (glRenderMode(GL_RENDER) == 4) {
-		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
-				feedbuffer[3], modelview, projection, viewport, &bx, &by, &bz);
-		gluUnProject((GLdouble) x, (GLdouble) y, feedbuffer[3],
-				modelview, projection, viewport, &ax, &ay, &az);
+        gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+                feedbuffer[3], modelview, projection, viewport, &bx, &by, &bz);
+        gluUnProject((GLdouble) x, (GLdouble) y, feedbuffer[3],
+                modelview, projection, viewport, &ax, &ay, &az);
 
     }
     // otherwise compute with a depth of 1.0 (this not correct but should never happen)
     else {
-		gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
-				1.0, modelview, projection, viewport, &bx, &by, &bz);
-		gluUnProject((GLdouble) x, (GLdouble) y, 1.0,
-				modelview, projection, viewport, &ax, &ay, &az);
+        gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+                1.0, modelview, projection, viewport, &bx, &by, &bz);
+        gluUnProject((GLdouble) x, (GLdouble) y, 1.0,
+                modelview, projection, viewport, &ax, &ay, &az);
     }
 
-	// apply panning
-	setPanning(getPanningX() + ax - bx, getPanningY() + ay - by, getPanningZ() + az - bz);
+    // apply panning
+    setPanning(getPanningX() + ax - bx, getPanningY() + ay - by, getPanningZ() + az - bz);
 
-	// adjust the looking distance when panning in the Z axis (diagonal)
-	lookatdistance = CLAMP( lookatdistance + az - bz, MIN_LOOKAT, MAX_LOOKAT);
+    // adjust the looking distance when panning in the Z axis (diagonal)
+    lookatdistance = CLAMP( lookatdistance + az - bz, MIN_LOOKAT, MAX_LOOKAT);
 
 }
 

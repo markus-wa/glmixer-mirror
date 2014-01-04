@@ -336,20 +336,19 @@ private:
 
 class SelectionArea {
 
-	QRectF area;
+protected:
     bool enabled;
-
+    QRectF area;
 public:
 
-    SelectionArea() : enabled(false) {
-    }
-    void draw();
+    SelectionArea() : enabled(false) { }
+    virtual void draw();
+    virtual bool contains(SourceSet::iterator s) { return false; }
+
     void setEnabled(bool on) { enabled = on; }
     bool isEnabled() { return enabled; }
     void markStart(QPointF s);
     void markEnd(QPointF e);
-    bool contains(GLdouble x, GLdouble y);
-    bool contains(QRectF box);
 };
 
 

@@ -1031,8 +1031,9 @@ private:
 PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent)
 {
     PropertyBrowser *pb = NULL;
+#ifdef FFGL
     static FFGLPluginSourceStack *pluginBrowserStack = NULL;
-
+#endif
     if ( s->rtti() == Source::ALGORITHM_SOURCE ) {
         AlgorithmSource *as = dynamic_cast<AlgorithmSource *>(s);
         if (as != 0)

@@ -28,8 +28,14 @@
 
 #include "View.h"
 
-class GeometryView:  public View {
 
+class GeometrySelectionArea: public SelectionArea {
+public:
+    bool contains(SourceSet::iterator s);
+};
+
+
+class GeometryView:  public View {
 
 public:
 
@@ -84,7 +90,7 @@ private:
     Source *getCurrentSource();
 
 	// selection area
-	SelectionArea _selectionArea;
+    GeometrySelectionArea _selectionArea;
 
     char quadrant;
     GLuint borderType;

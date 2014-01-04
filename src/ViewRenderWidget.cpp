@@ -1474,8 +1474,8 @@ GLuint ViewRenderWidget::buildLayerbgList()
 		glBegin(GL_LINES);
 		for (float i = -4.0; i < 6.0; i += CLAMP( ABS(i)/2.f , 0.01, 5.0))
 		{
-			glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 0.0);
-			glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), 31.0);
+            glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), MIN_DEPTH_LAYER);
+            glVertex3f(i - 1.3, -1.1 + exp(-10 * (i + 0.2)), MAX_DEPTH_LAYER);
 		}
 		glEnd();
 
