@@ -547,8 +547,8 @@ void MixingToolboxWidget::on_presetApply_pressed()
 void MixingToolboxWidget::on_presetReApply_pressed()
 {    
     if (source) {
-        setPresetItemTooltip(presetsList->currentItem(), source);
         _userPresets[ presetsList->currentItem() ]->importProperties(source, false);
+        setPresetItemTooltip(presetsList->currentItem(), source);
     }
 }
 
@@ -561,10 +561,10 @@ void MixingToolboxWidget::on_presetAdd_pressed()
 
         // Set as current and offer user to edit the name
         presetsList->setCurrentItem(presetsList->item(0));
-        presetsList->editItem(presetsList->item(0));
+        presetsList->editItem(presetsList->currentItem());
 
         // create a new source for this preset
-        _userPresets[presetsList->item(0)] = new Source();
+        _userPresets[ presetsList->currentItem() ] = new Source();
 
         // associate the properties of a source imported from the current source
         on_presetReApply_pressed();
