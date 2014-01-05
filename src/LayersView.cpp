@@ -127,7 +127,6 @@ void LayersView::setModelview()
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 
     picking_map_needsupdate = true;
-    qDebug() << "picking_map_needsupdate setModelview";
 }
 
 
