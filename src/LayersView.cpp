@@ -270,109 +270,107 @@ void LayersView::paint()
 		glPopMatrix();
     }
 
+/*
+    glShadeModel(GL_SMOOTH);
 
-//    glShadeModel(GL_SMOOTH);
+    double w = OutputRenderWindow::getInstance()->getAspectRatio();
 
-//    double w = OutputRenderWindow::getInstance()->getAspectRatio();
+    glPushMatrix();
+    glTranslated(-w, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
 
-//    glPushMatrix();
-//    glTranslated(-w, 0.0, 0.0);
-////    glBegin(GL_LINE_LOOP);
-//    glBegin(GL_QUADS);
+    // white upper limit
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER * 2.0);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 2.0);
+    glVertex3d(0, -1.0, MAX_DEPTH_LAYER / 2.0);
+    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER * 2.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 2.0);
+    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER / 2.0);
 
+    //  WALL on X = 0
+    glVertex3d(0, 1.0, MAX_DEPTH_LAYER);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER);
+    glColor4f(1.0, 1.0, 0.0, 1.0);
+    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
 
-//    // white upper limit
-//    glColor4f(1.0, 1.0, 1.0, 1.0);
-//    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
-//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER * 2.0);
-//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 2.0);
-//    glVertex3d(0, -1.0, MAX_DEPTH_LAYER / 2.0);
-//    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
-//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER * 2.0);
-//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 2.0);
-//    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER / 2.0);
+    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER  / 3.0 );
+    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glColor4f(0.0, 0.0, 1.0, 1.0);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
 
-//    //  WALL on X = 0
-//    glVertex3d(0, 1.0, MAX_DEPTH_LAYER);
-//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER);
-//    glColor4f(1.0, 1.0, 0.0, 1.0);
-//    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
+    glColor4f(0.0, 0.0, 0.0, 1.0);
+    glVertex3d(0, 10.0, 0.0);
+    glVertex3d(0, 1.0, 0.0);
 
-//    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER  / 3.0 );
-//    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glColor4f(0.0, 0.0, 1.0, 1.0);
-//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
+    // Border up the bounding box
+    glVertex3d(0.0, 1.0, 0.0);
+    glVertex3d(picking_map_width, 1.0, 0.0);
+    glColor4f(0.0, 0.0, 1.0, 1.0);
+    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
 
-//    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
-//    glColor4f(0.0, 0.0, 0.0, 1.0);
-//    glVertex3d(0, 10.0, 0.0);
-//    glVertex3d(0, 1.0, 0.0);
+    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glColor4f(1.0, 1.0, 0.0, 1.0);
+    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
 
-//    // Border up the bounding box
-//    glVertex3d(0.0, 1.0, 0.0);
-//    glVertex3d(picking_map_width, 1.0, 0.0);
-//    glColor4f(0.0, 0.0, 1.0, 1.0);
-//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER);
+    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER);
 
-//    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
-//    glColor4f(1.0, 1.0, 0.0, 1.0);
-//    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    // Border right of the bounding box
+    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER);
+    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER);
+    glColor4f(1.0, 1.0, 0.0, 1.0);
+    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
 
-//    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glColor4f(1.0, 1.0, 1.0, 1.0);
-//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER);
-//    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER);
+    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glColor4f(0.0, 0.0, 1.0, 1.0);
+    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
 
-//    // Border right of the bounding box
-//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER);
-//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER);
-//    glColor4f(1.0, 1.0, 0.0, 1.0);
-//    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
+    glColor4f(0.0, 0.0, 0.0, 1.0);
+    glVertex3d(picking_map_width, 1.0, 0.0);
+    glVertex3d(picking_map_width, -1.0, 0.0);
 
-//    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glColor4f(0.0, 0.0, 1.0, 1.0);
-//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
+    // wall Y = -1
+    glVertex3d(picking_map_width, -1.0, 0.0);
+    glVertex3d(10.0, -1.0, 0.0);
+    glColor4f(0.0, 0.0, 1.0, 1.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
 
-//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
-//    glColor4f(0.0, 0.0, 0.0, 1.0);
-//    glVertex3d(picking_map_width, 1.0, 0.0);
-//    glVertex3d(picking_map_width, -1.0, 0.0);
+    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
+    glColor4f(1.0, 1.0, 0.0, 1.0);
+    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
 
-//    // wall Y = -1
-//    glVertex3d(picking_map_width, -1.0, 0.0);
-//    glVertex3d(10.0, -1.0, 0.0);
-//    glColor4f(0.0, 0.0, 1.0, 1.0);
-//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER);
+    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER);
 
-//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
-//    glColor4f(1.0, 1.0, 0.0, 1.0);
-//    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
+    glEnd();
+    glPopMatrix();
 
-//    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-//    glColor4f(1.0, 1.0, 1.0, 1.0);
-//    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER);
-//    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER);
-
-//    glEnd();
-//    glPopMatrix();
-
-//    glShadeModel(GL_FLAT);
-
+    glShadeModel(GL_FLAT);
+*/
 }
 
 void LayersView::resize(int w, int h)
@@ -492,7 +490,7 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
                     // put this source in the forward list
 					bringForward(clicked);
 
-                    picking_map_width = clicked->getAspectRatio() + MAXDISPLACEMENT + OutputRenderWindow::getInstance()->getAspectRatio();
+                    picking_map_width = MAXDISPLACEMENT + clicked->getAspectRatio() +  OutputRenderWindow::getInstance()->getAspectRatio();
                     picking_map_needsupdate = true;
 
 					// ready for grabbing the current source
@@ -631,6 +629,10 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
     // end of selection area
     if (_selectionArea.isEnabled())
         _selectionArea.setEnabled(false);
+
+    forwardSources.clear();
+    picking_map_width = 0;
+    picking_map_needsupdate = true;
 
 	return true;
 }

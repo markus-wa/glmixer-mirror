@@ -854,7 +854,10 @@ void RenderingManager::toggleFixAspectRatioCurrentSource(bool on){
 void RenderingManager::setOriginalAspectRatioCurrentSource(){
 
     if(isValid(_currentSource)) {
+        double scale = (*_currentSource)->getScaleX();
         (*_currentSource)->resetScale(Source::SCALE_FIT);
+        scale /= (*_currentSource)->getScaleX();
+        (*_currentSource)->scaleBy( scale, scale );
         _propertyBrowser->showProperties(_currentSource);
     }
 }
@@ -862,7 +865,10 @@ void RenderingManager::setOriginalAspectRatioCurrentSource(){
 void RenderingManager::setRenderingAspectRatioCurrentSource(){
 
     if(isValid(_currentSource)) {
+        double scale = (*_currentSource)->getScaleX();
         (*_currentSource)->resetScale(Source::SCALE_DEFORM);
+        scale /= (*_currentSource)->getScaleX();
+        (*_currentSource)->scaleBy( scale, scale );
         _propertyBrowser->showProperties(_currentSource);
     }
 }
