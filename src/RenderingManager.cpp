@@ -427,6 +427,9 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 			source->endEffectsSection();
 
 		}
+        // draw without effect
+        ViewRenderWidget::setSourceDrawingMode(false);
+
 		//
 		// 2. Draw into second texture  attachment ; the catalog (if visible)
 		//
@@ -434,9 +437,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 			glDrawBuffer(GL_COLOR_ATTACHMENT1);
 
 			// clear Modelview
-			glLoadIdentity();
-			// draw without effect
-			ViewRenderWidget::setSourceDrawingMode(false);
+            glLoadIdentity();
 
 			static int indexSource = 0;
 			if (first) {
@@ -445,7 +446,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 				indexSource = 0;
 			}
 			// Draw this source into the catalog
-			_renderwidget->_catalogView->drawSource( source, indexSource++);
+            _renderwidget->_catalogView->drawSource( source, indexSource++);
 
 			glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		}

@@ -36,7 +36,7 @@
 #define MAXDISPLACEMENT 1.6
 #define MIN_LOOKAT 3.0
 #define MAX_LOOKAT 9.0
-#define DEFAULT_LOOKAT 4.0
+#define DEFAULT_LOOKAT 5.0
 #define DEFAULT_PANNING -2.f, 0.f, 0.1f
 #define MAX_PANNING 4.0
 
@@ -948,7 +948,7 @@ double LayersView::unProjectDepth(int x, int y)
             qWarning() << "Cound not perform picking";
 
         // make sure we render as in the view settings
-        glPushAttrib(GL_LIGHTING_BIT | GL_COLOR_BUFFER_BIT );
+        glPushAttrib( GL_COLOR_BUFFER_BIT  | GL_VIEWPORT_BIT | GL_LIGHTING_BIT );
         glViewport(0, 0, picking_fbo->width(), picking_fbo->height());
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
@@ -974,6 +974,10 @@ double LayersView::unProjectDepth(int x, int y)
         glBindTexture(GL_TEXTURE_2D, picking_fbo->texture());
         // store the texture of the picking fbo map into RAM for future use
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, picking_fbo_map);
+
+        // unbind texture
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_TEXTURE_2D);
 
         // done updating the picking map : no need to update it
         picking_map_needsupdate = false;

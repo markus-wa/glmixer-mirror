@@ -1490,7 +1490,7 @@ void GLMixer::on_actionNew_Session_triggered()
 {
     on_actionClose_Session_triggered();
 
-    setView(actionMixingView);
+    actionMixingView->trigger();
 }
 
 void GLMixer::on_actionClose_Session_triggered()
