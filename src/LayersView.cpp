@@ -39,7 +39,7 @@
 #define DEFAULT_LOOKAT 5.0
 #define DEFAULT_PANNING -2.f, 0.f, 0.1f
 #define MAX_PANNING 4.0
-
+#define PICKING_FBO_FACTOR 8
 
 bool LayersSelectionArea::contains(SourceSet::iterator s)
 {
@@ -389,11 +389,12 @@ void LayersView::resize(int w, int h)
     if (picking_fbo)
         delete picking_fbo;
     // create a picking fbo of the same size of the window
-    picking_fbo = new QGLFramebufferObject(QSize(w, h));
+    picking_fbo = new QGLFramebufferObject(QSize(w / PICKING_FBO_FACTOR, h / PICKING_FBO_FACTOR));
+
     // do the same with the image to get the fbo texture into
     if (picking_fbo_map)
         delete picking_fbo_map;
-    picking_fbo_map = new GLfloat[ 3 * w * h];
+    picking_fbo_map = new GLfloat[ 3 * w * h / PICKING_FBO_FACTOR];
     // inform that the picking map needs to be recomputed
     picking_map_needsupdate = true;
 
@@ -983,10 +984,26 @@ double LayersView::unProjectDepth(int x, int y)
         picking_map_needsupdate = false;
     }
 
+    // convert the picking coordinates to fbo factor
+    x /= PICKING_FBO_FACTOR;
+    y /= PICKING_FBO_FACTOR;
+
+
+    // mean filter around the pixel of coordinates (x, y) in the depth map texture
+    double sum = 0.0;
+    for ( int i = ( y - 1 ) ; i < ( y + 2 ); ++i)
+        for ( int j = ( x - 1 )  ; j < ( x + 2 ) ; ++j) {
+            sum += picking_fbo_map[(picking_fbo->width() * 3) * i + j * 3];
+            sum += picking_fbo_map[(picking_fbo->width() * 3) * i + j * 3 + 1];
+            sum += picking_fbo_map[(picking_fbo->width() * 3) * i + j * 3 + 2];
+        }
+
+    // depth is encoded in the image as (R + G + B) / 3  (for 9 pixels)
+    return ( MAX_DEPTH_LAYER * sum / 27.0 );
+
     // find the index in the depth map of the pixel of coordinates (x, y)
-    int pixelindex = (picking_fbo->width() * 3) * y  + x * 3;
-    // depth is encoded in the image as (R + G + B) / 3
-    return ( MAX_DEPTH_LAYER * (picking_fbo_map[pixelindex] + picking_fbo_map[pixelindex+1] + picking_fbo_map[pixelindex+2])/ 3.0 );
+//    int pixelindex = (picking_fbo->width() * 3) * y  + x * 3;
+//    return ( MAX_DEPTH_LAYER * (picking_fbo_map[pixelindex] + picking_fbo_map[pixelindex+1] + picking_fbo_map[pixelindex+2])/ 3.0 );
 
 }
 
