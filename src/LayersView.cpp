@@ -41,6 +41,8 @@
 #define MAX_PANNING 4.0
 #define PICKING_FBO_FACTOR 8
 
+void drawDepthMap(double width);
+
 bool LayersSelectionArea::contains(SourceSet::iterator s)
 {
     return area.contains( 1.0, (*s)->getDepth() );
@@ -182,11 +184,11 @@ void LayersView::paint()
 					forwardDisplacement += ( MAXDISPLACEMENT + 0.1 - forwardDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
 				glTranslatef( forwardDisplacement, 0.0, 0.0);
 			}
-//			else {
-//				// draw stippled version of the source on top
+//            else {
+//                // draw stippled version of the source on top
 //                glEnable(GL_POLYGON_STIPPLE);
 //                glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-//			}
+//            }
 
             glTranslatef( 0.0, 0.0, (*its)->getDepth());
 	        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
@@ -270,107 +272,11 @@ void LayersView::paint()
 		glPopMatrix();
     }
 
-/*
-    glShadeModel(GL_SMOOTH);
-
-    double w = OutputRenderWindow::getInstance()->getAspectRatio();
-
-    glPushMatrix();
-    glTranslated(-w, 0.0, 0.0);
-    glBegin(GL_LINE_LOOP);
-
-    // white upper limit
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
-    glVertex3d(0, 10.0, MAX_DEPTH_LAYER * 2.0);
-    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 2.0);
-    glVertex3d(0, -1.0, MAX_DEPTH_LAYER / 2.0);
-    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER * 2.0);
-    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER * 2.0);
-    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 2.0);
-    glVertex3d(0.0, -1.0, MAX_DEPTH_LAYER / 2.0);
-
-    //  WALL on X = 0
-    glVertex3d(0, 1.0, MAX_DEPTH_LAYER);
-    glVertex3d(0, 10.0, MAX_DEPTH_LAYER);
-    glColor4f(1.0, 1.0, 0.0, 1.0);
-    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-
-    glVertex3d(0, 1.0, 2.0 * MAX_DEPTH_LAYER  / 3.0 );
-    glVertex3d(0, 10.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glColor4f(0.0, 0.0, 1.0, 1.0);
-    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
-
-    glVertex3d(0, 1.0, MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(0, 10.0, MAX_DEPTH_LAYER / 3.0);
-    glColor4f(0.0, 0.0, 0.0, 1.0);
-    glVertex3d(0, 10.0, 0.0);
-    glVertex3d(0, 1.0, 0.0);
-
-    // Border up the bounding box
-    glVertex3d(0.0, 1.0, 0.0);
-    glVertex3d(picking_map_width, 1.0, 0.0);
-    glColor4f(0.0, 0.0, 1.0, 1.0);
-    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
-
-    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
-    glColor4f(1.0, 1.0, 0.0, 1.0);
-    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-
-    glVertex3d(0.0, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER);
-    glVertex3d(0.0, 1.0, MAX_DEPTH_LAYER);
-
-    // Border right of the bounding box
-    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER);
-    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER);
-    glColor4f(1.0, 1.0, 0.0, 1.0);
-    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-
-    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(picking_map_width, 1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glColor4f(0.0, 0.0, 1.0, 1.0);
-    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
-
-    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(picking_map_width, 1.0, MAX_DEPTH_LAYER / 3.0);
-    glColor4f(0.0, 0.0, 0.0, 1.0);
-    glVertex3d(picking_map_width, 1.0, 0.0);
-    glVertex3d(picking_map_width, -1.0, 0.0);
-
-    // wall Y = -1
-    glVertex3d(picking_map_width, -1.0, 0.0);
-    glVertex3d(10.0, -1.0, 0.0);
-    glColor4f(0.0, 0.0, 1.0, 1.0);
-    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
-
-    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER / 3.0);
-    glColor4f(1.0, 1.0, 0.0, 1.0);
-    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-
-    glVertex3d(picking_map_width, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glVertex3d(10.0, -1.0, 2.0 * MAX_DEPTH_LAYER / 3.0);
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    glVertex3d(10.0, -1.0, MAX_DEPTH_LAYER);
-    glVertex3d(picking_map_width, -1.0, MAX_DEPTH_LAYER);
-
-    glEnd();
-    glPopMatrix();
-
-    glShadeModel(GL_FLAT);
-*/
+////  debug
+//    glMatrixMode(GL_MODELVIEW);
+//    glPushMatrix();
+//    drawDepthMap(picking_map_width);
+//    glPopMatrix();
 }
 
 void LayersView::resize(int w, int h)
@@ -535,9 +441,11 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 	RenderingManager::getInstance()->unsetCurrentSource();
 
 	// clear the list of sources forward
-	forwardSources.clear();
-    picking_map_width = 0;
-    picking_map_needsupdate = true;
+    if (forwardSources.size() > 0) {
+        forwardSources.clear();
+        picking_map_width = 0;
+        picking_map_needsupdate = true;
+    }
 
 	// back to no action
 	setAction(View::NONE);
@@ -631,9 +539,11 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
     if (_selectionArea.isEnabled())
         _selectionArea.setEnabled(false);
 
-    forwardSources.clear();
-    picking_map_width = 0;
-    picking_map_needsupdate = true;
+    if (forwardSources.size() > 0) {
+        forwardSources.clear();
+        picking_map_width = 0;
+        picking_map_needsupdate = true;
+    }
 
 	return true;
 }
@@ -934,7 +844,6 @@ void drawDepthMap(double width)
     glVertex3d(width, -1.0, MAX_DEPTH_LAYER);
 
     glEnd();
-
 }
 
 double LayersView::unProjectDepth(int x, int y)
@@ -1007,21 +916,6 @@ double LayersView::unProjectDepth(int x, int y)
 
 }
 
-//        GLfloat pixel[27];
-//        glReadPixels(x-1, y-1, 3, 3, GL_RGB, GL_FLOAT, (void *)pixel);
-//        for ( int i = 1; i < 27 ; ++i)
-//            pixel[0] += pixel[i];
-//        depth =  MAX_DEPTH_LAYER * pixel[0] / 27.0;
-
-
-//        // dEBUG
-//        QImage img(picking_fbo->size(), QImage::Format_RGB888);
-//        glReadPixels((GLint)0, (GLint)0, (GLint) picking_fbo->width(), (GLint) picking_fbo->height(), GL_RGB, GL_UNSIGNED_BYTE, img.bits());
-//        QApplication::clipboard()->setPixmap( QPixmap::fromImage(img.mirrored()) );
-
-/**
- *
- **/
 void LayersView::moveSource(Source *s, double depthchange, bool setcurrent)
 {
     if (!s || !s->isModifiable()) return;
@@ -1053,9 +947,7 @@ void LayersView::grabSources(Source *s, double depth)
 	}
 }
 
-/**
- *
- **/
+
 void LayersView::panningBy(int x, int y, int dx, int dy) {
 
 	// Y correction between Qt and OpenGL coordinates
