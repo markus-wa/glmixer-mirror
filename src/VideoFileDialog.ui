@@ -18,6 +18,30 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+	background: palette(midlight);
+}
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}
+</string>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" rowspan="2">
     <widget class="QToolButton" name="startButton">

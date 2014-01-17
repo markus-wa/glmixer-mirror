@@ -21,10 +21,10 @@
     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true"> QMainWindow::separator {
+   <string notr="true">QMainWindow::separator {
      background: palette(window);
-     width: 2px; /* when vertical */
-     height: 2px; /* when horizontal */
+     width: 2px;
+     height: 2px; 
  }
 
  QMainWindow::separator:hover {
@@ -33,8 +33,33 @@
 
 QDockWidget::close-button, QDockWidget::float-button {
      padding: 0px;
-     icon-size: 14px; /* maximum icon size */
- }</string>
+     icon-size: 14px;
+ }
+
+QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+	background: palette(midlight);
+}
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}
+</string>
   </property>
   <property name="locale">
    <locale language="English" country="UnitedStates"/>
@@ -47,16 +72,7 @@ QDockWidget::close-button, QDockWidget::float-button {
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <item>
@@ -156,7 +172,23 @@ QDockWidget::close-button, QDockWidget::float-button {
           <string>Zoom reset</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+          <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+}
+QToolButton:pressed { 
+	background: palette(dark);
+}
+QToolButton:hover { 
+     border-color: palette(mid);
+}
+</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -173,7 +205,23 @@ QDockWidget::close-button, QDockWidget::float-button {
           <string>Zoom in</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+          <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+}
+QToolButton:pressed { 
+	background: palette(dark);
+}
+QToolButton:hover { 
+     border-color: palette(mid);
+}
+</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -193,7 +241,23 @@ QDockWidget::close-button, QDockWidget::float-button {
           <string>Zoom out</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+          <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+}
+QToolButton:pressed { 
+	background: palette(dark);
+}
+QToolButton:hover { 
+     border-color: palette(mid);
+}
+</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -213,7 +277,23 @@ QDockWidget::close-button, QDockWidget::float-button {
           <string>Zoom best fit</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+          <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+}
+QToolButton:pressed { 
+	background: palette(dark);
+}
+QToolButton:hover { 
+     border-color: palette(mid);
+}
+</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -233,7 +313,23 @@ QDockWidget::close-button, QDockWidget::float-button {
           <string>Zoom on current source</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgba(0, 0, 0, 0); border: 0px</string>
+          <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+}
+QToolButton:pressed { 
+	background: palette(dark);
+}
+QToolButton:hover { 
+     border-color: palette(mid);
+}
+</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -297,31 +393,13 @@ QDockWidget::close-button, QDockWidget::float-button {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>3</number>
-     </property>
-     <property name="topMargin">
-      <number>3</number>
-     </property>
-     <property name="rightMargin">
-      <number>3</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>3</number>
      </property>
      <item>
       <widget class="QWidget" name="previewDockWidgetContents" native="true">
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
@@ -443,33 +521,6 @@ QDockWidget::close-button, QDockWidget::float-button {
          <property name="statusTip">
           <string>Output window is active when &quot;On air&quot;</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}
-</string>
-         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -528,11 +579,6 @@ QToolButton:hover {
          <property name="toolTip">
           <string>Select aspect ratio</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true"> QToolButton { 
-     border: 0px;
- }</string>
-         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -561,33 +607,6 @@ QToolButton:hover {
          </property>
          <property name="statusTip">
           <string>Sets the output window to fullscreen mode.</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -658,16 +677,7 @@ QToolButton:hover {
      </sizepolicy>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -711,16 +721,7 @@ QToolButton:hover {
          </size>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -751,9 +752,9 @@ QToolButton:hover {
            </property>
            <property name="styleSheet">
             <string notr="true">QToolButton { 
-     border-style: inset;
+     border-style: solid;
      border-width: 1px;
-    border-radius:5px;
+     border-radius:5px;
 	 padding: 3px;
      min-height: 32px;
      min-width: 48px;
@@ -767,14 +768,13 @@ QToolButton:checked {
 }
 
 QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+	background: palette(midlight);
 }
-
 
 QToolButton:hover { 
      border-color: palette(highlight);
-}</string>
+}
+</string>
            </property>
            <property name="text">
             <string>Play</string>
@@ -874,28 +874,6 @@ QToolButton:hover {
                  <property name="toolTip">
                   <string>Restart</string>
                  </property>
-                 <property name="styleSheet">
-                  <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
-                 </property>
                  <property name="text">
                   <string>...</string>
                  </property>
@@ -915,28 +893,6 @@ QToolButton:hover {
                 <widget class="QToolButton" name="seekBackwardButton">
                  <property name="toolTip">
                   <string>Seek backward</string>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -960,33 +916,6 @@ QToolButton:hover {
                  </property>
                  <property name="statusTip">
                   <string>Pause/resume play</string>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1020,28 +949,6 @@ QToolButton:hover {
                  <property name="toolTip">
                   <string>Step by 1 frame</string>
                  </property>
-                 <property name="styleSheet">
-                  <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
-                 </property>
                  <property name="text">
                   <string>...</string>
                  </property>
@@ -1061,28 +968,6 @@ QToolButton:hover {
                 <widget class="QToolButton" name="seekForwardButton">
                  <property name="toolTip">
                   <string>Seek forward</string>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1123,16 +1008,7 @@ QToolButton:hover {
                <property name="spacing">
                 <number>4</number>
                </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
+               <property name="margin">
                 <number>0</number>
                </property>
                <item>
@@ -1151,16 +1027,7 @@ QToolButton:hover {
                  </property>
                  <widget class="QWidget" name="pageSpeed0">
                   <layout class="QHBoxLayout" name="horizontalLayout_14">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1180,16 +1047,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed1">
                   <layout class="QHBoxLayout" name="horizontalLayout_13">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1209,16 +1067,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed2">
                   <layout class="QHBoxLayout" name="horizontalLayout_12">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1238,16 +1087,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed3">
                   <layout class="QHBoxLayout" name="horizontalLayout_11">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1267,16 +1107,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed4">
                   <layout class="QHBoxLayout" name="horizontalLayout_10">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1296,16 +1127,7 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed5">
                   <layout class="QHBoxLayout" name="horizontalLayout_9">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
+                   <property name="margin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1361,33 +1183,6 @@ QToolButton:hover {
                  <property name="toolTip">
                   <string>Loop playback: jump back to mark-in when arrived at mark-out</string>
                  </property>
-                 <property name="styleSheet">
-                  <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
-                 </property>
                  <property name="text">
                   <string>...</string>
                  </property>
@@ -1442,16 +1237,7 @@ QToolButton:hover {
             <property name="spacing">
              <number>3</number>
             </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
+            <property name="margin">
              <number>0</number>
             </property>
             <item>
@@ -1533,13 +1319,15 @@ QToolButton:hover {
 	 padding: 3px;
      border-color: palette(button);
      background: transparent;
-     font-size: 9pt;
+	font-size: 9pt;
 }
 
 QPushButton:pressed { 
-     border-style: inset;
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+	background: palette(midlight);
+}
+
+QPushButton:hover { 
+     border-color: palette(highlight);
 }
 </string>
                 </property>
@@ -1558,8 +1346,8 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>20</width>
-                  <height>22</height>
+                  <width>32</width>
+                  <height>32</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -1644,9 +1432,11 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
 }
 
 QPushButton:pressed { 
-     border-style: inset;
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
+	background: palette(midlight);
+}
+
+QPushButton:hover { 
+     border-color: palette(highlight);
 }
 </string>
                 </property>
@@ -1671,8 +1461,8 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>20</width>
-                  <height>22</height>
+                  <width>32</width>
+                  <height>32</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -1862,16 +1652,7 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
          </size>
         </property>
         <layout class="QVBoxLayout" name="_2">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -2029,16 +1810,7 @@ Uncheck to display the restart frame when stopped.</string>
    </attribute>
    <widget class="QWidget" name="sourceDockWidgetContents">
     <layout class="QVBoxLayout" name="sourceDockWidgetContentsLayout">
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
     </layout>
@@ -2259,6 +2031,32 @@ Uncheck to display the restart frame when stopped.</string>
    <property name="windowTitle">
     <string>Sources </string>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+	background: palette(midlight);
+}
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}
+</string>
+   </property>
    <property name="iconSize">
     <size>
      <width>24</width>
@@ -2424,33 +2222,6 @@ Uncheck to display the restart frame when stopped.</string>
          <property name="toolTip">
           <string>Normal cursor</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
-         </property>
          <property name="text">
           <string>Normal</string>
          </property>
@@ -2488,33 +2259,6 @@ QToolButton:hover {
          </property>
          <property name="toolTip">
           <string>Elastic cursor</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
          </property>
          <property name="text">
           <string>Elastic</string>
@@ -2563,33 +2307,6 @@ QToolButton:hover {
          <property name="toolTip">
           <string>Delayed cursor</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
-         </property>
          <property name="text">
           <string>Delay</string>
          </property>
@@ -2636,33 +2353,6 @@ QToolButton:hover {
          </property>
          <property name="toolTip">
           <string>Axis-aligned cursor</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
          </property>
          <property name="text">
           <string>Axis</string>
@@ -2711,33 +2401,6 @@ QToolButton:hover {
          <property name="toolTip">
           <string>Line cursor</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
-         </property>
          <property name="text">
           <string>Line</string>
          </property>
@@ -2785,33 +2448,6 @@ QToolButton:hover {
          <property name="toolTip">
           <string>Fuzzy cursor</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
-         </property>
          <property name="text">
           <string>Fuzzy</string>
          </property>
@@ -2845,16 +2481,7 @@ QToolButton:hover {
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -3025,16 +2652,7 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorMagnetOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <item>
@@ -3259,16 +2877,7 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="switcherDockWidgetContents">
     <layout class="QVBoxLayout" name="switcherDockWidgetContentsLayout">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
     </layout>
@@ -3326,16 +2935,7 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>5</number>
-     </property>
-     <property name="topMargin">
-      <number>5</number>
-     </property>
-     <property name="rightMargin">
-      <number>5</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>5</number>
      </property>
      <item>
@@ -3361,23 +2961,6 @@ QToolButton:hover {
          <property name="toolTip">
           <string>Copy to clipboard</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-}
-</string>
-         </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/textcopy.png</normaloff>:/glmixer/icons/textcopy.png</iconset>
@@ -3394,23 +2977,6 @@ QToolButton:pressed {
         <widget class="QToolButton" name="toolButtonClearLogs">
          <property name="toolTip">
           <string>Clear</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-}
-</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -3529,16 +3095,7 @@ QToolButton:pressed {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
     </layout>
@@ -3559,16 +3116,7 @@ QToolButton:pressed {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
     </layout>
@@ -3597,23 +3145,6 @@ QToolButton:pressed {
          <property name="toolTip">
           <string>Add date</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-    padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-}
-</string>
-         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -3633,23 +3164,6 @@ QToolButton:pressed {
         <widget class="QToolButton" name="addListToNotes">
          <property name="toolTip">
           <string>Add list of sources</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-    padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-}
-</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -3684,23 +3198,6 @@ QToolButton:pressed {
          <property name="toolTip">
           <string>Paste text</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-    padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-}
-</string>
-         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -3721,23 +3218,6 @@ QToolButton:pressed {
          <property name="toolTip">
           <string>Copy to clipboard</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-}
-</string>
-         </property>
          <property name="icon">
           <iconset resource="../icons.qrc">
            <normaloff>:/glmixer/icons/textcopy.png</normaloff>:/glmixer/icons/textcopy.png</iconset>
@@ -3754,23 +3234,6 @@ QToolButton:pressed {
         <widget class="QToolButton" name="clearNotes">
          <property name="toolTip">
           <string>Clear</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-}
-</string>
          </property>
          <property name="text">
           <string>...</string>

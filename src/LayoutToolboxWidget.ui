@@ -13,17 +13,20 @@
   <property name="windowTitle">
    <string>Mixing</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QToolButton { 
+     border: 1px solid transparent;
+     border-radius:5px;
+     padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     background: transparent;
+}
+QToolButton:pressed { background: palette(midlight); }
+QToolButton:hover { border-color:  palette(highlight); }</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="leftMargin">
-    <number>1</number>
-   </property>
-   <property name="topMargin">
-    <number>1</number>
-   </property>
-   <property name="rightMargin">
-    <number>1</number>
-   </property>
-   <property name="bottomMargin">
+   <property name="margin">
     <number>1</number>
    </property>
    <item>
@@ -35,40 +38,13 @@
       <bool>true</bool>
      </property>
      <layout class="QHBoxLayout" name="resizeLayout">
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
+      <property name="margin">
        <number>3</number>
       </property>
       <item>
        <widget class="QToolButton" name="sizeHorizontalButton">
         <property name="toolTip">
          <string>Resize to equal widths (max)</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -90,24 +66,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Resize to equal heights (max)</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -128,24 +86,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Resize to frame width</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -165,24 +105,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
        <widget class="QToolButton" name="sizeVerticalFrameButton">
         <property name="toolTip">
          <string>Resize to frame height</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -211,40 +133,13 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
       <bool>true</bool>
      </property>
      <layout class="QHBoxLayout" name="rotateLayout">
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
+      <property name="margin">
        <number>3</number>
       </property>
       <item>
        <widget class="QToolButton" name="rotateClockwiseButton">
         <property name="toolTip">
          <string>Rotate 90 degrees clockwise</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -266,24 +161,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Rotate 90 degrees counterclockwise</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -304,24 +181,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Flip horizontally</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -341,24 +200,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
        <widget class="QToolButton" name="flipVerticalButton">
         <property name="toolTip">
          <string>Flip vertically</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -387,40 +228,13 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
       <bool>true</bool>
      </property>
      <layout class="QGridLayout" name="alignLayout">
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
+      <property name="margin">
        <number>3</number>
       </property>
       <item row="0" column="0">
        <widget class="QToolButton" name="alignHorizontalLeftButton">
         <property name="toolTip">
          <string>Align to the left border</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -442,24 +256,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Center horizontally</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -479,24 +275,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
        <widget class="QToolButton" name="alignHorizontalRightButton">
         <property name="toolTip">
          <string>Align to the right border</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -518,24 +296,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Align to the bottom border</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -555,24 +315,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
        <widget class="QToolButton" name="alignVerticalCenterButton">
         <property name="toolTip">
          <string>Center vertically</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -594,24 +336,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Align to the top border</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -631,24 +355,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
        <widget class="QToolButton" name="alignHorizontalLeftFrameButton">
         <property name="toolTip">
          <string>Align to the left border of the frame</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -670,24 +376,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Center horizontally on the frame</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -707,24 +395,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
        <widget class="QToolButton" name="alignHorizontalRightFrameButton">
         <property name="toolTip">
          <string>Align to the right border of the frame</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -746,24 +416,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Align to the bottom border of the frame</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -784,24 +436,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Center vertically on the frame</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -821,24 +455,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
        <widget class="QToolButton" name="alignVerticalTopFrameButton">
         <property name="toolTip">
          <string>Align to the top border of the frame</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -867,40 +483,13 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
       <bool>true</bool>
      </property>
      <layout class="QGridLayout" name="distributeLayout">
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
+      <property name="margin">
        <number>3</number>
       </property>
       <item row="0" column="0">
        <widget class="QToolButton" name="distributeHorizontalLeftButton">
         <property name="toolTip">
          <string>Distribute left edges equidistantly</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -917,66 +506,10 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QToolButton" name="distributeHorizontalCenterButton">
-        <property name="toolTip">
-         <string>Distribute centers horizontally</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="../icons.qrc">
-          <normaloff>:/glmixer/icons/distribute-horizontal-center.png</normaloff>:/glmixer/icons/distribute-horizontal-center.png</iconset>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>24</width>
-          <height>24</height>
-         </size>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="2">
        <widget class="QToolButton" name="distributeHorizontalRightButton">
         <property name="toolTip">
          <string>Distribute right edges equidistantly</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -993,35 +526,17 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         </property>
        </widget>
       </item>
-      <item row="0" column="3">
-       <widget class="QToolButton" name="distributeHorizontalGapsButton">
+      <item row="0" column="1">
+       <widget class="QToolButton" name="distributeHorizontalCenterButton">
         <property name="toolTip">
-         <string>Make horizontal gaps equal</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
+         <string>Distribute centers horizontally</string>
         </property>
         <property name="text">
          <string>...</string>
         </property>
         <property name="icon">
          <iconset resource="../icons.qrc">
-          <normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</iconset>
+          <normaloff>:/glmixer/icons/distribute-horizontal-center.png</normaloff>:/glmixer/icons/distribute-horizontal-center.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -1035,24 +550,6 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
        <widget class="QToolButton" name="distributeVerticalBottomButton">
         <property name="toolTip">
          <string>Distribute bottom edges equidistantly</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -1069,28 +566,50 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         </property>
        </widget>
       </item>
+      <item row="1" column="3">
+       <widget class="QToolButton" name="distributeVerticalGapsButton">
+        <property name="toolTip">
+         <string>Make vertical gaps equal</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../icons.qrc">
+          <normaloff>:/glmixer/icons/distribute-vertical-gaps.png</normaloff>:/glmixer/icons/distribute-vertical-gaps.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QToolButton" name="distributeHorizontalGapsButton">
+        <property name="toolTip">
+         <string>Make horizontal gaps equal</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../icons.qrc">
+          <normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</normaloff>:/glmixer/icons/distribute-horizontal-gaps.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="1">
        <widget class="QToolButton" name="distributeVerticalCenterButton">
         <property name="toolTip">
          <string>Distribute centers vertically</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -1112,68 +631,12 @@ background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.
         <property name="toolTip">
          <string>Distribute top edges equidistantly</string>
         </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
         <property name="text">
          <string>...</string>
         </property>
         <property name="icon">
          <iconset resource="../icons.qrc">
           <normaloff>:/glmixer/icons/distribute-vertical-top.png</normaloff>:/glmixer/icons/distribute-vertical-top.png</iconset>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>24</width>
-          <height>24</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QToolButton" name="distributeVerticalGapsButton">
-        <property name="toolTip">
-         <string>Make vertical gaps equal</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QToolButton { 
-     border-style: inset;
-     border-width: 1px;
-    border-radius:5px;
-padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:pressed { 
-     border-color: palette(dark);
-background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(button), stop: 1 transparent );
-}
-</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="../icons.qrc">
-          <normaloff>:/glmixer/icons/distribute-vertical-gaps.png</normaloff>:/glmixer/icons/distribute-vertical-gaps.png</iconset>
         </property>
         <property name="iconSize">
          <size>
