@@ -1153,7 +1153,7 @@ void GLMixer::on_actionDeleteSource_triggered()
 		todelete = SelectionManager::getInstance()->copySelection();
 
 	// remove all the source in the list todelete
-	for(SourceList::iterator  its = todelete.begin(); its != todelete.end(); its++) {
+    for(SourceList::iterator  its = todelete.begin(); its != todelete.end(); its++) {
 
 		SourceSet::iterator sit = RenderingManager::getInstance()->getById((*its)->getId());
 		if ( RenderingManager::getInstance()->isValid(sit) ) {

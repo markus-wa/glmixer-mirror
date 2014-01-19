@@ -898,7 +898,8 @@ Source *RenderingManager::getSourceBasketTop() const{
 
 void RenderingManager::dropSourceWithAlpha(double alphax, double alphay){
 
-	if (dropSource())
+    dropSource();
+    if (isValid(_currentSource))
 		// apply the modifications
 		(*_currentSource)->setAlphaCoordinates(alphax, alphay);
 
@@ -906,7 +907,8 @@ void RenderingManager::dropSourceWithAlpha(double alphax, double alphay){
 
 void RenderingManager::dropSourceWithCoordinates(double x, double y){
 
-	if (dropSource()) {
+    dropSource();
+    if (isValid(_currentSource)){
 		// apply the modifications
 		(*_currentSource)->setX(x);
 		(*_currentSource)->setY(y);
@@ -915,12 +917,15 @@ void RenderingManager::dropSourceWithCoordinates(double x, double y){
 
 void RenderingManager::dropSourceWithDepth(double depth){
 
-	if (dropSource())
-		// apply the modifications
-		(*_currentSource)->setDepth(depth);
+    dropSource();
+    if (isValid(_currentSource))
+        // apply the modifications
+        changeDepth(_currentSource, depth);
 }
 
-bool RenderingManager::dropSource(){
+void RenderingManager::dropSource(){
+
+    unsetCurrentSource();
 
 	// something to drop ?
 	if (!dropBasket.empty()) {
@@ -931,16 +936,12 @@ bool RenderingManager::dropSource(){
 		// insert the source
 		if ( insertSource(top) ) {
 			// make it current
-			setCurrentSource(top->getId());
+            setCurrentSource(top->getId());
 			// start playing (according to preference)
-			top->play(_playOnDrop);
-			// ok
-			return true;
+            top->play(_playOnDrop);
 		} else
-			delete top;
+            delete top;
 	}
-
-	return false;
 }
 
 
@@ -952,8 +953,10 @@ void RenderingManager::removeSource(const GLuint idsource){
 
 void RenderingManager::removeSource(SourceSet::iterator itsource) {
 
-	if (!isValid(itsource))
-		return;
+    if (!isValid(itsource)) {
+        qWarning() << tr("Invalid Source cannot be deleted.");
+        return;
+    }
 
 	// remove from selection and group
 	_renderwidget->removeFromSelections(*itsource);

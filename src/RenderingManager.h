@@ -220,11 +220,13 @@ public Q_SLOTS:
     void setOriginalAspectRatioCurrentSource();
     void setRenderingAspectRatioCurrentSource();
 
-	bool dropSource();
+    void dropSource();
 	void dropSourceWithAlpha(double alphax, double alphay);
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);
+
 	void disableProgressBars(bool off) { _showProgressBar = !off; }
+
 #ifdef SHM
 	void setFrameSharingEnabled(bool on);
 #endif
@@ -237,7 +239,7 @@ private:
 	virtual ~RenderingManager();
 	static RenderingManager *_instance;
 
-	void setFrameBufferResolution(QSize size);
+    void setFrameBufferResolution(QSize size);
 
 protected:
 	// the rendering area

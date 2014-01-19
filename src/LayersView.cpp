@@ -623,22 +623,22 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
 		return true;
 	}
 
-	SourceSet::iterator currentSource = RenderingManager::getInstance()->getCurrentSource();
-	if (currentSource != RenderingManager::getInstance()->getEnd()) {
-		double dz = 0.0, newdepth = 0.0;
+    SourceSet::iterator currentSource = RenderingManager::getInstance()->getCurrentSource();
+    if (currentSource != RenderingManager::getInstance()->getEnd()) {
+        double dz = 0.0, newdepth = 0.0;
 
-		switch (event->key()) {
-			case Qt::Key_Down:
-			case Qt::Key_Left:
-				dz = 1.0;
-				break;
-			case Qt::Key_Up:
-			case Qt::Key_Right:
-				dz = -1.0;
-				break;
-			default:
-				return false;
-		}
+        switch (event->key()) {
+            case Qt::Key_Down:
+            case Qt::Key_Left:
+                dz = 1.0;
+                break;
+            case Qt::Key_Up:
+            case Qt::Key_Right:
+                dz = -1.0;
+                break;
+            default:
+                return false;
+        }
 
 
         // move the source placed forward
@@ -649,14 +649,14 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
             RenderingManager::getInstance()->changeDepth(RenderingManager::getInstance()->getById((*its)->getId()), newdepth > 0 ? newdepth : 0.0);
         }
 
-		// change depth of current source
-		newdepth =  (*currentSource)->getDepth() + dz;
+        // change depth of current source
+        newdepth =  (*currentSource)->getDepth() + dz;
         currentSource = RenderingManager::getInstance()->changeDepth(currentSource, newdepth);
-		// we need to set current again
-		RenderingManager::getInstance()->setCurrentSource(currentSource);
+        // we need to set current again
+        RenderingManager::getInstance()->setCurrentSource(currentSource);
 
-		return true;
-	}
+        return true;
+    }
 
 	return false;
 }
