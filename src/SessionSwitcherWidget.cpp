@@ -205,7 +205,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 	easingCurvePicker->setViewMode(QListView::IconMode);
 	easingCurvePicker->setWrapping (false);
     easingCurvePicker->setIconSize(m_iconSize);
-    easingCurvePicker->setFixedHeight(m_iconSize.height()+24);
+    easingCurvePicker->setFixedHeight(m_iconSize.height()+26);
 	easingCurvePicker->setCurrentRow(3);
 
 	transitionTab->addTab( new QWidget(), "Auto");
