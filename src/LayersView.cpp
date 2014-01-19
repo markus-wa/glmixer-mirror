@@ -394,15 +394,15 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
             if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL)) {
 				// ready for grabbing the current source
 				if ( clicked->isModifiable() ){
-                    // put this source in the forward list
-					bringForward(clicked);
+//                    // put this source in the forward list
+//					bringForward(clicked);
 
-                    picking_map_width = MAXDISPLACEMENT + clicked->getAspectRatio() +  OutputRenderWindow::getInstance()->getAspectRatio();
-                    picking_map_needsupdate = true;
+//                    picking_map_width = MAXDISPLACEMENT + clicked->getAspectRatio() +  OutputRenderWindow::getInstance()->getAspectRatio();
+//                    picking_map_needsupdate = true;
+//                    picking_grab_depth = unProjectDepth(event->x(), viewport[3] - event->y());
 
 					// ready for grabbing the current source
-					setAction(View::GRAB);
-                    picking_grab_depth = unProjectDepth(event->x(), viewport[3] - event->y());
+                    setAction(View::GRAB);
 				}
 			}
 			// context menu
@@ -484,10 +484,20 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
 		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 
 		// if there is a current source, grab it (with other forward sources)
-		if ( currentAction == View::GRAB && RenderingManager::getInstance()->isValid(cs))
+        if ( currentAction == View::GRAB && RenderingManager::getInstance()->isValid(cs)) {
+
+            if (forwardSources.size() == 0) {
+                // put this source in the forward list
+                bringForward( *cs);
+
+                picking_map_width = MAXDISPLACEMENT + (*cs)->getAspectRatio() +  OutputRenderWindow::getInstance()->getAspectRatio();
+                picking_map_needsupdate = true;
+                picking_grab_depth = unProjectDepth(event->x(), viewport[3] - event->y());
+            }
+
             grabSources( *cs, unProjectDepth(event->x(), viewport[3] - event->y()));
 
-        else
+        } else
         // other cause for action without a current source ; selection area
         {
             // enable drawing of selection area
