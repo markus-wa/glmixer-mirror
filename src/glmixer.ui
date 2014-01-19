@@ -59,6 +59,8 @@ QToolButton:pressed {
 QToolButton:hover { 
      border-color: palette(highlight);
 }
+
+
 </string>
   </property>
   <property name="locale">
@@ -2868,6 +2870,36 @@ QToolButton:hover {
    </property>
    <property name="toolTip">
     <string>Switch smoothly between .glm sessions.</string>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height:16 px;
+     min-width: 16 px;
+     max-height:20 px;
+     max-width: 20 px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+	background: palette(midlight);
+}
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}
+
+
+</string>
    </property>
    <property name="windowTitle">
     <string>Session switcher</string>
