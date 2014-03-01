@@ -23,6 +23,7 @@
 
 #ifdef FFGL
 #include "FFGLPluginBrowser.h"
+#include "GLSLCodeEditorWidget.h"
 #endif
 
 #include "MixingToolboxWidget.moc"
@@ -266,7 +267,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     pluginBrowser = new FFGLPluginBrowser(Plugin);
     pluginBrowserLayout->addWidget(pluginBrowser);
     QObject::connect(pluginBrowser, SIGNAL( pluginChanged()), this, SLOT(changed()) );
-
+    pluginFactoryEditor = NULL;
 #else
     mixingToolBox->removeTab( mixingToolBox->indexOf(Plugin) );
 #endif
@@ -693,6 +694,46 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
         changed();
     }
 }
+
+void MixingToolboxWidget::on_addFactoryPlugin_pressed()
+{
+    static bool first_launch = true;
+
+    if(!pluginFactoryEditor)
+        pluginFactoryEditor = new GLSLCodeEditorWidget();
+//        pluginFactoryEditor->setCode(fragmentShaderCode);
+//        pluginFactoryEditor->setHeader(fragmentShaderHeader);
+
+
+    if (source ) {
+
+        // TODO support OSX and WIN32
+        QFileInfo plugindll( QString(QDesktopServices::storageLocation(QDesktopServices::TempLocation)).append("/qtglsl.so") );
+
+        // create the plugin file in temporary location
+        // (make sure we do it each new run of GLMixer (might have been updated)
+        // and in case the file does not exist (might have been deleted by sytem) )
+        if (first_launch || !plugindll.exists()) {
+            if (plugindll.exists() )
+                QFile::remove(plugindll.absoluteFilePath());
+            QFile::copy(":/ffgl/qtglsl", plugindll.absoluteFilePath());
+            first_launch = false;
+        }
+
+        // load the freeframe plugin
+        source->addFreeframeGLPlugin( plugindll.absoluteFilePath() );
+        pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
+        changed();
+
+
+
+        pluginFactoryEditor->show();
+    }
+
+
+
+}
+
 
 #endif
 

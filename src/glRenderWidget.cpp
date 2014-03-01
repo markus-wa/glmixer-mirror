@@ -72,18 +72,19 @@ void glRenderWidget::setAntiAliasing(bool on)
 	antialiasing = on;
 	makeCurrent();
 
+    glDisable(GL_POLYGON_SMOOTH);
+
     // OPENGL ANTIALIASING
 	if (antialiasing) {
 		glEnable(GL_POINT_SMOOTH);
 		glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 		glEnable(GL_LINE_SMOOTH);
 		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);        
-        glEnable(GL_POLYGON_SMOOTH);
-        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+//        glEnable(GL_POLYGON_SMOOTH);
+//        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 	} else {
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_POINT_SMOOTH);
-        glDisable(GL_POLYGON_SMOOTH);
 	}
 }
 

@@ -77,6 +77,8 @@ public Q_SLOTS:
 #ifdef FFGL
     // Plugin page
     void on_addPlugin_pressed();
+    void on_addFactoryPlugin_pressed();
+
 #endif
 
     // state restoration
@@ -104,6 +106,7 @@ private:
 
 #ifdef FFGL
     class FFGLPluginBrowser *pluginBrowser;
+    class GLSLCodeEditorWidget *pluginFactoryEditor;
 #endif
 };
 

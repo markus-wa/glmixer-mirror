@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>682</width>
-    <height>552</height>
+    <width>678</width>
+    <height>648</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -59,10 +59,16 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QListWidget" name="listWidget">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>110</width>
+           <height>0</height>
+          </size>
          </property>
          <property name="autoScrollMargin">
           <number>16</number>
@@ -153,7 +159,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QPushButton" name="factorySettingsButton">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -169,6 +175,12 @@ p, li { white-space: pre-wrap; }
       <layout class="QVBoxLayout" name="LayoutRight">
        <item>
         <widget class="QStackedWidget" name="stackedPreferences">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="currentIndex">
           <number>0</number>
          </property>
@@ -195,6 +207,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QTableWidget" name="resolutionTable">
+                <property name="autoFillBackground">
+                 <bool>false</bool>
+                </property>
                 <property name="tabKeyNavigation">
                  <bool>false</bool>
                 </property>
@@ -210,11 +225,26 @@ p, li { white-space: pre-wrap; }
                 <property name="selectionBehavior">
                  <enum>QAbstractItemView::SelectRows</enum>
                 </property>
+                <property name="showGrid">
+                 <bool>true</bool>
+                </property>
+                <property name="cornerButtonEnabled">
+                 <bool>false</bool>
+                </property>
                 <attribute name="horizontalHeaderStretchLastSection">
                  <bool>true</bool>
                 </attribute>
+                <attribute name="verticalHeaderDefaultSectionSize">
+                 <number>28</number>
+                </attribute>
+                <attribute name="verticalHeaderHighlightSections">
+                 <bool>false</bool>
+                </attribute>
+                <attribute name="verticalHeaderMinimumSectionSize">
+                 <number>20</number>
+                </attribute>
                 <attribute name="verticalHeaderStretchLastSection">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </attribute>
                 <row>
                  <property name="text">
@@ -233,17 +263,17 @@ p, li { white-space: pre-wrap; }
                 </row>
                 <row>
                  <property name="text">
-                  <string>High def</string>
+                  <string>High</string>
                  </property>
                 </row>
                 <row>
                  <property name="text">
-                  <string>Ultra def</string>
+                  <string>Ultra</string>
                  </property>
                 </row>
                 <row>
                  <property name="text">
-                  <string>Quad def</string>
+                  <string>Quad</string>
                  </property>
                 </row>
                 <column>
@@ -438,22 +468,22 @@ p, li { white-space: pre-wrap; }
                 </item>
                 <item row="5" column="0">
                  <property name="text">
-                  <string>2048x1536 QXGA</string>
+                  <string notr="true">2048x1536 QXGA</string>
                  </property>
                 </item>
                 <item row="5" column="1">
                  <property name="text">
-                  <string>1920x1280</string>
+                  <string notr="true">1920x1280</string>
                  </property>
                 </item>
                 <item row="5" column="2">
                  <property name="text">
-                  <string>2048x1280</string>
+                  <string notr="true">2048x1280</string>
                  </property>
                 </item>
                 <item row="5" column="3">
                  <property name="text">
-                  <string>2048x1152 QWXGA</string>
+                  <string notr="true">2048x1152 QWXGA</string>
                  </property>
                 </item>
                </widget>
@@ -601,8 +631,8 @@ p, li { white-space: pre-wrap; }
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>20</width>
-               <height>7</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
             </spacer>
