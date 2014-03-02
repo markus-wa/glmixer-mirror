@@ -74,7 +74,16 @@ QToolButton:hover {
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <item>
@@ -395,13 +404,31 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="margin">
+     <property name="leftMargin">
+      <number>3</number>
+     </property>
+     <property name="topMargin">
+      <number>3</number>
+     </property>
+     <property name="rightMargin">
+      <number>3</number>
+     </property>
+     <property name="bottomMargin">
       <number>3</number>
      </property>
      <item>
       <widget class="QWidget" name="previewDockWidgetContents" native="true">
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -679,7 +706,16 @@ QToolButton:hover {
      </sizepolicy>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="margin">
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
       <number>6</number>
      </property>
      <item>
@@ -1034,7 +1070,16 @@ QToolButton:hover {
                <property name="spacing">
                 <number>4</number>
                </property>
-               <property name="margin">
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
                 <number>0</number>
                </property>
                <item>
@@ -1053,7 +1098,16 @@ QToolButton:hover {
                  </property>
                  <widget class="QWidget" name="pageSpeed0">
                   <layout class="QHBoxLayout" name="horizontalLayout_14">
-                   <property name="margin">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1073,7 +1127,16 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed1">
                   <layout class="QHBoxLayout" name="horizontalLayout_13">
-                   <property name="margin">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1093,7 +1156,16 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed2">
                   <layout class="QHBoxLayout" name="horizontalLayout_12">
-                   <property name="margin">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1113,7 +1185,16 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed3">
                   <layout class="QHBoxLayout" name="horizontalLayout_11">
-                   <property name="margin">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1133,7 +1214,16 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed4">
                   <layout class="QHBoxLayout" name="horizontalLayout_10">
-                   <property name="margin">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1153,7 +1243,16 @@ QToolButton:hover {
                  </widget>
                  <widget class="QWidget" name="pageSpeed5">
                   <layout class="QHBoxLayout" name="horizontalLayout_9">
-                   <property name="margin">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
                     <number>0</number>
                    </property>
                    <item>
@@ -1207,7 +1306,7 @@ QToolButton:hover {
                <item>
                 <widget class="QToolButton" name="videoLoopButton">
                  <property name="toolTip">
-                  <string>Loop playback: jump back to mark-in when arrived at mark-out</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Loop playback (jump back to begin when arrived at end)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1263,7 +1362,16 @@ QToolButton:hover {
             <property name="spacing">
              <number>3</number>
             </property>
-            <property name="margin">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
              <number>0</number>
             </property>
             <item>
@@ -1338,7 +1446,7 @@ QToolButton:hover {
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Sets the IN mark at the current time</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the begin to the current time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QPushButton { 
@@ -1346,7 +1454,7 @@ QToolButton:hover {
      border-width: 1px;
      border-radius:3px;
 	 padding: 3px;
-     border-color: palette(button);
+     border-color: transparent;
      background: transparent;
 	 max-height: 16px;
      min-height: 16px;
@@ -1367,7 +1475,11 @@ QPushButton:disabled {
 </string>
                 </property>
                 <property name="text">
-                 <string>Set IN</string>
+                 <string>Set begin</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="../icons.qrc">
+                  <normaloff>:/glmixer/icons/media-frame-backward.png</normaloff>:/glmixer/icons/media-frame-backward.png</iconset>
                 </property>
                 <property name="shortcut">
                  <string>I</string>
@@ -1386,7 +1498,7 @@ QPushButton:disabled {
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Resets the IN mark at the start of file.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resets the begin to the start of file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton { 
@@ -1436,7 +1548,7 @@ QToolButton:hover {
                  </sizepolicy>
                 </property>
                 <property name="toolTip">
-                 <string>Sets the OUT mark at the current time</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the end to the current time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QPushButton { 
@@ -1444,7 +1556,7 @@ QToolButton:hover {
      border-width: 1px;
      border-radius:3px;
 	 padding: 3px;
-     border-color: palette(button);
+     border-color: transparent;
      background: transparent;
 	font-size: 9pt;
 	max-height: 16px;
@@ -1466,7 +1578,11 @@ QPushButton:disabled {
 </string>
                 </property>
                 <property name="text">
-                 <string>Set OUT</string>
+                 <string>Set end</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="../icons.qrc">
+                  <normaloff>:/glmixer/icons/media-frame-forward.png</normaloff>:/glmixer/icons/media-frame-forward.png</iconset>
                 </property>
                 <property name="shortcut">
                  <string>O</string>
@@ -1491,7 +1607,7 @@ QPushButton:disabled {
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Reset the OUT mark at the end of file.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reset the end to the end of file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton { 
@@ -1560,7 +1676,7 @@ QToolButton:hover {
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Time line</string>
+                 <string>Current position</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QSlider::groove:horizontal {
@@ -1628,7 +1744,7 @@ border-color: palette(dark);
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Placement of the mark IN</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Position of the begin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QSlider::groove:horizontal {
@@ -1646,8 +1762,8 @@ border-radius: 3px;
 }
 
 QSlider::add-page:horizontal {
-background: palette(dark);
-border: 1px solid palette(shadow);
+background: palette(midlight);
+border: 1px solid palette(dark);
 height: 4px;
 border-radius: 3px;
 }
@@ -1708,7 +1824,7 @@ border-color: palette(dark);
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Placement of the mark OUT</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Position of the end&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QSlider::groove:horizontal {
@@ -1726,8 +1842,8 @@ border-radius: 3px;
 }
 
 QSlider::sub-page:horizontal {
-background: palette(dark);
-border: 1px solid palette(shadow);
+background: palette(midlight);
+border: 1px solid palette(dark);
 height: 4px;
 border-radius: 3px;
 }
@@ -1893,11 +2009,10 @@ but is more precise in time..</string>
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string>Check to go to mark IN position when pressing stop.
-Uncheck to stay on the same frame when pressing stop.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to go to begin position when pressing stop.&lt;/p&gt;&lt;p&gt;Uncheck to stay on the same frame when pressing stop.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string>Replay at mark IN</string>
+            <string>Replay at begin</string>
            </property>
           </widget>
          </item>
@@ -2727,7 +2842,16 @@ QToolButton:hover {
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>9</number>
+         </property>
+         <property name="topMargin">
+          <number>9</number>
+         </property>
+         <property name="rightMargin">
+          <number>9</number>
+         </property>
+         <property name="bottomMargin">
           <number>9</number>
          </property>
          <item>
@@ -2934,7 +3058,16 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorMagnetOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>9</number>
+         </property>
+         <property name="topMargin">
+          <number>9</number>
+         </property>
+         <property name="rightMargin">
+          <number>9</number>
+         </property>
+         <property name="bottomMargin">
           <number>9</number>
          </property>
          <item>
@@ -3225,7 +3358,16 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="switcherDockWidgetContents">
     <layout class="QVBoxLayout" name="switcherDockWidgetContentsLayout">
-     <property name="margin">
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
       <number>6</number>
      </property>
     </layout>
@@ -3283,7 +3425,16 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="margin">
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
       <number>6</number>
      </property>
      <item>
@@ -3501,7 +3652,16 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="blocnoteDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_5">
-     <property name="margin">
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
       <number>6</number>
      </property>
      <item>
