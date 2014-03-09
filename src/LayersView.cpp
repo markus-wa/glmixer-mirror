@@ -454,7 +454,7 @@ bool LayersView::mousePressEvent ( QMouseEvent *event )
 
 bool LayersView::mouseMoveEvent ( QMouseEvent *event ) {
 
-    if (!event || !QRect(10, 10, viewport[2]-10, viewport[3]-10).contains(event->pos()))
+    if (!event || !QRect(10, 10, viewport[2]-20, viewport[3]-20).contains(event->pos()))
         return false;
 
     int dx = event->x() - lastClicPos.x();
