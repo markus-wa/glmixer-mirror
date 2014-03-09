@@ -20,8 +20,8 @@
 #define MAX_LIMBO_SIZE 3.0
 #define MIN_DEPTH_LAYER 0.0
 #define MAX_DEPTH_LAYER 30.0
-#define MIN_SCALE 0.31
-#define MAX_SCALE 100.0
+#define MIN_SCALE 0.1
+#define MAX_SCALE 200.0
 #define DEPTH_EPSILON 0.01
 #define BORDER_SIZE 0.4
 #define CENTER_SIZE 1.2

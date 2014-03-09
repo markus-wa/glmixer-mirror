@@ -38,7 +38,7 @@ class MixerView: public View {
 
 public:
 
-	MixerView();
+    MixerView();
 
     void paint();
     void setModelview();
@@ -52,21 +52,21 @@ public:
     bool keyReleaseEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
-	void clear();
-	void zoomReset();
-	void zoomBestFit( bool onlyClickedSource = false );
+    void clear();
+    void zoomReset();
+    void zoomBestFit( bool onlyClickedSource = false );
 
     SourceListArray::iterator findGroup(Source *s);
     bool isInAGroup(Source *);
     void removeFromGroup(Source *s);
 
-	QDomElement getConfiguration(QDomDocument &doc);
-	void setConfiguration(QDomElement xmlconfig);
+    QDomElement getConfiguration(QDomDocument &doc);
+    void setConfiguration(QDomElement xmlconfig);
 
-	GLdouble getLimboSize();
-	void setLimboSize(GLdouble s);
+    GLdouble getLimboSize();
+    void setLimboSize(GLdouble s);
 
-	static QRectF getBoundingBox(const SourceList &l);
+    static QRectF getBoundingBox(const SourceList &l);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);
 
@@ -81,16 +81,19 @@ private:
     void setAction(ActionType a);
 
     // creation of groups from set of selection
-	SourceListArray groupSources;
-	QMap<SourceListArray::iterator, QColor> groupColor;
+    SourceListArray groupSources;
+    QMap<SourceListArray::iterator, QColor> groupColor;
 
-	// selection area
+    // selection area
     MixerSelectionArea _selectionArea;
 
-	// limbo area (where sources are in standy)
-	GLdouble limboSize;
-	bool _modeScaleLimbo;
-	bool _modeMoveCircle;
+    // limbo area (where sources are in standy)
+    GLdouble limboSize;
+    bool _modeScaleLimbo;
+    bool _modeMoveCircle;
+
+    // actual area of work
+    double _mixingArea[4];
 };
 
 #endif /* MIXERVIEWWIDGET_H_ */

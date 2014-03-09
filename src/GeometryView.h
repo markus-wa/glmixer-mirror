@@ -41,7 +41,7 @@ public:
 
     typedef enum {MOVE, SCALE, ROTATE, CROP} toolType;
 
-	GeometryView();
+    GeometryView();
 
     void paint();
     void setModelview();
@@ -55,16 +55,16 @@ public:
     bool keyReleaseEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
-	void zoomReset();
-	void zoomBestFit( bool onlyClickedSource = false );
+    void zoomReset();
+    void zoomBestFit( bool onlyClickedSource = false );
 
     void setAction(ActionType a);
-	void setTool(toolType t);
-	toolType getTool() { return currentTool; }
+    void setTool(toolType t);
+    toolType getTool() { return currentTool; }
 
-	// utility method to get the bounding box of a list of sources in geometry view
-	static QRectF getBoundingBox(const Source *s, bool invert_y=false);
-	static QRectF getBoundingBox(const SourceList &l, bool invert_y=false);
+    // utility method to get the bounding box of a list of sources in geometry view
+    static QRectF getBoundingBox(const Source *s, bool invert_y=false);
+    static QRectF getBoundingBox(const SourceList &l, bool invert_y=false);
 
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);
@@ -89,7 +89,7 @@ private:
     void setCurrentSource(Source *s);
     Source *getCurrentSource();
 
-	// selection area
+    // selection area
     GeometrySelectionArea _selectionArea;
 
     char quadrant;
@@ -99,7 +99,7 @@ private:
     Source *currentSource;
 
     bool _modeMoveFrame;
-
+    double _geometryArea[4];
 };
 
 #endif /* GEOMETRYVIEWWIDGET_H_ */

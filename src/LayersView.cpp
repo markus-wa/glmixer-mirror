@@ -102,16 +102,16 @@ void LayersSelectionArea::draw() {
 
 LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), forwardDisplacement(0) {
 
-	zoom = DEFAULTZOOM;
-	minzoom = MINZOOM;
-	maxzoom = MAX_DEPTH_LAYER;
+    zoom = DEFAULTZOOM;
+    minzoom = MINZOOM;
+    maxzoom = MAX_DEPTH_LAYER;
     maxpanx = MAX_PANNING;
     maxpany = MAX_PANNING;
     maxpanz = MAX_PANNING;
-	zoomReset();
-	currentAction = View::NONE;
+    zoomReset();
+    currentAction = View::NONE;
 
-	icon.load(QString::fromUtf8(":/glmixer/icons/depth.png"));
+    icon.load(QString::fromUtf8(":/glmixer/icons/depth.png"));
     title = " Layers view";
 
     picking_fbo = NULL;
@@ -123,7 +123,7 @@ LayersView::LayersView(): lookatdistance(DEFAULT_LOOKAT), forwardDisplacement(0)
 
 void LayersView::setModelview()
 {
-	View::setModelview();
+    View::setModelview();
     glTranslatef(getPanningX(), getPanningY(), getPanningZ());
     gluLookAt(lookatdistance, lookatdistance, lookatdistance + zoom, 0.0, 0.0, zoom, 0.0, 1.0, 0.0);
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
@@ -135,11 +135,11 @@ void LayersView::setModelview()
 
 void LayersView::paint()
 {
-	static bool first = true;
+    static bool first = true;
 
     // First the background stuff
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
     glCallList(ViewRenderWidget::layerbg);
 
 
@@ -168,22 +168,22 @@ void LayersView::paint()
 
         // loop over the sources (reversed depth order)
         first = true;
-		for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+        for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-			if ((*its)->isStandby())
-				continue;
-			//
-			// 1. Render it into current view
-			//
-			glPushMatrix();
+            if ((*its)->isStandby())
+                continue;
+            //
+            // 1. Render it into current view
+            //
+            glPushMatrix();
 
-			// if the source is active or part of the selection which is active
-			if ( forwardSources.count(*its) > 0 ) {
-				// animated displacement
-				if (forwardDisplacement < MAXDISPLACEMENT)
-					forwardDisplacement += ( MAXDISPLACEMENT + 0.1 - forwardDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
-				glTranslatef( forwardDisplacement, 0.0, 0.0);
-			}
+            // if the source is active or part of the selection which is active
+            if ( forwardSources.count(*its) > 0 ) {
+                // animated displacement
+                if (forwardDisplacement < MAXDISPLACEMENT)
+                    forwardDisplacement += ( MAXDISPLACEMENT + 0.1 - forwardDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
+                glTranslatef( forwardDisplacement, 0.0, 0.0);
+            }
 //            else {
 //                // draw stippled version of the source on top
 //                glEnable(GL_POLYGON_STIPPLE);
@@ -191,32 +191,32 @@ void LayersView::paint()
 //            }
 
             glTranslatef( 0.0, 0.0, (*its)->getDepth());
-	        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+            glScalef((*its)->getAspectRatio(), 1.0, 1.0);
 
-			// standard transparency blending
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glBlendEquation(GL_FUNC_ADD);
+            // standard transparency blending
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendEquation(GL_FUNC_ADD);
 
-			ViewRenderWidget::setSourceDrawingMode(false);
-			// draw border (larger if active)
-			if (RenderingManager::getInstance()->isCurrentSource(its))
-				glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2));
-			else
-				glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2));
+            ViewRenderWidget::setSourceDrawingMode(false);
+            // draw border (larger if active)
+            if (RenderingManager::getInstance()->isCurrentSource(its))
+                glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2));
+            else
+                glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2));
 
-			// draw border for selection
-			if (SelectionManager::getInstance()->isInSelection(*its))
-				glCallList(ViewRenderWidget::frame_selection);
+            // draw border for selection
+            if (SelectionManager::getInstance()->isInSelection(*its))
+                glCallList(ViewRenderWidget::frame_selection);
 
-			ViewRenderWidget::setSourceDrawingMode(true);
+            ViewRenderWidget::setSourceDrawingMode(true);
 
-			// Blending Function for mixing like in the rendering window
-			(*its)->beginEffectsSection();
+            // Blending Function for mixing like in the rendering window
+            (*its)->beginEffectsSection();
             // bind the source texture
             (*its)->bind();
-			// draw surface
+            // draw surface
             (*its)->blend();
-			(*its)->draw();
+            (*its)->draw();
 
             // standard transparency blending
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -228,48 +228,48 @@ void LayersView::paint()
             (*its)->draw(false);
             glDisable(GL_POLYGON_STIPPLE);
 
-			glPopMatrix();
+            glPopMatrix();
 
-			//
-			// 2. Render it into FBO
-			//
-			RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-			first = false;
+            //
+            // 2. Render it into FBO
+            //
+            RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+            first = false;
 
-		}
-		ViewRenderWidget::program->release();
+        }
+        ViewRenderWidget::program->release();
     }
 
     // restore state
-	glActiveTexture(GL_TEXTURE0);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
+    glActiveTexture(GL_TEXTURE0);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
 
-	// if no source was rendered, clear anyway
-	RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
+    // if no source was rendered, clear anyway
+    RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
 
-	// post render draw (loop back and recorder)
-	RenderingManager::getInstance()->postRenderToFrameBuffer();
+    // post render draw (loop back and recorder)
+    RenderingManager::getInstance()->postRenderToFrameBuffer();
 
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();
     if ( s ){
         double depth = unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y());
 
-		glPushMatrix();
-		forwardDisplacement = MAXDISPLACEMENT;
+        glPushMatrix();
+        forwardDisplacement = MAXDISPLACEMENT;
         glTranslated( forwardDisplacement, 0.0, depth);
-			glPushMatrix();
-			glTranslated( s->getAspectRatio(), -0.9, 0.0);
-	        glScalef(0.1, 0.1, 1.0);
-			for (int i = 1; i < RenderingManager::getInstance()->getSourceBasketSize(); ++i ) {
-				glTranslated( 2.1, 0.0, 0.0);
-				glCallList(ViewRenderWidget::border_thin);
-			}
-			glPopMatrix();
+            glPushMatrix();
+            glTranslated( s->getAspectRatio(), -0.9, 0.0);
+            glScalef(0.1, 0.1, 1.0);
+            for (int i = 1; i < RenderingManager::getInstance()->getSourceBasketSize(); ++i ) {
+                glTranslated( 2.1, 0.0, 0.0);
+                glCallList(ViewRenderWidget::border_thin);
+            }
+            glPopMatrix();
         glScalef(s->getAspectRatio(), 1.0, 1.0);
-		glCallList(ViewRenderWidget::border_thin);
-		glPopMatrix();
+        glCallList(ViewRenderWidget::border_thin);
+        glPopMatrix();
     }
 
 ////  debug
@@ -281,15 +281,15 @@ void LayersView::paint()
 
 void LayersView::resize(int w, int h)
 {
-	View::resize(w, h);
-	glViewport(0, 0, viewport[2], viewport[3]);
+    View::resize(w, h);
+    glViewport(0, 0, viewport[2], viewport[3]);
 
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(50.0f, (double)  viewport[2] / (double)  viewport[3], 0.1f, lookatdistance * 10.0f);
 
-	glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
 
     // delete previous picking fbo
     if (picking_fbo)
@@ -309,91 +309,90 @@ void LayersView::resize(int w, int h)
 
 void LayersView::setAction(ActionType a){
 
-	View::setAction(a);
+    View::setAction(a);
 
-	switch(a) {
-	case View::OVER:
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
-		break;
-	case View::GRAB:
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
-		break;
-	case View::SELECT:
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
-		break;
-	case View::PANNING:
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
-		break;
-	case View::DROP:
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-		break;
-	default:
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
-		break;
-	}
+    switch(a) {
+    case View::OVER:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
+        break;
+    case View::GRAB:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
+        break;
+    case View::SELECT:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
+        break;
+    case View::PANNING:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SIZEALL);
+        break;
+    case View::DROP:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+        break;
+    default:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+        break;
+    }
 }
 
 void LayersView::bringForward(Source *s)
 {
-	//reset forward if the source is not already in
-	if (forwardSources.count(s) == 0)
-		forwardDisplacement = 0;
+    //reset forward if the source is not already in
+    if (forwardSources.count(s) == 0)
+        forwardDisplacement = 0;
 
-	// if the source is part of a selection, set the whole selection to be forward
+    // if the source is part of a selection, set the whole selection to be forward
     if (SelectionManager::getInstance()->isInSelection(s) && SelectionManager::getInstance()->isInSelection(*RenderingManager::getInstance()->getCurrentSource()) )
-		forwardSources = SelectionManager::getInstance()->copySelection();
-	else {
-		// else only this source is forward
-		forwardSources = SourceList();
-		forwardSources.insert(s);
-	}
+        forwardSources = SelectionManager::getInstance()->copySelection();
+    else {
+        // else only this source is forward
+        forwardSources = SourceList();
+        forwardSources.insert(s);
+    }
 }
 
-bool LayersView::mousePressEvent(QMouseEvent *event)
+bool LayersView::mousePressEvent ( QMouseEvent *event )
 {
-	lastClicPos = event->pos();
+    lastClicPos = event->pos();
 
+    // MIDDLE BUTTON ; panning cursor
+    if ( isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) ) {
+        setAction(View::PANNING);
+        return false;
+    }
 
-	// MIDDLE BUTTON ; panning cursor
-	if ( isUserInput(event, INPUT_NAVIGATE) ||  isUserInput(event, INPUT_DRAG) ) {
-		setAction(View::PANNING);
-		return false;
-	}
+    // DRoP MODE ; explicitly do nothing
+    if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+        setAction(View::DROP);
+        // don't interpret other mouse events in drop mode
+        if (isUserInput(event, INPUT_CONTEXT_MENU))
+            RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_DROP, event->pos());
+        return false;
+    }
 
-	// DRoP MODE ; explicitly do nothing
-	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-		setAction(View::DROP);
-		// don't interpret other mouse events in drop mode
-		if (isUserInput(event, INPUT_CONTEXT_MENU))
-			RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_DROP, event->pos());
-		return false;
-	}
+    // if at least one source icon was clicked
+    if (getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
 
-	// if at least one source icon was clicked
-	if (getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) ) {
+        // get the top most clicked source
+        Source *clicked = *clickedSources.begin();
+        if (!clicked)
+            return false;
 
-    	// get the top most clicked source
-    	Source *clicked = *clickedSources.begin();
-    	if (!clicked)
-    		return false;
-
-		// CTRL clic = add/remove from selection
+        // CTRL clic = add/remove from selection
         if ( isUserInput(event, INPUT_SELECT) ) {
             SelectionManager::getInstance()->select(clicked);
         }
         // else not SELECTION ; normal action
         else {
-			// not in selection (SELECT) action mode, then set the current active source
-			RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
+            // not in selection (SELECT) action mode, then set the current active source
+            RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
-			// if the source is not in the selection, discard the selection
+            // if the source is not in the selection, discard the selection
             if ( !SelectionManager::getInstance()->isInSelection(clicked) || isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) )
-				SelectionManager::getInstance()->clearSelection();
+                SelectionManager::getInstance()->clearSelection();
 
             // tool
             if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL)) {
-				// ready for grabbing the current source
-				if ( clicked->isModifiable() ){
+                // ready for grabbing the current source
+                if ( clicked->isModifiable() ){
 //                    // put this source in the forward list
 //					bringForward(clicked);
 
@@ -401,20 +400,20 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
 //                    picking_map_needsupdate = true;
 //                    picking_grab_depth = unProjectDepth(event->x(), viewport[3] - event->y());
 
-					// ready for grabbing the current source
+                    // ready for grabbing the current source
                     setAction(View::GRAB);
-				}
-			}
-			// context menu
-			else if ( isUserInput(event, INPUT_CONTEXT_MENU) )
-				RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
-			// zoom
-			else if ( isUserInput(event, INPUT_ZOOM) )
-				zoomBestFit(true);
+                }
+            }
+            // context menu
+            else if ( isUserInput(event, INPUT_CONTEXT_MENU) )
+                RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
+            // zoom
+            else if ( isUserInput(event, INPUT_ZOOM) )
+                zoomBestFit(true);
 
-		}
+        }
 
-		return true;
+        return true;
     }
 
     // clicked in the background
@@ -422,68 +421,71 @@ bool LayersView::mousePressEvent(QMouseEvent *event)
     _selectionArea.markStart(QPointF(0.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y()) ));
 
 
-	// context menu on the background
-	if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
-		RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
-		return false;
-	}
-	// zoom button in the background : zoom best fit
-	else if ( isUserInput(event, INPUT_ZOOM) ) {
-		zoomBestFit(false);
-		return false;
-	}
-	// selection mode, clic background is ineffective
-	else if ( isUserInput(event, INPUT_SELECT) )
-		return false;
+    // context menu on the background
+    if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
+        RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_VIEW, event->pos());
+        return false;
+    }
+    // zoom button in the background : zoom best fit
+    else if ( isUserInput(event, INPUT_ZOOM) ) {
+        zoomBestFit(false);
+        return false;
+    }
+    // selection mode, clic background is ineffective
+    else if ( isUserInput(event, INPUT_SELECT) )
+        return false;
 
 
-	// set current source to none (end of list)
-	RenderingManager::getInstance()->unsetCurrentSource();
+    // set current source to none (end of list)
+    RenderingManager::getInstance()->unsetCurrentSource();
 
-	// clear the list of sources forward
+    // clear the list of sources forward
     if (forwardSources.size() > 0) {
         forwardSources.clear();
         picking_map_width = 0;
         picking_map_needsupdate = true;
     }
 
-	// back to no action
-	setAction(View::NONE);
+    // back to no action
+    setAction(View::NONE);
 
-	return false;
+    return false;
 }
 
-bool LayersView::mouseMoveEvent(QMouseEvent *event)
-{
+bool LayersView::mouseMoveEvent ( QMouseEvent *event ) {
+
+    if (!event || !QRect(10, 10, viewport[2]-10, viewport[3]-10).contains(event->pos()))
+        return false;
+
     int dx = event->x() - lastClicPos.x();
     int dy = lastClicPos.y() - event->y();
     lastClicPos = event->pos();
 
     // DROP MODE : avoid other actions
-	if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
-		setAction(View::DROP);
-		// don't interpret mouse events in drop mode
-		return false;
-	}
+    if ( RenderingManager::getInstance()->getSourceBasketTop() ) {
+        setAction(View::DROP);
+        // don't interpret mouse events in drop mode
+        return false;
+    }
 
-	//  PANNING ; move the background
-	if ( currentAction == View::PANNING ) {
-		// move the view
-		panningBy(event->x(), event->y(), dx, dy);
-		return false;
-	}
+    //  PANNING ; move the background
+    if ( currentAction == View::PANNING ) {
+        // move the view
+        panningBy(event->x(), event->y(), dx, dy);
+        return false;
+    }
 
-	// SELECT MODE : no motion
-	if ( currentAction == View::SELECT )
-		return false;
+    // SELECT MODE : no motion
+    if ( currentAction == View::SELECT )
+        return false;
 
-	// LEFT BUTTON : grab
-	if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) ) {
+    // LEFT BUTTON : grab
+    if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL) ) {
 
-		// keep the iterator of the current source under the shoulder ; it will be used
-		SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+        // keep the iterator of the current source under the shoulder ; it will be used
+        SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
 
-		// if there is a current source, grab it (with other forward sources)
+        // if there is a current source, grab it (with other forward sources)
         if ( currentAction == View::GRAB && RenderingManager::getInstance()->isValid(cs)) {
 
             if (forwardSources.size() == 0) {
@@ -519,31 +521,31 @@ bool LayersView::mouseMoveEvent(QMouseEvent *event)
                 SelectionManager::getInstance()->setSelection(rectSources);
         }
 
-		return true;
-	}
+        return true;
+    }
 
-	// mouse over (no buttons)
-	// Show mouse over cursor only if no user input
-	if ( isUserInput(event, INPUT_NONE)) {
-		//  change action cursor if over a source
-		if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
-			setAction(View::OVER);
-		else
-			setAction(View::NONE);
-	}
+    // mouse over (no buttons)
+    // Show mouse over cursor only if no user input
+    if ( isUserInput(event, INPUT_NONE)) {
+        //  change action cursor if over a source
+        if ( getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), false) )
+            setAction(View::OVER);
+        else
+            setAction(View::NONE);
+    }
 
-	return false;
+    return false;
 }
 
 bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
-	// restore action mode
-	if ( RenderingManager::getInstance()->getSourceBasketTop() )
-		RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
-	else if (currentAction == View::GRAB || currentAction == View::DROP)
-		setAction(View::OVER);
-	else if (currentAction == View::PANNING )
-		setAction(previousAction);
+    // restore action mode
+    if ( RenderingManager::getInstance()->getSourceBasketTop() )
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+    else if (currentAction == View::GRAB || currentAction == View::DROP)
+        setAction(View::OVER);
+    else if (currentAction == View::PANNING )
+        setAction(previousAction);
 
     // end of selection area
     if (_selectionArea.isEnabled())
@@ -555,13 +557,13 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
         picking_map_needsupdate = true;
     }
 
-	return true;
+    return true;
 }
 
 
 bool LayersView::wheelEvent ( QWheelEvent * event ){
 
-	bool ret = false;
+    bool ret = false;
     lastClicPos = event->pos();
 
     // wheel main effect is to change zoom
@@ -569,51 +571,51 @@ bool LayersView::wheelEvent ( QWheelEvent * event ){
 
     // carry the selection
     if (currentAction == View::GRAB) {
-		// simulate a movement of the mouse
-		QMouseEvent *e = new QMouseEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, qtMouseButtons(INPUT_TOOL), qtMouseModifiers(INPUT_TOOL));
-		ret = mouseMoveEvent(e);
-		delete e;
-	}
+        // simulate a movement of the mouse
+        QMouseEvent *e = new QMouseEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, qtMouseButtons(INPUT_TOOL), qtMouseModifiers(INPUT_TOOL));
+        ret = mouseMoveEvent(e);
+        delete e;
+    }
 
     // update selection area if enabled
     if (_selectionArea.isEnabled())
         _selectionArea.markEnd(QPointF(6.0, unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y())));
 
-	return ret;
+    return ret;
 }
 
 void LayersView::zoomReset() {
 
-	lookatdistance = DEFAULT_LOOKAT;
-	setZoom(DEFAULTZOOM);
-	setPanning(DEFAULT_PANNING);
+    lookatdistance = DEFAULT_LOOKAT;
+    setZoom(DEFAULTZOOM);
+    setPanning(DEFAULT_PANNING);
 
 }
 
 void LayersView::zoomBestFit( bool onlyClickedSource ) {
 
-	// nothing to do if there is no source
-	if (RenderingManager::getInstance()->empty() ){
-		zoomReset();
-		return;
-	}
-
-	// 0. consider either the list of clicked sources, either the full list
-    SourceSet::iterator beginning, end;
-    if (onlyClickedSource && RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
-    	beginning = end = RenderingManager::getInstance()->getCurrentSource();
-    	end++;
-    } else {
-    	beginning = RenderingManager::getInstance()->getBegin();
-    	end = RenderingManager::getInstance()->getEnd();
+    // nothing to do if there is no source
+    if (RenderingManager::getInstance()->empty() ){
+        zoomReset();
+        return;
     }
 
-	// Compute bounding depths of every sources
+    // 0. consider either the list of clicked sources, either the full list
+    SourceSet::iterator beginning, end;
+    if (onlyClickedSource && RenderingManager::getInstance()->getCurrentSource() != RenderingManager::getInstance()->getEnd()) {
+        beginning = end = RenderingManager::getInstance()->getCurrentSource();
+        end++;
+    } else {
+        beginning = RenderingManager::getInstance()->getBegin();
+        end = RenderingManager::getInstance()->getEnd();
+    }
+
+    // Compute bounding depths of every sources
     double z_min = 10000, z_max = -10000;
-	for(SourceSet::iterator  its = beginning; its != end; its++) {
-		z_min = MINI (z_min, (*its)->getDepth());
-		z_max = MAXI (z_max, (*its)->getDepth());
-	}
+    for(SourceSet::iterator  its = beginning; its != end; its++) {
+        z_min = MINI (z_min, (*its)->getDepth());
+        z_max = MAXI (z_max, (*its)->getDepth());
+    }
 
     // focus on the first
     setZoom	( z_max - 1.0);
@@ -627,11 +629,11 @@ void LayersView::zoomBestFit( bool onlyClickedSource ) {
 
 bool LayersView::keyPressEvent ( QKeyEvent * event ){
 
-	// detect select mode
-	if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) ){
-		setAction(View::SELECT);
-		return true;
-	}
+    // detect select mode
+    if ( !(QApplication::keyboardModifiers() ^ View::qtMouseModifiers(INPUT_SELECT)) ){
+        setAction(View::SELECT);
+        return true;
+    }
 
     SourceSet::iterator currentSource = RenderingManager::getInstance()->getCurrentSource();
     if (currentSource != RenderingManager::getInstance()->getEnd()) {
@@ -668,20 +670,20 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
         return true;
     }
 
-	return false;
+    return false;
 }
 
 bool LayersView::keyReleaseEvent(QKeyEvent * event) {
 
-	if ( currentAction == View::SELECT && !(QApplication::keyboardModifiers() & View::qtMouseModifiers(INPUT_SELECT)) )
-		setAction(previousAction);
+    if ( currentAction == View::SELECT && !(QApplication::keyboardModifiers() & View::qtMouseModifiers(INPUT_SELECT)) )
+        setAction(previousAction);
 
-	return false;
+    return false;
 }
 
 bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
-	// prepare variables
+    // prepare variables
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
     GLint hits = 0;
 
@@ -704,16 +706,16 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     // rendering for select mode
     glMatrixMode(GL_MODELVIEW);
 
-	for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-		if ((*its)->isStandby())
-			continue;
+        if ((*its)->isStandby())
+            continue;
 
-		glPushMatrix();
+        glPushMatrix();
         // place and scale
-		if ( forwardSources.count(*its) > 0 )
+        if ( forwardSources.count(*its) > 0 )
             glTranslatef(forwardDisplacement, 0.0, (*its)->getDepth());
-		else
+        else
             glTranslatef(0.0, 0.0, (*its)->getDepth());
         glScalef((*its)->getAspectRatio() * 1.1, 1.1, 1.0);
 
@@ -731,16 +733,16 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
-	if (clic) {
-		clickedSources.clear();
-		while (hits != 0) {
-			clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
-			hits--;
-		}
+    if (clic) {
+        clickedSources.clear();
+        while (hits != 0) {
+            clickedSources.insert( *(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])) );
+            hits--;
+        }
 
-		return sourceClicked();
-	} else
-		return (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() );
+        return sourceClicked();
+    } else
+        return (hits != 0 && (*(RenderingManager::getInstance()->getById (selectBuf[ (hits-1) * 4 + 3])))->isModifiable() );
 }
 
 
@@ -937,8 +939,8 @@ void LayersView::moveSource(Source *s, double depthchange, bool setcurrent)
     SourceSet::iterator grabbedSource = RenderingManager::getInstance()->getById(s->getId());
     grabbedSource = RenderingManager::getInstance()->changeDepth(grabbedSource, newdepth);
 
-	// if we need to set current again
-	if (setcurrent)
+    // if we need to set current again
+    if (setcurrent)
         RenderingManager::getInstance()->setCurrentSource(grabbedSource);
 
 }
@@ -950,18 +952,18 @@ void LayersView::grabSources(Source *s, double depth)
     double deltad = depth - picking_grab_depth;
     picking_grab_depth = depth;
 
-	// move all the source placed forward
-	for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++) {
+    // move all the source placed forward
+    for(SourceList::iterator its = forwardSources.begin(); its != forwardSources.end(); its++) {
         moveSource( *its, deltad, (*its)->getId() == s->getId());
-		s = *RenderingManager::getInstance()->getCurrentSource();
-	}
+        s = *RenderingManager::getInstance()->getCurrentSource();
+    }
 }
 
 
 void LayersView::panningBy(int x, int y, int dx, int dy) {
 
-	// Y correction between Qt and OpenGL coordinates
-	y = viewport[3] - y;
+    // Y correction between Qt and OpenGL coordinates
+    y = viewport[3] - y;
 
     // feedback rendering to determine a depth
     GLfloat feedbuffer[4];
@@ -1002,36 +1004,36 @@ void LayersView::panningBy(int x, int y, int dx, int dy) {
 
 void LayersView::distributeSelection(View::Axis a, View::RelativePoint p)
 {
-	// get selection and discard useless operation
-	SourceList selection = SelectionManager::getInstance()->copySelection();
-	if (selection.size() < 2)
-		return;
+    // get selection and discard useless operation
+    SourceList selection = SelectionManager::getInstance()->copySelection();
+    if (selection.size() < 2)
+        return;
 
-	// use sourceset which is already depth sorted
-	SourceSet sortedlist;
+    // use sourceset which is already depth sorted
+    SourceSet sortedlist;
 
-	// bounding box = min and max
-	double bbox[] = { MAX_DEPTH_LAYER, MIN_DEPTH_LAYER };
-	for(SourceList::iterator  its = selection.begin(); its != selection.end(); its++) {
-		bbox[0] = qMin( (*its)->getDepth(), bbox[0]);
-		bbox[1] = qMax( (*its)->getDepth(), bbox[1]);
-		// add the source to the sorted list
-		sortedlist.insert(*its);
-	}
+    // bounding box = min and max
+    double bbox[] = { MAX_DEPTH_LAYER, MIN_DEPTH_LAYER };
+    for(SourceList::iterator  its = selection.begin(); its != selection.end(); its++) {
+        bbox[0] = qMin( (*its)->getDepth(), bbox[0]);
+        bbox[1] = qMax( (*its)->getDepth(), bbox[1]);
+        // add the source to the sorted list
+        sortedlist.insert(*its);
+    }
 
-	// compute the step of translation
-	double step = (bbox[1] - bbox[0]) / double(selection.size()-1);
-	double position = bbox[0];
+    // compute the step of translation
+    double step = (bbox[1] - bbox[0]) / double(selection.size()-1);
+    double position = bbox[0];
 
-	// loop over source list, except last
+    // loop over source list, except last
     for(SourceSet::iterator  its = sortedlist.begin(); its != sortedlist.end(); its++) {
 
-		// set new depth of source
-	    SourceSet::iterator currentSource = RenderingManager::getInstance()->getById((*its)->getId());
-		RenderingManager::getInstance()->changeDepth(currentSource, position);
+        // set new depth of source
+        SourceSet::iterator currentSource = RenderingManager::getInstance()->getById((*its)->getId());
+        RenderingManager::getInstance()->changeDepth(currentSource, position);
 
-		// go to next position
-		position += step;
-	}
+        // go to next position
+        position += step;
+    }
 
 }
