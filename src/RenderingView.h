@@ -30,13 +30,24 @@
 
 class RenderingView :  public View {
 public:
-	RenderingView();
-	virtual ~RenderingView();
+    RenderingView();
+    virtual ~RenderingView();
 
     void paint();
     void setModelview();
     void resize(int w = -1, int h = -1);
     bool mousePressEvent(QMouseEvent *event);
+    bool mouseMoveEvent(QMouseEvent *event);
+    bool mouseReleaseEvent ( QMouseEvent * event );
+    bool wheelEvent ( QWheelEvent * event );
+
+    void zoomReset();
+    void zoomBestFit( bool onlyClickedSource = false );
+
+    void setAction(ActionType a);
+
+private:
+    void panningBy(int x, int y, int dx, int dy);
 
 };
 
