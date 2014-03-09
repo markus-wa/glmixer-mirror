@@ -110,7 +110,7 @@ void SourceDisplayWidget::paintGL()
 		// flip vertical if requested
 		glScalef( aspectRatio, s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
 		// use source color
-	    glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
+        //glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
 
 	    // blending
 		glBlendEquationSeparate(equation, GL_MAX);
