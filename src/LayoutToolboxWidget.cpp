@@ -19,7 +19,8 @@ void LayoutToolboxWidget::setViewMode(View::viewMode a)
 
     rotateBox->setEnabled(a == View::GEOMETRY);
     resizeBox->setEnabled(a == View::GEOMETRY);
-    alignBox->setEnabled(a != View::LAYER);
+    alignBox->setEnabled(a == View::GEOMETRY || a == View::MIXING );
+    distributeBox->setEnabled( a != View::RENDERING );
 
     alignHorizontalLeftButton->setEnabled(a == View::GEOMETRY);
     alignHorizontalCenterButton->setDisabled(a == View::LAYER);

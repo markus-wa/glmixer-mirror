@@ -660,6 +660,9 @@ void GLMixer::setView(QAction *a){
 //	actionShow_Catalog->setEnabled(a == actionMixingView || a == actionGeometryView);
 //	RenderingManager::getRenderingWidget()->setCatalogVisible(actionShow_Catalog->isEnabled() && actionShow_Catalog->isChecked() );
 
+    // tools available in corresponding views
+    toolsToolBar->setEnabled(a != actionRenderingView);
+
     // get back the proper tool from former usage
     switch ( RenderingManager::getRenderingWidget()->getToolMode() ){
     case ViewRenderWidget::TOOL_SCALE:
