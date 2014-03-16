@@ -51,7 +51,9 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
 
     // create the entry for this plugin
     QFileInfo pluginfile(plugin->fileName());
+    // root in the tree view with a basic name
     QtProperty *pluginroot = groupManager->addProperty( pluginfile.baseName());
+
     // keep correspondance between property and plugin
     propertyToPluginParameter[pluginroot] = QPair<FFGLPluginSource *, int>(plugin, -1);
 
@@ -97,33 +99,26 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
         paramNum++;
     }
 
-    // Add the informations on this plugin
-    QtProperty *info = groupManager->addProperty( QString("About ")+pluginfile.baseName() );
-    // keep correspondance between property and plugin
-    propertyToPluginParameter[info] = QPair<FFGLPluginSource *, int>(plugin, -1);
+    // Get the informations on this plugin into a string list
+    QStringList tooltipinformation;
 
     // iterate over the plugin infos
     QVariantHash informations = plugin->getInfo();
     QHashIterator<QString, QVariant> j(informations);
     while (j.hasNext()) {
        j.next();
-       property = infoManager->addProperty( j.key() );
-       infoManager->setValue(property, j.value().toString());
-       info->addSubProperty(property);
-       property->setItalics(true);
-       // keep correspondance between property and plugin
-       propertyToPluginParameter[property] = QPair<FFGLPluginSource *, int>(plugin, -1);
+       tooltipinformation << j.key().simplified().leftJustified(13, ' ') + j.value().toString().simplified();
     }
-    property = infoManager->addProperty( QLatin1String("File") );
-    property->setToolTip(pluginfile.absoluteFilePath());
-    property->setItalics(true);
-    infoManager->setValue(property, pluginfile.fileName());
-    info->addSubProperty(property);
-    // keep correspondance between property and plugin
-    propertyToPluginParameter[property] = QPair<FFGLPluginSource *, int>(plugin, -1);
+    // add info on the filename
+    tooltipinformation << QString("File").leftJustified(13, ' ') + pluginfile.fileName();
 
-    pluginroot->addSubProperty(info);
+    // put all these info in the tooltip
+    pluginroot->setToolTip(tooltipinformation.join("\n"));
 
+    // give definitive name to the root entry
+    pluginroot->setPropertyName( informations["Name"].toString() );
+
+    // done
     return pluginroot;
 }
 

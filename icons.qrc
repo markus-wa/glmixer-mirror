@@ -147,5 +147,8 @@
         <file>icons/videocontrol.png</file>
         <file>icons/listsources.png</file>
         <file>icons/calendar.png</file>
+        <file>icons/freeframe.png</file>
+        <file>icons/shadertoy_black.png</file>
+        <file>icons/shadertoy_white.png</file>
     </qresource>
 </RCC>

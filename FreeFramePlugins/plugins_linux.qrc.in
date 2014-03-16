@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/ffgl">
-        <file alias="FreeFrameFragmentCodePlugin">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameFragmentCodePlugin/libFreeFrameFragmentCodePlugin.so</file>
+        <file alias="Shadertoy">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameFragmentCodePlugin/libShadertoy.so</file>
         <file alias="wave">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameWavePlugin/libffglWave.so</file>
     </qresource>
 </RCC>

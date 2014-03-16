@@ -44,7 +44,7 @@ public:
         if (result!=NULL) {
             PluginInfoStructTag *plugininfo = (PluginInfoStructTag*) result;
             mapinfo.insert("Name", (char *) plugininfo->PluginName);
-            mapinfo.insert("Type", (uint) plugininfo->PluginType);
+            mapinfo.insert("Type", plugininfo->PluginType == 1 ? QString("Source") : QString("Effect") );
         }
         return mapinfo;
     }
@@ -62,9 +62,9 @@ public:
 #endif
         if (result!=NULL) {
             PluginExtendedInfoStructTag *plugininfo = (PluginExtendedInfoStructTag*) result;
+            mapinfo.insert("Version", QString("%1.%2").arg(plugininfo->PluginMajorVersion).arg(plugininfo->PluginMinorVersion));
             mapinfo.insert("Description", plugininfo->Description);
             mapinfo.insert("About", plugininfo->About);
-            mapinfo.insert("Version", QString("%1.%2").arg(plugininfo->PluginMajorVersion).arg(plugininfo->PluginMinorVersion));
         }
         return mapinfo;
     }
@@ -308,8 +308,8 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
 
     // fill in the information about this plugin
     info = _plugin->getInfo();
-    _isFreeframeTypeSource = info["Type"].toUInt() > 0;
     info.unite(_plugin->getExtendedInfo());
+    _isFreeframeTypeSource = info["Type"].toString() == "Source";
 //    qDebug() << info;
 
     // remember default values

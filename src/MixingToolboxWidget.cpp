@@ -22,6 +22,7 @@
 #include "glmixer.h"
 
 #ifdef FFGL
+#include "FFGLPluginSource.h"
 #include "FFGLPluginBrowser.h"
 #include "GLSLCodeEditorWidget.h"
 #endif
@@ -265,6 +266,10 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
 #ifdef FFGL
     // Setup the FFGL plugin property browser
     pluginBrowser = new FFGLPluginBrowser(Plugin);
+    pluginBrowser->setStyleSheet(QString::fromUtf8("QToolTip {\n"
+    "	font: 8pt \"Monospace\";\n"
+    "}"));
+
     pluginBrowserLayout->insertWidget(1, pluginBrowser);
     QObject::connect(pluginBrowser, SIGNAL( pluginChanged()), this, SLOT(changed()) );
     pluginFactoryEditor = NULL;
@@ -680,7 +685,7 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
 #endif
 #endif
     // browse for a plugin file
-    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), tr("Freeframe GL Plugin") + ext);
+    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FreeFrameGL Plugin library"), tr("Freeframe GL Plugin") + ext);
 
 
     QFileInfo pluginfile(fileName);
@@ -708,26 +713,34 @@ void MixingToolboxWidget::on_addFactoryPlugin_pressed()
     if (source ) {
 
         // TODO support OSX and WIN32
-        QFileInfo plugindll( QString(QDesktopServices::storageLocation(QDesktopServices::TempLocation)).append("/qtglsl.so") );
+        QFileInfo plugindll( QString(QDesktopServices::storageLocation(QDesktopServices::TempLocation)).append("/libShadertoy.so") );
 
-        // create the plugin file in temporary location
+        // replace the plugin file in temporary location
         // (make sure we do it each new run of GLMixer (might have been updated)
         // and in case the file does not exist (might have been deleted by sytem) )
         if (first_launch || !plugindll.exists()) {
-            if (plugindll.exists() )
-                QFile::remove(plugindll.absoluteFilePath());
-            QFile::copy(":/ffgl/qtglsl", plugindll.absoluteFilePath());
-            first_launch = false;
+            QFile::remove(plugindll.absoluteFilePath());
+//            if ( QFile::copy(":/ffgl/Shadertoy", plugindll.absoluteFilePath()) )
+                if ( QFile::copy(":/ffgl/wave", plugindll.absoluteFilePath()) )
+                first_launch = false;
+            else
+                qCritical() << tr("Error creating Shadertoy plugin.");
         }
 
         // load the freeframe plugin
         source->addFreeframeGLPlugin( plugindll.absoluteFilePath() );
-        pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
-        changed();
 
+        // test if it was added properly
+        if ( !source->getFreeframeGLPluginStack()->isEmpty() && source->getFreeframeGLPluginStack()->top()->fileName() == plugindll.absoluteFilePath() ) {
 
+            // the plugin was added, show it in the browser
+            pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
+            changed();
 
-        pluginFactoryEditor->show();
+            // show the Shadertoy code editor
+            pluginFactoryEditor->show();
+
+        }
     }
 
 

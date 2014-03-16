@@ -10,15 +10,15 @@
 
 
 const char *fragmentShaderHeader =  "uniform vec3      iResolution;\n"
-                                    "uniform float     iGlobalTime;           // shader playback time (in seconds)\n"
-                                    "uniform float     iChannelTime[1];       // channel playback time (in seconds)\n"
-                                    "uniform vec3      iChannelResolution[1]; // channel resolution (in pixels)\n"
-                                    "uniform sampler2D iChannel0;             // input channel.\n"
-                                    "uniform vec4      iDate;                 // (year, month, day, time in seconds)\n";
+                                    "uniform float     iGlobalTime;\n"
+                                    "uniform float     iChannelTime[1];\n"
+                                    "uniform vec3      iChannelResolution[1];\n"
+                                    "uniform sampler2D iChannel0;\n"
+                                    "uniform vec4      iDate;\n";
 
 const char *fragmentShaderDefaultCode = "void main(void){\n"
-        "\tvec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
-        "\tgl_FragColor = 0.6 * texture2D(iChannel0, uv);\n"
+        "vec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
+        "gl_FragColor = 0.6 * texture2D(iChannel0, uv);\n"
         "}\0";
 
 
@@ -28,15 +28,15 @@ const char *fragmentShaderDefaultCode = "void main(void){\n"
 
 static CFFGLPluginInfo PluginInfo (
         FreeFrameQtGLSL::CreateInstance,	// Create method
-        "GLQTGLSL",								// Plugin unique ID
-        "FFGLQtGLSL",			// Plugin name
+        "STFFGLGLSL",                       // Plugin unique ID
+        "SHADERTOYGLSL",                    // Plugin name
         1,						   			// API major version number
-        500,								  // API minor version number
-        1,										// Plugin major version number
-        000,									// Plugin minor version number
-        FF_EFFECT,						// Plugin type
-        "Sample plugin",	 // Plugin description
-        "by Bruno Herbelin"  // About
+        500,								// API minor version number
+        1,									// Plugin major version number
+        000,								// Plugin minor version number
+        FF_EFFECT,                          // Plugin type
+        "Shadertoy GLSL",                   // Plugin description
+        "by Bruno Herbelin"                 // About
         );
 
 
@@ -50,7 +50,7 @@ FreeFrameQtGLSL::FreeFrameQtGLSL()
     // Input properties
     SetMinInputs(1);
     SetMaxInputs(1);
-    SetTimeSupported(false);
+    SetTimeSupported(true);
 
     // No Parameters
     code_changed = true;
@@ -275,11 +275,11 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glUseProgram(shaderProgram);
 
     // set time uniforms
-    glUniform1f(uniform_time, m_curTime);
-    glUniform1f(uniform_channeltime, m_curTime);
-    std::time_t now = std::time(0);
-    std::tm *local = std::localtime(&now);
-    glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*24.0+local->tm_min*60.0+local->tm_sec);
+//    glUniform1f(uniform_time, m_curTime);
+//    glUniform1f(uniform_channeltime, m_curTime);
+//    std::time_t now = std::time(0);
+//    std::tm *local = std::localtime(&now);
+//    glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*24.0+local->tm_min*60.0+local->tm_sec);
 
     // activate the fbo2 as our render target
     if (!frameBufferObject.BindAsRenderTarget(glExtensions))
