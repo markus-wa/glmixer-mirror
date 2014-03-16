@@ -120,7 +120,8 @@ if(USE_FREEFRAMEGL)
     )
 
     SET(GLMIXER_UIS  ${GLMIXER_UIS}
-        CodeEditorWidget.ui
+        GLSLCodeEditorWidget.ui
+        FFGLSourceCreationDialog.ui
     )
 
     SET(GLMIXER_RCS  ${GLMIXER_RCS}
@@ -143,7 +144,6 @@ if(USE_FREEFRAMEGL)
         endif( WIN32 )
     endif( APPLE )
 
-    SET( GLMIXER_UIS  ${GLMIXER_UIS} FFGLSourceCreationDialog.ui)
 
 elseif(USE_FREEFRAMEGL)
     remove_definitions(-DFFGL)
