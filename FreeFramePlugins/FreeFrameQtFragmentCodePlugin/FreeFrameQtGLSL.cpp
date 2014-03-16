@@ -7,7 +7,6 @@
 #include <ctime>
 
 #include "FreeFrameQtGLSL.h"
-#include "GLSLCodeEditorWidget.h"
 
 
 const char *fragmentShaderHeader =  "uniform vec3      iResolution;           // viewport resolution (in pixels)\n"
@@ -19,15 +18,8 @@ const char *fragmentShaderHeader =  "uniform vec3      iResolution;           //
 
 const char *fragmentShaderDefaultCode = "void main(void){\n"
         "\tvec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
-        "\tgl_FragColor = texture2D(iChannel0, uv);\n"
+        "\tgl_FragColor = 0.6 * texture2D(iChannel0, uv);\n"
         "}\0";
-
-// http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.165.6050&rep=rep1&type=pdf
-//vec3 c=texture2D(texture, texc, 0.0).rgb;
-//vec3 a=texture2D(texture, texc, 0.5).rgb;
-//c/=2.0*a;
-//c = pow(c, vec3(0.4545) );
-//gl_FragColor= vec4(a, 1.0);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +45,7 @@ static CFFGLPluginInfo PluginInfo (
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FreeFrameQtGLSL::FreeFrameQtGLSL()
-    : CFreeFrameGLPlugin(), w(NULL)
+    : CFreeFrameGLPlugin()
 {
     // Input properties
     SetMinInputs(1);
@@ -61,6 +53,7 @@ FreeFrameQtGLSL::FreeFrameQtGLSL()
     SetTimeSupported(false);
 
     // No Parameters
+    code_changed = true;
     shaderProgram = 0;
     fragmentShader = 0;
     fragmentShaderCode = NULL;
@@ -134,11 +127,6 @@ FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
     if (!frameBufferObject.Create( viewport.width, viewport.height, glExtensions) )
         return FF_FAIL;
 
-    w = new GLSLCodeEditorWidget(this);
-    w->setCode(fragmentShaderCode);
-    w->setHeader(fragmentShaderHeader);
-    w->show();
-
     return FF_SUCCESS;
 }
 
@@ -156,8 +144,6 @@ FFResult FreeFrameQtGLSL::DeInitGL()
 
     if(fragmentShader) glDeleteShader(fragmentShader);
     if(shaderProgram)  glDeleteProgram(shaderProgram);
-
-    if (w) delete w;
 
     return FF_SUCCESS;
 }
@@ -278,8 +264,8 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         uniform_date = glGetUniformLocation(shaderProgram, "iDate");
 
 
-        if(w)
-            w->showLogs(infoLog);
+//        if(w)
+//            w->showLogs(infoLog);
 
         code_changed = false;
     }

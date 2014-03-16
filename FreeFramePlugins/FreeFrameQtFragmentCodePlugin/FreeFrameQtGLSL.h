@@ -4,6 +4,9 @@
 #include <FFGLPluginSDK.h>
 #include <FFGLFBO.h>
 
+
+
+
 class FreeFrameQtGLSL : public CFreeFrameGLPlugin
 {
 public:
@@ -45,10 +48,21 @@ public:
         return FF_FAIL;
     }
 
+//#ifdef FF_FAIL
+//    // FFGL 1.5
+//    DWORD __stdcall setCode(char *code)
+//#else
+//    // FFGL 1.6
+//    FFResult __stdcall setCode(char *code)
+//#endif
+//    {
+//            return FF_SUCCESS;
+//    }
+
     void setFragmentProgramCode(const char *code);
 
 protected:
-    class GLSLCodeEditorWidget *w;
+//    class GLSLCodeEditorWidget *w;
 
     FFGLViewportStruct viewport;
     FFGLExtensions glExtensions;
@@ -68,5 +82,32 @@ protected:
     double m_curTime;
 };
 
+
+
+extern "C" {
+
+#ifdef _WIN32
+
+BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved);
+
+__declspec(dllexport) FFMixed __stdcall plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanceID);
+typedef __declspec(dllimport) FFMixed (__stdcall *FF_Main_FuncPtr)(FFUInt32, FFMixed, FFInstanceID);
+
+#else
+
+//linux and Mac OSX share these
+//FFMixed plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanceID);
+//typedef FFMixed (*FF_Main_FuncPtr)(FFUInt32 funcCode, FFMixed inputVal, FFInstanceID instanceID);
+
+void  plugTest(char *code, FreeFrameQtGLSL *instance){
+
+    instance->setFragmentProgramCode(code);
+}
+//typedef void  (*FF_Test_FuncPtr)(void);
+
+
+#endif
+
+}
 
 #endif

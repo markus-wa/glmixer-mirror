@@ -265,7 +265,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
 #ifdef FFGL
     // Setup the FFGL plugin property browser
     pluginBrowser = new FFGLPluginBrowser(Plugin);
-    pluginBrowserLayout->addWidget(pluginBrowser);
+    pluginBrowserLayout->insertWidget(1, pluginBrowser);
     QObject::connect(pluginBrowser, SIGNAL( pluginChanged()), this, SLOT(changed()) );
     pluginFactoryEditor = NULL;
 #else
@@ -546,7 +546,7 @@ void MixingToolboxWidget::on_presetApply_pressed()
 }
 
 void MixingToolboxWidget::on_presetReApply_pressed()
-{    
+{
     if (source) {
         _userPresets[ presetsList->currentItem() ]->importProperties(source, false);
         setPresetItemTooltip(presetsList->currentItem(), source);

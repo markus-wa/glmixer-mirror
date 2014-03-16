@@ -21,7 +21,7 @@ class FFGLPluginSource {
 public:
 
     FFGLPluginSource(QString filename, int w, int h, FFGLTextureStruct inputTexture);
-    ~FFGLPluginSource();
+    virtual ~FFGLPluginSource();
 
     bool initialize();
     void update();
@@ -49,8 +49,8 @@ public:
     void restoreDefaults();
 
     // XML config
-    QDomElement getConfiguration(QDir current = QDir());
-    void setConfiguration(QDomElement xml);
+    virtual QDomElement getConfiguration(QDir current = QDir());
+    virtual void setConfiguration(QDomElement xml);
 
 private:
     // self management

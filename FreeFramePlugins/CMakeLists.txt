@@ -8,7 +8,8 @@ add_subdirectory(FreeFrameWavePlugin)
 add_subdirectory(FreeFrameBlurPlugin)
 add_subdirectory(FreeFrameDelayPlugin)
 add_subdirectory(FreeFrameQtScreenCapturePlugin)
-#add_subdirectory(FreeFrameQtFragmentCodePlugin)
+add_subdirectory(FreeFrameQtFragmentCodePlugin)
+
 
 # platofm specific plugins
 if(WIN32)
@@ -25,3 +26,6 @@ else(WIN32)
     endif(APPLE)
 
 endif(WIN32)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.qrc)
+

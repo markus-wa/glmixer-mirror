@@ -110,9 +110,22 @@ if(USE_FREEFRAMEGL)
         ${FREEFRAMEGL_DIR_HOST}/FFGLPluginInstance.cpp
         FFGLPluginSourceStack.cpp
         FFGLPluginSource.cpp
+        FFGLPluginSourceFactory.cpp
         FFGLPluginBrowser.cpp
         FFGLSource.cpp
-        FFGLSourceCreationDialog.cpp )
+        FFGLSourceCreationDialog.cpp
+        GLSLCodeEditor.cpp
+        GLSLCodeEditorWidget.cpp
+        GLSLSyntaxHighlighter.cpp
+    )
+
+    SET(GLMIXER_UIS  ${GLMIXER_UIS}
+        CodeEditorWidget.ui
+    )
+
+    SET(GLMIXER_RCS  ${GLMIXER_RCS}
+        ${CMAKE_CURRENT_BINARY_DIR}/../FreeFramePlugins/plugins.qrc
+    )
 
     if( APPLE )
         SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
