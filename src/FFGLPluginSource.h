@@ -1,7 +1,7 @@
 #ifndef FFGLPLUGINSOURCE_H
 #define FFGLPLUGINSOURCE_H
 
-#include "FFGL.h"
+#include <FFGL.h>
 
 #include <QtCore>
 #include <QString>
@@ -20,17 +20,31 @@ public:
 class FFGLPluginSource {
 public:
 
-    FFGLPluginSource(QString filename, int w, int h, FFGLTextureStruct inputTexture);
+    FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture);
     virtual ~FFGLPluginSource();
 
+    // Run-Time Type Information
+    typedef enum {
+        FREEFRAME_PLUGIN = 0,
+        SHADERTOY_PLUGIN
+    } RTTI;
+    virtual RTTI rtti() const { return type; }
+
+    // loading and initialization of FFGL plugin
+    void load(QString filename);
     bool initialize();
+
+    // update texture (to be called at each update of source)
     void update();
     void bind() const;
+
+    // general attributes
     inline QString fileName() const { return _filename; }
     inline bool isSourceType() const { return _isFreeframeTypeSource; }
     inline int width() const { return _fboSize.width(); }
     inline int height() const { return _fboSize.height(); }
 
+    // texture attributes
     FFGLTextureStruct getOutputTextureStruct();
     FFGLTextureStruct getInputTextureStruct();
     void setInputTextureStruct(FFGLTextureStruct inputTexture);
@@ -42,8 +56,11 @@ public:
     // parameters
     QVariantHash getParameters();
     QVariantHash getParametersDefaults() { return parametersDefaults; }
-    QVariantHash getInfo() { return info; }
     void setParameter(int parameterNum, QVariant value);
+    void setParameter(QString parameterName, QVariant value);
+
+    // information
+    virtual QVariantHash getInfo() { return info; }
 
     // reset
     void restoreDefaults();
@@ -51,6 +68,11 @@ public:
     // XML config
     virtual QDomElement getConfiguration(QDir current = QDir());
     virtual void setConfiguration(QDomElement xml);
+
+
+protected:
+    // FFGL specialized objects for plugin
+    class FFGLPluginInstance *_plugin;
 
 private:
     // self management
@@ -62,9 +84,6 @@ private:
     //this represents the texture (on the GPU) that we feed to the plugins
     FFGLTextureStruct _inputTexture;
 
-    // FFGL specialized objects for plugin
-    class FFGLPluginSourceInstance *_plugin;
-
     // timer
     QElapsedTimer timer;
     qint64 _elapsedtime;
@@ -73,6 +92,9 @@ private:
     // Frame buffer objet
     class QGLFramebufferObject *_fbo;
     QSize _fboSize;
+
+    // RTTI
+    static RTTI type;
 };
 
 

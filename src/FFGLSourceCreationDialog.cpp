@@ -18,7 +18,7 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
     ui->labelWarninEffect->setVisible(false);
 
     // Setup the FFGL plugin property browser
-    pluginBrowser = new FFGLPluginBrowser(this);
+    pluginBrowser = new FFGLPluginBrowser(this, false);
     ui->PropertiesLayout->insertWidget( ui->PropertiesLayout->count(),  pluginBrowser);
     pluginBrowser->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     pluginBrowser->switchToGroupView();

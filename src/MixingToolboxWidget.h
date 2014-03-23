@@ -26,7 +26,7 @@ public:
 
 public Q_SLOTS:
 
-	// get informed when a property is changed
+    // get informed when a property is changed
     void connectSource(SourceSet::iterator);
     void propertyChanged(QString propertyname, bool);
     void propertyChanged(QString propertyname, int);
@@ -77,7 +77,7 @@ public Q_SLOTS:
 #ifdef FFGL
     // Plugin page
     void on_addPlugin_pressed();
-    void on_addFactoryPlugin_pressed();
+    void on_addShadertoyPlugin_pressed();
 
 #endif
 
@@ -106,7 +106,7 @@ private:
 
 #ifdef FFGL
     class FFGLPluginBrowser *pluginBrowser;
-    class GLSLCodeEditorWidget *pluginFactoryEditor;
+    class GLSLCodeEditorWidget *pluginGLSLCodeEditor;
 #endif
 };
 

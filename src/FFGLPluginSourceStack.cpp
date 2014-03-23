@@ -1,4 +1,5 @@
 #include "FFGLPluginSource.h"
+#include "FFGLPluginSourceShadertoy.h"
 #include "FFGLPluginSourceStack.h"
 
 
@@ -33,7 +34,10 @@ void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int heigh
         FFGLPluginSource *ffgl_plugin = NULL;
 
         // create new plugin with this file
-        ffgl_plugin = new FFGLPluginSource(filename, width, height, it);
+        ffgl_plugin = new FFGLPluginSource(width, height, it);
+
+        // load dll
+        ffgl_plugin->load(filename);
 
         // in case of success, add it to the stack
         this->push(ffgl_plugin);
@@ -46,6 +50,43 @@ void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int heigh
     }
 
 }
+
+
+void FFGLPluginSourceStack::pushNewPlugin(int width, int height, unsigned int inputTexture){
+
+    FFGLTextureStruct it;
+
+    // descriptor for the source texture, used also to store size
+    if ( ! isEmpty() )
+        // chaining the plugins means providing the texture index of the previous
+        it = top()->getOutputTextureStruct();
+    else {
+        it.Handle = (GLuint) inputTexture;
+        it.Width = width;
+        it.Height = height;
+        it.HardwareWidth = width;
+        it.HardwareHeight = height;
+    }
+
+    // create the plugin itself
+    try {
+        FFGLPluginSource *ffgl_plugin = NULL;
+
+        // create new plugin with this file
+        ffgl_plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(width, height, it);
+
+        // in case of success, add it to the stack
+        this->push(ffgl_plugin);
+    }
+    catch (FFGLPluginException &e)  {
+        qCritical() << "Shadertoy" << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
+    }
+    catch (...)  {
+        qCritical() << "Shadertoy" << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
+    }
+
+}
+
 
 void FFGLPluginSourceStack::removePlugin(FFGLPluginSource *p)
 {

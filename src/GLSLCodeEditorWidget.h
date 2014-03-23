@@ -7,27 +7,29 @@ namespace Ui {
 class GLSLCodeEditorWidget;
 }
 
-//class FreeFrameQtGLSL;
+class FFGLPluginSourceShadertoy;
 
 class GLSLCodeEditorWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    GLSLCodeEditorWidget(/*FreeFrameQtGLSL *program, */QWidget *parent = 0);
+    GLSLCodeEditorWidget(QWidget *parent = 0);
     ~GLSLCodeEditorWidget();
+
+    void linkPlugin(FFGLPluginSourceShadertoy *plugin);
+    void unlinkPlugin();
 
 public Q_SLOTS:
     void applyCode();
-    void showLogs(const char *logstring);
+//    void showLogs(const char *logstring);
 
-    void setHeader(const char *header);
-    void setCode(const char *code);
+//    void setHeader(const char *header);
+//    void setCode(const char *code);
 
 private:
     Ui::GLSLCodeEditorWidget *ui;
-
-//    FreeFrameQtGLSL *_program;
+    FFGLPluginSourceShadertoy *_currentplugin;
 };
 
 

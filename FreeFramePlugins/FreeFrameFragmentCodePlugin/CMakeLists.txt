@@ -1,17 +1,14 @@
 
 cmake_minimum_required (VERSION 2.6)
-project (LIBFFGLQTGLSL)
+project (LIBSHADERTOY)
 
-set(LIBFFGLGLSL_SRCS
-    FreeFrameFragmentCodePlugin.cpp
-)
 
 SET(FREEFRAMEGL_DIR_PLUGINS "${FREEFRAMEGL_PATH}/Source/FFGLPlugins/")
 SET(FREEFRAMEGL_DIR_COMMON "${FREEFRAMEGL_PATH}/Source/Common/")
 
 include_directories(${FREEFRAMEGL_DIR_PLUGINS})
 
-set(LIBFFGLQTGLSL_SRCS
+set(LIBFFGLGLSL_SRCS
     ${FREEFRAMEGL_DIR_COMMON}/FFGLShader.cpp
     ${FREEFRAMEGL_DIR_COMMON}/FFGLExtensions.cpp
     ${FREEFRAMEGL_DIR_COMMON}/FFGLFBO.cpp
@@ -20,7 +17,7 @@ set(LIBFFGLQTGLSL_SRCS
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGL.cpp
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginManager.cpp
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginSDK.cpp
-    ${LIBFFGLQTGLSL_SRCS}
+    FreeFrameFragmentCodePlugin.cpp
 )
 
 if(WIN32)

@@ -1,319 +1,25 @@
-#include <QDebug>
-
 #include "common.h"
 #include "FFGLPluginSource.h"
-#include "FFGLPluginInstance.h"
+#include "FFGLPluginInstances.h"
 
+#include <QDebug>
 #include <QGLFramebufferObject>
 
 
-class FFGLPluginSourceInstance : public FFGLPluginInstance {
-
-public:
-
-    FFGLPluginSourceInstance() : FFGLPluginInstance() {}
-
-    bool hasProcessOpenGLCapability() {
-
-#ifdef FF_FAIL
-        // FFGL 1.5
-        DWORD arg = FF_CAP_PROCESSOPENGL;
-        DWORD returned = m_ffPluginMain(FF_GETPLUGINCAPS,arg,0).ivalue;
-#else
-        // FFGL 1.6
-        FFMixed arg;
-        arg.UIntValue = FF_CAP_PROCESSOPENGL;
-        FFUInt32 returned = m_ffPluginMain(FF_GETPLUGINCAPS,arg,0).UIntValue;
-#endif
-
-        return returned == FF_SUPPORTED;
-    }
+FFGLPluginSource::RTTI FFGLPluginSource::type = FFGLPluginSource::FREEFRAME_PLUGIN;
 
 
-    QVariantHash getInfo() {
-        QVariantHash mapinfo;
-#ifdef FF_FAIL
-        // FFGL 1.5
-        DWORD arg = 0;
-        void *result = m_ffPluginMain(FF_GETINFO,arg,0).PISvalue;
-#else
-        // FFGL 1.6
-        FFMixed arg;
-        void *result = m_ffPluginMain(FF_GETINFO, arg, 0).PointerValue;
-#endif
-        if (result!=NULL) {
-            PluginInfoStructTag *plugininfo = (PluginInfoStructTag*) result;
-            mapinfo.insert("Name", (char *) plugininfo->PluginName);
-            mapinfo.insert("Type", plugininfo->PluginType == 1 ? QString("Source") : QString("Effect") );
-        }
-        return mapinfo;
-    }
 
-    QVariantHash getExtendedInfo() {
-        QVariantHash mapinfo;
-#ifdef FF_FAIL
-        // FFGL 1.5
-        DWORD arg = 0;
-        void *result = m_ffPluginMain(FF_GETEXTENDEDINFO,arg,0).ivalue;
-#else
-        // FFGL 1.6
-        FFMixed arg;
-        void *result = m_ffPluginMain(FF_GETEXTENDEDINFO, arg, 0).PointerValue;
-#endif
-        if (result!=NULL) {
-            PluginExtendedInfoStructTag *plugininfo = (PluginExtendedInfoStructTag*) result;
-            mapinfo.insert("Version", QString("%1.%2").arg(plugininfo->PluginMajorVersion).arg(plugininfo->PluginMinorVersion));
-            mapinfo.insert("Description", plugininfo->Description);
-            mapinfo.insert("About", plugininfo->About);
-        }
-        return mapinfo;
-    }
-
-    QVariantHash getParametersDefaults() {
-        QVariantHash params;
-
-        if (m_ffPluginMain==NULL)
-            return params;
-
-        // fill in parameter map with default values
-        unsigned int i;
-        QVariant value;
-        for (i=0; i<MAX_PARAMETERS && i < (unsigned int) m_numParameters; i++)
-        {
-
-#ifdef FF_FAIL
-            // FFGL 1.5;
-            DWORD ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, (DWORD)i, 0).ivalue;
-            plugMainUnion returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT, (DWORD)i, 0);
-            if (returned.ivalue != FF_FAIL) {
-                switch ( ffParameterType ) {
-                    case FF_TYPE_TEXT:
-                        value.setValue( QString( (char*) returned.svalue ) );
-                        break;
-                    case FF_TYPE_BOOLEAN:
-                        value.setValue( returned.fvalue > 0.0 );
-                        break;
-                    default:
-                    case FF_TYPE_STANDARD:
-                        value.setValue( returned.fvalue );
-                        break;
-                }
-            }
-#else
-            // FFGL 1.6
-            FFMixed arg;
-            FFUInt32 returned;
-            arg.UIntValue = i;
-            FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
-            switch ( ffParameterType ) {
-                case FF_TYPE_TEXT:
-                    value.setValue( QString( (const char*) m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).PointerValue ) );
-                    break;
-                case FF_TYPE_BOOLEAN:
-                    returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
-                    value.setValue(  *((bool *)&returned)  );
-                    break;
-                default:
-                case FF_TYPE_STANDARD:
-                    returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
-                    value.setValue( *((float *)&returned) );
-                    break;
-            }
-#endif
-
-            // add it to the list
-            params.insert( QString(GetParameterName(i)), value);
-        }
-
-        return params;
-    }
-
-    QVariantHash getParameters()
-    {
-        QVariantHash params;
-
-        if (m_ffInstanceID==INVALIDINSTANCE)
-            return getParametersDefaults();
-
-        // fill in parameter map with default values
-        unsigned int i;
-        QVariant value;
-        for (i=0; i<MAX_PARAMETERS && i < (unsigned int) m_numParameters; i++)
-        {
-#ifdef FF_FAIL
-            // FFGL 1.5;
-            DWORD ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, (DWORD)i, 0).ivalue;
-            plugMainUnion returned = m_ffPluginMain(FF_GETPARAMETER, (DWORD)i, m_ffInstanceID);
-            if (returned.ivalue != FF_FAIL) {
-                switch ( ffParameterType ) {
-                    case FF_TYPE_TEXT:
-                        value.setValue( QString( (char*) returned.svalue ) );
-                        break;
-                    case FF_TYPE_BOOLEAN:
-                        value.setValue( returned.fvalue > 0.0 );
-                        break;
-                    default:
-                    case FF_TYPE_STANDARD:
-                        value.setValue( returned.fvalue );
-                        break;
-                }
-            }
-#else
-            // FFGL 1.6
-            FFMixed arg;
-            FFUInt32 returned;
-            arg.UIntValue = i;
-            FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
-            switch ( ffParameterType ) {
-                case FF_TYPE_BOOLEAN:
-                    returned = m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID).UIntValue;
-                    value.setValue(  *((bool *)&returned)  );
-                break;
-
-                case FF_TYPE_TEXT:
-                    value.setValue( QString( (const char*) m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID).PointerValue ) );
-                break;
-
-                default:
-                case FF_TYPE_STANDARD:
-                    returned = m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID).UIntValue;
-                    value.setValue( *((float *)&returned) );
-                break;
-            }
-#endif
-            // add it to the list
-            params.insert( QString(GetParameterName(i)), value);
-        }
-
-        return params;
-    }
-
-    unsigned int getNumParameters() {
-        return m_numParameters;
-    }
-
-    bool setParameter(QString paramName, QVariant value)
-    {
-        // find the parameter with that name
-        for (unsigned int i=0; i < (unsigned int) m_numParameters; ++i){
-            if ( paramName.compare(GetParameterName(i), Qt::CaseInsensitive) == 0 )
-                return setParameter(i, value);
-        }
-
-        return false;
-    }
-
-    bool setParameter(unsigned int paramNum, QVariant value)
-    {
-        if (paramNum<0 || paramNum >= (unsigned int) m_numParameters ||
-            m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
-            return false;
-
-        SetParameterStruct ArgStruct;
-        ArgStruct.ParameterNumber = paramNum;
-
-#ifdef FF_FAIL
-        // FFGL 1.5
-        DWORD ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, (DWORD)paramNum, 0).ivalue;
-#else
-        // FFGL 1.6
-        FFMixed arg;
-        arg.UIntValue = paramNum;
-        FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
-
-        arg.PointerValue = &ArgStruct;
-#endif
-
-        // depending on type assign value in data structure
-        if ( ffParameterType == FF_TYPE_STANDARD && value.canConvert(QVariant::Double) )
-        {
-            // Cast to float
-            float v = value.toFloat();
-
-#ifdef FF_FAIL
-            *((float *)(unsigned)&ArgStruct.NewParameterValue) = v;
-            m_ffPluginMain(FF_SETPARAMETER,(DWORD)(&ArgStruct), m_ffInstanceID);
-#else
-            // pack our float into FFUInt32
-            ArgStruct.NewParameterValue.UIntValue = *(FFUInt32 *)&v;
-            m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
-#endif
-        }
-        else if ( ffParameterType == FF_TYPE_TEXT && value.canConvert(QVariant::String) )
-        {
-            // Cast to string
-#ifdef FF_FAIL
-            ArgStruct.NewParameterValue = (char *) value.toString().toAscii().data();
-            m_ffPluginMain(FF_SETPARAMETER, (DWORD)(&ArgStruct), m_ffInstanceID);
-#else
-            ArgStruct.NewParameterValue.PointerValue = value.toString().toAscii().data();
-            m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
-#endif
-        }
-        else if ( ffParameterType == FF_TYPE_BOOLEAN && value.canConvert(QVariant::UInt) )
-        {
-            // Cast to unsigned int
-#ifdef FF_FAIL
-            ArgStruct.NewParameterValue = value.toUInt();
-            m_ffPluginMain(FF_SETPARAMETER, (DWORD)(&ArgStruct), m_ffInstanceID);
-#else
-            ArgStruct.NewParameterValue.UIntValue = value.toUInt();
-            m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
-#endif
-        }
-        else
-            return false;
-
-        return true;
-    }
-
-};
-
-
-FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureStruct inputTexture)
-    : _filename(filename), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _fboSize(w,h)
+FFGLPluginSource::FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture)
+    : _filename("Freeframe"), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _fboSize(w,h)
 {
-    // check the file exists
-    QFileInfo pluginfile(filename);
-    if (!pluginfile.isFile()){
-        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("The file does not exist.");
-        FFGLPluginException().raise();
-    }
+    _plugin =  FFGLPluginInstanceFreeframe::New();
 
-    // if the plugin file exists, it might be accompanied by other DLLs
-    // and we should add the path for the system to find them
-    addPathToSystemPath( pluginfile.absolutePath().toUtf8() );
-
-    // create plugin object (does not instanciate dll)
-    _plugin = (FFGLPluginSourceInstance *) FFGLPluginInstance::New();
+    // check validity of plugin
     if (!_plugin){
-        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be instanciated");
+        qWarning()<< "Freeframe" << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be instanciated");
         FFGLPluginException().raise();
     }
-
-    // load dll plugin
-
-    char fname[2048];
-    strcpy(fname,  pluginfile.absoluteFilePath().toLatin1().data());
-    if (_plugin->Load(fname) == FF_FAIL){
-        qWarning()<< pluginfile.absoluteFilePath() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be loaded");
-        FFGLPluginException().raise();
-    }
-
-    // ensure functionnalities plugin
-    if ( !_plugin->hasProcessOpenGLCapability()){
-        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Invalid FreeframeGL plugin: does not have OpenGL support.");
-        FFGLPluginException().raise();
-    }
-
-    // fill in the information about this plugin
-    info = _plugin->getInfo();
-    info.unite(_plugin->getExtendedInfo());
-    _isFreeframeTypeSource = info["Type"].toString() == "Source";
-//    qDebug() << info;
-
-    // remember default values
-    parametersDefaults = _plugin->getParametersDefaults();
 
     // descriptor for the source texture, used also to store size
     _inputTexture.Handle = inputTexture.Handle;
@@ -325,6 +31,76 @@ FFGLPluginSource::FFGLPluginSource(QString filename, int w, int h, FFGLTextureSt
 //    qDebug() << _filename << "| " << QObject::tr("FreeframeGL plugin created") << " ("<< info["Name"].toString() <<", "<< _inputTexture.Width << _inputTexture.Height <<")";
 }
 
+void FFGLPluginSource::load(QString filename)
+{
+    _filename = filename;
+
+    // check the file exists
+    QFileInfo pluginfile(_filename);
+    if (!pluginfile.isFile()){
+        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("The file does not exist.");
+        FFGLPluginException().raise();
+    }
+
+    // if the plugin file exists, it might be accompanied by other DLLs
+    // and we should add the path for the system to find them
+    addPathToSystemPath( pluginfile.absolutePath().toUtf8() );
+
+    // load dll plugin
+    char fname[4096];
+    strcpy(fname, pluginfile.absoluteFilePath().toLatin1().data());
+    if (_plugin->Load(fname) == FF_FAIL){
+        qWarning()<< pluginfile.absoluteFilePath() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be loaded");
+        FFGLPluginException().raise();
+    }
+
+    // ensure functionnalities plugin
+    FFGLPluginInstanceFreeframe *p = dynamic_cast<FFGLPluginInstanceFreeframe *>(_plugin);
+    if ( p ) {
+        if ( !p->hasProcessOpenGLCapability()){
+            qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Invalid FreeframeGL plugin: does not have OpenGL support.");
+            FFGLPluginException().raise();
+        }
+
+        // fill in the information about this plugin
+        info = p->getInfo();
+        info.unite(p->getExtendedInfo());
+        _isFreeframeTypeSource = info["Type"].toString() == "Source";
+    //    qDebug() << info;
+
+        // remember default values
+        parametersDefaults = p->getParametersDefaults();
+
+    } else {
+        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Invalid FreeframeGL plugin");
+        FFGLPluginException().raise();
+    }
+}
+
+QVariantHash FFGLPluginSource::getParameters()
+{
+    FFGLPluginInstanceFreeframe *p = dynamic_cast<FFGLPluginInstanceFreeframe *>(_plugin);
+    if( p )
+        return p->getParameters();
+    else
+        return QVariantHash();
+}
+
+void FFGLPluginSource::setParameter(int parameterNum, QVariant value)
+{
+    FFGLPluginInstanceFreeframe *p = dynamic_cast<FFGLPluginInstanceFreeframe *>(_plugin);
+    if( !p || !p->setParameter(parameterNum, value) )
+        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Parameter could not be set.");
+
+}
+
+void FFGLPluginSource::setParameter(QString parameterName, QVariant value)
+{
+    FFGLPluginInstanceFreeframe *p = dynamic_cast<FFGLPluginInstanceFreeframe *>(_plugin);
+    if( !p || !p->setParameter(parameterName, value) )
+        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Parameter could not be set.");
+
+}
 
 FFGLPluginSource::~FFGLPluginSource()
 {
@@ -519,17 +295,6 @@ bool FFGLPluginSource::initialize()
 }
 
 
-QVariantHash FFGLPluginSource::getParameters()
-{
-    return _plugin->getParameters();
-}
-
-void FFGLPluginSource::setParameter(int parameterNum, QVariant value)
-{
-    if( !_plugin->setParameter(parameterNum, value) )
-        qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Parameter could not be set.");
-
-}
 
 void FFGLPluginSource::restoreDefaults()
 {
@@ -593,11 +358,9 @@ void FFGLPluginSource::setConfiguration(QDomElement xml)
     // start loop of parameters to read
     QDomElement p = xml.firstChildElement("Parameter");
     while (!p.isNull()) {
-
-        // read and apply parameter, if applicable
-        if ( !_plugin->setParameter( p.attribute("name"), QVariant(p.text()) ) )
-            qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << p.attribute("name") << QObject::tr(": parameter could not be set.");
-
+        // read and apply parameter
+        setParameter( p.attribute("name"), QVariant(p.text()) );
+        // loop
         p = p.nextSiblingElement("Parameter");
     }
 }

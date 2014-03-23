@@ -3,7 +3,7 @@
 #define APIENTRY
 #include <FFGL.h>
 #include <FFGLLib.h>
-#include <stdio.h>
+#include <cstdio>
 #include <ctime>
 
 #include "FreeFrameFragmentCodePlugin.h"
@@ -19,7 +19,7 @@ const char *fragmentShaderHeader =  "uniform vec3      iResolution;\n"
 const char *fragmentShaderDefaultCode = "void main(void){\n"
         "vec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
         "gl_FragColor = 0.6 * texture2D(iChannel0, uv);\n"
-        "}\0";
+        "}\n";
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,13 +29,13 @@ const char *fragmentShaderDefaultCode = "void main(void){\n"
 static CFFGLPluginInfo PluginInfo (
         FreeFrameQtGLSL::CreateInstance,	// Create method
         "STFFGLGLSL",                       // Plugin unique ID
-        "SHADERTOYGLSL",                    // Plugin name
+        "Shadertoy",                        // Plugin name
         1,						   			// API major version number
         500,								// API minor version number
         1,									// Plugin major version number
         000,								// Plugin minor version number
         FF_EFFECT,                          // Plugin type
-        "Shadertoy GLSL",                   // Plugin description
+        "Shadertoy GLSL code in a FreeFrame plugin",    // Plugin description
         "by Bruno Herbelin"                 // About
         );
 
@@ -86,6 +86,9 @@ void FreeFrameQtGLSL::setFragmentProgramCode(const char *code)
     if (fragmentShaderCode)
         free(fragmentShaderCode);
 
+
+//    fprintf(stderr, "setFragmentProgramCode\n%s", code);
+
     // allocate, fill and terminate string
     fragmentShaderCode = (char *) malloc(sizeof(char)*(strlen(code)+1));
     strncpy(fragmentShaderCode, code, strlen(code));
@@ -93,6 +96,17 @@ void FreeFrameQtGLSL::setFragmentProgramCode(const char *code)
 
     // inform update that code has changed
     code_changed = true;
+}
+
+
+char *FreeFrameQtGLSL::getFragmentProgramCode()
+{
+    // allocate and fill string
+//    code = (char *) malloc(sizeof(char)*(strlen(fragmentShaderCode)));
+//    strncpy(code, fragmentShaderCode, strlen(fragmentShaderCode));
+
+    return fragmentShaderCode;
+//    fprintf(stderr, "getFragmentProgramCode %s", fragmentShaderCode);
 }
 
 #ifdef FF_FAIL
@@ -275,11 +289,11 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glUseProgram(shaderProgram);
 
     // set time uniforms
-//    glUniform1f(uniform_time, m_curTime);
-//    glUniform1f(uniform_channeltime, m_curTime);
-//    std::time_t now = std::time(0);
-//    std::tm *local = std::localtime(&now);
-//    glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*24.0+local->tm_min*60.0+local->tm_sec);
+    glUniform1f(uniform_time, m_curTime);
+    glUniform1f(uniform_channeltime, m_curTime);
+    std::time_t now = std::time(0);
+    std::tm *local = std::localtime(&now);
+    glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*24.0+local->tm_min*60.0+local->tm_sec);
 
     // activate the fbo2 as our render target
     if (!frameBufferObject.BindAsRenderTarget(glExtensions))
@@ -305,3 +319,5 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     return FF_SUCCESS;
 }
+
+

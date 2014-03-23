@@ -50,7 +50,19 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
     it.Height = 0;
     it.HardwareWidth = 0;
     it.HardwareHeight = 0;
-    _plugin = new FFGLPluginSource(pluginFileName, w, h, it);
+    // create the plugin itself
+    try {
+        _plugin = new FFGLPluginSource(w, h, it);
+
+        // load dll
+        _plugin->load(pluginFileName);
+    }
+    catch (FFGLPluginException &e)  {
+        qCritical() << "Shadertoy" << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
+    }
+    catch (...)  {
+        qCritical() << "Shadertoy" << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
+    }
 
     // if plugin not of type source, create a buffer and a texture for applying effect
     if (!_plugin->isSourceType()) {

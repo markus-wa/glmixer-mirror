@@ -45,6 +45,7 @@ private:
 
     QtProperty *createPluginPropertyTree(FFGLPluginSource *plugin);
     QAction *removeAction;
+    QAction *editAction;
 };
 
 #endif // FFGLPLUGINBROWSER_H

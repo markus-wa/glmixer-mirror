@@ -10,7 +10,7 @@ SET(QT_USE_QTNETWORK    TRUE)
 #--------------------------------------------------------------------------------
 # This SETs the windows build that will need the special winmain@16 call. Qt provides
 #  this for us in the qtmain.lib file. Using this cmake code will ensure we have it
-#  linked into our build. Not needed on Unix/OS X/Linux which is why we have the 
+#  linked into our build. Not needed on Unix/OS X/Linux which is why we have the
 #  IF(WIN32) conditional.
 IF(WIN32)
     SET (QT_USE_QTMAIN TRUE)
@@ -108,12 +108,13 @@ if(USE_FREEFRAMEGL)
     SET(FREEFRAMEGL_DIR_HOST "${FREEFRAMEGL_PATH}/Source/FFGLHost/")
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         ${FREEFRAMEGL_DIR_HOST}/FFGLPluginInstance.cpp
+        FFGLPluginInstances.cpp
         FFGLPluginSourceStack.cpp
         FFGLPluginSource.cpp
-        FFGLPluginSourceFactory.cpp
         FFGLPluginBrowser.cpp
         FFGLSource.cpp
         FFGLSourceCreationDialog.cpp
+        FFGLPluginSourceShadertoy.cpp
         GLSLCodeEditor.cpp
         GLSLCodeEditorWidget.cpp
         GLSLSyntaxHighlighter.cpp
@@ -128,21 +129,21 @@ if(USE_FREEFRAMEGL)
         ${CMAKE_CURRENT_BINARY_DIR}/../FreeFramePlugins/plugins.qrc
     )
 
-    if( APPLE )
-        SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
-            ${FREEFRAMEGL_DIR_HOST}/OSX/OSXPluginInstance.cpp
-        )
-    else( APPLE )
-        if( WIN32 )
-            SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
-                ${FREEFRAMEGL_DIR_HOST}/Win32/WinPluginInstance.cpp
-            )
-        else( WIN32 )
-            SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
-                ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxPluginInstance.cpp
-            )
-        endif( WIN32 )
-    endif( APPLE )
+#    if( APPLE )
+#        SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+#            ${FREEFRAMEGL_DIR_HOST}/OSX/OSXPluginInstance.cpp
+#        )
+#    else( APPLE )
+#        if( WIN32 )
+#            SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+#                ${FREEFRAMEGL_DIR_HOST}/Win32/WinPluginInstance.cpp
+#            )
+#        else( WIN32 )
+#            SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+#                ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxPluginInstance.cpp
+#            )
+#        endif( WIN32 )
+#    endif( APPLE )
 
 
 elseif(USE_FREEFRAMEGL)
@@ -279,11 +280,11 @@ ELSE(APPLE)
 
 ENDIF(APPLE)
 
-# link the target against the libraries. 
+# link the target against the libraries.
 target_link_libraries(glmixer QtProperty OSCPack ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
 
 
-	
+
 #--------------------------------------------------------------------------------
 # Now the installation stuff below
 #--------------------------------------------------------------------------------
@@ -307,7 +308,7 @@ ENDIF(APPLE)
 #--------------------------------------------------------------------------------
 # Install the glmixer application, on Apple, the bundle is at the root of the
 # install tree, and on other platforms it'll go into the bin directory.
-INSTALL(TARGETS glmixer 
+INSTALL(TARGETS glmixer
     BUNDLE DESTINATION . COMPONENT Runtime
     RUNTIME DESTINATION bin COMPONENT Runtime
     )
@@ -318,30 +319,30 @@ IF(APPLE)
     # Install needed Qt plugins by copying directories from the qt installation
     # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
     INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
-    
+
     #--------------------------------------------------------------------------------
     # install a qt.conf file
     # this inserts some cmake code into the install script to write the file
     INSTALL(CODE "
         file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"\")
         " COMPONENT Runtime)
-    
-    
+
+
     #--------------------------------------------------------------------------------
     # install a qt_menu.nib files structure
     INSTALL(CODE "
         file(MAKE_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt_menu.nib\")
         file(COPY \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}\" NO_SOURCE_PERMISSIONS )
-        " COMPONENT Runtime)    
-        
+        " COMPONENT Runtime)
+
     #--------------------------------------------------------------------------------
     # Use BundleUtilities to get all other dependencies for the application to work.
     # It takes a bundle or executable along with possible plugins and inspects it
     # for dependencies.  If they are not system dependencies, they are copied.
-    
+
     # directories to look for dependencies
     SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_LIBRARY_PATH})
-    
+
     # Now the work of copying dependencies into the bundle/package
     # The quotes are escaped and variables to use at install time have their $ escaped
     # An alternative is the do a configure_file() on a script and use install(SCRIPT  ...).
@@ -394,10 +395,10 @@ ENDIF(APPLE)
 # where CPackConfig.cmake is created by including CPack
 # And then there's ways to customize this as well
 include(CPack)
-	
-	
-	
-	
-	
-	
- 
+
+
+
+
+
+
+

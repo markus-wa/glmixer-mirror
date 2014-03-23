@@ -33,12 +33,16 @@
 
 FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : PropertyBrowser(parent), currentStack(0) {
 
+    editAction = new QAction(tr("Edit"), this);
+    editAction->setEnabled(false);
+    menuTree.addSeparator();
+    menuTree.addAction(editAction);
+
     if (allowRemove) {
         // actions of context menus
         removeAction = new QAction(tr("Remove"), this);
         QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePlugin() ) );
 
-        menuTree.addSeparator();
         menuTree.addAction(removeAction);
     }
 
@@ -48,6 +52,9 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
 QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin)
 {
     QtProperty *property;
+
+    // enable the edit action for freeframe plugins
+    editAction->setEnabled(plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN);
 
     // create the entry for this plugin
     QFileInfo pluginfile(plugin->fileName());
