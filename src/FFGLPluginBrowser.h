@@ -33,6 +33,7 @@ public slots:
 Q_SIGNALS:
     // inform to refresh the GUI
     void pluginChanged();
+    void edit();
 
 private:
 

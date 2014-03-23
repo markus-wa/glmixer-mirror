@@ -15,6 +15,9 @@ public:
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
 
+    void setShiftLineNumber(int i) { _shiftLineNumber = i; }
+    int lineCount() { return document()->blockCount(); }
+
 protected:
     void resizeEvent(QResizeEvent *event);
 
@@ -25,6 +28,7 @@ private slots:
 
 private:
     QWidget *lineNumberArea;
+    int _shiftLineNumber;
 };
 
 

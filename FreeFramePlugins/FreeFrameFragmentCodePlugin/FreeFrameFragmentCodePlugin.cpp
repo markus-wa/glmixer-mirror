@@ -14,11 +14,11 @@ const char *fragmentShaderHeader =  "uniform vec3      iResolution;\n"
                                     "uniform float     iChannelTime[1];\n"
                                     "uniform vec3      iChannelResolution[1];\n"
                                     "uniform sampler2D iChannel0;\n"
-                                    "uniform vec4      iDate;\n";
+                                    "uniform vec4      iDate;\0";
 
 const char *fragmentShaderDefaultCode = "void main(void){\n"
-        "vec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
-        "gl_FragColor = 0.6 * texture2D(iChannel0, uv);\n"
+        "\tvec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
+        "\tgl_FragColor = 0.6 * texture2D(iChannel0, uv);\n"
         "}\n";
 
 
@@ -65,29 +65,12 @@ FreeFrameQtGLSL::FreeFrameQtGLSL()
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void printLog(GLuint obj)
-{
-    int infologLength = 0;
-    char infoLog[2048];
-
-    if (glIsShader(obj))
-        glGetShaderInfoLog(obj, 2048, &infologLength, infoLog);
-    else
-        glGetProgramInfoLog(obj, 2048, &infologLength, infoLog);
-
-    if (infologLength > 0)
-        fprintf(stderr, "GLSL :: %s\n", infoLog);
-}
-
 
 void FreeFrameQtGLSL::setFragmentProgramCode(const char *code)
 {
     // free  previous string
     if (fragmentShaderCode)
         free(fragmentShaderCode);
-
-
-//    fprintf(stderr, "setFragmentProgramCode\n%s", code);
 
     // allocate, fill and terminate string
     fragmentShaderCode = (char *) malloc(sizeof(char)*(strlen(code)+1));
@@ -101,12 +84,12 @@ void FreeFrameQtGLSL::setFragmentProgramCode(const char *code)
 
 char *FreeFrameQtGLSL::getFragmentProgramCode()
 {
-    // allocate and fill string
-//    code = (char *) malloc(sizeof(char)*(strlen(fragmentShaderCode)));
-//    strncpy(code, fragmentShaderCode, strlen(fragmentShaderCode));
-
     return fragmentShaderCode;
-//    fprintf(stderr, "getFragmentProgramCode %s", fragmentShaderCode);
+}
+
+char *FreeFrameQtGLSL::getFragmentProgramLogs()
+{
+    return infoLog;
 }
 
 #ifdef FF_FAIL
@@ -244,8 +227,7 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         // disable shader program
         glUseProgram(0);
 
-        int infologLength = 0;
-        char infoLog[2048];
+        infologLength = 0;
 
         if (shaderProgram) glDeleteProgram(shaderProgram);
         if (fragmentShader) glDeleteShader(fragmentShader);
@@ -258,12 +240,12 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragmentShader, 1, &fsc, NULL);
         glCompileShader(fragmentShader);
-        glGetShaderInfoLog(fragmentShader, 2048, &infologLength, infoLog);
+        glGetShaderInfoLog(fragmentShader, 4096, &infologLength, infoLog);
 
         shaderProgram = glCreateProgram();
         glAttachShader(shaderProgram, fragmentShader);
         glLinkProgram(shaderProgram);
-        glGetProgramInfoLog(shaderProgram, 2048, &infologLength, infoLog);
+        glGetProgramInfoLog(shaderProgram, 4096, &infologLength, infoLog);
 
 
         // use the shader program
@@ -277,9 +259,6 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         uniform_channeltime = glGetUniformLocation(shaderProgram, "iChannelTime[0]");
         uniform_date = glGetUniformLocation(shaderProgram, "iDate");
 
-
-//        if(w)
-//            w->showLogs(infoLog);
 
         code_changed = false;
     }
@@ -320,4 +299,44 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     return FF_SUCCESS;
 }
 
+void setString(unsigned int t, const char *string, FFInstanceID *instanceID){
 
+    // declare pPlugObj (pointer to this instance)
+    // & typecast instanceid into pointer to a CFreeFrameGLPlugin
+    FreeFrameQtGLSL* pPlugObj = (FreeFrameQtGLSL*) instanceID;
+
+    if (pPlugObj) {
+        switch (t) {
+        case 0:
+            pPlugObj->setFragmentProgramCode(string);
+//        case 3:
+//            PluginInfo.GetPluginExtendedInfo()->About = strdup(string);
+        }
+
+    }
+}
+
+
+char *getString(unsigned int t, FFInstanceID instanceID){
+
+    // declare pPlugObj (pointer to this instance)
+    // & typecast instanceid into pointer to a CFreeFrameGLPlugin
+    FreeFrameQtGLSL* pPlugObj = (FreeFrameQtGLSL*) instanceID;
+
+    if (pPlugObj) {
+
+        switch (t) {
+        case 0:
+            return pPlugObj->getFragmentProgramCode();
+        case 1:
+            return pPlugObj->getFragmentProgramLogs();
+        case 2:
+            return fragmentShaderHeader;
+        case 3:
+            return fragmentShaderDefaultCode;
+        }
+
+    }
+
+    return 0;
+}

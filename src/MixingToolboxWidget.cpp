@@ -273,6 +273,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
 
     pluginBrowserLayout->insertWidget(1, pluginBrowser);
     QObject::connect(pluginBrowser, SIGNAL( pluginChanged()), this, SLOT(changed()) );
+    QObject::connect(pluginBrowser, SIGNAL( edit()), this, SLOT(editShaderToyPlugin()) );
 //    pluginFactoryEditor = NULL;
 #else
     mixingToolBox->removeTab( mixingToolBox->indexOf(Plugin) );
@@ -706,8 +707,7 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
 
 void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
 {
-    if(!pluginGLSLCodeEditor)
-        pluginGLSLCodeEditor = new GLSLCodeEditorWidget();
+    editShaderToyPlugin();
 
     if (source) {
 
@@ -727,18 +727,28 @@ void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
                 FFGLPluginSourceShadertoy *shadertoy = dynamic_cast<FFGLPluginSourceShadertoy *>(plugin);
 
                 // link to GUI editor
-                if ( plugin->initialize() )
+                if ( shadertoy && plugin->initialize() )
                     pluginGLSLCodeEditor->linkPlugin(shadertoy);
 
             }
 
-            // show the Shadertoy code editor
-            pluginGLSLCodeEditor->show();
         }
     }
 
 }
 
+
+void MixingToolboxWidget::editShaderToyPlugin()
+{
+    // instanciate if not already done
+    if(!pluginGLSLCodeEditor)
+        pluginGLSLCodeEditor = new GLSLCodeEditorWidget();
+
+    // show the Shadertoy code editor
+    pluginGLSLCodeEditor->show();
+    pluginGLSLCodeEditor->raise();
+    pluginGLSLCodeEditor->setFocus();
+}
 
 #endif
 

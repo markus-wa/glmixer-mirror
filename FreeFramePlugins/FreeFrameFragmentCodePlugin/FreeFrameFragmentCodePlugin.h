@@ -48,6 +48,7 @@ public:
 
     void setFragmentProgramCode(const char *code);
     char *getFragmentProgramCode();
+    char *getFragmentProgramLogs();
 
 protected:
 
@@ -64,6 +65,10 @@ protected:
 
     bool code_changed;
     char *fragmentShaderCode;
+
+    // logging
+    int infologLength;
+    char infoLog[4096];
 
     // Time
     double m_curTime;
@@ -82,30 +87,8 @@ extern "C" {
 
 #else
 
-
-void setFragmentProgramCode(const char *code, FFInstanceID *instanceID){
-
-    // declare pPlugObj (pointer to this instance)
-    // & typecast instanceid into pointer to a CFreeFrameGLPlugin
-    FreeFrameQtGLSL* pPlugObj = (FreeFrameQtGLSL*) instanceID;
-
-    if (pPlugObj)
-        pPlugObj->setFragmentProgramCode(code);
-}
-
-
-char *getFragmentProgramCode(FFInstanceID instanceID){
-
-    // declare pPlugObj (pointer to this instance)
-    // & typecast instanceid into pointer to a CFreeFrameGLPlugin
-    FreeFrameQtGLSL* pPlugObj = (FreeFrameQtGLSL*) instanceID;
-
-    if (pPlugObj)
-        return pPlugObj->getFragmentProgramCode();
-    else
-        return 0;
-}
-
+void setString(unsigned int t, const char *string, FFInstanceID *instanceID);
+char *getString(unsigned int t, FFInstanceID instanceID);
 
 #endif
 

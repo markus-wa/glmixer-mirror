@@ -24,6 +24,10 @@ FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(int w, int h, FFGLTextureSt
     // automatically load the correct DLL
     load(libraryFileName());
 
+    _name = getInfo()["Name"].toString();
+    _about = getInfo()["About"].toString();
+    _description = getInfo()["Description"].toString();
+
     // perform declaration of extra functions for Shadertoy
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( !p || !p->declareShadertoyFunctions() ){
@@ -40,7 +44,41 @@ QString FFGLPluginSourceShadertoy::getCode()
     // access the functions for Shadertoy plugin
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( p ) {
-        char *string = p->getCode();
+        char *string = p->getString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY);
+        if ( string ) {
+            // Convert char array into QString
+            c = QString::fromLatin1(string);
+        }
+    }
+
+    return c;
+}
+
+QString FFGLPluginSourceShadertoy::getLogs()
+{
+    QString c = "";
+
+    // access the functions for Shadertoy plugin
+    FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
+    if ( p ) {
+        char *string = p->getString(FFGLPluginInstanceShadertoy::LOG_SHADERTOY);
+        if ( string ) {
+            // Convert char array into QString
+            c = QString::fromLatin1(string);
+        }
+    }
+
+    return c;
+}
+
+QString FFGLPluginSourceShadertoy::getHeaders()
+{
+    QString c = "";
+
+    // access the functions for Shadertoy plugin
+    FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
+    if ( p ) {
+        char *string = p->getString(FFGLPluginInstanceShadertoy::HEADER_SHADERTOY);
         if ( string ) {
             // Convert char array into QString
             c = QString::fromLatin1(string);
@@ -56,9 +94,20 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( p ) {
         // convert QString to char array
-        p->setCode( code.toLatin1().data() );
+        p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.toLatin1().data() );
     }
 }
+
+QString FFGLPluginSourceShadertoy::getName()
+{
+    return _name;
+}
+
+void FFGLPluginSourceShadertoy::setName(QString name)
+{
+    _name = name;
+}
+
 
 // Static function to extract the resource containing the DLL
 // for the plugin Freeframe implementing the features of

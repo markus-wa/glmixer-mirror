@@ -15,7 +15,19 @@ public:
     QString getCode();
     void setCode(QString code);
 
+    // get logs of GLSL Shadertoy execution
+    QString getLogs();
+    QString getHeaders();
+
+    QString getName();
+    void setName(QString);
+
+//    QString getAbout();
+//    void setAbout();
+
 private:
+
+    QString _name, _about, _description;
 
     static QString libraryFileName();
     static RTTI type;

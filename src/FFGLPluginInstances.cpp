@@ -309,8 +309,8 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
 typedef __declspec(dllimport) void (__stdcall *_FuncPtrSetCode)(const char *, FFInstanceID);
 typedef __declspec(dllimport) (char *) (__stdcall *_FuncPtrGetCode)(FFInstanceID);
 #else
-typedef void (*_FuncPtrSetCode)(const char *, FFInstanceID);
-typedef char *(*_FuncPtrGetCode)(FFInstanceID);
+typedef void (*_FuncPtrSetString)(unsigned int, const char *, FFInstanceID);
+typedef char *(*_FuncPtrGetString)(unsigned int, FFInstanceID);
 #endif
 
 
@@ -318,14 +318,14 @@ class FFGLPluginInstanceShadertoyPlaftorm : public FFGLPluginInstanceFreeframePl
 
 public:
 
-    FFGLPluginInstanceShadertoyPlaftorm() : m_ffPluginFunctionSetCode(NULL), m_ffPluginFunctionGetCode(NULL) {}
+    FFGLPluginInstanceShadertoyPlaftorm() : m_ffPluginFunctionSetString(NULL), m_ffPluginFunctionGetString(NULL) {}
 
     bool declareShadertoyFunctions();
-    void setCode(const char *code);
-    char *getCode();
+    void setString(ShadertoyString, const char *code);
+    char *getString(ShadertoyString);
 
-    _FuncPtrSetCode m_ffPluginFunctionSetCode;
-    _FuncPtrGetCode m_ffPluginFunctionGetCode;
+    _FuncPtrSetString m_ffPluginFunctionSetString;
+    _FuncPtrGetString m_ffPluginFunctionGetString;
 };
 
 FFGLPluginInstance *FFGLPluginInstanceShadertoy::New()
@@ -334,20 +334,21 @@ FFGLPluginInstance *FFGLPluginInstanceShadertoy::New()
 }
 
 
-void FFGLPluginInstanceShadertoyPlaftorm::setCode(const char *code)
+void FFGLPluginInstanceShadertoyPlaftorm::setString(ShadertoyString t, const char *code)
 {
-    if (m_ffPluginFunctionGetCode!=NULL && m_ffInstanceID!=INVALIDINSTANCE)
-        m_ffPluginFunctionSetCode(code, m_ffInstanceID);
+    if (m_ffPluginFunctionSetString!=NULL && m_ffInstanceID!=INVALIDINSTANCE)
+        m_ffPluginFunctionSetString((unsigned int) t, code, m_ffInstanceID);
 
 }
 
-char *FFGLPluginInstanceShadertoyPlaftorm::getCode()
+char *FFGLPluginInstanceShadertoyPlaftorm::getString(ShadertoyString t)
 {
-    if (m_ffPluginFunctionGetCode==NULL || m_ffInstanceID==INVALIDINSTANCE)
+    if (m_ffPluginFunctionGetString==NULL || m_ffInstanceID==INVALIDINSTANCE)
         return 0;
 
-    return m_ffPluginFunctionGetCode(m_ffInstanceID);
+    return m_ffPluginFunctionGetString((unsigned int) t, m_ffInstanceID);
 }
+
 
 // Platform dependent implementation of the DLL function pointer assignment
 
@@ -377,10 +378,10 @@ bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
     if (plugin_handle == NULL)
         return false;
 
-    m_ffPluginFunctionSetCode = (_FuncPtrSetCode) dlsym(plugin_handle, "setFragmentProgramCode");
-    m_ffPluginFunctionGetCode = (_FuncPtrGetCode) dlsym(plugin_handle, "getFragmentProgramCode");
+    m_ffPluginFunctionSetString = (_FuncPtrSetString) dlsym(plugin_handle, "setString");
+    m_ffPluginFunctionGetString = (_FuncPtrGetString) dlsym(plugin_handle, "getString");
 
-    return ( m_ffPluginFunctionSetCode != NULL && m_ffPluginFunctionGetCode != NULL);
+    return ( m_ffPluginFunctionSetString != NULL && m_ffPluginFunctionGetString != NULL);
 }
 
 #endif

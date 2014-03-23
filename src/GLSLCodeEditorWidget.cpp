@@ -11,12 +11,6 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-//    ui->codeTextEdit->setFontFamily("monospace");
-//    ui->headerText->setFontFamily("monospace");
-//    ui->codeTextEdit->setTabStopWidth(30);
-//    GlslSyntaxHighlighter *highlighter = new GlslSyntaxHighlighter(ui->codeTextEdit->document());
-//    highlighter = new GlslSyntaxHighlighter(ui->headerText->document());
-
 }
 
 GLSLCodeEditorWidget::~GLSLCodeEditorWidget()
@@ -33,8 +27,15 @@ void GLSLCodeEditorWidget::linkPlugin(FFGLPluginSourceShadertoy *plugin)
     // remember which plugin is current
     _currentplugin = plugin;
 
+    // change the header with the plugin code
+    ui->headerText->append( _currentplugin->getHeaders() );
+
     // change the text editor to the plugin code
-    ui->codeTextEdit->append(_currentplugin->getCode());
+    ui->codeTextEdit->append( _currentplugin->getCode() );
+
+    ui->codeTextEdit->setShiftLineNumber( ui->headerText->lineCount() );
+
+    ui->nameEdit->setText( _currentplugin->getName() );
 }
 
 
@@ -49,31 +50,16 @@ void GLSLCodeEditorWidget::unlinkPlugin()
 }
 
 
-void GLSLCodeEditorWidget::applyCode()
+void GLSLCodeEditorWidget::apply()
 {
-    ui->logText->clear();
-
     _currentplugin->setCode(ui->codeTextEdit->toPlainText());
 
-//    -
-
+    QTimer::singleShot(200, this, SLOT(showLogs()));
 }
 
 
-//void GLSLCodeEditorWidget::setCode(const char *code)
-//{
-//    ui->codeTextEdit->clear();
-//    ui->codeTextEdit->append(QString::fromLatin1(code));
-//}
-
-
-//void GLSLCodeEditorWidget::setHeader(const char *code)
-//{
-//    ui->headerText->clear();
-//    ui->headerText->append(QString::fromLatin1(code));
-//}
-
-//void GLSLCodeEditorWidget::showLogs(const char *logstring)
-//{
-//    ui->logText->appendPlainText(QString::fromLatin1(logstring));
-//}
+void GLSLCodeEditorWidget::showLogs()
+{
+    ui->logText->clear();
+    ui->logText->appendPlainText(_currentplugin->getLogs());
+}

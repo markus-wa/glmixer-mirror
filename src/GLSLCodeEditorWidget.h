@@ -21,8 +21,8 @@ public:
     void unlinkPlugin();
 
 public Q_SLOTS:
-    void applyCode();
-//    void showLogs(const char *logstring);
+    void apply();
+    void showLogs();
 
 //    void setHeader(const char *header);
 //    void setCode(const char *code);

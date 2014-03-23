@@ -78,6 +78,7 @@ public Q_SLOTS:
     // Plugin page
     void on_addPlugin_pressed();
     void on_addShadertoyPlugin_pressed();
+    void editShaderToyPlugin();
 
 #endif
 

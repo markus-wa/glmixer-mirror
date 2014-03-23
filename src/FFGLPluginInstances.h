@@ -50,12 +50,20 @@ public:
 
     // initialize the functions from the shadertoy plugin, return true on success
     virtual bool declareShadertoyFunctions() = 0;
-    // set the code for the GLSL shadertoy plugin, return true on success
-    // wrapper for setFragmentProgramCode function of the FreeFrameFragmentCodePlugin
-    virtual void setCode(const char *code) = 0;
-    // get the code of the GLSL shadertoy plugin, return true on success
-    // wrapper for getFragmentProgramCode function of the FreeFrameFragmentCodePlugin
-    virtual char *getCode() = 0;
+
+    typedef enum {
+        CODE_SHADERTOY = 0,
+        LOG_SHADERTOY,
+        HEADER_SHADERTOY,
+        DEFAULTCODE_SHADERTOY
+    } ShadertoyString;
+
+    // set a string for the GLSL shadertoy plugin
+    // wrapper for setString function of the FreeFrameFragmentCodePlugin
+    virtual void setString(ShadertoyString t, const char *code) = 0;
+    // get a string of the GLSL shadertoy plugin
+    // wrapper for getString function of the FreeFrameFragmentCodePlugin
+    virtual char *getString(ShadertoyString t) = 0;
 
 };
 

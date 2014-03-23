@@ -26,7 +26,8 @@ private:
     GLSLCodeEditor *CodeEditor;
 };
 
-GLSLCodeEditor::GLSLCodeEditor(QWidget *parent) : QTextEdit(parent)
+
+GLSLCodeEditor::GLSLCodeEditor(QWidget *parent) : QTextEdit(parent), _shiftLineNumber(0)
 {
     lineNumberArea = new LineNumberArea(this);
 
@@ -36,24 +37,24 @@ GLSLCodeEditor::GLSLCodeEditor(QWidget *parent) : QTextEdit(parent)
 
     connect(document(), SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
-//    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
+    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
-    updateLineNumberAreaWidth(0);
-//    highlightCurrentLine();
+    updateLineNumberAreaWidth(1);
+    highlightCurrentLine();
 }
 
 
 
 int GLSLCodeEditor::lineNumberAreaWidth()
 {
-    int digits = 1;
+    int digits = 2;
     int max = qMax(1, document()->blockCount());
     while (max >= 10) {
         max /= 10;
         ++digits;
     }
 
-    int space = 3 + fontMetrics().width(QLatin1Char('0')) * digits;
+    int space = 5 + fontMetrics().width(QLatin1Char('0')) * digits;
 
     return space;
 }
@@ -119,15 +120,15 @@ void GLSLCodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     QTextBlock block = document()->firstBlock();
     int blockNumber = block.blockNumber();
 
-    int top = 0;
-    //      int top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
+    int top = (int) document()->documentMargin ();
+//    int top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
     int bottom = top + (int) document()->documentLayout()->blockBoundingRect(block).height();
 
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
-            QString number = QString::number(blockNumber + 1);
+            QString number = QString::number(blockNumber + 1 + _shiftLineNumber);
             painter.setPen(Qt::black);
-            painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(),
+            painter.drawText(0, top, lineNumberArea->width() - 2, fontMetrics().height(),
                              Qt::AlignRight, number);
         }
 

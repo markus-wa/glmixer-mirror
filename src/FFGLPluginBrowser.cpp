@@ -34,6 +34,7 @@
 FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : PropertyBrowser(parent), currentStack(0) {
 
     editAction = new QAction(tr("Edit"), this);
+    QObject::connect(editAction, SIGNAL(triggered()), this, SIGNAL(edit()) );
     editAction->setEnabled(false);
     menuTree.addSeparator();
     menuTree.addAction(editAction);
@@ -41,7 +42,7 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
     if (allowRemove) {
         // actions of context menus
         removeAction = new QAction(tr("Remove"), this);
-        QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePlugin() ) );
+        QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePlugin()) );
 
         menuTree.addAction(removeAction);
     }
