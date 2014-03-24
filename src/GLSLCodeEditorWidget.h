@@ -24,8 +24,7 @@ public Q_SLOTS:
     void apply();
     void showLogs();
 
-//    void setHeader(const char *header);
-//    void setCode(const char *code);
+    void updateFields();
 
 private:
     Ui::GLSLCodeEditorWidget *ui;

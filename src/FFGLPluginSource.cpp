@@ -65,7 +65,7 @@ void FFGLPluginSource::load(QString filename)
         // fill in the information about this plugin
         info = p->getInfo();
         info.unite(p->getExtendedInfo());
-        _isFreeframeTypeSource = info["Type"].toString() == "Source";
+        _isFreeframeTypeSource = (info["Type"].toString() == "Source");
     //    qDebug() << info;
 
         // remember default values
@@ -277,7 +277,6 @@ bool FFGLPluginSource::initialize()
 
                 // remember successful initialization
                 _initialized = true;
-//                qDebug()<< QFileInfo(_filename).baseName() << "| " << QObject::tr("FreeframeGL plugin initialized");
 
             }
             else {

@@ -17,11 +17,11 @@ FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(int w, int h, FFGLTextureSt
 
     // check validity of plugin
     if (!_plugin){
-        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin could not be instanciated");
+        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Plugin could not be instanciated");
         FFGLPluginException().raise();
     }
 
-    // automatically load the correct DLL
+    // automatically load the resource embeded DLL
     load(libraryFileName());
 
     _name = getInfo()["Name"].toString();

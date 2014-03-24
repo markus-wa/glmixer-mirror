@@ -272,8 +272,8 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     "}"));
 
     pluginBrowserLayout->insertWidget(1, pluginBrowser);
-    QObject::connect(pluginBrowser, SIGNAL( pluginChanged()), this, SLOT(changed()) );
-    QObject::connect(pluginBrowser, SIGNAL( edit()), this, SLOT(editShaderToyPlugin()) );
+    QObject::connect(pluginBrowser, SIGNAL(pluginChanged()), this, SLOT(changed()) );
+    QObject::connect(pluginBrowser, SIGNAL(edit(FFGLPluginSource *)), this, SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
 //    pluginFactoryEditor = NULL;
 #else
     mixingToolBox->removeTab( mixingToolBox->indexOf(Plugin) );
@@ -698,47 +698,37 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
     if (source && pluginfile.isFile()) {
 
         // add a the given freeframe plugin
-        source->addFreeframeGLPlugin( pluginfile.absoluteFilePath() );
+        FFGLPluginSource *plugin = source->addFreeframeGLPlugin( pluginfile.absoluteFilePath() );
 
-        pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
-        changed();
+        // test if plugin was added
+        if ( plugin ) {
+            pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
+            changed();
+        }
     }
 }
 
 void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
 {
-    editShaderToyPlugin();
-
     if (source) {
 
         // add a generic freeframe plugin
-        source->addFreeframeGLPlugin();
+        FFGLPluginSource *plugin = source->addFreeframeGLPlugin();
 
-        pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
-        changed();
+        // test if plugin was added
+        if ( plugin ) {
 
-        // test if it was added
-        if ( source->hasFreeframeGLPlugin() ) {
+            pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
+            changed();
 
-            FFGLPluginSource *plugin = source->getFreeframeGLPluginStack()->top();
-
-            if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
-
-                FFGLPluginSourceShadertoy *shadertoy = dynamic_cast<FFGLPluginSourceShadertoy *>(plugin);
-
-                // link to GUI editor
-                if ( shadertoy && plugin->initialize() )
-                    pluginGLSLCodeEditor->linkPlugin(shadertoy);
-
-            }
-
+            // open editor
+            editShaderToyPlugin(plugin);
         }
     }
-
 }
 
 
-void MixingToolboxWidget::editShaderToyPlugin()
+void MixingToolboxWidget::editShaderToyPlugin(FFGLPluginSource *plugin)
 {
     // instanciate if not already done
     if(!pluginGLSLCodeEditor)
@@ -748,6 +738,14 @@ void MixingToolboxWidget::editShaderToyPlugin()
     pluginGLSLCodeEditor->show();
     pluginGLSLCodeEditor->raise();
     pluginGLSLCodeEditor->setFocus();
+
+    // test if it is a shadertoy plugin
+    if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
+
+        // link it to GUI editor
+        pluginGLSLCodeEditor->linkPlugin(dynamic_cast<FFGLPluginSourceShadertoy *>(plugin));
+
+    }
 }
 
 #endif

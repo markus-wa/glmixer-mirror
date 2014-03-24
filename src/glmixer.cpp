@@ -1065,10 +1065,10 @@ void GLMixer::on_actionCloneSource_triggered(){
         for (FFGLPluginSourceStack::const_iterator it = (*original)->getFreeframeGLPluginStack()->begin();
              it != (*original)->getFreeframeGLPluginStack()->end(); ++it) {
 
-            s->addFreeframeGLPlugin( (*it)->fileName() );
+            FFGLPluginSource *plugin = s->addFreeframeGLPlugin( (*it)->fileName() );
             // set configuration
-            if (s->hasFreeframeGLPlugin())
-                s->getFreeframeGLPluginStack()->top()->setConfiguration( (*it)->getConfiguration() );
+            if (plugin)
+                plugin->setConfiguration( (*it)->getConfiguration() );
         }
 #endif
 

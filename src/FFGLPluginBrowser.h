@@ -29,11 +29,12 @@ public slots:
 
     // Context menu actions
     void removePlugin();
+    void editPlugin();
 
 Q_SIGNALS:
     // inform to refresh the GUI
     void pluginChanged();
-    void edit();
+    void edit(FFGLPluginSource *);
 
 private:
 

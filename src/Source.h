@@ -438,7 +438,7 @@ public:
 
 #ifdef FFGL
     // freeframe gl plugin
-    void addFreeframeGLPlugin(QString filename = QString::null);
+    FFGLPluginSource *addFreeframeGLPlugin(QString filename = QString::null);
     FFGLPluginSourceStack *getFreeframeGLPluginStack();
     bool hasFreeframeGLPlugin();
     void clearFreeframeGLPlugin();

@@ -34,7 +34,7 @@
 FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : PropertyBrowser(parent), currentStack(0) {
 
     editAction = new QAction(tr("Edit"), this);
-    QObject::connect(editAction, SIGNAL(triggered()), this, SIGNAL(edit()) );
+    QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
     editAction->setEnabled(false);
     menuTree.addSeparator();
     menuTree.addAction(editAction);
@@ -249,4 +249,13 @@ void FFGLPluginBrowser::removePlugin()
     showProperties(currentStack);
 
     emit pluginChanged();
+}
+
+void FFGLPluginBrowser::editPlugin()
+{
+    if (currentStack) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( propertyToPluginParameter.contains(property) )
+            emit edit(propertyToPluginParameter[property].first);
+    }
 }

@@ -30,9 +30,8 @@ public:
     } RTTI;
     virtual RTTI rtti() const { return type; }
 
-    // loading and initialization of FFGL plugin
+    // loading of FFGL plugin
     void load(QString filename);
-    bool initialize();
 
     // update texture (to be called at each update of source)
     void update();
@@ -52,6 +51,7 @@ public:
     // pause update
     void setPaused(bool pause);
     bool isPaused() { return _pause;}
+    bool isinitialized() { return _initialized;}
 
     // parameters
     QVariantHash getParameters();
@@ -73,6 +73,9 @@ public:
 protected:
     // FFGL specialized objects for plugin
     class FFGLPluginInstance *_plugin;
+
+    // initialization should be called from inside
+    bool initialize();
 
 private:
     // self management

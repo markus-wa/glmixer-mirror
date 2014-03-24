@@ -13,11 +13,41 @@
   <property name="windowTitle">
    <string>GLSL Fragment Shader Code Editor</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height: 24px;
+     min-width: 24px;
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked { 
+     border-color: palette(dark);
+     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
+}
+
+QToolButton:pressed { 
+	background: palette(midlight);
+}
+
+QToolButton:hover { 
+     border-color: palette(highlight);
+}
+
+</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
      </property>
      <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -50,6 +80,9 @@
              </property>
              <property name="pixmap">
               <pixmap resource="../icons.qrc">:/glmixer/icons/shadertoy_white.png</pixmap>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -240,7 +273,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QLabel" name="label">
          <property name="styleSheet">
-          <string notr="true">background-color: rgb(108, 108, 108);</string>
+          <string notr="true">background: palette(dark);</string>
          </property>
          <property name="text">
           <string>GLSL Compilation logs</string>
@@ -265,6 +298,9 @@ p, li { white-space: pre-wrap; }
        </property>
        <item>
         <widget class="QPlainTextEdit" name="logText">
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
          <property name="undoRedoEnabled">
           <bool>false</bool>
          </property>

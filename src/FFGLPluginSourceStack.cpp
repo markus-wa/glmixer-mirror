@@ -8,13 +8,15 @@ FFGLPluginSourceStack::FFGLPluginSourceStack( FFGLPluginSource *ffgl_plugin )
     this->push(ffgl_plugin);
 }
 
-void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int height, unsigned int inputTexture){
+FFGLPluginSource *FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int height, unsigned int inputTexture)
+{
 
     if (filename.isEmpty() || !QFileInfo(filename).isFile()) {
         qCritical()<< filename << QChar(124).toLatin1()<< QObject::tr("FreeFrameGL plugin given an invalid file name");
-        return;
+        return NULL;
     }
 
+    FFGLPluginSource *ffgl_plugin = NULL;
     FFGLTextureStruct it;
 
     // descriptor for the source texture, used also to store size
@@ -31,7 +33,6 @@ void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int heigh
 
     // create the plugin itself
     try {
-        FFGLPluginSource *ffgl_plugin = NULL;
 
         // create new plugin with this file
         ffgl_plugin = new FFGLPluginSource(width, height, it);
@@ -49,11 +50,14 @@ void FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int heigh
         qCritical() << filename << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
     }
 
+    return ffgl_plugin;
 }
 
 
-void FFGLPluginSourceStack::pushNewPlugin(int width, int height, unsigned int inputTexture){
+FFGLPluginSource *FFGLPluginSourceStack::pushNewPlugin(int width, int height, unsigned int inputTexture)
+{
 
+    FFGLPluginSource *ffgl_plugin = NULL;
     FFGLTextureStruct it;
 
     // descriptor for the source texture, used also to store size
@@ -70,7 +74,6 @@ void FFGLPluginSourceStack::pushNewPlugin(int width, int height, unsigned int in
 
     // create the plugin itself
     try {
-        FFGLPluginSource *ffgl_plugin = NULL;
 
         // create new plugin with this file
         ffgl_plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(width, height, it);
@@ -85,6 +88,7 @@ void FFGLPluginSourceStack::pushNewPlugin(int width, int height, unsigned int in
         qCritical() << "Shadertoy" << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
     }
 
+    return ffgl_plugin;
 }
 
 

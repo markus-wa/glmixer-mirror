@@ -561,12 +561,12 @@ QStringList Source::getFilterNames() {
 // freeframe gl plugin
 #ifdef FFGL
 
-void Source::addFreeframeGLPlugin(QString filename) {
+FFGLPluginSource *Source::addFreeframeGLPlugin(QString filename) {
 
     if (filename.isNull())
-        _ffgl_plugins.pushNewPlugin(getFrameWidth(), getFrameHeight(), getTextureIndex());
+        return _ffgl_plugins.pushNewPlugin(getFrameWidth(), getFrameHeight(), getTextureIndex());
     else
-        _ffgl_plugins.pushNewPlugin(filename, getFrameWidth(), getFrameHeight(), getTextureIndex());
+        return _ffgl_plugins.pushNewPlugin(filename, getFrameWidth(), getFrameHeight(), getTextureIndex());
 
 }
 
