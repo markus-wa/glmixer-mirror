@@ -14,6 +14,7 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
     connect(ui->helpButton, SIGNAL(clicked()), this, SLOT(showHelp()));
     connect(ui->pasteButton, SIGNAL(clicked()), this, SLOT(pasteCode()));
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(loadCode()));
+    connect(ui->restoreButton, SIGNAL(clicked()), this, SLOT(restoreCode()));
 
     // header area is read only
     ui->headerText->setReadOnly(true);
@@ -119,6 +120,11 @@ void GLSLCodeEditorWidget::showHelp()
 void GLSLCodeEditorWidget::pasteCode()
 {
     ui->codeTextEdit->setCode( QApplication::clipboard()->text() );
+}
+
+void GLSLCodeEditorWidget::restoreCode()
+{
+    ui->codeTextEdit->setCode( _currentplugin->getDefaultCode() );
 }
 
 void GLSLCodeEditorWidget::loadCode()

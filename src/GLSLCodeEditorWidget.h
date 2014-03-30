@@ -29,6 +29,7 @@ public Q_SLOTS:
     void showHelp();
     void pasteCode();
     void loadCode();
+    void restoreCode();
 
 private:
     Ui::GLSLCodeEditorWidget *ui;

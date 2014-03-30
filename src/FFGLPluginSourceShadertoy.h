@@ -13,6 +13,7 @@ public:
 
     // get and set of GLSL Shadertoy code
     QString getCode();
+    QString getDefaultCode();
     void setCode(QString code);
 
     // get logs of GLSL Shadertoy execution

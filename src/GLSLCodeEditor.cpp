@@ -31,24 +31,27 @@ CodeEditor::CodeEditor(QWidget *parent, QTextEdit *lineNumberArea) : QTextEdit(p
 
 void CodeEditor::highlightCurrentLine()
 {
+    // use extra selection mechanism for highligt line
     QList<QTextEdit::ExtraSelection> extraSelections;
-
+    // only editable text edit higlight line for edit
     if (!isReadOnly()) {
         QTextEdit::ExtraSelection selection;
 
-        QColor lineColor = QColor(Qt::gray);
-
-        selection.format.setBackground(lineColor);
+        selection.format.setBackground(QColor(Qt::gray));
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);
         selection.cursor = textCursor();
         selection.cursor.clearSelection();
         extraSelections.append(selection);
     }
-
-
-    _lineNumberArea->verticalScrollBar()->setValue(verticalScrollBar()->value());
-
+    // apply highlight line (empty if not set)
     setExtraSelections(extraSelections);
+
+    // needed to fix a display bug
+    setFontFamily("monospace");
+    setTabStopWidth(30);
+
+    // rescroll line area in case the change of line caused a scroll in code area
+    _lineNumberArea->verticalScrollBar()->setValue(verticalScrollBar()->value());
 }
 
 void CodeEditor::updateLineNumbers ()

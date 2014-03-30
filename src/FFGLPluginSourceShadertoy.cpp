@@ -54,6 +54,23 @@ QString FFGLPluginSourceShadertoy::getCode()
     return c;
 }
 
+QString FFGLPluginSourceShadertoy::getDefaultCode()
+{
+    QString c = "invalid";
+
+    // access the functions for Shadertoy plugin
+    FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
+    if ( p ) {
+        char *string = p->getString(FFGLPluginInstanceShadertoy::DEFAULTCODE_SHADERTOY);
+        if ( string ) {
+            // Convert char array into QString
+            c = QString::fromLatin1(string);
+        }
+    }
+
+    return c;
+}
+
 QString FFGLPluginSourceShadertoy::getLogs()
 {
     QString c = "";
