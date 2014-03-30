@@ -40,30 +40,30 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class GlslSyntaxHighlighter: public QSyntaxHighlighter {
 Q_OBJECT
 public:
-	GlslSyntaxHighlighter(QTextDocument *parent = 0);
+    GlslSyntaxHighlighter(QTextEdit *parent = 0);
 
 protected:
-	void highlightBlock(const QString &text);
+    void highlightBlock(const QString &text);
 
 private:
-	void addPatternFromList(QStringList &list, QTextCharFormat &format);
+    void addPatternFromList(QStringList &list, QTextCharFormat &format);
 
-	struct HighlightingRule {
-		QRegExp pattern;
-		QTextCharFormat format;
-	};
-	QVector<HighlightingRule> highlightingRules;
+    struct HighlightingRule {
+        QRegExp pattern;
+        QTextCharFormat format;
+    };
+    QVector<HighlightingRule> highlightingRules;
 
-	QRegExp commentStartExpression;
-	QRegExp commentEndExpression;
+    QRegExp commentStartExpression;
+    QRegExp commentEndExpression;
 
     QTextCharFormat keywordFormat;
     QTextCharFormat statementFormat;
-	QTextCharFormat commentFormat;
-	QTextCharFormat preprocessorFormat;
-	QTextCharFormat numberFormat;
-	QTextCharFormat typesFormat;
-	QTextCharFormat swizzleFormat;
+    QTextCharFormat commentFormat;
+    QTextCharFormat preprocessorFormat;
+    QTextCharFormat numberFormat;
+    QTextCharFormat typesFormat;
+    QTextCharFormat swizzleFormat;
 };
 
 #endif

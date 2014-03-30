@@ -1,7 +1,6 @@
 #include "GLSLCodeEditorWidget.moc"
 #include "ui_GLSLCodeEditorWidget.h"
 #include "FFGLPluginSourceShadertoy.h"
-//#include "FreeFrameQtGLSL.h"
 
 #include <QDebug>
 
@@ -11,6 +10,19 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // connect buttons
+    connect(ui->helpButton, SIGNAL(clicked()), this, SLOT(showHelp()));
+    connect(ui->pasteButton, SIGNAL(clicked()), this, SLOT(pasteCode()));
+    connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(loadCode()));
+
+    // header area is read only
+    ui->headerText->setReadOnly(true);
+
+    // collapse logs by default
+    ui->splitter->setCollapsible(1, true);
+    QList<int> sizes;
+    sizes << (ui->splitter->sizes()[0] + ui->splitter->sizes()[1]) << 0;
+    ui->splitter->setSizes( sizes );
 }
 
 GLSLCodeEditorWidget::~GLSLCodeEditorWidget()
@@ -41,11 +53,11 @@ void GLSLCodeEditorWidget::updateFields()
             QTimer::singleShot(50, this, SLOT(updateFields()));
 
         // change the header with the plugin code
-        ui->headerText->setText( _currentplugin->getHeaders() );
+        ui->headerText->setCode( _currentplugin->getHeaders() );
 
         // change the text editor to the plugin code
-        ui->codeTextEdit->setText( _currentplugin->getCode() );
         ui->codeTextEdit->setShiftLineNumber( ui->headerText->lineCount() );
+        ui->codeTextEdit->setCode( _currentplugin->getCode() );
 
         // set name field
         ui->nameEdit->setText( _currentplugin->getName() );
@@ -74,7 +86,7 @@ void GLSLCodeEditorWidget::unlinkPlugin()
 
 void GLSLCodeEditorWidget::apply()
 {
-    _currentplugin->setCode(ui->codeTextEdit->toPlainText());
+    _currentplugin->setCode(ui->codeTextEdit->code());
     _currentplugin->setName(ui->nameEdit->text());
 
     // because the plugin needs 1 frame to compile the GLSL
@@ -85,6 +97,44 @@ void GLSLCodeEditorWidget::apply()
 
 void GLSLCodeEditorWidget::showLogs()
 {
+    // clear and replace the logs
     ui->logText->clear();
-    ui->logText->appendPlainText(_currentplugin->getLogs());
+    QString logs = _currentplugin->getLogs();
+    ui->logText->appendPlainText(logs);
+
+    // if log area is collapsed, show it
+    if (!logs.isEmpty() && ui->splitter->sizes()[1] == 0) {
+        QList<int> sizes;
+        sizes << (ui->splitter->sizes()[0] * 3 / 4) << (ui->splitter->sizes()[0] / 4);
+        ui->splitter->setSizes( sizes );
+    }
+}
+
+
+void GLSLCodeEditorWidget::showHelp()
+{
+    QDesktopServices::openUrl(QUrl("https://www.shadertoy.com", QUrl::TolerantMode));
+}
+
+void GLSLCodeEditorWidget::pasteCode()
+{
+    ui->codeTextEdit->setCode( QApplication::clipboard()->text() );
+}
+
+void GLSLCodeEditorWidget::loadCode()
+{
+    static QDir dir(QDir::home());
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open ShaderToy GLSL fragment shader code"), dir.absolutePath(), tr("GLSL code (*.glsl);;Text file (*.txt);;Any file (*.*)") );
+
+    // check validity of file
+    QFileInfo fileInfo(fileName);
+    if (fileInfo.isFile() && fileInfo.isReadable()) {
+        // open file
+        QFile fileContent( fileInfo.absoluteFilePath());
+        if (!fileContent.open(QIODevice::ReadOnly | QIODevice::Text))
+            return;
+        QTextStream tx(&fileContent);
+        ui->codeTextEdit->setCode( QTextStream(&fileContent).readAll() );
+    }
+
 }

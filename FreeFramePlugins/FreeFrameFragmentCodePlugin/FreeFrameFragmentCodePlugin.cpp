@@ -9,17 +9,17 @@
 #include "FreeFrameFragmentCodePlugin.h"
 
 
-const char *fragmentShaderHeader =  "uniform vec3      iResolution;\n"
-                                    "uniform float     iGlobalTime;\n"
-                                    "uniform float     iChannelTime[1];\n"
-                                    "uniform vec3      iChannelResolution[1];\n"
-                                    "uniform sampler2D iChannel0;\n"
-                                    "uniform vec4      iDate;\0";
+const char *fragmentShaderHeader =  "uniform vec3      iResolution;           // viewport resolution (in pixels)\n"
+                                    "uniform vec3      iChannelResolution[1]; // input channel resolution (in pixels)\n"
+                                    "uniform float     iGlobalTime;           // shader playback time (in seconds)\n"
+                                    "uniform float     iChannelTime[1];       // channel playback time (in seconds)\n"
+                                    "uniform sampler2D iChannel0;             // input channel (texture id).\n"
+                                    "uniform vec4      iDate;                 // (year, month, day, time in seconds)\0";
 
 const char *fragmentShaderDefaultCode = "void main(void){\n"
         "\tvec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
-        "\tgl_FragColor = 0.6 * texture2D(iChannel0, uv);\n"
-        "}\n";
+        "\tgl_FragColor = texture2D(iChannel0, uv);\n"
+        "}\0";
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -232,8 +232,9 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         if (shaderProgram) glDeleteProgram(shaderProgram);
         if (fragmentShader) glDeleteShader(fragmentShader);
 
-        char *fsc = (char *) malloc(sizeof(char)*(strlen(fragmentShaderHeader)+strlen(fragmentShaderCode)+1));
+        char *fsc = (char *) malloc(sizeof(char)*(strlen(fragmentShaderHeader)+strlen(fragmentShaderCode)+2));
         strcpy(fsc, fragmentShaderHeader);
+        strcat(fsc, "\n");
         strcat(fsc, fragmentShaderCode);
         fsc[strlen(fsc)] = '\0';
 

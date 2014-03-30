@@ -23,8 +23,12 @@ public:
 public Q_SLOTS:
     void apply();
     void showLogs();
-
     void updateFields();
+
+    // actions from buttons
+    void showHelp();
+    void pasteCode();
+    void loadCode();
 
 private:
     Ui::GLSLCodeEditorWidget *ui;
