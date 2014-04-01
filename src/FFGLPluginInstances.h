@@ -60,7 +60,7 @@ public:
 
     // set a string for the GLSL shadertoy plugin
     // wrapper for setString function of the FreeFrameFragmentCodePlugin
-    virtual void setString(ShadertoyString t, const char *code) = 0;
+    virtual bool setString(ShadertoyString t, const char *code) = 0;
     // get a string of the GLSL shadertoy plugin
     // wrapper for getString function of the FreeFrameFragmentCodePlugin
     virtual char *getString(ShadertoyString t) = 0;

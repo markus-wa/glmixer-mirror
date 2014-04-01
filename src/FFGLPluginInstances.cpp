@@ -309,7 +309,7 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
 typedef __declspec(dllimport) void (__stdcall *_FuncPtrSetCode)(const char *, FFInstanceID);
 typedef __declspec(dllimport) (char *) (__stdcall *_FuncPtrGetCode)(FFInstanceID);
 #else
-typedef void (*_FuncPtrSetString)(unsigned int, const char *, FFInstanceID);
+typedef bool (*_FuncPtrSetString)(unsigned int, const char *, FFInstanceID);
 typedef char *(*_FuncPtrGetString)(unsigned int, FFInstanceID);
 #endif
 
@@ -321,7 +321,7 @@ public:
     FFGLPluginInstanceShadertoyPlaftorm() : m_ffPluginFunctionSetString(NULL), m_ffPluginFunctionGetString(NULL) {}
 
     bool declareShadertoyFunctions();
-    void setString(ShadertoyString, const char *code);
+    bool setString(ShadertoyString, const char *code);
     char *getString(ShadertoyString);
 
     _FuncPtrSetString m_ffPluginFunctionSetString;
@@ -334,11 +334,12 @@ FFGLPluginInstance *FFGLPluginInstanceShadertoy::New()
 }
 
 
-void FFGLPluginInstanceShadertoyPlaftorm::setString(ShadertoyString t, const char *code)
+bool FFGLPluginInstanceShadertoyPlaftorm::setString(ShadertoyString t, const char *code)
 {
-    if (m_ffPluginFunctionSetString!=NULL && m_ffInstanceID!=INVALIDINSTANCE)
-        m_ffPluginFunctionSetString((unsigned int) t, code, m_ffInstanceID);
+    if (m_ffPluginFunctionGetString==NULL || m_ffInstanceID==INVALIDINSTANCE)
+        return false;
 
+    return m_ffPluginFunctionSetString((unsigned int) t, code, m_ffInstanceID);
 }
 
 char *FFGLPluginInstanceShadertoyPlaftorm::getString(ShadertoyString t)

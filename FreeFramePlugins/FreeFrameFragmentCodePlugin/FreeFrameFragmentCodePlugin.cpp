@@ -35,7 +35,7 @@ static CFFGLPluginInfo PluginInfo (
         1,									// Plugin major version number
         000,								// Plugin minor version number
         FF_EFFECT,                          // Plugin type
-        "Shadertoy GLSL code in a FreeFrame plugin",    // Plugin description
+        "Shadertoy GLSL plugin",    // Plugin description
         "by Bruno Herbelin"                 // About
         );
 
@@ -300,7 +300,7 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     return FF_SUCCESS;
 }
 
-void setString(unsigned int t, const char *string, FFInstanceID *instanceID){
+bool setString(unsigned int t, const char *string, FFInstanceID *instanceID){
 
     // declare pPlugObj (pointer to this instance)
     // & typecast instanceid into pointer to a CFreeFrameGLPlugin
@@ -313,8 +313,10 @@ void setString(unsigned int t, const char *string, FFInstanceID *instanceID){
 //        case 3:
 //            PluginInfo.GetPluginExtendedInfo()->About = strdup(string);
         }
-
+        return true;
     }
+
+    return false;
 }
 
 

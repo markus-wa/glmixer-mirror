@@ -12,7 +12,7 @@ FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(int w, int h, FFGLTextureSt
     // free the FFGLPluginInstanceFreeframe instance
     if (_plugin) free(_plugin);
 
-    // instanciate a FFGLPluginInstanceFreeframe plugin
+    // instanciate a FFGLPluginInstanceShadertoy plugin instead
     _plugin =  FFGLPluginInstanceShadertoy::New();
 
     // check validity of plugin
@@ -21,12 +21,8 @@ FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(int w, int h, FFGLTextureSt
         FFGLPluginException().raise();
     }
 
-    // automatically load the resource embeded DLL
+    // automatically load the resource-embeded DLL
     load(libraryFileName());
-
-    _name = getInfo()["Name"].toString();
-    _about = getInfo()["About"].toString();
-    _description = getInfo()["Description"].toString();
 
     // perform declaration of extra functions for Shadertoy
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
@@ -110,19 +106,72 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
     // access the functions for Shadertoy plugin
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( p ) {
-        // convert QString to char array
-        p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.toLatin1().data() );
+
+        if (!code.isNull())
+            _code = code;
+
+        // try to set the string
+        while( !p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, _code.toLatin1().data() )) {
+            // not initialized yet !
+            initialize();
+        }
     }
 }
 
-QString FFGLPluginSourceShadertoy::getName()
+
+void FFGLPluginSourceShadertoy::setName(QString string)
 {
-    return _name;
+    _info["Name"] = string;
+}
+void FFGLPluginSourceShadertoy::setAbout(QString string)
+{
+    _info["About"] = string;
+}
+void FFGLPluginSourceShadertoy::setDescription(QString string)
+{
+    _info["Description"] = string;
 }
 
-void FFGLPluginSourceShadertoy::setName(QString name)
+
+QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 {
-    _name = name;
+    QDomDocument root;
+    QDomElement p = root.createElement("ShadertoyPlugin");
+
+    // save info as XML nodes
+    QDomElement info = root.createElement("Name");
+    QDomText value = root.createTextNode( _info["Name"].toString() );
+    info.appendChild(value);
+    p.appendChild(info);
+
+    info = root.createElement("About");
+    value = root.createTextNode( _info["About"].toString() );
+    info.appendChild(value);
+    p.appendChild(info);
+
+    info = root.createElement("Description");
+    value = root.createTextNode( _info["Description"].toString() );
+    info.appendChild(value);
+    p.appendChild(info);
+
+    // save code of the plugin
+    QDomElement c = root.createElement("Code");
+    QDomText code = root.createTextNode( getCode() );
+    c.appendChild(code);
+    p.appendChild(c);
+
+    return p;
+}
+
+void FFGLPluginSourceShadertoy::setConfiguration(QDomElement xml)
+{
+    initialize();
+
+    setName( xml.firstChildElement("Name").text() );
+    setAbout( xml.firstChildElement("About").text() );
+    setDescription( xml.firstChildElement("Description").text() );
+    setCode( xml.firstChildElement("Code").text() );
+
 }
 
 

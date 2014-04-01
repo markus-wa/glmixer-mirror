@@ -61,7 +61,16 @@ void GLSLCodeEditorWidget::updateFields()
         ui->codeTextEdit->setCode( _currentplugin->getCode() );
 
         // set name field
-        ui->nameEdit->setText( _currentplugin->getName() );
+        QVariantHash plugininfo = _currentplugin->getInfo();
+        ui->nameEdit->setText( plugininfo["Name"].toString() );
+        QString about = "By ";
+#ifdef Q_OS_WIN
+    about.append(getenv("USERNAME"));
+#else
+    about.append(getenv("USER"));
+#endif
+        ui->aboutEdit->setText( about );
+        ui->descriptionEdit->setText( plugininfo["Description"].toString() );
 
     } else
     {
@@ -89,6 +98,10 @@ void GLSLCodeEditorWidget::apply()
 {
     _currentplugin->setCode(ui->codeTextEdit->code());
     _currentplugin->setName(ui->nameEdit->text());
+    _currentplugin->setAbout(ui->aboutEdit->text());
+    _currentplugin->setDescription(ui->descriptionEdit->text());
+
+    emit ( applied() );
 
     // because the plugin needs 1 frame to compile the GLSL
     // we shall call the display of the logs later
@@ -103,11 +116,19 @@ void GLSLCodeEditorWidget::showLogs()
     QString logs = _currentplugin->getLogs();
     ui->logText->appendPlainText(logs);
 
-    // if log area is collapsed, show it
-    if (!logs.isEmpty() && ui->splitter->sizes()[1] == 0) {
-        QList<int> sizes;
-        sizes << (ui->splitter->sizes()[0] * 3 / 4) << (ui->splitter->sizes()[0] / 4);
-        ui->splitter->setSizes( sizes );
+    // if log contains something
+    if (!logs.isEmpty()) {
+
+        // if there is an error, signal it
+        if (logs.contains("error"))
+            emit ( error(_currentplugin) );
+
+        // if log area is collapsed, show it
+        if ( ui->splitter->sizes()[1] == 0) {
+            QList<int> sizes;
+            sizes << (ui->splitter->sizes()[0] * 3 / 4) << (ui->splitter->sizes()[0] / 4);
+            ui->splitter->setSizes( sizes );
+        }
     }
 }
 

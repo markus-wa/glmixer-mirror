@@ -87,7 +87,7 @@ extern "C" {
 
 #else
 
-void setString(unsigned int t, const char *string, FFInstanceID *instanceID);
+bool setString(unsigned int t, const char *string, FFInstanceID *instanceID);
 char *getString(unsigned int t, FFInstanceID instanceID);
 
 #endif

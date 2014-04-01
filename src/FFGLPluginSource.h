@@ -55,12 +55,12 @@ public:
 
     // parameters
     QVariantHash getParameters();
-    QVariantHash getParametersDefaults() { return parametersDefaults; }
+    QVariantHash getParametersDefaults() { return _parametersDefaults; }
     void setParameter(int parameterNum, QVariant value);
     void setParameter(QString parameterName, QVariant value);
 
     // information
-    virtual QVariantHash getInfo() { return info; }
+    inline QVariantHash getInfo() { return _info; }
 
     // reset
     void restoreDefaults();
@@ -77,13 +77,13 @@ protected:
     // initialization should be called from inside
     bool initialize();
 
-private:
     // self management
-    QVariantHash parametersDefaults;
-    QVariantHash info;
+    QVariantHash _parametersDefaults;
+    QVariantHash _info;
     QString _filename;
     bool _initialized, _isFreeframeTypeSource;
 
+private:
     //this represents the texture (on the GPU) that we feed to the plugins
     FFGLTextureStruct _inputTexture;
 

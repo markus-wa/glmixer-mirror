@@ -731,8 +731,11 @@ void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
 void MixingToolboxWidget::editShaderToyPlugin(FFGLPluginSource *plugin)
 {
     // instanciate if not already done
-    if(!pluginGLSLCodeEditor)
+    if(!pluginGLSLCodeEditor) {
         pluginGLSLCodeEditor = new GLSLCodeEditorWidget();
+        connect(pluginGLSLCodeEditor, SIGNAL(applied()), this, SLOT(changed()));
+        connect(pluginGLSLCodeEditor, SIGNAL(error(FFGLPluginSource *)), this, SLOT(editShaderToyPlugin(FFGLPluginSource *)));
+    }
 
     // show the Shadertoy code editor
     pluginGLSLCodeEditor->show();

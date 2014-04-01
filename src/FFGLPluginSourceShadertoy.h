@@ -14,22 +14,23 @@ public:
     // get and set of GLSL Shadertoy code
     QString getCode();
     QString getDefaultCode();
-    void setCode(QString code);
+    void setCode(QString code = QString::null);
 
     // get logs of GLSL Shadertoy execution
     QString getLogs();
     QString getHeaders();
 
-    QString getName();
+    // set information fields
     void setName(QString);
+    void setAbout(QString);
+    void setDescription(QString);
 
-//    QString getAbout();
-//    void setAbout();
+    // XML config
+    QDomElement getConfiguration(QDir current = QDir());
+    void setConfiguration(QDomElement xml);
 
 private:
-
-    QString _name, _about, _description;
-
+    QString _code;
     static QString libraryFileName();
     static RTTI type;
 };

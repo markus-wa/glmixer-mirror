@@ -46,6 +46,7 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #endif
 #ifdef FFGL
 #include "FFGLPluginSource.h"
+#include "FFGLPluginSourceShadertoy.h"
 #include "FFGLSource.h"
 #endif
 
@@ -1507,8 +1508,11 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
             // create and push the plugin to the source
             FFGLPluginSource *plugin = newsource->addFreeframeGLPlugin( fileNameToOpen );
             // apply the configuration
-            if (plugin)
+            if (plugin) {
                 plugin->setConfiguration(p);
+                qDebug() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeFrame plugin %1 added.").arg(fileNameToOpen);
+
+            }
         }
         else {
             qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
@@ -1517,6 +1521,38 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
         qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
 #endif
         p = p.nextSiblingElement("FreeFramePlugin");
+    }
+
+    // apply Shadertoy plugins
+    // start loop of plugins to load
+    p = child.firstChildElement("ShadertoyPlugin");
+    while (!p.isNull()) {
+#ifdef FFGL
+
+        // create and push the plugin to the source
+        FFGLPluginSource *plugin = newsource->addFreeframeGLPlugin();
+        // apply the code
+        if (plugin && plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
+
+            FFGLPluginSourceShadertoy *stp = dynamic_cast<FFGLPluginSourceShadertoy *>(plugin);
+
+            if (stp) {
+                stp->setCode(p.firstChildElement("Code").text());
+                stp->setName(p.firstChildElement("Name").text());
+                stp->setAbout(p.firstChildElement("About").text());
+                stp->setDescription(p.firstChildElement("Description").text());
+
+                qDebug() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin %1 added.").arg(p.firstChildElement("Name").text());
+            }
+            else {
+                qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("Failed to create Shadertoy plugin.");
+            }
+
+        }
+#else
+        qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin not supported.");
+#endif
+        p = p.nextSiblingElement("ShadertoyPlugin");
     }
 
 }

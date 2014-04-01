@@ -7,6 +7,7 @@ namespace Ui {
 class GLSLCodeEditorWidget;
 }
 
+class FFGLPluginSource;
 class FFGLPluginSourceShadertoy;
 
 class GLSLCodeEditorWidget : public QWidget
@@ -21,6 +22,8 @@ public:
     void unlinkPlugin();
 
 public Q_SLOTS:
+
+    // management of code
     void apply();
     void showLogs();
     void updateFields();
@@ -30,6 +33,12 @@ public Q_SLOTS:
     void pasteCode();
     void loadCode();
     void restoreCode();
+
+Q_SIGNALS:
+    // emited when code is applied
+    void applied();
+    // emited when error detected in compilation of plugin
+    void error(FFGLPluginSource *plugin);
 
 private:
     Ui::GLSLCodeEditorWidget *ui;

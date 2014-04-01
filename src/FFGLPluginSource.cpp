@@ -63,13 +63,13 @@ void FFGLPluginSource::load(QString filename)
         }
 
         // fill in the information about this plugin
-        info = p->getInfo();
-        info.unite(p->getExtendedInfo());
-        _isFreeframeTypeSource = (info["Type"].toString() == "Source");
+        _info = p->getInfo();
+        _info.unite(p->getExtendedInfo());
+        _isFreeframeTypeSource = (_info["Type"].toString() == "Source");
     //    qDebug() << info;
 
         // remember default values
-        parametersDefaults = p->getParametersDefaults();
+        _parametersDefaults = p->getParametersDefaults();
 
     } else {
         qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Invalid FreeframeGL plugin");
@@ -298,7 +298,7 @@ bool FFGLPluginSource::initialize()
 void FFGLPluginSource::restoreDefaults()
 {
     // iterate over the list of parameters
-    QHashIterator<QString, QVariant> i(parametersDefaults);
+    QHashIterator<QString, QVariant> i(_parametersDefaults);
     unsigned int paramNum = 0;
     while (i.hasNext()) {
         i.next();
@@ -344,6 +344,7 @@ QDomElement FFGLPluginSource::getConfiguration( QDir current )
         QDomText value = root.createTextNode( i.value().toString() );
         param.appendChild(value);
 
+        // add param
         p.appendChild(param);
     }
 
