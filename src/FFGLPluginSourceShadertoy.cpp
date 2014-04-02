@@ -107,11 +107,8 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( p ) {
 
-        if (!code.isNull())
-            _code = code;
-
         // try to set the string
-        while( !p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, _code.toLatin1().data() )) {
+        while( !p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.toLatin1().data() )) {
             // not initialized yet !
             initialize();
         }

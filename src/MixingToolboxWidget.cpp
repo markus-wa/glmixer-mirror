@@ -671,6 +671,8 @@ void MixingToolboxWidget::changed(){
 
     emit sourceChanged( RenderingManager::getInstance()->getById( source->getId()) );
 
+    if(pluginGLSLCodeEditor)
+        pluginGLSLCodeEditor->unlinkPlugin();
 }
 
 #ifdef FFGL
@@ -737,17 +739,16 @@ void MixingToolboxWidget::editShaderToyPlugin(FFGLPluginSource *plugin)
         connect(pluginGLSLCodeEditor, SIGNAL(error(FFGLPluginSource *)), this, SLOT(editShaderToyPlugin(FFGLPluginSource *)));
     }
 
-    // show the Shadertoy code editor
-    pluginGLSLCodeEditor->show();
-    pluginGLSLCodeEditor->raise();
-    pluginGLSLCodeEditor->setFocus();
-
     // test if it is a shadertoy plugin
     if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
 
         // link it to GUI editor
         pluginGLSLCodeEditor->linkPlugin(dynamic_cast<FFGLPluginSourceShadertoy *>(plugin));
 
+        // show the Shadertoy code editor
+        pluginGLSLCodeEditor->show();
+        pluginGLSLCodeEditor->raise();
+        pluginGLSLCodeEditor->setFocus();
     }
 }
 

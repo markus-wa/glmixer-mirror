@@ -30,7 +30,7 @@ public:
     void setConfiguration(QDomElement xml);
 
 private:
-    QString _code;
+
     static QString libraryFileName();
     static RTTI type;
 };

@@ -51,8 +51,8 @@ public slots:
     void setHeaderVisible(bool);
 
     // Context menu actions
-    void ctxMenuGroup(const QPoint &);
-    void ctxMenuTree(const QPoint &);
+    virtual void ctxMenuGroup(const QPoint &);
+    virtual void ctxMenuTree(const QPoint &);
     void switchToTreeView();
     void switchToGroupView();
     virtual void resetAll() {}

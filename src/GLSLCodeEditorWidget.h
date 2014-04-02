@@ -18,6 +18,7 @@ public:
     GLSLCodeEditorWidget(QWidget *parent = 0);
     ~GLSLCodeEditorWidget();
 
+    // associate / dissociate plugin to the GUI
     void linkPlugin(FFGLPluginSourceShadertoy *plugin);
     void unlinkPlugin();
 

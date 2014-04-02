@@ -104,11 +104,12 @@ void FFGLPluginSource::setParameter(QString parameterName, QVariant value)
 
 FFGLPluginSource::~FFGLPluginSource()
 {
-    _plugin->DeInstantiateGL();
-    _plugin->Unload();
-    delete _plugin;
-
     // deletes
+    if (_plugin) {
+        _plugin->DeInstantiateGL();
+        _plugin->Unload();
+        delete _plugin;
+    }
     if (_fbo)
         delete _fbo;
 }

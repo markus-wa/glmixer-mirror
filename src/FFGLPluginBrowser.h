@@ -27,6 +27,8 @@ public slots:
     void resetAll();
     void defaultValue();
 
+    void ctxMenuTree(const QPoint &);
+
     // Context menu actions
     void removePlugin();
     void editPlugin();

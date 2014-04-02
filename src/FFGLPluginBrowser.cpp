@@ -54,13 +54,11 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
 {
     QtProperty *property;
 
-    // enable the edit action for freeframe plugins
-    editAction->setEnabled(plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN);
-
     // create the entry for this plugin
     QFileInfo pluginfile(plugin->fileName());
     // root in the tree view with a basic name
     QtProperty *pluginroot = groupManager->addProperty( pluginfile.baseName());
+    pluginroot->setItalics(true);
 
     // keep correspondance between property and plugin
     propertyToPluginParameter[pluginroot] = QPair<FFGLPluginSource *, int>(plugin, -1);
@@ -258,4 +256,24 @@ void FFGLPluginBrowser::editPlugin()
         if ( propertyToPluginParameter.contains(property) )
             emit edit(propertyToPluginParameter[property].first);
     }
+}
+
+void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
+{
+    // edit is disabled by default
+    editAction->setEnabled(false);
+    removeAction->setEnabled(false);
+
+    if (propertyTreeEditor->currentItem()) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( propertyToPluginParameter.contains(property) ) {
+            // allow to remove if there is a plugin selected
+            removeAction->setEnabled(true);
+            // enable the edit action for freeframe plugins only
+             if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN)
+                 editAction->setEnabled(true);
+        }
+    }
+
+    PropertyBrowser::ctxMenuTree(pos);
 }
