@@ -115,8 +115,9 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     // actions of context menus
     defaultValueAction = new QAction(QObject::tr("Default value"), this);
     QObject::connect(defaultValueAction, SIGNAL(triggered()), this, SLOT(defaultValue() ) );
+// TODO : enable the default value action
+//    menuTree.addAction(defaultValueAction);
 
-    menuTree.addAction(defaultValueAction);
     menuTree.addAction(QObject::tr("Reset all"), this, SLOT(resetAll()));
     menuTree.addSeparator();
     menuTree.addAction(QObject::tr("Switch to Groups view"), this, SLOT(switchToGroupView()));

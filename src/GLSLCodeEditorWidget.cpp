@@ -42,17 +42,24 @@ void GLSLCodeEditorWidget::linkPlugin(FFGLPluginSourceShadertoy *plugin)
 
     // update
     updateFields();
+
+    // unlink when plugin is dying
+    // (no need to disconnect as the plugin will be deleted)
+    connect(_currentplugin, SIGNAL(dying()), this, SLOT(unlinkPlugin()));
+
+    // associate setting of attributes with plugin
+    connect(ui->nameEdit, SIGNAL(textChanged(QString)), _currentplugin, SLOT(setName(QString)));
+    connect(ui->aboutEdit, SIGNAL(textChanged(QString)), _currentplugin, SLOT(setAbout(QString)));
+    connect(ui->descriptionEdit, SIGNAL(textChanged(QString)), _currentplugin, SLOT(setDescription(QString)));
+
 }
 
 void GLSLCodeEditorWidget::updateFields()
 {
+    ui->logText->clear();
+
     if ( _currentplugin )
     {
-        // because the plugin takes 1 frame to initialize
-        // we should recall this function later
-        if ( !_currentplugin->isinitialized() )
-            QTimer::singleShot(50, this, SLOT(updateFields()));
-
         // change the header with the plugin code
         ui->headerText->setCode( _currentplugin->getHeaders() );
 
@@ -63,21 +70,19 @@ void GLSLCodeEditorWidget::updateFields()
         // set name field
         QVariantHash plugininfo = _currentplugin->getInfo();
         ui->nameEdit->setText( plugininfo["Name"].toString() );
-        QString about = "By ";
-#ifdef Q_OS_WIN
-    about.append(getenv("USERNAME"));
-#else
-    about.append(getenv("USER"));
-#endif
-        ui->aboutEdit->setText( about );
+        ui->aboutEdit->setText( plugininfo["About"].toString() );
         ui->descriptionEdit->setText( plugininfo["Description"].toString() );
+
+        // restore logs
+        ui->logText->appendPlainText(_currentplugin->getLogs());
 
     } else
     {
         // clear all text
         ui->codeTextEdit->clear();
         ui->nameEdit->clear();
-        ui->logText->clear();
+        ui->aboutEdit->clear();
+        ui->descriptionEdit->clear();
     }
 
     update();
@@ -86,6 +91,17 @@ void GLSLCodeEditorWidget::updateFields()
 
 void GLSLCodeEditorWidget::unlinkPlugin()
 {
+    // if a plugin was edited, disconnect its changed signal
+    if (_currentplugin) {
+        disconnect(_currentplugin, SIGNAL(changed()), 0, 0);
+        disconnect(_currentplugin, SIGNAL(dying()), 0, 0);
+    }
+
+    // always disconnect the GUI
+    disconnect(ui->nameEdit, SIGNAL(textChanged(QString)), 0, 0);
+    disconnect(ui->aboutEdit, SIGNAL(textChanged(QString)), 0, 0);
+    disconnect(ui->descriptionEdit, SIGNAL(textChanged(QString)), 0, 0);
+
     // unset current plugin
     _currentplugin = NULL;
 
@@ -96,32 +112,43 @@ void GLSLCodeEditorWidget::unlinkPlugin()
 
 void GLSLCodeEditorWidget::apply()
 {
-    _currentplugin->setCode(ui->codeTextEdit->code());
-    _currentplugin->setName(ui->nameEdit->text());
-    _currentplugin->setAbout(ui->aboutEdit->text());
-    _currentplugin->setDescription(ui->descriptionEdit->text());
+    if (!_currentplugin)
+        return;
 
-    emit ( applied() );
+    // apply the current code to the plugin
+    _currentplugin->setCode(ui->codeTextEdit->code());
 
     // because the plugin needs 1 frame to compile the GLSL
-    // we shall call the display of the logs later
-    QTimer::singleShot(100, this, SLOT(showLogs()));
+    // we shall call the display of the logs after plugin's update
+    connect(_currentplugin, SIGNAL(updated()), this, SLOT(showLogs()));
 }
 
 
 void GLSLCodeEditorWidget::showLogs()
 {
-    // clear and replace the logs
+    // no plugin, no logs
+    if (!_currentplugin)
+        return;
+
+    // disconnect from updated signal
+    disconnect(_currentplugin, SIGNAL(updated()), this, SLOT(showLogs()));
+
+    // clear the logs
     ui->logText->clear();
+
+    // read the logs from plugin
     QString logs = _currentplugin->getLogs();
-    ui->logText->appendPlainText(logs);
 
     // if log contains something
     if (!logs.isEmpty()) {
 
-        // if there is an error, signal it
-        if (logs.contains("error"))
-            emit ( error(_currentplugin) );
+        // fill the logs
+        ui->logText->appendPlainText(logs);
+
+        // show the Shadertoy code editor in front of your face !
+        show();
+        raise();
+        setFocus();
 
         // if log area is collapsed, show it
         if ( ui->splitter->sizes()[1] == 0) {

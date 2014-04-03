@@ -165,6 +165,9 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture.Handle);
 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
     //modulate texture colors with white (just show
     //the texture colors as they are)
     glColor4f(1.f, 1.f, 1.f, 1.f);
@@ -248,7 +251,6 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         glLinkProgram(shaderProgram);
         glGetProgramInfoLog(shaderProgram, 4096, &infologLength, infoLog);
 
-
         // use the shader program
         glUseProgram(shaderProgram);
 
@@ -260,10 +262,9 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         uniform_channeltime = glGetUniformLocation(shaderProgram, "iChannelTime[0]");
         uniform_date = glGetUniformLocation(shaderProgram, "iDate");
 
-
+        // do not recompile shader next time
         code_changed = false;
     }
-
 
     // use the shader program
     glUseProgram(shaderProgram);
@@ -273,7 +274,7 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glUniform1f(uniform_channeltime, m_curTime);
     std::time_t now = std::time(0);
     std::tm *local = std::localtime(&now);
-    glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*24.0+local->tm_min*60.0+local->tm_sec);
+    glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*3600.0+local->tm_min*60.0+local->tm_sec);
 
     // activate the fbo2 as our render target
     if (!frameBufferObject.BindAsRenderTarget(glExtensions))

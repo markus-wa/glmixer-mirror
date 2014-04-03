@@ -128,7 +128,7 @@ void FFGLSource::play(bool on)
     _playing = on;
 
     if (_plugin)
-        _plugin->setPaused(!on);
+        _plugin->play(on);
 }
 
 void FFGLSource::update() {

@@ -129,22 +129,6 @@ if(USE_FREEFRAMEGL)
         ${CMAKE_CURRENT_BINARY_DIR}/../FreeFramePlugins/plugins.qrc
     )
 
-#    if( APPLE )
-#        SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
-#            ${FREEFRAMEGL_DIR_HOST}/OSX/OSXPluginInstance.cpp
-#        )
-#    else( APPLE )
-#        if( WIN32 )
-#            SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
-#                ${FREEFRAMEGL_DIR_HOST}/Win32/WinPluginInstance.cpp
-#            )
-#        else( WIN32 )
-#            SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
-#                ${FREEFRAMEGL_DIR_HOST}/Linux/LinuxPluginInstance.cpp
-#            )
-#        endif( WIN32 )
-#    endif( APPLE )
-
 
 elseif(USE_FREEFRAMEGL)
     remove_definitions(-DFFGL)

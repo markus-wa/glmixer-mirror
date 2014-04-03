@@ -1534,7 +1534,7 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
         // apply the code
         if (plugin && plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
 
-            FFGLPluginSourceShadertoy *stp = dynamic_cast<FFGLPluginSourceShadertoy *>(plugin);
+            FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
 
             if (stp) {
                 stp->setCode(p.firstChildElement("Code").text());

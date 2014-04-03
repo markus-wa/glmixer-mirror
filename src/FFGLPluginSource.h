@@ -17,7 +17,10 @@ public:
 
 
 
-class FFGLPluginSource {
+class FFGLPluginSource : public QObject
+{
+    Q_OBJECT
+
 public:
 
     FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture);
@@ -33,7 +36,7 @@ public:
     // loading of FFGL plugin
     void load(QString filename);
 
-    // update texture (to be called at each update of source)
+    // update & bind texture (to be called at each update of source)
     void update();
     void bind() const;
 
@@ -48,27 +51,33 @@ public:
     FFGLTextureStruct getInputTextureStruct();
     void setInputTextureStruct(FFGLTextureStruct inputTexture);
 
-    // pause update
-    void setPaused(bool pause);
-    bool isPaused() { return _pause;}
+    // query state
+    bool isPlaying() { return !_pause;}
     bool isinitialized() { return _initialized;}
 
-    // parameters
+    // plugin parameters
     QVariantHash getParameters();
     QVariantHash getParametersDefaults() { return _parametersDefaults; }
     void setParameter(int parameterNum, QVariant value);
     void setParameter(QString parameterName, QVariant value);
 
-    // information
+    // get plugin information
     inline QVariantHash getInfo() { return _info; }
-
-    // reset
-    void restoreDefaults();
 
     // XML config
     virtual QDomElement getConfiguration(QDir current = QDir());
     virtual void setConfiguration(QDomElement xml);
 
+public Q_SLOTS:
+    // enable updates
+    void play(bool on);
+    // reset
+    void restoreDefaults();
+
+Q_SIGNALS:
+    void initialized(FFGLPluginSource *);
+    void updated();
+    void changed();
 
 protected:
     // FFGL specialized objects for plugin

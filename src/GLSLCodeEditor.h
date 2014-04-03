@@ -59,10 +59,10 @@ public:
     void setCode(QString text);
     QString code();
     void clear();
-    int lineCount();
     void setReadOnly(bool);
 
-
+    // line count management
+    int lineCount();
     void setShiftLineNumber(int i) { codeArea->setShiftLineNumber(i); }
 
 private:

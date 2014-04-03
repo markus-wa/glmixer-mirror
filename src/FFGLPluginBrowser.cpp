@@ -207,14 +207,21 @@ void FFGLPluginBrowser::valueChanged(QtProperty *property, const QString &value)
 
 void FFGLPluginBrowser::resetAll()
 {
-    if (currentStack) {
-        // loop over the stack
-        for (FFGLPluginSourceStack::iterator it = currentStack->begin(); it != currentStack->end(); ++it )
-            (*it)->restoreDefaults();
+//    if (currentStack) {
+//        // loop over the stack
+//        for (FFGLPluginSourceStack::iterator it = currentStack->begin(); it != currentStack->end(); ++it )
+//            (*it)->restoreDefaults();
 
-        // refresh display
-        showProperties(currentStack);
+//        // refresh display
+//        showProperties(currentStack);
+//    }
+
+    QtProperty *property = propertyTreeEditor->currentItem()->property();
+    if ( propertyToPluginParameter.contains(property) ) {
+        propertyToPluginParameter[property].first->restoreDefaults();
     }
+    // refresh display
+    showProperties(currentStack);
 }
 
 void FFGLPluginBrowser::defaultValue()

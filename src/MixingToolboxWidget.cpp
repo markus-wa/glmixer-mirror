@@ -671,8 +671,6 @@ void MixingToolboxWidget::changed(){
 
     emit sourceChanged( RenderingManager::getInstance()->getById( source->getId()) );
 
-    if(pluginGLSLCodeEditor)
-        pluginGLSLCodeEditor->unlinkPlugin();
 }
 
 #ifdef FFGL
@@ -719,12 +717,14 @@ void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
 
         // test if plugin was added
         if ( plugin ) {
-
+            // show the updated list of plugins in the browser
             pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
-            changed();
 
-            // open editor
-            editShaderToyPlugin(plugin);
+            // open editor when plugin will be initialized
+            connect(plugin, SIGNAL(initialized(FFGLPluginSource *)), this, SLOT(editShaderToyPlugin(FFGLPluginSource *)));
+
+            // update view
+            changed();
         }
     }
 }
@@ -732,24 +732,29 @@ void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
 
 void MixingToolboxWidget::editShaderToyPlugin(FFGLPluginSource *plugin)
 {
-    // instanciate if not already done
-    if(!pluginGLSLCodeEditor) {
+    if(!plugin)
+        return;
+
+    // instanciate code editor if not already done
+    if(!pluginGLSLCodeEditor)
         pluginGLSLCodeEditor = new GLSLCodeEditorWidget();
-        connect(pluginGLSLCodeEditor, SIGNAL(applied()), this, SLOT(changed()));
-        connect(pluginGLSLCodeEditor, SIGNAL(error(FFGLPluginSource *)), this, SLOT(editShaderToyPlugin(FFGLPluginSource *)));
-    }
 
     // test if it is a shadertoy plugin
     if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
-
-        // link it to GUI editor
-        pluginGLSLCodeEditor->linkPlugin(dynamic_cast<FFGLPluginSourceShadertoy *>(plugin));
 
         // show the Shadertoy code editor
         pluginGLSLCodeEditor->show();
         pluginGLSLCodeEditor->raise();
         pluginGLSLCodeEditor->setFocus();
+
+        // link plugin to GUI editor
+        pluginGLSLCodeEditor->linkPlugin(qobject_cast<FFGLPluginSourceShadertoy *>(plugin));
+
+        // update list in case the plugin changed (e.g. name)
+        connect(plugin, SIGNAL(changed()), this, SLOT(changed()));
+
     }
+
 }
 
 #endif

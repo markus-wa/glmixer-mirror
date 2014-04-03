@@ -1,5 +1,5 @@
 #include "common.h"
-#include "FFGLPluginSource.h"
+#include "FFGLPluginSource.moc"
 #include "FFGLPluginInstances.h"
 
 #include <QDebug>
@@ -245,15 +245,21 @@ void FFGLPluginSource::update()
             qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not process OpenGL. Probably missing an input texture.");
             FFGLPluginException().raise();
         }
+        else
+            emit updated();
     }
 }
 
 
 void FFGLPluginSource::bind() const
 {
-    if (_initialized)
+    if (_initialized) {
         // bind the FBO texture
         glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    }
 }
 
 bool FFGLPluginSource::initialize()
@@ -278,6 +284,11 @@ bool FFGLPluginSource::initialize()
 
                 // remember successful initialization
                 _initialized = true;
+
+                // inform that its initialized
+                emit initialized(this);
+                // disconnect because its a one shot signal
+                disconnect(SIGNAL(initialized(FFGLPluginSource *)));
 
             }
             else {
@@ -309,9 +320,9 @@ void FFGLPluginSource::restoreDefaults()
     }
 }
 
-void FFGLPluginSource::setPaused(bool pause) {
+void FFGLPluginSource::play(bool play) {
 
-    _pause = pause;
+    _pause = !play;
 
     if (!_pause)
         timer.restart();

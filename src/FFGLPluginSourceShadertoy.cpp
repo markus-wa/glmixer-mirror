@@ -1,4 +1,4 @@
-#include "FFGLPluginSourceShadertoy.h"
+#include "FFGLPluginSourceShadertoy.moc"
 #include "FFGLPluginInstances.h"
 
 #include <QDesktopServices>
@@ -30,8 +30,22 @@ FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(int w, int h, FFGLTextureSt
         qWarning()<< libraryFileName() << QChar(124).toLatin1() << QObject::tr("This library is not a valid GLMixer Shadertoy plugin.");
         FFGLPluginException().raise();
     }
+
+    //  customize about string
+    QString about = "By ";
+#ifdef Q_OS_WIN
+    about.append(getenv("USERNAME"));
+#else
+    about.append(getenv("USER"));
+#endif
+    _info["About"] = about;
+
 }
 
+FFGLPluginSourceShadertoy::~FFGLPluginSourceShadertoy()
+{
+    emit dying();
+}
 
 QString FFGLPluginSourceShadertoy::getCode()
 {
@@ -107,11 +121,10 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
     if ( p ) {
 
-        // try to set the string
-        while( !p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.toLatin1().data() )) {
-            // not initialized yet !
-            initialize();
-        }
+        // not initialized yet ?
+        if ( initialize() )
+            p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.toLatin1().data() );
+
     }
 }
 
@@ -119,14 +132,20 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
 void FFGLPluginSourceShadertoy::setName(QString string)
 {
     _info["Name"] = string;
+
+    emit changed();
 }
 void FFGLPluginSourceShadertoy::setAbout(QString string)
 {
     _info["About"] = string;
+
+    emit changed();
 }
 void FFGLPluginSourceShadertoy::setDescription(QString string)
 {
     _info["Description"] = string;
+
+    emit changed();
 }
 
 

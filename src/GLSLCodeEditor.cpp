@@ -15,7 +15,7 @@ CodeEditor::CodeEditor(QWidget *parent, QTextEdit *lineNumberArea) : QTextEdit(p
 
     // highlight syntaxt of code area
     GlslSyntaxHighlighter *highlighter = new GlslSyntaxHighlighter((QTextEdit *)this);
-    highlighter->rehighlight ();
+    highlighter->rehighlight();
 
     // synchronize scrolling with line numbers area
     connect(verticalScrollBar(), SIGNAL(valueChanged(int)), _lineNumberArea->verticalScrollBar(), SLOT(setValue(int)));
@@ -56,7 +56,6 @@ void CodeEditor::highlightCurrentLine()
 
 void CodeEditor::updateLineNumbers ()
 {
-
     QString linenumbers;
     QTextBlock block = document()->firstBlock();
     while (block.isValid()) {
@@ -68,6 +67,8 @@ void CodeEditor::updateLineNumbers ()
         linenumbers.append( QString::number(block.blockNumber() + _shiftLineNumber + 1) );
         // append lines where block is more than 1 line
         linenumbers.append( QString().fill('\n', n));
+
+        qDebug() << linenumbers;
 
         // loop next block of text
         block = block.next();
@@ -134,79 +135,4 @@ void GLSLCodeEditor::setReadOnly(bool on)
     codeArea->setLineWrapMode(QTextEdit::NoWrap);
 }
 
-//int GLSLCodeEditor::lineNumberAreaWidth()
-//{
-//    int digits = 3;
-//    int max = qMax(1, document()->blockCount());
-//    while (max >= 10) {
-//        max /= 10;
-//        ++digits;
-//    }
 
-//    int space = 5 + fontMetrics().width(QLatin1Char('0')) * digits;
-
-//    return space;
-//}
-
-
-
-//void GLSLCodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
-//{
-//    setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
-//}
-
-
-
-//void GLSLCodeEditor::updateLineNumberArea(const QRect &rect, int dy)
-//{
-//    if (dy)
-//        lineNumberArea->scroll(0, dy);
-//    else
-//        lineNumberArea->update(0, rect.y(), lineNumberArea->width(), rect.height());
-
-//    if (rect.contains(viewport()->rect()))
-//        updateLineNumberAreaWidth(0);
-//}
-
-
-
-//void GLSLCodeEditor::resizeEvent(QResizeEvent *e)
-//{
-//    QTextEdit::resizeEvent(e);
-
-//    QRect cr = contentsRect();
-//    lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
-//}
-
-
-
-
-
-
-//void GLSLCodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
-//{
-//    QPainter painter(lineNumberArea);
-//    painter.fillRect(event->rect(), Qt::lightGray);
-
-
-//    QTextBlock block = document()->firstBlock();
-//    int blockNumber = block.blockNumber();
-
-//    int top = (int) document()->documentMargin ();
-////    int top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
-//    int bottom = top + (int) document()->documentLayout()->blockBoundingRect(block).height();
-
-//    while (block.isValid() && top <= event->rect().bottom()) {
-//        if (block.isVisible() && bottom >= event->rect().top()) {
-//            QString number = QString::number(blockNumber + 1 + _shiftLineNumber);
-//            painter.setPen(Qt::black);
-//            painter.drawText(0, top, lineNumberArea->width() - 2, fontMetrics().height(),
-//                             Qt::AlignRight, number);
-//        }
-
-//        block = block.next();
-//        top = bottom;
-//        bottom = top + (int) document()->documentLayout()->blockBoundingRect(block).height();
-//        ++blockNumber;
-//    }
-//}
