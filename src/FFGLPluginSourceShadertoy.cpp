@@ -198,18 +198,22 @@ QString FFGLPluginSourceShadertoy::libraryFileName()
 {
     static bool first_launch = true;
 
-    // TODO support OSX and WIN32
+#ifdef Q_OS_WIN
+    QFileInfo plugindll( QString(QDesktopServices::storageLocation(QDesktopServices::TempLocation)).append("/libShadertoy.dll") );
+#else
     QFileInfo plugindll( QString(QDesktopServices::storageLocation(QDesktopServices::TempLocation)).append("/libShadertoy.so") );
+#endif
 
     // replace the plugin file in temporary location
     // (make sure we do it each new run of GLMixer (might have been updated)
     // and in case the file does not exist (might have been deleted by sytem) )
     if (first_launch || !plugindll.exists()) {
         QFile::remove(plugindll.absoluteFilePath());
-        if ( QFile::copy(":/ffgl/Shadertoy", plugindll.absoluteFilePath()) )
+        if ( QFile::copy(":/ffgl/Shadertoy", plugindll.absoluteFilePath()) ) {
+            QFile::setPermissions(plugindll.absoluteFilePath(), QFile::ReadOwner | QFile::WriteOwner);
             first_launch = false;
-        else
-            qCritical() << QObject::tr("Error creating Shadertoy plugin.");
+        } else
+            qCritical() << QObject::tr("Error creating Shadertoy plugin (%1).").arg(plugindll.absoluteFilePath());
     }
 
     return plugindll.absoluteFilePath();

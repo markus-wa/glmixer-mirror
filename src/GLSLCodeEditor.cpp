@@ -9,13 +9,12 @@
 
 CodeEditor::CodeEditor(QWidget *parent, QTextEdit *lineNumberArea) : QTextEdit(parent), _lineNumberArea(lineNumberArea), _shiftLineNumber(0)
 {
-    setFontFamily("monospace");
-    setTabStopWidth(30);
-    highlightCurrentLine();
-
     // highlight syntaxt of code area
     GlslSyntaxHighlighter *highlighter = new GlslSyntaxHighlighter((QTextEdit *)this);
     highlighter->rehighlight();
+
+    // show current line
+    highlightCurrentLine();
 
     // synchronize scrolling with line numbers area
     connect(verticalScrollBar(), SIGNAL(valueChanged(int)), _lineNumberArea->verticalScrollBar(), SLOT(setValue(int)));
@@ -37,7 +36,7 @@ void CodeEditor::highlightCurrentLine()
     if (!isReadOnly()) {
         QTextEdit::ExtraSelection selection;
 
-        selection.format.setBackground(QColor(Qt::gray));
+        selection.format.setBackground(palette().color(QPalette::Midlight));
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);
         selection.cursor = textCursor();
         selection.cursor.clearSelection();
@@ -46,8 +45,13 @@ void CodeEditor::highlightCurrentLine()
     // apply highlight line (empty if not set)
     setExtraSelections(extraSelections);
 
-    // needed to fix a display bug
-    setFontFamily("monospace");
+#ifdef Q_OS_WIN
+    setFontFamily("Courier");
+    _lineNumberArea->setFontFamily("Courier");
+#else
+    setFontFamily("Monospace");
+    _lineNumberArea->setFontFamily("Monospace");
+#endif
     setTabStopWidth(30);
 
     // rescroll line area in case the change of line caused a scroll in code area
@@ -67,9 +71,6 @@ void CodeEditor::updateLineNumbers ()
         linenumbers.append( QString::number(block.blockNumber() + _shiftLineNumber + 1) );
         // append lines where block is more than 1 line
         linenumbers.append( QString().fill('\n', n));
-
-        qDebug() << linenumbers;
-
         // loop next block of text
         block = block.next();
     }

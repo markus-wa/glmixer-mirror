@@ -268,7 +268,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     // Setup the FFGL plugin property browser
     pluginBrowser = new FFGLPluginBrowser(Plugin);
     pluginBrowser->setStyleSheet(QString::fromUtf8("QToolTip {\n"
-    "	font: 8pt \"Monospace\";\n"
+    "	font: 8pt \"Monospace,Courier\";\n"
     "}"));
 
     pluginBrowserLayout->insertWidget(1, pluginBrowser);
