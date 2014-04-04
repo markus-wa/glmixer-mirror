@@ -306,8 +306,8 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
 
 
 #ifdef Q_OS_WIN
-typedef __declspec(dllimport) void (__stdcall *_FuncPtrSetCode)(const char *, FFInstanceID);
-typedef __declspec(dllimport) (char *) (__stdcall *_FuncPtrGetCode)(FFInstanceID);
+typedef __declspec(dllimport) bool (__stdcall *_FuncPtrSetString)(unsigned int, const char *, DWORD);
+typedef __declspec(dllimport) char * (__stdcall *_FuncPtrGetString)(unsigned int, DWORD);
 #else
 typedef bool (*_FuncPtrSetString)(unsigned int, const char *, FFInstanceID);
 typedef char *(*_FuncPtrGetString)(unsigned int, FFInstanceID);
@@ -355,17 +355,21 @@ char *FFGLPluginInstanceShadertoyPlaftorm::getString(ShadertoyString t)
 
 #ifdef Q_OS_WIN
 
-void FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
+bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
 {
+    if (m_ffModule == NULL)
+        return false;
 
+    m_ffPluginFunctionSetString = (_FuncPtrSetString)GetProcAddress(m_ffModule, "setString");
+    m_ffPluginFunctionGetString = (_FuncPtrGetString)GetProcAddress(m_ffModule, "getString");
 
-
+    return ( m_ffPluginFunctionSetString != NULL && m_ffPluginFunctionGetString != NULL);
 }
 
 #else
 #ifdef Q_OS_MAC
 
-void FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
+bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
 {
 
 

@@ -80,10 +80,9 @@ extern "C" {
 
 #ifdef _WIN32
 
-//BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved);
+__declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD instanceID);
+__declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD instanceID);
 
-//__declspec(dllexport) FFMixed __stdcall plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanceID);
-//typedef __declspec(dllimport) FFMixed (__stdcall *FF_Main_FuncPtr)(FFUInt32, FFMixed, FFInstanceID);
 
 #else
 

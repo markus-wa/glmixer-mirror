@@ -301,8 +301,16 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     return FF_SUCCESS;
 }
 
-bool setString(unsigned int t, const char *string, FFInstanceID *instanceID){
+#ifdef WIN32
 
+    __declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD instanceID)
+
+#else
+
+    bool setString(unsigned int t, const char *string, FFInstanceID *instanceID)
+
+#endif
+{
     // declare pPlugObj (pointer to this instance)
     // & typecast instanceid into pointer to a CFreeFrameGLPlugin
     FreeFrameQtGLSL* pPlugObj = (FreeFrameQtGLSL*) instanceID;
@@ -320,8 +328,16 @@ bool setString(unsigned int t, const char *string, FFInstanceID *instanceID){
     return false;
 }
 
+#ifdef WIN32
 
-char *getString(unsigned int t, FFInstanceID instanceID){
+    __declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD instanceID)
+
+#else
+
+    char *getString(unsigned int t, FFInstanceID instanceID)
+
+#endif
+{
 
     // declare pPlugObj (pointer to this instance)
     // & typecast instanceid into pointer to a CFreeFrameGLPlugin

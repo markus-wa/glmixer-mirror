@@ -177,18 +177,18 @@ void CatalogView::drawSource(Source *s, int index)
 		glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - _height + sheight_pixels, 0.0);
 		if (iscurrent)
 			glTranslatef( (_iconSize[_currentSize] -_largeIconSize[_currentSize]) * h_unit , 0.0, 0.0);
-		glScalef( swidth_pixels, -sheight_pixels, 1.f);
+
+        // scale to match aspect ratio
+        glScalef( swidth_pixels, -sheight_pixels, 1.f);
 
 		// draw source texture (without shading)
-		glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
         glDisable(GL_BLEND);
+        glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
         glColor4f(0.0, 0.0, 0.0, 1.0);
-		glDrawArrays(GL_QUADS, 0, 4);
-        glEnable(GL_BLEND);
+        glDrawArrays(GL_QUADS, 0, 4);
 
-        glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[0]);
-
-	    // draw source border
+        // draw source borders (disabled texture required)
+        glBindTexture(GL_TEXTURE_2D, 0);
 		if (iscurrent)
 			glCallList(ViewRenderWidget::border_large + (s->isModifiable() ? 0 : 3));
 		else
@@ -196,6 +196,16 @@ void CatalogView::drawSource(Source *s, int index)
 
 		if ( SelectionManager::getInstance()->isInSelection(s) )
 			glCallList(ViewRenderWidget::frame_selection);
+
+        // restore state
+        glEnable(GL_BLEND);
+
+//        // draw icon : NOT CONCLUSIVE :(
+//        glTranslatef( -swidth_pixels, -sheight_pixels, 0.0);
+//        glScalef(_iconSize[_currentSize] * h_unit * 0.5, _iconSize[_currentSize] * h_unit * 0.5, 1.0);
+//        glBindTexture(GL_TEXTURE_2D, texid);
+//        glColor4f(0.0, 0.0, 0.0, 0.0);
+//        glDrawArrays(GL_QUADS, 0, 4);
 
 		// was it clicked ?
 		if ( cause ) {
