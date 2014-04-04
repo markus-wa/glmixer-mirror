@@ -181,9 +181,14 @@ void Source::setAlphaCoordinates(double x, double y) {
 void Source::setStandby(bool on) {
 
     bool wasstandby = standby;
+
+    // stop the plugins when standby
+    Source::play(!on);
+
     // set the source to stanby if there is no clone relying on its update
     standby = on && !isCloned();
 
+    // stops / restart playing a playable source
     if (isPlayable() && wasstandby != standby)
     {
         if (standby)
@@ -194,6 +199,16 @@ void Source::setStandby(bool on) {
         else
             play(wasplaying);
     }
+
+}
+
+void Source::play(bool on) {
+
+#ifdef FFGL
+    // to be called at the end of the update of the source itself
+    if (! _ffgl_plugins.isEmpty())
+        _ffgl_plugins.play(on);
+#endif
 
 }
 

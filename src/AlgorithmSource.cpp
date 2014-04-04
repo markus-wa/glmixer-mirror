@@ -365,6 +365,8 @@ void AlgorithmSource::play(bool on) {
 	if (isPlaying() == on)
 		return;
 
+    Source::play(on);
+
 	if (on) { // start play
 		_thread->end = false;
 		_thread->start();

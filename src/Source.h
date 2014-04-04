@@ -90,7 +90,7 @@ public:
     virtual RTTI rtti() const { return type; }
     virtual bool isPlayable() const { return playable; }
     virtual bool isPlaying() const { return false; }
-    virtual void play(bool on) {}
+    virtual void play(bool on);
 
     /**
      *  Rendering

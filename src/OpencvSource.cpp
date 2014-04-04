@@ -159,6 +159,8 @@ void OpencvSource::play(bool on){
 	if ( isPlaying() == on )
 		return;
 
+    Source::play(on);
+
 	if ( on ) { // start play
 		thread->end = false;
 		thread->start();

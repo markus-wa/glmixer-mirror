@@ -127,6 +127,8 @@ void FFGLSource::play(bool on)
 {
     _playing = on;
 
+    Source::play(on);
+
     if (_plugin)
         _plugin->play(on);
 }

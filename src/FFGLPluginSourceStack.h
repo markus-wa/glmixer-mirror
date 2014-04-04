@@ -21,6 +21,7 @@ public:
     void update();
     void bind() const;
     void clear();
+    void play(bool on);
 
 private:
 

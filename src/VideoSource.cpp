@@ -84,8 +84,12 @@ bool VideoSource::isPlaying() const
 
 void VideoSource::play(bool on)
 {
-	if (on != isPlaying())
+    if (on != isPlaying()) {
+
+        Source::play(on);
+
 		is->play(on);
+    }
 }
 
 bool VideoSource::isPaused() const
