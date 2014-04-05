@@ -1,3 +1,25 @@
+/*
+ *   FFGLPluginSourceShadertoy
+ *
+ *   This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2012 Bruno Herbelin
+ *
+ */
+
 #include "FFGLPluginSourceShadertoy.moc"
 #include "FFGLPluginInstances.h"
 
@@ -57,7 +79,7 @@ QString FFGLPluginSourceShadertoy::getCode()
         char *string = p->getString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY);
         if ( string ) {
             // Convert char array into QString
-            c = QString::fromLatin1(string);
+            c = QString::fromLatin1(string).trimmed();
         }
     }
 
@@ -74,7 +96,7 @@ QString FFGLPluginSourceShadertoy::getDefaultCode()
         char *string = p->getString(FFGLPluginInstanceShadertoy::DEFAULTCODE_SHADERTOY);
         if ( string ) {
             // Convert char array into QString
-            c = QString::fromLatin1(string);
+            c = QString::fromLatin1(string).trimmed();
         }
     }
 
@@ -91,7 +113,7 @@ QString FFGLPluginSourceShadertoy::getLogs()
         char *string = p->getString(FFGLPluginInstanceShadertoy::LOG_SHADERTOY);
         if ( string ) {
             // Convert char array into QString
-            c = QString::fromLatin1(string);
+            c = QString::fromLatin1(string).trimmed();
         }
     }
 
@@ -108,7 +130,7 @@ QString FFGLPluginSourceShadertoy::getHeaders()
         char *string = p->getString(FFGLPluginInstanceShadertoy::HEADER_SHADERTOY);
         if ( string ) {
             // Convert char array into QString
-            c = QString::fromLatin1(string);
+            c = QString::fromLatin1(string).trimmed();
         }
     }
 
@@ -123,7 +145,7 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
 
         // not initialized yet ?
         if ( initialize() )
-            p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.toLatin1().data() );
+            p->setString(FFGLPluginInstanceShadertoy::CODE_SHADERTOY, code.trimmed().toLatin1().data() );
 
     }
 }
@@ -172,7 +194,7 @@ QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 
     // save code of the plugin
     QDomElement c = root.createElement("Code");
-    QDomText code = root.createTextNode( getCode() );
+    QDomText code = root.createTextNode( getCode().toAscii() );
     c.appendChild(code);
     p.appendChild(c);
 

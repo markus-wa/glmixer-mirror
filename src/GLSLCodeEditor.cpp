@@ -1,3 +1,24 @@
+/*
+ *   GLSLCodeEditor
+ *
+ *   This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2012 Bruno Herbelin
+ *
+ */
 
 #include <QPainter>
 #include <QtGui>
@@ -10,22 +31,23 @@
 CodeEditor::CodeEditor(QWidget *parent, QTextEdit *lineNumberArea) : QTextEdit(parent), _lineNumberArea(lineNumberArea), _shiftLineNumber(0)
 {
     // highlight syntaxt of code area
-    GlslSyntaxHighlighter *highlighter = new GlslSyntaxHighlighter((QTextEdit *)this);
+    GLSLSyntaxHighlighter *highlighter = new GLSLSyntaxHighlighter((QTextEdit *)this);
     highlighter->rehighlight();
 
-    // show current line
-    highlightCurrentLine();
+    setTabStopWidth(30);
 
     // synchronize scrolling with line numbers area
     connect(verticalScrollBar(), SIGNAL(valueChanged(int)), _lineNumberArea->verticalScrollBar(), SLOT(setValue(int)));
 
-    // update line numbers
+    // update line numbers when text is changed
     connect(this, SIGNAL(textChanged()), this, SLOT(updateLineNumbers()));
 
     // highlight line if editable
     if (!isReadOnly())
         connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
+    // show current line
+    highlightCurrentLine();
 }
 
 void CodeEditor::highlightCurrentLine()
@@ -45,17 +67,17 @@ void CodeEditor::highlightCurrentLine()
     // apply highlight line (empty if not set)
     setExtraSelections(extraSelections);
 
-#ifdef Q_OS_WIN
-    setFontFamily("Courier");
-    _lineNumberArea->setFontFamily("Courier");
-#else
-    setFontFamily("Monospace");
-    _lineNumberArea->setFontFamily("Monospace");
-#endif
-    setTabStopWidth(30);
+    // Ensure non-proportionnal font, large enough
+    QFont f = font();
+    f.setFamily("Monospace, Consolas, Courier");
+    f.setPointSize( f.pointSize() < 10 ? 10 : f.pointSize() );
+    setFont( f );
 
-    // rescroll line area in case the change of line caused a scroll in code area
-    _lineNumberArea->verticalScrollBar()->setValue(verticalScrollBar()->value());
+    // make sure line number area is of same font
+    _lineNumberArea->setFont( f );
+
+//    // rescroll line area in case the change of line caused a scroll in code area
+//    _lineNumberArea->verticalScrollBar()->setValue(verticalScrollBar()->value());
 }
 
 void CodeEditor::updateLineNumbers ()
@@ -74,8 +96,24 @@ void CodeEditor::updateLineNumbers ()
         // loop next block of text
         block = block.next();
     }
-
+    // display this text as line numbers
     _lineNumberArea->setPlainText(linenumbers);
+
+    // rescroll line area in case the change of line caused a scroll in code area
+    _lineNumberArea->verticalScrollBar()->setValue(verticalScrollBar()->value());
+}
+
+void CodeEditor::gotoline(unsigned int lineNumber)
+{
+    int blocnumber = lineNumber - _shiftLineNumber;
+    if (blocnumber > document()->blockCount())
+        return;
+
+    const QTextBlock &block = document()->findBlockByNumber(blocnumber);
+    QTextCursor cursor(block);
+    cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, 0);
+    setTextCursor(cursor);
+    highlightCurrentLine();
 }
 
 GLSLCodeEditor::GLSLCodeEditor(QWidget *parent) : QWidget(parent)
@@ -106,7 +144,10 @@ GLSLCodeEditor::GLSLCodeEditor(QWidget *parent) : QWidget(parent)
 
 }
 
-
+void GLSLCodeEditor::gotoline(unsigned int lineNumber)
+{
+    codeArea->gotoline(lineNumber);
+}
 
 void GLSLCodeEditor::setCode(QString code)
 {
@@ -126,7 +167,7 @@ void GLSLCodeEditor::clear()
 
 int GLSLCodeEditor::lineCount()
 {
-    return codeArea->document()->lineCount();
+    return codeArea->document()->blockCount();
 }
 
 

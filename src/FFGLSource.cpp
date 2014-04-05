@@ -58,11 +58,12 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
         _plugin->load(pluginFileName);
     }
     catch (FFGLPluginException &e)  {
-        qCritical() << "Shadertoy" << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
+        qCritical() << getName() << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
     }
     catch (...)  {
-        qCritical() << "Shadertoy" << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
+        qCritical() << getName() << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
     }
+    // no exceptions raised, continue with the plugin
 
     // if plugin not of type source, create a buffer and a texture for applying effect
     if (!_plugin->isSourceType()) {
@@ -78,7 +79,6 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
                 GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) _buffer);
     }
 
-    // no exceptions raised, continue with the plugin
     // try to update
     try {
         _plugin->update();
@@ -91,6 +91,12 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
     // comes from the plugin's FBO
     _sourceTextureIndex = texture;
     textureIndex = _plugin->getOutputTextureStruct().Handle;
+
+}
+
+FFGLSource::FFGLSource(GLuint texture, double d, int w, int h):
+    QObject(), Source(texture, d), _plugin(0), _playing(true), _buffer(0)
+{
 
 }
 
@@ -127,10 +133,10 @@ void FFGLSource::play(bool on)
 {
     _playing = on;
 
-    Source::play(on);
+    Source::play(_playing);
 
     if (_plugin)
-        _plugin->play(on);
+        _plugin->play(_playing);
 }
 
 void FFGLSource::update() {

@@ -2162,7 +2162,7 @@ QListWidget::item:hover {
      <widget class="QWidget" name="Plugin">
       <attribute name="icon">
        <iconset resource="../icons.qrc">
-        <normaloff>:/glmixer/icons/3d.png</normaloff>:/glmixer/icons/3d.png</iconset>
+        <normaloff>:/glmixer/icons/plugin-small.png</normaloff>:/glmixer/icons/plugin-small.png</iconset>
       </attribute>
       <attribute name="title">
        <string notr="true"/>

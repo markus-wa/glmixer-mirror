@@ -806,7 +806,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         sourceDockWidgetContents->setEnabled(true);
         currentSourceMenu->setEnabled(true);
         actionCloneSource->setEnabled(true);
-        actionDeleteSource->setEnabled(true);
         toolButtonZoomCurrent->setEnabled(true);
         mixingToolBox->setEnabled(true);
         actionAspectRatioFixed->setChecked( (*csi)->isFixedAspectRatio() );
@@ -889,7 +888,6 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         // disable options
         currentSourceMenu->setEnabled(false);
         actionCloneSource->setEnabled(false);
-        actionDeleteSource->setEnabled(false);
         toolButtonZoomCurrent->setEnabled(false);
     }
 

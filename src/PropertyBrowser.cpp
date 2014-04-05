@@ -118,7 +118,10 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
 // TODO : enable the default value action
 //    menuTree.addAction(defaultValueAction);
 
-    menuTree.addAction(QObject::tr("Reset all"), this, SLOT(resetAll()));
+    resetAction = new QAction(QObject::tr("Reset all values"), this);
+    QObject::connect(resetAction, SIGNAL(triggered()), this, SLOT(resetAll() ) );
+    menuTree.addAction(resetAction);
+
     menuTree.addSeparator();
     menuTree.addAction(QObject::tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
     menuTree.addAction(QObject::tr("Expand tree"), this, SLOT(expandAll()));

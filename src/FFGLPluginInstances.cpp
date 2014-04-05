@@ -1,3 +1,25 @@
+/*
+ *   FFGLPluginInstances
+ *
+ *   This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2012 Bruno Herbelin
+ *
+ */
+
 #include "FFGLPluginInstances.h"
 
 #include <QDebug>
@@ -90,7 +112,7 @@ QVariantHash FFGLPluginInstanceFreeframePlatform::getExtendedInfo() {
 #ifdef FF_FAIL
     // FFGL 1.5
     DWORD arg = 0;
-    void *result = m_ffPluginMain(FF_GETEXTENDEDINFO,arg,0).ivalue;
+    void *result = (void *) m_ffPluginMain(FF_GETEXTENDEDINFO,arg,0).ivalue;
 #else
     // FFGL 1.6
     FFMixed arg;
@@ -267,6 +289,8 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
         float v = value.toFloat();
 
 #ifdef FF_FAIL
+        //be careful with this cast.. ArgStruct.NewParameterValue is DWORD
+        //for this to compile correctly, sizeof(DWORD) must == sizeof(float)
         *((float *)(unsigned)&ArgStruct.NewParameterValue) = v;
         m_ffPluginMain(FF_SETPARAMETER,(DWORD)(&ArgStruct), m_ffInstanceID);
 #else
@@ -279,7 +303,7 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
     {
         // Cast to string
 #ifdef FF_FAIL
-        ArgStruct.NewParameterValue = (char *) value.toString().toAscii().data();
+        ArgStruct.NewParameterValue = (DWORD) value.toString().toAscii().data();
         m_ffPluginMain(FF_SETPARAMETER, (DWORD)(&ArgStruct), m_ffInstanceID);
 #else
         ArgStruct.NewParameterValue.PointerValue = value.toString().toAscii().data();
@@ -306,8 +330,8 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
 
 
 #ifdef Q_OS_WIN
-typedef __declspec(dllimport) bool (__stdcall *_FuncPtrSetString)(unsigned int, const char *, DWORD);
-typedef __declspec(dllimport) char * (__stdcall *_FuncPtrGetString)(unsigned int, DWORD);
+typedef __declspec() bool (__stdcall *_FuncPtrSetString)(unsigned int, const char *, DWORD);
+typedef __declspec() char * (__stdcall *_FuncPtrGetString)(unsigned int, DWORD);
 #else
 typedef bool (*_FuncPtrSetString)(unsigned int, const char *, FFInstanceID);
 typedef char *(*_FuncPtrGetString)(unsigned int, FFInstanceID);

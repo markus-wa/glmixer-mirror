@@ -150,5 +150,8 @@
         <file>icons/freeframe.png</file>
         <file>icons/shadertoy_black.png</file>
         <file>icons/shadertoy_white.png</file>
+        <file>icons/plugin.png</file>
+        <file>icons/plugin-source.png</file>
+        <file>icons/plugin-small.png</file>
     </qresource>
 </RCC>

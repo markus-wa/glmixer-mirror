@@ -102,7 +102,7 @@ protected:
 
     // context menus
     QMenu menuTree, menuGroup;
-    QAction *defaultValueAction;
+    QAction *resetAction, *defaultValueAction;
 };
 
 #endif // PROPERTYBROWSER_H

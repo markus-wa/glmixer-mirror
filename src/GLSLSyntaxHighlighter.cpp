@@ -1,39 +1,28 @@
-/******************************************************************************
-
-Copyright (C) 2006-2009 Institute for Visualization and Interactive Systems
-(VIS), Universität Stuttgart.
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-  * Redistributions of source code must retain the above copyright notice, this
-    list of conditions and the following disclaimer.
-
-  * Redistributions in binary form must reproduce the above copyright notice, this
-    list of conditions and the following disclaimer in the documentation and/or
-    other materials provided with the distribution.
-
-  * Neither the name of the name of VIS, Universität Stuttgart nor the names
-    of its contributors may be used to endorse or promote products derived from
-    this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT,
-INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-*******************************************************************************/
+/*
+ *   GLSLSyntaxHighlighter
+ *
+ *   This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2012 Bruno Herbelin
+ *
+ */
 
 #include "GLSLSyntaxHighlighter.moc"
 
-GlslSyntaxHighlighter::GlslSyntaxHighlighter(QTextEdit *parent) :
+GLSLSyntaxHighlighter::GLSLSyntaxHighlighter(QTextEdit *parent) :
         QSyntaxHighlighter(parent)
 {
     HighlightingRule rule;
@@ -51,12 +40,12 @@ GlslSyntaxHighlighter::GlslSyntaxHighlighter(QTextEdit *parent) :
     typesFormat.setForeground(QColor(119, 0, 136));
     typesFormat.setFontWeight(QFont::Bold);
 
-//    keywordFormat.setForeground(QColor(212, 55, 55));
-    keywordFormat.setFontWeight(QFont::Bold);
+//    keywordFormat.setFontWeight(QFont::Bold);
+    keywordFormat.setFontItalic(true);
 
     commentFormat.setForeground(QColor(0, 136, 0));
-    swizzleFormat.setForeground(QColor(205, 0, 205));
-    preprocessorFormat.setForeground(QColor(205, 0, 205));
+    swizzleFormat.setFontWeight(QFont::Bold);
+    preprocessorFormat.setForeground(QColor(100, 100, 100));
 
     /*******************************************
      * RULES
@@ -317,7 +306,7 @@ GlslSyntaxHighlighter::GlslSyntaxHighlighter(QTextEdit *parent) :
     commentEndExpression = QRegExp("\\*/");
 }
 
-void GlslSyntaxHighlighter::addPatternFromList(QStringList &list,
+void GLSLSyntaxHighlighter::addPatternFromList(QStringList &list,
         QTextCharFormat &format)
 {
     HighlightingRule rule;
@@ -329,7 +318,7 @@ void GlslSyntaxHighlighter::addPatternFromList(QStringList &list,
     }
 }
 
-void GlslSyntaxHighlighter::highlightBlock(const QString &text)
+void GLSLSyntaxHighlighter::highlightBlock(const QString &text)
 {
     foreach (HighlightingRule rule, highlightingRules) {
         QRegExp &expression = rule.pattern;

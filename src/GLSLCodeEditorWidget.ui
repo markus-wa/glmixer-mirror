@@ -477,7 +477,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QLabel" name="label">
+          <widget class="QLabel" name="titleCompilationLogs">
            <property name="styleSheet">
             <string notr="true">background: palette(dark);</string>
            </property>

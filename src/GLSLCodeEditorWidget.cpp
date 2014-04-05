@@ -1,3 +1,24 @@
+/*
+ *   GLSLCodeEditorWidget
+ *
+ *   This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2012 Bruno Herbelin
+ *
+ */
 #include "GLSLCodeEditorWidget.moc"
 #include "ui_GLSLCodeEditorWidget.h"
 #include "FFGLPluginSourceShadertoy.h"
@@ -138,6 +159,8 @@ void GLSLCodeEditorWidget::showLogs()
 
     // read the logs from plugin
     QString logs = _currentplugin->getLogs();
+    // green for no error / warning
+    QString stylesheet = "background: rgb(60, 210, 60);";;
 
     // if log contains something
     if (!logs.isEmpty()) {
@@ -156,9 +179,29 @@ void GLSLCodeEditorWidget::showLogs()
             sizes << (ui->splitter->sizes()[0] * 3 / 4) << (ui->splitter->sizes()[0] / 4);
             ui->splitter->setSizes( sizes );
         }
+
+        if (logs.count("error") > 0)
+            // red for error
+            stylesheet = "background: rgb(210, 60, 60);";
+        else
+            // orange for warning
+            stylesheet = "background: rgb(255, 120, 0);";
+
+        // go to the first line number given in error message
+        ui->codeTextEdit->gotoline(logs.section('(', 1, 1).section(')', 0, 0).toUInt() -1);
+
     }
+
+    ui->titleCompilationLogs->setStyleSheet(stylesheet);
+    QTimer::singleShot(250, this, SLOT(restoreStyle()));
 }
 
+
+
+void GLSLCodeEditorWidget::restoreStyle()
+{
+    ui->titleCompilationLogs->setStyleSheet("background: palette(dark);");
+}
 
 void GLSLCodeEditorWidget::showHelp()
 {

@@ -1,3 +1,25 @@
+/*
+ *   FFGLPluginBrowser
+ *
+ *   This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2012 Bruno Herbelin
+ *
+ */
+
 #include "FFGLPluginBrowser.moc"
 
 #include <QVBoxLayout>
@@ -46,7 +68,8 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
 
         menuTree.addAction(removeAction);
     }
-
+    else
+        removeAction = NULL;
 }
 
 
@@ -216,9 +239,11 @@ void FFGLPluginBrowser::resetAll()
 //        showProperties(currentStack);
 //    }
 
-    QtProperty *property = propertyTreeEditor->currentItem()->property();
-    if ( propertyToPluginParameter.contains(property) ) {
-        propertyToPluginParameter[property].first->restoreDefaults();
+    if ( propertyTreeEditor->currentItem() ) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( propertyToPluginParameter.contains(property) ) {
+            propertyToPluginParameter[property].first->restoreDefaults();
+        }
     }
     // refresh display
     showProperties(currentStack);
@@ -226,7 +251,7 @@ void FFGLPluginBrowser::resetAll()
 
 void FFGLPluginBrowser::defaultValue()
 {
-    if (currentStack) {
+    if ( propertyTreeEditor->currentItem() ) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
         if ( propertyToPluginParameter.contains(property) &&
              propertyToPluginParameter[property].second > 0) {
@@ -236,15 +261,16 @@ void FFGLPluginBrowser::defaultValue()
 
             propertyToPluginParameter[property].first->setParameter(propertyToPluginParameter[property].second, val);
 
-            // refresh display
-            showProperties(currentStack);
         }
     }
+
+    // refresh display
+    showProperties(currentStack);
 }
 
 void FFGLPluginBrowser::removePlugin()
 {
-    if (currentStack) {
+    if ( propertyTreeEditor->currentItem() && currentStack ) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
         if ( propertyToPluginParameter.contains(property) ) {
             currentStack->removePlugin(propertyToPluginParameter[property].first);
@@ -258,7 +284,7 @@ void FFGLPluginBrowser::removePlugin()
 
 void FFGLPluginBrowser::editPlugin()
 {
-    if (currentStack) {
+    if ( propertyTreeEditor->currentItem() ) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
         if ( propertyToPluginParameter.contains(property) )
             emit edit(propertyToPluginParameter[property].first);
@@ -269,13 +295,19 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
 {
     // edit is disabled by default
     editAction->setEnabled(false);
-    removeAction->setEnabled(false);
+    // reset is disabled by default
+    resetAction->setEnabled(false);
+    // remove is disabled by default
+    if(removeAction) removeAction->setEnabled(false);
 
-    if (propertyTreeEditor->currentItem()) {
+    if ( propertyTreeEditor->currentItem() ) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
+        // ok, a plugin is selected
         if ( propertyToPluginParameter.contains(property) ) {
-            // allow to remove if there is a plugin selected
-            removeAction->setEnabled(true);
+            // allow to reset it
+            resetAction->setEnabled(true);
+            // allow to remove it if there is a remove action
+            if(removeAction) removeAction->setEnabled(true);
             // enable the edit action for freeframe plugins only
              if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN)
                  editAction->setEnabled(true);
