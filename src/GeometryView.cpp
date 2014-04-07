@@ -1595,8 +1595,10 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++){
 
             double scale = 1.0;
-            // remember aspect ration of the original source
-            double ar = (*its)->getScaleX() / (*its)->getScaleY();
+            // remember aspect ration and sign of the original source
+            double ar = ABS( (*its)->getScaleX() / (*its)->getScaleY());
+            double sign_x = SIGN( (*its)->getScaleX() );
+            double sign_y = SIGN( (*its)->getScaleY() );
 
             // resize the diagonal (pythagore) proportionnally
             double K = 4.0 * (*its)->getScaleX() * (*its)->getScaleX() +  4.0 * (*its)->getScaleY()  *  (*its)->getScaleY();
@@ -1607,9 +1609,10 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
                 K *= scale * scale;
                 // appy aspect ratio of original source
                 K /= 1.0 + 1.0 / ( ar * ar );
-                (*its)->setScaleX( sqrt(K) / 2.0 );
+                K = sqrt(K) / 2.0;
+                (*its)->setScaleX( sign_x * K );
                 // keep aspect ratio
-                (*its)->setScaleY( (*its)->getScaleX() / ar);
+                (*its)->setScaleY( sign_y * K / ar);
             }
             // Compute scaling to target the scaling of the HEIGHT (View::AXIS_VERTICAL)
             else {
@@ -1617,9 +1620,10 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
                 K *= scale * scale;
                 // appy aspect ratio of original source
                 K /= 1.0 + ar * ar ;
-                (*its)->setScaleY( sqrt(K) / 2.0 );
+                K = sqrt(K) / 2.0;
+                (*its)->setScaleY( sign_y * K );
                 // keep aspect ratio
-                (*its)->setScaleX( (*its)->getScaleY() * ar);
+                (*its)->setScaleX( sign_x * K * ar);
             }
 
             // solves the rescaling of the bounding box to find the new position
@@ -1634,7 +1638,9 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
         double scale = 1.0;
 
         // remember aspect ration of the original source
-        double ar = s->getScaleX() /  s->getScaleY() ;
+        double ar = ABS( s->getScaleX() /  s->getScaleY() );
+        double sign_x = SIGN( s->getScaleX() );
+        double sign_y = SIGN( s->getScaleY() );
 
         // resize the diagonal (pythagore) proportionnally
         double K = 4.0 * s->getScaleX() * s->getScaleX() +  4.0 * s->getScaleY()  *  s->getScaleY();
@@ -1645,9 +1651,10 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
             K *= scale * scale;
             // appy aspect ratio of original source
             K /= 1.0 + 1.0 / ( ar * ar );
-            s->setScaleX( sqrt(K) / 2.0 );
+            K = sqrt(K) / 2.0;
+            s->setScaleX( sign_x * K );
             // keep aspect ratio
-            s->setScaleY( s->getScaleX() / ar);
+            s->setScaleY( sign_y * K / ar);
         }
         // Compute scaling to target the scaling of the HEIGHT (View::AXIS_VERTICAL)
         else {
@@ -1655,9 +1662,10 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
             K *= scale * scale;
             // appy aspect ratio of original source
             K /= 1.0 + ar * ar ;
-            s->setScaleY( sqrt(K) / 2.0 );
+            K = sqrt(K) / 2.0;
+            s->setScaleY( sign_y * K );
             // keep aspect ratio
-            s->setScaleX( s->getScaleY() * ar);
+            s->setScaleX( sign_x * K * ar);
         }
 
 
