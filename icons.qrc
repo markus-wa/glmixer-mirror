@@ -153,5 +153,7 @@
         <file>icons/plugin.png</file>
         <file>icons/plugin-source.png</file>
         <file>icons/plugin-small.png</file>
+        <file>icons/webcam.png</file>
+        <file>icons/display-capture.png</file>
     </qresource>
 </RCC>

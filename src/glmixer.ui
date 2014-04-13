@@ -1049,7 +1049,7 @@ QToolButton:hover {
                   <string>Play speed</string>
                  </property>
                  <property name="currentIndex">
-                  <number>4</number>
+                  <number>3</number>
                  </property>
                  <widget class="QWidget" name="pageSpeed0">
                   <layout class="QHBoxLayout" name="horizontalLayout_14">
@@ -4363,7 +4363,7 @@ Shortcut:                                    Tab</string>
   <action name="actionPreferences">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/preferences.png</normaloff>:/glmixer/icons/preferences.png</iconset>
+     <normaloff>:/glmixer/icons/gear.png</normaloff>:/glmixer/icons/gear.png</iconset>
    </property>
    <property name="text">
     <string>Preferences</string>
