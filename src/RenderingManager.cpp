@@ -648,38 +648,34 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
             GLuint textureIndex;
             // try to create the FFGL source
             try {
-                // create the texture for this source
-                _renderwidget->makeCurrent();
-                glGenTextures(1, &textureIndex);
-                GLclampf lowpriority = 0.1;
+                try {
+                    // create the texture for this source
+                    _renderwidget->makeCurrent();
+                    glGenTextures(1, &textureIndex);
+                    GLclampf lowpriority = 0.1;
 
-                glPrioritizeTextures(1, &textureIndex, &lowpriority);
+                    glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
-                // try to create the opencv source
-                s = new FFGLSource(fileNameToOpen, textureIndex, getAvailableDepthFrom(depth), w, h);
+                    // try to create the opencv source
+                    s = new FFGLSource(fileNameToOpen, textureIndex, getAvailableDepthFrom(depth), w, h);
 
-                // all good, set parameters
-                s->freeframeGLPlugin()->setConfiguration( configuration );
+                    // all good, set parameters
+                    s->freeframeGLPlugin()->setConfiguration( configuration );
 
-                // give it a name
-                renameSource( s, _defaultSource->getName() + QString("Freeframe") );
+                    // give it a name
+                    renameSource( s, _defaultSource->getName() + QString("Freeframe") );
 
-            } catch (AllocationException &e){
-                qWarning() << tr("Cannot create FreeframeGL plugin source.\nAllocation Exception; ") << e.message();
-                // free the OpenGL texture
-                glDeleteTextures(1, &textureIndex);
-                // return an invalid pointer
-                s = 0;
-            }
-            catch (FFGLPluginException &e)  {
-                qWarning() << tr("Cannot create FreeframeGL plugin source.\nFFGL error; ") << e.message();
-                // free the OpenGL texture
-                glDeleteTextures(1, &textureIndex);
-                // return an invalid pointer
-                s = 0;
+                } catch (AllocationException &e){
+                    qCritical() << tr("Allocation Exception; ") << e.message();
+                    throw;
+                }
+                catch (FFGLPluginException &e)  {
+                    qCritical() << tr("Freeframe error; ") << e.message();
+                    throw;
+                }
             }
             catch (...)  {
-                qWarning() << tr("Cannot create FreeframeGL plugin source.\nUnknown error.");
+                qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("Could no create plugin source.");
                 // free the OpenGL texture
                 glDeleteTextures(1, &textureIndex);
                 // return an invalid pointer
@@ -688,7 +684,7 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
 
         }
         else
-            qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("Invalid Freeframe plugin file");
+            qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("File does not exist.");
 
     } else
         qCritical() << tr("No file name provided to create Freeframe source.");

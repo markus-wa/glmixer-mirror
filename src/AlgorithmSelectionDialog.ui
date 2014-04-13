@@ -25,6 +25,19 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QLabel" name="label">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Select algorithm :</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QComboBox" name="AlgorithmComboBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -184,16 +197,7 @@
       <item row="2" column="0" colspan="2">
        <widget class="QWidget" name="sizeGrid" native="true">
         <layout class="QGridLayout" name="sizeGridLayout">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>0</number>
          </property>
          <item row="0" column="0">

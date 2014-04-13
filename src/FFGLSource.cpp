@@ -28,6 +28,7 @@
 #include "FFGLSource.moc"
 
 #include "FFGLPluginSource.h"
+#include "FFGLPluginSourceShadertoy.h"
 
 Source::RTTI FFGLSource::type = Source::FFGL_SOURCE;
 bool FFGLSource::playable = true;
@@ -50,19 +51,13 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
     it.Height = 0;
     it.HardwareWidth = 0;
     it.HardwareHeight = 0;
-    // create the plugin itself
-    try {
-        _plugin = new FFGLPluginSource(w, h, it);
 
-        // load dll
-        _plugin->load(pluginFileName);
-    }
-    catch (FFGLPluginException &e)  {
-        qCritical() << getName() << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
-    }
-    catch (...)  {
-        qCritical() << getName() << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
-    }
+    // create the plugin itself
+    _plugin = new FFGLPluginSource(w, h, it);
+
+    // load dll
+    _plugin->load(pluginFileName);
+
     // no exceptions raised, continue with the plugin
 
     // if plugin not of type source, create a buffer and a texture for applying effect
@@ -80,12 +75,7 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
     }
 
     // try to update
-    try {
-        _plugin->update();
-    }
-    catch (FFGLPluginException &e)  {
-        qCritical() << pluginFileName << QChar(124).toLatin1() << tr("FFGLSource : plugin crashed.");
-    }
+    _plugin->update();
 
     // this source behaves like a normal source, except the texture index
     // comes from the plugin's FBO
@@ -97,7 +87,40 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
 FFGLSource::FFGLSource(GLuint texture, double d, int w, int h):
     QObject(), Source(texture, d), _plugin(0), _playing(true), _buffer(0)
 {
+    aspectratio = double(w) / double(h);
 
+    // create new plugin with this file
+    FFGLTextureStruct it;
+    it.Handle = texture;
+    it.Width = 0;
+    it.Height = 0;
+    it.HardwareWidth = 0;
+    it.HardwareHeight = 0;
+
+    // create the plugin itself
+    _plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(w, h, it);
+
+    // if plugin not of type source, create a buffer and a texture for applying effect
+    if (!_plugin->isSourceType()) {
+        _buffer = new unsigned char[w * h * 4];
+        CHECK_PTR_EXCEPTION(_buffer);
+        // CLEAR the buffer to transparent black
+        memset((void *) _buffer, 0, w * h * 4);
+        // apply buffer to the texture
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_BGRA,
+                GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) _buffer);
+    }
+
+    // try to update
+    _plugin->update();
+
+    // this source behaves like a normal source, except the texture index
+    // comes from the plugin's FBO
+    _sourceTextureIndex = texture;
+    textureIndex = _plugin->getOutputTextureStruct().Handle;
 }
 
 FFGLSource::~FFGLSource()

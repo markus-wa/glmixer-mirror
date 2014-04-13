@@ -6,113 +6,193 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>343</width>
-    <height>608</height>
+    <width>344</width>
+    <height>481</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>FreeframeGL source</string>
+   <string>GLMixer Plugin source</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../icons.qrc">
-    <normaloff>:/glmixer/icons/ffgl-source.png</normaloff>:/glmixer/icons/ffgl-source.png</iconset>
+    <normaloff>:/glmixer/icons/plugin-small.png</normaloff>:/glmixer/icons/plugin-small.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QSplitter" name="splitter">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+    <widget class="SourceDisplayWidget" name="preview" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <widget class="SourceDisplayWidget" name="preview" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>100</height>
-       </size>
-      </property>
-     </widget>
-     <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string>FreeframeGL plugin</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>100</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Select plugin:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>120</width>
+          <height>20</height>
+         </size>
+        </property>
+        <widget class="QWidget" name="tabFreeframe">
+         <attribute name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/freeframe.png</normaloff>:/glmixer/icons/freeframe.png</iconset>
+         </attribute>
+         <attribute name="title">
+          <string/>
+         </attribute>
          <layout class="QVBoxLayout" name="verticalLayout">
-          <property name="leftMargin">
-           <number>3</number>
-          </property>
-          <property name="topMargin">
-           <number>3</number>
-          </property>
-          <property name="rightMargin">
-           <number>3</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>3</number>
           </property>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QComboBox" name="pluginFileList">
-              <property name="toolTip">
-               <string>Select a FreeFrame plugin</string>
-              </property>
-              <property name="editable">
-               <bool>false</bool>
-              </property>
-              <property name="maxCount">
-               <number>10</number>
-              </property>
-              <property name="insertPolicy">
-               <enum>QComboBox::InsertAtTop</enum>
-              </property>
-              <property name="sizeAdjustPolicy">
-               <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-              </property>
-              <property name="duplicatesEnabled">
-               <bool>false</bool>
-              </property>
-              <property name="frame">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="openfile">
-              <property name="toolTip">
-               <string>Browse to open a shared library file (.dll, .so or .bundle).</string>
-              </property>
-              <property name="text">
-               <string>...</string>
-              </property>
-              <property name="icon">
-               <iconset resource="../icons.qrc">
-                <normaloff>:/glmixer/icons/folderopen.png</normaloff>:/glmixer/icons/folderopen.png</iconset>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QRadioButton" name="freeframeEmbededPlugin">
+            <property name="text">
+             <string>Embeded plugin</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
           <item>
-           <widget class="QLabel" name="labelWarninEffect">
+           <widget class="QComboBox" name="freeframeEmbededList">
+            <item>
+             <property name="text">
+              <string/>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Screen capture </string>
+             </property>
+             <property name="icon">
+              <iconset resource="../icons.qrc">
+               <normaloff>:/glmixer/icons/display-capture.png</normaloff>:/glmixer/icons/display-capture.png</iconset>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Webcam</string>
+             </property>
+             <property name="icon">
+              <iconset resource="../icons.qrc">
+               <normaloff>:/glmixer/icons/webcam.png</normaloff>:/glmixer/icons/webcam.png</iconset>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="freeframeFilePlugin">
+            <property name="text">
+             <string>Plugin file</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widgetSelectPluginFile" native="true">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="leftMargin">
+              <number>3</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QComboBox" name="freeframeFileList">
+               <property name="toolTip">
+                <string>Select a FreeFrame plugin</string>
+               </property>
+               <property name="editable">
+                <bool>false</bool>
+               </property>
+               <property name="maxCount">
+                <number>10</number>
+               </property>
+               <property name="insertPolicy">
+                <enum>QComboBox::InsertAtTop</enum>
+               </property>
+               <property name="sizeAdjustPolicy">
+                <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+               </property>
+               <property name="duplicatesEnabled">
+                <bool>false</bool>
+               </property>
+               <property name="frame">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="freeframeOpenfile">
+               <property name="toolTip">
+                <string>Browse to open a shared library file (.dll, .so or .bundle).</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../icons.qrc">
+                 <normaloff>:/glmixer/icons/folderopen.png</normaloff>:/glmixer/icons/folderopen.png</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="freeframeLabelWarning">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -133,38 +213,193 @@
           </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="sizeGroupBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string>Properties</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-         <layout class="QVBoxLayout" name="PropertiesLayout">
+        <widget class="QWidget" name="tabShadertoy">
+         <attribute name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/shadertoy_black.png</normaloff>:/glmixer/icons/shadertoy_black.png</iconset>
+         </attribute>
+         <attribute name="title">
+          <string/>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
+           <widget class="QRadioButton" name="shadertoyGeneric">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Default generic code</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="shadertoyClipboard">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Use clibboard text as shader code</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="shadertoyFile">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Text file</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widgetSelectGLSLFile" native="true">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QComboBox" name="shadertoyFileList">
+               <property name="toolTip">
+                <string>Select a text file</string>
+               </property>
+               <property name="editable">
+                <bool>false</bool>
+               </property>
+               <property name="maxCount">
+                <number>10</number>
+               </property>
+               <property name="insertPolicy">
+                <enum>QComboBox::InsertAtTop</enum>
+               </property>
+               <property name="sizeAdjustPolicy">
+                <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+               </property>
+               <property name="duplicatesEnabled">
+                <bool>false</bool>
+               </property>
+               <property name="frame">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="shadertoyOpenFile">
+               <property name="toolTip">
+                <string>Browse to open a text file (.txt, .glsl, etc.).</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../icons.qrc">
+                 <normaloff>:/glmixer/icons/folderopen.png</normaloff>:/glmixer/icons/folderopen.png</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="shadertoyLabelWarning">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning: &lt;/span&gt;The given code has error(s), but you will be able to fix it in the code editor later.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="indent">
+             <number>10</number>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::NoTextInteraction</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="sizeGroupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>Properties</string>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+        <layout class="QVBoxLayout" name="PropertiesLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <property name="margin">
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QWidget" name="widget" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="margin">
+             <number>0</number>
+            </property>
             <item>
              <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Size   </string>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
-              <property name="buddy">
-               <cstring>presetsSizeComboBox</cstring>
+              <property name="text">
+               <string>Size</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QComboBox" name="presetsSizeComboBox">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -268,100 +503,103 @@
              </widget>
             </item>
            </layout>
-          </item>
-          <item>
-           <widget class="QWidget" name="sizeGrid" native="true">
-            <layout class="QGridLayout" name="sizeGridLayout">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item row="0" column="0">
-              <widget class="QLabel" name="w">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Width</string>
-               </property>
-               <property name="buddy">
-                <cstring>widthSpinBox</cstring>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QSpinBox" name="widthSpinBox">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="minimum">
-                <number>2</number>
-               </property>
-               <property name="maximum">
-                <number>1920</number>
-               </property>
-               <property name="value">
-                <number>640</number>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QSpinBox" name="heightSpinBox">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="minimum">
-                <number>2</number>
-               </property>
-               <property name="maximum">
-                <number>1200</number>
-               </property>
-               <property name="value">
-                <number>480</number>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="h">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Height</string>
-               </property>
-               <property name="buddy">
-                <cstring>heightSpinBox</cstring>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="sizeGrid" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QGridLayout" name="sizeGridLayout">
+            <property name="margin">
+             <number>0</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="w">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Width</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="widthSpinBox">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimum">
+               <number>2</number>
+              </property>
+              <property name="maximum">
+               <number>1920</number>
+              </property>
+              <property name="value">
+               <number>640</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QSpinBox" name="heightSpinBox">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimum">
+               <number>2</number>
+              </property>
+              <property name="maximum">
+               <number>1200</number>
+              </property>
+              <property name="value">
+               <number>480</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="h">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Height</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -395,8 +633,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>245</x>
-     <y>598</y>
+     <x>272</x>
+     <y>464</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -411,8 +649,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>313</x>
-     <y>598</y>
+     <x>334</x>
+     <y>464</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -421,34 +659,130 @@
    </hints>
   </connection>
   <connection>
-   <sender>openfile</sender>
+   <sender>freeframeOpenfile</sender>
    <signal>clicked()</signal>
    <receiver>FFGLSourceCreationDialog</receiver>
    <slot>browse()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>313</x>
-     <y>63</y>
+     <x>122</x>
+     <y>233</y>
     </hint>
     <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
+     <x>359</x>
+     <y>405</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>pluginFileList</sender>
+   <sender>freeframeFileList</sender>
    <signal>currentIndexChanged(int)</signal>
    <receiver>FFGLSourceCreationDialog</receiver>
-   <slot>updatePlugin(int)</slot>
+   <slot>setFreeframePlugin(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>122</x>
+     <y>233</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>362</x>
+     <y>379</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tabWidget</sender>
+   <signal>currentChanged(int)</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>pluginTypeChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>328</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>freeframeFilePlugin</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetSelectPluginFile</receiver>
+   <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>116</x>
-     <y>64</y>
+     <y>197</y>
     </hint>
     <hint type="destinationlabel">
-     <x>394</x>
-     <y>204</y>
+     <x>116</x>
+     <y>203</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>shadertoyFile</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetSelectGLSLFile</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>150</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>130</x>
+     <y>282</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>freeframeEmbededPlugin</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>freeframeEmbededList</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>185</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>116</x>
+     <y>191</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>shadertoyFileList</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>setShadertoyPlugin(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>242</x>
+     <y>281</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>354</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>shadertoyOpenFile</sender>
+   <signal>clicked()</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>browseShadertoyPlugin()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>303</x>
+     <y>282</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>392</y>
     </hint>
    </hints>
   </connection>
@@ -459,20 +793,23 @@
    <slot>selectSizePreset(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>320</x>
-     <y>263</y>
+     <x>281</x>
+     <y>365</y>
     </hint>
     <hint type="destinationlabel">
-     <x>327</x>
-     <y>163</y>
+     <x>-4</x>
+     <y>391</y>
     </hint>
    </hints>
   </connection>
  </connections>
  <slots>
-  <slot>updatePlugin(int)</slot>
-  <slot>browse()</slot>
+  <slot>setFreeframePlugin(int)</slot>
+  <slot>browseFreeframePlugin()</slot>
   <slot>updateSourcePreview()</slot>
   <slot>selectSizePreset(int)</slot>
+  <slot>pluginTypeChanged(int)</slot>
+  <slot>setShadertoyPlugin(int)</slot>
+  <slot>browseShadertoyPlugin()</slot>
  </slots>
 </ui>

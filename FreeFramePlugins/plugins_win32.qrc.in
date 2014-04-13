@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/ffgl">
         <file alias="Shadertoy">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameFragmentCodePlugin/libShadertoy.dll</file>
-        <file alias="wave">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameWavePlugin/libffglWave.dll</file>
+        <file alias="Delay">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameQtScreenCapturePlugin/libffglQtScreenCapture.dll</file>
+        <file alias="Camera">${CMAKE_CURRENT_BINARY_DIR}/ExtremelySimpleCaptureFFGLPlugin/libescapiffgl.dll</file>
     </qresource>
 </RCC>

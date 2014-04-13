@@ -38,7 +38,7 @@ public:
     explicit FFGLSourceCreationDialog(QWidget *parent = 0, QSettings *settings = 0);
     ~FFGLSourceCreationDialog();
 
-    QFileInfo getFreeframePluginFileInfo();
+    QString getPluginInfo();
     QDomElement getFreeframePluginConfiguration();
     int getSelectedWidth();
     int getSelectedHeight();
@@ -47,10 +47,13 @@ public Q_SLOTS:
 
     void done(int r);
 
-    void browse();
-    void updatePlugin(int);
+    void browseFreeframePlugin();
+    void setFreeframePlugin(int);
+    void browseShadertoyPlugin();
+    void setShadertoyPlugin(int);
     void updateSourcePreview(QDomElement config = QDomElement());
     void selectSizePreset(int preset);
+    void pluginTypeChanged(int);
 
 protected:
     void showEvent(QShowEvent *);

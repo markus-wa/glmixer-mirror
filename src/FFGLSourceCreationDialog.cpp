@@ -37,26 +37,28 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
 {
     // setup the user interface
     ui->setupUi(this);
-    ui->labelWarninEffect->setVisible(false);
+    ui->freeframeLabelWarning->setVisible(false);
+    ui->shadertoyLabelWarning->setVisible(false);
+    ui->sizeGrid->setVisible(false);
 
     // Setup the FFGL plugin property browser
-    pluginBrowser = new FFGLPluginBrowser(this, false);
-    ui->PropertiesLayout->insertWidget( ui->PropertiesLayout->count(),  pluginBrowser);
-    pluginBrowser->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    pluginBrowser->switchToGroupView();
+//    pluginBrowser = new FFGLPluginBrowser(this, false);
+//    ui->PropertiesLayout->insertWidget( ui->PropertiesLayout->count(),  pluginBrowser);
+//    pluginBrowser->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+//    pluginBrowser->switchToGroupView();
 
     // restore settings
-    ui->pluginFileList->addItem("");
+    ui->freeframeFileList->addItem("");
     if (appSettings) {
         if (appSettings->contains("recentFFGLPluginsList")) {
             QStringListIterator it(appSettings->value("recentFFGLPluginsList").toStringList());
             while (it.hasNext()){
                 QFileInfo pluginfile(it.next());
-                ui->pluginFileList->addItem(pluginfile.baseName(), pluginfile.absoluteFilePath());
+                ui->freeframeFileList->addItem(pluginfile.baseName(), pluginfile.absoluteFilePath());
             }
         }
-        if (appSettings->contains("FFGLDialogLayout"))
-            ui->splitter->restoreState(appSettings->value("FFGLDialogLayout").toByteArray());
+//        if (appSettings->contains("FFGLDialogLayout"))
+//            ui->splitter->restoreState(appSettings->value("FFGLDialogLayout").toByteArray());
     }
 }
 
@@ -64,7 +66,7 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
 FFGLSourceCreationDialog::~FFGLSourceCreationDialog()
 {
 //    delete preview;
-    delete pluginBrowser;
+//    delete pluginBrowser;
     delete ui;
 
 }
@@ -72,7 +74,7 @@ FFGLSourceCreationDialog::~FFGLSourceCreationDialog()
 
 void FFGLSourceCreationDialog::showEvent(QShowEvent *e){
 
-    ui->pluginFileList->setCurrentIndex(0);
+    ui->freeframeFileList->setCurrentIndex(0);
     updateSourcePreview();
 
     QWidget::showEvent(e);
@@ -95,11 +97,11 @@ void FFGLSourceCreationDialog::done(int r){
 
     if (appSettings) {
         QStringList l;
-        for ( int i = 1; i < ui->pluginFileList->count(); ++i )
-            l.append(ui->pluginFileList->itemData(i).toString());
+        for ( int i = 1; i < ui->freeframeFileList->count(); ++i )
+            l.append(ui->freeframeFileList->itemData(i).toString());
         appSettings->setValue("recentFFGLPluginsList", l);
 
-        appSettings->setValue("FFGLDialogLayout", ui->splitter->saveState());
+//        appSettings->setValue("FFGLDialogLayout", ui->splitter->saveState());
     }
 
     QDialog::done(r);
@@ -110,7 +112,7 @@ void FFGLSourceCreationDialog::done(int r){
 void FFGLSourceCreationDialog::updateSourcePreview(QDomElement config){
 
     if(s) {
-        ui->labelWarninEffect->setVisible(false);
+        ui->freeframeLabelWarning->setVisible(false);
         // remove source from preview: this deletes the texture in the preview
         ui->preview->setSource(0);
         // delete the source:
@@ -119,7 +121,7 @@ void FFGLSourceCreationDialog::updateSourcePreview(QDomElement config){
 
     if (pluginBrowserStack) {
         // clear plugin browser
-        pluginBrowser->clear();
+//        pluginBrowser->clear();
         delete pluginBrowserStack;
     }
 
@@ -130,22 +132,28 @@ void FFGLSourceCreationDialog::updateSourcePreview(QDomElement config){
 
         GLuint tex = ui->preview->getNewTextureIndex();
         try {
-            // create a new source with a new texture index and the new parameters
-            s = new FFGLSource(_filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
+            try {
+                // create a new source with a new texture index and the new parameters
+                s = new FFGLSource(_filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
 
-            if (!config.isNull())
-                s->freeframeGLPlugin()->setConfiguration(config);
+                if (!config.isNull())
+                    s->freeframeGLPlugin()->setConfiguration(config);
 
-            // create a plugin stack
-            pluginBrowserStack = new FFGLPluginSourceStack;
-            pluginBrowserStack->push(s->freeframeGLPlugin());
+                // create a plugin stack
+                pluginBrowserStack = new FFGLPluginSourceStack;
+                pluginBrowserStack->push(s->freeframeGLPlugin());
 
-            // show the plugin stack
-            pluginBrowser->showProperties( pluginBrowserStack );
+                // show the plugin stack
+//                pluginBrowser->showProperties( pluginBrowserStack );
 
-            // show warning if selected plugin is not of type 'Source'
-            ui->labelWarninEffect->setVisible( !s->freeframeGLPlugin()->isSourceType() );
+                // show warning if selected plugin is not of type 'Source'
+                ui->freeframeLabelWarning->setVisible( !s->freeframeGLPlugin()->isSourceType() );
 
+            }
+            catch (FFGLPluginException &e)  {
+                qCritical() << tr("Freeframe error; ") << e.message();
+                throw;
+            }
         }
         catch (...)  {
             // free the OpenGL texture
@@ -153,7 +161,7 @@ void FFGLSourceCreationDialog::updateSourcePreview(QDomElement config){
             // return an invalid pointer
             s = NULL;
 
-            qCritical() << _filename << QChar(124).toLatin1() << tr("Not a FreeframeGL plugin.");
+            qCritical() << _filename << QChar(124).toLatin1() << tr("Could no create plugin source.");
         }
 
     }
@@ -163,16 +171,32 @@ void FFGLSourceCreationDialog::updateSourcePreview(QDomElement config){
     ui->preview->playSource(true);
 }
 
-void FFGLSourceCreationDialog::updatePlugin(int index) {
 
-    _filename = ui->pluginFileList->itemData(index).toString();
+void FFGLSourceCreationDialog::pluginTypeChanged(int tab)
+{
+    qDebug() << "pluginTypeChanged(int tab)" << tab;
+
+    if ( tab == 0 ) {
+
+        setFreeframePlugin( ui->freeframeFileList->currentIndex() );
+
+    } else {
+
+        setShadertoyPlugin(0);
+    }
+
+}
+
+void FFGLSourceCreationDialog::setFreeframePlugin(int index) {
+
+    _filename = ui->freeframeFileList->itemData(index).toString();
 
     updateSourcePreview();
 
-    pluginBrowser->expandAll();
+//    pluginBrowser->expandAll();
 }
 
-void FFGLSourceCreationDialog::browse() {
+void FFGLSourceCreationDialog::browseFreeframePlugin() {
 
     #ifdef Q_OS_MAC
     QString ext = " (*.bundle *.so)";
@@ -194,18 +218,30 @@ void FFGLSourceCreationDialog::browse() {
     // if a file was selected
     if (pluginfile.isFile()) {
         // try to find & remove the file in the recent plugins list
-        ui->pluginFileList->removeItem( ui->pluginFileList->findData(pluginfile.absoluteFilePath()) );
+        ui->freeframeFileList->removeItem( ui->freeframeFileList->findData(pluginfile.absoluteFilePath()) );
 
         // add the filename to the pluginFileList
-        ui->pluginFileList->insertItem(1, pluginfile.baseName(), pluginfile.absoluteFilePath());
-        ui->pluginFileList->setCurrentIndex(1);
+        ui->freeframeFileList->insertItem(1, pluginfile.baseName(), pluginfile.absoluteFilePath());
+        ui->freeframeFileList->setCurrentIndex(1);
     }
 
 }
 
-QFileInfo  FFGLSourceCreationDialog::getFreeframePluginFileInfo(){
 
-    return QFileInfo(_filename);
+void FFGLSourceCreationDialog::setShadertoyPlugin(int index) {
+
+
+    updateSourcePreview();
+
+}
+
+void FFGLSourceCreationDialog::browseShadertoyPlugin() {
+
+}
+
+QString  FFGLSourceCreationDialog::getPluginInfo(){
+
+    return _filename;
 }
 
 QDomElement FFGLSourceCreationDialog::getFreeframePluginConfiguration(){
