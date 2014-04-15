@@ -155,5 +155,6 @@
         <file>icons/plugin-small.png</file>
         <file>icons/webcam.png</file>
         <file>icons/display-capture.png</file>
+        <file>icons/folderadd.png</file>
     </qresource>
 </RCC>

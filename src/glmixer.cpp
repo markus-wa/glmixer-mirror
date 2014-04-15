@@ -161,7 +161,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
     toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
     toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());
-    toolBarsMenu->addAction(logDockWidget->toggleViewAction());
+    QAction *showlog = logDockWidget->toggleViewAction();
+    toolBarsMenu->addAction(showlog);
     toolBarsMenu->addSeparator();
     toolBarsMenu->addAction(sourceToolBar->toggleViewAction());
     toolBarsMenu->addAction(viewToolBar->toggleViewAction());
@@ -245,6 +246,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     setGLSLFragmentShader->setShortcut(QKeySequence("Shift+Ctrl+G,F"));
     addAction(setGLSLFragmentShader);
     QObject::connect(setGLSLFragmentShader, SIGNAL(triggered()), this, SLOT(selectGLSLFragmentShader()) );
+
+    showlog->setShortcut(QKeySequence("Ctrl+L"));
 
     // recent files history
     QMenu *recentFiles = new QMenu(this);

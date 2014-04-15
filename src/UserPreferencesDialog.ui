@@ -829,7 +829,7 @@ the user to select a file name</string>
                    </property>
                    <property name="icon">
                     <iconset resource="../icons.qrc">
-                     <normaloff>:/glmixer/icons/folderopen.png</normaloff>:/glmixer/icons/folderopen.png</iconset>
+                     <normaloff>:/glmixer/icons/folderadd.png</normaloff>:/glmixer/icons/folderadd.png</iconset>
                    </property>
                   </widget>
                  </item>
@@ -1272,6 +1272,14 @@ font: 75;</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsEnabled</set>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>CTRL + L</string>
+                 </property>
+                 <property name="text">
+                  <string>Show / hide logs window</string>
                  </property>
                 </item>
                 <item>
