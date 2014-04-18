@@ -98,7 +98,7 @@ FFGLSource::FFGLSource(GLuint texture, double d, int w, int h):
     it.HardwareHeight = 0;
 
     // create the plugin itself
-    _plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(w, h, it);
+    _plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(FF_SOURCE, w, h, it);
 
     // if plugin not of type source, create a buffer and a texture for applying effect
     if (!_plugin->isSourceType()) {

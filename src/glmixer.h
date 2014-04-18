@@ -60,7 +60,6 @@ public Q_SLOTS:
 	void on_actionAlgorithmSource_triggered();
     void on_actionSvgSource_triggered();
     void on_actionShmSource_triggered();
-    void on_actionFreeframeSource_triggered();
 	void on_actionCloneSource_triggered();
 	void on_actionDeleteSource_triggered();
 	void on_actionFormats_and_Codecs_triggered();
@@ -137,6 +136,11 @@ public Q_SLOTS:
     void screenshotView();  // "Ctrl+<,<"
     void selectGLSLFragmentShader();  // "Shift+Ctrl+G,F"
 
+#ifdef FFGL
+    void on_actionFreeframeSource_triggered();
+    void editShaderToyPlugin(FFGLPluginSource *);
+#endif
+
 Q_SIGNALS:
 	void sourceMarksModified(bool);
 	void sessionSaved();
@@ -167,6 +171,9 @@ private:
     class SessionSwitcherWidget *switcherSession;
     class PropertyBrowser *specificSourcePropertyBrowser;
     class QSplitter *layoutPropertyBrowser;
+#ifdef FFGL
+    class GLSLCodeEditorWidget *pluginGLSLCodeEditor;
+#endif
 
 	QTimer *refreshTimingTimer;
     bool _displayTimeAsFrame, _restoreLastSession;

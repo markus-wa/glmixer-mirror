@@ -4,12 +4,11 @@
 #include <FFGLPluginSDK.h>
 #include <FFGLFBO.h>
 
-
-class FreeFrameQtGLSL : public CFreeFrameGLPlugin
+class FreeFrameShadertoy : public CFreeFrameGLPlugin
 {
 public:
-    FreeFrameQtGLSL();
-    virtual ~FreeFrameQtGLSL() {}
+    FreeFrameShadertoy();
+    virtual ~FreeFrameShadertoy() {}
 
     ///////////////////////////////////////////////////
     // FreeFrame plugin methods
@@ -40,7 +39,7 @@ public:
     static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
 #endif
     {
-        *ppOutInstance = new FreeFrameQtGLSL();
+        *ppOutInstance = new FreeFrameShadertoy();
         if (*ppOutInstance != NULL)
             return FF_SUCCESS;
         return FF_FAIL;

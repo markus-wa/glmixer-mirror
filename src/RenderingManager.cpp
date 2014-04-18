@@ -637,57 +637,107 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
 
     FFGLSource *s = 0;
 
-    QDomElement Filename = configuration.firstChildElement("Filename");
-    if (!Filename.isNull()) {
+    // for Freeframe plugin sources
+    if (configuration.tagName() == QString("FreeFramePlugin")) {
 
-        // first reads with the absolute file name
-        QString fileNameToOpen = Filename.text();
-        // if there is such a file
-        if ( QFileInfo(fileNameToOpen).exists()) {
+        QDomElement Filename = configuration.firstChildElement("Filename");
+        if (!Filename.isNull()) {
 
-            GLuint textureIndex;
-            // try to create the FFGL source
-            try {
+            // first reads with the absolute file name
+            QString fileNameToOpen = Filename.text();
+            // if there is such a file
+            if ( QFileInfo(fileNameToOpen).exists()) {
+
+                GLuint textureIndex;
+                // try to create the FFGL source
                 try {
-                    // create the texture for this source
-                    _renderwidget->makeCurrent();
-                    glGenTextures(1, &textureIndex);
-                    GLclampf lowpriority = 0.1;
+                    try {
+                        // create the texture for this source
+                        _renderwidget->makeCurrent();
+                        glGenTextures(1, &textureIndex);
+                        GLclampf lowpriority = 0.1;
 
-                    glPrioritizeTextures(1, &textureIndex, &lowpriority);
+                        glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
-                    // try to create the opencv source
-                    s = new FFGLSource(fileNameToOpen, textureIndex, getAvailableDepthFrom(depth), w, h);
+                        // try to create the opencv source
+                        s = new FFGLSource(fileNameToOpen, textureIndex, getAvailableDepthFrom(depth), w, h);
 
-                    // all good, set parameters
-                    s->freeframeGLPlugin()->setConfiguration( configuration );
+                        // all good, set parameters
+                        s->freeframeGLPlugin()->setConfiguration( configuration );
 
-                    // give it a name
-                    renameSource( s, _defaultSource->getName() + QString("Freeframe") );
+                        // give it a name
+                        renameSource( s, _defaultSource->getName() + QString("Freeframe") );
 
-                } catch (AllocationException &e){
-                    qCritical() << tr("Allocation Exception; ") << e.message();
-                    throw;
+                    } catch (AllocationException &e){
+                        qCritical() << tr("Allocation Exception; ") << e.message();
+                        throw;
+                    }
+                    catch (FFGLPluginException &e)  {
+                        qCritical() << tr("Freeframe error; ") << e.message();
+                        throw;
+                    }
                 }
-                catch (FFGLPluginException &e)  {
-                    qCritical() << tr("Freeframe error; ") << e.message();
-                    throw;
+                catch (...)  {
+                    qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("Could no create plugin source.");
+                    // free the OpenGL texture
+                    glDeleteTextures(1, &textureIndex);
+                    // return an invalid pointer
+                    s = 0;
                 }
+
             }
-            catch (...)  {
-                qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("Could no create plugin source.");
-                // free the OpenGL texture
-                glDeleteTextures(1, &textureIndex);
-                // return an invalid pointer
-                s = 0;
-            }
+            else
+                qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("File does not exist.");
+
+        } else
+            qCritical() << tr("No file name provided to create Freeframe source.");
 
         }
-        else
-            qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("File does not exist.");
+    // not FreeFramePlugin : must be ShadertoyPlugin
+    else {
 
-    } else
-        qCritical() << tr("No file name provided to create Freeframe source.");
+        GLuint textureIndex;
+        // try to create the Shadertoy source
+        try {
+            try {
+                // create the texture for this source
+                _renderwidget->makeCurrent();
+                glGenTextures(1, &textureIndex);
+                GLclampf lowpriority = 0.1;
+
+                glPrioritizeTextures(1, &textureIndex, &lowpriority);
+
+                // try to create the opencv source
+                s = new FFGLSource(textureIndex, getAvailableDepthFrom(depth), w, h);
+
+                // all good, set parameters
+
+                // TODO : does this automatically call the FFGLPluginSourceShadertoy function ???
+
+                s->freeframeGLPlugin()->setConfiguration( configuration );
+
+                // give it a name
+                renameSource( s, _defaultSource->getName() + QString("Shadertoy") );
+
+            } catch (AllocationException &e){
+                qCritical() << tr("Allocation Exception; ") << e.message();
+                throw;
+            }
+            catch (FFGLPluginException &e)  {
+                qCritical() << tr("Shadertoy error; ") << e.message();
+                throw;
+            }
+        }
+        catch (...)  {
+            qCritical() << "shadertoy" << QChar(124).toLatin1() << tr("Could no create plugin source.");
+            // free the OpenGL texture
+            glDeleteTextures(1, &textureIndex);
+            // return an invalid pointer
+            s = 0;
+        }
+
+    }
+
 
     return ( (Source *) s );
 }

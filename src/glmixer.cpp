@@ -73,7 +73,9 @@
 
 #ifdef FFGL
 #include "FFGLPluginSource.h"
+#include "FFGLPluginSourceShadertoy.h"
 #include "FFGLSourceCreationDialog.h"
+#include "GLSLCodeEditorWidget.h"
 #endif
 
 #include "glmixer.moc"
@@ -148,7 +150,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     actionCameraSource->setVisible(false);
 #endif
 
-#ifndef FFGL
+#ifdef FFGL
+    pluginGLSLCodeEditor = new GLSLCodeEditorWidget();
+#else
     actionFreeframeSource->setVisible(false);
 #endif
 
@@ -989,10 +993,10 @@ void GLMixer::on_actionShmSource_triggered(){
 #endif
 }
 
+#ifdef FFGL
 
 void GLMixer::on_actionFreeframeSource_triggered(){
 
-#ifdef FFGL
     // popup a question dialog to select the type of algorithm
     static FFGLSourceCreationDialog *ffgld = 0;
     if (!ffgld)
@@ -1001,25 +1005,50 @@ void GLMixer::on_actionFreeframeSource_triggered(){
 
     if (ffgld->exec() == QDialog::Accepted) {
 
-        QDomElement config = ffgld->getFreeframePluginConfiguration();
         int w = ffgld->getSelectedWidth();
         int h = ffgld->getSelectedHeight();
+        QDomElement config = ffgld->getFreeframePluginConfiguration();
         if ( config.hasChildNodes() ) {
 
             Source *s = RenderingManager::getInstance()->newFreeframeGLSource(config, w, h);
             if ( s ){
                 // add source
                 RenderingManager::getInstance()->addSourceToBasket(s);
-                qDebug() << s->getName() << QChar(124).toLatin1() << tr("New FreeframeGL source created (")<< ffgld->getPluginInfo() << ").";
-                statusbar->showMessage( tr("Source created with the Freeframe GL plugin %1.").arg( ffgld->getPluginInfo() ), 3000 );
+                qDebug() << s->getName() << QChar(124).toLatin1() << tr("New plugin source created (")<< ffgld->getPluginInfo() << ").";
+                statusbar->showMessage( tr("Plugin source created : %1.").arg( ffgld->getPluginInfo() ), 3000 );
             } else
-                qCritical() << ffgld->getPluginInfo() <<  QChar(124).toLatin1() << tr("Could not create FreeframeGL source.");
+                qCritical() << ffgld->getPluginInfo() <<  QChar(124).toLatin1() << tr("Could not create plugin source.");
         }
     }
 
-#endif
 }
 
+
+
+void GLMixer::editShaderToyPlugin(FFGLPluginSource *plugin)
+{
+    if(!plugin)
+        return;
+
+    // test if it is a shadertoy plugin
+    if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
+
+        // show the Shadertoy code editor
+        pluginGLSLCodeEditor->show();
+        pluginGLSLCodeEditor->raise();
+        pluginGLSLCodeEditor->setFocus();
+
+        // link plugin to GUI editor
+        pluginGLSLCodeEditor->linkPlugin(qobject_cast<FFGLPluginSourceShadertoy *>(plugin));
+
+        // update list in case the plugin changed (e.g. name)
+        connect(plugin, SIGNAL(changed()), mixingToolBox, SLOT(changed()));
+
+    }
+
+}
+
+#endif
 
 void GLMixer::on_actionAlgorithmSource_triggered(){
 

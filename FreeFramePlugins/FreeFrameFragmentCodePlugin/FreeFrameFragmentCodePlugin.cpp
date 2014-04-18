@@ -1,72 +1,12 @@
 
-#include <GL/glew.h>
-#define APIENTRY
-#include <FFGL.h>
-#include <FFGLLib.h>
-#include <cstdio>
-#include <ctime>
 
-#include "FreeFrameFragmentCodePlugin.h"
-
-
-const char *fragmentShaderHeader =  "uniform vec3      iResolution;           // viewport resolution (in pixels)\n"
-                                    "uniform vec3      iChannelResolution[1]; // input channel resolution (in pixels)\n"
-                                    "uniform float     iGlobalTime;           // shader playback time (in seconds)\n"
-                                    "uniform float     iChannelTime[1];       // channel playback time (in seconds)\n"
-                                    "uniform sampler2D iChannel0;             // input channel (texture id).\n"
-                                    "uniform vec4      iDate;                 // (year, month, day, time in seconds)\0";
-
-const char *fragmentShaderDefaultCode = "void main(void){\n"
-        "\tvec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
-        "\tgl_FragColor = texture2D(iChannel0, uv);\n"
-        "}\0";
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Plugin information
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static CFFGLPluginInfo PluginInfo (
-        FreeFrameQtGLSL::CreateInstance,	// Create method
-        "STFFGLGLSL",                       // Plugin unique ID
-        "Shadertoy",                        // Plugin name
-        1,						   			// API major version number
-        500,								// API minor version number
-        1,									// Plugin major version number
-        000,								// Plugin minor version number
-        FF_EFFECT,                          // Plugin type
-        "Shadertoy GLSL plugin",    // Plugin description
-        "by Bruno Herbelin"                 // About
-        );
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Constructor and destructor
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-FreeFrameQtGLSL::FreeFrameQtGLSL()
-    : CFreeFrameGLPlugin()
-{
-    // Input properties
-    SetMinInputs(1);
-    SetMaxInputs(1);
-    SetTimeSupported(true);
-
-    // No Parameters
-    code_changed = true;
-    shaderProgram = 0;
-    fragmentShader = 0;
-    fragmentShaderCode = NULL;
-    setFragmentProgramCode(fragmentShaderDefaultCode);
-
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void FreeFrameQtGLSL::setFragmentProgramCode(const char *code)
+void FreeFrameShadertoy::setFragmentProgramCode(const char *code)
 {
     // free  previous string
     if (fragmentShaderCode)
@@ -82,12 +22,12 @@ void FreeFrameQtGLSL::setFragmentProgramCode(const char *code)
 }
 
 
-char *FreeFrameQtGLSL::getFragmentProgramCode()
+char *FreeFrameShadertoy::getFragmentProgramCode()
 {
     return fragmentShaderCode;
 }
 
-char *FreeFrameQtGLSL::getFragmentProgramLogs()
+char *FreeFrameShadertoy::getFragmentProgramLogs()
 {
     return infoLog;
 }
@@ -97,7 +37,7 @@ char *FreeFrameQtGLSL::getFragmentProgramLogs()
 DWORD   FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
 #else
 // FFGL 1.6
-FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
+FFResult FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
     viewport.x = 0;
@@ -133,7 +73,7 @@ FFResult FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
 DWORD   FreeFrameQtGLSL::DeInitGL()
 #else
 // FFGL 1.6
-FFResult FreeFrameQtGLSL::DeInitGL()
+FFResult FreeFrameShadertoy::DeInitGL()
 #endif
 {
 
@@ -150,7 +90,7 @@ FFResult FreeFrameQtGLSL::DeInitGL()
 DWORD   FreeFrameQtGLSL::SetTime(double time)
 #else
 // FFGL 1.6
-FFResult FreeFrameQtGLSL::SetTime(double time)
+FFResult FreeFrameShadertoy::SetTime(double time)
 #endif
 {
     m_curTime = time;
@@ -206,7 +146,7 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 DWORD	FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 #else
 // FFGL 1.6
-FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
 
@@ -313,7 +253,7 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 {
     // declare pPlugObj (pointer to this instance)
     // & typecast instanceid into pointer to a CFreeFrameGLPlugin
-    FreeFrameQtGLSL* pPlugObj = (FreeFrameQtGLSL*) instanceID;
+    FreeFrameShadertoy* pPlugObj = (FreeFrameShadertoy*) instanceID;
 
     if (pPlugObj) {
         switch (t) {
@@ -341,7 +281,7 @@ FFResult FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     // declare pPlugObj (pointer to this instance)
     // & typecast instanceid into pointer to a CFreeFrameGLPlugin
-    FreeFrameQtGLSL* pPlugObj = (FreeFrameQtGLSL*) instanceID;
+    FreeFrameShadertoy* pPlugObj = (FreeFrameShadertoy*) instanceID;
 
     if (pPlugObj) {
 

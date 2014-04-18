@@ -25,7 +25,6 @@
 #include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
 #include "FFGLPluginBrowser.h"
-#include "GLSLCodeEditorWidget.h"
 #endif
 
 #include "MixingToolboxWidget.moc"
@@ -267,14 +266,10 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
 #ifdef FFGL
     // Setup the FFGL plugin property browser
     pluginBrowser = new FFGLPluginBrowser(Plugin);
-    pluginBrowser->setStyleSheet(QString::fromUtf8("QToolTip {\n"
-    "	font: 8pt \"Monospace,Courier\";\n"
-    "}"));
 
     pluginBrowserLayout->insertWidget(1, pluginBrowser);
     QObject::connect(pluginBrowser, SIGNAL(pluginChanged()), this, SLOT(changed()) );
-    QObject::connect(pluginBrowser, SIGNAL(edit(FFGLPluginSource *)), this, SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
-//    pluginFactoryEditor = NULL;
+    QObject::connect(pluginBrowser, SIGNAL(edit(FFGLPluginSource *)), parent, SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
 #else
     mixingToolBox->removeTab( mixingToolBox->indexOf(Plugin) );
 #endif
@@ -670,7 +665,6 @@ bool MixingToolboxWidget::restoreState(const QByteArray &state) {
 void MixingToolboxWidget::changed(){
 
     emit sourceChanged( RenderingManager::getInstance()->getById( source->getId()) );
-
 }
 
 #ifdef FFGL
@@ -721,7 +715,7 @@ void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
             pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
 
             // open editor when plugin will be initialized
-            connect(plugin, SIGNAL(initialized(FFGLPluginSource *)), this, SLOT(editShaderToyPlugin(FFGLPluginSource *)));
+            connect(plugin, SIGNAL(initialized(FFGLPluginSource *)), GLMixer::getInstance(), SLOT(editShaderToyPlugin(FFGLPluginSource *)));
 
             // update view
             changed();
@@ -729,33 +723,6 @@ void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
     }
 }
 
-
-void MixingToolboxWidget::editShaderToyPlugin(FFGLPluginSource *plugin)
-{
-    if(!plugin)
-        return;
-
-    // instanciate code editor if not already done
-    if(!pluginGLSLCodeEditor)
-        pluginGLSLCodeEditor = new GLSLCodeEditorWidget();
-
-    // test if it is a shadertoy plugin
-    if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
-
-        // show the Shadertoy code editor
-        pluginGLSLCodeEditor->show();
-        pluginGLSLCodeEditor->raise();
-        pluginGLSLCodeEditor->setFocus();
-
-        // link plugin to GUI editor
-        pluginGLSLCodeEditor->linkPlugin(qobject_cast<FFGLPluginSourceShadertoy *>(plugin));
-
-        // update list in case the plugin changed (e.g. name)
-        connect(plugin, SIGNAL(changed()), this, SLOT(changed()));
-
-    }
-
-}
 
 #endif
 

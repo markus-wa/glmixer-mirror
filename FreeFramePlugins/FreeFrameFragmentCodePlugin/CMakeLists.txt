@@ -17,14 +17,16 @@ set(LIBFFGLGLSL_SRCS
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGL.cpp
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginManager.cpp
     ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginSDK.cpp
-    FreeFrameFragmentCodePlugin.cpp
 )
 
 if(WIN32)
-  add_library(Shadertoy SHARED ${LIBFFGLGLSL_SRCS})
+  add_library(ShadertoyEffect SHARED ${LIBFFGLGLSL_SRCS} FreeFrameShadertoyEffect.cpp )
+  add_library(ShadertoySource SHARED ${LIBFFGLGLSL_SRCS} FreeFrameShadertoySource.cpp )
 else(WIN32)
-  add_library(Shadertoy MODULE ${LIBFFGLGLSL_SRCS})
+  add_library(ShadertoyEffect MODULE ${LIBFFGLGLSL_SRCS} FreeFrameShadertoyEffect.cpp )
+  add_library(ShadertoySource MODULE ${LIBFFGLGLSL_SRCS} FreeFrameShadertoySource.cpp )
 endif(WIN32)
 
-target_link_libraries(Shadertoy ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(ShadertoyEffect ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(ShadertoySource ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 

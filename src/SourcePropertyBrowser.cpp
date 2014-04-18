@@ -60,6 +60,7 @@
 #include "CloneSource.h"
 #include "VideoSource.h"
 #include "SvgSource.h"
+#include "glmixer.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
@@ -1082,6 +1083,8 @@ PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent)
         FFGLSource *cs = dynamic_cast<FFGLSource *>(s);
         if (cs != 0) {
             FFGLPluginBrowser *ffglpb = new FFGLPluginBrowser( parent, false);
+
+            QObject::connect(ffglpb, SIGNAL(edit(FFGLPluginSource *)), GLMixer::getInstance(), SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
 
             if (pluginBrowserStack)
                 delete pluginBrowserStack;

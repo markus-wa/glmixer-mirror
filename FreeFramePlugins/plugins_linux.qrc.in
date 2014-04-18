@@ -1,7 +1,8 @@
 <RCC>
     <qresource prefix="/ffgl">
-        <file alias="Shadertoy">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameFragmentCodePlugin/libShadertoy.so</file>
-        <file alias="Delay">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameQtScreenCapture/libffglQtScreenCapture.so</file>
-        <file alias="Camera">${CMAKE_CURRENT_BINARY_DIR}/video4LinuxFFGLPlugin/ffglVideo4Linux.so</file>
+        <file alias="ShadertoyEffect">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameFragmentCodePlugin/libShadertoyEffect.so</file>
+        <file alias="ShadertoySource">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameFragmentCodePlugin/libShadertoySource.so</file>
+        <file alias="ScreenCapture">${CMAKE_CURRENT_BINARY_DIR}/FreeFrameQtScreenCapturePlugin/libffglQtScreenCapture.so</file>
+        <file alias="Camera">${CMAKE_CURRENT_BINARY_DIR}/video4LinuxFFGLPlugin/libffglVideo4Linux.so</file>
     </qresource>
 </RCC>

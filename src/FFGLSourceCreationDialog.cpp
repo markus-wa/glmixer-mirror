@@ -27,46 +27,53 @@
 
 #include "SourceDisplayWidget.h"
 #include "FFGLPluginSource.h"
+#include "FFGLPluginSourceShadertoy.h"
 #include "FFGLPluginBrowser.h"
 #include "FFGLSource.h"
 #include "glmixer.h"
 
 
 FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *settings) :
-    QDialog(parent), ui(new Ui::FFGLSourceCreationDialog), pluginBrowserStack(NULL), s(NULL), appSettings(settings)
+    QDialog(parent), ui(new Ui::FFGLSourceCreationDialog), s(NULL), pluginConfiguration(QDomElement()), appSettings(settings)
 {
     // setup the user interface
     ui->setupUi(this);
-    ui->freeframeLabelWarning->setVisible(false);
-    ui->shadertoyLabelWarning->setVisible(false);
     ui->sizeGrid->setVisible(false);
 
-    // Setup the FFGL plugin property browser
-//    pluginBrowser = new FFGLPluginBrowser(this, false);
-//    ui->PropertiesLayout->insertWidget( ui->PropertiesLayout->count(),  pluginBrowser);
-//    pluginBrowser->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-//    pluginBrowser->switchToGroupView();
+    // setup filenames for embeded plugins
+    ui->freeframeEmbededList->setItemData(0, QVariant::fromValue(QString("")));
+    ui->freeframeEmbededList->setItemData(1, QVariant::fromValue(FFGLPluginSource::libraryFileName("ScreenCapture")));
+    ui->freeframeEmbededList->setItemData(2, QVariant::fromValue(FFGLPluginSource::libraryFileName("Camera")));
 
     // restore settings
     ui->freeframeFileList->addItem("");
+    ui->shadertoyFileList->addItem("");
     if (appSettings) {
         if (appSettings->contains("recentFFGLPluginsList")) {
             QStringListIterator it(appSettings->value("recentFFGLPluginsList").toStringList());
             while (it.hasNext()){
                 QFileInfo pluginfile(it.next());
-                ui->freeframeFileList->addItem(pluginfile.baseName(), pluginfile.absoluteFilePath());
+                ui->freeframeFileList->addItem(pluginfile.fileName(), pluginfile.absoluteFilePath());
             }
         }
-//        if (appSettings->contains("FFGLDialogLayout"))
-//            ui->splitter->restoreState(appSettings->value("FFGLDialogLayout").toByteArray());
+        if (appSettings->contains("recentShadertoyCodeList")) {
+            QStringListIterator it(appSettings->value("recentShadertoyCodeList").toStringList());
+            while (it.hasNext()){
+                QFileInfo codefile(it.next());
+                ui->shadertoyFileList->addItem(codefile.fileName(), codefile.absoluteFilePath());
+            }
+        }
     }
+
+
+    // show !
+    updateSourcePreview();
 }
 
 
 FFGLSourceCreationDialog::~FFGLSourceCreationDialog()
 {
-//    delete preview;
-//    delete pluginBrowser;
+    if (s) delete s;
     delete ui;
 
 }
@@ -74,7 +81,7 @@ FFGLSourceCreationDialog::~FFGLSourceCreationDialog()
 
 void FFGLSourceCreationDialog::showEvent(QShowEvent *e){
 
-    ui->freeframeFileList->setCurrentIndex(0);
+//    ui->freeframeFileList->setCurrentIndex(0);
     updateSourcePreview();
 
     QWidget::showEvent(e);
@@ -84,24 +91,22 @@ void FFGLSourceCreationDialog::done(int r){
 
     ui->preview->setSource(0);
 
+    // delete source
     if (s) {
-        // remember plugin config before deleting the source
-        pluginConfiguration = s->freeframeGLPlugin()->getConfiguration();
-
-        // delete source
         delete s;
         s = NULL;
     }
-    else
-        pluginConfiguration = QDomElement();
 
+    // save settings
     if (appSettings) {
         QStringList l;
         for ( int i = 1; i < ui->freeframeFileList->count(); ++i )
             l.append(ui->freeframeFileList->itemData(i).toString());
         appSettings->setValue("recentFFGLPluginsList", l);
-
-//        appSettings->setValue("FFGLDialogLayout", ui->splitter->saveState());
+        l.clear();
+        for ( int i = 1; i < ui->shadertoyFileList->count(); ++i )
+            l.append(ui->shadertoyFileList->itemData(i).toString());
+        appSettings->setValue("recentShadertoyCodeList", l);
     }
 
     QDialog::done(r);
@@ -109,45 +114,52 @@ void FFGLSourceCreationDialog::done(int r){
 
 
 
-void FFGLSourceCreationDialog::updateSourcePreview(QDomElement config){
+void FFGLSourceCreationDialog::updateSourcePreview(){
 
+    // delete previous
     if(s) {
-        ui->freeframeLabelWarning->setVisible(false);
         // remove source from preview: this deletes the texture in the preview
         ui->preview->setSource(0);
         // delete the source:
         delete s;
+        s = NULL;
     }
 
-    if (pluginBrowserStack) {
-        // clear plugin browser
-//        pluginBrowser->clear();
-        delete pluginBrowserStack;
+    // hide warning by default
+    ui->freeframeLabelWarning->setVisible(false);
+    ui->shadertoyLabelWarning->setVisible(false);
+
+    // reset
+    QString filename = QString::null;
+    QString code = QString::null;
+    GLuint tex = ui->preview->getNewTextureIndex();
+
+    // fill in variables depending on selection
+    if (ui->freeframeEmbededPlugin->isChecked()) {
+        filename = ui->freeframeEmbededList->itemData(ui->freeframeEmbededList->currentIndex()).toString();
+    }
+    else if (ui->freeframeFilePlugin->isChecked()) {
+        filename = ui->freeframeFileList->itemData(ui->freeframeFileList->currentIndex()).toString();
+    }
+    else if (ui->shadertoyGeneric->isChecked()) {
+        code = "";
+    }
+    else if (ui->shadertoyClipboard->isChecked()) {
+        code = QApplication::clipboard()->text();
+    }
+    else if (ui->shadertoyFile->isChecked()) {
+        QFile fileContent( ui->shadertoyFileList->itemData(ui->shadertoyFileList->currentIndex()).toString() );
+        if (fileContent.open(QIODevice::ReadOnly | QIODevice::Text))
+            code =  QTextStream(&fileContent).readAll() ;
     }
 
-    s = NULL;
-    pluginBrowserStack = NULL;
-
-    if (QFileInfo(_filename).isFile()) {
-
-        GLuint tex = ui->preview->getNewTextureIndex();
-        try {
+    // create the source
+    try {
+        // provided with a filename : open the freeframe plugin
+        if ( !filename.isNull() && QFileInfo(filename).isFile()) {
             try {
                 // create a new source with a new texture index and the new parameters
-                s = new FFGLSource(_filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
-
-                if (!config.isNull())
-                    s->freeframeGLPlugin()->setConfiguration(config);
-
-                // create a plugin stack
-                pluginBrowserStack = new FFGLPluginSourceStack;
-                pluginBrowserStack->push(s->freeframeGLPlugin());
-
-                // show the plugin stack
-//                pluginBrowser->showProperties( pluginBrowserStack );
-
-                // show warning if selected plugin is not of type 'Source'
-                ui->freeframeLabelWarning->setVisible( !s->freeframeGLPlugin()->isSourceType() );
+                s = new FFGLSource(filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
 
             }
             catch (FFGLPluginException &e)  {
@@ -155,46 +167,47 @@ void FFGLSourceCreationDialog::updateSourcePreview(QDomElement config){
                 throw;
             }
         }
-        catch (...)  {
-            // free the OpenGL texture
-            glDeleteTextures(1, &tex);
-            // return an invalid pointer
-            s = NULL;
+        // no filename, then use code on shadertoy if exists
+        else if ( !code.isNull() ){
+            try {
+                // create a new source with a new texture index and the new parameters
+                s = new FFGLSource(tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
 
-            qCritical() << _filename << QChar(124).toLatin1() << tr("Could no create plugin source.");
+                // if code provided, then set code to the plugin
+                if ( !code.isEmpty() ) {
+                    FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(s->freeframeGLPlugin());
+                    stp->setCode(code);
+                }
+
+            }
+            catch (FFGLPluginException &e)  {
+                qCritical() << tr("Shadertoy error; ") << e.message();
+                throw;
+            }
         }
-
     }
+    // catch all possible exception to make sure we cleanup
+    catch (...)  {
+        // free the OpenGL texture
+        glDeleteTextures(1, &tex);
+        // return an invalid pointer
+        s = NULL;
+    }
+
+    // remember plugin config
+    if (s) {
+        pluginConfiguration = s->freeframeGLPlugin()->getConfiguration();
+        connect(s->freeframeGLPlugin(), SIGNAL(updated()), this, SLOT(showErrorMessage()));
+    }
+    else
+        pluginConfiguration = QDomElement();
+
 
     // apply the source to the preview (null pointer is ok to reset preview)
     ui->preview->setSource(s);
     ui->preview->playSource(true);
 }
 
-
-void FFGLSourceCreationDialog::pluginTypeChanged(int tab)
-{
-    qDebug() << "pluginTypeChanged(int tab)" << tab;
-
-    if ( tab == 0 ) {
-
-        setFreeframePlugin( ui->freeframeFileList->currentIndex() );
-
-    } else {
-
-        setShadertoyPlugin(0);
-    }
-
-}
-
-void FFGLSourceCreationDialog::setFreeframePlugin(int index) {
-
-    _filename = ui->freeframeFileList->itemData(index).toString();
-
-    updateSourcePreview();
-
-//    pluginBrowser->expandAll();
-}
 
 void FFGLSourceCreationDialog::browseFreeframePlugin() {
 
@@ -221,27 +234,35 @@ void FFGLSourceCreationDialog::browseFreeframePlugin() {
         ui->freeframeFileList->removeItem( ui->freeframeFileList->findData(pluginfile.absoluteFilePath()) );
 
         // add the filename to the pluginFileList
-        ui->freeframeFileList->insertItem(1, pluginfile.baseName(), pluginfile.absoluteFilePath());
+        ui->freeframeFileList->insertItem(1, pluginfile.fileName(), pluginfile.absoluteFilePath());
         ui->freeframeFileList->setCurrentIndex(1);
     }
 
 }
 
 
-void FFGLSourceCreationDialog::setShadertoyPlugin(int index) {
-
-
-    updateSourcePreview();
-
-}
-
 void FFGLSourceCreationDialog::browseShadertoyPlugin() {
+
+    // browse for a GLSL file
+    QString fileName = GLMixer::getInstance()->getFileName(tr("Open ShaderToy GLSL fragment shader code"), tr("GLSL code (*.glsl);;Text file (*.txt);;Any file (*.*)"));
+
+    // check validity of file
+    QFileInfo codefile(fileName);
+    if (codefile.isFile() && codefile.isReadable()) {
+
+        // try to find & remove the file in the recent plugins list
+        ui->shadertoyFileList->removeItem( ui->shadertoyFileList->findData(codefile.absoluteFilePath()) );
+
+        // add the filename to the pluginFileList
+        ui->shadertoyFileList->insertItem(1, codefile.fileName(), codefile.absoluteFilePath());
+        ui->shadertoyFileList->setCurrentIndex(1);
+    }
 
 }
 
 QString  FFGLSourceCreationDialog::getPluginInfo(){
 
-    return _filename;
+    return pluginConfiguration.tagName();
 }
 
 QDomElement FFGLSourceCreationDialog::getFreeframePluginConfiguration(){
@@ -346,10 +367,24 @@ void  FFGLSourceCreationDialog::selectSizePreset(int preset)
             break;
         }
 
-        if (s)
-            updateSourcePreview(s->freeframeGLPlugin()->getConfiguration());
-        else
-            updateSourcePreview();
+        updateSourcePreview();
     }
 
+}
+
+
+void FFGLSourceCreationDialog::showErrorMessage() {
+
+    if (s) {
+
+        disconnect(s->freeframeGLPlugin(), SIGNAL(updated()), this, SLOT(showErrorMessage()));
+
+        if ( s->freeframeGLPlugin()->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN ) {
+            FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(s->freeframeGLPlugin());
+            ui->shadertoyLabelWarning->setVisible( !stp->getLogs().isEmpty() );
+        }
+        else
+            // show warning if selected plugin is not of type 'Source'
+            ui->freeframeLabelWarning->setVisible( !s->freeframeGLPlugin()->isSourceType() );
+    }
 }

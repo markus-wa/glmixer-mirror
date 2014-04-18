@@ -98,7 +98,7 @@ FFGLPluginSource *FFGLPluginSourceStack::pushNewPlugin(int width, int height, un
     try {
 
         // create new plugin with this file
-        ffgl_plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(width, height, it);
+        ffgl_plugin = (FFGLPluginSource *) new FFGLPluginSourceShadertoy(FF_EFFECT, width, height, it);
 
         // in case of success, add it to the stack
         this->push(ffgl_plugin);

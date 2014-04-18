@@ -26,6 +26,7 @@
 
 #include <QDebug>
 #include <QGLFramebufferObject>
+#include <QDesktopServices>
 
 
 FFGLPluginSource::RTTI FFGLPluginSource::type = FFGLPluginSource::FREEFRAME_PLUGIN;
@@ -397,6 +398,31 @@ void FFGLPluginSource::setConfiguration(QDomElement xml)
         // loop
         p = p.nextSiblingElement("Parameter");
     }
+}
+
+// Static function to extract the DLL
+// for the plugin Freeframe embeded in ffgl ressource
+QString FFGLPluginSource::libraryFileName(QString embeddedName)
+{
+
+#ifdef Q_OS_WIN
+    QFileInfo plugindll( QString(QDesktopServices::storageLocation(QDesktopServices::TempLocation)).append(QString("/%1.dll").arg(embeddedName)) );
+#else
+    QFileInfo plugindll( QString(QDesktopServices::storageLocation(QDesktopServices::TempLocation)).append(QString("/%1.so").arg(embeddedName)) );
+#endif
+
+    // replace the plugin file in temporary location
+    // (make sure we do it each new run of GLMixer (might have been updated)
+    // and in case the file does not exist (might have been deleted by sytem) )
+    if (!plugindll.exists()) {
+        QFile::remove(plugindll.absoluteFilePath());
+        if ( QFile::copy(QString(":/ffgl/%1").arg(embeddedName), plugindll.absoluteFilePath()) ) {
+            QFile::setPermissions(plugindll.absoluteFilePath(), QFile::ReadOwner | QFile::WriteOwner);
+        } else
+            qCritical() << QObject::tr("Error creating temporary file plugin (%1).").arg(plugindll.absoluteFilePath());
+    }
+
+    return plugindll.absoluteFilePath();
 }
 
 

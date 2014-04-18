@@ -33,7 +33,7 @@ class FFGLSourceCreationDialog;
 class FFGLSourceCreationDialog : public QDialog
 {
     Q_OBJECT
-    
+
 public:
     explicit FFGLSourceCreationDialog(QWidget *parent = 0, QSettings *settings = 0);
     ~FFGLSourceCreationDialog();
@@ -47,13 +47,13 @@ public Q_SLOTS:
 
     void done(int r);
 
-    void browseFreeframePlugin();
-    void setFreeframePlugin(int);
-    void browseShadertoyPlugin();
-    void setShadertoyPlugin(int);
-    void updateSourcePreview(QDomElement config = QDomElement());
+    void updateSourcePreview();
     void selectSizePreset(int preset);
-    void pluginTypeChanged(int);
+
+    void browseFreeframePlugin();
+    void browseShadertoyPlugin();
+
+    void showErrorMessage();
 
 protected:
     void showEvent(QShowEvent *);
@@ -61,12 +61,10 @@ protected:
 private:
 
     Ui::FFGLSourceCreationDialog *ui;
-    class FFGLPluginBrowser *pluginBrowser;
-    class FFGLPluginSourceStack *pluginBrowserStack;
+
     class FFGLSource *s;
     class SourceDisplayWidget *preview;
 
-    QString _filename;
     QDomElement pluginConfiguration;
     QSettings *appSettings;
 };

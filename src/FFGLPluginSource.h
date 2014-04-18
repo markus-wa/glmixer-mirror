@@ -90,6 +90,9 @@ public:
     virtual QDomElement getConfiguration(QDir current = QDir());
     virtual void setConfiguration(QDomElement xml);
 
+    static QString libraryFileName(QString embeddedName);
+
+
 public Q_SLOTS:
     // enable updates
     void play(bool on);
@@ -113,6 +116,7 @@ protected:
     QVariantHash _info;
     QString _filename;
     bool _initialized, _isFreeframeTypeSource;
+
 
 private:
     //this represents the texture (on the GPU) that we feed to the plugins

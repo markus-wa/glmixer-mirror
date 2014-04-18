@@ -45,6 +45,7 @@
 #include <QtDebug>
 #include <QValidator>
 #include <QDir>
+
 class folderValidator : public QValidator
 {
   public:
@@ -57,6 +58,20 @@ class folderValidator : public QValidator
       if( d.isAbsolute() )
           return QValidator::Intermediate;
       return QValidator::Invalid;
+    }
+};
+
+class nameValidator : public QValidator
+{
+  public:
+    nameValidator(QObject *parent) : QValidator(parent) { }
+
+    QValidator::State validate ( QString & input, int & pos ) const {
+      if( input.isEmpty() )
+          return QValidator::Invalid;
+      if( input.length() < 2 )
+          return QValidator::Intermediate;
+      return QValidator::Acceptable;
     }
 };
 

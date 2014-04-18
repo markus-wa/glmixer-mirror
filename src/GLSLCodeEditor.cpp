@@ -69,8 +69,12 @@ void CodeEditor::highlightCurrentLine()
 
     // Ensure non-proportionnal font, large enough
     QFont f = font();
-    f.setFamily("Monospace, Consolas, Courier");
+#ifdef Q_OS_WIN
+    f.setFamily("Consolas, Courier");
     f.setPointSize( f.pointSize() < 10 ? 10 : f.pointSize() );
+#else
+    f.setFamily("Monospace");
+#endif
     setFont( f );
 
     // make sure line number area is of same font

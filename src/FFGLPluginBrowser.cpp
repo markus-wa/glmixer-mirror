@@ -70,6 +70,10 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
     }
     else
         removeAction = NULL;
+
+    setStyleSheet(QString::fromUtf8("QToolTip {\n"
+        "	font: 8pt \"Monospace,Courier\";\n"
+        "}"));
 }
 
 

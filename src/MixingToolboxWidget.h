@@ -78,8 +78,6 @@ public Q_SLOTS:
     // Plugin page
     void on_addPlugin_pressed();
     void on_addShadertoyPlugin_pressed();
-    void editShaderToyPlugin(FFGLPluginSource *);
-
 #endif
 
     // state restoration
@@ -107,7 +105,6 @@ private:
 
 #ifdef FFGL
     class FFGLPluginBrowser *pluginBrowser;
-    class GLSLCodeEditorWidget *pluginGLSLCodeEditor;
 #endif
 };
 

@@ -30,7 +30,7 @@ class FFGLPluginSourceShadertoy : public FFGLPluginSource
     Q_OBJECT
 
 public:
-    FFGLPluginSourceShadertoy(int w, int h, FFGLTextureStruct inputTexture);
+    FFGLPluginSourceShadertoy(bool plugintype, int w, int h, FFGLTextureStruct inputTexture);
     ~FFGLPluginSourceShadertoy();
 
     // Run-Time Type Information
@@ -62,7 +62,6 @@ Q_SIGNALS:
 
 private:
 
-    static QString libraryFileName();
     static RTTI type;
 };
 

@@ -19,6 +19,7 @@
  *   Copyright 2009, 2012 Bruno Herbelin
  *
  */
+#include "defines.h"
 #include "GLSLCodeEditorWidget.moc"
 #include "ui_GLSLCodeEditorWidget.h"
 #include "FFGLPluginSourceShadertoy.h"
@@ -30,6 +31,9 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
     QWidget(parent), ui(new Ui::GLSLCodeEditorWidget), _currentplugin(NULL)
 {
     ui->setupUi(this);
+
+
+    ui->nameEdit->setValidator(new nameValidator(this));
 
     // connect buttons
     connect(ui->helpButton, SIGNAL(clicked()), this, SLOT(showHelp()));
@@ -72,6 +76,8 @@ void GLSLCodeEditorWidget::linkPlugin(FFGLPluginSourceShadertoy *plugin)
     connect(ui->nameEdit, SIGNAL(textChanged(QString)), _currentplugin, SLOT(setName(QString)));
     connect(ui->aboutEdit, SIGNAL(textChanged(QString)), _currentplugin, SLOT(setAbout(QString)));
     connect(ui->descriptionEdit, SIGNAL(textChanged(QString)), _currentplugin, SLOT(setDescription(QString)));
+    // update list in case the plugin changed (e.g. name)
+    connect(plugin, SIGNAL(changed()), this, SLOT(changed()));
 
 }
 
@@ -230,7 +236,6 @@ void GLSLCodeEditorWidget::loadCode()
         QFile fileContent( fileInfo.absoluteFilePath());
         if (!fileContent.open(QIODevice::ReadOnly | QIODevice::Text))
             return;
-        QTextStream tx(&fileContent);
         ui->codeTextEdit->setCode( QTextStream(&fileContent).readAll() );
     }
 
