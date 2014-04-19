@@ -54,6 +54,7 @@ public Q_SLOTS:
     void showHelp();
     void pasteCode();
     void loadCode();
+    void saveCode();
     void restoreCode();
 
     // reset signaling of errors
@@ -61,6 +62,7 @@ public Q_SLOTS:
 
 private:
     Ui::GLSLCodeEditorWidget *ui;
+    QDir _currentDirectory;
     FFGLPluginSourceShadertoy *_currentplugin;
 };
 

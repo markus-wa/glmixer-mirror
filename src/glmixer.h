@@ -87,8 +87,9 @@ public Q_SLOTS:
     void on_controlOptionsButton_clicked();
     void on_actionSave_snapshot_triggered();
     void on_actionCopy_snapshot_triggered();
-	void on_output_alpha_valueChanged(int);
+    void on_output_alpha_valueChanged(int);
     void on_copyLogsToClipboard_clicked();
+    void on_saveLogsToFile_clicked();
     void on_copyNotes_clicked();
     void on_addDateToNotes_clicked();
     void on_addListToNotes_clicked();
@@ -162,7 +163,7 @@ private:
 	QString currentSessionFileName;
 	VideoFile *selectedSourceVideoFile;
 	bool usesystemdialogs, maybeSave;
-        class QFileDialog *sfd;
+    class QFileDialog *sfd;
 	class VideoFileDialog *mfd;
 	class OutputRenderWidget *outputpreview;
     class UserPreferencesDialog *upd;

@@ -28,18 +28,12 @@
 
 
 GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
-    QWidget(parent), ui(new Ui::GLSLCodeEditorWidget), _currentplugin(NULL)
+    QWidget(parent), ui(new Ui::GLSLCodeEditorWidget), _currentDirectory(QDir::home()), _currentplugin(NULL)
 {
     ui->setupUi(this);
 
-
+    // name entry should be validated
     ui->nameEdit->setValidator(new nameValidator(this));
-
-    // connect buttons
-    connect(ui->helpButton, SIGNAL(clicked()), this, SLOT(showHelp()));
-    connect(ui->pasteButton, SIGNAL(clicked()), this, SLOT(pasteCode()));
-    connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(loadCode()));
-    connect(ui->restoreButton, SIGNAL(clicked()), this, SLOT(restoreCode()));
 
     // header area is read only
     ui->headerText->setReadOnly(true);
@@ -76,8 +70,6 @@ void GLSLCodeEditorWidget::linkPlugin(FFGLPluginSourceShadertoy *plugin)
     connect(ui->nameEdit, SIGNAL(textChanged(QString)), _currentplugin, SLOT(setName(QString)));
     connect(ui->aboutEdit, SIGNAL(textChanged(QString)), _currentplugin, SLOT(setAbout(QString)));
     connect(ui->descriptionEdit, SIGNAL(textChanged(QString)), _currentplugin, SLOT(setDescription(QString)));
-    // update list in case the plugin changed (e.g. name)
-    connect(plugin, SIGNAL(changed()), this, SLOT(changed()));
 
 }
 
@@ -226,8 +218,7 @@ void GLSLCodeEditorWidget::restoreCode()
 
 void GLSLCodeEditorWidget::loadCode()
 {
-    static QDir dir(QDir::home());
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open ShaderToy GLSL fragment shader code"), dir.absolutePath(), tr("GLSL code (*.glsl);;Text file (*.txt);;Any file (*.*)") );
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open ShaderToy GLSL fragment shader code"), _currentDirectory.absolutePath(), tr("GLSL code (*.glsl);;Text file (*.txt);;Any file (*.*)") );
 
     // check validity of file
     QFileInfo fileInfo(fileName);
@@ -237,6 +228,20 @@ void GLSLCodeEditorWidget::loadCode()
         if (!fileContent.open(QIODevice::ReadOnly | QIODevice::Text))
             return;
         ui->codeTextEdit->setCode( QTextStream(&fileContent).readAll() );
+    }
+
+}
+
+void GLSLCodeEditorWidget::saveCode()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save ShaderToy GLSL fragment shader code"), _currentDirectory.absolutePath(), tr("GLSL code (*.glsl);;Text file (*.txt);;Any file (*.*)") );
+
+    if ( !fileName.isEmpty() ) {
+        // open file and put text into it
+        QFile fileContent(fileName);
+        fileContent.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream out(&fileContent);
+        out << ui->codeTextEdit->code();
     }
 
 }

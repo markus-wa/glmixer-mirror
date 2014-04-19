@@ -450,6 +450,23 @@ p, li { white-space: pre-wrap; }
           </spacer>
          </item>
          <item>
+          <widget class="QToolButton" name="saveButton">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/textsave.png</normaloff>:/glmixer/icons/textsave.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="applyButton">
            <property name="toolTip">
             <string>Apply the current code 
@@ -578,8 +595,8 @@ p, li { white-space: pre-wrap; }
    <slot>apply()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>661</x>
-     <y>483</y>
+     <x>563</x>
+     <y>296</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>
@@ -594,8 +611,8 @@ p, li { white-space: pre-wrap; }
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>603</x>
-     <y>403</y>
+     <x>703</x>
+     <y>296</y>
     </hint>
     <hint type="destinationlabel">
      <x>340</x>
@@ -610,8 +627,8 @@ p, li { white-space: pre-wrap; }
    <slot>apply()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>603</x>
-     <y>403</y>
+     <x>703</x>
+     <y>296</y>
     </hint>
     <hint type="destinationlabel">
      <x>340</x>
@@ -619,8 +636,93 @@ p, li { white-space: pre-wrap; }
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>saveButton</sender>
+   <signal>clicked()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>saveCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>463</x>
+     <y>281</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>778</x>
+     <y>186</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pasteButton</sender>
+   <signal>clicked()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>pasteCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>71</x>
+     <y>283</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-23</x>
+     <y>200</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>restoreButton</sender>
+   <signal>clicked()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>restoreCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>115</x>
+     <y>280</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-10</x>
+     <y>168</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>loadButton</sender>
+   <signal>clicked()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>loadCode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>29</x>
+     <y>282</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-2</x>
+     <y>238</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>helpButton</sender>
+   <signal>clicked()</signal>
+   <receiver>GLSLCodeEditorWidget</receiver>
+   <slot>showHelp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>686</x>
+     <y>320</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>740</x>
+     <y>396</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>apply()</slot>
+  <slot>saveCode()</slot>
+  <slot>loadCode()</slot>
+  <slot>pasteCode()</slot>
+  <slot>restoreCode()</slot>
+  <slot>showHelp()</slot>
  </slots>
 </ui>

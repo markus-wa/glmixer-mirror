@@ -156,5 +156,6 @@
         <file>icons/webcam.png</file>
         <file>icons/display-capture.png</file>
         <file>icons/folderadd.png</file>
+        <file>icons/textsave.png</file>
     </qresource>
 </RCC>

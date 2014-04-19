@@ -529,6 +529,33 @@ void GLMixer::on_copyLogsToClipboard_clicked() {
     }
 }
 
+void GLMixer::on_saveLogsToFile_clicked() {
+
+    if (logTexts->topLevelItemCount() > 0) {
+
+        QString suggestion = QString("glmixerlogs %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
+        QString fileName = getFileName(tr("Save Logs to file"),
+                                       tr("GLMixer logs") + " (*.txt)",
+                                       QString("txt"),
+                                       suggestion);
+
+        if ( !fileName.isEmpty() ) {
+            // open file and put text into it
+            QFile fileContent(fileName);
+            fileContent.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream out(&fileContent);
+
+            QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
+            while (*it) {
+                out << (*it)->text(0) << " : " << (*it)->text(1) << "\n";
+                ++it;
+            }
+
+        }
+    }
+}
+
+
 void GLMixer::on_copyNotes_clicked() {
 
     QApplication::clipboard()->setText( blocNoteEdit->toPlainText() );
