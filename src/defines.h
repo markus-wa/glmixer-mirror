@@ -25,6 +25,7 @@
 #define DEPTH_EPSILON 0.01
 #define BORDER_SIZE 0.4
 #define CENTER_SIZE 1.2
+#define PROPERTY_DECIMALS 4
 
 #define COLOR_SOURCE 230, 230, 0
 #define COLOR_SOURCE_STATIC 230, 40, 40
@@ -77,7 +78,7 @@ class nameValidator : public QValidator
 
 class AllocationException : public QtConcurrent::Exception {
 public:
-    virtual QString message() { return "No memory"; }
+    virtual QString message() { return "Out of memory"; }
     void raise() const { throw *this; }
     Exception *clone() const { return new AllocationException(*this); }
 };

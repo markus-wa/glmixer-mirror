@@ -28,11 +28,11 @@ double View::zoomspeed = 120.0;
 QDomElement View::getConfiguration(QDomDocument &doc) {
 	QDomElement viewelem = doc.createElement("View");
 	QDomElement z = doc.createElement("Zoom");
-	z.setAttribute("value", getZoom());
+    z.setAttribute("value", QString::number(getZoom(),'f',4) );
 	viewelem.appendChild(z);
 	QDomElement pos = doc.createElement("Panning");
-	pos.setAttribute("X", getPanningX());
-	pos.setAttribute("Y", getPanningY());
+    pos.setAttribute("X", QString::number(getPanningX(),'f',4));
+    pos.setAttribute("Y", QString::number(getPanningY(),'f',4));
 	viewelem.appendChild(pos);
 
 	return viewelem;

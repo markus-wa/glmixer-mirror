@@ -1260,29 +1260,29 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
         sourceElem.setAttribute("fixedAR", (*its)->isFixedAspectRatio());
 
         QDomElement pos = doc.createElement("Position");
-        pos.setAttribute("X", (*its)->getX());
-        pos.setAttribute("Y", (*its)->getY());
+        pos.setAttribute("X", QString::number((*its)->getX(),'f',PROPERTY_DECIMALS)  );
+        pos.setAttribute("Y", QString::number((*its)->getY(),'f',PROPERTY_DECIMALS) );
         sourceElem.appendChild(pos);
 
         QDomElement rot = doc.createElement("Center");
-        rot.setAttribute("X", (*its)->getCenterX());
-        rot.setAttribute("Y", (*its)->getCenterY());
+        rot.setAttribute("X", QString::number((*its)->getCenterX(),'f',PROPERTY_DECIMALS) );
+        rot.setAttribute("Y", QString::number((*its)->getCenterY(),'f',PROPERTY_DECIMALS) );
         sourceElem.appendChild(rot);
 
         QDomElement a = doc.createElement("Angle");
-        a.setAttribute("A", (*its)->getRotationAngle());
+        a.setAttribute("A", QString::number((*its)->getRotationAngle(),'f',PROPERTY_DECIMALS) );
         sourceElem.appendChild(a);
 
         QDomElement scale = doc.createElement("Scale");
-        scale.setAttribute("X", (*its)->getScaleX());
-        scale.setAttribute("Y", (*its)->getScaleY());
+        scale.setAttribute("X", QString::number((*its)->getScaleX(),'f',PROPERTY_DECIMALS) );
+        scale.setAttribute("Y", QString::number((*its)->getScaleY(),'f',PROPERTY_DECIMALS) );
         sourceElem.appendChild(scale);
 
         QDomElement crop = doc.createElement("Crop");
-        crop.setAttribute("X", (*its)->getTextureCoordinates().x());
-        crop.setAttribute("Y", (*its)->getTextureCoordinates().y());
-        crop.setAttribute("W", (*its)->getTextureCoordinates().width());
-        crop.setAttribute("H", (*its)->getTextureCoordinates().height());
+        crop.setAttribute("X", QString::number((*its)->getTextureCoordinates().x(),'f',PROPERTY_DECIMALS) );
+        crop.setAttribute("Y", QString::number((*its)->getTextureCoordinates().y(),'f',PROPERTY_DECIMALS) );
+        crop.setAttribute("W", QString::number((*its)->getTextureCoordinates().width(),'f',PROPERTY_DECIMALS) );
+        crop.setAttribute("H", QString::number((*its)->getTextureCoordinates().height(),'f',PROPERTY_DECIMALS) );
         sourceElem.appendChild(crop);
 
         QDomElement d = doc.createElement("Depth");
@@ -1290,8 +1290,8 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
         sourceElem.appendChild(d);
 
         QDomElement alpha = doc.createElement("Alpha");
-        alpha.setAttribute("X", (*its)->getAlphaX());
-        alpha.setAttribute("Y", (*its)->getAlphaY());
+        alpha.setAttribute("X", QString::number((*its)->getAlphaX(),'f',PROPERTY_DECIMALS) );
+        alpha.setAttribute("Y", QString::number((*its)->getAlphaY(),'f',PROPERTY_DECIMALS) );
         sourceElem.appendChild(alpha);
 
         QDomElement color = doc.createElement("Color");

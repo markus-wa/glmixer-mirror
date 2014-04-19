@@ -977,7 +977,7 @@ QDomElement MixerView::getConfiguration(QDomDocument &doc){
 
     // Mixer View limbo size parameter
     QDomElement l = doc.createElement("Limbo");
-    l.setAttribute("value", getLimboSize());
+    l.setAttribute("value", QString::number(getLimboSize(),'f',4) );
     mixviewelem.appendChild(l);
 
     // Mixer View groups
