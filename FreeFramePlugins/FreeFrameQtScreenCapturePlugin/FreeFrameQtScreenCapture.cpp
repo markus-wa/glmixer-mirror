@@ -16,17 +16,17 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static CFFGLPluginInfo PluginInfo ( 
-    FreeFrameQtScreenCapture::CreateInstance,	// Create method
-    "GLSC",								// Plugin unique ID
-    "FFGLQtScreenCapture",			// Plugin name
-	1,						   			// API major version number 													
-    500,								  // API minor version number
-	1,										// Plugin major version number
-	000,									// Plugin minor version number
-    FF_SOURCE,						// Plugin type
-    "Shows the content of the screen",	 // Plugin description
-    "by Bruno Herbelin"  // About
-);
+        FreeFrameQtScreenCapture::CreateInstance,	// Create method
+        "GLSC",								// Plugin unique ID
+        "FFGLQtScreenCapture",			// Plugin name
+        1,						   			// API major version number
+        500,								  // API minor version number
+        1,										// Plugin major version number
+        000,									// Plugin minor version number
+        FF_SOURCE,						// Plugin type
+        "Shows the content of the screen",	 // Plugin description
+        "by Bruno Herbelin"  // About
+        );
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,9 +34,9 @@ static CFFGLPluginInfo PluginInfo (
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FreeFrameQtScreenCapture::FreeFrameQtScreenCapture()
-: CFreeFrameGLPlugin()
+    : CFreeFrameGLPlugin()
 {
-	// Input properties
+    // Input properties
     SetMinInputs(0);
     SetMaxInputs(0);
 
@@ -64,7 +64,7 @@ FFResult FreeFrameQtScreenCapture::InitGL(const FFGLViewportStruct *vp)
 
     QImage image = QPixmap::grabWindow(qApp->desktop()->winId()).toImage();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width(), image.height(), 0,
-                                   GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
+                 GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
 
     return FF_SUCCESS;
 }
@@ -89,13 +89,16 @@ DWORD	FreeFrameQtScreenCapture::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 FFResult FreeFrameQtScreenCapture::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
+    if (!pGL)
+        return FF_FAIL;
+
     //enable texturemapping
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
 
     QImage image = QPixmap::grabWindow(qApp->desktop()->winId()).toImage();
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width(), image.height(),
-                                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
+                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
 
     //modulate texture colors with white
     glColor4f(1.f, 1.f, 1.f, 1.f);

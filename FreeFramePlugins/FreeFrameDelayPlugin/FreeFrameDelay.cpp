@@ -156,6 +156,9 @@ DWORD	FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 FFResult FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
+    if (!pGL)
+        return FF_FAIL;
+
     if (pGL->numInputTextures<1)
         return FF_FAIL;
 

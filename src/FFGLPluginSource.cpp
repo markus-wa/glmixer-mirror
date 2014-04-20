@@ -224,11 +224,13 @@ void FFGLPluginSource::update()
         //specify our FBO's handle in the processOpenGLStruct
         processStruct.HostFBO = _fbo->handle();
 
+        // create pointer to Texture struct to be used by Opengl Process
+        FFGLTextureStruct *inputTextures[1];
+
         // if a texture handle was provided
         if (_inputTexture.Handle > 0) {
             //create the array of OpenGLTextureStruct * to be passed
             //to the plugin
-            FFGLTextureStruct *inputTextures[1];
             inputTextures[0] = &_inputTexture;
             //provide the 1 input texture structure we allocated above
             processStruct.numInputTextures = 1;

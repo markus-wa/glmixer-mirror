@@ -149,6 +149,8 @@ DWORD	FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
+    if (!pGL)
+        return FF_FAIL;
 
     if (pGL->numInputTextures<1)
         return FF_FAIL;
@@ -243,11 +245,11 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
 #ifdef WIN32
 
-    __declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD instanceID)
+__declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD instanceID)
 
 #else
 
-    bool setString(unsigned int t, const char *string, FFInstanceID *instanceID)
+bool setString(unsigned int t, const char *string, FFInstanceID *instanceID)
 
 #endif
 {
@@ -259,8 +261,8 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         switch (t) {
         case 0:
             pPlugObj->setFragmentProgramCode(string);
-//        case 3:
-//            PluginInfo.GetPluginExtendedInfo()->About = strdup(string);
+            //        case 3:
+            //            PluginInfo.GetPluginExtendedInfo()->About = strdup(string);
         }
         return true;
     }
@@ -270,11 +272,11 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
 #ifdef WIN32
 
-    __declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD instanceID)
+__declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD instanceID)
 
 #else
 
-    char *getString(unsigned int t, FFInstanceID instanceID)
+char *getString(unsigned int t, FFInstanceID instanceID)
 
 #endif
 {

@@ -11,28 +11,28 @@
 
 // texture coords interpolation via varying texc
 const GLchar *vertexShaderCode =    "varying vec2 texc;"
-                            "attribute vec2 texcoord2d;"
-                            "void main(void)"
-                            "{"
-                            "gl_Position = ftransform();"
-                            "texc = gl_MultiTexCoord0.st;"
-                            "}";
+        "attribute vec2 texcoord2d;"
+        "void main(void)"
+        "{"
+        "gl_Position = ftransform();"
+        "texc = gl_MultiTexCoord0.st;"
+        "}";
 
 // gaussian linear sampling blur
 // inspired from http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
 const GLchar *fragmentShaderCode =  "varying vec2 texc;"
-                            "uniform vec2 textureoffset;"
-                            "uniform sampler2D texture;"
-                            "void main(void)"
-                            "{"
-                            "vec3 sum = vec3(0.0);"
-                            "sum += 0.2270270270  * texture2D(texture, texc ).rgb ;"
-                            "sum += 0.3162162162  * texture2D(texture, texc + 1.3846153846 * textureoffset ).rgb ;"
-                            "sum += 0.3162162162  * texture2D(texture, texc  -1.3846153846 * textureoffset ).rgb ;"
-                            "sum += 0.0702702703  * texture2D(texture, texc + 3.2307692308 * textureoffset ).rgb ;"
-                            "sum += 0.0702702703  * texture2D(texture, texc -3.2307692308 * textureoffset ).rgb ;"
-                            "gl_FragColor = vec4(sum, 1.0);"
-                            "}";
+        "uniform vec2 textureoffset;"
+        "uniform sampler2D texture;"
+        "void main(void)"
+        "{"
+        "vec3 sum = vec3(0.0);"
+        "sum += 0.2270270270  * texture2D(texture, texc ).rgb ;"
+        "sum += 0.3162162162  * texture2D(texture, texc + 1.3846153846 * textureoffset ).rgb ;"
+        "sum += 0.3162162162  * texture2D(texture, texc  -1.3846153846 * textureoffset ).rgb ;"
+        "sum += 0.0702702703  * texture2D(texture, texc + 3.2307692308 * textureoffset ).rgb ;"
+        "sum += 0.0702702703  * texture2D(texture, texc -3.2307692308 * textureoffset ).rgb ;"
+        "gl_FragColor = vec4(sum, 1.0);"
+        "}";
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,17 +40,17 @@ const GLchar *fragmentShaderCode =  "varying vec2 texc;"
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static CFFGLPluginInfo PluginInfo ( 
-    FreeFrameBlur::CreateInstance,	// Create method
-    "GLBLR",								// Plugin unique ID
-    "FFGLBlur",			// Plugin name
-	1,						   			// API major version number 													
-    500,								  // API minor version number
-	1,										// Plugin major version number
-	000,									// Plugin minor version number
-	FF_EFFECT,						// Plugin type
-    "Blurs the display of the provided input",	 // Plugin description
-    "by Bruno Herbelin"  // About
-);
+        FreeFrameBlur::CreateInstance,	// Create method
+        "GLBLR",								// Plugin unique ID
+        "FFGLBlur",			// Plugin name
+        1,						   			// API major version number
+        500,								  // API minor version number
+        1,										// Plugin major version number
+        000,									// Plugin minor version number
+        FF_EFFECT,						// Plugin type
+        "Blurs the display of the provided input",	 // Plugin description
+        "by Bruno Herbelin"  // About
+        );
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ static CFFGLPluginInfo PluginInfo (
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FreeFrameBlur::FreeFrameBlur()
-: CFreeFrameGLPlugin()
+    : CFreeFrameGLPlugin()
 {
     // Input properties
     SetMinInputs(1);
@@ -104,7 +104,7 @@ FFResult FreeFrameBlur::InitGL(const FFGLViewportStruct *vp)
     //init gl extensions
     glExtensions.Initialize();
     if (glExtensions.EXT_framebuffer_object==0)
-      return FF_FAIL;
+        return FF_FAIL;
 
     glewInit();
     if (GLEW_VERSION_2_0)
@@ -153,7 +153,7 @@ FFResult FreeFrameBlur::DeInitGL()
     glDeleteShader(fragmentShader);
     glDeleteProgram(shaderProgram);
 
-  return FF_SUCCESS;
+    return FF_SUCCESS;
 }
 
 
@@ -206,147 +206,150 @@ DWORD	FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
-  // get the input texture
-  if (pGL->numInputTextures<1)
-    return FF_FAIL;
-
-  if (pGL->inputTextures[0]==NULL)
-    return FF_FAIL;
-  
-  FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
-
-  //enable texturemapping
-  glEnable(GL_TEXTURE_2D);
-
-  // new value of the blur parameter
-  if(param_changed) {
-
-      glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-
-      fboViewport.x = 0;
-      fboViewport.y = 0;
-      fboViewport.width = (int)((double)viewport.width * (1.0 - blur) );
-      fboViewport.height = (int)((double)viewport.height * (1.0 - blur) );
-
-      // sanity check for size
-      fboViewport.width = fboViewport.width < 1 ? 1 : fboViewport.width;
-      fboViewport.height = fboViewport.height < 1 ? 1 : fboViewport.height;
-
-      fbo1.FreeResources(glExtensions);
-      if (! fbo1.Create( fboViewport.width, fboViewport.height, glExtensions) )
-          return FF_FAIL;
-
-      fbo2.FreeResources(glExtensions);
-      if (! fbo2.Create( fboViewport.width, fboViewport.height, glExtensions) )
-          return FF_FAIL;
-
-      param_changed = false;
-  }
-
-  // no depth test
-  glDisable(GL_DEPTH_TEST);
-
-  if (blur >0)
-    {
-      // activate the fbo2 as our render target
-      if (!fbo2.BindAsRenderTarget(glExtensions))
+    if (!pGL)
         return FF_FAIL;
 
-      //render the original texture on a quad in fbo2
-      drawQuad( fboViewport, Texture);
-
-      // use the blurring shader program
-      glUseProgram(shaderProgram);
-
-      // PASS 1:  horizontal filter
-      glUniform2f(uniform_textureoffset, 1.f / (float) fbo2.GetTextureInfo().HardwareWidth,  0.f);
-
-      // activate the fbo1 as our render target
-      if (!fbo1.BindAsRenderTarget(glExtensions))
+    // get the input texture
+    if (pGL->numInputTextures<1)
         return FF_FAIL;
 
-      //render the fbo2 texture on a quad in fbo1
-      drawQuad( fboViewport, fbo2.GetTextureInfo());
-
-      // PASS 2 : vertical
-      glUniform2f(uniform_textureoffset, 0.f,  1.f / (float) fbo1.GetTextureInfo().HardwareHeight);
-
-      // activate the fbo2 as our render target
-      if (!fbo2.BindAsRenderTarget(glExtensions))
+    if (pGL->inputTextures[0]==NULL)
         return FF_FAIL;
 
-      // render the fbo1 texture on a quad in fbo2
-      drawQuad( fboViewport, fbo1.GetTextureInfo());
+    FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
-      // disable shader program
-      glUseProgram(0);
+    //enable texturemapping
+    glEnable(GL_TEXTURE_2D);
 
-      // (re)activate the HOST fbo as render target
-      glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
+    // new value of the blur parameter
+    if(param_changed) {
 
-      // render the fbo2 texture texture on a quad in the host fbo
-      drawQuad( viewport, fbo2.GetTextureInfo() );
+        glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+        fboViewport.x = 0;
+        fboViewport.y = 0;
+        fboViewport.width = (int)((double)viewport.width * (1.0 - blur) );
+        fboViewport.height = (int)((double)viewport.height * (1.0 - blur) );
+
+        // sanity check for size
+        fboViewport.width = fboViewport.width < 1 ? 1 : fboViewport.width;
+        fboViewport.height = fboViewport.height < 1 ? 1 : fboViewport.height;
+
+        fbo1.FreeResources(glExtensions);
+        if (! fbo1.Create( fboViewport.width, fboViewport.height, glExtensions) )
+            return FF_FAIL;
+
+        fbo2.FreeResources(glExtensions);
+        if (! fbo2.Create( fboViewport.width, fboViewport.height, glExtensions) )
+            return FF_FAIL;
+
+        param_changed = false;
     }
-  else
-  {
-      // render the fbo2 texture texture on a quad in the host fbo
-      drawQuad( viewport, Texture );
-  }
 
-  //unbind the texture
-  glBindTexture(GL_TEXTURE_2D, 0);
+    // no depth test
+    glDisable(GL_DEPTH_TEST);
 
-  //disable texturemapping
-  glDisable(GL_TEXTURE_2D);
+    if (blur >0)
+    {
+        // activate the fbo2 as our render target
+        if (!fbo2.BindAsRenderTarget(glExtensions))
+            return FF_FAIL;
 
-  return FF_SUCCESS;
+        //render the original texture on a quad in fbo2
+        drawQuad( fboViewport, Texture);
+
+        // use the blurring shader program
+        glUseProgram(shaderProgram);
+
+        // PASS 1:  horizontal filter
+        glUniform2f(uniform_textureoffset, 1.f / (float) fbo2.GetTextureInfo().HardwareWidth,  0.f);
+
+        // activate the fbo1 as our render target
+        if (!fbo1.BindAsRenderTarget(glExtensions))
+            return FF_FAIL;
+
+        //render the fbo2 texture on a quad in fbo1
+        drawQuad( fboViewport, fbo2.GetTextureInfo());
+
+        // PASS 2 : vertical
+        glUniform2f(uniform_textureoffset, 0.f,  1.f / (float) fbo1.GetTextureInfo().HardwareHeight);
+
+        // activate the fbo2 as our render target
+        if (!fbo2.BindAsRenderTarget(glExtensions))
+            return FF_FAIL;
+
+        // render the fbo1 texture on a quad in fbo2
+        drawQuad( fboViewport, fbo1.GetTextureInfo());
+
+        // disable shader program
+        glUseProgram(0);
+
+        // (re)activate the HOST fbo as render target
+        glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
+
+        // render the fbo2 texture texture on a quad in the host fbo
+        drawQuad( viewport, fbo2.GetTextureInfo() );
+    }
+    else
+    {
+        // render the fbo2 texture texture on a quad in the host fbo
+        drawQuad( viewport, Texture );
+    }
+
+    //unbind the texture
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    //disable texturemapping
+    glDisable(GL_TEXTURE_2D);
+
+    return FF_SUCCESS;
 }
 
 
 #ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD FreeFrameBlur::SetParameter(const SetParameterStruct* pParam)
-    {
-        if (pParam != NULL && pParam->ParameterNumber == FFPARAM_BLUR) {
-            blur = *((float *)(unsigned)&(pParam->NewParameterValue));
-            param_changed = true;
-            return FF_SUCCESS;
-        }
+// FFGL 1.5
+DWORD FreeFrameBlur::SetParameter(const SetParameterStruct* pParam)
+{
+    if (pParam != NULL && pParam->ParameterNumber == FFPARAM_BLUR) {
+        blur = *((float *)(unsigned)&(pParam->NewParameterValue));
+        param_changed = true;
+        return FF_SUCCESS;
+    }
 
+    return FF_FAIL;
+}
+
+DWORD FreeFrameBlur::GetParameter(DWORD index)
+{
+    DWORD dwRet;
+    *((float *)(unsigned)&dwRet) = blur;
+
+    if (index == FFPARAM_BLUR)
+        return dwRet;
+    else
         return FF_FAIL;
-    }
-
-    DWORD FreeFrameBlur::GetParameter(DWORD index)
-    {
-        DWORD dwRet;
-        *((float *)(unsigned)&dwRet) = blur;
-
-        if (index == FFPARAM_BLUR)
-            return dwRet;
-        else
-            return FF_FAIL;
-    }
+}
 
 #else
-    // FFGL 1.6
-    FFResult FreeFrameBlur::SetFloatParameter(unsigned int index, float value)
-    {
-        if (index == FFPARAM_BLUR) {
-            blur = value;
-            param_changed = true;
-            return FF_SUCCESS;
-        }
-
-        return FF_FAIL;
+// FFGL 1.6
+FFResult FreeFrameBlur::SetFloatParameter(unsigned int index, float value)
+{
+    if (index == FFPARAM_BLUR) {
+        blur = value;
+        param_changed = true;
+        return FF_SUCCESS;
     }
 
-    float FreeFrameBlur::GetFloatParameter(unsigned int index)
-    {
-        if (index == FFPARAM_BLUR)
-            return blur;
+    return FF_FAIL;
+}
 
-        return 0.0;
-    }
+float FreeFrameBlur::GetFloatParameter(unsigned int index)
+{
+    if (index == FFPARAM_BLUR)
+        return blur;
+
+    return 0.0;
+}
 #endif
 
 
