@@ -711,9 +711,6 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
                 s = new FFGLSource(textureIndex, getAvailableDepthFrom(depth), w, h);
 
                 // all good, set parameters
-
-                // TODO : does this automatically call the FFGLPluginSourceShadertoy function ???
-
                 s->freeframeGLPlugin()->setConfiguration( configuration );
 
                 // give it a name
@@ -1785,6 +1782,9 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
 #ifdef FFGL
             QDomElement Frame = t.firstChildElement("Frame");
             QDomElement ffgl = t.firstChildElement("FreeFramePlugin");
+
+            if ( ffgl.isNull() )
+                ffgl = t.firstChildElement("ShadertoyPlugin");
 
             newsource = RenderingManager::getInstance()->newFreeframeGLSource(ffgl,
                                                                               Frame.attribute("Width", "64").toInt(),

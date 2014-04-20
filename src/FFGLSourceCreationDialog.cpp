@@ -134,20 +134,33 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
     QString code = QString::null;
     GLuint tex = ui->preview->getNewTextureIndex();
 
-    // fill in variables depending on selection
-    if (ui->freeframeEmbededPlugin->isChecked()) {
+    // fill in variables depending on selection :
+    //
+    // CASE 1: Embeded Freeframe plugin
+    if ( ui->freeframeEmbededPlugin->isChecked() && ui->freeframeEmbededList->currentIndex() > 0 ) {
         filename = ui->freeframeEmbededList->itemData(ui->freeframeEmbededList->currentIndex()).toString();
     }
-    else if (ui->freeframeFilePlugin->isChecked()) {
+    // CASE 2: load file Freeframe plugin
+    else if ( ui->freeframeFilePlugin->isChecked() && ui->freeframeFileList->currentIndex() > 0 ) {
         filename = ui->freeframeFileList->itemData(ui->freeframeFileList->currentIndex()).toString();
+
+        // remove entry if not valid
+        if (!QFileInfo(filename).exists()) {
+            ui->freeframeFileList->removeItem(ui->freeframeFileList->currentIndex());
+            ui->freeframeFileList->setCurrentIndex(0);
+            qCritical() << filename << QChar(124).toLatin1() << tr("The file does not exist; Entry removed.");;
+        }
     }
+    // CASE 3: empty shadertoy plugin
     else if (ui->shadertoyGeneric->isChecked()) {
         code = "";
     }
+    // CASE 4: clipboard shadertoy plugin
     else if (ui->shadertoyClipboard->isChecked()) {
         code = QApplication::clipboard()->text();
     }
-    else if (ui->shadertoyFile->isChecked()) {
+    // CASE 5: text file shadertoy plugin
+    else if (ui->shadertoyFile->isChecked() && ui->shadertoyFileList->currentIndex()>0) {
         QFile fileContent( ui->shadertoyFileList->itemData(ui->shadertoyFileList->currentIndex()).toString() );
         if (fileContent.open(QIODevice::ReadOnly | QIODevice::Text))
             code =  QTextStream(&fileContent).readAll() ;
@@ -155,8 +168,9 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
 
     // create the source
     try {
-        // provided with a filename : open the freeframe plugin
-        if ( !filename.isNull() && QFileInfo(filename).isFile()) {
+        // provided with a filename ? : create a freeframe plugin
+        if ( !filename.isNull() ) {
+            // ok, got a valid file, try to load it
             try {
                 // create a new source with a new texture index and the new parameters
                 s = new FFGLSource(filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
@@ -167,7 +181,7 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
                 throw;
             }
         }
-        // no filename, then use code on shadertoy if exists
+        // no filename but code ? : create a shadertoy plugin
         else if ( !code.isNull() ){
             try {
                 // create a new source with a new texture index and the new parameters
@@ -202,6 +216,8 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
     else
         pluginConfiguration = QDomElement();
 
+    // enable / disable ok button
+    ui->validationBox->button(QDialogButtonBox::Ok)->setEnabled( s != NULL );
 
     // apply the source to the preview (null pointer is ok to reset preview)
     ui->preview->setSource(s);
@@ -240,6 +256,20 @@ void FFGLSourceCreationDialog::browseFreeframePlugin() {
 
 }
 
+void FFGLSourceCreationDialog::deleteFreeframePlugin() {
+
+    if ( ui->freeframeFileList->currentIndex() > 0 )
+        ui->freeframeFileList->removeItem( ui->freeframeFileList->currentIndex() );
+
+    ui->freeframeFileList->setCurrentIndex(0);
+}
+void FFGLSourceCreationDialog::deleteShadertoyPlugin() {
+
+    if ( ui->shadertoyFileList->currentIndex() > 0 )
+        ui->shadertoyFileList->removeItem( ui->shadertoyFileList->currentIndex() );
+
+    ui->shadertoyFileList->setCurrentIndex(0);
+}
 
 void FFGLSourceCreationDialog::browseShadertoyPlugin() {
 

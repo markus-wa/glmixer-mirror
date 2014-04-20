@@ -301,6 +301,7 @@ public:
 
 Q_SIGNALS:
     void currentItemChanged(QtBrowserItem *);
+//    void doubleClickRequested();
 
 public Q_SLOTS:
 
@@ -316,6 +317,11 @@ protected:
     virtual void itemChanged(QtBrowserItem *item) = 0;
 
     virtual QWidget *createEditor(QtProperty *property, QWidget *parent);
+
+//    void	mouseDoubleClickEvent ( QMouseEvent * ) {
+//        emit doubleClickRequested();
+//    }
+
 private:
 
     bool addFactory(QtAbstractPropertyManager *abstractManager,

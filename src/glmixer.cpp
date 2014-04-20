@@ -97,8 +97,9 @@ public:
         QDialogButtonBox *DecisionButtonBox;
 
         setObjectName(QString::fromUtf8("CaptureDialog"));
-        setWindowTitle(QObject::tr( "Frame captured"));
+        setWindowTitle(tr( "Frame captured"));
         verticalLayout = new QVBoxLayout(this);
+        verticalLayout->setSpacing(9);
 
         Question = new QLabel(this);
         Question->setText(caption);
@@ -109,7 +110,7 @@ public:
         verticalLayout->addWidget(Display);
 
         Info = new QLabel(this);
-        Info->setText(QObject::tr("Original size: %1 x %2 px").arg(img.width()).arg(img.height()) );
+        Info->setText(tr("Original size: %1 x %2 px").arg(img.width()).arg(img.height()) );
         verticalLayout->addWidget(Info);
 
         DecisionButtonBox = new QDialogButtonBox(this);
@@ -583,22 +584,29 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
     switch (type) {
     case QtCriticalMsg:
         {
-            QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),
-                           tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
+            // create message box
+            QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),  tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
             QStringList message = txt.split(QChar(124), QString::SkipEmptyParts);
-            QString informativeText;
-            if (message.count() > 1 )
-                informativeText = message[1].simplified() + tr("\n\nOrigin of the problem:\n") + message[0].simplified();
-            else if (message.count() > 0 )
-                informativeText = message[0].simplified();
-            else
-                informativeText = "Unknown error.";
-            msgBox.setInformativeText(informativeText);
+            if (message.count() > 1 ) {
+                txt = message[1].simplified();
+                if ( !message[0].simplified().isEmpty() )
+                    txt += tr("\n\nOrigin of the problem:\n") + message[0].simplified();
+            } else if (message.count() > 0 )
+                txt = message[0].simplified();
+
+            // add button to show logs
+            QPushButton *logButton = NULL;
+            if (_instance)
+                logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
+
+            // exec message box
+            msgBox.setInformativeText(txt);
             msgBox.setDefaultButton(QMessageBox::Ok);
-            QPushButton *logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
             msgBox.exec();
-            if (msgBox.clickedButton() == logButton && _instance)
-                _instance->logDockWidget->setVisible(true);
+
+            // show logs if required
+            if ( msgBox.clickedButton() == logButton )
+                 _instance->logDockWidget->setVisible(true);
 
         }
         break;

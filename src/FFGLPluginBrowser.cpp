@@ -57,6 +57,7 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
 
     editAction = new QAction(tr("Edit"), this);
     QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
+    QObject::connect(propertyTreeEditor, SIGNAL(doubleClickRequested()), this, SLOT(editPlugin()) );
     editAction->setEnabled(false);
     menuTree.addSeparator();
     menuTree.addAction(editAction);
@@ -295,6 +296,7 @@ void FFGLPluginBrowser::editPlugin()
     }
 }
 
+
 void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
 {
     // edit is disabled by default
@@ -313,8 +315,8 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
             // allow to remove it if there is a remove action
             if(removeAction) removeAction->setEnabled(true);
             // enable the edit action for freeframe plugins only
-             if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN)
-                 editAction->setEnabled(true);
+            if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN)
+                editAction->setEnabled(true);
         }
     }
 

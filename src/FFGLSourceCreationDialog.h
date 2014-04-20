@@ -51,7 +51,9 @@ public Q_SLOTS:
     void selectSizePreset(int preset);
 
     void browseFreeframePlugin();
+    void deleteFreeframePlugin();
     void browseShadertoyPlugin();
+    void deleteShadertoyPlugin();
 
     void showErrorMessage();
 
