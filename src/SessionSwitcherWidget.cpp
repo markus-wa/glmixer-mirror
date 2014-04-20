@@ -505,11 +505,12 @@ void SessionSwitcherWidget::saveSettings()
 
 void SessionSwitcherWidget::restoreSettings()
 {
-    QStringList folders = appSettings->value("recentFolderList").toStringList();
-    if (folders.empty())
-        folderHistory->addItem(QDir::currentPath());
-    else
-        folderHistory->addItems(folders);
+    // list of folders
+    QStringList folders(QDir::currentPath());
+    if ( appSettings->contains("recentFolderList"))
+        folders = appSettings->value("recentFolderList").toStringList();
+
+    folderHistory->addItems( folders );
     folderHistory->setCurrentIndex(0);
 
     RenderingManager::getSessionSwitcher()->setTransitionColor( appSettings->value("transitionColor").value<QColor>());

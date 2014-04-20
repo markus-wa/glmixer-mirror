@@ -72,6 +72,7 @@
 #endif
 
 #ifdef FFGL
+#include "FFGLSource.h"
 #include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
 #include "FFGLSourceCreationDialog.h"
@@ -1046,13 +1047,36 @@ void GLMixer::on_actionFreeframeSource_triggered(){
         if ( config.hasChildNodes() ) {
 
             Source *s = RenderingManager::getInstance()->newFreeframeGLSource(config, w, h);
-            if ( s ){
+            FFGLSource *ps = dynamic_cast<FFGLSource *> (s);
+
+            // successful creation of a FFGLSource ?
+            if ( s && ps ){
+
+                // show status with different message depending on type : try to cast
+                FFGLPluginSourceShadertoy *st = qobject_cast<FFGLPluginSourceShadertoy *> ( ps->freeframeGLPlugin() );
+
+                // if it is a Shadertoy
+                if (st) {
+
+                    // open editor for shadertoy code
+                    editShaderToyPlugin(st);
+
+                    // shadertoy info
+                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Shadertoy plugin source created.");
+                    statusbar->showMessage( tr("Shadertoy plugin source %1 created.").arg( s->getName() ), 3000 );
+                }
+                // if it is a Freeframe plugin
+                else {
+                    // freeframe info (filename)
+                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New freeframe plugin source created with file ") << ps->freeframeGLPlugin()->fileName() ;
+                    statusbar->showMessage( tr("Freeframe plugin source %1 created.").arg( s->getName() ), 3000 );
+                }
+
                 // add source
                 RenderingManager::getInstance()->addSourceToBasket(s);
-                qDebug() << s->getName() << QChar(124).toLatin1() << tr("New plugin source created (")<< ffgld->getPluginInfo() << ").";
-                statusbar->showMessage( tr("Plugin source created : %1.").arg( ffgld->getPluginInfo() ), 3000 );
-            } else
-                qCritical() << ffgld->getPluginInfo() <<  QChar(124).toLatin1() << tr("Could not create plugin source.");
+            }
+            else
+                qCritical() << config.tagName() <<  QChar(124).toLatin1() << tr("Could not create plugin source.");
         }
     }
 

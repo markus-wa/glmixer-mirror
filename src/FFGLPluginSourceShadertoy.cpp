@@ -204,7 +204,7 @@ QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 
 void FFGLPluginSourceShadertoy::setConfiguration(QDomElement xml)
 {
-    initialize();
+//    initialize();
 
     setName( xml.firstChildElement("Name").text() );
     setAbout( xml.firstChildElement("About").text() );

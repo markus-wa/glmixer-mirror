@@ -38,7 +38,6 @@ public:
     explicit FFGLSourceCreationDialog(QWidget *parent = 0, QSettings *settings = 0);
     ~FFGLSourceCreationDialog();
 
-    QString getPluginInfo();
     QDomElement getFreeframePluginConfiguration();
     int getSelectedWidth();
     int getSelectedHeight();

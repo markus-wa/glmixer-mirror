@@ -290,11 +290,6 @@ void FFGLSourceCreationDialog::browseShadertoyPlugin() {
 
 }
 
-QString  FFGLSourceCreationDialog::getPluginInfo(){
-
-    return pluginConfiguration.tagName();
-}
-
 QDomElement FFGLSourceCreationDialog::getFreeframePluginConfiguration(){
 
     return pluginConfiguration;

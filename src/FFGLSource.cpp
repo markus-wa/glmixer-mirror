@@ -74,9 +74,6 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
                 GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) _buffer);
     }
 
-    // try to update
-    _plugin->update();
-
     // this source behaves like a normal source, except the texture index
     // comes from the plugin's FBO
     _sourceTextureIndex = texture;
@@ -113,9 +110,6 @@ FFGLSource::FFGLSource(GLuint texture, double d, int w, int h):
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_BGRA,
                 GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) _buffer);
     }
-
-    // try to update
-    _plugin->update();
 
     // this source behaves like a normal source, except the texture index
     // comes from the plugin's FBO
@@ -178,15 +172,3 @@ void FFGLSource::update() {
     // normal update (other ffgl plugins)
     Source::update();
 }
-
-//FFGLPluginSourceStack *FFGLSource::getFreeframeGLPluginStack() {
-
-//    FFGLPluginSourceStack tmp(_ffgl_plugins);
-//    tmp.push_front(_plugin);
-//    return  tmp;
-//}
-
-//bool FFGLSource::hasFreeframeGLPlugin() {
-
-//    return true;
-//}

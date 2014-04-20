@@ -57,7 +57,6 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
 
     editAction = new QAction(tr("Edit"), this);
     QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
-    QObject::connect(propertyTreeEditor, SIGNAL(doubleClickRequested()), this, SLOT(editPlugin()) );
     editAction->setEnabled(false);
     menuTree.addSeparator();
     menuTree.addAction(editAction);
