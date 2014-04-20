@@ -34,7 +34,7 @@ char *FreeFrameShadertoy::getFragmentProgramLogs()
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameQtGLSL::InitGL(const FFGLViewportStruct *vp)
+DWORD   FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
 #else
 // FFGL 1.6
 FFResult FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
@@ -70,7 +70,7 @@ FFResult FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameQtGLSL::DeInitGL()
+DWORD   FreeFrameShadertoy::DeInitGL()
 #else
 // FFGL 1.6
 FFResult FreeFrameShadertoy::DeInitGL()
@@ -87,7 +87,7 @@ FFResult FreeFrameShadertoy::DeInitGL()
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameQtGLSL::SetTime(double time)
+DWORD   FreeFrameShadertoy::SetTime(double time)
 #else
 // FFGL 1.6
 FFResult FreeFrameShadertoy::SetTime(double time)
@@ -143,7 +143,7 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD	FreeFrameQtGLSL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+DWORD	FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 #else
 // FFGL 1.6
 FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
