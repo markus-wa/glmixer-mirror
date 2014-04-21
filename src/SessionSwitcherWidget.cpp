@@ -137,6 +137,7 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
     model->insertRow(0);
     model->setData(model->index(0, 0), name);
     model->setData(model->index(0, 0), filename, Qt::UserRole);
+    model->setData(model->index(0, 0), (int) ar, Qt::UserRole+1);
     model->itemFromIndex (model->index(0, 0))->setFlags (flags);
 
     model->setData(model->index(0, 1), nbElem);
@@ -584,7 +585,20 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
 void SessionSwitcherWidget::setAllowedAspectRatio(const standardAspectRatio ar)
 {
     allowedAspectRatio = ar;
-    updateFolder();
+
+    // quick redisplay of folder list
+    for (int r = 0; r < folderModel->rowCount(); ++r )
+    {
+        standardAspectRatio sar = (standardAspectRatio) folderModel->data(folderModel->index(r, 0), Qt::UserRole+1).toInt();
+        Qt::ItemFlags flags = Qt::ItemIsSelectable;
+        if (allowedAspectRatio == ASPECT_RATIO_FREE || sar == allowedAspectRatio)
+            flags |= Qt::ItemIsEnabled;
+
+        folderModel->itemFromIndex(folderModel->index(r, 0))->setFlags (flags);
+        folderModel->itemFromIndex(folderModel->index(r, 1))->setFlags (flags);
+        folderModel->itemFromIndex(folderModel->index(r, 2))->setFlags (flags);
+        folderModel->itemFromIndex(folderModel->index(r, 3))->setFlags (flags);
+    }
 }
 
 
