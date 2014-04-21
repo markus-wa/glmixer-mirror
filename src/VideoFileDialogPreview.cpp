@@ -49,6 +49,11 @@ VideoFileDialogPreview::VideoFileDialogPreview(QWidget *parent) : QWidget(parent
 
 VideoFileDialogPreview::~VideoFileDialogPreview() {
 
+    closeFilePreview();
+}
+
+void VideoFileDialogPreview::closeFilePreview() {
+
     if (is) {
         // unset video display
         previewWidget->setVideo(NULL);
@@ -56,9 +61,9 @@ VideoFileDialogPreview::~VideoFileDialogPreview() {
         is->stop();
         // delete video File
         delete is;
+        is = NULL;
     }
 }
-
 
 void VideoFileDialogPreview::showFilePreview(const QString & file){
 

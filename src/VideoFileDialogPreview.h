@@ -40,16 +40,8 @@ public:
 
 public Q_SLOTS:
     void showFilePreview(const QString & file);
+    void closeFilePreview();
     void on_customSizeCheckBox_toggled(bool);
-
-signals:
-    /**
-     * Signal emmited when an error occurs;
-     * The VideoFile should gently stop, but may stay in a non-usable state; better stop it, or delete it.
-     *
-     * @param msg Error message
-     */
-    void error(QString msg);
 
 private:
 

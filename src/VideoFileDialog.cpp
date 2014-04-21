@@ -47,8 +47,7 @@ VideoFileDialog::VideoFileDialog( QWidget * parent, const QString & caption, con
     QObject::connect(pv, SIGNAL(toggled(bool)), this, SLOT(setPreviewVisible(bool)));
     pv->setChecked(true);
 
-	QObject::connect(this, SIGNAL(currentChanged ( const QString & )), preview, SLOT(showFilePreview(const QString &)));
-    QObject::connect(preview, SIGNAL(error(QString)), this, SIGNAL(error(QString)));
+    QObject::connect(this, SIGNAL(currentChanged ( const QString & )), preview, SLOT(showFilePreview(const QString &)));
 
     setFileMode(QFileDialog::ExistingFiles);
 }
@@ -63,10 +62,27 @@ void VideoFileDialog::setPreviewVisible(bool visible){
 
     preview->setVisible(visible);
     if (visible && !selectedFiles().empty())
-    	preview->showFilePreview( this->selectedFiles().first() );
+        preview->showFilePreview( this->selectedFiles().first() );
 }
 
 bool VideoFileDialog::configCustomSize(){
 
-	return preview->customSizeCheckBox->isChecked();
+    return preview->customSizeCheckBox->isChecked();
 }
+
+
+void VideoFileDialog::showEvent ( QShowEvent *e )
+{
+    // restore preview
+    setPreviewVisible(pv->isChecked());
+    QFileDialog::showEvent(e);
+}
+
+void VideoFileDialog::hideEvent ( QHideEvent *e )
+{
+    // close preview (necessary otherwise file remains open)
+    preview->closeFilePreview();
+    QFileDialog::hideEvent(e);
+}
+
+

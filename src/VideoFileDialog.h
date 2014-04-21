@@ -42,19 +42,11 @@ public:
     ~VideoFileDialog();
 
     bool configCustomSize();
+    void showEvent ( QShowEvent * );
+    void hideEvent ( QHideEvent * );
 
 public Q_SLOTS:
     void setPreviewVisible(bool visible);
-
-signals:
-    /**
-     * Signal emmited when an error occurs;
-     * The VideoFile should gently stop, but may stay in a non-usable state; better stop it, or delete it.
-     *
-     * @param msg Error message
-     */
-    void error(QString msg);
-
 
 private:
 
