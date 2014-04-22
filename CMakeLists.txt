@@ -121,6 +121,7 @@ set( CMAKE_LIBRARY_PATH
 
 # HERE ARE THE BASIC DEPENDENCIES
 set( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
+set( DESIRED_QT_VERSION 4)
 find_package( Qt REQUIRED)
 find_package( OpenGL REQUIRED)
 set( GLMIXER_LIBRARIES  ${OPENGL_LIBRARY})
@@ -264,7 +265,7 @@ ENDFOREACH(GLMIXER_DEPENDENCY)
 
 SET(GLMIXER_UTILITIES avcore theora modplug theoraenc theoradec x264 xvidcore faac gsm
                       mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0 va png14
-                      speex dirac_encoder jpeg openjpeg vpx bz2 z)
+                      speex dirac_encoder jpeg vpx bz2 z)
     
 FOREACH(GLMIXER_UTILITY ${GLMIXER_UTILITIES})
     STRING(TOUPPER ${GLMIXER_UTILITY} _upper_glmixer_utility)

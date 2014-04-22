@@ -971,11 +971,21 @@ int64_t VideoFile::getCurrentFrameTime() const
 
 double VideoFile::getFrameRate() const
 {
-	//    if (video_st && video_st->avg_frame_rate.den > 0) // never true !!!
-	//        return ((double) (video_st->avg_frame_rate.num )/ (double) video_st->avg_frame_rate.den);
-	//    else
-	if (video_st && video_st->r_frame_rate.den > 0)
-		return ((double) av_q2d(video_st->r_frame_rate));
+    if (video_st) {
+        // get average framerate from libav, if correct.
+        if (video_st->avg_frame_rate.den > 0)
+            return av_q2d(video_st->avg_frame_rate);
+
+        // else get guessed framerate from libav, if correct. (deprecated)
+#if FF_API_R_FRAME_RATE
+        else if (video_st->r_frame_rate.den > 0)
+            return av_q2d(video_st->r_frame_rate);
+#endif
+        // else compute global framerate from duration and number of frames
+        else if (video_st->nb_frames > 0)
+            return (  ((double)video_st->duration / av_q2d(video_st->time_base)) / (double)video_st->nb_frames ) ;
+
+    }
 
 	return 1.0;
 }

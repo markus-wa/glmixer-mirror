@@ -156,10 +156,11 @@ void glRenderWidget::resizeGL(int w, int h)
 
 void glRenderWidget::paintGL()
 {
+    glClear(GL_COLOR_BUFFER_BIT);
+
 	// avoid drawing if not visible
 	if ( !isVisible() )
-		return;
-    glClear(GL_COLOR_BUFFER_BIT);
+        return;
 }
 
 void glRenderWidget::setUpdatePeriod(int miliseconds) {

@@ -233,6 +233,12 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         // default draw target
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
+        // initial clear to black
+        glPushAttrib(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glPopAttrib();
+
         // create second draw target texture for this FBO (for catalog)
         glGenTextures(1, &_fboCatalogTexture);
         glBindTexture(GL_TEXTURE_2D, _fboCatalogTexture);
@@ -265,6 +271,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
             setFrameSharingEnabled(true);
         }
 #endif
+
     }
     else
         qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not working on this hardware."
@@ -482,6 +489,14 @@ Source *RenderingManager::newRenderingSource(double depth) {
     // create the previous frame (frame buffer object) if needed
     if (!previousframe_fbo) {
         previousframe_fbo = new QGLFramebufferObject(_fbo->width(), _fbo->height());
+        // initial clear to black
+        if (previousframe_fbo->bind())  {
+            glPushAttrib(GL_COLOR_BUFFER_BIT);
+            glClearColor(0.f, 0.f, 0.f, 1.f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glPopAttrib();
+            previousframe_fbo->release();
+        }
     }
 
     try {
