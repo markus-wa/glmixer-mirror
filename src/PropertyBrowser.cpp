@@ -27,6 +27,7 @@
 #include <QtCheckBoxFactory>
 #include <QtTimeEditFactory>
 #include <QtColorEditorFactory>
+#include <QDesktopServices>
 
 
 PropertyBrowser::PropertyBrowser(QWidget *parent) :
@@ -115,20 +116,26 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     // actions of context menus
     defaultValueAction = new QAction(QObject::tr("Default value"), this);
     QObject::connect(defaultValueAction, SIGNAL(triggered()), this, SLOT(defaultValue() ) );
-// TODO : enable the default value action
-//    menuTree.addAction(defaultValueAction);
 
     resetAction = new QAction(QObject::tr("Reset all values"), this);
     QObject::connect(resetAction, SIGNAL(triggered()), this, SLOT(resetAll() ) );
-    menuTree.addAction(resetAction);
 
+    openUrlAction = new QAction(QObject::tr("Show file in browser"), this);
+    QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(showReferenceURL() ) );
+
+    // TODO : enable the default value action
+    //    menuTree.addAction(defaultValueAction);
+    menuTree.addAction(resetAction);
+    menuTree.addAction(openUrlAction);
     menuTree.addSeparator();
     menuTree.addAction(QObject::tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
     menuTree.addAction(QObject::tr("Expand tree"), this, SLOT(expandAll()));
     menuTree.addAction(QObject::tr("Collapse tree"), this, SLOT(collapseAll()));
 
-    menuGroup.addAction(defaultValueAction);
-    menuGroup.addAction(QObject::tr("Reset all"), this, SLOT(resetAll()));
+    // TODO : enable the default value action
+    //    menuGroup.addAction(defaultValueAction);
+    menuGroup.addAction(resetAction);
+    menuGroup.addAction(openUrlAction);
     menuGroup.addSeparator();
     menuGroup.addAction(QObject::tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
 }
@@ -148,6 +155,20 @@ void PropertyBrowser::setHeaderVisible(bool visible){
     propertyTreeEditor->setHeaderVisible(visible);
 
 }
+
+void PropertyBrowser::setReferenceURL(QUrl u){
+
+    referenceURL = u;
+
+}
+
+void PropertyBrowser::showReferenceURL(){
+
+    if (referenceURL.isValid())
+        QDesktopServices::openUrl(referenceURL);
+
+}
+
 
 void PropertyBrowser::setPropertyEnabled(QString propertyName, bool enabled){
 
@@ -308,6 +329,8 @@ void PropertyBrowser::propertyValueChanged(QtProperty *property, double value)
 
 void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
 {
+    openUrlAction->setVisible( referenceURL.isValid() );
+
     defaultValueAction->setEnabled( false );
 
     if (propertyGroupEditor->currentItem() &&
@@ -321,7 +344,10 @@ void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
 
 void PropertyBrowser::ctxMenuTree(const QPoint &pos)
 {
+    openUrlAction->setVisible( referenceURL.isValid() );
+
     defaultValueAction->setEnabled(false);
+
     if (propertyTreeEditor->currentItem() &&
         propertyTreeEditor->currentItem()->children().count() == 0 &&
         !propertyTreeEditor->currentItem()->property()->isItalics() )

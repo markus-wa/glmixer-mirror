@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QMenu>
 #include <QtCore/QMap>
+#include <QtCore/QUrl>
 
 
 QString getSizeString(float num);
@@ -49,6 +50,8 @@ public slots:
     void expandAll();
     void collapseAll();
     void setHeaderVisible(bool);
+    void setReferenceURL(QUrl u = QUrl());
+    void showReferenceURL();
 
     // Context menu actions
     virtual void ctxMenuGroup(const QPoint &);
@@ -101,8 +104,9 @@ protected:
     class QtRectFPropertyManager *rectManager;
 
     // context menus
+    QUrl referenceURL;
     QMenu menuTree, menuGroup;
-    QAction *resetAction, *defaultValueAction;
+    QAction *resetAction, *defaultValueAction, *openUrlAction;
 };
 
 #endif // PROPERTYBROWSER_H

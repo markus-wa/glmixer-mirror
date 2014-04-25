@@ -834,6 +834,8 @@ public:
             addProperty(idToProperty["Original size"]);
 
         connectManagers();
+
+        setReferenceURL(QFileInfo(vf->getFileName()).canonicalPath());
     }
 
 public slots:
@@ -930,6 +932,7 @@ public:
         infoManager->setValue(idToProperty["Vector graphics"], getSizeString(cs->getDescription().size() ) );
 
         addProperty(idToProperty["Vector graphics"]);
+
     }
 
 private:

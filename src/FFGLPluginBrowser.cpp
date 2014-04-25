@@ -55,13 +55,9 @@
 
 FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : PropertyBrowser(parent), currentStack(0) {
 
-    editAction = new QAction(tr("Edit"), this);
-    QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
-    editAction->setEnabled(false);
-    menuTree.addSeparator();
-    menuTree.addAction(editAction);
-
+    // append remove action if allowed
     if (allowRemove) {
+        menuTree.addSeparator();
         // actions of context menus
         removeAction = new QAction(tr("Remove"), this);
         QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePlugin()) );
@@ -70,6 +66,16 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
     }
     else
         removeAction = NULL;
+
+    // create edit action
+    editAction = new QAction(tr("Edit"), this);
+    QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
+    // insert edit action on top
+    menuTree.insertAction(resetAction, editAction);
+
+    // hide actions by default
+    resetAction->setVisible(false);
+    editAction->setVisible(false);
 
     setStyleSheet(QString::fromUtf8("QToolTip {\n"
         "	font: 8pt \"Monospace,Courier\";\n"
@@ -298,10 +304,11 @@ void FFGLPluginBrowser::editPlugin()
 
 void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
 {
+    setReferenceURL();
     // edit is disabled by default
-    editAction->setEnabled(false);
+    editAction->setVisible(false);
     // reset is disabled by default
-    resetAction->setEnabled(false);
+    resetAction->setVisible(false);
     // remove is disabled by default
     if(removeAction) removeAction->setEnabled(false);
 
@@ -309,13 +316,17 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
         QtProperty *property = propertyTreeEditor->currentItem()->property();
         // ok, a plugin is selected
         if ( propertyToPluginParameter.contains(property) ) {
-            // allow to reset it
-            resetAction->setEnabled(true);
             // allow to remove it if there is a remove action
             if(removeAction) removeAction->setEnabled(true);
-            // enable the edit action for freeframe plugins only
+
+            // enable the edit action for shadertoy plugins only
             if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN)
-                editAction->setEnabled(true);
+                editAction->setVisible(true);
+            else {
+                // allow to reset values for freeframe plugins only
+                resetAction->setVisible(true);
+                setReferenceURL( QFileInfo(propertyToPluginParameter[property].first->fileName()).canonicalPath() );
+            }
         }
     }
 
