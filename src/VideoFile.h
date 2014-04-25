@@ -43,7 +43,7 @@ extern "C" {
 /**
  * Dimension of the queue of VideoPictures in a VideoFile
  */
-#define MAX_VIDEO_PICTURE_QUEUE_SIZE 50
+#define MAX_VIDEO_PICTURE_QUEUE_SIZE 20
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -188,7 +188,8 @@ public:
     enum {
         ACTION_SHOW = 1,
         ACTION_STOP = 2,
-        ACTION_SEEK = 4
+        ACTION_SEEK = 4,
+        ACTION_SKIP = 8
     };
     typedef unsigned short Action;
     inline bool hasAction(Action a) const { return (action & a); }
@@ -262,13 +263,6 @@ Q_OBJECT
 
 public:
 
-    /**
-     * Set of video playback speeds available.
-     * See setPlaySpeed(int) for details.
-     */
-    typedef enum {
-        SPEED_QUARTER = 0, SPEED_THIRD, SPEED_HALF, SPEED_NORMAL, SPEED_DOUBLE, SPEED_TRIPLE
-    } PlaySpeed;
     /**
      *  Constructor of a VideoFile.
      *
@@ -596,6 +590,9 @@ Q_SIGNALS:
      */
     void markingChanged();
 
+    void playSpeedChanged(double);
+    void playSpeedFactorChanged(int);
+
 public Q_SLOTS:
     /**
      * Opens the file and reads first frame.
@@ -695,30 +692,40 @@ public Q_SLOTS:
         loop_video = loop;
     }
     /**
-     * Sets the playing speed factor from the list of available playback speeds available in the PlaySpeed type.
-     * NB: the argument is an integer for Qt compatibility with signals/slots, but it is used as a type PlaySpeed.
+     * Sets the playing speed factor from 0 to 200%, with exponential scale
+     * 100% corresponding to x1 factor (full speed)
+     * 0% corresponding to x1/10 (10 times slower)
+     * and 200% corresponding to x10 (10 times faster)
      *
-     * This option alters the time stamp of the next frame decoded; this is not exactly the next frame to display as there is
-     * a small buffer queue between the decoding and display threads, but the effect is almost instantaneous (few frames later).
+     * Example values: 0 = x1/10, 52 = x1/3, 70 = x1/2, 87 = x3/4
+     *                 100 = x1, 130 = x2, 148 = x3, 170 = x5, 200 = x10
      *
-     * If speed is set to less than 1 (SPEED_QUARTER, SPEED_THIRD, SPEED_HALF), the presentation time stamp of the frame
-     * is delayed and the frames will be displayed later than normal. If speed is set to more than 1 (SPEED_DOUBLE, SPEED_TRIPLE) the
-     * time stamp is reduced and the frame will be displayed earlier than normal.
-     *
-     * However, this implementation of the playing speed is still not fully correct :(... The problem is that the delay or
-     * acceleration seems to accumulate after a period out of normal play speed. Although the playback speed always end
-     * up to be the one requested, it sometimes takes little time to reach it...
-     *
-     * @param playspeed SPEED_QUARTER = 0, SPEED_THIRD = 1, SPEED_HALF = 2, SPEED_NORMAL = 3, SPEED_DOUBLE = 4, SPEED_TRIPLE = 5
+     * @param playspeed percent of multiplying factor for play speed, 100% for X 1
      */
-    void setPlaySpeed(int playspeed);
+    void setPlaySpeedFactor(int playspeed);
     /**
-     * Gets the playing speed factor from the list of available playback speeds available in the PlaySpeed type.
-     * NB: the argument is an integer for Qt compatibility with signals/slots, but it is used as a type PlaySpeed.
+     * Gets the playing speed factor
      *
-     * @return SPEED_QUARTER = 0, SPEED_THIRD = 1, SPEED_HALF = 2, SPEED_NORMAL = 3, SPEED_DOUBLE = 4, SPEED_TRIPLE = 5
+     * @return playing speed factor [0..200]
      */
-    int getPlaySpeed();
+    int getPlaySpeedFactor();
+    /**
+     * Sets the playing speed
+     *      *
+     * @param playspeed playing speed [0.1 .. 10.0]
+     */
+    void setPlaySpeed(double playspeed);
+    /**
+     * Gets the playing speed
+     *
+     * @return playing speed  [0.1 .. 10.0]
+     */
+    double getPlaySpeed();
+    /**
+     * Resets the playing speed to 1.0
+     *
+     */
+    inline void resetPlaySpeed() { setPlaySpeedFactor(100);}
     /**
      * Seek backward of SEEK_STEP percent of the movie duration.
      * Does nothing if the process is not running (started).

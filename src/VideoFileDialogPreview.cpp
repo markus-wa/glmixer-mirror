@@ -111,7 +111,7 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
             CodecNameLineEdit->setText(is->getCodecName());
             endLineEdit->setText( is->getStringTimeFromtime(is->getEnd()) );
             // is there more than one frame ?
-            if ( is->getEnd() > 1 ) {
+            if ( is->getPictureMaxIndex() > 1 ) {
                 startButton->setEnabled( true );
                 is->start();
             }

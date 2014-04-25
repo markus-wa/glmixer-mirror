@@ -1381,7 +1381,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             specific.appendChild(m);
 
             QDomElement p = doc.createElement("Play");
-            p.setAttribute("Speed", vf->getPlaySpeed());
+            p.setAttribute("Speed", QString::number(vf->getPlaySpeed(),'f',PROPERTY_DECIMALS));
             p.setAttribute("Loop", vf->isLoop());
             specific.appendChild(p);
 
@@ -1672,17 +1672,11 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 // if there is such a file
                 if (QFileInfo(fileNameToOpen).exists()) {
 
-                    double markin, markout;
+                    double markin = -1.0, markout = -1.0;
                     // old version used different system for marking : ignore the values for now
-                    if ( version.toDouble() < QString(XML_GLM_VERSION).toDouble()) {
-                        markin = -1.0;
-                        markout = -1.0;
-
-                        qDebug() << "OLD MARKS" ;
-                    } else {
+                    if ( !( version.toDouble() < QString(XML_GLM_VERSION).toDouble()) ) {
                         markin = marks.attribute("In").toDouble();
                         markout = marks.attribute("Out").toDouble();
-                        qDebug() << "NEW MARKS" << version << QString(XML_GLM_VERSION);
                     }
 
                     // can we open this existing file ?
@@ -1690,7 +1684,6 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
                         // fix old version marking : compute marks correctly
                         if ( version.toDouble() < QString(XML_GLM_VERSION).toDouble()) {
-                            qDebug() << "OLD FILE";
                             newSourceVideoFile->setMarkIn(newSourceVideoFile->getTimefromFrame((int64_t)marks.attribute("In").toInt()));
                             newSourceVideoFile->setMarkOut(newSourceVideoFile->getTimefromFrame((int64_t)marks.attribute("Out").toInt()));
                             qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Converted marks from old version file: begin = %1 (%2)  end = %3 (%4)").arg(newSourceVideoFile->getMarkIn()).arg(marks.attribute("In").toInt()).arg(newSourceVideoFile->getMarkOut()).arg(marks.attribute("Out").toInt());
@@ -1701,7 +1694,38 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                         if (newsource){
                             // all is good ! we can apply specific parameters to the video file
                             QDomElement play = t.firstChildElement("Play");
-                            newSourceVideoFile->setPlaySpeed(play.attribute("Speed","3").toInt());
+
+                            // fix old version speed : compute speed correctly
+                            double play_speed = 1.0;
+                            if ( version.toDouble() < QString(XML_GLM_VERSION).toDouble()) {
+                                    switch (play.attribute("Speed","3").toInt())
+                                    {
+                                    case 0:
+                                        play_speed = 0.25;
+                                        break;
+                                    case 1:
+                                        play_speed = 0.333;
+                                        break;
+                                    case 2:
+                                        play_speed = 0.5;
+                                        break;
+                                    case 4:
+                                        play_speed = 2.0;
+                                        break;
+                                    case 5:
+                                        play_speed = 3.0;
+                                        break;
+                                    case 3:
+                                    default:
+                                        play_speed = 1.0;
+                                        break;
+                                    }
+                            }
+                            // new format speed
+                            else
+                                play_speed = play.attribute("Speed","1.0").toDouble();
+                            newSourceVideoFile->setPlaySpeed(play_speed);
+
                             newSourceVideoFile->setLoop(play.attribute("Loop","1").toInt());
                             QDomElement options = t.firstChildElement("Options");
                             newSourceVideoFile->setOptionAllowDirtySeek(options.attribute("AllowDirtySeek","0").toInt());

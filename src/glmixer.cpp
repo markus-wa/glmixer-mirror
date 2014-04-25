@@ -379,7 +379,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
 
-    // connect to disable many actions, like quitting, opening session, preferences, etc.
+    // connect recorder to disable many actions, like quitting, opening session, preferences, etc.
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionNew_Session, SLOT(setDisabled(bool)));
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionClose_Session, SLOT(setDisabled(bool)));
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionLoad_Session, SLOT(setDisabled(bool)));
@@ -804,12 +804,15 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), videoFrame, SLOT(setEnabled(bool)));
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), timingControlFrame, SLOT(setEnabled(bool)));
+        QObject::disconnect(selectedSourceVideoFile, SIGNAL(playSpeedChanged(double)), playSpeedDisplay, SLOT(display(double)) );
+        QObject::disconnect(selectedSourceVideoFile, SIGNAL(playSpeedFactorChanged(int)), playSpeedSlider, SLOT(setValue(int)) );
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
 
         // disconnect control buttons
         QObject::disconnect(pauseButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(pause(bool)));
-        QObject::disconnect(playSpeedSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setPlaySpeed(int)));
+        QObject::disconnect(playSpeedSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setPlaySpeedFactor(int)));
+        QObject::disconnect(playSpeedReset, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetPlaySpeed()));
         QObject::disconnect(dirtySeekCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionAllowDirtySeek(bool)));
         QObject::disconnect(resetToBlackCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRevertToBlackWhenStop(bool)));
         QObject::disconnect(restartWhereStoppedCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRestartToMarkIn(bool)));
@@ -885,11 +888,13 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                 resetToBlackCheckBox->setChecked(selectedSourceVideoFile->getOptionRevertToBlackWhenStop());
                 restartWhereStoppedCheckBox->setChecked(selectedSourceVideoFile->getOptionRestartToMarkIn());
                 videoLoopButton->setChecked(selectedSourceVideoFile->isLoop());
-                playSpeedSlider->setValue(selectedSourceVideoFile->getPlaySpeed());
+                playSpeedSlider->setValue(selectedSourceVideoFile->getPlaySpeedFactor());
+                playSpeedDisplay->display(selectedSourceVideoFile->getPlaySpeed());
 
                 // CONTROL signals from GUI to VideoFile
                 QObject::connect(pauseButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(pause(bool)));
-                QObject::connect(playSpeedSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setPlaySpeed(int)));
+                QObject::connect(playSpeedSlider, SIGNAL(valueChanged(int)), selectedSourceVideoFile, SLOT(setPlaySpeedFactor(int)));
+                QObject::connect(playSpeedReset, SIGNAL(clicked()), selectedSourceVideoFile, SLOT(resetPlaySpeed()));
                 QObject::connect(dirtySeekCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionAllowDirtySeek(bool)));
                 QObject::connect(resetToBlackCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRevertToBlackWhenStop(bool)));
                 QObject::connect(restartWhereStoppedCheckBox, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(setOptionRestartToMarkIn(bool)));
@@ -910,6 +915,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                 QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
                 QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), videoFrame, SLOT(setEnabled(bool)));
                 QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), timingControlFrame, SLOT(setEnabled(bool)));
+                QObject::connect(selectedSourceVideoFile, SIGNAL(playSpeedChanged(double)), playSpeedDisplay, SLOT(display(double)) );
+                QObject::connect(selectedSourceVideoFile, SIGNAL(playSpeedFactorChanged(int)), playSpeedSlider, SLOT(setValue(int)) );
 
                 // Consistency and update timer control from VideoFile
                 QObject::connect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
