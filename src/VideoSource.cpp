@@ -74,7 +74,7 @@ VideoSource::~VideoSource()
 
 bool VideoSource::isPlayable() const
 {
-	return (is->getEnd() - is->getBegin() > 1);
+    return (is->getPictureMaxIndex() > 1);
 }
 
 bool VideoSource::isPlaying() const
@@ -151,7 +151,7 @@ void VideoSource::applyFilter()
 		// re-filter whole buffer
 		if (isPlayable())
 		{
-			for (int i = 0; i < VIDEO_PICTURE_QUEUE_SIZE; ++i)
+            for (int i = 0; i < is->getPictureMaxIndex() ; ++i)
 				is->getPictureAtIndex(i)->refilter();
 		}
 	}

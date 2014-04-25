@@ -1376,8 +1376,8 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             specific.appendChild(f);
 
             QDomElement m = doc.createElement("Marks");
-            m.setAttribute("In", (uint) vf->getMarkIn());
-            m.setAttribute("Out", (uint) vf->getMarkOut());
+            m.setAttribute("In", QString::number(vf->getMarkIn(),'f',PROPERTY_DECIMALS) );
+            m.setAttribute("Out",QString::number(vf->getMarkOut(),'f',PROPERTY_DECIMALS));
             specific.appendChild(m);
 
             QDomElement p = doc.createElement("Play");
@@ -1672,7 +1672,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                 // if there is such a file
                 if (QFileInfo(fileNameToOpen).exists()) {
                     // can we open this existing file ?
-                    if ( newSourceVideoFile->open( fileNameToOpen, marks.attribute("In").toUInt(), marks.attribute("Out").toUInt(), Filename.attribute("IgnoreAlpha").toInt() ) ) {
+                    if ( newSourceVideoFile->open( fileNameToOpen, marks.attribute("In").toDouble(), marks.attribute("Out").toDouble(), Filename.attribute("IgnoreAlpha").toInt() ) ) {
                         // create the source as it is a valid video file (this also set it to be the current source)
                         newsource = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile, depth);
                         if (newsource){

@@ -1285,7 +1285,7 @@ void GLMixer::on_actionSelect_Previous_triggered(){
 void GLMixer::on_markInSlider_sliderReleased (){
 
     double percent = (double)(markInSlider->value())/1000.0;
-    int64_t pos = (int64_t) ( selectedSourceVideoFile->getEnd()  * percent );
+    double pos = selectedSourceVideoFile->getEnd() * percent ;
     pos += selectedSourceVideoFile->getBegin();
     selectedSourceVideoFile->setMarkIn(pos);
 }
@@ -1293,7 +1293,7 @@ void GLMixer::on_markInSlider_sliderReleased (){
 void GLMixer::on_markOutSlider_sliderReleased (){
 
     double percent = (double)(markOutSlider->value())/1000.0;
-    int64_t pos = (int64_t) ( selectedSourceVideoFile->getEnd()  * percent );
+    double pos =  selectedSourceVideoFile->getEnd() * percent ;
     pos += selectedSourceVideoFile->getBegin();
     selectedSourceVideoFile->setMarkOut(pos);
 }
@@ -1307,7 +1307,7 @@ void GLMixer::refreshTiming(){
         return;
     }
 
-    int f_percent = (int) ( (double)( selectedSourceVideoFile->getCurrentFrameTime() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
+    int f_percent = (int) ( ( selectedSourceVideoFile->getCurrentFrameTime() - selectedSourceVideoFile->getBegin() ) / ( selectedSourceVideoFile->getDuration() ) * 1000.0) ;
     frameSlider->setValue(f_percent);
 
     if (_displayTimeAsFrame)
@@ -1329,7 +1329,7 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
 
             // compute where we should jump to
             double percent = (double)(frameSlider->sliderPosition ())/ (double)frameSlider->maximum();
-            int64_t pos = (int64_t) ( selectedSourceVideoFile->getEnd()  * percent ) + selectedSourceVideoFile->getBegin();
+            double pos =  ( selectedSourceVideoFile->getDuration()  * percent ) + selectedSourceVideoFile->getBegin();
 
             // request seek ; we need to have the VideoFile process running to go there
             selectedSourceVideoFile->seekToPosition(pos);

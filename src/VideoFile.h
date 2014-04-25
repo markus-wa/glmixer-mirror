@@ -43,7 +43,7 @@ extern "C" {
 /**
  * Dimension of the queue of VideoPictures in a VideoFile
  */
-#define VIDEO_PICTURE_QUEUE_SIZE 4
+#define MAX_VIDEO_PICTURE_QUEUE_SIZE 50
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -53,7 +53,7 @@ extern "C" {
  * During decoding, the thread sleep for a little while in case there is an error or nothing to do.
  * 100 miliseconds is the ffplay default. The lower the more busy the CPU will be.
  */
-#define SLEEP_DELAY 100
+#define SLEEP_DELAY 50
 
 /**
  * Frames of a VideoFile are decoded and converted to VideoPictures.
@@ -72,13 +72,10 @@ extern "C" {
  *    </pre>
  */
 class VideoPicture {
+
     friend class VideoFile;
-    AVPicture rgb, *oldframe;
-    int width, height;
-    bool allocated, convert_rgba_palette;
-    double pts;
-    enum PixelFormat pixelformat;
-    SwsContext *img_convert_ctx_filtering;
+    friend class DecodingThread;
+
 public:
 
     VideoPicture();
@@ -185,6 +182,26 @@ public:
     enum PixelFormat getFormat() const {
          return pixelformat;
     }
+    /**
+      *
+      */
+    enum {
+        ACTION_SHOW = 1,
+        ACTION_STOP = 2,
+        ACTION_SEEK = 4
+    };
+    typedef unsigned short Action;
+    inline bool hasAction(Action a) const { return (action & a); }
+    inline void setAction(Action a) { action = a; }
+
+private:
+    AVPicture rgb, *oldframe;
+    int width, height;
+    bool allocated, convert_rgba_palette;
+    double pts;
+    enum PixelFormat pixelformat;
+    SwsContext *img_convert_ctx_filtering;
+    Action action;
 };
 
 class ParsingThread;
@@ -309,6 +326,7 @@ public:
      * @return Const pointer to a VideoPicture; you cannot and should not modify the content of the VideoPicture. Just use it to read the buffer.
      */
     const VideoPicture *getPictureAtIndex(int index) const;
+    inline const int getPictureMaxIndex() const { return pictq_allocated; }
     /**
      * Test if a file was open for this VideoFile.
      *
@@ -330,9 +348,7 @@ public:
      *
      * @return true if paused.
      */
-    inline bool isPaused() const {
-        return pause_video;
-    }
+    bool isPaused() const ;
     /**
      * Test if in loop mode.
      *
@@ -413,7 +429,7 @@ public:
         if (video_st)
             return video_st->codec->height;
         else
-            return targetWidth;
+            return targetHeight;
     }
     /**
      * Get the aspect ratio of the video stream.
@@ -441,25 +457,25 @@ public:
      *
      * @return Time stamp of the first frame of the stream, in stream time base (usually frame number).
      */
-    int64_t getBegin() const;
+    double  getBegin() const;
     /**
      * Get the time of the last picture in VideoFile.
      *
      * @return Time stamp of the last frame, in stream time base (usually frame number).
      */
-    int64_t getEnd() const;
+    double  getEnd() const;
     /**
      * Get the time of the current frame.
      *
      * @return frame Time stamp of the current frame, in stream time base (usually frame number).
      */
-    int64_t getCurrentFrameTime() const;
+    double  getCurrentFrameTime() const;
     /**
      * Get the time when the IN mark was set
      *
      * @return Mark IN time, in stream time base (usually frame number).
      */
-    inline int64_t getMarkIn() const {
+    inline double  getMarkIn() const {
         return mark_in;
     }
     /**
@@ -467,13 +483,13 @@ public:
      *
      * @param t Mark IN time, in stream time base (usually frame number).
      */
-    void setMarkIn(int64_t t);
+    void setMarkIn(double  t);
     /**
      * Get the time when the OUT mark was set
      *
      * @return Mark OUT time, in stream time base (usually frame number).
      */
-    inline int64_t getMarkOut() const {
+    inline double  getMarkOut() const {
         return mark_out;
     }
     /**
@@ -481,7 +497,7 @@ public:
      *
      * @param t Mark OUT time, in stream time base (usually frame number).
      */
-    void setMarkOut(int64_t t);
+    void setMarkOut(double  t);
     /**
      * Requests a seek (jump) into the video to the time t.
      *
@@ -489,7 +505,7 @@ public:
      *
      * @param t Time where to jump to, in stream time base (usually frame number). t shall be > 0 and < getEnd().
      */
-    void seekToPosition(int64_t t);
+    void seekToPosition(double  t);
     /**
      * Requests a seek (jump) into the video by a given amount of seconds.
      *
@@ -505,28 +521,28 @@ public:
      *
      * @param ss Amount of frames to jump; if ss > 0 it seeks forward. if ss < 0, it seeks backward.
      */
-    void seekByFrames(int64_t ss);
+    void seekByFrames(int  si);
     /**
      * Gives a string for human readable display of time (hh:mm:ss.ms) from a stream time-base value (frames).
      *
      * @param t a time in stream time base (usually frame number)
      * @return a string in 'hh:mm:ss.ms' format
      */
-    QString getTimeFromFrame(int64_t t) const;
+    QString getTimeFromFrame(double  t) const;
     /**
      * Gives a string for human readable display of frame (e.g. "frame: 125") from a stream time-base value (frames).
      *
      * @param t a time in stream time base (usually frame number)
      * @return a string in 'frame: f' format
      */
-    QString getExactFrameFromFrame(int64_t t) const;
+    QString getExactFrameFromFrame(double  t) const;
     /**
      * Gives a value in stream time-base (frames) from a given string in a human readable time format (hh:mm:ss.ms).
      *
      * @return a time in stream time base (usually frame number) if the parameter was ok, -1 otherwise.
      * @param t a string in 'hh:mm:ss.ms' format
      */
-    int64_t getFrameFromTime(QString t) const;
+//    double  getFrameFromTime(QString t) const;
     /**
      * Displays a dialog window (QDialog) listing the formats and video codecs supported for reading.
      *
@@ -584,7 +600,7 @@ public Q_SLOTS:
      * @param markOut Position of the mark OUT where to stop.
      * @return true on success
      */
-    bool open(QString file, int64_t markIn = 0, int64_t markOut = 0, bool ignoreAlphaChannel = false);
+    bool open(QString file, double  markIn = -1.0, double  markOut = -1.0, bool ignoreAlphaChannel = false);
     /**
      *
      */
@@ -701,14 +717,14 @@ public Q_SLOTS:
      * Does nothing if the process is not running (started).
      */
     inline void seekBackward() {
-        seekByFrames(-SEEK_STEP * getEnd());
+        seekBySeconds(-SEEK_STEP * getDuration());
     }
     /**
      * Seek forward of SEEK_STEP percent of the movie duration.
      * Does nothing if the process is not running (started).
      */
     inline void seekForward() {
-        seekByFrames(SEEK_STEP * getEnd());
+        seekBySeconds(SEEK_STEP * getDuration());
     }
     /**
      *  Seek backward to the movie first frame.
@@ -820,6 +836,7 @@ protected:
     class PacketQueue {
         AVPacketList *first_pkt, *last_pkt;
         static AVPacket *flush_pkt;
+        static AVPacket *eof_pkt;
         int nb_packets;
         int size;
         QMutex *mutex;
@@ -833,18 +850,21 @@ protected:
         bool put(AVPacket *pkt);
         bool flush();
         bool isFlush(AVPacket *pkt) const;
+        bool endFile();
+        bool isEndOfFile(AVPacket *pkt) const;
         bool isFull() const;
         inline bool isEmpty() const { return size == 0; }
         inline int getSize() const { return size; }
     };
 
     // internal methods
-    double get_clock();
     void reset();
-    void fill_first_frame(bool);
+    double fill_first_frame(bool);
     int stream_component_open(AVFormatContext *);
     double synchronize_video(AVFrame *src_frame, double pts);
-    void queue_picture(AVFrame *pFrame, double pts);
+    void queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a = VideoPicture::ACTION_SHOW);
+    void flush_picture_queue();
+    void requestSeekTo(double time);
     static int roundPowerOfTwo(int v);
 
     // Video and general information
@@ -863,35 +883,60 @@ protected:
     AVPicture deinterlacing_picture;
 
     // seeking management
-    bool seek_req, seek_backward, seek_any;
-    int64_t seek_pos;
-    int64_t mark_in;
-    int64_t mark_out;
-    int64_t mark_stop;
+    QMutex *seek_mutex;
+    QWaitCondition *seek_cond;
+    typedef enum {
+        PARSING_NORMAL = 0,
+        PARSING_SEEKREQUEST,
+        PARSING_SEEKING
+    } ParsingMode;
+    ParsingMode parsing_mode;
+    //    bool seek_req, seek_backward, seek_any, is_seeking;
+    bool seek_backward, seek_any;
+    double  seek_pos;
+    double  mark_in;
+    double  mark_out;
+    double  mark_stop;
 
     // time management
-    double frame_timer;
-    double frame_last_pts;
-    double frame_last_delay;
-    double video_clock;
-    double video_current_pts;
-    int64_t video_current_pts_time;
-
+    double video_pts;
+    double current_frame_pts;
     QTimer *ptimer;
-    double play_speed;
-    double min_frame_delay, max_frame_delay;
+    class Clock
+    {
+        bool _paused;
+        double _speed;
+        double _time_on_start;
+        double _time_on_pause;
+        double _min_frame_delay;
+        double _max_frame_delay;
+        double _frame_base;
+
+    public:
+        Clock();
+        void reset(double deltat, double timebase = -1.0);
+        void pause(bool);
+        void setSpeed(double);
+
+        bool paused() const;
+        double time() const;
+        double speed() const;
+        double timeBase() const;
+        double minFrameDelay() const;
+        double maxFrameDelay() const;
+    };
+    Clock _videoClock;
 
     // picture queue management
-    VideoPicture pictq[VIDEO_PICTURE_QUEUE_SIZE];
-    int pictq_size, pictq_rindex, pictq_windex;
-    bool pictq_skip;
+    VideoPicture pictq[MAX_VIDEO_PICTURE_QUEUE_SIZE];
+    int pictq_size, pictq_allocated, pictq_rindex, pictq_windex;
+    bool pictq_skip, pictq_flush_req;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
     bool powerOfTwo;
     int targetWidth, targetHeight;
     int conversionAlgorithm;
     VideoPicture firstPicture, blackPicture;
-    AVFrame *firstFrame;
     VideoPicture *resetPicture;
 
     // Threads and execution manangement
@@ -899,8 +944,6 @@ protected:
     DecodingThread *decod_tid;
     bool quit;
     bool loop_video;
-    bool pause_video;
-    bool pause_video_last;
     bool restart_where_stopped;
 
     // ffmpeg util
