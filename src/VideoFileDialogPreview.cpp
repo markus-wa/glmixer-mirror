@@ -109,7 +109,7 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
             previewWidget->updateFrame(-1);
             // fill in details
             CodecNameLineEdit->setText(is->getCodecName());
-            endLineEdit->setText( is->getTimeFromFrame(is->getEnd()) );
+            endLineEdit->setText( is->getStringTimeFromtime(is->getEnd()) );
             // is there more than one frame ?
             if ( is->getEnd() > 1 ) {
                 startButton->setEnabled( true );

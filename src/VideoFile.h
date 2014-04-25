@@ -525,17 +525,24 @@ public:
     /**
      * Gives a string for human readable display of time (hh:mm:ss.ms) from a stream time-base value (frames).
      *
-     * @param t a time in stream time base (usually frame number)
+     * @param t a time in stream time base
      * @return a string in 'hh:mm:ss.ms' format
      */
-    QString getTimeFromFrame(double  t) const;
+    QString getStringTimeFromtime(double  t) const;
     /**
      * Gives a string for human readable display of frame (e.g. "frame: 125") from a stream time-base value (frames).
      *
-     * @param t a time in stream time base (usually frame number)
+     * @param t a time in stream time base
      * @return a string in 'frame: f' format
      */
-    QString getExactFrameFromFrame(double  t) const;
+    QString getStringFrameFromTime(double  t) const;
+    /**
+     * Convert frame stamp (of frame) to time
+     *
+     * @param f a frame stamp in the av stream (usually frame number)
+     * @return a time in stream time base
+     */
+    double getTimefromFrame(int64_t  f) const;
     /**
      * Gives a value in stream time-base (frames) from a given string in a human readable time format (hh:mm:ss.ms).
      *

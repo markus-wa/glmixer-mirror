@@ -1615,7 +1615,7 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
 
 }
 
-int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
+int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QString version) {
 
     QList<QDomElement> clones;
     int errors = 0;
@@ -1671,8 +1671,31 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current) {
                     fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
                 // if there is such a file
                 if (QFileInfo(fileNameToOpen).exists()) {
+
+                    double markin, markout;
+                    // old version used different system for marking : ignore the values for now
+                    if ( version.toDouble() < QString(XML_GLM_VERSION).toDouble()) {
+                        markin = -1.0;
+                        markout = -1.0;
+
+                        qDebug() << "OLD MARKS" ;
+                    } else {
+                        markin = marks.attribute("In").toDouble();
+                        markout = marks.attribute("Out").toDouble();
+                        qDebug() << "NEW MARKS" << version << QString(XML_GLM_VERSION);
+                    }
+
                     // can we open this existing file ?
-                    if ( newSourceVideoFile->open( fileNameToOpen, marks.attribute("In").toDouble(), marks.attribute("Out").toDouble(), Filename.attribute("IgnoreAlpha").toInt() ) ) {
+                    if ( newSourceVideoFile->open( fileNameToOpen, markin, markout, Filename.attribute("IgnoreAlpha").toInt() ) ) {
+
+                        // fix old version marking : compute marks correctly
+                        if ( version.toDouble() < QString(XML_GLM_VERSION).toDouble()) {
+                            qDebug() << "OLD FILE";
+                            newSourceVideoFile->setMarkIn(newSourceVideoFile->getTimefromFrame((int64_t)marks.attribute("In").toInt()));
+                            newSourceVideoFile->setMarkOut(newSourceVideoFile->getTimefromFrame((int64_t)marks.attribute("Out").toInt()));
+                            qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Converted marks from old version file: begin = %1 (%2)  end = %3 (%4)").arg(newSourceVideoFile->getMarkIn()).arg(marks.attribute("In").toInt()).arg(newSourceVideoFile->getMarkOut()).arg(marks.attribute("Out").toInt());
+                        }
+
                         // create the source as it is a valid video file (this also set it to be the current source)
                         newsource = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile, depth);
                         if (newsource){

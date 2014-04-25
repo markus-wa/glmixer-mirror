@@ -816,7 +816,7 @@ public:
         infoManager->setValue(idToProperty["File size"], getSizeString( QFileInfo(vf->getFileName()).size() ) );
         infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
         infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
-        infoManager->setValue(idToProperty["Duration"], vf->getTimeFromFrame(vf->getEnd()) );
+        infoManager->setValue(idToProperty["Duration"], vf->getStringTimeFromtime(vf->getEnd()) );
         infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? QObject::tr("Yes") : QObject::tr("No") );
         boolManager->setValue(idToProperty["Ignore alpha"], vf->ignoresAlphaChannel());
         sizeManager->setValue(idToProperty["Original size"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );

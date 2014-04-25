@@ -678,21 +678,23 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     if (video_st->nb_frames == AV_NOPTS_VALUE || video_st->nb_frames < 1 )
         video_st->nb_frames = getDuration() / av_q2d(video_st->time_base);
 
-	// check the parameters for mark in and out and setup marking accordingly
-    if (markIn < 0)
-		mark_in = getBegin();
-	else
-	{
-		mark_in = qBound(getBegin(), markIn, getEnd());
-        mark_stop = markIn;
-        emit markingChanged();
-	}
+    // how many pictures to allocate
+    pictq_allocated = qMin( (int)video_st->nb_frames, MAX_VIDEO_PICTURE_QUEUE_SIZE);
 
-    if (markOut < 0)
-		mark_out = getEnd(); // default to end of file
+    // check the parameters for mark in and out and setup marking accordingly
+    if (markIn < 0)
+        mark_in = getBegin();
     else
     {
-		mark_out = qBound(mark_in, markOut, getEnd());
+        mark_in = qBound(getBegin(), markIn, getEnd());
+        emit markingChanged();
+    }
+
+    if (markOut < 0)
+        mark_out = getEnd(); // default to end of file
+    else
+    {
+        mark_out = qBound(mark_in, markOut, getEnd());
         emit markingChanged();
     }
 
@@ -740,7 +742,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	// (i.e. optimal 'unscaled' converter is used by default)
 	if (conversionAlgorithm == 0)
 	{
-		if (getEnd() - getBegin() == 1)
+        if ( pictq_allocated < 2 )
 			conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
 		else
 			conversionAlgorithm = SWS_POINT;   // optimal speed scaling for videos
@@ -759,7 +761,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	// (The ignore alpha flag is normally requested when the source is rgba
 	// and in this case, optimal conversion from rgba to rgba is to do nothing : but
 	// this means there is no conversion, and no brightness/contrast is applied)
-	if (ignoreAlpha || (getEnd() - getBegin() == 1))
+    if (ignoreAlpha || (pictq_allocated < 2))
 		// Setup a filter to enforce a per-pixel conversion (here a slight blur)
 		filter = sws_getDefaultFilter(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0);
 	else
@@ -778,21 +780,17 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 		return false;
 	}
 
-	/* allocate the buffers */
-    pictq_allocated = qMin( (int)video_st->nb_frames, MAX_VIDEO_PICTURE_QUEUE_SIZE);
+    /* allocate the buffers */
 	// no need for the picture queue if there is less than 2 frame...
-    if ( pictq_allocated > 1)
-	{
-        for (int i = 0; i < pictq_allocated; ++i)
-		{
-			if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette))
-			{
-				// Cannot allocate Video Pictures!
-                qWarning() << filename << QChar(124).toLatin1()<< tr( "Cannot allocate pictures buffer.");
-				return false;
-			}
-		}
-	}
+    for (int i = 0; i < pictq_allocated; ++i)
+    {
+        if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette))
+        {
+            // Cannot allocate Video Pictures!
+            qWarning() << filename << QChar(124).toLatin1()<< tr( "Cannot allocate pictures buffer.");
+            return false;
+        }
+    }
 
 	// we may need a black Picture frame to return when stopped
 	if (!blackPicture.allocate(0, targetWidth, targetHeight))
@@ -803,8 +801,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	}
 
 	// we need a picture to display when not decoding
-	if (!firstPicture.allocate(img_convert_ctx, targetWidth, targetHeight,
-			targetFormat, rgba_palette))
+    if (!firstPicture.allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette))
 	{
 		// Cannot allocate Video Pictures!
         qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot allocate picture buffer.");
@@ -813,6 +810,9 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
 	// read firstPicture (not a big problem if fails; it would just be black)
     current_frame_pts = fill_first_frame(false);
+    mark_stop = current_frame_pts;
+
+    // use first picture as reset picture
 	resetPicture = &firstPicture;
 
 	// display a firstPicture frame ; this shows that the video is open
@@ -1076,6 +1076,11 @@ double VideoFile::getCurrentFrameTime() const
     return current_frame_pts;
 }
 
+double VideoFile::getTimefromFrame(int64_t  f) const
+{
+    return f * av_q2d(video_st->time_base);
+}
+
 double VideoFile::getFrameRate() const
 {
     if (video_st)
@@ -1142,7 +1147,7 @@ void VideoFile::seekByFrames(int si)
     seekToPosition( current_frame_pts + (double) si * av_q2d(video_st->time_base));
 }
 
-QString VideoFile::getTimeFromFrame(double time) const
+QString VideoFile::getStringTimeFromtime(double time) const
 {
 	int s = (int) time;
 	time -= s;
@@ -1154,7 +1159,7 @@ QString VideoFile::getTimeFromFrame(double time) const
 			2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
 }
 
-QString VideoFile::getExactFrameFromFrame(double t) const
+QString VideoFile::getStringFrameFromTime(double t) const
 {
 //	if (video_st->nb_frames > 0)
 //        return (QString("Frame %1").arg((int) (video_st->nb_frames * double(t

@@ -1311,9 +1311,9 @@ void GLMixer::refreshTiming(){
     frameSlider->setValue(f_percent);
 
     if (_displayTimeAsFrame)
-        timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
+        timeLineEdit->setText( selectedSourceVideoFile->getStringFrameFromTime(selectedSourceVideoFile->getCurrentFrameTime()) );
     else
-        timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getCurrentFrameTime()) );
+        timeLineEdit->setText( selectedSourceVideoFile->getStringTimeFromtime(selectedSourceVideoFile->getCurrentFrameTime()) );
 
 }
 
@@ -1336,9 +1336,9 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
 
             // show the time of the frame (refreshTiming disabled)
             if (_displayTimeAsFrame)
-                timeLineEdit->setText( selectedSourceVideoFile->getExactFrameFromFrame(pos) );
+                timeLineEdit->setText( selectedSourceVideoFile->getStringFrameFromTime(pos) );
             else
-                timeLineEdit->setText( selectedSourceVideoFile->getTimeFromFrame(pos) );
+                timeLineEdit->setText( selectedSourceVideoFile->getStringTimeFromtime(pos) );
 
             // let the VideoFile run till it displays the frame seeked
             selectedSourceVideoFile->pause(false);
@@ -1440,11 +1440,11 @@ void GLMixer::updateMarks (){
         o_percent = (int) ( (double)( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
 
         if (_displayTimeAsFrame) {
-            markInSlider->setToolTip( tr("Begin: ") + selectedSourceVideoFile->getExactFrameFromFrame(selectedSourceVideoFile->getMarkIn()) );
-            markOutSlider->setToolTip( tr("End: ") + selectedSourceVideoFile->getExactFrameFromFrame(selectedSourceVideoFile->getMarkOut()) );
+            markInSlider->setToolTip( tr("Begin: ") + selectedSourceVideoFile->getStringFrameFromTime(selectedSourceVideoFile->getMarkIn()) );
+            markOutSlider->setToolTip( tr("End: ") + selectedSourceVideoFile->getStringFrameFromTime(selectedSourceVideoFile->getMarkOut()) );
         } else {
-            markInSlider->setToolTip( tr("Begin: ") + selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getMarkIn()) );
-            markOutSlider->setToolTip( tr("End: ") + selectedSourceVideoFile->getTimeFromFrame(selectedSourceVideoFile->getMarkOut()) );
+            markInSlider->setToolTip( tr("Begin: ") + selectedSourceVideoFile->getStringTimeFromtime(selectedSourceVideoFile->getMarkIn()) );
+            markOutSlider->setToolTip( tr("End: ") + selectedSourceVideoFile->getStringTimeFromtime(selectedSourceVideoFile->getMarkOut()) );
         }
 
     }
@@ -1827,10 +1827,15 @@ void GLMixer::openSessionFile()
         qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot open file.");
         currentSessionFileName = QString();
         return;
-    } else if (root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION) {
-        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("The version of the file is ") << root.attribute("version") << tr(" instead of ") <<XML_GLM_VERSION;
-        qCritical() << currentSessionFileName << QChar(124).toLatin1()<< tr("Incorrect file version. Trying to read what is compatible.");
     }
+    QString version = "0.0";
+    if ( root.hasAttribute("version") )
+        version = root.attribute("version");
+    if ( version != XML_GLM_VERSION ) {
+        qWarning() << currentSessionFileName << QChar(124).toLatin1()<< tr("The version of the file is ") << root.attribute("version") << tr(" instead of ") << XML_GLM_VERSION;
+        qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Incorrect file version. Trying to read what is compatible.");
+    }
+
     // if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
     RenderingManager::getInstance()->clearSourceSet();
     // read the source list and its configuration
@@ -1863,8 +1868,9 @@ void GLMixer::openSessionFile()
         RenderingManager::getInstance()->setGammaShift(g);
         // read the list of sources
         qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session.");
+
         // if we got up to here, it should be fine
-        int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath());
+        int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
         if ( errors > 0)
             qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when reading session.");
 
@@ -1963,10 +1969,15 @@ void GLMixer::on_actionAppend_Session_triggered(){
             qWarning() << fileName << QChar(124).toLatin1()<< tr("This is not a GLMixer session file.");
             qCritical() << fileName << QChar(124).toLatin1()<< tr("Cannot open file.");
             return;
-        } else if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION ) {
-            qWarning() << fileName << QChar(124).toLatin1()<< tr("The version of the file is ") << root.attribute("version") << tr(" instead of ") <<XML_GLM_VERSION;
+        }
+
+        QString version = "0.0";
+        if ( root.hasAttribute("version") )
+            version = root.attribute("version");
+
+        if ( version != XML_GLM_VERSION ) {
+            qWarning() << fileName << QChar(124).toLatin1()<< tr("The version of the file is ") << root.attribute("version") << tr(" instead of ") << XML_GLM_VERSION;
             qCritical() << fileName << QChar(124).toLatin1() << tr("Incorrect file version. Trying to read what is compatible.");
-            return;
         }
 
         // read the content of the source list to make sure the file is correct :
@@ -1978,7 +1989,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
 
         // if we got up to here, it should be fine
         qDebug() << fileName << QChar(124).toLatin1() << tr("Adding list of sources.");
-        int errors = RenderingManager::getInstance()->addConfiguration(srcconfig, QFileInfo(currentSessionFileName).canonicalPath());
+        int errors = RenderingManager::getInstance()->addConfiguration(srcconfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
         if ( errors > 0)
             qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when reading session.");
 

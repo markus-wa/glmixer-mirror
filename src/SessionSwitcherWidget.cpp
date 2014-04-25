@@ -97,9 +97,6 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
     if ( root.tagName() != "GLMixer" )
         return;
 
-    if ( root.hasAttribute("version") && root.attribute("version") != XML_GLM_VERSION )
-        return;
-
     QDomElement srcconfig = root.firstChildElement("SourceList");
     if ( srcconfig.isNull() )
         return;
