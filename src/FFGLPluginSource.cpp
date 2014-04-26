@@ -416,12 +416,29 @@ QString FFGLPluginSource::libraryFileName(QString embeddedName)
     // replace the plugin file in temporary location
     // (make sure we do it each new run of GLMixer (might have been updated)
     // and in case the file does not exist (might have been deleted by sytem) )
-    if ( QFile::remove(plugindll.absoluteFilePath())) {
+
+    if (plugindll.exists()) {
+        qDebug() << "plugin exists "<< plugindll.absoluteFilePath();
+        // try to remove : does not work if in use
+        if ( QFile::remove(plugindll.absoluteFilePath()) ) {
+
+            if ( QFile::copy(QString(":/ffgl/%1").arg(embeddedName), plugindll.absoluteFilePath()) ) {
+                QFile::setPermissions(plugindll.absoluteFilePath(), QFile::ReadOwner | QFile::WriteOwner);
+            } else
+                qCritical() << QObject::tr("Error creating temporary file plugin (%1).").arg(plugindll.absoluteFilePath());
+        }
+        else
+        qDebug() << QObject::tr("Error removing temporary file plugin (%1).").arg(plugindll.absoluteFilePath());
+    }
+    else {
+
+        qDebug() << "plugin NOT exists "<< plugindll.absoluteFilePath();
         if ( QFile::copy(QString(":/ffgl/%1").arg(embeddedName), plugindll.absoluteFilePath()) ) {
             QFile::setPermissions(plugindll.absoluteFilePath(), QFile::ReadOwner | QFile::WriteOwner);
         } else
             qCritical() << QObject::tr("Error creating temporary file plugin (%1).").arg(plugindll.absoluteFilePath());
     }
+
     return plugindll.absoluteFilePath();
 }
 
