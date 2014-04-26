@@ -142,6 +142,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 {
     setupUi ( this );
 
+    // hide logs on show
+    logDockWidget->hide();
 
 #ifndef SHM
     actionShareToRAM->setVisible(false);
@@ -588,12 +590,13 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
             // create message box
             QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),  tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
             QStringList message = txt.split(QChar(124), QString::SkipEmptyParts);
+            QString displaytext = txt;
             if (message.count() > 1 ) {
-                txt = message[1].simplified();
+                displaytext = message[1].simplified();
                 if ( !message[0].simplified().isEmpty() )
-                    txt += tr("\n\nOrigin of the problem:\n") + message[0].simplified();
+                    displaytext += tr("\n\nOrigin of the problem:\n") + message[0].simplified();
             } else if (message.count() > 0 )
-                txt = message[0].simplified();
+                displaytext = message[0].simplified();
 
             // add button to show logs
             QPushButton *logButton = NULL;
@@ -601,7 +604,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
                 logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
 
             // exec message box
-            msgBox.setInformativeText(txt);
+            msgBox.setInformativeText(displaytext);
             msgBox.setDefaultButton(QMessageBox::Ok);
             msgBox.exec();
 
@@ -1831,7 +1834,6 @@ void GLMixer::openSessionFile()
     QDomElement root = doc.documentElement();
     if (root.tagName() != "GLMixer") {
         qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("This is not a GLMixer session file; ");
-        qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Cannot open file.");
         currentSessionFileName = QString();
         return;
     }
@@ -1839,8 +1841,8 @@ void GLMixer::openSessionFile()
     if ( root.hasAttribute("version") )
         version = root.attribute("version");
     if ( version != XML_GLM_VERSION ) {
-        qWarning() << currentSessionFileName << QChar(124).toLatin1()<< tr("The version of the file is ") << root.attribute("version") << tr(" instead of ") << XML_GLM_VERSION;
-        qCritical() << currentSessionFileName << QChar(124).toLatin1() << tr("Incorrect file version. Trying to read what is compatible.");
+        qCritical() << currentSessionFileName << QChar(124).toLatin1()<< tr("The version of the file is ") << root.attribute("version") << tr(" instead of ") << XML_GLM_VERSION;
+        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("Reading the file anyway.");
     }
 
     // if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
@@ -2253,7 +2255,7 @@ void GLMixer::on_actionResetToolbars_triggered()
     restoreDockWidget(cursorDockWidget);
     restoreDockWidget(mixingDockWidget);
     restoreDockWidget(switcherDockWidget);
-    restoreDockWidget(logDockWidget);
+    logDockWidget->hide();
 
     qDebug() << tr("Default layout restored.");
 }
@@ -2284,9 +2286,6 @@ void GLMixer::restorePreferences(const QByteArray & state){
     }
 
     if (storedMagicNumber != magicNumber || majorVersion != currentMajorVersion) {
-
-        // hide logs on first show
-        logDockWidget->hide();
 
         // set dialog in minimal mode
         upd->setModeMinimal(true);

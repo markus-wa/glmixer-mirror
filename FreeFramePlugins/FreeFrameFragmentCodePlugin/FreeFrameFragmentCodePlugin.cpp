@@ -45,16 +45,11 @@ FFResult FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
     viewport.width = vp->width;
     viewport.height = vp->height;
 
-
     glewInit();
-    if (GLEW_VERSION_2_0)
-        fprintf(stderr, "INFO: OpenGL 2.0 supported, proceeding\n");
-    else
-    {
-        fprintf(stderr, "INFO: OpenGL 2.0 not supported. Exit\n");
+    if (!GLEW_VERSION_2_0) {
+        fprintf(stderr, "OpenGL 2.0 not supported. Cannot use shadertoy plugin.\n");
         return FF_FAIL;
     }
-
 
     //init gl extensions
     glExtensions.Initialize();

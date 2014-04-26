@@ -4,13 +4,13 @@
 #include <FFGLLib.h>
 
 #include <cmath>
+#include <iostream>
 
 #include "escapiFFGL.h"
 #include "escapi.h"
 #include "error_image.h"
 
 #include <pthread.h>
-#include <stdio.h>
 
 #define MAX_WIDTH 640
 #define MAX_HEIGHT 480
@@ -116,8 +116,7 @@ static CFFGLPluginInfo PluginInfo (
 //  Constructor and destructor
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-escapiFreeFrameGL::escapiFreeFrameGL()
-: CFreeFrameGLPlugin()
+escapiFreeFrameGL::escapiFreeFrameGL() : CFreeFrameGLPlugin()
 {
     data = new escapiFreeFrameGLData;
 
@@ -131,13 +130,7 @@ escapiFreeFrameGL::escapiFreeFrameGL()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD   escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
-#else
-    // FFGL 1.6
-    FFResult escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
-#endif
+DWORD   escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
 {
 
     glEnable(GL_TEXTURE);
@@ -161,7 +154,7 @@ escapiFreeFrameGL::escapiFreeFrameGL()
     if(escapiFreeFrameGLData::num_device == 0)
     {
         escapiFreeFrameGLData::num_device = setupESCAPI();
-        fprintf(stderr, "ESCAPI initialization %d devices found.\n", escapiFreeFrameGLData::num_device);
+        std::cerr << "ESCAPI initialization : "<< escapiFreeFrameGLData::num_device <<" device available." <<std::endl;
     }
 
     if (escapiFreeFrameGLData::num_device > 0) {
@@ -185,7 +178,7 @@ escapiFreeFrameGL::escapiFreeFrameGL()
 
             // keep track of used devices
             escapiFreeFrameGLData::device_used[data->deviceid] = true;
-            fprintf(stderr, "ESCAPI using device %d.\n", data->deviceid);
+            std::cerr << "ESCAPI initialization : using device "<<data->deviceid <<std::endl;
 
             getCaptureDeviceName(data->deviceid, data->dev_name, 255);
 
@@ -209,24 +202,19 @@ escapiFreeFrameGL::escapiFreeFrameGL()
             data->stop = false;
             int rc = pthread_create( &(data->thread), NULL, &update_thread, (void *) data);
             if( rc != 0 )
-               fprintf(stderr,"Thread creation failed: %d\n", rc);
+                std::cerr << "ESCAPI initialization : Thread creation failed" <<std::endl;
 
         }
         else
-            fprintf(stderr, "ESCAPI no device available.\n");
+            std::cerr << "ESCAPI initialization : no device available" <<std::endl;
+
     }
 
     return FF_SUCCESS;
 }
 
 
-#ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD   escapiFreeFrameGL::DeInitGL()
-#else
-    // FFGL 1.6
-    FFResult escapiFreeFrameGL::DeInitGL()
-#endif
+DWORD   escapiFreeFrameGL::DeInitGL()
 {
     // end capture if not stopped
     if (! data->stop) {
@@ -239,13 +227,7 @@ escapiFreeFrameGL::escapiFreeFrameGL()
     return FF_SUCCESS;
 }
 
-#ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD   escapiFreeFrameGL::SetTime(double time)
-#else
-    // FFGL 1.6
-    FFResult escapiFreeFrameGL::SetTime(double time)
-#endif
+DWORD   escapiFreeFrameGL::SetTime(double time)
 {
   if (data)
       data->m_curTime = time;
@@ -253,13 +235,7 @@ escapiFreeFrameGL::escapiFreeFrameGL()
   return FF_SUCCESS;
 }
 
-#ifdef FF_FAIL
-    // FFGL 1.5
-    DWORD	escapiFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
-#else
-    // FFGL 1.6
-    FFResult escapiFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
-#endif
+DWORD	escapiFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 {
   glClear(GL_COLOR_BUFFER_BIT );
 

@@ -107,11 +107,9 @@ FFResult FreeFrameBlur::InitGL(const FFGLViewportStruct *vp)
         return FF_FAIL;
 
     glewInit();
-    if (GLEW_VERSION_2_0)
-        fprintf(stderr, "INFO: OpenGL 2.0 supported, proceeding\n");
-    else
+    if (!GLEW_VERSION_2_0)
     {
-        fprintf(stderr, "INFO: OpenGL 2.0 not supported. Exit\n");
+        fprintf(stderr, "OpenGL 2.0 not supported. Exiting freeframe plugin.\n");
         return FF_FAIL;
     }
 
