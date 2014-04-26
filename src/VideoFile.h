@@ -43,7 +43,7 @@ extern "C" {
 /**
  * Dimension of the queue of VideoPictures in a VideoFile
  */
-#define MAX_VIDEO_PICTURE_QUEUE_SIZE 20
+#define MAX_VIDEO_PICTURE_QUEUE_SIZE 100
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -51,9 +51,8 @@ extern "C" {
 #define SEEK_STEP 0.1
 /**
  * During decoding, the thread sleep for a little while in case there is an error or nothing to do.
- * 100 miliseconds is the ffplay default. The lower the more busy the CPU will be.
  */
-#define SLEEP_DELAY 50
+#define PARSING_SLEEP_DELAY 50
 
 /**
  * Frames of a VideoFile are decoded and converted to VideoPictures.
@@ -192,8 +191,10 @@ public:
         ACTION_SKIP = 8
     };
     typedef unsigned short Action;
+    inline void resetAction() { action = ACTION_SHOW; }
+    inline void addAction(Action a) { action |= a; }
+    inline void removeAction(Action a) { action ^= (action & a); }
     inline bool hasAction(Action a) const { return (action & a); }
-    inline void setAction(Action a) { action = a; }
 
 private:
     AVPicture rgb, *oldframe;
@@ -944,7 +945,7 @@ protected:
     // picture queue management
     VideoPicture pictq[MAX_VIDEO_PICTURE_QUEUE_SIZE];
     int pictq_size, pictq_allocated, pictq_rindex, pictq_windex;
-    bool pictq_skip, pictq_flush_req;
+    bool pictq_flush_req;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
     bool powerOfTwo;

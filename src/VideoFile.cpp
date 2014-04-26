@@ -416,10 +416,6 @@ VideoFile::~VideoFile()
 	if (deinterlacing_buffer)
 		av_free(deinterlacing_buffer);
 
-	// TODO : why does it crashes if I free the avformat context ?
-    if (pFormatCtx)
-        avformat_free_context(pFormatCtx);
-
 }
 
 void VideoFile::reset()
@@ -431,7 +427,6 @@ void VideoFile::reset()
 	pictq_rindex = 0;
     seek_pos = 0.0;
     seek_backward = false;
-    pictq_skip = false;
     pictq_flush_req = false;
     parsing_mode = VideoFile::PARSING_NORMAL;
 
@@ -497,18 +492,10 @@ void VideoFile::start()
         // request partsing thread to perform seek
         parsing_mode = VideoFile::PARSING_SEEKREQUEST;
 
-        // restart where we where (if valid mark)
-//        if (restart_where_stopped && mark_stop < mark_out && mark_stop > mark_in)
-//           seekToPosition(mark_stop);
-//        // otherwise restart at beginning
-//        else
-//            seekToPosition(mark_in);
-//        fprintf(stderr, "\nseek_request from start : seek to %f\n", seek_pos);
-
 		// start parsing and decoding threads
+        ptimer->start();
 		parse_tid->start();
-		decod_tid->start();
-        ptimer->start(5);
+        decod_tid->start();
 
 		/* say if we are running or not */
         emit running(!quit);
@@ -830,72 +817,62 @@ double VideoFile::fill_first_frame(bool seek)
 {
 	AVPacket pkt1;
 	AVPacket *packet = &pkt1;
+    AVFrame *tmpframe = avcodec_alloc_frame();
     int frameFinished = 0;
     double pts = mark_in;
-    AVFrame *firstFrame = avcodec_alloc_frame();
-
-//    fprintf(stderr, "fill first frame %f", mark_in);
+    int trial = 0;
 
     if (seek) {
         int64_t seek_target = av_rescale_q(mark_in, (AVRational){1, 1}, video_st->time_base);
 
-        int flags = 0;
+        int flags = AVSEEK_FLAG_BACKWARD;
         if ( seek_any )
             flags |= AVSEEK_FLAG_ANY;
-        if ( mark_in <= getCurrentFrameTime() )
-            flags |= AVSEEK_FLAG_BACKWARD;
 
         av_seek_frame(pFormatCtx, videoStream, seek_target, flags);
+
+        // flush seek stuff
+        avcodec_flush_buffers(video_st->codec);
+
+//        fprintf(stderr, "fill first frame seeked to %f (was at %f) \n", mark_in, getCurrentFrameTime());
     }
 
-	while (!frameFinished)
+    while (!frameFinished && trial < 2)
 	{
 		// read a packet
-        if (av_read_frame(pFormatCtx, packet) < 0)
-            break;
+        if (av_read_frame(pFormatCtx, packet) < 0){
+            trial++; // give it one more chance
+            continue;
+        }
 
 		// ignore non-video stream packets
 		if (packet->stream_index != videoStream)
 			continue;
 
-		// create an empty frame
-//		if (firstFrame)
-//			av_free(firstFrame);
-//		firstFrame = avcodec_alloc_frame();
-//		Q_CHECK_PTR(firstFrame);
-
 		// if we can decode it
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-        if (avcodec_decode_video2(video_st->codec, firstFrame, &frameFinished, packet) >= 0)
+        if (avcodec_decode_video2(video_st->codec, tmpframe, &frameFinished, packet) >= 0)
 		{
 #else
-			if ( avcodec_decode_video(video_st->codec, firstFrame, &frameFinished, packet->data, packet->size) >= 0)
+            if ( avcodec_decode_video(video_st->codec, tmpframe, &frameFinished, packet->data, packet->size) >= 0)
 			{
 #endif
             // if the frame is full
             if (frameFinished) {
-//                // loop again if it is not a key frame
-//                if (!firstFrame->key_frame) {
-//                    frameFinished = false;
-//                    continue;
-//                }
+
                 // try to get a pts from the packet
                 if (packet->dts != (int64_t) AV_NOPTS_VALUE)
                     pts =  double(packet->dts) * av_q2d(video_st->time_base);
+
                 // we can now fill in the first picture with this frame
-                firstPicture.fill((AVPicture *) firstFrame, pts);
+                firstPicture.fill((AVPicture *) tmpframe, pts);
             }
 		}
 	}
 
     // free memory
     av_free_packet(packet);
-    if (firstFrame)
-        av_free(firstFrame);
-
-    // flush seek stuff
-    if (seek)
-        avcodec_flush_buffers(video_st->codec);
+    av_free(tmpframe);
 
     return firstPicture.pts;
 }
@@ -933,8 +910,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
     codec = avcodec_find_decoder(codecCtx->codec_id);
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-    AVDictionary *d = NULL;
-    if (!codec || (avcodec_open2(codecCtx, codec, &d) < 0))
+    if (!codec || (avcodec_open2(codecCtx, codec, NULL) < 0))
 #else
     if (!codec || (avcodec_open(codecCtx, codec) < 0))
 #endif
@@ -951,125 +927,110 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 
 void VideoFile::video_refresh_timer()
 {
-    // keep static variables (avoid reallocation)
-    static VideoPicture *vp = NULL;
-    static double delay = 0.0;
+    // by default timer will be restarted ASAP
+    int ptimer_delay = 1;
 
-	if (video_st)
-	{
-        if (pictq_size < 1 || _videoClock.paused())
-		{
-			// no picture yet ? Quickly retry...
-			ptimer->start(10);
-			return;
+    // if all is in order, deal with the picture in the queue
+    // (i.e. there is a stream, there is a picture in the queue, and the clock is not paused)
+    if (video_st && pictq_size > 1 && !_videoClock.paused())
+    {
+        // now working on the picture at the read index
+        int current_frame = pictq_rindex;
 
-		}
-		else
-		{
-            // store time of frame
-            current_frame_pts =  pictq[pictq_rindex].pts;
+        // store time of this current frame
+        current_frame_pts =  pictq[current_frame].pts;
 
+        // tell the queue that we are done with this frame
+        // (whatever we will do with it below)
+        // the queue will be unblocked at the end of this block
+        if (++pictq_rindex == pictq_allocated)
+            pictq_rindex = 0;
 
-            if (current_frame_pts > mark_out || (current_frame_pts + av_q2d(video_st->time_base)) > getEnd() )
-            {
-//                fprintf(stderr, "\n\n FOUND OVERDUE FRAME at %f \n", vp->pts);
+        // detect if we over passed the marks or the end of stream
+        // TODO : remove this catch which should be delt on the queue directly
+        if (current_frame_pts > mark_out || (current_frame_pts + av_q2d(video_st->time_base)) > getEnd() )
+        {
+//            fprintf(stderr, "\n\n FOUND OVERDUE FRAME at %f \n", pictq[current_frame].pts);
 
-                // react according to loop mode
-                if (loop_video)
-                {
-                    seekToPosition(mark_in);
-                }
-                else
-                    // if loop mode off, stop
-                    stop();
-            }
-
-            // special case : this frame was tagged as seeking frame
-            if ( pictq[pictq_rindex].hasAction(VideoPicture::ACTION_SEEK) ) {
-
-//                fprintf(stderr, "FOUND SEEKING FRAME at %f \t\t video clock reseted.\n", pictq[pictq_rindex].pts);
-
-                // reset clock to the time of the seeked frame
-                _videoClock.reset(pictq[pictq_rindex].pts);
-
-                // reached the seeked frame! : can say we are not seeking anymore
-                seek_mutex->lock();
-                parsing_mode = VideoFile::PARSING_NORMAL;
-                seek_mutex->unlock();
-
-            }
-            else if ( pictq[pictq_rindex].hasAction(VideoPicture::ACTION_STOP) ) {
+            // react according to loop mode
+            if (loop_video)
+                seekToPosition(mark_in);
+            else
+                // if loop mode off, stop
                 stop();
-                return;
-            }
+        }
 
-            if ( pictq[pictq_rindex].hasAction(VideoPicture::ACTION_SKIP) ) {
+        // this frame was tagged as seeking frame
+        if ( pictq[current_frame].hasAction(VideoPicture::ACTION_SEEK) ) {
 
-//                fprintf(stderr, "skip frame for t = %f  at  pts = %f  \n",_videoClock.time(), pictq[pictq_rindex].pts);
-                // go to next frame
-                if (++pictq_rindex == pictq_allocated)
-                    pictq_rindex = 0;
+//            fprintf(stderr, "FOUND SEEKING FRAME at %f\n", pictq[current_frame].pts);
 
-                // now
-                ptimer->start(0);
-            }
+            // reset clock to the time of the seeked frame
+            _videoClock.reset(pictq[current_frame].pts);
+
+        }
+
+
+        if ( pictq[current_frame].hasAction(VideoPicture::ACTION_SHOW) ) {
+
+            // keep static variables (avoid reallocation)
+            static double delay = 0.0;
+
+            // show the picture at the current read index
+            emit frameReady(current_frame);
+
+            // we now want to know when to present the next frame
+            VideoPicture *nextvp = &pictq[pictq_rindex];
+
+            // if next frame we will be seeking
+            if ( nextvp->hasAction(VideoPicture::ACTION_SEEK) )
+                // update at normal fps, discarding computing of delay
+                delay = _videoClock.timeBase();
+            else
+                // otherwise read presentation time and compute delay till next frame
+                delay =  nextvp->pts - _videoClock.time() ;
+
+//fprintf(stderr, "next frame at t = %f  should be at  pts = %f  ( delay = %f   base = %f  speed = %f min = %f)\n",_videoClock.time(), nextvp->pts, delay, _videoClock.timeBase(), _videoClock.speed(), _videoClock.minFrameDelay());
+
+            // if delay is correct
+            if ( delay > _videoClock.minFrameDelay() )
+                // schedule normal delayed display of next frame
+                ptimer_delay = (int) (delay * 1000.0) ;
+            // delay is too small, or negative
             else {
+                // retry shortly (but not too fast to avoid glitches)
+                ptimer_delay = (int) (_videoClock.minFrameDelay() * 1000.0);
 
-                // show the picture at the current read index
-                emit frameReady(pictq_rindex);
-
-                // go to next frame
-                if (++pictq_rindex == pictq_allocated)
-                    pictq_rindex = 0;
-
-                // we now want to know when to present this next frame
-                // vp holds the VideoPicture for this next frame
-                vp = &pictq[pictq_rindex];
-
-                // if next frame we will be seeking
-                if ( vp->hasAction(VideoPicture::ACTION_SEEK) )
-                    // update at normal fps, discarding computing of delay
-                    delay = _videoClock.timeBase();
-                else
-                    // otherwise read presentation time and compute delay till next frame
-                    delay =  vp->pts - _videoClock.time() ;
-
-                // if delay is correct
-                if ( delay > _videoClock.minFrameDelay() )
-                    // schedule normal delayed display of next frame
-                    ptimer->start((int) (delay * 1000.0) );
-                // delay is too small
-                else {
-                    // retry shortly (but not too fast to avoid glitches)
-                    ptimer->start((int) (_videoClock.minFrameDelay() * 1000.0));
-                    vp->action |= VideoPicture::ACTION_SKIP;
-                }
-
-//fprintf(stderr, "next frame for t = %f  at  pts = %f  ( delay = %f   base = %f  speed = %f min = %f)\n",_videoClock.time(), vp->pts, delay, _videoClock.timeBase(), _videoClock.speed(), _videoClock.minFrameDelay());
-
+                // remove the show tag for that frame
+                nextvp->removeAction(VideoPicture::ACTION_SHOW);
+//                nextvp->action ^= (nextvp->action & VideoPicture::ACTION_SHOW);
+//                fprintf(stderr, "NEXT FRAME at  pts = %f SKIPPED \n", nextvp->pts);
             }
 
-            /* update queue for next picture  */
-            {
-                // block the video thread
-                pictq_mutex->lock();
+        }
+//        else fprintf(stderr, "SKIP frame for t = %f (pts was %f) \n",_videoClock.time(), pictq[current_frame].pts);
 
-                // decrease the number of frames in the queue
-                pictq_size--;
+        // this frame was tagged as stopping frame
+        if ( pictq[current_frame].hasAction(VideoPicture::ACTION_STOP) ) {
+//            fprintf(stderr, "FOUND STOP FRAME at %f\n", pictq[current_frame].pts);
+            stop();
+        }
 
-                // tell video thread that it can go on...
-                pictq_cond->wakeAll();
-                pictq_mutex->unlock();
-            }
+        // unblock the queue for the decoding thread
+        // block the video thread
+        pictq_mutex->lock();
+        // decrease the number of frames in the queue
+        pictq_size--;
+        // tell decoding thread that it can go on...
+        pictq_cond->wakeAll();
+        pictq_mutex->unlock();
 
-		}
+    }
 
-	}
-	else
-	{
-		// wait for a video_st to be created
-		ptimer->start(SLEEP_DELAY);
-	}
+    // restart the ptimer for next frame
+    if (!quit)
+        ptimer->start(ptimer_delay);
+
 }
 
 double VideoFile::getCurrentFrameTime() const
@@ -1314,8 +1275,7 @@ void ParsingThread::run()
             if ( is->seek_backward || is->seek_pos <= is->getCurrentFrameTime() )
 				flags |= AVSEEK_FLAG_BACKWARD;
 
-
-//            fprintf(stderr, "\n\n seek pos = %f   seektarget = %ld   base = %f\n", is->seek_pos , seek_target, av_q2d(is->video_st->time_base));
+//            fprintf(stderr, "\n\nPARSING seek to seektarget = %f  for seek pos = %f \n\n", seek_target * av_q2d(is->video_st->time_base), is->seek_pos );
 
             // request seek to libav
             if (av_seek_frame(is->pFormatCtx, is->videoStream, seek_target, flags) < 0)
@@ -1337,7 +1297,7 @@ void ParsingThread::run()
         /* if the queue is full, no need to read more */
         if (is->videoq.isFull())
         {
-            msleep(SLEEP_DELAY);
+            msleep(PARSING_SLEEP_DELAY);
             continue;
         }
 
@@ -1354,7 +1314,7 @@ void ParsingThread::run()
             }
 
 			// no error; just wait a bit for the end of the packet and continue
-			msleep(SLEEP_DELAY);
+            msleep(PARSING_SLEEP_DELAY);
 			continue;
         }
 
@@ -1420,13 +1380,6 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
         pictq_cond->wait(pictq_mutex); // the condition is released in video_refresh_timer()
 	pictq_mutex->unlock();
 
-    if (pictq_skip && !(a & VideoPicture::ACTION_SEEK || a & VideoPicture::ACTION_STOP))
-	{
-		pictq_skip = false;
-//        fprintf(stderr, "skipped %f \n", pts);
-		return;
-	}
-
 	// if have to quit, discard the rest but let the video thread continue
 	if (quit)
 	{
@@ -1469,10 +1422,11 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
 		// Fill the Video Picture queue with the current frame
 		vp->fill(picture, pts);
 
-        // set the action of this frame
-        vp->setAction(a);
+        // set the actions of this frame ; show frame + special option provided
+        vp->resetAction();
+        vp->addAction(a);
 
-//        fprintf(stderr, "queue picture %f  action %d\n", pts, a);
+//        fprintf(stderr, "queue picture %f / %d  action %d\n", pts, pictq_size, a);
 
 		// set to write indexto next in queue
         if (++pictq_windex == pictq_allocated)
@@ -1526,7 +1480,7 @@ void DecodingThread::run()
 	int64_t dts = 0; // Decoding time stamp
 
 //    bool seekNextFrame = false;
-    VideoPicture::Action actionNextFrame = VideoPicture::ACTION_SHOW;
+    VideoPicture::Action actionSkipNextFrame = 0;
 
 	while (is)
     {
@@ -1549,19 +1503,25 @@ void DecodingThread::run()
         // this happens when seeking in ParsingThread
 		if (is->videoq.isFlush(packet))
         {
+            // flush buffers
+            avcodec_flush_buffers(is->video_st->codec);
+
             // the next frame will be the result of the seeking process
             // its PTS is unknown, so we can only tag it for seeking action
             // (the ACTION_SEEK in video refresh timer will reset the clock)
-            actionNextFrame = VideoPicture::ACTION_SEEK;
+            actionSkipNextFrame = VideoPicture::ACTION_SEEK;
 
             // flush the picture queue on request (i.e. when seeking from setSeekTarget
             if (is->pictq_flush_req) {
-//                fprintf(stderr, "seekNextFrame flushed %d\n", is->pictq_flush_req);
+//                fprintf(stderr, "DecodingThread flush_picture_queue");
                 is->flush_picture_queue();
             }
 
-            // flush buffers
-            avcodec_flush_buffers(is->video_st->codec);
+            // reached the seeked frame! : can say we are not seeking anymore
+            is->seek_mutex->lock();
+            is->parsing_mode = VideoFile::PARSING_NORMAL;
+            is->seek_mutex->unlock();
+//            fprintf(stderr, "DecodingThread reached the seeked frame! \n");
 
 			// go on to next packet
             continue;
@@ -1573,10 +1533,10 @@ void DecodingThread::run()
         {
             // react according to loop mode
             if (is->loop_video)
-                // if loop mode on, request seek to begin
+                // if looping, request seek to begin
                 is->requestSeekTo(is->mark_in);
             else
-                // if loop mode off,  re-sends the previous frame pretending its too late
+                // if stopping,  re-sends the previous frame pretending its too late
                 is->queue_picture(_pFrame, pts + av_q2d(is->video_st->time_base), VideoPicture::ACTION_STOP);
 
             // go on to next packet
@@ -1613,7 +1573,6 @@ void DecodingThread::run()
             // test if time will exceed limits (mark out or will pass the end of file)
             if ( pts > is->mark_out )
             {
-
 //                fprintf(stderr, "decoding event : pts > is->mark_out\n");
                 // react according to loop mode
                 if (is->loop_video)
@@ -1625,9 +1584,10 @@ void DecodingThread::run()
             }
             else
                 // add frame to the queue of pictures
-                is->queue_picture(_pFrame, pts, actionNextFrame);
+                is->queue_picture(_pFrame, pts, actionSkipNextFrame);
 
-            actionNextFrame = VideoPicture::ACTION_SHOW;
+            // reset skip tag
+            actionSkipNextFrame = 0;
 
         }
 

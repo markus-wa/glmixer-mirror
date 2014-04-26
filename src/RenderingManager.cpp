@@ -1499,7 +1499,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
 
     QDomElement tmp;
-    newsource->play( child.attribute("playing", "1").toInt() );
+//    newsource->play( child.attribute("playing", "1").toInt() );
     newsource->setModifiable( child.attribute("modifiable", "1").toInt() );
     newsource->setFixedAspectRatio( child.attribute("fixedAR", "0").toInt() );
 
@@ -1612,6 +1612,9 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
 #endif
         p = p.nextSiblingElement("ShadertoyPlugin");
     }
+
+    // ok source is configured, can start it
+    newsource->play( child.attribute("playing", "1").toInt() );
 
 }
 
