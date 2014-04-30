@@ -70,6 +70,7 @@ bool VideoFile::ffmpegregistered = false;
  */
 
 VideoFile::Clock::Clock()  {
+    _requested_speed = -1.0;
     _speed = 1.0;
     _frame_base = 0.04;
     _time_on_start = 0.0;
@@ -82,11 +83,17 @@ VideoFile::Clock::Clock()  {
 }
 
 void VideoFile::Clock::reset(double deltat, double timebase) {
-    _time_on_start = GETTIME;
-    _time_on_start -= deltat;
 
+    // set frame base time ratio when provided
     if (timebase > 0)
         _frame_base = timebase;
+
+    // set new time on start
+    _time_on_start = GETTIME - ( deltat / _speed );
+
+    // trick to reset time on pause
+    _time_on_pause = _time_on_start + ( deltat / _speed );
+
 }
 
 double VideoFile::Clock::time() const {
@@ -98,12 +105,14 @@ double VideoFile::Clock::time() const {
 
 }
 
-void VideoFile::Clock::pause(bool on) {
-    _paused = on;
-    if (_paused)
+void VideoFile::Clock::pause(bool p) {
+
+    if (p)
         _time_on_pause = GETTIME;
     else
         _time_on_start += GETTIME - _time_on_pause;
+
+    _paused = p;
 }
 
 bool VideoFile::Clock::paused() const {
@@ -120,14 +129,26 @@ double VideoFile::Clock::timeBase() const {
 
 void VideoFile::Clock::setSpeed(double s) {
 
-    if (s < 0.1 || s > 10.0)
-        return;
+    // limit range
+    s = qBound(0.1, s, 10.0);
 
-    // replace time of start to match the change in speed
-    _time_on_start = ( 1.0 - _speed / s) * GETTIME + (_speed / s) * _time_on_start;
+    // request new speed
+    _requested_speed = s;
+}
 
-    // set speed
-    _speed = s;
+void VideoFile::Clock::applyRequestedSpeed() {
+
+    if ( _requested_speed > 0 ) {
+        // trick to reset time on pause
+        _time_on_pause = _time_on_start + ( time() / _speed );
+
+        // replace time of start to match the change in speed
+        _time_on_start = ( 1.0 - _speed / _requested_speed) * GETTIME + (_speed / _requested_speed) * _time_on_start;
+
+        // set speed
+        _speed = _requested_speed;
+        _requested_speed = -1.0;
+    }
 }
 
 
@@ -174,61 +195,64 @@ private:
 	AVFrame *_pFrame;
 };
 
-VideoPicture::VideoPicture() :
-    oldframe(0), width(0), height(0), allocated(false), convert_rgba_palette(false), pts(0), pixelformat(PIX_FMT_NONE), action(ACTION_SHOW)
+//VideoPicture::VideoPicture() :
+//    pts(0), width(0), height(0), convert_rgba_palette(false),  pixelformat(PIX_FMT_NONE), action(ACTION_SHOW)
+//{
+//	img_convert_ctx_filtering = NULL;
+//	rgb.data[0] = NULL;
+//}
+
+VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
+        enum PixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixelformat(format),  img_convert_ctx_filtering(img_convert_ctx), action(ACTION_SHOW)
 {
-	img_convert_ctx_filtering = NULL;
-	rgb.data[0] = NULL;
+
+
+    avpicture_alloc(&rgb, pixelformat, width, height);
+
 }
 
-bool VideoPicture::allocate(SwsContext *img_convert_ctx, int w, int h,
-		enum PixelFormat format, bool rgba_palette)
-{
+//	img_convert_ctx_filtering = img_convert_ctx;
+//    convert_rgba_palette = rgba_palette;
+//	width = w;
+//	height = h;
+//	pixelformat = format;
 
-	img_convert_ctx_filtering = img_convert_ctx;
-	convert_rgba_palette = rgba_palette;
-	width = w;
-	height = h;
-	pixelformat = format;
+//	// if we already have one, make another
+//	// free image
+//    if (rgb.data[0])
+//    {
+//        avpicture_free(&rgb);
+//        rgb.data[0] = NULL;
+//    }
 
-	// if we already have one, make another
-	// free image
-	if (rgb.data[0])
-	{
-		avpicture_free(&rgb);
-		rgb.data[0] = NULL;
-	}
+//    // create the picture
+//    if (avpicture_alloc(&rgb, pixelformat, width, height) < 0)
+//        return false;
 
-	// Determine required buffer size and allocate buffer
-	int numBytes = avpicture_get_size(pixelformat, width, height);
-	uint8_t *buffer = static_cast<uint8_t*> (av_mallocz(numBytes
-			+ FF_INPUT_BUFFER_PADDING_SIZE));
-	Q_CHECK_PTR(buffer);
-	// initialize buffer to black
-	for (int i = 0; i < numBytes; ++i)
-		buffer[i] = 0;
+//    //	initialize buffer to black if we use RGBA converter (see bellow)
+////    if (rgba_palette) {
+////      // Determine required buffer size and allocate buffer with zeros
+////      int numBytes = avpicture_get_size(pixelformat, width, height);
+////      uint8_t *buffer = static_cast<uint8_t*> (av_mallocz(numBytes + FF_INPUT_BUFFER_PADDING_SIZE));
+////      // fill the picture with the black buffer
+////      avpicture_fill(&rgb, buffer, pixelformat, width, height);
+////    }
 
-	// create & fill the picture
-	if (avpicture_alloc(&rgb, pixelformat, width, height) < 0)
-		return false;
-	avpicture_fill(&rgb, buffer, pixelformat, width, height);
 
-	allocated = true;
-	return true;
-}
+////	allocated = true;
+////	return true;
+//}
 
 VideoPicture::~VideoPicture()
 {
-	if (rgb.data[0])
-	{
-		avpicture_free(&rgb);
-		rgb.data[0] = NULL;
-	}
+
+    avpicture_free(&rgb);
+
 }
 
 void VideoPicture::saveToPPM(QString filename) const
 {
-	if (allocated && pixelformat != PIX_FMT_RGBA)
+    if (pixelformat != PIX_FMT_RGBA)
 	{
 		FILE *pFile;
 		int y;
@@ -250,22 +274,11 @@ void VideoPicture::saveToPPM(QString filename) const
 	}
 }
 
-void VideoPicture::refilter() const
-{
-	if (!allocated || !oldframe || !img_convert_ctx_filtering || convert_rgba_palette)
-		return;
-
-	sws_scale(img_convert_ctx_filtering, oldframe->data, oldframe->linesize, 0,
-			height, (uint8_t**) rgb.data, (int*) rgb.linesize);
-}
-
 void VideoPicture::fill(AVPicture *frame, double timestamp)
 {
-	if (!allocated || !frame || !img_convert_ctx_filtering)
+    if (!frame || !img_convert_ctx_filtering)
 		return;
 
-	// remember frame (for refilter())
-	oldframe = frame;
 	// remember pts
 	pts = timestamp;
 
@@ -334,9 +347,11 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 	video_st = NULL;
 	deinterlacing_buffer = NULL;
 	pFormatCtx = NULL;
-	img_convert_ctx = NULL;
-    filter = NULL;
+    img_convert_ctx = NULL;
+    firstPicture = NULL;
+    blackPicture = NULL;
     resetPicture = NULL;
+    filter = NULL;
 
 	// Contruct some objects
 	parse_tid = new ParsingThread(this);
@@ -385,8 +400,8 @@ void VideoFile::close()
 	// free context & filter
 	if (img_convert_ctx)
 		sws_freeContext(img_convert_ctx);
-	if (filter)
-		sws_freeFilter(filter);
+    if (filter)
+        sws_freeFilter(filter);
 
 	// close file
 	if (pFormatCtx)
@@ -422,13 +437,12 @@ void VideoFile::reset()
 {
     // reset variables to 0
     video_pts = 0.0;
-	pictq_windex = 0;
-	pictq_size = 0;
-	pictq_rindex = 0;
     seek_pos = 0.0;
     seek_backward = false;
     pictq_flush_req = false;
     parsing_mode = VideoFile::PARSING_NORMAL;
+
+    flush_picture_queue();
 
     if (video_st)
         _videoClock.reset(0.0, av_q2d(video_st->time_base));
@@ -456,8 +470,10 @@ void VideoFile::stop()
 //            fprintf(stderr, "restart_where_stopped %f \n", mark_stop);
             current_frame_pts = fill_first_frame(true);
             // display firstPicture frame
-            emit frameReady(-1);
+            emit frameReady( resetPicture );
         }
+
+        flush_picture_queue();
 
 		/* say if we are running or not */
         emit running(!quit);
@@ -468,7 +484,7 @@ void VideoFile::stop()
 void VideoFile::start()
 {
 	// nothing to play if there is ONE frame only...
-    if ( getPictureMaxIndex() < 2)
+    if ( getNumFrames() < 2)
 		return;
 
 	if (quit && pFormatCtx)
@@ -492,7 +508,7 @@ void VideoFile::start()
         // request partsing thread to perform seek
         parsing_mode = VideoFile::PARSING_SEEKREQUEST;
 
-		// start parsing and decoding threads
+        // start parsing and decoding threads
         ptimer->start();
 		parse_tid->start();
         decod_tid->start();
@@ -554,13 +570,9 @@ void VideoFile::thread_terminated()
 	}
 }
 
-const VideoPicture *VideoFile::getPictureAtIndex(int index) const
+VideoPicture *VideoFile::getResetPicture() const
 {
-	// return a firstPicture picture if wrong index (e.g. -1)
-    if (index < 0 || index > pictq_allocated)
-		return (resetPicture);
-
-	return (&pictq[index]);
+    return (resetPicture);
 }
 
 bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlphaChannel)
@@ -647,11 +659,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     if (video_st->nb_frames == AV_NOPTS_VALUE || video_st->nb_frames < 1 )
         video_st->nb_frames = getDuration() / av_q2d(video_st->time_base);
 
-    // how many pictures to allocate
-    pictq_allocated = qMin( (int)video_st->nb_frames, MAX_VIDEO_PICTURE_QUEUE_SIZE);
-
     // check the parameters for mark in and out and setup marking accordingly
-    if (markIn < 0 || pictq_allocated < 2)
+    if (markIn < 0 || video_st->nb_frames < 2)
         mark_in = getBegin(); // default to start of file
     else
     {
@@ -659,7 +668,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         emit markingChanged();
     }
 
-    if (markOut < 0 || pictq_allocated < 2)
+    if (markOut <= 0 || video_st->nb_frames < 2)
         mark_out = getEnd(); // default to end of file
     else
     {
@@ -681,9 +690,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	}
 
 	// Default targetFormat to PIX_FMT_RGB24, not using color palette
-	enum PixelFormat targetFormat = PIX_FMT_RGB24;
-	bool rgba_palette = false;
-
+    targetFormat = PIX_FMT_RGB24;
+    rgba_palette = false;
 
 	// Change target format to keep Alpha channel if format requires
 	if ( pixelFormatHasAlphaChannel()
@@ -711,7 +719,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	// (i.e. optimal 'unscaled' converter is used by default)
 	if (conversionAlgorithm == 0)
 	{
-        if ( pictq_allocated < 2 )
+        if ( video_st->nb_frames < 2 )
 			conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
 		else
 			conversionAlgorithm = SWS_POINT;   // optimal speed scaling for videos
@@ -726,16 +734,14 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	conversionAlgorithm |= SWS_CPU_CAPS_MMX;
 	conversionAlgorithm |= SWS_CPU_CAPS_MMX2;
 
-	// For single frames media or when ignorealpha flag is on, force filtering
-	// (The ignore alpha flag is normally requested when the source is rgba
-	// and in this case, optimal conversion from rgba to rgba is to do nothing : but
-	// this means there is no conversion, and no brightness/contrast is applied)
-    if (ignoreAlpha || (pictq_allocated < 2))
-		// Setup a filter to enforce a per-pixel conversion (here a slight blur)
-		filter = sws_getDefaultFilter(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0);
-	else
-		// default filter for doing nothing
-		filter = NULL;
+    filter = NULL;
+    // For single frames media or when ignorealpha flag is on, force filtering
+    // (The ignore alpha flag is normally requested when the source is rgba
+    // and in this case, optimal conversion from rgba to rgba is to do nothing : but
+    // this means there is no conversion, and no brightness/contrast is applied)
+    if (ignoreAlpha || (video_st->nb_frames < 2))
+        // Setup a filter to enforce a per-pixel conversion (here a slight blur)
+        filter = sws_getDefaultFilter(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0);
 
 	// create conversion context
 	img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
@@ -749,33 +755,11 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 		return false;
 	}
 
-    /* allocate the buffers */
-	// no need for the picture queue if there is less than 2 frame...
-    for (int i = 0; i < pictq_allocated; ++i)
-    {
-        if (!pictq[i].allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette))
-        {
-            // Cannot allocate Video Pictures!
-            qWarning() << filename << QChar(124).toLatin1()<< tr( "Cannot allocate pictures buffer.");
-            return false;
-        }
-    }
-
 	// we may need a black Picture frame to return when stopped
-	if (!blackPicture.allocate(0, targetWidth, targetHeight))
-	{
-		// Cannot allocate Video Pictures!
-        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot allocate buffer.");
-		return false;
-	}
+    blackPicture = new VideoPicture(0, targetWidth, targetHeight);
 
 	// we need a picture to display when not decoding
-    if (!firstPicture.allocate(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette))
-	{
-		// Cannot allocate Video Pictures!
-        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot allocate picture buffer.");
-		return false;
-	}
+    firstPicture = new VideoPicture(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette);
 
 	// read firstPicture (not a big problem if fails; it would just be black)
     // (NB : seek in stream only if not reading the first frame)
@@ -783,10 +767,10 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     mark_stop = current_frame_pts;
 
     // use first picture as reset picture
-	resetPicture = &firstPicture;
+    resetPicture = firstPicture;
 
 	// display a firstPicture frame ; this shows that the video is open
-    emit frameReady(-1);
+    emit frameReady( resetPicture );
 
 	/* say if we are running or not */
     emit running(false);
@@ -865,7 +849,7 @@ double VideoFile::fill_first_frame(bool seek)
                     pts =  double(packet->dts) * av_q2d(video_st->time_base);
 
                 // we can now fill in the first picture with this frame
-                firstPicture.fill((AVPicture *) tmpframe, pts);
+                firstPicture->fill((AVPicture *) tmpframe, pts);
             }
 		}
 	}
@@ -874,7 +858,7 @@ double VideoFile::fill_first_frame(bool seek)
     av_free_packet(packet);
     av_free(tmpframe);
 
-    return firstPicture.pts;
+    return firstPicture->getPts();
 }
 
 int VideoFile::stream_component_open(AVFormatContext *pFCtx)
@@ -928,100 +912,120 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 void VideoFile::video_refresh_timer()
 {
     // by default timer will be restarted ASAP
-    int ptimer_delay = 1;
+    int ptimer_delay = 10;
 
     // if all is in order, deal with the picture in the queue
     // (i.e. there is a stream, there is a picture in the queue, and the clock is not paused)
-    if (video_st && pictq_size > 1 && !_videoClock.paused())
+    if (video_st && !pictq.empty() && (!_videoClock.paused() ||  pictq.head()->hasAction(VideoPicture::ACTION_PAUSE) ) )
     {
-        // now working on the picture at the read index
-        int current_frame = pictq_rindex;
+        _videoClock.applyRequestedSpeed();
+
+        // now working on the head of the queue, that we take off the queue
+        VideoPicture *currentvp = pictq.dequeue();
 
         // store time of this current frame
-        current_frame_pts =  pictq[current_frame].pts;
+        current_frame_pts =  currentvp->presentationTime();
 
-        // tell the queue that we are done with this frame
-        // (whatever we will do with it below)
-        // the queue will be unblocked at the end of this block
-        if (++pictq_rindex == pictq_allocated)
-            pictq_rindex = 0;
+//        fprintf(stderr, "\t\tFRAME pts = %f \n", current_frame_pts);
+
 
         // detect if we over passed the marks or the end of stream
         // TODO : remove this catch which should be delt on the queue directly
-        if (current_frame_pts > mark_out || (current_frame_pts + av_q2d(video_st->time_base)) > getEnd() )
-        {
-//            fprintf(stderr, "\n\n FOUND OVERDUE FRAME at %f \n", pictq[current_frame].pts);
+//        if (current_frame_pts > mark_out || (current_frame_pts + av_q2d(video_st->time_base)) > getEnd() )
+//        {
+////            fprintf(stderr, "\n\n FOUND OVERDUE FRAME at %f \n", pictq[current_frame].pts);
 
-            // react according to loop mode
-            if (loop_video)
-                seekToPosition(mark_in);
-            else
-                // if loop mode off, stop
-                stop();
-        }
+//            // react according to loop mode
+//            if (loop_video)
+//                seekToPosition(mark_in);
+//            else
+//                // if loop mode off, stop
+//                stop();
+//        }
 
         // this frame was tagged as seeking frame
-        if ( pictq[current_frame].hasAction(VideoPicture::ACTION_SEEK) ) {
+        if ( currentvp->hasAction(VideoPicture::ACTION_SEEK) ) {
+            // reset clock to the time of the frame
+            _videoClock.reset(current_frame_pts);
 
-//            fprintf(stderr, "FOUND SEEKING FRAME at %f\n", pictq[current_frame].pts);
-
-            // reset clock to the time of the seeked frame
-            _videoClock.reset(pictq[current_frame].pts);
-
+//            fprintf(stderr, "FOUND SEEK FRAME at t = %f for pts %f \n",_videoClock.time(), current_frame_pts);
         }
 
 
-        if ( pictq[current_frame].hasAction(VideoPicture::ACTION_SHOW) ) {
+        if ( currentvp->hasAction(VideoPicture::ACTION_SHOW) ) {
 
-            // keep static variables (avoid reallocation)
-            static double delay = 0.0;
+            // ask to show the current picture and delete it
+            currentvp->addAction(VideoPicture::ACTION_DELETE);
+            emit frameReady(currentvp);
 
-            // show the picture at the current read index
-            emit frameReady(current_frame);
+            // if there is a next picture
+            if (!pictq.empty()) {
 
-            // we now want to know when to present the next frame
-            VideoPicture *nextvp = &pictq[pictq_rindex];
+                // we now want to know when to present the next frame
+                VideoPicture *nextvp = pictq.head();
+                double delay = 0.0;
 
-            // if next frame we will be seeking
-            if ( nextvp->hasAction(VideoPicture::ACTION_SEEK) )
-                // update at normal fps, discarding computing of delay
-                delay = _videoClock.timeBase();
-            else
-                // otherwise read presentation time and compute delay till next frame
-                delay =  nextvp->pts - _videoClock.time() ;
+                // if next frame we will be seeking
+                if ( nextvp->hasAction(VideoPicture::ACTION_SEEK) )
+                    // update at normal fps, discarding computing of delay
+                    delay = _videoClock.timeBase();
+                else
+                    // otherwise read presentation time and compute delay till next frame
+                    delay = ( nextvp->presentationTime() - _videoClock.time() ) / _videoClock.speed() ;
 
-//fprintf(stderr, "next frame at t = %f  should be at  pts = %f  ( delay = %f   base = %f  speed = %f min = %f)\n",_videoClock.time(), nextvp->pts, delay, _videoClock.timeBase(), _videoClock.speed(), _videoClock.minFrameDelay());
+//    fprintf(stderr, "at t = %f  next frame should be at  pts = %f  ( delay = %f   base = %f  speed = %f min = %f)\n",_videoClock.time(), nextvp->presentationTime(), delay, _videoClock.timeBase(), _videoClock.speed(), _videoClock.minFrameDelay());
 
-            // if delay is correct
-            if ( delay > _videoClock.minFrameDelay() )
-                // schedule normal delayed display of next frame
-                ptimer_delay = (int) (delay * 1000.0) ;
-            // delay is too small, or negative
-            else {
-                // retry shortly (but not too fast to avoid glitches)
-                ptimer_delay = (int) (_videoClock.minFrameDelay() * 1000.0);
+                // if delay is correct
+                if ( delay > _videoClock.minFrameDelay() ) {
+                    // schedule normal delayed display of next frame
+                    ptimer_delay = (int) (delay * 1000.0);
 
-                // remove the show tag for that frame
-                nextvp->removeAction(VideoPicture::ACTION_SHOW);
-//                nextvp->action ^= (nextvp->action & VideoPicture::ACTION_SHOW);
-//                fprintf(stderr, "NEXT FRAME at  pts = %f SKIPPED \n", nextvp->pts);
+//                    fprintf(stderr, "NEXT FRAME in deltat = %f  = %d \n", delay, ptimer_delay);
+
+                // delay is too small, or negative
+                } else {
+                    // retry shortly (but not too fast to avoid glitches)
+                    ptimer_delay = (int) (_videoClock.minFrameDelay() * 1000.0);
+
+                    // remove the show tag for that frame (i.e. skip it)
+                    nextvp->removeAction(VideoPicture::ACTION_SHOW);
+    //                fprintf(stderr, "NEXT FRAME at  pts = %f SKIPPED \n", nextvp->pts);
+                }
+
             }
 
         }
-//        else fprintf(stderr, "SKIP frame for t = %f (pts was %f) \n",_videoClock.time(), pictq[current_frame].pts);
+        else {
+//            fprintf(stderr, "SKIP frame for t = %f (pts was %f) \n",_videoClock.time(), currentvp->pts);
+
+            delete currentvp;
+
+            ptimer_delay = (int) (_videoClock.minFrameDelay() * 1000.0);
+       }
 
         // this frame was tagged as stopping frame
-        if ( pictq[current_frame].hasAction(VideoPicture::ACTION_STOP) ) {
-//            fprintf(stderr, "FOUND STOP FRAME at %f\n", pictq[current_frame].pts);
+        if ( currentvp->hasAction(VideoPicture::ACTION_STOP) ) {
+//            fprintf(stderr, "FOUND STOP FRAME at t = %f for pts %f \n",_videoClock.time(), current_frame_pts);
+            // stop the video
             stop();
         }
+
+        // this frame was tagged as pause frame
+        if ( currentvp->hasAction(VideoPicture::ACTION_PAUSE) ) {
+//            fprintf(stderr, "FOUND PAUSE FRAME at t = %f for pts %f \n",_videoClock.time(), current_frame_pts);
+
+            ptimer_delay = 10;
+
+            // TODO : what for pause ?
+            pause(true);
+        }
+
 
         // unblock the queue for the decoding thread
         // block the video thread
         pictq_mutex->lock();
-        // decrease the number of frames in the queue
-        pictq_size--;
-        // tell decoding thread that it can go on...
+        // inform decoding thread about the new size of the queue
+        pictq_size = pictq.size();
         pictq_cond->wakeAll();
         pictq_mutex->unlock();
 
@@ -1029,7 +1033,8 @@ void VideoFile::video_refresh_timer()
 
     // restart the ptimer for next frame
     if (!quit)
-        ptimer->start(ptimer_delay);
+        ptimer->start(ptimer_delay);        
+
 
 }
 
@@ -1075,12 +1080,12 @@ void VideoFile::setOptionAllowDirtySeek(bool dirty)
 void VideoFile::setOptionRevertToBlackWhenStop(bool black)
 {
 	if (black)
-		resetPicture = &blackPicture;
+        resetPicture = blackPicture;
 	else
-		resetPicture = &firstPicture;
+        resetPicture = firstPicture;
 	// if the option is toggled while being stopped, then we should show the good frame now!
 	if (quit)
-		emit frameReady(-1);
+        emit frameReady( resetPicture );
 }
 
 void VideoFile::seekToPosition(double t)
@@ -1093,6 +1098,7 @@ void VideoFile::seekToPosition(double t)
         seek_mutex->unlock();
 
         pictq_flush_req = true;
+
 
 //        fprintf(stderr, "seekToPosition to %f\n\n", seek_pos);
 	}
@@ -1109,6 +1115,14 @@ void VideoFile::seekByFrames(int si)
     seekToPosition( current_frame_pts + (double) si * av_q2d(video_st->time_base));
 }
 
+
+void VideoFile::seekForwardOneFrame()
+{
+    // tag this frame as Pause and as seek
+    pictq.head()->addAction(VideoPicture::ACTION_SEEK & VideoPicture::ACTION_PAUSE);
+
+}
+
 QString VideoFile::getStringTimeFromtime(double time) const
 {
 	int s = (int) time;
@@ -1123,13 +1137,6 @@ QString VideoFile::getStringTimeFromtime(double time) const
 
 QString VideoFile::getStringFrameFromTime(double t) const
 {
-//	if (video_st->nb_frames > 0)
-//        return (QString("Frame %1").arg((int) (video_st->nb_frames * double(t
-//				- video_st->start_time) / double(video_st->duration))));
-//	else
-//        return (QString("Frame %1").arg(
-//				(int) (double(t - video_st->start_time) / getFrameRate())));
-
     return (QString("Frame %1").arg((int) ( t / av_q2d(video_st->time_base) )));
 }
 
@@ -1181,44 +1188,6 @@ void VideoFile::setMarkOut(double t)
     //   -> we have to remove this part of the queue (including the bad frame)
     //  and restart parsing from there
 
-
-//    // quickly browse the picture queue to recheck the frames actions
-//    int n = 0;
-//    int i = pictq_rindex + 1; // start browsing in future frames
-
-
-//    // loop for max number of frames
-//    while ( n < pictq_allocated ) {
-
-//        if ( pictq[i].action & VideoPicture::ACTION_SEEK ) {
-
-
-//        }
-
-//        if ( pictq[i].pts > mark_out  ) {
-//            if (loop_video) {
-//                requestSeekTo(pictq[i].pts);
-//                flush_picture_queue();
-//            }
-//            else
-//                pictq[i].action |= VideoPicture::ACTION_STOP;
-//        }
-//        // not over the mark out
-//        else {
-
-
-
-//        }
-
-
-
-//        if (++i == pictq_allocated)
-//            i = 0;
-//        // break when reached write indec
-//        if (i == pictq_windex)
-//            break;
-//        ++n;
-//    }
 
 }
 
@@ -1289,6 +1258,11 @@ void ParsingThread::run()
             if (!is->videoq.flush())
                 qWarning() << is->filename << QChar(124).toLatin1()<< QObject::tr("Flushing error.");
 
+            if (is->pictq_flush_req) {
+                fprintf(stderr, "ParsingThread flush_picture_queue");
+                is->flush_picture_queue();
+            }
+
             // revert one shot option
             is->seek_backward = false;
 
@@ -1340,17 +1314,14 @@ void VideoFile::flush_picture_queue()
 
     pictq_mutex->lock();
 
-//    fprintf(stderr, "flush picture queue : \nREAD %d = %f        WRITE %d = %f\n", pictq_rindex, pictq[pictq_rindex].pts, pictq_windex, pictq[pictq_windex].pts );
+    while (!pictq.isEmpty())
+        delete pictq.dequeue();
 
-    // flush the queue by setting its size to 0
     pictq_size = 0;
-    // and by jumping the write index to overwrite one frame after the read index
-    pictq_windex = pictq_rindex ;
-    if (pictq_windex == pictq_allocated)
-        pictq_windex = 0;
 
 //    fprintf(stderr, "                    : \nREAD %d = %f        WRITE %d = %f\n", pictq_rindex, pictq[pictq_rindex].pts, pictq_windex, pictq[pictq_windex].pts);
 
+    pictq_cond->wakeAll();
     pictq_mutex->unlock();
 
 }
@@ -1359,6 +1330,7 @@ void VideoFile::flush_picture_queue()
 void VideoFile::requestSeekTo(double time)
 {
     seek_mutex->lock();
+    // TODO ; why do we need to wait here ?
     seek_cond->wait(seek_mutex);
     if ( parsing_mode == VideoFile::PARSING_NORMAL ) {
         seek_pos = time;
@@ -1376,67 +1348,58 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
 
 	/* wait until we have space for a new pic */
     pictq_mutex->lock();
-    while (pictq_size >= (pictq_allocated -1) && !quit)
+    while ( (pictq_size > MAX_VIDEO_PICTURE_QUEUE_SIZE) && !quit)
         pictq_cond->wait(pictq_mutex); // the condition is released in video_refresh_timer()
 	pictq_mutex->unlock();
 
 	// if have to quit, discard the rest but let the video thread continue
-	if (quit)
-	{
-		pictq_mutex->lock();
-		pictq_size = 0;
-		pictq_mutex->unlock();
+    if (quit) {
+        flush_picture_queue();
 		return;
 	}
 
-	// set vp as the picture in the queue to be written
-	// (write index is set to 0 initially)
-	VideoPicture *vp = &pictq[pictq_windex];
+    // create vp as the picture in the queue to be written
+    VideoPicture *vp = new VideoPicture(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette);
 
-    if (vp->isAllocated() && pictq_size <= pictq_allocated)
-	{
+    AVPicture *picture = (AVPicture*) pFrame;
 
-		AVPicture *picture = (AVPicture*) pFrame;
+    if (pFrame->interlaced_frame)
+    {
+        // create temporary picture the first time we need it
+        if (deinterlacing_buffer == NULL)
+        {
+            int size = avpicture_get_size(video_st->codec->pix_fmt,
+                    video_st->codec->width, video_st->codec->height);
+            deinterlacing_buffer = (uint8_t *) av_malloc(size);
+            avpicture_fill(&deinterlacing_picture, deinterlacing_buffer,
+                    video_st->codec->pix_fmt, video_st->codec->width,
+                    video_st->codec->height);
+        }
 
-		if (pFrame->interlaced_frame)
-		{
-			// create temporary picture the first time we need it
-			if (deinterlacing_buffer == NULL)
-			{
-				int size = avpicture_get_size(video_st->codec->pix_fmt,
-						video_st->codec->width, video_st->codec->height);
-				deinterlacing_buffer = (uint8_t *) av_malloc(size);
-				avpicture_fill(&deinterlacing_picture, deinterlacing_buffer,
-						video_st->codec->pix_fmt, video_st->codec->width,
-						video_st->codec->height);
-			}
+        // try to deinterlace into the temporary picture
+        if (avpicture_deinterlace(&deinterlacing_picture, picture,
+                video_st->codec->pix_fmt, video_st->codec->width,
+                video_st->codec->height) == 0)
+            // if deinterlacing was successfull, use it
+            picture = &deinterlacing_picture;
+    }
 
-			// try to deinterlace into the temporary picture
-			if (avpicture_deinterlace(&deinterlacing_picture, picture,
-					video_st->codec->pix_fmt, video_st->codec->width,
-					video_st->codec->height) == 0)
-				// if deinterlacing was successfull, use it
-				picture = &deinterlacing_picture;
-		}
+    // Fill the Video Picture queue with the current frame
+    vp->fill(picture, pts);
 
-		// Fill the Video Picture queue with the current frame
-		vp->fill(picture, pts);
+    // set the actions of this frame ; show frame + special option provided
+    vp->resetAction();
+    vp->addAction(a);
 
-        // set the actions of this frame ; show frame + special option provided
-        vp->resetAction();
-        vp->addAction(a);
+//    fprintf(stderr, "queue picture %f  action %d\n", pts, vp->action);
 
-//        fprintf(stderr, "queue picture %f / %d  action %d\n", pts, pictq_size, a);
-
-		// set to write indexto next in queue
-        if (++pictq_windex == pictq_allocated)
-			pictq_windex = 0;
-
-		/* now we inform our display thread that we have a pic ready */
-		pictq_mutex->lock();
-		pictq_size++;
-		pictq_mutex->unlock();
-	}
+    /* now we inform our display thread that we have a pic ready */
+    pictq_mutex->lock();
+    // enqueue this picture in the queue
+    pictq.enqueue(vp);
+    // inform about the new size of the queue
+    pictq_size = pictq.size();
+    pictq_mutex->unlock();
 
 }
 
@@ -1479,30 +1442,22 @@ void DecodingThread::run()
     double pts = 0.0; // Presentation time stamp
 	int64_t dts = 0; // Decoding time stamp
 
-//    bool seekNextFrame = false;
     VideoPicture::Action actionSkipNextFrame = 0;
 
 	while (is)
     {
 
-		// sleep a bit if paused
-        if (is->isPaused() && !is->quit)
-		{
-			msleep(10);
-			continue;
-		}
-
 		// get front packet (not blocking if we are quitting)
-		if (!is->videoq.get(packet, !is->quit))
-		{
+        if (!is->videoq.get(packet, !is->quit))
 			// this is the exit condition
-			break;
-		}
+            break;
 
 		// special case of flush packet
         // this happens when seeking in ParsingThread
 		if (is->videoq.isFlush(packet))
         {
+//            fprintf(stderr, "DecodingThread reached the seeked frame! \n");
+
             // flush buffers
             avcodec_flush_buffers(is->video_st->codec);
 
@@ -1510,6 +1465,9 @@ void DecodingThread::run()
             // its PTS is unknown, so we can only tag it for seeking action
             // (the ACTION_SEEK in video refresh timer will reset the clock)
             actionSkipNextFrame = VideoPicture::ACTION_SEEK;
+
+            if (is->isPaused())
+                actionSkipNextFrame |= VideoPicture::ACTION_PAUSE;
 
             // flush the picture queue on request (i.e. when seeking from setSeekTarget
             if (is->pictq_flush_req) {
@@ -1521,8 +1479,6 @@ void DecodingThread::run()
             is->seek_mutex->lock();
             is->parsing_mode = VideoFile::PARSING_NORMAL;
             is->seek_mutex->unlock();
-//            fprintf(stderr, "DecodingThread reached the seeked frame! \n");
-
 			// go on to next packet
             continue;
 		}
@@ -1933,102 +1889,6 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 	delete ffmpegInfoDialog;
 }
 
-int VideoFile::getBrightness()
-{
-	int *inv_table, srcrange, *table, dstrange, brightness, contrast,
-			saturation;
-
-	if (-1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange,
-			&table, &dstrange, &brightness, &contrast, &saturation))
-	{
-
-		return (((brightness * 100) + (1 << 15)) >> 16);
-	}
-	else
-		return 0;
-
-}
-int VideoFile::getContrast()
-{
-	int *inv_table, srcrange, *table, dstrange, brightness, contrast,
-			saturation;
-
-	if (-1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange,
-			&table, &dstrange, &brightness, &contrast, &saturation))
-	{
-
-		return ((((contrast * 100) + (1 << 15)) >> 16) - 100);
-	}
-	else
-		return 0;
-
-}
-int VideoFile::getSaturation()
-{
-	int *inv_table, srcrange, *table, dstrange, brightness, contrast,
-			saturation;
-
-	if (-1 != sws_getColorspaceDetails(img_convert_ctx, &inv_table, &srcrange,
-			&table, &dstrange, &brightness, &contrast, &saturation))
-	{
-
-		return ((((saturation * 100) + (1 << 15)) >> 16) - 100);
-	}
-	else
-		return 0;
-}
-
-void VideoFile::setBrightness(int b)
-{
-
-	int *inv_table, srcrange, *table, dstrange, brightness, contrast,
-			saturation;
-	if (b >= -100 && b <= 100 && -1 != sws_getColorspaceDetails(
-			img_convert_ctx, &inv_table, &srcrange, &table, &dstrange,
-			&brightness, &contrast, &saturation))
-	{
-		// ok, got all the details, modify one:
-		brightness = ((b << 16) + 50) / 100;
-		// apply it
-		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table,
-				dstrange, brightness, contrast, saturation);
-	}
-}
-
-void VideoFile::setContrast(int c)
-{
-
-	int *inv_table, srcrange, *table, dstrange, brightness, contrast,
-			saturation;
-	if (c >= -99 && c <= 100 && -1 != sws_getColorspaceDetails(img_convert_ctx,
-			&inv_table, &srcrange, &table, &dstrange, &brightness, &contrast,
-			&saturation))
-	{
-		// ok, got all the details, modify one:
-		contrast = (((c + 100) << 16) + 50) / 100;
-		// apply it
-		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table,
-				dstrange, brightness, contrast, saturation);
-	}
-}
-
-void VideoFile::setSaturation(int s)
-{
-
-	int *inv_table, srcrange, *table, dstrange, brightness, contrast,
-			saturation;
-	if (s >= -100 && s <= 100 && -1 != sws_getColorspaceDetails(
-			img_convert_ctx, &inv_table, &srcrange, &table, &dstrange,
-			&brightness, &contrast, &saturation))
-	{
-		// ok, got all the details, modify one:
-		saturation = (((s + 100) << 16) + 50) / 100;
-		// apply it
-		sws_setColorspaceDetails(img_convert_ctx, inv_table, srcrange, table,
-				dstrange, brightness, contrast, saturation);
-	}
-
-}
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 

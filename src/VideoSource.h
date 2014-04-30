@@ -31,7 +31,6 @@
 #include "Source.h"
 #include "VideoFile.h"
 #include "ViewRenderWidget.h"
-//class VideoFile;
 
 class VideoSource : public QObject, public Source {
 
@@ -61,27 +60,17 @@ public:
 
 	double getStorageAspectRatio() const { return is->getStreamAspectRatio(); }
 
-	// Adjust brightness factor
-	void setBrightness(int b);
-	// Adjust contrast factor
-	void setContrast(int c) ;
-	// Adjust saturation factor
-	void setSaturation(int s) ;
-
 public Q_SLOTS:
 	void play(bool on);
-	void pause(bool on);
-    void updateFrame (int i);
-    void applyFilter();
+    void pause(bool on);
+    void updateFrame (VideoPicture *);
 
 private:
 
 	static RTTI type;
 
     VideoFile *is;
-    VideoPicture copy;
-
-    int bufferIndex;
+    VideoPicture *vp;
 };
 
 #endif /* VIDEOSOURCE_H_ */

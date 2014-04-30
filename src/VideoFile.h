@@ -34,7 +34,7 @@ extern "C" {
 #endif
 }
 
-#include <QObject>
+#include <QQueue>
 #include <QMutex>
 #include <QWaitCondition>
 #include <QThread>
@@ -72,20 +72,9 @@ extern "C" {
  */
 class VideoPicture {
 
-    friend class VideoFile;
-    friend class DecodingThread;
-
 public:
-
-    VideoPicture();
-    ~VideoPicture();
     /**
-     * Re-fills the Picture using the last filled AVFrame * given;
-     * this also re-applies the filter.
-     */
-    void refilter() const;
-    /**
-     * Allocate the frame (w x h pixels) and resets to black.
+     * create the VideoPicture and Allocate its av picture (w x h pixels)
      *
      * The pixel format is usually PIX_FMT_RGB24 or PIX_FMT_RGBA for OpenGL texturing, but depends
      * on the format requested when instanciating the VideoFile.
@@ -93,10 +82,15 @@ public:
      * @param w Width of the frame
      * @param h Height of the frame
      * @param format Internal pixel format of the buffer. PIX_FMT_RGB24 (by default), PIX_FMT_RGBA if there is alpha channel
-     * @return true on success.
      */
-    bool allocate(SwsContext *img_convert_ctx, int w, int h, enum PixelFormat format = PIX_FMT_RGB24, bool palettized = false);
+    VideoPicture(SwsContext *img_convert_ctx, int w, int h, enum PixelFormat format = PIX_FMT_RGB24, bool palettized = false);
+
     /**
+      * Deletes the VideoPicture and frees the av picture
+      */
+    ~VideoPicture();
+
+        /**
      * Fills the rgb buffer of this Video Picture with the content of the ffmpeg AVFrame given.
      * If pFrame is not given, it fills the Picture with the formerly given one.
      *
@@ -124,7 +118,10 @@ public:
      * @return pointer to an array of unsigned bytes (char or uint8_t)
      */
     inline char *getBuffer() const {
-        return (allocated ? (char*) rgb.data[0] : NULL);
+        return (char*) rgb.data[0];
+    }
+    inline double getPts() const {
+        return pts;
     }
     /**
      * Get the width of the picture.
@@ -149,14 +146,6 @@ public:
      */
     inline double getAspectRatio() const {
     	return (double)width / (double)height;
-    }
-    /**
-     * Tells if the picture was allocated and contains a frame in the buffer.
-     *
-     * @return true if there is a picture available.
-     */
-    inline bool isAllocated() const {
-        return (allocated && (rgb.data != NULL));
     }
     /**
      * Creates and saves a .ppm image file with the current buffer (if full).
@@ -188,19 +177,21 @@ public:
         ACTION_SHOW = 1,
         ACTION_STOP = 2,
         ACTION_SEEK = 4,
-        ACTION_SKIP = 8
+        ACTION_PAUSE = 8,
+        ACTION_DELETE = 16
     };
     typedef unsigned short Action;
     inline void resetAction() { action = ACTION_SHOW; }
     inline void addAction(Action a) { action |= a; }
     inline void removeAction(Action a) { action ^= (action & a); }
     inline bool hasAction(Action a) const { return (action & a); }
+    inline double presentationTime() const { return pts; }
 
 private:
-    AVPicture rgb, *oldframe;
-    int width, height;
-    bool allocated, convert_rgba_palette;
+    AVPicture rgb;
     double pts;
+    int width, height;
+    bool convert_rgba_palette;
     enum PixelFormat pixelformat;
     SwsContext *img_convert_ctx_filtering;
     Action action;
@@ -320,8 +311,14 @@ public:
      * @param index Index of the picture to read; this should be used when recieving a frameReady(int) event and using the given index.
      * @return Const pointer to a VideoPicture; you cannot and should not modify the content of the VideoPicture. Just use it to read the buffer.
      */
-    const VideoPicture *getPictureAtIndex(int index) const;
-    inline const int getPictureMaxIndex() const { return pictq_allocated; }
+    VideoPicture *getResetPicture() const;
+
+    inline int getNumFrames() const {
+        if (video_st) return video_st->nb_frames;
+        else return 0;
+    }
+
+
     /**
      * Test if a file was open for this VideoFile.
      *
@@ -551,21 +548,7 @@ public:
      * @param iconfile Name of the file to put as icon of the window
      */
     static void displayFormatsCodecsInformation(QString iconfile);
-    /**
-     * Returns the strength of the brightness filter applied on the video
-     * @return value between [-100, 100]
-     */
-    int getBrightness();
-    /**
-     * Returns the strength of the contrast filter applied on the video
-     * @return value between [-100, 100]
-     */
-    int getContrast();
-    /**
-     * Returns the strength of the saturation filter applied on the video
-     * @return value between [-100, 100]
-     */
-    int getSaturation();
+
 
 Q_SIGNALS:
     /**
@@ -573,7 +556,8 @@ Q_SIGNALS:
      *
      * @param id the argument is the id of the VideoPicture to read.
      */
-    void frameReady(int id);
+    void frameReady(VideoPicture *);
+//    void frameReady(int id);
     /**
      * Signal emmited when started or stopped;
      *
@@ -749,6 +733,10 @@ public Q_SLOTS:
         seekToPosition(getBegin());
     }
     /**
+     * Seek forward of one frame exactly.
+     */
+    void seekForwardOneFrame();
+    /**
      * Sets the "allow dirty seek" option.
      *
      * This option is a parameter of ffmpeg seek; when dirty seek is allowed, seek to position will allow
@@ -804,24 +792,10 @@ public Q_SLOTS:
      * @return true if the option is active.
      */
     inline bool getOptionRevertToBlackWhenStop() {
-    	return (resetPicture == &blackPicture);
+        return (resetPicture == blackPicture);
     }
 
-    /**
-     * Specify the strength of the brightness filter applied on the video
-     * @param b value between [-100, 100], 0 for no effect (original colors)
-     */
-    void setBrightness(int b);
-    /**
-     * Specify the strength of the contrast filter applied on the video
-     * @param c value between [-100, 100], 0 for no effect (original colors)
-     */
-    void setContrast(int c);
-    /**
-     * Specify the strength of the saturation filter applied on the video.
-     * @param s value between [-100, 100], 0 for no effect (original colors)
-     */
-    void setSaturation(int s);
+
     /**
      *
      */
@@ -885,12 +859,19 @@ protected:
     // Video and general information
     QString filename;
     QString codecname;
+    bool powerOfTwo;
+    int targetWidth, targetHeight;
+    int conversionAlgorithm;
+    VideoPicture *firstPicture, *blackPicture;
+    VideoPicture *resetPicture;
+    enum PixelFormat targetFormat;
+    bool rgba_palette;
+    SwsFilter *filter;
 
     // Video file, streams and packets
     AVFormatContext *pFormatCtx;
     AVStream *video_st;
     SwsContext *img_convert_ctx;
-    SwsFilter *filter;
     int videoStream;
     PacketQueue videoq;
     bool ignoreAlpha;
@@ -926,12 +907,14 @@ protected:
         double _min_frame_delay;
         double _max_frame_delay;
         double _frame_base;
+        double _requested_speed;
 
     public:
         Clock();
         void reset(double deltat, double timebase = -1.0);
         void pause(bool);
         void setSpeed(double);
+        void applyRequestedSpeed();
 
         bool paused() const;
         double time() const;
@@ -943,16 +926,11 @@ protected:
     Clock _videoClock;
 
     // picture queue management
-    VideoPicture pictq[MAX_VIDEO_PICTURE_QUEUE_SIZE];
-    int pictq_size, pictq_allocated, pictq_rindex, pictq_windex;
+    int pictq_size;//, pictq_allocated, pictq_rindex, pictq_windex;
+    QQueue<VideoPicture*> pictq;
     bool pictq_flush_req;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
-    bool powerOfTwo;
-    int targetWidth, targetHeight;
-    int conversionAlgorithm;
-    VideoPicture firstPicture, blackPicture;
-    VideoPicture *resetPicture;
 
     // Threads and execution manangement
     ParsingThread *parse_tid;

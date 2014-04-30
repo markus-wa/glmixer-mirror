@@ -106,12 +106,12 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
             setEnabled(true);
             // activate preview
             previewWidget->setVideo(is);
-            previewWidget->updateFrame(-1);
+            previewWidget->updateFrame(is->getResetPicture());
             // fill in details
             CodecNameLineEdit->setText(is->getCodecName());
             endLineEdit->setText( is->getStringTimeFromtime(is->getEnd()) );
             // is there more than one frame ?
-            if ( is->getPictureMaxIndex() > 1 ) {
+            if ( is->getNumFrames() > 1 ) {
                 startButton->setEnabled( true );
                 is->start();
             }

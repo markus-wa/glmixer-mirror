@@ -33,12 +33,12 @@
 Source::RTTI VideoSource::type = Source::VIDEO_SOURCE;
 
 VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
-	QObject(), Source(texture, d), is(f), bufferIndex(-1)
+    QObject(), Source(texture, d), is(f), vp(NULL) //bufferIndex(-1)
 {
 	if (!is)
 		SourceConstructorException().raise();
 
-	QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
+    QObject::connect(is, SIGNAL(frameReady(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
 	aspectratio = is->getStreamAspectRatio();
 
 	glActiveTexture(GL_TEXTURE0);
@@ -46,27 +46,29 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	// fills in the first frame
-	const VideoPicture *vp = is->getPictureAtIndex(-1);
-	if (vp && vp->isAllocated())
+    // fills in the first frame
+    const VideoPicture *_vp = is->getResetPicture();
+    if (_vp)
 	{
 		// fill in the texture
-		if (vp->getFormat() == PIX_FMT_RGBA)
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, vp->getWidth(),
-					vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
-					vp->getBuffer());
+        if (_vp->getFormat() == PIX_FMT_RGBA)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _vp->getWidth(),
+                    _vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                    _vp->getBuffer());
 		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, vp->getWidth(),
-					vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-					vp->getBuffer());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _vp->getWidth(),
+                    _vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+                    _vp->getBuffer());
 	}
 
 }
 
 VideoSource::~VideoSource()
 {
-	if (is)
-		delete is;
+    if (is)
+        delete is;
+    if (vp)
+        delete vp;
 
 	// free the OpenGL texture
 	glDeleteTextures(1, &textureIndex);
@@ -74,7 +76,7 @@ VideoSource::~VideoSource()
 
 bool VideoSource::isPlayable() const
 {
-    return (is->getPictureMaxIndex() > 1);
+    return (is->getNumFrames() > 1);
 }
 
 bool VideoSource::isPlaying() const
@@ -87,8 +89,8 @@ void VideoSource::play(bool on)
     if (on != isPlaying()) {
 
         Source::play(on);
+        is->play(on);
 
-		is->play(on);
     }
 }
 
@@ -107,100 +109,37 @@ void VideoSource::pause(bool on)
 // only Rendering Manager can call this
 void VideoSource::update()
 {
-	// update texture
-	if (frameChanged && is)
+    // update texture given the new vp
+    if ( vp )
 	{
+        glBindTexture(GL_TEXTURE_2D, textureIndex);
+        // use it for OpenGL
+        if (vp->getFormat() == PIX_FMT_RGBA)
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
+                    vp->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE,
+                    vp->getBuffer());
+        else
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
+                    vp->getHeight(), GL_RGB, GL_UNSIGNED_BYTE,
+                    vp->getBuffer());
 
-		const VideoPicture *vp = is->getPictureAtIndex(bufferIndex);
+        // done! free the picture
+        if (vp->hasAction(VideoPicture::ACTION_DELETE))
+            delete vp;
 
-		// is the picture good ?
-		if (vp && vp->isAllocated())
-		{
-            glBindTexture(GL_TEXTURE_2D, textureIndex);
-			// use it for OpenGL
-			if (vp->getFormat() == PIX_FMT_RGBA)
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
-						vp->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE,
-						vp->getBuffer());
-			else
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
-						vp->getHeight(), GL_RGB, GL_UNSIGNED_BYTE,
-                        vp->getBuffer());
-            // shouldn't update next time unless requested
-            frameChanged = false;
-
-        }
+        vp = NULL;
     }
 
     Source::update();
 }
 
-void VideoSource::updateFrame(int i)
+void VideoSource::updateFrame(VideoPicture *p)
 {
-	frameChanged = true;
-	bufferIndex = i;
+    // free the vp if not already updated
+    if (vp && vp->hasAction(VideoPicture::ACTION_DELETE))
+        delete vp;
+    // set new vp
+    vp = p;
 }
 
-void VideoSource::applyFilter()
-{
-	// if the video file is stopped or paused
-	if (!is->isRunning() || is->isPaused())
-	{
-		// re-filter reset picture
-		is->getPictureAtIndex(-1)->refilter();
-		// re-filter whole buffer
-		if (isPlayable())
-		{
-            for (int i = 0; i < is->getPictureMaxIndex() ; ++i)
-				is->getPictureAtIndex(i)->refilter();
-		}
-	}
-	// request to redraw the buffer
-	frameChanged = true;
-}
-
-// Adjust brightness factor
-void VideoSource::setBrightness(int b)
-{
-	Source::setBrightness(b);
-	if (ViewRenderWidget::filteringEnabled())
-		// use GLSL and disable VideoFile filtering
-		is->setBrightness(0);
-	else
-	{
-		// use VideoFile filter
-		is->setBrightness(b);
-		applyFilter();
-	}
-}
-
-// Adjust contrast factor
-void VideoSource::setContrast(int c)
-{
-	Source::setContrast(c);
-	if (ViewRenderWidget::filteringEnabled())
-		// use GLSL and disable VideoFile filtering
-		is->setContrast(0);
-	else
-	{
-		// use VideoFile filter
-		is->setContrast(c);
-		applyFilter();
-	}
-}
-
-// Adjust saturation factor
-void VideoSource::setSaturation(int s)
-{
-	Source::setSaturation(s);
-	if (ViewRenderWidget::filteringEnabled())
-		// use GLSL and disable VideoFile filtering
-		is->setSaturation(0);
-	else
-	{
-		// use VideoFile filter
-		is->setSaturation(s);
-		applyFilter();
-	}
-}
 

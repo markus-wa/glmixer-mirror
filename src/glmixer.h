@@ -108,9 +108,9 @@ public Q_SLOTS:
 	void setAspectRatio(QAction *a);
 	void updateRefreshTimerState();
 	void updateMarks();
-	void unpauseBeforeSeek();
+//	void unpauseBeforeSeek();
 	void pauseAfterFrame();
-	void pauseAfterSeek();
+//	void pauseAfterSeek();
 	void refreshTiming();
 	void newSession();
     void openSessionFile();

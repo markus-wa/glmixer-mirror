@@ -50,7 +50,8 @@ void VideoFileDisplayWidget::setVideo(VideoFile *f){
 
     if (is) {
         glEnable(GL_TEXTURE_2D);
-        QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
+//        QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
+        QObject::connect(is, SIGNAL(frameReady(VideoPicture*)), this, SLOT(updateFrame(VideoPicture*)));
     } else {
         glDisable(GL_TEXTURE_2D);
         update();
@@ -97,16 +98,17 @@ void VideoFileDisplayWidget::initializeGL()
 
 
 
-void VideoFileDisplayWidget::updateFrame (int i)
+void VideoFileDisplayWidget::updateFrame (VideoPicture *vp)
 {
 
     makeCurrent();
 
     // start update texture
-    if (is) {
+    if ( vp ) {
+//        if (vp ) {
         glBindTexture(GL_TEXTURE_2D, textureIndex);
-        const VideoPicture *vp = is->getPictureAtIndex(i);
-        if (vp && vp->isAllocated()) {
+//        const VideoPicture *vp = is->getPictureAtIndex(i);
+//        if (vp && vp->isAllocated()) {
 
             if ( vp->getFormat() == PIX_FMT_RGBA)
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  vp->getWidth(),
@@ -117,7 +119,9 @@ void VideoFileDisplayWidget::updateFrame (int i)
                          vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
                          vp->getBuffer() );
 
-        }
+            if (vp->hasAction(VideoPicture::ACTION_DELETE))
+                delete vp;
+//        }
     }
     // end
 
