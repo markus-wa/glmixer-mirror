@@ -195,27 +195,16 @@ private:
 	AVFrame *_pFrame;
 };
 
-//VideoPicture::VideoPicture() :
-//    pts(0), width(0), height(0), convert_rgba_palette(false),  pixelformat(PIX_FMT_NONE), action(ACTION_SHOW)
-//{
-//	img_convert_ctx_filtering = NULL;
-//	rgb.data[0] = NULL;
-//}
 
 VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
         enum PixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixelformat(format),  img_convert_ctx_filtering(img_convert_ctx), action(ACTION_SHOW)
 {
-
-
     avpicture_alloc(&rgb, pixelformat, width, height);
-
 }
 
 VideoPicture::~VideoPicture()
 {
-
     avpicture_free(&rgb);
-
 }
 
 void VideoPicture::saveToPPM(QString filename) const
@@ -355,9 +344,9 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 
 void VideoFile::close()
 {
-
 	// request ending
 	quit = true;
+
 	// wait for threads to end properly
     parse_tid->wait();
     pictq_cond->wakeAll();
@@ -369,15 +358,27 @@ void VideoFile::close()
 		sws_freeContext(img_convert_ctx);
     if (filter)
         sws_freeFilter(filter);
+    if (deinterlacing_buffer)
+        av_free(deinterlacing_buffer);
 
-	// close file
-	if (pFormatCtx)
+    if (pFormatCtx) {
 
+        // Close codec (& threads inside)
+        avcodec_close(pFormatCtx->streams[videoStream]->codec);
+
+        // close file & free context
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
         avformat_close_input(&pFormatCtx);
 #else
         av_close_input_file(pFormatCtx);
 #endif
+    }
+
+    // reset pointers
+    img_convert_ctx = NULL;
+    filter = NULL;
+    pFormatCtx = NULL;
+    deinterlacing_buffer = NULL;
 }
 
 VideoFile::~VideoFile()
@@ -385,7 +386,9 @@ VideoFile::~VideoFile()
 	// make sure all is closed
     close();
 
-	// delete threads
+    // delete threads
+    parse_tid->quit();
+    decod_tid->quit();
 	delete parse_tid;
 	delete decod_tid;
 	delete pictq_mutex;
@@ -393,9 +396,6 @@ VideoFile::~VideoFile()
     delete seek_mutex;
     delete seek_cond;
 	delete ptimer;
-
-	if (deinterlacing_buffer)
-		av_free(deinterlacing_buffer);
 
     QObject::disconnect(this, 0, 0, 0);
 
@@ -464,16 +464,15 @@ void VideoFile::start()
 		// reset quit flag
 		quit = false;
 
-		// where shall we (re)start ?
-		// enforces seek to the frame before ; it is needed because we may miss the good frame
-		seek_backward = true;
-
         // restart where we where (if valid mark)
         if (restart_where_stopped && mark_stop < mark_out && mark_stop > mark_in)
            seek_pos =  mark_stop;
         // otherwise restart at beginning
         else
             seek_pos = mark_in;
+
+        // enforces seek to the frame before ; it is needed because we may miss the good frame
+        seek_backward = true;
         // request partsing thread to perform seek
         parsing_mode = VideoFile::PARSING_SEEKREQUEST;
 
@@ -516,7 +515,7 @@ int VideoFile::getPlaySpeedFactor()
 
 void VideoFile::setPlaySpeed(double s)
 {
-    // change the picture queue may size according to play speed
+    // change the picture queue size according to play speed
     // this is because, in principle, more frames are skipped when play faster
     // and we empty the queue faster
     double sizeq = qBound(2.0, (double) video_st->nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
@@ -541,6 +540,9 @@ VideoPicture *VideoFile::getResetPicture() const
 
 bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlphaChannel)
 {
+    if (pFormatCtx)
+        close();
+
 	int err = 0;
 	AVFormatContext *_pFormatCtx = 0;
 
@@ -554,7 +556,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 #else
 	err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0, NULL);
 #endif
-	if (err < 0)
+    if (err < 0)
 	{
 		switch (err)
 		{
@@ -575,6 +577,10 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
             qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
 			break;
 		}
+
+        // free not openned context
+        avformat_free_context(_pFormatCtx);
+
 		return false;
 	}
 
@@ -604,28 +610,26 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
             qWarning() << filename << QChar(124).toLatin1()<< tr("Unsupported format.");
 			break;
 		}
+
 		return false;
 	}
 
 	// if video_index not set (no video stream found) or stream open call failed
 	videoStream = stream_component_open(_pFormatCtx);
 	if (videoStream < 0)
-		//could not open Codecs (error message already emitted)
+        //could not open Codecs (error message already sent)
 		return false;
 
-	// Init the stream and timing info
-	video_st = _pFormatCtx->streams[videoStream];
-
-	// all ok, we can set the internal pointer to the good value
-	pFormatCtx = _pFormatCtx;
+    // all ok, we can set the internal pointers to the good values
+    pFormatCtx = _pFormatCtx;
+    video_st = pFormatCtx->streams[videoStream];
 
     // make sure the number of frames is correctly counted (some files have no count=
     if (video_st->nb_frames == AV_NOPTS_VALUE || video_st->nb_frames < 1 )
         video_st->nb_frames = getDuration() / av_q2d(video_st->time_base);
 
-
+    // set the size of the picture queue to a percent of the number of frames
     pictq_max_size = qBound(2, (int)( (double) video_st->nb_frames * SEEK_STEP) + 1, MAX_VIDEO_PICTURE_QUEUE_SIZE);
-
 
     // check the parameters for mark in and out and setup marking accordingly
     if (markIn < 0 || video_st->nb_frames < 2)
