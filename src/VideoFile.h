@@ -811,10 +811,7 @@ protected Q_SLOTS:
 	 * Slot called from an internal timer synchronized on the video time code.
 	 */
 	void video_refresh_timer();
-    /**
-     * Slot called when a thread ends prematurely (error handling).
-     */
-    void thread_terminated();
+
 
 protected:
 
@@ -926,7 +923,7 @@ protected:
     Clock _videoClock;
 
     // picture queue management
-    int pictq_size;//, pictq_allocated, pictq_rindex, pictq_windex;
+    int pictq_size, pictq_max_size;//, pictq_allocated, pictq_rindex, pictq_windex;
     QQueue<VideoPicture*> pictq;
     bool pictq_flush_req;
     QMutex *pictq_mutex;

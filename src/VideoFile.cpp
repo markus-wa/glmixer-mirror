@@ -211,38 +211,6 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
 
 }
 
-//	img_convert_ctx_filtering = img_convert_ctx;
-//    convert_rgba_palette = rgba_palette;
-//	width = w;
-//	height = h;
-//	pixelformat = format;
-
-//	// if we already have one, make another
-//	// free image
-//    if (rgb.data[0])
-//    {
-//        avpicture_free(&rgb);
-//        rgb.data[0] = NULL;
-//    }
-
-//    // create the picture
-//    if (avpicture_alloc(&rgb, pixelformat, width, height) < 0)
-//        return false;
-
-//    //	initialize buffer to black if we use RGBA converter (see bellow)
-////    if (rgba_palette) {
-////      // Determine required buffer size and allocate buffer with zeros
-////      int numBytes = avpicture_get_size(pixelformat, width, height);
-////      uint8_t *buffer = static_cast<uint8_t*> (av_mallocz(numBytes + FF_INPUT_BUFFER_PADDING_SIZE));
-////      // fill the picture with the black buffer
-////      avpicture_fill(&rgb, buffer, pixelformat, width, height);
-////    }
-
-
-////	allocated = true;
-////	return true;
-//}
-
 VideoPicture::~VideoPicture()
 {
 
@@ -352,6 +320,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     blackPicture = NULL;
     resetPicture = NULL;
     filter = NULL;
+    pictq_max_size = MAX_VIDEO_PICTURE_QUEUE_SIZE;
 
 	// Contruct some objects
 	parse_tid = new ParsingThread(this);
@@ -367,8 +336,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     seek_cond = new QWaitCondition;
     Q_CHECK_PTR(seek_cond);
 
-	QObject::connect(parse_tid, SIGNAL(finished()), this, SLOT(thread_terminated()));
-	QObject::connect(decod_tid, SIGNAL(finished()), this, SLOT(thread_terminated()));
 
 	ptimer = new QTimer(this);
 	Q_CHECK_PTR(ptimer);
@@ -416,8 +383,7 @@ void VideoFile::close()
 VideoFile::~VideoFile()
 {
 	// make sure all is closed
-	close();
-	QObject::disconnect(this, 0, 0, 0);
+    close();
 
 	// delete threads
 	delete parse_tid;
@@ -431,6 +397,9 @@ VideoFile::~VideoFile()
 	if (deinterlacing_buffer)
 		av_free(deinterlacing_buffer);
 
+    QObject::disconnect(this, 0, 0, 0);
+
+    fprintf(stderr, "Video file %s deleted\n", qPrintable(getFileName()) );
 }
 
 void VideoFile::reset()
@@ -547,6 +516,14 @@ int VideoFile::getPlaySpeedFactor()
 
 void VideoFile::setPlaySpeed(double s)
 {
+    // change the picture queue may size according to play speed
+    // this is because, in principle, more frames are skipped when play faster
+    // and we empty the queue faster
+    double sizeq = qBound(2.0, (double) video_st->nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
+    sizeq *= s;
+
+    pictq_max_size = (int) sizeq;
+
     _videoClock.setSpeed( s );
     emit playSpeedChanged(s);
 }
@@ -556,19 +533,6 @@ double VideoFile::getPlaySpeed()
     return _videoClock.speed();
 }
 
-
-void VideoFile::thread_terminated()
-{
-	// recieved this message while 'quit' was not requested ?
-	if (!quit)
-	{
-		//  this means an error occured...
-        qWarning() << filename << QChar(124).toLatin1()<< tr("Decoding interrupted.");
-
-		// stop properly if possible
-		stop();
-	}
-}
 
 VideoPicture *VideoFile::getResetPicture() const
 {
@@ -658,6 +622,10 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // make sure the number of frames is correctly counted (some files have no count=
     if (video_st->nb_frames == AV_NOPTS_VALUE || video_st->nb_frames < 1 )
         video_st->nb_frames = getDuration() / av_q2d(video_st->time_base);
+
+
+    pictq_max_size = qBound(2, (int)( (double) video_st->nb_frames * SEEK_STEP) + 1, MAX_VIDEO_PICTURE_QUEUE_SIZE);
+
 
     // check the parameters for mark in and out and setup marking accordingly
     if (markIn < 0 || video_st->nb_frames < 2)
@@ -1258,10 +1226,10 @@ void ParsingThread::run()
             if (!is->videoq.flush())
                 qWarning() << is->filename << QChar(124).toLatin1()<< QObject::tr("Flushing error.");
 
-            if (is->pictq_flush_req) {
-                fprintf(stderr, "ParsingThread flush_picture_queue");
-                is->flush_picture_queue();
-            }
+//            if (is->pictq_flush_req) {
+////                fprintf(stderr, "ParsingThread flush_picture_queue");
+//                is->flush_picture_queue();
+//            }
 
             // revert one shot option
             is->seek_backward = false;
@@ -1348,7 +1316,7 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
 
 	/* wait until we have space for a new pic */
     pictq_mutex->lock();
-    while ( (pictq_size > MAX_VIDEO_PICTURE_QUEUE_SIZE) && !quit)
+    while ( (pictq_size > pictq_max_size) && !quit)
         pictq_cond->wait(pictq_mutex); // the condition is released in video_refresh_timer()
 	pictq_mutex->unlock();
 
