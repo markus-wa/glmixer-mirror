@@ -19,7 +19,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   Copyright 2009, 2012 Bruno Herbelin
+ *   Copyright 2009, 2014 Bruno Herbelin
  *
  */
 
@@ -399,7 +399,7 @@ VideoFile::~VideoFile()
 
     QObject::disconnect(this, 0, 0, 0);
 
-    fprintf(stderr, "Video file %s deleted\n", qPrintable(getFileName()) );
+//    fprintf(stderr, "Video file %s deleted\n", qPrintable(getFileName()) );
 }
 
 void VideoFile::reset()
@@ -409,7 +409,7 @@ void VideoFile::reset()
     seek_pos = 0.0;
     seek_backward = false;
     pictq_flush_req = false;
-    parsing_mode = VideoFile::PARSING_NORMAL;
+    parsing_mode = VideoFile::SEEKING_NONE;
 
     flush_picture_queue();
 
@@ -474,7 +474,7 @@ void VideoFile::start()
         // enforces seek to the frame before ; it is needed because we may miss the good frame
         seek_backward = true;
         // request partsing thread to perform seek
-        parsing_mode = VideoFile::PARSING_SEEKREQUEST;
+        parsing_mode = VideoFile::SEEKING_PARSING_REQUEST;
 
         // start parsing and decoding threads
         ptimer->start();
@@ -885,10 +885,11 @@ void VideoFile::video_refresh_timer()
 {
     // by default timer will be restarted ASAP
     int ptimer_delay = 10;
+    bool quit_after_frame = false;
 
     // if all is in order, deal with the picture in the queue
     // (i.e. there is a stream, there is a picture in the queue, and the clock is not paused)
-    if (video_st && !pictq.empty() && (!_videoClock.paused() ||  pictq.head()->hasAction(VideoPicture::ACTION_PAUSE) ) )
+    if (video_st && !pictq.empty() && (!_videoClock.paused() ||  pictq.head()->hasAction(VideoPicture::ACTION_RESET_PTS) ) )
     {
         _videoClock.applyRequestedSpeed();
 
@@ -915,18 +916,34 @@ void VideoFile::video_refresh_timer()
 //                stop();
 //        }
 
+        // if this frame was tagged as stopping frame
+        if ( currentvp->hasAction(VideoPicture::ACTION_STOP) ) {
+//            fprintf(stderr, "FOUND STOP FRAME at t = %f for pts %f \n",_videoClock.time(), current_frame_pts);
+            // stop the video
+            quit_after_frame = true;
+        }
+
         // this frame was tagged as seeking frame
-        if ( currentvp->hasAction(VideoPicture::ACTION_SEEK) ) {
+        if ( currentvp->hasAction(VideoPicture::ACTION_RESET_PTS) ) {
             // reset clock to the time of the frame
             _videoClock.reset(current_frame_pts);
 
 //            fprintf(stderr, "FOUND SEEK FRAME at t = %f for pts %f \n",_videoClock.time(), current_frame_pts);
+            emit seekEnabled(true);
         }
 
+//        // this frame was tagged as pause frame
+//        if ( currentvp->hasAction(VideoPicture::ACTION_PAUSE) ) {
+////            fprintf(stderr, "FOUND PAUSE FRAME at t = %f for pts %f \n",_videoClock.time(), current_frame_pts);
 
+//            // pause for this frame
+//            pause(true);
+//        }
+
+        // this frame is tagged to be displayed
         if ( currentvp->hasAction(VideoPicture::ACTION_SHOW) ) {
 
-            // ask to show the current picture and delete it
+            // ask to show the current picture (and to delete it when done)
             currentvp->addAction(VideoPicture::ACTION_DELETE);
             emit frameReady(currentvp);
 
@@ -938,7 +955,7 @@ void VideoFile::video_refresh_timer()
                 double delay = 0.0;
 
                 // if next frame we will be seeking
-                if ( nextvp->hasAction(VideoPicture::ACTION_SEEK) )
+                if ( nextvp->hasAction(VideoPicture::ACTION_RESET_PTS) )
                     // update at normal fps, discarding computing of delay
                     delay = _videoClock.timeBase();
                 else
@@ -967,31 +984,14 @@ void VideoFile::video_refresh_timer()
             }
 
         }
+        // LAST: skip this frame
         else {
 //            fprintf(stderr, "SKIP frame for t = %f (pts was %f) \n",_videoClock.time(), currentvp->pts);
-
+            // delete this picture
             delete currentvp;
-
+            // loop ASAP
             ptimer_delay = (int) (_videoClock.minFrameDelay() * 1000.0);
        }
-
-        // this frame was tagged as stopping frame
-        if ( currentvp->hasAction(VideoPicture::ACTION_STOP) ) {
-//            fprintf(stderr, "FOUND STOP FRAME at t = %f for pts %f \n",_videoClock.time(), current_frame_pts);
-            // stop the video
-            stop();
-        }
-
-        // this frame was tagged as pause frame
-        if ( currentvp->hasAction(VideoPicture::ACTION_PAUSE) ) {
-//            fprintf(stderr, "FOUND PAUSE FRAME at t = %f for pts %f \n",_videoClock.time(), current_frame_pts);
-
-            ptimer_delay = 10;
-
-            // TODO : what for pause ?
-            pause(true);
-        }
-
 
         // unblock the queue for the decoding thread
         // block the video thread
@@ -1004,9 +1004,10 @@ void VideoFile::video_refresh_timer()
     }
 
     // restart the ptimer for next frame
-    if (!quit)
+    if (!quit_after_frame)
         ptimer->start(ptimer_delay);        
-
+    else
+        stop();
 
 }
 
@@ -1062,36 +1063,60 @@ void VideoFile::setOptionRevertToBlackWhenStop(bool black)
 
 void VideoFile::seekToPosition(double t)
 {
-    if (pFormatCtx && !quit && parsing_mode == PARSING_NORMAL)
+    if (pFormatCtx && video_st && !quit)
     {
-        seek_mutex->lock();
-        seek_pos = qBound(getBegin(), t, getEnd());
-        parsing_mode = VideoFile::PARSING_SEEKREQUEST;
-        seek_mutex->unlock();
+        t = qBound(getBegin(), t, getEnd());
 
-        pictq_flush_req = true;
+        // discard too small seek
+        if ( qAbs( t - pictq.head()->getPts() ) < av_q2d(video_st->time_base) )
+            return;
 
+        fprintf(stderr, "\n seekToPosition %f. Decoding queue [%f %f]\n", t, pictq.first()->getPts(), pictq.last()->getPts());
 
-//        fprintf(stderr, "seekToPosition to %f\n\n", seek_pos);
-	}
+        // try to go to the frame in the decoding queue
+        if ( !decodingSeekRequest(t) )  {
+            // no luck, request to seek in the parser, with flushing of the buffer
+            pictq_flush_req = true;
+            parsingSeekRequest(t);
+        }
+
+        emit seekEnabled(false);
+
+    }
 }
 
-void VideoFile::seekBySeconds(double ss)
+void VideoFile::seekBySeconds(double seekStep)
 {
-    seekToPosition( current_frame_pts + ss);
+    double position = current_frame_pts + seekStep;
 
+    // if the video is in loop mode
+    if (loop_video) {
+        // bound and loop the seeking position inside the [mark_in mark_out]
+        if (position > mark_out)
+            position = mark_in + (position - mark_out);
+        else if (position < mark_in)
+            position = mark_out - (mark_in - position);
+    }
+    else {
+        // only bound the seek position inside the [mark_in mark_out]
+        position = qBound(mark_in, position, mark_out);
+    }
+
+    // call seeking to the computed position
+    seekToPosition( position );
 }
 
-void VideoFile::seekByFrames(int si)
+void VideoFile::seekByFrames(int seekFrameStep)
 {
-    seekToPosition( current_frame_pts + (double) si * av_q2d(video_st->time_base));
+    // seek by how many seconds the number of frames corresponds to
+    seekBySeconds( (double) seekFrameStep * av_q2d(video_st->time_base));
 }
 
 
 void VideoFile::seekForwardOneFrame()
 {
-    // tag this frame as Pause and as seek
-    pictq.head()->addAction(VideoPicture::ACTION_SEEK & VideoPicture::ACTION_PAUSE);
+    // tag this frame as a RESET frame ; this enforces its processing in video_refresh_timer
+    pictq.head()->addAction(VideoPicture::ACTION_RESET_PTS);
 
 }
 
@@ -1148,18 +1173,121 @@ void VideoFile::setMarkIn(double t)
 {
     mark_in = qBound(getBegin(), t, mark_out);
 	emit markingChanged();
+
+    // requested mark in is after current time
+    if ( mark_in > current_frame_pts ) {
+        // seek to mark in
+        seekToPosition(mark_in);
+    }
+
 }
 
 void VideoFile::setMarkOut(double t)
 {
+//    double previous_mark_out = mark_out;
     mark_out = qBound(mark_in, t, getEnd());
-	emit markingChanged();
+    emit markingChanged();
 
-    // TODO : if we change the mark out but the queue already passed it
-    // (i.e. it has marked the picture for stop or seek)
-    //   -> we have to remove this part of the queue (including the bad frame)
-    //  and restart parsing from there
+    // ugly implementation
+    // request to seek in the parser, with flushing of the buffer
+    pictq_flush_req = true;
+    parsingSeekRequest(current_frame_pts + av_q2d(video_st->time_base) );
 
+
+
+//    // requested out is before current time
+//    // behave according to loop mode
+//    if ( mark_out < current_frame_pts ) {
+
+
+//    }
+//    // else requested out is in the furure, i.e. in the queue
+//    // maybe something to change in the queue ?
+//    else if (  pictq.size() > 1 ) {
+
+//        pictq_mutex->lock();
+
+////        // remove all frames looped after mark out, i.e whith pts is before the current
+////        while ( pictq.size() > 1 && pictq.first()->getPts() < pictq.last()->getPts() )
+////            delete pictq.takeLast();
+
+//        double max = qMin(previous_mark_out, mark_out) - av_q2d(video_st->time_base);
+
+//        // remove all frames
+//        while (  pictq.size() > 1 && pictq.last()->getPts() > max )
+//            delete pictq.takeLast();
+
+//        parsingSeekRequest(pictq.last()->getPts());
+
+////        double m;
+
+////        if (  )
+
+
+////        fprintf(stderr, "setMarkOut LAST QUEUE FRAME at  pts = %f \n", pictq.last()->getPts());
+
+
+////        // if we change the mark out but the queue already passed it
+////        //   -> we have to remove this part of the queue (including the bad frame)
+////        //  and restart parsing from there
+//////        if (  pictq.last()->getPts() > mark_out ) {
+////            // TODO : what if looped ?
+
+
+////        if (  previous_mark_out < mark_out ) {
+
+////            // remove all frames with untill the previous mark out
+////            while ( !pictq.empty() && pictq.last()->getPts() > previous_mark_out )
+////                delete pictq.takeLast();
+
+////            /// Now set the parser to restart at this frame
+////            pictq_flush_req = true;
+////            parsingSeekRequest(previous_mark_out);
+////        }
+////        else {
+
+////            // remove all frames with untill the current mark out
+////            while ( !pictq.empty() && pictq.last()->getPts() > mark_out )
+////                delete pictq.takeLast();
+
+////            /// Now set the parser to restart at this frame
+////            pictq_flush_req = false;
+////            parsingSeekRequest(mark_out);
+
+////        }
+
+
+//////            pictq.last()->addAction(VideoPicture::ACTION_RESET_PTS);
+
+
+
+////            fprintf(stderr, "setMarkOut MARK OUT %f FRAME at  pts = %f \n", mark_out, pictq.last()->getPts());
+
+
+//////        }
+////        // the last frame of the queue is ok,
+//////        else {
+
+//////        }
+/////
+//        // inform about the new size of the queue
+//        pictq_size = pictq.size();
+//        pictq_cond->wakeAll();
+//        pictq_mutex->unlock();
+
+
+
+//    }
+
+
+    //        /// Now set the parser to restart at this frame
+    //        pictq_flush_req = true;
+    //        parsingSeekRequest(current_frame_pts + av_q2d(video_st->time_base));
+
+    /// TODO : what if looping buffer? then the condition is not ok
+    ///
+    // TODO : adjust the size of the queue if the in->out duration is less than the
+    // seeking window (ie. queue size). Queue shouldn't be bigger than [in out].
 
 }
 
@@ -1196,9 +1324,9 @@ void ParsingThread::run()
         // seek stuff goes here
         int64_t seek_target = AV_NOPTS_VALUE;
         is->seek_mutex->lock();
-        if (is->parsing_mode == VideoFile::PARSING_SEEKREQUEST) {
+        if (is->parsing_mode == VideoFile::SEEKING_PARSING_REQUEST) {
             // enter the seeking mode (disabled only when target reached)
-            is->parsing_mode = VideoFile::PARSING_SEEKING;
+            is->parsing_mode = VideoFile::SEEKING_DECODING_REQUEST;
             // compute dts of seek target from seek position
             seek_target = av_rescale_q(is->seek_pos, (AVRational){1, 1}, is->video_st->time_base);
         }
@@ -1213,10 +1341,12 @@ void ParsingThread::run()
 			int flags = 0;
             if ( is->seek_any )
 				flags |= AVSEEK_FLAG_ANY;
-            if ( is->seek_backward || is->seek_pos <= is->getCurrentFrameTime() )
+//            if ( is->seek_backward || is->seek_pos <= is->getCurrentFrameTime() )
+
+            // always seek for the frame before the target
 				flags |= AVSEEK_FLAG_BACKWARD;
 
-//            fprintf(stderr, "\n\nPARSING seek to seektarget = %f  for seek pos = %f \n\n", seek_target * av_q2d(is->video_st->time_base), is->seek_pos );
+            fprintf(stderr, "\n\nPARSING seek to seektarget = %f  for seek pos = %f \n\n", seek_target * av_q2d(is->video_st->time_base), is->seek_pos );
 
             // request seek to libav
             if (av_seek_frame(is->pFormatCtx, is->videoStream, seek_target, flags) < 0)
@@ -1226,14 +1356,9 @@ void ParsingThread::run()
 			}
 
 			// after seek,  we'll have to flush buffers
-            // this also sends the target of seeking
+            // this also queues a flush packet
             if (!is->videoq.flush())
                 qWarning() << is->filename << QChar(124).toLatin1()<< QObject::tr("Flushing error.");
-
-//            if (is->pictq_flush_req) {
-////                fprintf(stderr, "ParsingThread flush_picture_queue");
-//                is->flush_picture_queue();
-//            }
 
             // revert one shot option
             is->seek_backward = false;
@@ -1291,7 +1416,6 @@ void VideoFile::flush_picture_queue()
 
     pictq_size = 0;
 
-//    fprintf(stderr, "                    : \nREAD %d = %f        WRITE %d = %f\n", pictq_rindex, pictq[pictq_rindex].pts, pictq_windex, pictq[pictq_windex].pts);
 
     pictq_cond->wakeAll();
     pictq_mutex->unlock();
@@ -1299,20 +1423,83 @@ void VideoFile::flush_picture_queue()
 }
 
 
-void VideoFile::requestSeekTo(double time)
+void VideoFile::parsingSeekRequest(double time)
 {
-    seek_mutex->lock();
-    // TODO ; why do we need to wait here ?
-    seek_cond->wait(seek_mutex);
-    if ( parsing_mode == VideoFile::PARSING_NORMAL ) {
+
+    if ( parsing_mode != VideoFile::SEEKING_PARSING_REQUEST )
+    {
+
+        fprintf(stderr, "\n parsingSeekRequest SEEK at %f.\n", seek_pos);
+
+        seek_mutex->lock();
         seek_pos = time;
-        parsing_mode = VideoFile::PARSING_SEEKREQUEST;
-//        fprintf(stderr, "\n REQUEST SEEK at %f.\n", seek_pos);
+        parsing_mode = VideoFile::SEEKING_PARSING_REQUEST;
+        // wait for the parsing thread to aknowledge the seek request
         seek_cond->wait(seek_mutex);
 //        fprintf(stderr, "\n done waiting \n" );
+        seek_mutex->unlock();
     }
-    seek_mutex->unlock();
 
+}
+
+
+
+bool VideoFile::decodingSeekRequest(double time)
+{
+    // do not attempt to seek into empty queue or if already seeking
+    if ( pictq.size() > 1 && parsing_mode == VideoFile::SEEKING_NONE )
+    {
+
+        // Is there a picture with the seeked time into the queue ?
+        // (first in queue is the head to be displayed first, last is the last one enqueued)
+        // Normal case : the queue is contiguous, and the first is less than the last
+        // Loop case : the queue is looping after mark out to mark in : this cause the first to be after the last
+
+        // in the loop case if the first appears after the last
+        bool loopingbuffer = pictq.first()->getPts() > pictq.last()->getPts();
+
+        // either in normal case the seek time is between first and last frames
+        if ( (!loopingbuffer && ( time > pictq.first()->getPts() && time < pictq.last()->getPts()) )
+        // or in loop case and the seek time is before mark out
+          || ( loopingbuffer && (time > pictq.first()->getPts() && time < mark_out) )
+        // or in loop case and the seek time passed the mark out, back to mark in
+          || ( loopingbuffer &&  (time > mark_in && time < pictq.last()->getPts()) )   )
+        {
+            fprintf(stderr, "\n decodingSeekRequest SEEK at %f \n", time);
+
+            // now for sure the seek time is in the queue
+            // get hold on the picture queue
+            pictq_mutex->lock();
+
+            // if third case, remove all till mark out
+            if ( loopingbuffer &&  (time > mark_in && time < pictq.last()->getPts()) ) {
+                // remove all frames till the mark out, ie every frame above the last
+                while ( pictq.size() > 1 && pictq.first()->getPts() > pictq.last()->getPts() )
+                    delete pictq.dequeue();
+            }
+
+            // remove all frames before the time of seek (except if queue is empty)
+            while ( pictq.size() > 1 && time > pictq.first()->getPts() )
+                delete pictq.dequeue();
+
+            // mark this frame for reset of time
+            pictq.head()->addAction(VideoPicture::ACTION_RESET_PTS);
+
+            // inform about the new size of the queue
+            pictq_size = pictq.size();
+            pictq_cond->wakeAll();
+            pictq_mutex->unlock();
+
+            fprintf(stderr, "decodingSeekRequest new head at %f \n", pictq.first()->getPts());
+
+            // yes we could seek in decoder picture queue
+            return true;
+        }
+
+    }
+
+    // no we cannot seek into decoder picture queue
+    return false;
 }
 
 void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a)
@@ -1363,7 +1550,7 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
     vp->resetAction();
     vp->addAction(a);
 
-//    fprintf(stderr, "queue picture %f  action %d\n", pts, vp->action);
+    fprintf(stderr, "queue picture %f  action %d\n", pts, a);
 
     /* now we inform our display thread that we have a pic ready */
     pictq_mutex->lock();
@@ -1413,8 +1600,7 @@ void DecodingThread::run()
 	int len1 = 0, frameFinished = 0;
     double pts = 0.0; // Presentation time stamp
 	int64_t dts = 0; // Decoding time stamp
-
-    VideoPicture::Action actionSkipNextFrame = 0;
+    VideoPicture::Action actionFrame = 0;
 
 	while (is)
     {
@@ -1425,49 +1611,36 @@ void DecodingThread::run()
             break;
 
 		// special case of flush packet
-        // this happens when seeking in ParsingThread
+        // it is put after seeking in ParsingThread
 		if (is->videoq.isFlush(packet))
         {
-//            fprintf(stderr, "DecodingThread reached the seeked frame! \n");
+//            fprintf(stderr, "DecodingThread reached flush frame! \n");
 
             // flush buffers
             avcodec_flush_buffers(is->video_st->codec);
 
-            // the next frame will be the result of the seeking process
-            // its PTS is unknown, so we can only tag it for seeking action
-            // (the ACTION_SEEK in video refresh timer will reset the clock)
-            actionSkipNextFrame = VideoPicture::ACTION_SEEK;
-
-            if (is->isPaused())
-                actionSkipNextFrame |= VideoPicture::ACTION_PAUSE;
-
-            // flush the picture queue on request (i.e. when seeking from setSeekTarget
-            if (is->pictq_flush_req) {
-//                fprintf(stderr, "DecodingThread flush_picture_queue");
-                is->flush_picture_queue();
-            }
-
-            // reached the seeked frame! : can say we are not seeking anymore
+            // now asking the decoding thread to find the seeked frame
             is->seek_mutex->lock();
-            is->parsing_mode = VideoFile::PARSING_NORMAL;
+            is->parsing_mode = VideoFile::SEEKING_DECODING_REQUEST;
             is->seek_mutex->unlock();
-			// go on to next packet
+
+            // go on to next packet (do not free flush packet)
             continue;
 		}
 
         // special case of EndofFile packet
-        // this happens when hitting end of file when reading
+        // this happens when hitting end of file when parsing
         if (is->videoq.isEndOfFile(packet))
         {
             // react according to loop mode
             if (is->loop_video)
                 // if looping, request seek to begin
-                is->requestSeekTo(is->mark_in);
+                is->parsingSeekRequest(is->mark_in);
             else
                 // if stopping,  re-sends the previous frame pretending its too late
                 is->queue_picture(_pFrame, pts + av_q2d(is->video_st->time_base), VideoPicture::ACTION_STOP);
 
-            // go on to next packet
+            // go on to next packet (do not free eof packet)
             continue;
         }
 
@@ -1498,24 +1671,69 @@ void DecodingThread::run()
             // compute presentation time stamp
             pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
 
-            // test if time will exceed limits (mark out or will pass the end of file)
-            if ( pts > is->mark_out )
-            {
-//                fprintf(stderr, "decoding event : pts > is->mark_out\n");
-                // react according to loop mode
-                if (is->loop_video)
-                    // if loop mode on, request seek to begin and do not queue the frame
-                    is->requestSeekTo(is->mark_in);
-                else
-                    // if loop mode off, stop after this frame
-                    is->queue_picture(_pFrame, pts, VideoPicture::ACTION_STOP);
+            // if seeking
+            if (is->parsing_mode == VideoFile::SEEKING_DECODING_REQUEST) {
+
+                // Skip all pFrame which didn't reach the seeking position
+                // Mark the seeked frame when reached
+                if ( (pts > is->seek_pos) ) {
+//                    if ( !(pts < is->seek_pos) ) {
+// error here when looping to pts 0 ?
+
+                    fprintf(stderr, "DecodingThread at %f reached seek position %f! \n", pts, is->seek_pos);
+
+                    // the next frame will be the result of the seeking process
+                    // (the ACTION_RESET_PTS in video refresh timer will reset the clock)
+                    actionFrame = VideoPicture::ACTION_RESET_PTS;
+
+//                    if (is->isPaused())
+//                        actionFrame |= VideoPicture::ACTION_PAUSE;
+
+                    // flush the picture queue on request (i.e. when seeking from setSeekTarget
+                    if (is->pictq_flush_req) {
+//                        fprintf(stderr, "DecodingThread flush_picture_queue");
+                        is->flush_picture_queue();
+                    }
+
+                    // reached the seeked frame! : can say we are not seeking anymore
+                    is->seek_mutex->lock();
+                    is->parsing_mode = VideoFile::SEEKING_NONE;
+                    is->seek_mutex->unlock();
+
+                }
+                // not reached the seek pos
+                else {
+ fprintf(stderr, "DecodingThread at %f ... still looking for seek position %f! \n", pts, is->seek_pos);
+
+                }
+
             }
-            else
-                // add frame to the queue of pictures
-                is->queue_picture(_pFrame, pts, actionSkipNextFrame);
+
+            // if not seeking, queue picture for display
+            // (not else of previous if because it could have unblocked this frame)
+            if (is->parsing_mode != VideoFile::SEEKING_DECODING_REQUEST) {
+
+                // test if time will exceed limits (mark out or will pass the end of file)
+                if ( pts > is->mark_out )
+                {
+    //                fprintf(stderr, "decoding event : pts > is->mark_out\n");
+                    // react according to loop mode
+                    if (is->loop_video)
+                        // if loop mode on, request seek to begin and do not queue the frame
+                        is->parsingSeekRequest(is->mark_in);
+                    else
+                        // if loop mode off, stop after this frame
+                        is->queue_picture(_pFrame, pts, VideoPicture::ACTION_STOP);
+                }
+                else
+                    // default
+                    // add frame to the queue of pictures
+                    is->queue_picture(_pFrame, pts, actionFrame);
+
+            }
 
             // reset skip tag
-            actionSkipNextFrame = 0;
+            actionFrame = 0;
 
         }
 

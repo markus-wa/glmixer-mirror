@@ -811,6 +811,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(playSpeedFactorChanged(int)), playSpeedSlider, SLOT(setValue(int)) );
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
         QObject::disconnect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
+        QObject::disconnect(selectedSourceVideoFile, SIGNAL(seekEnabled(bool)), this, SLOT(enableSeek(bool)));
 
         // disconnect control buttons
         QObject::disconnect(pauseButton, SIGNAL(toggled(bool)), selectedSourceVideoFile, SLOT(pause(bool)));
@@ -918,6 +919,7 @@ void GLMixer::connectSource(SourceSet::iterator csi){
                 // Consistency and update timer control from VideoFile
                 QObject::connect(selectedSourceVideoFile, SIGNAL(markingChanged()), this, SLOT(updateMarks()));
                 QObject::connect(selectedSourceVideoFile, SIGNAL(running(bool)), this, SLOT(updateRefreshTimerState()));
+                QObject::connect(selectedSourceVideoFile, SIGNAL(seekEnabled(bool)), this, SLOT(enableSeek(bool)));
 
             } // end video file
         } // end video source
@@ -1363,7 +1365,7 @@ void  GLMixer::on_frameSlider_sliderPressed (){
     QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
 
     // the trick; call a method when the frame will be ready!
-    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
+//    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
 
     // pause because we want to move the slider
     selectedSourceVideoFile->pause(true);
@@ -1375,8 +1377,8 @@ void  GLMixer::on_frameSlider_sliderReleased (){
     // slider moved, frame was displayed, still paused; we un-pause if it was playing.
     selectedSourceVideoFile->pause(pauseButton->isChecked());
 
-    // not following video file frame signals anymore
-    QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
+//    // not following video file frame signals anymore
+//    QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
 
     // reconnect the pause button
     QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
@@ -1386,12 +1388,14 @@ void  GLMixer::on_frameSlider_sliderReleased (){
 
 }
 
-void GLMixer::pauseAfterFrame (){
+void GLMixer::enableSeek (bool on){
 
 //    // do not keep calling pause method for each frame !
 //    if (!selectedSourceVideoFile->isPaused())
 //        selectedSourceVideoFile->pause(true);
 
+    seekBackwardButton->setEnabled(on);
+    seekForwardButton->setEnabled(on);
 }
 
 void GLMixer::on_frameForwardButton_clicked(){

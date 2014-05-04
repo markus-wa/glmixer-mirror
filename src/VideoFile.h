@@ -43,7 +43,7 @@ extern "C" {
 /**
  * Dimension of the queue of VideoPictures in a VideoFile
  */
-#define MAX_VIDEO_PICTURE_QUEUE_SIZE 100
+#define MAX_VIDEO_PICTURE_QUEUE_SIZE 200
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -176,9 +176,8 @@ public:
     enum {
         ACTION_SHOW = 1,
         ACTION_STOP = 2,
-        ACTION_SEEK = 4,
-        ACTION_PAUSE = 8,
-        ACTION_DELETE = 16
+        ACTION_RESET_PTS = 4,
+        ACTION_DELETE = 8
     };
     typedef unsigned short Action;
     inline void resetAction() { action = ACTION_SHOW; }
@@ -578,6 +577,8 @@ Q_SIGNALS:
     void playSpeedChanged(double);
     void playSpeedFactorChanged(int);
 
+    void seekEnabled(bool);
+
 public Q_SLOTS:
     /**
      * Opens the file and reads first frame.
@@ -850,7 +851,8 @@ protected:
     double synchronize_video(AVFrame *src_frame, double pts);
     void queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a = VideoPicture::ACTION_SHOW);
     void flush_picture_queue();
-    void requestSeekTo(double time);
+    void parsingSeekRequest(double time);
+    bool decodingSeekRequest(double time);
     static int roundPowerOfTwo(int v);
 
     // Video and general information
@@ -879,11 +881,11 @@ protected:
     QMutex *seek_mutex;
     QWaitCondition *seek_cond;
     typedef enum {
-        PARSING_NORMAL = 0,
-        PARSING_SEEKREQUEST,
-        PARSING_SEEKING
-    } ParsingMode;
-    ParsingMode parsing_mode;
+        SEEKING_NONE = 0,
+        SEEKING_PARSING_REQUEST,
+        SEEKING_DECODING_REQUEST
+    } SeekingMode;
+    SeekingMode parsing_mode;
     //    bool seek_req, seek_backward, seek_any, is_seeking;
     bool seek_backward, seek_any;
     double  seek_pos;

@@ -109,7 +109,7 @@ public Q_SLOTS:
 	void updateRefreshTimerState();
 	void updateMarks();
 //	void unpauseBeforeSeek();
-	void pauseAfterFrame();
+    void enableSeek(bool);
 //	void pauseAfterSeek();
 	void refreshTiming();
 	void newSession();
