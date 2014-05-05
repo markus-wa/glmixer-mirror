@@ -43,7 +43,7 @@ extern "C" {
 /**
  * Dimension of the queue of VideoPictures in a VideoFile
  */
-#define MAX_VIDEO_PICTURE_QUEUE_SIZE 200
+#define MAX_VIDEO_PICTURE_QUEUE_SIZE 20
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -52,7 +52,7 @@ extern "C" {
 /**
  * During decoding, the thread sleep for a little while in case there is an error or nothing to do.
  */
-#define PARSING_SLEEP_DELAY 50
+#define PARSING_SLEEP_DELAY 100
 
 /**
  * Frames of a VideoFile are decoded and converted to VideoPictures.
@@ -186,7 +186,7 @@ public:
     inline bool hasAction(Action a) const { return (action & a); }
     inline double presentationTime() const { return pts; }
 
-private:
+//private:
     AVPicture rgb;
     double pts;
     int width, height;
@@ -886,8 +886,7 @@ protected:
         SEEKING_DECODING_REQUEST
     } SeekingMode;
     SeekingMode parsing_mode;
-    //    bool seek_req, seek_backward, seek_any, is_seeking;
-    bool seek_backward, seek_any;
+    bool  seek_any;
     double  seek_pos;
     double  mark_in;
     double  mark_out;
