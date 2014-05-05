@@ -43,7 +43,7 @@ extern "C" {
 /**
  * Dimension of the queue of VideoPictures in a VideoFile
  */
-#define MAX_VIDEO_PICTURE_QUEUE_SIZE 20
+#define MAX_VIDEO_PICTURE_QUEUE_SIZE 200
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -853,6 +853,7 @@ protected:
     void flush_picture_queue();
     void parsingSeekRequest(double time);
     bool decodingSeekRequest(double time);
+    bool timeInQueue(double pts);
     static int roundPowerOfTwo(int v);
 
     // Video and general information
