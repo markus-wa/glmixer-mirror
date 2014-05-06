@@ -1390,9 +1390,15 @@ void  GLMixer::on_frameSlider_sliderReleased (){
 
 void GLMixer::enableSeek (bool on){
 
-//    // do not keep calling pause method for each frame !
-//    if (!selectedSourceVideoFile->isPaused())
-//        selectedSourceVideoFile->pause(true);
+//    if (on){
+//        seekForwardButton->unsetCursor();
+//        seekBackwardButton->unsetCursor();
+////        QApplication::restoreOverrideCursor();
+//    } else {
+//        seekForwardButton->setCursor(Qt::WaitCursor);
+//        seekBackwardButton->setCursor(Qt::WaitCursor);
+////        QApplication::setOverrideCursor(Qt::WaitCursor);
+//    }
 
     seekBackwardButton->setEnabled(on);
     seekForwardButton->setEnabled(on);

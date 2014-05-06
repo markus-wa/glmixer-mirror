@@ -879,19 +879,40 @@ void VideoFile::video_refresh_timer()
     // by default timer will be restarted ASAP
     int ptimer_delay = 10;
     bool quit_after_frame = false;
+    VideoPicture *currentvp = NULL, *nextvp = NULL;
+
+    // lock the thread to operate on the queue
+    pictq_mutex->lock();
 
     // if all is in order, deal with the picture in the queue
     // (i.e. there is a stream, there is a picture in the queue, and the clock is not paused)
     if (video_st && !pictq.empty() && (!_videoClock.paused() ||  pictq.head()->hasAction(VideoPicture::ACTION_RESET_PTS) ) )
     {
+        // now working on the head of the queue, that we take off the queue
+        currentvp = pictq.dequeue();
+
+        // remember it if there is a next picture
+        if (!pictq.empty())
+            nextvp = pictq.head();
+
+        // unblock the queue for the decoding thread
+        // by informing it about the new size of the queue
+        pictq_size = pictq.size();
+        pictq_cond->wakeAll();
+    }
+    // release lock
+    pictq_mutex->unlock();
+
+
+    if (currentvp)
+    {
         // deal with speed change before setting up the frame
         _videoClock.applyRequestedSpeed();
 
-        // now working on the head of the queue, that we take off the queue
-        VideoPicture *currentvp = pictq.dequeue();
-
         // store time of this current frame
         current_frame_pts =  currentvp->presentationTime();
+
+//        fprintf(stderr, "video_refresh_timer pts %f \n", current_frame_pts);
 
         // if this frame was tagged as stopping frame
         if ( currentvp->hasAction(VideoPicture::ACTION_STOP) ) {
@@ -903,7 +924,7 @@ void VideoFile::video_refresh_timer()
         if ( currentvp->hasAction(VideoPicture::ACTION_RESET_PTS) ) {
             // reset clock to the time of the frame
             _videoClock.reset(current_frame_pts);
-
+            // inform that seeking is done
             emit seekEnabled(true);
         }
 
@@ -915,10 +936,8 @@ void VideoFile::video_refresh_timer()
             emit frameReady(currentvp);
 
             // if there is a next picture
-            if (!pictq.empty()) {
-
-                // we now want to know when to present the next frame
-                VideoPicture *nextvp = pictq.head();
+            // we can compute when to present the next frame
+            if (nextvp) {
                 double delay = 0.0;
 
                 // if next frame we will be seeking
@@ -928,8 +947,6 @@ void VideoFile::video_refresh_timer()
                 else
                     // otherwise read presentation time and compute delay till next frame
                     delay = ( nextvp->presentationTime() - _videoClock.time() ) / _videoClock.speed() ;
-
-//    fprintf(stderr, "at t = %f  next frame should be at  pts = %f  ( delay = %f   base = %f  speed = %f min = %f)\n",_videoClock.time(), nextvp->presentationTime(), delay, _videoClock.timeBase(), _videoClock.speed(), _videoClock.minFrameDelay());
 
                 // if delay is correct
                 if ( delay > _videoClock.minFrameDelay() ) {
@@ -956,14 +973,6 @@ void VideoFile::video_refresh_timer()
             ptimer_delay = 10;
        }
 
-        // unblock the queue for the decoding thread
-        // block the video thread
-        pictq_mutex->lock();
-        // inform decoding thread about the new size of the queue
-        pictq_size = pictq.size();
-        pictq_cond->wakeAll();
-        pictq_mutex->unlock();
-
     }
 
     // quit if requested
@@ -974,6 +983,7 @@ void VideoFile::video_refresh_timer()
         ptimer->start(ptimer_delay);
 
 
+//    fprintf(stderr, "video_refresh_timer update in %d \n", ptimer_delay);
 }
 
 double VideoFile::getCurrentFrameTime() const
@@ -1228,7 +1238,6 @@ void ParsingThread::run()
         // decided to perform seek
         if (seek_target != AV_NOPTS_VALUE)
         {
-
             // configure seek options
             // always seek for the frame before the target
             int flags = AVSEEK_FLAG_BACKWARD;
@@ -1413,6 +1422,8 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
     pictq_size = pictq.size();
     pictq_mutex->unlock();
 
+//    fprintf(stderr, "queue_picture pts %f action %d\n", pts, a);
+
 }
 
 /**
@@ -1542,7 +1553,11 @@ void DecodingThread::run()
                     is->seek_mutex->lock();
                     is->parsing_mode = VideoFile::SEEKING_NONE;
                     is->seek_mutex->unlock();
+
+//                    fprintf(stderr, "DecodingThread reached pts %f queue size %d\n", pts, is->pictq.size());
                 }
+//                else
+//                    fprintf(stderr, "DecodingThread SEEKING_DECODING_REQUEST pts %f\n", pts);
             }
 
             // if not seeking, queue picture for display
@@ -1566,7 +1581,7 @@ void DecodingThread::run()
                     is->queue_picture(_pFrame, pts, actionFrame);
 
 
-                /* wait until we have space for a new pic */
+                // wait until we have space for a new pic
                 is->pictq_mutex->lock();
                 // the condition is released in video_refresh_timer()
                 while ( (is->pictq_size > is->pictq_max_size) && !is->quit)
