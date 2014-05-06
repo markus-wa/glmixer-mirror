@@ -332,6 +332,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 	QObject::connect(ptimer, SIGNAL(timeout()), this, SLOT(video_refresh_timer()));
 
     // initialize behavior
+    first_picture_changed = true; // no mark_in set
 	seek_any = false; // NOT dirty seek
     loop_video = true; // loop by default
     restart_where_stopped = true; // by default restart where stopped
@@ -404,6 +405,7 @@ VideoFile::~VideoFile()
 void VideoFile::reset()
 {
     // reset variables to 0
+    fast_forward = false;
     video_pts = 0.0;
     seek_pos = 0.0;
     pictq_flush_req = false;
@@ -766,6 +768,9 @@ bool VideoFile::pixelFormatHasAlphaChannel() const
 
 double VideoFile::fill_first_frame(bool seek)
 {
+    if (!first_picture_changed)
+        return mark_in;
+
 	AVPacket pkt1;
 	AVPacket *packet = &pkt1;
     AVFrame *tmpframe = avcodec_alloc_frame();
@@ -786,42 +791,54 @@ double VideoFile::fill_first_frame(bool seek)
         avcodec_flush_buffers(video_st->codec);
     }
 
-    while (!frameFinished && trial < 2)
-	{
-		// read a packet
+    // loop while we didn't finish the frame, maxi 50 times
+    while (!frameFinished && trial < 50)
+    {
+        // read a packet
         if (av_read_frame(pFormatCtx, packet) < 0){
-            trial++; // give it one more chance
+            // one trial less
+            trial++;
             continue;
         }
 
-		// ignore non-video stream packets
-		if (packet->stream_index != videoStream)
-			continue;
+        // ignore non-video stream packets
+        if (packet->stream_index != videoStream)
+            continue;
 
-		// if we can decode it
+        // if we can decode it
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
         if (avcodec_decode_video2(video_st->codec, tmpframe, &frameFinished, packet) >= 0)
-		{
+        {
 #else
-            if ( avcodec_decode_video(video_st->codec, tmpframe, &frameFinished, packet->data, packet->size) >= 0)
-			{
+        if ( avcodec_decode_video(video_st->codec, tmpframe, &frameFinished, packet->data, packet->size) >= 0)
+        {
 #endif
             // if the frame is full
             if (frameFinished) {
-
                 // try to get a pts from the packet
-                if (packet->dts != (int64_t) AV_NOPTS_VALUE)
+                if (packet->dts != (int64_t) AV_NOPTS_VALUE) {
                     pts =  double(packet->dts) * av_q2d(video_st->time_base);
 
-                // we can now fill in the first picture with this frame
-                firstPicture->fill((AVPicture *) tmpframe, pts);
+                    // if the obtained pts is before seeking mark
+                    if (seek && pts < mark_in) {
+                        // retry
+                        frameFinished = false;
+                        // one trial less
+//                        trial++;
+                    }
+                }
             }
-		}
-	}
+        }
+    }
+
+    // we can now fill in the first picture with this frame
+    firstPicture->fill((AVPicture *) tmpframe, pts);
 
     // free memory
     av_free_packet(packet);
     av_free(tmpframe);
+
+    first_picture_changed = false;
 
     return firstPicture->getPts();
 }
@@ -955,6 +972,7 @@ void VideoFile::video_refresh_timer()
 
                 // delay is too small, or negative
                 } else {
+
                     // retry shortly (but not too fast to avoid glitches)
                     ptimer_delay = (int) (_videoClock.minFrameDelay() * 1000.0);
 
@@ -970,7 +988,12 @@ void VideoFile::video_refresh_timer()
             // delete the picture
             delete currentvp;
             // loop ASAP
-            ptimer_delay = 10;
+            ptimer_delay = 5;
+       }
+
+       if (fast_forward) {
+           _videoClock.reset(current_frame_pts);
+           ptimer_delay = 5;
        }
 
     }
@@ -980,7 +1003,7 @@ void VideoFile::video_refresh_timer()
         stop();
     // normal behavior : restart the ptimer for next frame
     else
-        ptimer->start(ptimer_delay);
+        ptimer->start( ptimer_delay);
 
 
 //    fprintf(stderr, "video_refresh_timer update in %d \n", ptimer_delay);
@@ -1140,20 +1163,37 @@ double VideoFile::getEnd() const
 
 void VideoFile::setMarkIn(double t)
 {
-    mark_in = qBound(getBegin(), t, mark_out);
-	emit markingChanged();
+    // does the mark in time interfere with the picture queue ?
+    // if any of the mark time (new or old) is between first and last frames of the queue
+    if ( timeInQueue(t) || timeInQueue(mark_in) )
+    {
+        // request to seek to next frame with flushing of the buffer
+        // in order to rebuild a clean queue
+        // (ugly implementation, but works)
+        pictq_flush_req = true;
+        parsingSeekRequest(current_frame_pts + av_q2d(video_st->time_base) );
 
-    // requested mark in is after current time
+        // the only way is to add an action MARK to the picture and loop over the queue to remove all what is after
+
+    }
+
+    // set the mark in
+    mark_in = qBound(getBegin(), t, mark_out);
+    // inform about change in marks
+    emit markingChanged();
+    // remember that we have to update the first picture
+    first_picture_changed = true;
+    // if requested mark_in is after current time
     if ( mark_in > current_frame_pts ) {
         // seek to mark in
         seekToPosition(mark_in);
     }
-
 }
 
 
 bool VideoFile::timeInQueue(double time)
 {
+    // obvious answer
     if (pictq.empty())
         return false;
 
@@ -1187,10 +1227,10 @@ void VideoFile::setMarkOut(double time)
         parsingSeekRequest(current_frame_pts + av_q2d(video_st->time_base) );
 
     }
-
+    // set the mark_out
     mark_out = qBound(mark_in, time, getEnd());
+    // inform about change in marks
     emit markingChanged();
-
 }
 
 double VideoFile::getStreamAspectRatio() const
@@ -1422,7 +1462,8 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
     pictq_size = pictq.size();
     pictq_mutex->unlock();
 
-//    fprintf(stderr, "queue_picture pts %f action %d\n", pts, a);
+//    fprintf(stderr, "queued pict pts %f action %d\n", pts, a);
+
 
 }
 
@@ -1556,8 +1597,14 @@ void DecodingThread::run()
 
 //                    fprintf(stderr, "DecodingThread reached pts %f queue size %d\n", pts, is->pictq.size());
                 }
-//                else
-//                    fprintf(stderr, "DecodingThread SEEKING_DECODING_REQUEST pts %f\n", pts);
+                else {
+                    // save a bit of time for filling in the first frame : detect it
+                    if ( is->first_picture_changed &&  (qAbs(pts - is->mark_in) < av_q2d(is->video_st->time_base) ) ) {
+                        is->firstPicture->fill((AVPicture*) _pFrame, pts);
+                        is->first_picture_changed = false;
+                    }
+//                    fprintf(stderr, "DecodingThread SEEKING_DECODING_REQUEST pts %f  mrk in %f\n", pts, is->mark_in);
+                }
             }
 
             // if not seeking, queue picture for display

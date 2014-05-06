@@ -157,5 +157,9 @@
         <file>icons/display-capture.png</file>
         <file>icons/folderadd.png</file>
         <file>icons/textsave.png</file>
+        <file>icons/media-end.png</file>
+        <file>icons/media-begin.png</file>
+        <file>icons/media-in.png</file>
+        <file>icons/media-out.png</file>
     </qresource>
 </RCC>

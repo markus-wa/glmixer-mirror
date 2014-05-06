@@ -513,6 +513,9 @@ public:
      * @param ss Amount of frames to jump; if ss > 0 it seeks forward. if ss < 0, it seeks backward.
      */
     void seekByFrames(int  si);
+
+    void setFastForward(bool on) { fast_forward = on; }
+
     /**
      * Gives a string for human readable display of time (hh:mm:ss.ms) from a stream time-base value (frames).
      *
@@ -892,6 +895,7 @@ protected:
     double  mark_in;
     double  mark_out;
     double  mark_stop;
+    bool fast_forward, first_picture_changed;
 
     // time management
     double video_pts;

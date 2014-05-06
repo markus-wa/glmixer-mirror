@@ -960,7 +960,7 @@ QToolButton:hover {
                  </property>
                  <property name="icon">
                   <iconset resource="../icons.qrc">
-                   <normaloff>:/glmixer/icons/media-skip-backward.png</normaloff>:/glmixer/icons/media-skip-backward.png</iconset>
+                   <normaloff>:/glmixer/icons/media-begin.png</normaloff>:/glmixer/icons/media-begin.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -973,14 +973,14 @@ QToolButton:hover {
                <item>
                 <widget class="QToolButton" name="seekBackwardButton">
                  <property name="toolTip">
-                  <string>Seek backward</string>
+                  <string>Jump backward</string>
                  </property>
                  <property name="text">
                   <string>...</string>
                  </property>
                  <property name="icon">
                   <iconset resource="../icons.qrc">
-                   <normaloff>:/glmixer/icons/media-seek-backward.png</normaloff>:/glmixer/icons/media-seek-backward.png</iconset>
+                   <normaloff>:/glmixer/icons/media-skip-backward.png</normaloff>:/glmixer/icons/media-skip-backward.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -1017,9 +1017,29 @@ QToolButton:hover {
                 </widget>
                </item>
                <item>
+                <widget class="QToolButton" name="fastForwardButton">
+                 <property name="toolTip">
+                  <string>Fast forward</string>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="../icons.qrc">
+                   <normaloff>:/glmixer/icons/media-seek-forward.png</normaloff>:/glmixer/icons/media-seek-forward.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>24</width>
+                   <height>24</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <widget class="QToolButton" name="frameForwardButton">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1039,7 +1059,7 @@ QToolButton:hover {
                  </property>
                  <property name="iconSize">
                   <size>
-                   <width>16</width>
+                   <width>24</width>
                    <height>24</height>
                   </size>
                  </property>
@@ -1048,14 +1068,14 @@ QToolButton:hover {
                <item>
                 <widget class="QToolButton" name="seekForwardButton">
                  <property name="toolTip">
-                  <string>Seek forward</string>
+                  <string>Jump forward</string>
                  </property>
                  <property name="text">
                   <string>...</string>
                  </property>
                  <property name="icon">
                   <iconset resource="../icons.qrc">
-                   <normaloff>:/glmixer/icons/media-seek-forward.png</normaloff>:/glmixer/icons/media-seek-forward.png</iconset>
+                   <normaloff>:/glmixer/icons/media-skip-forward.png</normaloff>:/glmixer/icons/media-skip-forward.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -1389,7 +1409,7 @@ QPushButton:disabled {
                 </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
-                  <normaloff>:/glmixer/icons/media-frame-backward.png</normaloff>:/glmixer/icons/media-frame-backward.png</iconset>
+                  <normaloff>:/glmixer/icons/media-in.png</normaloff>:/glmixer/icons/media-in.png</iconset>
                 </property>
                 <property name="shortcut">
                  <string>I</string>
@@ -1436,7 +1456,7 @@ QToolButton:hover {
                 </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
-                  <normaloff>:/glmixer/icons/media-skip-backward.png</normaloff>:/glmixer/icons/media-skip-backward.png</iconset>
+                  <normaloff>:/glmixer/icons/media-begin.png</normaloff>:/glmixer/icons/media-begin.png</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -1492,7 +1512,7 @@ QPushButton:disabled {
                 </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
-                  <normaloff>:/glmixer/icons/media-frame-forward.png</normaloff>:/glmixer/icons/media-frame-forward.png</iconset>
+                  <normaloff>:/glmixer/icons/media-out.png</normaloff>:/glmixer/icons/media-out.png</iconset>
                 </property>
                 <property name="shortcut">
                  <string>O</string>
@@ -1545,7 +1565,7 @@ QToolButton:hover {
                 </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
-                  <normaloff>:/glmixer/icons/media-skip-forward.png</normaloff>:/glmixer/icons/media-skip-forward.png</iconset>
+                  <normaloff>:/glmixer/icons/media-end.png</normaloff>:/glmixer/icons/media-end.png</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -1679,7 +1699,7 @@ border-radius: 3px;
 }
 
 QSlider::handle:horizontal {
-image: url(:/glmixer/icons/media-frame-backward.png);
+image: url(:/glmixer/icons/media-in.png);
 background: transparent;
 border: 0px solid;
 width: 16px;
@@ -1759,7 +1779,7 @@ border-radius: 3px;
 }
 
 QSlider::handle:horizontal {
-image: url(:/glmixer/icons/media-frame-forward.png);
+image: url(:/glmixer/icons/media-out.png);
 background: transparent;
 border: 0px solid;
 width: 16px;
@@ -1780,7 +1800,7 @@ QSlider::add-page:horizontal:disabled {
 background: palette(window);
 border-color: palette(dark);
 }
-</string>
+s</string>
                 </property>
                 <property name="minimum">
                  <number>0</number>
@@ -5192,7 +5212,7 @@ Shortcut:                                    Right</string>
    <sender>pauseButton</sender>
    <signal>toggled(bool)</signal>
    <receiver>frameForwardButton</receiver>
-   <slot>setEnabled(bool)</slot>
+   <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>319</x>
@@ -5313,6 +5333,22 @@ Shortcut:                                    Right</string>
     <hint type="destinationlabel">
      <x>246</x>
      <y>657</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pauseButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>fastForwardButton</receiver>
+   <slot>setHidden(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>305</x>
+     <y>846</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>350</x>
+     <y>846</y>
     </hint>
    </hints>
   </connection>

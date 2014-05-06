@@ -65,8 +65,10 @@ public Q_SLOTS:
 	void on_actionFormats_and_Codecs_triggered();
 	void on_actionOpenGL_extensions_triggered();
 	void on_markInSlider_sliderReleased();
-	void on_markOutSlider_sliderReleased();
-	void on_frameForwardButton_clicked();
+    void on_markOutSlider_sliderReleased();
+    void on_frameForwardButton_clicked();
+    void on_fastForwardButton_pressed();
+    void on_fastForwardButton_released();
 	void on_frameSlider_sliderPressed();
 	void on_frameSlider_sliderReleased();
     void on_frameSlider_actionTriggered(int);
@@ -107,10 +109,8 @@ public Q_SLOTS:
 	void setCursor(QAction *a);
 	void setAspectRatio(QAction *a);
 	void updateRefreshTimerState();
-	void updateMarks();
-//	void unpauseBeforeSeek();
+    void updateMarks();
     void enableSeek(bool);
-//	void pauseAfterSeek();
 	void refreshTiming();
 	void newSession();
     void openSessionFile();

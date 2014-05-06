@@ -450,6 +450,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     refreshTimingTimer->setInterval(150);
     QObject::connect(refreshTimingTimer, SIGNAL(timeout()), this, SLOT(refreshTiming()));
     QObject::connect(vcontrolDockWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(updateRefreshTimerState()));
+    frameForwardButton->setHidden(true);
 
     // start with new file
     currentSessionFileName = QString::null;
@@ -1326,6 +1327,9 @@ void GLMixer::refreshTiming(){
 
 void GLMixer::on_frameSlider_actionTriggered (int a) {
 
+    if (!selectedSourceVideoFile)
+        return;
+
     switch (a) {
         case QAbstractSlider::SliderMove: // move slider or wheel
         case QAbstractSlider::SliderSingleStepAdd :
@@ -1348,9 +1352,6 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
             else
                 timeLineEdit->setText( selectedSourceVideoFile->getStringTimeFromtime(pos) );
 
-            // let the VideoFile run till it displays the frame seeked
-//            selectedSourceVideoFile->pause(false);
-
         break;
     }
 
@@ -1358,14 +1359,14 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
 
 void  GLMixer::on_frameSlider_sliderPressed (){
 
+    if (!selectedSourceVideoFile)
+        return;
+
     // do not update slider position automatically anymore ; this interferes with user input
     refreshTimingTimer->stop();
 
     // disconnect the button from the VideoFile signal ; this way when we will unpause (see below), the button will keep its state
     QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-
-    // the trick; call a method when the frame will be ready!
-//    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
 
     // pause because we want to move the slider
     selectedSourceVideoFile->pause(true);
@@ -1376,9 +1377,6 @@ void  GLMixer::on_frameSlider_sliderReleased (){
 
     // slider moved, frame was displayed, still paused; we un-pause if it was playing.
     selectedSourceVideoFile->pause(pauseButton->isChecked());
-
-//    // not following video file frame signals anymore
-//    QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterFrame()));
 
     // reconnect the pause button
     QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
@@ -1406,40 +1404,22 @@ void GLMixer::enableSeek (bool on){
 
 void GLMixer::on_frameForwardButton_clicked(){
 
-    // let un-pause for one frame
-    selectedSourceVideoFile->seekForwardOneFrame();
+    if (selectedSourceVideoFile)
+        selectedSourceVideoFile->seekForwardOneFrame();
 }
 
-//void GLMixer::pauseAfterSeek (){
 
-//    // if the button 'Pause' is checked, we shall go back to pause once
-//    // we'll have displayed the seeked frame
-//    if (pauseButton->isChecked())
-//    {
-//        selectedSourceVideoFile->pause(true);
-//        refreshTiming();
-//    }
+void GLMixer::on_fastForwardButton_pressed(){
 
-//    // do not keep calling pause method for each frame !
-//    QObject::disconnect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
-//    // reconnect the pause button
-//    QObject::connect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-//}
+    if (selectedSourceVideoFile)
+        selectedSourceVideoFile->setFastForward(true);
+}
 
+void GLMixer::on_fastForwardButton_released(){
 
-//void GLMixer::unpauseBeforeSeek() {
-
-//    // disconnect the button from the VideoFile signal ; this way when we'll unpause bellow, the button will keep its state
-//    QObject::disconnect(selectedSourceVideoFile, SIGNAL(paused(bool)), pauseButton, SLOT(setChecked(bool)));
-
-//    // the trick; call a method when the frame will be ready!
-//    QObject::connect(selectedSourceVideoFile, SIGNAL(frameReady(int)), this, SLOT(pauseAfterSeek()));
-
-//    // let the VideoFile run till it displays the frame seeked
-//    selectedSourceVideoFile->pause(false);
-
-//}
-
+    if (selectedSourceVideoFile)
+        selectedSourceVideoFile->setFastForward(false);
+}
 
 
 void GLMixer::updateMarks (){
