@@ -110,7 +110,7 @@ void VideoSource::pause(bool on)
 void VideoSource::update()
 {
     // update texture given the new vp
-    if ( vp )
+    if ( vp && vp->getBuffer() != NULL )
 	{
         glBindTexture(GL_TEXTURE_2D, textureIndex);
         // use it for OpenGL
@@ -127,6 +127,7 @@ void VideoSource::update()
         if (vp->hasAction(VideoPicture::ACTION_DELETE))
             delete vp;
 
+        // frame was displayed
         vp = NULL;
     }
 

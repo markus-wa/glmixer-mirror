@@ -60,7 +60,7 @@ extern "C"
 
 // Buffer between Parsing thread and Decoding thread
 #define MEGABYTE 1048576
-#define MAX_VIDEOQ_SIZE (3 * 1048576)
+#define MAX_VIDEOQ_SIZE (8 * 1048576)
 #define GETTIME (double) av_gettime() * av_q2d(AV_TIME_BASE_Q)
 
 bool VideoFile::ffmpegregistered = false;
@@ -242,8 +242,9 @@ void VideoPicture::fill(AVPicture *frame, double timestamp)
 	if (!convert_rgba_palette)
     {
 		// Convert the image with ffmpeg sws
-		sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0,
-				  height, (uint8_t**) rgb.data, (int *) rgb.linesize);
+        if ( 0 == sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0,
+                  height, (uint8_t**) rgb.data, (int *) rgb.linesize) )
+            rgb.data[0] = NULL;
 
 		return;
 	}
@@ -1422,6 +1423,9 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
 {
     // create vp as the picture in the queue to be written
     VideoPicture *vp = new VideoPicture(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette);
+
+    if (!vp)
+        return;
 
     // cast frame pointer to picture
     AVPicture *picture = (AVPicture*) pFrame;

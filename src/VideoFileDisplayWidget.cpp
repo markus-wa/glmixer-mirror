@@ -104,11 +104,9 @@ void VideoFileDisplayWidget::updateFrame (VideoPicture *vp)
     makeCurrent();
 
     // start update texture
-    if ( vp ) {
-//        if (vp ) {
+    if ( vp && vp->getBuffer() != NULL ) {
+
         glBindTexture(GL_TEXTURE_2D, textureIndex);
-//        const VideoPicture *vp = is->getPictureAtIndex(i);
-//        if (vp && vp->isAllocated()) {
 
             if ( vp->getFormat() == PIX_FMT_RGBA)
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  vp->getWidth(),
@@ -121,7 +119,8 @@ void VideoFileDisplayWidget::updateFrame (VideoPicture *vp)
 
             if (vp->hasAction(VideoPicture::ACTION_DELETE))
                 delete vp;
-//        }
+
+            vp = NULL;
     }
     // end
 
