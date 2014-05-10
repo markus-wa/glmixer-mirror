@@ -74,16 +74,7 @@ QToolButton:hover {
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <item>
@@ -404,31 +395,13 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>3</number>
-     </property>
-     <property name="topMargin">
-      <number>3</number>
-     </property>
-     <property name="rightMargin">
-      <number>3</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>3</number>
      </property>
      <item>
       <widget class="QWidget" name="previewDockWidgetContents" native="true">
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
@@ -725,16 +698,7 @@ QToolButton:hover {
      </sizepolicy>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -1135,16 +1099,7 @@ QToolButton:hover {
                <property name="spacing">
                 <number>3</number>
                </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
+               <property name="margin">
                 <number>0</number>
                </property>
                <item>
@@ -1292,16 +1247,7 @@ QToolButton:hover {
             <property name="spacing">
              <number>3</number>
             </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
+            <property name="margin">
              <number>0</number>
             </property>
             <item>
@@ -2078,7 +2024,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1424</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -2772,16 +2718,7 @@ QToolButton:hover {
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="leftMargin">
-          <number>9</number>
-         </property>
-         <property name="topMargin">
-          <number>9</number>
-         </property>
-         <property name="rightMargin">
-          <number>9</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>9</number>
          </property>
          <item>
@@ -2988,16 +2925,7 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorMagnetOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="leftMargin">
-          <number>9</number>
-         </property>
-         <property name="topMargin">
-          <number>9</number>
-         </property>
-         <property name="rightMargin">
-          <number>9</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>9</number>
          </property>
          <item>
@@ -3288,16 +3216,7 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="switcherDockWidgetContents">
     <layout class="QVBoxLayout" name="switcherDockWidgetContentsLayout">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
     </layout>
@@ -3355,16 +3274,7 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -3599,16 +3509,7 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="blocnoteDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_5">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -4937,7 +4838,7 @@ Shortcut:                                    Space</string>
   <action name="actionSourceRestart">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/media-skip-backward.png</normaloff>:/glmixer/icons/media-skip-backward.png</iconset>
+     <normaloff>:/glmixer/icons/media-frame-backward.png</normaloff>:/glmixer/icons/media-frame-backward.png</iconset>
    </property>
    <property name="text">
     <string>Restart</string>
@@ -4954,7 +4855,7 @@ Shortcut:                                    Up</string>
   <action name="actionSourceSeekBackward">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/media-seek-backward.png</normaloff>:/glmixer/icons/media-seek-backward.png</iconset>
+     <normaloff>:/glmixer/icons/media-skip-backward.png</normaloff>:/glmixer/icons/media-skip-backward.png</iconset>
    </property>
    <property name="text">
     <string>Seek backward</string>
@@ -4988,7 +4889,7 @@ Shortcut:                                    Down</string>
   <action name="actionSourceSeekForward">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/media-seek-forward.png</normaloff>:/glmixer/icons/media-seek-forward.png</iconset>
+     <normaloff>:/glmixer/icons/media-skip-forward.png</normaloff>:/glmixer/icons/media-skip-forward.png</iconset>
    </property>
    <property name="text">
     <string>Seek forward</string>
