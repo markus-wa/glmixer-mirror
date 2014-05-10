@@ -177,7 +177,8 @@ public:
         ACTION_SHOW = 1,
         ACTION_STOP = 2,
         ACTION_RESET_PTS = 4,
-        ACTION_DELETE = 8
+        ACTION_DELETE = 8,
+        ACTION_MARK = 16
     };
     typedef unsigned short Action;
     inline void resetAction() { action = ACTION_SHOW; }
@@ -677,9 +678,7 @@ public Q_SLOTS:
      *
      * @param loop activate the loop mode if true,
      */
-    void setLoop(bool loop) {
-        loop_video = loop;
-    }
+    void setLoop(bool loop);
     /**
      * Sets the playing speed factor from 0 to 200%, with exponential scale
      * 100% corresponding to x1 factor (full speed)
@@ -734,7 +733,7 @@ public Q_SLOTS:
      * Does nothing if the process is not running (started).
      */
     inline void seekBegin() {
-        seekToPosition(getBegin());
+        seekToPosition(getMarkIn());
     }
     /**
      * Seek forward of one frame exactly.
@@ -857,6 +856,7 @@ protected:
     void parsingSeekRequest(double time);
     bool decodingSeekRequest(double time);
     bool timeInQueue(double pts);
+    void cleanupPictureQueue(double time = -1.0);
     static int roundPowerOfTwo(int v);
 
     // Video and general information

@@ -516,10 +516,11 @@ void VideoFile::setPlaySpeed(double s)
     // change the picture queue size according to play speed
     // this is because, in principle, more frames are skipped when play faster
     // and we empty the queue faster
-    double sizeq = qBound(2.0, (double) video_st->nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
-    sizeq *= s;
+//    double sizeq = qBound(2.0, (double) video_st->nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
 
-    pictq_max_size = (int) sizeq;
+//    sizeq *= s;
+
+//    pictq_max_size = qBound(2, (int) sizeq, (int) video_st->nb_frames);
 
     _videoClock.setSpeed( s );
     emit playSpeedChanged(s);
@@ -624,10 +625,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
     // make sure the number of frames is correctly counted (some files have no count=
     if (video_st->nb_frames == AV_NOPTS_VALUE || video_st->nb_frames < 1 )
-        video_st->nb_frames = getDuration() / av_q2d(video_st->time_base);
+        video_st->nb_frames = (int64_t) (getDuration() / av_q2d(video_st->time_base));
 
-    // set the size of the picture queue to a percent of the number of frames
-    pictq_max_size = qBound(2, (int)( (double) video_st->nb_frames * SEEK_STEP) + 1, MAX_VIDEO_PICTURE_QUEUE_SIZE);
 
     // check the parameters for mark in and out and setup marking accordingly
     if (markIn < 0 || video_st->nb_frames < 2)
@@ -645,6 +644,11 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         mark_out = qBound(mark_in, markOut, getEnd());
         emit markingChanged();
     }
+
+    // set the size of the picture queue to a percent of the number of frames
+    // but bound to the number of frames within the [begin end] interval
+    // and at most to the MAX defined
+    pictq_max_size = qBound(2, (int)( (double) video_st->nb_frames * SEEK_STEP) + 1, qMin(MAX_VIDEO_PICTURE_QUEUE_SIZE, 1 + (int) ((mark_out-mark_in) / av_q2d(video_st->time_base))) );
 
 	// init picture size
 	if (targetWidth == 0)
@@ -1067,9 +1071,10 @@ void VideoFile::seekToPosition(double t)
     {
         t = qBound(getBegin(), t, getEnd());
 
-        // try to go to the frame in the decoding queue...
-        if ( !decodingSeekRequest(t) )  {
-            // no luck, request to seek in the parser, with flushing of the buffer
+        //  try to go to the frame in the decoding queue if looping
+        if ( !loop_video || !decodingSeekRequest(t) )  {
+            // if not looping or if couln't seek with decoder only
+            // request to seek in the parser, with flushing of the buffer
             pictq_flush_req = true;
             parsingSeekRequest(t);
         }
@@ -1162,35 +1167,94 @@ double VideoFile::getEnd() const
     return getBegin() + getDuration();
 }
 
-void VideoFile::setMarkIn(double t)
-{
-    // does the mark in time interfere with the picture queue ?
-    // if any of the mark time (new or old) is between first and last frames of the queue
-    if ( timeInQueue(t) || timeInQueue(mark_in) )
-    {
-        // request to seek to next frame with flushing of the buffer
-        // in order to rebuild a clean queue
-        // (ugly implementation, but works)
-        pictq_flush_req = true;
-        parsingSeekRequest(current_frame_pts + av_q2d(video_st->time_base) );
+void VideoFile::cleanupPictureQueue(double time) {
 
-        // the only way is to add an action MARK to the picture and loop over the queue to remove all what is after
+    if (time < getBegin())
+        time = getEnd();
 
+    // get hold on the picture queue
+    pictq_mutex->lock();
+
+    // loop to find a mark frame in the queue
+    int i =  0;
+    while ( i < pictq.size() && !pictq[i]->hasAction(VideoPicture::ACTION_MARK) && pictq[i]->getPts() < time)
+        i++;
+
+    // found a mark frame in the queue
+    if ( pictq.size() > i ) {
+        // remove all what is after
+        while ( pictq.size() > i)
+            delete pictq.takeLast();
+
+        // sanity check (but should never be the case)
+        if (! pictq.empty())
+            // restart filling in at the last pts of the cleanned queue
+            parsingSeekRequest( pictq.takeLast()->getPts() );
     }
+    // done with the cleanup
+    pictq_mutex->unlock();
 
-    // set the mark in
-    mark_in = qBound(getBegin(), t, mark_out);
-    // inform about change in marks
-    emit markingChanged();
-    // remember that we have to update the first picture
-    first_picture_changed = true;
-    // if requested mark_in is after current time
-    if ( mark_in > current_frame_pts ) {
-        // seek to mark in
-        seekToPosition(mark_in);
-    }
 }
 
+void VideoFile::setLoop(bool loop) {
+
+    loop_video = loop;
+
+    // Cleanup the queue until the next mark it contains
+    cleanupPictureQueue();
+
+}
+
+void VideoFile::setMarkIn(double time)
+{
+    // set the mark in
+    // reserve at least 1 frame interval with mark out
+    mark_in = qBound(getBegin(), time, mark_out - av_q2d(video_st->time_base));
+
+    // if requested mark_in is after current time
+    if ( !(mark_in < current_frame_pts) )
+        // seek to mark in
+        seekToPosition(mark_in);
+    // else mark in is before the current time, but the queue might already have looped
+    else
+        // Cleanup the queue until the next mark it contains
+        cleanupPictureQueue();
+
+    // inform about change in marks
+    emit markingChanged();
+
+    // change the picture queue size to match the new interval
+    pictq_max_size = qBound(2, (int)( (double) video_st->nb_frames * SEEK_STEP) + 1, qMin(MAX_VIDEO_PICTURE_QUEUE_SIZE, 1 + (int) ((mark_out-mark_in) / av_q2d(video_st->time_base))) );
+
+    // remember that we have to update the first picture
+    first_picture_changed = true;
+
+}
+
+
+
+void VideoFile::setMarkOut(double time)
+{
+    // set the mark_out
+    // reserve at least 1 frame interval with mark in
+    mark_out = qBound(mark_in + av_q2d(video_st->time_base), time, getEnd());
+
+    // if requested mark_out is before current time or
+    if ( !(mark_out > current_frame_pts) )
+        // seek to mark in
+        seekToPosition(mark_out);
+    // else mark in is before the current time, but the queue might already have looped
+    else
+        // Cleanup the queue until the next mark it contains, or until the new mark_out
+        cleanupPictureQueue(mark_out);
+
+    // inform about change in marks
+    emit markingChanged();
+
+    // charnge the picture queue size to match the new interval
+    pictq_max_size = qBound(2, (int)( (double) video_st->nb_frames * SEEK_STEP) + 1, qMin(MAX_VIDEO_PICTURE_QUEUE_SIZE, 1 + (int) ((mark_out-mark_in) / av_q2d(video_st->time_base))) );
+
+}
 
 bool VideoFile::timeInQueue(double time)
 {
@@ -1215,24 +1279,6 @@ bool VideoFile::timeInQueue(double time)
 
 }
 
-void VideoFile::setMarkOut(double time)
-{
-    // does the mark out time interfere with the picture queue ?
-    // if any of the mark time (new or old) is between first and last frames of the queue
-    if ( timeInQueue(time) || timeInQueue(mark_out) )
-    {
-        // request to seek to next frame with flushing of the buffer
-        // in order to rebuild a clean queue
-        // (ugly implementation, but works)
-        pictq_flush_req = true;
-        parsingSeekRequest(current_frame_pts + av_q2d(video_st->time_base) );
-
-    }
-    // set the mark_out
-    mark_out = qBound(mark_in, time, getEnd());
-    // inform about change in marks
-    emit markingChanged();
-}
 
 double VideoFile::getStreamAspectRatio() const
 {
@@ -1295,10 +1341,11 @@ void ParsingThread::run()
             if (!is->videoq.flush())
                 qWarning() << is->filename << QChar(124).toLatin1()<< QObject::tr("Flushing error.");
 
-            // because when paused, the decoding thread is waiting for space in the queue
+            // hack: because when paused, the decoding thread is waiting for space in the queue
             // flush the queue to unblock it
             if (is->isPaused()) {
                 is->flush_picture_queue();
+                // but restore flush request
                 is->pictq_flush_req = true;
             }
 
@@ -1377,8 +1424,8 @@ void VideoFile::parsingSeekRequest(double time)
 
 bool VideoFile::decodingSeekRequest(double time)
 {
-    // do not attempt to seek into empty queue or if already seeking
-    if ( pictq.size() < 1 || parsing_mode != VideoFile::SEEKING_NONE)
+    // do not attempt to seek if queue is too small or if already seeking
+    if ( pictq.size() < 2 || parsing_mode != VideoFile::SEEKING_NONE)
         return false;
 
     // discard too small seek
@@ -1467,8 +1514,6 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
     pictq_mutex->unlock();
 
 //    fprintf(stderr, "queued pict pts %f action %d\n", pts, a);
-
-
 }
 
 /**
@@ -1543,7 +1588,7 @@ void DecodingThread::run()
                 is->parsingSeekRequest(is->mark_in);
             else
                 // if stopping,  re-sends the previous frame pretending its too late
-                is->queue_picture(_pFrame, pts + av_q2d(is->video_st->time_base), VideoPicture::ACTION_STOP);
+                is->queue_picture(_pFrame, pts + av_q2d(is->video_st->time_base), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
 
             // go on to next packet (do not free eof packet)
             continue;
@@ -1600,14 +1645,21 @@ void DecodingThread::run()
                     is->seek_mutex->unlock();
 
 //                    fprintf(stderr, "DecodingThread reached pts %f queue size %d\n", pts, is->pictq.size());
+                    // if the seek position we reached equals the mark_in
+                    if ( qAbs( is->seek_pos - is->mark_in ) < 0.001 )
+                        // tag the frame as a MARK frame
+                        actionFrame |= VideoPicture::ACTION_MARK;
+
                 }
                 else {
                     // save a bit of time for filling in the first frame : detect it
                     if ( is->first_picture_changed &&  (qAbs(pts - is->mark_in) < av_q2d(is->video_st->time_base) ) ) {
                         is->firstPicture->fill((AVPicture*) _pFrame, pts);
                         is->first_picture_changed = false;
+
+//                        fprintf(stderr, "\n\nDecodingThread first picture replaced for pts %f  mrk in %f\n\n", pts, is->mark_in);
+
                     }
-//                    fprintf(stderr, "DecodingThread SEEKING_DECODING_REQUEST pts %f  mrk in %f\n", pts, is->mark_in);
                 }
             }
 
@@ -1624,7 +1676,8 @@ void DecodingThread::run()
                         is->parsingSeekRequest(is->mark_in);
                     else
                         // if loop mode off, stop after this frame
-                        is->queue_picture(_pFrame, pts, VideoPicture::ACTION_STOP);
+                        is->queue_picture(_pFrame, pts, VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
+
                 }
                 else
                     // default
