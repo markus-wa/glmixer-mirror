@@ -81,6 +81,7 @@ QString FFGLPluginSourceShadertoy::getCode()
         if ( string ) {
             // Convert char array into QString
             c = QString::fromLatin1(string).trimmed();
+            delete string;
         }
     }
 
@@ -98,6 +99,7 @@ QString FFGLPluginSourceShadertoy::getDefaultCode()
         if ( string ) {
             // Convert char array into QString
             c = QString::fromLatin1(string).trimmed();
+            delete string;
         }
     }
 
@@ -115,6 +117,7 @@ QString FFGLPluginSourceShadertoy::getLogs()
         if ( string ) {
             // Convert char array into QString
             c = QString::fromLatin1(string).trimmed();
+            delete string;
         }
     }
 
@@ -132,6 +135,7 @@ QString FFGLPluginSourceShadertoy::getHeaders()
         if ( string ) {
             // Convert char array into QString
             c = QString::fromLatin1(string).trimmed();
+            delete string;
         }
     }
 

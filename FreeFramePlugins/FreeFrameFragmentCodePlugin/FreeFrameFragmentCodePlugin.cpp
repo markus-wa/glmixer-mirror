@@ -280,18 +280,30 @@ char *getString(unsigned int t, FFInstanceID instanceID)
     // & typecast instanceid into pointer to a CFreeFrameGLPlugin
     FreeFrameShadertoy* pPlugObj = (FreeFrameShadertoy*) instanceID;
 
+    char *stringtoreturn;
+    const char *codetoread;
+
     if (pPlugObj) {
 
         switch (t) {
         case 0:
-            return pPlugObj->getFragmentProgramCode();
+            codetoread =  pPlugObj->getFragmentProgramCode();
+            break;
         case 1:
-            return pPlugObj->getFragmentProgramLogs();
+            codetoread =   pPlugObj->getFragmentProgramLogs();
+            break;
         case 2:
-            return fragmentShaderHeader;
+            codetoread =   fragmentShaderHeader;
+            break;
+        default:
         case 3:
-            return fragmentShaderDefaultCode;
+            codetoread =   fragmentShaderDefaultCode;
+            break;
         }
+
+        stringtoreturn = (char *) malloc(sizeof(char)*(strlen(codetoread)+1));
+        strcpy(stringtoreturn, codetoread);
+        return stringtoreturn;
 
     }
 
