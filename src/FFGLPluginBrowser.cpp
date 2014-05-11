@@ -325,7 +325,7 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
             else {
                 // allow to reset values for freeframe plugins only
                 resetAction->setVisible(true);
-                setReferenceURL( QFileInfo(propertyToPluginParameter[property].first->fileName()).canonicalPath() );
+                setReferenceURL( QUrl::fromLocalFile( QFileInfo(propertyToPluginParameter[property].first->fileName()).canonicalPath()) );
             }
         }
     }

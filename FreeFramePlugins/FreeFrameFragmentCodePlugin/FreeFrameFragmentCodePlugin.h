@@ -77,6 +77,9 @@ protected:
 
 extern "C" {
 
+
+#ifdef FF_FAIL  // FFGL 1.5
+
 #ifdef _WIN32
 
 __declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD instanceID);
@@ -85,10 +88,19 @@ __declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD instanceI
 
 #else
 
+bool setString(unsigned int t, const char *string, DWORD *instanceID);
+char *getString(unsigned int t, DWORD instanceID);
+
+#endif
+
+#else
+
 bool setString(unsigned int t, const char *string, FFInstanceID *instanceID);
 char *getString(unsigned int t, FFInstanceID instanceID);
 
+
 #endif
+
 
 }
 

@@ -21,6 +21,8 @@ else(WIN32)
 
     if(APPLE)
 
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins_osx.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.qrc)
+
     else(APPLE)
         # add_subdirectory(FreeFrameQtPlugin)
         add_subdirectory(video4LinuxFFGLPlugin)

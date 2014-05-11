@@ -26,4 +26,4 @@ else(WIN32)
   add_library(ffglDelay MODULE ${LIBFFGLDELAY_SRCS})
 endif(WIN32)
 
-target_link_libraries(ffglDelay ${OPENGL_LIBRARY})
+target_link_libraries(ffglDelay ${OPENGL_LIBRARY} )

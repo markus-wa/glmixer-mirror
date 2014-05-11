@@ -179,7 +179,7 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         fsc[strlen(fsc)] = '\0';
 
         fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fsc, NULL);
+        glShaderSource(fragmentShader, 1, (const GLchar **) &fsc, NULL);
         glCompileShader(fragmentShader);
         glGetShaderInfoLog(fragmentShader, 4096, &infologLength, infoLog);
 
@@ -238,9 +238,18 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     return FF_SUCCESS;
 }
 
-#ifdef WIN32
+
+#ifdef FF_FAIL  // FFGL 1.5
+
+#ifdef _WIN32
 
 __declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD instanceID)
+
+#else
+
+bool setString(unsigned int t, const char *string, DWORD *instanceID)
+
+#endif
 
 #else
 
@@ -265,9 +274,20 @@ bool setString(unsigned int t, const char *string, FFInstanceID *instanceID)
     return false;
 }
 
-#ifdef WIN32
+
+
+#ifdef FF_FAIL  // FFGL 1.5
+
+#ifdef _WIN32
 
 __declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD instanceID)
+
+
+#else
+
+char *getString(unsigned int t, DWORD instanceID)
+
+#endif
 
 #else
 

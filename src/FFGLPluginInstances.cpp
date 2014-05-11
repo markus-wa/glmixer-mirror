@@ -329,14 +329,21 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
 
 
 
+#ifdef FF_FAIL
+// FFGL 1.5
 #ifdef Q_OS_WIN
 typedef __declspec() bool (__stdcall *_FuncPtrSetString)(unsigned int, const char *, DWORD);
 typedef __declspec() char * (__stdcall *_FuncPtrGetString)(unsigned int, DWORD);
 #else
+typedef bool (*_FuncPtrSetString)(unsigned int, const char *, DWORD);
+typedef char *(*_FuncPtrGetString)(unsigned int, DWORD);
+#endif
+
+#else
+// FFGL 1.6
 typedef bool (*_FuncPtrSetString)(unsigned int, const char *, FFInstanceID);
 typedef char *(*_FuncPtrGetString)(unsigned int, FFInstanceID);
 #endif
-
 
 class FFGLPluginInstanceShadertoyPlaftorm : public FFGLPluginInstanceFreeframePlatform, public FFGLPluginInstanceShadertoy {
 
@@ -395,9 +402,14 @@ bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
 
 bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
 {
+    if (m_ffModule == NULL)
+        return false;
+
+    m_ffPluginFunctionSetString = (_FuncPtrSetString)NSAddressOfSymbol( NSLookupSymbolInModule(m_ffModule, "setString") );
+    m_ffPluginFunctionGetString = (_FuncPtrGetString)NSAddressOfSymbol( NSLookupSymbolInModule(m_ffModule, "getString") );
 
 
-
+    return ( m_ffPluginFunctionSetString != NULL && m_ffPluginFunctionGetString != NULL);
 }
 
 #else

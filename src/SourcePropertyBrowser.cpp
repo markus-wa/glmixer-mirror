@@ -835,7 +835,7 @@ public:
 
         connectManagers();
 
-        setReferenceURL(QFileInfo(vf->getFileName()).canonicalPath());
+        setReferenceURL( QUrl::fromLocalFile( QFileInfo(vf->getFileName()).canonicalPath()) );
     }
 
 public slots:
