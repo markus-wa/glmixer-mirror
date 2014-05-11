@@ -200,6 +200,12 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
         enum PixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixelformat(format),  img_convert_ctx_filtering(img_convert_ctx), action(ACTION_SHOW)
 {
     avpicture_alloc(&rgb, pixelformat, width, height);
+
+    // initialize buffer if no conversion context is provided
+    if (!img_convert_ctx){
+        uint8_t *buffer = static_cast<uint8_t*> (av_mallocz(avpicture_get_size(pixelformat, width, height) + FF_INPUT_BUFFER_PADDING_SIZE));
+        avpicture_fill(&rgb, buffer, pixelformat, width, height);
+    }
 }
 
 VideoPicture::~VideoPicture()
