@@ -125,6 +125,12 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
         break;
     }
 
+    // read notes
+    QString tooltip = filename;
+    QDomElement notes = root.firstChildElement("Notes");
+    if ( !notes.isNull() && !notes.text().isEmpty())
+        tooltip = notes.text();
+
     file.close();
 
     Qt::ItemFlags flags = Qt::ItemIsSelectable;
@@ -136,18 +142,22 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
     model->setData(model->index(0, 0), filename, Qt::UserRole);
     model->setData(model->index(0, 0), (int) ar, Qt::UserRole+1);
     model->itemFromIndex (model->index(0, 0))->setFlags (flags);
+    model->itemFromIndex (model->index(0, 0))->setToolTip(tooltip);
 
     model->setData(model->index(0, 1), nbElem);
     model->setData(model->index(0, 1), filename, Qt::UserRole);
     model->itemFromIndex (model->index(0, 1))->setFlags (flags);
+    model->itemFromIndex (model->index(0, 1))->setToolTip(tooltip);
 
     model->setData(model->index(0, 2), aspectRatio);
     model->setData(model->index(0, 2), filename, Qt::UserRole);
     model->itemFromIndex (model->index(0, 2))->setFlags (flags);
+    model->itemFromIndex (model->index(0, 2))->setToolTip(tooltip);
 
     model->setData(model->index(0, 3), date.toString("yy/MM/dd hh:mm"));
     model->setData(model->index(0, 3), filename, Qt::UserRole);
     model->itemFromIndex (model->index(0, 3))->setFlags (flags);
+    model->itemFromIndex (model->index(0, 3))->setToolTip(tooltip);
 
 }
 
