@@ -1291,7 +1291,7 @@ void GLMixer::on_actionSelect_Previous_triggered(){
 
 void GLMixer::on_markInSlider_sliderReleased (){
 
-    double percent = (double)(markInSlider->value())/1000.0;
+    double percent = (double)(markInSlider->value())/(double)frameSlider->maximum();
     double pos = selectedSourceVideoFile->getEnd() * percent ;
     pos += selectedSourceVideoFile->getBegin();
     selectedSourceVideoFile->setMarkIn(pos);
@@ -1299,7 +1299,7 @@ void GLMixer::on_markInSlider_sliderReleased (){
 
 void GLMixer::on_markOutSlider_sliderReleased (){
 
-    double percent = (double)(markOutSlider->value())/1000.0;
+    double percent = (double)(markOutSlider->value())/(double)frameSlider->maximum();
     double pos =  selectedSourceVideoFile->getEnd() * percent ;
     pos += selectedSourceVideoFile->getBegin();
     selectedSourceVideoFile->setMarkOut(pos);
@@ -1314,7 +1314,7 @@ void GLMixer::refreshTiming(){
         return;
     }
 
-    int f_percent = (int) ( ( selectedSourceVideoFile->getCurrentFrameTime() - selectedSourceVideoFile->getBegin() ) / ( selectedSourceVideoFile->getDuration() ) * 1000.0) ;
+    int f_percent = (int) ( ( selectedSourceVideoFile->getCurrentFrameTime() - selectedSourceVideoFile->getBegin() ) / ( selectedSourceVideoFile->getDuration() ) * (double)frameSlider->maximum()) ;
     frameSlider->setValue(f_percent);
 
     if (_displayTimeAsFrame)
@@ -1330,29 +1330,30 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
     if (!selectedSourceVideoFile)
         return;
 
-    switch (a) {
-        case QAbstractSlider::SliderMove: // move slider or wheel
-        case QAbstractSlider::SliderSingleStepAdd :
-        case QAbstractSlider::SliderSingleStepSub :
-        case QAbstractSlider::SliderPageStepAdd : // clic forward
-        case QAbstractSlider::SliderPageStepSub : // clic backward
+    if (a == QAbstractSlider::SliderMove) {
 
-            // compute where we should jump to
-            double percent = (double)(frameSlider->sliderPosition ())/ (double)frameSlider->maximum();
-            double pos =  ( selectedSourceVideoFile->getDuration()  * percent ) + selectedSourceVideoFile->getBegin();
+        // compute where we should jump to
+        double percent = (double)(frameSlider->sliderPosition ())/ (double)frameSlider->maximum();
+        double pos =  ( selectedSourceVideoFile->getDuration()  * percent ) + selectedSourceVideoFile->getBegin();
 
-            // TODO: limit to within marks of video file
+        // limit within marks of video file
+        if ( pos > selectedSourceVideoFile->getMarkOut() )
+            frameSlider->setSliderPosition( (int) ( ( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) * ((double)frameSlider->maximum() / selectedSourceVideoFile->getDuration())  ) );
 
-            // request seek ; we need to have the VideoFile process running to go there
-            selectedSourceVideoFile->seekToPosition(pos);
+        else if ( pos < selectedSourceVideoFile->getMarkIn())
+            frameSlider->setSliderPosition( (int) ( ( selectedSourceVideoFile->getMarkIn() - selectedSourceVideoFile->getBegin() ) * ((double)frameSlider->maximum() / selectedSourceVideoFile->getDuration())  ) );
 
-            // show the time of the frame (refreshTiming disabled)
-            if (_displayTimeAsFrame)
-                timeLineEdit->setText( selectedSourceVideoFile->getStringFrameFromTime(pos) );
-            else
-                timeLineEdit->setText( selectedSourceVideoFile->getStringTimeFromtime(pos) );
+        pos = qBound(selectedSourceVideoFile->getMarkIn(), pos, selectedSourceVideoFile->getMarkOut());
 
-        break;
+        // request seek ; we need to have the VideoFile process running to go there
+        selectedSourceVideoFile->seekToPosition(pos);
+
+        // show the time of the frame (refreshTiming disabled)
+        if (_displayTimeAsFrame)
+            timeLineEdit->setText( selectedSourceVideoFile->getStringFrameFromTime(pos) );
+        else
+            timeLineEdit->setText( selectedSourceVideoFile->getStringTimeFromtime(pos) );
+
     }
 
 }
@@ -1428,12 +1429,12 @@ void GLMixer::updateMarks (){
         return;
 
     int i_percent = 0;
-    int o_percent = 1000;
+    int o_percent = (double)frameSlider->maximum();
 
     if (selectedSourceVideoFile){
         // adjust the marking sliders according to the source marks in and out
-        i_percent = (int) ( (double)( selectedSourceVideoFile->getMarkIn() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
-        o_percent = (int) ( (double)( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getEnd() - selectedSourceVideoFile->getBegin() ) * 1000.0) ;
+        i_percent = (int) ( (double)( selectedSourceVideoFile->getMarkIn() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getDuration() ) * (double)frameSlider->maximum()) ;
+        o_percent = (int) ( (double)( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getDuration() ) * (double)frameSlider->maximum()) ;
 
         if (_displayTimeAsFrame) {
             markInSlider->setToolTip( tr("Begin: ") + selectedSourceVideoFile->getStringFrameFromTime(selectedSourceVideoFile->getMarkIn()) );

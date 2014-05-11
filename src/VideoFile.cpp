@@ -1343,7 +1343,7 @@ void ParsingThread::run()
 
             // hack: because when paused, the decoding thread is waiting for space in the queue
             // flush the queue to unblock it
-            if (is->isPaused()) {
+            if (is->isPaused() && is->pictq_flush_req) {
                 is->flush_picture_queue();
                 // but restore flush request
                 is->pictq_flush_req = true;
@@ -1665,7 +1665,7 @@ void DecodingThread::run()
 
             // if not seeking, queue picture for display
             // (not else of previous if because it could have unblocked this frame)
-            if (is->parsing_mode != VideoFile::SEEKING_DECODING_REQUEST) {
+            if (is->parsing_mode != VideoFile::SEEKING_DECODING_REQUEST ) {
 
                 // test if time will exceed limits (mark out or will pass the end of file)
                 if ( pts > is->mark_out )
@@ -1688,7 +1688,7 @@ void DecodingThread::run()
                 // wait until we have space for a new pic
                 is->pictq_mutex->lock();
                 // the condition is released in video_refresh_timer()
-                while ( (is->pictq_size > is->pictq_max_size) && !is->quit)
+                while ( (is->pictq_size > is->pictq_max_size) && !is->quit )
                     is->pictq_cond->wait(is->pictq_mutex);
                 is->pictq_mutex->unlock();
 
