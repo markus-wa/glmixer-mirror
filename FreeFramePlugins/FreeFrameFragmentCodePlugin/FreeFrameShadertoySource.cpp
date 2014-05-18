@@ -1,5 +1,4 @@
 #include <GL/glew.h>
-#include <FFGL.h>
 #include <cstdio>
 #include <ctime>
 

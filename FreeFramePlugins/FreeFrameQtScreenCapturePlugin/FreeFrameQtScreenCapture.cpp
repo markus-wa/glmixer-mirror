@@ -1,13 +1,14 @@
 
 #include <GL/glew.h>
-#include <FFGL.h>
-
-#include "FreeFrameQtScreenCapture.h"
-
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QPixmap>
 #include <QImage>
+
+#include "FreeFrameQtScreenCapture.h"
+
+
+GLuint displayList = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -64,6 +65,31 @@ FFResult FreeFrameQtScreenCapture::InitGL(const FFGLViewportStruct *vp)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width(), image.height(), 0,
                  GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
 
+    if (displayList == 0) {
+        displayList = glGenLists(1);
+        glNewList(displayList, GL_COMPILE);
+            glColor4f(1.f, 1.f, 1.f, 1.f);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glBegin(GL_QUADS);
+            //lower left
+            glTexCoord2d(0.0, 0.0);
+            glVertex2f(-1,-1);
+            //upper left
+            glTexCoord2d(0.0, 1.0);
+            glVertex2f(-1,1);
+            //upper right
+            glTexCoord2d(1.0, 1.0);
+            glVertex2f(1,1);
+            //lower right
+            glTexCoord2d(1.0, 0.0);
+            glVertex2f(1,-1);
+            glEnd();
+        glEndList();
+    }
+
     return FF_SUCCESS;
 }
 
@@ -98,27 +124,8 @@ FFResult FreeFrameQtScreenCapture::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.width(), image.height(),
                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,(GLvoid*) image.constBits());
 
-    //modulate texture colors with white
-    glColor4f(1.f, 1.f, 1.f, 1.f);
 
-    glBegin(GL_QUADS);
-
-    //lower left
-    glTexCoord2d( 0.0, 0.0);
-    glVertex2f(-1,-1);
-
-    //upper left
-    glTexCoord2d(0.0, 1.0);
-    glVertex2f(-1,1);
-
-    //upper right
-    glTexCoord2d(1.0, 1.0);
-    glVertex2f(1,1);
-
-    //lower right
-    glTexCoord2d(1.0, 0.0);
-    glVertex2f(1,-1);
-    glEnd();
+    glCallList(displayList);
 
     //unbind the texture
     glBindTexture(GL_TEXTURE_2D, 0);

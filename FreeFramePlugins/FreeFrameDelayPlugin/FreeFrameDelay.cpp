@@ -7,6 +7,7 @@
 
 #define FFPARAM_DELAY (0)
 
+GLuint displayList = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -90,6 +91,31 @@ FFResult FreeFrameDelay::InitGL(const FFGLViewportStruct *vp)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    if (displayList == 0) {
+        displayList = glGenLists(1);
+        glNewList(displayList, GL_COMPILE);
+            glColor4f(1.f, 1.f, 1.f, 1.f);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glBegin(GL_QUADS);
+            //lower left
+            glTexCoord2d(0.0, 0.0);
+            glVertex2f(-1,-1);
+            //upper left
+            glTexCoord2d(0.0, 1.0);
+            glVertex2f(-1,1);
+            //upper right
+            glTexCoord2d(1.0, 1.0);
+            glVertex2f(1,1);
+            //lower right
+            glTexCoord2d(1.0, 0.0);
+            glVertex2f(1,-1);
+            glEnd();
+        glEndList();
+    }
+
     return FF_SUCCESS;
 }
 
@@ -125,36 +151,13 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 {
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture.Handle);
-
-    //modulate texture colors with white (just show
-    //the texture colors as they are)
-    glColor4f(1.f, 1.f, 1.f, 1.f);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // setup display
     glViewport(vp.x,vp.y,vp.width,vp.height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 
-    glBegin(GL_QUADS);
-    //lower left
-    glTexCoord2d(0.0, 0.0);
-    glVertex2f(-1,-1);
-
-    //upper left
-    glTexCoord2d(0.0, 1.0);
-    glVertex2f(-1,1);
-
-    //upper right
-    glTexCoord2d(1.0, 1.0);
-    glVertex2f(1,1);
-
-    //lower right
-    glTexCoord2d(1.0, 0.0);
-    glVertex2f(1,-1);
-    glEnd();
-
+    glCallList(displayList);
 
 }
 

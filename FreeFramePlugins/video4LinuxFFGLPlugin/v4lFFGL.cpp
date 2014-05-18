@@ -660,6 +660,8 @@ bool open_device(video4LinuxFreeFrameGLData *current)
 }
 
 
+GLuint displayList = 0;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -723,6 +725,32 @@ FFResult video4LinuxFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, error_image.width, error_image.height, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE,(GLvoid*) error_image.pixel_data);
+
+
+    if (displayList == 0) {
+        displayList = glGenLists(1);
+        glNewList(displayList, GL_COMPILE);
+            glColor4f(1.f, 1.f, 1.f, 1.f);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glBegin(GL_QUADS);
+            //lower left
+            glTexCoord2d(0.0, 0.0);
+            glVertex2f(-1,-1);
+            //upper left
+            glTexCoord2d(0.0, 1.0);
+            glVertex2f(-1,1);
+            //upper right
+            glTexCoord2d(1.0, 1.0);
+            glVertex2f(1,1);
+            //lower right
+            glTexCoord2d(1.0, 0.0);
+            glVertex2f(1,-1);
+            glEnd();
+        glEndList();
+    }
 
     return FF_SUCCESS;
 }
@@ -793,36 +821,10 @@ FFResult video4LinuxFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     }
 
-    //modulate texture colors with white (just show
-    //the texture colors as they are)
-    glColor4f(1.f, 1.f, 1.f, 1.f);
-    //(default texturemapping behavior of OpenGL is to
-    //multiply texture colors by the current gl color)
-
-    glBegin(GL_QUADS);
-
-    //lower left
-    glTexCoord2d(0.0, 0.0);
-    glVertex2f(-1.0,-1);
-
-    //upper left
-    glTexCoord2d(0.0, 1.0);
-    glVertex2f(-1,1);
-
-    //upper right
-    glTexCoord2d(1.0, 1.0);
-    glVertex2f(1,1);
-
-    //lower right
-    glTexCoord2d(1.0, 0.0);
-    glVertex2f(1,-1);
-    glEnd();
+    glCallList(displayList);
 
     //unbind the texture
     glBindTexture(GL_TEXTURE_2D, 0);
-
-
-
 
     //disable texturemapping
     glDisable(GL_TEXTURE_2D);
