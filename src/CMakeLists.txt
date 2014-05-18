@@ -105,9 +105,8 @@ endif(USE_SHAREDMEMORY)
 # If FreeframeGL was set, then link with its source files
 if(USE_FREEFRAMEGL)
     add_definitions(-DFFGL)
-    SET(FREEFRAMEGL_DIR_HOST "${FREEFRAMEGL_PATH}/Source/FFGLHost/")
+
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
-        ${FREEFRAMEGL_DIR_HOST}/FFGLPluginInstance.cpp
         FFGLPluginInstances.cpp
         FFGLPluginSourceStack.cpp
         FFGLPluginSource.cpp
@@ -120,6 +119,8 @@ if(USE_FREEFRAMEGL)
         GLSLSyntaxHighlighter.cpp
     )
 
+    SET_SOURCE_FILES_PROPERTIES(FFGLPluginInstances.cpp PROPERTIES COMPILE_FLAGS -fno-strict-aliasing )
+
     SET(GLMIXER_UIS  ${GLMIXER_UIS}
         GLSLCodeEditorWidget.ui
         FFGLSourceCreationDialog.ui
@@ -128,6 +129,8 @@ if(USE_FREEFRAMEGL)
     SET(GLMIXER_RCS  ${GLMIXER_RCS}
         ${CMAKE_CURRENT_BINARY_DIR}/../FreeFramePlugins/plugins.qrc
     )
+
+    SET(GLMIXER_LIBRARIES FreeFrameGL ${GLMIXER_LIBRARIES} )
 
 
 elseif(USE_FREEFRAMEGL)

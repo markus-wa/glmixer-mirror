@@ -3,8 +3,13 @@
 
 #define MAX_NUM_FRAMES 70
 
+//#include <FreeFrame.h>
 #include <FFGLPluginSDK.h>
-#include <FFGLFBO.h>
+
+extern "C" {
+FFMixed plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanceID);
+}
+
 
 class FreeFrameDelay : public CFreeFrameGLPlugin
 {
@@ -56,8 +61,8 @@ protected:
     double m_curTime;
     double delay;
     FFGLViewportStruct viewport;
-    FFGLExtensions glExtensions;
-    FFGLFBO fbo[MAX_NUM_FRAMES];
+    GLuint textures[MAX_NUM_FRAMES];
+    GLuint fbo[MAX_NUM_FRAMES];
     double times[MAX_NUM_FRAMES];
     int writeIndex, readIndex;
 };

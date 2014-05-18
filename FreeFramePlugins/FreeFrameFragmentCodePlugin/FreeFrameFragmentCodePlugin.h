@@ -2,7 +2,6 @@
 #define FFGLQTGLSL_H
 
 #include <FFGLPluginSDK.h>
-#include <FFGLFBO.h>
 
 class FreeFrameShadertoy : public CFreeFrameGLPlugin
 {
@@ -52,8 +51,8 @@ public:
 protected:
 
     FFGLViewportStruct viewport;
-    FFGLExtensions glExtensions;
-    FFGLFBO frameBufferObject;
+    FFGLTextureStruct textureFrameBufferObject;
+    GLuint frameBufferObject;
     GLuint shaderProgram;
     GLuint fragmentShader;
     GLuint uniform_texturesize;

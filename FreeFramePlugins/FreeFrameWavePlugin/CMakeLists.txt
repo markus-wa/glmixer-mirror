@@ -2,27 +2,10 @@
 cmake_minimum_required (VERSION 2.6)
 project (LIBFFGLWAVE)
 
-
-SET(FREEFRAMEGL_DIR_PLUGINS "${FREEFRAMEGL_PATH}/Source/FFGLPlugins/")
-SET(FREEFRAMEGL_DIR_COMMON "${FREEFRAMEGL_PATH}/Source/Common/")
-
-include_directories(${FREEFRAMEGL_DIR_PLUGINS})
-
-set(LIBFFGLWAVE_SRCS
-    ${FREEFRAMEGL_DIR_COMMON}/FFGLShader.cpp 
-    ${FREEFRAMEGL_DIR_COMMON}/FFGLExtensions.cpp 
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginInfo.cpp 
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginInfoData.cpp 
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGL.cpp 
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginManager.cpp 
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginSDK.cpp
-    FreeFrameWave.cpp
-)
-
 if(WIN32)
-  add_library(ffglWave SHARED ${LIBFFGLWAVE_SRCS})
+  add_library(ffglWave SHARED FreeFrameWave.cpp)
 else(WIN32)
-  add_library(ffglWave MODULE ${LIBFFGLWAVE_SRCS})
+  add_library(ffglWave MODULE FreeFrameWave.cpp)
 endif(WIN32)
 
-target_link_libraries(ffglWave ${OPENGL_LIBRARY})
+target_link_libraries(ffglWave -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive   ${OPENGL_LIBRARY})

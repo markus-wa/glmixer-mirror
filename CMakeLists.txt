@@ -35,7 +35,7 @@ if( APPLE )
 
     #set(CMAKE_OSX_TARGETS "10.5;10.6;10.7" CACHE STRING "Target OSX version (Min requirement)" FORCE)
     if(DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
-            set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS "10.5;10.6;10.7" )
+            set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS ";10.5;10.6;10.7,10.8" )
     endif()
 
 endif( APPLE )
@@ -207,39 +207,47 @@ endif(USE_OPENCV)
 
 
 # HERE IS THE OPTIONNAL INSTALLATION OF FREEFRAMEGL
-SET(USE_FREEFRAMEGL ${USE_FREEFRAMEGL} CACHE BOOL "CHECK if you want to compile with FreeFrame GL library")
+
+set(USE_FREEFRAMEGL "NO" CACHE STRING "Choose if you want to compile with FreeFrame GL library")
+set_property(CACHE USE_FREEFRAMEGL PROPERTY STRINGS "NO;1.5;1.6")
 
 if(USE_FREEFRAMEGL)
-    SET(FREEFRAMEGL_PATH ${FREEFRAMEGL_PATH} CACHE STRING "Please enter the path to the FFGL-SDK/ folder (sources of freeframeGL).")
 
-    unset(FREEFRAMEGL_INCLUDE CACHE)
-    unset(FREEFRAMEGL_INSTANCE_INCLUDE CACHE)
-    find_path( FREEFRAMEGL_INCLUDE "FFGL.h" HINTS "${FREEFRAMEGL_PATH}/Include" )
-    find_path( FREEFRAMEGL_INSTANCE_INCLUDE "FFGLPluginInstance.h" HINTS "${FREEFRAMEGL_PATH}/Source/FFGLHost" )
+    SET(FREEFRAMEGL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/libFreeFrameGL/FFGL-SDK-${USE_FREEFRAMEGL}")
 
-    if(FREEFRAMEGL_INCLUDE)
-        message(STATUS "Using FreeframeGL.")
-        include_directories(${FREEFRAMEGL_INCLUDE} ${FREEFRAMEGL_INSTANCE_INCLUDE})
-        # when compiling freeframeGL, use the permissive compiler flag (or it does not compile)
-        set(CMAKE_CXX_FLAGS "-fpermissive ${CMAKE_CXX_FLAGS}" )
-        # add the dependency to dl library for linux comilation
+    SET(FREEFRAMEGL_DIR_PLUGINS "${FREEFRAMEGL_PATH}/Source/FFGLPlugins/")
+    SET(FREEFRAMEGL_DIR_HOST "${FREEFRAMEGL_PATH}/Source/FFGLHost/")
+
+    include_directories("${FREEFRAMEGL_PATH}/Include" ${FREEFRAMEGL_DIR_PLUGINS} ${FREEFRAMEGL_DIR_HOST})
+
+#    unset(FREEFRAMEGL_INCLUDE CACHE)
+#    unset(FREEFRAMEGL_INSTANCE_INCLUDE CACHE)
+#    find_path( FREEFRAMEGL_INCLUDE "FFGL.h" HINTS "${FREEFRAMEGL_PATH}/Include" )
+#    find_path( FREEFRAMEGL_INSTANCE_INCLUDE "FFGLPluginInstance.h" HINTS "${FREEFRAMEGL_PATH}/Source/FFGLHost" )
+
+#    if(FREEFRAMEGL_INCLUDE)
+#        message(STATUS "Using FreeframeGL ${USE_FREEFRAMEGL}.")
+#        include_directories(${FREEFRAMEGL_INCLUDE} ${FREEFRAMEGL_INSTANCE_INCLUDE})
+#        # when compiling freeframeGL, use the permissive compiler flag (or it does not compile)
+##        set(CMAKE_CXX_FLAGS "-fpermissive ${CMAKE_CXX_FLAGS}" )
+#        # add the dependency to dl library for linux comilation
         if(UNIX)
             SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} dl)
         endif(UNIX)
 
-        if(APPLE)
-        add_definitions(-DTARGET_OS_MAC)
-        endif(APPLE)
+##        if(APPLE)
+##        add_definitions(-DTARGET_OS_MAC)
+##        endif(APPLE)
 
-        if(WIN32)
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--kill-at")
-        endif(WIN32)
+##        if(WIN32)
+##        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--kill-at")
+##        endif(WIN32)
 
-    else(FREEFRAMEGL_INCLUDE)
-        message(STATUS "Could not locate FFGL.h in FREEFRAMEGL_PATH : ${FREEFRAMEGL_PATH} ")
-        set(USE_FREEFRAMEGL OFF CACHE BOOL)
+#    else(FREEFRAMEGL_INCLUDE)
+#        message(STATUS "Could not locate FFGL.h in FREEFRAMEGL_PATH : ${FREEFRAMEGL_PATH} ")
+#        set(USE_FREEFRAMEGL OFF CACHE BOOL)
 
-    endif(FREEFRAMEGL_INCLUDE)
+#    endif(FREEFRAMEGL_INCLUDE)
 
 endif(USE_FREEFRAMEGL)
 
@@ -307,6 +315,7 @@ add_subdirectory(libQtProperty)
 add_subdirectory(libOSCPack)
 
 if(USE_FREEFRAMEGL)
+    add_subdirectory(${FREEFRAMEGL_PATH})
     add_subdirectory(FreeFramePlugins)
 endif(USE_FREEFRAMEGL)
 

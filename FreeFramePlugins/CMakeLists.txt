@@ -2,6 +2,14 @@
 cmake_minimum_required (VERSION 2.6)
 
 
+if(APPLE)
+    add_definitions(-DTARGET_OS_MAC)
+endif(APPLE)
+
+if(WIN32)
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--kill-at")
+endif(WIN32)
+
 # multiplatform plugins
 add_subdirectory(FreeFrameTestPlugin)
 add_subdirectory(FreeFrameWavePlugin)

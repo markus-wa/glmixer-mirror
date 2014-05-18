@@ -20,7 +20,7 @@
  *
  */
 
-#include "FFGLPluginInstances.h"
+#include <FFGLPluginInstances.h>
 
 #include <QDebug>
 

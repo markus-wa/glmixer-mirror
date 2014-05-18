@@ -1,7 +1,5 @@
 #include <GL/glew.h>
-#define APIENTRY
 #include <FFGL.h>
-#include <FFGLLib.h>
 #include <cstdio>
 #include <ctime>
 
@@ -43,6 +41,18 @@ static CFFGLPluginInfo PluginInfo (
 FreeFrameShadertoy::FreeFrameShadertoy()
     : CFreeFrameGLPlugin()
 {
+    // clean start
+    textureFrameBufferObject.Handle = 0;
+    frameBufferObject = 0;
+    shaderProgram = 0;
+    fragmentShader = 0;
+    uniform_texturesize = 0;
+    uniform_viewportsize = 0;
+    uniform_time = 0;
+    uniform_channeltime = 0;
+    uniform_date = 0;
+    m_curTime = 0.0;
+
     // Input properties
     SetMinInputs(0);
     SetMaxInputs(0);
@@ -50,8 +60,6 @@ FreeFrameShadertoy::FreeFrameShadertoy()
 
     // No Parameters
     code_changed = true;
-    shaderProgram = 0;
-    fragmentShader = 0;
     fragmentShaderCode = NULL;
     setFragmentProgramCode(fragmentShaderDefaultCode);
 

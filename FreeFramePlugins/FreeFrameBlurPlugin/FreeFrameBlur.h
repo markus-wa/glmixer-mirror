@@ -2,7 +2,6 @@
 #define FFGLMirror_H
 
 #include <FFGLPluginSDK.h>
-#include <FFGLFBO.h>
 
 class FreeFrameBlur : public CFreeFrameGLPlugin
 {
@@ -52,8 +51,8 @@ protected:
     bool param_changed;
     FFGLViewportStruct viewport;
     FFGLViewportStruct fboViewport;
-    FFGLExtensions glExtensions;
-    FFGLFBO fbo1, fbo2;
+    FFGLTextureStruct tex_fbo1, tex_fbo2;
+    GLuint fbo1,  fbo2;
     GLuint shaderProgram;
     GLuint vertexShader;
     GLuint fragmentShader;

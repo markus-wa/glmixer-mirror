@@ -1,5 +1,4 @@
 #include <FFGL.h>
-#include <FFGLLib.h>
 #include "FreeFrameWave.h"
 
 #include <cmath>
@@ -102,10 +101,6 @@ FFResult FreeFrameWave::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     //enable texturemapping
     glEnable(GL_TEXTURE_2D);
-
-    //get the max s,t that correspond to the
-    //width,height of the used portion of the allocated texture space
-    // FFGLTexCoords maxCoords = GetMaxGLTexCoords(Texture);
 
     //modulate texture colors with white (just show
     //the texture colors as they are)

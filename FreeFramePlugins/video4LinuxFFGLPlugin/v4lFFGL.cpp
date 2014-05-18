@@ -1,6 +1,4 @@
 #include <FFGL.h>
-#include <FFGLLib.h>
-
 #include "v4lFFGL.h"
 
 

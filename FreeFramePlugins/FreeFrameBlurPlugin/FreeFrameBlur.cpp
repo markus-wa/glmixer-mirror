@@ -1,8 +1,6 @@
 
 #include <GL/glew.h>
-#define APIENTRY
 #include <FFGL.h>
-#include <FFGLLib.h>
 #include <stdio.h>
 
 #include "FreeFrameBlur.h"
@@ -60,6 +58,16 @@ static CFFGLPluginInfo PluginInfo (
 FreeFrameBlur::FreeFrameBlur()
     : CFreeFrameGLPlugin()
 {
+    // clean start
+    tex_fbo1.Handle = 0;
+    tex_fbo2.Handle = 0;
+    fbo1 = 0;
+    fbo2 = 0;
+    shaderProgram = 0;
+    vertexShader = 0;
+    fragmentShader = 0;
+    uniform_textureoffset = 0;
+
     // Input properties
     SetMinInputs(1);
     SetMaxInputs(1);
@@ -101,17 +109,15 @@ FFResult FreeFrameBlur::InitGL(const FFGLViewportStruct *vp)
     viewport.width = vp->width;
     viewport.height = vp->height;
 
-    //init gl extensions
-    glExtensions.Initialize();
-    if (glExtensions.EXT_framebuffer_object==0)
-        return FF_FAIL;
-
     glewInit();
     if (!GLEW_VERSION_2_0)
     {
         fprintf(stderr, "OpenGL 2.0 not supported. Exiting freeframe plugin.\n");
         return FF_FAIL;
     }
+
+    glGenFramebuffers(1, &fbo1);
+    glGenFramebuffers(1, &fbo2);
 
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
@@ -143,13 +149,13 @@ DWORD   FreeFrameBlur::DeInitGL()
 FFResult FreeFrameBlur::DeInitGL()
 #endif
 {
-
-    fbo1.FreeResources(glExtensions);
-    fbo2.FreeResources(glExtensions);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    glDeleteProgram(shaderProgram);
+    if (tex_fbo1.Handle) glDeleteTextures(1, &tex_fbo1.Handle);
+    if (tex_fbo2.Handle) glDeleteTextures(1, &tex_fbo2.Handle);
+    if (fbo1) glDeleteFramebuffers( 1, &fbo1 );
+    if (fbo2) glDeleteFramebuffers( 1, &fbo2 );
+    if (vertexShader)   glDeleteShader(vertexShader);
+    if (fragmentShader) glDeleteShader(fragmentShader);
+    if (shaderProgram)  glDeleteProgram(shaderProgram);
 
     return FF_SUCCESS;
 }
@@ -157,9 +163,6 @@ FFResult FreeFrameBlur::DeInitGL()
 
 void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 {
-    // use the texture coordinates provided
-    FFGLTexCoords maxCoords = GetMaxGLTexCoords(texture);
-
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture.Handle);
 
@@ -180,15 +183,15 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
     glVertex2f(-1,-1);
 
     //upper left
-    glTexCoord2d(0.0, maxCoords.t);
+    glTexCoord2d(0.0, 1.0);
     glVertex2f(-1,1);
 
     //upper right
-    glTexCoord2d(maxCoords.s, maxCoords.t);
+    glTexCoord2d(1.0, 1.0);
     glVertex2f(1,1);
 
     //lower right
-    glTexCoord2d(maxCoords.s, 0.0);
+    glTexCoord2d(1.0, 0.0);
     glVertex2f(1,-1);
     glEnd();
 
@@ -221,9 +224,10 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     // new value of the blur parameter
     if(param_changed) {
+        // disable fbo
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-
+        // compute new viewport size for the new blur value
         fboViewport.x = 0;
         fboViewport.y = 0;
         fboViewport.width = (int)((double)viewport.width * (1.0 - blur) );
@@ -233,13 +237,41 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         fboViewport.width = fboViewport.width < 1 ? 1 : fboViewport.width;
         fboViewport.height = fboViewport.height < 1 ? 1 : fboViewport.height;
 
-        fbo1.FreeResources(glExtensions);
-        if (! fbo1.Create( fboViewport.width, fboViewport.height, glExtensions) )
-            return FF_FAIL;
+        // create texture for FBO 1
+        if (tex_fbo1.Handle) glDeleteTextures(1, &tex_fbo1.Handle);
+        glGenTextures(1,&tex_fbo1.Handle);
+        tex_fbo1.Width = fboViewport.width;
+        tex_fbo1.Height = fboViewport.height;
+        glBindTexture(GL_TEXTURE_2D, tex_fbo1.Handle);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_fbo1.Width, tex_fbo1.Height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        fbo2.FreeResources(glExtensions);
-        if (! fbo2.Create( fboViewport.width, fboViewport.height, glExtensions) )
-            return FF_FAIL;
+        // attach texture to FBO 1
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo1);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_fbo1.Handle, 0);
+
+        // create texture for FBO 2
+        if (tex_fbo2.Handle) glDeleteTextures(1, &tex_fbo2.Handle);
+        glGenTextures(1,&tex_fbo2.Handle);
+        tex_fbo2.Width = fboViewport.width;
+        tex_fbo2.Height = fboViewport.height;
+        glBindTexture(GL_TEXTURE_2D, tex_fbo2.Handle);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_fbo2.Width, tex_fbo2.Height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        // attach texture to FBO 2
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_fbo2.Handle, 0);
+
+        // return to default state
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         param_changed = false;
     }
@@ -250,8 +282,7 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     if (blur >0)
     {
         // activate the fbo2 as our render target
-        if (!fbo2.BindAsRenderTarget(glExtensions))
-            return FF_FAIL;
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
 
         //render the original texture on a quad in fbo2
         drawQuad( fboViewport, Texture);
@@ -260,33 +291,31 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         glUseProgram(shaderProgram);
 
         // PASS 1:  horizontal filter
-        glUniform2f(uniform_textureoffset, 1.f / (float) fbo2.GetTextureInfo().HardwareWidth,  0.f);
+        glUniform2f(uniform_textureoffset, 1.f / (float) tex_fbo2.Width,  0.f);
 
         // activate the fbo1 as our render target
-        if (!fbo1.BindAsRenderTarget(glExtensions))
-            return FF_FAIL;
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo1);
 
         //render the fbo2 texture on a quad in fbo1
-        drawQuad( fboViewport, fbo2.GetTextureInfo());
+        drawQuad( fboViewport, tex_fbo2);
 
         // PASS 2 : vertical
-        glUniform2f(uniform_textureoffset, 0.f,  1.f / (float) fbo1.GetTextureInfo().HardwareHeight);
+        glUniform2f(uniform_textureoffset, 0.f,  1.f / (float) tex_fbo1.Height);
 
         // activate the fbo2 as our render target
-        if (!fbo2.BindAsRenderTarget(glExtensions))
-            return FF_FAIL;
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
 
         // render the fbo1 texture on a quad in fbo2
-        drawQuad( fboViewport, fbo1.GetTextureInfo());
+        drawQuad( fboViewport, tex_fbo1);
 
         // disable shader program
         glUseProgram(0);
 
         // (re)activate the HOST fbo as render target
-        glExtensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, pGL->HostFBO);
 
         // render the fbo2 texture texture on a quad in the host fbo
-        drawQuad( viewport, fbo2.GetTextureInfo() );
+        drawQuad( viewport, tex_fbo2 );
     }
     else
     {

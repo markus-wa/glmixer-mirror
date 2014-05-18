@@ -5,30 +5,11 @@ project (LIBFFGLQTSCREENCAPTURE)
 # add the corresponding path to include
 include(${QT_USE_FILE})
 
-set(LIBFFGLQTSCREENCAPTURE_SRCS FreeFrameQtScreenCapture.cpp )
-
-
-SET(FREEFRAMEGL_DIR_PLUGINS "${FREEFRAMEGL_PATH}/Source/FFGLPlugins/")
-SET(FREEFRAMEGL_DIR_COMMON "${FREEFRAMEGL_PATH}/Source/Common/")
-
-include_directories(${FREEFRAMEGL_DIR_PLUGINS})
-
-set(LIBFFGLQTSCREENCAPTURE_SRCS
-    ${LIBFFGLQTSCREENCAPTURE_SRCS}
-    ${FREEFRAMEGL_DIR_COMMON}/FFGLShader.cpp
-    ${FREEFRAMEGL_DIR_COMMON}/FFGLExtensions.cpp
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginInfo.cpp
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginInfoData.cpp
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGL.cpp
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginManager.cpp
-    ${FREEFRAMEGL_DIR_PLUGINS}/FFGLPluginSDK.cpp
-)
-
 if(WIN32)
-  add_library(ffglQtScreenCapture SHARED ${LIBFFGLQTSCREENCAPTURE_SRCS})
+  add_library(ffglQtScreenCapture SHARED FreeFrameQtScreenCapture.cpp)
 else(WIN32)
-  add_library(ffglQtScreenCapture MODULE ${LIBFFGLQTSCREENCAPTURE_SRCS})
+  add_library(ffglQtScreenCapture MODULE FreeFrameQtScreenCapture.cpp)
 endif(WIN32)
 
-target_link_libraries(ffglQtScreenCapture ${OPENGL_LIBRARY} ${QT_LIBRARIES} ${GLEW_LIBRARY} )
+target_link_libraries(ffglQtScreenCapture -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${QT_LIBRARIES} )
 

@@ -248,7 +248,6 @@ void FFGLPluginSource::update()
 #else
         // FFGL 1.6
         FFResult callresult = _plugin->CallProcessOpenGL(processStruct);
-  //      FFResult callresult = FF_SUCCESS;
 #endif
 
         // make sure we restore state
