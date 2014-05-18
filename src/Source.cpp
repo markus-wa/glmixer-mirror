@@ -207,7 +207,7 @@ void Source::play(bool on) {
 #ifdef FFGL
     // to be called at the end of the update of the source itself
     if (! _ffgl_plugins.isEmpty())
-        _ffgl_plugins.play(on);
+        _ffgl_plugins.play( isPlayable() ? on : true);
 #endif
 
 }
