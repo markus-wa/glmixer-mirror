@@ -1,7 +1,6 @@
 
 #include <GL/glew.h>
 #include <FFGL.h>
-#include <FFGLLib.h>
 
 #include <cmath>
 #include <iostream>

@@ -429,10 +429,3 @@ QString FFGLPluginSource::libraryFileName(QString embeddedName)
     return plugindll.absoluteFilePath();
 }
 
-
-
-// for getting debug messages from FFGL code
-void FFDebugMessage(const char *msg)
-{
-    qDebug()<<msg;
-}

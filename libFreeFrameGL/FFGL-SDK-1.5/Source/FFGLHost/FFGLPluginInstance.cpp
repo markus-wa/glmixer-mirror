@@ -284,3 +284,8 @@ DWORD FFGLPluginInstance::DeinitPluginLibrary()
 
   return rval;
 }
+
+void FFDebugMessage(const char *msg) {
+
+    fprintf(stderr, "FreeFrame error: %s\n", msg);
+}

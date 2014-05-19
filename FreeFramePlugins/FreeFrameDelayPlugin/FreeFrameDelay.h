@@ -3,13 +3,7 @@
 
 #define MAX_NUM_FRAMES 70
 
-//#include <FreeFrame.h>
 #include <FFGLPluginSDK.h>
-
-extern "C" {
-FFMixed plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanceID);
-}
-
 
 class FreeFrameDelay : public CFreeFrameGLPlugin
 {
