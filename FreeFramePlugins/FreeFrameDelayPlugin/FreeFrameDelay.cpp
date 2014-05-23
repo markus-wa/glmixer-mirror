@@ -1,7 +1,4 @@
-
 #include <GL/glew.h>
-//#include <FFGL.h>
-//#include <stdio.h>
 
 #include "FreeFrameDelay.h"
 

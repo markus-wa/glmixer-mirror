@@ -220,34 +220,9 @@ if(USE_FREEFRAMEGL)
 
     include_directories("${FREEFRAMEGL_PATH}/Include" ${FREEFRAMEGL_DIR_PLUGINS} ${FREEFRAMEGL_DIR_HOST})
 
-#    unset(FREEFRAMEGL_INCLUDE CACHE)
-#    unset(FREEFRAMEGL_INSTANCE_INCLUDE CACHE)
-#    find_path( FREEFRAMEGL_INCLUDE "FFGL.h" HINTS "${FREEFRAMEGL_PATH}/Include" )
-#    find_path( FREEFRAMEGL_INSTANCE_INCLUDE "FFGLPluginInstance.h" HINTS "${FREEFRAMEGL_PATH}/Source/FFGLHost" )
-
-#    if(FREEFRAMEGL_INCLUDE)
-#        message(STATUS "Using FreeframeGL ${USE_FREEFRAMEGL}.")
-#        include_directories(${FREEFRAMEGL_INCLUDE} ${FREEFRAMEGL_INSTANCE_INCLUDE})
-#        # when compiling freeframeGL, use the permissive compiler flag (or it does not compile)
-##        set(CMAKE_CXX_FLAGS "-fpermissive ${CMAKE_CXX_FLAGS}" )
-#        # add the dependency to dl library for linux comilation
-        if(UNIX)
-            SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} dl)
-        endif(UNIX)
-
-##        if(APPLE)
-##        add_definitions(-DTARGET_OS_MAC)
-##        endif(APPLE)
-
-##        if(WIN32)
-##        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--kill-at")
-##        endif(WIN32)
-
-#    else(FREEFRAMEGL_INCLUDE)
-#        message(STATUS "Could not locate FFGL.h in FREEFRAMEGL_PATH : ${FREEFRAMEGL_PATH} ")
-#        set(USE_FREEFRAMEGL OFF CACHE BOOL)
-
-#    endif(FREEFRAMEGL_INCLUDE)
+    if(UNIX)
+        SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} dl)
+    endif(UNIX)
 
 endif(USE_FREEFRAMEGL)
 

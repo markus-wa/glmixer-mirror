@@ -1,4 +1,3 @@
-#include <FFGL.h>
 #include "FreeFrameTest.h"
 
 #include <cmath>

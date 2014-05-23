@@ -1,6 +1,21 @@
-
 #include <GL/glew.h>
-#include <stdio.h>
+
+#ifdef DEBUG
+#include <cstdio>
+void printLog(GLuint obj)
+{
+    int infologLength = 0;
+    char infoLog[1024];
+
+    if (glIsShader(obj))
+        glGetShaderInfoLog(obj, 1024, &infologLength, infoLog);
+    else
+        glGetProgramInfoLog(obj, 1024, &infologLength, infoLog);
+
+    if (infologLength > 0)
+        fprintf(stderr, "GLSL :: %s\n", infoLog);
+}
+#endif
 
 #include "FreeFrameBlur.h"
 
@@ -80,19 +95,7 @@ FreeFrameBlur::FreeFrameBlur()
     param_changed = true;
 }
 
-void printLog(GLuint obj)
-{
-    int infologLength = 0;
-    char infoLog[1024];
 
-    if (glIsShader(obj))
-        glGetShaderInfoLog(obj, 1024, &infologLength, infoLog);
-    else
-        glGetProgramInfoLog(obj, 1024, &infologLength, infoLog);
-
-    if (infologLength > 0)
-        fprintf(stderr, "GLSL :: %s\n", infoLog);
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
@@ -113,7 +116,9 @@ FFResult FreeFrameBlur::InitGL(const FFGLViewportStruct *vp)
     glewInit();
     if (!GLEW_VERSION_2_0)
     {
+#ifdef DEBUG
         fprintf(stderr, "OpenGL 2.0 not supported. Exiting freeframe plugin.\n");
+#endif
         return FF_FAIL;
     }
 
@@ -123,18 +128,22 @@ FFResult FreeFrameBlur::InitGL(const FFGLViewportStruct *vp)
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
     glCompileShader(vertexShader);
+#ifdef DEBUG
     printLog(vertexShader);
-
+#endif
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
     glCompileShader(fragmentShader);
+#ifdef DEBUG
     printLog(fragmentShader);
-
+#endif
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
+#ifdef DEBUG
     printLog(shaderProgram);
+#endif
 
     uniform_textureoffset = glGetUniformLocation(shaderProgram, "textureoffset");
 
@@ -348,7 +357,7 @@ DWORD FreeFrameBlur::SetParameter(const SetParameterStruct* pParam)
 
 DWORD FreeFrameBlur::GetParameter(DWORD index)
 {
-    DWORD dwRet;
+    DWORD dwRet = 0;
     *((float *)(unsigned)&dwRet) = blur;
 
     if (index == FFPARAM_BLUR)
