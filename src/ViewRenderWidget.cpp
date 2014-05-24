@@ -1353,7 +1353,7 @@ GLuint ViewRenderWidget::buildCircleList()
     glBindTexture(GL_TEXTURE_2D, texid);
     QImage p(":/glmixer/textures/circle.png");
     gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(),
-            p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
+            p.height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
             GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,

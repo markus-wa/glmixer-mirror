@@ -56,7 +56,7 @@ const GLchar *fragmentShaderCode = "#define ITER 32\n"
 static CFFGLPluginInfo PluginInfo ( 
         FreeFrameMonteCarlo::CreateInstance,	// Create method
         "GLMTCRLO",								// Plugin unique ID
-        "FFGLMonteCarloBlur",			// Plugin name
+        "MonteCarloBlur",			// Plugin name
         1,						   			// API major version number
         500,								  // API minor version number
         1,										// Plugin major version number

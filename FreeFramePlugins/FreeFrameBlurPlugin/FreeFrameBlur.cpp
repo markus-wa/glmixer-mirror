@@ -56,7 +56,7 @@ const GLchar *fragmentShaderCode =  "varying vec2 texc;"
 static CFFGLPluginInfo PluginInfo ( 
         FreeFrameBlur::CreateInstance,	// Create method
         "GLBLR",								// Plugin unique ID
-        "FFGLBlur",			// Plugin name
+        "GaussianBlur",			// Plugin name
         1,						   			// API major version number
         500,								  // API minor version number
         1,										// Plugin major version number

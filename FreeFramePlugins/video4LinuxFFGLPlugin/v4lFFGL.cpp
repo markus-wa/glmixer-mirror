@@ -1,4 +1,3 @@
-#include <FFGL.h>
 #include "v4lFFGL.h"
 
 
@@ -881,8 +880,10 @@ FFResult video4LinuxFreeFrameGL::SetTextParameter(unsigned int index, const char
                 fprintf(stderr,"Thread creation failed: %d\n", rc);
 
         }
-        else
+        else {
             printf("Failed to open: %s\n", value);
+            data->stop = true;
+        }
 
         return FF_SUCCESS;
     }

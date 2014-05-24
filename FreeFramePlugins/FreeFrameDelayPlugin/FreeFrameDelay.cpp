@@ -13,7 +13,7 @@ GLuint displayList = 0;
 static CFFGLPluginInfo PluginInfo ( 
         FreeFrameDelay::CreateInstance,	// Create method
         "GLDLY",								// Plugin unique ID
-        "FFGLDelay",			// Plugin name
+        "Delay",			// Plugin name
         1,						   			// API major version number
         500,								  // API minor version number
         1,										// Plugin major version number
@@ -37,7 +37,7 @@ FreeFrameDelay::FreeFrameDelay()
     SetTimeSupported(true);
 
     // Parameters
-    SetParamInfo(FFPARAM_DELAY, "Delay", FF_TYPE_STANDARD, 0.5f);
+    SetParamInfo(FFPARAM_DELAY, "Second", FF_TYPE_STANDARD, 0.5f);
     delay = 0.5f;
 
     // init
