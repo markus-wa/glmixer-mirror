@@ -67,7 +67,7 @@ private:
 
     // the link with plugin
     FFGLPluginSourceStack *currentStack;
-    QMap<QtProperty *, QPair<FFGLPluginSource *, int> > propertyToPluginParameter;
+    QMap<QtProperty *, QPair<FFGLPluginSource *, QString> > propertyToPluginParameter;
 
     QtProperty *createPluginPropertyTree(FFGLPluginSource *plugin);
     QAction *removeAction;

@@ -94,14 +94,13 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
     pluginroot->setItalics(true);
 
     // keep correspondance between property and plugin
-    propertyToPluginParameter[pluginroot] = QPair<FFGLPluginSource *, int>(plugin, -1);
+    propertyToPluginParameter[pluginroot] = QPair<FFGLPluginSource *, QString>(plugin, QString::null);
 
     // get the hash list of parameters for this plugin
     QVariantHash parameters = plugin->getParameters();
 
     // iterate over the list of parameters
     QHashIterator<QString, QVariant> i(parameters);
-    unsigned int paramNum = 0;
     while (i.hasNext()) {
         i.next();
 
@@ -132,10 +131,8 @@ QtProperty *FFGLPluginBrowser::createPluginPropertyTree(FFGLPluginSource *plugin
         }
 
         // keep correspondance between property and plugin
-        propertyToPluginParameter[property] = QPair<FFGLPluginSource *, int>(plugin, paramNum);
+        propertyToPluginParameter[property] = QPair<FFGLPluginSource *, QString>(plugin, i.key());
 
-        // increment paramNum
-        paramNum++;
     }
 
     // Get the informations on this plugin into a string list

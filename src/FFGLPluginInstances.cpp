@@ -182,7 +182,6 @@ QVariantHash FFGLPluginInstanceFreeframePlatform::getParametersDefaults() {
         // add it to the list
         params.insert( QString(GetParameterName(i)), value);
     }
-
     return params;
 }
 
@@ -263,7 +262,7 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(QString paramName, QVaria
 
 bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QVariant value)
 {
-    if (paramNum<0 || paramNum >= (unsigned int) m_numParameters ||
+    if (paramNum < 0 || paramNum >= (unsigned int) m_numParameters ||
         m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
         return false;
 
