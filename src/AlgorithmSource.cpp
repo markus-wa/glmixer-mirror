@@ -167,24 +167,11 @@ void AlgorithmThread::run() {
             // compute new frame
 
             // Immediately discard the FLAT 'algo' ; it is the "do nothing" algorithm :)
-            if (as->algotype != AlgorithmSource::FLAT) {
+            if (as->algotype != AlgorithmSource::FLAT && as->algotype != AlgorithmSource::BW_CHECKER ) {
                 // change random
                 srand(t.elapsed());
 
-                if (as->algotype == AlgorithmSource::BW_CHECKER) {
-
-                    bool on = true;
-                    for (int x = 0; x < as->width; ++x) {
-                        for (int y = 0; y < as->height; ++y) {
-                            memset((void *) (as->buffer + (y * as->width + x) * 4),
-                                   (unsigned char) ( on ? std::numeric_limits< unsigned char>::max() : 0) , 4);
-                            on = !on;
-                        }
-                        on = !on;
-                    }
-
-                }
-                else if (as->algotype == AlgorithmSource::BW_NOISE) {
+                 if (as->algotype == AlgorithmSource::BW_NOISE) {
                     for (int i = 0; i < (as->width * as->height); ++i)
                         memset((void *) (as->buffer + i * 4),
                                (unsigned char) (as->variability
@@ -411,11 +398,27 @@ void AlgorithmSource::initBuffer() {
         break;
     }
 
+
     buffer = new unsigned char[width * height * 4];
     CHECK_PTR_EXCEPTION(buffer);
     // CLEAR the buffer to white
     memset((void *) buffer, std::numeric_limits<unsigned char>::max(),
            width * height * 4);
+
+
+    if (algotype == AlgorithmSource::BW_CHECKER) {
+
+        bool on = true;
+        for (int x = 0; x < width; ++x) {
+            for (int y = 0; y < height; ++y) {
+                memset((void *) (buffer + (y * width + x) * 4),
+                       (unsigned char) ( on ? std::numeric_limits< unsigned char>::max() : 0) , 4);
+                on = !on;
+            }
+            on = !on;
+        }
+
+    }
 
 }
 
