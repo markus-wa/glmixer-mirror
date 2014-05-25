@@ -2208,6 +2208,7 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionSourcePause"/>
      <addaction name="actionSourceSeekForward"/>
     </widget>
+    <addaction name="actionNewSource"/>
     <addaction name="actionMediaSource"/>
     <addaction name="actionCameraSource"/>
     <addaction name="actionRenderingSource"/>
@@ -2337,6 +2338,7 @@ QToolButton:hover {
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionNewSource"/>
    <addaction name="actionMediaSource"/>
    <addaction name="actionCameraSource"/>
    <addaction name="actionRenderingSource"/>
@@ -5113,6 +5115,18 @@ Shortcut:                                    Right</string>
    </property>
    <property name="statusTip">
     <string>Set aspect ratio to rendering format</string>
+   </property>
+  </action>
+  <action name="actionNewSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/newsource.png</normaloff>:/glmixer/icons/newsource.png</iconset>
+   </property>
+   <property name="text">
+    <string>New source</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a new source</string>
    </property>
   </action>
  </widget>

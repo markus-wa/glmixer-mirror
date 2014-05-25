@@ -60,6 +60,7 @@
 #include "LayoutToolboxWidget.h"
 #include "GammaLevelsWidget.h"
 #include "OpenSoundControlManager.h"
+#include "NewSourceDialog.h"
 
 #ifdef SHM
 #include "SharedMemorySource.h"
@@ -739,6 +740,51 @@ void GLMixer::setCursor(QAction *a){
     RenderingManager::getRenderingWidget()->setCursorMode( (ViewRenderWidget::cursorMode) a->data().toInt() );
     cursorOptionWidget->setCurrentIndex(a->data().toInt());
 }
+
+void GLMixer::on_actionNewSource_triggered(){
+
+    static NewSourceDialog *nsd = new NewSourceDialog(this);
+
+    if (nsd->exec() == QDialog::Accepted) {
+
+        switch (nsd->selectedType()) {
+        case Source::VIDEO_SOURCE:
+            actionMediaSource->trigger();
+            break;
+#ifdef OPEN_CV
+        case Source::CAMERA_SOURCE:
+            actionCameraSource->trigger();
+            break;
+#endif
+        case Source::ALGORITHM_SOURCE:
+            actionAlgorithmSource->trigger();
+            break;
+        case Source::RENDERING_SOURCE:
+            actionRenderingSource->trigger();
+            break;
+        case Source::CAPTURE_SOURCE:
+            actionCaptureSource->trigger();
+            break;
+        case Source::SVG_SOURCE:
+            actionSvgSource->trigger();
+            break;
+#ifdef SHM
+        case Source::SHM_SOURCE:
+            actionShmSource->trigger();
+            break;
+#endif
+#ifdef FFGL
+        case Source::FFGL_SOURCE:
+            actionFreeframeSource->trigger();
+            break;
+#endif
+        default:
+            break;
+        }
+
+    }
+}
+
 
 void GLMixer::on_actionMediaSource_triggered(){
 
@@ -1824,12 +1870,11 @@ void GLMixer::openSessionFile()
         currentSessionFileName = QString();
         return;
     }
-    QString version = "0.0";
+    QString version = XML_GLM_VERSION;
     if ( root.hasAttribute("version") )
         version = root.attribute("version");
     if ( version != XML_GLM_VERSION ) {
-        qCritical() << currentSessionFileName << QChar(124).toLatin1()<< tr("The version of the file is ") << root.attribute("version") << tr(" instead of ") << XML_GLM_VERSION;
-        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("Reading the file anyway.");
+        qWarning() << currentSessionFileName << QChar(124).toLatin1()<< tr("The version of the file is old (") << root.attribute("version") << tr(") : converting file to current version (") << XML_GLM_VERSION << ").";
     }
 
     // if we got up to here, it should be fine ; reset for a new session and apply loaded configurations

@@ -53,6 +53,7 @@ public:
 public Q_SLOTS:
 
 	// menu and actions
+    void on_actionNewSource_triggered();
 	void on_actionMediaSource_triggered();
 	void on_actionCameraSource_triggered();
 	void on_actionRenderingSource_triggered();
