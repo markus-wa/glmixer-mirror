@@ -145,12 +145,14 @@ public:
     }
 
     void run();
+    void fill(double);
 
     AlgorithmSource* as;
     bool end;
+    int phase;
 
 private:
-    int phase;
+
     double i, j, k, l, di, dj, dk, dl;
 };
 
@@ -164,128 +166,13 @@ void AlgorithmThread::run() {
 
         as->_mutex->lock();
         if (!as->frameChanged) {
-            // compute new frame
 
-            // Immediately discard the FLAT 'algo' ; it is the "do nothing" algorithm :)
-            if (as->algotype != AlgorithmSource::FLAT && as->algotype != AlgorithmSource::BW_CHECKER ) {
-                // change random
-                srand(t.elapsed());
+            // change random
+            srand(t.elapsed());
 
-                 if (as->algotype == AlgorithmSource::BW_NOISE) {
-                    for (int i = 0; i < (as->width * as->height); ++i)
-                        memset((void *) (as->buffer + i * 4),
-                               (unsigned char) (as->variability
-                                                * double( rand() % std::numeric_limits< unsigned char>::max()) + (1.0 - as->variability) * double(as->buffer[i * 4 + 0])), 4);
+            if (as->variability > EPSILON )
+                fill(as->variability);
 
-                } else if (as->algotype == AlgorithmSource::BW_COSBARS) {
-                    phase = (phase + int(as->variability * 36.0)) % (360);
-                    unsigned char c = 0;
-
-                    // fill in a line
-                    for (int x = 0; x < as->width; ++x) {
-                        c = (unsigned char) (cos(
-                                                 double(phase) * M_PI / 180.0
-                                                 + double(x) * 2.0 * M_PI
-                                                 / double(as->width)) * 127.0
-                                             + 128.0);
-                        memset((void *) (as->buffer + x * 4), c, 4);
-                    }
-                    // copy line in rows
-                    for (int y = 1; y < as->height; ++y)
-                        memcpy((void *) (as->buffer + y * as->width * 4),
-                               as->buffer, as->width * 4);
-
-                } else if (as->algotype == AlgorithmSource::BW_COSCHECKER) {
-                    phase = (phase + int(as->variability * 36.0)) % (360);
-                    unsigned char c = 0;
-
-                    for (int x = 0; x < as->width; ++x)
-                        for (int y = 0; y < as->height; ++y) {
-                            c = (unsigned char) (cos(
-                                                     double(phase) * M_PI / 180.0
-                                                     + double(x) * 2.0 * M_PI
-                                                     / double(as->width)) * 63.0
-                                                 + 64.0);
-                            c += (unsigned char) (cos(
-                                                      double(phase) * M_PI / 180.0
-                                                      + double(y) * 2.0 * M_PI
-                                                      / double(as->height)) * 63.0
-                                                  + 64.0);
-                            memset(
-                                        (void *) (as->buffer
-                                                  + (y * as->width + x) * 4), c, 4);
-                        }
-
-                } else if (as->algotype == AlgorithmSource::COLOR_NOISE) {
-                    for (int i = 0; i < (as->width * as->height * 4); ++i)
-                        as->buffer[i] = (unsigned char) (as->variability
-                                                         * double(
-                                                             rand()
-                                                             % std::numeric_limits<
-                                                             unsigned char>::max())
-                                                         + (1.0 - as->variability)
-                                                         * double(as->buffer[i]));
-
-                } else if (as->algotype == AlgorithmSource::PERLIN_BW_NOISE) {
-
-                    i += di * as->variability; // / RenderingManager::getRenderingWidget()->getFPS();
-                    if (i > 100000.0 || i < 0.0)
-                        di = -di;
-                    for (int x = 0; x < as->width; ++x)
-                        for (int y = 0; y < as->height; ++y) {
-                            double v = pnoise(double(x) * as->horizontal,
-                                              double(y) * as->vertical, i);
-                            memset(
-                                        (void *) (as->buffer
-                                                  + (y * as->width + x) * 4),
-                                        (unsigned char) (128.0 * v) + 128, 4);
-                        }
-                } else if (as->algotype
-                           == AlgorithmSource::PERLIN_COLOR_NOISE) {
-
-                    i += as->variability * di;
-                    j += as->variability * dj;
-                    k += as->variability * dk;
-                    l += as->variability * dl;
-                    if (i > 100000.0 || i < 0.0)
-                        di = -di;
-                    for (int x = 0; x < as->width; ++x)
-                        for (int y = 0; y < as->height; ++y) {
-                            double v = pnoise(double(x) * as->horizontal,
-                                              double(y) * as->vertical, i);
-                            as->buffer[(y * as->width + x) * 4 + 0] =
-                                    (unsigned char) (128.0 * v + 128);
-                            v = pnoise(double(x) * as->horizontal,
-                                       double(y) * as->vertical, j);
-                            as->buffer[(y * as->width + x) * 4 + 1] =
-                                    (unsigned char) (128.0 * v + 128);
-                            v = pnoise(double(x) * as->horizontal,
-                                       double(y) * as->vertical, k);
-                            as->buffer[(y * as->width + x) * 4 + 2] =
-                                    (unsigned char) (128.0 * v + 128);
-                            v = pnoise(double(x) * as->horizontal,
-                                       double(y) * as->vertical, l);
-                            as->buffer[(y * as->width + x) * 4 + 3] =
-                                    (unsigned char) (128.0 * v + 128);
-                            //								as->buffer[(y * as->width + x) * 4 + 3 ] = (unsigned char) 255;
-                        }
-                } else if (as->algotype == AlgorithmSource::TURBULENCE) {
-
-                    i += as->variability * di; // / RenderingManager::getRenderingWidget()->getFPS();
-                    if (i > 100000.0 || i < 0.0)
-                        di = -di;
-                    for (int x = 0; x < as->width; ++x)
-                        for (int y = 0; y < as->height; ++y) {
-                            double v = turb(double(x) * as->horizontal,
-                                            double(y) * as->vertical, i, 1.0, 16.0);
-                            memset(
-                                        (void *) (as->buffer
-                                                  + (y * as->width + x) * 4),
-                                        (unsigned char) (128.0 * v) + 128, 4);
-                        }
-                }
-
-            }
             as->frameChanged = true;
             as->_cond->wait(as->_mutex);
         }
@@ -300,6 +187,155 @@ void AlgorithmThread::run() {
             f = 0;
         }
     }
+}
+
+void AlgorithmThread::fill(double var) {
+
+    if (as->algotype == AlgorithmSource::FLAT) {
+
+        unsigned char c = (unsigned char) (cos( double(phase) * 2.0 * M_PI / 360.0) * 127.0 + 127.0);
+        memset((void *) as->buffer, c,  as->width * as->height * 4);
+
+        phase = (phase + int(var * 36.0)) % (360);
+
+    }
+    else if (as->algotype == AlgorithmSource::BW_CHECKER) {
+
+        unsigned char b = (unsigned char) (cos( double(phase) * 2.0 * M_PI / 360.0) * 127.0 + 127.0);
+        unsigned char w = (unsigned char) (cos( double( (phase + 180) % 360 ) * 2.0 * M_PI / 360.0) * 127.0 + 127.0);
+
+        bool on = false;
+        // fast checkerboard if even numbers
+        if ( as->height > 2 && !(as->width % 2) && !(as->height%2) ) {
+
+            // create two first lines
+            for (int y = 0; y < 2; ++y) {
+                on = y%2;
+                for (int x = 0; x < as->width; ++x) {
+                    memset((void *) (as->buffer + (y * as->width + x) * 4),
+                           (unsigned char) ( on ? w : b) , 4);
+                    on = !on;
+                }
+            }
+            // duplicate lines per bloc
+            for (int l = 2; l < as->height ; l += 2)
+                memcpy((void *) (as->buffer + l * as->width  * 4), as->buffer, as->width * 4 * 2);
+        }
+        else {
+            for (int x = 0; x < as->width; ++x) {
+                on = x%2;
+                for (int y = 0; y < as->height; ++y) {
+                    memset((void *) (as->buffer + (y * as->width + x) * 4),
+                           (unsigned char) ( on ? w : b) , 4);
+                    on = !on;
+                }
+            }
+        }
+        phase = (phase + int(var * 36.0)) % (360);
+    }
+    else if (as->algotype == AlgorithmSource::BW_NOISE) {
+        for (int i = 0; i < (as->width * as->height); ++i)
+            memset((void *) (as->buffer + i * 4),
+                   (unsigned char) (var  * double( rand() % std::numeric_limits< unsigned char>::max()) + (1.0 - var) * double(as->buffer[i * 4 + 0])), 4);
+
+    }
+    else if (as->algotype == AlgorithmSource::BW_COSBARS) {
+        phase = (phase + int(var * 36.0)) % (360);
+        unsigned char c = 0;
+
+        // fill in a line
+        for (int x = 0; x < as->width; ++x) {
+            c = (unsigned char) (cos(  double(phase) * M_PI / 180.0
+                                       + double(x) * 2.0 * M_PI
+                                       / double(as->width)) * 127.0
+                                 + 128.0);
+            memset((void *) (as->buffer + x * 4), c, 4);
+        }
+        // copy line in rows
+        for (int y = 1; y < as->height; ++y)
+            memcpy((void *) (as->buffer + y * as->width * 4),
+                   as->buffer, as->width * 4);
+
+    }
+    else if (as->algotype == AlgorithmSource::BW_COSCHECKER) {
+        phase = (phase + int(var * 36.0)) % (360);
+        unsigned char c = 0;
+
+        for (int x = 0; x < as->width; ++x)
+            for (int y = 0; y < as->height; ++y) {
+                c = (unsigned char) (cos(  double(phase) * M_PI / 180.0
+                                           + double(x) * 2.0 * M_PI
+                                           / double(as->width)) * 63.0
+                                     + 64.0);
+                c += (unsigned char) (cos( double(phase) * M_PI / 180.0
+                                           + double(y) * 2.0 * M_PI
+                                           / double(as->height)) * 63.0
+                                      + 64.0);
+                memset( (void *) (as->buffer + (y * as->width + x) * 4), c, 4);
+            }
+
+    }
+    else if (as->algotype == AlgorithmSource::COLOR_NOISE) {
+        for (int i = 0; i < (as->width * as->height * 4); ++i)
+            as->buffer[i] = (unsigned char) (var  * double(  rand()  % std::numeric_limits<unsigned char>::max())  + (1.0 - var)  * double(as->buffer[i]));
+
+    }
+    else if (as->algotype == AlgorithmSource::PERLIN_BW_NOISE) {
+
+        i += di * var; // / RenderingManager::getRenderingWidget()->getFPS();
+        if (i > 100000.0 || i < 0.0)
+            di = -di;
+        for (int x = 0; x < as->width; ++x)
+            for (int y = 0; y < as->height; ++y) {
+                double v = pnoise(double(x) * as->horizontal,
+                                  double(y) * as->vertical, i);
+                memset(  (void *) (as->buffer  + (y * as->width + x) * 4),
+                         (unsigned char) (128.0 * v) + 128, 4);
+            }
+    }
+    else if (as->algotype  == AlgorithmSource::PERLIN_COLOR_NOISE) {
+
+        i += var * di;
+        j += var * dj;
+        k += var * dk;
+        l += var * dl;
+        if (i > 100000.0 || i < 0.0)
+            di = -di;
+        for (int x = 0; x < as->width; ++x)
+            for (int y = 0; y < as->height; ++y) {
+                double v = pnoise(double(x) * as->horizontal,
+                                  double(y) * as->vertical, i);
+                as->buffer[(y * as->width + x) * 4 + 0] =
+                        (unsigned char) (128.0 * v + 128);
+                v = pnoise(double(x) * as->horizontal,
+                           double(y) * as->vertical, j);
+                as->buffer[(y * as->width + x) * 4 + 1] =
+                        (unsigned char) (128.0 * v + 128);
+                v = pnoise(double(x) * as->horizontal,
+                           double(y) * as->vertical, k);
+                as->buffer[(y * as->width + x) * 4 + 2] =
+                        (unsigned char) (128.0 * v + 128);
+                v = pnoise(double(x) * as->horizontal,
+                           double(y) * as->vertical, l);
+                as->buffer[(y * as->width + x) * 4 + 3] =
+                        (unsigned char) (128.0 * v + 128);
+                //								as->buffer[(y * as->width + x) * 4 + 3 ] = (unsigned char) 255;
+            }
+    }
+    else if (as->algotype == AlgorithmSource::TURBULENCE) {
+
+        i += var * di; // / RenderingManager::getRenderingWidget()->getFPS();
+        if (i > 100000.0 || i < 0.0)
+            di = -di;
+        for (int x = 0; x < as->width; ++x)
+            for (int y = 0; y < as->height; ++y) {
+                double v = turb(double(x) * as->horizontal,
+                                double(y) * as->vertical, i, 1.0, 16.0);
+                memset( (void *) (as->buffer  + (y * as->width + x) * 4),
+                        (unsigned char) (128.0 * v) + 128, 4);
+            }
+    }
+
 }
 
 AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
@@ -320,9 +356,9 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    // if no period given, set to default 60Hz
+    // if no period given, set to default 40Hz
     if (period <= 0)
-        period = 16666;
+        period = 25000;
 
     // create thread
     _mutex = new QMutex;
@@ -331,6 +367,7 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
     CHECK_PTR_EXCEPTION(_cond);
     _thread = new AlgorithmThread(this);
     CHECK_PTR_EXCEPTION(_thread);
+    _thread->fill(1.0);
     _thread->start();
     _thread->setPriority(QThread::LowPriority);
 }
@@ -353,6 +390,18 @@ AlgorithmSource::~AlgorithmSource() {
 
     // free the OpenGL texture
     glDeleteTextures(1, &textureIndex);
+}
+
+
+void AlgorithmSource::setVariability(double v) {
+
+    variability = CLAMP(v, 0.0, 1.0);
+
+    if (variability < EPSILON) {
+        _thread->phase = 0;
+        _thread->fill(1.0);
+    }
+
 }
 
 void AlgorithmSource::play(bool on) {
@@ -383,7 +432,6 @@ bool AlgorithmSource::isPlaying() const {
 
 void AlgorithmSource::initBuffer() {
 
-    QString description;
     switch (algotype) {
     case PERLIN_BW_NOISE:
     case PERLIN_COLOR_NOISE:
@@ -402,23 +450,8 @@ void AlgorithmSource::initBuffer() {
     buffer = new unsigned char[width * height * 4];
     CHECK_PTR_EXCEPTION(buffer);
     // CLEAR the buffer to white
-    memset((void *) buffer, std::numeric_limits<unsigned char>::max(),
-           width * height * 4);
+    memset((void *) buffer, std::numeric_limits<unsigned char>::max(),  width * height * 4);
 
-
-    if (algotype == AlgorithmSource::BW_CHECKER) {
-
-        bool on = true;
-        for (int x = 0; x < width; ++x) {
-            for (int y = 0; y < height; ++y) {
-                memset((void *) (buffer + (y * width + x) * 4),
-                       (unsigned char) ( on ? std::numeric_limits< unsigned char>::max() : 0) , 4);
-                on = !on;
-            }
-            on = !on;
-        }
-
-    }
 
 }
 
@@ -443,8 +476,7 @@ void AlgorithmSource::update() {
 
 int AlgorithmSource::getFrameWidth() const {
 
-    if (algotype == TURBULENCE || algotype == PERLIN_BW_NOISE
-            || algotype == PERLIN_COLOR_NOISE)
+    if (algotype == TURBULENCE || algotype == PERLIN_BW_NOISE  || algotype == PERLIN_COLOR_NOISE)
         return (int) (horizontal * 1000.0);
     return width;
 }

@@ -53,7 +53,7 @@ public:
 
     inline algorithmType getAlgorithmType() const { return algotype; }
 
-    inline void setVariability(double v) { variability = CLAMP(v, 0.0, 1.0); }
+    void setVariability(double v) ;
 	inline double getVariability() const { return variability; }
 
 	inline void setPeriodicity(unsigned long u_seconds) {period = u_seconds;}

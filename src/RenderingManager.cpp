@@ -1677,7 +1677,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
                     double markin = -1.0, markout = -1.0;
                     // old version used different system for marking : ignore the values for now
-                    if ( !( version.toDouble() < QString(XML_GLM_VERSION).toDouble()) ) {
+                    if ( !( version.toDouble() < 0.7) ) {
                         markin = marks.attribute("In").toDouble();
                         markout = marks.attribute("Out").toDouble();
                     }
@@ -1686,7 +1686,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                     if ( newSourceVideoFile->open( fileNameToOpen, markin, markout, Filename.attribute("IgnoreAlpha").toInt() ) ) {
 
                         // fix old version marking : compute marks correctly
-                        if ( version.toDouble() < QString(XML_GLM_VERSION).toDouble()) {
+                        if ( version.toDouble() < 0.7) {
                             newSourceVideoFile->setMarkIn(newSourceVideoFile->getTimefromFrame((int64_t)marks.attribute("In").toInt()));
                             newSourceVideoFile->setMarkOut(newSourceVideoFile->getTimefromFrame((int64_t)marks.attribute("Out").toInt()));
                             qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Converted marks from old version file: begin = %1 (%2)  end = %3 (%4)").arg(newSourceVideoFile->getMarkIn()).arg(marks.attribute("In").toInt()).arg(newSourceVideoFile->getMarkOut()).arg(marks.attribute("Out").toInt());
@@ -1700,7 +1700,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
                             // fix old version speed : compute speed correctly
                             double play_speed = 1.0;
-                            if ( version.toDouble() < QString(XML_GLM_VERSION).toDouble()) {
+                            if ( version.toDouble() < 0.7 ) {
                                     switch (play.attribute("Speed","3").toInt())
                                     {
                                     case 0:
@@ -1769,9 +1769,13 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             QDomElement Frame = t.firstChildElement("Frame");
             QDomElement Update = t.firstChildElement("Update");
 
-            newsource = RenderingManager::getInstance()->newAlgorithmSource(Algorithm.text().toInt(),
-                                                                            Frame.attribute("Width", "64").toInt(), Frame.attribute("Height", "64").toInt(),
-                                                                            Update.attribute("Variability").toDouble(), Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha", "0").toInt(), depth);
+            int type = Algorithm.text().toInt();
+            double v = Update.attribute("Variability").toDouble();
+            // fix old version
+            if ( version.toDouble() < 0.8 && type == 0)
+                v = 0.0;
+
+            newsource = RenderingManager::getInstance()->newAlgorithmSource(type,  Frame.attribute("Width", "64").toInt(), Frame.attribute("Height", "64").toInt(), v, Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha", "0").toInt(), depth);
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create algorithm source.");
                 errors++;
