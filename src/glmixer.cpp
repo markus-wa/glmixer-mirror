@@ -43,6 +43,7 @@
 #include "RenderingSource.h"
 #include "AlgorithmSource.h"
 #include "VideoSource.h"
+#include "WebSource.h"
 #include "SvgSource.h"
 #include "VideoFileDisplayWidget.h"
 #include "SourcePropertyBrowser.h"
@@ -61,6 +62,7 @@
 #include "GammaLevelsWidget.h"
 #include "OpenSoundControlManager.h"
 #include "NewSourceDialog.h"
+#include "WebSourceCreationDialog.h"
 
 #ifdef SHM
 #include "SharedMemorySource.h"
@@ -778,6 +780,9 @@ void GLMixer::on_actionNewSource_triggered(){
             actionFreeframeSource->trigger();
             break;
 #endif
+        case Source::WEB_SOURCE:
+            actionWebSource->trigger();
+            break;
         default:
             break;
         }
@@ -1036,6 +1041,31 @@ void GLMixer::on_actionCameraSource_triggered() {
 #endif
 }
 
+void GLMixer::on_actionWebSource_triggered(){
+
+    // popup a question dialog to select the type of algorithm
+    static WebSourceCreationDialog *webd = 0;
+    if (!webd)
+        webd = new WebSourceCreationDialog(this, &settings);
+
+
+    if (webd->exec() == QDialog::Accepted) {
+
+        int h = webd->getSelectedHeight();
+        int c = webd->getSelectedScroll();
+        QUrl web = webd->getSelectedUrl();
+
+        Source *s = RenderingManager::getInstance()->newWebSource(web, h, c);
+        if ( s ){
+            RenderingManager::getInstance()->addSourceToBasket(s);
+            qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Web source created with location ")<< web.toString();
+            statusbar->showMessage( tr("Source created with the web location %1.").arg( web.toString() ), 3000 );
+        } else
+            qCritical() << web.toString() <<  QChar(124).toLatin1() << tr("Could not create a web source with this location.");
+
+    }
+
+}
 
 void GLMixer::on_actionSvgSource_triggered(){
 

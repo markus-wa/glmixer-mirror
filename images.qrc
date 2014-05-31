@@ -42,5 +42,13 @@
         <file>images/glmixer_splash.png</file>
         <file>images/filter_chromakey.png</file>
         <file>images/filter_invert.png</file>
+        <file>images/new_video.png</file>
+        <file>images/new_device.png</file>
+        <file>images/new_capture.png</file>
+        <file>images/new_loopback.png</file>
+        <file>images/new_vector.png</file>
+        <file>images/new_algo.png</file>
+        <file>images/new_web.png</file>
+        <file>images/new_plugin.png</file>
     </qresource>
 </RCC>

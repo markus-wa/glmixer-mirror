@@ -161,5 +161,7 @@
         <file>icons/media-begin.png</file>
         <file>icons/media-in.png</file>
         <file>icons/media-out.png</file>
+        <file>icons/newsource.png</file>
+        <file>icons/web.png</file>
     </qresource>
 </RCC>

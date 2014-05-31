@@ -5,6 +5,7 @@ SET(QT_USE_QTOPENGL  TRUE)
 SET(QT_USE_QTXML     TRUE)
 SET(QT_USE_QTSVG     TRUE)
 SET(QT_USE_QTNETWORK    TRUE)
+SET(QT_USE_QTWEBKIT    TRUE)
 
 
 #--------------------------------------------------------------------------------
@@ -32,6 +33,7 @@ SET(GLMIXER_SRCS
     VideoSource.cpp
     CaptureSource.cpp
     SvgSource.cpp
+    WebSource.cpp
     AlgorithmSource.cpp
     AlgorithmSelectionDialog.cpp
     SourceDisplayWidget.cpp
@@ -66,6 +68,7 @@ SET(GLMIXER_SRCS
     LayoutToolboxWidget.cpp
     OpenSoundControlManager.cpp
     NewSourceDialog.cpp
+    WebSourceCreationDialog.cpp
 )
 
 SET(GLMIXER_RCS
@@ -84,6 +87,7 @@ SET(GLMIXER_UIS
     MixingToolboxWidget.ui
     LayoutToolboxWidget.ui
     NewSourceDialog.ui
+    WebSourceCreationDialog.ui
 )
 
 # If SharedMemory was set, then link with its source files

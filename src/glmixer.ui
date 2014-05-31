@@ -2211,12 +2211,13 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionNewSource"/>
     <addaction name="actionMediaSource"/>
     <addaction name="actionCameraSource"/>
+    <addaction name="actionFreeframeSource"/>
+    <addaction name="actionAlgorithmSource"/>
     <addaction name="actionRenderingSource"/>
     <addaction name="actionCaptureSource"/>
-    <addaction name="actionAlgorithmSource"/>
+    <addaction name="actionWebSource"/>
     <addaction name="actionSvgSource"/>
     <addaction name="actionShmSource"/>
-    <addaction name="actionFreeframeSource"/>
     <addaction name="separator"/>
     <addaction name="currentSourceMenu"/>
     <addaction name="actionSelect_Next"/>
@@ -2341,12 +2342,13 @@ QToolButton:hover {
    <addaction name="actionNewSource"/>
    <addaction name="actionMediaSource"/>
    <addaction name="actionCameraSource"/>
+   <addaction name="actionFreeframeSource"/>
+   <addaction name="actionAlgorithmSource"/>
    <addaction name="actionRenderingSource"/>
    <addaction name="actionCaptureSource"/>
-   <addaction name="actionAlgorithmSource"/>
+   <addaction name="actionWebSource"/>
    <addaction name="actionSvgSource"/>
    <addaction name="actionShmSource"/>
-   <addaction name="actionFreeframeSource"/>
    <addaction name="actionCloneSource"/>
    <addaction name="separator"/>
    <addaction name="actionDeleteSource"/>
@@ -3785,7 +3787,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
    </property>
    <property name="text">
-    <string>FFMPEG Formats and Codecs</string>
+    <string>Libav Formats and Codecs</string>
    </property>
    <property name="statusTip">
     <string>Display the list of video codecs that can be read.</string>
@@ -5055,7 +5057,10 @@ Shortcut:                                    Right</string>
      <normaloff>:/glmixer/icons/plugin-source.png</normaloff>:/glmixer/icons/plugin-source.png</iconset>
    </property>
    <property name="text">
-    <string>New source Plugin</string>
+    <string>&amp;New source &amp;Plugin</string>
+   </property>
+   <property name="statusTip">
+    <string>Create a source from displaying graphics from a GPU plugin</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N, P</string>
@@ -5127,6 +5132,27 @@ Shortcut:                                    Right</string>
    </property>
    <property name="toolTip">
     <string>Create a new source</string>
+   </property>
+  </action>
+  <action name="actionWebSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/web.png</normaloff>:/glmixer/icons/web.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;New source &amp;Web page</string>
+   </property>
+   <property name="iconText">
+    <string>New source Web page</string>
+   </property>
+   <property name="toolTip">
+    <string>New source Web page</string>
+   </property>
+   <property name="statusTip">
+    <string>Creates a new source displaying a web or HTML page.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N, W</string>
    </property>
   </action>
  </widget>

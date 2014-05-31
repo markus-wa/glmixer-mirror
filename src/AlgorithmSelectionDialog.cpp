@@ -29,12 +29,9 @@
 #include "AlgorithmSource.h"
 
 
-AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(parent), s(0), preview(0){
-
+AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(parent), s(0)
+{
     setupUi(this);
-
-    preview = new SourceDisplayWidget(this);
-    verticalLayout->insertWidget(0, preview);
 
     sizeGrid->setVisible(false);
     AlgorithmComboBox->clear();
@@ -44,8 +41,9 @@ AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(pa
 
 }
 
-AlgorithmSelectionDialog::~AlgorithmSelectionDialog() {
-	delete preview;
+AlgorithmSelectionDialog::~AlgorithmSelectionDialog()
+{
+    if (s) delete s;
 }
 
 void AlgorithmSelectionDialog::showEvent(QShowEvent *e){

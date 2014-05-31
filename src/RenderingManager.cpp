@@ -32,6 +32,7 @@
 #include "VideoSource.h"
 #include "CaptureSource.h"
 #include "SvgSource.h"
+#include "WebSource.h"
 #include "RenderingSource.h"
 Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "CloneSource.h"
@@ -548,6 +549,35 @@ Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 
     } catch (AllocationException &e){
         qWarning() << "Cannot create SVG source; " << e.message();
+        // free the OpenGL texture
+        glDeleteTextures(1, &textureIndex);
+        // return an invalid pointer
+        s = 0;
+    }
+
+    return ( (Source *) s );
+}
+
+Source *RenderingManager::newWebSource(QUrl web, int height, int scroll, double depth){
+
+    WebSource *s = 0;
+
+    // create the texture for this source
+    GLuint textureIndex;
+    _renderwidget->makeCurrent();
+    glGenTextures(1, &textureIndex);
+
+    // high priority means low variability
+    GLclampf highpriority = 1.0;
+    glPrioritizeTextures(1, &textureIndex, &highpriority);
+
+    try {
+        // create a source appropriate
+        s = new WebSource(web, textureIndex, getAvailableDepthFrom(depth), height, scroll);
+        renameSource( s, _defaultSource->getName() + "Web");
+
+    } catch (AllocationException &e){
+        qWarning() << "Cannot create Web source; " << e.message();
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
         // return an invalid pointer

@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WebSourceCreationDialog</class>
+ <widget class="QDialog" name="WebSourceCreationDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>356</width>
+    <height>521</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="SourceDisplayWidget" name="preview" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>100</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Choose a web content:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget1" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QRadioButton" name="webURL">
+        <property name="text">
+         <string>Web URL (online internet page)</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widgetSelectPluginFile" native="true">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="leftMargin">
+          <number>9</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLineEdit" name="webUrlEdit">
+           <property name="text">
+            <string>https://code.google.com/p/glmixer</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="htmlPage">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>HTML page (local file)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widgetSelectGLSLFile" native="true">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QComboBox" name="htmlPageList">
+           <property name="toolTip">
+            <string>Select a text file</string>
+           </property>
+           <property name="editable">
+            <bool>false</bool>
+           </property>
+           <property name="maxCount">
+            <number>10</number>
+           </property>
+           <property name="insertPolicy">
+            <enum>QComboBox::InsertAtTop</enum>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+           </property>
+           <property name="duplicatesEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="frame">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="htmlPageOpen">
+           <property name="toolTip">
+            <string>Browse to add file (HTML)</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/folderadd.png</normaloff>:/glmixer/icons/folderadd.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="htmlPageDelete">
+           <property name="toolTip">
+            <string>Delete</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/fileclose.png</normaloff>:/glmixer/icons/fileclose.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="propertiesGroupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>Properties</string>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+        <layout class="QVBoxLayout" name="PropertiesLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <property name="leftMargin">
+          <number>6</number>
+         </property>
+         <property name="topMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>6</number>
+         </property>
+         <property name="bottomMargin">
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QWidget" name="widget2" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QGridLayout" name="gridLayout">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Height</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="heightPercentBox">
+              <property name="suffix">
+               <string>%</string>
+              </property>
+              <property name="minimum">
+               <number>10</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="singleStep">
+               <number>10</number>
+              </property>
+              <property name="value">
+               <number>100</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Scroll</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QSpinBox" name="scrollPercentBox">
+              <property name="suffix">
+               <string>%</string>
+              </property>
+              <property name="maximum">
+               <number>90</number>
+              </property>
+              <property name="singleStep">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="sizeGrid" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QGridLayout" name="sizeGridLayout">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="w">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Update </string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox">
+              <property name="specialValueText">
+               <string>Never</string>
+              </property>
+              <property name="suffix">
+               <string>sec</string>
+              </property>
+              <property name="minimum">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>10.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="validationBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SourceDisplayWidget</class>
+   <extends>QWidget</extends>
+   <header>SourceDisplayWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../icons.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>validationBox</sender>
+   <signal>accepted()</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>236</x>
+     <y>511</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>validationBox</sender>
+   <signal>rejected()</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>304</x>
+     <y>511</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>webURL</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetSelectPluginFile</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>250</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>337</x>
+     <y>284</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>htmlPage</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetSelectGLSLFile</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>217</x>
+     <y>311</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>315</x>
+     <y>343</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>htmlPageDelete</sender>
+   <signal>clicked()</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>deleteHtmlPage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>337</x>
+     <y>340</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>407</x>
+     <y>330</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>htmlPageOpen</sender>
+   <signal>clicked()</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>browseHtmlPage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>309</x>
+     <y>340</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>370</x>
+     <y>355</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>webURL</sender>
+   <signal>clicked()</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>updateSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>272</x>
+     <y>250</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>430</x>
+     <y>237</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>htmlPage</sender>
+   <signal>clicked()</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>updateSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>192</x>
+     <y>311</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>479</x>
+     <y>304</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>htmlPageList</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>updateSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>207</x>
+     <y>343</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>408</x>
+     <y>364</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>webUrlEdit</sender>
+   <signal>textEdited(QString)</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>validateWebUrl(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>117</x>
+     <y>284</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-24</x>
+     <y>255</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>heightPercentBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>setHeight(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>331</x>
+     <y>397</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>415</x>
+     <y>425</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>doubleSpinBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>updateSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>283</x>
+     <y>453</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>367</x>
+     <y>452</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>scrollPercentBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>setScroll(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>210</x>
+     <y>416</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>375</x>
+     <y>413</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>updateSourcePreview()</slot>
+  <slot>browseHtmlPage()</slot>
+  <slot>deleteHtmlPage()</slot>
+  <slot>validateWebUrl(QString)</slot>
+  <slot>setHeight(int)</slot>
+  <slot>setScroll(int)</slot>
+ </slots>
+</ui>

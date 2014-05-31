@@ -24,6 +24,8 @@
 #include "ui_FFGLSourceCreationDialog.h"
 
 #include <QFileInfo>
+#include <QApplication>
+#include <QClipboard>
 
 #include "SourceDisplayWidget.h"
 #include "FFGLPluginSource.h"

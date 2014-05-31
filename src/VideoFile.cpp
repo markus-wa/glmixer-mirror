@@ -1931,19 +1931,19 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 
 	availableCodecsTreeWidget = new QTreeWidget(ffmpegInfoDialog);
 	availableCodecsTreeWidget->setAlternatingRowColors(true);
-	availableCodecsTreeWidget->setRootIsDecorated(false);
+    availableCodecsTreeWidget->setRootIsDecorated(false);
 	availableCodecsTreeWidget->header()->setVisible(true);
 
 	buttonBox = new QDialogButtonBox(ffmpegInfoDialog);
 	buttonBox->setOrientation(Qt::Horizontal);
 	buttonBox->setStandardButtons(QDialogButtonBox::Close);
 
-	ffmpegInfoDialog->setWindowTitle(tr("FFMPEG formats and codecs"));
+    ffmpegInfoDialog->setWindowTitle(tr("Libav formats and codecs"));
 	label->setText(tr(
-			"Compiled with libavcodec %1.%2.%3 \n\nReadable VIDEO codecs").arg(
+            "Compiled with libavcodec %1.%2.%3 \n\nReadable VIDEO codecs:").arg(
 			LIBAVCODEC_VERSION_MAJOR).arg(LIBAVCODEC_VERSION_MINOR).arg(
 			LIBAVCODEC_VERSION_MICRO));
-	label_2->setText(tr("Available formats"));
+    label_2->setText(tr("Available formats:"));
 
 	QTreeWidgetItem *title = availableFormatsTreeWidget->headerItem();
 	title->setText(1, tr("Description"));

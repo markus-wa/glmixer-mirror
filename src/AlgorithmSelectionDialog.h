@@ -64,8 +64,7 @@ protected:
 	void showEvent(QShowEvent *);
 
 private:
-	AlgorithmSource *s;
-	SourceDisplayWidget *preview;
+    AlgorithmSource *s;
 
 	void createSource();
 

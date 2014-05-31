@@ -1,3 +1,5 @@
+#include "VideoFile.h"
+
 #include "NewSourceDialog.moc"
 #include "ui_NewSourceDialog.h"
 
@@ -7,23 +9,36 @@ NewSourceDialog::NewSourceDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Loop over the items in the Tool box and remove those
+    // which correspond to not compiled source type
+    QWidget *w = NULL;
+    for (int i = 0; i < ui->SourceTypeToolBox->count();  ) {
+        w = ui->SourceTypeToolBox->widget(i);
+
 #ifndef OPEN_CV
-    QWidget *wcv = ui->SourceTypeToolBox->widget(1);
-    ui->SourceTypeToolBox->removeItem(1);
-    delete wcv;
+        if ( ui->SourceTypeToolBox->itemText(i).contains("Device") ) {
+            ui->SourceTypeToolBox->removeItem(i);
+            delete w;
+            continue;
+        }
 #endif
-
 #ifndef FFGL
-    QWidget *wffgl = ui->SourceTypeToolBox->widget(6);
-    ui->SourceTypeToolBox->removeItem(6);
-    delete wffgl;
+        if ( ui->SourceTypeToolBox->itemText(i).contains("Plugin") ) {
+            ui->SourceTypeToolBox->removeItem(i);
+            delete w;
+            continue;
+        }
 #endif
-
 #ifndef SHM
-    QWidget *wshm = ui->SourceTypeToolBox->widget(7);
-    ui->SourceTypeToolBox->removeItem(7);
-    delete wshm;
+        if ( ui->SourceTypeToolBox->itemText(i).contains("Shared") ) {
+            ui->SourceTypeToolBox->removeItem(i);
+            delete w;
+            continue;
+        }
 #endif
+        ++i;
+    }
+
 }
 
 NewSourceDialog::~NewSourceDialog()
@@ -53,19 +68,10 @@ Source::RTTI NewSourceDialog::selectedType()
         t = Source::FFGL_SOURCE;
     else if ( text.contains("Shared"))
         t = Source::SHM_SOURCE;
-
+    else if ( text.contains("Web"))
+        t = Source::WEB_SOURCE;
 
     return t;
 }
 
-void NewSourceDialog::changeEvent(QEvent *e)
-{
-    QDialog::changeEvent(e);
-    switch (e->type()) {
-    case QEvent::LanguageChange:
-        ui->retranslateUi(this);
-        break;
-    default:
-        break;
-    }
-}
+

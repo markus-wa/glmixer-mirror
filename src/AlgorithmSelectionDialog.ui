@@ -25,6 +25,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="SourceDisplayWidget" name="preview" native="true"/>
+   </item>
+   <item>
     <widget class="QLabel" name="label">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -406,6 +409,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SourceDisplayWidget</class>
+   <extends>QWidget</extends>
+   <header>SourceDisplayWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../icons.qrc"/>
  </resources>

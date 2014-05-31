@@ -85,7 +85,8 @@ public:
         CAPTURE_SOURCE,
         SVG_SOURCE,
         SHM_SOURCE,
-        FFGL_SOURCE
+        FFGL_SOURCE,
+        WEB_SOURCE
     } RTTI;
     virtual RTTI rtti() const { return type; }
     virtual bool isPlayable() const { return playable; }

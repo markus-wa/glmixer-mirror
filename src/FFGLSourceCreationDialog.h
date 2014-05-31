@@ -23,8 +23,9 @@
 #ifndef FFGLSOURCECREATIONDIALOG_H
 #define FFGLSOURCECREATIONDIALOG_H
 
+#include <QDialog>
 #include <QDomElement>
-#include <QtGui>
+#include <QSettings>
 
 namespace Ui {
 class FFGLSourceCreationDialog;

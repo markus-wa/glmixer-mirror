@@ -30,5 +30,7 @@
         <file>textures/mask_think.png</file>
         <file>textures/mask_ink.png</file>
         <file>textures/mask_towel.png</file>
+        <file>textures/loading.png</file>
+        <file>textures/timeout.png</file>
     </qresource>
 </RCC>
