@@ -559,7 +559,6 @@ Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 }
 
 Source *RenderingManager::newWebSource(QUrl web, int height, int scroll, double depth){
-
     WebSource *s = 0;
 
     // create the texture for this source
@@ -1481,6 +1480,16 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             f.appendChild(name);
             specific.appendChild(f);
         }
+        else if ((*its)->rtti() == Source::WEB_SOURCE) {
+            WebSource *ws = dynamic_cast<WebSource *> (*its);
+
+            QDomElement f = doc.createElement("Web");
+            f.setAttribute("Scroll", ws->getPageScroll());
+            f.setAttribute("Height", ws->getPageHeight());
+            QDomText name = doc.createTextNode( ws->getUrl().toString() );
+            f.appendChild(name);
+            specific.appendChild(f);
+        }
 #ifdef OPEN_CV
         else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
             OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
@@ -1854,6 +1863,19 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 errors++;
             } else
                 qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Vector graphics source created.");
+        }
+        else if ( type == Source::WEB_SOURCE) {
+
+            QDomElement web = t.firstChildElement("Web");
+            QUrl url =  QUrl(web.text());
+
+            newsource = RenderingManager::getInstance()->newWebSource(url, web.attribute("Height", "100").toInt(), web.attribute("Scroll", "0").toInt(), depth);
+
+            if (!newsource) {
+                qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create web source.");
+                errors++;
+            } else
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Web created.");
         }
         else if ( type == Source::CLONE_SOURCE) {
             // remember the node of the sources to clone

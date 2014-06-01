@@ -30,49 +30,25 @@ Source::RTTI WebSource::type = Source::WEB_SOURCE;
 bool WebSource::playable = true;
 
 
-WebSource::WebSource(QUrl web, GLuint texture, double d, int height, int scroll): QObject(), Source(texture, d),  _initialized(false)
+WebSource::WebSource(QUrl web, GLuint texture, double d, int height, int scroll): QObject(), Source(texture, d), _playing(true)
 {
 
     _webrenderer = new WebRenderer(web, height, scroll);
+    connect(_webrenderer, SIGNAL(changed()), this, SLOT(adjust()));
 
-
-    // get aspect ratio from orifinal box
-//    QRect vb = _webpage->mainFrame()->geometry();
-//    aspectratio = double(vb.width()) / double(vb.height());
-//    _webpage->setViewportSize(_webpage->mainFrame()->contentsSize());
-
-//    aspectratio = double(_webpage->viewportSize().width()) / double(_webpage->viewportSize().height()) ;
-
-    // setup renderer resolution to match to rendering manager preference
-//    int w = RenderingManager::getInstance()->getFrameBufferWidth();
-//    _rendered = QImage(_webpage->viewportSize(), QImage::Format_ARGB32_Premultiplied);
-
-    // render an image from the svg
-//    QPainter imagePainter(&_rendered);
-//    imagePainter.setRenderHint(QPainter::HighQualityAntialiasing, true);
-//    imagePainter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-//    imagePainter.setRenderHint(QPainter::TextAntialiasing, true);
-//    _webpage->mainFrame()->render(&imagePainter);
-//    imagePainter.end();
-
-//    if (_rendered.isNull())
-//        SourceConstructorException().raise();
-
-
-    QImage loadingPixmap(QString(":/glmixer/textures/loading.png"));
     aspectratio = 1.0;
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-#if QT_VERSION >= 0x040700
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  loadingPixmap.width(), loadingPixmap.height(),
-                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, loadingPixmap.constBits() );
-#else
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  loadingPixmap.width(), loadingPixmap. height(),
-                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, loadingPixmap.bits() );
-#endif
+//#if QT_VERSION >= 0x040700
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  loadingPixmap.width(), loadingPixmap.height(),
+//                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, loadingPixmap.constBits() );
+//#else
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  loadingPixmap.width(), loadingPixmap. height(),
+//                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, loadingPixmap.bits() );
+//#endif
 
 }
 
@@ -86,6 +62,17 @@ void WebSource::play(bool on)
     _playing = on;
 
     Source::play(_playing);
+}
+
+void WebSource::adjust()
+{
+    // rescale to match updated dimensions
+    aspectratio = double(getFrameWidth()) / double(getFrameHeight());
+    scaley = scalex / aspectratio;
+
+    // reload plugins
+
+
 }
 
 
@@ -105,7 +92,7 @@ void WebSource::update()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-    if ( _webrenderer->imageChanged() && _webrenderer->ready()) {
+    if ( _webrenderer->imageUpdate() ) {
 
         QImage i = _webrenderer->image();
 
@@ -117,7 +104,6 @@ void WebSource::update()
 
         aspectratio = double(getFrameWidth()) / double(getFrameHeight());
 
-        _webrenderer->setChanged(false);
     }
 
     Source::update();
@@ -125,6 +111,8 @@ void WebSource::update()
 
 WebSource::~WebSource()
 {
+    delete _webrenderer;
+
     // free the OpenGL texture
     glDeleteTextures(1, &textureIndex);
 
@@ -133,72 +121,95 @@ WebSource::~WebSource()
 
 int WebSource::getFrameWidth() const
 {
-    if (_webrenderer->ready())
-        return _webrenderer->image().width();
-    else
-        return 1;
+    return _webrenderer->image().width();
 }
 
 int WebSource::getFrameHeight() const
 {
-    if (_webrenderer->ready())
-        return _webrenderer->image().height();
-    else
-        return 1;
+    return _webrenderer->image().height();
 }
 
 QUrl WebSource::getUrl() const
 {
-    if (_webrenderer)
-        return _webrenderer->url();
+    return _webrenderer->url();
 
-    return QUrl();
 }
 
-QByteArray WebSource::getDescription(){
+int WebSource::getPageHeight() const
+{
+        return _webrenderer->height();
 
-    QBuffer dev;
-
-
-
-    return dev.buffer();
 }
 
+int WebSource::getPageScroll() const
+{
+        return _webrenderer->scroll();
+
+}
 
 void WebRenderer::setHeight(int h)
 {
     _height = h;
-    setChanged(true);
+    _changed = true;
 }
 
 void WebRenderer::setScroll(int s)
 {
     _scroll = s;
-    setChanged(true);
+//    _scroll = qBound(0, s, 100 - _height);
+    _changed = true;
 }
 
 QImage WebRenderer::image() const {
 
-    return _render.copy(0, _page.viewportSize().height() * _scroll / 100, _page.viewportSize().width(), _page.viewportSize().height() * _height / 100);
+    return _image;
+}
 
+bool WebRenderer::imageUpdate() {
+
+    if (_changed) {
+
+        if (!_render.isNull())
+            _image = _render.copy(0, _render.height() * _scroll / 100, _render.width(), _render.height() * _height / 100);
+
+        _changed = false;
+
+        emit changed();
+        return true;
+    }
+
+    return false;
 }
 
 WebRenderer::WebRenderer(const QUrl &url, int height, int scroll) : _url(url), _height(height), _scroll(scroll), _changed(true)
 {
-     _render = QImage(QString(":/glmixer/textures/loading.png"));
+     // display loading screen
+     _image = QImage(QString(":/glmixer/textures/loading.png"));
 
+     // render page when loaded
      _page.mainFrame()->load(_url);
      connect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
 
+     // time out 10 seconds
      _timer.setSingleShot(true);
      connect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
-     _timer.start(7000);
+     _timer.start(10000);
+
+     qDebug() << "WebRenderer" << _height << _scroll;
+}
+
+WebRenderer::~WebRenderer()
+{
+    disconnect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
+    disconnect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
+    _timer.stop();
 }
 
 void WebRenderer::render(bool ok)
 {
+    // cancel time out
     disconnect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
-    setChanged(true);
+    _timer.stop();
 
     if (ok) {
         _page.setViewportSize(_page.mainFrame()->contentsSize());
@@ -209,6 +220,7 @@ void WebRenderer::render(bool ok)
         pagePainter.setRenderHint(QPainter::TextAntialiasing, true);
         _page.mainFrame()->render(&pagePainter);
         pagePainter.end();
+        _changed = true;
     }
     else
         timeout();
@@ -216,8 +228,8 @@ void WebRenderer::render(bool ok)
 
 void WebRenderer::timeout()
 {
+    // cancel loading
     disconnect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
-    _render = QImage(QString(":/glmixer/textures/timeout.png"));
-
-    setChanged(true);
+    _image = QImage(QString(":/glmixer/textures/timeout.png"));
+    _changed = true;
 }

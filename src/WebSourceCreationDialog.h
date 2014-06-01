@@ -43,7 +43,6 @@ private:
     QUrl url;
 
     class WebSource *s;
-    class SourceDisplayWidget *preview;
 
     QSettings *appSettings;
 };

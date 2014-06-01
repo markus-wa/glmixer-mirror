@@ -60,6 +60,7 @@
 #include "CloneSource.h"
 #include "VideoSource.h"
 #include "SvgSource.h"
+#include "WebSource.h"
 #include "glmixer.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
@@ -941,6 +942,51 @@ private:
 
 };
 
+class WebSourcePropertyBrowser : public PropertyBrowser {
+
+public:
+    WebSourcePropertyBrowser(WebSource *source, QWidget *parent = 0):PropertyBrowser(parent), ws(source)
+    {
+        QtProperty *property;
+        property = infoManager->addProperty( QLatin1String("Web page") );
+        property->setToolTip("URL of the web page (HTML).");
+        property->setItalics(true);
+        idToProperty[property->propertyName()] = property;
+        infoManager->setValue(idToProperty["Web page"], ws->getUrl().toString() );
+        // Height
+        idToProperty["Height"] = intManager->addProperty( QLatin1String("Height") );
+        idToProperty["Height"]->setToolTip("Visible height in percent of whole page height.");
+        intManager->setRange(idToProperty["Height"], 0, 100);
+        intManager->setValue(idToProperty["Height"], ws->getPageHeight());
+        // Scroll
+        idToProperty["Scroll"] = intManager->addProperty( QLatin1String("Scroll") );
+        idToProperty["Scroll"]->setToolTip("Vertical scroll in percent of whole page height.");
+        intManager->setRange(idToProperty["Scroll"], 0, 100);
+        intManager->setValue(idToProperty["Scroll"], ws->getPageScroll());
+
+        addProperty(idToProperty["Web page"]);
+        addProperty(idToProperty["Height"]);
+        addProperty(idToProperty["Scroll"]);
+
+        connectManagers();
+    }
+
+public slots:
+
+    void valueChanged(QtProperty *property, int value)
+    {
+        if ( property == idToProperty["Height"] )
+            ws->setPageHeight( value );
+        else if ( property == idToProperty["Scroll"] )
+            ws->setPageScroll( value );
+
+    }
+
+private:
+
+    WebSource *ws;
+
+};
 
 class CloneSourcePropertyBrowser : public PropertyBrowser {
 
@@ -1061,6 +1107,11 @@ PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent)
         SvgSource *cs = dynamic_cast<SvgSource *>(s);
         if (cs != 0)
             pb = new SvgSourcePropertyBrowser(cs, parent);
+    }
+    else if ( s->rtti() == Source::WEB_SOURCE ) {
+        WebSource *ws = dynamic_cast<WebSource *>(s);
+        if (ws != 0)
+            pb = new WebSourcePropertyBrowser(ws, parent);
     }
     else if ( s->rtti() == Source::CLONE_SOURCE ) {
         CloneSource *cs = dynamic_cast<CloneSource *>(s);

@@ -36,16 +36,20 @@ class WebRenderer : public QObject
 
 public:
     WebRenderer(const QUrl &url, int height, int scroll);
-    QImage thumbnail;
+    ~WebRenderer();
 
-    bool ready() const { return !_render.isNull(); }
     QImage image() const;
-    bool imageChanged() const { return _changed; }
-    QUrl url() const { return _url; }
+    bool imageUpdate();
 
-    void setChanged(bool on) { _changed = on; }
+    QUrl url() const { return _url; }
+    int height() const { return _height; }
+    int scroll() const { return _scroll; }
+
     void setHeight(int);
     void setScroll(int);
+
+signals:
+    void changed();
 
 private slots:
     void render(bool);
@@ -54,7 +58,7 @@ private slots:
 private:
     QUrl _url;
     QWebPage _page;
-    QImage _render;
+    QImage _render, _image;
     int _height, _scroll;
     QTimer _timer;
     bool _changed;
@@ -71,7 +75,8 @@ class WebSource : public QObject, public Source
 public:
 
     QUrl getUrl() const;
-    QByteArray getDescription();
+    int getPageHeight() const;
+    int getPageScroll() const;
 
     RTTI rtti() const { return WebSource::type; }
     bool isPlayable() const { return WebSource::playable; }
@@ -85,6 +90,7 @@ public Q_SLOTS:
     void play(bool on);
     void setPageHeight(int);
     void setPageScroll(int);
+    void adjust();
 
 protected:
 
@@ -99,7 +105,6 @@ private:
     static bool playable;
 
     WebRenderer *_webrenderer;
-    bool _initialized;
     bool _playing;
 };
 

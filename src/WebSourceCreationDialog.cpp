@@ -33,7 +33,8 @@ WebSourceCreationDialog::WebSourceCreationDialog(QWidget *parent, QSettings *set
 
 WebSourceCreationDialog::~WebSourceCreationDialog()
 {
-    if (s) delete s;
+    if (s)
+        delete s;
     delete ui;
 }
 
@@ -70,10 +71,11 @@ void WebSourceCreationDialog::done(int r){
 
 void WebSourceCreationDialog::updateSourcePreview(){
 
+    // remove source from preview: this deletes the texture in the preview
+    ui->preview->setSource(0);
+
     // delete previous
     if(s) {
-        // remove source from preview: this deletes the texture in the preview
-        ui->preview->setSource(0);
         // delete the source:
         delete s;
         s = NULL;
@@ -119,10 +121,8 @@ void WebSourceCreationDialog::updateSourcePreview(){
     }
 
     // enable / disable ok button
-    if ( s != NULL )
-        ui->validationBox->setStandardButtons(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
-    else
-        ui->validationBox->setStandardButtons(QDialogButtonBox::Cancel);
+
+    ui->validationBox->button(QDialogButtonBox::Ok)->setEnabled( s != NULL );
 
     // apply the source to the preview (null pointer is ok to reset preview)
     ui->preview->setSource(s);
@@ -198,7 +198,7 @@ void WebSourceCreationDialog::validateWebUrl(QString text)
         delete s;
         s = NULL;
     }
-    ui->validationBox->setStandardButtons(QDialogButtonBox::Cancel);
+    ui->validationBox->button(QDialogButtonBox::Ok)->setEnabled( s != NULL );
 
     QString tentativeUrl = text;
     int tentativepos = 0;
