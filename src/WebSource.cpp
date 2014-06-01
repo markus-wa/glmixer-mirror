@@ -25,6 +25,9 @@
 
 #include "RenderingManager.h"
 #include "WebSource.moc"
+#ifdef FFGL
+#include "FFGLPluginSource.h"
+#endif
 
 Source::RTTI WebSource::type = Source::WEB_SOURCE;
 bool WebSource::playable = true;
@@ -70,9 +73,13 @@ void WebSource::adjust()
     aspectratio = double(getFrameWidth()) / double(getFrameHeight());
     scaley = scalex / aspectratio;
 
-    // reload plugins
-
-
+// freeframe gl plugin
+#ifdef FFGL
+    // resize all plugins
+    for (FFGLPluginSourceStack::iterator it=_ffgl_plugins.begin(); it != _ffgl_plugins.end(); ++it){
+        (*it)->resize(getFrameWidth(), getFrameHeight());
+    }
+#endif
 }
 
 

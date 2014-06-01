@@ -137,6 +137,17 @@ FFGLPluginSource::~FFGLPluginSource()
         delete _fbo;
 }
 
+
+void FFGLPluginSource::resize(int w, int h)
+{
+    if (_fbo) {
+        _fboSize.setWidth(w);
+        _fboSize.setHeight(h);
+        delete _fbo;
+        _initialized = false;
+    }
+}
+
 FFGLTextureStruct FFGLPluginSource::getOutputTextureStruct(){
 
     FFGLTextureStruct it;

@@ -98,6 +98,7 @@ public Q_SLOTS:
     void play(bool on);
     // reset
     void restoreDefaults();
+    void resize(int w, int h);
 
 Q_SIGNALS:
     void initialized(FFGLPluginSource *);
