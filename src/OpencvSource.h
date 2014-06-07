@@ -42,9 +42,23 @@ class CameraThread;
 
 class NoCameraIndexException : public SourceConstructorException {
 public:
-	virtual QString message() { return "Opencv index is not valid."; }
-	void raise() const { throw *this; }
-	Exception *clone() const { return new NoCameraIndexException(*this); }
+    virtual QString message() { return "Opencv index is not valid."; }
+    void raise() const { throw *this; }
+    Exception *clone() const { return new NoCameraIndexException(*this); }
+};
+
+class UnavailableCameraIndexException : public SourceConstructorException {
+public:
+    virtual QString message() { return "Camera is not available."; }
+    void raise() const { throw *this; }
+    Exception *clone() const { return new UnavailableCameraIndexException(*this); }
+};
+
+class brokenCameraException : public SourceConstructorException {
+public:
+    virtual QString message() { return "Unable to get images from camera."; }
+    void raise() const { throw *this; }
+    Exception *clone() const { return new brokenCameraException(*this); }
 };
 
 class OpencvSource: public QObject, public Source {

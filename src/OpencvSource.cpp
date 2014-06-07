@@ -85,27 +85,21 @@ void CameraThread::run(){
 OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(texture, d), framerate(0.0), needFrameCopy(false)
 {
 	// prevent from creation of duplicated opencv sources and from creation of more than 2 sources
-	if (  OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() >= 2)
-		NoCameraIndexException().raise();
+    if (  OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() > 4)
+        UnavailableCameraIndexException().raise();
 
 	opencvCameraIndex = opencvIndex;
 	capture = cvCaptureFromCAM(opencvCameraIndex);
 	if (!capture)
-		NoCameraIndexException().raise();
+        NoCameraIndexException().raise();
 
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FPS, (double) 30);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, (double) 1024);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, (double) 768);
-
-	// fill in first frame
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureIndex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    cvSetCaptureProperty( capture, CV_CAP_PROP_FPS, (double) 30);
+    cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, (double) 1024);
+    cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, (double) 768);
 
 	IplImage *raw = cvQueryFrame( capture );
 	if (!raw)
-		NoCameraIndexException().raise();
+        brokenCameraException().raise();
 
 	if ( raw->depth != IPL_DEPTH_8U || raw->nChannels != 3 || raw->widthStep > 3 * raw->width + 1) {
         qWarning()<< tr("Video capture slowed down by image format conversion.");
@@ -115,6 +109,11 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(t
 	} else
 		frame = raw;
 
+    // fill in first frame
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureIndex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 
 	width = frame->width;
