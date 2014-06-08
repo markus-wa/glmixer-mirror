@@ -35,14 +35,14 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="titleLabel">
      <property name="text">
       <string>Choose a web content:</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget1" native="true">
+    <widget class="QWidget" name="webSourceSelection" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -61,7 +61,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="widgetSelectPluginFile" native="true">
+       <widget class="QWidget" name="widgetSelectWebUrl" native="true">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -95,7 +95,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="toolButton">
+          <widget class="QToolButton" name="webUrlButton">
            <property name="toolTip">
             <string>Try the URL</string>
            </property>
@@ -121,7 +121,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="widgetSelectGLSLFile" native="true">
+       <widget class="QWidget" name="widgetSelectHTMLPage" native="true">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -249,7 +249,7 @@
              <number>0</number>
             </property>
             <item row="0" column="0">
-             <widget class="QLabel" name="label_3">
+             <widget class="QLabel" name="heightLabel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
                 <horstretch>0</horstretch>
@@ -284,7 +284,7 @@
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QLabel" name="label_2">
+             <widget class="QLabel" name="scrollLabel">
               <property name="text">
                <string>Scroll</string>
               </property>
@@ -331,7 +331,7 @@
              <number>0</number>
             </property>
             <item row="0" column="0">
-             <widget class="QLabel" name="w">
+             <widget class="QLabel" name="updateLabel">
               <property name="enabled">
                <bool>true</bool>
               </property>
@@ -400,7 +400,7 @@
  <tabstops>
   <tabstop>webURL</tabstop>
   <tabstop>webUrlEdit</tabstop>
-  <tabstop>toolButton</tabstop>
+  <tabstop>webUrlButton</tabstop>
   <tabstop>htmlPage</tabstop>
   <tabstop>htmlPageList</tabstop>
   <tabstop>htmlPageOpen</tabstop>
@@ -449,7 +449,7 @@
   <connection>
    <sender>webURL</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widgetSelectPluginFile</receiver>
+   <receiver>widgetSelectWebUrl</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -465,7 +465,7 @@
   <connection>
    <sender>htmlPage</sender>
    <signal>toggled(bool)</signal>
-   <receiver>widgetSelectGLSLFile</receiver>
+   <receiver>widgetSelectHTMLPage</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -619,6 +619,22 @@
     <hint type="destinationlabel">
      <x>395</x>
      <y>444</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>webUrlButton</sender>
+   <signal>clicked()</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>updateSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>323</x>
+     <y>270</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>177</x>
+     <y>260</y>
     </hint>
    </hints>
   </connection>

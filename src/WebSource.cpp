@@ -211,17 +211,20 @@ bool WebRenderer::imageChanged() {
 
 void WebRenderer::timerEvent(QTimerEvent *event)
 {
+    // set image as changed every timer event (if initialized)
     if (!_render.isNull())
         _imageChanged = true;
 }
 
 void WebRenderer::setUpdate(int u)
 {
+    // kill previous update if exist
     if ( _updateTimerId > 0) {
         killTimer( _updateTimerId );
         _updateTimerId = -1;
     }
 
+    // start updating if frequency above 0
     if ( u > 0 ) {
         _updateTimerId = startTimer( int ( 1000.0 / double(u) )  );
     }
@@ -230,6 +233,7 @@ void WebRenderer::setUpdate(int u)
 
 WebRenderer::WebRenderer(const QUrl &url, int height, int scroll) : _url(url), _propertyChanged(true)
 {
+    // init
     setHeight(height);
     setScroll(scroll);
     _updateTimerId = -1;
@@ -261,10 +265,13 @@ void WebRenderer::render(bool ok)
     disconnect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
     _timer.stop();
 
+    // could load
     if (ok) {
+        // setup viewport and render buffer
         _page.setViewportSize(_page.mainFrame()->contentsSize());
         _render = QImage(_page.viewportSize(), QImage::Format_ARGB32_Premultiplied);
         _propertyChanged = true;
+        _imageChanged = true;
     }
     else
         timeout();
@@ -272,14 +279,17 @@ void WebRenderer::render(bool ok)
 
 void WebRenderer::update()
 {
+    // cancel update if render buffer not initialized
     if (_render.isNull())
         return;
 
+    // render the page into the render buffer
     QPainter pagePainter(&_render);
     pagePainter.setRenderHint(QPainter::TextAntialiasing, true);
     _page.mainFrame()->render(&pagePainter);
     pagePainter.end();
 
+    // fill image with section of render
     _image = _render.copy(0, _render.height() * _scroll / 100, _render.width(), _render.height() * _height / 100);
 
 }
@@ -288,6 +298,12 @@ void WebRenderer::timeout()
 {
     // cancel loading
     disconnect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
+    // reset rendering
+    _render = QImage();
+    // display timeout
     _image = QImage(QString(":/glmixer/textures/timeout.png"));
+    // inform of need to change
+    _imageChanged = true;
     _propertyChanged = true;
+
 }
