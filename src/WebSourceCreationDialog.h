@@ -21,6 +21,7 @@ public:
     QUrl getSelectedUrl();
     int getSelectedHeight();
     int getSelectedScroll();
+    int getSelectedUpdate();
 
 public Q_SLOTS:
 
@@ -32,6 +33,7 @@ public Q_SLOTS:
     void validateWebUrl(QString);
     void setHeight(int);
     void setScroll(int);
+    void setUpdate(int);
 
 protected:
 

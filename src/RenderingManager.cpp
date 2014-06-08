@@ -558,7 +558,7 @@ Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
     return ( (Source *) s );
 }
 
-Source *RenderingManager::newWebSource(QUrl web, int height, int scroll, double depth){
+Source *RenderingManager::newWebSource(QUrl web, int height, int scroll, int update, double depth){
     WebSource *s = 0;
 
     // create the texture for this source
@@ -572,7 +572,7 @@ Source *RenderingManager::newWebSource(QUrl web, int height, int scroll, double 
 
     try {
         // create a source appropriate
-        s = new WebSource(web, textureIndex, getAvailableDepthFrom(depth), height, scroll);
+        s = new WebSource(web, textureIndex, getAvailableDepthFrom(depth), height, scroll, update);
         renameSource( s, _defaultSource->getName() + "Web");
 
     } catch (AllocationException &e){
@@ -1486,6 +1486,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             QDomElement f = doc.createElement("Web");
             f.setAttribute("Scroll", ws->getPageScroll());
             f.setAttribute("Height", ws->getPageHeight());
+            f.setAttribute("Update", ws->getPageUpdate());
             QDomText name = doc.createTextNode( ws->getUrl().toString() );
             f.appendChild(name);
             specific.appendChild(f);
@@ -1869,7 +1870,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             QDomElement web = t.firstChildElement("Web");
             QUrl url =  QUrl(web.text());
 
-            newsource = RenderingManager::getInstance()->newWebSource(url, web.attribute("Height", "100").toInt(), web.attribute("Scroll", "0").toInt(), depth);
+            newsource = RenderingManager::getInstance()->newWebSource(url, web.attribute("Height", "100").toInt(), web.attribute("Scroll", "0").toInt(), web.attribute("Update", "0").toInt(), depth);
 
             if (!newsource) {
                 qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create web source.");

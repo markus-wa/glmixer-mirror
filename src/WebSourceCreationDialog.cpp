@@ -13,7 +13,6 @@ WebSourceCreationDialog::WebSourceCreationDialog(QWidget *parent, QSettings *set
     s(NULL), appSettings(settings)
 {
     ui->setupUi(this);
-    ui->sizeGrid->setVisible(false);
 
     ui->htmlPageList->addItem("");
     if (appSettings) {
@@ -108,7 +107,7 @@ void WebSourceCreationDialog::updateSourcePreview(){
         // ok, got a valid URL
         try {
             // create a new source with a new texture index and the new parameters
-            s = new WebSource(url, tex, 0, getSelectedHeight(), getSelectedScroll());
+            s = new WebSource(url, tex, 0, getSelectedHeight(), getSelectedScroll(), getSelectedUpdate());
 
         }
         catch (...)  {
@@ -135,6 +134,14 @@ QUrl  WebSourceCreationDialog::getSelectedUrl(){
     return url;
 }
 
+void WebSourceCreationDialog::setUpdate(int u){
+
+    if (s)
+        s->setPageUpdate(u);
+    else
+        updateSourcePreview();
+}
+
 void WebSourceCreationDialog::setHeight(int h){
 
     if (s)
@@ -159,6 +166,11 @@ int  WebSourceCreationDialog::getSelectedHeight(){
 int  WebSourceCreationDialog::getSelectedScroll(){
 
     return ui->scrollPercentBox->value();
+}
+
+int WebSourceCreationDialog::getSelectedUpdate(){
+
+    return ui->updateSpeedBox->value();
 }
 
 void WebSourceCreationDialog::browseHtmlPage() {

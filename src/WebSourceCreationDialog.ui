@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../icons.qrc">
+    <normaloff>:/glmixer/icons/web.png</normaloff>:/glmixer/icons/web.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="SourceDisplayWidget" name="preview" native="true">
@@ -82,8 +86,21 @@
          </property>
          <item>
           <widget class="QLineEdit" name="webUrlEdit">
+           <property name="toolTip">
+            <string>Enter a web URL (http://...)</string>
+           </property>
            <property name="text">
             <string>https://code.google.com/p/glmixer</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="toolButton">
+           <property name="toolTip">
+            <string>Try the URL</string>
+           </property>
+           <property name="text">
+            <string>Go</string>
            </property>
           </widget>
          </item>
@@ -127,7 +144,7 @@
          <item>
           <widget class="QComboBox" name="htmlPageList">
            <property name="toolTip">
-            <string>Select a text file</string>
+            <string>Select an HTML  file</string>
            </property>
            <property name="editable">
             <bool>false</bool>
@@ -211,7 +228,7 @@
           <number>6</number>
          </property>
          <item>
-          <widget class="QWidget" name="widget2" native="true">
+          <widget class="QWidget" name="propertiySize" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
              <horstretch>0</horstretch>
@@ -246,6 +263,9 @@
             </item>
             <item row="0" column="1">
              <widget class="QSpinBox" name="heightPercentBox">
+              <property name="toolTip">
+               <string>Height in percent of the total page height.</string>
+              </property>
               <property name="suffix">
                <string>%</string>
               </property>
@@ -272,6 +292,9 @@
             </item>
             <item row="1" column="1">
              <widget class="QSpinBox" name="scrollPercentBox">
+              <property name="toolTip">
+               <string>Scroll vertical in percent of the total page height</string>
+              </property>
               <property name="suffix">
                <string>%</string>
               </property>
@@ -287,7 +310,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="sizeGrid" native="true">
+          <widget class="QWidget" name="propertyUpdate" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
              <horstretch>0</horstretch>
@@ -324,18 +347,24 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox">
+             <widget class="QSpinBox" name="updateSpeedBox">
+              <property name="toolTip">
+               <string>Update the page content (for dynamic web pages only)</string>
+              </property>
               <property name="specialValueText">
                <string>Never</string>
               </property>
               <property name="suffix">
-               <string>sec</string>
+               <string> Hz</string>
               </property>
               <property name="minimum">
-               <double>0.010000000000000</double>
+               <number>0</number>
               </property>
               <property name="maximum">
-               <double>10.000000000000000</double>
+               <number>60</number>
+              </property>
+              <property name="value">
+               <number>0</number>
               </property>
              </widget>
             </item>
@@ -368,6 +397,19 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>webURL</tabstop>
+  <tabstop>webUrlEdit</tabstop>
+  <tabstop>toolButton</tabstop>
+  <tabstop>htmlPage</tabstop>
+  <tabstop>htmlPageList</tabstop>
+  <tabstop>htmlPageOpen</tabstop>
+  <tabstop>htmlPageDelete</tabstop>
+  <tabstop>heightPercentBox</tabstop>
+  <tabstop>scrollPercentBox</tabstop>
+  <tabstop>updateSpeedBox</tabstop>
+  <tabstop>validationBox</tabstop>
+ </tabstops>
  <resources>
   <include location="../icons.qrc"/>
  </resources>
@@ -549,22 +591,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>doubleSpinBox</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>WebSourceCreationDialog</receiver>
-   <slot>updateSourcePreview()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>283</x>
-     <y>453</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>367</x>
-     <y>452</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>scrollPercentBox</sender>
    <signal>valueChanged(int)</signal>
    <receiver>WebSourceCreationDialog</receiver>
@@ -580,6 +606,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>updateSpeedBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>setUpdate(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>279</x>
+     <y>449</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>395</x>
+     <y>444</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>updateSourcePreview()</slot>
@@ -588,5 +630,6 @@
   <slot>validateWebUrl(QString)</slot>
   <slot>setHeight(int)</slot>
   <slot>setScroll(int)</slot>
+  <slot>setUpdate(int)</slot>
  </slots>
 </ui>

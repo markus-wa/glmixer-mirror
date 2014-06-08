@@ -1053,9 +1053,10 @@ void GLMixer::on_actionWebSource_triggered(){
 
         int h = webd->getSelectedHeight();
         int c = webd->getSelectedScroll();
+        int u = webd->getSelectedUpdate();
         QUrl web = webd->getSelectedUrl();
 
-        Source *s = RenderingManager::getInstance()->newWebSource(web, h, c);
+        Source *s = RenderingManager::getInstance()->newWebSource(web, h, c, u);
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Web source created with location ")<< web.toString();

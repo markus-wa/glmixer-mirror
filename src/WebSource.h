@@ -39,7 +39,8 @@ public:
     ~WebRenderer();
 
     QImage image() const;
-    bool imageUpdate();
+    bool imageChanged();
+    bool propertyChanged();
 
     QUrl url() const { return _url; }
     int height() const { return _height; }
@@ -47,13 +48,15 @@ public:
 
     void setHeight(int);
     void setScroll(int);
-
-signals:
-    void changed();
+    void setUpdate(int);
 
 private slots:
     void render(bool);
     void timeout();
+    void update();
+
+protected:
+     void timerEvent(QTimerEvent *event);
 
 private:
     QUrl _url;
@@ -61,7 +64,9 @@ private:
     QImage _render, _image;
     int _height, _scroll;
     QTimer _timer;
-    bool _changed;
+    int _updateTimerId;
+    bool _propertyChanged;
+    bool _imageChanged;
 };
 
 class WebSource : public QObject, public Source
@@ -77,6 +82,7 @@ public:
     QUrl getUrl() const;
     int getPageHeight() const;
     int getPageScroll() const;
+    int getPageUpdate() const;
 
     RTTI rtti() const { return WebSource::type; }
     bool isPlayable() const { return WebSource::playable; }
@@ -90,12 +96,13 @@ public Q_SLOTS:
     void play(bool on);
     void setPageHeight(int);
     void setPageScroll(int);
+    void setPageUpdate(int);
     void adjust();
 
 protected:
 
     // only friends can create a source
-    WebSource(const QUrl url, GLuint texture, double d, int height = 100, int scroll = 0);
+    WebSource(const QUrl url, GLuint texture, double d, int height = 100, int scroll = 0, int update = 0);
     virtual ~WebSource();
     void update();
 
@@ -106,6 +113,7 @@ private:
 
     WebRenderer *_webrenderer;
     bool _playing;
+    int _updateFrequency;
 };
 
 #endif // WEBSOURCE_H

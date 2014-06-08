@@ -33,25 +33,16 @@ Source::RTTI WebSource::type = Source::WEB_SOURCE;
 bool WebSource::playable = true;
 
 
-WebSource::WebSource(QUrl web, GLuint texture, double d, int height, int scroll): QObject(), Source(texture, d), _playing(true)
+WebSource::WebSource(QUrl web, GLuint texture, double d, int height, int scroll, int update): QObject(), Source(texture, d), _playing(true), _updateFrequency(update)
 {
-
     _webrenderer = new WebRenderer(web, height, scroll);
-    connect(_webrenderer, SIGNAL(changed()), this, SLOT(adjust()));
+    _webrenderer->setUpdate(_updateFrequency);
 
     aspectratio = 1.0;
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-//#if QT_VERSION >= 0x040700
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  loadingPixmap.width(), loadingPixmap.height(),
-//                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, loadingPixmap.constBits() );
-//#else
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  loadingPixmap.width(), loadingPixmap. height(),
-//                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, loadingPixmap.bits() );
-//#endif
 
 }
 
@@ -64,6 +55,11 @@ void WebSource::play(bool on)
 {
     _playing = on;
 
+    if (_playing)
+        _webrenderer->setUpdate(_updateFrequency);
+    else
+        _webrenderer->setUpdate(0);
+
     Source::play(_playing);
 }
 
@@ -73,7 +69,7 @@ void WebSource::adjust()
     aspectratio = double(getFrameWidth()) / double(getFrameHeight());
     scaley = scalex / aspectratio;
 
-// freeframe gl plugin
+    // freeframe gl plugin
 #ifdef FFGL
     // resize all plugins
     for (FFGLPluginSourceStack::iterator it=_ffgl_plugins.begin(); it != _ffgl_plugins.end(); ++it){
@@ -93,26 +89,35 @@ void WebSource::setPageScroll(int s)
     _webrenderer->setScroll(s);
 }
 
+void WebSource::setPageUpdate(int u)
+{
+    _webrenderer->setUpdate(u);
+    _updateFrequency = u;
+}
+
 void WebSource::update()
 {
-    // generate a texture from the rendered image
+    // bind texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-    if ( _webrenderer->imageUpdate() ) {
+    // readjust the properties and plugins if required
+    if ( _webrenderer->propertyChanged() )
+        adjust();
 
+    // update texture if image changed (might be because property change also affected image)
+    if ( _webrenderer->imageChanged() )
+    {
         QImage i = _webrenderer->image();
 
-    #if QT_VERSION >= 0x040700
+#if QT_VERSION >= 0x040700
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  i.width(), i.height(), 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, i.constBits() );
-    #else
+#else
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, i.width(), i.height(), 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, i.bits() );
-    #endif
-
-        aspectratio = double(getFrameWidth()) / double(getFrameHeight());
-
+#endif
     }
 
+    // perform source update
     Source::update();
 }
 
@@ -144,65 +149,103 @@ QUrl WebSource::getUrl() const
 
 int WebSource::getPageHeight() const
 {
-        return _webrenderer->height();
+    return _webrenderer->height();
 
 }
 
 int WebSource::getPageScroll() const
 {
-        return _webrenderer->scroll();
+    return _webrenderer->scroll();
 
+}
+
+int WebSource::getPageUpdate() const
+{
+    return _updateFrequency;
 }
 
 void WebRenderer::setHeight(int h)
 {
-    _height = h;
-    _changed = true;
+    _height = qBound(10, h, 100);
+    _propertyChanged = true;
 }
 
 void WebRenderer::setScroll(int s)
 {
-    _scroll = s;
-//    _scroll = qBound(0, s, 100 - _height);
-    _changed = true;
+    _scroll = qBound(0, s, 90);
+    _propertyChanged = true;
 }
+
 
 QImage WebRenderer::image() const {
 
     return _image;
 }
 
-bool WebRenderer::imageUpdate() {
+bool WebRenderer::propertyChanged() {
 
-    if (_changed) {
+    if (_propertyChanged) {
 
-        if (!_render.isNull())
-            _image = _render.copy(0, _render.height() * _scroll / 100, _render.width(), _render.height() * _height / 100);
+        update();
 
-        _changed = false;
-
-        emit changed();
+        _imageChanged = true;
+        _propertyChanged = false;
         return true;
     }
 
     return false;
 }
 
-WebRenderer::WebRenderer(const QUrl &url, int height, int scroll) : _url(url), _height(height), _scroll(scroll), _changed(true)
+bool WebRenderer::imageChanged() {
+
+    if (_imageChanged) {
+
+        update();
+
+        _imageChanged = false;
+        return true;
+    }
+
+    return false;
+}
+
+void WebRenderer::timerEvent(QTimerEvent *event)
 {
-     // display loading screen
-     _image = QImage(QString(":/glmixer/textures/loading.png"));
+    if (!_render.isNull())
+        _imageChanged = true;
+}
 
-     // render page when loaded
-     _page.mainFrame()->load(_url);
-     connect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
+void WebRenderer::setUpdate(int u)
+{
+    if ( _updateTimerId > 0) {
+        killTimer( _updateTimerId );
+        _updateTimerId = -1;
+    }
 
-     // time out 10 seconds
-     _timer.setSingleShot(true);
-     connect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
-     _timer.start(10000);
+    if ( u > 0 ) {
+        _updateTimerId = startTimer( int ( 1000.0 / double(u) )  );
+    }
+}
 
-     qDebug() << "WebRenderer" << _height << _scroll;
+
+WebRenderer::WebRenderer(const QUrl &url, int height, int scroll) : _url(url), _propertyChanged(true)
+{
+    setHeight(height);
+    setScroll(scroll);
+    _updateTimerId = -1;
+
+    // display loading screen
+    _image = QImage(QString(":/glmixer/textures/loading.png"));
+
+    // render page when loaded
+    _page.mainFrame()->load(_url);
+    connect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
+
+    // time out 10 seconds
+    _timer.setSingleShot(true);
+    connect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
+    _timer.start(10000);
+
 }
 
 WebRenderer::~WebRenderer()
@@ -221,16 +264,24 @@ void WebRenderer::render(bool ok)
     if (ok) {
         _page.setViewportSize(_page.mainFrame()->contentsSize());
         _render = QImage(_page.viewportSize(), QImage::Format_ARGB32_Premultiplied);
-        QPainter pagePainter(&_render);
-        pagePainter.setRenderHint(QPainter::HighQualityAntialiasing, true);
-        pagePainter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-        pagePainter.setRenderHint(QPainter::TextAntialiasing, true);
-        _page.mainFrame()->render(&pagePainter);
-        pagePainter.end();
-        _changed = true;
+        _propertyChanged = true;
     }
     else
         timeout();
+}
+
+void WebRenderer::update()
+{
+    if (_render.isNull())
+        return;
+
+    QPainter pagePainter(&_render);
+    pagePainter.setRenderHint(QPainter::TextAntialiasing, true);
+    _page.mainFrame()->render(&pagePainter);
+    pagePainter.end();
+
+    _image = _render.copy(0, _render.height() * _scroll / 100, _render.width(), _render.height() * _height / 100);
+
 }
 
 void WebRenderer::timeout()
@@ -238,5 +289,5 @@ void WebRenderer::timeout()
     // cancel loading
     disconnect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
     _image = QImage(QString(":/glmixer/textures/timeout.png"));
-    _changed = true;
+    _propertyChanged = true;
 }

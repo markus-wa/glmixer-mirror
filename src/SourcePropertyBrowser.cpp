@@ -956,17 +956,23 @@ public:
         // Height
         idToProperty["Height"] = intManager->addProperty( QLatin1String("Height") );
         idToProperty["Height"]->setToolTip("Visible height in percent of whole page height.");
-        intManager->setRange(idToProperty["Height"], 0, 100);
+        intManager->setRange(idToProperty["Height"], 10, 100);
         intManager->setValue(idToProperty["Height"], ws->getPageHeight());
         // Scroll
         idToProperty["Scroll"] = intManager->addProperty( QLatin1String("Scroll") );
         idToProperty["Scroll"]->setToolTip("Vertical scroll in percent of whole page height.");
-        intManager->setRange(idToProperty["Scroll"], 0, 100);
+        intManager->setRange(idToProperty["Scroll"], 0, 90);
         intManager->setValue(idToProperty["Scroll"], ws->getPageScroll());
+        // Update
+        idToProperty["Update"] = intManager->addProperty( QLatin1String("Update") );
+        idToProperty["Update"]->setToolTip("Update frequency in Hz.");
+        intManager->setRange(idToProperty["Update"], 0, 60);
+        intManager->setValue(idToProperty["Update"], ws->getPageUpdate());
 
         addProperty(idToProperty["Web page"]);
         addProperty(idToProperty["Height"]);
         addProperty(idToProperty["Scroll"]);
+        addProperty(idToProperty["Update"]);
 
         connectManagers();
     }
@@ -979,6 +985,8 @@ public slots:
             ws->setPageHeight( value );
         else if ( property == idToProperty["Scroll"] )
             ws->setPageScroll( value );
+        else if ( property == idToProperty["Update"] )
+            ws->setPageUpdate( value );
 
     }
 
