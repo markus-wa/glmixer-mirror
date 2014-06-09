@@ -90,6 +90,7 @@ public:
 
     int getFrameWidth() const;
     int getFrameHeight() const;
+    inline double getFrameRate() const { return double(_updateFrequency); }
 
 public Q_SLOTS:
 
