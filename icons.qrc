@@ -163,5 +163,6 @@
         <file>icons/media-out.png</file>
         <file>icons/newsource.png</file>
         <file>icons/web.png</file>
+        <file>icons/SpoutLogo.png</file>
     </qresource>
 </RCC>

@@ -39,9 +39,14 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 
 #ifdef SHM
+#include <QSharedMemory>
 #include "SharedMemoryManager.h"
 #include "SharedMemorySource.h"
+#ifdef SPOUT
+#include <Spout.h>
 #endif
+#endif
+
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
@@ -62,7 +67,6 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include <algorithm>
 #include <QGLFramebufferObject>
 #include <QProgressDialog>
-#include <QSharedMemory>
 
 //#define USE_GLREADPIXELS
 
@@ -136,9 +140,13 @@ RenderingManager::RenderingManager() :
     QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
             previousframe_index(0), previousframe_delay(1), clearWhite(false), gammaShift(1.f),
 #ifdef SHM
-            _sharedMemory(0), _sharedMemoryGLFormat(GL_RGB), _sharedMemoryGLType(GL_UNSIGNED_SHORT_5_6_5),
+            _sharedMemory(NULL), _sharedMemoryGLFormat(GL_RGB), _sharedMemoryGLType(GL_UNSIGNED_SHORT_5_6_5),
 #endif
-            _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true) {
+#ifdef SPOUT
+            _spoutInitialized(false), _spoutTextureShare(false), _spoutTexture(0),
+#endif
+            _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true)
+{
 
     // 1. Create the view rendering widget and its catalog view
     _renderwidget = new ViewRenderWidget;
@@ -271,6 +279,12 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
             setFrameSharingEnabled(false);
             setFrameSharingEnabled(true);
         }
+#ifdef SPOUT
+        if(_spoutInitialized) {
+            setSpoutSharingEnabled(false);
+            setSpoutSharingEnabled(true);
+        }
+#endif
 #endif
 
     }
@@ -357,9 +371,9 @@ void RenderingManager::postRenderToFrameBuffer() {
     // save the frame to file or copy to SHM
     if ( _recorder->isRecording()
 #ifdef SHM
-            || _sharedMemory
+            || _sharedMemory != NULL
 #endif
-            ) {
+        ) {
 
 #ifdef USE_GLREADPIXELS
         // bind rendering FBO as the current frame buffer
@@ -373,7 +387,8 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 #ifdef SHM
         // share to memory if needed
-        if (_sharedMemory) {
+        if (_sharedMemory != NULL) {
+
             _sharedMemory->lock();
 #ifdef USE_GLREADPIXELS
             // read the pixels from the current frame buffer
@@ -381,12 +396,40 @@ void RenderingManager::postRenderToFrameBuffer() {
 #else
             // read the pixels from the texture
             glGetTexImage(GL_TEXTURE_2D, 0, _sharedMemoryGLFormat, _sharedMemoryGLType, (GLvoid *) _sharedMemory->data());
-#endif
+#endif // READPIXELS
 
             _sharedMemory->unlock();
         }
-#endif
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+
+#endif // SHM
     }
+
+
+#ifdef SPOUT
+
+    if (_spoutInitialized && _spoutTextureShare ) {
+
+//        glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
+
+//        glBindTexture(GL_TEXTURE_2D, _spoutTexture);
+//        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, _fbo->width(), _fbo->height());
+//        glBindTexture(GL_TEXTURE_2D, 0);
+
+//        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+//        Spout::SendTexture( _spoutTexture, GL_TEXTURE_2D, _fbo->width(), _fbo->height());
+
+
+
+//        Spout::SendTexture( _fbo->texture(), GL_TEXTURE_2D, _fbo->width(), _fbo->height());
+
+    }
+
+#endif // SPOUT
+
 }
 
 
@@ -2056,13 +2099,18 @@ void RenderingManager::pause(bool on){
 #ifdef SHM
 void RenderingManager::setFrameSharingEnabled(bool on){
 
+    if ( on == (_sharedMemory != NULL))
+        return;
+
     // delete shared memory object
-    if (_sharedMemory) {
+    if (_sharedMemory != NULL) {
         _sharedMemory->unlock();
         _sharedMemory->detach();
         delete _sharedMemory;
+        _sharedMemory = NULL;
+        qDebug() << tr("Sharing output to RAM stopped.");
+
     }
-    _sharedMemory = 0;
 
 
     if (on) {
@@ -2124,12 +2172,13 @@ void RenderingManager::setFrameSharingEnabled(bool on){
             }
         }
 
-        qDebug() << tr("Sharing to memory enabled (%1x%2, %3 bytes).").arg(_fbo->width()).arg(_fbo->height()).arg(_sharedMemory->size());
+        qDebug() << tr("Sharing output to memory enabled (%1x%2, %3 bytes).").arg(_fbo->width()).arg(_fbo->height()).arg(_sharedMemory->size());
 
         SharedMemoryManager::getInstance()->addItemSharedMap(id, processInformation);
 
     } else {
 
+        qDebug() << tr("Sharing output to RAM disabled.");
         SharedMemoryManager::getInstance()->removeItemSharedMap(QCoreApplication::applicationPid());
     }
 
@@ -2169,6 +2218,54 @@ void RenderingManager::setSharedMemoryColorDepth(uint mode){
         setFrameSharingEnabled(true);
     }
 }
+
+#ifdef SPOUT
+
+void RenderingManager::setSpoutSharingEnabled(bool on){
+
+    // discard identical state
+    if (on == _spoutInitialized)
+        return;
+
+    // close if initialised
+    if (_spoutInitialized) {
+        Spout::ReleaseSender();
+        _spoutInitialized = false;
+        _spoutTextureShare = false;
+        qDebug() << tr("Sharing output to SPOUT disabled.");
+    }
+
+    if (_spoutTexture > 0){
+        glDeleteTextures(1, &_spoutTexture);
+        _spoutTexture = 0;
+    }
+
+    char SenderName[256];
+    strcpy(SenderName, "GLMixer");
+
+    if (on) {
+
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_DEPTH);
+        // initialize on request
+        _spoutInitialized = Spout::InitSender(SenderName, _fbo->width(), _fbo->height(), _spoutTextureShare);
+
+        // log status
+        if (_spoutInitialized && _spoutTextureShare) {
+            glGenTextures(1, &_spoutTexture);
+            qDebug() << tr("Sharing output to SPOUT enabled (%1x%2, sender name '%3')").arg(_fbo->width()).arg(_fbo->height()).arg(SenderName);
+        }
+        else
+            qWarning() << tr("Could not enable SPOUT (%1x%2, sender name '%3')").arg(_fbo->width()).arg(_fbo->height()).arg(SenderName);
+
+        glPopAttrib();
+
+    }
+}
+#endif
+
 #endif
 
 QString RenderingManager::renameSource(Source *s, const QString name){

@@ -29,6 +29,10 @@
 #include "Source.h"
 #include "RenderingManager.h"
 
+#ifdef SPOUT
+#include <Spout.h>
+#endif
+
 
 class SharedMemoryAttachException : public QtConcurrent::Exception {
 public:

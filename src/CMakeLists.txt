@@ -8,14 +8,18 @@ SET(QT_USE_QTNETWORK    TRUE)
 SET(QT_USE_QTWEBKIT    TRUE)
 
 
-#--------------------------------------------------------------------------------
-# This SETs the windows build that will need the special winmain@16 call. Qt provides
-#  this for us in the qtmain.lib file. Using this cmake code will ensure we have it
-#  linked into our build. Not needed on Unix/OS X/Linux which is why we have the
-#  IF(WIN32) conditional.
-IF(WIN32)
-    SET (QT_USE_QTMAIN TRUE)
-ENDIF(WIN32)
+if( WIN32 )
+    #--------------------------------------------------------------------------------
+    # This SETs the windows build that will need the special winmain@16 call. Qt provides
+    #  this for us in the qtmain.lib file. Using this cmake code will ensure we have it
+    #  linked into our build. Not needed on Unix/OS X/Linux which is why we have the
+    #  IF(WIN32) conditional.
+    set(QT_USE_QTMAIN TRUE)
+
+    # force Linker to link with / without console under Windows
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}  -mingw32 -Wl,-subsystem,console,--enable-auto-import")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mingw32 -Wl,-subsystem,windows,--enable-auto-import")
+endif( WIN32 )
 
 # add the corresponding path to include
 include(${QT_USE_FILE})
@@ -24,7 +28,6 @@ include(${QT_USE_FILE})
 SET(GLMIXER_SRCS
     common.cpp
     glRenderWidget.cpp
-    CameraDialog.cpp
     VideoFileDialogPreview.cpp
     VideoFileDialog.cpp
     VideoFileDisplayWidget.cpp
@@ -80,7 +83,6 @@ SET(GLMIXER_RCS
 SET(GLMIXER_UIS
     glmixer.ui
     VideoFileDialog.ui
-    CameraDialog.ui
     AlgorithmSelectionDialog.ui
     UserPreferencesDialog.ui
     GammaLevelsDialog.ui
@@ -104,8 +106,14 @@ if(USE_SHAREDMEMORY)
         SharedMemoryDialog.ui
     )
 
+    if( USE_SPOUT )
+        add_definitions(-DSPOUT)
+        message( STATUS "Using SPOUT Library")
+    endif( USE_SPOUT )
+
 elseif(USE_SHAREDMEMORY)
     remove_definitions(-DSHM)
+    remove_definitions(-DSPOUT)
 endif(USE_SHAREDMEMORY)
 
 # If FreeframeGL was set, then link with its source files
@@ -146,7 +154,15 @@ endif(USE_FREEFRAMEGL)
 # If there is OpenCV, then this application will use OpenCV
 if(USE_OPENCV)
     add_definitions(-DOPEN_CV )
-    SET( GLMIXER_SRCS  ${GLMIXER_SRCS} OpencvSource.cpp )
+    SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
+        OpencvSource.cpp
+        CameraDialog.cpp
+    )
+
+    SET(GLMIXER_UIS  ${GLMIXER_UIS}
+        CameraDialog.ui
+    )
+
 elseif(USE_OPENCV)
     remove_definitions(-DOPEN_CV)
 endif(USE_OPENCV)
@@ -186,6 +202,7 @@ SET(CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
 SET(CPACK_PACKAGE_VERSION_PATCH "${GLMIXER_WC_REVISION}")
 SET(CPACK_PACKAGE_VENDOR "bhbn")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}")
+SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
 
 #--------------------------------------------------------------------------------
 # For Apple set the icns file containing icons (to do before declaring executable MACOSX_BUNDLE)
@@ -206,11 +223,11 @@ IF(APPLE)
     )
 
     # OSX cpack info
-    SET (CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
-    SET (CPACK_BUNDLE_NAME glmixer)
-    SET (CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
-    SET (CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
-    SET (CPACK_BINARY_DRAGNDROP ON)
+    set( CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
+    set( CPACK_BUNDLE_NAME glmixer)
+    set( CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
+    set( CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
+    set( CPACK_BINARY_DRAGNDROP ON)
 
 ELSE(APPLE)
 
@@ -246,7 +263,7 @@ ELSE(APPLE)
         SET(CPACK_NSIS_MODIFY_PATH OFF)
         SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL  ON)
         SET(CPACK_NSIS_MUI_FINISHPAGE_RUN "glmixer.exe")
-        SET(CPACK_NSIS_MENU_LINKS "https://code.google.com/p/glmixer" "GLMixer Web Site")
+        SET(CPACK_NSIS_MENU_LINKS "https://code.google.com/p/glmixer" "GLMixer Web Site" "plugins" "GLMixer Plugins")
 
     ELSE(WIN32)
 

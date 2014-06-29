@@ -58,12 +58,6 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS -fmessage-length=0 -pipe -Wall -Wno-write-strings")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-# force Linker to link with / without console under Windows
-IF(WIN32)
-SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}  -mingw32 -Wl,-subsystem,console,--enable-auto-import")
-SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mingw32 -Wl,-subsystem,windows,--enable-auto-import")
-ENDIF(WIN32)
-
 # defines used by preprocessor to integrate program version and SVN revision into the application
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}" )
 IF(GLMIXER_WC_REVISION)
@@ -83,7 +77,7 @@ if( GLMIXER_LINK_STATIC )
     # set the possible suffix for library files in favor of static libs
     if( APPLE )
     	set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .dylib .framework)
-    else( APPLE)
+    else( APPLE )
         if(WIN32)
       		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .lib .lib64 .dll )
         else(WIN32)
@@ -143,6 +137,25 @@ set( CMAKE_INCLUDE_PATH
 
 # HERE IS THE OPTIONNAL USE OF SHARED MEMORY
 SET(USE_SHAREDMEMORY ${USE_SHAREDMEMORY} CACHE BOOL "CHECK if you want to compile with Shared Memory support")
+
+if( USE_SHAREDMEMORY )
+    if( WIN32 )
+        unset(SPOUT_INCLUDE CACHE)
+        unset(SPOUT_LIBRARY CACHE)
+
+        # SPOUT library (http://spout.zeal.co/)
+        set(SPOUT_PATH "C:/Program Files (x86)/Spout" CACHE PATH "Please enter the path to the Spout installation folder (http://spout.zeal.co/).")
+
+        find_path( SPOUT_INCLUDE "Spout.h" HINTS "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/" )
+        find_library( SPOUT_LIBRARY "spout32.dll" "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/")
+
+        if( SPOUT_LIBRARY )
+            set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${SPOUT_LIBRARY} )
+            include_directories(${SPOUT_INCLUDE})
+            set( USE_SPOUT BOOL ON )
+        endif( SPOUT_LIBRARY )
+    endif( WIN32 )
+endif( USE_SHAREDMEMORY )
 
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
 SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")

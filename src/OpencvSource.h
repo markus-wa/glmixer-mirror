@@ -26,9 +26,6 @@
 #ifndef OPENCVSOURCE_H_
 #define OPENCVSOURCE_H_
 
-
-#ifdef OPEN_CV
-
 #include "Source.h"
 
 #include <opencv2/highgui/highgui.hpp>
@@ -111,7 +108,5 @@ protected:
 
     static QMap<int, OpencvSource*> _existingSources;
 };
-
-#endif
 
 #endif /* OPENCVSOURCE_H_ */

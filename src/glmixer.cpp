@@ -30,7 +30,6 @@
 #include <QtGui>
 
 #include "common.h"
-#include "CameraDialog.h"
 #include "VideoFileDialog.h"
 #include "AlgorithmSelectionDialog.h"
 #include "UserPreferencesDialog.h"
@@ -71,6 +70,7 @@
 #endif
 
 #ifdef OPEN_CV
+#include "CameraDialog.h"
 #include "OpencvSource.h"
 #endif
 
@@ -151,6 +151,9 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #ifndef SHM
     actionShareToRAM->setVisible(false);
     actionShmSource->setVisible(false);
+#endif
+#ifndef SPOUT
+    actionShareToSPOUT->setVisible(false);
 #endif
 
 #ifndef OPEN_CV
@@ -365,8 +368,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(disableProgressBars(bool)));
     QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
     QObject::connect(actionPause, SIGNAL(toggled(bool)), vcontrolDockWidget, SLOT(setDisabled(bool)));
+#ifdef SHM
     QObject::connect(actionShareToRAM, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setFrameSharingEnabled(bool)));
-
+#ifdef SPOUT
+    QObject::connect(actionShareToSPOUT, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setSpoutSharingEnabled(bool)));
+#endif
+#endif
     output_aspectratio->setMenu(aspectRatioMenu);
     output_onair->setDefaultAction(actionToggleRenderingVisible);
     output_fullscreen->setDefaultAction(actionFullscreen);
