@@ -42,9 +42,10 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include <QSharedMemory>
 #include "SharedMemoryManager.h"
 #include "SharedMemorySource.h"
+#endif
+
 #ifdef SPOUT
 #include <Spout.h>
-#endif
 #endif
 
 #ifdef OPEN_CV
@@ -2219,6 +2220,8 @@ void RenderingManager::setSharedMemoryColorDepth(uint mode){
     }
 }
 
+#endif
+
 #ifdef SPOUT
 
 void RenderingManager::setSpoutSharingEnabled(bool on){
@@ -2266,7 +2269,6 @@ void RenderingManager::setSpoutSharingEnabled(bool on){
 }
 #endif
 
-#endif
 
 QString RenderingManager::renameSource(Source *s, const QString name){
 

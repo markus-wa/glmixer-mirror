@@ -232,9 +232,9 @@ public Q_SLOTS:
 
 #ifdef SHM
 	void setFrameSharingEnabled(bool on);
+#endif
 #ifdef SPOUT
     void setSpoutSharingEnabled(bool on);
-#endif
 #endif
 
 Q_SIGNALS:
@@ -266,10 +266,10 @@ protected:
     // The shared memory buffer
     class QSharedMemory *_sharedMemory;
     GLenum _sharedMemoryGLFormat, _sharedMemoryGLType;
+#endif
 #ifdef SPOUT
     bool _spoutInitialized, _spoutTextureShare;
     GLuint _spoutTexture;
-#endif
 #endif
 	// the set of sources
 	SourceSet _sources;

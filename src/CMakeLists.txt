@@ -116,7 +116,6 @@ if( USE_SPOUT )
     add_definitions(-DSPOUT)
     message( STATUS "Using SPOUT Library")
 elseif( USE_SPOUT )
-    remove_definitions(-DSHM)
     remove_definitions(-DSPOUT)
 endif( USE_SPOUT )
 
@@ -387,7 +386,7 @@ ELSE(APPLE)
 
     # call the function get_prerequisites to fill the list DEPENDENCIES
     message( STATUS "Looking for DLL dependencies:" )
-    GET_PREREQUISITES(@GLMIXER_BINARY_LOCATION@ DEPENDENCIES 1 0 "" "")
+    GET_PREREQUISITES(@GLMIXER_BINARY_LOCATION@ DEPENDENCIES 1 0 "" "${SPOUT_INCLUDE}")
 
     # request the installation of each dll file of the DEPENDENCIES list
     FOREACH(DEPENDENCY ${DEPENDENCIES})
