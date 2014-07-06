@@ -29,11 +29,6 @@
 #include "Source.h"
 #include "RenderingManager.h"
 
-#ifdef SPOUT
-#include <Spout.h>
-#endif
-
-
 class SharedMemoryAttachException : public QtConcurrent::Exception {
 public:
 	virtual QString message() { return "Cannot attach to shared memory to "; }

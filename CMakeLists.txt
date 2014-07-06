@@ -153,7 +153,7 @@ if( WIN32 )
     set(SPOUT_PATH "C:/Program Files (x86)/Spout" CACHE PATH "Please enter the path to the Spout installation folder (http://spout.zeal.co/).")
 
     find_path( SPOUT_INCLUDE "Spout.h" HINTS "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/" )
-    find_library( SPOUT_LIBRARY "spout32.dll" "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/")
+    find_library( SPOUT_LIBRARY "spout32.lib" "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/")
 
     if( SPOUT_LIBRARY )
         set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${SPOUT_LIBRARY} )

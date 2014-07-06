@@ -294,7 +294,7 @@ ELSE(APPLE)
 ENDIF(APPLE)
 
 # link the target against the libraries.
-target_link_libraries(glmixer QtProperty OSCPack ${QT_LIBRARIES} ${GLMIXER_LIBRARIES})
+target_link_libraries(glmixer QtProperty OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
 
 
 
