@@ -43,7 +43,7 @@
 #include "scribblearea.moc"
 
 ScribbleArea::ScribbleArea(QWidget *parent, QSize s)
-    : QWidget(parent), m_sharedMemory(0), hasChanged(true), hasBackground(false)
+    : QWidget(parent), hasBackground(false), m_sharedMemory(0), hasChanged(true)
 {
     setAttribute(Qt::WA_StaticContents);
     modified = false;
@@ -308,7 +308,7 @@ void ScribbleArea::setFrameSharingEnabled(bool on) {
         //
         m_sharedMemory = new QSharedMemory(m_sharedMemoryKey);
 
-        if (!m_sharedMemory->create( _image.byteCount() ) ) {
+        if (!m_sharedMemory->create( image.byteCount() ) ) {
             if ( !m_sharedMemory->attach()) {
                 QMessageBox::critical(0,tr("%1 Error").arg(QCoreApplication::applicationName()),
                                       tr("Unable to attach shared memory.\n\n%1").arg(m_sharedMemory->errorString()));
