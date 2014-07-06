@@ -97,7 +97,6 @@ if(USE_SHAREDMEMORY)
 
     add_definitions(-DSHM)
     SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
-        SharedMemoryManager.cpp
         SharedMemorySource.cpp
         SharedMemoryDialog.cpp
     )
@@ -106,15 +105,20 @@ if(USE_SHAREDMEMORY)
         SharedMemoryDialog.ui
     )
 
-    if( USE_SPOUT )
-        add_definitions(-DSPOUT)
-        message( STATUS "Using SPOUT Library")
-    endif( USE_SPOUT )
+    include_directories(${LIBSHAREDMEMORYMANAGER_SOURCE_DIR} )
+    SET(GLMIXER_LIBRARIES SharedMemoryManager ${GLMIXER_LIBRARIES} )
 
 elseif(USE_SHAREDMEMORY)
     remove_definitions(-DSHM)
-    remove_definitions(-DSPOUT)
 endif(USE_SHAREDMEMORY)
+
+if( USE_SPOUT )
+    add_definitions(-DSPOUT)
+    message( STATUS "Using SPOUT Library")
+elseif( USE_SPOUT )
+    remove_definitions(-DSHM)
+    remove_definitions(-DSPOUT)
+endif( USE_SPOUT )
 
 # If FreeframeGL was set, then link with its source files
 if(USE_FREEFRAMEGL)
@@ -176,7 +180,7 @@ qt4_add_resources(GLMIXER_RCS_SRCS ${GLMIXER_RCS})
 
 # Don't forget to include output directory, otherwise
 # the UI file won't be wrapped!
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # this application uses the library QtProperty
 include_directories(${LIBQTPROPERTY_SOURCE_DIR} )

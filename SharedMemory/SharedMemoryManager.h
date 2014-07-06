@@ -48,6 +48,10 @@ public:
 
     // find in the map if there is a match for a program of that name
 	qint64 findProgramSharedMap(QString program);
+    // test if there is a program of that name
+    bool hasProgramSharedMap(QString program);
+
+    bool attach();
 
 private:
 	SharedMemoryManager();

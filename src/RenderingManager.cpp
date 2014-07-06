@@ -279,12 +279,12 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
             setFrameSharingEnabled(false);
             setFrameSharingEnabled(true);
         }
+#endif
 #ifdef SPOUT
         if(_spoutInitialized) {
             setSpoutSharingEnabled(false);
             setSpoutSharingEnabled(true);
         }
-#endif
 #endif
 
     }
@@ -868,7 +868,7 @@ Source *RenderingManager::newSharedMemorySource(qint64 shmid, double depth) {
     try {
         // create a source appropriate
         s = new SharedMemorySource(textureIndex, getAvailableDepthFrom(depth), shmid);
-        renameSource( s, _defaultSource->getName() + s->getProgram());
+        renameSource( s, _defaultSource->getName() + s->getKey());
 
     } catch (AllocationException &e){
         qWarning() << "Cannot create Shared Memory source; " << e.message();
@@ -1937,7 +1937,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the program %1.").arg(SharedMemory.text());
                 errors++;
             } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Shared memory source created (")<< SharedMemory.text() << ").";
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Shared memory source created (")<< newsource->getName() << ").";
 #else
             qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create source: type Shared Memory not supported.");
             errors++;

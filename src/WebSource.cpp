@@ -205,7 +205,6 @@ bool WebRenderer::imageChanged() {
         _imageChanged = false;
         return true;
     }
-
     return false;
 }
 

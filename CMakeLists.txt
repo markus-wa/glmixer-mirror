@@ -139,23 +139,28 @@ set( CMAKE_INCLUDE_PATH
 SET(USE_SHAREDMEMORY ${USE_SHAREDMEMORY} CACHE BOOL "CHECK if you want to compile with Shared Memory support")
 
 if( USE_SHAREDMEMORY )
-    if( WIN32 )
-        unset(SPOUT_INCLUDE CACHE)
-        unset(SPOUT_LIBRARY CACHE)
 
-        # SPOUT library (http://spout.zeal.co/)
-        set(SPOUT_PATH "C:/Program Files (x86)/Spout" CACHE PATH "Please enter the path to the Spout installation folder (http://spout.zeal.co/).")
+    add_subdirectory(SharedMemory)
 
-        find_path( SPOUT_INCLUDE "Spout.h" HINTS "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/" )
-        find_library( SPOUT_LIBRARY "spout32.dll" "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/")
-
-        if( SPOUT_LIBRARY )
-            set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${SPOUT_LIBRARY} )
-            include_directories(${SPOUT_INCLUDE})
-            set( USE_SPOUT BOOL ON )
-        endif( SPOUT_LIBRARY )
-    endif( WIN32 )
 endif( USE_SHAREDMEMORY )
+
+# HERE IS THE OPTIONNAL USE OF SPOUT
+if( WIN32 )
+    unset(SPOUT_INCLUDE CACHE)
+    unset(SPOUT_LIBRARY CACHE)
+
+    # SPOUT library (http://spout.zeal.co/)
+    set(SPOUT_PATH "C:/Program Files (x86)/Spout" CACHE PATH "Please enter the path to the Spout installation folder (http://spout.zeal.co/).")
+
+    find_path( SPOUT_INCLUDE "Spout.h" HINTS "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/" )
+    find_library( SPOUT_LIBRARY "spout32.dll" "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/")
+
+    if( SPOUT_LIBRARY )
+        set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${SPOUT_LIBRARY} )
+        include_directories(${SPOUT_INCLUDE})
+        set( USE_SPOUT BOOL ON )
+    endif( SPOUT_LIBRARY )
+endif( WIN32 )
 
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
 SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")
@@ -308,3 +313,4 @@ if(USE_FREEFRAMEGL)
 endif(USE_FREEFRAMEGL)
 
 add_subdirectory(src)
+

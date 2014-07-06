@@ -3,24 +3,6 @@
  *
  *  Created on: Aug 6, 2011
  *      Author: bh
- *
- *  This file is part of GLMixer.
- *
- *   GLMixer is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
- *   (at your option) any later version.
- *
- *   GLMixer is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
- *
- *   Copyright 2009, 2012 Bruno Herbelin
- *
  */
 
 #include "SharedMemoryManager.h"
@@ -30,7 +12,6 @@
 #include <QtDebug>
 #include <QDataStream>
 #include <QBuffer>
-#include <QPixmap>
 #include <QMap>
 
 SharedMemoryManager *SharedMemoryManager::_instance = 0;
@@ -40,40 +21,13 @@ SharedMemoryManager::SharedMemoryManager() {
     //
     // Create the shared memory map
     //
-	glmixerShmMap = new QSharedMemory("glmixerSharedMemoryMap");
-
-	// dummy map to know the size of MAX_NUM_SHM data structures
-    QBuffer buffer;
-    buffer.open(QIODevice::WriteOnly);
-    QDataStream bufstream(&buffer);
-    QMap<qint64, QVariantMap> glmixerMap;
-    QVariantMap processInformation;
-    processInformation["program"] = "dummy";
-    processInformation["width"] = 100000;
-    processInformation["height"] = 100000;
-    processInformation["format"] = 0;
-    processInformation["opengl"] = true;
-    processInformation["info"] = "dummy information string";
-	QVariant variant = QPixmap(QString::fromUtf8(":/glmixer/icons/gear.png"));
-	processInformation["icon"] = variant;
-
-    for (qint64 i = 0; i < MAX_NUM_SHM; ++i)
-    	glmixerMap[i] = processInformation;
-    bufstream << glmixerMap;
-    buffer.close();
+    glmixerShmMap = new QSharedMemory("glmixerSharedMemoryMap");
 
     // make sure we detach
-    while (glmixerShmMap->isAttached()) {
-//        qDebug() << QObject::tr("Detaching shared memory map");
-        glmixerShmMap->detach();
-    }
-    // try to create or attach
-    if (glmixerShmMap->create(buffer.size()))
-        qDebug() << "Shared map created (" <<  glmixerShmMap->size() << "bytes).";
-    else {
-    	glmixerShmMap->attach(QSharedMemory::ReadWrite);
-        qWarning() << "Shared map already existed; using it (" <<  glmixerShmMap->size() << "bytes).";
-    }
+    glmixerShmMap->detach();
+
+    if (!attach())
+        qDebug() << "SharedMemoryManager|" << QObject::tr("Could not attach to GLMixer shared memory map");
 
 }
 
@@ -81,6 +35,17 @@ SharedMemoryManager::~SharedMemoryManager() {
 
 	// this also detaches the QSharedMemory
 	delete glmixerShmMap;
+}
+
+bool SharedMemoryManager::attach() {
+
+    if (!glmixerShmMap->isAttached()) {
+        if (!glmixerShmMap->attach(QSharedMemory::ReadWrite))
+            return false;
+        else
+            return true;
+    } else
+        return true;
 }
 
 SharedMemoryManager *SharedMemoryManager::getInstance() {
@@ -123,6 +88,10 @@ void SharedMemoryManager::writeMap(QMap<qint64, QVariantMap> glmixerMap){
 
     QBuffer bufferwrite;
     QDataStream out(&bufferwrite);
+
+
+    qDebug() << glmixerMap;
+
 
     glmixerShmMap->lock();
 
@@ -234,32 +203,33 @@ qint64 SharedMemoryManager::findItemSharedMap(QString key){
 }
 
 
-qint64 SharedMemoryManager::findProgramSharedMap(QString program){
+bool SharedMemoryManager::hasProgramSharedMap(QString program){
+
+    bool found = false;
 
     // read the current map
     QMap<qint64, QVariantMap> glmixerMap = readMap();
 
     // test the viability of each entry, and remove the bad ones
-	QMapIterator<qint64, QVariantMap> i(glmixerMap);
-	while (i.hasNext()) {
-		i.next();
+    QMapIterator<qint64, QVariantMap> i(glmixerMap);
+    while (i.hasNext()) {
+        i.next();
 
-		// found it ?
+        // found it ?
         if (i.value()["program"] == program) {
-			bool found = true;
-			// test it !
-			QSharedMemory *m_sharedMemory = new QSharedMemory(i.value()["key"].toString());
-			if( !m_sharedMemory->attach() ) {
-				qDebug() << "Deleted invalid shared memory map:" << i.value()["key"].toString();
-				glmixerMap.remove(i.key());
-				found = false;
-			}
-			delete m_sharedMemory;
-			// if it passed the test, return it
-			if (found)
-				return i.key();
-		}
-	}
+                found = true;
+                // test it !
+                QSharedMemory *m_sharedMemory = new QSharedMemory(i.value()["key"].toString());
+                if( !m_sharedMemory->attach() ) {
+                        qDebug() << "Deleted invalid shared memory map:" << i.value()["key"].toString();
+                        glmixerMap.remove(i.key());
+                        found = false;
+                }
+                delete m_sharedMemory;
+        }
+    }
 
-	return 0;
+    return found;
 }
+
+
