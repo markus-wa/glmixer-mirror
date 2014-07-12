@@ -1068,12 +1068,18 @@ public:
         property->setToolTip("Information about the program sharing memory.");
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
+        property = infoManager->addProperty( QLatin1String("Format") );
+        property->setToolTip("Information about the program sharing memory.");
+        property->setItalics(true);
+        idToProperty[property->propertyName()] = property;
 
         infoManager->setValue(idToProperty["Shared Memory"], cs->getProgram()  );
         infoManager->setValue(idToProperty["Info"], cs->getInfo()  );
+        infoManager->setValue(idToProperty["Format"], cs->getFormatDescritor()  );
 
         addProperty(idToProperty["Shared Memory"]);
         addProperty(idToProperty["Info"]);
+        addProperty(idToProperty["Format"]);
     }
 
 private:

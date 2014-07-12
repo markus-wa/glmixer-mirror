@@ -66,6 +66,7 @@ public:
 	QString getProgram() { return programName; }
 	QString getInfo() { return infoString; }
 	QString getKey() { return shmKey; }
+    QString getFormatDescritor() { return formatDescriptor; }
 
 public Q_SLOTS:
 	void play(bool on);
@@ -83,6 +84,7 @@ private:
 
 	int width, height;
 	QImage::Format format;
+    QString formatDescriptor;
 	GLenum glformat, gltype;
 	GLint glunpackalign;
 	bool textureInitialized;

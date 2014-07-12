@@ -132,7 +132,10 @@ void ScreenCapture::resizeEvent(QResizeEvent *)
     grabScreen();
 
     setFrameSharingEnabled(false);
-    _image = QImage( _buffer.size(), QImage::Format_RGB16);
+    // 16 bit per pixel
+//    _image = QImage( _buffer.size(), QImage::Format_RGB16);
+    // 24 bit per pixel
+    _image = QImage( _buffer.size(), QImage::Format_RGB888);
     setFrameSharingEnabled(true);
 }
 

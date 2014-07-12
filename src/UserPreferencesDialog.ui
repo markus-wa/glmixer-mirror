@@ -182,7 +182,7 @@ p, li { white-space: pre-wrap; }
           </sizepolicy>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="PageRendering">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -840,7 +840,7 @@ the user to select a file name</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox">
+            <widget class="QGroupBox" name="sharedMemoryBox">
              <property name="title">
               <string>Shared Memory</string>
              </property>

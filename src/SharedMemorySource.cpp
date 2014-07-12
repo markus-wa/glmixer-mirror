@@ -44,34 +44,40 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 	case QImage::Format_MonoLSB	:		//The image is stored using 1-bit per pixel. Bytes are packed with the less significant bit (LSB) first.
 		glformat = GL_LUMINANCE;
 		gltype = GL_BITMAP;
+        formatDescriptor = QString("1-bit per pixel Mono");
 		break;
 	case QImage::Format_Indexed8:		//The image is stored using 8-bit indexes into a colormap.
 		glformat = GL_COLOR_INDEX;
 		gltype = GL_UNSIGNED_BYTE;
+        formatDescriptor = QString("Colormap");
 		break;
 	case QImage::Format_RGB16	: 		//The image is stored using a 16-bit RGB format (5-6-5).
 		glformat =  GL_RGB;
 		gltype = GL_UNSIGNED_SHORT_5_6_5;
+        formatDescriptor = QString("16-bit per pixel RGB");
 		break;
 	case QImage::Format_RGB666	: 		//The image is stored using a 24-bit RGB format (6-6-6). The unused most significant bits is always zero.
-	case QImage::Format_RGB888	: 		//The image is stored using a 24-bit RGB format (8-8-8).
+    case QImage::Format_RGB888	: 		//The image is stored using a 24-bit RGB format (8-8-8).
 		glformat =  GL_RGB;
-		gltype = GL_UNSIGNED_BYTE;
-		glunpackalign = 1;
+        gltype = GL_UNSIGNED_BYTE;
+        formatDescriptor = QString("24-bit per pixel RGB");
 		break;
 	case QImage::Format_ARGB32	: 		//The image is stored using a 32-bit ARGB format (0xAARRGGBB).
 	case QImage::Format_ARGB32_Premultiplied: //The image is stored using a premultiplied 32-bit ARGB format (0xAARRGGBB), i.e. the red, green, and blue channels are multiplied by the alpha component divided by 255. (If RR, GG, or BB has a higher value than the alpha channel, the results are undefined.) Certain operations (such as image composition using alpha blending) are faster using premultiplied ARGB32 than with plain ARGB32.
 		glformat =  GL_BGRA;
 		gltype = GL_UNSIGNED_INT_8_8_8_8_REV;
 		// this double inversion (BGRA and _REV) lead to the order ARGB !!!
+        formatDescriptor = QString("32-bit per pixel RGBA");
 		break;
 	case QImage::Format_ARGB8555_Premultiplied: //The image is stored using a premultiplied 24-bit ARGB format (8-5-5-5).
 		glformat =  GL_RGBA;
 		gltype = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+        formatDescriptor = QString("24-bit per pixel RGBA");
 		break;
 	case QImage::Format_ARGB4444_Premultiplied	: //The image is stored using a premultiplied 16-bit ARGB format (4-4-4-4).
 		glformat =  GL_RGBA;
 		gltype = GL_UNSIGNED_SHORT_4_4_4_4_REV;
+        formatDescriptor = QString("16-bit per pixel RGBA");
 		break;
 	case QImage::Format_RGB32	:		//The image is stored using a 32-bit RGB format (0xffRRGGBB).
 	case QImage::Format_ARGB8565_Premultiplied: //The image is stored using a premultiplied 24-bit ARGB format (8-5-6-5).
@@ -81,9 +87,11 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 	default:
 		glformat =  GL_INVALID_ENUM;
 		gltype = GL_INVALID_ENUM;
+        formatDescriptor = QString("Invalid");
 		break;
 	}
 }
+
 
 SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): Source(texture, d), shmId(shid), shm(0), textureInitialized(false) {
 
@@ -161,7 +169,7 @@ void SharedMemorySource::update(){
 		// normal case ; fast replacement of texture content
 		if (shm->lock()) {
             glBindTexture(GL_TEXTURE_2D, textureIndex);
-			glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
+//            glPixelStorei(GL_UNPACK_ALIGNMENT, glunpackalign);
 			if (textureInitialized)
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, glformat, gltype, (unsigned char*) shm->constData());
 			else {
@@ -169,7 +177,7 @@ void SharedMemorySource::update(){
 				textureInitialized = true;
 			}
 			shm->unlock();
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+//            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
             Source::update();
         }

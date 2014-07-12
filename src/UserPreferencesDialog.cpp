@@ -64,6 +64,9 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 
     // fill in the list of available languages
 
+#ifndef SHM
+    sharedMemoryBox->setVisible(false);
+#endif
 
 }
 
