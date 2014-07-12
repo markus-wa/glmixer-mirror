@@ -239,6 +239,9 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void currentSourceChanged(SourceSet::iterator csi);
+#ifdef SPOUT
+    void spoutSharingEnabled(bool on);
+#endif
 
 private:
 	RenderingManager();
@@ -268,8 +271,7 @@ protected:
     GLenum _sharedMemoryGLFormat, _sharedMemoryGLType;
 #endif
 #ifdef SPOUT
-    bool _spoutInitialized, _spoutTextureShare;
-    GLuint _spoutTexture;
+    bool _spoutEnabled, _spoutInitialized;
 #endif
 	// the set of sources
 	SourceSet _sources;

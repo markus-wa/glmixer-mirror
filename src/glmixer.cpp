@@ -370,9 +370,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionPause, SIGNAL(toggled(bool)), vcontrolDockWidget, SLOT(setDisabled(bool)));
 #ifdef SHM
     QObject::connect(actionShareToRAM, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setFrameSharingEnabled(bool)));
-#ifdef SPOUT
-    QObject::connect(actionShareToSPOUT, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setSpoutSharingEnabled(bool)));
 #endif
+#ifdef SPOUT
+    QObject::connect(actionShareToSPOUT, SIGNAL(triggered(bool)), RenderingManager::getInstance(), SLOT(setSpoutSharingEnabled(bool)));
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(spoutSharingEnabled(bool)), actionShareToSPOUT, SLOT(setChecked(bool)));
 #endif
     output_aspectratio->setMenu(aspectRatioMenu);
     output_onair->setDefaultAction(actionToggleRenderingVisible);

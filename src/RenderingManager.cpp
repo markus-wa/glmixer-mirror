@@ -144,7 +144,7 @@ RenderingManager::RenderingManager() :
             _sharedMemory(NULL), _sharedMemoryGLFormat(GL_RGB), _sharedMemoryGLType(GL_UNSIGNED_SHORT_5_6_5),
 #endif
 #ifdef SPOUT
-            _spoutInitialized(false), _spoutTextureShare(false), _spoutTexture(0),
+            _spoutEnabled(false), _spoutInitialized(false),
 #endif
             _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true)
 {
@@ -282,7 +282,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         }
 #endif
 #ifdef SPOUT
-        if(_spoutInitialized) {
+        if(_spoutEnabled) {
             setSpoutSharingEnabled(false);
             setSpoutSharingEnabled(true);
         }
@@ -411,22 +411,9 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 #ifdef SPOUT
 
-    if (_spoutInitialized && _spoutTextureShare ) {
+    if ( _spoutInitialized ) {
 
-//        glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
-
-//        glBindTexture(GL_TEXTURE_2D, _spoutTexture);
-//        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, _fbo->width(), _fbo->height());
-//        glBindTexture(GL_TEXTURE_2D, 0);
-
-//        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-
-//        Spout::SendTexture( _spoutTexture, GL_TEXTURE_2D, _fbo->width(), _fbo->height());
-
-
-
-//        Spout::SendTexture( _fbo->texture(), GL_TEXTURE_2D, _fbo->width(), _fbo->height());
-
+        Spout::SendTexture( _fbo->texture(), GL_TEXTURE_2D, _fbo->width(), _fbo->height());
     }
 
 #endif // SPOUT
@@ -2226,45 +2213,43 @@ void RenderingManager::setSharedMemoryColorDepth(uint mode){
 
 void RenderingManager::setSpoutSharingEnabled(bool on){
 
-    // discard identical state
-    if (on == _spoutInitialized)
-        return;
+    _spoutEnabled = on;
 
-    // close if initialised
-    if (_spoutInitialized) {
-        Spout::ReleaseSender();
+    // reset if already initialized
+    if (_spoutInitialized)
+    {
+        if ( !Spout::ReleaseSender() )
+            qWarning() << tr("Could not release SPOUT sender");
+
         _spoutInitialized = false;
-        _spoutTextureShare = false;
         qDebug() << tr("Sharing output to SPOUT disabled.");
     }
 
-    if (_spoutTexture > 0){
-        glDeleteTextures(1, &_spoutTexture);
-        _spoutTexture = 0;
-    }
 
-    char SenderName[256];
-    strcpy(SenderName, "GLMixer");
+    if (_spoutEnabled) {
 
-    if (on) {
+        char SenderName[256];
+//        strcpy(SenderName, "GLMixer"  );
+        strcpy(SenderName, QString("GLMixer%1").arg(QCoreApplication::applicationPid()).toUtf8().constData()  );
+        bool spoutTextureShare = false;
 
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_DEPTH);
-        // initialize on request
-        _spoutInitialized = Spout::InitSender(SenderName, _fbo->width(), _fbo->height(), _spoutTextureShare);
+        _spoutInitialized = Spout::InitSender(SenderName, _fbo->width(), _fbo->height(), spoutTextureShare, true);
 
         // log status
-        if (_spoutInitialized && _spoutTextureShare) {
-            glGenTextures(1, &_spoutTexture);
+        if (_spoutInitialized)
             qDebug() << tr("Sharing output to SPOUT enabled (%1x%2, sender name '%3')").arg(_fbo->width()).arg(_fbo->height()).arg(SenderName);
+        else {
+
+            QMessageBox::warning(NULL, tr("SPOUT GLMixer"),
+                                       tr("Unfortunately, SPOUT can be enabled only ONCE per execution of GLMixer.\n\n"
+                                          "The SPOUT forum says 'This initial release of Spout is very basic and the concept is one thing at a time.'  and we are waiting for a more robust implementation. \n"
+                                          "\nFor now, you should restart GLMixer every time you get this message.\n"));
+
+            qCritical() << tr("Could not enable SPOUT (%1x%2, sender name '%3')").arg(_fbo->width()).arg(_fbo->height()).arg(SenderName);
+            Spout::ReleaseSender();
+            _spoutEnabled = false;
+            emit spoutSharingEnabled(false);
         }
-        else
-            qWarning() << tr("Could not enable SPOUT (%1x%2, sender name '%3')").arg(_fbo->width()).arg(_fbo->height()).arg(SenderName);
-
-        glPopAttrib();
-
     }
 }
 #endif
