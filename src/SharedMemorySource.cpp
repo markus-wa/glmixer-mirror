@@ -162,7 +162,7 @@ void SharedMemorySource::update(){
 		play(false);
 
 		RenderingManager::getInstance()->unsetCurrentSource();
-		RenderingManager::getInstance()->setCurrentSource(getId());
+        //RenderingManager::getInstance()->setCurrentSource(getId());
         qWarning() << getName() << QChar(124).toLatin1() << tr("Connection with program %1 interrupted. Source stopped").arg(programName);
 
     } else {

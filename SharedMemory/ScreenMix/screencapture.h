@@ -28,7 +28,7 @@ public slots:
     void showHelp();
 
 private:
-    void grabScreen();
+    void grabScreen(bool init=false);
 
     bool _freeze;
     bool _mouseUpdate;

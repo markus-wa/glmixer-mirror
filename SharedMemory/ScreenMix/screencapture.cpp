@@ -129,13 +129,8 @@ void ScreenCapture::keyPressEvent(QKeyEvent *e)
 
 void ScreenCapture::resizeEvent(QResizeEvent *)
 {
-    grabScreen();
-
     setFrameSharingEnabled(false);
-    // 16 bit per pixel
-//    _image = QImage( _buffer.size(), QImage::Format_RGB16);
-    // 24 bit per pixel
-    _image = QImage( _buffer.size(), QImage::Format_RGB888);
+    grabScreen(true);
     setFrameSharingEnabled(true);
 }
 
@@ -145,7 +140,7 @@ QSize ScreenCapture::sizeHint() const
     return _initialSize;
 }
 
-void ScreenCapture::grabScreen()
+void ScreenCapture::grabScreen(bool init)
 {
     QPoint mousePos = QCursor::pos();
 
@@ -178,6 +173,12 @@ void ScreenCapture::grabScreen()
         p.setBrush(Qt::black);
         p.drawRects(rects);
     }
+
+    if (init)
+        // 16 bit per pixel
+        //    _image = QImage( _buffer.size(), QImage::Format_RGB16);
+        // 24 bit per pixel
+        _image = QImage( _buffer.size(), QImage::Format_RGB888);
 
     // fill the image with the buffer grabbed
     QPainter pimage(&_image);
