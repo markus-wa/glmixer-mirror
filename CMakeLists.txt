@@ -142,6 +142,10 @@ if( USE_SHAREDMEMORY )
 
     add_subdirectory(SharedMemory)
 
+    include_directories(${LIBSHAREDMEMORYMANAGER_SOURCE_DIR} )
+    set(GLMIXER_LIBRARIES SharedMemoryManager ${GLMIXER_LIBRARIES} )
+    message( STATUS "Using Shared Memory Manager library")
+
 endif( USE_SHAREDMEMORY )
 
 # HERE IS THE OPTIONNAL USE OF SPOUT
@@ -158,6 +162,8 @@ if( WIN32 )
     if( SPOUT_LIBRARY )
         set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${SPOUT_LIBRARY} )
         include_directories(${SPOUT_INCLUDE})
+        message( STATUS "Found SPOUT : ${SPOUT_LIBRARY}")
+
         set( USE_SPOUT BOOL ON )
     endif( SPOUT_LIBRARY )
 endif( WIN32 )

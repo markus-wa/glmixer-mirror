@@ -25,6 +25,11 @@ add_subdirectory(FreeFrameFragmentCodePlugin)
 if(WIN32)
 
     add_subdirectory(ExtremelySimpleCaptureFFGLPlugin)
+
+    if(USE_SPOUT)
+        add_subdirectory(SpoutFFGLPlugin)
+    endif(USE_SPOUT)
+
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins_win32.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.qrc)
 
 else(WIN32)

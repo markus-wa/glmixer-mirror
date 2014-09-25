@@ -101,6 +101,9 @@ public:
 #ifdef SHM
     Source *newSharedMemorySource(qint64 shmid, double depth = -1.0);
 #endif
+#ifdef SPOUT
+    Source *newSpoutSource(QString senderName, double depth = -1.0);
+#endif
 #ifdef FFGL
     Source *newFreeframeGLSource(QDomElement configuration, int w, int h, double depth = -1.0);
 #endif

@@ -94,10 +94,27 @@ SET(GLMIXER_UIS
 
 # If SharedMemory was set, then link with its source files
 if(USE_SHAREDMEMORY)
-
     add_definitions(-DSHM)
     SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
         SharedMemorySource.cpp
+    )
+elseif(USE_SHAREDMEMORY)
+    remove_definitions(-DSHM)
+endif(USE_SHAREDMEMORY)
+
+if( USE_SPOUT )
+    add_definitions(-DSPOUT)
+    SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+        SpoutSource.cpp
+    )
+elseif( USE_SPOUT )
+    remove_definitions(-DSPOUT)
+endif( USE_SPOUT )
+
+# the GUI for shared memory is shared for SHM and SPOUT
+if( USE_SHAREDMEMORY OR USE_SPOUT )
+
+    SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
         SharedMemoryDialog.cpp
     )
 
@@ -105,19 +122,8 @@ if(USE_SHAREDMEMORY)
         SharedMemoryDialog.ui
     )
 
-    include_directories(${LIBSHAREDMEMORYMANAGER_SOURCE_DIR} )
-    SET(GLMIXER_LIBRARIES SharedMemoryManager ${GLMIXER_LIBRARIES} )
+endif( USE_SHAREDMEMORY OR USE_SPOUT )
 
-elseif(USE_SHAREDMEMORY)
-    remove_definitions(-DSHM)
-endif(USE_SHAREDMEMORY)
-
-if( USE_SPOUT )
-    add_definitions(-DSPOUT)
-    message( STATUS "Using SPOUT Library")
-elseif( USE_SPOUT )
-    remove_definitions(-DSPOUT)
-endif( USE_SPOUT )
 
 # If FreeframeGL was set, then link with its source files
 if(USE_FREEFRAMEGL)

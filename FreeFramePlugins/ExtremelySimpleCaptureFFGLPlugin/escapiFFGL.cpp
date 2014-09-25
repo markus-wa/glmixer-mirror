@@ -131,6 +131,8 @@ escapiFreeFrameGL::escapiFreeFrameGL() : CFreeFrameGLPlugin()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 DWORD   escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
 {
+    if (!data)
+        return FF_FAIL;
 
     glEnable(GL_TEXTURE);
     glActiveTexture(GL_TEXTURE0);
@@ -215,13 +217,15 @@ DWORD   escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
 
 DWORD   escapiFreeFrameGL::DeInitGL()
 {
+    if (!data)
+        return FF_FAIL;
+
     // end capture if not stopped
     if (! data->stop) {
         data->stop = true;
         pthread_join( data->thread, NULL );
 
     }
-
 
     return FF_SUCCESS;
 }
@@ -236,8 +240,10 @@ DWORD   escapiFreeFrameGL::SetTime(double time)
 
 DWORD	escapiFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 {
-  glClear(GL_COLOR_BUFFER_BIT );
+  if (!data)
+        return FF_FAIL;
 
+  glClear(GL_COLOR_BUFFER_BIT );
   glEnable(GL_TEXTURE_2D);
 
   if (!data->stop) {

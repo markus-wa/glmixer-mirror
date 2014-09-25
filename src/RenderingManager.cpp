@@ -46,11 +46,13 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 
 #ifdef SPOUT
 #include <Spout.h>
+#include <SpoutSource.h>
 #endif
 
 #ifdef OPEN_CV
 #include "OpencvSource.h"
 #endif
+
 #ifdef FFGL
 #include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
@@ -870,6 +872,34 @@ Source *RenderingManager::newSharedMemorySource(qint64 shmid, double depth) {
 }
 #endif
 
+#ifdef SPOUT
+Source *RenderingManager::newSpoutSource(QString senderName, double depth) {
+
+    SpoutSource *s = 0;
+    // create the texture for this source
+    GLuint textureIndex;
+    _renderwidget->makeCurrent();
+    glGenTextures(1, &textureIndex);
+    GLclampf lowpriority = 0.1;
+    glPrioritizeTextures(1, &textureIndex, &lowpriority);
+
+    try {
+        // create a source appropriate
+        s = new SpoutSource(textureIndex, getAvailableDepthFrom(depth), senderName);
+        renameSource( s, _defaultSource->getName() + senderName );
+
+    } catch (AllocationException &e){
+        qWarning() << "Cannot create SPOUT source; " << e.message();
+        // free the OpenGL texture
+        glDeleteTextures(1, &textureIndex);
+        // return an invalid pointer
+        s = 0;
+    }
+
+    return ( (Source *) s );
+}
+#endif
+
 Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) {
 
     CloneSource *s = 0;
@@ -1544,6 +1574,17 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 
         }
 #endif
+#ifdef SPOUT
+        else if ((*its)->rtti() == Source::SPOUT_SOURCE) {
+            SpoutSource *spouts = dynamic_cast<SpoutSource *> (*its);
+
+            QDomElement f = doc.createElement("Spout");
+            QDomText name = doc.createTextNode(spouts->getSenderName());
+            f.appendChild(name);
+            specific.appendChild(f);
+
+        }
+#endif
 #ifdef FFGL
         else if ((*its)->rtti() == Source::FFGL_SOURCE) {
             FFGLSource *ffs = dynamic_cast<FFGLSource *> (*its);
@@ -1907,7 +1948,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create web source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Web created.");
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Web source created.");
         }
         else if ( type == Source::CLONE_SOURCE) {
             // remember the node of the sources to clone
@@ -1925,9 +1966,26 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the program %1.").arg(SharedMemory.text());
                 errors++;
             } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Shared memory source created (")<< newsource->getName() << ").";
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Shared memory source created (")<< SharedMemory.text() << ").";
 #else
             qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create source: type Shared Memory not supported.");
+            errors++;
+#endif
+        }
+        else if ( type == Source::SPOUT_SOURCE) {
+#ifdef SPOUT
+            // read the tags specific for an algorithm source
+            QDomElement spout = t.firstChildElement("Spout");
+
+            newsource = RenderingManager::getInstance()->newSpoutSource(spout.text(), depth);
+
+            if (!newsource) {
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the SPOUT sender %1.").arg(spout.text());
+                errors++;
+            } else
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("SPOUT source created (")<< spout.text() << ").";
+#else
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create source: type SPOUT not supported.");
             errors++;
 #endif
         }

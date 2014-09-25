@@ -27,8 +27,15 @@
 #include <QtDebug>
 #include <QAbstractListModel>
 
+#ifdef SHM
 #include "SharedMemorySource.h"
 #include "SharedMemoryManager.h"
+#endif
+
+#ifdef SPOUT
+#include "SpoutSource.h"
+#endif
+
 #include "Source.h"
 #include "SourceDisplayWidget.h"
 

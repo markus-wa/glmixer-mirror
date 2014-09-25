@@ -38,7 +38,7 @@ public:
 
 class InvalidFormatException : public QtConcurrent::Exception {
 public:
-	virtual QString message() { return "Invalid image format from program "; }
+    virtual QString message() { return "Invalid image format from shared memory program "; }
 	void raise() const { throw *this; }
 	Exception *clone() const { return new InvalidFormatException(*this); }
 };

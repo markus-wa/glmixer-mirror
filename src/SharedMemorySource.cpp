@@ -93,7 +93,9 @@ void SharedMemorySource::setGLFormat(QImage::Format f) {
 }
 
 
-SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid): Source(texture, d), shmId(shid), shm(0), textureInitialized(false) {
+SharedMemorySource::SharedMemorySource(GLuint texture, double d, qint64 shid):
+    Source(texture, d), shmId(shid), shm(0), textureInitialized(false)
+{
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureIndex);
