@@ -224,7 +224,7 @@ bool RenderingView::wheelEvent ( QWheelEvent * event ){
         setPanning(( getPanningX() + ax - bx) * 1.0 / ( 1.0 + exp(13.0 - 65.0 * zoom) ), ( getPanningY() + ay - by) * 1.0 / ( 1.0 + exp(13.0 - 65.0 * zoom) ) );
 
 
-    return false;
+    return true;
 }
 
 void RenderingView::panningBy(int x, int y, int dx, int dy) {

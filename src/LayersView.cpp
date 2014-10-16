@@ -563,7 +563,7 @@ bool LayersView::mouseReleaseEvent ( QMouseEvent * event ){
 
 bool LayersView::wheelEvent ( QWheelEvent * event ){
 
-    bool ret = false;
+    bool ret = true;
     lastClicPos = event->pos();
 
     // wheel main effect is to change zoom

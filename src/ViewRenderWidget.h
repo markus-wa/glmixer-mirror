@@ -154,10 +154,13 @@ Q_SIGNALS:
 	void sourceGeometryDrop(double, double);
 	void sourceLayerDrop(double);
 
+    void zoomPercentChanged(int);
+
 public Q_SLOTS:
 
-	void clearViews();
-	void zoomIn();
+    void clearViews();
+    void zoom(int percent);
+    void zoomIn();
 	void zoomOut();
 	void zoomReset();
 	void zoomBestFit();

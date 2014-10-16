@@ -361,6 +361,8 @@ void ViewRenderWidget::setViewMode(View::viewMode mode)
     makeCurrent();
     refresh();
 
+    zoomPercentChanged((int) _currentView->getZoomPercent());
+
 }
 
 void ViewRenderWidget::removeFromSelections(Source *s)
@@ -792,8 +794,10 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
     if (cursorEnabled && _currentCursor->wheelEvent(event))
         return;
 
-    if (_currentView->wheelEvent(event))
+    if (_currentView->wheelEvent(event)) {
         showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+        zoomPercentChanged((int) _currentView->getZoomPercent());
+    }
 }
 
 void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
@@ -877,12 +881,21 @@ void ViewRenderWidget::enterEvent ( QEvent * event ){
 
 }
 
+void ViewRenderWidget::zoom(int percent)
+{
+    makeCurrent();
+    _currentView->setZoomPercent( double(percent) / 100.0 );
+
+    showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+}
+
 void ViewRenderWidget::zoomIn()
 {
     makeCurrent();
     _currentView->zoomIn();
 
     showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
 void ViewRenderWidget::zoomOut()
@@ -891,6 +904,7 @@ void ViewRenderWidget::zoomOut()
     _currentView->zoomOut();
 
     showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
 void ViewRenderWidget::zoomReset()
@@ -899,6 +913,7 @@ void ViewRenderWidget::zoomReset()
     _currentView->zoomReset();
 
     showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
 void ViewRenderWidget::zoomBestFit()
@@ -907,6 +922,7 @@ void ViewRenderWidget::zoomBestFit()
     _currentView->zoomBestFit();
 
     showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
 void ViewRenderWidget::zoomCurrentSource()
@@ -915,6 +931,7 @@ void ViewRenderWidget::zoomCurrentSource()
     _currentView->zoomBestFit(true);
 
     showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
+    emit zoomPercentChanged((int) _currentView->getZoomPercent());
 }
 
 void ViewRenderWidget::clearViews()

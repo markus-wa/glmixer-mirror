@@ -181,10 +181,16 @@ public:
 	}
 	/**
 	 *
-	 */
-	inline double getZoomPercent() {
-		return ( (zoom - minzoom) * 100.0 / (maxzoom - minzoom) );
-	}
+     */
+    inline double getZoomPercent() {
+        return ( (zoom - minzoom) * 100.0 / (maxzoom - minzoom) );
+    }
+    /**
+     *
+     */
+    inline void setZoomPercent(double percent) {
+        setZoom( minzoom + percent * (maxzoom - minzoom));
+    }
 	/**
 	 *
 	 */

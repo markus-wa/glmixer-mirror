@@ -10,6 +10,7 @@ else(WIN32)
   add_library(ShadertoySource MODULE FreeFrameShadertoySource.cpp )
 endif(WIN32)
 
+message( STATUS "Using ShadertoyEffect and ShadertoySource")
 target_link_libraries(ShadertoyEffect -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 target_link_libraries(ShadertoySource -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 

@@ -314,6 +314,7 @@ add_subdirectory(libQtProperty)
 add_subdirectory(libOSCPack)
 
 if(USE_FREEFRAMEGL)
+    message( STATUS "Using FreeFrameGL")
     add_subdirectory(${FREEFRAMEGL_PATH})
     add_subdirectory(FreeFramePlugins)
 endif(USE_FREEFRAMEGL)

@@ -303,6 +303,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 #else
 		av_log_set_level( AV_LOG_DEBUG  ); /* print debug info from ffmpeg */
 #endif
+
 		ffmpegregistered = true;
 	}
 
@@ -553,6 +554,9 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
 	filename = file;
 	ignoreAlpha = ignoreAlphaChannel;
+
+#ifdef CONFIG_MPEG4_VDPAU_DECODER
+#endif
 
 	// Check file
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
@@ -897,7 +901,15 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 		return -1;
     }
 
-	codecname = QString(codec->name);
+
+    if ( codec->capabilities & CODEC_CAP_HWACCEL_VDPAU) {
+
+
+        qDebug() << filename << QChar(124).toLatin1()<< tr("This is H264 file with VDPAU capabilities.");
+    }
+
+
+    codecname = QString(codec->long_name);
 
 	return stream_index;
 }
@@ -1940,9 +1952,11 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 
     ffmpegInfoDialog->setWindowTitle(tr("Libav formats and codecs"));
 	label->setText(tr(
-            "Compiled with libavcodec %1.%2.%3 \n\nReadable VIDEO codecs:").arg(
+            "Compiled with libavcodec %1.%2.%3\n\nOptions: %4\n\nReadable VIDEO codecs:").arg(
 			LIBAVCODEC_VERSION_MAJOR).arg(LIBAVCODEC_VERSION_MINOR).arg(
-			LIBAVCODEC_VERSION_MICRO));
+            LIBAVCODEC_VERSION_MICRO).arg(avcodec_configuration()));
+    label->setMaximumWidth(500);
+    label->setWordWrap(true);
     label_2->setText(tr("Available formats:"));
 
 	QTreeWidgetItem *title = availableFormatsTreeWidget->headerItem();

@@ -620,7 +620,7 @@ bool MixerView::mouseReleaseEvent ( QMouseEvent * event )
 
 bool MixerView::wheelEvent ( QWheelEvent * event )
 {
-    bool ret = false;
+    bool ret = true;
     // remember position of cursor before zoom
     double bx, by, z;
     gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
