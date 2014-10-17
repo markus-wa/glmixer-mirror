@@ -1427,16 +1427,18 @@ Source *GeometryView::getCurrentSource()
 {
     // first is the current source of the rendering manager valid ?
     if (RenderingManager::getInstance()->isValid(RenderingManager::getInstance()->getCurrentSource()))
-    {
-        // if yes, set it as current (it may has been selected in another view
+        // if yes, set it as current (it may has been selected in another view)
         currentSource = *RenderingManager::getInstance()->getCurrentSource();
 
-        // if current source is a valid source
-        if (currentSource && currentSource != SelectionManager::getInstance()->selectionSource())
-            // return it only if modifiable
+    // if current source is a valid source
+    if (currentSource) {
+
+        // if the current source is not the selection source
+        if (currentSource != SelectionManager::getInstance()->selectionSource())
+            // return the source only if modifiable
             return currentSource->isModifiable() ? currentSource : 0;
         else
-            // or just return the value
+            // or just return the selection source
             return currentSource;
     }
 
