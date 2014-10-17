@@ -223,7 +223,7 @@ void OutputRenderWidget::paintGL()
 }
 
 
-OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint)
+OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowSystemMenuHint  | Qt::WindowMinimizeButtonHint  )
 {
 	// this is not a windet, but a window
 	useWindowAspectRatio = false;
@@ -231,6 +231,7 @@ OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)Re
     fullscreenMonitorIndex = 0;
     setMinimumSize(160,120);
     // set initial geometry
+    setWindowState(Qt::WindowNoState);
     windowGeometry = QRect(0,0,640,480);
     setGeometry( windowGeometry );
     switching = false;
@@ -271,6 +272,9 @@ void OutputRenderWindow::setFullScreen(bool on) {
     // this is valid only for WINDOW widgets
     if ( windowFlags().testFlag(Qt::Window) ) {
 
+        // it is required to hide the window before in order to avoid the bug of auto-maximization of window
+        hide();
+
         // discard non-changing state (NOT XOR)
         if ( !(on ^ (windowState() & Qt::WindowFullScreen)) )
             return;
@@ -280,10 +284,12 @@ void OutputRenderWindow::setFullScreen(bool on) {
             // use geometry from selected desktop for fullscreen
             setGeometry( QApplication::desktop()->screenGeometry(fullscreenMonitorIndex) );
             // apply fullscreen
-            setWindowState(Qt::WindowFullScreen);
+            setWindowState( Qt::WindowNoState | Qt::WindowFullScreen);
             show();
-        }else{
-            setWindowState(Qt::WindowNoState );
+        }
+        else
+        {
+            setWindowState( Qt::WindowNoState | Qt::WindowActive);
             // use saved & previous window geometry otherwise
             setGeometry( windowGeometry );
             show();
@@ -364,13 +370,8 @@ QByteArray OutputRenderWindow::saveState()  {
     QByteArray data;
     QDataStream stream(&data, QIODevice::WriteOnly);
 
-    if ( ! windowState().testFlag(Qt::WindowFullScreen) )
-        windowGeometry = geometry();
-
     // window geometry
-    stream << windowGeometry;
-
-//    qDebug() << "OutputRenderWindow|Saved state " <<  windowGeometry;
+    stream << windowGeometry << windowState().testFlag(Qt::WindowFullScreen);
 
     return data;
 }
@@ -379,13 +380,15 @@ bool OutputRenderWindow::restoreState(const QByteArray &state) {
 
     QByteArray sd = state;
     QDataStream stream(&sd, QIODevice::ReadOnly);
+    bool fullscreen = false;
 
     // window geometry
-    stream >> windowGeometry;
+    stream >> windowGeometry >> fullscreen;
 
     setGeometry(windowGeometry);
 
-//    qDebug() << "OutputRenderWindow|Restored state"<<  windowGeometry;
+    if (fullscreen)
+        emit toggleFullscreen(true);
 
     return true;
 }
