@@ -54,6 +54,7 @@ extern "C"
 #include <QtGui/QTreeWidget>
 #include <QtGui/QLabel>
 #include <QtGui/QVBoxLayout>
+#include <QtGui/QPlainTextEdit>
 #include <QThread>
 #include <QDebug>
 #include <QFileInfo>
@@ -1920,10 +1921,12 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 
 	QVBoxLayout *verticalLayout;
 	QLabel *label;
+    QPlainTextEdit *options;
+    QLabel *label_2;
 	QTreeWidget *availableFormatsTreeWidget;
-	QLabel *label_2;
+    QLabel *label_3;
 	QTreeWidget *availableCodecsTreeWidget;
-	QDialogButtonBox *buttonBox;
+    QDialogButtonBox *buttonBox;
 
 	QDialog *ffmpegInfoDialog = new QDialog;
 	QIcon icon;
@@ -1931,8 +1934,9 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 	ffmpegInfoDialog->setWindowIcon(icon);
 	ffmpegInfoDialog->resize(510, 588);
 	verticalLayout = new QVBoxLayout(ffmpegInfoDialog);
-	label = new QLabel(ffmpegInfoDialog);
-	label_2 = new QLabel(ffmpegInfoDialog);
+    label = new QLabel(ffmpegInfoDialog);
+    label_2 = new QLabel(ffmpegInfoDialog);
+    label_3 = new QLabel(ffmpegInfoDialog);
 
 	availableFormatsTreeWidget = new QTreeWidget(ffmpegInfoDialog);
 	availableFormatsTreeWidget->setProperty("showDropIndicator",
@@ -1946,18 +1950,19 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
     availableCodecsTreeWidget->setRootIsDecorated(false);
 	availableCodecsTreeWidget->header()->setVisible(true);
 
-	buttonBox = new QDialogButtonBox(ffmpegInfoDialog);
+    buttonBox = new QDialogButtonBox(ffmpegInfoDialog);
 	buttonBox->setOrientation(Qt::Horizontal);
 	buttonBox->setStandardButtons(QDialogButtonBox::Close);
 
     ffmpegInfoDialog->setWindowTitle(tr("Libav formats and codecs"));
-	label->setText(tr(
-            "Compiled with libavcodec %1.%2.%3\n\nOptions: %4\n\nReadable VIDEO codecs:").arg(
+    label->setText(tr( "Compiled with libavcodec %1.%2.%3\n\nCompilation options:").arg(
 			LIBAVCODEC_VERSION_MAJOR).arg(LIBAVCODEC_VERSION_MINOR).arg(
-            LIBAVCODEC_VERSION_MICRO).arg(avcodec_configuration()));
-    label->setMaximumWidth(500);
-    label->setWordWrap(true);
-    label_2->setText(tr("Available formats:"));
+            LIBAVCODEC_VERSION_MICRO));
+
+    options = new QPlainTextEdit( QString(avcodec_configuration()), ffmpegInfoDialog);
+
+    label_2->setText(tr("Available codecs:"));
+    label_3->setText(tr("Available formats:"));
 
 	QTreeWidgetItem *title = availableFormatsTreeWidget->headerItem();
 	title->setText(1, tr("Description"));
@@ -1967,10 +1972,8 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 	title->setText(1, tr("Description"));
 	title->setText(0, tr("Name"));
 
-	QObject::connect(buttonBox, SIGNAL(accepted()), ffmpegInfoDialog,
-			SLOT(accept()));
-	QObject::connect(buttonBox, SIGNAL(rejected()), ffmpegInfoDialog,
-			SLOT(reject()));
+    QObject::connect(buttonBox, SIGNAL(accepted()), ffmpegInfoDialog,SLOT(accept()));
+    QObject::connect(buttonBox, SIGNAL(rejected()), ffmpegInfoDialog,SLOT(reject()));
 
 	QMetaObject::connectSlotsByName(ffmpegInfoDialog);
 
@@ -2044,9 +2047,11 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 		}
 	}
 
-	verticalLayout->addWidget(label);
+    verticalLayout->addWidget(label);
+    verticalLayout->addWidget(options);
+    verticalLayout->addWidget(label_2);
 	verticalLayout->addWidget(availableCodecsTreeWidget);
-	verticalLayout->addWidget(label_2);
+    verticalLayout->addWidget(label_3);
 	verticalLayout->addWidget(availableFormatsTreeWidget);
 	verticalLayout->addWidget(buttonBox);
 
