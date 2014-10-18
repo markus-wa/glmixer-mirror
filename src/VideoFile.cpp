@@ -1955,7 +1955,8 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 	buttonBox->setStandardButtons(QDialogButtonBox::Close);
 
     ffmpegInfoDialog->setWindowTitle(tr("Libav formats and codecs"));
-    label->setText(tr( "Compiled with libavcodec %1.%2.%3\n\nCompilation options:").arg(
+    label->setText(tr(
+            "Compiled with libavcodec %1.%2.%3\n\nCompilation options:").arg(
 			LIBAVCODEC_VERSION_MAJOR).arg(LIBAVCODEC_VERSION_MINOR).arg(
             LIBAVCODEC_VERSION_MICRO));
 
@@ -2058,13 +2059,15 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 	ffmpegInfoDialog->exec();
 
 	delete verticalLayout;
-	delete label;
-	delete label_2;
-	delete availableFormatsTreeWidget;
-	delete availableCodecsTreeWidget;
-	delete buttonBox;
+    delete label;
+    delete label_2;
+    delete label_3;
+    delete options;
+    delete availableFormatsTreeWidget;
+    delete availableCodecsTreeWidget;
+    delete buttonBox;
 
-	delete ffmpegInfoDialog;
+    delete ffmpegInfoDialog;
 }
 
 
@@ -2073,11 +2076,11 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const
 {
 
-	if (ffmpegPixelFormat == PIX_FMT_NONE && video_st)
-		ffmpegPixelFormat = video_st->codec->pix_fmt;
+    if (ffmpegPixelFormat == PIX_FMT_NONE && video_st)
+        ffmpegPixelFormat = video_st->codec->pix_fmt;
 
-	QString pfn(av_pix_fmt_descriptors[ffmpegPixelFormat].name);
-	pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[ffmpegPixelFormat]));
+    QString pfn(av_pix_fmt_descriptors[ffmpegPixelFormat].name);
+    pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[ffmpegPixelFormat]));
 
 	return pfn;
 }

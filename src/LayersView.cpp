@@ -675,6 +675,9 @@ bool LayersView::keyPressEvent ( QKeyEvent * event ){
 
 bool LayersView::keyReleaseEvent(QKeyEvent * event) {
 
+    // default to no action
+    setAction(View::NONE);
+
     if ( currentAction == View::SELECT && !(QApplication::keyboardModifiers() & View::qtMouseModifiers(INPUT_SELECT)) )
         setAction(previousAction);
 

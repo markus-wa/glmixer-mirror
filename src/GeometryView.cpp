@@ -546,16 +546,15 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
 
     Source *cs = getCurrentSource();
 
+    // default to no action
+    setAction(View::NONE);
+
     if ( RenderingManager::getInstance()->getSourceBasketTop() )
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
     else if (currentAction == View::PANNING )
         setAction(previousAction);
-    else if (currentAction != View::SELECT ){
-        if ( cs )
+    else if (cs && currentAction != View::SELECT )
             setAction(View::OVER);
-        else
-            setAction(View::NONE);
-    }
 
     // enforces minimal size ; check that the scaling did not go beyond the limits and fix it
     if ( cs )

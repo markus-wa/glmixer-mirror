@@ -766,6 +766,9 @@ bool MixerView::keyPressEvent ( QKeyEvent * event ){
 
 bool MixerView::keyReleaseEvent(QKeyEvent * event) {
 
+    // default to no action
+    setAction(View::NONE);
+
     if ( currentAction == View::SELECT && !(QApplication::keyboardModifiers() & View::qtMouseModifiers(INPUT_SELECT)) )
         setAction(previousAction);
 
