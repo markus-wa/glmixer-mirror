@@ -42,6 +42,7 @@ extern "C"
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 #include <libavutil/pixdesc.h>
 #endif
+#include <libavfilter/avfilter.h>
 }
 
 #include "VideoFile.h"
@@ -180,8 +181,12 @@ class DecodingThread: public QThread
 public:
     DecodingThread(VideoFile *video = 0) : QThread(), is(video)
 	{
-		// allocate a frame to fill
-		_pFrame = avcodec_alloc_frame();
+        // allocate a frame to fill
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+        _pFrame = avcodec_alloc_frame();
+#else
+        _pFrame = av_frame_alloc();
+#endif
 		Q_CHECK_PTR(_pFrame);
 	}
 	~DecodingThread()
@@ -300,7 +305,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 		avcodec_register_all();
 		av_register_all();
 #ifdef NDEBUG
-		av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
+        av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
 #else
 		av_log_set_level( AV_LOG_DEBUG  ); /* print debug info from ffmpeg */
 #endif
@@ -680,8 +685,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
 	// Change target format to keep Alpha channel if format requires
 	if ( pixelFormatHasAlphaChannel()
-		// this is a fix for some jpeg formats with YUVJ format
-		|| av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h > 0 )
+        // this is a fix for some jpeg formats with YUVJ format
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(56,00,0)
+        || av_pix_fmt_desc_get(video_st->codec->pix_fmt)->log2_chroma_h > 0 )
+#else
+        || av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h > 0 )
+#endif
 	{
 		// special case of PALETTE formats which have ALPHA channel in their colors
 		if (video_st->codec->pix_fmt == PIX_FMT_PAL8) {
@@ -771,7 +780,13 @@ bool VideoFile::pixelFormatHasAlphaChannel() const
 	if (!video_st)
 		return false;
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(56,00,0)
+    return  (av_pix_fmt_desc_get(video_st->codec->pix_fmt)->nb_components > 3)
+            // does the format has ALPHA ?
+            || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_ALPHA )
+            // special case of PALLETE and GREY pixel formats(converters exist for rgba)
+            || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_PAL );
+#elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 	return  (av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3)
 			// special case of PALLETE and GREY pixel formats(converters exist for rgba)
 			|| ( av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL );
@@ -788,8 +803,14 @@ double VideoFile::fill_first_frame(bool seek)
         return mark_in;
 
 	AVPacket pkt1;
-	AVPacket *packet = &pkt1;
+    AVPacket *packet = &pkt1;
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
     AVFrame *tmpframe = avcodec_alloc_frame();
+#else
+    AVFrame *tmpframe = av_frame_alloc();
+#endif
+
     int frameFinished = 0;
     double pts = mark_in;
     int trial = 0;
@@ -892,16 +913,19 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
     codec = avcodec_find_decoder(codecCtx->codec_id);
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-    if (!codec || (avcodec_open2(codecCtx, codec, NULL) < 0))
+    if ( !codec || ( avcodec_open2(codecCtx, codec, NULL) < 0 ))
+    {
+        qWarning() << filename << QChar(124).toLatin1()<< tr("The codec ") << avcodec_descriptor_get(codecCtx->codec_id)->long_name << tr("is not supported.");
+        return -1;
+    }
 #else
     if (!codec || (avcodec_open(codecCtx, codec) < 0))
-#endif
 	{
         qWarning() << filename << QChar(124).toLatin1()<< tr("The codec ") << codecCtx->codec_name
 				<< tr("is not supported.");
 		return -1;
     }
-
+#endif
 
     if ( codec->capabilities & CODEC_CAP_HWACCEL_VDPAU) {
 
@@ -2071,8 +2095,18 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 }
 
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(56,0,0)
+QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const
+{
+    if (ffmpegPixelFormat == AV_PIX_FMT_NONE && video_st)
+        ffmpegPixelFormat = video_st->codec->pix_fmt;
 
+    QString pfn(av_pix_fmt_desc_get(ffmpegPixelFormat)->name);
+    pfn += QString(" (%1 bpp)").arg(av_get_bits_per_pixel( av_pix_fmt_desc_get(ffmpegPixelFormat)) );
+
+    return pfn;
+}
+#elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const
 {
 

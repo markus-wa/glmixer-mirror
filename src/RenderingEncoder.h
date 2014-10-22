@@ -30,6 +30,7 @@
 #include <QTime>
 #include <QString>
 
+#define RECORDING_BUFFER_SIZE 10
 
 extern "C" {
 #include "video_rec.h"
@@ -95,7 +96,7 @@ private:
 	// state machine
 	bool started, paused;
 	QTime timer;
-	int elapseTimer, badframecount;
+    int elapseTimer, skipframecount;
 
 	// encoder
 	QSize framesSize;

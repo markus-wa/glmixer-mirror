@@ -42,10 +42,10 @@ struct video_rec {
 	int width;
 	int height;
 	int fps;
-	int framenum;
+    int framenum;
 	char suffix[6];
 	char description[64];
-	void(*pt2RecordingFunction)(video_rec_t *, void *);
+    void(*pt2RecordingFunction)(video_rec_t *, void *, int);
 	struct encoder *enc;
 	struct converter *conv;
 };
@@ -55,7 +55,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
 int video_rec_stop(video_rec_t *);
 void video_rec_free(video_rec_t *);
 
-void sws_rec_deliver_vframe(video_rec_t *gr, void *data);
-void rec_deliver_vframe(video_rec_t *gr, void *data);
+void sws_rec_deliver_vframe(video_rec_t *gr, void *data, int timestamp);
+void rec_deliver_vframe(video_rec_t *gr, void *data, int timestamp);
 
 #endif // FFVHUFF_REC_H__

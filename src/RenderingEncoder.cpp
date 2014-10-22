@@ -24,7 +24,7 @@ class EncodingThread: public QThread {
 
 public:
 
-	EncodingThread(int bufsize = 10) : QThread(), rec(NULL), period(40), quit(true), pictq_max(bufsize),
+    EncodingThread(int bufsize = RECORDING_BUFFER_SIZE) : QThread(), rec(NULL), period(40), quit(true), pictq_max(bufsize),
 		pictq_size(0), pictq_rindex(0), pictq_windex(0)
 	{
 		pictq = (char **) malloc( pictq_max * sizeof(char *) );
@@ -64,12 +64,16 @@ public:
     		free(pictq[i]);
     }
 
-    void pictq_push(){
+    void pictq_push(int timestamp){
+
+        // store time stamp
+        recordingTimeStamp[pictq_windex] = timestamp;
+
     	// set to write index to next in queue
         if (++pictq_windex == pictq_max)
             pictq_windex = 0;
 		/* now we inform our encoding thread that we have a picture ready */
-        pictq_mutex->lock();
+//        pictq_mutex->lock(); // was locked in pictq_top
         pictq_size++;
         pictq_mutex->unlock();
     }
@@ -78,12 +82,20 @@ public:
     	// wait until we have space for a new picture
 		// (this happens only when the queue is full)
 		pictq_mutex->lock();
-		while (pictq_size >= (pictq_max - 1) && !quit)
-			pictq_cond->wait(pictq_mutex); // the condition is released in run()
-		pictq_mutex->unlock();
+        while ( pictq_full() && !quit)
+            pictq_cond->wait(pictq_mutex); // the condition is released in run()
+//		pictq_mutex->unlock();  // will be unlocked in pictq_push
 
         // Fill the queue with the given picture
         return pictq[pictq_windex];
+    }
+
+    int getLastTimeStamp() {
+        return recordingTimeStamp[pictq_windex];
+    }
+
+    bool pictq_full() {
+        return pictq_size >= (pictq_max - 1);
     }
 
 protected:
@@ -101,6 +113,7 @@ protected:
     // picture queue management
     char** pictq;
     int pictq_max, pictq_size, pictq_rindex, pictq_windex;
+    int recordingTimeStamp[RECORDING_BUFFER_SIZE];
     QTime timer;
 };
 
@@ -127,7 +140,7 @@ void EncodingThread::run() {
 			timer.restart();
 
 			// record the picture to encode by calling the function specified in the recorder
-			(*(rec)->pt2RecordingFunction)(rec, pictq[pictq_rindex]);
+            (*(rec)->pt2RecordingFunction)(rec, pictq[pictq_rindex], recordingTimeStamp[pictq_rindex]);
 
 			/* update queue for next picture at the read index */
 			if (++pictq_rindex == pictq_max)
@@ -140,17 +153,17 @@ void EncodingThread::run() {
 			pictq_cond->wakeAll();
 			pictq_mutex->unlock();
 
-			// how long time remains ?
-			dt = period - (int) timer.elapsed();
-			if (dt > 0 && dt < period)
-				msleep(dt);
+            // how long time remains ?
+            dt = period - (int) timer.elapsed();
+            if (dt > 0 && dt < period)
+                msleep(dt);
 
 		}
 	}
 }
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false),
-													elapseTimer(0), badframecount(0), update(40), displayupdate(33) {
+                                                    elapseTimer(0), skipframecount(0), update(40), displayupdate(33) {
 
 	// set default format
 	temporaryFileName = "__temp__";
@@ -250,7 +263,7 @@ bool RenderingEncoder::start(){
 	if ( fps <  freq ) {
 		 QMessageBox msgBox;
 		 msgBox.setIcon(QMessageBox::Question);
-		 msgBox.setText(tr("Rendering frequency is lower than the requested %1 fps.").arg(freq));
+         msgBox.setText(tr("Rendering frequency is lower than the recording %1 fps.").arg(freq));
 		 msgBox.setInformativeText(tr("Do you still want to record at %1 fps ?").arg(fps));
 		 msgBox.setDetailedText( tr("The rendering is currently at %1 fps on average, but your recording preferences are set to %2 fps.\n\n"
 				 "You can either agree to record at this lower frame rate, or retry later after some optimizations:\n"
@@ -278,16 +291,15 @@ bool RenderingEncoder::start(){
 		return false;
 
 	// init
-	encoder->initialize(recorder, update);
-	badframecount = 0;
+    skipframecount = 0;
+    encoder->initialize(recorder, update);
 	emit selectAspectRatio(RenderingManager::getInstance()->getRenderingAspectRatio());
 
 	// start
     emit status(tr("Start recording."), 1000);
 	timer.start();
 	elapseTimer = startTimer(1000); // emit the duration of recording every second
-	encoder->start();
-	encoder->setPriority(QThread::LowPriority);
+    encoder->start();
 
 	// set status
 	started = true;
@@ -318,22 +330,27 @@ void RenderingEncoder::addFrame(){
 	if (!started || paused || recorder == NULL)
 		return;
 
+    // if the recorder cannot follow
+    if ( encoder->pictq_full() )
+    {
+        // remember amount of skipped frames
+        skipframecount++;
+        // skip the frame
+        return;
+    }
+
 #ifdef USE_GLREADPIXELS
-	// read the pixels from the current frame buffer and store into the temporary buffer queue
-	// (get the pointer to the current writing buffer from the queue of the thread to know where to write)
-	glReadPixels((GLint)0, (GLint)0, (GLint) recorder->width, (GLint) recorder->height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, encoder->pictq_top());
+    // read the pixels from the current frame buffer and store into the temporary buffer queue
+    // (get the pointer to the current writing buffer from the queue of the thread to know where to write)
+    glReadPixels((GLint)0, (GLint)0, (GLint) recorder->width, (GLint) recorder->height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, encoder->pictq_top());
 
 #else
-	// read the pixels from the texture
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, encoder->pictq_top());
+    // read the pixels from the texture
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, encoder->pictq_top());
 #endif
 
-	// inform the thread that a picture was pushed into the queue
-	encoder->pictq_push();
-
-	// increment the bad frame counter each time the frame rate is bellow 80% of the target frame rate
-	if ( RenderingManager::getRenderingWidget()->getFramerate() <  800.0 / double(update) )
-		badframecount++;
+    // inform the thread that a picture was pushed into the queue
+    encoder->pictq_push(timer.elapsed());
 
 }
 
@@ -347,28 +364,28 @@ bool RenderingEncoder::close(){
 	encoder->stop();
 
 	// stop recorder
-	int framecount = video_rec_stop(recorder);
-	int duration = timer.elapsed();
+    int framecount = video_rec_stop(recorder);
 
-	// done
+    // done
 	emit selectAspectRatio(ASPECT_RATIO_FREE);
     emit status(tr("Recorded %1 s").arg(timer.elapsed()/1000), 3000);
 	killTimer(elapseTimer);
 	started = false;
 
 	// show warning if too many frames were bad
-	if ( float(badframecount) / float(framecount) > 0.7f  ) {
+    float percent = float(skipframecount) / float(framecount + skipframecount);
+    if ( percent > 0.1f  ) {
 
 		 QMessageBox msgBox;
 		 msgBox.setIcon(QMessageBox::Warning);
-		 msgBox.setText(tr("The movie has been recorded, but %1 % of the frames were not synchronous.").arg((badframecount * 100) / (framecount)));
-		 msgBox.setInformativeText(tr("Do you still want to save the movie ?"));
-		 msgBox.setDetailedText( tr("This is because the recording frame rate was %1 fps on average instead of the targeted %2 fps.\n\n"
-				 "The consequence is that timing of the movie will be incorrect (play too fast). "
+         msgBox.setText(tr("A movie has been recorded, but %1 % of the frames were skipped.").arg( 100.f * percent ));
+         msgBox.setInformativeText(tr("Do you still want to save it ?"));
+         msgBox.setDetailedText( tr("Only %1 of %2 frames were recorded. "
+                 "Playback of the movie will be jerky.\n"
 				 "To avoid this, change the preferences to:\n"
-				 "- a faster recording codec\n"
-				 "- a lower recording frame rate\n"
-				 "- a lower rendering quality").arg((1000 * framecount)/duration).arg((int) ( 1000.0 / double(update) )) );
+                 " - a lower rendering resolution\n"
+                 " - a lower recording frame rate\n"
+                 " - a faster recording codec (try FFVHUFF)").arg(framecount).arg(framecount + skipframecount));
 
 		 QPushButton *abortButton = msgBox.addButton(QMessageBox::Discard);
 		 msgBox.addButton(tr("Save anyway"), QMessageBox::AcceptRole);

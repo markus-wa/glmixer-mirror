@@ -28,15 +28,16 @@
 #include <libswscale/swscale.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/pixdesc.h>
+#include <libavutil/imgutils.h>
 
 #include "video_rec.h"
 #include <stdio.h>
 
 struct encoder {
-    AVOutputFormat *fmt;
-    AVFormatContext *oc;
-    AVCodecContext *v_ctx;
-    AVStream *v_st;
+    AVOutputFormat *output_format;
+    AVFormatContext *format_context;
+    AVCodecContext *codec_context;
+    AVStream *video_stream;
     void *vbuf_ptr;
     size_t vbuf_size;
 };
@@ -63,74 +64,122 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     rec->fps = fps;
     rec->framenum = 0;
 
-    // setup according to format
-    char f_name[9] = "";
+    // vars defining the format
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,0,0)
     enum CodecID f_codec_id = CODEC_ID_NONE;
-#else
-    enum AVCodecID f_codec_id = CODEC_ID_NONE;
-#endif
     enum PixelFormat f_pix_fmt =  PIX_FMT_NONE;
+#elif LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+    enum AVCodecID f_codec_id = CODEC_ID_NONE;
+    enum PixelFormat f_pix_fmt =  PIX_FMT_NONE;
+#else
+    enum AVCodecID f_codec_id = AV_CODEC_ID_NONE;
+    enum PixelFormat f_pix_fmt =  AV_PIX_FMT_NONE;
+#endif
+
+    // setup codec vars according to selected encoding format
+    char f_name[9] = "";
     switch (f){
+
     case FORMAT_MPG_MPEG1:
         snprintf(f_name, 9, "mpeg");
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
         f_codec_id = CODEC_ID_MPEG1VIDEO;
         f_pix_fmt =  PIX_FMT_YUV420P;
+#else
+        f_codec_id = AV_CODEC_ID_MPEG1VIDEO;
+        f_pix_fmt =  AV_PIX_FMT_YUV420P;
+#endif
         rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
         rec->conv = calloc(1, sizeof(struct converter));
         snprintf(rec->suffix, 6, "mpg");
         snprintf(rec->description, 64, "MPEG Video (*.mpg *.mpeg)");
         break;
+
     case FORMAT_WMV_WMV2:
         snprintf(f_name, 9, "avi");
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
         f_codec_id = CODEC_ID_WMV2;
         f_pix_fmt =  PIX_FMT_YUV420P;
+#else
+        f_codec_id = AV_CODEC_ID_WMV2;
+        f_pix_fmt =  AV_PIX_FMT_YUV420P;
+#endif
         rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
         rec->conv = calloc(1, sizeof(struct converter));
         snprintf(rec->suffix, 6, "wmv");
         snprintf(rec->description, 64, "Windows Media Video (*.wmv)");
         break;
+
     case FORMAT_FLV_FLV1:
         snprintf(f_name, 9, "flv");
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
         f_codec_id = CODEC_ID_FLV1;
         f_pix_fmt =  PIX_FMT_YUV420P;
+#else
+        f_codec_id = AV_CODEC_ID_FLV1;
+        f_pix_fmt =  AV_PIX_FMT_YUV420P;
+#endif
         rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
         rec->conv = calloc(1, sizeof(struct converter));
         snprintf(rec->suffix, 6, "flv");
         snprintf(rec->description, 64, "Flash Video (*.flv)");
         break;
+
     case FORMAT_MP4_MPEG4:
         snprintf(f_name, 9, "mp4");
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
         f_codec_id = CODEC_ID_MPEG4;
         f_pix_fmt =  PIX_FMT_YUV420P;
+#else
+        f_codec_id = AV_CODEC_ID_MPEG4;
+        f_pix_fmt =  AV_PIX_FMT_YUV420P;
+#endif
         rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
         rec->conv = calloc(1, sizeof(struct converter));
         snprintf(rec->suffix, 6, "mp4");
         snprintf(rec->description, 64, "MPEG 4 Video (*.mp4)");
         break;
+
     case FORMAT_MPG_MPEG2:
         snprintf(f_name, 9, "mpeg");
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
         f_codec_id = CODEC_ID_MPEG2VIDEO;
         f_pix_fmt =  PIX_FMT_YUV420P;
+#else
+        f_codec_id = AV_CODEC_ID_MPEG2VIDEO;
+        f_pix_fmt =  AV_PIX_FMT_YUV420P;
+#endif
         rec->pt2RecordingFunction = &sws_rec_deliver_vframe;
         rec->conv = calloc(1, sizeof(struct converter));
         snprintf(rec->suffix, 6, "mpg");
         snprintf(rec->description, 64, "MPEG Video (*.mpg *.mpeg)");
         break;
+
     case FORMAT_AVI_FFVHUFF:
         snprintf(f_name, 9, "avi");
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
         f_codec_id = CODEC_ID_FFVHUFF;
         f_pix_fmt =  PIX_FMT_BGRA;
+#else
+        f_codec_id = AV_CODEC_ID_FFVHUFF;
+        f_pix_fmt =  AV_PIX_FMT_BGRA;
+#endif
         rec->pt2RecordingFunction = &rec_deliver_vframe;
         rec->conv = NULL;
         snprintf(rec->suffix, 6, "avi");
         snprintf(rec->description, 64, "AVI Video (*.avi)");
         break;
+
     default:
     case FORMAT_AVI_RAW:
         snprintf(f_name, 9, "avi");
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
         f_codec_id = CODEC_ID_RAWVIDEO;
         f_pix_fmt =  PIX_FMT_BGRA;
+#else
+        f_codec_id = AV_CODEC_ID_RAWVIDEO;
+        f_pix_fmt =  AV_PIX_FMT_BGRA;
+#endif
         rec->pt2RecordingFunction = &rec_deliver_vframe;
         rec->conv = NULL;
         snprintf(rec->suffix, 6, "avi");
@@ -146,20 +195,16 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     avcodec_register_all();
 
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,60,0)
-    rec->enc->fmt = guess_stream_format(f_name, NULL, NULL);
+    rec->enc->output_format = guess_stream_format(f_name, NULL, NULL);
 #else
-    rec->enc->fmt = av_guess_format(f_name, NULL, NULL);
+    rec->enc->output_format = av_guess_format(f_name, NULL, NULL);
 #endif
 
-    if(rec->enc->fmt == NULL) {
+    if(rec->enc->output_format == NULL) {
         snprintf(errormessage, 256, "File format %s not supported.\nUnable to start recording %s.", f_name, filename);
         video_rec_free(rec);
         return NULL;
     }
-
-    rec->enc->oc = avformat_alloc_context();
-    rec->enc->oc->oformat = rec->enc->fmt;
-    snprintf(rec->enc->oc->filename, sizeof(rec->enc->oc->filename), "%s", filename);
 
     // find encoder AVCodec
     c = avcodec_find_encoder(f_codec_id);
@@ -169,32 +214,50 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
         return NULL;
     }
 
+    rec->enc->format_context = avformat_alloc_context();
+    rec->enc->format_context->oformat = rec->enc->output_format;
+    snprintf(rec->enc->format_context->filename, sizeof(rec->enc->format_context->filename), "%s", filename);
+
     // create the stream for this encoder
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-    rec->enc->v_st = avformat_new_stream(rec->enc->oc, c);
+    rec->enc->video_stream = avformat_new_stream(rec->enc->format_context, c);
 #else
-    rec->enc->v_st = av_new_stream(rec->enc->oc, 0);
+    rec->enc->video_stream = av_new_stream(rec->enc->format_context, 0);
 #endif
-    rec->enc->v_ctx = rec->enc->v_st->codec;
+
+    if (!rec->enc->video_stream) {
+        snprintf(errormessage, 256, "Could not create stream.\nUnable to record to %s.", filename);
+        return NULL;
+    }
+
+    // set time base for the stream
+    rec->enc->video_stream->time_base = (AVRational){1,fps};;
+
+    // get codec context
+    rec->enc->codec_context = rec->enc->video_stream->codec;
 
     // options for AVCodecContext
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-    rec->enc->v_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
+    rec->enc->codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
 #else
-    rec->enc->v_ctx->codec_type = CODEC_TYPE_VIDEO;
+    rec->enc->codec_context->codec_type = CODEC_TYPE_VIDEO;
 #endif
-    rec->enc->v_ctx->codec_id = f_codec_id;
-    rec->enc->v_ctx->width = width;
-    rec->enc->v_ctx->height = height;
-    rec->enc->v_ctx->time_base.den = fps;
-    //	rec->enc->v_ctx->bit_rate = width*height*4*fps;  // useless ?
-    rec->enc->v_ctx->time_base.num = 1;
-    rec->enc->v_ctx->pix_fmt = f_pix_fmt;
-    rec->enc->v_ctx->coder_type = 1;
+    rec->enc->codec_context->codec_id = f_codec_id;
+    rec->enc->codec_context->pix_fmt = f_pix_fmt;
+    rec->enc->codec_context->width = width;
+    rec->enc->codec_context->height = height;
+    rec->enc->codec_context->flags = CODEC_FLAG_GLOBAL_HEADER;
+    rec->enc->codec_context->time_base = (AVRational){1,fps};
+    rec->enc->codec_context->gop_size = fps / 2;
+    rec->enc->codec_context->coder_type = 1;
+    rec->enc->codec_context->bit_rate = width * height * 4;
+    rec->enc->codec_context->rc_buffer_size = 1000000;
+    rec->enc->codec_context->rc_max_rate = 9800000; // classic 9800 kb/s DVD
+
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,0,0)
-    if(avcodec_open(rec->enc->v_ctx, c) < 0) {
-        snprintf(errormessage, 256, "Cannot open video codec %s (at %d fps).\nUnable to start recording.", c->name, rec->enc->v_ctx->time_base.den);
+    if(avcodec_open(rec->enc->codec_context, c) < 0) {
+        snprintf(errormessage, 256, "Cannot open video codec %s (at %d fps).\nUnable to start recording.", c->name, rec->enc->codec_context->time_base.den);
         video_rec_free(rec);
         return NULL;
     }
@@ -209,7 +272,9 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     av_dict_set(&codec_opts, "height", buf, 0);
     av_dict_set(&codec_opts, "codec_type", "AVMEDIA_TYPE_VIDEO", 0);
     av_dict_set(&codec_opts, "pix_fmt", av_get_pix_fmt_name(f_pix_fmt), 0 );
-    if (avcodec_open2(rec->enc->v_ctx, c, &codec_opts) < 0) {
+    av_dict_set(&codec_opts, "preset", "ultrafast", 0);
+
+    if (avcodec_open2(rec->enc->codec_context, c, &codec_opts) < 0) {
         snprintf(errormessage, 256, "Cannot open video codec %s (at %d fps).\nUnable to start recording. \n%s", c->name, fps, av_get_pix_fmt_name( f_pix_fmt ));
         video_rec_free(rec);
         return NULL;
@@ -217,9 +282,9 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
 #endif
 
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
-    if(url_fopen(&rec->enc->oc->pb, filename, URL_WRONLY) < 0) {
+    if(url_fopen(&rec->enc->format_context->pb, filename, URL_WRONLY) < 0) {
 #else
-    if(avio_open(&rec->enc->oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
+    if(avio_open(&rec->enc->format_context->pb, filename, AVIO_FLAG_WRITE) < 0) {
 #endif
         snprintf(errormessage, 256, "Cannot create temporary file %s.\nUnable to start recording.", filename);
         video_rec_free(rec);
@@ -228,27 +293,30 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
 
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,0,0)
-    av_write_header(rec->enc->oc);
+    av_write_header(rec->enc->format_context);
 #else
-    avformat_write_header(rec->enc->oc, NULL);
+    avformat_write_header(rec->enc->format_context, NULL);
 #endif
     // if converter was created, we will need it !
     if (rec->conv != NULL) {
         // create picture bufffer and frame to store converted YUV image
-        int size = rec->enc->v_ctx->width * rec->enc->v_ctx->height;
+        int size = rec->enc->codec_context->width * rec->enc->codec_context->height;
         rec->conv->picture_buf = (uint8_t *) malloc((size * 3) / 2); /* size for YUV 420 */
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
         rec->conv->picture= avcodec_alloc_frame();
+#else
+        rec->conv->picture= av_frame_alloc();
+#endif
         rec->conv->picture->data[0] = rec->conv->picture_buf;
         rec->conv->picture->data[1] = rec->conv->picture->data[0] + size;
         rec->conv->picture->data[2] = rec->conv->picture->data[1] + size / 4;
-        rec->conv->picture->linesize[0] = rec->enc->v_ctx->width;
-        rec->conv->picture->linesize[1] = rec->enc->v_ctx->width / 2;
-        rec->conv->picture->linesize[2] = rec->enc->v_ctx->width / 2;
+        rec->conv->picture->linesize[0] = rec->enc->codec_context->width;
+        rec->conv->picture->linesize[1] = rec->enc->codec_context->width / 2;
+        rec->conv->picture->linesize[2] = rec->enc->codec_context->width / 2;
 
         // create conversion context
-        rec->conv->img_convert_ctx = sws_getCachedContext(NULL, rec->width, rec->height, PIX_FMT_BGRA,
-                                                          rec->enc->v_ctx->width, rec->enc->v_ctx->height, f_pix_fmt,
-                                                          SWS_POINT, NULL, NULL, NULL);
+        rec->conv->img_convert_ctx = sws_getCachedContext(NULL, rec->width, rec->height, PIX_FMT_BGRA, rec->enc->codec_context->width, rec->enc->codec_context->height, f_pix_fmt, SWS_POINT, NULL, NULL, NULL);
         if (rec->conv->img_convert_ctx == NULL){
             snprintf(errormessage, 256, "Could not create conversion context.\nUnable to record to %s.", filename);
             video_rec_free(rec);
@@ -256,9 +324,17 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
         }
 
     }
+
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
     // encoder buffer : sized to fit the maximum resolution and frame rate.
     rec->enc->vbuf_size = 20000000;
     rec->enc->vbuf_ptr = av_malloc(rec->enc->vbuf_size);
+#else
+    // do not need buffer
+    rec->enc->vbuf_size = 0;
+    rec->enc->vbuf_ptr = 0;
+#endif
 
     return rec;
 }
@@ -271,18 +347,18 @@ int video_rec_stop(video_rec_t *rec)
         return 0;
 
     // end file
-    av_write_trailer(rec->enc->oc);
-    // close file
+    av_write_trailer(rec->enc->format_context);
 
+    // close file
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52,80,0)
-    url_fclose(rec->enc->oc->pb);
+    url_fclose(rec->enc->format_context->pb);
 #else
-    avio_close(rec->enc->oc->pb);
+    avio_close(rec->enc->format_context->pb);
 #endif
 
     int i = 0;
-    for(; i < rec->enc->oc->nb_streams; i++) {
-        AVStream *st = rec->enc->oc->streams[i];
+    for(; i < rec->enc->format_context->nb_streams; i++) {
+        AVStream *st = rec->enc->format_context->streams[i];
         avcodec_close(st->codec);
         av_free(st->codec);
         av_free(st);
@@ -295,8 +371,8 @@ void video_rec_free(video_rec_t *rec)
 {
     if (rec) {
         // free data structures
-        if (rec->enc->oc)
-            av_free(rec->enc->oc);
+        if (rec->enc->format_context)
+            av_free(rec->enc->format_context);
         if (rec->enc->vbuf_ptr)
             av_free(rec->enc->vbuf_ptr);
         if (rec->enc)
@@ -312,51 +388,72 @@ void video_rec_free(video_rec_t *rec)
     }
 }
 
-void rec_deliver_vframe(video_rec_t *rec, void *data)
+void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 {
     int r;
     AVPacket pkt;
+    av_init_packet(&pkt);
+    pkt.data = NULL;
+    pkt.size = 0;
 
     AVFrame frame;
     memset(&frame, 0, sizeof(frame));
     int linesize = rec->width * 4;
     frame.data[0] = data + linesize * (rec->height - 1);
     frame.linesize[0] = -linesize;
-    frame.pts = 1000000LL * rec->framenum / rec->fps;
 
-    r = avcodec_encode_video(rec->enc->v_ctx, rec->enc->vbuf_ptr, rec->enc->vbuf_size, &frame);
+    // one more frame !
+    rec->framenum++;
+
+    // compute pts from time given
+    frame.pts = av_rescale( (int64_t) timestamp, AV_TIME_BASE, 1000);
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+    r = avcodec_encode_video(rec->enc->codec_context, rec->enc->vbuf_ptr, rec->enc->vbuf_size, &frame);
     if(r == 0)
         return;
+    pkt.stream_index = rec->enc->video_stream->index;
+    pkt.data = rec->enc->vbuf_ptr;
+    pkt.size = r;
+#else
 
-    av_init_packet(&pkt);
+    int got_output = 0;
+    r = avcodec_encode_video2(rec->enc->codec_context, &pkt, &frame, &got_output);
+    if(r < 0 || got_output == 0)
+        return;
+#endif
 
-    if(rec->enc->v_ctx->coded_frame->pts != AV_NOPTS_VALUE)
-        pkt.pts = av_rescale_q(rec->enc->v_ctx->coded_frame->pts,  AV_TIME_BASE_Q, rec->enc->v_st->time_base);
+    // set the presentation time stamp (pts)
+    if(rec->enc->codec_context->coded_frame->pts != AV_NOPTS_VALUE)
+        pkt.pts = rec->enc->codec_context->coded_frame->pts;
+    else
+        pkt.pts = frame.pts;
+    pkt.pts = av_rescale_q(pkt.pts, AV_TIME_BASE_Q, rec->enc->video_stream->time_base);
 
-    if(rec->enc->v_ctx->coded_frame->key_frame)
+    // set the decoding time stamp
+    pkt.dts = pkt.pts;
+
+    if(rec->enc->codec_context->coded_frame->key_frame)
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
         pkt.flags |= AV_PKT_FLAG_KEY;
 #else
-    pkt.flags |= PKT_FLAG_KEY;
+        pkt.flags |= PKT_FLAG_KEY;
 #endif
 
-    pkt.stream_index = rec->enc->v_st->index;
-    pkt.data = rec->enc->vbuf_ptr;
-    pkt.size = r;
-
-    r = av_interleaved_write_frame(rec->enc->oc, &pkt);
+    r = av_interleaved_write_frame(rec->enc->format_context, &pkt);
     if(r < 0)
         return;
 
-    // one more frame done !
-    rec->framenum++;
 }
 
 
-void sws_rec_deliver_vframe(video_rec_t *rec, void *data)
+void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 {
     int r;
     AVPacket pkt;
+    av_init_packet(&pkt);
+    pkt.data = NULL;
+    pkt.size = 0;
 
     AVPicture frame;
     memset(&frame, 0, sizeof(frame));
@@ -366,34 +463,50 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data)
 
     // convert buffer to avcodec frame
     sws_scale(rec->conv->img_convert_ctx, (const uint8_t * const*)frame.data, frame.linesize, 0, rec->height, rec->conv->picture->data, rec->conv->picture->linesize);
-    rec->conv->picture->pts = 1000000LL * rec->framenum / rec->fps;
 
-    r = avcodec_encode_video(rec->enc->v_ctx, rec->enc->vbuf_ptr, rec->enc->vbuf_size, rec->conv->picture);
+    // one more frame !
+    rec->framenum++;
+
+    // compute pts from time given
+    rec->conv->picture->pts = av_rescale( (int64_t) timestamp, AV_TIME_BASE, 1000);
+
+//    fprintf(stderr, "timestamp %ld  index %d", rec->conv->picture->pts, (AV_TIME_BASE * rec->framenum) / rec->fps );
+
+    // encode the frame in a packet
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+    r = avcodec_encode_video(rec->enc->codec_context, rec->enc->vbuf_ptr, rec->enc->vbuf_size, rec->conv->picture);
     if(r == 0)
         return;
+    pkt.stream_index = rec->enc->video_stream->index;
+    pkt.data = rec->enc->vbuf_ptr;
+    pkt.size = r;
+#else
+    int got_output = 0;
+    r = avcodec_encode_video2(rec->enc->codec_context, &pkt, rec->conv->picture, &got_output);
+    if(r < 0 || got_output == 0)
+        return;
+#endif
 
-    av_init_packet(&pkt);
+    // set the presentation time stamp (pts)
+    if(rec->enc->codec_context->coded_frame->pts != AV_NOPTS_VALUE)
+        pkt.pts = rec->enc->codec_context->coded_frame->pts;
+    else
+        pkt.pts = rec->conv->picture->pts;
+    pkt.pts = av_rescale_q(pkt.pts, AV_TIME_BASE_Q, rec->enc->video_stream->time_base);
 
-    if(rec->enc->v_ctx->coded_frame->pts != AV_NOPTS_VALUE)
-        pkt.pts = av_rescale_q(rec->enc->v_ctx->coded_frame->pts,  AV_TIME_BASE_Q, rec->enc->v_st->time_base);
+    // set the decoding time stamp
+    pkt.dts = pkt.pts;
 
-    if(rec->enc->v_ctx->coded_frame->key_frame)
+    if(rec->enc->codec_context->coded_frame->key_frame)
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
         pkt.flags |= AV_PKT_FLAG_KEY;
 #else
-    pkt.flags |= PKT_FLAG_KEY;
+        pkt.flags |= PKT_FLAG_KEY;
 #endif
 
-    pkt.stream_index = rec->enc->v_st->index;
-    pkt.data = rec->enc->vbuf_ptr;
-    pkt.size = r;
-
-    r = av_interleaved_write_frame(rec->enc->oc, &pkt);
+    r = av_interleaved_write_frame(rec->enc->format_context, &pkt);
     if(r < 0)
         return;
-
-    // one more frame done !
-    rec->framenum++;
 
 }
 
