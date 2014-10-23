@@ -46,8 +46,10 @@ public:
     	rec = recorder;
     	period =  update;
     	// allocate buffer
-    	for (int i = 0; i < pictq_max; ++i)
+        for (int i = 0; i < pictq_max; ++i) {
     		pictq[i] = (char *) malloc(rec->width * rec->height * 4);
+            recordingTimeStamp[i] = 0;
+        }
     	// init variables
     	pictq_size = pictq_rindex = pictq_windex = 0;
     }
@@ -90,13 +92,10 @@ public:
         return pictq[pictq_windex];
     }
 
-    int getLastTimeStamp() {
-        return recordingTimeStamp[pictq_windex];
-    }
-
     bool pictq_full() {
         return pictq_size >= (pictq_max - 1);
     }
+
 
 protected:
     void run();
@@ -257,6 +256,11 @@ bool RenderingEncoder::start(){
 
 	// compute desired update frequency
 	int freq = (int) ( 1000.0 / double(update) );
+
+    // adjust update to match the fps
+    update = (int) ( 1000.0 / double(freq));
+
+    // read current frame rate
 	int fps = RenderingManager::getRenderingWidget()->getFramerate();
 
 	// show warning if frame rate is already too low
@@ -281,8 +285,10 @@ bool RenderingEncoder::start(){
 		 freq = fps;
 	}
 
-	// setup update period for recording
+    // remember current update display period
 	displayupdate = glRenderWidget::updatePeriod();
+
+    // setup new display update period to match recording update
 	glRenderWidget::setUpdatePeriod( update );
 
 	// initialization of ffmpeg recorder
@@ -303,7 +309,7 @@ bool RenderingEncoder::start(){
 
 	// set status
 	started = true;
-    qDebug() << tr("Recording started (%1).").arg(recorder->suffix);
+    qDebug() << temporaryFolder.absoluteFilePath(temporaryFileName) << QChar(124).toLatin1()  << tr("Recording started (%1 at %2 fps).").arg(recorder->suffix).arg(freq);
 
 	return true;
 }
@@ -335,6 +341,7 @@ void RenderingEncoder::addFrame(){
     {
         // remember amount of skipped frames
         skipframecount++;
+
         // skip the frame
         return;
     }
@@ -367,14 +374,15 @@ bool RenderingEncoder::close(){
     int framecount = video_rec_stop(recorder);
 
     // done
+    float duration = (float) timer.elapsed() / 1000.0;
 	emit selectAspectRatio(ASPECT_RATIO_FREE);
-    emit status(tr("Recorded %1 s").arg(timer.elapsed()/1000), 3000);
+    emit status(tr("Recorded %1 s").arg(duration), 3000);
 	killTimer(elapseTimer);
 	started = false;
 
 	// show warning if too many frames were bad
     float percent = float(skipframecount) / float(framecount + skipframecount);
-    if ( percent > 0.1f  ) {
+    if ( percent > 0.05f  ) {
 
 		 QMessageBox msgBox;
 		 msgBox.setIcon(QMessageBox::Warning);
@@ -395,6 +403,8 @@ bool RenderingEncoder::close(){
 		     return false;
 		 }
 	}
+
+    qDebug() << tr("Recording finished (%1 frames, %2 s).").arg(framecount).arg(duration);
 
 	return true;
 }
@@ -431,7 +441,7 @@ void RenderingEncoder::saveFile(){
 	// move the temporaryFileName to newFileName
 	temporaryFolder.rename(temporaryFileName, infoFileDestination.absoluteFilePath());
 	emit status(tr("File %1 saved.").arg(infoFileDestination.absoluteFilePath()), 2000);
-    qDebug() << infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("Recording saved.");
+    qDebug() << infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("File saved.");
 }
 
 void RenderingEncoder::saveFileAs(){

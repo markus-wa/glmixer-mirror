@@ -237,10 +237,10 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     rec->enc->codec_context = rec->enc->video_stream->codec;
 
     // options for AVCodecContext
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-    rec->enc->codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
-#else
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,0,0)
     rec->enc->codec_context->codec_type = CODEC_TYPE_VIDEO;
+#else
+    rec->enc->codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
 #endif
     rec->enc->codec_context->codec_id = f_codec_id;
     rec->enc->codec_context->pix_fmt = f_pix_fmt;
@@ -250,9 +250,32 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     rec->enc->codec_context->time_base = (AVRational){1,fps};
     rec->enc->codec_context->gop_size = fps / 2;
     rec->enc->codec_context->coder_type = 1;
-    rec->enc->codec_context->bit_rate = width * height * 4;
-    rec->enc->codec_context->rc_buffer_size = 1000000;
-    rec->enc->codec_context->rc_max_rate = 9800000; // classic 9800 kb/s DVD
+    // multithreaded encoding is much faster :)
+    rec->enc->codec_context->thread_count = 2;
+    // bit_rate is measured in units of 400 bits/second, rounded upwards
+    rec->enc->codec_context->bit_rate = (width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(f_pix_fmt)) * (fps+1)) / 400;
+    // classic 9.8 Mb/s for DVD
+    rec->enc->codec_context->rc_max_rate = 9800000;
+    // compute VBV buffer size ( snipet from mpegvideo_enc.c in ffmpeg )
+    switch(f_codec_id) {
+    case AV_CODEC_ID_MPEG1VIDEO:
+    case AV_CODEC_ID_MPEG2VIDEO:
+        rec->enc->codec_context->rc_buffer_size = FFMAX(rec->enc->codec_context->rc_max_rate, 15000000) * 112L / 15000000 * 16384;
+        break;
+    case AV_CODEC_ID_MPEG4:
+        if       (rec->enc->codec_context->rc_max_rate >= 15000000) {
+            rec->enc->codec_context->rc_buffer_size = 320 + (rec->enc->codec_context->rc_max_rate - 15000000L) * (760-320) / (38400000 - 15000000);
+        } else if(rec->enc->codec_context->rc_max_rate >=  2000000) {
+            rec->enc->codec_context->rc_buffer_size =  80 + (rec->enc->codec_context->rc_max_rate -  2000000L) * (320- 80) / (15000000 -  2000000);
+        } else if(rec->enc->codec_context->rc_max_rate >=   384000) {
+            rec->enc->codec_context->rc_buffer_size =  40 + (rec->enc->codec_context->rc_max_rate -   384000L) * ( 80- 40) / ( 2000000 -   384000);
+        } else
+            rec->enc->codec_context->rc_buffer_size = 40;
+        rec->enc->codec_context->rc_buffer_size *= 16384;
+        break;
+    default:
+        rec->enc->codec_context->rc_buffer_size =  0;
+    }
 
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,0,0)
@@ -262,19 +285,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
         return NULL;
     }
 #else
-    AVDictionary *codec_opts = NULL;
-    // parameters given
-    snprintf(buf, sizeof(buf), "%d/%d", 1, fps);
-    av_dict_set(&codec_opts, "time_base", buf, 0);
-    snprintf(buf, sizeof(buf), "%d", width);
-    av_dict_set(&codec_opts, "width", buf, 0);
-    snprintf(buf, sizeof(buf), "%d", height);
-    av_dict_set(&codec_opts, "height", buf, 0);
-    av_dict_set(&codec_opts, "codec_type", "AVMEDIA_TYPE_VIDEO", 0);
-    av_dict_set(&codec_opts, "pix_fmt", av_get_pix_fmt_name(f_pix_fmt), 0 );
-    av_dict_set(&codec_opts, "preset", "ultrafast", 0);
-
-    if (avcodec_open2(rec->enc->codec_context, c, &codec_opts) < 0) {
+    if (avcodec_open2(rec->enc->codec_context, c, NULL) < 0) {
         snprintf(errormessage, 256, "Cannot open video codec %s (at %d fps).\nUnable to start recording. \n%s", c->name, fps, av_get_pix_fmt_name( f_pix_fmt ));
         video_rec_free(rec);
         return NULL;
@@ -431,7 +442,7 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     pkt.pts = av_rescale_q(pkt.pts, AV_TIME_BASE_Q, rec->enc->video_stream->time_base);
 
     // set the decoding time stamp
-    pkt.dts = pkt.pts;
+    pkt.dts = pkt.pts - 1;
 
     if(rec->enc->codec_context->coded_frame->key_frame)
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
@@ -470,8 +481,6 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     // compute pts from time given
     rec->conv->picture->pts = av_rescale( (int64_t) timestamp, AV_TIME_BASE, 1000);
 
-//    fprintf(stderr, "timestamp %ld  index %d", rec->conv->picture->pts, (AV_TIME_BASE * rec->framenum) / rec->fps );
-
     // encode the frame in a packet
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
     r = avcodec_encode_video(rec->enc->codec_context, rec->enc->vbuf_ptr, rec->enc->vbuf_size, rec->conv->picture);
@@ -489,13 +498,12 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 
     // set the presentation time stamp (pts)
     if(rec->enc->codec_context->coded_frame->pts != AV_NOPTS_VALUE)
-        pkt.pts = rec->enc->codec_context->coded_frame->pts;
+        pkt.pts = av_rescale_q_rnd(rec->enc->codec_context->coded_frame->pts, AV_TIME_BASE_Q, rec->enc->video_stream->time_base, AV_ROUND_UP);
     else
-        pkt.pts = rec->conv->picture->pts;
-    pkt.pts = av_rescale_q(pkt.pts, AV_TIME_BASE_Q, rec->enc->video_stream->time_base);
+        pkt.pts = av_rescale_q_rnd(rec->conv->picture->pts, AV_TIME_BASE_Q, rec->enc->video_stream->time_base, AV_ROUND_UP);
 
     // set the decoding time stamp
-    pkt.dts = pkt.pts;
+    pkt.dts = pkt.pts - 1;
 
     if(rec->enc->codec_context->coded_frame->key_frame)
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
