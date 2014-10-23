@@ -389,7 +389,7 @@ bool RenderingEncoder::close(){
          msgBox.setText(tr("A movie has been recorded, but %1 % of the frames were skipped.").arg( 100.f * percent ));
          msgBox.setInformativeText(tr("Do you still want to save it ?"));
          msgBox.setDetailedText( tr("Only %1 of %2 frames were recorded. "
-                 "Playback of the movie will be jerky.\n"
+                 "Playback of the movie might be jerky.\n"
 				 "To avoid this, change the preferences to:\n"
                  " - a lower rendering resolution\n"
                  " - a lower recording frame rate\n"
@@ -404,7 +404,7 @@ bool RenderingEncoder::close(){
 		 }
 	}
 
-    qDebug() << tr("Recording finished (%1 frames, %2 s).").arg(framecount).arg(duration);
+    qDebug() << tr("Recording finished (%1 frames in %2 s).").arg(framecount).arg(duration);
 
 	return true;
 }

@@ -53,7 +53,6 @@ struct converter {
 video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, int height, int fps, char *errormessage)
 {
     AVCodec *c = NULL;
-    char buf[1024];
 
     video_rec_t *rec = calloc(1, sizeof(video_rec_t));
     rec->enc = calloc(1, sizeof(struct encoder));
@@ -436,10 +435,9 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 
     // set the presentation time stamp (pts)
     if(rec->enc->codec_context->coded_frame->pts != AV_NOPTS_VALUE)
-        pkt.pts = rec->enc->codec_context->coded_frame->pts;
+        pkt.pts = av_rescale_q_rnd(rec->enc->codec_context->coded_frame->pts, AV_TIME_BASE_Q, rec->enc->video_stream->time_base, AV_ROUND_UP);
     else
-        pkt.pts = frame.pts;
-    pkt.pts = av_rescale_q(pkt.pts, AV_TIME_BASE_Q, rec->enc->video_stream->time_base);
+        pkt.pts = av_rescale_q_rnd(frame.pts, AV_TIME_BASE_Q, rec->enc->video_stream->time_base, AV_ROUND_UP);
 
     // set the decoding time stamp
     pkt.dts = pkt.pts - 1;
