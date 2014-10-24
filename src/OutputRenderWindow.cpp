@@ -272,9 +272,6 @@ void OutputRenderWindow::setFullScreen(bool on) {
     // this is valid only for WINDOW widgets
     if ( windowFlags().testFlag(Qt::Window) ) {
 
-        // it is required to hide the window before in order to avoid the bug of auto-maximization of window
-        hide();
-
         // discard non-changing state (NOT XOR)
         if ( !(on ^ (windowState() & Qt::WindowFullScreen)) )
             return;
@@ -289,6 +286,9 @@ void OutputRenderWindow::setFullScreen(bool on) {
         }
         else
         {
+            // it is required to hide the window before in order to avoid the bug of auto-maximization of window
+            hide();
+            // appy normal window state
             setWindowState( Qt::WindowNoState | Qt::WindowActive);
             // use saved & previous window geometry otherwise
             setGeometry( windowGeometry );
