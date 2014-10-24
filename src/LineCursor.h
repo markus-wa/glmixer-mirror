@@ -47,6 +47,7 @@ public:
 	bool apply(double fpsaverage);
 	bool wheelEvent(QWheelEvent * event);
 	void draw(GLint viewport[4]);
+    void setParameter(float percent);
 
 	inline int getSpeed() const { return (int) speed; }
 	inline double getWaitTime() const { return waitTime; }

@@ -69,6 +69,14 @@ bool FuzzyCursor::wheelEvent(QWheelEvent * event){
 	return true;
 }
 
+
+void FuzzyCursor::setParameter(float percent){
+
+    radius = MIN_RADIUS + (MAX_RADIUS - MIN_RADIUS) * (percent-0.1);
+
+    emit radiusChanged((int)radius);
+}
+
 void FuzzyCursor::setFiltering(int p){
 
 	emaexp = 2.0 / double( qMax(p, 1) + 1);

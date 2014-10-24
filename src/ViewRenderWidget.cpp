@@ -800,6 +800,16 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
     }
 }
 
+
+void ViewRenderWidget::tabletEvent ( QTabletEvent * event )
+{
+    if (cursorEnabled)
+        _currentCursor->setParameter(event->pressure());
+
+    event->ignore();
+}
+
+
 void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
 {
     makeCurrent();

@@ -91,6 +91,13 @@ bool SpringCursor::wheelEvent(QWheelEvent * event){
 }
 
 
+void SpringCursor::setParameter(float percent){
+
+    mass = MIN_MASS + (MAX_MASS - MIN_MASS) * percent;
+
+    emit massChanged((int)mass);
+}
+
 void SpringCursor::draw(GLint viewport[4]) {
 
 	glMatrixMode(GL_PROJECTION);

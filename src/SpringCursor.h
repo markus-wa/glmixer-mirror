@@ -44,7 +44,8 @@ public:
 	void update(QMouseEvent *e);
 	bool apply(double fpsaverage);
 	bool wheelEvent(QWheelEvent * event);
-	void draw(GLint viewport[4]);
+    void draw(GLint viewport[4]);
+    void setParameter(float percent);
 
 	inline int getMass() const { return (int)mass; }
 

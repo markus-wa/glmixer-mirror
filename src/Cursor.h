@@ -102,6 +102,8 @@ public:
 		return false;
 	}
 
+    virtual void setParameter(float percent) {};
+
 	inline bool isActive() const { return active; }
 
 protected:

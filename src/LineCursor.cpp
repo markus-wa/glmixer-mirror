@@ -99,6 +99,13 @@ bool LineCursor::wheelEvent(QWheelEvent * event){
 }
 
 
+void LineCursor::setParameter(float percent){
+
+    speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * (percent-0.1);
+
+    emit speedChanged((int)speed);
+}
+
 void LineCursor::draw(GLint viewport[4]) {
 //	glDisable(GL_TEXTURE_2D);
 	glMatrixMode(GL_PROJECTION);
