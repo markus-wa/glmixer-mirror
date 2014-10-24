@@ -165,7 +165,7 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(f
                                                     elapseTimer(0), skipframecount(0), update(40), displayupdate(33) {
 
 	// set default format
-	temporaryFileName = "__temp__";
+    temporaryFileName = "__temp__";
 	setEncodingFormat(FORMAT_AVI_FFVHUFF);
     // init file saving
 	setAutomaticSavingMode(false);
@@ -193,14 +193,14 @@ void RenderingEncoder::setActive(bool on)
 	if (on) {
 		if (!start())
             qCritical() << tr("Error starting video recording; ") << errormessage;
-	} else {
+    } else {
 		if (close()) {
 			if (automaticSaving)
 				saveFile();
 			else
 				saveFileAs();
-		}
-		video_rec_free(recorder);
+        }
+        video_rec_free(recorder);
 	}
 
 	// restore former display update period
@@ -416,9 +416,9 @@ void RenderingEncoder::setAutomaticSavingMode(bool on) {
 
 	// ensure the temporary file is in the same folder as the destination file
 	// to avoid copy (rename) of file accross drives
-	if (automaticSaving)
-		temporaryFolder = savingFolder;
-	else
+    if (automaticSaving)
+        temporaryFolder = savingFolder;
+    else
 		temporaryFolder = QDir::temp();
 
 }
@@ -433,15 +433,18 @@ void RenderingEncoder::setAutomaticSavingFolder(QDir d) {
 
 void RenderingEncoder::saveFile(){
 
-	QFileInfo infoFileDestination(savingFolder, QDateTime::currentDateTime().toString(Qt::ISODate) + '.' + recorder->suffix);
+    QFileInfo infoFileDestination(savingFolder, QString("glmixervideo %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) + '.' + recorder->suffix);
 
 	if (infoFileDestination.exists()){
 		infoFileDestination.dir().remove(infoFileDestination.fileName());
-	}
+    }
 	// move the temporaryFileName to newFileName
-	temporaryFolder.rename(temporaryFileName, infoFileDestination.absoluteFilePath());
-	emit status(tr("File %1 saved.").arg(infoFileDestination.absoluteFilePath()), 2000);
-    qDebug() << infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("File saved.");
+    if (!temporaryFolder.rename(temporaryFileName, infoFileDestination.fileName()) )
+        qWarning()<< infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("Could not save file.");
+    else {
+        emit status(tr("File %1 saved.").arg(infoFileDestination.absoluteFilePath()), 2000);
+        qDebug() << infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("File saved.");
+    }
 }
 
 void RenderingEncoder::saveFileAs(){
