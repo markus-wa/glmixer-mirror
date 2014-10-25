@@ -2481,12 +2481,6 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> fs >> _displayTimeAsFrame >> _restoreLastSession;
     RenderingManager::getRenderingWidget()->setFramerateVisible(fs);
 
-    // Refresh widgets to make changes visible
-    OutputRenderWindow::getInstance()->refresh();
-    outputpreview->refresh();
-    // de-select current source
-    RenderingManager::getInstance()->unsetCurrentSource();
-
     // q. view context menu
     int vcm = 0;
     stream >> vcm;
@@ -2494,6 +2488,13 @@ void GLMixer::restorePreferences(const QByteArray & state){
         RenderingManager::getRenderingWidget()->setViewContextMenu(cursorMenu);
     else
         RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
+
+    // Refresh widgets to make changes visible
+    OutputRenderWindow::getInstance()->refresh();
+    outputpreview->refresh();
+    // de-select current source
+    RenderingManager::getInstance()->unsetCurrentSource();
+
 
     qDebug() << tr("Preferences loaded.");
 }

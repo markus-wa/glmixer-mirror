@@ -302,14 +302,13 @@ void OutputRenderWindow::setFullScreen(bool on) {
 
 void OutputRenderWindow::setFullScreenMonitor(int index)
 {
+    // if meaningful (has more than 1 monitor)
     if ( index <= QApplication::desktop()->screenCount() ) {
-
+        // set index of monitor
         fullscreenMonitorIndex = index;
-        // if already fullscreen, apply the change by a quick switch
-        if (windowState().testFlag(Qt::WindowFullScreen) ) {
-            setFullScreen( false );
+        // if already fullscreen, apply the change immediately
+        if (windowState().testFlag(Qt::WindowFullScreen) )
             setFullScreen( true	);
-        }
     }
 }
 
