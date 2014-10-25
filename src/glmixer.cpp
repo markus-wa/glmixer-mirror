@@ -2487,6 +2487,14 @@ void GLMixer::restorePreferences(const QByteArray & state){
     // de-select current source
     RenderingManager::getInstance()->unsetCurrentSource();
 
+    // q. view context menu
+    int vcm = 0;
+    stream >> vcm;
+    if (vcm == 1)
+        RenderingManager::getRenderingWidget()->setViewContextMenu(cursorMenu);
+    else
+        RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
+
     qDebug() << tr("Preferences loaded.");
 }
 
@@ -2555,6 +2563,9 @@ QByteArray GLMixer::getPreferences() const {
 
     // p. options
     stream << RenderingManager::getRenderingWidget()->getFramerateVisible() << _displayTimeAsFrame << _restoreLastSession;
+
+    // q. view context menu
+    stream << ((RenderingManager::getRenderingWidget()->getViewContexMenu() == cursorMenu) ? 1 : 0);
 
     return data;
 }

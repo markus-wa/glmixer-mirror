@@ -93,7 +93,7 @@ bool SpringCursor::wheelEvent(QWheelEvent * event){
 
 void SpringCursor::setParameter(float percent){
 
-    mass = MIN_MASS + (MAX_MASS - MIN_MASS) * percent;
+    mass = MAX_MASS - (MAX_MASS - MIN_MASS) * percent;
 
     emit massChanged((int)mass);
 }

@@ -94,6 +94,7 @@ public:
 		CONTEXT_MENU_DROP
 	} ViewContextMenu;
 	void setViewContextMenu(QMenu *m) { viewMenu = m; }
+    QMenu *getViewContexMenu() const { return viewMenu; }
 	void setCatalogContextMenu(QMenu *m) { catalogMenu = m; }
 	void setSourceContextMenu(QMenu *m) { sourceMenu = m; }
 	void showContextMenu(ViewContextMenu m, const QPoint &);

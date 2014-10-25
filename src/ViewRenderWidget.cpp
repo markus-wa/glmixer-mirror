@@ -804,7 +804,7 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 void ViewRenderWidget::tabletEvent ( QTabletEvent * event )
 {
     // take input from the pressure sensor for the cursor (if enabled)
-    if (cursorEnabled && _currentCursor && event->pressure() > 0.05)
+    if (cursorEnabled && _currentCursor && _currentCursor->isActive() && event->pressure() > 0.05)
         _currentCursor->setParameter(event->pressure());
 
     // emulate a mous button (Extra button) when eraser is pressed

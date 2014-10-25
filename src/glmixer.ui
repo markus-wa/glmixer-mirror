@@ -2287,17 +2287,23 @@ Uncheck to display the restart frame when stopped.</string>
     <property name="title">
      <string>&amp;Tools</string>
     </property>
+    <widget class="QMenu" name="cursorMenu">
+     <property name="title">
+      <string>Cursor</string>
+     </property>
+     <addaction name="actionCursorNormal"/>
+     <addaction name="actionCursorSpring"/>
+     <addaction name="actionCursorDelay"/>
+     <addaction name="actionCursorAxis"/>
+     <addaction name="actionCursorLine"/>
+     <addaction name="actionCursorFuzzy"/>
+    </widget>
     <addaction name="actionToolGrab"/>
     <addaction name="actionToolScale"/>
     <addaction name="actionToolRotate"/>
     <addaction name="actionToolCut"/>
     <addaction name="separator"/>
-    <addaction name="actionCursorNormal"/>
-    <addaction name="actionCursorSpring"/>
-    <addaction name="actionCursorDelay"/>
-    <addaction name="actionCursorAxis"/>
-    <addaction name="actionCursorLine"/>
-    <addaction name="actionCursorFuzzy"/>
+    <addaction name="cursorMenu"/>
    </widget>
    <widget class="QMenu" name="renderingMenu">
     <property name="title">

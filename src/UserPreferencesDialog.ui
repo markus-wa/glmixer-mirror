@@ -574,6 +574,22 @@ p, li { white-space: pre-wrap; }
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_6">
                 <item>
+                 <spacer name="horizontalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Maximum</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
                  <widget class="QCheckBox" name="disableFiltering">
                   <property name="toolTip">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable filters if the rendering is too slow; the filters will not be available anymore.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -610,7 +626,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLabel" name="label_7">
                 <property name="text">
-                 <string>Target computer screen </string>
+                 <string>Target computer monitor </string>
                 </property>
                </widget>
               </item>
@@ -781,6 +797,9 @@ p, li { white-space: pre-wrap; }
                 <property name="text">
                  <string>NB: RAW and FFVHUFF are looseless and fast recording methods.</string>
                 </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
                </widget>
               </item>
               <item>
@@ -790,6 +809,9 @@ p, li { white-space: pre-wrap; }
                 </property>
                 <property name="text">
                  <string>Other codec may be lossy and slow, but are more portable.</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -885,6 +907,9 @@ the user to select a file name</string>
                 </property>
                 <property name="text">
                  <string>NB: High color depth lead to slower copy and risk of low frame rate.</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -1063,9 +1088,9 @@ the user to select a file name</string>
            <item>
             <widget class="QGroupBox" name="MouseButtonsGroupBox">
              <property name="title">
-              <string>Mouse (or stylius) buttons</string>
+              <string>Mouse (or stylus) buttons</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_7">
+             <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
                <widget class="QLabel" name="instructions1">
                 <property name="text">
@@ -1145,9 +1170,45 @@ font: 75;</string>
                  <string notr="true">font: italic;</string>
                 </property>
                 <property name="text">
-                 <string>NB: you can combine multiple buttons and use modifier keys (SHIFT, CMD, ALT, etc.)</string>
+                 <string>NB: you can use  multiple buttons and modifier keys (SHIFT, CMD, ALT, etc.)</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>Context menu on background  </string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="selectionViewContextMenu">
+                  <item>
+                   <property name="text">
+                    <string>Zooming</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/glmixer/icons/zoom-in.png</normaloff>:/glmixer/icons/zoom-in.png</iconset>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Cursor selection</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/glmixer/icons/normal-cursor.png</normaloff>:/glmixer/icons/normal-cursor.png</iconset>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -1208,7 +1269,7 @@ font: 75;</string>
                    <string>Zoom in at the cursor position when using the mouse wheel</string>
                   </property>
                   <property name="text">
-                   <string>Dynamic zoom to cursor position</string>
+                   <string>Zoom to cursor position</string>
                   </property>
                   <property name="checked">
                    <bool>true</bool>
@@ -1356,6 +1417,9 @@ font: 75;</string>
              <layout class="QVBoxLayout" name="verticalLayout_13">
               <item>
                <widget class="QComboBox" name="languageSelection">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <item>
                  <property name="text">
                   <string>English (default)</string>

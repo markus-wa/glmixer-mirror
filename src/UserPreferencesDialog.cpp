@@ -272,6 +272,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     displayTimeAsFrame->setChecked(taf);
     restoreLastSession->setChecked(rs);
 
+    // q. view context menu
+    int vcm = 0;
+    stream >> vcm;
+    selectionViewContextMenu->setCurrentIndex(vcm);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -341,6 +346,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // p. options
     stream << displayFramerate->isChecked() << displayTimeAsFrame->isChecked() << restoreLastSession->isChecked();
+
+    // q. view context menu
+    stream << selectionViewContextMenu->currentIndex();
 
     return data;
 }
