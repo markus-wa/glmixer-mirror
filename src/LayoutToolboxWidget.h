@@ -25,6 +25,8 @@ public slots:
     void on_sizeHorizontalFrameButton_clicked();
     void on_sizeVerticalButton_clicked();
     void on_sizeVerticalFrameButton_clicked();
+    void on_sizeRenderingAspectButton_clicked();
+    void on_sizeOriginalAspectButton_clicked();
 
     // Rotate and flip
     void on_rotateClockwiseButton_clicked();

@@ -159,6 +159,16 @@ void LayoutToolboxWidget::on_sizeVerticalFrameButton_clicked(){
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_SCALE, View::AXIS_VERTICAL, View::REFERENCE_FRAME);
 }
 
+void LayoutToolboxWidget::on_sizeRenderingAspectButton_clicked(){
+
+    RenderingManager::getInstance()->setRenderingAspectRatioCurrentSource();
+}
+
+void LayoutToolboxWidget::on_sizeOriginalAspectButton_clicked(){
+
+    RenderingManager::getInstance()->setOriginalAspectRatioCurrentSource();
+}
+
 void LayoutToolboxWidget::on_rotateClockwiseButton_clicked(){
 
     RenderingManager::getRenderingWidget()->transformSelection(View::TRANSFORM_ROTATE, View::AXIS_HORIZONTAL, View::REFERENCE_SOURCES);
