@@ -2386,7 +2386,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> RenderingQuality >> useBlitFboExtension;
     RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
     RenderingManager::getInstance()->setRenderingQuality((frameBufferQuality) RenderingQuality);
-    int targetPeriod = 20;
+    int targetPeriod = 16;
     stream >> targetPeriod;
     if (targetPeriod > 0)
         glRenderWidget::setUpdatePeriod( targetPeriod );
@@ -2415,7 +2415,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     ViewRenderWidget::setStipplingMode(stipplingMode);
 
     // g. recording format
-    uint recformat = 0;
+    uint recformat = 4;
     stream >> recformat;
     RenderingManager::getRecorder()->setEncodingFormat( (encodingformat) recformat);
     uint rtfr = 40;

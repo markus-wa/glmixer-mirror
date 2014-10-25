@@ -83,10 +83,9 @@ void UserPreferencesDialog::setModeMinimal(bool on)
     IntroTextLabel->setVisible(on);
 
     if (on){
-        resolutionTable->selectRow(0);
         stackedPreferences->setCurrentIndex(0);
-        DecisionButtonBox->setStandardButtons(QDialogButtonBox::Save);
         restoreDefaultPreferences();
+        DecisionButtonBox->setStandardButtons(QDialogButtonBox::Save);
     } else {
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Save);
     }
@@ -98,15 +97,17 @@ void UserPreferencesDialog::restoreAllDefaultPreferences() {
     for (int r = listWidget->count(); r >= 0; listWidget->setCurrentRow(r--))
         restoreDefaultPreferences();
 
+    GLMixer::getInstance()->on_actionResetToolbars_triggered();
 }
 
 void UserPreferencesDialog::restoreDefaultPreferences() {
 
     if (stackedPreferences->currentWidget() == PageRendering) {
         resolutionTable->selectRow(0);
-        updatePeriod->setValue(33); // default fps at 30
+        updatePeriod->setValue(16); // default fps at 60
         activateBlitFrameBuffer->setChecked(!glSupportsExtension("GL_EXT_framebuffer_blit"));
         disableFiltering->setChecked(false);
+        fullscreenMonitor->setCurrentIndex(0);
     }
 
     if (stackedPreferences->currentWidget() == PageRecording) {
@@ -131,7 +132,8 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
     if (stackedPreferences->currentWidget() == PageInterface){
         ButtonTestFrame->reset();
         speedZoom->setValue(120);
-        centeredZoom->setChecked(true);
+        centeredZoom->setChecked(false);
+        selectionViewContextMenu->setCurrentIndex(0);
     }
 
     if (stackedPreferences->currentWidget() == PageOptions){
@@ -140,6 +142,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         displayFramerate->setChecked(false);
         restoreLastSession->setChecked(true);
         displayTimeAsFrame->setChecked(false);
+        useCustomDialogs->setChecked(true);
     }
 }
 

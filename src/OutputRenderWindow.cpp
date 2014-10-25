@@ -232,7 +232,7 @@ OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)Re
     setMinimumSize(160,120);
     // set initial geometry
     setWindowState(Qt::WindowNoState);
-    windowGeometry = QRect(0,0,640,480);
+    windowGeometry = QRect(100,100,848,480);
     setGeometry( windowGeometry );
     switching = false;
 }

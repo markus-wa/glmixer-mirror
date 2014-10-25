@@ -795,7 +795,7 @@ p, li { white-space: pre-wrap; }
                  <string notr="true">font: italic;</string>
                 </property>
                 <property name="text">
-                 <string>NB: RAW and FFVHUFF are looseless and fast recording methods.</string>
+                 <string>NB: RAW and FFVHUFF are looseless but produce large files.</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -808,7 +808,7 @@ p, li { white-space: pre-wrap; }
                  <string notr="true">font: italic;</string>
                 </property>
                 <property name="text">
-                 <string>Other codec may be lossy and slow, but are more portable.</string>
+                 <string>Other codecs are lossy but are compressed and  more portable.</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
