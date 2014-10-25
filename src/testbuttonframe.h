@@ -47,6 +47,7 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void paintEvent(QPaintEvent *event);
+    void tabletEvent(QTabletEvent *event);
 
 public Q_SLOTS:
 	void reset();

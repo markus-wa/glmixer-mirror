@@ -695,7 +695,7 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
             setCursorEnabled(true);
         else
         // if there is something to drop, inform the rendering manager that it can drop the source at the clic coordinates
-        if (RenderingManager::getInstance()->getSourceBasketTop() && ( event->buttons() & Qt::LeftButton ) )
+        if (RenderingManager::getInstance()->getSourceBasketTop() &&  _currentView->isUserInput(event, View::INPUT_TOOL)  )
         {
             double x = 0.0, y = 0.0;
             _currentView->coordinatesFromMouse(event->x(), event->y(), &x, &y);
@@ -710,7 +710,7 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
         }
     }
 
-    if (cursorEnabled)
+    if ( cursorEnabled && _currentView->isUserInput(event, View::INPUT_TOOL) )
         _currentCursor->update(event);
 }
 
@@ -803,10 +803,39 @@ void ViewRenderWidget::wheelEvent(QWheelEvent * event)
 
 void ViewRenderWidget::tabletEvent ( QTabletEvent * event )
 {
-    if (cursorEnabled)
+    // take input from the pressure sensor for the cursor (if enabled)
+    if (cursorEnabled && _currentCursor && event->pressure() > 0.05)
         _currentCursor->setParameter(event->pressure());
 
-    event->ignore();
+    // emulate a mous button (Extra button) when eraser is pressed
+    if( event->pointerType() == QTabletEvent::Eraser) {
+
+        static bool previousPressed = false;
+        bool pressed = event->pressure() > 0.05;
+
+        if (pressed && !previousPressed) {
+            QMouseEvent e(QEvent::MouseButtonPress, QPoint(event->x(),event->y()), Qt::XButton1, Qt::XButton1, event->modifiers());
+
+            mousePressEvent(&e);
+        }
+        else if (!pressed && previousPressed){
+            QMouseEvent e(QEvent::MouseButtonRelease, QPoint(event->x(),event->y()), Qt::NoButton, Qt::NoButton, event->modifiers());
+
+            mouseReleaseEvent(&e);
+        }
+        else {
+
+            QMouseEvent e(QEvent::MouseMove, QPoint(event->x(),event->y()), pressed ? Qt::XButton1 : Qt::NoButton, pressed ? Qt::XButton1 : Qt::NoButton, event->modifiers());
+
+            mouseMoveEvent(&e);
+        }
+
+        previousPressed = pressed;
+        event->accept();
+    }
+    // else, other buttons of the stylus = normal buttons
+    else
+        event->ignore();
 }
 
 

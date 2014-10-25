@@ -39,7 +39,7 @@ public:
 		shadowPos = QPointF(0,0);
 		mousePos = QPointF(0,0);
 	}
-	virtual ~Cursor() {};
+    virtual ~Cursor() {}
 
 	/**
 	 * Provide the cursor with the original mouse event
@@ -47,9 +47,7 @@ public:
 	virtual void update(QMouseEvent *e){
 		if (!active && e->type() == QEvent::MouseButtonPress){
 			b = e->button();
-			bs = e->buttons();
-			if (b != Qt::LeftButton)
-				return;
+            bs = e->buttons();
 			pressPos 	=  QPointF(e->pos());
 			shadowPos = pressPos;
 			active = true;
@@ -102,7 +100,7 @@ public:
 		return false;
 	}
 
-    virtual void setParameter(float percent) {};
+    virtual void setParameter(float percent) {}
 
 	inline bool isActive() const { return active; }
 

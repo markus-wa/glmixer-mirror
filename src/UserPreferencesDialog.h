@@ -52,8 +52,7 @@ public Q_SLOTS:
 	void on_updatePeriod_valueChanged(int period);
 	void on_recordingUpdatePeriod_valueChanged(int period);
 	void on_recordingFolderButton_clicked();
-	void recordingFolderPathChanged(const QString &);
-    void on_fullscreenMonitor_currentIndexChanged(int);
+    void recordingFolderPathChanged(const QString &);
 
 private:
 	class Source *defaultSource;

@@ -43,6 +43,21 @@ void TestButtonFrame::leaveEvent(QEvent *event){
 	repaint();
 }
 
+
+void TestButtonFrame::tabletEvent(QTabletEvent *event){
+
+    if( event->pointerType() == QTabletEvent::Eraser && event->pressure() > 0.01) {
+
+        QMouseEvent e(QEvent::MouseButtonPress, QPoint(event->x(),event->y()), Qt::XButton1, Qt::XButton1, event->modifiers());
+
+        mousePressEvent(&e);
+
+        event->accept();
+    }
+    else
+        event->ignore();
+}
+
 void TestButtonFrame::mousePressEvent(QMouseEvent *event){
 
 	int b;

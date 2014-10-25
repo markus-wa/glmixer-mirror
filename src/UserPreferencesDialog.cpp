@@ -394,8 +394,3 @@ QList<QAction *> UserPreferencesDialog::getActionsList(QList<QAction *> actionli
      return buildlist;
 }
 
-void UserPreferencesDialog::on_fullscreenMonitor_currentIndexChanged(int i)
-{
-//    OutputRenderWindow::getInstance()->setFullScreenMonitor(i);
-//    qDebug() << "OutputRenderWindow|Default fullscreen Monitor set to " << i;
-}
