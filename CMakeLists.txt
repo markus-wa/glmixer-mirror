@@ -146,27 +146,32 @@ if( USE_SHAREDMEMORY )
     set(GLMIXER_LIBRARIES SharedMemoryManager ${GLMIXER_LIBRARIES} )
     message( STATUS "Using Shared Memory Manager library")
 
+#    # HERE IS THE OPTIONNAL USE OF SPOUT
+#    if( WIN32 )
+
+#        set( USE_SPOUT BOOL OFF )
+#        unset(SPOUT_INCLUDE CACHE)
+
+#        # SPOUT library (http://spout.zeal.co/)
+#        set(SPOUT_PATH "C:/Program Files (x86)/Spout" CACHE PATH "Please enter the path to the SpoutSDK folder (http://spout.zeal.co/).")
+
+#        find_path( SPOUT_INCLUDE "spout.h" HINTS "${SPOUT_PATH}/Source/" )
+
+#        if( SPOUT_INCLUDE )
+
+#            add_subdirectory(libSpout)
+#            set( USE_SPOUT BOOL ON )
+
+#            include_directories(${SPOUT_INCLUDE} )
+#            set(GLMIXER_LIBRARIES Spout ${GLMIXER_LIBRARIES} )
+#            message( STATUS "Using Spout library")
+
+#        endif( SPOUT_INCLUDE )
+
+#    endif( WIN32 )
+
 endif( USE_SHAREDMEMORY )
 
-# HERE IS THE OPTIONNAL USE OF SPOUT
-if( WIN32 )
-    unset(SPOUT_INCLUDE CACHE)
-    unset(SPOUT_LIBRARY CACHE)
-
-    # SPOUT library (http://spout.zeal.co/)
-    set(SPOUT_PATH "C:/Program Files (x86)/Spout" CACHE PATH "Please enter the path to the Spout installation folder (http://spout.zeal.co/).")
-
-    find_path( SPOUT_INCLUDE "Spout.h" HINTS "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/" )
-    find_library( SPOUT_LIBRARY "spout32.lib" "${SPOUT_PATH}/SPOUTDLL/Libraries/Win32/")
-
-    if( SPOUT_LIBRARY )
-        set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${SPOUT_LIBRARY} )
-        include_directories(${SPOUT_INCLUDE})
-        message( STATUS "Found SPOUT : ${SPOUT_LIBRARY}")
-
-        set( USE_SPOUT BOOL ON )
-    endif( SPOUT_LIBRARY )
-endif( WIN32 )
 
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
 SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")
@@ -219,7 +224,7 @@ if(USE_OPENCV)
     else(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 
 #        unset(USE_OPENCV CACHE)
-#        set(USE_OPENCV OFF CACHE BOOL)
+        set(USE_OPENCV OFF CACHE BOOL)
 
     endif(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 

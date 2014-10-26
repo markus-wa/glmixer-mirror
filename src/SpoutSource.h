@@ -70,7 +70,7 @@ private:
     static unsigned int width, height;
     static bool initialized;
     static GLuint spoutTextureIndex, errorTextureIndex;
-    
+    char senderName[256];
 };
 
 #endif // SPOUTSOURCE_H

@@ -25,7 +25,7 @@ include_directories(${LIBSHAREDMEMORYMANAGER_SOURCE_DIR} )
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # do the qt-cmake magic
-qt4_add_resources(SCREENMIX_RCS_SRCS icons.qrc)
+qt4_add_resources(SCRIBBLEMIX_RCS_SRCS icons.qrc)
 
 # tell cmake to create .moc files for all files that require such a file.
 # note: this assumes that you use #include "header.moc" in your files
@@ -35,13 +35,35 @@ qt4_automoc( scribblearea.cpp mainwindow.cpp SharedMemoryDialog.cpp )
 # the UI file won't be wrapped!
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(scribbleMix
-               mainwindow.cpp
-               scribblearea.cpp
-               SharedMemoryDialog.cpp
-               main.cpp               
-               ${SCREENMIX_RCS_SRCS}
-)
+if(MINGW)
+    # This sets up the exe icon for windows under mingw.
+    set(SCRIBBLEMIX_RES_FILES "${CMAKE_SOURCE_DIR}/win/scribbleMix.rc")
+    set(CMAKE_RC_COMPILER_INIT windres)
+    ENABLE_LANGUAGE(RC)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
+
+    add_executable(scribbleMix WIN32
+                   mainwindow.cpp
+                   scribblearea.cpp
+                   SharedMemoryDialog.cpp
+                   main.cpp
+                   ${SCRIBBLEMIX_RCS_SRCS}
+                   ${SCRIBBLEMIX_RES_FILES}
+    )
+
+else(MINGW)
+    add_executable(scribbleMix
+                   mainwindow.cpp
+                   scribblearea.cpp
+                   SharedMemoryDialog.cpp
+                   main.cpp
+                   ${SCRIBBLEMIX_RCS_SRCS}
+    )
+endif(MINGW)
+
 
 target_link_libraries(scribbleMix SharedMemoryManager ${QT_LIBRARIES} )
 
+if(WIN32)
+    INSTALL(TARGETS scribbleMix RUNTIME DESTINATION bin COMPONENT Runtime)
+endif(WIN32)

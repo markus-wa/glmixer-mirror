@@ -75,7 +75,7 @@ void SpoutSource::play(bool on){
         return;
 
     if (on) {
-
+        static bool textureShare = false;
         static unsigned int w = 0;
         static unsigned int h = 0;
         char tempname[256]; // temp name

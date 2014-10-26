@@ -265,14 +265,25 @@ ELSE(APPLE)
         SET(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/win\\\\glmixer.ico")
         SET(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/win\\\\glmixer.ico")
         SET(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/win\\\\glmixer.png")
-        SET(CPACK_NSIS_INSTALLED_ICON_NAME "${CMAKE_SOURCE_DIR}/win\\\\glmixer.ico")
+        SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\glmixer.exe")
         SET(CPACK_NSIS_DISPLAY_NAME "GLMixer ${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}")
         SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\code.google.com\\\\p\\\\glmixer")
         SET(CPACK_NSIS_CONTACT "bruno.herbelin@gmail.com")
         SET(CPACK_NSIS_MODIFY_PATH OFF)
         SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL  ON)
         SET(CPACK_NSIS_MUI_FINISHPAGE_RUN "glmixer.exe")
+        SET(CPACK_NSIS_HELP_LINK "http://vimeo.com/album/2401475")
         SET(CPACK_NSIS_MENU_LINKS "https://code.google.com/p/glmixer" "GLMixer Web Site" "plugins" "GLMixer Plugins")
+
+        SET(CPACK_NSIS_CREATE_ICONS_EXTRA  "
+        CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\scribbleMix.lnk\\\"  \\\"$INSTDIR\\\\bin\\\\scribbleMix.exe\\\"
+        CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\screenMix.lnk\\\"  \\\"$INSTDIR\\\\bin\\\\screenMix.exe\\\"
+        ")
+        SET( CPACK_NSIS_DELETE_ICONS_EXTRA
+        "
+        Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\scribbleMix.lnk\\\"
+        Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\screenMix.lnk\\\"
+        " )
 
     ELSE(WIN32)
 
@@ -390,19 +401,27 @@ ELSE(APPLE)
     # read full name of executable
     GET_TARGET_PROPERTY(GLMIXER_BINARY_LOCATION glmixer LOCATION)
 
-    # call the function get_prerequisites to fill the list DEPENDENCIES
-    message( STATUS "Looking for DLL dependencies:" )
-    GET_PREREQUISITES(@GLMIXER_BINARY_LOCATION@ DEPENDENCIES 1 0 "" "${SPOUT_INCLUDE}")
+    IF( EXISTS ${GLMIXER_BINARY_LOCATION} )
 
-    # request the installation of each dll file of the DEPENDENCIES list
-    FOREACH(DEPENDENCY ${DEPENDENCIES})
-        message(STATUS "  - ${DEPENDENCY}")
-        INSTALL(FILES ${DEPENDENCY} DESTINATION bin COMPONENT Runtime)
-    ENDFOREACH(DEPENDENCY)
+        # call the function get_prerequisites to fill the list DEPENDENCIES
+        message( STATUS "Looking for DLL dependencies (please be patient...)" )
+        GET_PREREQUISITES(@GLMIXER_BINARY_LOCATION@ DEPENDENCIES 1 1 "" "${CMAKE_LIBRARY_PATH}")
 
-    IF(MINGW)
-        INSTALL(FILES "/MinGW/bin/mingwm10.dll" DESTINATION bin COMPONENT Runtime)
-    ENDIF(MINGW)
+        # request the installation of each dll file of the DEPENDENCIES list
+        FOREACH(DEPENDENCY ${DEPENDENCIES})
+            message(STATUS "  - ${DEPENDENCY}")
+            INSTALL(FILES ${DEPENDENCY} DESTINATION bin COMPONENT Runtime)
+        ENDFOREACH(DEPENDENCY)
+
+        IF(MINGW)
+            INSTALL(FILES "/MinGW/bin/mingwm10.dll" DESTINATION bin COMPONENT Runtime)
+        ENDIF(MINGW)
+
+    ELSE( EXISTS ${GLMIXER_BINARY_LOCATION} )
+
+        message( WARNING  "Cannot generate dependency list (DLLs) for packaging because GLMixer was not compiled yet. To enable packaging, re-run cmake after compiling GLMixer." )
+
+    ENDIF( EXISTS ${GLMIXER_BINARY_LOCATION} )
 
   ENDIF(WIN32)
 

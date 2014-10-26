@@ -1,5 +1,6 @@
 #include <QtGui/QApplication>
 #include <QMessageBox>
+#include <QIcon>
 #include "screencapture.h"
 #include "SharedMemoryManager.h"
 
@@ -17,5 +18,7 @@ int main(int argc, char *argv[])
     ScreenCapture w;
     w.show();
     QObject::connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
+
+    a.setWindowIcon (QIcon(QString::fromUtf8(":/root/screenmix.png")));
     return a.exec();
 }

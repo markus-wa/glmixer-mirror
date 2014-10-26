@@ -35,11 +35,32 @@ qt4_automoc( screencapture.cpp )
 # the UI file won't be wrapped!
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(screenMix 
-               screencapture.cpp 
-               main.cpp               
-               ${SCREENMIX_RCS_SRCS}
-)
+if(MINGW)
+    # This sets up the exe icon for windows under mingw.
+    set(SCREENMIX_RES_FILES "${CMAKE_SOURCE_DIR}/win/screenMix.rc")
+    set(CMAKE_RC_COMPILER_INIT windres)
+    ENABLE_LANGUAGE(RC)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
+
+    add_executable(screenMix WIN32
+                   screencapture.cpp
+                   main.cpp
+                   ${SCREENMIX_RCS_SRCS}
+                   ${SCREENMIX_RES_FILES}
+    )
+
+else(MINGW)
+    add_executable(screenMix
+                   screencapture.cpp
+                   main.cpp
+                   ${SCREENMIX_RCS_SRCS}
+    )
+endif(MINGW)
+
 
 target_link_libraries(screenMix SharedMemoryManager ${QT_LIBRARIES} )
 
+
+if(WIN32)
+    INSTALL(TARGETS screenMix RUNTIME DESTINATION bin COMPONENT Runtime)
+endif(WIN32)
