@@ -275,7 +275,7 @@ ENDFOREACH(GLMIXER_DEPENDENCY)
 # BELLOW IS THE LIST OF FFMPEG OPTIONNAL DEPENDENCIES.
 # ADD THE LIBRARIES AS REQUIRED BY YOUR INSTALLATION OF FFMPEG
 
-SET(GLMIXER_UTILITIES avcore theora modplug theoraenc theoradec x264 xvidcore faac gsm
+SET(GLMIXER_UTILITIES avcore pthread theora modplug theoraenc theoradec x264 xvidcore faac gsm
                       mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0 va png14
                       speex dirac_encoder jpeg vpx bz2 z)
     
