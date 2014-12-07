@@ -67,7 +67,11 @@ class Source {
     friend class RenderingManager;
 
 public:
-    Source();
+    /*
+     * Constructor ; only Rendering Manager is allowed
+     */
+    Source(GLuint texture = -1, double depth = MAX_DEPTH_LAYER);
+
     virtual ~Source();
 
     bool operator==(Source s2) {
@@ -447,10 +451,6 @@ public:
 #endif
 
 protected:
-    /*
-     * Constructor ; only Rendering Manager is allowed
-     */
-    Source(GLuint texture, double depth);
     /*
      * also depth should only be modified by Rendering Manager
      *

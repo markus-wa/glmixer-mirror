@@ -74,7 +74,7 @@ public Q_SLOTS:
 protected:
     // only friends can create a source
 	SharedMemorySource(GLuint texture, double d, qint64 shid);
-	virtual ~SharedMemorySource();
+    ~SharedMemorySource();
 	void update();
 
 private:

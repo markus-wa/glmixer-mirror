@@ -60,11 +60,11 @@ glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Q
         testDone = true;
 	}
 
-	if (timer == 0) {
-		timer = new QTimer();
-		timer->setInterval(20);
+    if (glRenderWidget::timer == 0) {
+        glRenderWidget::timer = new QTimer();
+        glRenderWidget::timer->setInterval(20);
 	}
-	connect(timer, SIGNAL(timeout()), this, SLOT(repaint()), Qt::DirectConnection);
+    connect(glRenderWidget::timer, SIGNAL(timeout()), this, SLOT(repaint()), Qt::DirectConnection);
 }
 
 void glRenderWidget::setAntiAliasing(bool on)
@@ -166,13 +166,13 @@ void glRenderWidget::paintGL()
 void glRenderWidget::setUpdatePeriod(int miliseconds) {
 
 	if (miliseconds > 11)
-		timer->start(miliseconds);
+        glRenderWidget::timer->start(miliseconds);
 	else
-		timer->start();
+        glRenderWidget::timer->start();
 }
 
 int glRenderWidget::updatePeriod() {
-	return timer->interval();
+    return glRenderWidget::timer->interval();
 }
 
 void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){

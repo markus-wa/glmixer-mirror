@@ -65,8 +65,6 @@ SpoutSource::~SpoutSource()
     // SPOUT release
     Spout::ReleaseReceiver();
 
-    // free the OpenGL texture
-    glDeleteTextures(1, &textureIndex);
 }
 
 void SpoutSource::play(bool on){

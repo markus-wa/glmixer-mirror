@@ -42,7 +42,7 @@ class VideoSource : public QObject, public Source {
     // only friends can create a source
 protected:
 	VideoSource(VideoFile *f, GLuint texture, double d);
-	virtual ~VideoSource();
+    ~VideoSource();
     void update();
 
 public:

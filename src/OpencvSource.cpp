@@ -141,9 +141,6 @@ OpencvSource::~OpencvSource() {
 	play(false);
 	cvReleaseCapture(&capture);
 
-	// free the OpenGL texture
-	glDeleteTextures(1, &textureIndex);
-
     // remove this element from the global list
     OpencvSource::_existingSources.remove(opencvCameraIndex);
 

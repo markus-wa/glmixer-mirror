@@ -72,7 +72,7 @@ public Q_SLOTS:
     // only friends can create a source
 protected:
 	AlgorithmSource(int type, GLuint texture, double d, int w = 256, int h = 256, double v = 1.0, unsigned long p= 16666, bool ia=false);
-	virtual ~AlgorithmSource();
+    ~AlgorithmSource();
 
 	static RTTI type;
 	static bool playable;

@@ -336,6 +336,10 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
 }
 
+SessionSwitcherWidget::~SessionSwitcherWidget()
+{
+    delete proxyFolderModel;
+}
 
 void SessionSwitcherWidget::nameFilterChanged(const QString &s)
 {

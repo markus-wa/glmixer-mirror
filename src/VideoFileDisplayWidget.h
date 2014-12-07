@@ -42,7 +42,6 @@ public:
 
 public Q_SLOTS:
     void updateFrame (VideoPicture *);
-//    void updateFrame (int i);
     void setVideo(VideoFile* f);
     void setVideoAspectRatio(bool usevideoratio);
 

@@ -104,7 +104,7 @@ protected:
 
     // only friends can create a source
     WebSource(const QUrl url, GLuint texture, double d, int height = 100, int scroll = 0, int update = 0);
-    virtual ~WebSource();
+    ~WebSource();
     void update();
 
 private:

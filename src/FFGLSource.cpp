@@ -119,9 +119,6 @@ FFGLSource::FFGLSource(GLuint texture, double d, int w, int h):
 
 FFGLSource::~FFGLSource()
 {
-    // free the OpenGL texture
-    glDeleteTextures(1, &_sourceTextureIndex);
-
     // delete picture buffer
     if (_buffer)
         delete[] _buffer;

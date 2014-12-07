@@ -125,9 +125,6 @@ WebSource::~WebSource()
 {
     delete _webrenderer;
 
-    // free the OpenGL texture
-    glDeleteTextures(1, &textureIndex);
-
 }
 
 

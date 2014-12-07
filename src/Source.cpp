@@ -40,17 +40,18 @@ GLuint Source::lastid = 1;
 Source::RTTI Source::type = Source::SIMPLE_SOURCE;
 bool Source::playable = false;
 
-// Infective source just to get default parameters
-Source::Source() :
-            culled(false), standby(false), wasplaying(true), frameChanged(false), modifiable(true), fixedAspectRatio(false),
-            clones(NULL), textureIndex(0), maskTextureIndex(0), x(0.0), y(0.0), z(MAX_DEPTH_LAYER),
-            scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-            centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
-            pixelated(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(0),
-            brightness(0.f), contrast(1.f),	saturation(1.f),
-            gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
-            hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
-            useChromaKey(false)
+
+// source constructor.
+Source::Source(GLuint texture, double depth):
+    culled(false), standby(false), wasplaying(true), frameChanged(false), modifiable(true), fixedAspectRatio(false),
+    clones(NULL), textureIndex(texture), maskTextureIndex(-1), x(0.0), y(0.0), z(CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER)),
+    scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
+    centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
+    pixelated(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(0),
+    brightness(0.f), contrast(1.f),	saturation(1.f),
+    gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
+    hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
+    useChromaKey(false)
 {
     id = 0;
 
@@ -64,21 +65,16 @@ Source::Source() :
 
     // default name
     name = QString("Source");
-}
 
-// the 'REAL' source constructor.
-Source::Source(GLuint texture, double depth)
-{
-    *this = Source();
+    // if creating an active source
+    // (i.e. given a texture index)
+    if (texture > 0) {
+        // give it a unique identifier
+        id = Source::lastid++;
 
-    // give it a unique identifier
-    id = Source::lastid++;
-
-    clones = new SourceList;
-    CHECK_PTR_EXCEPTION(clones)
-
-    textureIndex = texture;
-    z = CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+        clones = new SourceList;
+        CHECK_PTR_EXCEPTION(clones)
+    }
 }
 
 Source::~Source() {
@@ -89,6 +85,14 @@ Source::~Source() {
 #ifdef FFGL
     // delete all plugins in the stack
     _ffgl_plugins.clear();
+#endif
+
+    if (textureIndex > 0)
+        // free the OpenGL texture
+        glDeleteTextures(1, &textureIndex);
+
+#ifndef NDEBUG
+    qDebug()<< name << QChar(124).toLatin1() << "Source destructor";
 #endif
 }
 

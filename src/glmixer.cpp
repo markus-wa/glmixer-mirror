@@ -842,6 +842,9 @@ void GLMixer::on_actionMediaSource_triggered(){
                     delete newSourceVideoFile;
                 }
             }
+            else
+                qCritical() << filename << QChar(124).toLatin1() << tr("The file could not be opened.");
+
         }
     }
 
@@ -2289,7 +2292,7 @@ void GLMixer::saveSettings()
     // windows config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-     qDebug() << "windowState" << saveState().toHex();
+   //  qDebug() << "windowState" << saveState().toHex();
     settings.setValue("OutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
 
     // dialogs configs

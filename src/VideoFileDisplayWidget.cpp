@@ -27,7 +27,7 @@
 
 
 VideoFileDisplayWidget::VideoFileDisplayWidget(QWidget *parent)
-  : glRenderWidget(parent), is(NULL), squareDisplayList(-1), textureIndex(0), useVideoAspectRatio(true)
+  : glRenderWidget(parent), is(NULL), squareDisplayList(-1), textureIndex(-1), useVideoAspectRatio(true)
 
 {
 
@@ -37,8 +37,10 @@ VideoFileDisplayWidget::~VideoFileDisplayWidget()
 {
     if (squareDisplayList){
         makeCurrent();
-        glDeleteLists(squareDisplayList, 1);
-    	glDeleteTextures(1, &textureIndex);
+        if (squareDisplayList>0)
+            glDeleteLists(squareDisplayList, 1);
+        if (textureIndex>0)
+            glDeleteTextures(1, &textureIndex);
     }
 }
 
@@ -50,7 +52,6 @@ void VideoFileDisplayWidget::setVideo(VideoFile *f){
 
     if (is) {
         glEnable(GL_TEXTURE_2D);
-//        QObject::connect(is, SIGNAL(frameReady(int)), this, SLOT(updateFrame(int)));
         QObject::connect(is, SIGNAL(frameReady(VideoPicture*)), this, SLOT(updateFrame(VideoPicture*)));
     } else {
         glDisable(GL_TEXTURE_2D);
@@ -108,19 +109,19 @@ void VideoFileDisplayWidget::updateFrame (VideoPicture *vp)
 
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-            if ( vp->getFormat() == PIX_FMT_RGBA)
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  vp->getWidth(),
-                         vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                         vp->getBuffer() );
-            else
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,  vp->getWidth(),
-                         vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-                         vp->getBuffer() );
+        if ( vp->getFormat() == PIX_FMT_RGBA)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  vp->getWidth(),
+                     vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                     vp->getBuffer() );
+        else
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,  vp->getWidth(),
+                     vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
+                     vp->getBuffer() );
 
-            if (vp->hasAction(VideoPicture::ACTION_DELETE))
-                delete vp;
+        if (vp->hasAction(VideoPicture::ACTION_DELETE))
+            delete vp;
 
-            vp = NULL;
+        vp = NULL;
     }
     // end
 

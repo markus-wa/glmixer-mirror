@@ -36,8 +36,8 @@ public:
 	}
 
 	~EncodingThread(){
-		free(pictq_mutex);
-		free(pictq_cond);
+        delete pictq_mutex;
+        delete pictq_cond;
 		stop();
 		free(pictq);
 	}
@@ -175,7 +175,7 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(f
 }
 
 RenderingEncoder::~RenderingEncoder() {
-	free(encoder);
+    delete encoder;
 }
 
 void RenderingEncoder::setEncodingFormat(encodingformat f){

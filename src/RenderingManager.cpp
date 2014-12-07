@@ -1117,16 +1117,17 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
     }
 
     if (itsource != _sources.end()) {
+        Source *s = *itsource;
         // if this is not a clone
-        if ((*itsource)->rtti() != Source::CLONE_SOURCE)
+        if (s->rtti() != Source::CLONE_SOURCE)
             // remove every clone of the source to be removed
-            for (SourceList::iterator clone = (*itsource)->getClones()->begin(); clone != (*itsource)->getClones()->end(); clone = (*itsource)->getClones()->begin()) {
+            for (SourceList::iterator clone = s->getClones()->begin(); clone != s->getClones()->end(); clone = s->getClones()->begin()) {
                 removeSource((*clone)->getId());
             }
         // then remove the source itself
-        qDebug() << (*itsource)->getName() << QChar(124).toLatin1() << tr("Source deleted.");
+        qDebug() << s->getName() << QChar(124).toLatin1() << tr("Source deleted.");
         _sources.erase(itsource);
-        delete (*itsource);
+        delete s;
     }
 
     // is there no more rendering source ?

@@ -37,6 +37,7 @@ class SessionSwitcherWidget  : public QWidget {
 
 public:
 	SessionSwitcherWidget(QWidget *parent, QSettings *settings);
+    ~SessionSwitcherWidget();
 
 public Q_SLOTS:
 

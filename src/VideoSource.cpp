@@ -67,11 +67,19 @@ VideoSource::~VideoSource()
 {
     if (is)
         delete is;
+
     if (vp)
         delete vp;
 
-	// free the OpenGL texture
-	glDeleteTextures(1, &textureIndex);
+#ifndef NDEBUG
+    qDebug() << VideoPicture::createdVideoPictureCount << " VideoPictures created";
+    qDebug() << VideoPicture::deletedVideoPictureCount << " VideoPictures deleted";
+    qDebug() << VideoFile::allocatedPacketQueueCount << " PacketQueue created";
+    qDebug() << VideoFile::freePacketQueueCount << " PacketQueue deleted";
+    qDebug() << VideoFile::allocatedPacketListCount << " Packet List created";
+    qDebug() << VideoFile::freePacketListCount << " Packet list deleted";
+    qDebug() << name << QChar(124).toLatin1() << "VideoSource destructor";
+#endif
 }
 
 bool VideoSource::isPlayable() const
@@ -88,7 +96,15 @@ void VideoSource::play(bool on)
 {
     if (on != isPlaying()) {
 
+        // free the vp if not already updated
+        if (vp && vp->hasAction(VideoPicture::ACTION_DELETE))
+            delete vp;
+        vp = NULL;
+
+        // call parent method
         Source::play(on);
+
+        // transfer the order to the videoFile
         is->play(on);
 
     }

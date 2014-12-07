@@ -388,8 +388,6 @@ AlgorithmSource::~AlgorithmSource() {
     if (buffer)
         delete[] buffer;
 
-    // free the OpenGL texture
-    glDeleteTextures(1, &textureIndex);
 }
 
 

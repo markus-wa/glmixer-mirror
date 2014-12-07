@@ -38,8 +38,14 @@ else(WIN32)
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins_osx.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.qrc)
 
     else(APPLE)
-        # add_subdirectory(FreeFrameQtPlugin)
+    # Linux
+
+        if(USE_CUDA)
+            add_subdirectory(FreeFrameCUDAVideoDecoderPlugin)
+        endif(USE_CUDA)
+
         add_subdirectory(video4LinuxFFGLPlugin)
+        
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins_linux.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.qrc)
     endif(APPLE)
 

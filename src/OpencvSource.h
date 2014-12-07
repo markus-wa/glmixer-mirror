@@ -88,7 +88,7 @@ public Q_SLOTS:
 protected:
     // only friends can create a source (need its GL context)
 	OpencvSource(int opencvIndex, GLuint texture, double d);
-	virtual ~OpencvSource();
+    ~OpencvSource();
 
 	static RTTI type;
 	static bool playable;

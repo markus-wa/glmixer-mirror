@@ -71,9 +71,6 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
 
 SvgSource::~SvgSource()
 {
-	// free the OpenGL texture
-	glDeleteTextures(1, &textureIndex);
-
 	if (_svg)
 		delete _svg;
 }

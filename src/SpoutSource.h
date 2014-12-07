@@ -62,7 +62,7 @@ public Q_SLOTS:
 protected:
     // only friends can create a source
     SpoutSource(GLuint texture, double d, QString spoutSenderName);
-    virtual ~SpoutSource();
+    ~SpoutSource();
     void update();
     
 private:

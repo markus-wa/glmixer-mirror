@@ -41,7 +41,7 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     IntroTextLabel->setVisible(false);
 
     // the default source property browser
-    defaultSource = new Source;
+    defaultSource = new Source();
     defaultProperties->showProperties(defaultSource);
 //    defaultProperties->setPropertyEnabled("Type", false);
 //    defaultProperties->setPropertyEnabled("Scale", false);
@@ -121,7 +121,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
     if (stackedPreferences->currentWidget() == PageSources) {
         if(defaultSource)
             delete defaultSource;
-        defaultSource = new Source;
+        defaultSource = new Source();
         defaultProperties->showProperties(defaultSource);
 
         defaultStartPlaying->setChecked(true);

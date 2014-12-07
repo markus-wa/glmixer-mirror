@@ -73,6 +73,11 @@ extern "C" {
 class VideoPicture {
 
 public:
+
+#ifndef NDEBUG
+    static int createdVideoPictureCount, deletedVideoPictureCount;
+#endif
+
     /**
      * create the VideoPicture and Allocate its av picture (w x h pixels)
      *
@@ -187,7 +192,7 @@ public:
     inline bool hasAction(Action a) const { return (action & a); }
     inline double presentationTime() const { return pts; }
 
-//private:
+private:
     AVPicture rgb;
     double pts;
     int width, height;
@@ -255,6 +260,10 @@ Q_OBJECT
 
 public:
 
+#ifndef NDEBUG
+    static int allocatedPacketQueueCount, freePacketQueueCount;
+    static int allocatedPacketListCount, freePacketListCount;
+#endif
     /**
      *  Constructor of a VideoFile.
      *
@@ -560,7 +569,6 @@ Q_SIGNALS:
      * @param id the argument is the id of the VideoPicture to read.
      */
     void frameReady(VideoPicture *);
-//    void frameReady(int id);
     /**
      * Signal emmited when started or stopped;
      *
@@ -815,7 +823,6 @@ protected Q_SLOTS:
 	 */
 	void video_refresh_timer();
 
-
 protected:
 
     /**
@@ -838,12 +845,14 @@ protected:
         bool get(AVPacket *pkt, bool block);
         bool put(AVPacket *pkt);
         bool flush();
+        void clear();
         bool isFlush(AVPacket *pkt) const;
         bool endFile();
         bool isEndOfFile(AVPacket *pkt) const;
         bool isFull() const;
         inline bool isEmpty() const { return size == 0; }
         inline int getSize() const { return size; }
+
     };
 
     // internal methods
@@ -852,6 +861,7 @@ protected:
     int stream_component_open(AVFormatContext *);
     double synchronize_video(AVFrame *src_frame, double pts);
     void queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a = VideoPicture::ACTION_SHOW);
+    void clear_picture_queue();
     void flush_picture_queue();
     void parsingSeekRequest(double time);
     bool decodingSeekRequest(double time);

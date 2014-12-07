@@ -57,8 +57,12 @@ transition_type(TRANSITION_NONE), customTransitionColor(QColor()), customTransit
 
 SessionSwitcher::~SessionSwitcher() {
 
-	if (overlaySource)
-		delete overlaySource;
+    if (alphaAnimation)
+        delete alphaAnimation;
+    if (overlayAnimation)
+        delete overlayAnimation;
+    if (overlaySource)
+        delete overlaySource;
 }
 
 void SessionSwitcher::render() {

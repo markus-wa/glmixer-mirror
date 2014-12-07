@@ -147,9 +147,7 @@ void SharedMemorySource::setupSharedMemory(QVariantMap descriptor) {
 SharedMemorySource::~SharedMemorySource()
 {
     if (shm)
-    	delete shm;
-	// free the OpenGL texture
-	glDeleteTextures(1, &textureIndex);
+        delete shm;
 }
 
 void SharedMemorySource::update(){

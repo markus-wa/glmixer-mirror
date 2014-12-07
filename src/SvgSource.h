@@ -56,7 +56,7 @@ public:
 protected:
 
 	SvgSource(QSvgRenderer *svg, GLuint texture, double d);
-	virtual ~SvgSource();
+    ~SvgSource();
 
 private:
 	QSvgRenderer *_svg;

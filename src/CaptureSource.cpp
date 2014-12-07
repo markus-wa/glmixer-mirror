@@ -31,8 +31,8 @@ CaptureSource::CaptureSource(QImage capture, GLuint texture, double d): Source(t
 }
 
 CaptureSource::~CaptureSource() {
-	// free the OpenGL texture
-	glDeleteTextures(1, &textureIndex);
+
+
 }
 
 
