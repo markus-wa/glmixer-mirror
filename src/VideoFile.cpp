@@ -205,7 +205,11 @@ public:
 	~DecodingThread()
 	{
 		// free the allocated frame
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+        av_free(_pFrame);
+#else
         av_frame_free(&_pFrame);
+#endif
 	}
 
 	void run();
@@ -916,7 +920,11 @@ double VideoFile::fill_first_frame(bool seek)
 
     // free memory
     av_free_packet(packet);
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+    av_free(tmpframe);
+#else
     av_frame_free(&tmpframe);
+#endif
 
     first_picture_changed = false;
 
