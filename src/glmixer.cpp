@@ -2344,9 +2344,16 @@ void GLMixer::on_actionPreferences_triggered()
     upd->showPreferences( getPreferences() );
 
     // show the dialog and apply preferences if it was accepted
-    if (upd->exec() == QDialog::Accepted)
+    if (upd->exec() == QDialog::Accepted) {
+
+        int mem = VideoFile::getMemoryUsagePolicy();
+
         restorePreferences( upd->getUserPreferences() );
 
+        if (mem != VideoFile::getMemoryUsagePolicy()) {
+            QMessageBox::information(this, QCoreApplication::applicationName(), "Reloading video files is necessary for the change of buffer size to take effect (reload session or restart the program). ");
+        }
+    }
 }
 
 
@@ -2493,7 +2500,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
         RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
 
     // r. Memory usage policy
-    int mem = 50;
+    int mem = VideoFile::getMemoryUsagePolicy();
     stream >> mem;
     VideoFile::setMemoryUsagePolicy(mem);
 

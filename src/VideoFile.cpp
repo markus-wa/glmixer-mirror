@@ -1310,9 +1310,6 @@ void VideoFile::setLoop(bool loop) {
 
 void VideoFile::recomputePictureQueueMaxCount()
 {  
-    // optimally, the decoder should at least allow to seek forward by jumping in the picture queue
-//    int min_count = (int)( (double) video_st->nb_frames * SEEK_STEP) + 1;
-
     // the number of frames allowed in order to fit into the maximum picture queue size (in MB)
     int max_count = (int) ( (float) (VideoFile::maximum_video_picture_queue_size * MEGABYTE) / (float) firstPicture->getBufferSize() );
 
@@ -1322,11 +1319,9 @@ void VideoFile::recomputePictureQueueMaxCount()
     // bound the max count within the [MIN_VIDEO_PICTURE_QUEUE_COUNT MAX_VIDEO_PICTURE_QUEUE_COUNT] interval
     pictq_max_count = qBound( MIN_VIDEO_PICTURE_QUEUE_COUNT, max_count, MAX_VIDEO_PICTURE_QUEUE_COUNT );
 
-//#ifndef NDEBUG
-    qDebug() << getFileName() << "| Memory limit of " << VideoFile::maximum_video_picture_queue_size << "MB holds " << (int) ( (float) (VideoFile::maximum_video_picture_queue_size * MEGABYTE) / (float) firstPicture->getBufferSize() ) << "pictures.";
-    qDebug() << getFileName() << "| [Mark-in Mark-out] interval counts " <<  (int) ((mark_out - mark_in) * getFrameRate() ) << "pictures.";
+#ifndef NDEBUG
     qDebug() << getFileName() << "| Picture Queue maximum set to "<< pictq_max_count << "pictures, i.e. " << (float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE << " MB";
-//#endif
+#endif
 }
 
 void VideoFile::setMarkIn(double time)
@@ -2085,10 +2080,10 @@ void VideoFile::setMemoryUsagePolicy(int percent)
     double p = qBound(0.0, (double) percent / 100.0, 1.0);
     VideoFile::maximum_packet_queue_size = MIN_PACKET_QUEUE_SIZE + (int)( p * (MAX_PACKET_QUEUE_SIZE - MIN_PACKET_QUEUE_SIZE));
     VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE + (int)( p * (MAX_VIDEO_PICTURE_QUEUE_SIZE - MIN_VIDEO_PICTURE_QUEUE_SIZE));
-//#ifndef NDEBUG
-    qDebug() << "VideoFile"  << QChar(124).toLatin1() << "Packet queue maximum set to " << VideoFile::maximum_packet_queue_size << "MB.";
-    qDebug() << "VideoFile"  << QChar(124).toLatin1() << "Video Pictures queue maximum set to " << VideoFile::maximum_video_picture_queue_size << "MB.";
-//#endif
+#ifndef NDEBUG
+    qDebug() << "VideoFile Memory Usage Policy"  << QChar(124).toLatin1() << "Packet queue maximum set to " << VideoFile::maximum_packet_queue_size << "MB.";
+    qDebug() << "VideoFile Memory Usage Policy"  << QChar(124).toLatin1() << "Video Pictures queue maximum set to " << VideoFile::maximum_video_picture_queue_size << "MB.";
+#endif
 }
 
 int VideoFile::getMemoryUsagePolicy()

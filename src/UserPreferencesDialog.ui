@@ -1111,6 +1111,19 @@ the user to select a file name</string>
             </widget>
            </item>
            <item>
+            <widget class="QLabel" name="label_12">
+             <property name="styleSheet">
+              <string notr="true">font: italic 9pt;</string>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Buffers are necessary for loading frames from file into memory before display.&lt;br/&gt;This maximum allows limiting the RAM usage, but large buffer &lt;br/&gt;is necessary for high resolution videos or fast play speed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="verticalSpacerSource">
              <property name="orientation">
               <enum>Qt::Vertical</enum>

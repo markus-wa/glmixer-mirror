@@ -56,7 +56,7 @@ public Q_SLOTS:
     void on_MemoryUsagePolicySlider_valueChanged(int mem);
 
 private:
-	class Source *defaultSource;
+    class Source *defaultSource;
 
 };
 
