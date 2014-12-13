@@ -240,7 +240,8 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
 
     // initialize buffer if no conversion context is provided
     if (!img_convert_ctx_filtering) {
-        for(int i = 0; i < avpicture_get_size(pixelformat, width, height); ++i)
+        int nbytes = avpicture_get_size(pixelformat, width, height);
+        for(int i = 0; i < nbytes; ++i)
             rgb.data[0][i] = 0;
     }
 }
@@ -1514,18 +1515,6 @@ void ParsingThread::run()
 #endif
             }
         }
-
-//        // 1) test if it was NOT a video stream packet : if yes, the OR ignores the second part and frees the packet
-//		// 2) if no, the OR tests the second part, which puts the video packet in the queue
-//		// 3) if this fails we free the packet anyway
-//        if (packet->stream_index != is->videoStream || !is->videoq.put(packet)) {
-//			// we need to free the packet if it was not put in the queue
-//			av_free_packet(packet);
-
-//#ifndef NDEBUG
-//            VideoFile::freePacketQueueCount++;
-//#endif
-//        }
 
     }
     // quit
