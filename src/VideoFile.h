@@ -44,7 +44,7 @@ extern "C" {
 /**
  * Default memory usage policy (in percent)
  */
-#define DEFAULT_MEMORY_USAGE_POLICY 30
+#define DEFAULT_MEMORY_USAGE_POLICY 50
 /**
  * Minimum and Maximum size of the queue of VideoPictures (between decoding and display)
  * Expressed in Megabytes
@@ -583,14 +583,14 @@ public:
      * @param percent Percentage of memory usage target : 0 is low, 100 is high
      */
     static void setMemoryUsagePolicy(int percent);
+    static int getMemoryUsagePolicy();
     /**
-     * Depending on memory usage policy, maximum buffer sizes are set
-     * internally. This function returns the maximum memory allocation allowed
+     * Given a memory usage policy, returns the maximum memory allocation allowed
      * in total for decoding a video file (both packet and video picture buffers).
      *
      * @return Maximum memory usage of internal buffers, in MB
      */
-    static int getMemoryUsageMaximum();
+    static int getMemoryUsageMaximum(int policy);
 
 
 Q_SIGNALS:
@@ -978,6 +978,7 @@ protected:
     void recomputePictureQueueMaxCount();
 
     // memory policy management (static)
+    static int memory_usage_policy;
     static int maximum_packet_queue_size;
     static int maximum_video_picture_queue_size;
 

@@ -2142,7 +2142,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1424</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -3548,11 +3548,14 @@ QToolButton:hover {
        <property name="wordWrap">
         <bool>true</bool>
        </property>
+       <property name="headerHidden">
+        <bool>false</bool>
+       </property>
        <property name="expandsOnDoubleClick">
         <bool>false</bool>
        </property>
        <attribute name="headerVisible">
-        <bool>false</bool>
+        <bool>true</bool>
        </attribute>
        <attribute name="headerDefaultSectionSize">
         <number>400</number>

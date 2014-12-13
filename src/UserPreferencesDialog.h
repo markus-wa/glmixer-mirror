@@ -53,6 +53,7 @@ public Q_SLOTS:
 	void on_recordingUpdatePeriod_valueChanged(int period);
 	void on_recordingFolderButton_clicked();
     void recordingFolderPathChanged(const QString &);
+    void on_MemoryUsagePolicySlider_valueChanged(int mem);
 
 private:
 	class Source *defaultSource;

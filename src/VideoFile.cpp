@@ -69,6 +69,7 @@ extern "C"
 // memory policy
 #define MIN_VIDEO_PICTURE_QUEUE_COUNT 5
 #define MAX_VIDEO_PICTURE_QUEUE_COUNT 200
+int VideoFile::memory_usage_policy = DEFAULT_MEMORY_USAGE_POLICY;
 int VideoFile::maximum_packet_queue_size = MIN_PACKET_QUEUE_SIZE;
 int VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE;
 
@@ -347,9 +348,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 #else
 		av_log_set_level( AV_LOG_DEBUG  ); /* print debug info from ffmpeg */
 #endif
-
-        //  set default memory usage
-        VideoFile::setMemoryUsagePolicy(DEFAULT_MEMORY_USAGE_POLICY);
 	}
 
 	// Init some pointers to NULL
@@ -2083,6 +2081,7 @@ int VideoFile::roundPowerOfTwo(int v)
 
 void VideoFile::setMemoryUsagePolicy(int percent)
 {
+    VideoFile::memory_usage_policy = percent;
     double p = qBound(0.0, (double) percent / 100.0, 1.0);
     VideoFile::maximum_packet_queue_size = MIN_PACKET_QUEUE_SIZE + (int)( p * (MAX_PACKET_QUEUE_SIZE - MIN_PACKET_QUEUE_SIZE));
     VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE + (int)( p * (MAX_VIDEO_PICTURE_QUEUE_SIZE - MIN_VIDEO_PICTURE_QUEUE_SIZE));
@@ -2092,9 +2091,18 @@ void VideoFile::setMemoryUsagePolicy(int percent)
 //#endif
 }
 
-int VideoFile::getMemoryUsageMaximum()
+int VideoFile::getMemoryUsagePolicy()
 {
-    return VideoFile::maximum_packet_queue_size + VideoFile::maximum_video_picture_queue_size;
+    return VideoFile::memory_usage_policy;
+}
+
+int VideoFile::getMemoryUsageMaximum(int policy)
+{
+    double p = qBound(0.0, (double) policy / 100.0, 1.0);
+    int max = MIN_PACKET_QUEUE_SIZE + (int)( p * (MAX_PACKET_QUEUE_SIZE - MIN_PACKET_QUEUE_SIZE));
+    max += MIN_VIDEO_PICTURE_QUEUE_SIZE + (int)( p * (MAX_VIDEO_PICTURE_QUEUE_SIZE - MIN_VIDEO_PICTURE_QUEUE_SIZE));
+
+    return max;
 }
 
 

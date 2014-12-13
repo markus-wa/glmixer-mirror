@@ -2492,9 +2492,15 @@ void GLMixer::restorePreferences(const QByteArray & state){
     else
         RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
 
+    // r. Memory usage policy
+    int mem = 50;
+    stream >> mem;
+    VideoFile::setMemoryUsagePolicy(mem);
+
     // Refresh widgets to make changes visible
     OutputRenderWindow::getInstance()->refresh();
     outputpreview->refresh();
+
     // de-select current source
     RenderingManager::getInstance()->unsetCurrentSource();
 
@@ -2570,6 +2576,9 @@ QByteArray GLMixer::getPreferences() const {
 
     // q. view context menu
     stream << ((RenderingManager::getRenderingWidget()->getViewContexMenu() == cursorMenu) ? 1 : 0);
+
+    // r. Memory usage policy
+    stream << VideoFile::getMemoryUsagePolicy();
 
     return data;
 }

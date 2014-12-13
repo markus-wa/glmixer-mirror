@@ -29,6 +29,7 @@
 #include "glmixer.h"
 #include "Source.h"
 #include "OutputRenderWindow.h"
+#include "VideoFile.h"
 
 #include <QFileDialog>
 #include <QApplication>
@@ -127,6 +128,8 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         defaultStartPlaying->setChecked(true);
         scalingModeSelection->setCurrentIndex(0);
         numberOfFramesRendering->setValue(1);
+
+        MemoryUsagePolicySlider->setValue(DEFAULT_MEMORY_USAGE_POLICY);
     }
 
     if (stackedPreferences->currentWidget() == PageInterface){
@@ -280,6 +283,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> vcm;
     selectionViewContextMenu->setCurrentIndex(vcm);
 
+    // r. Memory usage policy
+    int mem = 50;
+    stream >> mem;
+    MemoryUsagePolicySlider->setValue(mem);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -353,6 +361,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     // q. view context menu
     stream << selectionViewContextMenu->currentIndex();
 
+    // r. memory usage policy
+    stream << MemoryUsagePolicySlider->value();
+
     return data;
 }
 
@@ -405,3 +416,8 @@ QList<QAction *> UserPreferencesDialog::getActionsList(QList<QAction *> actionli
      return buildlist;
 }
 
+
+void UserPreferencesDialog::on_MemoryUsagePolicySlider_valueChanged(int mem)
+{
+    MemoryUsageMaximumLabel->setText(QString("%1MB").arg(VideoFile::getMemoryUsageMaximum(mem)));
+}
