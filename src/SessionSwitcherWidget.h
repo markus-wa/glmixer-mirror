@@ -93,4 +93,19 @@ private:
     bool nextSessionSelected, suspended;
 };
 
+
+class FolderModelFiller : public QThread
+ {
+     Q_OBJECT
+
+     void run();
+
+     QStandardItemModel *model;
+     QString path;
+     standardAspectRatio allowedAspectRatio;
+
+public:
+     FolderModelFiller(QObject *parent, QStandardItemModel *m, const QString &p, const standardAspectRatio allowedAR);
+ };
+
 #endif /* SESSIONSWITCHERWIDGET_H_ */

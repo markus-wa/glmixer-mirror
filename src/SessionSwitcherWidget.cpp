@@ -176,6 +176,17 @@ void fillFolderModel(QStandardItemModel *model, const QString &path, const stand
     }
 }
 
+void FolderModelFiller::run()
+{
+    fillFolderModel(model, path, allowedAspectRatio);
+}
+
+FolderModelFiller::FolderModelFiller(QObject *parent,QStandardItemModel *m, const QString &p, const standardAspectRatio allowedAR) : QThread(parent)
+{
+    model = m;
+    path = p;
+    allowedAspectRatio = allowedAR;
+}
 
 SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *settings) : QWidget(parent),
                                                                                     appSettings(settings), m_iconSize(48,48), allowedAspectRatio(ASPECT_RATIO_FREE),
@@ -358,10 +369,13 @@ void SessionSwitcherWidget::folderChanged( const QString & text )
     appSettings->setValue("recentFolderList", folders);
 
     folderHistory->updateGeometry ();
-    fillFolderModel(folderModel, text, allowedAspectRatio);
 
-    // setup transition according to new folder
-    setAvailable();
+    // Threaded version of fillFolderModel(folderModel, text, allowedAspectRatio);
+    FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, text, allowedAspectRatio);
+    connect(workerThread, SIGNAL(finished()), this, SLOT(setAvailable()));
+    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+    workerThread->start();
+
 }
 
 void SessionSwitcherWidget::openFolder(QString directory)
