@@ -60,13 +60,22 @@ extern "C"
 #include <QDebug>
 #include <QFileInfo>
 
-// Buffer between Parsing thread and Decoding thread
+
+// size of 1 MB
 #define MEGABYTE 1048576
-#define MAX_VIDEOQ_SIZE (8 * 1048576)
+// get time using libav
 #define GETTIME (double) av_gettime() * av_q2d(AV_TIME_BASE_Q)
 
+// memory policy
+#define MIN_VIDEO_PICTURE_QUEUE_COUNT 5
+#define MAX_VIDEO_PICTURE_QUEUE_COUNT 200
+int VideoFile::maximum_packet_queue_size = MIN_PACKET_QUEUE_SIZE;
+int VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE;
+
+// register ffmpeg / libav formats
 bool VideoFile::ffmpegregistered = false;
 
+// single instances of flush and end-of-file packets
 AVPacket *VideoFile::PacketQueue::flush_pkt = 0;
 AVPacket *VideoFile::PacketQueue::eof_pkt = 0;
 
@@ -324,18 +333,23 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 			targetWidth(destinationWidth), targetHeight(destinationHeight),
 			conversionAlgorithm(swsConversionAlgorithm)
 {
-
+    // first time a video file is created?
     if (!VideoFile::ffmpegregistered)
 	{
+        // register all codecs (do it once)
 		avcodec_register_all();
 		av_register_all();
+        VideoFile::ffmpegregistered = true;
+
+        // set log level for libav (do it once)
 #ifdef NDEBUG
         av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
 #else
 		av_log_set_level( AV_LOG_DEBUG  ); /* print debug info from ffmpeg */
 #endif
 
-        VideoFile::ffmpegregistered = true;
+        //  set default memory usage
+        VideoFile::setMemoryUsagePolicy(DEFAULT_MEMORY_USAGE_POLICY);
 	}
 
 	// Init some pointers to NULL
@@ -348,7 +362,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     blackPicture = NULL;
     resetPicture = NULL;
     filter = NULL;
-    pictq_max_size = MAX_VIDEO_PICTURE_QUEUE_SIZE;
+    pictq_max_count = MIN_VIDEO_PICTURE_QUEUE_COUNT;
 
 	// Contruct some objects
 	parse_tid = new ParsingThread(this);
@@ -580,7 +594,7 @@ void VideoFile::setPlaySpeed(double s)
 
 //    sizeq *= s;
 
-//    pictq_max_size = qBound(2, (int) sizeq, (int) video_st->nb_frames);
+//    pictq_max_count = qBound(2, (int) sizeq, (int) video_st->nb_frames);
 
     _videoClock.setSpeed( s );
     emit playSpeedChanged(s);
@@ -710,11 +724,6 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         emit markingChanged();
     }
 
-    // set the size of the picture queue to a percent of the number of frames
-    // but bound to the number of frames within the [begin end] interval
-    // and at most to the MAX defined
-    pictq_max_size = qBound(2, (int)( (double) video_st->nb_frames * SEEK_STEP) + 1, qMin(MAX_VIDEO_PICTURE_QUEUE_SIZE, 1 + (int) ((mark_out-mark_in) / av_q2d(video_st->time_base))) );
-
 	// init picture size
 	if (targetWidth == 0)
 		targetWidth = video_st->codec->width;
@@ -808,6 +817,9 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // (NB : seek in stream only if not reading the first frame)
     current_frame_pts = fill_first_frame( mark_in != getBegin() );
     mark_stop = current_frame_pts;
+
+    // set picture queue maximum size
+    recomputePictureQueueMaxCount();
 
     // use first picture as reset picture
     resetPicture = firstPicture;
@@ -1017,7 +1029,6 @@ void VideoFile::video_refresh_timer()
 
         // unblock the queue for the decoding thread
         // by informing it about the new size of the queue
-        pictq_size = pictq.size();
         pictq_cond->wakeAll();
     }
     // release lock
@@ -1236,26 +1247,22 @@ QString VideoFile::getStringFrameFromTime(double t) const
 
 double VideoFile::getBegin() const
 {
-    if (video_st)
-    {
-        if (video_st && (video_st->start_time != (int64_t) AV_NOPTS_VALUE))
-            return double(video_st->start_time) * av_q2d(video_st->time_base);
+    if (video_st && video_st->start_time != (int64_t) AV_NOPTS_VALUE )
+        return double(video_st->start_time) * av_q2d(video_st->time_base);
 
+    if (pFormatCtx && pFormatCtx->start_time != (int64_t) AV_NOPTS_VALUE )
         return double(pFormatCtx->start_time) * av_q2d(AV_TIME_BASE_Q);
-    }
 
     return 0.0;
 }
 
 double VideoFile::getDuration() const
 {
-    if (video_st)
-    {
-        if ( video_st->duration != (int64_t) AV_NOPTS_VALUE )
-            return double(video_st->duration) * av_q2d(video_st->time_base);
+    if (video_st && video_st->duration != (int64_t) AV_NOPTS_VALUE )
+        return double(video_st->duration) * av_q2d(video_st->time_base);
 
+    if (pFormatCtx && pFormatCtx->duration != (int64_t) AV_NOPTS_VALUE )
         return double(pFormatCtx->duration) * av_q2d(AV_TIME_BASE_Q);
-    }
 
     return 0.0;
 }
@@ -1303,6 +1310,27 @@ void VideoFile::setLoop(bool loop) {
 
 }
 
+void VideoFile::recomputePictureQueueMaxCount()
+{  
+    // optimally, the decoder should at least allow to seek forward by jumping in the picture queue
+//    int min_count = (int)( (double) video_st->nb_frames * SEEK_STEP) + 1;
+
+    // the number of frames allowed in order to fit into the maximum picture queue size (in MB)
+    int max_count = (int) ( (float) (VideoFile::maximum_video_picture_queue_size * MEGABYTE) / (float) firstPicture->getBufferSize() );
+
+    // limit this maximum number of frames within the number of frames into the [begin end] interval
+    max_count = qMin(max_count, 1 + (int) ((mark_out - mark_in) * getFrameRate() ));
+
+    // bound the max count within the [MIN_VIDEO_PICTURE_QUEUE_COUNT MAX_VIDEO_PICTURE_QUEUE_COUNT] interval
+    pictq_max_count = qBound( MIN_VIDEO_PICTURE_QUEUE_COUNT, max_count, MAX_VIDEO_PICTURE_QUEUE_COUNT );
+
+//#ifndef NDEBUG
+    qDebug() << getFileName() << "| Memory limit of " << VideoFile::maximum_video_picture_queue_size << "MB holds " << (int) ( (float) (VideoFile::maximum_video_picture_queue_size * MEGABYTE) / (float) firstPicture->getBufferSize() ) << "pictures.";
+    qDebug() << getFileName() << "| [Mark-in Mark-out] interval counts " <<  (int) ((mark_out - mark_in) * getFrameRate() ) << "pictures.";
+    qDebug() << getFileName() << "| Picture Queue maximum set to "<< pictq_max_count << "pictures, i.e. " << (float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE << " MB";
+//#endif
+}
+
 void VideoFile::setMarkIn(double time)
 {
     // set the mark in
@@ -1322,7 +1350,7 @@ void VideoFile::setMarkIn(double time)
     emit markingChanged();
 
     // change the picture queue size to match the new interval
-    pictq_max_size = qBound(2, (int)( (double) video_st->nb_frames * SEEK_STEP) + 1, qMin(MAX_VIDEO_PICTURE_QUEUE_SIZE, 1 + (int) ((mark_out-mark_in) / av_q2d(video_st->time_base))) );
+    recomputePictureQueueMaxCount();
 
     // remember that we have to update the first picture
     first_picture_changed = true;
@@ -1350,8 +1378,7 @@ void VideoFile::setMarkOut(double time)
     emit markingChanged();
 
     // charnge the picture queue size to match the new interval
-    pictq_max_size = qBound(2, (int)( (double) video_st->nb_frames * SEEK_STEP) + 1, qMin(MAX_VIDEO_PICTURE_QUEUE_SIZE, 1 + (int) ((mark_out-mark_in) / av_q2d(video_st->time_base))) );
-
+    recomputePictureQueueMaxCount();
 }
 
 bool VideoFile::timeInQueue(double time)
@@ -1523,7 +1550,6 @@ void VideoFile::clear_picture_queue() {
         delete p;
     }
 
-    pictq_size = 0;
 }
 
 void VideoFile::flush_picture_queue()
@@ -1593,7 +1619,6 @@ bool VideoFile::decodingSeekRequest(double time)
     pictq.first()->addAction(VideoPicture::ACTION_RESET_PTS);
 
     // inform about the new size of the queue
-    pictq_size = pictq.size();
     pictq_cond->wakeAll();
     pictq_mutex->unlock();
 
@@ -1645,7 +1670,6 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
     // enqueue this picture in the queue
     pictq.enqueue(vp);
     // inform about the new size of the queue
-    pictq_size = pictq.size();
     pictq_mutex->unlock();
 
 //    fprintf(stderr, "queued pict pts %f action %d\n", pts, a);
@@ -1821,7 +1845,7 @@ void DecodingThread::run()
                     // wait until we have space for a new pic
                     is->pictq_mutex->lock();
                     // the condition is released in video_refresh_timer()
-                    while ( (is->pictq_size > is->pictq_max_size) && !is->quit )
+                    while ( (is->pictq.count() > is->pictq_max_count) && !is->quit )
                         is->pictq_cond->wait(is->pictq_mutex);
                     is->pictq_mutex->unlock();
 
@@ -2042,7 +2066,7 @@ bool VideoFile::PacketQueue::isEndOfFile(AVPacket *pkt) const
 
 bool VideoFile::PacketQueue::isFull() const
 {
-	return (size > MAX_VIDEOQ_SIZE);
+    return (size > (VideoFile::maximum_packet_queue_size * MEGABYTE));
 }
 
 int VideoFile::roundPowerOfTwo(int v)
@@ -2057,14 +2081,31 @@ int VideoFile::roundPowerOfTwo(int v)
 	return static_cast<int> (1U) << (k + 1);
 }
 
+void VideoFile::setMemoryUsagePolicy(int percent)
+{
+    double p = qBound(0.0, (double) percent / 100.0, 1.0);
+    VideoFile::maximum_packet_queue_size = MIN_PACKET_QUEUE_SIZE + (int)( p * (MAX_PACKET_QUEUE_SIZE - MIN_PACKET_QUEUE_SIZE));
+    VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE + (int)( p * (MAX_VIDEO_PICTURE_QUEUE_SIZE - MIN_VIDEO_PICTURE_QUEUE_SIZE));
+//#ifndef NDEBUG
+    qDebug() << "VideoFile"  << QChar(124).toLatin1() << "Packet queue maximum set to " << VideoFile::maximum_packet_queue_size << "MB.";
+    qDebug() << "VideoFile"  << QChar(124).toLatin1() << "Video Pictures queue maximum set to " << VideoFile::maximum_video_picture_queue_size << "MB.";
+//#endif
+}
+
+int VideoFile::getMemoryUsageMaximum()
+{
+    return VideoFile::maximum_packet_queue_size + VideoFile::maximum_video_picture_queue_size;
+}
+
+
 void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 {
 
-	if (!ffmpegregistered)
+    if (!VideoFile::ffmpegregistered)
 	{
 		avcodec_register_all();
 		av_register_all();
-		ffmpegregistered = true;
+        VideoFile::ffmpegregistered = true;
 	}
 
 	QVBoxLayout *verticalLayout;

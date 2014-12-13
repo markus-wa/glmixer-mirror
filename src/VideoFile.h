@@ -40,10 +40,23 @@ extern "C" {
 #include <QThread>
 #include <QTimer>
 
+
 /**
- * Dimension of the queue of VideoPictures in a VideoFile
+ * Default memory usage policy (in percent)
  */
-#define MAX_VIDEO_PICTURE_QUEUE_SIZE 200
+#define DEFAULT_MEMORY_USAGE_POLICY 30
+/**
+ * Minimum and Maximum size of the queue of VideoPictures (between decoding and display)
+ * Expressed in Megabytes
+ */
+#define MIN_VIDEO_PICTURE_QUEUE_SIZE 58
+#define MAX_VIDEO_PICTURE_QUEUE_SIZE 480
+/**
+ * Minimum and Maximum size of the queue of packets (between parsing and decoding)
+ * Expressed in Megabytes
+ */
+#define MIN_PACKET_QUEUE_SIZE 2
+#define MAX_PACKET_QUEUE_SIZE 20
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -191,6 +204,8 @@ public:
     inline void removeAction(Action a) { action ^= (action & a); }
     inline bool hasAction(Action a) const { return (action & a); }
     inline double presentationTime() const { return pts; }
+
+    inline int getBufferSize() { return avpicture_get_size(pixelformat, width, height); }
 
 private:
     AVPicture rgb;
@@ -560,6 +575,22 @@ public:
      * @param iconfile Name of the file to put as icon of the window
      */
     static void displayFormatsCodecsInformation(QString iconfile);
+    /**
+     * Sets the memory usage policy to define the bounding size of internal
+     * buffers (both packet queue and video picture queue) used for decoding.
+     * This allows limiting the allocation of memory for each video file.
+     *
+     * @param percent Percentage of memory usage target : 0 is low, 100 is high
+     */
+    static void setMemoryUsagePolicy(int percent);
+    /**
+     * Depending on memory usage policy, maximum buffer sizes are set
+     * internally. This function returns the maximum memory allocation allowed
+     * in total for decoding a video file (both packet and video picture buffers).
+     *
+     * @return Maximum memory usage of internal buffers, in MB
+     */
+    static int getMemoryUsageMaximum();
 
 
 Q_SIGNALS:
@@ -939,11 +970,16 @@ protected:
     Clock _videoClock;
 
     // picture queue management
-    int pictq_size, pictq_max_size;//, pictq_allocated, pictq_rindex, pictq_windex;
+    int pictq_max_count;
     QQueue<VideoPicture*> pictq;
     bool pictq_flush_req;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
+    void recomputePictureQueueMaxCount();
+
+    // memory policy management (static)
+    static int maximum_packet_queue_size;
+    static int maximum_video_picture_queue_size;
 
     // Threads and execution manangement
     ParsingThread *parse_tid;
