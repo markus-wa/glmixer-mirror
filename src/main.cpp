@@ -22,6 +22,7 @@
 
 #include <QtGui/QApplication>
 #include <QString>
+#include <QTextCodec>
 
 #include "common.h"
 #include "QLogStream.h"
@@ -37,6 +38,8 @@
 int main(int argc, char **argv)
 {
     QApplication a(argc, argv);
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("utf8"));
+    QTextCodec::setCodecForTr(QTextCodec::codecForName("utf8"));
 
     // this redirects qDebug qWarning etc.
     qInstallMsgHandler(GLMixer::msgHandler);
