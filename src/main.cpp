@@ -38,8 +38,11 @@
 int main(int argc, char **argv)
 {
     QApplication a(argc, argv);
+
+#ifndef Q_OS_WIN32
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("utf8"));
     QTextCodec::setCodecForTr(QTextCodec::codecForName("utf8"));
+#endif
 
     // this redirects qDebug qWarning etc.
     qInstallMsgHandler(GLMixer::msgHandler);

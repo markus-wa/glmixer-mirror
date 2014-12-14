@@ -292,9 +292,9 @@ void VideoPicture::fill(AVPicture *frame, double timestamp)
 		// Convert the image with ffmpeg sws
         if ( 0 == sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0,
                   height, (uint8_t**) rgb.data, (int *) rgb.linesize) )
+            // fail : set pointer to NULL (do not display)
             rgb.data[0] = NULL;
 
-		return;
 	}
 	// I reimplement here sws_convertPalette8ToPacked32 which does not work with alpha channel (RGBA)...
 	else
@@ -361,7 +361,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     blackPicture = NULL;
     resetPicture = NULL;
     filter = NULL;
-    pictq_max_count = MIN_VIDEO_PICTURE_QUEUE_COUNT;
+    pictq_max_count = 0;
 
 	// Contruct some objects
 	parse_tid = new ParsingThread(this);
@@ -702,9 +702,13 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     pFormatCtx = _pFormatCtx;
     video_st = pFormatCtx->streams[videoStream];
 
-    // make sure the number of frames is correctly counted (some files have no count=
+    // make sure the number of frames is correctly counted (some files have no count)
     if (video_st->nb_frames == (int64_t) AV_NOPTS_VALUE || video_st->nb_frames < 1 )
         video_st->nb_frames = (int64_t) (getDuration() / av_q2d(video_st->time_base));
+
+    // disable multithreaded decoding for pictures
+    if (video_st->nb_frames < 2)
+        video_st->codec->thread_count = 1;
 
     // check the parameters for mark in and out and setup marking accordingly
     if (markIn < 0 || video_st->nb_frames < 2)
@@ -748,7 +752,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 #else
         || av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h > 0 )
 #endif
-	{
+    {
 		// special case of PALETTE formats which have ALPHA channel in their colors
 		if (video_st->codec->pix_fmt == PIX_FMT_PAL8) {
 			// palette pictures are always treated as PIX_FMT_RGBA data
@@ -781,10 +785,6 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	conversionAlgorithm |= SWS_PRINT_INFO;
 #endif
 
-	// MMX should be faster !
-	conversionAlgorithm |= SWS_CPU_CAPS_MMX;
-	conversionAlgorithm |= SWS_CPU_CAPS_MMX2;
-
     filter = NULL;
     // For single frames media or when ignorealpha flag is on, force filtering
     // (The ignore alpha flag is normally requested when the source is rgba
@@ -806,10 +806,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 		return false;
 	}
 
-	// we may need a black Picture frame to return when stopped
-    blackPicture = new VideoPicture(0, targetWidth, targetHeight);
-
-	// we need a picture to display when not decoding
+    // we need a picture to display when not playing (also for single frame media)
     firstPicture = new VideoPicture(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette);
 
 	// read firstPicture (not a big problem if fails; it would just be black)
@@ -817,8 +814,14 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     current_frame_pts = fill_first_frame( mark_in != getBegin() );
     mark_stop = current_frame_pts;
 
-    // set picture queue maximum size
-    recomputePictureQueueMaxCount();
+    // For videos only
+    if (video_st->nb_frames > 1) {
+        // we may need a black frame to return to when stopped
+        blackPicture = new VideoPicture(0, targetWidth, targetHeight);
+
+        // set picture queue maximum size
+        recomputePictureQueueMaxCount();
+    }
 
     // use first picture as reset picture
     resetPicture = firstPicture;
@@ -826,12 +829,13 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	// display a firstPicture frame ; this shows that the video is open
     emit frameReady( resetPicture );
 
-	/* say if we are running or not */
+    // say we are not running
     emit running(false);
 
 	// tells everybody we are set !
-    qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames).").arg(video_st->nb_frames);
+    qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 frames).").arg(video_st->nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count);
 
+    // all ok
 	return true;
 }
 
@@ -888,8 +892,8 @@ double VideoFile::fill_first_frame(bool seek)
         avcodec_flush_buffers(video_st->codec);
     }
 
-    // loop while we didn't finish the frame, maxi 50 times
-    while (!frameFinished && trial < 50)
+    // loop while we didn't finish the frame, maxi 10 times
+    while (!frameFinished && trial < 10)
     {
         // read a packet
         if (av_read_frame(pFormatCtx, packet) < 0){
@@ -926,8 +930,12 @@ double VideoFile::fill_first_frame(bool seek)
         }
     }
 
-    // we can now fill in the first picture with this frame
-    firstPicture->fill((AVPicture *) tmpframe, pts);
+    if (frameFinished) {
+        // we can now fill in the first picture with this frame
+        firstPicture->fill((AVPicture *) tmpframe, pts);
+    }
+    else
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Could not read first frame.");
 
     // free memory
     av_free_packet(packet);
@@ -939,7 +947,7 @@ double VideoFile::fill_first_frame(bool seek)
 
     first_picture_changed = false;
 
-    return firstPicture->getPts();
+    return pts;
 }
 
 
@@ -1319,10 +1327,6 @@ void VideoFile::recomputePictureQueueMaxCount()
 
     // bound the max count within the [MIN_VIDEO_PICTURE_QUEUE_COUNT MAX_VIDEO_PICTURE_QUEUE_COUNT] interval
     pictq_max_count = qBound( MIN_VIDEO_PICTURE_QUEUE_COUNT, max_count, MAX_VIDEO_PICTURE_QUEUE_COUNT );
-
-#ifndef NDEBUG
-    qDebug() << getFileName() << "| Picture Queue maximum set to "<< pictq_max_count << "pictures, i.e. " << (float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE << " MB";
-#endif
 }
 
 void VideoFile::setMarkIn(double time)
