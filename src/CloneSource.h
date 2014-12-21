@@ -48,7 +48,7 @@ public:
 
     // only RenderingManager can create a source
 protected:
-	CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->getTextureIndex(), d), original(*sit) {
+    CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->getTextureIndex(), d), original(*sit) {
         // clone the properties
         importProperties(original, true);
 
@@ -65,7 +65,10 @@ protected:
 	}
 
 	~CloneSource() {
+        // remove myself from the list of clones or my original
 		original->getClones()->erase((Source*) this);
+        // avoid deleting the texture of the original
+        textureIndex = 0;
 	}
 
 

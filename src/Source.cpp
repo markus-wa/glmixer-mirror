@@ -68,7 +68,7 @@ Source::Source(GLuint texture, double depth):
 
     // if creating an active source
     // (i.e. given a texture index)
-    if (texture > 0) {
+    if (textureIndex > 0) {
         // give it a unique identifier
         id = Source::lastid++;
 
