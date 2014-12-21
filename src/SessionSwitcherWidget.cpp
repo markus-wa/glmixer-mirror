@@ -59,7 +59,7 @@ public:
                 filter->show();
                 filter->setFocus();
                 QObject::connect(filter, SIGNAL(textChanged(const QString &)), parent(), SLOT(nameFilterChanged(const QString &)) );
-//				filter->setText(event->text().simplified());
+                //				filter->setText(event->text().simplified());
             }
         }
     }
@@ -82,9 +82,9 @@ public:
 void addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename, const standardAspectRatio allowedAspectRatio)
 {
 
-   QFile file(filename);
-   if ( !file.open(QFile::ReadOnly | QFile::Text) )
-    return;
+    QFile file(filename);
+    if ( !file.open(QFile::ReadOnly | QFile::Text) )
+        return;
 
     QDomDocument doc;
     QString errorStr;
@@ -161,36 +161,42 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
 
 }
 
-void fillFolderModel(QStandardItemModel *model, const QString &path, const standardAspectRatio allowedAspectRatio)
-{
-    QDir dir(path);
-    QFileInfoList fileList = dir.entryInfoList(QStringList("*.glm"), QDir::Files);
-
-    // empty list
-    model->removeRows(0, model->rowCount());
-
-    // fill list
-    for (int i = 0; i < fileList.size(); ++i) {
-         QFileInfo fileInfo = fileList.at(i);
-         addFile(model, fileInfo.completeBaseName(), fileInfo.lastModified(), fileInfo.absoluteFilePath(), allowedAspectRatio);
-    }
-}
 
 void FolderModelFiller::run()
 {
-    fillFolderModel(model, path, allowedAspectRatio);
+    if (model) {
+
+        // empty list
+        if (model->rowCount() > 0)
+            model->removeRows(0, model->rowCount());
+
+        // here test for folder to exist with QFile Info
+        QFileInfo folder(path);
+        if (folder.exists() && folder.isDir()) {
+
+            QDir dir(folder.absoluteFilePath());
+            QFileInfoList fileList = dir.entryInfoList(QStringList("*.glm"), QDir::Files);
+
+            // fill list
+            for (int i = 0; i < fileList.size(); ++i) {
+                QFileInfo fileInfo = fileList.at(i);
+                addFile(model, fileInfo.completeBaseName(), fileInfo.lastModified(), fileInfo.absoluteFilePath(), allowedAspectRatio);
+            }
+        }
+    }
 }
 
-FolderModelFiller::FolderModelFiller(QObject *parent,QStandardItemModel *m, const QString &p, const standardAspectRatio allowedAR) : QThread(parent)
+FolderModelFiller::FolderModelFiller(QObject *parent,QStandardItemModel *m,
+                                     QString p, const standardAspectRatio allowedAR)
+    : QThread(parent), model(m), path(p), allowedAspectRatio(allowedAR)
 {
-    model = m;
-    path = p;
-    allowedAspectRatio = allowedAR;
+
 }
+
 
 SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *settings) : QWidget(parent),
-                                                                                    appSettings(settings), m_iconSize(48,48), allowedAspectRatio(ASPECT_RATIO_FREE),
-                                                                                    nextSessionSelected(false), suspended(false)
+    appSettings(settings), m_iconSize(48,48), allowedAspectRatio(ASPECT_RATIO_FREE),
+    nextSessionSelected(false), suspended(false)
 {
     QGridLayout *g;
 
@@ -280,6 +286,9 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     folderModel->setHeaderData(1, Qt::Horizontal, QString("n"));
     folderModel->setHeaderData(2, Qt::Horizontal, QObject::tr("W:H"));
     folderModel->setHeaderData(3, Qt::Horizontal, QObject::tr("Modified"));
+    sortingColumn = 3;
+    sortingOrder = Qt::AscendingOrder;
+    folderModel->sort(sortingColumn, sortingOrder);
 
     proxyFolderModel = new QSortFilterProxyModel;
     proxyFolderModel->setDynamicSortFilter(true);
@@ -304,25 +313,25 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
     folderHistory = new QComboBox;
     folderHistory->setToolTip("List of folders containing session files");
-    folderHistory->setEditable(true);
+//    folderHistory->setEditable(true);
     folderHistory->setValidator(new folderValidator(this));
     folderHistory->setInsertPolicy (QComboBox::InsertAtTop);
     folderHistory->setMaxCount(MAX_RECENT_FOLDERS);
-//	folderHistory->setMaximumWidth(250);
+    //	folderHistory->setMaximumWidth(250);
     folderHistory->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     folderHistory->setDuplicatesEnabled(false);
 
-    proxyView = new SearchingTreeView;
+    proxyView = new QTreeView;
     proxyView->setRootIsDecorated(false);
     proxyView->setAlternatingRowColors(true);
-    proxyView->setSortingEnabled(true);
-    proxyView->sortByColumn(3, Qt::DescendingOrder);
+    proxyView->setSortingEnabled(false);
+    proxyView->sortByColumn(sortingColumn, sortingOrder);
     proxyView->setModel(proxyFolderModel);
     proxyView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     proxyView->header()->setResizeMode(QHeaderView::Interactive);
     proxyView->header()->resizeSection(1, 25);
     proxyView->header()->resizeSection(2, 35);
-//    proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
+    //    proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
 
     connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
     connect(dirDeleteButton, SIGNAL(clicked()),  this, SLOT(discardFolder()));
@@ -349,6 +358,10 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
 SessionSwitcherWidget::~SessionSwitcherWidget()
 {
+    // remember
+    appSettings->setValue("transitionSortingColumn", proxyFolderModel->sortColumn());
+    appSettings->setValue("transitionSortingOrder", (int) proxyFolderModel->sortOrder());
+
     delete proxyFolderModel;
 }
 
@@ -361,25 +374,53 @@ void SessionSwitcherWidget::nameFilterChanged(const QString &s)
 
 void SessionSwitcherWidget::folderChanged( const QString & text )
 {
+    // remove (if exist) the path from list and reorder it
     QStringList folders = appSettings->value("recentFolderList").toStringList();
     folders.removeAll(text);
     folders.prepend(text);
+    // limit list size
     while (folders.size() > MAX_RECENT_FOLDERS)
         folders.removeLast();
     appSettings->setValue("recentFolderList", folders);
 
-    folderHistory->updateGeometry ();
+    folderHistory->updateGeometry();
+
+    // remember sorting before disabling it temporarily
+    sortingColumn = proxyFolderModel->sortColumn();
+    sortingOrder = proxyFolderModel->sortOrder();
+    proxyView->setSortingEnabled(false);
 
     // Threaded version of fillFolderModel(folderModel, text, allowedAspectRatio);
     FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, text, allowedAspectRatio);
-    connect(workerThread, SIGNAL(finished()), this, SLOT(setAvailable()));
-    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
-    workerThread->start();
+    if (!workerThread)
+        return;
 
+    if (folderModelAccesslock.tryLock(200)) {
+        setEnabled(false);
+        connect(workerThread, SIGNAL(finished()), this, SLOT(restoreFolderView()));
+        connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+        workerThread->start();
+    } else
+        delete workerThread;
+}
+
+
+void SessionSwitcherWidget::restoreFolderView()
+{
+    // restore sorting
+    folderModel->sort(sortingColumn, sortingOrder);
+    proxyView->setSortingEnabled(true);
+    proxyView->sortByColumn(sortingColumn, sortingOrder);
+
+    // restore availability
+    folderModelAccesslock.unlock();
+    setEnabled(true);
 }
 
 void SessionSwitcherWidget::openFolder(QString directory)
 {
+    disconnect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
+
     QString dirName;
     if ( directory.isNull() )
         dirName = QFileDialog::getExistingDirectory(0, QObject::tr("Select a directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly );
@@ -392,27 +433,26 @@ void SessionSwitcherWidget::openFolder(QString directory)
     int index = folderHistory->findText(dirName);
     if ( index < 0 ) {
         index = 0;
-        folderHistory->insertItem(0, dirName);
+        folderHistory->insertItem(index, dirName);
     }
 
+    connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
     folderHistory->setCurrentIndex(index);
 }
 
 void SessionSwitcherWidget::discardFolder()
 {
-    QStringList folders = appSettings->value("recentFolderList").toStringList();
-    folders.removeAll( folderHistory->currentText() );
-    appSettings->setValue("recentFolderList", folders);
-    folderHistory->removeItem(folderHistory->currentIndex());
+    if (folderHistory->count() > 0) {
+        // remove the folder from the settings
+        QStringList folders = appSettings->value("recentFolderList").toStringList();
+        folders.removeAll( folderHistory->currentText() );
+        appSettings->setValue("recentFolderList", folders);
 
-    updateFolder();
+        // remove the item
+        folderHistory->removeItem(folderHistory->currentIndex());
+    }
 }
 
-void SessionSwitcherWidget::updateFolder()
-{
-    folderChanged( folderHistory->currentText() );
-    folderHistory->updateGeometry ();
-}
 
 void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 {
@@ -420,12 +460,12 @@ void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
     emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
 
     // clear filter of proxyview
-    proxyView->leaveEvent(0);
+//    proxyView->leaveEvent(0);
 
     // make sure no other events are accepted until the end of the transition
     disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
     proxyView->setEnabled(false);
-    QTimer::singleShot( transitionSelection->currentIndex() > 0 ? transitionDuration->value() : 100, this, SLOT(setAvailable()));
+    QTimer::singleShot( transitionSelection->currentIndex() > 0 ? transitionDuration->value() : 100, this, SLOT(restoreTransition()));
 }
 
 void SessionSwitcherWidget::startTransitionToNextSession()
@@ -433,6 +473,7 @@ void SessionSwitcherWidget::startTransitionToNextSession()
     startTransitionToSession( proxyView->indexBelow (proxyView->currentIndex())	);
     proxyView->setCurrentIndex( proxyView->indexBelow (proxyView->currentIndex())	);
 }
+
 void SessionSwitcherWidget::startTransitionToPreviousSession()
 {
     startTransitionToSession( proxyView->indexAbove (proxyView->currentIndex())	);
@@ -446,6 +487,7 @@ void SessionSwitcherWidget::selectSession(const QModelIndex & index)
     transitionSlider->setEnabled(true);
     currentSessionLabel->setEnabled(true);
     nextSessionLabel->setEnabled(true);
+
     // display that we can do transition to new selected session
     nextSessionLabel->setText(QString("0% %1").arg(QFileInfo(nextSession).baseName()));
 }
@@ -456,7 +498,7 @@ void SessionSwitcherWidget::setTransitionType(int t)
     RenderingManager::getSessionSwitcher()->setTransitionType( tt );
 
     customButton->setStyleSheet("");
-//	transitionTab->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
+    //	transitionTab->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
     transitionTab->setVisible(tt != SessionSwitcher::TRANSITION_NONE);
     // hack ; NONE transition type should emulate automatic transition mode
     setTransitionMode(tt == SessionSwitcher::TRANSITION_NONE ? 0 : transitionTab->currentIndex());
@@ -522,22 +564,41 @@ void SessionSwitcherWidget::saveSettings()
     appSettings->setValue("transitionSelection", transitionSelection->currentIndex());
     appSettings->setValue("transitionDuration", transitionDuration->value());
     appSettings->setValue("transitionCurve", easingCurvePicker->currentRow());
-    QVariant variant = RenderingManager::getSessionSwitcher()->transitionColor();
-    appSettings->setValue("transitionColor", variant);
-    appSettings->setValue("transitionMedia", RenderingManager::getSessionSwitcher()->transitionMedia());
     appSettings->setValue("transitionTab", transitionTab->currentIndex());
 
+    if (RenderingManager::getSessionSwitcher()) {
+        QVariant variant = RenderingManager::getSessionSwitcher()->transitionColor();
+        appSettings->setValue("transitionColor", variant);
+        appSettings->setValue("transitionMedia", RenderingManager::getSessionSwitcher()->transitionMedia());
+    }
+
+    if (proxyFolderModel) {
+        appSettings->setValue("transitionSortingColumn", proxyFolderModel->sortColumn());
+        appSettings->setValue("transitionSortingOrder", (int) proxyFolderModel->sortOrder());
+    }
 }
 
 void SessionSwitcherWidget::restoreSettings()
 {
     // list of folders
     QStringList folders(QDir::currentPath());
-    if ( appSettings->contains("recentFolderList"))
+    if ( appSettings->contains("recentFolderList") )
         folders = appSettings->value("recentFolderList").toStringList();
 
+    // apply folder list
+    disconnect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
     folderHistory->addItems( folders );
     folderHistory->setCurrentIndex(0);
+    connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
+
+    // order of transition
+    sortingColumn = appSettings->value("transitionSortingColumn", "3").toInt();
+    sortingOrder = (Qt::SortOrder) appSettings->value("transitionSortingOrder", "0").toInt();
+    folderModel->sort(sortingColumn, sortingOrder);
+    proxyView->sortByColumn(sortingColumn, sortingOrder);
+
+    // read folder
+    folderChanged(folderHistory->itemText(0));
 
     RenderingManager::getSessionSwitcher()->setTransitionColor( appSettings->value("transitionColor").value<QColor>());
 
@@ -599,7 +660,7 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
         painter.setRenderHint(QPainter::Antialiasing, false);
         QListWidgetItem *item = new QListWidgetItem;
         item->setIcon(QIcon(pix));
-//        item->setText(metaEnum.key(i));
+        //        item->setText(metaEnum.key(i));
         easingCurvePicker->addItem(item);
     }
     return easingCurvePicker;
@@ -609,21 +670,26 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
 
 void SessionSwitcherWidget::setAllowedAspectRatio(const standardAspectRatio ar)
 {
-    allowedAspectRatio = ar;
+    if (folderModelAccesslock.tryLock(100)) {
 
-    // quick redisplay of folder list
-    for (int r = 0; r < folderModel->rowCount(); ++r )
-    {
-        standardAspectRatio sar = (standardAspectRatio) folderModel->data(folderModel->index(r, 0), Qt::UserRole+1).toInt();
-        Qt::ItemFlags flags = Qt::ItemIsSelectable;
-        if (allowedAspectRatio == ASPECT_RATIO_FREE || sar == allowedAspectRatio)
-            flags |= Qt::ItemIsEnabled;
+        allowedAspectRatio = ar;
 
-        folderModel->itemFromIndex(folderModel->index(r, 0))->setFlags (flags);
-        folderModel->itemFromIndex(folderModel->index(r, 1))->setFlags (flags);
-        folderModel->itemFromIndex(folderModel->index(r, 2))->setFlags (flags);
-        folderModel->itemFromIndex(folderModel->index(r, 3))->setFlags (flags);
+        // quick redisplay of folder list
+        for (int r = 0; r < folderModel->rowCount(); ++r )
+        {
+            standardAspectRatio sar = (standardAspectRatio) folderModel->data(folderModel->index(r, 0), Qt::UserRole+1).toInt();
+            Qt::ItemFlags flags = Qt::ItemIsSelectable;
+            if (allowedAspectRatio == ASPECT_RATIO_FREE || sar == allowedAspectRatio)
+                flags |= Qt::ItemIsEnabled;
+
+            folderModel->itemFromIndex(folderModel->index(r, 0))->setFlags (flags);
+            folderModel->itemFromIndex(folderModel->index(r, 1))->setFlags (flags);
+            folderModel->itemFromIndex(folderModel->index(r, 2))->setFlags (flags);
+            folderModel->itemFromIndex(folderModel->index(r, 3))->setFlags (flags);
+        }
     }
+
+    folderModelAccesslock.unlock();
 }
 
 
@@ -671,7 +737,7 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
     }
 }
 
-void SessionSwitcherWidget::setAvailable()
+void SessionSwitcherWidget::restoreTransition()
 {
     setTransitionMode(transitionTab->currentIndex());
 }
@@ -696,15 +762,15 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
             transitionSlider->setValue(0);
         } else
 
-        // detect end of transition
-        if ( t > 100 ) {
-            // reset
-            nextSessionSelected = false;
-            RenderingManager::getSessionSwitcher()->endTransition();
-            // no target
-            transitionSlider->setValue(-100);
-            resetTransitionSlider();
-        }
+            // detect end of transition
+            if ( t > 100 ) {
+                // reset
+                nextSessionSelected = false;
+                RenderingManager::getSessionSwitcher()->endTransition();
+                // no target
+                transitionSlider->setValue(-100);
+                resetTransitionSlider();
+            }
 
 
     } else {

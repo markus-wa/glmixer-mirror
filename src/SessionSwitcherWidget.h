@@ -37,11 +37,10 @@ class SessionSwitcherWidget  : public QWidget {
 
 public:
 	SessionSwitcherWidget(QWidget *parent, QSettings *settings);
-    ~SessionSwitcherWidget();
+    virtual ~SessionSwitcherWidget();
 
 public Q_SLOTS:
 
-    void updateFolder();
     void openFolder(QString directory = QString::null);
     void discardFolder();
     void folderChanged( const QString & text );
@@ -65,18 +64,22 @@ public Q_SLOTS:
     void restoreSettings();
 
     void setAllowedAspectRatio(const standardAspectRatio ar);
-    void setAvailable();
+    void restoreTransition();
+    void restoreFolderView();
 
 Q_SIGNALS:
 	void sessionTriggered(QString);
 
 private:
 
-	// folder toolbox
-	QListWidget *createCurveIcons();
+    // folder and list of sessions
     QStandardItemModel *folderModel;
     QSortFilterProxyModel *proxyFolderModel;
-    class SearchingTreeView *proxyView;
+    QTreeView *proxyView;
+    QMutex folderModelAccesslock;
+
+	// folder toolbox
+    QListWidget *createCurveIcons();
     QComboBox *folderHistory, *transitionSelection;
     QTabWidget *transitionTab;
     QSlider *transitionSlider;
@@ -91,6 +94,10 @@ private:
     QLabel *currentSessionLabel, *nextSessionLabel;
     QString nextSession;
     bool nextSessionSelected, suspended;
+
+    // sorting stuff
+    Qt::SortOrder sortingOrder;
+    int sortingColumn;
 };
 
 
@@ -105,7 +112,8 @@ class FolderModelFiller : public QThread
      standardAspectRatio allowedAspectRatio;
 
 public:
-     FolderModelFiller(QObject *parent, QStandardItemModel *m, const QString &p, const standardAspectRatio allowedAR);
- };
+     FolderModelFiller(QObject *parent, QStandardItemModel *m, QString p, const standardAspectRatio allowedAR);
+
+};
 
 #endif /* SESSIONSWITCHERWIDGET_H_ */
