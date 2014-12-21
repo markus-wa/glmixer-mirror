@@ -91,9 +91,6 @@ Source::~Source() {
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
 
-#ifndef NDEBUG
-    qDebug()<< name << QChar(124).toLatin1() << "Source destructor";
-#endif
 }
 
 void Source::setName(QString n) {

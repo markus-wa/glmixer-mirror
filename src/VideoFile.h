@@ -87,10 +87,6 @@ class VideoPicture {
 
 public:
 
-#ifndef NDEBUG
-    static int createdVideoPictureCount, deletedVideoPictureCount;
-#endif
-
     /**
      * create the VideoPicture and Allocate its av picture (w x h pixels)
      *
@@ -215,6 +211,12 @@ private:
     enum PixelFormat pixelformat;
     SwsContext *img_convert_ctx_filtering;
     Action action;
+
+#ifndef NDEBUG
+public:
+    static QMutex VideoPictureCountLock;
+    static int VideoPictureCount;
+#endif
 };
 
 class ParsingThread;
@@ -275,10 +277,6 @@ Q_OBJECT
 
 public:
 
-#ifndef NDEBUG
-    static int allocatedPacketQueueCount, freePacketQueueCount;
-    static int allocatedPacketListCount, freePacketListCount;
-#endif
     /**
      *  Constructor of a VideoFile.
      *
@@ -313,7 +311,7 @@ public:
      *
      * Automatically calls stop() and waits for the threads to end before clearing memory.
      */
-    ~VideoFile();
+    virtual ~VideoFile();
     /**
      * Get a VideoPicture from the internal queue of pictures.
      *
@@ -873,13 +871,14 @@ protected:
         PacketQueue();
         ~PacketQueue();
 
+        static bool isFlush(AVPacket *pkt);
+        static bool isEndOfFile(AVPacket *pkt);
+
         bool get(AVPacket *pkt, bool block);
         bool put(AVPacket *pkt);
         bool flush();
         void clear();
-        bool isFlush(AVPacket *pkt) const;
         bool endFile();
-        bool isEndOfFile(AVPacket *pkt) const;
         bool isFull() const;
         inline bool isEmpty() const { return size == 0; }
         inline int getSize() const { return size; }
@@ -991,6 +990,13 @@ protected:
 
     // ffmpeg util
     static bool ffmpegregistered;
+
+
+#ifndef NDEBUG
+public:
+    static QMutex PacketCountLock;
+    static int PacketCount;
+#endif
 
 };
 

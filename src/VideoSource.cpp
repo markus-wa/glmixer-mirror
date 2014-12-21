@@ -71,20 +71,11 @@ VideoSource::~VideoSource()
     if (vp)
         delete vp;
 
-#ifndef NDEBUG
-    qDebug() << VideoPicture::createdVideoPictureCount << " VideoPictures created";
-    qDebug() << VideoPicture::deletedVideoPictureCount << " VideoPictures deleted";
-    qDebug() << VideoFile::allocatedPacketQueueCount << " PacketQueue created";
-    qDebug() << VideoFile::freePacketQueueCount << " PacketQueue deleted";
-    qDebug() << VideoFile::allocatedPacketListCount << " Packet List created";
-    qDebug() << VideoFile::freePacketListCount << " Packet list deleted";
-    qDebug() << name << QChar(124).toLatin1() << "VideoSource destructor";
-#endif
 }
 
 bool VideoSource::isPlayable() const
 {
-    return (is->getNumFrames() > 1);
+    return (is && is->getNumFrames() > 1);
 }
 
 bool VideoSource::isPlaying() const
@@ -96,10 +87,8 @@ void VideoSource::play(bool on)
 {
     if (on != isPlaying()) {
 
-        // free the vp if not already updated
-        if (vp && vp->hasAction(VideoPicture::ACTION_DELETE))
-            delete vp;
-        vp = NULL;
+        // cancel updated frame
+        updateFrame(NULL);
 
         // call parent method
         Source::play(on);
@@ -125,7 +114,7 @@ void VideoSource::pause(bool on)
 // only Rendering Manager can call this
 void VideoSource::update()
 {
-    // update texture given the new vp
+    // update texture if given a new vp
     if ( vp && vp->getBuffer() != NULL )
 	{
         glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -139,12 +128,8 @@ void VideoSource::update()
                     vp->getHeight(), GL_RGB, GL_UNSIGNED_BYTE,
                     vp->getBuffer());
 
-        // done! free the picture
-        if (vp->hasAction(VideoPicture::ACTION_DELETE))
-            delete vp;
-
-        // frame was displayed
-        vp = NULL;
+        // done! Cancel updated frame
+        updateFrame(NULL);
     }
 
     Source::update();
@@ -152,9 +137,10 @@ void VideoSource::update()
 
 void VideoSource::updateFrame(VideoPicture *p)
 {
-    // free the vp if not already updated
+    // free the video picture if tagged as to be deleted.
     if (vp && vp->hasAction(VideoPicture::ACTION_DELETE))
         delete vp;
+
     // set new vp
     vp = p;
 }

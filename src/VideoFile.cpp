@@ -81,13 +81,10 @@ AVPacket *VideoFile::PacketQueue::flush_pkt = 0;
 AVPacket *VideoFile::PacketQueue::eof_pkt = 0;
 
 #ifndef NDEBUG
-int VideoPicture::createdVideoPictureCount = 0;
-int VideoPicture::deletedVideoPictureCount = 0;
-
-int VideoFile::allocatedPacketQueueCount = 0;
-int VideoFile::freePacketQueueCount = 0;
-int VideoFile::allocatedPacketListCount = 0;
-int VideoFile::freePacketListCount = 0;
+int VideoFile::PacketCount = 0;
+QMutex VideoFile::PacketCountLock;
+int VideoPicture::VideoPictureCount = 0;
+QMutex VideoPicture::VideoPictureCountLock;
 #endif
 
 /**
@@ -232,11 +229,13 @@ private:
 VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
         enum PixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixelformat(format),  img_convert_ctx_filtering(img_convert_ctx), action(ACTION_SHOW)
 {
-#ifndef NDEBUG
-    VideoPicture::createdVideoPictureCount++;
-#endif
-
     avpicture_alloc(&rgb, pixelformat, width, height);
+
+#ifndef NDEBUG
+    VideoPicture::VideoPictureCountLock.lock();
+    VideoPicture::VideoPictureCount++;
+    VideoPicture::VideoPictureCountLock.unlock();
+#endif
 
     // initialize buffer if no conversion context is provided
     if (!img_convert_ctx_filtering) {
@@ -248,11 +247,13 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
 
 VideoPicture::~VideoPicture()
 {
-#ifndef NDEBUG
-    VideoPicture::deletedVideoPictureCount++;
-#endif
-
     avpicture_free(&rgb);
+
+#ifndef NDEBUG
+    VideoPicture::VideoPictureCountLock.lock();
+    VideoPicture::VideoPictureCount--;
+    VideoPicture::VideoPictureCountLock.unlock();
+#endif
 }
 
 void VideoPicture::saveToPPM(QString filename) const
@@ -447,9 +448,6 @@ void VideoFile::close()
     blackPicture = NULL;
     firstPicture = NULL;
 
-#ifndef NDEBUG
-    qDebug() << " VideoFile closed";
-#endif
 }
 
 VideoFile::~VideoFile()
@@ -470,10 +468,6 @@ VideoFile::~VideoFile()
 
     QObject::disconnect(this, 0, 0, 0);
 
-#ifndef NDEBUG
-    qDebug() << pictq.size() << " VideoPictures remaining in queue";
-    qDebug() << " VideoFile destructor done";
-#endif
 }
 
 void VideoFile::reset()
@@ -1497,7 +1491,6 @@ void ParsingThread::run()
 			continue;
         }
 
-
         // 1) test if it was NOT a video stream packet : free the packet
         if (packet->stream_index != is->videoStream) {
 
@@ -1507,15 +1500,18 @@ void ParsingThread::run()
         else {
 
 #ifndef NDEBUG
-            VideoFile::allocatedPacketQueueCount++;
+            VideoFile::PacketCountLock.lock();
+            VideoFile::PacketCount++;
+            VideoFile::PacketCountLock.unlock();
 #endif
+
             if ( !is->videoq.put(packet) ) {
                 // we need to free the packet if it was not put in the queue
                 av_free_packet(packet);
-
 #ifndef NDEBUG
-//                VideoFile::freePacketQueueCount++;
-                qDebug() << "Fail to queue packet";
+                VideoFile::PacketCountLock.lock();
+                VideoFile::PacketCount--;
+                VideoFile::PacketCountLock.unlock();
 #endif
             }
         }
@@ -1708,10 +1704,9 @@ void DecodingThread::run()
             // (does not have a packet to free)
             break;
 
-
 		// special case of flush packet
         // it is put after seeking in ParsingThread
-		if (is->videoq.isFlush(packet))
+        if (VideoFile::PacketQueue::isFlush(packet))
         {
             // flush buffers
             avcodec_flush_buffers(is->video_st->codec);
@@ -1727,7 +1722,7 @@ void DecodingThread::run()
 
         // special case of EndofFile packet
         // this happens when hitting end of file when parsing
-        if (is->videoq.isEndOfFile(packet))
+        if (VideoFile::PacketQueue::isEndOfFile(packet))
         {
             // react according to loop mode
             if (is->loop_video)
@@ -1846,9 +1841,16 @@ void DecodingThread::run()
         av_free_packet(packet);
 
 #ifndef NDEBUG
-        VideoFile::freePacketQueueCount++;
+        VideoFile::PacketCountLock.lock();
+        VideoFile::PacketCount--;
+        VideoFile::PacketCountLock.unlock();
 #endif
 	}
+
+    // if normal exit through break (couldn't get any more packet)
+    if (is)
+        // clear the queue
+        is->videoq.clear();
 
 }
 
@@ -1874,17 +1876,13 @@ bool VideoFile::isPaused() const {
 // put a packet at the tail of the queue.
 bool VideoFile::PacketQueue::put(AVPacket *pkt)
 {
-//    if (pkt != VideoFile::PacketQueue::flush_pkt &&
-//            pkt != VideoFile::PacketQueue::eof_pkt && av_dup_packet(pkt) < 0)
-//        return false;
+    if (pkt != VideoFile::PacketQueue::flush_pkt &&
+            pkt != VideoFile::PacketQueue::eof_pkt && av_dup_packet(pkt) < 0)
+        return false;
 
 	AVPacketList *pkt1 = (AVPacketList*) av_malloc(sizeof(AVPacketList));
 	if (!pkt1)
 		return false;
-
-#ifndef NDEBUG
-    VideoFile::allocatedPacketListCount++;
-#endif
 
 	pkt1->pkt = *pkt;
 	pkt1->next = NULL;
@@ -1926,9 +1924,6 @@ bool VideoFile::PacketQueue::get(AVPacket *pkt, bool block)
             *pkt = pkt1->pkt;
             av_free(pkt1);
 
-#ifndef NDEBUG
-            VideoFile::freePacketListCount++;
-#endif
 			ret = true;
 			break;
 		}
@@ -1949,11 +1944,6 @@ VideoFile::PacketQueue::~PacketQueue()
 
     delete mutex;
     delete cond;
-
-#ifndef NDEBUG
-    qDebug()<< "VideoFile::PacketQueue destructor";
-#endif
-
 }
 
 
@@ -2003,20 +1993,19 @@ void VideoFile::PacketQueue::clear()
         pkt1 = pkt->next;
 
         // do not free flush or eof packets
-        if ( !isFlush( &(pkt->pkt) ) && ! isEndOfFile( &(pkt->pkt) ) ) {
+        if ( !VideoFile::PacketQueue::isFlush( &(pkt->pkt) ) && !VideoFile::PacketQueue::isEndOfFile( &(pkt->pkt) ) ) {
 
             av_free_packet(&(pkt->pkt));
+
 #ifndef NDEBUG
-            VideoFile::freePacketQueueCount++;
+            VideoFile::PacketCountLock.lock();
+            VideoFile::PacketCount--;
+            VideoFile::PacketCountLock.unlock();
 #endif
         }
 
         // free list element
         av_freep(&pkt);
-
-#ifndef NDEBUG
-        VideoFile::freePacketListCount++;
-#endif
 
     }
 
@@ -2035,7 +2024,7 @@ bool VideoFile::PacketQueue::flush()
     return put(VideoFile::PacketQueue::flush_pkt);
 }
 
-bool VideoFile::PacketQueue::isFlush(AVPacket *pkt) const
+bool VideoFile::PacketQueue::isFlush(AVPacket *pkt)
 {
     return (pkt->data == VideoFile::PacketQueue::flush_pkt->data);
 }
@@ -2045,7 +2034,7 @@ bool VideoFile::PacketQueue::endFile()
     return put(VideoFile::PacketQueue::eof_pkt);
 }
 
-bool VideoFile::PacketQueue::isEndOfFile(AVPacket *pkt) const
+bool VideoFile::PacketQueue::isEndOfFile(AVPacket *pkt)
 {
     return (pkt->data == VideoFile::PacketQueue::eof_pkt->data);
 }
@@ -2073,10 +2062,7 @@ void VideoFile::setMemoryUsagePolicy(int percent)
     double p = qBound(0.0, (double) percent / 100.0, 1.0);
     VideoFile::maximum_packet_queue_size = MIN_PACKET_QUEUE_SIZE + (int)( p * (MAX_PACKET_QUEUE_SIZE - MIN_PACKET_QUEUE_SIZE));
     VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE + (int)( p * (MAX_VIDEO_PICTURE_QUEUE_SIZE - MIN_VIDEO_PICTURE_QUEUE_SIZE));
-#ifndef NDEBUG
-    qDebug() << "VideoFile Memory Usage Policy"  << QChar(124).toLatin1() << "Packet queue maximum set to " << VideoFile::maximum_packet_queue_size << "MB.";
-    qDebug() << "VideoFile Memory Usage Policy"  << QChar(124).toLatin1() << "Video Pictures queue maximum set to " << VideoFile::maximum_video_picture_queue_size << "MB.";
-#endif
+
 }
 
 int VideoFile::getMemoryUsagePolicy()

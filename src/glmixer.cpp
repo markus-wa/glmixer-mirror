@@ -539,6 +539,16 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
 
 void GLMixer::on_copyLogsToClipboard_clicked() {
 
+#ifndef NDEBUG
+    VideoPicture::VideoPictureCountLock.lock();
+    qDebug() << "Pending video Picture :" << VideoPicture::VideoPictureCount;
+    VideoPicture::VideoPictureCountLock.unlock();
+
+    VideoFile::PacketCountLock.lock();
+    qDebug() << "Pending video packets :" << VideoFile::PacketCount;
+    VideoFile::PacketCountLock.unlock();
+#endif
+
     if (logTexts->topLevelItemCount() > 0) {
         QString logs;
         QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
