@@ -539,15 +539,6 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
 
 void GLMixer::on_copyLogsToClipboard_clicked() {
 
-#ifndef NDEBUG
-    qDebug() << VideoPicture::createdVideoPictureCount << " VideoPictures created";
-    qDebug() << VideoPicture::deletedVideoPictureCount << " VideoPictures deleted";
-    qDebug() << VideoFile::allocatedPacketQueueCount << " PacketQueue created";
-    qDebug() << VideoFile::freePacketQueueCount << " PacketQueue deleted";
-    qDebug() << VideoFile::allocatedPacketListCount << " Packet List created";
-    qDebug() << VideoFile::freePacketListCount << " Packet list deleted";
-#endif
-
     if (logTexts->topLevelItemCount() > 0) {
         QString logs;
         QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
@@ -1677,12 +1668,6 @@ void GLMixer::confirmSessionFileName(){
 
     settings.setValue("recentFileList", files);
 
-    if (!currentSessionFileName.isEmpty()) {
-        // add path to session switcher
-        switcherSession->openFolder( QFileInfo(currentSessionFileName).absolutePath() );
-        // message
-        statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
-    }
 }
 
 
@@ -1806,7 +1791,14 @@ void GLMixer::on_actionSave_Session_triggered(){
 
         file.close();
 
-        confirmSessionFileName();
+        if (!currentSessionFileName.isEmpty())
+        {
+            confirmSessionFileName();
+
+            // add path to session switcher
+            switcherSession->folderChanged( QFileInfo(currentSessionFileName).absolutePath() );
+        }
+
         statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
         emit sessionSaved();
     }
@@ -2030,6 +2022,10 @@ void GLMixer::openSessionFile()
 
     // start the smooth transition
     RenderingManager::getSessionSwitcher()->startTransition(true);
+
+    // message
+    statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
+
 }
 
 
