@@ -349,6 +349,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
     // Create output preview widget
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
+    Q_CHECK_PTR(outputpreview);
     previewDockWidgetContentsLayout->insertWidget(0, outputpreview);
 
     // Default state without source selected
@@ -537,6 +538,15 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
 }
 
 void GLMixer::on_copyLogsToClipboard_clicked() {
+
+#ifndef NDEBUG
+    qDebug() << VideoPicture::createdVideoPictureCount << " VideoPictures created";
+    qDebug() << VideoPicture::deletedVideoPictureCount << " VideoPictures deleted";
+    qDebug() << VideoFile::allocatedPacketQueueCount << " PacketQueue created";
+    qDebug() << VideoFile::freePacketQueueCount << " PacketQueue deleted";
+    qDebug() << VideoFile::allocatedPacketListCount << " Packet List created";
+    qDebug() << VideoFile::freePacketListCount << " Packet list deleted";
+#endif
 
     if (logTexts->topLevelItemCount() > 0) {
         QString logs;
@@ -2601,6 +2611,7 @@ void GLMixer::on_gammaShiftSlider_valueChanged(int val)
 void GLMixer::on_gammaShiftReset_clicked()
 {
     gammaShiftSlider->setValue( GammaToScale(1.0) );
+    gammaShiftText->setText( QString().setNum( 1.0, 'f', 2) );
     RenderingManager::getInstance()->setGammaShift(1.0);
 }
 

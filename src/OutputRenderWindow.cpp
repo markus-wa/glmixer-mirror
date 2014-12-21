@@ -286,8 +286,10 @@ void OutputRenderWindow::setFullScreen(bool on) {
         }
         else
         {
+#ifdef Q_OS_WIN
             // it is required to hide the window before in order to avoid the bug of auto-maximization of window
             hide();
+#endif
             // appy normal window state
             setWindowState( Qt::WindowNoState | Qt::WindowActive);
             // use saved & previous window geometry otherwise
