@@ -187,8 +187,8 @@ void Source::setStandby(bool on) {
 
     // ignore if there are clones relying on its update
     // TODO  : check dependency of clones : are they in standy ?
-    if (isCloned())
-        return;
+//    if (isCloned())
+//        return;
 
     StandbyMode previous = standby;
 
@@ -211,7 +211,7 @@ void Source::play(bool on) {
 #ifdef FFGL
     // play the plugins only if not standby
     if (! _ffgl_plugins.isEmpty())
-        _ffgl_plugins.play( on );
+        _ffgl_plugins.play( isPlayable() ? on : standby == NOT_STANDBY );
 #endif
 
 }
