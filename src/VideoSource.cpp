@@ -85,18 +85,17 @@ bool VideoSource::isPlaying() const
 
 void VideoSource::play(bool on)
 {
-    if (on != isPlaying()) {
+    Source::play(on);
 
-        // cancel updated frame
-        updateFrame(NULL);
+    if ( isPlaying() == on )
+        return;
 
-        // call parent method
-        Source::play(on);
+    // cancel updated frame
+    updateFrame(NULL);
 
-        // transfer the order to the videoFile
-        is->play(on);
+    // transfer the order to the videoFile
+    is->play(on);
 
-    }
 }
 
 bool VideoSource::isPaused() const

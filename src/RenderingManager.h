@@ -123,7 +123,7 @@ public:
 	double getAvailableDepthFrom(double depth = -1) const;
 	SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
 
-	inline bool empty() const { return _sources.empty(); }
+    inline bool empty() const { return _front_sources.empty(); }
 
 	void removeSource(SourceSet::iterator itsource);
 	void removeSource(const GLuint idsource);
@@ -276,8 +276,10 @@ protected:
 #ifdef SPOUT
     bool _spoutEnabled, _spoutInitialized;
 #endif
-	// the set of sources
-	SourceSet _sources;
+    // the set of sources for display (front)
+    SourceSet _front_sources;
+    // the set of sources for pre-loading (back)
+    SourceSet _back_sources;
     // the recorder
     RenderingEncoder *_recorder;
     // the session switcher

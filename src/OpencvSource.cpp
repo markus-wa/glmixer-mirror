@@ -152,10 +152,10 @@ OpencvSource::~OpencvSource() {
 
 void OpencvSource::play(bool on){
 
+    Source::play(on);
+
 	if ( isPlaying() == on )
 		return;
-
-    Source::play(on);
 
 	if ( on ) { // start play
 		thread->end = false;

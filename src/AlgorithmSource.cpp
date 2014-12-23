@@ -404,10 +404,10 @@ void AlgorithmSource::setVariability(double v) {
 
 void AlgorithmSource::play(bool on) {
 
+    Source::play(on);
+
     if (isPlaying() == on)
         return;
-
-    Source::play(on);
 
     if (on) { // start play
         _thread->end = false;

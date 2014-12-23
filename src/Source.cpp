@@ -43,7 +43,7 @@ bool Source::playable = false;
 
 // source constructor.
 Source::Source(GLuint texture, double depth):
-    culled(false), standby(false), wasplaying(true), frameChanged(false), modifiable(true), fixedAspectRatio(false),
+    standby(NOT_STANDBY), culled(false), frameChanged(false), modifiable(true), fixedAspectRatio(false),
     clones(NULL), textureIndex(texture), maskTextureIndex(-1), x(0.0), y(0.0), z(CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER)),
     scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
     centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), flipVertical(false),
@@ -181,34 +181,42 @@ void Source::setAlphaCoordinates(double x, double y) {
 
 void Source::setStandby(bool on) {
 
-    bool wasstandby = standby;
+    // ignore if there are clones relying on its update
+    // TODO  : check dependency of clones : are they in standy ?
+    if (isCloned())
+        return;
 
-    // stop the plugins when standby
-    Source::play(!on);
+    // ignore non changing calls
+    if ( on == isStandby() )
+        return;
 
-    // set the source to stanby if there is no clone relying on its update
-    standby = on && !isCloned();
+    StandbyMode previous = standby;
 
-    // stops / restart playing a playable source
-    if (isPlayable() && wasstandby != standby)
-    {
-        if (standby)
-        {
-            wasplaying = isPlaying();
-            play(false);
-        }
+    // new status is based on request and play mode
+    if (on) {
+#ifdef FFGL
+        if (!isPlayable())
+            // non playable source : emulate play for FFGL plugins
+            standby = PLAY_STANDBY;
         else
-            play(wasplaying);
+#endif
+            standby = isPlaying() ? PLAY_STANDBY : STOP_STANDBY;
     }
+    else
+        standby = NOT_STANDBY;
+
+    // stop the source if in standby
+    // else (not standby), replay if previous state was to play
+    play( standby == NOT_STANDBY && previous == PLAY_STANDBY );
 
 }
 
 void Source::play(bool on) {
 
 #ifdef FFGL
-    // to be called at the end of the update of the source itself
+    // play the plugins only if not standby
     if (! _ffgl_plugins.isEmpty())
-        _ffgl_plugins.play( isPlayable() ? on : true);
+        _ffgl_plugins.play(  on && standby == NOT_STANDBY );
 #endif
 
 }

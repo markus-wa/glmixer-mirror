@@ -188,8 +188,10 @@ void SharedMemorySource::update(){
 
 void SharedMemorySource::play(bool on){
 
+    Source::play(on);
+
 	if ( isPlaying() == on )
-		return;
+        return;
 
 	textureInitialized = false;
 

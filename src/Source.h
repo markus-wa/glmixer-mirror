@@ -238,10 +238,22 @@ public:
     /**
      * standby
      */
+    typedef enum {
+        NOT_STANDBY = 0,
+        PLAY_STANDBY,
+        STOP_STANDBY
+    } StandbyMode;
     virtual void setStandby(bool on);
     inline bool isStandby() const {
+        return standby != NOT_STANDBY;
+    }
+    inline StandbyMode getStandbyMode() const {
         return standby;
     }
+    inline void setStandbyMode(StandbyMode m) {
+        standby = m;
+    }
+
 
     /**
      * Blending
@@ -465,8 +477,11 @@ protected:
     GLuint id;
     QString name;
 
+    // standby mode
+    StandbyMode standby;
+
     // flags for updating (or not)
-    bool culled, standby, wasplaying, frameChanged;
+    bool culled, frameChanged;
     // properties and clone list
     bool modifiable, fixedAspectRatio;
     SourceList *clones;

@@ -930,9 +930,9 @@ bool RenderingManager::insertSource(Source *s)
         // replace the source name by another available one based on the original name
         s->setName( getAvailableNameFrom(s->getName()) );
 
-        if (_sources.size() < MAX_SOURCE_COUNT) {
+        if (_front_sources.size() < MAX_SOURCE_COUNT) {
             //insert the source to the list
-            if (_sources.insert(s).second)
+            if (_front_sources.insert(s).second)
                 // inform of success
                 return true;
             else
@@ -1112,11 +1112,11 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 
     // if we are removing the current source, ensure it is not the current one anymore
     if (itsource == _currentSource) {
-        _currentSource = _sources.end();
+        _currentSource = _front_sources.end();
         emit currentSourceChanged(_currentSource);
     }
 
-    if (itsource != _sources.end()) {
+    if (itsource != _front_sources.end()) {
         Source *s = *itsource;
         // if this is not a clone
         if (s->rtti() != Source::CLONE_SOURCE)
@@ -1126,7 +1126,7 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
             }
         // then remove the source itself
         qDebug() << s->getName() << QChar(124).toLatin1() << tr("Source deleted.");
-        _sources.erase(itsource);
+        _front_sources.erase(itsource);
         delete s;
     }
 
@@ -1142,7 +1142,7 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
 void RenderingManager::clearSourceSet() {
 
     // clear the list of sources
-    for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its = _sources.begin())
+    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its = _front_sources.begin())
         removeSource(its);
 
     // reset the id counter
@@ -1152,20 +1152,20 @@ void RenderingManager::clearSourceSet() {
 }
 
 bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
-    return (itsource != _sources.end());
+    return (itsource != _front_sources.end());
 }
 
 bool RenderingManager::isValid(SourceSet::const_iterator itsource)  const{
 
     if (notAtEnd(itsource))
-        return (_sources.find(*itsource) != _sources.end());
+        return (_front_sources.find(*itsource) != _front_sources.end());
     else
         return false;
 }
 
 
 bool RenderingManager::isCurrentSource(Source *s){
-    if (_currentSource != _sources.end())
+    if (_currentSource != _front_sources.end())
         return ( s == *_currentSource );
     else
         return false;
@@ -1193,17 +1193,17 @@ void RenderingManager::setCurrentSource(GLuint id) {
 
 bool RenderingManager::setCurrentNext(){
 
-    if (_sources.empty() )
+    if (_front_sources.empty() )
         return false;
 
-    if (_currentSource != _sources.end()) {
+    if (_currentSource != _front_sources.end()) {
         // increment to next source
         _currentSource++;
         // loop to begin if at end
-        if (_currentSource == _sources.end())
-            _currentSource = _sources.begin();
+        if (_currentSource == _front_sources.end())
+            _currentSource = _front_sources.begin();
     } else
-        _currentSource = _sources.begin();
+        _currentSource = _front_sources.begin();
 
     emit currentSourceChanged(_currentSource);
     return true;
@@ -1211,14 +1211,14 @@ bool RenderingManager::setCurrentNext(){
 
 bool RenderingManager::setCurrentPrevious(){
 
-    if (_sources.empty() )
+    if (_front_sources.empty() )
         return false;
 
-    if (_currentSource != _sources.end()) {
+    if (_currentSource != _front_sources.end()) {
 
         // if at the beginning, go to the end
-        if (_currentSource == _sources.begin())
-            _currentSource = _sources.end();
+        if (_currentSource == _front_sources.begin())
+            _currentSource = _front_sources.end();
     }
 
     // decrement to previous source
@@ -1252,14 +1252,14 @@ double RenderingManager::getAvailableDepthFrom(double depth) const {
 
     // place it at the front if no depth is provided (default argument = -1)
     if (tentativeDepth < 0)
-        tentativeDepth  = (_sources.empty()) ? 0.0 : (*_sources.rbegin())->getDepth() + 1.0;
+        tentativeDepth  = (_front_sources.empty()) ? 0.0 : (*_front_sources.rbegin())->getDepth() + 1.0;
 
     tentativeDepth += dropBasket.size();
 
     // try to find a source at this depth in the list; it is not ok if it exists
     bool isok = false;
     while (!isok) {
-        if ( isValid( std::find_if(_sources.begin(), _sources.end(), isCloseTo(tentativeDepth)) ) ){
+        if ( isValid( std::find_if(_front_sources.begin(), _front_sources.end(), isCloseTo(tentativeDepth)) ) ){
             tentativeDepth += DEPTH_EPSILON;
         } else
             isok = true;
@@ -1273,18 +1273,18 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
 
     newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 
-    if (itsource != _sources.end()) {
+    if (itsource != _front_sources.end()) {
         // verify that the depth value is not already taken, or too close to, and adjust in case.
         SourceSet::iterator sb, se;
         double depthinc = 0.0;
         if (newdepth < (*itsource)->getDepth()) {
-            sb = _sources.begin();
+            sb = _front_sources.begin();
             se = itsource;
             depthinc = -DEPTH_EPSILON;
         } else {
             sb = itsource;
             sb++;
-            se = _sources.end();
+            se = _front_sources.end();
             depthinc = DEPTH_EPSILON;
         }
         while (std::find_if(sb, se, isCloseTo(newdepth)) != se) {
@@ -1294,58 +1294,58 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
         // remember pointer to the source
         Source *tmp = (*itsource);
         // sort again the set by depth: this is done by removing the element and adding it again after changing its depth
-        _sources.erase(itsource);
+        _front_sources.erase(itsource);
         // change the source internal depth value
         tmp->setDepth(newdepth);
 
         if (newdepth < 0) {
             // if request to place the source in a negative depth, shift all sources forward
-            for (SourceSet::iterator it = _sources.begin(); it
-                    != _sources.end(); it++)
+            for (SourceSet::iterator it = _front_sources.begin(); it
+                    != _front_sources.end(); it++)
                 (*it)->setDepth((*it)->getDepth() - newdepth);
         }
 
         // re-insert the source into the sorted list ; it will be placed according to its new depth
         std::pair<SourceSet::iterator, bool> ret;
-        ret = _sources.insert(tmp);
+        ret = _front_sources.insert(tmp);
         if (ret.second)
             return (ret.first);
         else
-            return (_sources.end());
+            return (_front_sources.end());
     }
 
-    return _sources.end();
+    return _front_sources.end();
 }
 
 SourceSet::iterator RenderingManager::getBegin() {
-    return _sources.begin();
+    return _front_sources.begin();
 }
 
 SourceSet::iterator RenderingManager::getEnd() {
-    return _sources.end();
+    return _front_sources.end();
 }
 
 SourceSet::const_iterator RenderingManager::getBegin() const{
-    return _sources.begin();
+    return _front_sources.begin();
 }
 
 SourceSet::const_iterator RenderingManager::getEnd() const{
-    return _sources.end();
+    return _front_sources.end();
 }
 
 SourceSet::iterator RenderingManager::getById(const GLuint id) {
 
-    return std::find_if(_sources.begin(), _sources.end(), hasId(id));
+    return std::find_if(_front_sources.begin(), _front_sources.end(), hasId(id));
 }
 
 SourceSet::iterator RenderingManager::getByName(const QString name){
 
-    return std::find_if(_sources.begin(), _sources.end(), hasName(name));
+    return std::find_if(_front_sources.begin(), _front_sources.end(), hasName(name));
 }
 
 SourceSet::const_iterator RenderingManager::getByName(const QString name) const {
 
-    return std::find_if(_sources.begin(), _sources.end(), hasName(name));
+    return std::find_if(_front_sources.begin(), _front_sources.end(), hasName(name));
 }
 /**
  * save and load configuration
@@ -1354,11 +1354,12 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 
     QDomElement config = doc.createElement("SourceList");
 
-    for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its++) {
+    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
 
         QDomElement sourceElem = doc.createElement("Source");
         sourceElem.setAttribute("name", (*its)->getName());
         sourceElem.setAttribute("playing", (*its)->isPlaying());
+        sourceElem.setAttribute("stanbyMode", (int) (*its)->getStandbyMode());
         sourceElem.setAttribute("modifiable", (*its)->isModifiable());
         sourceElem.setAttribute("fixedAR", (*its)->isFixedAspectRatio());
 
@@ -1450,6 +1451,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
         }
 #endif
 
+        // type specific settings
         QDomElement specific = doc.createElement("TypeSpecific");
         specific.setAttribute("type", (*its)->rtti());
 
@@ -1612,7 +1614,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
 
     QDomElement tmp;
-//    newsource->play( child.attribute("playing", "1").toInt() );
+
     newsource->setModifiable( child.attribute("modifiable", "1").toInt() );
     newsource->setFixedAspectRatio( child.attribute("fixedAR", "0").toInt() );
 
@@ -1727,6 +1729,9 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
     }
 
     // ok source is configured, can start it
+    // play the source if attribute says so
+    // and if no attribute, then play by default.
+    newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
     newsource->play( child.attribute("playing", "1").toInt() );
 
 }
@@ -2119,7 +2124,7 @@ void RenderingManager::pause(bool on){
     paused = on;
 
     // for every source in the manager, start/stop it
-    for (SourceSet::iterator its = _sources.begin(); its != _sources.end(); its++) {
+    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
         // exception for video source which are paused
         if ( (*its)->rtti() == Source::VIDEO_SOURCE ) {
             VideoSource *s = dynamic_cast<VideoSource *>(*its);
