@@ -175,8 +175,10 @@ void FFGLPluginSourceStack::update(){
 void FFGLPluginSourceStack::play(bool on){
 
     // play all the plugins
-    for (FFGLPluginSourceStack::iterator it = begin(); it != end(); ++it)
-        (*it)->play(on);
+    for (FFGLPluginSourceStack::iterator it = begin(); it != end(); ++it) {
+        if ( (*it)->isPlaying() != on )
+            (*it)->play(on);
+    }
 
 }
 

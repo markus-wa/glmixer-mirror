@@ -53,11 +53,11 @@ bool WebSource::isPlaying() const
 
 void WebSource::play(bool on)
 {
-
     Source::play(on);
 
     if ( isPlaying() == on )
         return;
+
     _playing = on;
 
     if (_playing)

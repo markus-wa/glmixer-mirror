@@ -1731,9 +1731,9 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
     // ok source is configured, can start it
     // play the source if attribute says so
     // and if no attribute, then play by default.
-    newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
     newsource->play( child.attribute("playing", "1").toInt() );
-
+    newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
+    newsource->setStandby( !newsource->isStandby());
 }
 
 int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QString version) {

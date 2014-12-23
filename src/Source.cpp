@@ -181,29 +181,24 @@ void Source::setAlphaCoordinates(double x, double y) {
 
 void Source::setStandby(bool on) {
 
+    // ignore non changing calls
+    if ( on == isStandby() )
+        return;
+
     // ignore if there are clones relying on its update
     // TODO  : check dependency of clones : are they in standy ?
     if (isCloned())
         return;
 
-    // ignore non changing calls
-    if ( on == isStandby() )
-        return;
-
     StandbyMode previous = standby;
 
-    // new status is based on request and play mode
-    if (on) {
 #ifdef FFGL
-        if (!isPlayable())
-            // non playable source : emulate play for FFGL plugins
-            standby = PLAY_STANDBY;
-        else
-#endif
-            standby = isPlaying() ? PLAY_STANDBY : STOP_STANDBY;
-    }
+    if (!isPlayable())
+        standby = on ? PLAY_STANDBY : NOT_STANDBY;
     else
-        standby = NOT_STANDBY;
+#endif
+        // new status is based on request and play mode
+        standby = on ? (isPlaying() ? PLAY_STANDBY : STOP_STANDBY) : NOT_STANDBY;
 
     // stop the source if in standby
     // else (not standby), replay if previous state was to play
@@ -216,7 +211,7 @@ void Source::play(bool on) {
 #ifdef FFGL
     // play the plugins only if not standby
     if (! _ffgl_plugins.isEmpty())
-        _ffgl_plugins.play(  on && standby == NOT_STANDBY );
+        _ffgl_plugins.play( on );
 #endif
 
 }
