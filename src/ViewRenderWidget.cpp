@@ -923,7 +923,7 @@ void ViewRenderWidget::enterEvent ( QEvent * event ){
 void ViewRenderWidget::zoom(int percent)
 {
     makeCurrent();
-    _currentView->setZoomPercent( double(percent) / 100.0 );
+    _currentView->setZoomPercent( double(percent) );
 
     showMessage(QString("%1 \%").arg(_currentView->getZoomPercent(), 0, 'f', 1));
 }
@@ -1400,44 +1400,74 @@ GLuint ViewRenderWidget::buildLineList()
 
 GLuint ViewRenderWidget::buildCircleList()
 {
-    GLuint id = glGenLists(2);
+    GLuint id = glGenLists(3);
     GLUquadricObj *quadObj = gluNewQuadric();
 
     glActiveTexture(GL_TEXTURE0);
-    GLuint texid = 0; //bindTexture(QPixmap(QString::fromUtf8(":/glmixer/textures/circle.png")), GL_TEXTURE_2D);
-    glGenTextures(1, &texid);
-    glBindTexture(GL_TEXTURE_2D, texid);
-    QImage p(":/glmixer/textures/circle.png");
-    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(),
-            p.height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-            GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-            GL_LINEAR_MIPMAP_LINEAR);
-    GLclampf highpriority = 1.0;
-    glPrioritizeTextures(1, &texid, &highpriority);
+//    GLuint texid = bindTexture(QPixmap(QString(":/glmixer/textures/circle.png")), GL_TEXTURE_2D, GL_LUMINANCE_ALPHA);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    static GLuint texid = 0;
+    if (texid == 0) {
+        // generate the texture with alpha exactly as computed for sources
+        glGenTextures(1, &texid);
+        glBindTexture(GL_TEXTURE_2D, texid);
+        GLfloat matrix[512*512*2];
+        double distance = 0.0;
+        int l = -255, c = -255;
+        for (int i = 0; i<512; ++i) {
+            c = -255;
+            for (int j=0; j<512; ++j) {
+                // distance to the center
+                distance = (double) ((c * c) + (l * l)) / ( 65536.0 );
+                // luminance
+                matrix[ j * 2 + i * 1024 ] =  CLAMP( 0.95 - 0.8 * distance, 0.f, 1.f);
+                // alpha
+                matrix[ 1 + j * 2 + i * 1024 ] =  CLAMP( 1.0 - distance , 0.f, 1.f);
+                ++c;
+            }
+            ++l;
+        }
+        // two components texture : luminance and alpha
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE16_ALPHA16, 512, 512, 0, GL_LUMINANCE_ALPHA, GL_FLOAT, (float *) matrix);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    }
+
+    // background checkerboard
+    GLuint texid2 = bindTexture(QPixmap(QString(":/glmixer/textures/checkerboard.png")), GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glNewList(id, GL_COMPILE);
 
         glPushMatrix();
-        glTranslatef(0.0, 0.0, -1.0);
+        glTranslatef(0.0, 0.0, -1.1);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
 
-        glDisable(GL_BLEND);
+        // grey mask in the surrounding area
+        glColor4ub(COLOR_BGROUND, 90);
+        gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT, 3 * CIRCLE_SIZE * SOURCE_UNIT,  80, 3);
+
+        // circle with generated texture
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
+        glBindTexture(GL_TEXTURE_2D, texid);
         glColor4ub(255, 255, 255, 255);
         gluQuadricTexture(quadObj, GL_TRUE);
         gluDisk(quadObj, 0.0, CIRCLE_SIZE * SOURCE_UNIT, 80, 3);
         glDisable(GL_TEXTURE_2D);
 
+        // line contour
         // blended antialiasing
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendEquation(GL_FUNC_ADD);
         glColor4ub(COLOR_CIRCLE, 250);
         glLineWidth(1.5);
-
         glRotatef(90.f, 0, 0, 1);
         glBegin(GL_LINE_LOOP);
         for (float i = 0.f; i < 2.f * M_PI; i += M_PI / 40.f )
@@ -1451,7 +1481,7 @@ GLuint ViewRenderWidget::buildCircleList()
     glNewList(id + 1, GL_COMPILE);
 
         glPushMatrix();
-        glTranslatef(0.0, 0.0, -1.0);
+        glTranslatef(0.0, 0.0, -1.1);
 
         // blended antialiasing
         glEnable(GL_BLEND);
@@ -1470,6 +1500,36 @@ GLuint ViewRenderWidget::buildCircleList()
 
     glEndList();
 
+    glNewList(id + 2, GL_COMPILE);
+
+        glPushMatrix();
+        glLoadIdentity();
+        glTranslatef(0.0, 0.0, -1.2);
+        glScalef( 1.5 *SOURCE_UNIT, 1.5 * SOURCE_UNIT, 1.0);
+
+        glDisable(GL_BLEND);
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, texid2);
+        glColor4ub(255, 255, 255, 255);
+
+        glBegin(GL_QUADS); // begin drawing a square
+        glTexCoord2f(0.f, 50.f);
+        glVertex2f(-1.0f, -1.0f); // Bottom Left
+        glTexCoord2f(50.f, 50.f);
+        glVertex2f(1.0f, -1.0f); // Bottom Right
+        glTexCoord2f(50.f, 0.f);
+        glVertex2f(1.0f, 1.0f); // Top Right
+        glTexCoord2f(0.f, 0.f);
+        glVertex2f(-1.0f, 1.0f); // Top Left
+        glEnd();
+
+        glDisable(GL_TEXTURE_2D);
+
+        glPopMatrix();
+
+    glEndList();
+
     // free quadric object
     gluDeleteQuadric(quadObj);
 
@@ -1483,20 +1543,23 @@ GLuint ViewRenderWidget::buildLimboCircleList()
     glListBase(id);
     GLUquadricObj *quadObj = gluNewQuadric();
 
+
     // limbo area
     glNewList(id, GL_COMPILE);
         glPushMatrix();
         glTranslatef(0.0, 0.0, -1.0);
+
         // blended antialiasing
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
         //limbo area
-        glColor4ub(COLOR_LIMBO, 180);
-        gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT, CIRCLE_SIZE * SOURCE_UNIT * 10.0, 70, 3);
+        glColor4ub(COLOR_BGROUND, 255);
+        gluDisk(quadObj, CIRCLE_SIZE * SOURCE_UNIT, 10 * CIRCLE_SIZE * SOURCE_UNIT,  80, 3);
+
         // border
-        glLineWidth(3.0);
-        glColor4ub(COLOR_FADING, 255);
+        glLineWidth(1.0);
+        glColor4ub(COLOR_LIMBO_CIRCLE, 255);
         glBegin(GL_LINE_LOOP);
         for (float i = 0; i < 2.0 * M_PI; i += 0.07)
             glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));
@@ -1512,8 +1575,8 @@ GLuint ViewRenderWidget::buildLimboCircleList()
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
         // border
-        glLineWidth(4.0);
-        glColor4ub(COLOR_DRAWINGS, 255);
+        glLineWidth(3.0);
+        glColor4ub(COLOR_LIMBO_CIRCLE, 255);
         glBegin(GL_LINE_LOOP);
         for (float i = 0; i < 2.0 * M_PI; i += 0.07)
             glVertex2f(CIRCLE_SIZE * SOURCE_UNIT * cos(i), CIRCLE_SIZE * SOURCE_UNIT * sin(i));

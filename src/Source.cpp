@@ -187,8 +187,8 @@ void Source::setStandby(bool on) {
 
     // ignore if there are clones relying on its update
     // TODO  : check dependency of clones : are they in standy ?
-//    if (isCloned())
-//        return;
+    if (isCloned())
+        return;
 
     StandbyMode previous = standby;
 

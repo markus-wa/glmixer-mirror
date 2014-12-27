@@ -32,5 +32,6 @@
         <file>textures/mask_towel.png</file>
         <file>textures/loading.png</file>
         <file>textures/timeout.png</file>
+        <file>textures/checkerboard.png</file>
     </qresource>
 </RCC>

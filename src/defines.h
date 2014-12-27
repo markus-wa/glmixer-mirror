@@ -7,6 +7,9 @@
 #define SIGN(a)	   (((a) < 0) ? -1.0 : 1.0)
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define EPSILON 0.00001
+#define LOG100(val) (50.0/log(10.0)*log((float)val + 1.0))
+#define EXP100(val) (exp(log(10.0)/50.0*(float)(val))-1.0)
+
 #define FRAME_DURATION 15
 
 #define XML_GLM_VERSION "0.8"
@@ -15,7 +18,7 @@
 #define SOURCE_UNIT 10.0
 #define CIRCLE_SIZE 8.0
 #define CIRCLE_SQUARE_DIST(x,y) ( (x*x + y*y) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE) )
-#define DEFAULT_LIMBO_SIZE 2.5
+#define DEFAULT_LIMBO_SIZE 1.5
 #define MIN_LIMBO_SIZE 1.1
 #define MAX_LIMBO_SIZE 3.0
 #define MIN_DEPTH_LAYER 0.0
@@ -36,6 +39,7 @@
 #define COLOR_CIRCLE_MOVE 230, 30, 230
 #define COLOR_DRAWINGS 150, 150, 150
 #define COLOR_LIMBO 35, 35, 35
+#define COLOR_LIMBO_CIRCLE 210, 160, 210
 #define COLOR_FADING 25, 25, 25
 #define COLOR_FRAME 210, 30, 210
 #define COLOR_FRAME_MOVE 230, 30, 230

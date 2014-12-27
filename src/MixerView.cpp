@@ -33,7 +33,7 @@
 
 #define MINZOOM 0.04
 #define MAXZOOM 1.0
-#define DEFAULTZOOM 0.1
+#define DEFAULTZOOM 0.075
 #define DEFAULT_PANNING 0.f, 0.f
 
 
@@ -73,6 +73,10 @@ void MixerView::paint()
     static GLdouble ax, ay;
 
     // First the background stuff
+
+    glCallList(ViewRenderWidget::circle_mixing + 2);
+
+
     glCallList(ViewRenderWidget::circle_mixing);
     if (_modeMoveCircle)
         glCallList(ViewRenderWidget::circle_mixing + 1);
@@ -83,6 +87,7 @@ void MixerView::paint()
     if (_modeScaleLimbo)
         glCallList(ViewRenderWidget::circle_limbo + 1);
     glPopMatrix();
+
 
     // and the selection connection lines
     glEnable(GL_LINE_STIPPLE);
