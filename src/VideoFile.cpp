@@ -61,10 +61,23 @@ extern "C"
 #include <QFileInfo>
 
 
-// size of 1 MB
+/**
+ * Size of a Mega Byte
+ */
 #define MEGABYTE 1048576
-// get time using libav
+/**
+ * Get time using libav
+ */
 #define GETTIME (double) av_gettime() * av_q2d(AV_TIME_BASE_Q)
+/**
+ * During parsing, the thread sleep for a little
+ * in case there is an error or nothing to do (ms).
+ */
+#define PARSING_SLEEP_DELAY 100
+/**
+ * Waiting time when update has nothing to do (ms)
+ */
+#define UPDATE_SLEEP_DELAY 5
 
 // memory policy
 #define MIN_VIDEO_PICTURE_QUEUE_COUNT 5
@@ -83,8 +96,35 @@ AVPacket *VideoFile::PacketQueue::eof_pkt = 0;
 #ifndef NDEBUG
 int VideoFile::PacketCount = 0;
 QMutex VideoFile::PacketCountLock;
+int VideoFile::PacketListElementCount = 0;
+QMutex VideoFile::PacketListElementCountLock;
 int VideoPicture::VideoPictureCount = 0;
 QMutex VideoPicture::VideoPictureCountLock;
+
+csvLogger::csvLogger(QString filename) : QObject(0) {
+    logFile.setFileName(filename + ".csv");
+    logFile.open(QFile::WriteOnly | QFile::Truncate | QFile::Text);
+    logStream.setDevice(&logFile);
+    logStream << "vp,p,ple\n";
+}
+
+void csvLogger::timerEvent(QTimerEvent *event)
+{
+    VideoPicture::VideoPictureCountLock.lock();
+    logStream << VideoPicture::VideoPictureCount << ',';
+    VideoPicture::VideoPictureCountLock.unlock();
+
+    VideoFile::PacketCountLock.lock();
+    logStream << VideoFile::PacketCount << ',';
+    VideoFile::PacketCountLock.unlock();
+
+    VideoFile::PacketListElementCountLock.lock();
+    logStream << VideoFile::PacketListElementCount << '\n';
+    VideoFile::PacketListElementCountLock.unlock();
+
+    logStream.flush();
+}
+
 #endif
 
 /**
@@ -350,6 +390,12 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 #else
 		av_log_set_level( AV_LOG_DEBUG  ); /* print debug info from ffmpeg */
 #endif
+
+#ifndef NDEBUG
+        qDebug() << "Starting CSV logger";
+        csvLogger *debugingLogger = new csvLogger("logsVideoFiles");
+        debugingLogger->startTimer(1000);
+#endif
 	}
 
 	// Init some pointers to NULL
@@ -531,12 +577,12 @@ void VideoFile::start()
 		// reset quit flag
 		quit = false;
 
-        // restart where we where (if valid mark)
+        // restart at beginning
+        seek_pos = mark_in;
+
+        // except restart where we where (if valid mark)
         if (restart_where_stopped && mark_stop < mark_out && mark_stop > mark_in)
-           seek_pos =  mark_stop;
-        // otherwise restart at beginning
-        else
-            seek_pos = mark_in;
+            seek_pos =  mark_stop;
 
         // request partsing thread to perform seek
         parsing_mode = VideoFile::SEEKING_PARSING_REQUEST;
@@ -1009,7 +1055,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 void VideoFile::video_refresh_timer()
 {
     // by default timer will be restarted ASAP
-    int ptimer_delay = 10;
+    int ptimer_delay = UPDATE_SLEEP_DELAY;
     bool quit_after_frame = false;
     VideoPicture *currentvp = NULL, *nextvp = NULL;
 
@@ -1103,12 +1149,12 @@ void VideoFile::video_refresh_timer()
             // delete the picture
             delete currentvp;
             // loop ASAP
-            ptimer_delay = 5;
+            ptimer_delay = UPDATE_SLEEP_DELAY;
        }
 
        if (fast_forward) {
            _videoClock.reset(current_frame_pts);
-           ptimer_delay = 5;
+           ptimer_delay = UPDATE_SLEEP_DELAY;
        }
 
     }
@@ -1399,17 +1445,12 @@ bool VideoFile::timeInQueue(double time)
 
 double VideoFile::getStreamAspectRatio() const
 {
-	double aspect_ratio = 0;
+    double aspect_ratio = 1.0;
 
-	if (video_st->sample_aspect_ratio.num)
-		aspect_ratio = av_q2d(video_st->sample_aspect_ratio);
-	else if (video_st->codec->sample_aspect_ratio.num)
-		aspect_ratio = av_q2d(video_st->codec->sample_aspect_ratio);
-	else
-		aspect_ratio = 0;
-	if (aspect_ratio <= 0.0)
-		aspect_ratio = 1.0;
-	aspect_ratio *= (double) video_st->codec->width / video_st->codec->height;
+    if (video_st && video_st->codec)
+        aspect_ratio = (double) video_st->codec->width / (double) video_st->codec->height;
+    else
+        aspect_ratio = (double) firstPicture->getWidth() / (double) firstPicture->getHeight();
 
 	return aspect_ratio;
 }
@@ -1724,16 +1765,21 @@ void DecodingThread::run()
         // this happens when hitting end of file when parsing
         if (VideoFile::PacketQueue::isEndOfFile(packet))
         {
+            is->clear_picture_queue();
+
             // react according to loop mode
-            if (is->loop_video)
+            if (is->loop_video) {
                 // if looping, request seek to begin
                 is->parsingSeekRequest(is->mark_in);
-            else
+                // go on to next packet (do not free eof packet)
+                continue;
+            } else {
                 // if stopping,  re-sends the previous frame pretending its too late
                 is->queue_picture(_pFrame, pts + av_q2d(is->video_st->time_base), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
+                // stop here
+                break;
+            }
 
-            // go on to next packet (do not free eof packet)
-            continue;
         }
 
         // remember packet pts in case the decoding loose it
@@ -1884,6 +1930,12 @@ bool VideoFile::PacketQueue::put(AVPacket *pkt)
 	if (!pkt1)
 		return false;
 
+#ifndef NDEBUG
+    VideoFile::PacketListElementCountLock.lock();
+    VideoFile::PacketListElementCount++;
+    VideoFile::PacketListElementCountLock.unlock();
+#endif
+
 	pkt1->pkt = *pkt;
 	pkt1->next = NULL;
 
@@ -1923,6 +1975,12 @@ bool VideoFile::PacketQueue::get(AVPacket *pkt, bool block)
 			size -= pkt1->pkt.size;
             *pkt = pkt1->pkt;
             av_free(pkt1);
+
+#ifndef NDEBUG
+    VideoFile::PacketListElementCountLock.lock();
+    VideoFile::PacketListElementCount--;
+    VideoFile::PacketListElementCountLock.unlock();
+#endif
 
 			ret = true;
 			break;
@@ -2007,6 +2065,11 @@ void VideoFile::PacketQueue::clear()
         // free list element
         av_freep(&pkt);
 
+#ifndef NDEBUG
+    VideoFile::PacketListElementCountLock.lock();
+    VideoFile::PacketListElementCount--;
+    VideoFile::PacketListElementCountLock.unlock();
+#endif
     }
 
     last_pkt = NULL;

@@ -39,6 +39,8 @@ extern "C" {
 #include <QWaitCondition>
 #include <QThread>
 #include <QTimer>
+#include <QFile>
+#include <QTextStream>
 
 
 /**
@@ -62,10 +64,7 @@ extern "C" {
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
  */
 #define SEEK_STEP 0.1
-/**
- * During decoding, the thread sleep for a little while in case there is an error or nothing to do.
- */
-#define PARSING_SLEEP_DELAY 100
+
 
 /**
  * Frames of a VideoFile are decoded and converted to VideoPictures.
@@ -996,9 +995,24 @@ protected:
 public:
     static QMutex PacketCountLock;
     static int PacketCount;
+    static QMutex PacketListElementCountLock;
+    static int PacketListElementCount;
 #endif
 
 };
 
+class csvLogger : public QObject {
+
+    Q_OBJECT
+
+public:
+    csvLogger(QString);
+
+protected:
+    void timerEvent(QTimerEvent *event);
+
+    QFile logFile;
+    QTextStream logStream;
+};
 
 #endif /* VIDEOFILE_H_ */
