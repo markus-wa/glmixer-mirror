@@ -852,7 +852,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	// read firstPicture (not a big problem if fails; it would just be black)
     // (NB : seek in stream only if not reading the first frame)
     current_frame_pts = fill_first_frame( mark_in != getBegin() );
-    mark_stop = current_frame_pts;
+    mark_stop = mark_in;
 
     // For videos only
     if (video_st->nb_frames > 1) {
@@ -1197,6 +1197,22 @@ double VideoFile::getFrameRate() const
         else if (video_st->nb_frames > 1)
             return (  ((double)video_st->duration / av_q2d(video_st->time_base)) / (double)video_st->nb_frames ) ;
 
+    }
+
+    return 0.0;
+}
+
+double VideoFile::getFrameDuration() const
+{
+    if (video_st)
+    {
+        // from average framerate from libav, if correct.
+        if (video_st->avg_frame_rate.num > 0)
+            return (double) video_st->avg_frame_rate.den / (double) video_st->avg_frame_rate.num;
+
+        // else :  inverse of frame rate
+        else
+            return 1.0 / getFrameRate();
     }
 
     return 0.0;
@@ -1765,21 +1781,24 @@ void DecodingThread::run()
         // this happens when hitting end of file when parsing
         if (VideoFile::PacketQueue::isEndOfFile(packet))
         {
-            is->clear_picture_queue();
+            // clear before restart
+//            is->clear_picture_queue();
+
+            // restart parsing at beginning in any case
+            // (avoid leaving the parsing stuck at end of file)
+            is->parsingSeekRequest(is->mark_in);
 
             // react according to loop mode
-            if (is->loop_video) {
-                // if looping, request seek to begin
-                is->parsingSeekRequest(is->mark_in);
-                // go on to next packet (do not free eof packet)
-                continue;
-            } else {
-                // if stopping,  re-sends the previous frame pretending its too late
-                is->queue_picture(_pFrame, pts + av_q2d(is->video_st->time_base), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
-                // stop here
+            if ( ! is->loop_video) {
+                // if stopping,  re-sends the previous frame with stop flag
+                // and pretending its too late
+                is->queue_picture(_pFrame, pts + is->getFrameDuration(), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
+                // stop here (do not free eof packet)
                 break;
             }
 
+            // go on to next packet (do not free eof packet)
+            continue;
         }
 
         // remember packet pts in case the decoding loose it
@@ -1811,7 +1830,7 @@ void DecodingThread::run()
                 if (is->parsing_mode == VideoFile::SEEKING_DECODING_REQUEST) {
 
                     // Skip all pFrame which didn't reach the seeking position
-                    // Olny end seeking when seeked time is reached
+                    // Stop seeking when seeked time is reached
                     if ( !(pts < is->seek_pos) ) {
 
                         // flush the picture queue on request
@@ -1837,11 +1856,10 @@ void DecodingThread::run()
                     }
                     else {
                         // save a bit of time for filling in the first frame : detect it
-                        if ( is->first_picture_changed &&  (qAbs(pts - is->mark_in) < av_q2d(is->video_st->time_base) ) ) {
+                        // (time between pts and mark in is less than time for one frame)
+                        if ( is->first_picture_changed &&  (qAbs(pts - is->mark_in) < is->getFrameDuration() ) ) {
                             is->firstPicture->fill((AVPicture*) _pFrame, pts);
                             is->first_picture_changed = false;
-
-    //                        fprintf(stderr, "\n\nDecodingThread first picture replaced for pts %f  mrk in %f\n\n", pts, is->mark_in);
 
                         }
                     }

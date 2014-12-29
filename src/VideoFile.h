@@ -459,6 +459,7 @@ public:
      * @return frame rate in Hertz (frames per second), 0 if no video is opened.
      */
     double getFrameRate() const;
+    double getFrameDuration() const;
     /**
      * Get the duration of the VideoFile in seconds.
      *
