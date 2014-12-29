@@ -392,9 +392,9 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 #endif
 
 #ifndef NDEBUG
-        qDebug() << "Starting CSV logger";
-        csvLogger *debugingLogger = new csvLogger("logsVideoFiles");
-        debugingLogger->startTimer(1000);
+//        qDebug() << "Starting CSV logger";
+//        csvLogger *debugingLogger = new csvLogger("logsVideoFiles");
+//        debugingLogger->startTimer(1500);
 #endif
 	}
 
@@ -1851,7 +1851,7 @@ void DecodingThread::run()
 
     //                    fprintf(stderr, "DecodingThread reached pts %f queue size %d\n", pts, is->pictq.size());
                         // if the seek position we reached equals the mark_in
-                        if ( qAbs( is->seek_pos - is->mark_in ) < 0.001 )
+                        if ( qAbs( is->seek_pos - is->mark_in ) < is->getFrameDuration() )
                             // tag the frame as a MARK frame
                             actionFrame |= VideoPicture::ACTION_MARK;
 
@@ -2100,11 +2100,12 @@ void VideoFile::PacketQueue::clear()
 
 bool VideoFile::PacketQueue::flush()
 {
-	mutex->lock();
+    mutex->lock();
+    // clear the queue
     clear();
     mutex->unlock();
 
-    return put(VideoFile::PacketQueue::flush_pkt);
+    return put(VideoFile::PacketQueue::flush_pkt);;
 }
 
 bool VideoFile::PacketQueue::isFlush(AVPacket *pkt)
@@ -2114,7 +2115,19 @@ bool VideoFile::PacketQueue::isFlush(AVPacket *pkt)
 
 bool VideoFile::PacketQueue::endFile()
 {
-    return put(VideoFile::PacketQueue::eof_pkt);
+    bool ret = false;
+
+    mutex->lock();
+    // discard if already a eof packet at end
+    if ( last_pkt && isEndOfFile(&last_pkt->pkt) )
+        ret = true;
+    mutex->unlock();
+
+    if (!ret)
+        // put a eof packet at end
+        ret = put(VideoFile::PacketQueue::eof_pkt);
+
+    return ret;
 }
 
 bool VideoFile::PacketQueue::isEndOfFile(AVPacket *pkt)
