@@ -1548,7 +1548,7 @@ void ParsingThread::run()
 			continue;
         }
 
-        // 1) test if it was NOT a video stream packet : free the packet
+        // test if it was NOT a video stream packet : free the packet
         if (packet->stream_index != is->videoStream) {
 
             av_free_packet(packet);
@@ -1781,24 +1781,26 @@ void DecodingThread::run()
         // this happens when hitting end of file when parsing
         if (VideoFile::PacketQueue::isEndOfFile(packet))
         {
-            // clear before restart
-//            is->clear_picture_queue();
 
             // restart parsing at beginning in any case
-            // (avoid leaving the parsing stuck at end of file)
+            // (avoid leaving the parsing stuck at end of file
+            // and forces the pictq to be freed)
             is->parsingSeekRequest(is->mark_in);
 
             // react according to loop mode
-            if ( ! is->loop_video) {
+            if ( is->loop_video) {
+
+                // go on to next packet (do not free eof packet)
+                continue;
+            }
+            else {
                 // if stopping,  re-sends the previous frame with stop flag
-                // and pretending its too late
+                // and pretending it is one frame later
                 is->queue_picture(_pFrame, pts + is->getFrameDuration(), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
                 // stop here (do not free eof packet)
                 break;
             }
 
-            // go on to next packet (do not free eof packet)
-            continue;
         }
 
         // remember packet pts in case the decoding loose it
