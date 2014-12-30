@@ -1398,39 +1398,66 @@ GLuint ViewRenderWidget::buildLineList()
     return base;
 }
 
+//#define CIRCLE_PIXELS 512
+//#define CIRCLE_PIXEL_RADIUS 65536.0
+//#define CIRCLE_PIXELS 256
+//#define CIRCLE_PIXEL_RADIUS 16384.0
+//#define CIRCLE_PIXELS 128
+//#define CIRCLE_PIXEL_RADIUS 4096.0
+#define CIRCLE_PIXELS 64
+#define CIRCLE_PIXEL_RADIUS 1024.0
+//#define CIRCLE_PIXELS 32
+//#define CIRCLE_PIXEL_RADIUS 256.0
+//#define CIRCLE_PIXELS 16
+//#define CIRCLE_PIXEL_RADIUS 64.0
+
+
 GLuint ViewRenderWidget::buildCircleList()
 {
     GLuint id = glGenLists(3);
     GLUquadricObj *quadObj = gluNewQuadric();
 
     glActiveTexture(GL_TEXTURE0);
-//    GLuint texid = bindTexture(QPixmap(QString(":/glmixer/textures/circle.png")), GL_TEXTURE_2D, GL_LUMINANCE_ALPHA);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     static GLuint texid = 0;
     if (texid == 0) {
         // generate the texture with alpha exactly as computed for sources
         glGenTextures(1, &texid);
         glBindTexture(GL_TEXTURE_2D, texid);
-        GLfloat matrix[512*512*2];
+        GLfloat matrix[CIRCLE_PIXELS*CIRCLE_PIXELS*2];
+        GLfloat luminance = 0.f;
+        GLfloat alpha = 0.f;
         double distance = 0.0;
-        int l = -255, c = -255;
-        for (int i = 0; i<512; ++i) {
-            c = -255;
-            for (int j=0; j<512; ++j) {
+        int l = -CIRCLE_PIXELS / 2 + 1, c = 0;
+        for (int i = 0; i < CIRCLE_PIXELS / 2; ++i) {
+            c = -CIRCLE_PIXELS / 2 + 1;
+            for (int j=0; j < CIRCLE_PIXELS / 2; ++j) {
                 // distance to the center
-                distance = (double) ((c * c) + (l * l)) / ( 65536.0 );
+                distance = (double) ((c * c) + (l * l)) / CIRCLE_PIXEL_RADIUS;
                 // luminance
-                matrix[ j * 2 + i * 1024 ] =  CLAMP( 0.95 - 0.8 * distance, 0.f, 1.f);
+                luminance = CLAMP( 0.95 - 0.8 * distance, 0.f, 1.f);
                 // alpha
-                matrix[ 1 + j * 2 + i * 1024 ] =  CLAMP( 1.0 - distance , 0.f, 1.f);
+                alpha = CLAMP( 1.0 - distance , 0.f, 1.f);
+
+                // 1st quadrant
+                matrix[ j * 2 + i * CIRCLE_PIXELS * 2 ] = luminance ;
+                matrix[ 1 + j * 2 + i * CIRCLE_PIXELS * 2 ] =  alpha;
+                // 2nd quadrant
+                matrix[ (CIRCLE_PIXELS -j -1)* 2 + i * CIRCLE_PIXELS * 2 ] = luminance;
+                matrix[ 1 + (CIRCLE_PIXELS -j -1) * 2 + i * CIRCLE_PIXELS * 2 ] = alpha;
+                // 3rd quadrant
+                matrix[ j * 2 + (CIRCLE_PIXELS -i -1) * CIRCLE_PIXELS * 2 ] = luminance;
+                matrix[ 1 + j * 2 + (CIRCLE_PIXELS -i -1) * CIRCLE_PIXELS * 2 ] = alpha;
+                // 4th quadrant
+                matrix[ (CIRCLE_PIXELS -j -1) * 2 + (CIRCLE_PIXELS -i -1) * CIRCLE_PIXELS * 2 ] =  luminance;
+                matrix[ 1 + (CIRCLE_PIXELS -j -1) * 2 + (CIRCLE_PIXELS -i -1) * CIRCLE_PIXELS * 2 ] = alpha;
+
                 ++c;
             }
             ++l;
         }
         // two components texture : luminance and alpha
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE16_ALPHA16, 512, 512, 0, GL_LUMINANCE_ALPHA, GL_FLOAT, (float *) matrix);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE16_ALPHA16, CIRCLE_PIXELS, CIRCLE_PIXELS, 0, GL_LUMINANCE_ALPHA, GL_FLOAT, (float *) matrix);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -1504,8 +1531,8 @@ GLuint ViewRenderWidget::buildCircleList()
 
         glPushMatrix();
         glLoadIdentity();
-        glTranslatef(0.0, 0.0, -1.2);
-        glScalef( 1.5 *SOURCE_UNIT, 1.5 * SOURCE_UNIT, 1.0);
+        glTranslatef(0.f, 0.f, -1.2f);
+        glScalef( 2.f *SOURCE_UNIT, 2.f * SOURCE_UNIT, 1.f);
 
         glDisable(GL_BLEND);
         glActiveTexture(GL_TEXTURE0);
