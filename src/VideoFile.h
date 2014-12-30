@@ -46,7 +46,7 @@ extern "C" {
 /**
  * Default memory usage policy (in percent)
  */
-#define DEFAULT_MEMORY_USAGE_POLICY 50
+#define DEFAULT_MEMORY_USAGE_POLICY 30
 /**
  * Minimum and Maximum size of the queue of VideoPictures (between decoding and display)
  * Expressed in Megabytes
@@ -1002,6 +1002,8 @@ public:
 
 };
 
+
+
 class csvLogger : public QObject {
 
     Q_OBJECT
@@ -1015,5 +1017,7 @@ protected:
     QFile logFile;
     QTextStream logStream;
 };
+
+
 
 #endif /* VIDEOFILE_H_ */

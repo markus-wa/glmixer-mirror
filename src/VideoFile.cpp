@@ -124,7 +124,9 @@ void csvLogger::timerEvent(QTimerEvent *event)
 
     logStream.flush();
 }
-
+#else
+csvLogger::csvLogger(QString filename) : QObject(0) {}
+void csvLogger::timerEvent(QTimerEvent *event) {}
 #endif
 
 /**
@@ -392,9 +394,10 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 #endif
 
 #ifndef NDEBUG
-//        qDebug() << "Starting CSV logger";
-//        csvLogger *debugingLogger = new csvLogger("logsVideoFiles");
-//        debugingLogger->startTimer(1500);
+        qDebug() << "Starting CSV logger";
+        csvLogger *debugingLogger = new csvLogger("logsVideoFiles");
+        // uncomment to activate debug logs
+//        debugingLogger->startTimer(1000);
 #endif
 	}
 
@@ -1942,19 +1945,14 @@ bool VideoFile::isPaused() const {
 // put a packet at the tail of the queue.
 bool VideoFile::PacketQueue::put(AVPacket *pkt)
 {
-    if (pkt != VideoFile::PacketQueue::flush_pkt &&
-            pkt != VideoFile::PacketQueue::eof_pkt && av_dup_packet(pkt) < 0)
-        return false;
+//    if (pkt != VideoFile::PacketQueue::flush_pkt &&
+//            pkt != VideoFile::PacketQueue::eof_pkt && av_dup_packet(pkt) < 0)
+//        return false;
 
 	AVPacketList *pkt1 = (AVPacketList*) av_malloc(sizeof(AVPacketList));
 	if (!pkt1)
 		return false;
 
-#ifndef NDEBUG
-    VideoFile::PacketListElementCountLock.lock();
-    VideoFile::PacketListElementCount++;
-    VideoFile::PacketListElementCountLock.unlock();
-#endif
 
 	pkt1->pkt = *pkt;
 	pkt1->next = NULL;
@@ -1969,6 +1967,12 @@ bool VideoFile::PacketQueue::put(AVPacket *pkt)
 	last_pkt = pkt1;
 	nb_packets++;
 	size += pkt1->pkt.size;
+
+#ifndef NDEBUG
+    VideoFile::PacketListElementCountLock.lock();
+    VideoFile::PacketListElementCount += pkt1->pkt.size;
+    VideoFile::PacketListElementCountLock.unlock();
+#endif
 
 	cond->wakeAll();
 	mutex->unlock();
@@ -1992,15 +1996,16 @@ bool VideoFile::PacketQueue::get(AVPacket *pkt, bool block)
 			if (!first_pkt)
 				last_pkt = NULL;
 			nb_packets--;
-			size -= pkt1->pkt.size;
-            *pkt = pkt1->pkt;
-            av_free(pkt1);
+            size -= pkt1->pkt.size;
 
 #ifndef NDEBUG
     VideoFile::PacketListElementCountLock.lock();
-    VideoFile::PacketListElementCount--;
+    VideoFile::PacketListElementCount -= pkt1->pkt.size;
     VideoFile::PacketListElementCountLock.unlock();
 #endif
+
+            *pkt = pkt1->pkt;
+            av_free(pkt1);
 
 			ret = true;
 			break;
@@ -2073,6 +2078,11 @@ void VideoFile::PacketQueue::clear()
         // do not free flush or eof packets
         if ( !VideoFile::PacketQueue::isFlush( &(pkt->pkt) ) && !VideoFile::PacketQueue::isEndOfFile( &(pkt->pkt) ) ) {
 
+#ifndef NDEBUG
+            VideoFile::PacketListElementCountLock.lock();
+            VideoFile::PacketListElementCount -= pkt->pkt.size;
+            VideoFile::PacketListElementCountLock.unlock();
+#endif
             av_free_packet(&(pkt->pkt));
 
 #ifndef NDEBUG
@@ -2080,16 +2090,13 @@ void VideoFile::PacketQueue::clear()
             VideoFile::PacketCount--;
             VideoFile::PacketCountLock.unlock();
 #endif
+
         }
 
         // free list element
         av_freep(&pkt);
 
-#ifndef NDEBUG
-    VideoFile::PacketListElementCountLock.lock();
-    VideoFile::PacketListElementCount--;
-    VideoFile::PacketListElementCountLock.unlock();
-#endif
+
     }
 
     last_pkt = NULL;

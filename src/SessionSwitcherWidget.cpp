@@ -33,51 +33,6 @@
 
 #include "SessionSwitcherWidget.moc"
 
-class SearchingTreeView : public QTreeView
-{
-    QLineEdit *filter;
-
-public:
-
-    SearchingTreeView ( QWidget * parent = 0 ): QTreeView(parent) {
-        filter = 0;
-    }
-
-    void keyPressEvent ( QKeyEvent * event ) {
-
-        if (filter) {
-            filter->hide();
-            delete filter;
-            filter = 0;
-        }
-        QSortFilterProxyModel *m = dynamic_cast<QSortFilterProxyModel *>(model());
-        if (m) {
-            if (event->key() == Qt::Key_Escape || event->key() == Qt::Key_Return)
-                m->setFilterWildcard("");
-            else if ( event->key() == Qt::Key_Space){
-                filter = new QLineEdit(this);
-                filter->show();
-                filter->setFocus();
-                QObject::connect(filter, SIGNAL(textChanged(const QString &)), parent(), SLOT(nameFilterChanged(const QString &)) );
-                //				filter->setText(event->text().simplified());
-            }
-        }
-    }
-
-    void leaveEvent ( QEvent * event ) {
-        QSortFilterProxyModel *m = dynamic_cast<QSortFilterProxyModel *>(model());
-        if (m)
-            m->setFilterWildcard("");
-        if (filter) {
-            filter->hide();
-            delete filter;
-            filter = 0;
-        }
-        if (event)
-            QTreeView::leaveEvent(event);
-    }
-
-};
 
 void addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename, const standardAspectRatio allowedAspectRatio)
 {
