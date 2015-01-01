@@ -244,7 +244,7 @@ public:
     DecodingThread(VideoFile *video = 0) : QThread(), is(video)
 	{
         // allocate a frame to fill
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
         _pFrame = avcodec_alloc_frame();
 #else
         _pFrame = av_frame_alloc();
@@ -254,7 +254,7 @@ public:
 	~DecodingThread()
 	{
 		// free the allocated frame
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
         av_free(_pFrame);
 #else
         av_frame_free(&_pFrame);
@@ -790,7 +790,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	// Change target format to keep Alpha channel if format requires
 	if ( pixelFormatHasAlphaChannel()
         // this is a fix for some jpeg formats with YUVJ format
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(56,00,0)
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
         || av_pix_fmt_desc_get(video_st->codec->pix_fmt)->log2_chroma_h > 0 )
 #else
         || av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h > 0 )
@@ -887,7 +887,7 @@ bool VideoFile::pixelFormatHasAlphaChannel() const
 	if (!video_st)
 		return false;
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(56,00,0)
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
     return  (av_pix_fmt_desc_get(video_st->codec->pix_fmt)->nb_components > 3)
             // does the format has ALPHA ?
             || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_ALPHA )
@@ -912,7 +912,7 @@ double VideoFile::fill_first_frame(bool seek)
 	AVPacket pkt1;
     AVPacket *packet = &pkt1;
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
     AVFrame *tmpframe = avcodec_alloc_frame();
 #else
     AVFrame *tmpframe = av_frame_alloc();
@@ -982,7 +982,7 @@ double VideoFile::fill_first_frame(bool seek)
 
     // free memory
     av_free_packet(packet);
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
     av_free(tmpframe);
 #else
     av_frame_free(&tmpframe);
@@ -2345,7 +2345,7 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 }
 
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(56,0,0)
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
 QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const
 {
     if (ffmpegPixelFormat == AV_PIX_FMT_NONE && video_st)

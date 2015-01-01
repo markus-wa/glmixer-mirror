@@ -313,7 +313,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
         int size = rec->enc->codec_context->width * rec->enc->codec_context->height;
         rec->conv->picture_buf = (uint8_t *) malloc((size * 3) / 2); /* size for YUV 420 */
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
         rec->conv->picture= avcodec_alloc_frame();
 #else
         rec->conv->picture= av_frame_alloc();
@@ -418,7 +418,7 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     // compute pts from time given
     frame.pts = av_rescale( (int64_t) timestamp, AV_TIME_BASE, 1000);
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
     r = avcodec_encode_video(rec->enc->codec_context, rec->enc->vbuf_ptr, rec->enc->vbuf_size, &frame);
     if(r == 0)
         return;
