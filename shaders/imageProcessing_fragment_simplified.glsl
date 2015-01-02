@@ -133,15 +133,15 @@ void main(void)
         // level threshold
         transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > EPSILON));
 
-        // chromakey
-        alpha -= mix( 0.0, abs( chromadelta * 0.707106781187 /  distance(transformedHSL, chromakey.xyz) ), float(chromakey.w > 0.0) );
-
         // after operations on HSL, convert back to RGB
         transformedRGB = HSV2RGB(transformedHSL);
 
+        // chromakey
+        alpha -= mix( 0.0, step( length( normalize(chromakey.xyz) - normalize(transformedRGB) ), chromadelta ), float(chromakey.w > 0.0) );
+
         // apply base color and
         // bring back the original alpha for final fragment color
-        gl_FragColor =  vec4(transformedRGB * baseColor.rgb, alpha );
+        gl_FragColor =  vec4(transformedRGB * baseColor.rgb, clamp(alpha, 0.0, 1.0)  );
     }
 }
 
