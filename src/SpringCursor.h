@@ -41,7 +41,7 @@ class SpringCursor: public QObject, public Cursor
 public:
 	SpringCursor();
 
-	void update(QMouseEvent *e);
+    void update(QMouseEvent *e);
 	bool apply(double fpsaverage);
 	bool wheelEvent(QWheelEvent * event);
     void draw(GLint viewport[4]);
@@ -60,7 +60,8 @@ private:
 	// parameters
 	double mass;
 	// timing
-	double viscousness, damping, stiffness;
+    double viscousness, damping, stiffness;
+    QVector2D _velocity;
 };
 
 #endif /* SPRINGCursor_H_ */

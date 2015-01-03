@@ -27,52 +27,60 @@
 
 #include "SpringCursor.moc"
 
-SpringCursor::SpringCursor() : Cursor(), mass(5.0)
+SpringCursor::SpringCursor() : Cursor(), mass(MIN_MASS)
 {
-	viscousness = 0.01;
-	damping = 10000.0;
-	stiffness = 20.0;
+    // percentage of loss of energy at every update
+    viscousness = 0.8;
+    // force applied on the mass, as percent of the Maximum mass
+    stiffness = 0.9;
+    // damping : opposite direction of force, non proportional to mass
+    damping = 100.0;
 }
-
 
 void SpringCursor::update(QMouseEvent *e){
 
-	Cursor::update(e);
+    Cursor::update(e);
 
+    if (e->type() == QEvent::MouseButtonPress){
+        _velocity = QVector2D(0,0);
+    }
 }
+
 
 bool SpringCursor::apply(double fpsaverage){
 
 	double dt = 1.0 / (fpsaverage < 1.0 ? 1.0 : fpsaverage);
 
 	// animate the shadow
-	if (active) {
+    if (active) {
 
-		releasePos = mousePos;
+        releasePos = mousePos;
 
-		//	fY -= viscousness * vY;
-		QVector2D dist = QVector2D(mousePos - shadowPos);
-		double len = dist.length();
+        //	fY -= viscousness * vY;
+        QVector2D dist = QVector2D(mousePos - shadowPos);
 
-		// initial force = attract (or repulse) depending on rest length and spring stiffness
-		QVector2D force = dist.normalized();
-		force *=  stiffness * (len - 2.0);
+        // apply force on velocity : spring stiffness / mass
+        _velocity += dist * (MAX_MASS * stiffness) / mass;
 
-		// apply damping dynamics
-		force += damping * dt * dist.normalized();
+        // apply damping dynamics
+        _velocity -= damping * dt * dist.normalized();
 
-		// diminish force by viscousness of substrate
-		force -= viscousness * force;
+        // compute new position : add velocity x time
+        shadowPos += dt * _velocity.toPointF();
 
-		// compute new position according to physics
-		shadowPos += dt * force.toPointF() / mass;
+        // diminish velocity by viscousness of substrate
+        // (loss of energy between updates)
+        // (apply fps corrector based on max fps)
+        _velocity *= viscousness * fpsaverage / 62.0;
 
-		// minimal implementation, with constant speed (kept here for historical reason)
-//		shadowPos += dt * (1.0 + 500.0 / mass) *  QVector2D(mousePos - shadowPos).normalized().toPointF();
+        // interpolation finished?
+        // (return true when not finished)
+        return ( (_velocity).length() > 1.0);
 
-		// interpolation finished?
-		return ((shadowPos - mousePos).manhattanLength() > 4.0);
-	}
+    } else {
+
+        _velocity = QVector2D(0,0);
+    }
 
 	return false;
 }
