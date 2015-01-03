@@ -64,6 +64,7 @@ private:
 	double speed;
 	double waitTime;
 	double pos;
+    bool targethit;
 
 	// timing
 	QElapsedTimer targetTimer, shadowTimer;

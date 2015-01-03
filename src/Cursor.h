@@ -39,7 +39,10 @@ public:
 		shadowPos = QPointF(0,0);
 		mousePos = QPointF(0,0);
 	}
-    virtual ~Cursor() {}
+    virtual ~Cursor() {
+        if (event)
+            delete event;
+    }
 
 	/**
 	 * Provide the cursor with the original mouse event
@@ -48,7 +51,7 @@ public:
 		if (!active && e->type() == QEvent::MouseButtonPress){
 			b = e->button();
             bs = e->buttons();
-			pressPos 	=  QPointF(e->pos());
+            pressPos  = QPointF(e->pos());
 			shadowPos = pressPos;
 			active = true;
 		} else if (e->type() == QEvent::MouseButtonRelease){

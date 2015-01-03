@@ -29,7 +29,7 @@
 
 #include "LineCursor.moc"
 
-LineCursor::LineCursor() : Cursor(), speed(100.0), waitTime(1.0), pos(0)
+LineCursor::LineCursor() : Cursor(), speed(100.0), waitTime(1.0), pos(0), targethit(false)
 {
 
 }
@@ -38,21 +38,25 @@ void LineCursor::update(QMouseEvent *e){
 
 	Cursor::update(e);
 
-	if (e->type() == QEvent::MouseButtonPress){
+    if (e->type() == QEvent::MouseButtonPress ||
+            (e->type() == QEvent::MouseMove && targethit == true)){
 		// reset time
 		targetTimer.start();
 		shadowTimer.invalidate();
 		shadowPos = pressPos;
-		pos = 0;
+        pos = 0;
+        targethit = false;
 	}
+
+
 }
 
 bool LineCursor::apply(double fpsaverage){
 
 	// animate the shadow
-	if (active) {
+    if (active && targethit == false) {
 
-		releasePos = mousePos;
+        releasePos = mousePos;
 
 		// detect elapsed waiting time
 		if ( targetTimer.isValid() && targetTimer.hasExpired( qint64( waitTime * 1000.0) ) ) {
@@ -64,15 +68,16 @@ bool LineCursor::apply(double fpsaverage){
 
 				// move by :  speed * delta T * direction vector
 				pos += speed * ( double(shadowTimer.restart()) / 1000.0 );
-				shadowPos = pressPos + pos * (releasePos - pressPos) / euclidean(releasePos, pressPos) ;
+                shadowPos = pressPos + pos * (releasePos - pressPos) / euclidean(releasePos, pressPos) ;
 
 				// interpolation finished?
-				if ( euclidean(pressPos, shadowPos) > euclidean(releasePos, pressPos)){
+                if ( euclidean(pressPos, shadowPos) > euclidean(releasePos, pressPos)){
 					// reset all
 					pressPos = mousePos;
-					shadowPos = mousePos;
-					targetTimer.restart();
-					shadowTimer.invalidate();
+                    shadowPos = mousePos;
+                    targetTimer.restart();
+                    shadowTimer.invalidate();
+                    targethit = true;
 				}
 			}
 		}
@@ -126,9 +131,9 @@ void LineCursor::draw(GLint viewport[4]) {
 	QPointF p(pressPos);
 	glPointSize(5);
 	glBegin(GL_POINTS);
-	while( euclidean(releasePos, p) > speed ) {
+    while( euclidean(releasePos, p) > speed ) {
 		glVertex2d(p.x(), (viewport[3] - p.y()));
-		p += speed/ euclidean(releasePos, pressPos)  * (releasePos - pressPos ) ;
+        p += speed/ euclidean(releasePos, pressPos)  * (releasePos - pressPos ) ;
 	}
 	glVertex2d(p.x(), (viewport[3] - p.y()));
 	glEnd();
@@ -136,7 +141,7 @@ void LineCursor::draw(GLint viewport[4]) {
 	glLineWidth(1);
 	glBegin(GL_LINES);
 	glVertex2d(pressPos.x(), viewport[3] - pressPos.y());
-	glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
+    glVertex2d(releasePos.x(), viewport[3] - releasePos.y());
 	glEnd();
 
 	glMatrixMode(GL_PROJECTION);
