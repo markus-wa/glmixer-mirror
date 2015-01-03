@@ -63,6 +63,7 @@ public Q_SLOTS:
     void on_actionWebSource_triggered();
     void on_actionShmSource_triggered();
 	void on_actionCloneSource_triggered();
+    void on_actionFreeframeSource_triggered();
 	void on_actionDeleteSource_triggered();
 	void on_actionFormats_and_Codecs_triggered();
 	void on_actionOpenGL_extensions_triggered();
@@ -140,7 +141,6 @@ public Q_SLOTS:
     void selectGLSLFragmentShader();  // "Shift+Ctrl+G,F"
 
 #ifdef FFGL
-    void on_actionFreeframeSource_triggered();
     void editShaderToyPlugin(FFGLPluginSource *);
 #endif
 

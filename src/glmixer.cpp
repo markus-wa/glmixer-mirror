@@ -1143,9 +1143,11 @@ void GLMixer::on_actionShmSource_triggered(){
 #endif
 }
 
-#ifdef FFGL
 
 void GLMixer::on_actionFreeframeSource_triggered(){
+
+    qDebug() << "on_actionFreeframeSource_triggered";
+#ifdef FFGL
 
     // popup a question dialog to select the type of algorithm
     static FFGLSourceCreationDialog *ffgld = 0;
@@ -1194,10 +1196,12 @@ void GLMixer::on_actionFreeframeSource_triggered(){
         }
     }
 
+#endif
 }
 
 
 
+#ifdef FFGL
 void GLMixer::editShaderToyPlugin(FFGLPluginSource *plugin)
 {
     if(!plugin)
