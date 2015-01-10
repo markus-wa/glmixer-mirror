@@ -46,19 +46,19 @@ extern "C" {
 /**
  * Default memory usage policy (in percent)
  */
-#define DEFAULT_MEMORY_USAGE_POLICY 30
+#define DEFAULT_MEMORY_USAGE_POLICY 25
 /**
  * Minimum and Maximum size of the queue of VideoPictures (between decoding and display)
  * Expressed in Megabytes
  */
-#define MIN_VIDEO_PICTURE_QUEUE_SIZE 58
-#define MAX_VIDEO_PICTURE_QUEUE_SIZE 480
+#define MIN_VIDEO_PICTURE_QUEUE_SIZE 20
+#define MAX_VIDEO_PICTURE_QUEUE_SIZE 260
 /**
  * Minimum and Maximum size of the queue of packets (between parsing and decoding)
  * Expressed in Megabytes
  */
-#define MIN_PACKET_QUEUE_SIZE 2
-#define MAX_PACKET_QUEUE_SIZE 20
+#define MIN_PACKET_QUEUE_SIZE 10
+#define MAX_PACKET_QUEUE_SIZE 40
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)

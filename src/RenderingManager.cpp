@@ -1352,9 +1352,12 @@ SourceSet::const_iterator RenderingManager::getByName(const QString name) const 
  */
 QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) {
 
+    // make a copy of the front list to the back list before operating in the background
+    _back_sources = _front_sources;
+
     QDomElement config = doc.createElement("SourceList");
 
-    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
+    for (SourceSet::iterator its = _back_sources.begin(); its != _back_sources.end(); its++) {
 
         QDomElement sourceElem = doc.createElement("Source");
         sourceElem.setAttribute("name", (*its)->getName());

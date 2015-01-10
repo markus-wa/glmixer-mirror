@@ -80,8 +80,8 @@ extern "C"
 #define UPDATE_SLEEP_DELAY 5
 
 // memory policy
-#define MIN_VIDEO_PICTURE_QUEUE_COUNT 5
-#define MAX_VIDEO_PICTURE_QUEUE_COUNT 200
+#define MIN_VIDEO_PICTURE_QUEUE_COUNT 3
+#define MAX_VIDEO_PICTURE_QUEUE_COUNT 100
 int VideoFile::memory_usage_policy = DEFAULT_MEMORY_USAGE_POLICY;
 int VideoFile::maximum_packet_queue_size = MIN_PACKET_QUEUE_SIZE;
 int VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE;
@@ -394,10 +394,10 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 #endif
 
 #ifndef NDEBUG
-        qDebug() << "Starting CSV logger";
         csvLogger *debugingLogger = new csvLogger("logsVideoFiles");
         // uncomment to activate debug logs
-//        debugingLogger->startTimer(1000);
+        //        debugingLogger->startTimer(1000);
+        //        qDebug() << "Starting CSV logger";
 #endif
 	}
 

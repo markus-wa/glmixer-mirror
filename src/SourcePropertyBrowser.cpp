@@ -117,6 +117,25 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     property->setToolTip("A name to identify the source");
     root->addSubProperty(property);
 
+    // Frames size
+    property = sizeManager->addProperty( QLatin1String("Resolution") );
+    idToProperty[property->propertyName()] = property;
+    property->setToolTip("Width & height of frames");
+    property->setItalics(true);
+    root->addSubProperty(property);
+
+    // AspectRatio
+    property = infoManager->addProperty("Aspect ratio");
+    idToProperty[property->propertyName()] = property;
+    property->setToolTip("Ratio of pixel dimensions of acquired frames");
+    property->setItalics(true);
+    root->addSubProperty(property);
+
+    // Frame rate
+    property = infoManager->addProperty( QLatin1String("Frame rate") );
+    idToProperty[property->propertyName()] = property;
+    property->setItalics(true);
+    root->addSubProperty(property);
 
     // modifyable on/off
     QtProperty *modifyroperty = boolManager->addProperty("Modifiable");
@@ -319,25 +338,6 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     root->addSubProperty(ffgl);
 #endif
 
-    // Frames size
-    property = sizeManager->addProperty( QLatin1String("Resolution") );
-    idToProperty[property->propertyName()] = property;
-    property->setToolTip("Width & height of frames");
-    property->setItalics(true);
-    root->addSubProperty(property);
-
-    // AspectRatio
-    property = infoManager->addProperty("Aspect ratio");
-    idToProperty[property->propertyName()] = property;
-    property->setToolTip("Ratio of pixel dimensions of acquired frames");
-    property->setItalics(true);
-    root->addSubProperty(property);
-
-    // Frame rate
-    property = infoManager->addProperty( QLatin1String("Frame rate") );
-    idToProperty[property->propertyName()] = property;
-    property->setItalics(true);
-    root->addSubProperty(property);
 }
 
 

@@ -44,7 +44,7 @@ public:
 	inline GLuint getOriginalId() { return original->getId(); }
 	int getFrameWidth() const { return original->getFrameWidth(); }
 	int getFrameHeight() const { return original->getFrameHeight(); }
-
+    double getFrameRate() const { return original->getFrameRate(); }
 
     // only RenderingManager can create a source
 protected:
