@@ -164,5 +164,12 @@
         <file>icons/newsource.png</file>
         <file>icons/web.png</file>
         <file>icons/SpoutLogo.png</file>
+        <file>icons/zoom.png</file>
+        <file>icons/cursor.png</file>
+        <file>icons/whitebg.png</file>
+        <file>icons/current.png</file>
+        <file>icons/unchangeable.png</file>
+        <file>icons/aspectratio_source.png</file>
+        <file>icons/aspectratio_fixed.png</file>
     </qresource>
 </RCC>

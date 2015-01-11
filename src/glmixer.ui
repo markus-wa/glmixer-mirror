@@ -2172,6 +2172,10 @@ Uncheck to display the restart frame when stopped.</string>
      <property name="title">
       <string>Zoom</string>
      </property>
+     <property name="icon">
+      <iconset resource="../icons.qrc">
+       <normaloff>:/glmixer/icons/zoom.png</normaloff>:/glmixer/icons/zoom.png</iconset>
+     </property>
      <addaction name="actionZoomReset"/>
      <addaction name="actionZoomIn"/>
      <addaction name="actionZoomOut"/>
@@ -2180,6 +2184,10 @@ Uncheck to display the restart frame when stopped.</string>
     <widget class="QMenu" name="catalogMenu">
      <property name="title">
       <string>Catalog</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../icons.qrc">
+       <normaloff>:/glmixer/icons/image-collection.png</normaloff>:/glmixer/icons/image-collection.png</iconset>
      </property>
      <addaction name="actionShow_Catalog"/>
      <addaction name="separator"/>
@@ -2224,9 +2232,17 @@ Uncheck to display the restart frame when stopped.</string>
      <property name="title">
       <string>Current source</string>
      </property>
+     <property name="icon">
+      <iconset resource="../icons.qrc">
+       <normaloff>:/glmixer/icons/current.png</normaloff>:/glmixer/icons/current.png</iconset>
+     </property>
      <widget class="QMenu" name="menuAspect_Ratio">
       <property name="title">
        <string>Aspect Ratio</string>
+      </property>
+      <property name="icon">
+       <iconset resource="../icons.qrc">
+        <normaloff>:/glmixer/icons/aspectratio_source.png</normaloff>:/glmixer/icons/aspectratio_source.png</iconset>
       </property>
       <addaction name="actionAspectRatioFixed"/>
       <addaction name="actionAspectRatioResetOriginal"/>
@@ -2251,7 +2267,7 @@ Uncheck to display the restart frame when stopped.</string>
       <string>Control selected sources</string>
      </property>
      <property name="title">
-      <string>Control</string>
+      <string>Control selection</string>
      </property>
      <property name="icon">
       <iconset resource="../icons.qrc">
@@ -2290,6 +2306,10 @@ Uncheck to display the restart frame when stopped.</string>
     <widget class="QMenu" name="cursorMenu">
      <property name="title">
       <string>Cursor</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../icons.qrc">
+       <normaloff>:/glmixer/icons/cursor.png</normaloff>:/glmixer/icons/cursor.png</iconset>
      </property>
      <addaction name="actionCursorNormal"/>
      <addaction name="actionCursorSpring"/>
@@ -3914,7 +3934,7 @@ QToolButton:hover {
   <action name="actionAbout">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
+     <normaloff>:/glmixer/icons/info.png</normaloff>:/glmixer/icons/info.png</iconset>
    </property>
    <property name="text">
     <string>About GLMixer</string>
@@ -4013,7 +4033,7 @@ QToolButton:hover {
     <string>&amp;Open session</string>
    </property>
    <property name="toolTip">
-    <string>Open session</string>
+    <string>Open session file</string>
    </property>
    <property name="statusTip">
     <string>Loads a session file (*.glm)</string>
@@ -4034,7 +4054,7 @@ QToolButton:hover {
     <string>Save session</string>
    </property>
    <property name="statusTip">
-    <string>Saves current session to a file (*.glm)</string>
+    <string>Saves current session  file (*.glm)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -4046,16 +4066,13 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/camera.png</normaloff>:/glmixer/icons/camera.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New source &amp;Device</string>
+    <string>New source device</string>
    </property>
    <property name="toolTip">
-    <string>New source Device</string>
+    <string>Create a live source showing frames of a connected device (e.g. webcam)</string>
    </property>
    <property name="statusTip">
-    <string>Creates a live source showing frames of a connected device (e.g. webcam)</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N, D</string>
+    <string>Create a live source showing frames of a connected device (e.g. webcam)</string>
    </property>
   </action>
   <action name="actionRenderingSource">
@@ -4064,16 +4081,13 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/display-source.png</normaloff>:/glmixer/icons/display-source.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New source &amp;Loopback</string>
+    <string>New source loopback</string>
    </property>
    <property name="toolTip">
-    <string>New source Loopback</string>
+    <string>Create a  source whith the content of the output window.</string>
    </property>
    <property name="statusTip">
-    <string>Creates a new source which displays the previous rendering of the output window.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N, L</string>
+    <string>Create a  source whith the content of the output window.</string>
    </property>
   </action>
   <action name="actionZoomIn">
@@ -4154,16 +4168,13 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/photo-source.png</normaloff>:/glmixer/icons/photo-source.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New source &amp;Capture frame</string>
+    <string>New source capture frame</string>
    </property>
    <property name="toolTip">
-    <string>New source Capture frame</string>
+    <string>Create a source with a snapshot of the  output window.</string>
    </property>
    <property name="statusTip">
-    <string>Creates a new source with the image of the current output window.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N, C</string>
+    <string>Create a source with a snapshot of the  output window.</string>
    </property>
   </action>
   <action name="actionAlgorithmSource">
@@ -4172,13 +4183,13 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/computer.png</normaloff>:/glmixer/icons/computer.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New source &amp;Algorithm</string>
+    <string>New source algorithm</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a source using algorithms to generate graphics.</string>
    </property>
    <property name="statusTip">
-    <string>Creates a new source using algorithms to generate graphics.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N, A</string>
+    <string>Create a source using algorithms to generate graphics.</string>
    </property>
   </action>
   <action name="actionCloneSource">
@@ -4193,10 +4204,10 @@ QToolButton:hover {
     <string>Clone</string>
    </property>
    <property name="toolTip">
-    <string>Clone current source</string>
+    <string>Creates a source cloningthe current one.</string>
    </property>
    <property name="statusTip">
-    <string>Creates a new source which clones the current one.</string>
+    <string>Creates a source cloningthe current one.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
@@ -4472,7 +4483,8 @@ Shortcut:                                    Tab</string>
     <string>Previous</string>
    </property>
    <property name="toolTip">
-    <string>Select previous source</string>
+    <string>Select previous source
+Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="statusTip">
     <string>Select the previous source in the list (shortcut is [CTRL][TAB])</string>
@@ -4556,6 +4568,10 @@ Shortcut:                                    Tab</string>
   <action name="actionWhite_background">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/whitebg.png</normaloff>:/glmixer/icons/whitebg.png</iconset>
    </property>
    <property name="text">
     <string>White background</string>
@@ -4826,6 +4842,10 @@ Shortcut:                                    Tab</string>
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/unchangeable.png</normaloff>:/glmixer/icons/unchangeable.png</iconset>
+   </property>
    <property name="text">
     <string>Unchangeable</string>
    </property>
@@ -4860,16 +4880,13 @@ Shortcut:                                    Tab</string>
      <normaloff>:/glmixer/icons/fileimport.png</normaloff>:/glmixer/icons/fileimport.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New source(s) &amp;Video(s)</string>
+    <string>New source(s) video(s)</string>
    </property>
    <property name="toolTip">
-    <string>New source(s) Video(s)</string>
+    <string>Create a source from video or image file(s)</string>
    </property>
    <property name="statusTip">
     <string>Create a source from video or image file(s)</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N, V</string>
    </property>
   </action>
   <action name="actionSelectCurrent">
@@ -4949,16 +4966,13 @@ Shortcut:                                    Tab</string>
      <normaloff>:/glmixer/icons/svg.png</normaloff>:/glmixer/icons/svg.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New source vector &amp;Graphics</string>
+    <string>New source vector graphics</string>
    </property>
    <property name="toolTip">
-    <string>New source vector Graphics</string>
+    <string>Create a  source displaying vector graphics (SVG)</string>
    </property>
    <property name="statusTip">
-    <string>Creates a  source displaying vector graphics (SVG)</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N, G</string>
+    <string>Create a  source displaying vector graphics (SVG)</string>
    </property>
   </action>
   <action name="actionShmSource">
@@ -4967,13 +4981,13 @@ Shortcut:                                    Tab</string>
      <normaloff>:/glmixer/icons/ram.png</normaloff>:/glmixer/icons/ram.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New source shared &amp;Memory</string>
+    <string>New source shared memory</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a source reading from shared memory</string>
    </property>
    <property name="statusTip">
-    <string>Creates a source reading from shared memory</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N, M</string>
+    <string>Create a source reading from shared memory</string>
    </property>
   </action>
   <action name="actionShareToRAM">
@@ -5122,13 +5136,13 @@ Shortcut:                                    Right</string>
      <normaloff>:/glmixer/icons/plugin-source.png</normaloff>:/glmixer/icons/plugin-source.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New source &amp;Plugin</string>
+    <string>New source Plugin</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a source with GPU generated graphics</string>
    </property>
    <property name="statusTip">
-    <string>Create a source from displaying graphics from a GPU plugin</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N, P</string>
+    <string>Create a source with GPU generated graphics</string>
    </property>
   </action>
   <action name="actionCopy_snapshot">
@@ -5146,6 +5160,10 @@ Shortcut:                                    Right</string>
   <action name="actionAspectRatioFixed">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/aspectratio_fixed.png</normaloff>:/glmixer/icons/aspectratio_fixed.png</iconset>
    </property>
    <property name="text">
     <string>Fixed</string>
@@ -5193,10 +5211,13 @@ Shortcut:                                    Right</string>
      <normaloff>:/glmixer/icons/newsource.png</normaloff>:/glmixer/icons/newsource.png</iconset>
    </property>
    <property name="text">
-    <string>New source</string>
+    <string>&amp;New source</string>
    </property>
    <property name="toolTip">
     <string>Create a new source</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
   <action name="actionWebSource">
@@ -5205,19 +5226,16 @@ Shortcut:                                    Right</string>
      <normaloff>:/glmixer/icons/web.png</normaloff>:/glmixer/icons/web.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New source &amp;Web page</string>
+    <string>New source Web page</string>
    </property>
    <property name="iconText">
     <string>New source Web page</string>
    </property>
    <property name="toolTip">
-    <string>New source Web page</string>
+    <string>Create a source displaying web or HTML page.</string>
    </property>
    <property name="statusTip">
-    <string>Creates a new source displaying a web or HTML page.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N, W</string>
+    <string>Create a source displaying web or HTML page.</string>
    </property>
   </action>
   <action name="actionShareToSPOUT">
