@@ -12,7 +12,7 @@ const char *fragmentShaderHeader =  "uniform vec3      iResolution;           //
                                     "uniform sampler2D iChannel0;             // input channel (texture id).\n"
                                     "uniform vec4      iDate;                 // (year, month, day, time in seconds)\0";
 
-const char *fragmentShaderDefaultCode = "void main(void){\n"
+const char *fragmentShaderDefaultCode = "void main(void)\n{\n"
         "\tvec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
         "\tgl_FragColor = texture2D(iChannel0, uv);\n"
         "}\0";

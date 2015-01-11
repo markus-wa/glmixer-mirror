@@ -9,7 +9,7 @@ const char *fragmentShaderHeader =  "uniform vec3      iResolution;           //
                                     "uniform float     iChannelTime[1];       // channel playback time (in seconds)\n"
                                     "uniform vec4      iDate;                 // (year, month, day, time in seconds)\0";
 
-const char *fragmentShaderDefaultCode = "void main(void){\n"
+const char *fragmentShaderDefaultCode = "void main(void)\n{\n"
         "\tgl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n"
         "}\0";
 
