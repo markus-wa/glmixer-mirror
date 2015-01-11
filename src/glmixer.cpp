@@ -1146,7 +1146,6 @@ void GLMixer::on_actionShmSource_triggered(){
 
 void GLMixer::on_actionFreeframeSource_triggered(){
 
-    qDebug() << "on_actionFreeframeSource_triggered";
 #ifdef FFGL
 
     // popup a question dialog to select the type of algorithm

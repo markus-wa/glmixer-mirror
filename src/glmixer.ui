@@ -74,16 +74,7 @@ QToolButton:hover {
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <item>
@@ -459,31 +450,13 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>3</number>
-     </property>
-     <property name="topMargin">
-      <number>3</number>
-     </property>
-     <property name="rightMargin">
-      <number>3</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>3</number>
      </property>
      <item>
       <widget class="QWidget" name="previewDockWidgetContents" native="true">
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
@@ -780,16 +753,7 @@ QToolButton:hover {
      </sizepolicy>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -1190,16 +1154,7 @@ QToolButton:hover {
                <property name="spacing">
                 <number>3</number>
                </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
+               <property name="margin">
                 <number>0</number>
                </property>
                <item>
@@ -1347,16 +1302,7 @@ QToolButton:hover {
             <property name="spacing">
              <number>3</number>
             </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
+            <property name="margin">
              <number>0</number>
             </property>
             <item>
@@ -2142,7 +2088,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1424</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -2867,16 +2813,7 @@ QToolButton:hover {
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="leftMargin">
-          <number>9</number>
-         </property>
-         <property name="topMargin">
-          <number>9</number>
-         </property>
-         <property name="rightMargin">
-          <number>9</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>9</number>
          </property>
          <item>
@@ -3083,16 +3020,7 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorMagnetOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="leftMargin">
-          <number>9</number>
-         </property>
-         <property name="topMargin">
-          <number>9</number>
-         </property>
-         <property name="rightMargin">
-          <number>9</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>9</number>
          </property>
          <item>
@@ -3383,16 +3311,7 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="switcherDockWidgetContents">
     <layout class="QVBoxLayout" name="switcherDockWidgetContentsLayout">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
     </layout>
@@ -3450,16 +3369,7 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -3697,16 +3607,7 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="blocnoteDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_5">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>6</number>
-     </property>
-     <property name="rightMargin">
-      <number>6</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>6</number>
      </property>
      <item>
@@ -3905,7 +3806,7 @@ QToolButton:hover {
     <string>Full screen</string>
    </property>
    <property name="statusTip">
-    <string>Sets the output window to fullscreen mode.</string>
+    <string>Set the output window to fullscreen</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
@@ -4204,10 +4105,10 @@ QToolButton:hover {
     <string>Clone</string>
    </property>
    <property name="toolTip">
-    <string>Creates a source cloningthe current one.</string>
+    <string>Creates a source cloning the current one.</string>
    </property>
    <property name="statusTip">
-    <string>Creates a source cloningthe current one.</string>
+    <string>Creates a source cloning the current one.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
@@ -4228,7 +4129,7 @@ QToolButton:hover {
     <string>Delete current source</string>
    </property>
    <property name="statusTip">
-    <string>Removes the current source from the project.</string>
+    <string>Removes the current source from the session.</string>
    </property>
    <property name="shortcut">
     <string>Backspace</string>
@@ -4287,7 +4188,7 @@ QToolButton:hover {
     <string>Grab tool</string>
    </property>
    <property name="statusTip">
-    <string>Move the sources in the view.</string>
+    <string>Grab and move sources in the canvas.</string>
    </property>
    <property name="shortcut">
     <string>G</string>
@@ -4312,7 +4213,7 @@ QToolButton:hover {
     <string>Scale tool</string>
    </property>
    <property name="statusTip">
-    <string>Resize the sources in the view.</string>
+    <string>Resize sources in the canvas.</string>
    </property>
    <property name="shortcut">
     <string>S</string>
@@ -4337,7 +4238,7 @@ QToolButton:hover {
     <string>Rotate tool</string>
    </property>
    <property name="statusTip">
-    <string>Rotate the sources in the view.</string>
+    <string>Rotate sources in the canvas.</string>
    </property>
    <property name="shortcut">
     <string>R</string>
@@ -4359,10 +4260,10 @@ QToolButton:hover {
     <string>&amp;Crop</string>
    </property>
    <property name="toolTip">
-    <string>Cropping tool</string>
+    <string>Crop tool</string>
    </property>
    <property name="statusTip">
-    <string>Crop the sources in the view.</string>
+    <string>Crop or extend what is visible of sources</string>
    </property>
    <property name="shortcut">
     <string>C</string>
@@ -4471,7 +4372,7 @@ QToolButton:hover {
 Shortcut:                                    Tab</string>
    </property>
    <property name="statusTip">
-    <string>Select the next source in the list (shortcut is [TAB])</string>
+    <string>Select the next source in the list (shortcut is Tab)</string>
    </property>
   </action>
   <action name="actionSelect_Previous">
@@ -4487,7 +4388,7 @@ Shortcut:                                    Tab</string>
 Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="statusTip">
-    <string>Select the previous source in the list (shortcut is [CTRL][TAB])</string>
+    <string>Select the previous source in the list (shortcut is Ctrl + Tab)</string>
    </property>
   </action>
   <action name="actionShow_Catalog">
@@ -4750,7 +4651,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>Pause session</string>
    </property>
    <property name="statusTip">
-    <string>Pause the session (all sources)</string>
+    <string>Suspend / resume the rendering (all sources)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
@@ -4817,7 +4718,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>Capture and save current rendered frame</string>
    </property>
    <property name="statusTip">
-    <string>Capture the output frame as and save to image file.</string>
+    <string>Take a screenshot and save to image file.</string>
    </property>
   </action>
   <action name="actionCursorLine">
@@ -5018,9 +4919,7 @@ Shortcut:                         Ctrl + Tab</string>
     <string>Play / Stop</string>
    </property>
    <property name="toolTip">
-    <string>Toggle Play / Stop 
-(all selected sources) 
-Shortcut:                                    Space</string>
+    <string>Play / Stop (all selected sources) </string>
    </property>
    <property name="shortcut">
     <string notr="true">Space</string>
@@ -5035,9 +4934,7 @@ Shortcut:                                    Space</string>
     <string>Restart</string>
    </property>
    <property name="toolTip">
-    <string>Restart 
-(all selected sources) 
-Shortcut:                                    Up</string>
+    <string>Restart at begin (all selected sources)</string>
    </property>
    <property name="shortcut">
     <string>Home</string>
@@ -5052,9 +4949,7 @@ Shortcut:                                    Up</string>
     <string>Seek backward</string>
    </property>
    <property name="toolTip">
-    <string>Seek backward 
-(all selected sources) 
-Shortcut:                                    Left</string>
+    <string>Seek backward (all selected sources) </string>
    </property>
    <property name="shortcut">
     <string>PgUp</string>
@@ -5069,9 +4964,7 @@ Shortcut:                                    Left</string>
     <string>Pause / Resume</string>
    </property>
    <property name="toolTip">
-    <string>Toggle Pause / Resume 
-(all selected sources) 
-Shortcut:                                    Down</string>
+    <string>Toggle Pause / Resume (all selected sources)</string>
    </property>
    <property name="shortcut">
     <string>End</string>
@@ -5086,9 +4979,7 @@ Shortcut:                                    Down</string>
     <string>Seek forward</string>
    </property>
    <property name="toolTip">
-    <string>Seek forward 
-(all selected sources) 
-Shortcut:                                    Right</string>
+    <string>Seek forward (all selected sources)</string>
    </property>
    <property name="shortcut">
     <string>PgDown</string>
@@ -5152,6 +5043,9 @@ Shortcut:                                    Right</string>
    </property>
    <property name="text">
     <string>Capture frame to clipboard</string>
+   </property>
+   <property name="statusTip">
+    <string>Take a screenshot and copy it to clipboard</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
