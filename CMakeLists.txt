@@ -319,6 +319,7 @@ endif(GLEW_LIBRARY)
 ##
 
 add_subdirectory(libQtProperty)
+add_subdirectory(libQtColorPicker)
 add_subdirectory(libOSCPack)
 
 if(USE_FREEFRAMEGL)

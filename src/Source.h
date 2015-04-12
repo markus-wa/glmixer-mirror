@@ -48,6 +48,7 @@ public:
 
 class QtProperty;
 class QGLFramebufferObject;
+class Tag;
 
 class Source;
 typedef std::set<Source *> SourceList;
@@ -440,6 +441,11 @@ public:
 
     static QStringList getFilterNames();
 
+    // tags
+    inline void setTag(Tag *t) { tag = t; }
+    inline Tag *getTag() { return tag; }
+
+
     void importProperties(const Source *s, bool withGeometry = true);
 
     virtual int getFrameWidth() const { return 1; }
@@ -518,6 +524,9 @@ protected:
     int luminanceThreshold, numberOfColors;
     QColor chromaKeyColor;
     bool useChromaKey;
+
+    // tag
+    Tag *tag;
 
 #ifdef FFGL
     // freeframe plugin

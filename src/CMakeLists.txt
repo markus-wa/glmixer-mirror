@@ -72,6 +72,8 @@ SET(GLMIXER_SRCS
     OpenSoundControlManager.cpp
     NewSourceDialog.cpp
     WebSourceCreationDialog.cpp
+    Tag.cpp
+    TagsManager.cpp
 )
 
 SET(GLMIXER_RCS
@@ -90,6 +92,7 @@ SET(GLMIXER_UIS
     LayoutToolboxWidget.ui
     NewSourceDialog.ui
     WebSourceCreationDialog.ui
+    TagsManager.ui
 )
 
 # If SharedMemory was set, then link with its source files
@@ -187,8 +190,8 @@ qt4_add_resources(GLMIXER_RCS_SRCS ${GLMIXER_RCS})
 # the UI file won't be wrapped!
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-# this application uses the library QtProperty
-include_directories(${LIBQTPROPERTY_SOURCE_DIR} )
+# this application uses the libraries QtProperty and QtColorPicker
+include_directories(${LIBQTPROPERTY_SOURCE_DIR} ${LIBQTCOLORPICKER_SOURCE_DIR} )
 
 # tell cmake to create .moc files for all files in the variable qtproject_SRCS that require such a file.
 # note: this assumes that you use #include "header.moc" in your files
@@ -311,7 +314,7 @@ ELSE(APPLE)
 ENDIF(APPLE)
 
 # link the target against the libraries.
-target_link_libraries(glmixer QtProperty OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
+target_link_libraries(glmixer QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
 
 
 

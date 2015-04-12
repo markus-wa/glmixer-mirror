@@ -74,7 +74,16 @@ QToolButton:hover {
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <item>
@@ -450,13 +459,31 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="margin">
+     <property name="leftMargin">
+      <number>3</number>
+     </property>
+     <property name="topMargin">
+      <number>3</number>
+     </property>
+     <property name="rightMargin">
+      <number>3</number>
+     </property>
+     <property name="bottomMargin">
       <number>3</number>
      </property>
      <item>
       <widget class="QWidget" name="previewDockWidgetContents" native="true">
        <layout class="QHBoxLayout" name="previewDockWidgetContentsLayout">
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -753,7 +780,16 @@ QToolButton:hover {
      </sizepolicy>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="margin">
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
       <number>6</number>
      </property>
      <item>
@@ -1154,7 +1190,16 @@ QToolButton:hover {
                <property name="spacing">
                 <number>3</number>
                </property>
-               <property name="margin">
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
                 <number>0</number>
                </property>
                <item>
@@ -1302,7 +1347,16 @@ QToolButton:hover {
             <property name="spacing">
              <number>3</number>
             </property>
-            <property name="margin">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
              <number>0</number>
             </property>
             <item>
@@ -2088,7 +2142,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1424</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -2196,10 +2250,10 @@ Uncheck to display the restart frame when stopped.</string>
      </widget>
      <addaction name="actionZoomCurrentSource"/>
      <addaction name="actionSelectCurrent"/>
-     <addaction name="actionCloneSource"/>
      <addaction name="actionUnchangeable"/>
      <addaction name="menuAspect_Ratio"/>
      <addaction name="actionResetSource"/>
+     <addaction name="actionCloneSource"/>
      <addaction name="actionDeleteSource"/>
     </widget>
     <widget class="QMenu" name="sourceControlMenu">
@@ -2813,7 +2867,16 @@ QToolButton:hover {
        </property>
        <widget class="QWidget" name="cursorNormalOptions">
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>9</number>
+         </property>
+         <property name="topMargin">
+          <number>9</number>
+         </property>
+         <property name="rightMargin">
+          <number>9</number>
+         </property>
+         <property name="bottomMargin">
           <number>9</number>
          </property>
          <item>
@@ -3020,7 +3083,16 @@ QToolButton:hover {
        </widget>
        <widget class="QWidget" name="cursorMagnetOptions">
         <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>9</number>
+         </property>
+         <property name="topMargin">
+          <number>9</number>
+         </property>
+         <property name="rightMargin">
+          <number>9</number>
+         </property>
+         <property name="bottomMargin">
           <number>9</number>
          </property>
          <item>
@@ -3311,7 +3383,16 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="switcherDockWidgetContents">
     <layout class="QVBoxLayout" name="switcherDockWidgetContentsLayout">
-     <property name="margin">
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
       <number>6</number>
      </property>
     </layout>
@@ -3369,7 +3450,16 @@ QToolButton:hover {
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="margin">
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
       <number>6</number>
      </property>
      <item>
@@ -3607,7 +3697,16 @@ QToolButton:hover {
    </attribute>
    <widget class="QWidget" name="blocnoteDockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_5">
-     <property name="margin">
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
       <number>6</number>
      </property>
      <item>
@@ -3743,6 +3842,33 @@ QToolButton:hover {
        </property>
       </widget>
      </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="tagsDockWidget">
+   <property name="windowTitle">
+    <string>Tags</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="tagsDockWidgetContent">
+    <layout class="QVBoxLayout" name="tagsDockWidgetContentLayout">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>3</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
     </layout>
    </widget>
   </widget>
@@ -4095,7 +4221,7 @@ QToolButton:hover {
   </action>
   <action name="actionCloneSource">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -4627,7 +4753,7 @@ Shortcut:                         Ctrl + Tab</string>
      <normaloff>:/glmixer/icons/zoom-fit-source.png</normaloff>:/glmixer/icons/zoom-fit-source.png</iconset>
    </property>
    <property name="text">
-    <string>Zoom in</string>
+    <string>Zoom</string>
    </property>
    <property name="toolTip">
     <string>Zoom in current source</string>
@@ -4791,12 +4917,15 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
   </action>
   <action name="actionSelectCurrent">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/select.png</normaloff>:/glmixer/icons/select.png</iconset>
    </property>
    <property name="text">
-    <string>Add/remove to selection</string>
+    <string>Toggle select</string>
    </property>
    <property name="toolTip">
     <string>Add/remove to selection</string>
@@ -5142,6 +5271,33 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>Share to SPOUT</string>
+   </property>
+  </action>
+  <action name="actionTag_Default">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Default</string>
+   </property>
+  </action>
+  <action name="actionTag_1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tag 1</string>
+   </property>
+  </action>
+  <action name="actionTag_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tag 2</string>
    </property>
   </action>
  </widget>

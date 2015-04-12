@@ -25,6 +25,7 @@
 
 #include "MixerView.h"
 
+#include "Tag.h"
 #include "common.h"
 #include "RenderingManager.h"
 #include "SelectionManager.h"
@@ -161,6 +162,9 @@ void MixerView::paint()
             //
             // disable multi-texturing and effect drawing mode
             ViewRenderWidget::setSourceDrawingMode(false);
+
+            // Tag color
+            glColor4ub((*its)->getTag()->color().red(), (*its)->getTag()->color().green(), (*its)->getTag()->color().blue(), 200);
 
             if (RenderingManager::getInstance()->isCurrentSource(its))
                 glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2) );

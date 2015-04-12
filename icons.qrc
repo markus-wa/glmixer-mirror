@@ -171,5 +171,7 @@
         <file>icons/unchangeable.png</file>
         <file>icons/aspectratio_source.png</file>
         <file>icons/aspectratio_fixed.png</file>
+        <file>icons/tagDefault.png</file>
+        <file>icons/tagMask.png</file>
     </qresource>
 </RCC>

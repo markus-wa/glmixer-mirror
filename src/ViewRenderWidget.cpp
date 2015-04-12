@@ -1297,17 +1297,20 @@ GLuint ViewRenderWidget::buildLineList()
     glNewList(base, GL_COMPILE);
 
         glCallList(vertex_array_coords);
+        glPushAttrib(GL_CURRENT_BIT);
 
         glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-        glColor4f(0.0, 0.0, 0.0, 0.0);
+        glColor4ub(0, 0, 0, 0);
         glPushMatrix();
         glScalef(1.28, 1.28, 1.0);
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
+        glPopAttrib();
+
         glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[0]);
         glLineWidth(1.0);
-        glColor4ub(COLOR_SOURCE, 180);
+      //  glColor4ub(COLOR_SOURCE, 180);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
@@ -1319,17 +1322,20 @@ GLuint ViewRenderWidget::buildLineList()
     glNewList(base + 1, GL_COMPILE);
 
         glCallList(vertex_array_coords);
+        glPushAttrib(GL_CURRENT_BIT);
 
         glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
-        glColor4f(0.0, 0.0, 0.0, 0.0);
+        glColor4ub(0, 0, 0, 0);
         glPushMatrix();
         glScalef(1.28, 1.28, 1.0);
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
+        glPopAttrib();
+
         glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[0]);
         glLineWidth(3.0);
-        glColor4ub(COLOR_SOURCE, 180);
+//        glColor4ub(COLOR_SOURCE, 180);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
@@ -1939,17 +1945,17 @@ GLuint ViewRenderWidget::buildBordersList()
 
     // Normal source color
     glNewList(base + 3, GL_COMPILE);
-    glColor4ub(COLOR_SOURCE, 180);
+//    glColor4ub(COLOR_SOURCE, 180);
     glCallList(base);
     glEndList();
 
     glNewList(base + 4, GL_COMPILE);
-    glColor4ub(COLOR_SOURCE, 200);
+//    glColor4ub(COLOR_SOURCE, 200);
     glCallList(base+1);
     glEndList();
 
     glNewList(base + 5, GL_COMPILE);
-    glColor4ub(COLOR_SOURCE, 220);
+//    glColor4ub(COLOR_SOURCE, 220);
     glCallList(base+2);
     glEndList();
 

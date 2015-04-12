@@ -28,6 +28,7 @@
 #include "OutputRenderWindow.h"
 #include "RenderingManager.h"
 #include "PropertyBrowser.h"
+#include "Tag.h"
 
 #include <QtProperty>
 #include <QtVariantPropertyManager>
@@ -65,6 +66,9 @@ Source::Source(GLuint texture, double depth):
 
     // default name
     name = QString("Source");
+
+    // default tag
+    tag = Tag::getDefault();
 
     // if creating an active source
     // (i.e. given a texture index)

@@ -25,6 +25,7 @@
 
 #include "GeometryView.h"
 
+#include "Tag.h"
 #include "RenderingManager.h"
 #include "SelectionManager.h"
 #include "ViewRenderWidget.h"
@@ -142,6 +143,10 @@ void GeometryView::paint()
         glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
         glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
         glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.0);
+
+        // Tag color
+        glColor4ub((*its)->getTag()->color().red(), (*its)->getTag()->color().green(), (*its)->getTag()->color().blue(), 200);
+
 
         if (RenderingManager::getInstance()->isCurrentSource(its)) {
             glCallList(borderType + ((*its)->isModifiable() ? 0 : 3));

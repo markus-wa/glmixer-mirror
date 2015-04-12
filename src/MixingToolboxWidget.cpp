@@ -247,7 +247,22 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     QMapIterator<int, QPair<QString, QString> > i(ViewRenderWidget::getMaskDecription());
     while (i.hasNext()) {
         i.next();
-        QListWidgetItem *item = new QListWidgetItem( QIcon(i.value().second), i.value().first);
+
+        // paint the texture on white background and with vertical flip
+        QIcon icon;
+        QPixmap pix(i.value().second);
+        pix.fill(QColor("white"));
+        QPainter p;
+        p.begin(&pix);
+        p.drawImage(0,0,QImage(i.value().second).mirrored(0,1));
+        p.end();
+
+        // set icon (also when selected to avoid automatic color overlay)
+        icon.addPixmap(pix, QIcon::Normal, QIcon::Off);
+        icon.addPixmap(pix, QIcon::Selected, QIcon::Off);
+
+        // add element into the list
+        QListWidgetItem *item = new QListWidgetItem( icon, i.value().first);
         item->setToolTip(i.value().first);
         blendingMaskList->addItem( item );
     }

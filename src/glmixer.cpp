@@ -62,6 +62,7 @@
 #include "OpenSoundControlManager.h"
 #include "NewSourceDialog.h"
 #include "WebSourceCreationDialog.h"
+#include "TagsManager.h"
 
 #ifdef SHM
 #include "SharedMemorySource.h"
@@ -175,6 +176,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
     toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
     toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(tagsDockWidget->toggleViewAction());
     QAction *showlog = logDockWidget->toggleViewAction();
     toolBarsMenu->addAction(showlog);
     toolBarsMenu->addSeparator();
@@ -300,6 +302,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // setup the layout toolbox
     layoutToolBox = new LayoutToolboxWidget(this);
     layoutDockWidgetContentLayout->addWidget(layoutToolBox);
+
+    // setup the tags toolbox
+    tagsManager = new TagsManager(this);
+    tagsDockWidgetContentLayout->addWidget(tagsManager);
 
     // Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);

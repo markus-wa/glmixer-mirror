@@ -25,6 +25,7 @@
 
 #include "LayersView.h"
 
+#include "Tag.h"
 #include "common.h"
 #include "RenderingManager.h"
 #include "SelectionManager.h"
@@ -198,6 +199,10 @@ void LayersView::paint()
             glBlendEquation(GL_FUNC_ADD);
 
             ViewRenderWidget::setSourceDrawingMode(false);
+
+            // Tag color
+            glColor4ub((*its)->getTag()->color().red(), (*its)->getTag()->color().green(), (*its)->getTag()->color().blue(), 200);
+
             // draw border (larger if active)
             if (RenderingManager::getInstance()->isCurrentSource(its))
                 glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2));
