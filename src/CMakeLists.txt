@@ -207,13 +207,13 @@ qt4_add_translation(GLMIXER_QM ${LANG})
 
 # multiplatform cpack info
 SET(CPACK_PACKAGE_NAME "GLMixer")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Graphic Live Mixer")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Graphic Live Mixer: real-time video mixing software for live performance.")
+SET(CPACK_PACKAGE_CONTACT "bruno.herbelin@gmail.com")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING.txt")
 SET(CPACK_PACKAGE_VERSION_MAJOR "${GLMIXER_VERSION_MAJOR}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
 SET(CPACK_PACKAGE_VERSION_PATCH "${GLMIXER_WC_REVISION}")
-SET(CPACK_PACKAGE_VENDOR "bhbn")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VENDOR "Bruno Herbelin")
 SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
 
 #--------------------------------------------------------------------------------
@@ -288,6 +288,8 @@ ELSE(APPLE)
         Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\screenMix.lnk\\\"
         " )
 
+        SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}")
+
     ELSE(WIN32)
 
         # create the application
@@ -299,15 +301,21 @@ ELSE(APPLE)
         )
 
         # Linux cpack info
-        SET (CPACK_SYSTEM_NAME "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
-        SET (CPACK_DEBIAN_PACKAGE_MAINTAINER "Bruno Herbelin")
-        SET (CPACK_DEBIAN_PACKAGE_NAME "GLMixer")
-        SET (CPACK_DEBIAN_PACKAGE_DESCRIPTION "Graphic Live Mixer: real-time video mixing software for live performance.")
-        SET (CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://sourceforge.net/projects/glmixer/")
-        SET (CPACK_DEBIAN_PACKAGE_SECTION "Multimedia")
-        SET (CPACK_DEBIAN_PACKAGE_VERSION "${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}.${GLMIXER_WC_REVISION}")
+        SET(CPACK_GENERATOR "DEB")
+        execute_process(COMMAND dpkg --print-architecture OUTPUT_VARIABLE ARCHITECTURE)
+        string(STRIP ${ARCHITECTURE} CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
+        SET(CPACK_SYSTEM_NAME "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+        SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <${CPACK_PACKAGE_CONTACT}>")
+        SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${CPACK_PACKAGE_DESCRIPTION_SUMMARY})
+        SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://sourceforge.net/projects/glmixer/")
+        SET(CPACK_DEBIAN_PACKAGE_SECTION "graphics")
+        SET(CPACK_DEBIAN_PACKAGE_VERSION "${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}.${GLMIXER_WC_REVISION}")
+        SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+
+        SET(CMAKE_INSTALL_PREFIX "/opt")
+
         # autogenerate dependency information
-        SET (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+        SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
     ENDIF(WIN32)
 
@@ -321,7 +329,7 @@ target_link_libraries(glmixer QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARI
 #--------------------------------------------------------------------------------
 # Now the installation stuff below
 #--------------------------------------------------------------------------------
-SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}_${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
+SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}-${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
 SET(plugin_dest_dir bin)
 SET(qtconf_dest_dir bin)
 
@@ -342,8 +350,9 @@ ENDIF(APPLE)
 # Install the glmixer application, on Apple, the bundle is at the root of the
 # install tree, and on other platforms it'll go into the bin directory.
 INSTALL(TARGETS glmixer
-    BUNDLE DESTINATION . COMPONENT Runtime
-    RUNTIME DESTINATION bin COMPONENT Runtime
+        CONFIGURATIONS Release
+        BUNDLE DESTINATION . COMPONENT Runtime
+        RUNTIME DESTINATION bin COMPONENT Runtime
     )
 
 IF(APPLE)
