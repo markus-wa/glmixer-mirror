@@ -23,6 +23,8 @@
  *
  */
 
+#include "QNetworkCookieJar"
+
 #include "RenderingManager.h"
 #include "WebSource.moc"
 #ifdef FFGL
@@ -240,6 +242,9 @@ WebRenderer::WebRenderer(const QUrl &url, int height, int scroll) : _url(url), _
 
     // display loading screen
     _image = QImage(QString(":/glmixer/textures/loading.png"));
+
+    // enable cookies
+    _page.networkAccessManager()->setCookieJar( new QNetworkCookieJar(&_page) );
 
     // render page when loaded
     _page.mainFrame()->load(_url);
