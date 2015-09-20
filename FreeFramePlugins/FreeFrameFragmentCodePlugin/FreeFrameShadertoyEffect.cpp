@@ -4,17 +4,16 @@
 
 #include "FreeFrameFragmentCodePlugin.h"
 
-
 const char *fragmentShaderHeader =  "uniform vec3      iResolution;           // viewport resolution (in pixels)\n"
-                                    "uniform vec3      iChannelResolution[1]; // input channel resolution (in pixels)\n"
                                     "uniform float     iGlobalTime;           // shader playback time (in seconds)\n"
                                     "uniform float     iChannelTime[1];       // channel playback time (in seconds)\n"
-                                    "uniform sampler2D iChannel0;             // input channel (texture id).\n"
-                                    "uniform vec4      iDate;                 // (year, month, day, time in seconds)\0";
+                                    "uniform vec4      iDate;                 // (year, month, day, time in seconds)\n"
+                                    "uniform vec3      iChannelResolution[1]; // input channel resolution (in pixels)\n"
+                                    "uniform sampler2D iChannel0;             // input channel (texture id).\0";
 
-const char *fragmentShaderDefaultCode = "void main(void)\n{\n"
-        "\tvec2 uv = gl_FragCoord.xy / iChannelResolution[0].xy;\n"
-        "\tgl_FragColor = texture2D(iChannel0, uv);\n"
+const char *fragmentShaderDefaultCode = "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n"
+        "\tvec2 uv = fragCoord.xy / iChannelResolution[0].xy;\n"
+        "\tfragColor = texture2D(iChannel0, uv);\n"
         "}\0";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

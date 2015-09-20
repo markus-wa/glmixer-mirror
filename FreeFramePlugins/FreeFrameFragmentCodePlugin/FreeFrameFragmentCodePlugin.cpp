@@ -1,4 +1,8 @@
 
+const char *fragmentMainCode = "\nvoid main(void){\n"
+                               "mainImage( gl_FragColor, gl_FragCoord.xy );\n"
+                               "}\0";
+
 
 GLuint displayList = 0;
 
@@ -186,11 +190,12 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         if (shaderProgram) glDeleteProgram(shaderProgram);
         if (fragmentShader) glDeleteShader(fragmentShader);
 
-        char *fsc = (char *) malloc(sizeof(char)*(strlen(fragmentShaderHeader)+strlen(fragmentShaderCode)+2));
+        char *fsc = (char *) malloc(sizeof(char)*(strlen(fragmentShaderHeader)+strlen(fragmentShaderCode)+strlen(fragmentMainCode)+2));
         strcpy(fsc, fragmentShaderHeader);
         strcat(fsc, "\n");
         strcat(fsc, fragmentShaderCode);
-        fsc[strlen(fsc)] = '\0';
+        // Main function
+        strcat(fsc, fragmentMainCode);
 
         fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragmentShader, 1, (const GLchar **) &fsc, NULL);
