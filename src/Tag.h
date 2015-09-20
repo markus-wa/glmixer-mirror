@@ -2,31 +2,30 @@
 #define TAG_H
 
 #include <QColor>
-
-#include <Source.h>
+#include "Source.h"
 
 
 class Tag
 {
-    QString _label;
-    QColor _color;
 
-    static Tag *_defaultTag;
+    QString label;
+    QColor color;
+    SourceList sources;
+
+    static Tag *defaultTag;
 
 public:
-    Tag(QString l, QColor c);
+    Tag(QString l = "Default", QColor c = QColor(255,255,60));
 
-    inline QString label() {return _label;}
-    inline QColor color() {return _color;}
-
+    static void apply(Source *s, Tag* t);
+    static void remove(Source *s);
     static Tag *getDefault();
 
-
-public:
-
-    void setLabel(QString l);
-    void setColor(QColor c);
-
+    QString getLabel() const;
+    void setLabel(const QString &value);
+    QColor getColor() const;
+    void setColor(const QColor &value);
 };
+
 
 #endif // TAG_H

@@ -164,7 +164,7 @@ void MixerView::paint()
             ViewRenderWidget::setSourceDrawingMode(false);
 
             // Tag color
-            glColor4ub((*its)->getTag()->color().red(), (*its)->getTag()->color().green(), (*its)->getTag()->color().blue(), 200);
+            glColor4ub((*its)->getTag()->getColor().red(), (*its)->getTag()->getColor().green(), (*its)->getTag()->getColor().blue(), 200);
 
             if (RenderingManager::getInstance()->isCurrentSource(its))
                 glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2) );

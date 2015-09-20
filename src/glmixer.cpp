@@ -146,9 +146,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 {
     setupUi ( this );
 
-    // hide logs on show
-    logDockWidget->hide();
-
 #ifndef SHM
     actionShareToRAM->setVisible(false);
     actionShmSource->setVisible(false);
@@ -304,8 +301,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     layoutDockWidgetContentLayout->addWidget(layoutToolBox);
 
     // setup the tags toolbox
-    tagsManager = new TagsManager(this);
-    tagsDockWidgetContentLayout->addWidget(tagsManager);
+//    tagsManager = new TagsManager(this);
+//    tagsDockWidgetContentLayout->addWidget(tagsManager);
+//    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
+
+    // DISABLE TAG MANAGER
+    delete tagsDockWidget;
 
     // Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);
@@ -647,7 +648,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 
             // show logs if required
             if ( msgBox.clickedButton() == logButton )
-                 _instance->logDockWidget->setVisible(true);
+                 _instance->logDockWidget->show();
 
         }
         break;

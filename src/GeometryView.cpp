@@ -145,7 +145,7 @@ void GeometryView::paint()
         glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.0);
 
         // Tag color
-        glColor4ub((*its)->getTag()->color().red(), (*its)->getTag()->color().green(), (*its)->getTag()->color().blue(), 200);
+        glColor4ub((*its)->getTag()->getColor().red(), (*its)->getTag()->getColor().green(), (*its)->getTag()->getColor().blue(), 200);
 
 
         if (RenderingManager::getInstance()->isCurrentSource(its)) {

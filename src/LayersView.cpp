@@ -201,7 +201,7 @@ void LayersView::paint()
             ViewRenderWidget::setSourceDrawingMode(false);
 
             // Tag color
-            glColor4ub((*its)->getTag()->color().red(), (*its)->getTag()->color().green(), (*its)->getTag()->color().blue(), 200);
+            glColor4ub((*its)->getTag()->getColor().red(), (*its)->getTag()->getColor().green(), (*its)->getTag()->getColor().blue(), 200);
 
             // draw border (larger if active)
             if (RenderingManager::getInstance()->isCurrentSource(its))

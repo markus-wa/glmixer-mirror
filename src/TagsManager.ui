@@ -201,7 +201,7 @@ QListWidget::item:focus:hover {
   </connection>
   <connection>
    <sender>tagsListWidget</sender>
-   <signal>itemActivated(QListWidgetItem*)</signal>
+   <signal>itemClicked(QListWidgetItem*)</signal>
    <receiver>TagsManager</receiver>
    <slot>useTag(QListWidgetItem*)</slot>
    <hints>
@@ -215,10 +215,44 @@ QListWidget::item:focus:hover {
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>tagsListWidget</sender>
+   <signal>itemDoubleClicked(QListWidgetItem*)</signal>
+   <receiver>TagsManager</receiver>
+   <slot>selectTag(QListWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>104</x>
+     <y>122</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>104</x>
+     <y>140</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tagsListWidget</sender>
+   <signal>itemChanged(QListWidgetItem*)</signal>
+   <receiver>TagsManager</receiver>
+   <slot>updateTag(QListWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>104</x>
+     <y>122</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>104</x>
+     <y>140</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>createTag()</slot>
   <slot>useTag(QListWidgetItem*)</slot>
   <slot>deleteTag()</slot>
+  <slot>selectTag(QListWidgetItem*)</slot>
+  <slot>updateTag(QListWidgetItem*)</slot>
  </slots>
 </ui>

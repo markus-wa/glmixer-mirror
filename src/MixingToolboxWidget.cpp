@@ -251,7 +251,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
         // paint the texture on white background and with vertical flip
         QIcon icon;
         QPixmap pix(i.value().second);
-        pix.fill(QColor("white"));
+        pix.fill(QColor(0,0,0,0));
         QPainter p;
         p.begin(&pix);
         p.drawImage(0,0,QImage(i.value().second).mirrored(0,1));

@@ -29,6 +29,7 @@
 #include "RenderingManager.h"
 #include "SelectionManager.h"
 #include "OutputRenderWindow.h"
+#include "Tag.h"
 
 CatalogView::CatalogView() : View(), _visible(true), _width(0),_height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
 							first_index(0), last_index(0), sourceClicked(0), cause(0)
@@ -189,6 +190,10 @@ void CatalogView::drawSource(Source *s, int index)
 
         // draw source borders (disabled texture required)
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        // Tag color
+        glColor4ub(s->getTag()->getColor().red(), s->getTag()->getColor().green(), s->getTag()->getColor().blue(), 200);
+
 		if (iscurrent)
 			glCallList(ViewRenderWidget::border_large + (s->isModifiable() ? 0 : 3));
 		else

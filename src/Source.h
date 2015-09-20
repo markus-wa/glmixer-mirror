@@ -66,6 +66,7 @@ typedef std::set<Source *> SourceList;
 class Source {
 
     friend class RenderingManager;
+    friend class Tag;
 
 public:
     /*
@@ -442,7 +443,6 @@ public:
     static QStringList getFilterNames();
 
     // tags
-    inline void setTag(Tag *t) { tag = t; }
     inline Tag *getTag() { return tag; }
 
 
@@ -525,7 +525,8 @@ protected:
     QColor chromaKeyColor;
     bool useChromaKey;
 
-    // tag
+    // tag : only Tag class can set a tag
+    inline void setTag(Tag *t) { tag = t; }
     Tag *tag;
 
 #ifdef FFGL

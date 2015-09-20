@@ -68,7 +68,7 @@ Source::Source(GLuint texture, double depth):
     name = QString("Source");
 
     // default tag
-    tag = Tag::getDefault();
+    Tag::apply(this, Tag::getDefault());
 
     // if creating an active source
     // (i.e. given a texture index)
