@@ -207,7 +207,8 @@ qt4_add_translation(GLMIXER_QM ${LANG})
 
 # multiplatform cpack info
 SET(CPACK_PACKAGE_NAME "GLMixer")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Graphic Live Mixer: real-time video mixing software for live performance.")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Graphic Live Mixer -- Real-time video mixing software for live performance.")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.txt")
 SET(CPACK_PACKAGE_CONTACT "bruno.herbelin@gmail.com")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING.txt")
 SET(CPACK_PACKAGE_VERSION_MAJOR "${GLMIXER_VERSION_MAJOR}")
@@ -215,6 +216,8 @@ SET(CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
 SET(CPACK_PACKAGE_VERSION_PATCH "${GLMIXER_WC_REVISION}")
 SET(CPACK_PACKAGE_VENDOR "Bruno Herbelin")
 SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
+
+SET(GLMIXER_BINARY "glmixer")
 
 #--------------------------------------------------------------------------------
 # For Apple set the icns file containing icons (to do before declaring executable MACOSX_BUNDLE)
@@ -227,7 +230,7 @@ IF(APPLE)
     SET(GLMIXER_SRCS ${GLMIXER_SRCS} ${CMAKE_SOURCE_DIR}/osx/glmixer.icns)
 
     # create the application
-    add_executable(glmixer MACOSX_BUNDLE
+    add_executable(${GLMIXER_BINARY} MACOSX_BUNDLE
             ${GLMIXER_SRCS}
             ${GLMIXER_UIS_H}
             ${GLMIXER_RCS_SRCS}
@@ -236,7 +239,7 @@ IF(APPLE)
 
     # OSX cpack info
     set( CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
-    set( CPACK_BUNDLE_NAME glmixer)
+    set( CPACK_BUNDLE_NAME ${CPACK_PACKAGE_NAME})
     set( CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
     set( CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
     set( CPACK_BINARY_DRAGNDROP ON)
@@ -255,7 +258,7 @@ ELSE(APPLE)
         endif(MINGW)
 
         # create the application
-        add_executable(glmixer WIN32
+        add_executable(${GLMIXER_BINARY} WIN32
                 ${GLMIXER_SRCS}
                 ${GLMIXER_UIS_H}
                 ${GLMIXER_RCS_SRCS}
@@ -271,7 +274,7 @@ ELSE(APPLE)
         SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\glmixer.exe")
         SET(CPACK_NSIS_DISPLAY_NAME "GLMixer ${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}")
         SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\sourceforge.net\\\\projects\\\\glmixer")
-        SET(CPACK_NSIS_CONTACT "bruno.herbelin@gmail.com")
+        SET(CPACK_NSIS_CONTACT "${CPACK_PACKAGE_VENDOR} <${CPACK_PACKAGE_CONTACT}>")
         SET(CPACK_NSIS_MODIFY_PATH OFF)
         SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL  ON)
         SET(CPACK_NSIS_MUI_FINISHPAGE_RUN "glmixer.exe")
@@ -282,7 +285,7 @@ ELSE(APPLE)
         CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\scribbleMix.lnk\\\"  \\\"$INSTDIR\\\\bin\\\\scribbleMix.exe\\\"
         CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\screenMix.lnk\\\"  \\\"$INSTDIR\\\\bin\\\\screenMix.exe\\\"
         ")
-        SET( CPACK_NSIS_DELETE_ICONS_EXTRA
+        SET(CPACK_NSIS_DELETE_ICONS_EXTRA
         "
         Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\scribbleMix.lnk\\\"
         Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\screenMix.lnk\\\"
@@ -293,7 +296,7 @@ ELSE(APPLE)
     ELSE(WIN32)
 
         # create the application
-        add_executable(glmixer
+        add_executable(${GLMIXER_BINARY}
                 ${GLMIXER_SRCS}
                 ${GLMIXER_UIS_H}
                 ${GLMIXER_RCS_SRCS}
@@ -302,9 +305,11 @@ ELSE(APPLE)
 
         # Linux cpack info
         SET(CPACK_GENERATOR "DEB")
+        SET(CPACK_DEBIAN_PACKAGE_NAME ${CPACK_PACKAGE_NAME})
         execute_process(COMMAND dpkg --print-architecture OUTPUT_VARIABLE ARCHITECTURE)
+        execute_process(COMMAND lsb_release -sd OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
         string(STRIP ${ARCHITECTURE} CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
-        SET(CPACK_SYSTEM_NAME "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+        SET(CPACK_SYSTEM_NAME "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-${DISTRIBUTION}")
         SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <${CPACK_PACKAGE_CONTACT}>")
         SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${CPACK_PACKAGE_DESCRIPTION_SUMMARY})
         SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://sourceforge.net/projects/glmixer/")
@@ -312,7 +317,8 @@ ELSE(APPLE)
         SET(CPACK_DEBIAN_PACKAGE_VERSION "${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}.${GLMIXER_WC_REVISION}")
         SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 
-        SET(CMAKE_INSTALL_PREFIX "/opt")
+        # NOT EFFECTIVE ???
+        SET(CMAKE_INSTALL_PREFIX "/usr/local")
 
         # autogenerate dependency information
         SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
@@ -322,7 +328,7 @@ ELSE(APPLE)
 ENDIF(APPLE)
 
 # link the target against the libraries.
-target_link_libraries(glmixer QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
+target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
 
 
 
@@ -330,26 +336,26 @@ target_link_libraries(glmixer QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARI
 # Now the installation stuff below
 #--------------------------------------------------------------------------------
 SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}-${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
-SET(plugin_dest_dir bin)
-SET(qtconf_dest_dir bin)
 
 IF(APPLE)
-      SET(plugin_dest_dir GLMixer.app/Contents/MacOS)
+      SET(qtplugin_dest_dir GLMixer.app/Contents/MacOS)
       SET(qtconf_dest_dir GLMixer.app/Contents/Resources)
       SET(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
 ELSE(APPLE)
     IF(WIN32)
-        SET(APPS "\${CMAKE_INSTALL_PREFIX}/glmixer.exe")
-        SET(CPACK_PACKAGE_EXECUTABLES "glmixer" "GLMixer")
+        SET(APPS "\${CMAKE_INSTALL_PREFIX}/${GLMIXER_BINARY}.exe")
+        SET(CPACK_PACKAGE_EXECUTABLES "${GLMIXER_BINARY}" "GLMixer")
     ELSE(WIN32)
-        SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/glmixer")
+        SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/${GLMIXER_BINARY}")
+        SET(CPACK_PACKAGE_EXECUTABLES "${GLMIXER_BINARY}" "GLMixer")
     ENDIF(WIN32)
 ENDIF(APPLE)
 
 #--------------------------------------------------------------------------------
-# Install the glmixer application, on Apple, the bundle is at the root of the
-# install tree, and on other platforms it'll go into the bin directory.
-INSTALL(TARGETS glmixer
+# Install the glmixer application.
+# On Apple, the bundle is at the root of the install tree
+# On other platforms it'll go into the bin directory.
+INSTALL(TARGETS ${GLMIXER_BINARY}
         CONFIGURATIONS Release
         BUNDLE DESTINATION . COMPONENT Runtime
         RUNTIME DESTINATION bin COMPONENT Runtime
@@ -360,7 +366,7 @@ IF(APPLE)
     #--------------------------------------------------------------------------------
     # Install needed Qt plugins by copying directories from the qt installation
     # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
-    INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
+    INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${qtplugin_dest_dir}/plugins COMPONENT Runtime)
 
     #--------------------------------------------------------------------------------
     # install a qt.conf file
@@ -392,7 +398,7 @@ IF(APPLE)
     # over.
     INSTALL(CODE "
         file(GLOB_RECURSE QTPLUGINS
-          \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+          \"\${CMAKE_INSTALL_PREFIX}/${qtplugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
         include(BundleUtilities)
         fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
         " COMPONENT Runtime)
@@ -434,6 +440,54 @@ ELSE(APPLE)
         message( WARNING  "Cannot generate dependency list (DLLs) for packaging because GLMixer was not compiled yet. To enable packaging, re-run cmake after compiling GLMixer." )
 
     ENDIF( EXISTS ${GLMIXER_BINARY_LOCATION} )
+
+  ELSE(WIN32)
+
+    # Write license file
+    file(WRITE "${CMAKE_BINARY_DIR}/copyright"
+         "Copyright (C) 2010-2013 ${CPACK_DEBIAN_PACKAGE_MAINTAINER}
+
+       This software may be licensed under the terms of the
+       GNU Lesser General Public License Version 3 (the ``LGPL''),
+       or (at your option) any later version.
+
+       Software distributed under the License is distributed
+       on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+       express or implied. See the LGPL for the specific language
+       governing rights and limitations.
+
+       You should have received a copy of the LGPL along with this
+       program. If not, go to http://www.gnu.org/licenses/lgpl.html
+       or write to the Free Software Foundation, Inc.,
+       51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+    On Debian systems, the complete text of the GNU Lesser General Public
+    License can be found in `/usr/share/common-licenses/LGPL-3'.")
+    install(FILES "${CMAKE_BINARY_DIR}/copyright"
+            DESTINATION "share/doc/${GLMIXER_BINARY}/"
+            PERMISSIONS
+            OWNER_WRITE OWNER_READ
+            GROUP_READ
+            WORLD_READ)
+
+    # Generate required change log files
+
+    # Use SVN to read repository version
+    IF(EXISTS "${CMAKE_SOURCE_DIR}/.svn")
+        message( STATUS "Generating ChangeLog from SVN (please be patient...)" )
+
+        execute_process(COMMAND ${CMAKE_SOURCE_DIR}/linux/svn2cl.sh ${CMAKE_SOURCE_DIR}
+                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+        execute_process(COMMAND gzip -9 -c ${CMAKE_BINARY_DIR}/ChangeLog
+                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                        OUTPUT_FILE "${CMAKE_BINARY_DIR}/changelog.gz")
+        install(FILES "${CMAKE_BINARY_DIR}/changelog.gz"
+                DESTINATION "share/doc/${GLMIXER_BINARY}/"
+                PERMISSIONS
+                OWNER_WRITE OWNER_READ
+                GROUP_READ
+                WORLD_READ)
+    ENDIF()
 
   ENDIF(WIN32)
 

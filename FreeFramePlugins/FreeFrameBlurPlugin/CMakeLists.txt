@@ -13,4 +13,4 @@ endif(WIN32)
 target_link_libraries(ffglBlur -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 
 get_property(PLUGIN TARGET ffglBlur PROPERTY LOCATION)
-INSTALL(FILES ${PLUGIN} DESTINATION plugins COMPONENT Runtime)
+INSTALL(FILES ${PLUGIN} DESTINATION lib/glmixer COMPONENT Runtime)

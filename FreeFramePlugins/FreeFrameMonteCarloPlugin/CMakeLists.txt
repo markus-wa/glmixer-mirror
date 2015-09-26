@@ -12,4 +12,4 @@ endif(WIN32)
 target_link_libraries(ffglMonteCarlo -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 
 get_property(PLUGIN TARGET ffglMonteCarlo PROPERTY LOCATION)
-INSTALL(FILES ${PLUGIN} DESTINATION plugins COMPONENT Runtime)
+INSTALL(FILES ${PLUGIN} DESTINATION lib/glmixer COMPONENT Runtime)

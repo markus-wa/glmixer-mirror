@@ -33,24 +33,21 @@
 #include "SharedMemoryManager.h"
 #endif
 
-
+void testRegExp(QString pattern, Qt::CaseSensitivity cs, QRegExp::PatternSyntax syntax,  QString text)
+{
+    QRegExp regex(pattern, cs, syntax);
+    bool matches = regex.exactMatch(text);
+    qDebug("'%s'.exactMatch('%s') = %d",
+           qPrintable(pattern), qPrintable(text), matches);
+}
 
 int main(int argc, char **argv)
 {
+    // empty file name by default
+    QString filename = QString::null;
+
+    // create application
     QApplication a(argc, argv);
-
-#ifndef Q_OS_WIN32
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("utf8"));
-    QTextCodec::setCodecForTr(QTextCodec::codecForName("utf8"));
-#endif
-
-    // this redirects qDebug qWarning etc.
-    qInstallMsgHandler(GLMixer::msgHandler);
-#ifndef Q_OS_MAC
-    // these redirect both cout/cerr (seems to crash under OSX :( )
-    QLogStream qout(std::cout, GLMixer::msgHandler, QtDebugMsg);
-    QLogStream qerr(std::cerr, GLMixer::msgHandler, QtWarningMsg);
-#endif
 
     // -1. sets global application name ; this is used application wide (e.g. QSettings)
     a.setOrganizationName("bhbn");
@@ -61,6 +58,59 @@ int main(int argc, char **argv)
     a.setApplicationVersion( QString("%1").arg(GLMIXER_VERSION, 2, 'f', 1 ) );
 #else
     a.setApplicationVersion( "Beta" );
+#endif
+
+#ifndef Q_OS_WIN32
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("utf8"));
+    QTextCodec::setCodecForTr(QTextCodec::codecForName("utf8"));
+#endif
+
+    //get the arguments into a list
+    QStringList cmdline_args = a.arguments();
+    int returnvalue = -1;
+
+    // Request for VERSION argument
+    int idx = cmdline_args.indexOf(QRegExp("(\\-v|\\-{2,2}version)"), 1);
+    if ( idx > -1) {
+        qDebug("%s Version %s", qPrintable(a.applicationName()), qPrintable(a.applicationVersion()));
+        cmdline_args.removeAt(idx);
+        returnvalue = EXIT_SUCCESS;
+    }
+
+    // Request for HELP argument
+    idx = cmdline_args.indexOf(QRegExp("(\\-h|\\-{2,2}help)"), 1);
+    if ( idx > -1) {
+        qDebug("%s [-v|--version] [-h|--help] [GLM SESSION FILE]", qPrintable(cmdline_args.at(0)) );
+        cmdline_args.removeAt(idx);
+        returnvalue = EXIT_SUCCESS;
+    }
+
+    // invalid Request argument
+    foreach (const QString &argument, cmdline_args.filter(QRegExp("\\-{1,2}"))) {
+        qDebug("%s : invalid arguments (ignored).", qPrintable(argument));
+        returnvalue = EXIT_FAILURE;
+    }
+
+    // exit if already delt with one of the requests above (return value was set)
+    if ( returnvalue != -1)
+        exit(returnvalue);
+    // else maybe argument is a filename
+    else {
+        if ( cmdline_args.count() > 1 ) {
+            if (QFileInfo(cmdline_args.at(1)).isFile())
+                filename = cmdline_args.at(1);
+            else
+                qDebug("%s : invalid arguments (not a file name).", qPrintable(cmdline_args.at(1)));
+        }
+    }
+
+
+    // this redirects qDebug qWarning etc.
+    qInstallMsgHandler(GLMixer::msgHandler);
+#ifndef Q_OS_MAC
+    // these redirect both cout/cerr (seems to crash under OSX :( )
+    QLogStream qout(std::cout, GLMixer::msgHandler, QtDebugMsg);
+    QLogStream qerr(std::cerr, GLMixer::msgHandler, QtWarningMsg);
 #endif
 
     // 0. A splash screen to wait
@@ -102,10 +152,7 @@ int main(int argc, char **argv)
     a.processEvents();
 
     // 4. load eventual session file provided in argument or restore last session
-    QString filename = QString::null;
-    if ( a.arguments().count()>1 )
-        filename = a.arguments()[1];
-    else
+    if (filename.isNull())
         filename = GLMixer::getInstance()->getRestorelastSessionFilename();
     GLMixer::getInstance()->switchToSessionFile(filename);
 

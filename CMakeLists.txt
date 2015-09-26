@@ -6,11 +6,13 @@ cmake_minimum_required(VERSION 2.6.0)
 include(${CMAKE_SOURCE_DIR}/macros.cmake)
 
 # Use SVN to read repository version
-FIND_PACKAGE(Subversion)
-IF(Subversion_FOUND)
-  Subversion_WC_INFO(${PROJECT_SOURCE_DIR} GLMIXER)
-  MESSAGE("Current revision is ${GLMIXER_WC_REVISION}")
-ENDIF(Subversion_FOUND)
+IF(EXISTS "${CMAKE_SOURCE_DIR}/.svn")
+    FIND_PACKAGE(Subversion)
+    IF(Subversion_FOUND)
+      Subversion_WC_INFO(${PROJECT_SOURCE_DIR} GLMIXER)
+      MESSAGE("Current revision is ${GLMIXER_WC_REVISION}")
+    ENDIF(Subversion_FOUND)
+ENDIF()
 
 set(GLMIXER_VERSION_MAJOR 1)
 set(GLMIXER_VERSION_MINOR 4)

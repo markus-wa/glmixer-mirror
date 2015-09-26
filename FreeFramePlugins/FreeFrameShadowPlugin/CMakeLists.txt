@@ -9,3 +9,6 @@ else(WIN32)
 endif(WIN32)
 
 target_link_libraries(ffShadow -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY})
+
+get_property(PLUGIN TARGET ffShadow PROPERTY LOCATION)
+INSTALL(FILES ${PLUGIN} DESTINATION lib/glmixer COMPONENT Runtime)
