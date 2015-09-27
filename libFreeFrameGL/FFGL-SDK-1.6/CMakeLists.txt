@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 PROJECT(LIBFREEFRAMEGL)
 
 SET(CMAKE_CXX_FLAGS "-fno-strict-aliasing -fPIC ${CMAKE_CXX_FLAGS}" )

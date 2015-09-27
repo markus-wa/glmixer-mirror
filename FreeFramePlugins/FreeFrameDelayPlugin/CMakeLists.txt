@@ -1,5 +1,5 @@
 
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8)
 project (LIBFFGLDELAY)
 
 if(WIN32)
@@ -10,5 +10,8 @@ endif(WIN32)
 
 target_link_libraries(ffglDelay -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive  ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 
-get_property(PLUGIN TARGET ffglDelay PROPERTY LOCATION)
-INSTALL(FILES ${PLUGIN} DESTINATION lib/glmixer COMPONENT Runtime)
+INSTALL(FILES $<TARGET_LINKER_FILE:ffglDelay>
+        CONFIGURATIONS Release RelWithDebInfo
+        RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/${GLMIXER_BINARY}" COMPONENT Runtime
+)
+

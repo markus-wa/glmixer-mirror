@@ -2,7 +2,7 @@
 ## CMake configuration
 ## 
 project(glmixer)
-cmake_minimum_required(VERSION 2.6.0)
+cmake_minimum_required(VERSION 2.8.0)
 include(${CMAKE_SOURCE_DIR}/macros.cmake)
 
 # Use SVN to read repository version
@@ -10,12 +10,13 @@ IF(EXISTS "${CMAKE_SOURCE_DIR}/.svn")
     FIND_PACKAGE(Subversion)
     IF(Subversion_FOUND)
       Subversion_WC_INFO(${PROJECT_SOURCE_DIR} GLMIXER)
-      MESSAGE("Current revision is ${GLMIXER_WC_REVISION}")
+      MESSAGE("Current subversion revision is ${GLMIXER_WC_REVISION}")
     ENDIF(Subversion_FOUND)
 ENDIF()
 
 set(GLMIXER_VERSION_MAJOR 1)
 set(GLMIXER_VERSION_MINOR 4)
+SET(GLMIXER_BINARY "glmixer")
 
 # Expose CMAKE_INCLUDE_PATH and CMAKE_LIBARY_PATH to the GUI so users
 # may set these values without needing to manipulate the environment.
@@ -25,8 +26,9 @@ SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE STRING "You may add additiona
 # Propose two build configurations
 #set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Compilation configuration" FORCE)
 if(DEFINED CMAKE_BUILD_TYPE)
-    set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release" )
+    set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo" )
 endif()
+
 
 if( APPLE )
 
@@ -59,6 +61,8 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC)
 IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS -fmessage-length=0 -pipe -Wall -Wno-write-strings")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 # defines used by preprocessor to integrate program version and SVN revision into the application
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}" )
@@ -331,4 +335,5 @@ if(USE_FREEFRAMEGL)
 endif(USE_FREEFRAMEGL)
 
 add_subdirectory(src)
+
 

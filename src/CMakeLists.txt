@@ -217,8 +217,6 @@ SET(CPACK_PACKAGE_VERSION_PATCH "${GLMIXER_WC_REVISION}")
 SET(CPACK_PACKAGE_VENDOR "Bruno Herbelin")
 SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
 
-SET(GLMIXER_BINARY "glmixer")
-
 #--------------------------------------------------------------------------------
 # For Apple set the icns file containing icons (to do before declaring executable MACOSX_BUNDLE)
 IF(APPLE)
@@ -309,7 +307,7 @@ ELSE(APPLE)
         execute_process(COMMAND dpkg --print-architecture OUTPUT_VARIABLE ARCHITECTURE)
         execute_process(COMMAND lsb_release -sd OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
         string(STRIP ${ARCHITECTURE} CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
-        SET(CPACK_SYSTEM_NAME "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-${DISTRIBUTION}")
+        SET(CPACK_SYSTEM_NAME "${DISTRIBUTION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
         SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <${CPACK_PACKAGE_CONTACT}>")
         SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${CPACK_PACKAGE_DESCRIPTION_SUMMARY})
         SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://sourceforge.net/projects/glmixer/")
@@ -317,11 +315,9 @@ ELSE(APPLE)
         SET(CPACK_DEBIAN_PACKAGE_VERSION "${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}.${GLMIXER_WC_REVISION}")
         SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 
-        # NOT EFFECTIVE ???
-        SET(CMAKE_INSTALL_PREFIX "/usr/local")
-
         # autogenerate dependency information
         SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+        SET(CPACK_STRIP_FILES ON)
 
     ENDIF(WIN32)
 
@@ -356,9 +352,9 @@ ENDIF(APPLE)
 # On Apple, the bundle is at the root of the install tree
 # On other platforms it'll go into the bin directory.
 INSTALL(TARGETS ${GLMIXER_BINARY}
-        CONFIGURATIONS Release
+        CONFIGURATIONS Release RelWithDebInfo
         BUNDLE DESTINATION . COMPONENT Runtime
-        RUNTIME DESTINATION bin COMPONENT Runtime
+        RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" COMPONENT Runtime
     )
 
 IF(APPLE)
@@ -417,7 +413,7 @@ ELSE(APPLE)
     INCLUDE(GetPrerequisites)
 
     # read full name of executable
-    GET_TARGET_PROPERTY(GLMIXER_BINARY_LOCATION glmixer LOCATION)
+    GET_TARGET_PROPERTY(GLMIXER_BINARY_LOCATION ${GLMIXER_BINARY} LOCATION)
 
     IF( EXISTS ${GLMIXER_BINARY_LOCATION} )
 
@@ -464,14 +460,19 @@ ELSE(APPLE)
     On Debian systems, the complete text of the GNU Lesser General Public
     License can be found in `/usr/share/common-licenses/LGPL-3'.")
     install(FILES "${CMAKE_BINARY_DIR}/copyright"
-            DESTINATION "share/doc/${GLMIXER_BINARY}/"
-            PERMISSIONS
-            OWNER_WRITE OWNER_READ
-            GROUP_READ
-            WORLD_READ)
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/share/doc/${GLMIXER_BINARY}/"
+            PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
+    install(FILES "${CMAKE_SOURCE_DIR}/third-party_attributions"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/share/doc/${GLMIXER_BINARY}/"
+            PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
+
+    # README
+    install(FILES "${CMAKE_SOURCE_DIR}/README.txt"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/share/doc/${GLMIXER_BINARY}/"
+            RENAME "README.Debian"
+            PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
 
     # Generate required change log files
-
     # Use SVN to read repository version
     IF(EXISTS "${CMAKE_SOURCE_DIR}/.svn")
         message( STATUS "Generating ChangeLog from SVN (please be patient...)" )
@@ -482,12 +483,41 @@ ELSE(APPLE)
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                         OUTPUT_FILE "${CMAKE_BINARY_DIR}/changelog.gz")
         install(FILES "${CMAKE_BINARY_DIR}/changelog.gz"
-                DESTINATION "share/doc/${GLMIXER_BINARY}/"
-                PERMISSIONS
-                OWNER_WRITE OWNER_READ
-                GROUP_READ
-                WORLD_READ)
+                DESTINATION "${CMAKE_INSTALL_PREFIX}/share/doc/${GLMIXER_BINARY}/"
+                PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
     ENDIF()
+
+    # man pages
+    execute_process(COMMAND gzip -9 -c ${CMAKE_SOURCE_DIR}/linux/glmixer.7
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                    OUTPUT_FILE "${CMAKE_BINARY_DIR}/glmixer.7.gz")
+    install(FILES "${CMAKE_BINARY_DIR}/glmixer.7.gz"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/share/man/man7/"
+            PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
+
+    # Icon & desktop file
+    install(FILES "${CMAKE_SOURCE_DIR}/icons/glmixer.png"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/32x32/apps/"
+            PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
+    file(WRITE "${CMAKE_BINARY_DIR}/${GLMIXER_BINARY}.desktop"
+       "[Desktop Entry]
+        Name=${GLMIXER_BINARY}
+        Version=${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}
+        GenericName=${GLMIXER_BINARY}
+        X-GNOME-FullName=${GLMIXER_BINARY}
+        Comment=${CPACK_PACKAGE_DESCRIPTION_SUMMARY}
+        Type=Application
+        Categories=${CPACK_DEBIAN_PACKAGE_SECTION}
+        Path=${CMAKE_INSTALL_PREFIX}/bin
+        Exec=${GLMIXER_BINARY}
+        Terminal=false
+        StartupNotify=true
+        Icon=${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/32x32/apps/glmixer.png
+        TargetEnvironment=Unity
+        GenericName[en_ZA]=${GLMIXER_BINARY}")
+    install(FILES "${CMAKE_BINARY_DIR}/${GLMIXER_BINARY}.desktop"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications/"
+            PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
 
   ENDIF(WIN32)
 
