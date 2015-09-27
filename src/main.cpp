@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     int returnvalue = -1;
 
     // Request for VERSION argument
-    int idx = cmdline_args.indexOf(QRegExp("(\\-v|\\-{2,2}version)"), 1);
+    int idx = cmdline_args.indexOf(QRegExp("^(\\-v|\\-{2,2}version)"), 1);
     if ( idx > -1) {
         qDebug("%s Version %s", qPrintable(a.applicationName()), qPrintable(a.applicationVersion()));
         cmdline_args.removeAt(idx);
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     }
 
     // Request for HELP argument
-    idx = cmdline_args.indexOf(QRegExp("(\\-h|\\-{2,2}help)"), 1);
+    idx = cmdline_args.indexOf(QRegExp("^(\\-h|\\-{2,2}help)"), 1);
     if ( idx > -1) {
         qDebug("%s [-v|--version] [-h|--help] [GLM SESSION FILE]", qPrintable(cmdline_args.at(0)) );
         cmdline_args.removeAt(idx);
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
     }
 
     // invalid Request argument
-    foreach (const QString &argument, cmdline_args.filter(QRegExp("\\-{1,2}"))) {
+    foreach (const QString &argument, cmdline_args.filter(QRegExp("^\\-{1,2}"))) {
         qDebug("%s : invalid arguments (ignored).", qPrintable(argument));
         returnvalue = EXIT_FAILURE;
     }
