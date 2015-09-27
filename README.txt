@@ -37,12 +37,50 @@ http://sourceforge.net/projects/glmixer/
 Tutorial videos
 http://vimeo.com/album/2401475
 
+DEPENDENCIES
+
+To compile GLMixer you need;
+subversion
+cmake
+xsltproc
+libqtcore4
+libqtgui4
+libqt4-xml
+libqt4-opengl
+qt4-qmake
+libqt4-dev
+libqt4-opengl-dev
+libavcodec-dev
+libswscale-dev
+libavformat-dev
+libavutil-dev
+libavfilter-dev
+libglew-dev
+
+Dependencies from libav (depends on version):
+libvorbis-dev
+libx264-dev
+libxvidcore-dev
+libv4l-dev
+
+For optionnal OpenCV:
+libcv-dev
+libcvaux-dev
+libhighgui-dev
+libv4l-dev
+
+In short, under linux, the folowing command installs what is necessary :
+
+	$ sudo apt-get install subversion cmake-qt-gui ninja-build libqt4-opengl-dev libglew-dev libavformat-dev libhighgui-dev libavfilter-dev libv4l-dev xsltproc
+
+
+
 COMPILATION
 
   1. Install the dependencies
   2. Checkout GLMixer source files from https://sourceforge.net/p/glmixer/Source/HEAD/tree/.
 
-        svn checkout --username=brunoherbelin svn+ssh://brunoherbelin@svn.code.sf.net/p/glmixer/Source/trunk glmixer-Source
+        svn checkout svn://svn.code.sf.net/p/glmixer/Source/trunk glmixer-Source
 
      or download source from
 

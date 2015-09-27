@@ -1602,7 +1602,7 @@ void setupAboutDialog(QDialog *AboutGLMixer)
     QGridLayout *gridLayout = new QGridLayout(AboutGLMixer);
     gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
     QLabel *Icon = new QLabel(AboutGLMixer);
-    Icon->setPixmap(QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer.png")));
+    Icon->setPixmap(QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer_64x64.png")));
     QLabel *Title = new QLabel(AboutGLMixer);
     Title->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
     QLabel *VERSION = new QLabel(AboutGLMixer);
