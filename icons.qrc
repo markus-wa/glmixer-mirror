@@ -173,5 +173,8 @@
         <file>icons/aspectratio_fixed.png</file>
         <file>icons/tagDefault.png</file>
         <file>icons/tagMask.png</file>
+        <file>icons/glmixer.svg</file>
+        <file>icons/glmixer_32x32.png</file>
+        <file>icons/glmixer_64x64.png</file>
     </qresource>
 </RCC>

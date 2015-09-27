@@ -496,8 +496,8 @@ ELSE(APPLE)
             PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
 
     # Icon & desktop file
-    install(FILES "${CMAKE_SOURCE_DIR}/icons/glmixer.png"
-            DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/32x32/apps/"
+    install(FILES "${CMAKE_SOURCE_DIR}/icons/glmixer.svg"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps/"
             PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
     file(WRITE "${CMAKE_BINARY_DIR}/${GLMIXER_BINARY}.desktop"
        "[Desktop Entry]
@@ -512,7 +512,7 @@ ELSE(APPLE)
         Exec=${GLMIXER_BINARY}
         Terminal=false
         StartupNotify=true
-        Icon=${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/32x32/apps/glmixer.png
+        Icon=${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps/glmixer.svg
         TargetEnvironment=Unity
         GenericName[en_ZA]=${GLMIXER_BINARY}")
     install(FILES "${CMAKE_BINARY_DIR}/${GLMIXER_BINARY}.desktop"
