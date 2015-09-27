@@ -10,7 +10,15 @@ endif(WIN32)
 
 target_link_libraries(ffglWave -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive   ${OPENGL_LIBRARY})
 
-INSTALL(FILES $<TARGET_LINKER_FILE:ffglWave>
+IF(CMAKE_VERSION VERSION_GREATER 2.8)
+    INSTALL(FILES $<TARGET_LINKER_FILE:ffglWave>
         CONFIGURATIONS Release RelWithDebInfo
         RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/${GLMIXER_BINARY}" COMPONENT Runtime
-)
+    )
+ELSE()
+    get_property(PLUGIN TARGET ffglWave PROPERTY LOCATION)
+    INSTALL(FILES ${PLUGIN}
+            CONFIGURATIONS Release RelWithDebInfo
+            RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/${GLMIXER_BINARY}" COMPONENT Runtime
+    )
+ENDIF()
