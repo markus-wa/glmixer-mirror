@@ -1353,6 +1353,21 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 }
 
 
+void GLMixer::on_actionEditSource_triggered()
+{
+    sourceDockWidget->setVisible(true);
+    sourceDockWidget->activateWindow();
+    sourceDockWidget->raise();
+
+    SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+    if ( (*cs)->rtti()  == Source::FFGL_SOURCE ) {
+            FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
+
+          editShaderToyPlugin(  ffgls->freeframeGLPlugin() );
+    }
+
+}
+
 void GLMixer::on_actionDeleteSource_triggered()
 {
     // lisst of sources to delete

@@ -686,6 +686,8 @@ void MixingToolboxWidget::changed(){
 
 void MixingToolboxWidget::on_addPlugin_pressed(){
 
+    static QDir dir(QDir::home());
+
 #ifdef Q_OS_MAC
     QString ext = " (*.bundle *.so)";
 #else
@@ -693,11 +695,12 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
     QString ext = " (*.dll)";
 #else
     QString ext = " (*.so)";
+    dir.cd("/usr/lib/glmixer");
 #endif
 #endif
     // browse for a plugin file
-    QString fileName = GLMixer::getInstance()->getFileName(tr("Open FreeFrameGL Plugin library"), tr("Freeframe GL Plugin") + ext);
-
+    //QString fileName = GLMixer::getInstance()->getFileName(tr("Open FreeFrameGL Plugin library"), tr("Freeframe GL Plugin") + ext);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open FreeFrameGL Plugin library"), dir.absolutePath(), tr("Freeframe GL Plugin") + ext );
 
     QFileInfo pluginfile(fileName);
 #ifdef Q_OS_MAC

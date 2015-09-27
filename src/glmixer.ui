@@ -2142,7 +2142,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1424</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -2248,6 +2248,7 @@ Uncheck to display the restart frame when stopped.</string>
       <addaction name="actionAspectRatioResetOriginal"/>
       <addaction name="actionAspectRatioSetRendering"/>
      </widget>
+     <addaction name="actionEditSource"/>
      <addaction name="actionZoomCurrentSource"/>
      <addaction name="actionSelectCurrent"/>
      <addaction name="actionUnchangeable"/>
@@ -5298,6 +5299,18 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>Tag 2</string>
+   </property>
+  </action>
+  <action name="actionEditSource">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/current.png</normaloff>:/glmixer/icons/current.png</iconset>
+   </property>
+   <property name="text">
+    <string>Edit </string>
+   </property>
+   <property name="toolTip">
+    <string>Edit current source properties</string>
    </property>
   </action>
  </widget>
