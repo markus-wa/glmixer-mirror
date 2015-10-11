@@ -2912,3 +2912,15 @@ QStringList GLMixer::getMediaFileNames(bool &generatePowerOfTwoRequest) {
 
     return fileNames;
 }
+
+
+void GLMixer::on_actionWebsite_triggered() {
+
+    QDesktopServices::openUrl(QUrl("https://sourceforge.net/projects/glmixer/", QUrl::TolerantMode));
+}
+
+void GLMixer::on_actionTutorials_triggered() {
+
+    QDesktopServices::openUrl(QUrl("https://vimeo.com/album/2401475", QUrl::TolerantMode));
+}
+

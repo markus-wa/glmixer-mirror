@@ -76,7 +76,9 @@ public Q_SLOTS:
 	void on_frameSlider_sliderPressed();
 	void on_frameSlider_sliderReleased();
     void on_frameSlider_actionTriggered(int);
-	void on_actionAbout_triggered();
+    void on_actionAbout_triggered();
+    void on_actionWebsite_triggered();
+    void on_actionTutorials_triggered();
     void on_actionPreferences_triggered();
     void on_actionNew_Session_triggered();
     void on_actionClose_Session_triggered();

@@ -2142,7 +2142,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1424</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -2218,6 +2218,8 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionFormats_and_Codecs"/>
     <addaction name="actionOpenGL_extensions"/>
     <addaction name="separator"/>
+    <addaction name="actionWebsite"/>
+    <addaction name="actionTutorials"/>
     <addaction name="actionAbout"/>
     <addaction name="actionAbout_Qt"/>
    </widget>
@@ -5311,6 +5313,27 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="toolTip">
     <string>Edit current source properties</string>
+   </property>
+  </action>
+  <action name="actionWebsite">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/go-home.png</normaloff>:/glmixer/icons/go-home.png</iconset>
+   </property>
+   <property name="text">
+    <string>Website</string>
+   </property>
+   <property name="toolTip">
+    <string>Visit GlMixer website</string>
+   </property>
+  </action>
+  <action name="actionTutorials">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/vimeo.png</normaloff>:/glmixer/icons/vimeo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Video Tutorials</string>
    </property>
   </action>
  </widget>

@@ -176,5 +176,7 @@
         <file>icons/glmixer.svg</file>
         <file>icons/glmixer_32x32.png</file>
         <file>icons/glmixer_64x64.png</file>
+        <file>icons/go-home.png</file>
+        <file>icons/vimeo.png</file>
     </qresource>
 </RCC>
