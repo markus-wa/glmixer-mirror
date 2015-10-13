@@ -10,7 +10,7 @@ endif(WIN32)
 
 target_link_libraries(ffShadow -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY})
 
-IF(CMAKE_VERSION VERSION_GREATER 2.8)
+IF(CMAKE_VERSION VERSION_GREATER 2.9)
     INSTALL(FILES $<TARGET_LINKER_FILE:ffShadow>
         CONFIGURATIONS Release RelWithDebInfo
         RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/${GLMIXER_BINARY}" COMPONENT Runtime
