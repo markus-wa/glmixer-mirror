@@ -67,8 +67,8 @@ public:
 
     void initializeGL();
     void resizeGL(int w = 0, int h = 0);
-    void moveEvent ( QMoveEvent * ) ;
-    void resizeEvent ( QResizeEvent * ) ;
+    void moveEvent ( QMoveEvent * );
+    void resizeEvent ( QResizeEvent * );
 
 	// events handling
 	void keyPressEvent(QKeyEvent * event);

@@ -720,7 +720,7 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
     event->accept();
 
     // ask the catalog view if it wants this mouse move event
-    if (_catalogView->mouseMoveEvent(event))
+    if ( _currentView->currentAction == View::NONE && _catalogView->mouseMoveEvent(event))
         return;
 
     if (cursorEnabled && _currentCursor->isActive())
@@ -735,6 +735,30 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
             emit sourceLayerModified();
     }
 
+    // keep track of cursor when getting out of the widget during an action
+    static QCursor previousCursor = QCursor(Qt::BlankCursor);
+    // if user currently performing an action
+    if ( _currentView->currentAction != View::NONE ) {
+        // and the cursor continues out of the window
+        if (! geometry().contains(event->pos()) ) {
+            // first time getting out ? (previous still blank)
+            if (previousCursor.shape() == Qt::BlankCursor){
+                // then remember the cursor
+                previousCursor = cursor();
+                // and hide the cursor
+                setCursor(Qt::BlankCursor);
+            }
+        }
+        // the cursor is inside the window
+        else
+            // and the previous cursor was stored
+            if ( previousCursor.shape() != Qt::BlankCursor){
+                // therefore we set it back
+                setCursor(previousCursor);
+                // and set previous to blank
+                previousCursor.setShape(Qt::BlankCursor);
+            }
+    }
 }
 
 void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
