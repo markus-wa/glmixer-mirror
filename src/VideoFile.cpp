@@ -2193,8 +2193,8 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
         VideoFile::ffmpegregistered = true;
 	}
 
-	QVBoxLayout *verticalLayout;
-	QLabel *label;
+    QVBoxLayout *verticalLayout;
+    QLabel *label;
     QPlainTextEdit *options;
     QLabel *label_2;
 	QTreeWidget *availableFormatsTreeWidget;
@@ -2206,15 +2206,13 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 	QIcon icon;
 	icon.addFile(iconfile, QSize(), QIcon::Normal, QIcon::Off);
 	ffmpegInfoDialog->setWindowIcon(icon);
-	ffmpegInfoDialog->resize(510, 588);
-	verticalLayout = new QVBoxLayout(ffmpegInfoDialog);
+    ffmpegInfoDialog->resize(450, 600);
+    verticalLayout = new QVBoxLayout(ffmpegInfoDialog);
     label = new QLabel(ffmpegInfoDialog);
     label_2 = new QLabel(ffmpegInfoDialog);
     label_3 = new QLabel(ffmpegInfoDialog);
 
-	availableFormatsTreeWidget = new QTreeWidget(ffmpegInfoDialog);
-	availableFormatsTreeWidget->setProperty("showDropIndicator",
-			QVariant(false));
+    availableFormatsTreeWidget = new QTreeWidget(ffmpegInfoDialog);
 	availableFormatsTreeWidget->setAlternatingRowColors(true);
 	availableFormatsTreeWidget->setRootIsDecorated(false);
 	availableFormatsTreeWidget->header()->setVisible(true);
@@ -2227,12 +2225,19 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
     buttonBox = new QDialogButtonBox(ffmpegInfoDialog);
 	buttonBox->setOrientation(Qt::Horizontal);
 	buttonBox->setStandardButtons(QDialogButtonBox::Close);
+    QObject::connect(buttonBox, SIGNAL(rejected()), ffmpegInfoDialog, SLOT(reject()));
 
-    ffmpegInfoDialog->setWindowTitle(tr("Libav formats and codecs"));
-    label->setText(tr(
-            "Compiled with libavcodec %1.%2.%3\n\nCompilation options:").arg(
-			LIBAVCODEC_VERSION_MAJOR).arg(LIBAVCODEC_VERSION_MINOR).arg(
-            LIBAVCODEC_VERSION_MICRO));
+    ffmpegInfoDialog->setWindowTitle(tr("About Libav formats and codecs"));
+
+    label->setWordWrap(true);
+    label->setOpenExternalLinks(true);
+    label->setTextFormat(Qt::RichText);
+    label->setText(tr( "<H3>About Libav</H3>"
+                       "<br>This program uses <b>libavcodec %1.%2.%3</b>."
+                       "<br><br><b>Libav</b> provides cross-platform tools and libraries to convert, manipulate and "
+                       "stream a wide range of multimedia formats and protocols."
+                       "<br>For more information : <a href=\"http://www.libav.org\">http://www.libav.org</a>"
+                       "<br><br>Compilation options:").arg(LIBAVCODEC_VERSION_MAJOR).arg(LIBAVCODEC_VERSION_MINOR).arg( LIBAVCODEC_VERSION_MICRO));
 
     options = new QPlainTextEdit( QString(avcodec_configuration()), ffmpegInfoDialog);
 
@@ -2247,13 +2252,7 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 	title->setText(1, tr("Description"));
 	title->setText(0, tr("Name"));
 
-    QObject::connect(buttonBox, SIGNAL(accepted()), ffmpegInfoDialog,SLOT(accept()));
-    QObject::connect(buttonBox, SIGNAL(rejected()), ffmpegInfoDialog,SLOT(reject()));
-
-	QMetaObject::connectSlotsByName(ffmpegInfoDialog);
-
 	QTreeWidgetItem *formatitem;
-
 	AVInputFormat *ifmt = NULL;
 	AVCodec *p = NULL, *p2;
 	const char *last_name;
@@ -2322,6 +2321,7 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 		}
 	}
 
+    verticalLayout->setSpacing(10);
     verticalLayout->addWidget(label);
     verticalLayout->addWidget(options);
     verticalLayout->addWidget(label_2);

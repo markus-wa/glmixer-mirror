@@ -1614,6 +1614,7 @@ void GLMixer::setAspectRatio(QAction *a)
 void setupAboutDialog(QDialog *AboutGLMixer)
 {
     AboutGLMixer->resize(420, 270);
+    AboutGLMixer->setWindowTitle("About GLMixer");
     QGridLayout *gridLayout = new QGridLayout(AboutGLMixer);
     gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
     QLabel *Icon = new QLabel(AboutGLMixer);
@@ -1670,10 +1671,11 @@ void setupAboutDialog(QDialog *AboutGLMixer)
 
 void GLMixer::on_actionAbout_triggered(){
 
-    QDialog *aboutglm = new QDialog(this);
-    setupAboutDialog(aboutglm);
+    QDialog aboutglm(this);
 
-    aboutglm->exec();
+    setupAboutDialog(&aboutglm);
+
+    aboutglm.exec();
 }
 
 

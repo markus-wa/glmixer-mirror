@@ -2215,12 +2215,12 @@ Uncheck to display the restart frame when stopped.</string>
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="actionFormats_and_Codecs"/>
-    <addaction name="actionOpenGL_extensions"/>
-    <addaction name="separator"/>
     <addaction name="actionWebsite"/>
     <addaction name="actionTutorials"/>
+    <addaction name="separator"/>
     <addaction name="actionAbout"/>
+    <addaction name="actionFormats_and_Codecs"/>
+    <addaction name="actionOpenGL_extensions"/>
     <addaction name="actionAbout_Qt"/>
    </widget>
    <widget class="QMenu" name="sessionMenu">
@@ -3902,7 +3902,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/video.png</normaloff>:/glmixer/icons/video.png</iconset>
    </property>
    <property name="text">
-    <string>Libav Formats and Codecs</string>
+    <string>About Libav Formats and Codecs</string>
    </property>
    <property name="statusTip">
     <string>Display the list of video codecs that can be read.</string>
@@ -3914,7 +3914,7 @@ QToolButton:hover {
      <normaloff>:/glmixer/icons/3d.png</normaloff>:/glmixer/icons/3d.png</iconset>
    </property>
    <property name="text">
-    <string>OpenGL extensions</string>
+    <string>About OpenGL</string>
    </property>
    <property name="statusTip">
     <string>Display the list of OpenGL extensions that your system supports.</string>

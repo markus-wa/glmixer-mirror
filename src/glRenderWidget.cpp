@@ -189,13 +189,26 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
 		icon.addFile(iconfile, QSize(), QIcon::Normal, QIcon::Off);
 		openglExtensionsDialog->setWindowIcon(icon);
     }
-    openglExtensionsDialog->resize(442, 358);
+    openglExtensionsDialog->setWindowTitle(QObject::tr("About OpenGL"));
+    openglExtensionsDialog->resize(450, 400);
     verticalLayout = new QVBoxLayout(openglExtensionsDialog);
-    label = new QLabel(openglExtensionsDialog);
+    verticalLayout->setSpacing(10);
 
+    label = new QLabel(openglExtensionsDialog);
     verticalLayout->addWidget(label);
 
+    label->setWordWrap(true);
+    label->setOpenExternalLinks(true);
+    label->setTextFormat(Qt::RichText);
+    label->setText(QObject::tr("<H3>About OpenGL</H3>"
+                               "<br>This program currently runs with <b>OpenGL version %1</b>"
+                               "<br><br><b>OpenGL</b> is the premier environment for developing portable, interactive 2D and 3D graphics applications."
+                               "<br>See <a href=\"https://www.opengl.org\">https://www.opengl.org</a> for more information."
+                               "<br><br>Supported extensions:").arg((char *)glGetString(GL_VERSION)));
+
     extensionsListView = new QListView(openglExtensionsDialog);
+    QAbstractItemModel *model = new QStringListModel(glSupportedExtensions());
+    extensionsListView->setModel(model);
 
     verticalLayout->addWidget(extensionsListView);
 
@@ -204,12 +217,6 @@ void glRenderWidget::showGlExtensionsInformationDialog(QString iconfile){
     buttonBox->setStandardButtons(QDialogButtonBox::Ok);
 
     verticalLayout->addWidget(buttonBox);
-
-    openglExtensionsDialog->setWindowTitle(QObject::tr("OpenGL Extensions"));
-    label->setText(QObject::tr("Running with OpenGL version %1\n\nSupported extensions:").arg((char *)glGetString(GL_VERSION)));
-
-    QAbstractItemModel *model = new QStringListModel(glSupportedExtensions());
-    extensionsListView->setModel(model);
 
     QObject::connect(buttonBox, SIGNAL(accepted()), openglExtensionsDialog, SLOT(accept()));
     QObject::connect(buttonBox, SIGNAL(rejected()), openglExtensionsDialog, SLOT(reject()));
