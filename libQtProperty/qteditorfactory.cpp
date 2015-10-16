@@ -72,6 +72,20 @@
 QT_BEGIN_NAMESPACE
 #endif
 
+class lineValidator : public QValidator
+{
+  public:
+    lineValidator(QObject *parent) : QValidator(parent) { }
+
+    QValidator::State validate ( QString & input, int & pos ) const {
+      if( input.isEmpty() )
+          return QValidator::Invalid;
+      if( input.length() < 2 )
+          return QValidator::Intermediate;
+      return QValidator::Acceptable;
+    }
+};
+
 // Set a hard coded left margin to account for the indentation
 // of the tree view icon when switching to an editor
 
@@ -1026,6 +1040,7 @@ QWidget *QtLineEditFactory::createEditor(QtStringPropertyManager *manager,
         editor->setValidator(validator);
     }
     editor->setText(manager->value(property));
+    editor->setValidator(new lineValidator(parent));
 
     connect(editor, SIGNAL(textEdited(const QString &)),
                 this, SLOT(slotSetValue(const QString &)));
