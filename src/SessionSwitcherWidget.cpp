@@ -262,11 +262,11 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     icon2.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
     dirDeleteButton->setIcon(icon2);
 
-    customButton = new QToolButton;
+    customButton = new QToolButton(this);
     customButton->setIcon( QIcon() );
     customButton->setVisible(false);
 
-    folderHistory = new QComboBox;
+    folderHistory = new QComboBox(this);
     folderHistory->setToolTip("List of folders containing session files");
 //    folderHistory->setEditable(true);
     folderHistory->setValidator(new folderValidator(this));
@@ -276,7 +276,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     folderHistory->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     folderHistory->setDuplicatesEnabled(false);
 
-    proxyView = new QTreeView;
+    proxyView = new QTreeView(this);
     proxyView->setRootIsDecorated(false);
     proxyView->setAlternatingRowColors(true);
     proxyView->setSortingEnabled(false);
@@ -298,7 +298,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     connect(transitionSlider, SIGNAL(valueChanged(int)), this, SLOT(transitionSliderChanged(int)));
     connect(transitionTab, SIGNAL(currentChanged(int)), this, SLOT(setTransitionMode(int)));
 
-    QGridLayout *mainLayout = new QGridLayout;
+    QGridLayout *mainLayout = new QGridLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->addWidget(transitionSelection, 0, 0, 1, 3);
     mainLayout->addWidget(customButton, 0, 3);
@@ -418,7 +418,7 @@ void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 //    proxyView->leaveEvent(0);
 
     // make sure no other events are accepted until the end of the transition
-    disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+    disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
     proxyView->setEnabled(false);
     QTimer::singleShot( transitionSelection->currentIndex() > 0 ? transitionDuration->value() : 100, this, SLOT(restoreTransition()));
 }
@@ -677,24 +677,29 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
         transitionSlider->setValue(RenderingManager::getSessionSwitcher()->overlay() * 100.f - (nextSessionSelected?0.f:100.f));
         // single clic to select next session
         proxyView->setToolTip("Click on a session to choose target session");
-        disconnect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
-        connect(proxyView, SIGNAL(clicked(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+        connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
     }
     // mode is automatic
     else {
         RenderingManager::getSessionSwitcher()->manual_mode = false;
         // enable changing session
         proxyView->setEnabled(true);
-        // double clic to activate transition to next session
+        //  activate transition to next session (double clic or Return)
         proxyView->setToolTip("Double click on a session to initiate the transition");
-        connect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
-        disconnect(proxyView, SIGNAL(clicked(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+        connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
+        disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
     }
+
 }
 
 void SessionSwitcherWidget::restoreTransition()
 {
     setTransitionMode(transitionTab->currentIndex());
+
+    // restore focus and selection in tree view
+    proxyView->setFocus();
+    proxyView->setCurrentIndex(proxyView->currentIndex());
 }
 
 void SessionSwitcherWidget::transitionSliderChanged(int t)
