@@ -73,16 +73,16 @@
  <xsl:param name="strip-prefix" select="'/'" />
 
  <!-- the length of a line to wrap messages at -->
- <xsl:param name="linelen" select="75" />
+ <xsl:param name="linelen" select="80" />
 
  <!-- whether entries should be grouped by day -->
- <xsl:param name="groupbyday" select="'no'" />
+ <xsl:param name="groupbyday" select="'yes'" />
 
  <!-- whether to seperate log messages by empty lines -->
  <xsl:param name="separate-daylogs" select="'no'" />
 
  <!-- whether a revision number should be included -->
- <xsl:param name="include-rev" select="'no'" />
+ <xsl:param name="include-rev" select="'yes'" />
 
  <!-- whether aaction labels should be added to files -->
  <xsl:param name="include-actions" select="'no'" />
@@ -91,7 +91,7 @@
  <xsl:param name="breakbeforemsg" select="'no'" />
 
  <!-- whether the message should be rewrapped within one paragraph -->
- <xsl:param name="reparagraph" select="'no'" />
+ <xsl:param name="reparagraph" select="'yes'" />
 
  <!-- whether certain messages should be ignored -->
  <xsl:param name="ignore-message-starting" select="''" />
