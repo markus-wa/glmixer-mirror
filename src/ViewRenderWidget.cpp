@@ -122,12 +122,15 @@ GLubyte ViewRenderWidget::stippling[] = {
 //GLfloat ViewRenderWidget::coords[12] = {-1.f, -1.f, 0.f ,  1.f, -1.f, 0.f, 1.f, 1.f, 0.f,  -1.f, 1.f, 0.f  };
 //GLfloat ViewRenderWidget::texc[8] = {0.f, 1.f,  1.f, 1.f,  1.f, 0.f,  0.f, 0.f};
 
-GLfloat ViewRenderWidget::coords[12] = { -1.f, 1.f, 0.f,  1.f, 1.f, 0.f,  1.f, -1.f, 0.f,  -1.f, -1.f, 0.f };
+GLfloat ViewRenderWidget::coords[8] = { -1.f, 1.f,  1.f, 1.f, 1.f, -1.f,  -1.f, -1.f };
 GLfloat ViewRenderWidget::texc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
 GLfloat ViewRenderWidget::maskc[8] = {0.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f};
+GLfloat ViewRenderWidget::basecolor[4] = {1.f, 1.f, 1.f, 1.f};
 QGLShaderProgram *ViewRenderWidget::program = 0;
 bool ViewRenderWidget::disableFiltering = false;
 
+const char * const black_xpm[] = { "2 2 1 1", ". c #000000", "..", ".."};
+const char * const white_xpm[] = { "2 2 1 1", ". c #FFFFFF", "..", ".."};
 
 /*
 ** FILTERS CONVOLUTION KERNELS
@@ -274,7 +277,6 @@ void ViewRenderWidget::initializeGL()
         i.next();
         // create and store texture index
         if (i.value().second.isNull()) {
-            const char * const black_xpm[] = { "2 2 1 1", ". c #000000", "..", ".."};
             ViewRenderWidget::mask_textures[i.key()] = bindTexture(QPixmap(black_xpm), GL_TEXTURE_2D);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -293,7 +295,9 @@ void ViewRenderWidget::initializeGL()
     vertex_array_coords = glGenLists(1);
     glNewList(vertex_array_coords, GL_COMPILE);
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, coords);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glVertexPointer(2, GL_FLOAT, 0, ViewRenderWidget::coords);
+    glTexCoordPointer(2, GL_FLOAT, 0, ViewRenderWidget::maskc);
     glEndList();
 
     // display lists for drawing GUI
@@ -565,10 +569,15 @@ void ViewRenderWidget::paintGL()
 //		program->setUniformValue("ModelViewProjectionMatrix",QMatrix4x4 (_currentView->projection) * QMatrix4x4 (_currentView->modelview) );
     }
 
-    // update the content of the sources
+
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-         (*its)->update();
+
+        if ((*its)->needUpdate() || !(*its)->isStandby())
+            // update the content of the sources
+            (*its)->update();
+
     }
+
 
     // draw the view
     _currentView->paint();
@@ -584,9 +593,9 @@ void ViewRenderWidget::paintGL()
     // if not faded, means the area is active
     else
     {
-    //
-    // 2. the shadow of the cursor
-    //
+        //
+        // 2. the shadow of the cursor
+        //
         if (cursorEnabled && _currentCursor->apply(f_p_s_) ) {
 
             _currentCursor->draw(_currentView->viewport);
@@ -1134,24 +1143,14 @@ void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
     // NB: the catalog is restored in GLMixer::openSessionFile because GLMixer has access to the actions
 }
 
-void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
-{
-    makeCurrent();
+void ViewRenderWidget::setupFilteringShaderProgram(QGLShaderProgram *program, QString glslfilename) {
 
-    // if the GLSL program was already created, delete it
-    if( program ) {
-        program->release();
-        delete program;
-    }
-    // apply flag
-    disableFiltering = !on;
-
-    // instanciate the GLSL program
-    program = new QGLShaderProgram(this);
+    if (!program)
+        return;
 
     QString fshfile;
     if (glslfilename.isNull()) {
-        if (disableFiltering)
+        if (ViewRenderWidget::disableFiltering)
             fshfile = ":/glmixer/shaders/imageProcessing_fragment_simplified.glsl";
         else
             fshfile = ":/glmixer/shaders/imageProcessing_fragment.glsl";
@@ -1177,11 +1176,13 @@ void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
 
     // set the pointer to the array for the texture attributes
     program->enableAttributeArray("texCoord");
-    program->setAttributeArray ("texCoord", texc, 2, 0);
+    program->setAttributeArray ("texCoord", ViewRenderWidget::texc, 2, 0);
     program->enableAttributeArray("maskCoord");
-    program->setAttributeArray ("maskCoord", maskc, 2, 0);
+    program->setAttributeArray ("maskCoord", ViewRenderWidget::maskc, 2, 0);
 
     // set the default values for the uniform variables
+    program->setUniformValue("baseColor", QColor(0,0,0));
+    program->setUniformValue("stippling", 0.f);
     program->setUniformValue("sourceTexture", 0);
     program->setUniformValue("maskTexture", 1);
     program->setUniformValue("utilityTexture", 2);
@@ -1202,7 +1203,7 @@ void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
     if (!disableFiltering) {
         program->setUniformValue("filter_step", 1.f / 640.f, 1.f / 480.f);
         program->setUniformValue("filter", (GLint) 0);
-        program->setUniformValue("filter_kernel", filter_kernel[0]);
+        program->setUniformValue("filter_kernel", ViewRenderWidget::filter_kernel[0]);
     }
 
     program->release();
@@ -1210,21 +1211,72 @@ void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
 }
 
 
+void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
+{
+    // activate opengl context
+    makeCurrent();
+
+    // if the GLSL program was already created, delete it
+    if( program ) {
+        program->release();
+        delete program;
+    }
+    // apply flag
+    disableFiltering = !on;
+
+    // instanciate the GLSL program
+    program = new QGLShaderProgram(this);
+
+    // configure it
+    ViewRenderWidget::setupFilteringShaderProgram(program, glslfilename);
+
+}
+
+
 void ViewRenderWidget::setSourceDrawingMode(bool on)
 {
-    program->setUniformValue("sourceDrawing", on);
+    if (on) {
+        program->bind();
 
-    // enable the vertex array for drawing a QUAD
-    glCallList(vertex_array_coords);
+        glEnable(GL_TEXTURE_2D);
+    } else {
+        program->release();
 
-    if (on)
-        glActiveTexture(GL_TEXTURE0);
-    else {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[0]);
+        // standard transparency blending
+        glDisable(GL_TEXTURE_2D);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
     }
 
 }
+
+void ViewRenderWidget::setDrawMode(QColor c)
+{
+    // set color & alpha
+    ViewRenderWidget::program->setUniformValue("baseColor", c);
+    ViewRenderWidget::program->setUniformValue("baseAlpha", 1.f);
+    ViewRenderWidget::program->setUniformValue("stippling", 0.f);
+
+    ViewRenderWidget::program->setUniformValue("gamma", 1.f);
+    //             gamma levels : minInput, maxInput, minOutput, maxOutput:
+    ViewRenderWidget::program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f);
+
+    ViewRenderWidget::program->setUniformValue("contrast", 1.f);
+    ViewRenderWidget::program->setUniformValue("brightness", 0.f);
+    ViewRenderWidget::program->setUniformValue("saturation", 1.f);
+    ViewRenderWidget::program->setUniformValue("hueshift", 0.f);
+
+    ViewRenderWidget::program->setUniformValue("invertMode", (GLint) 0);
+    ViewRenderWidget::program->setUniformValue("nbColors", (GLint) 0);
+
+    ViewRenderWidget::program->setUniformValue("threshold", -1.f);
+    ViewRenderWidget::program->setUniformValue("chromakey", 0.0, 0.0, 0.0, 0.0 );
+
+    // else enabled filtering
+    ViewRenderWidget::program->setUniformValue("filter", (GLint) 0);
+
+}
+
 
 /**
  * Build a display lists for the line borders and returns its id
@@ -1307,6 +1359,7 @@ GLuint ViewRenderWidget::buildTexturedQuadList()
  **/
 GLuint ViewRenderWidget::buildLineList()
 {
+    GLuint texwhite = bindTexture(QPixmap(white_xpm), GL_TEXTURE_2D);
     GLuint texid = bindTexture(QPixmap(QString(":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D );
     GLuint texid2 = bindTexture(QPixmap(QString(":/glmixer/textures/shadow_corner_selected.png")), GL_TEXTURE_2D);
 
@@ -1332,7 +1385,7 @@ GLuint ViewRenderWidget::buildLineList()
 
         glPopAttrib();
 
-        glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[0]);
+        glBindTexture(GL_TEXTURE_2D,texwhite);
         glLineWidth(1.0);
       //  glColor4ub(COLOR_SOURCE, 180);
         glPushMatrix();
@@ -1357,7 +1410,7 @@ GLuint ViewRenderWidget::buildLineList()
 
         glPopAttrib();
 
-        glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[0]);
+        glBindTexture(GL_TEXTURE_2D,texwhite);
         glLineWidth(3.0);
 //        glColor4ub(COLOR_SOURCE, 180);
         glPushMatrix();
@@ -1379,7 +1432,7 @@ GLuint ViewRenderWidget::buildLineList()
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
-        glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[0]);
+        glBindTexture(GL_TEXTURE_2D,texwhite);
         glLineWidth(1.0);
         glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();
@@ -1408,7 +1461,7 @@ GLuint ViewRenderWidget::buildLineList()
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
-        glBindTexture(GL_TEXTURE_2D,ViewRenderWidget::mask_textures[0]);
+        glBindTexture(GL_TEXTURE_2D,texwhite);
         glLineWidth(3.0);
         glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();
@@ -1447,7 +1500,7 @@ GLuint ViewRenderWidget::buildCircleList()
     GLuint id = glGenLists(3);
     GLUquadricObj *quadObj = gluNewQuadric();
 
-    glActiveTexture(GL_TEXTURE0);
+//    glActiveTexture(GL_TEXTURE0);
 
     static GLuint texid = 0;
     if (texid == 0) {
@@ -1676,7 +1729,8 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
     static GLuint texid = 0;
 
     if (texid == 0) {
-        // generate the texture with optimal performance ;
+        // generate the texture with optimal performance ;       
+        glEnable(GL_TEXTURE_2D);
         glGenTextures(1, &texid);
         glBindTexture(GL_TEXTURE_2D, texid);
         QImage p(":/glmixer/textures/shadow.png");
@@ -1694,15 +1748,13 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
 
-        glActiveTexture(GL_TEXTURE2);
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-        glColor4ub(0, 0, 0, 0);
 
-        glCallList(vertex_array_coords);
         glPushMatrix();
         glTranslatef(0.02 * SOURCE_UNIT, -0.1 * SOURCE_UNIT, 0.1);
         glScalef(1.4 * SOURCE_UNIT, 1.4 * SOURCE_UNIT, 1.0);
+        glCallList(vertex_array_coords);
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
         glDisable(GL_TEXTURE_2D);

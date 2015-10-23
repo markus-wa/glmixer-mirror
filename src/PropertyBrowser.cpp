@@ -31,7 +31,7 @@
 
 
 PropertyBrowser::PropertyBrowser(QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent), displayPropertyTree(true)
 {
     layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -128,7 +128,6 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     menuTree.addAction(resetAction);
     menuTree.addAction(openUrlAction);
     menuTree.addSeparator();
-    menuTree.addAction(QObject::tr("Switch to Groups view"), this, SLOT(switchToGroupView()));
     menuTree.addAction(QObject::tr("Expand tree"), this, SLOT(expandAll()));
     menuTree.addAction(QObject::tr("Collapse tree"), this, SLOT(collapseAll()));
 
@@ -136,8 +135,6 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     //    menuGroup.addAction(defaultValueAction);
     menuGroup.addAction(resetAction);
     menuGroup.addAction(openUrlAction);
-    menuGroup.addSeparator();
-    menuGroup.addAction(QObject::tr("Switch to Tree view"), this, SLOT(switchToTreeView()));
 }
 
 
@@ -356,22 +353,29 @@ void PropertyBrowser::ctxMenuTree(const QPoint &pos)
     menuTree.exec( propertyTreeEditor->mapToGlobal(pos) );
 }
 
-void PropertyBrowser::switchToTreeView(){
 
-    propertyGroupArea->setVisible(false);
-    layout->removeWidget(propertyGroupArea);
+void PropertyBrowser::setDisplayPropertyTree(bool on) {
 
-    layout->addWidget(propertyTreeEditor);
-    propertyTreeEditor->setVisible(true);
+    displayPropertyTree = on;
+    if (displayPropertyTree) {
+        propertyGroupArea->setVisible(false);
+        layout->removeWidget(propertyGroupArea);
+
+        layout->addWidget(propertyTreeEditor);
+        propertyTreeEditor->setVisible(true);
+    }
+    else {
+        propertyTreeEditor->setVisible(false);
+        layout->removeWidget(propertyTreeEditor);
+
+        layout->addWidget(propertyGroupArea);
+        propertyGroupArea->setVisible(true);
+    }
 }
 
-void PropertyBrowser::switchToGroupView(){
+bool PropertyBrowser::getDisplayPropertyTree() {
 
-    propertyTreeEditor->setVisible(false);
-    layout->removeWidget(propertyTreeEditor);
-
-    layout->addWidget(propertyGroupArea);
-    propertyGroupArea->setVisible(true);
+    return displayPropertyTree;
 }
 
 QString getSizeString(float num)

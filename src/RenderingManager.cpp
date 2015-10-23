@@ -71,7 +71,6 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include <QGLFramebufferObject>
 #include <QProgressDialog>
 
-//#define USE_GLREADPIXELS
 
 // static members
 RenderingManager *RenderingManager::_instance = 0;
@@ -140,7 +139,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), _fbo(NULL), _fboCatalogTexture(0), previousframe_fbo(NULL), countRenderingSource(0),
+    QObject(), _fbo(NULL), previousframe_fbo(NULL), countRenderingSource(0),
             previousframe_index(0), previousframe_delay(1), clearWhite(false), gammaShift(1.f),
 #ifdef SHM
             _sharedMemory(NULL), _sharedMemoryGLFormat(GL_RGB), _sharedMemoryGLType(GL_UNSIGNED_SHORT_5_6_5),
@@ -151,7 +150,7 @@ RenderingManager::RenderingManager() :
             _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true)
 {
 
-    // 1. Create the view rendering widget and its catalog view
+    // 1. Create the view rendering widget
     _renderwidget = new ViewRenderWidget;
     Q_CHECK_PTR(_renderwidget);
 
@@ -234,7 +233,6 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
     if (_fbo) {
         delete _fbo;
-        glDeleteTextures(1, &_fboCatalogTexture);
     }
 
     // create an fbo (with internal automatic first texture attachment)
@@ -243,7 +241,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
     if (_fbo->bind()) {
         // default draw target
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+//        glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
         // initial clear to black
         glPushAttrib(GL_COLOR_BUFFER_BIT);
@@ -251,18 +249,6 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         glClear(GL_COLOR_BUFFER_BIT);
         glPopAttrib();
 
-        // create second draw target texture for this FBO (for catalog)
-        glGenTextures(1, &_fboCatalogTexture);
-        glBindTexture(GL_TEXTURE_2D, _fboCatalogTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _fbo->width(), _fbo->height(), 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
-
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _fboCatalogTexture, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
         _fbo->release();
 
         // store viewport info
@@ -270,9 +256,6 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         _renderwidget->_renderView->viewport[1] = 0;
         _renderwidget->_renderView->viewport[2] = _fbo->width();
         _renderwidget->_renderView->viewport[3] = _fbo->height();
-
-        _renderwidget->_catalogView->viewport[1] = 0;
-        _renderwidget->_catalogView->viewport[3] = _fbo->height();
 
         // setup recorder frames size
         _recorder->setFrameSize(_fbo->size());
@@ -459,44 +442,17 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
                 glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
                 glScaled(source->getScaleX(), source->getScaleY(), 1.f);
 
-                // gamma shift
+                // global gamma shift
                 ViewRenderWidget::program->setUniformValue("gamma", source->getGamma() * gammaShift);
 
                 source->blend();
                 source->draw();
             }
-            // in any case, always end the effect
-            source->endEffectsSection();
 
-        }
-        // draw without effect
-        ViewRenderWidget::setSourceDrawingMode(false);
-
-        //
-        // 2. Draw into second texture  attachment ; the catalog (if visible)
-        //
-        if (_renderwidget->_catalogView->visible()) {
-            glDrawBuffer(GL_COLOR_ATTACHMENT1);
-
-            // clear Modelview
-            glLoadIdentity();
-
-            static int indexSource = 0;
-            if (first) {
-                // Clear Catalog view
-                _renderwidget->_catalogView->clear();
-                indexSource = 0;
-            }
-            // Draw this source into the catalog
-            _renderwidget->_catalogView->drawSource( source, indexSource++);
-
-            glDrawBuffer(GL_COLOR_ATTACHMENT0);
         }
 
         // render the transition layer on top after the last frame
         if (last) {
-
-            ViewRenderWidget::setSourceDrawingMode(true);
             _switcher->render();
         }
 
@@ -505,6 +461,26 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
     else
         qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible."
             "\n\nThe program cannot operate properly anymore.")));
+
+
+    //
+    // 2. Draw sources into second texture  attachment ; the catalog (if visible)
+    //
+    if (_renderwidget->_catalogView->visible()) {
+
+        if (first)
+            // Clear Catalog view
+            _renderwidget->_catalogView->clear();
+
+        if (source)
+            // Draw this source into the catalog
+            _renderwidget->_catalogView->drawSource( source );
+
+        if (last)
+            _renderwidget->_catalogView->reorganize();
+
+    }
+
 
     // pop the projection matrix and GL state back for rendering the current view
     // to the actual widget
@@ -988,7 +964,7 @@ void RenderingManager::toggleUnchangeableCurrentSource(bool on){
 
     if(isValid(_currentSource)) {
         (*_currentSource)->setModifiable( ! on );
-        _propertyBrowser->showProperties(_currentSource);
+        emit currentSourceChanged(_currentSource);
     }
 }
 
@@ -997,7 +973,7 @@ void RenderingManager::toggleFixAspectRatioCurrentSource(bool on){
 
     if(isValid(_currentSource)) {
         (*_currentSource)->setFixedAspectRatio( on );
-        _propertyBrowser->showProperties(_currentSource);
+        emit currentSourceChanged(_currentSource);
     }
 }
 
@@ -1008,7 +984,7 @@ void RenderingManager::setOriginalAspectRatioCurrentSource(){
         (*_currentSource)->resetScale(Source::SCALE_FIT);
         scale /= (*_currentSource)->getScaleX();
         (*_currentSource)->scaleBy( scale, scale );
-        _propertyBrowser->showProperties(_currentSource);
+        emit currentSourceChanged(_currentSource);
     }
 }
 
@@ -1019,7 +995,7 @@ void RenderingManager::setRenderingAspectRatioCurrentSource(){
         (*_currentSource)->resetScale(Source::SCALE_DEFORM);
         scale /= (*_currentSource)->getScaleX();
         (*_currentSource)->scaleBy( scale, scale );
-        _propertyBrowser->showProperties(_currentSource);
+        emit currentSourceChanged(_currentSource);
     }
 }
 
@@ -1027,7 +1003,7 @@ void RenderingManager::resetCurrentSource(){
 
     if(isValid(_currentSource)) {
         resetSource(_currentSource);
-        _propertyBrowser->showProperties(_currentSource);
+        emit currentSourceChanged(_currentSource);
     }
 }
 

@@ -26,7 +26,7 @@
 #ifndef RENDERINGMANAGER_H_
 #define RENDERINGMANAGER_H_
 
-//#define USE_GLREADPIXELS
+#define USE_GLREADPIXELS
 
 #include "common.h"
 #include "SourceSet.h"
@@ -173,9 +173,7 @@ public:
 	inline GLuint getFrameBufferTexture() const{
 		return _fbo ? _fbo->texture() : 0;
 	}
-	inline GLuint getCatalogTexture() const{
-		return _fbo ? _fboCatalogTexture : 0;
-	}
+
 	inline GLuint getFrameBufferHandle() const{
 		return _fbo ? _fbo->handle() : 0;
 	}
@@ -258,9 +256,8 @@ protected:
 	ViewRenderWidget *_renderwidget;
     class SourcePropertyBrowser *_propertyBrowser;
 
-	// the frame buffer
-	QGLFramebufferObject *_fbo;
-	GLuint _fboCatalogTexture;
+    // the frame buffers
+    QGLFramebufferObject *_fbo;
 	QGLFramebufferObject *previousframe_fbo;
 	unsigned int countRenderingSource, previousframe_index, previousframe_delay;
     bool clearWhite;

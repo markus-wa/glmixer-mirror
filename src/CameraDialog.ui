@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GLMixer - Webcam selection</string>
+   <string>GLMixer - New webcam source</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../icons.qrc">

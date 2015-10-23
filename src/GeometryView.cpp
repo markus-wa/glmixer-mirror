@@ -76,59 +76,65 @@ void GeometryView::paint()
 {
     static bool first = true;
 
-    // we use the shader to render sources
-    if (ViewRenderWidget::program->bind()) {
+    // first the background (as the rendering black clear color) with shadow
+    glPushMatrix();
+    glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
+    glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
+    glPopMatrix();
 
-        // first the background (as the rendering black clear color) with shadow
+    ViewRenderWidget::setSourceDrawingMode(true);
+
+    // loop over the sources (reversed depth order)
+    first = true;
+    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+
+        if ((*its)->isStandby())
+            continue;
+
+        //
+        // 0. prepare texture
+        //
+
+        // bind the source textures
+        (*its)->bind();
+
+        //
+        (*its)->beginEffectsSection();
+
+        //
+        // 1. Draw it into FBO
+        //
+        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+        first = false;
+
+
+        //
+        // 2. Draw it into current view
+        //
+
+        // place and scale
         glPushMatrix();
-        glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
-        glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
+        glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
+        glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
+        glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+
+        // Blending Function For mixing like in the rendering window
+        (*its)->blend();
+        // Draw source in canvas
+        (*its)->draw();
+
+        // done geometry
         glPopMatrix();
 
-        // loop over the sources (reversed depth order)
-        first = true;
-        for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-
-            if ((*its)->isStandby())
-                continue;
-
-            //
-            // 1. Render it into current view
-            //
-            ViewRenderWidget::setSourceDrawingMode(true);
-
-            // place and scale
-            glPushMatrix();
-            glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
-            glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
-            glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
-
-            // Blending Function For mixing like in the rendering window
-            (*its)->beginEffectsSection();
-            // bind the source texture
-            (*its)->bind();
-            // Draw it !
-            (*its)->blend();
-            (*its)->draw();
-
-            //
-            // 2. Render it into FBO
-            //
-            RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-            first = false;
-
-            glPopMatrix();
-        }
-        ViewRenderWidget::program->release();
     }
+
+    ViewRenderWidget::setSourceDrawingMode(false);
 
     // if no source was rendered, clear anyway
     RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
 
     // post render draw (loop back and recorder)
     RenderingManager::getInstance()->postRenderToFrameBuffer();
-
-    glActiveTexture(GL_TEXTURE0);
 
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
@@ -210,6 +216,7 @@ void GeometryView::paint()
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();
     if ( s ){
+        glColor4ub(COLOR_SOURCE, 180);
         double ax, ay, az; // mouse cursor in rendering coordinates:
         gluUnProject( GLdouble (lastClicPos.x()), GLdouble (viewport[3] - lastClicPos.y()), 1.0,
                 modelview, projection, viewport, &ax, &ay, &az);
@@ -493,6 +500,8 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
         // loop over every sources to check if it is in the rectangle area
         SourceList rectSources;
         for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+            if ((*its)->isStandby())
+                continue;
             if (_selectionArea.contains( its ) )
                 rectSources.insert(*its);
         }
@@ -901,7 +910,7 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNo
         glTranslated(SelectionManager::getInstance()->selectionSource()->getX(), SelectionManager::getInstance()->selectionSource()->getY(), 40);
         glRotated(SelectionManager::getInstance()->selectionSource()->getRotationAngle(), 0.0, 0.0, 1.0);
         glScaled(SelectionManager::getInstance()->selectionSource()->getScaleX(), SelectionManager::getInstance()->selectionSource()->getScaleY(), 1.f);
-        SelectionManager::getInstance()->selectionSource()->draw(false, GL_SELECT);
+        SelectionManager::getInstance()->selectionSource()->draw(GL_SELECT);
         glPopMatrix();
     }
 
@@ -913,7 +922,7 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNo
         glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
         glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
         glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
-        (*its)->draw(false, GL_SELECT);
+        (*its)->draw(GL_SELECT);
         glPopMatrix();
     }
 

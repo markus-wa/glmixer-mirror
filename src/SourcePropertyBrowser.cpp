@@ -397,6 +397,8 @@ void SourcePropertyBrowser::updatePropertyTree(){
         intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
         intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
         boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
+        idToProperty["Key Color"]->setEnabled(s->getChromaKey());
+        idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
         colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
         intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
 #ifdef FFGL
@@ -1091,7 +1093,7 @@ private:
 #endif
 
 
-PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent)
+PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s, QWidget *parent)
 {
     PropertyBrowser *pb = NULL;
 #ifdef FFGL

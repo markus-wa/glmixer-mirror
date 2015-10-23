@@ -56,11 +56,14 @@ public slots:
     // Context menu actions
     virtual void ctxMenuGroup(const QPoint &);
     virtual void ctxMenuTree(const QPoint &);
-    void switchToTreeView();
-    void switchToGroupView();
     virtual void resetAll() {}
     virtual void defaultValue() {}
 
+    // appearance
+    void setDisplayPropertyTree(bool on);
+    bool getDisplayPropertyTree();
+
+    // enable / disable a property
     void setPropertyEnabled(QString propertyName, bool enabled);
 
 Q_SIGNALS:
@@ -107,6 +110,7 @@ protected:
     QUrl referenceURL;
     QMenu menuTree, menuGroup;
     QAction *resetAction, *defaultValueAction, *openUrlAction;
+    bool displayPropertyTree;
 };
 
 #endif // PROPERTYBROWSER_H

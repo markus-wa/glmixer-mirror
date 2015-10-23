@@ -83,52 +83,13 @@
 #include "GLSLCodeEditorWidget.h"
 #endif
 
+#include "glmixerdialogs.h"
 #include "glmixer.moc"
 
 GLMixer *GLMixer::_instance = 0;
 
 QByteArray static_windowstate =
 QByteArray::fromHex("000000ff00000000fd0000000300000000000001150000022bfc0200000003fc0000003b000000d5000000d500fffffffa000000000100000002fb0000002200700072006500760069006500770044006f0063006b0057006900640067006500740100000000ffffffff000000d400fffffffb000000200063007500720073006f00720044006f0063006b005700690064006700650074010000000000000136000000e600fffffffc00000112000001540000009100fffffffa000000000100000002fb00000024007300770069007400630068006500720044006f0063006b0057006900640067006500740100000000ffffffff000000e500fffffffb000000240062006c006f0063006e006f007400650044006f0063006b0057006900640067006500740100000000ffffffff000000ac00fffffffb0000001a006c006f00670044006f0063006b005700690064006700650074020000044e0000029d000002ef0000018400000001000001040000022bfc0200000003fc0000003b0000022b000001c300fffffffa000000000100000003fb00000020006d006900780069006e00670044006f0063006b0057006900640067006500740100000000ffffffff000000ec00fffffffb000000200073006f00750072006300650044006f0063006b0057006900640067006500740100000000ffffffff0000004100fffffffb00000020006c00610079006f007500740044006f0063006b0057006900640067006500740100000000ffffffff000000a600fffffffc000002f2000000300000000000fffffffa000000000100000001fb0000001e0061006c00690067006e0044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000fb0000001e00670061006d006d00610044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000000000030000042d00000054fc0100000001fb0000002400760063006f006e00740072006f006c0044006f0063006b00570069006400670065007401000000000000042d000003070007ffff000002100000022b00000004000000040000000800000008fc0000000100000002000000060000001a0073006f00750072006300650054006f006f006c0042006100720100000000ffffffff00000000000000000000001600760069006500770054006f006f006c00420061007201000001e4ffffffff00000000000000000000001600660069006c00650054006f006f006c00420061007201000002a8ffffffff0000000000000000000000180074006f006f006c00730054006f006f006c0042006100720100000341ffffffff00000000000000000000002000720065006e0064006500720069006e00670054006f006f006c00420061007201000003b9ffffffff0000000000000000000000280073006f00750072006300650043006f006e00740072006f006c0054006f006f006c00420061007201000003f3ffffffff0000000000000000" );
-
-class CaptureDialog: public QDialog {
-
-public:
-    QImage img;
-
-    CaptureDialog(QWidget *parent, QImage capture, QString caption): QDialog(parent), img(capture) {
-
-        QVBoxLayout *verticalLayout;
-        QLabel *Question, *Display, *Info;
-        QDialogButtonBox *DecisionButtonBox;
-
-        setObjectName(QString::fromUtf8("CaptureDialog"));
-        setWindowTitle(tr( "Frame captured"));
-        verticalLayout = new QVBoxLayout(this);
-        verticalLayout->setSpacing(9);
-
-        Question = new QLabel(this);
-        Question->setText(caption);
-        verticalLayout->addWidget(Question);
-
-        Display = new QLabel(this);
-        Display->setPixmap(QPixmap::fromImage(img).scaledToWidth(300));
-        verticalLayout->addWidget(Display);
-
-        Info = new QLabel(this);
-        Info->setText(tr("Original size: %1 x %2 px").arg(img.width()).arg(img.height()) );
-        verticalLayout->addWidget(Info);
-
-        DecisionButtonBox = new QDialogButtonBox(this);
-        DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-        verticalLayout->addWidget(DecisionButtonBox);
-
-        QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
-        QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
-    }
-
-};
-
-
 
 GLMixer *GLMixer::getInstance() {
 
@@ -176,6 +137,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(tagsDockWidget->toggleViewAction());
     QAction *showlog = logDockWidget->toggleViewAction();
     toolBarsMenu->addAction(showlog);
+    logDockWidget->hide();
+
     toolBarsMenu->addSeparator();
     toolBarsMenu->addAction(sourceToolBar->toggleViewAction());
     toolBarsMenu->addAction(viewToolBar->toggleViewAction());
@@ -933,7 +896,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         vcontrolDockWidgetContents->setEnabled( true );
 
         // display property browser
-        specificSourcePropertyBrowser = createSpecificPropertyBrowser((*csi), layoutPropertyBrowser);
+        specificSourcePropertyBrowser = SourcePropertyBrowser::createSpecificPropertyBrowser((*csi), layoutPropertyBrowser);
+        specificSourcePropertyBrowser->setDisplayPropertyTree(RenderingManager::getPropertyBrowserWidget()->getDisplayPropertyTree());
         specificSourcePropertyBrowser->setHeaderVisible(false);
         layoutPropertyBrowser->insertWidget(1, specificSourcePropertyBrowser);
         layoutPropertyBrowser->restoreState(layoutPropertyBrowserState);
@@ -1107,7 +1071,7 @@ void GLMixer::on_actionWebSource_triggered(){
 
 void GLMixer::on_actionSvgSource_triggered(){
 
-    QString fileName = getFileName(tr("Open SVG file"), tr("Scalable Vector Graphics") + " (*.svg)");
+    QString fileName = getFileName(tr("GLMixer - New SVG source"), tr("Scalable Vector Graphics") + " (*.svg)");
 
     if ( !fileName.isEmpty() ) {
 
@@ -1355,15 +1319,29 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 
 void GLMixer::on_actionEditSource_triggered()
 {
-    sourceDockWidget->setVisible(true);
-    sourceDockWidget->activateWindow();
-    sourceDockWidget->raise();
+//    sourceDockWidget->setVisible(true);
+//    sourceDockWidget->activateWindow();
+//    sourceDockWidget->raise();
 
+    // for SHADERTOY sources, edit means edit code
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if ( (*cs)->rtti()  == Source::FFGL_SOURCE ) {
-            FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
+        FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
+        editShaderToyPlugin(  ffgls->freeframeGLPlugin() );
+    }
+    // for others, edit mean show a widget with properties
+    else {
+        SourceEditDialog sed(this, *cs, tr("Edit source properties"));
+        QObject::connect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, bool)), mixingToolBox, SLOT(propertyChanged(QString, bool)) );
+        QObject::connect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
+        QObject::connect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
 
-          editShaderToyPlugin(  ffgls->freeframeGLPlugin() );
+        sed.exec();
+
+        QObject::disconnect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, bool)), mixingToolBox, SLOT(propertyChanged(QString, bool)) );
+        QObject::disconnect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
+        QObject::disconnect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
+
     }
 
 }
@@ -1611,63 +1589,6 @@ void GLMixer::setAspectRatio(QAction *a)
     RenderingManager::getRenderingWidget()->refresh();
 }
 
-void setupAboutDialog(QDialog *AboutGLMixer)
-{
-    AboutGLMixer->resize(420, 270);
-    AboutGLMixer->setWindowTitle("About GLMixer");
-    QGridLayout *gridLayout = new QGridLayout(AboutGLMixer);
-    gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-    QLabel *Icon = new QLabel(AboutGLMixer);
-    Icon->setPixmap(QPixmap(QString::fromUtf8(":/glmixer/icons/glmixer_64x64.png")));
-    QLabel *Title = new QLabel(AboutGLMixer);
-    Title->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
-    QLabel *VERSION = new QLabel(AboutGLMixer);
-    VERSION->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
-    QLabel *textsvn = new QLabel(AboutGLMixer);
-    QLabel *SVN = new QLabel(AboutGLMixer);
-    QTextBrowser *textBrowser = new QTextBrowser(AboutGLMixer);
-    textBrowser->setOpenExternalLinks (true);
-    QDialogButtonBox *validate = new QDialogButtonBox(AboutGLMixer);
-    validate->setOrientation(Qt::Horizontal);
-    validate->setStandardButtons(QDialogButtonBox::Close);
-
-    gridLayout->addWidget(Icon, 0, 0, 1, 1);
-    gridLayout->addWidget(Title, 0, 1, 1, 1);
-    gridLayout->addWidget(VERSION, 0, 2, 1, 1);
-    gridLayout->addWidget(textsvn, 1, 1, 1, 1);
-    gridLayout->addWidget(SVN, 1, 2, 1, 1);
-    gridLayout->addWidget(textBrowser, 2, 0, 1, 3);
-    gridLayout->addWidget(validate, 3, 0, 1, 3);
-
-    Icon->setText(QString());
-    Title->setText(QObject::tr("Graphic Live Mixer"));
-    textBrowser->setHtml(QObject::tr("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-    "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-    "p, li { white-space: pre-wrap; }\n"
-    "</style></head><body style=\" font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-    "<p>GLMixer is a video mixing software for live performance.</p>\n"
-    "<p>Author:	Bruno Herbelin<br>\n"
-    "Contact:	bruno.herbelin@gmail.com<br>\n"
-    "License: 	GNU GPL version 3</p>\n"
-    "<p>Copyright 2009-2014 Bruno Herbelin</p>\n"
-    "<p>Updates and source code at: <br>\n"
-    "   	<a href=\"http://sourceforge.net/projects/glmixer//\"><span style=\" text-decoration: underline; color:#7d400a;\">http://sourceforge.net/projects/glmixer/</span>"
-    "</a></p>"
-    "<p>GLMixer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation.</p>"
-    "<p>GLMixer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details (see http://www.gnu.org/licenses).</p>"
-    "</body></html>"));
-
-    VERSION->setText( QString("%1").arg(QCoreApplication::applicationVersion()) );
-
-#ifdef GLMIXER_REVISION
-    SVN->setText(QString("%1").arg(GLMIXER_REVISION));
-    textsvn->setText(QObject::tr("SVN repository revision:"));
-#endif
-
-    QObject::connect(validate, SIGNAL(accepted()), AboutGLMixer, SLOT(accept()));
-    QObject::connect(validate, SIGNAL(rejected()), AboutGLMixer, SLOT(reject()));
-
-}
 
 void GLMixer::on_actionAbout_triggered(){
 
@@ -2551,6 +2472,12 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> mem;
     VideoFile::setMemoryUsagePolicy(mem);
 
+    // s. display property tree
+    bool propertytree = true;
+    stream >> propertytree;
+    RenderingManager::getPropertyBrowserWidget()->setDisplayPropertyTree(propertytree);
+
+
     // Refresh widgets to make changes visible
     OutputRenderWindow::getInstance()->refresh();
     outputpreview->refresh();
@@ -2633,6 +2560,9 @@ QByteArray GLMixer::getPreferences() const {
 
     // r. Memory usage policy
     stream << VideoFile::getMemoryUsagePolicy();
+
+    // s. property tree
+    stream << RenderingManager::getPropertyBrowserWidget()->getDisplayPropertyTree();
 
     return data;
 }
@@ -2904,7 +2834,7 @@ QStringList GLMixer::getMediaFileNames(bool &generatePowerOfTwoRequest) {
     // open dialog for openning media files> system QFileDialog, or custom (mfd)
     if (usesystemdialogs) {
         static QDir dir(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation));
-        fileNames = QFileDialog::getOpenFileNames(this, tr("Open media files"), dir.absolutePath(), tr(VIDEOFILE_DIALOG_FORMATS) );
+        fileNames = QFileDialog::getOpenFileNames(this, tr("GLMixer - New media source"), dir.absolutePath(), tr(VIDEOFILE_DIALOG_FORMATS) );
         if (!fileNames.isEmpty())
             dir = QFileInfo(fileNames.front()).absoluteDir();
     } else if (mfd->exec()) {

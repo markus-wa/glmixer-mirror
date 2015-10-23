@@ -22,6 +22,7 @@
 
 #include <QPainter>
 #include <QtGui>
+ #include <QApplication>
 
 #include "GLSLSyntaxHighlighter.h"
 #include "GLSLCodeEditor.moc"
@@ -69,6 +70,7 @@ void CodeEditor::highlightCurrentLine()
 
     // Ensure non-proportionnal font, large enough
     QFont f = font();
+    f.setPointSize(QApplication::font().pointSize() - 1);
 #ifdef Q_OS_WIN
     f.setFamily("Consolas, Courier");
     f.setPointSize( f.pointSize() < 10 ? 10 : f.pointSize() );

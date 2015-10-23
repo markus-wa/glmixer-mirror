@@ -19,13 +19,13 @@
 
 varying vec2 texc;
 varying vec2 maskc;
-varying vec4 baseColor;
 
 uniform sampler2D sourceTexture;
 uniform sampler2D maskTexture;
-uniform sampler2D utilityTexture;
 
-uniform bool sourceDrawing;
+uniform vec4 baseColor;
+uniform float baseAlpha;
+uniform float stippling;
 uniform float contrast;
 uniform float saturation;
 uniform float brightness;
@@ -226,50 +226,46 @@ vec3 RGB2HSV( vec3 color )
 
 void main(void)
 {
-    if (!sourceDrawing) {
-            gl_FragColor = texture2D(utilityTexture, maskc) + baseColor;
-            //return;
-    } 
-    else {
+    // deal with alpha separately
+    float alpha = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a * baseAlpha;
+    vec3 transformedRGB;
 
-        // deal with alpha separately
-        float alpha = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a  * baseColor.a;
-        vec3 transformedRGB;
+    transformedRGB = mix(vec3(0.62), apply_filter(), contrast) + brightness;
+    transformedRGB = LevelsControl(transformedRGB, levels.x, gamma, levels.y, levels.z, levels.w);
 
-        transformedRGB = mix(vec3(0.62), apply_filter(), contrast) + brightness;
-        transformedRGB = LevelsControl(transformedRGB, levels.x, gamma, levels.y, levels.z, levels.w);
+    // RGB invert
+    transformedRGB = vec3(float(invertMode==1)) + ( transformedRGB * vec3(1.0 - 2.0 * float(invertMode==1)) );
 
-        // RGB invert
-        transformedRGB = vec3(float(invertMode==1)) + ( transformedRGB * vec3(1.0 - 2.0 * float(invertMode==1)) );
+    // Convert to HSL
+    vec3 transformedHSL = RGB2HSV( transformedRGB );
 
-        // Convert to HSL
-        vec3 transformedHSL = RGB2HSV( transformedRGB );
+    // Luminance invert
+    transformedHSL.z = float(invertMode==2) +  transformedHSL.z * (1.0 - 2.0 * float(invertMode==2) );
 
-        // Luminance invert
-        transformedHSL.z = float(invertMode==2) +  transformedHSL.z * (1.0 - 2.0 * float(invertMode==2) );
-        // perform hue shift
-        transformedHSL.x = transformedHSL.x + hueshift;
+    // perform hue shift
+    transformedHSL.x = transformedHSL.x + hueshift;
 
-        // Saturation
-        transformedHSL.y *= saturation;
+    // Saturation
+    transformedHSL.y *= saturation;
 
-        // perform reduction of colors
-        transformedHSL = mix( transformedHSL, floor(transformedHSL * vec3(nbColors)) / vec3(nbColors-1),  float( nbColors > 0 ) );
+    // perform reduction of colors
+    transformedHSL = mix( transformedHSL, floor(transformedHSL * vec3(nbColors)) / vec3(nbColors-1),  float( nbColors > 0 ) );
 
-        // level threshold
-        transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > 0.0));
-                
-        // after operations on HSL, convert back to RGB
-        transformedRGB = HSV2RGB(transformedHSL);
+    // level threshold
+    transformedHSL = mix( transformedHSL, vec3(0.0, 0.0, step( transformedHSL.z, threshold )), float(threshold > 0.0));
 
-        // chromakey
-        alpha -= mix( 0.0, step( length( normalize(chromakey.xyz) - normalize(transformedRGB) ), chromadelta ), float(chromakey.w > 0.0) );
+    // after operations on HSL, convert back to RGB
+    transformedRGB = HSV2RGB(transformedHSL);
 
-        // apply base color and
-        // bring back the original alpha for final fragment color
-        gl_FragColor = vec4(transformedRGB * baseColor.rgb, clamp(alpha, 0.0, 1.0) );
+    // chromakey
+    alpha -= mix( 0.0, step( length( normalize(chromakey.xyz) - normalize(transformedRGB) ), chromadelta ), float(chromakey.w > 0.0) );
 
-    }
+    // stippling
+    alpha += int(floor(gl_FragCoord.x * stippling) + floor(gl_FragCoord.y * stippling)) & 1 ;
+
+    // apply base color and alpha for final fragment color
+    gl_FragColor = vec4(transformedRGB * baseColor.rgb, clamp(alpha, 0.0, 1.0) );
+
 }
 
 

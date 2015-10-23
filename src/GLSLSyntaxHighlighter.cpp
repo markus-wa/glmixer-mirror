@@ -226,6 +226,7 @@ GLSLSyntaxHighlighter::GLSLSyntaxHighlighter(QTextEdit *parent) :
     glslFunc.append("refract");
     glslFunc.append("exp");
     glslFunc.append("log");
+    glslFunc.append("mainImage");
     addPatternFromList(glslFunc, statementFormat);
 
     /* States */

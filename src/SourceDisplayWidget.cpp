@@ -31,8 +31,8 @@
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
 
-SourceDisplayWidget::SourceDisplayWidget(QWidget *parent, enum backgroundType bg) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()),
-    s(0), background(bg), _bgTexture(0),_playSource(false)
+SourceDisplayWidget::SourceDisplayWidget(QWidget *parent, enum backgroundType bg, bool witheffects) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()),
+    s(0), background(bg), _bgTexture(0),_playSource(false), _effects(witheffects)
 {
 	function = GL_ONE_MINUS_SRC_ALPHA;
 	equation = GL_FUNC_ADD;
@@ -57,6 +57,8 @@ void SourceDisplayWidget::initializeGL()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  p.width(), p. height(), 0, GL_RGBA, GL_UNSIGNED_BYTE,  p.bits());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
 }
 
 void SourceDisplayWidget::setSource(Source *sourceptr)
@@ -99,9 +101,6 @@ void SourceDisplayWidget::paintGL()
         if(_playSource)
             s->update();
 
-        // bind texture
-        glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
-
 		// adjust size to show all the square and ensure aspect ratio is preserved
 		if ( s->getAspectRatio() > aspectRatio )
 			glScalef( 1.f, aspectRatio / s->getAspectRatio(), 1.f);
@@ -109,17 +108,22 @@ void SourceDisplayWidget::paintGL()
 			glScalef( s->getAspectRatio() / aspectRatio, 1.f, 1.f);
 		// flip vertical if requested
 		glScalef( aspectRatio, s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
-		// use source color
-        //glColor4f(s->getColor().redF(), s->getColor().greenF(), s->getColor().blueF(), 1.0);
 
-	    // blending
-		glBlendEquationSeparate(equation, GL_MAX);
-		glBlendFuncSeparate(GL_SRC_ALPHA, function, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
+        if (_effects)
+            s->bindFbo();
+        else
+            // bind texture
+            glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
 
-	    // draw a quad with the texture
-		glCallList(ViewRenderWidget::quad_texured);
-		// revert color
-	    glColor4f(1.0, 1.0, 1.0, 1.0);
+        // blending
+        glBlendEquationSeparate(equation, GL_MAX);
+        glBlendFuncSeparate(GL_SRC_ALPHA, function, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
+
+        // draw a quad with the texture
+        glCallList(ViewRenderWidget::quad_texured);
+
+        // revert color
+        glColor4f(1.0, 1.0, 1.0, 1.0);
 
 	}
 }

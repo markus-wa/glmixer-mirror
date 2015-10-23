@@ -191,6 +191,9 @@ void AlgorithmThread::run() {
 
 void AlgorithmThread::fill(double var) {
 
+    if (!as->buffer)
+        return;
+
     if (as->algotype == AlgorithmSource::FLAT) {
 
         unsigned char c = (unsigned char) (cos( double(phase) * 2.0 * M_PI / 360.0) * 127.0 + 127.0);
@@ -340,8 +343,8 @@ void AlgorithmThread::fill(double var) {
 
 AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
                                  int h, double v, unsigned long p, bool ia) :
-    Source(texture, d), width(w), height(h), period(p), framerate(0), vertical(
-                                                                          1.0), horizontal(1.0), variability(v) {
+    Source(texture, d), buffer(0), width(w), height(h), period(p), framerate(0), vertical( 1.0),
+    horizontal(1.0), variability(v), ignoreAlpha(false), frameChanged(true) {
 
     algotype = CLAMP(AlgorithmSource::algorithmType(type), AlgorithmSource::FLAT, AlgorithmSource::NONE);
 
@@ -370,6 +373,17 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
     _thread->fill(1.0);
     _thread->start();
     _thread->setPriority(QThread::LowPriority);
+
+    // create 2 pixel buffer objects,
+    // glBufferDataARB with NULL pointer reserves only memory space.
+    glGenBuffers(2, pboIds);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[1]);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    index = nextIndex = 0;
+
 }
 
 AlgorithmSource::~AlgorithmSource() {
@@ -385,9 +399,7 @@ AlgorithmSource::~AlgorithmSource() {
     delete _mutex;
 
     // delete picture buffer
-    if (buffer)
-        delete[] buffer;
-
+    glDeleteBuffersARB(2, pboIds);
 }
 
 
@@ -445,10 +457,10 @@ void AlgorithmSource::initBuffer() {
     }
 
 
-    buffer = new unsigned char[width * height * 4];
-    CHECK_PTR_EXCEPTION(buffer);
-    // CLEAR the buffer to white
-    memset((void *) buffer, std::numeric_limits<unsigned char>::max(),  width * height * 4);
+//    buffer = new unsigned char[width * height * 4];
+//    CHECK_PTR_EXCEPTION(buffer);
+//    // CLEAR the buffer to white
+//    memset((void *) buffer, std::numeric_limits<unsigned char>::max(),  width * height * 4);
 
 
 }
@@ -456,15 +468,43 @@ void AlgorithmSource::initBuffer() {
 void AlgorithmSource::update() {
 
     if (frameChanged) {
+
+        // In dual PBO mode, increment current index first then get the next index
+        index = (index + 1) % 2;
+        nextIndex = (index + 1) % 2;
+
+        // bind the texture
         glBindTexture(GL_TEXTURE_2D, textureIndex);
+            // bind PBO
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
+            // copy pixels from PBO to texture object
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
+                            GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+
+            // bind PBO to update pixel values
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
+
+            glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
 
         _mutex->lock();
 
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
-                        GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+            // map the buffer object into client's memory
+            GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+            if (ptr)
+            {
+                // update data directly on the mapped buffer
+                buffer = ptr;
+                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
+            }
+            else
+                buffer = 0;
 
         _cond->wakeAll();
         _mutex->unlock();
+
+        // it is good idea to release PBOs with ID 0 after use.
+        // Once bound with 0, all pixel operations behave normal ways.
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
         frameChanged = false;
     }

@@ -70,9 +70,11 @@ void SessionSwitcher::render() {
 	if (currentAlpha > 0.0) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
-		glColor4f(0.0, 0.0, 0.0, currentAlpha);
+
+        glColor4f(0.0, 0.0, 0.0, currentAlpha);
+
 		glScaled( OutputRenderWindow::getInstance()->getAspectRatio() * SOURCE_UNIT, SOURCE_UNIT, 1.0);
-		glCallList(ViewRenderWidget::quad_texured);
+        glCallList(ViewRenderWidget::quad_texured);
 	}
 
 	// if we shall render the overlay, do it !
@@ -80,13 +82,14 @@ void SessionSwitcher::render() {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBlendEquation(GL_FUNC_ADD);
 
-		glColor4f(overlaySource->getColor().redF(), overlaySource->getColor().greenF(), overlaySource->getColor().blueF(), overlayAlpha);
-		glActiveTexture(GL_TEXTURE0);
-		glEnable(GL_TEXTURE_2D);
+        glColor4f(overlaySource->getColor().redF(), overlaySource->getColor().greenF(), overlaySource->getColor().blueF(), overlayAlpha);
+
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
         overlaySource->bind();
 		glScaled( OutputRenderWindow::getInstance()->getAspectRatio() * overlaySource->getScaleX(), overlaySource->getScaleY(), 1.0);
-		glCallList(ViewRenderWidget::quad_texured);
-		glDisable(GL_TEXTURE_2D);
+        glCallList(ViewRenderWidget::quad_texured);
+        glDisable(GL_TEXTURE_2D);
 	}
 
 }

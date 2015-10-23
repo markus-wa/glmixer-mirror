@@ -73,8 +73,9 @@ void MixerView::paint()
     static bool first = true;
     static GLdouble ax, ay;
 
-    // First the background stuff
 
+
+    // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing + 2);
 
 
@@ -106,76 +107,81 @@ void MixerView::paint()
     glDisable(GL_LINE_STIPPLE);
 
 
+    ViewRenderWidget::setSourceDrawingMode(true);
+
     // Second the icons of the sources (reversed depth order)
     // render in the depth order
-    if (ViewRenderWidget::program->bind()) {
-        first = true;
-        // The icons of the sources (reversed depth order)
-        for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+    first = true;
+    // The icons of the sources (reversed depth order)
+    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-            //
-            // 1. Render it into current view
-            //
-            glPushMatrix();
-            ax = (*its)->getAlphaX();
-            ay = (*its)->getAlphaY();
-            glTranslated(ax, ay, (*its)->getDepth());
-            renderingAspectRatio = ABS( (*its)->getScaleX() / (*its)->getScaleY() );
-            if ( ABS(renderingAspectRatio) > 1.0)
-                glScaled(SOURCE_UNIT, SOURCE_UNIT / renderingAspectRatio,  1.0);
-            else
-                glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
+        //
+        // 0. prepare texture
+        //
 
-            // test if the source is passed the standby line
-            (*its)->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
+        // bind the source textures
+        (*its)->bind();
 
-            // setup multi-texturing and effect drawing mode for active sources
-            ViewRenderWidget::setSourceDrawingMode(!(*its)->isStandby());
+        //
+        (*its)->beginEffectsSection();
 
-            // Blending Function For mixing like in the rendering window
-            (*its)->beginEffectsSection();
-            // bind the source texture
-            (*its)->bind();
-            // standard transparency blending
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glBlendEquation(GL_FUNC_ADD);
-            // draw surface
+        //
+        // 1. Draw it into render FBO
+        //
+        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+        first = false;
+
+        //
+        // 2. Draw it into current view
+        //
+        glPushMatrix();
+
+        ax = (*its)->getAlphaX();
+        ay = (*its)->getAlphaY();
+        glTranslated(ax, ay, (*its)->getDepth());
+        renderingAspectRatio = ABS( (*its)->getScaleX() / (*its)->getScaleY() );
+        if ( ABS(renderingAspectRatio) > 1.0)
+            glScaled(SOURCE_UNIT, SOURCE_UNIT / renderingAspectRatio,  1.0);
+        else
+            glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
+
+        // test if the source is passed the standby line
+        (*its)->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
+
+        // standard transparency blending
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
+
+        if (!(*its)->isStandby())
+        {
+            //   draw stippled version of the source
+            ViewRenderWidget::program->setUniformValue("stippling", 1.f);
             (*its)->draw();
 
-            if (!(*its)->isStandby())
-            {
-                // draw stippled version of the source on top
-                glEnable(GL_POLYGON_STIPPLE);
-                glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-                (*its)->draw(false);
-                glDisable(GL_POLYGON_STIPPLE);
-
-                //
-                // 2. Render it into FBO
-                //
-                RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-                first = false;
-
-            }
-            //
-            // 3. draw border and handles if active
-            //
-            // disable multi-texturing and effect drawing mode
-            ViewRenderWidget::setSourceDrawingMode(false);
-
-            // Tag color
-            glColor4ub((*its)->getTag()->getColor().red(), (*its)->getTag()->getColor().green(), (*its)->getTag()->getColor().blue(), 200);
-
-            if (RenderingManager::getInstance()->isCurrentSource(its))
-                glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2) );
-            else
-                glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2) );
-
-            glPopMatrix();
+        } else {
+            // draw flat version of the source
+            ViewRenderWidget::program->setUniformValue("baseAlpha", 1.f);
+            (*its)->draw();
         }
 
-        ViewRenderWidget::program->release();
+        //
+        // 3. draw border and handles if active
+        //
+
+        // Tag color
+        ViewRenderWidget::setDrawMode((*its)->getTag()->getColor());
+
+        // draw border (larger if active)
+        if (RenderingManager::getInstance()->isCurrentSource(its))
+            glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2) );
+        else
+            glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2) );
+
+        // done geometry
+        glPopMatrix();
     }
+
+    ViewRenderWidget::setSourceDrawingMode(false);
 
     // if no source was rendered, clear anyway
     RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
@@ -183,7 +189,6 @@ void MixerView::paint()
     // post render draw (loop back and recorder)
     RenderingManager::getInstance()->postRenderToFrameBuffer();
 
-    glActiveTexture(GL_TEXTURE0);
 
     // Then the selection outlines
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
@@ -229,6 +234,8 @@ void MixerView::paint()
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();
     if ( s ){
+
+        glColor4ub(COLOR_SOURCE, 180);
         double ax, ay, az; // mouse cursor in rendering coordinates:
         gluUnProject(GLdouble (lastClicPos.x()), GLdouble (viewport[3] - lastClicPos.y()), 1.0,
                 modelview, projection, viewport, &ax, &ay, &az);
@@ -896,7 +903,7 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
         else
             glScaled(SOURCE_UNIT * renderingAspectRatio, SOURCE_UNIT,  1.0);
 
-        (*its)->draw(false, GL_SELECT);
+        (*its)->draw(GL_SELECT);
         glPopMatrix();
     }
 

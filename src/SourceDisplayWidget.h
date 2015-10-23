@@ -38,7 +38,7 @@ public:
 
     enum backgroundType { BLACK = 0, WHITE, GRID};
 
-    SourceDisplayWidget(QWidget *parent = 0, enum backgroundType bg = GRID);
+    SourceDisplayWidget(QWidget *parent = 0, enum backgroundType bg = GRID, bool witheffects = false);
 
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
@@ -59,7 +59,7 @@ private:
     enum backgroundType background;
     GLuint _bgTexture;
     GLenum function, equation;
-    bool _playSource;
+    bool _playSource, _effects;
 };
 
 #endif /* SOURCEDISPLAYWIDGET_H_ */

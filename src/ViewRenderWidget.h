@@ -83,6 +83,10 @@ public:
     void hideEvent ( QHideEvent * event ) { QGLWidget::hideEvent(event); }  // keep updating even if hidden
     void leaveEvent ( QEvent * event );
     void enterEvent ( QEvent * event );
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dragMoveEvent(QDragMoveEvent *event);
+    void dragLeaveEvent(QDragLeaveEvent *event);
+    void dropEvent(QDropEvent *event);
 
 	/**
 	 * CONTEXT MENUS
@@ -107,7 +111,7 @@ public:
     void setFramerateVisible(bool on);
     bool getFramerateVisible(){ return showFps_; }
 	void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
-	int catalogWidth();
+    int catalogWidth();
 
 	/**
 	 * management of the manipulation views
@@ -179,19 +183,17 @@ public Q_SLOTS:
 
 public:
 	// Shading
-    static GLfloat coords[12];
+    static GLfloat coords[8];
     static GLfloat texc[8];
     static GLfloat maskc[8];
+    static GLfloat basecolor[4];
     static QGLShaderProgram *program;
     static GLfloat filter_kernel[10][3][3];
     static bool disableFiltering;
     static const QMap<int, QPair<QString, QString> > getMaskDecription();
     static void setSourceDrawingMode(bool on);
-
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dragMoveEvent(QDragMoveEvent *event);
-    void dragLeaveEvent(QDragLeaveEvent *event);
-    void dropEvent(QDropEvent *event);
+    static void setDrawMode(QColor c);
+    static void setupFilteringShaderProgram(QGLShaderProgram *program, QString glslfilename = QString());
 
 protected:
 	// all the display lists

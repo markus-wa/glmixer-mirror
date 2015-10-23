@@ -89,7 +89,10 @@ void UserPreferencesDialog::setModeMinimal(bool on)
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Save);
     } else {
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Save);
+        // try to adjust the size to fit content
+        adjustSize();
     }
+
 }
 
 
@@ -104,7 +107,7 @@ void UserPreferencesDialog::restoreAllDefaultPreferences() {
 void UserPreferencesDialog::restoreDefaultPreferences() {
 
     if (stackedPreferences->currentWidget() == PageRendering) {
-        resolutionTable->selectRow(0);
+        resolutionTable->selectRow(3);
         updatePeriod->setValue(16); // default fps at 60
         activateBlitFrameBuffer->setChecked(!glSupportsExtension("GL_EXT_framebuffer_blit"));
         disableFiltering->setChecked(false);
@@ -146,6 +149,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         restoreLastSession->setChecked(true);
         displayTimeAsFrame->setChecked(false);
         useCustomDialogs->setChecked(true);
+        displayPropertyTree->setChecked(true);
     }
 }
 
@@ -288,6 +292,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> mem;
     MemoryUsagePolicySlider->setValue(mem);
 
+    // s. display property tree
+    bool propertytree = true;
+    stream >> propertytree;
+    displayPropertyTree->setChecked(propertytree);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -363,6 +372,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // r. memory usage policy
     stream << MemoryUsagePolicySlider->value();
+
+    // s. display property tree
+    stream << displayPropertyTree->isChecked();
 
     return data;
 }

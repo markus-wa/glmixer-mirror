@@ -152,103 +152,98 @@ void LayersView::paint()
     _selectionArea.draw();
     glPopMatrix();
 
-    // Second the icons of the sources
-    // we use the shader to render sources
-    if (ViewRenderWidget::program->bind()) {
 
-        // the frame for layer 0
+    // the frame for layer 0
+    glPushMatrix();
+    if ( renderingAspectRatio < 1.0)
+        glScaled(1.0 / SOURCE_UNIT , 1.0 / (renderingAspectRatio * SOURCE_UNIT),  1.0 );
+    else
+        glScaled(renderingAspectRatio /  SOURCE_UNIT, 1.0 / SOURCE_UNIT,  1.0 );
+    glTranslated(0.0, 0.0, -0.5);
+    glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
+    glCallList(ViewRenderWidget::frame_screen_thin);
+    glPopMatrix();
+
+
+
+    ViewRenderWidget::setSourceDrawingMode(true);
+
+    // loop over the sources (reversed depth order)
+    first = true;
+    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+
+        if ((*its)->isStandby())
+            continue;
+
+        //
+        // 0. prepare Fbo texture
+        //
+
+        // bind the source textures
+        (*its)->bind();
+
+        //
+        (*its)->beginEffectsSection();
+
+        //
+        // 1. Draw it into FBO
+        //
+        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+        first = false;
+
+        //
+        // 2. Draw it into current view
+        //
         glPushMatrix();
-        if ( renderingAspectRatio < 1.0)
-            glScaled(1.0 / SOURCE_UNIT , 1.0 / (renderingAspectRatio * SOURCE_UNIT),  1.0 );
-        else
-            glScaled(renderingAspectRatio /  SOURCE_UNIT, 1.0 / SOURCE_UNIT,  1.0 );
-        glTranslated(0.0, 0.0, -0.5);
-        glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
-        glCallList(ViewRenderWidget::frame_screen_thin);
-        glPopMatrix();
 
-        // loop over the sources (reversed depth order)
-        first = true;
-        for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-
-            if ((*its)->isStandby())
-                continue;
-            //
-            // 1. Render it into current view
-            //
-            glPushMatrix();
-
-            // if the source is active or part of the selection which is active
-            if ( forwardSources.count(*its) > 0 ) {
-                // animated displacement
-                if (forwardDisplacement < MAXDISPLACEMENT)
-                    forwardDisplacement += ( MAXDISPLACEMENT + 0.1 - forwardDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
-                glTranslatef( forwardDisplacement, 0.0, 0.0);
-            }
-//            else {
-//                // draw stippled version of the source on top
-//                glEnable(GL_POLYGON_STIPPLE);
-//                glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-//            }
-
-            glTranslatef( 0.0, 0.0, (*its)->getDepth());
-            glScalef((*its)->getAspectRatio(), 1.0, 1.0);
-
-            // standard transparency blending
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glBlendEquation(GL_FUNC_ADD);
-
-            ViewRenderWidget::setSourceDrawingMode(false);
-
-            // Tag color
-            glColor4ub((*its)->getTag()->getColor().red(), (*its)->getTag()->getColor().green(), (*its)->getTag()->getColor().blue(), 200);
-
-            // draw border (larger if active)
-            if (RenderingManager::getInstance()->isCurrentSource(its))
-                glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2));
-            else
-                glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2));
-
-            // draw border for selection
-            if (SelectionManager::getInstance()->isInSelection(*its))
-                glCallList(ViewRenderWidget::frame_selection);
-
-            ViewRenderWidget::setSourceDrawingMode(true);
-
-            // Blending Function for mixing like in the rendering window
-            (*its)->beginEffectsSection();
-            // bind the source texture
-            (*its)->bind();
-            // draw surface
-            (*its)->blend();
-            (*its)->draw();
-
-            // standard transparency blending
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glBlendEquation(GL_FUNC_ADD);
-
-            // draw stippled version of the source on top
-            glEnable(GL_POLYGON_STIPPLE);
-            glPolygonStipple(ViewRenderWidget::stippling + ViewRenderWidget::stipplingMode * 128);
-            (*its)->draw(false);
-            glDisable(GL_POLYGON_STIPPLE);
-
-            glPopMatrix();
-
-            //
-            // 2. Render it into FBO
-            //
-            RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-            first = false;
-
+        // if the source is active or part of the selection which is active
+        if ( forwardSources.count(*its) > 0 ) {
+            // animated displacement
+            if (forwardDisplacement < MAXDISPLACEMENT)
+                forwardDisplacement += ( MAXDISPLACEMENT + 0.1 - forwardDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
+            glTranslatef( forwardDisplacement, 0.0, 0.0);
         }
-        ViewRenderWidget::program->release();
+
+        glTranslatef( 0.0, 0.0, (*its)->getDepth());
+        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+
+        // Blending Function For mixing like in the rendering window
+        (*its)->blend();
+
+        //   draw stippled version of the source
+        ViewRenderWidget::program->setUniformValue("stippling", 1.f);
+        (*its)->draw();
+
+        //
+        // 3. draw border and handles if active
+        //
+
+        // standard transparency blending
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
+
+        // Tag color
+        ViewRenderWidget::setDrawMode((*its)->getTag()->getColor());
+
+        // draw border (larger if active)
+        if (RenderingManager::getInstance()->isCurrentSource(its))
+            glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2));
+        else
+            glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2));
+
+        // draw border for selection
+        if (SelectionManager::getInstance()->isInSelection(*its)) {
+            ViewRenderWidget::program->setUniformValue("baseColor", QColor(COLOR_SELECTION));
+            glCallList(ViewRenderWidget::frame_selection);
+        }
+
+        // done geometry
+        glPopMatrix();
     }
 
+
     // restore state
-    glActiveTexture(GL_TEXTURE0);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
+    ViewRenderWidget::setSourceDrawingMode(false);
 
     // if no source was rendered, clear anyway
     RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
@@ -256,9 +251,11 @@ void LayersView::paint()
     // post render draw (loop back and recorder)
     RenderingManager::getInstance()->postRenderToFrameBuffer();
 
+
     // the source dropping icon
     Source *s = RenderingManager::getInstance()->getSourceBasketTop();
     if ( s ){
+        glColor4ub(COLOR_SOURCE, 180);
         double depth = unProjectDepth(lastClicPos.x(), viewport[3] - lastClicPos.y());
 
         glPushMatrix();
@@ -277,11 +274,6 @@ void LayersView::paint()
         glPopMatrix();
     }
 
-////  debug
-//    glMatrixMode(GL_MODELVIEW);
-//    glPushMatrix();
-//    drawDepthMap(picking_map_width);
-//    glPopMatrix();
 }
 
 void LayersView::resize(int w, int h)
@@ -515,9 +507,12 @@ bool LayersView::mouseMoveEvent ( QMouseEvent *event ) {
 
             // loop over every sources to check if it is in the rectangle area
             SourceList rectSources;
-            for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
+            for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+                if ((*its)->isStandby())
+                    continue;
                 if (_selectionArea.contains( its )  )
                     rectSources.insert(*its);
+            }
 
             if ( isUserInput(event, View::INPUT_SELECT) )
                 // extend selection
@@ -727,7 +722,7 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
             glTranslatef(0.0, 0.0, (*its)->getDepth());
         glScalef((*its)->getAspectRatio() * 1.1, 1.1, 1.0);
 
-        (*its)->draw(false, GL_SELECT);
+        (*its)->draw(GL_SELECT);
         glPopMatrix();
     }
 

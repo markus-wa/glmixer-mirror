@@ -82,8 +82,9 @@ void CameraThread::run(){
 	}
 }
 
-OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) : Source(texture, d), framerate(0.0), needFrameCopy(false)
-{
+OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
+    Source(texture, d), framerate(0.0), needFrameCopy(false), frameChanged(true)  {
+
 	// prevent from creation of duplicated opencv sources and from creation of more than 2 sources
     if (  OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() > 4)
         UnavailableCameraIndexException().raise();

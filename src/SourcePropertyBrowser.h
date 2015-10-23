@@ -37,6 +37,8 @@ class SourcePropertyBrowser  : public PropertyBrowser {
 public:
 	SourcePropertyBrowser(QWidget *parent = 0);
 
+    static PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent);
+
 public slots:
 	// Shows the properties in the browser for the given source (iterator in the Manager list)
 	// This is called every time we want to get information on a source
@@ -77,6 +79,6 @@ private:
 
 };
 
-PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent);
+
 
 #endif /* SOURCEPROPERTYBROWSER_H_ */

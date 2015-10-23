@@ -100,7 +100,7 @@ protected:
 	int width, height;
 	double framerate;
     IplImage *frame;
-    bool needFrameCopy;
+    bool needFrameCopy, frameChanged;
 
     CameraThread *thread;
     QMutex *mutex;

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>619</width>
-    <height>570</height>
+    <width>678</width>
+    <height>629</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,19 +18,29 @@
     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_15">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetMinimumSize</enum>
+   </property>
    <item>
     <widget class="QLabel" name="IntroTextLabel">
      <property name="enabled">
       <bool>true</bool>
      </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-weight:600;&quot;&gt;GLMixer&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt; was not configured yet. Please adjust the rendering performance parameters bellow to match with your &lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-style:italic;&quot;&gt;graphics hardware capabilities&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt; (OpenGL performances). Default values are (very) conservative but shall always work.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'MS Shell Dlg 2';&quot;&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt;This dialog is shown only once, but you can always modify these settings in the &lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-style:italic;&quot;&gt;Preference&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt; menu. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-weight:600;&quot;&gt;Configure GLMixer&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt;Adjust the rendering parameters bellow to match your &lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-style:italic;&quot;&gt;graphics hardware capabilities&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2';&quot;&gt; (OpenGL). &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'MS Shell Dlg 2';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt;&quot;&gt;You can always return to these settings in the &lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-style:italic;&quot;&gt;Preference&lt;/span&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt;&quot;&gt; menu. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="textFormat">
       <enum>Qt::RichText</enum>
@@ -65,7 +75,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="dragDropMode">
-          <enum>QAbstractItemView::NoDragDrop</enum>
+          <enum>QAbstractItemView::DragDrop</enum>
          </property>
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectItems</enum>
@@ -159,13 +169,13 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QPushButton" name="factorySettingsButton">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Factory reset</string>
+          <string>Reset all</string>
          </property>
         </widget>
        </item>
@@ -176,7 +186,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QStackedWidget" name="stackedPreferences">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -188,17 +198,14 @@ p, li { white-space: pre-wrap; }
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
             <widget class="QGroupBox" name="Resolution">
-             <property name="toolTip">
-              <string>Size of the internal buffer where the mix is rendered: high resolution may slow down the rendering.</string>
-             </property>
              <property name="title">
-              <string>Frame buffer size</string>
+              <string>Rendering resolution</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
                <widget class="QLabel" name="label">
                 <property name="text">
-                 <string>Select the quality (resolution will be set according to rendering aspect ratio)</string>
+                 <string>Select a category of resolutions:</string>
                 </property>
                 <property name="buddy">
                  <cstring>resolutionTable</cstring>
@@ -207,6 +214,15 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QTableWidget" name="resolutionTable">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Select a category of resolutions; the resolution of the output rendering will depend on its aspect ratio</string>
+                </property>
                 <property name="autoFillBackground">
                  <bool>false</bool>
                 </property>
@@ -225,23 +241,26 @@ p, li { white-space: pre-wrap; }
                 <property name="selectionBehavior">
                  <enum>QAbstractItemView::SelectRows</enum>
                 </property>
+                <property name="textElideMode">
+                 <enum>Qt::ElideNone</enum>
+                </property>
                 <property name="showGrid">
                  <bool>true</bool>
                 </property>
                 <property name="cornerButtonEnabled">
                  <bool>false</bool>
                 </property>
+                <attribute name="horizontalHeaderDefaultSectionSize">
+                 <number>110</number>
+                </attribute>
                 <attribute name="horizontalHeaderStretchLastSection">
                  <bool>true</bool>
                 </attribute>
                 <attribute name="verticalHeaderDefaultSectionSize">
-                 <number>28</number>
+                 <number>26</number>
                 </attribute>
                 <attribute name="verticalHeaderHighlightSections">
                  <bool>false</bool>
-                </attribute>
-                <attribute name="verticalHeaderMinimumSectionSize">
-                 <number>20</number>
                 </attribute>
                 <attribute name="verticalHeaderStretchLastSection">
                  <bool>true</bool>
@@ -300,25 +319,40 @@ p, li { white-space: pre-wrap; }
                  <property name="text">
                   <string notr="true">640x480 VGA</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="0" column="1">
                  <property name="text">
                   <string notr="true">720x480 NTSC</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="0" column="2">
                  <property name="text">
                   <string notr="true">800x480 WVGA</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="0" column="3">
                  <property name="text">
                   <string notr="true">848x480 WVGA</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="1" column="0">
                  <property name="text">
                   <string notr="true">768x576 PAL</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="1" column="1">
@@ -327,7 +361,7 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="font">
                   <font>
-                   <italic>true</italic>
+                   <italic>false</italic>
                   </font>
                  </property>
                  <property name="foreground">
@@ -338,6 +372,9 @@ p, li { white-space: pre-wrap; }
                     <blue>88</blue>
                    </color>
                   </brush>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="1" column="2">
@@ -358,15 +395,24 @@ p, li { white-space: pre-wrap; }
                    </color>
                   </brush>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="1" column="3">
                  <property name="text">
                   <string notr="true">1024x576 WPAL</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="2" column="0">
                  <property name="text">
                   <string notr="true">800x600 SVGA</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="2" column="1">
@@ -375,7 +421,7 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="font">
                   <font>
-                   <italic>true</italic>
+                   <italic>false</italic>
                   </font>
                  </property>
                  <property name="foreground">
@@ -386,6 +432,9 @@ p, li { white-space: pre-wrap; }
                     <blue>88</blue>
                    </color>
                   </brush>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="2" column="2">
@@ -406,6 +455,9 @@ p, li { white-space: pre-wrap; }
                    </color>
                   </brush>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="2" column="3">
                  <property name="text">
@@ -425,65 +477,104 @@ p, li { white-space: pre-wrap; }
                    </color>
                   </brush>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="3" column="0">
                  <property name="text">
                   <string notr="true">1024x768 XGA</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="3" column="1">
                  <property name="text">
                   <string notr="true">1152x768</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="3" column="2">
                  <property name="text">
                   <string notr="true">1280x800 WXGA</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="3" column="3">
                  <property name="text">
                   <string notr="true">1280x720 HD</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="4" column="0">
                  <property name="text">
                   <string notr="true">1600x1200 UXGA</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="4" column="1">
                  <property name="text">
                   <string notr="true">1440x960</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="4" column="2">
                  <property name="text">
                   <string notr="true">1920x1200 WUXGA</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="4" column="3">
                  <property name="text">
                   <string notr="true">1920x1080 FHD</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="5" column="0">
                  <property name="text">
                   <string notr="true">2048x1536 QXGA</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                 <item row="5" column="1">
                  <property name="text">
                   <string notr="true">1920x1280</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="5" column="2">
                  <property name="text">
                   <string notr="true">2048x1280</string>
                  </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
+                 </property>
                 </item>
                 <item row="5" column="3">
                  <property name="text">
                   <string notr="true">2048x1152 QWXGA</string>
+                 </property>
+                 <property name="flags">
+                  <set>ItemIsSelectable|ItemIsEnabled</set>
                  </property>
                 </item>
                </widget>
@@ -511,7 +602,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Target frame rate  </string>
+                   <string>Frame rate (target)</string>
                   </property>
                   <property name="buddy">
                    <cstring>updatePeriod</cstring>
@@ -527,7 +618,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>Update frequency targetted for rendering</string>
+                   <string>Rendering engine will target this frame rate for optimal speed</string>
                   </property>
                   <property name="minimum">
                    <number>16</number>
@@ -592,7 +683,7 @@ p, li { white-space: pre-wrap; }
                 <item row="0" column="1">
                  <widget class="QCheckBox" name="disableFiltering">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable filters if the rendering is too slow; the filters will not be available anymore.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>Disable filters if the rendering is too slow; the filters will not be available anymore.</string>
                   </property>
                   <property name="text">
                    <string>Disable filters </string>
@@ -602,7 +693,7 @@ p, li { white-space: pre-wrap; }
                 <item row="1" column="1">
                  <widget class="QCheckBox" name="activateBlitFrameBuffer">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable this if the rendering output window does not show the anything. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>Disable it if the rendering output window does not show anything. </string>
                   </property>
                   <property name="text">
                    <string>Disable Frame Buffer Blit</string>
@@ -632,6 +723,9 @@ p, li { white-space: pre-wrap; }
               </item>
               <item>
                <widget class="QComboBox" name="fullscreenMonitor">
+                <property name="toolTip">
+                 <string>Select the system monitor for fullscreen of the output window</string>
+                </property>
                 <property name="currentIndex">
                  <number>-1</number>
                 </property>
@@ -1089,7 +1183,7 @@ the user to select a file name</string>
                 <item>
                  <widget class="QSlider" name="MemoryUsagePolicySlider">
                   <property name="toolTip">
-                   <string>Low buffer size mean more harddisk access, high buffer size mean more RAM needed.</string>
+                   <string>Select maximum amount of RAM used for buffers per video file.</string>
                   </property>
                   <property name="maximum">
                    <number>100</number>
@@ -1250,6 +1344,9 @@ font: 75;</string>
                 </item>
                 <item>
                  <widget class="QComboBox" name="selectionViewContextMenu">
+                  <property name="toolTip">
+                   <string>Choose which context menu is shown.</string>
+                  </property>
                   <item>
                    <property name="text">
                     <string>Zooming</string>
@@ -1399,14 +1496,6 @@ font: 75;</string>
                 </item>
                 <item>
                  <property name="text">
-                  <string>CTRL + L</string>
-                 </property>
-                 <property name="text">
-                  <string>Show / hide logs window</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
                   <string>CTRL + PageUp</string>
                  </property>
                  <property name="text">
@@ -1443,7 +1532,7 @@ font: 75;</string>
                   <string>Shift+Ctrl+G,F</string>
                  </property>
                  <property name="text">
-                  <string>Load another fragment shader program</string>
+                  <string>Load another fragment shader program (experts only)</string>
                  </property>
                  <property name="flags">
                   <set>ItemIsEnabled</set>
@@ -1499,6 +1588,19 @@ font: 75;</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_8">
               <item>
+               <widget class="QCheckBox" name="displayPropertyTree">
+                <property name="toolTip">
+                 <string>Display tree of properties of the current source (side panel)</string>
+                </property>
+                <property name="text">
+                 <string>Display property tree</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QCheckBox" name="restoreLastSession">
                 <property name="toolTip">
                  <string>Re-open the last session when launching GLMixer.</string>
@@ -1553,7 +1655,7 @@ font: 75;</string>
            <item>
             <widget class="QGroupBox" name="VisualsGroupBox">
              <property name="title">
-              <string>Visual appearance</string>
+              <string>Views</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
@@ -1565,7 +1667,7 @@ font: 75;</string>
                  <string>Use anti alisasing for rendering interface (improves visual appearance)</string>
                 </property>
                 <property name="text">
-                 <string>Use Anti-aliasing</string>
+                 <string>Anti-aliasing</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>

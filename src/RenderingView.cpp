@@ -78,16 +78,43 @@ void RenderingView::paint()
     glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
     glPopMatrix();
 
-    // we use the shader to render sources
-    if (ViewRenderWidget::program->bind()) {
-        first = true;
-        // The icons of the sources (reversed depth order)
-        for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+//    glActiveTexture(GL_TEXTURE0);
+//    glEnable(GL_TEXTURE_2D);
 
-            //
-            // 1. Render it into current view
-            //
-            ViewRenderWidget::setSourceDrawingMode(true);
+    ViewRenderWidget::setSourceDrawingMode(true);
+    first = true;
+    // The icons of the sources (reversed depth order)
+    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+
+        if ((*its)->isStandby())
+            continue;
+
+        //
+        // 0. prepare Fbo texture
+        //
+
+        // bind the source textures
+        (*its)->bind();
+
+        // bind the source textures
+        (*its)->beginEffectsSection();
+
+        //
+        // 1. Draw it into FBO
+        //
+        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+        first = false;
+
+        //
+        // 2. Draw it into current view
+        //
+        // draw only if it is the current source
+        if ( RenderingManager::getInstance()->isCurrentSource(its)
+             // OR it is selected
+             || SelectionManager::getInstance()->isInSelection(*its)
+             // OR if there is no current source and no selection (i.e default case draw everything)
+             || ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
+                && !SelectionManager::getInstance()->hasSelection() )  ) {
 
             // place and scale
             glPushMatrix();
@@ -96,35 +123,18 @@ void RenderingView::paint()
             glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
 
             // Blending Function For mixing like in the rendering window
-            (*its)->beginEffectsSection();
-            // bind the source texture
-            (*its)->bind();
+            (*its)->blend();
 
-            // draw only if it is the current source
-            if ( RenderingManager::getInstance()->isCurrentSource(its)
-                // OR it is selected
-                 || SelectionManager::getInstance()->isInSelection(*its)
-                 // OR if there is no current source and no selection (i.e default case draw everything)
-                 || ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
-                    && !SelectionManager::getInstance()->hasSelection() )  ) {
+            // Draw source in canvas
+            (*its)->draw();
 
-                // draw the source only if not culled and alpha not null
-                if ( !(*its)->isStandby() && !(*its)->isCulled() && (*its)->getAlpha() > 0.0 ) {
-                    // Draw it !
-                    (*its)->blend();
-                    (*its)->draw();
-                }
-            }
-            //
-            // 2. Render it into FBO
-            //
-            RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-            first = false;
-
+            // done geometry
             glPopMatrix();
         }
-        ViewRenderWidget::program->release();
+
     }
+
+    ViewRenderWidget::setSourceDrawingMode(false);
 
     // if no source was rendered, clear anyway
     RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);

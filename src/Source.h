@@ -106,10 +106,6 @@ public:
     // to be called in the OpenGL loop to bind the source texture before drawing
     // In subclasses of Source, the texture content is also updated
     virtual void update();
-    // Request update explicitly (e.g. after changing a filter)
-    inline void requestUpdate() {
-        frameChanged = true;
-    }
     // bind the texture
     void bind() const;
     // apply the blending (including mask)
@@ -120,7 +116,11 @@ public:
     void endEffectsSection() const;
 
     // to be called in the OpenGL loop to draw this source
-    void draw(bool withalpha = true, GLenum mode = GL_RENDER) const;
+    void draw(GLenum mode = GL_RENDER) const;
+
+    void renderFbo();
+    void bindFbo() const;
+    void drawFbo() const;
 
     // OpenGL access to the texture index
     inline GLuint getTextureIndex() {
@@ -236,7 +236,9 @@ public:
         return culled;
     }
     void testGeometryCulling();
-
+    inline bool needUpdate() const {
+        return needupdate;
+    }
     /**
      * standby
      */
@@ -487,7 +489,7 @@ protected:
     StandbyMode standby;
 
     // flags for updating (or not)
-    bool culled, frameChanged;
+    bool culled, needupdate;
     // properties and clone list
     bool modifiable, fixedAspectRatio;
     SourceList *clones;
@@ -504,6 +506,8 @@ protected:
     GLenum source_blend, destination_blend;
     GLenum blend_eq;
     QRectF textureCoordinates;
+    GLuint fbo;
+    GLuint textureFbo;
 
     // some textures are inverted
     bool flipVertical;

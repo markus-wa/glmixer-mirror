@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GLMixer - Web source</string>
+   <string>GLMixer - New web source</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../icons.qrc">

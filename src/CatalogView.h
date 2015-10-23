@@ -27,26 +27,36 @@
 #define CATALOGVIEW_H_
 
 #include "View.h"
-#include <map>
+#include <QStack>
+
+
 
 class CatalogView: public View {
 
 public:
-	CatalogView();
+
+    class Icon {
+    public:
+        const Source *source;
+        QRectF texturecoords;
+        QRect coordinates;
+    };
+
+    CatalogView();
 	virtual ~CatalogView();
 
 	// View implementation
 	void setModelview();
 	void clear();
 	void paint();
-	void resize(int w, int h);
-	bool isInside(const QPoint &pos);
+    void resize(int w, int h);
     bool mousePressEvent(QMouseEvent *event);
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
 
 	// Specific implementation
+    bool isInside(const QPoint &pos);
 	void setVisible(bool on);
 	bool visible() { return _visible;}
 	void setTransparent(bool on);
@@ -56,8 +66,8 @@ public:
 	inline catalogSize getSize() const { return _currentSize; }
 
 	// drawing
-	void drawSource(Source *s, int index);
-
+    void drawSource(const Source *s);
+    void reorganize();
 
 private:
 	bool _visible;
@@ -68,6 +78,10 @@ private:
 	int first_index, last_index;
 	Source *sourceClicked;
 	QMouseEvent *cause;
+    QGLFramebufferObject *_catalogfbo;
+    QRect _surface;
+    int _scroll;
+    QStack <Icon *> _icons;
 };
 
 #endif /* SELECTIONVIEW_H_ */
