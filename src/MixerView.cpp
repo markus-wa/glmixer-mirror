@@ -128,8 +128,10 @@ void MixerView::paint()
         //
         // 1. Draw it into render FBO
         //
-        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-        first = false;
+         if (!(*its)->isStandby()) {
+            RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
+            first = false;
+        }
 
         //
         // 2. Draw it into current view

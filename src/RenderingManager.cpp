@@ -437,7 +437,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 
         if (source) {
             // draw the source only if not culled and alpha not null
-            if (!source->isStandby() && !source->isCulled() && source->getAlpha() > 0.0) {
+            if (!source->isCulled() && source->getAlpha() > 0.0) {
                 glTranslated(source->getX(), source->getY(), 0.0);
                 glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
                 glScaled(source->getScaleX(), source->getScaleY(), 1.f);
@@ -1140,7 +1140,7 @@ bool RenderingManager::isValid(SourceSet::const_iterator itsource)  const{
 }
 
 
-bool RenderingManager::isCurrentSource(Source *s){
+bool RenderingManager::isCurrentSource(const Source *s){
     if (_currentSource != _front_sources.end())
         return ( s == *_currentSource );
     else

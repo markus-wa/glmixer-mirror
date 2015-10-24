@@ -445,7 +445,7 @@ public:
     static QStringList getFilterNames();
 
     // tags
-    inline Tag *getTag() { return tag; }
+    inline Tag *getTag() const { return tag; }
 
 
     void importProperties(const Source *s, bool withGeometry = true);

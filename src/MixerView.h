@@ -69,11 +69,11 @@ public:
     static QRectF getBoundingBox(const SourceList &l);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);
+    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
 
 private:
 
     bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble scale = 1.0, GLdouble tolerance = 1.0 );
-    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void grabSources(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy) ;

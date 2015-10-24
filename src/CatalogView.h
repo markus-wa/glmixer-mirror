@@ -38,7 +38,8 @@ public:
     class Icon {
     public:
         const Source *source;
-        QRectF texturecoords;
+        QRectF texturecoordinates;
+        QRect fbocoordinates;
         QRect coordinates;
     };
 
@@ -54,6 +55,8 @@ public:
     bool mouseMoveEvent(QMouseEvent *event);
     bool mouseReleaseEvent ( QMouseEvent * event );
     bool wheelEvent ( QWheelEvent * event );
+
+    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = false);
 
 	// Specific implementation
     bool isInside(const QPoint &pos);
@@ -71,7 +74,7 @@ public:
 
 private:
 	bool _visible;
-	double _size[3], _iconSize[3], _largeIconSize[3];
+    double _size[3], _iconSize[3], _spacing[3];
 	catalogSize _currentSize;
 	double _width, _height, h_unit, v_unit;
 	float _alpha;
@@ -79,7 +82,7 @@ private:
 	Source *sourceClicked;
 	QMouseEvent *cause;
     QGLFramebufferObject *_catalogfbo;
-    QRect _surface;
+    QRect _allSourcesArea, _widgetArea;
     int _scroll;
     QStack <Icon *> _icons;
 };

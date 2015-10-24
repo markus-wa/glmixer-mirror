@@ -54,6 +54,7 @@ public:
 	void zoomReset();
 	void zoomBestFit( bool onlyClickedSource = false );
 
+    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
     void coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y);
 
     void distributeSelection(View::Axis a, View::RelativePoint p);
@@ -65,7 +66,6 @@ private:
 
     void bringForward(Source *s);
     double unProjectDepth(int x, int y);
-    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
     void moveSource(Source *s, double depth, bool setcurrent=true);
     void grabSources(Source *s, double depth);
     void panningBy(int x, int y, int dx, int dy);

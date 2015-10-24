@@ -72,6 +72,10 @@ void View::setAction(ActionType a){
 	currentAction = a;
 }
 
+bool View::getSourcesAtCoordinates(int mouseX, int mouseY, bool flag){
+
+    return false;
+}
 
 void View::coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y){
 

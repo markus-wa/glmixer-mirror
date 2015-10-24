@@ -412,6 +412,7 @@ void Source::beginEffectsSection() const {
     ViewRenderWidget::program->setUniformValue("baseColor", texcolor);
     ViewRenderWidget::program->setUniformValue("baseAlpha", texalpha);
     ViewRenderWidget::program->setUniformValue("stippling", 0.f);
+    ViewRenderWidget::program->setUniformValue("maskTexture", 1);
 
     ViewRenderWidget::program->setUniformValue("gamma", gamma);
     //             gamma levels : minInput, maxInput, minOutput, maxOutput:

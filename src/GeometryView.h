@@ -66,13 +66,13 @@ public:
     static QRectF getBoundingBox(const Source *s, bool invert_y=false);
     static QRectF getBoundingBox(const SourceList &l, bool invert_y=false);
 
+    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNonModifiable = false);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);
     void transformSelection(View::Transformation t, View::Axis a, View::Reference r);
 
 private:
 
-    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNonModifiable = false);
     bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble tolerance = 1.0 );
     char getSourceQuadrant(Source *s, int mouseX, int mouseY);
     void grabSource(Source *s, int x, int y, int dx, int dy);

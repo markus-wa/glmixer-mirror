@@ -588,7 +588,7 @@ void ViewRenderWidget::paintGL()
     //
     if (faded || RenderingManager::getInstance()->isPaused() ) {
         glCallList(ViewRenderWidget::fading);
-        setMouseCursor(MOUSE_ARROW);
+//        setMouseCursor(MOUSE_ARROW);
     }
     // if not faded, means the area is active
     else
@@ -1185,7 +1185,7 @@ void ViewRenderWidget::setupFilteringShaderProgram(QGLShaderProgram *program, QS
     program->setUniformValue("stippling", 0.f);
     program->setUniformValue("sourceTexture", 0);
     program->setUniformValue("maskTexture", 1);
-    program->setUniformValue("utilityTexture", 2);
+
     program->setUniformValue("sourceDrawing", false);
     program->setUniformValue("gamma", 1.f);
     program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f); // gamma levels : minInput, maxInput, minOutput, maxOutput:
@@ -1255,24 +1255,24 @@ void ViewRenderWidget::setDrawMode(QColor c)
     // set color & alpha
     ViewRenderWidget::program->setUniformValue("baseColor", c);
     ViewRenderWidget::program->setUniformValue("baseAlpha", 1.f);
+    // no texture
     ViewRenderWidget::program->setUniformValue("stippling", 0.f);
-
+    ViewRenderWidget::program->setUniformValue("sourceTexture", 0);
+    ViewRenderWidget::program->setUniformValue("maskTexture", 0);
+    // gamma
     ViewRenderWidget::program->setUniformValue("gamma", 1.f);
-    //             gamma levels : minInput, maxInput, minOutput, maxOutput:
     ViewRenderWidget::program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f);
-
+    // effects
     ViewRenderWidget::program->setUniformValue("contrast", 1.f);
-    ViewRenderWidget::program->setUniformValue("brightness", 0.f);
     ViewRenderWidget::program->setUniformValue("saturation", 1.f);
+    ViewRenderWidget::program->setUniformValue("brightness", 0.f);
     ViewRenderWidget::program->setUniformValue("hueshift", 0.f);
-
+    ViewRenderWidget::program->setUniformValue("chromakey", 0.f, 0.f, 0.f, 0.f );
+    ViewRenderWidget::program->setUniformValue("threshold", 0.f);
+    ViewRenderWidget::program->setUniformValue("nbColors", (GLint) -1);
     ViewRenderWidget::program->setUniformValue("invertMode", (GLint) 0);
-    ViewRenderWidget::program->setUniformValue("nbColors", (GLint) 0);
 
-    ViewRenderWidget::program->setUniformValue("threshold", -1.f);
-    ViewRenderWidget::program->setUniformValue("chromakey", 0.0, 0.0, 0.0, 0.0 );
-
-    // else enabled filtering
+    // disable filtering
     ViewRenderWidget::program->setUniformValue("filter", (GLint) 0);
 
 }

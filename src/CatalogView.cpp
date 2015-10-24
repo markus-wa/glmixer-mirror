@@ -33,22 +33,22 @@
 
 #define CATALOG_TEXTURE_WIDTH 10000
 #define CATALOG_TEXTURE_HEIGHT 100
-#define BORDER 20
+#define TOPMARGIN 20
 
 CatalogView::CatalogView() : View(), _visible(true), _width(0),_height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
                             first_index(0), last_index(0), sourceClicked(0), cause(0), _catalogfbo(0), _scroll(0)
 {
-	_size[SMALL] = 49.0;
-    _iconSize[SMALL] = 38.0;
-	_largeIconSize[SMALL] = 21.0;
+    _size[SMALL] = 80.0;
+    _iconSize[SMALL] = 60.0;
+    _spacing[SMALL] = 10.0;
 
-	_size[MEDIUM] = 101.0;
-    _iconSize[MEDIUM] = 76.0;
-	_largeIconSize[MEDIUM] = 42.0;
+    _size[MEDIUM] = 100.0;
+    _iconSize[MEDIUM] = 80.0;
+    _spacing[MEDIUM] = 14.0;
 
-	_size[LARGE] = 151.0;
-    _iconSize[LARGE] = 108.0;
-	_largeIconSize[LARGE] = 62.0;
+    _size[LARGE] = 130.0;
+    _iconSize[LARGE] = 100.0;
+    _spacing[LARGE] = 18.0;
 
 	_currentSize = MEDIUM;
     title = "Catalog";
@@ -66,14 +66,15 @@ void CatalogView::resize(int w, int h) {
 	// compute viewport considering width
 	// TODO : switch depending on side (top, bottom, left, right..)
 	viewport[0] = w - _size[_currentSize];
-    viewport[1] = BORDER;
+    viewport[1] = 0;
 	viewport[2] = _size[_currentSize];
-    viewport[3] = h -BORDER*2;
+    viewport[3] = h -TOPMARGIN;
 
-//    _surface = QRect(0, 0, _size[_currentSize], 0);
-//	h_unit = 2.0 * SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio() / double(RenderingManager::getInstance()->getFrameBufferWidth());
-//	v_unit = 2.0 * SOURCE_UNIT / double(viewport[3]);
+    _widgetArea.setWidth(w);
+    _widgetArea.setHeight(h);
+
 }
+
 
 void CatalogView::setSize(catalogSize s){
 
@@ -85,14 +86,14 @@ void CatalogView::setSize(catalogSize s){
 
 void CatalogView::setModelview()
 {
-    glTranslatef(0, getPanningY(), 0.0);
+//    glTranslatef(0, getPanningY(), 0.0);
 
 }
 
 void CatalogView::setVisible(bool on){
 
 	_visible = on;
-	resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
+    resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
 }
 
 void CatalogView::clear() {
@@ -125,19 +126,14 @@ void CatalogView::drawSource(const Source *s)
     // This method is called by the rendering manager
     if (_catalogfbo->bind()) {
 
-        Icon *i = new Icon;
-        i->source = s;
-
-        // 1st attribute a locations for rendering the source in the FBO
-        i->texturecoords = QRect(0, 0, _catalogfbo->height(), _catalogfbo->height());
+        // 1 attribute a locations for rendering the source in the FBO
+        // NB : icons are rendered as squares of the size of FBO height
+        QRect coords(0, 0, _catalogfbo->height(), _catalogfbo->height());
         if (!_icons.empty())
-            i->texturecoords.moveLeft( (_icons.top())->texturecoords.right() );
+            coords.moveLeft( (_icons.top())->fbocoordinates.right() );
 
-        // 2nd add the information of coordinates of pixels where the source is rendered in FBO
-        _icons.push(i);
-
-        // 3rd render the source into the section of FBO texture attibuted
-        glViewport(i->texturecoords.left(), i->texturecoords.top(), i->texturecoords.width(), i->texturecoords.height());
+        // 2 render the source into the section of FBO texture attibuted
+        glViewport(coords.left(), coords.top(), coords.width(), coords.height());
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
@@ -148,108 +144,27 @@ void CatalogView::drawSource(const Source *s)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
 
-        // draw source
+        // draw source in FBO
         s->draw();
 
+        // done drawing
         _catalogfbo->release();
+
+        // 3 create icon information
+        Icon *i = new Icon;
+        i->source = s;
+        // coordinates of pixels where the source is rendered in FBO
+        i->fbocoordinates = coords;
+        // normalized texture coordinates
+        i->texturecoordinates = QRectF( coords.left() / (qreal) _catalogfbo->width(), 0.0,
+                                        coords.width() / (qreal) _catalogfbo->width(), 1.0);
+        // stack information about icon
+        _icons.push(i);
+
     }
     else
         qFatal( "%s", qPrintable( QObject::tr("OpenGL Frame Buffer Objects is not accessible."
             "\n\nThe program cannot operate properly anymore.")));
-
-//	static double swidth_pixels = 0.0, sheight_pixels = 0.0, height = 0.0;
-//	// Drawing a source is rendering a quad with the source texture in the catalog bar.
-//	// This method is called by the rendering manager with a viewport covering the fbo
-//	// and a projection matrix set to
-//	// gluOrtho2D(-SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), SOURCE_UNIT * OutputRenderWindow::getInstance()->getAspectRatio(), -SOURCE_UNIT, SOURCE_UNIT);
-//	// Modelview is Identity
-
-//	// reset height to 0 at first icon
-//	if (index == 0)
-//		_height = 0.0;
-
-//	if ( s ) {
-
-//		bool iscurrent = RenderingManager::getInstance()->isCurrentSource(s);
-
-//		// target 60 pixels wide icons (height depending on aspect ratio)
-//		// each source is a quad [-1 +1]
-//		swidth_pixels = ( iscurrent ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) * h_unit;
-//		sheight_pixels = ( iscurrent ? _largeIconSize[_currentSize] : _iconSize[_currentSize]) / s->getAspectRatio() * v_unit;
-
-//		// increment y height by the height of this source + margin
-//		height = _height + 2.0 * sheight_pixels + 0.1 * _size[_currentSize] * v_unit;
-
-//        // if getting out of available drawing area, skip this source and draw arrow instead
-//        if (height > 2.0 * SOURCE_UNIT) {
-//            if (_currentSize == LARGE)
-//                setSize(MEDIUM);
-//            else if (_currentSize == MEDIUM)
-//                setSize(SMALL);
-//            else {
-//                glColor4ub(COLOR_DRAWINGS, 200);
-//                glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - height + _iconSize[_currentSize] * v_unit, 0.0);
-//                glLineWidth(2);
-//                glBegin(GL_LINE_LOOP); // draw a triangle
-//                    glVertex2f(0.0, 0.50);
-//                    glVertex2f(0.50, 1.0);
-//                    glVertex2f(-0.50, 1.0);
-//                glEnd();
-//            }
-//            return;
-//        }
-
-//		_height = height;
-
-//		// place the icon at center of width, and vertically spaced
-//		glTranslatef( -_width + _size[_currentSize] * h_unit * 0.5, SOURCE_UNIT - _height + sheight_pixels, 0.0);
-//		if (iscurrent)
-//			glTranslatef( (_iconSize[_currentSize] -_largeIconSize[_currentSize]) * h_unit , 0.0, 0.0);
-
-//        // scale to match aspect ratio
-//        glScalef( swidth_pixels, -sheight_pixels, 1.f);
-
-//		// draw source texture (without shading)
-//        glDisable(GL_BLEND);
-//        glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
-//        glColor4f(0.0, 0.0, 0.0, 1.0);
-//        glDrawArrays(GL_QUADS, 0, 4);
-
-//        // draw source borders (disabled texture required)
-//        glBindTexture(GL_TEXTURE_2D, 0);
-
-//        // Tag color
-//        glColor4ub(s->getTag()->getColor().red(), s->getTag()->getColor().green(), s->getTag()->getColor().blue(), 200);
-
-//		if (iscurrent)
-//			glCallList(ViewRenderWidget::border_large + (s->isModifiable() ? 0 : 3));
-//		else
-//			glCallList(ViewRenderWidget::border_thin + (s->isModifiable() ? 0 : 3));
-
-//		if ( SelectionManager::getInstance()->isInSelection(s) )
-//			glCallList(ViewRenderWidget::frame_selection);
-
-//        // restore state
-//        glEnable(GL_BLEND);
-
-////        // draw icon : NOT CONCLUSIVE :(
-////        glTranslatef( -swidth_pixels, -sheight_pixels, 0.0);
-////        glScalef(_iconSize[_currentSize] * h_unit * 0.5, _iconSize[_currentSize] * h_unit * 0.5, 1.0);
-////        glBindTexture(GL_TEXTURE_2D, texid);
-////        glColor4f(0.0, 0.0, 0.0, 0.0);
-////        glDrawArrays(GL_QUADS, 0, 4);
-
-//		// was it clicked ?
-//		if ( cause ) {
-//			// get coordinates of clic in object space
-//			GLdouble x, y, z;
-//			gluUnProject((double)cause->x(), (double)(RenderingManager::getRenderingWidget()->height() - cause->y()), 1.0, modelview, projection, viewport, &x, &y, &z);
-
-//			if ( ABS( y + SOURCE_UNIT - _height + sheight_pixels) < sheight_pixels )
-//				sourceClicked = s;
-//		}
-
-//	}
 
 }
 
@@ -257,14 +172,14 @@ void CatalogView::drawSource(const Source *s)
 void CatalogView::reorganize() {
 
     QRect previous(0,0,0,0);
-    _surface = QRect(0, 0, 0, 0);
+    _allSourcesArea = QRect(0, 0, 0, 0);
 
     // compute position in global surface of the source icons
     foreach ( Icon *item, _icons) {
 
         // stack icons vertically
-        item->coordinates.setLeft( (_size[_currentSize] - _iconSize[_currentSize]) / 2.0  );
-        item->coordinates.setTop( previous.bottom() + 10);
+        item->coordinates.setLeft( (int) (_size[_currentSize] - _iconSize[_currentSize]) / 2.0  );
+        item->coordinates.setTop( previous.bottom() + _spacing[_currentSize]);
         item->coordinates.setWidth( (int) _iconSize[_currentSize] );
         item->coordinates.setHeight( (int) _iconSize[_currentSize] / item->source->getAspectRatio() );
 
@@ -272,16 +187,17 @@ void CatalogView::reorganize() {
         previous = item->coordinates;
 
         // rect united : get bbox of all items to define limits of scrolling
-        _surface = _surface.united(item->coordinates);
-
-        // normalize texture coordinates
-        item->texturecoords = QRectF(item->texturecoords.left() / (qreal) _catalogfbo->width(),
-                                     item->texturecoords.top() / (qreal) _catalogfbo->height(),
-                                     item->texturecoords.width() / (qreal) _catalogfbo->width(),
-                                     item->texturecoords.height() / (qreal) _catalogfbo->height());
+        _allSourcesArea = _allSourcesArea.united(previous);
 
     }
 
+    // add borders to area
+    _allSourcesArea.adjust(0, 0, 0, (int) (_spacing[_currentSize]) * 2 );
+
+    // adjust maximum vertical scrolling
+    int diff = _allSourcesArea.height() - (_widgetArea.height() - TOPMARGIN );
+    maxpany = qBound(0.0, (double) diff, (double)_allSourcesArea.height());
+    pany = qBound( 0.0, pany, maxpany);
 }
 
 void CatalogView::paint() {
@@ -294,14 +210,14 @@ void CatalogView::paint() {
 	glPushAttrib(GL_COLOR_BUFFER_BIT  | GL_VIEWPORT_BIT);
 
     // draw only in the area of the screen covered by the catalog
-    int H =  qBound( BORDER * 2, _surface.height(), viewport[3]);
-    glViewport(viewport[0],viewport[1], viewport[2], H);
+    viewport[3] =  qBound( (int) (_spacing[_currentSize]), _allSourcesArea.height(), _widgetArea.height() - TOPMARGIN);
+    glViewport(viewport[0],viewport[1], viewport[2], viewport[3]);
 
 	// use a standard ortho projection to paint the quad with catalog
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
     glLoadIdentity();
-    gluOrtho2D(0, viewport[2], 0, H);
+    gluOrtho2D(0, viewport[2], 0, viewport[3]);
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -316,45 +232,60 @@ void CatalogView::paint() {
     glBegin(GL_QUADS);
         glVertex2i( _size[_currentSize] + 1, 1);
         glVertex2i( 1, 1);
-        glVertex2i( 1, H - 1);
-        glVertex2i( _size[_currentSize] + 1,  H - 1);
+        glVertex2i( 1, viewport[3] - 1);
+        glVertex2i( _size[_currentSize] + 1,  viewport[3] - 1);
     glEnd();
 
 
     // scroll
-    glTranslated(0, _scroll, 0);
+    glTranslated(0.0, - pany, 0.0);
 
     // draw source icons
     glColor4f(1.0, 1.0, 1.0, _alpha);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, _catalogfbo->texture());
 
-    while (!_icons.isEmpty()) {
-        Icon *item = _icons.pop();
-
+    foreach ( Icon *item, _icons) {
         glBegin(GL_QUADS);
-            glTexCoord2f( item->texturecoords.left(), item->texturecoords.top());
+            glTexCoord2f( item->texturecoordinates.left(), item->texturecoordinates.top());
             glVertex2i( item->coordinates.left(), item->coordinates.top()); // Top Left
-            glTexCoord2f( item->texturecoords.right(), item->texturecoords.top());
+            glTexCoord2f( item->texturecoordinates.right(), item->texturecoordinates.top());
             glVertex2i( item->coordinates.right(), item->coordinates.top()); // Top Right
-            glTexCoord2f( item->texturecoords.right(), item->texturecoords.bottom());
+            glTexCoord2f( item->texturecoordinates.right(), item->texturecoordinates.bottom());
             glVertex2i( item->coordinates.right(), item->coordinates.bottom()); // Bottom Right
-            glTexCoord2f( item->texturecoords.left(), item->texturecoords.bottom());
+            glTexCoord2f( item->texturecoordinates.left(), item->texturecoordinates.bottom());
             glVertex2i( item->coordinates.left(), item->coordinates.bottom()); // Bottom Left
         glEnd();
 
-        delete item;
+    }
+
+    glDisable(GL_TEXTURE_2D);
+
+    foreach ( Icon *item, _icons) {
+        // Tag color
+        glColor4ub(item->source->getTag()->getColor().red(), item->source->getTag()->getColor().green(), item->source->getTag()->getColor().blue(), 255 * _alpha);
+
+        if (RenderingManager::getInstance()->isCurrentSource(item->source))
+            glLineWidth(3.0);
+        else
+            glLineWidth(1.0);
+
+        glBegin(GL_LINE_LOOP);
+            glVertex2i( item->coordinates.left(), item->coordinates.top()); // Top Left
+            glVertex2i( item->coordinates.right(), item->coordinates.top()); // Top Right
+            glVertex2i( item->coordinates.right(), item->coordinates.bottom()); // Bottom Right
+            glVertex2i( item->coordinates.left(), item->coordinates.bottom()); // Bottom Left
+        glEnd();
     }
 
     // frame
-    glDisable(GL_TEXTURE_2D);
     glLoadIdentity();
     glColor4f(0.8, 0.8, 0.8, 1.0);
-    glBegin(GL_LINE_LOOP);
-        glVertex2i( _size[_currentSize] + 1, 1);
+    glBegin(GL_LINES);
         glVertex2i( 1, 1);
-        glVertex2i( 1, H - 1);
-        glVertex2i( _size[_currentSize] + 1,  H - 1);
+        glVertex2i( 1, viewport[3] - 1);
+        glVertex2i( 1, viewport[3] - 1);
+        glVertex2i( _size[_currentSize],  viewport[3] - 1);
     glEnd();
 
 
@@ -370,29 +301,45 @@ void CatalogView::paint() {
 
 bool CatalogView::isInside(const QPoint &pos){
 
-    if (_visible && pos.x() > viewport[0] )
-//	if (_visible && pos.x() > viewport[0] && (RenderingManager::getRenderingWidget()->height() - pos.y()) < (int)(_height / v_unit) )
+    if (_visible && pos.x() > viewport[0] && pos.y() > (_widgetArea.height()-viewport[3]) )
 		return true;
 
 	return false;
 }
 
+
+bool CatalogView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
+
+    bool foundsource = false;
+
+    QPoint pos(mouseX - viewport[0], (_widgetArea.height() - mouseY) - viewport[1] + (int)pany );
+
+    foreach ( Icon *item, _icons) {
+
+        if (item->coordinates.contains(pos)) {
+            foundsource = true;
+            if (clic)
+                RenderingManager::getInstance()->setCurrentSource( item->source->getId() );
+            break;
+        }
+    }
+
+    return foundsource;
+}
+
 bool CatalogView::mousePressEvent(QMouseEvent *event)
 {
-	if (cause)
-		delete cause;
-	cause = 0;
-	sourceClicked = 0;
+    if ( isInside(event->pos()) ) {
 
-	if ( isInside(event->pos()) ) {
+        if (isUserInput(event, INPUT_CONTEXT_MENU)) {
+            RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_CATALOG, event->pos());
+            return true;
+        }
 
-		if ( isUserInput(event, INPUT_CONTEXT_MENU) )
-			RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_CATALOG, event->pos());
-		else
-			cause = new QMouseEvent(event->type(), event->pos(), event->button(), event->buttons(), event->modifiers());
+        if (getSourcesAtCoordinates(event->pos().x(), event->pos().y(), true))
+            return true;
 
-		return true;
-	}
+    }
 	return false;
 }
 
@@ -403,6 +350,15 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 
 	if (isin != !isTransparent())
 		setTransparent(!isin);
+
+    if (isin) {
+
+        if ( getSourcesAtCoordinates(event->pos().x(), event->pos().y()) )
+            RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
+        else
+            RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ARROW);
+
+    }
 
 	return isin;
 }
@@ -416,23 +372,23 @@ void CatalogView::setTransparent(bool on)
 
 bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 {
-	// the clic (when mouse press was down) was on a source ?
-	if (sourceClicked) {
+//	// the clic (when mouse press was down) was on a source ?
+//	if (sourceClicked) {
 
-		// detect select mode
-		if ( isUserInput(cause, INPUT_SELECT) )
-			SelectionManager::getInstance()->select(sourceClicked);
-		else if ( isUserInput(cause, INPUT_TOOL) || isUserInput(cause, INPUT_TOOL_INDIVIDUAL) ||  isUserInput(cause, INPUT_ZOOM) ) {
-			// make this source the current
-			RenderingManager::getInstance()->setCurrentSource(sourceClicked->getId());
-			// zoom current
-			if ( isUserInput(cause, INPUT_ZOOM) )
-				RenderingManager::getRenderingWidget()->zoomCurrentSource();
-		}
+//		// detect select mode
+//		if ( isUserInput(cause, INPUT_SELECT) )
+//			SelectionManager::getInstance()->select(sourceClicked);
+//		else if ( isUserInput(cause, INPUT_TOOL) || isUserInput(cause, INPUT_TOOL_INDIVIDUAL) ||  isUserInput(cause, INPUT_ZOOM) ) {
+//			// make this source the current
+//			RenderingManager::getInstance()->setCurrentSource(sourceClicked->getId());
+//			// zoom current
+//			if ( isUserInput(cause, INPUT_ZOOM) )
+//				RenderingManager::getRenderingWidget()->zoomCurrentSource();
+//		}
 
-		sourceClicked = 0;
-		return true;
-	}
+//		sourceClicked = 0;
+//		return true;
+//	}
 
 	return false;
 }
@@ -440,12 +396,9 @@ bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
 
 bool CatalogView::wheelEvent ( QWheelEvent * event )
 {
-	if (isInside(event->pos())) {
-		// TODO implement scrolling in the list
+    if (isInside(event->pos())) {
 
-        _scroll = qBound( viewport[3] - _surface.height() - BORDER , _scroll - event->delta(), 0);
-//        _scroll = qBound( 0, _scroll + event->delta(), _surface.height() - viewport[3]);
-
+        pany = qBound( 0.0, pany + double(event->delta()) / 10.0, maxpany);
         return true;
 	}
 

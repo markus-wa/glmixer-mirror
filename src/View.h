@@ -131,6 +131,14 @@ public:
 	 */
 	virtual bool keyReleaseEvent(QKeyEvent * event) ;
 
+    /**
+     * @return True if there was a source at this mouse coordinates.
+     */
+    virtual bool getSourcesAtCoordinates(int, int, bool);
+
+    /**
+     *  compute coordinates in rendering space from mouse coordinates.
+     */
 	virtual void coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y);
 
     typedef enum {
