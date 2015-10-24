@@ -157,7 +157,7 @@ void MixerView::paint()
         if (!(*its)->isStandby())
         {
             //   draw stippled version of the source
-            ViewRenderWidget::program->setUniformValue("stippling", 1.f);
+            ViewRenderWidget::program->setUniformValue("stippling", (float) ViewRenderWidget::getStipplingMode() / 100.f);
             (*its)->draw();
 
         } else {

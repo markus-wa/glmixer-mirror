@@ -54,7 +54,7 @@ GLuint ViewRenderWidget::circle_mixing = 0, ViewRenderWidget::circle_limbo = 0, 
 QMap<int, GLuint>  ViewRenderWidget::mask_textures;
 QMap<int, QPair<QString, QString> >  ViewRenderWidget::mask_description;
 GLuint ViewRenderWidget::fading = 0;
-GLuint ViewRenderWidget::stipplingMode = 0;
+GLuint ViewRenderWidget::stipplingMode = 100;
 
 GLubyte ViewRenderWidget::stippling[] = {
         // stippling fine

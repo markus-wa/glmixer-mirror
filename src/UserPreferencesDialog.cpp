@@ -63,7 +63,7 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     for( int i = 0; i < QApplication::desktop()->screenCount(); ++i)
         fullscreenMonitor->addItem(QString("Monitor %1").arg(i));
 
-    // fill in the list of available languages
+    // TODO fill in the list of available languages
 
 #ifndef SHM
     sharedMemoryBox->setVisible(false);
@@ -143,7 +143,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
     }
 
     if (stackedPreferences->currentWidget() == PageOptions){
-        FINE->setChecked(true);
+        stipplingSlider->setValue(10);
         antiAliasing->setChecked(true);
         displayFramerate->setChecked(false);
         restoreLastSession->setChecked(true);
@@ -204,20 +204,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     // f. Mixing icons stippling
     uint  stippling = 0;
     stream >> stippling;
-    switch (stippling) {
-    case 3:
-        TRIANGLE->setChecked(true);
-        break;
-    case 2:
-        CHECKERBOARD->setChecked(true);
-        break;
-    case 1:
-        GROSS->setChecked(true);
-        break;
-    default:
-        FINE->setChecked(true);
-        break;
-    }
+    stipplingSlider->setValue(stippling / 10);
 
     // g. recording format
     uint recformat = 0;
@@ -324,14 +311,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     stream << (uint) numberOfFramesRendering->value();
 
     // f. Mixing icons stippling
-    if (FINE->isChecked())
-        stream << (uint) 0;
-    if (GROSS->isChecked())
-        stream << (uint) 1;
-    if (CHECKERBOARD->isChecked())
-        stream << (uint) 2;
-    if (TRIANGLE->isChecked())
-        stream << (uint) 3;
+    stream << (uint) stipplingSlider->value() * 10;
 
     // g. recording format
     stream << (uint) recordingFormatSelection->currentIndex();

@@ -2477,7 +2477,6 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> propertytree;
     RenderingManager::getPropertyBrowserWidget()->setDisplayPropertyTree(propertytree);
 
-
     // Refresh widgets to make changes visible
     OutputRenderWindow::getInstance()->refresh();
     outputpreview->refresh();

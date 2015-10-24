@@ -138,7 +138,7 @@ public:
 	void setConfiguration(QDomElement xmlconfig);
 
 	static inline unsigned int getStipplingMode() { return stipplingMode; }
-	static inline void setStipplingMode(unsigned int m) { stipplingMode = CLAMP(m, 0, 3); }
+    static inline void setStipplingMode(unsigned int m) { stipplingMode = CLAMP(m, 10, 100); }
 
 	static inline bool filteringEnabled() { return !disableFiltering; }
     void setFilteringEnabled(bool on, QString glslfilename = QString());
