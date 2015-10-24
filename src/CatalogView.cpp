@@ -35,8 +35,7 @@
 #define CATALOG_TEXTURE_HEIGHT 100
 #define TOPMARGIN 20
 
-CatalogView::CatalogView() : View(), _visible(true), _width(0),_height(0), h_unit(1.0), v_unit(1.0), _alpha(1.0),
-                            first_index(0), last_index(0), sourceClicked(0), cause(0), _catalogfbo(0), _scroll(0)
+CatalogView::CatalogView() : View(), _visible(true), _alpha(1.0), _catalogfbo(0)
 {
     _size[SMALL] = 80.0;
     _iconSize[SMALL] = 60.0;
@@ -78,7 +77,6 @@ void CatalogView::resize(int w, int h) {
 
 void CatalogView::setSize(catalogSize s){
 
-    _scroll = 0;
 	_currentSize = s;
 	resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
 }
@@ -230,15 +228,15 @@ void CatalogView::paint() {
     // background
     glColor4f(0.4, 0.4, 0.4, _alpha - 0.2);
     glBegin(GL_QUADS);
-        glVertex2i( _size[_currentSize] + 1, 1);
-        glVertex2i( 1, 1);
-        glVertex2i( 1, viewport[3] - 1);
-        glVertex2i( _size[_currentSize] + 1,  viewport[3] - 1);
+        glVertex2i( _size[_currentSize] + 1, 0);
+        glVertex2i( 1, 0);
+        glVertex2i( 1, viewport[3] );
+        glVertex2i( _size[_currentSize] + 1,  viewport[3] );
     glEnd();
 
-
     // scroll
-    glTranslated(0.0, - pany, 0.0);
+    zoom += (pany - zoom) * 0.1;
+    glTranslated(0.0, -zoom, 0.0);
 
     // draw source icons
     glColor4f(1.0, 1.0, 1.0, _alpha);
@@ -256,7 +254,6 @@ void CatalogView::paint() {
             glTexCoord2f( item->texturecoordinates.left(), item->texturecoordinates.bottom());
             glVertex2i( item->coordinates.left(), item->coordinates.bottom()); // Bottom Left
         glEnd();
-
     }
 
     glDisable(GL_TEXTURE_2D);
@@ -278,8 +275,43 @@ void CatalogView::paint() {
         glEnd();
     }
 
-    // frame
+
     glLoadIdentity();
+    glEnable(GL_TEXTURE_2D);
+
+    if (zoom > 0.1) {
+        glColor4f(0.8, 0.8, 0.8, _alpha * qBound(0.0, zoom , 1.0) );
+        glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[8]);
+        glBegin(GL_QUADS);
+            glTexCoord2f( 0.f, 1.f);
+            glVertex2i( _size[_currentSize] + 1, 0);
+            glTexCoord2f( 1.f, 1.f);
+            glVertex2i( 1, 0);
+            glTexCoord2f( 1.f, 0.f);
+            glVertex2i( 1, 2 * _spacing[_currentSize]);
+            glTexCoord2f( 0.f, 0.f);
+            glVertex2i( _size[_currentSize] + 1, 2 * _spacing[_currentSize]);
+        glEnd();
+    }
+    if ( maxpany - zoom > 0.1)
+    {
+        glColor4f(0.8, 0.8, 0.8, _alpha * qBound(0.0, maxpany -zoom , 1.0) );
+        glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[8]);
+        glBegin(GL_QUADS);
+            glTexCoord2f( 0.f, 1.f);
+            glVertex2i( _size[_currentSize] + 1, viewport[3]);
+            glTexCoord2f( 1.f, 1.f);
+            glVertex2i( 1, viewport[3]);
+            glTexCoord2f( 1.f, 0.f);
+            glVertex2i( 1, viewport[3] - (2 * _spacing[_currentSize]));
+            glTexCoord2f( 0.f, 0.f);
+            glVertex2i( _size[_currentSize] + 1, viewport[3] - (2 * _spacing[_currentSize]));
+        glEnd();
+    }
+
+    glDisable(GL_TEXTURE_2D);
+
+    // frame
     glColor4f(0.8, 0.8, 0.8, 1.0);
     glBegin(GL_LINES);
         glVertex2i( 1, 1);
@@ -287,7 +319,6 @@ void CatalogView::paint() {
         glVertex2i( 1, viewport[3] - 1);
         glVertex2i( _size[_currentSize],  viewport[3] - 1);
     glEnd();
-
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -353,6 +384,18 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 
     if (isin) {
 
+        if ( (_widgetArea.height() - event->pos().y()) > viewport[3] - _spacing[_currentSize] ) {
+            pany =  maxpany;
+            return true;
+        }
+        else if ( (_widgetArea.height() - event->pos().y()) <  _spacing[_currentSize] ) {
+            pany =  0.0;
+            return true;
+        }
+        else
+            pany = zoom;
+
+
         if ( getSourcesAtCoordinates(event->pos().x(), event->pos().y()) )
             RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
         else
@@ -398,7 +441,7 @@ bool CatalogView::wheelEvent ( QWheelEvent * event )
 {
     if (isInside(event->pos())) {
 
-        pany = qBound( 0.0, pany + double(event->delta()) / 10.0, maxpany);
+        pany = qBound( 0.0, pany + double(event->delta()) / 2.0, maxpany);
         return true;
 	}
 

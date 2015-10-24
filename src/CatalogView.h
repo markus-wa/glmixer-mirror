@@ -75,15 +75,10 @@ public:
 private:
 	bool _visible;
     double _size[3], _iconSize[3], _spacing[3];
-	catalogSize _currentSize;
-	double _width, _height, h_unit, v_unit;
-	float _alpha;
-	int first_index, last_index;
-	Source *sourceClicked;
-	QMouseEvent *cause;
+    catalogSize _currentSize;
+    float _alpha;
     QGLFramebufferObject *_catalogfbo;
     QRect _allSourcesArea, _widgetArea;
-    int _scroll;
     QStack <Icon *> _icons;
 };
 
