@@ -2305,3 +2305,68 @@ QString RenderingManager::renameSource(Source *s, const QString name){
     return s->getName();
 }
 
+
+//void Source::renderFbo()  {
+
+//    glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
+
+//    glMatrixMode(GL_PROJECTION);
+//    glPushMatrix();
+//    glLoadIdentity();
+//    gluOrtho2D(-1.0, 1.0, 1.0, -1.0);
+
+//    glMatrixMode(GL_MODELVIEW);
+//    glPushMatrix();
+//    glLoadIdentity();
+
+//    glClearColor(0.f, 0.f, 0.f, 0.f);
+
+//    if ( textureFbo == 0 ){
+//        // create texture
+//        glGenTextures(1, &textureFbo);
+//        glBindTexture(GL_TEXTURE_2D, textureFbo);
+//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getFrameWidth(), getFrameHeight(), 0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//        // create the rendering FBO
+//        glGenFramebuffers(1, &fbo);
+//        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+//        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureFbo, 0);
+
+//    }
+
+
+//    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+//    glViewport(0, 0, getFrameWidth(), getFrameHeight());
+
+//    // clear
+//    glClear(GL_COLOR_BUFFER_BIT);
+
+//     // Blending Function For mixing like in the rendering window
+//    setShaderAttributes();
+
+//    // bind the source texture
+//    bind();
+
+//    // draw array
+//    draw();
+
+//    // restore no effect
+////    endEffectsSection();
+
+//    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+////        glBindTexture(GL_TEXTURE_2D, 0);
+
+////        ViewRenderWidget::setSourceDrawingMode(false);
+
+//    glMatrixMode(GL_PROJECTION);
+//    glPopMatrix();
+//    glMatrixMode(GL_MODELVIEW);
+//    glPopMatrix();
+
+//    glPopAttrib();
+
+//}

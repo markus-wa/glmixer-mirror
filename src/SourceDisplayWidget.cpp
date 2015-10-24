@@ -110,7 +110,8 @@ void SourceDisplayWidget::paintGL()
 		glScalef( aspectRatio, s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
 
         if (_effects)
-            s->bindFbo();
+            // TODO
+            glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
         else
             // bind texture
             glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());

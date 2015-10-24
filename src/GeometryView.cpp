@@ -99,7 +99,7 @@ void GeometryView::paint()
         (*its)->bind();
 
         //
-        (*its)->beginEffectsSection();
+        (*its)->setShaderAttributes();
 
         //
         // 1. Draw it into FBO

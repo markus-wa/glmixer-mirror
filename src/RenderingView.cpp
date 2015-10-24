@@ -97,7 +97,7 @@ void RenderingView::paint()
         (*its)->bind();
 
         // bind the source textures
-        (*its)->beginEffectsSection();
+        (*its)->setShaderAttributes();
 
         //
         // 1. Draw it into FBO

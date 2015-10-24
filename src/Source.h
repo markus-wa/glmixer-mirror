@@ -112,15 +112,10 @@ public:
     // to be called in the OpenGL loop before drawing if the source shall be blended
     void blend() const;
     // begin and end the section which applies the various effects (convolution, color tables, etc).
-    void beginEffectsSection() const;
-    void endEffectsSection() const;
+    void setShaderAttributes() const;
 
     // to be called in the OpenGL loop to draw this source
     void draw(GLenum mode = GL_RENDER) const;
-
-    void renderFbo();
-    void bindFbo() const;
-    void drawFbo() const;
 
     // OpenGL access to the texture index
     inline GLuint getTextureIndex() {
@@ -506,8 +501,6 @@ protected:
     GLenum source_blend, destination_blend;
     GLenum blend_eq;
     QRectF textureCoordinates;
-    GLuint fbo;
-    GLuint textureFbo;
 
     // some textures are inverted
     bool flipVertical;

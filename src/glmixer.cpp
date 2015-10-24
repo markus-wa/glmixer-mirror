@@ -264,12 +264,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     layoutDockWidgetContentLayout->addWidget(layoutToolBox);
 
     // setup the tags toolbox
-//    tagsManager = new TagsManager(this);
-//    tagsDockWidgetContentLayout->addWidget(tagsManager);
-//    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
+    tagsManager = new TagsManager(this);
+    tagsDockWidgetContentLayout->addWidget(tagsManager);
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
 
-    // DISABLE TAG MANAGER
-    delete tagsDockWidget;
+//    // DISABLE TAG MANAGER
+//    delete tagsDockWidget;
 
     // Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);

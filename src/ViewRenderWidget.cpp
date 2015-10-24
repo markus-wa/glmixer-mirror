@@ -729,7 +729,8 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
     event->accept();
 
     // ask the catalog view if it wants this mouse move event
-    if ( _currentView->currentAction == View::NONE && _catalogView->mouseMoveEvent(event))
+    if ( (_currentView->currentAction == View::NONE || _currentView->currentAction == View::OVER )
+         && _catalogView->mouseMoveEvent(event) )
         return;
 
     if (cursorEnabled && _currentCursor->isActive())

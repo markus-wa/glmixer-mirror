@@ -123,7 +123,7 @@ void MixerView::paint()
         (*its)->bind();
 
         //
-        (*its)->beginEffectsSection();
+        (*its)->setShaderAttributes();
 
         //
         // 1. Draw it into render FBO

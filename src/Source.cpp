@@ -47,7 +47,7 @@ Source::Source(GLuint texture, double depth):
     standby(NOT_STANDBY), culled(false), needupdate(true), modifiable(true), fixedAspectRatio(false),
     clones(NULL), textureIndex(texture), maskTextureIndex(-1), x(0.0), y(0.0), z(CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER)),
     scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-    centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0), fbo(0), textureFbo(0),
+    centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
     flipVertical(false), pixelated(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(0),
     brightness(0.f), contrast(1.f),	saturation(1.f),
     gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
@@ -96,13 +96,6 @@ Source::~Source() {
     if (textureIndex > 0)
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
-
-    if (fbo > 0)
-        glDeleteFramebuffers( 1, &fbo );
-
-    if (textureFbo > 0)
-        // free the OpenGL texture
-        glDeleteTextures(1, &textureFbo);
 }
 
 void Source::setName(QString n) {
@@ -323,90 +316,8 @@ void Source::draw(GLenum mode) const {
     }
 }
 
-void Source::bindFbo() const {
 
-    glBindTexture(GL_TEXTURE_2D, textureFbo);
-
-}
-
-void Source::drawFbo() const {
-
-    // draw a quad with the texture
-    glCallList(ViewRenderWidget::quad_texured);
-
-//    glCallList(ViewRenderWidget::vertex_array_coords);
-//    glDrawArrays(GL_QUADS, 0, 4);
-}
-
-
-void Source::renderFbo()  {
-
-    glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    gluOrtho2D(-1.0, 1.0, 1.0, -1.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-
-    if ( textureFbo == 0 ){
-        // create texture
-        glGenTextures(1, &textureFbo);
-        glBindTexture(GL_TEXTURE_2D, textureFbo);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getFrameWidth(), getFrameHeight(), 0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        // create the rendering FBO
-        glGenFramebuffers(1, &fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureFbo, 0);
-
-    }
-
-
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    glViewport(0, 0, getFrameWidth(), getFrameHeight());
-
-    // clear
-    glClear(GL_COLOR_BUFFER_BIT);
-
-     // Blending Function For mixing like in the rendering window
-    beginEffectsSection();
-
-    // bind the source texture
-    bind();
-
-    // draw array
-    draw();
-
-    // restore no effect
-//    endEffectsSection();
-
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-//        glBindTexture(GL_TEXTURE_2D, 0);
-
-//        ViewRenderWidget::setSourceDrawingMode(false);
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-
-    glPopAttrib();
-
-}
-
-
-
-void Source::beginEffectsSection() const {
+void Source::setShaderAttributes() const {
 
     // set color & alpha
     ViewRenderWidget::program->setUniformValue("baseColor", texcolor);
@@ -444,19 +355,6 @@ void Source::beginEffectsSection() const {
     ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
     ViewRenderWidget::program->setUniformValue("filter_step", 1.0 / (float) getFrameWidth(), 1.0 / (float) getFrameHeight());
     ViewRenderWidget::program->setUniformValue("filter_kernel", ViewRenderWidget::filter_kernel[filter]);
-
-}
-
-void Source::endEffectsSection() const {
-
-    // disable the mask
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[0]);
-    glActiveTexture(GL_TEXTURE0);
-
-//	// reset the blending
-//	glBlendEquation(GL_FUNC_ADD);
-//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 }
 
