@@ -93,9 +93,9 @@ protected:
     QMutex *_mutex;
     QWaitCondition *_cond;
 
-    GLuint pboIds[2];                   // IDs of PBO
-    int index, nextIndex;
-
+#ifdef USE_PBO
+    GLuint pboIds[1];
+#endif
 };
 
 #endif /* ALGORITHMSOURCE_H_ */

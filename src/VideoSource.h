@@ -26,8 +26,6 @@
 #ifndef VIDEOSOURCE_H_
 #define VIDEOSOURCE_H_
 
-#define USE_PBO
-
 #include <QObject>
 
 #include "Source.h"

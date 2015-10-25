@@ -374,15 +374,14 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
     _thread->start();
     _thread->setPriority(QThread::LowPriority);
 
+#ifdef USE_PBO
     // create 2 pixel buffer objects,
     // glBufferDataARB with NULL pointer reserves only memory space.
-    glGenBuffers(2, pboIds);
+    glGenBuffers(1, pboIds);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[1]);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-    index = nextIndex = 0;
+#endif
 
 }
 
@@ -398,8 +397,12 @@ AlgorithmSource::~AlgorithmSource() {
     delete _cond;
     delete _mutex;
 
+
+#ifdef USE_PBO
     // delete picture buffer
-    glDeleteBuffers(2, pboIds);
+    if (pboIds)
+        glDeleteBuffers(1, pboIds);
+#endif
 }
 
 
@@ -456,12 +459,12 @@ void AlgorithmSource::initBuffer() {
         break;
     }
 
-
-//    buffer = new unsigned char[width * height * 4];
-//    CHECK_PTR_EXCEPTION(buffer);
-//    // CLEAR the buffer to white
-//    memset((void *) buffer, std::numeric_limits<unsigned char>::max(),  width * height * 4);
-
+#ifndef USE_PBO
+    buffer = new unsigned char[width * height * 4];
+    CHECK_PTR_EXCEPTION(buffer);
+    // CLEAR the buffer to white
+    memset((void *) buffer, std::numeric_limits<unsigned char>::max(),  width * height * 4);
+#endif
 
 }
 
@@ -469,35 +472,31 @@ void AlgorithmSource::update() {
 
     if (frameChanged) {
 
-        // In dual PBO mode, increment current index first then get the next index
-        index = (index + 1) % 2;
-        nextIndex = (index + 1) % 2;
-
         // bind the texture
         glBindTexture(GL_TEXTURE_2D, textureIndex);
-            // bind PBO
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
-            // copy pixels from PBO to texture object
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
-                            GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+
+#ifdef USE_PBO
+
+        // bind PBO
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+        // copy pixels from PBO to texture object
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
 
 
         _mutex->lock();
 
-        // bind PBO to update pixel values
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
-
         glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
-            // map the buffer object into client's memory
-            GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-            if (ptr)
-            {
-                // update data directly on the mapped buffer
-                buffer = ptr;
-                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
-            }
-            else
-                buffer = 0;
+
+        // map the buffer object into client's memory
+        GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+        if (ptr)
+        {
+            // update data directly on the mapped buffer
+            buffer = ptr;
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
+        }
+        else
+            buffer = 0;
 
         _cond->wakeAll();
         _mutex->unlock();
@@ -505,6 +504,16 @@ void AlgorithmSource::update() {
         // it is good idea to release PBOs with ID 0 after use.
         // Once bound with 0, all pixel operations behave normal ways.
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+#else
+        _mutex->lock();
+
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
+                        GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+
+        _cond->wakeAll();
+        _mutex->unlock();
+#endif
 
         frameChanged = false;
     }
