@@ -115,11 +115,42 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 
 	width = frame->width;
 	height = frame->height;
 	aspectratio = (float)width / (float)height;
+
+#ifdef USE_PBO
+        imgsize =  width * height * 3;
+        // create 2 pixel buffer objects,
+        glGenBuffers(2, pboIds);
+        // create first PBO
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+        // glBufferDataARB with NULL pointer reserves only memory space.
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+        // fill in with reset picture
+        GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+        if (ptr)  {
+            // update data directly on the mapped buffer
+            memmove(ptr, frame->imageData, imgsize);
+            // release pointer to mapping buffer
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+        }
+
+        // idem with second PBO
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[1]);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+        ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+        if (ptr) {
+            // update data directly on the mapped buffer
+            memmove(ptr, frame->imageData, imgsize);
+            // release pointer to mapping buffer
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+        }
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        index = nextIndex = 0;
+#endif
 
 	// create thread
 	mutex = new QMutex;
@@ -183,11 +214,49 @@ void OpencvSource::update(){
 	{
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
+#ifdef USE_PBO
+
+        // In dual PBO mode, increment current index first then get the next index
+        index = (index + 1) % 2;
+        nextIndex = (index + 1) % 2;
+
+        // bind PBO to read pixels
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
+
+        // copy pixels from PBO to texture object
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, 0);
+
+
+        mutex->lock();
+        frameChanged = false;
+
+        // bind PBO to update pixel values
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
+
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+
+        // map the buffer object into client's memory
+        GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+        if (ptr) {
+            // update data directly on the mapped buffer
+            memmove(ptr, frame->imageData, imgsize);
+            // release pointer to mapping buffer
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+        }
+
+        cond->wakeAll();
+        mutex->unlock();
+
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+#else
+
 		mutex->lock();
         frameChanged = false;
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 		cond->wakeAll();
 		mutex->unlock();
+#endif
 
         Source::update();
 	}
