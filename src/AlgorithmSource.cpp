@@ -222,7 +222,7 @@ void AlgorithmThread::fill(double var) {
             }
             // duplicate lines per bloc
             for (int l = 2; l < as->height ; l += 2)
-                memcpy((void *) (as->buffer + l * as->width  * 4), as->buffer, as->width * 4 * 2);
+                memmove((void *) (as->buffer + l * as->width  * 4), as->buffer, as->width * 4 * 2);
         }
         else {
             for (int x = 0; x < as->width; ++x) {
@@ -239,7 +239,7 @@ void AlgorithmThread::fill(double var) {
     else if (as->algotype == AlgorithmSource::BW_NOISE) {
         for (int i = 0; i < (as->width * as->height); ++i)
             memset((void *) (as->buffer + i * 4),
-                   (unsigned char) (var  * double( rand() % std::numeric_limits< unsigned char>::max()) + (1.0 - var) * double(as->buffer[i * 4 + 0])), 4);
+                   (unsigned char) ( var  * double( rand() % std::numeric_limits< unsigned char>::max()) ), 4);
 
     }
     else if (as->algotype == AlgorithmSource::BW_COSBARS) {
@@ -256,7 +256,7 @@ void AlgorithmThread::fill(double var) {
         }
         // copy line in rows
         for (int y = 1; y < as->height; ++y)
-            memcpy((void *) (as->buffer + y * as->width * 4),
+            memmove((void *) (as->buffer + y * as->width * 4),
                    as->buffer, as->width * 4);
 
     }
@@ -280,7 +280,7 @@ void AlgorithmThread::fill(double var) {
     }
     else if (as->algotype == AlgorithmSource::COLOR_NOISE) {
         for (int i = 0; i < (as->width * as->height * 4); ++i)
-            as->buffer[i] = (unsigned char) (var  * double(  rand()  % std::numeric_limits<unsigned char>::max())  + (1.0 - var)  * double(as->buffer[i]));
+            as->buffer[i] = (unsigned char) ( var * double(  rand()  % std::numeric_limits<unsigned char>::max()) );
 
     }
     else if (as->algotype == AlgorithmSource::PERLIN_BW_NOISE) {
@@ -344,20 +344,31 @@ void AlgorithmThread::fill(double var) {
 AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
                                  int h, double v, unsigned long p, bool ia) :
     Source(texture, d), buffer(0), width(w), height(h), period(p), framerate(0), vertical( 1.0),
-    horizontal(1.0), variability(v), ignoreAlpha(false), frameChanged(true) {
+    horizontal(1.0), variability(v), ignoreAlpha(false), frameChanged(true), format(GL_RGBA) {
 
     algotype = CLAMP(AlgorithmSource::algorithmType(type), AlgorithmSource::FLAT, AlgorithmSource::NONE);
 
     aspectratio = double(w) / double(h);
 
+    switch (algotype) {
+    case PERLIN_BW_NOISE:
+    case PERLIN_COLOR_NOISE:
+    case TURBULENCE:
+        horizontal = 0.001 * width;
+        vertical = 0.001 * height;
+        width = PERLIN_WIDTH;
+        height = PERLIN_HEIGHT;
+        init_pnoise();
+        break;
+    default:
+        break;
+    }
+
     // allocate and initialize the buffer
     initBuffer();
 
-    // apply the texture
-    glActiveTexture(GL_TEXTURE0);
+    // create the texture
     setIgnoreAlpha(ia);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     // if no period given, set to default 40Hz
     if (period <= 0)
@@ -370,19 +381,8 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
     CHECK_PTR_EXCEPTION(_cond);
     _thread = new AlgorithmThread(this);
     CHECK_PTR_EXCEPTION(_thread);
-    _thread->fill(1.0);
     _thread->start();
     _thread->setPriority(QThread::LowPriority);
-
-#ifdef USE_PBO
-    // create 1 pixel buffer object,
-    // glBufferDataARB with NULL pointer reserves only memory space.
-    glGenBuffers(1, pboIds);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-#endif
-
 }
 
 AlgorithmSource::~AlgorithmSource() {
@@ -408,12 +408,7 @@ AlgorithmSource::~AlgorithmSource() {
 
 void AlgorithmSource::setVariability(double v) {
 
-    variability = CLAMP(v, 0.0, 1.0);
-
-    if (variability < EPSILON) {
-        _thread->phase = 0;
-        _thread->fill(1.0);
-    }
+    variability = CLAMP(v, 0.001, 1.0);
 
 }
 
@@ -445,25 +440,24 @@ bool AlgorithmSource::isPlaying() const {
 
 void AlgorithmSource::initBuffer() {
 
-    switch (algotype) {
-    case PERLIN_BW_NOISE:
-    case PERLIN_COLOR_NOISE:
-    case TURBULENCE:
-        horizontal = 0.001 * width;
-        vertical = 0.001 * height;
-        width = PERLIN_WIDTH;
-        height = PERLIN_HEIGHT;
-        init_pnoise();
-        break;
-    default:
-        break;
-    }
+#ifdef USE_PBO
 
-#ifndef USE_PBO
+    // create 1 pixel buffer object,
+    glGenBuffers(1, pboIds);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
+    buffer = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    CHECK_PTR_EXCEPTION(buffer);
+    // CLEAR the buffer to white
+    memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+#else
     buffer = new unsigned char[width * height * 4];
     CHECK_PTR_EXCEPTION(buffer);
     // CLEAR the buffer to white
-    memset((void *) buffer, std::numeric_limits<unsigned char>::max(),  width * height * 4);
+    memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
 #endif
 
 }
@@ -480,9 +474,9 @@ void AlgorithmSource::update() {
         // bind PBO
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
         // copy pixels from PBO to texture object
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-
+        // lock filling thread
         _mutex->lock();
 
         glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
@@ -498,18 +492,18 @@ void AlgorithmSource::update() {
         else
             buffer = 0;
 
+        // unlock filling thread
         _cond->wakeAll();
         _mutex->unlock();
 
-        // it is good idea to release PBOs with ID 0 after use.
-        // Once bound with 0, all pixel operations behave normal ways.
+        // release PBOs with ID 0 after use.
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 #else
         _mutex->lock();
 
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
-                        GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
+                        GL_UNSIGNED_BYTE, (unsigned char*) buffer);
 
         _cond->wakeAll();
         _mutex->unlock();
@@ -577,13 +571,13 @@ QString AlgorithmSource::getAlgorithmDescription(int t) {
 
 void AlgorithmSource::setIgnoreAlpha(bool on) {
 
-    ignoreAlpha = on;
+    ignoreAlpha = on;    
+    format = ignoreAlpha ? GL_RGB : GL_RGBA;
+
     glBindTexture(GL_TEXTURE_2D, textureIndex);
-    if (ignoreAlpha)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA,
-                     GL_UNSIGNED_BYTE, (unsigned char*) buffer);
-    else
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA,
-                     GL_UNSIGNED_INT_8_8_8_8_REV, (unsigned char*) buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 

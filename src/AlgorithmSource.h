@@ -88,6 +88,7 @@ protected:
     double vertical, horizontal;
     double variability;
     bool ignoreAlpha, frameChanged;
+    GLenum format;
 
     AlgorithmThread *_thread;
     QMutex *_mutex;
