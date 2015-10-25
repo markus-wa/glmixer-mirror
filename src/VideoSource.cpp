@@ -50,20 +50,40 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     const VideoPicture *_vp = is->getResetPicture();
     if (_vp)
     {
-        GLenum format = (_vp->getFormat() == PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
+        format = (_vp->getFormat() == PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
 
         // create texture and fill-in with reset picture
         glTexImage2D(GL_TEXTURE_2D, 0, format, _vp->getWidth(),
                     _vp->getHeight(), 0, format, GL_UNSIGNED_BYTE,
                     _vp->getBuffer());
+
 #ifdef USE_PBO
+        imgsize =  _vp->getWidth() * _vp->getHeight() * (format == GL_RGB ? 3 : 4);
         // create 2 pixel buffer objects,
-        // glBufferDataARB with NULL pointer reserves only memory space.
         glGenBuffers(2, pboIds);
+        // create first PBO
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, _vp->getWidth() * _vp->getHeight() * (format == GL_RGB ? 3 : 4), 0, GL_STREAM_DRAW);
+        // glBufferDataARB with NULL pointer reserves only memory space.
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+        // fill in with reset picture
+        GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+        if (ptr)  {
+            // update data directly on the mapped buffer
+            memmove(ptr, _vp->getBuffer(), imgsize);
+            // release pointer to mapping buffer
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+        }
+
+        // idem with second PBO
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[1]);
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, _vp->getWidth() * _vp->getHeight() * (format == GL_RGB ? 3 : 4), 0, GL_STREAM_DRAW);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+        ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+        if (ptr) {
+            // update data directly on the mapped buffer
+            memmove(ptr, _vp->getBuffer(), imgsize);
+            // release pointer to mapping buffer
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+        }
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         index = nextIndex = 0;
 #endif
@@ -132,42 +152,28 @@ void VideoSource::update()
 	{
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-        GLenum format = (vp->getFormat() == PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
-
 #ifdef USE_PBO
 
-        // even with PBO, first frame should be filled directly.
-        if (needupdate)
-        {
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
-                            vp->getHeight(), format, GL_UNSIGNED_BYTE, vp->getBuffer());
-        }
-        else
-        {
-            // In dual PBO mode, increment current index first then get the next index
-            index = (index + 1) % 2;
-            nextIndex = (index + 1) % 2;
+        // In dual PBO mode, increment current index first then get the next index
+        index = (index + 1) % 2;
+        nextIndex = (index + 1) % 2;
 
-            // bind PBO
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
+        // bind PBO to read pixels
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
 
-            // copy pixels from PBO to texture object
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(), vp->getHeight(), format, GL_UNSIGNED_BYTE, 0);
-
-        }
-
+        // copy pixels from PBO to texture object
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(), vp->getHeight(), format, GL_UNSIGNED_BYTE, 0);
 
         // bind PBO to update pixel values
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
 
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, vp->getWidth() * vp->getHeight() * (format == GL_RGB ? 3 : 4), 0, GL_STREAM_DRAW);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
 
         // map the buffer object into client's memory
         GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-        if (ptr)
-        {
+        if (ptr) {
             // update data directly on the mapped buffer
-            memmove(ptr, vp->getBuffer(), vp->getWidth() * vp->getHeight() * (format == GL_RGB ? 3 : 4));
+            memmove(ptr, vp->getBuffer(), imgsize);
             // release pointer to mapping buffer
             glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
         }
@@ -179,7 +185,7 @@ void VideoSource::update()
                         vp->getHeight(), format, GL_UNSIGNED_BYTE, vp->getBuffer());
 #endif
 
-        // done! Cancel updated frame
+        // done! Cancel (free) updated frame
         updateFrame(NULL);
 
     }
