@@ -787,29 +787,17 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     targetFormat = PIX_FMT_RGB24;
     rgba_palette = false;
 
-	// Change target format to keep Alpha channel if format requires
-	if ( pixelFormatHasAlphaChannel()
-        // this is a fix for some jpeg formats with YUVJ format
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-        || av_pix_fmt_desc_get(video_st->codec->pix_fmt)->log2_chroma_h > 0 )
-#else
-        || av_pix_fmt_descriptors[video_st->codec->pix_fmt].log2_chroma_h > 0 )
-#endif
+    // Change target format to keep Alpha channel if format requires
+    if ( pixelFormatHasAlphaChannel() )
     {
-		// special case of PALETTE formats which have ALPHA channel in their colors
-		if (video_st->codec->pix_fmt == PIX_FMT_PAL8) {
-			// palette pictures are always treated as PIX_FMT_RGBA data
-			targetFormat = PIX_FMT_RGBA;
-			// if should NOT ignore alpha channel, use rgba palette (flag used in VideoFile)
-			if (!ignoreAlpha)
-				rgba_palette = true;
-		}
-		// general case (pictures have alpha channel)
-		else {
-			// if should NOT ignore alpha channel, use alpha channel
-			if (!ignoreAlpha)
-				targetFormat = PIX_FMT_RGBA;
-		}
+        // special case of PALETTE formats which have ALPHA channel in their colors
+        if (video_st->codec->pix_fmt == PIX_FMT_PAL8 || !ignoreAlpha) {
+            // palette pictures are always treated as PIX_FMT_RGBA data
+            targetFormat = PIX_FMT_RGBA;
+            // if should NOT ignore alpha channel, use rgba palette (flag used in VideoFile)
+            if (!ignoreAlpha)
+                rgba_palette = true;
+        }
     }
 
 	// Decide for optimal scaling algo if it was not specified
@@ -864,6 +852,13 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
         // set picture queue maximum size
         recomputePictureQueueMaxCount();
+
+        // tells everybody we are set !
+        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 frames in %4).").arg(video_st->nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(getPixelFormatName(targetFormat));
+
+    }
+    else {
+        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (1 frame).");
     }
 
     // use first picture as reset picture
@@ -874,9 +869,6 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
     // say we are not running
     emit running(false);
-
-	// tells everybody we are set !
-    qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 frames).").arg(video_st->nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count);
 
     // all ok
 	return true;

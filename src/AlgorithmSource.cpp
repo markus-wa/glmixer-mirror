@@ -399,7 +399,7 @@ AlgorithmSource::~AlgorithmSource() {
     delete _mutex;
 
     // delete picture buffer
-    glDeleteBuffersARB(2, pboIds);
+    glDeleteBuffers(2, pboIds);
 }
 
 
@@ -481,13 +481,13 @@ void AlgorithmSource::update() {
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA,
                             GL_UNSIGNED_INT_8_8_8_8_REV, 0);
 
-            // bind PBO to update pixel values
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
-
-            glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
 
         _mutex->lock();
 
+        // bind PBO to update pixel values
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
+
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
             // map the buffer object into client's memory
             GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
             if (ptr)

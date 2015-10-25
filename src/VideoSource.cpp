@@ -49,17 +49,26 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     // fills in the first frame
     const VideoPicture *_vp = is->getResetPicture();
     if (_vp)
-	{
-		// fill in the texture
-        if (_vp->getFormat() == PIX_FMT_RGBA)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _vp->getWidth(),
-                    _vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+    {
+        GLenum format = (_vp->getFormat() == PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
+
+        // create texture and fill-in with reset picture
+        glTexImage2D(GL_TEXTURE_2D, 0, format, _vp->getWidth(),
+                    _vp->getHeight(), 0, format, GL_UNSIGNED_BYTE,
                     _vp->getBuffer());
-		else
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _vp->getWidth(),
-                    _vp->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
-                    _vp->getBuffer());
-	}
+#ifdef USE_PBO
+        // create 2 pixel buffer objects,
+        // glBufferDataARB with NULL pointer reserves only memory space.
+        glGenBuffers(2, pboIds);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, _vp->getWidth() * _vp->getHeight() * (format == GL_RGB ? 3 : 4), 0, GL_STREAM_DRAW);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[1]);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, _vp->getWidth() * _vp->getHeight() * (format == GL_RGB ? 3 : 4), 0, GL_STREAM_DRAW);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        index = nextIndex = 0;
+#endif
+
+    }
 
 }
 
@@ -71,6 +80,11 @@ VideoSource::~VideoSource()
     if (vp)
         delete vp;
 
+#ifdef USE_PBO
+    // delete picture buffer
+    if (pboIds)
+        glDeleteBuffers(2, pboIds);
+#endif
 }
 
 bool VideoSource::isPlayable() const
@@ -117,18 +131,57 @@ void VideoSource::update()
     if ( vp && vp->getBuffer() != NULL )
 	{
         glBindTexture(GL_TEXTURE_2D, textureIndex);
-        // use it for OpenGL
-        if (vp->getFormat() == PIX_FMT_RGBA)
+
+        GLenum format = (vp->getFormat() == PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
+
+#ifdef USE_PBO
+
+        // even with PBO, first frame should be filled directly.
+        if (needupdate)
+        {
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
-                    vp->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE,
-                    vp->getBuffer());
+                            vp->getHeight(), format, GL_UNSIGNED_BYTE, vp->getBuffer());
+        }
         else
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
-                    vp->getHeight(), GL_RGB, GL_UNSIGNED_BYTE,
-                    vp->getBuffer());
+        {
+            // In dual PBO mode, increment current index first then get the next index
+            index = (index + 1) % 2;
+            nextIndex = (index + 1) % 2;
+
+            // bind PBO
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
+
+            // copy pixels from PBO to texture object
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(), vp->getHeight(), format, GL_UNSIGNED_BYTE, 0);
+
+        }
+
+
+        // bind PBO to update pixel values
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
+
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, vp->getWidth() * vp->getHeight() * (format == GL_RGB ? 3 : 4), 0, GL_STREAM_DRAW);
+
+        // map the buffer object into client's memory
+        GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+        if (ptr)
+        {
+            // update data directly on the mapped buffer
+            memmove(ptr, vp->getBuffer(), vp->getWidth() * vp->getHeight() * (format == GL_RGB ? 3 : 4));
+            // release pointer to mapping buffer
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+        }
+
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+#else
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
+                        vp->getHeight(), format, GL_UNSIGNED_BYTE, vp->getBuffer());
+#endif
 
         // done! Cancel updated frame
         updateFrame(NULL);
+
     }
 
     Source::update();
@@ -136,12 +189,13 @@ void VideoSource::update()
 
 void VideoSource::updateFrame(VideoPicture *p)
 {
-    // free the video picture if tagged as to be deleted.
+    // free the previous video picture if tagged as to be deleted.
     if (vp && vp->hasAction(VideoPicture::ACTION_DELETE))
         delete vp;
 
     // set new vp
     vp = p;
+
 }
 
 

@@ -26,6 +26,8 @@
 #ifndef VIDEOSOURCE_H_
 #define VIDEOSOURCE_H_
 
+#define USE_PBO
+
 #include <QObject>
 
 #include "Source.h"
@@ -71,6 +73,10 @@ private:
 
     VideoFile *is;
     VideoPicture *vp;
+#ifdef USE_PBO
+    GLuint pboIds[2];
+    int index, nextIndex;
+#endif
 };
 
 #endif /* VIDEOSOURCE_H_ */

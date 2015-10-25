@@ -620,9 +620,9 @@ void ViewRenderWidget::paintGL()
         _catalogView->paint();
 
     // FPS computation
-    if (++fpsCounter_ == 10)
+    if (++fpsCounter_ == 2)
     {
-        f_p_s_ = 10000.0 / float(fpsTime_.restart());
+        f_p_s_ = 0.95 * f_p_s_ + 0.05 * ( 2000.0 / float(fpsTime_.restart()) );
 
         fpsCounter_ = 0;
 
