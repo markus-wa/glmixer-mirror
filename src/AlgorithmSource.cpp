@@ -375,7 +375,7 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
     _thread->setPriority(QThread::LowPriority);
 
 #ifdef USE_PBO
-    // create 2 pixel buffer objects,
+    // create 1 pixel buffer object,
     // glBufferDataARB with NULL pointer reserves only memory space.
     glGenBuffers(1, pboIds);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);

@@ -179,6 +179,12 @@ OpencvSource::~OpencvSource() {
 	delete cond;
 	delete mutex;
 	delete thread;
+
+#ifdef USE_PBO
+    // delete picture buffer
+    if (pboIds)
+        glDeleteBuffers(2, pboIds);
+#endif
 }
 
 
