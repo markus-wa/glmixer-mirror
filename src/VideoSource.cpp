@@ -50,7 +50,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     const VideoPicture *_vp = is->getResetPicture();
     if (_vp)
     {
-        format = (_vp->getFormat() == PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
+        format = (_vp->getFormat() == AV_PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
 
         // create texture and fill-in with reset picture
         glTexImage2D(GL_TEXTURE_2D, 0, format, _vp->getWidth(),
@@ -102,7 +102,7 @@ VideoSource::~VideoSource()
 
 #ifdef USE_PBO
     // delete picture buffer
-    if (pboIds)
+    if (pboIds[0] || pboIds[1])
         glDeleteBuffers(2, pboIds);
 #endif
 }

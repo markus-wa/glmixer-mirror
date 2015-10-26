@@ -400,7 +400,7 @@ AlgorithmSource::~AlgorithmSource() {
 
 #ifdef USE_PBO
     // delete picture buffer
-    if (pboIds)
+    if (pboIds[0])
         glDeleteBuffers(1, pboIds);
 #endif
 }

@@ -96,7 +96,7 @@ public:
      * @param h Height of the frame
      * @param format Internal pixel format of the buffer. PIX_FMT_RGB24 (by default), PIX_FMT_RGBA if there is alpha channel
      */
-    VideoPicture(SwsContext *img_convert_ctx, int w, int h, enum PixelFormat format = PIX_FMT_RGB24, bool palettized = false);
+    VideoPicture(SwsContext *img_convert_ctx, int w, int h, enum PixelFormat format = AV_PIX_FMT_RGB24, bool palettized = false);
 
     /**
       * Deletes the VideoPicture and frees the av picture
@@ -393,7 +393,7 @@ public:
      *
      *  @return FFmpeg name of the pixel format. String is empty if file was not opened.
      */
-    QString getPixelFormatName(PixelFormat ffmpegPixelFormat = PIX_FMT_NONE) const ;
+    QString getPixelFormatName(PixelFormat ffmpegPixelFormat = AV_PIX_FMT_NONE) const ;
     /**
      *  Get if the frames are converted to power-of-two dimensions.
      *

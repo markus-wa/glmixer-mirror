@@ -182,7 +182,7 @@ OpencvSource::~OpencvSource() {
 
 #ifdef USE_PBO
     // delete picture buffer
-    if (pboIds)
+    if (pboIds[0] || pboIds[1])
         glDeleteBuffers(2, pboIds);
 #endif
 }

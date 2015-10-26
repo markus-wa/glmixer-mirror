@@ -300,7 +300,7 @@ VideoPicture::~VideoPicture()
 
 void VideoPicture::saveToPPM(QString filename) const
 {
-    if (pixelformat != PIX_FMT_RGBA)
+    if (pixelformat != AV_PIX_FMT_RGBA)
 	{
 		FILE *pFile;
 		int y;
@@ -361,7 +361,7 @@ void VideoPicture::fill(AVPicture *frame, double timestamp)
 					*bgr++ = palette[4 * map[x] + 2]; // B
 					*bgr++ = palette[4 * map[x] + 1]; // G
 					*bgr++ = palette[4 * map[x]];     // R
-					if (pixelformat == PIX_FMT_RGBA)
+                    if (pixelformat == AV_PIX_FMT_RGBA)
 						*bgr++ = palette[4 * map[x] + 3]; // A
 				}
 				map += frame->linesize[0];
@@ -784,13 +784,13 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	}
 
 	// Default targetFormat to PIX_FMT_RGB24, not using color palette
-    targetFormat = PIX_FMT_RGB24;
+    targetFormat = AV_PIX_FMT_RGB24;
     rgba_palette = false;
 
     // Change target format to keep Alpha channel if format requires
     if ( pixelFormatHasAlphaChannel() )
     {
-        targetFormat = PIX_FMT_RGBA;
+        targetFormat = AV_PIX_FMT_RGBA;
 
         // special case of PALETTE formats which have ALPHA channel in their colors
         if (video_st->codec->pix_fmt == PIX_FMT_PAL8 && !ignoreAlpha) {
