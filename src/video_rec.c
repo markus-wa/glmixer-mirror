@@ -326,7 +326,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
         rec->conv->picture->linesize[2] = rec->enc->codec_context->width / 2;
 
         // create conversion context
-        rec->conv->img_convert_ctx = sws_getCachedContext(NULL, rec->width, rec->height, PIX_FMT_BGRA, rec->enc->codec_context->width, rec->enc->codec_context->height, f_pix_fmt, SWS_POINT, NULL, NULL, NULL);
+        rec->conv->img_convert_ctx = sws_getCachedContext(NULL, rec->width, rec->height, AV_PIX_FMT_BGRA, rec->enc->codec_context->width, rec->enc->codec_context->height, f_pix_fmt, SWS_POINT, NULL, NULL, NULL);
         if (rec->conv->img_convert_ctx == NULL){
             snprintf(errormessage, 256, "Could not create conversion context.\nUnable to record to %s.", filename);
             video_rec_free(rec);

@@ -109,7 +109,7 @@ void VideoFileDisplayWidget::updateFrame (VideoPicture *vp)
 
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-        if ( vp->getFormat() == PIX_FMT_RGBA)
+        if ( vp->getFormat() == AV_PIX_FMT_RGBA)
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  vp->getWidth(),
                      vp->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
                      vp->getBuffer() );

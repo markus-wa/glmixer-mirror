@@ -157,6 +157,10 @@ RenderingManager::RenderingManager() :
     _propertyBrowser = new SourcePropertyBrowser;
     Q_CHECK_PTR(_propertyBrowser);
 
+
+    // for pixel buffer objects,
+    index = nextIndex = 1;
+
     // create recorder and session switcher
     _recorder = new RenderingEncoder(this);
     _switcher = new SessionSwitcher(this);
@@ -192,6 +196,9 @@ RenderingManager::~RenderingManager() {
 
     if (_fbo)
         delete _fbo;
+
+    if (pboIds[0] || pboIds[1])
+        glDeleteBuffers(2, pboIds);
 
     delete _recorder;
     delete _switcher;
@@ -236,12 +243,10 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     }
 
     // create an fbo (with internal automatic first texture attachment)
-    _fbo = new QGLFramebufferObject(size);
+    _fbo = new QGLFramebufferObject(size, QGLFramebufferObject::NoAttachment, GL_TEXTURE_2D, GL_RGBA8);
     Q_CHECK_PTR(_fbo);
 
     if (_fbo->bind()) {
-        // default draw target
-//        glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
         // initial clear to black
         glPushAttrib(GL_COLOR_BUFFER_BIT);
@@ -250,33 +255,44 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         glPopAttrib();
 
         _fbo->release();
-
-        // store viewport info
-        _renderwidget->_renderView->viewport[0] = 0;
-        _renderwidget->_renderView->viewport[1] = 0;
-        _renderwidget->_renderView->viewport[2] = _fbo->width();
-        _renderwidget->_renderView->viewport[3] = _fbo->height();
-
-        // setup recorder frames size
-        _recorder->setFrameSize(_fbo->size());
-#ifdef SHM
-        // re-setup shared memory
-        if(_sharedMemory) {
-            setFrameSharingEnabled(false);
-            setFrameSharingEnabled(true);
-        }
-#endif
-#ifdef SPOUT
-        if(_spoutEnabled) {
-            setSpoutSharingEnabled(false);
-            setSpoutSharingEnabled(true);
-        }
-#endif
-
     }
     else
-        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not working on this hardware."
+        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects Failed to initialize."
                             "\n\nThe program cannot operate properly without it.")));
+
+    // store viewport info
+    _renderwidget->_renderView->viewport[0] = 0;
+    _renderwidget->_renderView->viewport[1] = 0;
+    _renderwidget->_renderView->viewport[2] = _fbo->width();
+    _renderwidget->_renderView->viewport[3] = _fbo->height();
+
+    // allocate PBOs
+    if (pboIds[0] || pboIds[1])
+        glDeleteBuffers(2, pboIds);
+    glGenBuffers(2, pboIds);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[0]);
+    glBufferData(GL_PIXEL_PACK_BUFFER, _fbo->width() * _fbo->height() * 4, 0, GL_STREAM_READ);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[1]);
+    glBufferData(GL_PIXEL_PACK_BUFFER, _fbo->width() * _fbo->height() * 4, 0, GL_STREAM_READ);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+    // setup recorder frames size
+    _recorder->setFrameSize(_fbo->size());
+
+#ifdef SHM
+    // re-setup shared memory
+    if(_sharedMemory) {
+        setFrameSharingEnabled(false);
+        setFrameSharingEnabled(true);
+    }
+#endif
+#ifdef SPOUT
+    if(_spoutEnabled) {
+        setSpoutSharingEnabled(false);
+        setSpoutSharingEnabled(true);
+    }
+#endif
+
 
     qDebug() << tr("Frame buffer set to ") << size.width() << "x" << size.height();
 }
@@ -291,7 +307,8 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 
     // skip loop back if disabled
-    if (previousframe_fbo) {
+    if (previousframe_fbo)
+    {
 
         // frame delay
         previousframe_index++;
@@ -361,15 +378,55 @@ void RenderingManager::postRenderToFrameBuffer() {
 #endif
         ) {
 
+        // "index" is used to read pixels from framebuffer to a PBO
+        // "nextIndex" is used to update pixels in the other PBO
+        index = (index + 1) % 2;
+        nextIndex = (index + 1) % 2;
+
 #ifdef USE_GLREADPIXELS
+
         // bind rendering FBO as the current frame buffer
         glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]);
+
+        // read pixels from framebuffer to PBO should return immediately.
+        glReadPixels(0, 0, _fbo->width(), _fbo->height(), GL_BGRA, GL_UNSIGNED_BYTE, 0);
+
+        // map the PBO to process its data by CPU
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[nextIndex]);
+        unsigned char* ptr = (unsigned char*) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+        if(ptr)  {
+            _recorder->addFrame(ptr);
+            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+        }
+
 #else
+
+        glEnable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-#endif
+
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]);
+        // read pixels from texture
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+
+        // map the PBO to process its data by CPU
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[nextIndex]);
+        unsigned char* ptr = (unsigned char*) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+        if(ptr)  {
+            _recorder->addFrame(ptr);
+            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+        }
 
         // read from the framebuferobject and record this frame (the recorder knows if it is active or not)
-        _recorder->addFrame();
+//        _recorder->addFrame();
+
+        glDisable(GL_TEXTURE_2D);
+#endif
+
+
 
 #ifdef SHM
         // share to memory if needed
@@ -391,6 +448,12 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 
 #endif // SHM
+
+
+        // back to conventional pixel operation
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     }
 
 
@@ -498,7 +561,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
 
     // create the previous frame (frame buffer object) if needed
     if (!previousframe_fbo) {
-        previousframe_fbo = new QGLFramebufferObject(_fbo->width(), _fbo->height());
+        previousframe_fbo = new QGLFramebufferObject(_fbo->size(), QGLFramebufferObject::NoAttachment, GL_TEXTURE_2D, GL_RGBA8);
         // initial clear to black
         if (previousframe_fbo->bind())  {
             glPushAttrib(GL_COLOR_BUFFER_BIT);
@@ -525,18 +588,12 @@ Source *RenderingManager::newRenderingSource(double depth) {
 
 QImage RenderingManager::captureFrameBuffer(QImage::Format format) {
 
-    QImage img(_fbo->size(), QImage::Format_RGB888);
-
-    _renderwidget->makeCurrent();
-
-    _fbo->bind();
-    glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), GL_RGB, GL_UNSIGNED_BYTE, img.bits());
-    _fbo->release();
+    QImage img = _fbo->toImage();
 
     if (format != QImage::Format_RGB888)
         img = img.convertToFormat(format);
 
-    return img.mirrored();
+    return img;
 }
 
 

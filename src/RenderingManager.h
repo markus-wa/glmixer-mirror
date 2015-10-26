@@ -26,7 +26,7 @@
 #ifndef RENDERINGMANAGER_H_
 #define RENDERINGMANAGER_H_
 
-#define USE_GLREADPIXELS
+//#define USE_GLREADPIXELS
 
 #include "common.h"
 #include "SourceSet.h"
@@ -290,6 +290,9 @@ protected:
 	bool _playOnDrop;
 	bool paused;
 	bool _showProgressBar;
+
+    GLuint pboIds[2];
+    int index, nextIndex;
 
     static bool blit_fbo_extension;
     static QSize sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED];

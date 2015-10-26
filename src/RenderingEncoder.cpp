@@ -27,7 +27,7 @@ public:
     EncodingThread(int bufsize = RECORDING_BUFFER_SIZE) : QThread(), rec(NULL), period(40), quit(true), pictq_max(bufsize),
 		pictq_size(0), pictq_rindex(0), pictq_windex(0)
 	{
-		pictq = (char **) malloc( pictq_max * sizeof(char *) );
+        pictq = (unsigned char **) malloc( pictq_max * sizeof(unsigned char *) );
 		// create mutex
 	    pictq_mutex = new QMutex;
 	    Q_CHECK_PTR(pictq_mutex);
@@ -47,7 +47,7 @@ public:
     	period =  update;
     	// allocate buffer
         for (int i = 0; i < pictq_max; ++i) {
-    		pictq[i] = (char *) malloc(rec->width * rec->height * 4);
+            pictq[i] = (unsigned char *) malloc(rec->width * rec->height * 4);
             recordingTimeStamp[i] = 0;
         }
     	// init variables
@@ -80,7 +80,7 @@ public:
         pictq_mutex->unlock();
     }
 
-    char *pictq_top(){
+    unsigned char *pictq_top(){
     	// wait until we have space for a new picture
 		// (this happens only when the queue is full)
 		pictq_mutex->lock();
@@ -110,7 +110,7 @@ protected:
     QWaitCondition *pictq_cond;
 
     // picture queue management
-    char** pictq;
+    unsigned char** pictq;
     int pictq_max, pictq_size, pictq_rindex, pictq_windex;
     int recordingTimeStamp[RECORDING_BUFFER_SIZE];
     QTime timer;
@@ -331,7 +331,7 @@ int RenderingEncoder::getRecodingTime() {
 // This function is called with the rendering context active
 // by the update method in the ViewRenderWidget
 // it *should* be called at the desired frame rate
-void RenderingEncoder::addFrame(){
+void RenderingEncoder::addFrame(unsigned char *data){
 
 	if (!started || paused || recorder == NULL)
 		return;
@@ -346,15 +346,16 @@ void RenderingEncoder::addFrame(){
         return;
     }
 
-#ifdef USE_GLREADPIXELS
     // read the pixels from the current frame buffer and store into the temporary buffer queue
     // (get the pointer to the current writing buffer from the queue of the thread to know where to write)
-    glReadPixels((GLint)0, (GLint)0, (GLint) recorder->width, (GLint) recorder->height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, encoder->pictq_top());
 
-#else
+    if (data) {
+        memcpy( encoder->pictq_top(), data, recorder->width * recorder->height * 4);
+//    memmove( encoder->pictq_top(), data, recorder->width * recorder->height * 4);
+
+    } else
     // read the pixels from the texture
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, encoder->pictq_top());
-#endif
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, encoder->pictq_top());
 
     // inform the thread that a picture was pushed into the queue
     encoder->pictq_push(timer.elapsed());

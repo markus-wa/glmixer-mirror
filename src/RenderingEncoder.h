@@ -51,7 +51,7 @@ public:
 	~RenderingEncoder();
 
 	bool start();
-	void addFrame();
+    void addFrame(unsigned char *data = 0);
 	bool close();
 
 	// preferences encoding
