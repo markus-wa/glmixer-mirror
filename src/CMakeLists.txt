@@ -474,7 +474,9 @@ ELSE(APPLE)
 
     # Generate required change log files
     # Use SVN to read repository version
-    IF(EXISTS "${CMAKE_SOURCE_DIR}/.svn")
+    find_program(XSLTPROC NAMES xsltproc)
+    IF(XSLTPROC)
+      IF (EXISTS "${CMAKE_SOURCE_DIR}/.svn")
         message( STATUS "Generating ChangeLog from SVN (please be patient...)" )
 
         execute_process(COMMAND ${CMAKE_SOURCE_DIR}/linux/svn2cl.sh ${CMAKE_SOURCE_DIR}
@@ -485,6 +487,7 @@ ELSE(APPLE)
         install(FILES "${CMAKE_BINARY_DIR}/changelog.gz"
                 DESTINATION "${CMAKE_INSTALL_PREFIX}/share/doc/${GLMIXER_BINARY}/"
                 PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
+      ENDIF()
     ENDIF()
 
     # man pages
