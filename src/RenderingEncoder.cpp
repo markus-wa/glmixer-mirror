@@ -64,6 +64,7 @@ public:
     	// free buffer
     	for (int i = 0; i < pictq_max; ++i)
     		free(pictq[i]);
+
     }
 
     void pictq_push(int timestamp){
@@ -350,8 +351,7 @@ void RenderingEncoder::addFrame(unsigned char *data){
     // (get the pointer to the current writing buffer from the queue of the thread to know where to write)
 
     if (data) {
-        memcpy( encoder->pictq_top(), data, recorder->width * recorder->height * 4);
-//    memmove( encoder->pictq_top(), data, recorder->width * recorder->height * 4);
+        memmove( encoder->pictq_top(), data, recorder->width * recorder->height * 4);
 
     } else
     // read the pixels from the texture

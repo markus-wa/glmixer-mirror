@@ -70,6 +70,7 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include <algorithm>
 #include <QGLFramebufferObject>
 #include <QProgressDialog>
+#include <QElapsedTimer>
 
 
 // static members
@@ -455,7 +456,11 @@ void RenderingManager::postRenderToFrameBuffer() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     }
-
+    // end of recording : ensure PBO double buffer mechanism is reset
+    else {
+        index = (index + 1) % 2;
+        nextIndex = (index + 1) % 2;
+    }
 
 #ifdef SPOUT
 

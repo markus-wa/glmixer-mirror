@@ -230,7 +230,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     }
 
     // set time base for the stream
-    rec->enc->video_stream->time_base = (AVRational){1,fps};;
+    rec->enc->video_stream->time_base = (AVRational) {1,fps};
 
     // get codec context
     rec->enc->codec_context = rec->enc->video_stream->codec;
@@ -246,7 +246,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     rec->enc->codec_context->width = width;
     rec->enc->codec_context->height = height;
     rec->enc->codec_context->flags = CODEC_FLAG_GLOBAL_HEADER;
-    rec->enc->codec_context->time_base = (AVRational){1,fps};
+    rec->enc->codec_context->time_base = (AVRational) {1,fps};
     rec->enc->codec_context->gop_size = fps / 2;
     rec->enc->codec_context->coder_type = 1;
     // multithreaded encoding is much faster :)

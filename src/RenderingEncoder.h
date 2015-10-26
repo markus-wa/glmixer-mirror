@@ -30,7 +30,7 @@
 #include <QTime>
 #include <QString>
 
-#define RECORDING_BUFFER_SIZE 10
+#define RECORDING_BUFFER_SIZE 100
 
 extern "C" {
 #include "video_rec.h"
