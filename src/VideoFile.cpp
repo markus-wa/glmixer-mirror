@@ -772,9 +772,9 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
 	// init picture size
 	if (targetWidth == 0)
-		targetWidth = video_st->codec->width;
+        targetWidth = video_st->codec->coded_width != 0 ? video_st->codec->coded_width : video_st->codec->width;
 	if (targetHeight == 0)
-		targetHeight = video_st->codec->height;
+        targetHeight = video_st->codec->coded_height != 0 ? video_st->codec->coded_height : video_st->codec->height;
 
 	// round target picture size to power of two size
 	if (powerOfTwo)
@@ -799,6 +799,13 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         }
     }
 
+    QString pfn(filename);
+    pfn += QString(" width %1 ").arg(video_st->codec->width) ;
+    pfn += QString(" height %1 ").arg(video_st->codec->height) ;
+    pfn += QString(" coded_width %1 ").arg(video_st->codec->coded_width) ;
+    pfn += QString(" coded_height %1 ").arg(video_st->codec->coded_height) ;
+
+    qDebug() << pfn;
 
 	// Decide for optimal scaling algo if it was not specified
 	// NB: the algo is used only if the conversion is scaled or with filter
