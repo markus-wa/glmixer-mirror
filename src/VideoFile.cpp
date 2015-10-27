@@ -42,7 +42,6 @@ extern "C"
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 #include <libavutil/pixdesc.h>
 #endif
-#include <libavfilter/avfilter.h>
 }
 
 #include "VideoFile.h"
@@ -770,7 +769,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         emit markingChanged();
     }
 
-	// init picture size
+    // init picture size with encoded dimensions if specified
 	if (targetWidth == 0)
         targetWidth = video_st->codec->coded_width != 0 ? video_st->codec->coded_width : video_st->codec->width;
 	if (targetHeight == 0)
@@ -798,14 +797,6 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
             rgba_palette = true;
         }
     }
-
-    QString pfn(filename);
-    pfn += QString(" width %1 ").arg(video_st->codec->width) ;
-    pfn += QString(" height %1 ").arg(video_st->codec->height) ;
-    pfn += QString(" coded_width %1 ").arg(video_st->codec->coded_width) ;
-    pfn += QString(" coded_height %1 ").arg(video_st->codec->coded_height) ;
-
-    qDebug() << pfn;
 
 	// Decide for optimal scaling algo if it was not specified
 	// NB: the algo is used only if the conversion is scaled or with filter
