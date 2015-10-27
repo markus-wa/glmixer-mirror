@@ -160,7 +160,7 @@ RenderingManager::RenderingManager() :
 
 
     // for pixel buffer objects,
-    index = nextIndex = 1;
+    index = nextIndex = 0;
 
     // create recorder and session switcher
     _recorder = new RenderingEncoder(this);
@@ -379,10 +379,6 @@ void RenderingManager::postRenderToFrameBuffer() {
 #endif
         ) {
 
-        // "index" is used to read pixels from framebuffer to a PBO
-        // "nextIndex" is used to update pixels in the other PBO
-        index = (index + 1) % 2;
-        nextIndex = (index + 1) % 2;
 
 #ifdef USE_GLREADPIXELS
 
@@ -455,11 +451,16 @@ void RenderingManager::postRenderToFrameBuffer() {
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+
+        // "index" is used to read pixels from framebuffer to a PBO
+        // "nextIndex" is used to update pixels in the other PBO
+        index = (index + 1) % 2;
+        nextIndex = (index + 1) % 2;
+
     }
     // end of recording : ensure PBO double buffer mechanism is reset
     else {
-        index = (index + 1) % 2;
-        nextIndex = (index + 1) % 2;
+        index = nextIndex = 0;
     }
 
 #ifdef SPOUT

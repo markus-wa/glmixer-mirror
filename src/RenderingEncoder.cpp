@@ -228,14 +228,14 @@ void RenderingEncoder::setPaused(bool on)
 		// remember timer
 		elapsed = timer.elapsed();
 		killTimer(elapseTimer);
-		emit status(tr("Recording paused after %1 s").arg(elapsed/1000), 3000);
-        qDebug()  << tr("Recording paused after %1 s.").arg(elapsed/1000);
+        emit status(tr("Recording paused after %1 s").arg((double)elapsed/1000.0), 3000);
+        qDebug()  << tr("Recording paused after %1 s.").arg((double)elapsed/1000.0);
 	} else {
 		// restart a timer
 		timer = timer.addMSecs(timer.elapsed() - elapsed);
 		elapseTimer = startTimer(1000);
-        emit status(tr("Recording resumed at %1 s").arg(timer.elapsed()/1000), 1000);
-        qDebug() << tr("Recording resumed at %1 s.").arg(elapsed/1000);
+        emit status(tr("Recording resumed at %1 s").arg((double)timer.elapsed()/1000.0), 1000);
+        qDebug() << tr("Recording resumed at %1 s.").arg((double)elapsed/1000.0);
 	}
 
 }
@@ -347,14 +347,13 @@ void RenderingEncoder::addFrame(unsigned char *data){
         return;
     }
 
-    // read the pixels from the current frame buffer and store into the temporary buffer queue
-    // (get the pointer to the current writing buffer from the queue of the thread to know where to write)
-
     if (data) {
+        // read the pixels from the given buffer and store into the temporary buffer queue
+        // (get the pointer to the current writing buffer from the queue of the thread to know where to write)
         memmove( encoder->pictq_top(), data, recorder->width * recorder->height * 4);
 
     } else
-    // read the pixels from the texture
+        // read the pixels from the texture
         glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, encoder->pictq_top());
 
     // inform the thread that a picture was pushed into the queue

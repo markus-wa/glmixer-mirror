@@ -793,11 +793,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         targetFormat = AV_PIX_FMT_RGBA;
 
         // special case of PALETTE formats which have ALPHA channel in their colors
-        if (video_st->codec->pix_fmt == PIX_FMT_PAL8 && !ignoreAlpha) {
+        if (video_st->codec->pix_fmt == AV_PIX_FMT_PAL8 && !ignoreAlpha) {
             // if should NOT ignore alpha channel, use rgba palette (flag used in VideoFile)
             rgba_palette = true;
         }
     }
+
 
 	// Decide for optimal scaling algo if it was not specified
 	// NB: the algo is used only if the conversion is scaled or with filter
@@ -879,13 +880,13 @@ bool VideoFile::pixelFormatHasAlphaChannel() const
 		return false;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-    return  (av_pix_fmt_desc_get(video_st->codec->pix_fmt)->nb_components > 3)
+    return  (  (av_pix_fmt_desc_get(video_st->codec->pix_fmt)->nb_components > 3)
             // does the format has ALPHA ?
             || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_ALPHA )
             // special case of PALLETE and GREY pixel formats(converters exist for rgba)
-            || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_PAL
+            || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_PAL )
             // special case of YUVJ
-            || video_st->codec->pix_fmt == PIX_FMT_YUVJ420P);
+            || ( video_st->codec->pix_fmt == PIX_FMT_YUVJ420P ) );
 #elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 	return  (av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3)
 			// special case of PALLETE and GREY pixel formats(converters exist for rgba)

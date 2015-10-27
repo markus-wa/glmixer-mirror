@@ -48,8 +48,6 @@ struct converter {
     struct SwsContext *img_convert_ctx;
 };
 
-
-
 video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, int height, int fps, char *errormessage)
 {
     AVCodec *c = NULL;
@@ -62,6 +60,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     rec->height = height;
     rec->fps = fps;
     rec->framenum = 0;
+    rec->previous_dts = 0;
 
     // vars defining the format
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,0,0)
@@ -255,8 +254,12 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     rec->enc->codec_context->bit_rate = (width * height * av_get_bits_per_pixel( av_pix_fmt_desc_get(f_pix_fmt)) * (fps+1)) / 400;
     // classic 9.8 Mb/s for DVD
     rec->enc->codec_context->rc_max_rate = 9800000;
-    // compute VBV buffer size ( snipet from mpegvideo_enc.c in ffmpeg )
+    // parameters dependent on codec
     switch(f_codec_id) {
+    case AV_CODEC_ID_FFVHUFF:
+        rec->enc->codec_context->thread_count = 1; // does not support multithread
+        break;
+        // compute VBV buffer size ( snipet from mpegvideo_enc.c in ffmpeg )
     case AV_CODEC_ID_MPEG1VIDEO:
     case AV_CODEC_ID_MPEG2VIDEO:
         rec->enc->codec_context->rc_buffer_size = FFMAX(rec->enc->codec_context->rc_max_rate, 15000000) * 112L / 15000000 * 16384;
@@ -333,6 +336,9 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
             return NULL;
         }
 
+        rec->conv->picture->width = rec->enc->codec_context->width;
+        rec->conv->picture->height = rec->enc->codec_context->height;
+        rec->conv->picture->format = f_pix_fmt;
     }
 
 
@@ -429,8 +435,10 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 
     int got_output = 0;
     r = avcodec_encode_video2(rec->enc->codec_context, &pkt, &frame, &got_output);
-    if(r < 0 || got_output == 0)
+    if(r < 0 || got_output == 0) {
+        av_log(0, 0, "Err avcodec_encode_video2: %s\n", av_err2str(r));
         return;
+    }
 #endif
 
     // set the presentation time stamp (pts)
@@ -442,6 +450,10 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     // set the decoding time stamp
     pkt.dts = pkt.pts - 1;
 
+    if (pkt.dts == rec->previous_dts)
+        return;
+    rec->previous_dts = pkt.dts;
+
     if(rec->enc->codec_context->coded_frame->key_frame)
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
         pkt.flags |= AV_PKT_FLAG_KEY;
@@ -449,9 +461,11 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
         pkt.flags |= PKT_FLAG_KEY;
 #endif
 
-    r = av_interleaved_write_frame(rec->enc->format_context, &pkt);
-    if(r < 0)
+    r = av_write_frame(rec->enc->format_context, &pkt);
+    if(r < 0){
+        av_log(0, 0, "Err av_write_frame: %s\n", av_err2str(r));
         return;
+    }
 
 }
 
@@ -490,8 +504,12 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 #else
     int got_output = 0;
     r = avcodec_encode_video2(rec->enc->codec_context, &pkt, rec->conv->picture, &got_output);
-    if(r < 0 || got_output == 0)
+    if(got_output == 0)
         return;
+    if(r < 0){
+        av_log(0, 0, "Err avcodec_encode_video2: %s\n", av_err2str(r));
+        return;
+    }
 #endif
 
     // set the presentation time stamp (pts)
@@ -503,6 +521,10 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     // set the decoding time stamp
     pkt.dts = pkt.pts - 1;
 
+    if (pkt.dts == rec->previous_dts)
+        return;
+    rec->previous_dts = pkt.dts;
+
     if(rec->enc->codec_context->coded_frame->key_frame)
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
         pkt.flags |= AV_PKT_FLAG_KEY;
@@ -511,8 +533,10 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 #endif
 
     r = av_interleaved_write_frame(rec->enc->format_context, &pkt);
-    if(r < 0)
+    if(r < 0){
+        av_log(0, 0, "Err av_interleaved_write_frame: %s\n", av_err2str(r));
         return;
+    }
 
 }
 
