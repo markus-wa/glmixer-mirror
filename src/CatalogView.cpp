@@ -138,8 +138,8 @@ void CatalogView::drawSource(const Source *s)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        // standard blending
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        // non-transparency blending
+        glBlendFunc(GL_ONE, GL_ONE);
         glBlendEquation(GL_FUNC_ADD);
 
         // draw source in FBO
