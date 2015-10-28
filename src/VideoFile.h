@@ -393,7 +393,7 @@ public:
      *
      *  @return FFmpeg name of the pixel format. String is empty if file was not opened.
      */
-    QString getPixelFormatName(PixelFormat ffmpegPixelFormat = AV_PIX_FMT_NONE) const ;
+    QString getPixelFormatName() const ;
     /**
      *  Get if the frames are converted to power-of-two dimensions.
      *

@@ -769,11 +769,11 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         emit markingChanged();
     }
 
-    // init picture size with encoded dimensions if specified
-	if (targetWidth == 0)
-        targetWidth = video_st->codec->coded_width != 0 ? video_st->codec->coded_width : video_st->codec->width;
-	if (targetHeight == 0)
-        targetHeight = video_st->codec->coded_height != 0 ? video_st->codec->coded_height : video_st->codec->height;
+    // set picture size (NB : use coded width as some files have a width which is different)
+    if (targetWidth == 0)
+        targetWidth = video_st->codec->coded_width;
+    if (targetHeight == 0)
+        targetHeight = video_st->codec->height;
 
 	// round target picture size to power of two size
 	if (powerOfTwo)
@@ -824,8 +824,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         filter = sws_getDefaultFilter(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0);
 
 	// create conversion context
-	img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
-					video_st->codec->height, video_st->codec->pix_fmt,
+    img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
+                    video_st->codec->height, video_st->codec->pix_fmt,
 					targetWidth, targetHeight, targetFormat,
 					conversionAlgorithm, filter, NULL, NULL);
 	if (img_convert_ctx == NULL)
@@ -852,7 +852,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         recomputePictureQueueMaxCount();
 
         // tells everybody we are set !
-        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 frames in %4).").arg(video_st->nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(getPixelFormatName(targetFormat));
+        QString pfn(av_pix_fmt_desc_get(targetFormat)->name);
+        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 frames in %4).").arg(video_st->nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(pfn);
 
     }
     else {
@@ -2340,34 +2341,25 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const
+QString VideoFile::getPixelFormatName() const
 {
-    if (ffmpegPixelFormat == AV_PIX_FMT_NONE && video_st)
-        ffmpegPixelFormat = video_st->codec->pix_fmt;
-
-    QString pfn(av_pix_fmt_desc_get(ffmpegPixelFormat)->name);
-    pfn += QString(" (%1 bpp)").arg(av_get_bits_per_pixel( av_pix_fmt_desc_get(ffmpegPixelFormat)) );
+    QString pfn(av_pix_fmt_desc_get(video_st->codec->pix_fmt)->name);
+    pfn += QString(" (%1 bpp)").arg(av_get_bits_per_pixel( av_pix_fmt_desc_get(video_st->codec->pix_fmt)) );
 
     return pfn;
 }
 #elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const
+QString VideoFile::getPixelFormatName() const
 {
-
-    if (ffmpegPixelFormat == PIX_FMT_NONE && video_st)
-        ffmpegPixelFormat = video_st->codec->pix_fmt;
-
-    QString pfn(av_pix_fmt_descriptors[ffmpegPixelFormat].name);
-    pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[ffmpegPixelFormat]));
+    QString pfn(av_pix_fmt_descriptors[video_st->codec->pix_fmt].name);
+    pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[video_st->codec->pix_fmt]));
 
 	return pfn;
 }
 #else
 QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const
 {
-
-	if (ffmpegPixelFormat == PIX_FMT_NONE)
-	ffmpegPixelFormat =video_st->codec->pix_fmt;
+    PixelFormat ffmpegPixelFormat =video_st->codec->pix_fmt;
 
 	switch (ffmpegPixelFormat )
 	{
