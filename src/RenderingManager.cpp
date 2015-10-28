@@ -244,7 +244,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     }
 
     // create an fbo (with internal automatic first texture attachment)
-    _fbo = new QGLFramebufferObject(size, QGLFramebufferObject::NoAttachment, GL_TEXTURE_2D, GL_RGBA8);
+    _fbo = new QGLFramebufferObject(size);
     Q_CHECK_PTR(_fbo);
 
     if (_fbo->bind()) {
@@ -567,7 +567,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
 
     // create the previous frame (frame buffer object) if needed
     if (!previousframe_fbo) {
-        previousframe_fbo = new QGLFramebufferObject(_fbo->size(), QGLFramebufferObject::NoAttachment, GL_TEXTURE_2D, GL_RGBA8);
+        previousframe_fbo = new QGLFramebufferObject(_fbo->width(), _fbo->height());
         // initial clear to black
         if (previousframe_fbo->bind())  {
             glPushAttrib(GL_COLOR_BUFFER_BIT);

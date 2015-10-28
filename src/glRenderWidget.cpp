@@ -38,24 +38,25 @@
 
 QTimer *glRenderWidget::timer = 0;
 
-static QGLFormat glRenderWidgetFormat(QGL::AlphaChannel | QGL::NoDepthBuffer | QGL::DirectRendering | QGL::NoAccumBuffer | QGL::NoStencilBuffer);
+//static QGLFormat glRenderWidgetFormat(QGL::AlphaChannel | QGL::NoDepthBuffer | QGL::DirectRendering | QGL::NoAccumBuffer | QGL::NoStencilBuffer);
+static QGLFormat glRenderWidgetFormat( QGL::NoDepthBuffer | QGL::NoStencilBuffer);
 
-// for using VSYNC if we move the opengl rendering into a thread:
-// glRenderWidgetFormat.setSwapInterval(20);
 
 glRenderWidget::glRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
 : QGLWidget(glRenderWidgetFormat, parent, shareWidget, f), aspectRatio(1.0), antialiasing(true)
 
 {
 	static bool testDone = false;
-	if (!testDone) {
-		if (!glRenderWidgetFormat.rgba())
+    if (!testDone) {
+        if (!glRenderWidgetFormat.rgba())
           qFatal( "%s", qPrintable( QObject::tr("Your OpenGL drivers could not set RGBA buffer; cannot perform OpenGL rendering.") ));
 		if (!glRenderWidgetFormat.directRendering())
           qCritical() << QObject::tr("Your OpenGL drivers could not set direct rendering.\nRendering will be (very) slow.");
 		if (!glRenderWidgetFormat.doubleBuffer())
           qCritical() << QObject::tr("Your OpenGL drivers could not set double buffering.\nRendering will be slow.");
-		if (glRenderWidgetFormat.swapInterval() > 0)
+        // disable VSYNC
+        glRenderWidgetFormat.setSwapInterval(0);
+        if (glRenderWidgetFormat.swapInterval() > 0)
           qCritical() << QObject::tr("Your OpenGL drivers are configured with VSYNC enabled.\nRendering will be slow.\n\nDisable VSYNC in your system graphics properties to avoid this problem.");
         testDone = true;
 	}
@@ -72,20 +73,16 @@ void glRenderWidget::setAntiAliasing(bool on)
 	antialiasing = on;
 	makeCurrent();
 
-    glDisable(GL_POLYGON_SMOOTH);
-
     // OPENGL ANTIALIASING
-	if (antialiasing) {
-		glEnable(GL_POINT_SMOOTH);
-		glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-		glEnable(GL_LINE_SMOOTH);
-		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);        
-//        glEnable(GL_POLYGON_SMOOTH);
-//        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-	} else {
+    if (antialiasing) {
+        glEnable(GL_POINT_SMOOTH);
+        glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    } else {
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_POINT_SMOOTH);
-	}
+    }
 }
 
 void glRenderWidget::initializeGL()

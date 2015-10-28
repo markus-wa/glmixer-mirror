@@ -178,7 +178,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> useBlitFboExtension;
     activateBlitFrameBuffer->setChecked(!useBlitFboExtension);
 
-    int tfr = 20;
+    int tfr = 16;
     stream >> tfr;
     updatePeriod->setValue(tfr);
 
