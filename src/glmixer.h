@@ -88,9 +88,7 @@ public Q_SLOTS:
 	void on_actionAppend_Session_triggered();
 	void on_actionSelect_Next_triggered();
 	void on_actionSelect_Previous_triggered();
-	void on_actionResetToolbars_triggered();
-	void on_gammaShiftSlider_valueChanged(int);
-	void on_gammaShiftReset_clicked();
+    void on_actionResetToolbars_triggered();
     void on_controlOptionsButton_clicked();
     void on_actionSave_snapshot_triggered();
     void on_actionCopy_snapshot_triggered();

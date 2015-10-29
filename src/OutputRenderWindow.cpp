@@ -187,7 +187,7 @@ void OutputRenderWidget::paintGL()
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		glBlitFramebuffer(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
 									 rx, ry, rw, rh,
-									 GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                                     GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
@@ -220,6 +220,8 @@ void OutputRenderWidget::paintGL()
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 	}
+
+    swapBuffers();
 }
 
 

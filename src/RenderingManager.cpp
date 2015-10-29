@@ -141,7 +141,7 @@ void RenderingManager::deleteInstance() {
 
 RenderingManager::RenderingManager() :
     QObject(), _fbo(NULL), previousframe_fbo(NULL), countRenderingSource(0),
-            previousframe_index(0), previousframe_delay(1), clearWhite(false), gammaShift(1.f),
+            previousframe_index(0), previousframe_delay(1), clearWhite(false),
 #ifdef SHM
             _sharedMemory(NULL), _sharedMemoryGLFormat(GL_RGB), _sharedMemoryGLType(GL_UNSIGNED_SHORT_5_6_5),
 #endif
@@ -510,9 +510,6 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
                 glTranslated(source->getX(), source->getY(), 0.0);
                 glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
                 glScaled(source->getScaleX(), source->getScaleY(), 1.f);
-
-                // global gamma shift
-                ViewRenderWidget::program->setUniformValue("gamma", source->getGamma() * gammaShift);
 
                 source->blend();
                 source->draw();
@@ -2133,16 +2130,6 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     if (progress) delete progress;
 
     return errors;
-}
-
-void RenderingManager::setGammaShift(float g)
-{
-    gammaShift = g;
-}
-
-float RenderingManager::getGammaShift() const
-{
-    return gammaShift;
 }
 
 standardAspectRatio doubleToAspectRatio(double ar)

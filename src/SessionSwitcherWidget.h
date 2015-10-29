@@ -41,9 +41,10 @@ public:
 
 public Q_SLOTS:
 
-    void openFolder(QString directory = QString::null);
+    bool openFolder(QString directory = QString::null);
     void discardFolder();
-    void folderChanged( const QString & text );
+    void folderChanged(const QString &foldername);
+    void fileChanged(const QString &filename);
 
     void startTransitionToSession(const QModelIndex & index);
     void startTransitionToNextSession();

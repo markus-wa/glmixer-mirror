@@ -327,12 +327,25 @@ void SessionSwitcherWidget::nameFilterChanged(const QString &s)
 }
 
 
-void SessionSwitcherWidget::folderChanged( const QString & text )
+void SessionSwitcherWidget::fileChanged(const QString & filename )
+{
+    QFileInfo fileinfo(filename);
+
+    if (!fileinfo.exists())
+        return;
+
+    // if the openning folder returns true, it did change folder and so the list is updated
+    if (openFolder(fileinfo.absolutePath()))
+        return;
+
+}
+
+void SessionSwitcherWidget::folderChanged(const QString & foldername )
 {
     // remove (if exist) the path from list and reorder it
     QStringList folders = appSettings->value("recentFolderList").toStringList();
-    folders.removeAll(text);
-    folders.prepend(text);
+    folders.removeAll(foldername);
+    folders.prepend(foldername);
     // limit list size
     while (folders.size() > MAX_RECENT_FOLDERS)
         folders.removeLast();
@@ -346,7 +359,7 @@ void SessionSwitcherWidget::folderChanged( const QString & text )
     proxyView->setSortingEnabled(false);
 
     // Threaded version of fillFolderModel(folderModel, text, allowedAspectRatio);
-    FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, text, allowedAspectRatio);
+    FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, foldername, allowedAspectRatio);
     if (!workerThread)
         return;
 
@@ -372,10 +385,8 @@ void SessionSwitcherWidget::restoreFolderView()
     setEnabled(true);
 }
 
-void SessionSwitcherWidget::openFolder(QString directory)
+bool SessionSwitcherWidget::openFolder(QString directory)
 {
-    disconnect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
-
     QString dirName;
     if ( directory.isNull() )
         dirName = QFileDialog::getExistingDirectory(0, QObject::tr("Select a directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly );
@@ -383,16 +394,26 @@ void SessionSwitcherWidget::openFolder(QString directory)
         dirName = directory;
 
     if ( dirName.isEmpty() )
-        return;
+        return false;
 
+    // find the index of the directory given
     int index = folderHistory->findText(dirName);
-    if ( index < 0 ) {
-        index = 0;
-        folderHistory->insertItem(index, dirName);
-    }
 
+    // if not found, then insert it
+    // (disable signal to not trigger reloading of the list)
+    disconnect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
+    if ( index < 0 )
+        folderHistory->insertItem(0, dirName);
+    // (reconnect signal)
     connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
-    folderHistory->setCurrentIndex(index);
+
+    // do not change index if the current index is the one we found
+    if( index == folderHistory->currentIndex() )
+        return false;
+
+    // change of index (and trigger the reloading of the list)
+    folderHistory->setCurrentIndex( qBound(0, index, folderHistory->count()) );
+    return true;
 }
 
 void SessionSwitcherWidget::discardFolder()
@@ -413,9 +434,6 @@ void SessionSwitcherWidget::startTransitionToSession(const QModelIndex & index)
 {
     // transfer info to glmixer
     emit sessionTriggered(proxyFolderModel->data(index, Qt::UserRole).toString());
-
-    // clear filter of proxyview
-//    proxyView->leaveEvent(0);
 
     // make sure no other events are accepted until the end of the transition
     disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));

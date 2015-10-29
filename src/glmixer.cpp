@@ -275,7 +275,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     switcherSession = new SessionSwitcherWidget(this, &settings);
     switcherDockWidgetContentsLayout->addWidget(switcherSession);
     QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
-    QObject::connect(this, SIGNAL(sessionSaved()), switcherSession, SLOT(updateFolder()) );
     QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
     QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
 
@@ -1704,7 +1703,6 @@ void GLMixer::newSession()
     // refreshes the rendering areas
     outputpreview->refresh();
     // reset
-    on_gammaShiftReset_clicked();
     maybeSave = false;
 
 }
@@ -1733,7 +1731,6 @@ void GLMixer::on_actionSave_Session_triggered(){
 
         QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(currentSessionFileName).canonicalPath());
         renderConfig.setAttribute("aspectRatio", (int) RenderingManager::getInstance()->getRenderingAspectRatio());
-        renderConfig.setAttribute("gammaShift", RenderingManager::getInstance()->getGammaShift());
         root.appendChild(renderConfig);
 
         QDomElement viewConfig =  RenderingManager::getRenderingWidget()->getConfiguration(doc);
@@ -1758,7 +1755,8 @@ void GLMixer::on_actionSave_Session_triggered(){
             confirmSessionFileName();
 
             // add path to session switcher
-            switcherSession->folderChanged( QFileInfo(currentSessionFileName).absolutePath() );
+            switcherSession->openFolder( QFileInfo(currentSessionFileName).absolutePath() );
+//            switcherSession->fileChanged( currentSessionFileName );
         }
 
         statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
@@ -1913,10 +1911,7 @@ void GLMixer::openSessionFile()
             action4_3_aspect_ratio->trigger();
             break;
         }
-        float g = renderConfig.attribute("gammaShift", "1").toFloat();
-        gammaShiftSlider->setValue(GammaToScale(g));
-        gammaShiftText->setText( QString().setNum( g, 'f', 2) );
-        RenderingManager::getInstance()->setGammaShift(g);
+
         // read the list of sources
         qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session.");
 
@@ -2564,21 +2559,6 @@ QByteArray GLMixer::getPreferences() const {
     stream << RenderingManager::getPropertyBrowserWidget()->getDisplayPropertyTree();
 
     return data;
-}
-
-
-void GLMixer::on_gammaShiftSlider_valueChanged(int val)
-{
-    float g = ScaleToGamma(val);
-    gammaShiftText->setText( QString().setNum( g, 'f', 2) );
-    RenderingManager::getInstance()->setGammaShift(g);
-}
-
-void GLMixer::on_gammaShiftReset_clicked()
-{
-    gammaShiftSlider->setValue( GammaToScale(1.0) );
-    gammaShiftText->setText( QString().setNum( 1.0, 'f', 2) );
-    RenderingManager::getInstance()->setGammaShift(1.0);
 }
 
 

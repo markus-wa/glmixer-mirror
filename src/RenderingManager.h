@@ -156,9 +156,6 @@ public:
 		return renderingAspectRatio;
 	}
 
-	void setGammaShift(float g);
-	float getGammaShift() const;
-
 	double getFrameBufferAspectRatio() const;
 	inline QSize getFrameBufferResolution() const {
 			return _fbo ? _fbo->size() : QSize(0,0);
@@ -263,7 +260,6 @@ protected:
     bool clearWhite;
     frameBufferQuality renderingQuality;
     standardAspectRatio renderingAspectRatio;
-    float gammaShift;
 
 #ifdef SHM
     // The shared memory buffer
