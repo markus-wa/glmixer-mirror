@@ -384,7 +384,6 @@ void RenderingManager::postRenderToFrameBuffer() {
 
         // bind rendering FBO as the current frame buffer
         glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
 
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]);
 

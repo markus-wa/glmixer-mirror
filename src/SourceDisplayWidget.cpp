@@ -54,7 +54,7 @@ void SourceDisplayWidget::initializeGL()
 	glGenTextures(1, &_bgTexture);
 	glBindTexture(GL_TEXTURE_2D, _bgTexture);
 	QImage p(":/glmixer/textures/transparencygrid.png");
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  p.width(), p. height(), 0, GL_RGBA, GL_UNSIGNED_BYTE,  p.bits());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  p.width(), p. height(), 0, GL_RGBA, GL_UNSIGNED_BYTE,  p.bits());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 

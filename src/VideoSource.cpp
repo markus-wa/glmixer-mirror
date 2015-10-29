@@ -52,8 +52,11 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     {
         format = (_vp->getFormat() == AV_PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
 
+        GLint preferedinternalformat = GL_RGBA8;
+        glGetInternalformativ(GL_TEXTURE_2D, format, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
+
         // create texture and fill-in with reset picture
-        glTexImage2D(GL_TEXTURE_2D, 0, format, _vp->getWidth(),
+        glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, _vp->getWidth(),
                     _vp->getHeight(), 0, format, GL_UNSIGNED_BYTE,
                     _vp->getBuffer());
 

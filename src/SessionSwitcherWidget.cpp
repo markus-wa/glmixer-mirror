@@ -334,7 +334,7 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
     if (!fileinfo.exists())
         return;
 
-    // if the openning folder returns true, it did change folder and so the list is updated
+    // if the openning folder function returns true, it did change folder and so the list is updated
     if (openFolder(fileinfo.absolutePath()))
         return;
 

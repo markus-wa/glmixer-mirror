@@ -181,7 +181,6 @@ void OutputRenderWidget::paintGL()
 	{
 		// select fbo texture read target
 	    glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
-//		glReadBuffer(GL_COLOR_ATTACHMENT0);
 
 	    // select screen target
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

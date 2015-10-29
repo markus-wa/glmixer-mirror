@@ -105,7 +105,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="currentRow">
-          <number>-1</number>
+          <number>0</number>
          </property>
          <item>
           <property name="text">
@@ -778,7 +778,7 @@ p, li { white-space: pre-wrap; }
                    <string>Select the recording Codec</string>
                   </property>
                   <property name="currentIndex">
-                   <number>0</number>
+                   <number>4</number>
                   </property>
                   <item>
                    <property name="text">
@@ -1211,7 +1211,7 @@ the user to select a file name</string>
                  <string notr="true">font: italic 9pt;</string>
                 </property>
                 <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Buffers are used to load frames in memory before display.&lt;br/&gt;Low memory usage spèeds up the openning of files,&lt;br/&gt;but does not allow fast playing speed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Buffers are used to load frames in memory before display.&lt;br/&gt;Indicate how much RAM you can afford for each video file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1326,7 +1326,7 @@ font: 75;</string>
                  <string notr="true">font: italic 9pt;</string>
                 </property>
                 <property name="text">
-                 <string>NB: you can use  multiple buttons and modifier keys (SHIFT, CMD, ALT, etc.)</string>
+                 <string>You can use  multiple buttons and modifier keys (SHIFT, CMD, ALT, etc.)</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1593,7 +1593,7 @@ font: 75;</string>
                  <string>Display tree of properties of the current source (side panel)</string>
                 </property>
                 <property name="text">
-                 <string>Display property tree</string>
+                 <string>Display source property in tree</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -1606,7 +1606,7 @@ font: 75;</string>
                  <string>Re-open the last session when launching GLMixer.</string>
                 </property>
                 <property name="text">
-                 <string>Restore last session on start</string>
+                 <string>Restore previous session on start</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -1622,7 +1622,7 @@ font: 75;</string>
                  <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
                 </property>
                 <property name="text">
-                 <string>Use improved file dialogs (instead of system dialogs)</string>
+                 <string>Use improved file dialogs</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -1645,7 +1645,7 @@ font: 75;</string>
                  <string>Shows time information as frame count instead of hh:mm:ss.</string>
                 </property>
                 <property name="text">
-                 <string>Display time as frame numbers (instead of HH:MM:SS)</string>
+                 <string>Display frame numbers instead of time</string>
                 </property>
                </widget>
               </item>
@@ -1676,6 +1676,16 @@ font: 75;</string>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <item>
+                 <widget class="QLabel" name="label_16">
+                  <property name="text">
+                   <string>Source icons style  </string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                  </property>
+                 </widget>
+                </item>
                 <item>
                  <widget class="QLabel" name="label_14">
                   <property name="text">

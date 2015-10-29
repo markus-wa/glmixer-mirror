@@ -115,7 +115,11 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+
+    GLint preferedinternalformat = GL_RGBA8;
+    glGetInternalformativ(GL_TEXTURE_2D, GL_BGR, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 
 	width = frame->width;
 	height = frame->height;

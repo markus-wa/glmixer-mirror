@@ -264,12 +264,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     layoutDockWidgetContentLayout->addWidget(layoutToolBox);
 
     // setup the tags toolbox
-    tagsManager = new TagsManager(this);
-    tagsDockWidgetContentLayout->addWidget(tagsManager);
-    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
+//    tagsManager = new TagsManager(this);
+//    tagsDockWidgetContentLayout->addWidget(tagsManager);
+//    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
 
 //    // DISABLE TAG MANAGER
-//    delete tagsDockWidget;
+    delete tagsDockWidget;
 
     // Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);
@@ -1755,8 +1755,8 @@ void GLMixer::on_actionSave_Session_triggered(){
             confirmSessionFileName();
 
             // add path to session switcher
-            switcherSession->openFolder( QFileInfo(currentSessionFileName).absolutePath() );
-//            switcherSession->fileChanged( currentSessionFileName );
+//            switcherSession->openFolder( QFileInfo(currentSessionFileName).absolutePath() );
+            switcherSession->fileChanged( currentSessionFileName );
         }
 
         statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
