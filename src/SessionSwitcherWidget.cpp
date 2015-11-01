@@ -33,28 +33,27 @@
 
 #include "SessionSwitcherWidget.moc"
 
-
-void addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename, const standardAspectRatio allowedAspectRatio)
+QModelIndex addFile(QStandardItemModel *model, const QString &name, const QDateTime &date, const QString &filename)
 {
 
     QFile file(filename);
     if ( !file.open(QFile::ReadOnly | QFile::Text) )
-        return;
+        return QModelIndex();
 
     QDomDocument doc;
     QString errorStr;
     int errorLine;
     int errorColumn;
     if ( !doc.setContent(&file, true, &errorStr, &errorLine, &errorColumn) )
-        return;
+        return QModelIndex();
 
     QDomElement root = doc.documentElement();
     if ( root.tagName() != "GLMixer" )
-        return;
+        return QModelIndex();
 
     QDomElement srcconfig = root.firstChildElement("SourceList");
     if ( srcconfig.isNull() )
-        return;
+        return QModelIndex();
     // get number of sources in the session
     int nbElem = srcconfig.childNodes().count();
 
@@ -88,32 +87,29 @@ void addFile(QStandardItemModel *model, const QString &name, const QDateTime &da
 
     file.close();
 
-    Qt::ItemFlags flags = Qt::ItemIsSelectable;
-    if (allowedAspectRatio == ASPECT_RATIO_FREE || ar == allowedAspectRatio)
-        flags |= Qt::ItemIsEnabled;
-
     model->insertRow(0);
     model->setData(model->index(0, 0), name);
     model->setData(model->index(0, 0), filename, Qt::UserRole);
     model->setData(model->index(0, 0), (int) ar, Qt::UserRole+1);
-    model->itemFromIndex (model->index(0, 0))->setFlags (flags);
+    model->itemFromIndex (model->index(0, 0))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     model->itemFromIndex (model->index(0, 0))->setToolTip(tooltip);
 
     model->setData(model->index(0, 1), nbElem);
     model->setData(model->index(0, 1), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 1))->setFlags (flags);
+    model->itemFromIndex (model->index(0, 1))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     model->itemFromIndex (model->index(0, 1))->setToolTip(tooltip);
 
     model->setData(model->index(0, 2), aspectRatio);
     model->setData(model->index(0, 2), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 2))->setFlags (flags);
+    model->itemFromIndex (model->index(0, 2))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     model->itemFromIndex (model->index(0, 2))->setToolTip(tooltip);
 
     model->setData(model->index(0, 3), date.toString("yy/MM/dd hh:mm"));
     model->setData(model->index(0, 3), filename, Qt::UserRole);
-    model->itemFromIndex (model->index(0, 3))->setFlags (flags);
+    model->itemFromIndex (model->index(0, 3))->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     model->itemFromIndex (model->index(0, 3))->setToolTip(tooltip);
 
+    return model->index(0, 0);
 }
 
 
@@ -134,24 +130,22 @@ void FolderModelFiller::run()
 
             // fill list
             for (int i = 0; i < fileList.size(); ++i) {
-                QFileInfo fileInfo = fileList.at(i);
-                addFile(model, fileInfo.completeBaseName(), fileInfo.lastModified(), fileInfo.absoluteFilePath(), allowedAspectRatio);
+                QFileInfo fileinfo = fileList.at(i);
+                addFile(model, fileinfo.completeBaseName(), fileinfo.lastModified(), fileinfo.absoluteFilePath());
             }
         }
     }
 }
 
-FolderModelFiller::FolderModelFiller(QObject *parent,QStandardItemModel *m,
-                                     QString p, const standardAspectRatio allowedAR)
-    : QThread(parent), model(m), path(p), allowedAspectRatio(allowedAR)
+FolderModelFiller::FolderModelFiller(QObject *parent, QStandardItemModel *m, QString p)
+    : QThread(parent), model(m), path(p)
 {
 
 }
 
 
 SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *settings) : QWidget(parent),
-    appSettings(settings), m_iconSize(48,48), allowedAspectRatio(ASPECT_RATIO_FREE),
-    nextSessionSelected(false), suspended(false)
+    appSettings(settings), m_iconSize(48,48), nextSessionSelected(false), suspended(false)
 {
     QGridLayout *g;
 
@@ -329,14 +323,33 @@ void SessionSwitcherWidget::nameFilterChanged(const QString &s)
 
 void SessionSwitcherWidget::fileChanged(const QString & filename )
 {
-    QFileInfo fileinfo(filename);
-
-    if (!fileinfo.exists())
+    if (filename.isEmpty())
         return;
+
+    QFileInfo fileinfo(filename);
 
     // if the openning folder function returns true, it did change folder and so the list is updated
     if (openFolder(fileinfo.absolutePath()))
         return;
+
+    // the folder is already the good one, change only the file item
+    if (folderModelAccesslock.tryLock(100)) {
+
+        QList<QStandardItem *> items = folderModel->findItems( fileinfo.completeBaseName() );
+
+        // remove all items found
+        foreach (const QStandardItem *item, items)
+            folderModel->removeRow( item->row() );
+
+        // (re)insert the file into the model
+        QModelIndex index = addFile(folderModel, fileinfo.completeBaseName(), fileinfo.lastModified(), fileinfo.absoluteFilePath());
+
+        // idem was added, select it
+        if ( index.isValid() )
+            proxyView->setCurrentIndex( proxyFolderModel->mapFromSource( index ) );
+
+        folderModelAccesslock.unlock();
+    }
 
 }
 
@@ -358,8 +371,8 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
     sortingOrder = proxyFolderModel->sortOrder();
     proxyView->setSortingEnabled(false);
 
-    // Threaded version of fillFolderModel(folderModel, text, allowedAspectRatio);
-    FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, foldername, allowedAspectRatio);
+    // Threaded version of fillFolderModel(folderModel, text);
+    FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, foldername);
     if (!workerThread)
         return;
 
@@ -645,14 +658,12 @@ void SessionSwitcherWidget::setAllowedAspectRatio(const standardAspectRatio ar)
 {
     if (folderModelAccesslock.tryLock(100)) {
 
-        allowedAspectRatio = ar;
-
         // quick redisplay of folder list
         for (int r = 0; r < folderModel->rowCount(); ++r )
         {
             standardAspectRatio sar = (standardAspectRatio) folderModel->data(folderModel->index(r, 0), Qt::UserRole+1).toInt();
             Qt::ItemFlags flags = Qt::ItemIsSelectable;
-            if (allowedAspectRatio == ASPECT_RATIO_FREE || sar == allowedAspectRatio)
+            if (ar == ASPECT_RATIO_FREE || sar == ar)
                 flags |= Qt::ItemIsEnabled;
 
             folderModel->itemFromIndex(folderModel->index(r, 0))->setFlags (flags);

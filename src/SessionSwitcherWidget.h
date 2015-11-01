@@ -110,10 +110,9 @@ class FolderModelFiller : public QThread
 
      QStandardItemModel *model;
      QString path;
-     standardAspectRatio allowedAspectRatio;
 
 public:
-     FolderModelFiller(QObject *parent, QStandardItemModel *m, QString p, const standardAspectRatio allowedAR);
+     FolderModelFiller(QObject *parent, QStandardItemModel *m, QString p);
 
 };
 
