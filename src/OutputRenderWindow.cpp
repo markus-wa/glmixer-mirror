@@ -219,8 +219,6 @@ void OutputRenderWidget::paintGL()
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 	}
-
-    swapBuffers();
 }
 
 
