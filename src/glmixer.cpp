@@ -1754,12 +1754,11 @@ void GLMixer::on_actionSave_Session_triggered(){
         {
             confirmSessionFileName();
 
-            // add path to session switcher
-//            switcherSession->openFolder( QFileInfo(currentSessionFileName).absolutePath() );
+            // update session switcher
             switcherSession->fileChanged( currentSessionFileName );
         }
 
-        statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
+//        statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
         emit sessionSaved();
     }
 
@@ -1979,6 +1978,9 @@ void GLMixer::openSessionFile()
 
     // start the smooth transition
     RenderingManager::getSessionSwitcher()->startTransition(true);
+
+    // update session switcher
+    switcherSession->fileChanged( currentSessionFileName );
 
     // message
     statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );

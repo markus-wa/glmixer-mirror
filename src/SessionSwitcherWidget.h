@@ -52,7 +52,6 @@ public Q_SLOTS:
 	// unblock the GUI suspended when loading new session
 	void unsuspend();
     void selectSession(const QModelIndex & index);
-    void nameFilterChanged(const QString &s);
 
     void setTransitionType(int t);
     void setTransitionMode(int m);
@@ -67,6 +66,10 @@ public Q_SLOTS:
     void setAllowedAspectRatio(const standardAspectRatio ar);
     void restoreTransition();
     void restoreFolderView();
+
+    void reloadFolder();
+    void browseFolder();
+    void deleteSession();
 
 Q_SIGNALS:
 	void sessionTriggered(QString);
@@ -90,6 +93,7 @@ private:
     QSpinBox *transitionDuration;
     QSize m_iconSize;
     standardAspectRatio allowedAspectRatio;
+    QMenu menuFolderModel;
 
     class SourceDisplayWidget *overlayPreview;
     QLabel *currentSessionLabel, *nextSessionLabel;

@@ -282,6 +282,18 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyView->header()->resizeSection(2, 35);
     //    proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
 
+    proxyView->setContextMenuPolicy(Qt::ActionsContextMenu);
+    QAction *reloadAction = new QAction(tr("Reload folder"), proxyView);
+    proxyView->insertAction(0, reloadAction);
+    QObject::connect(reloadAction, SIGNAL(triggered()), this, SLOT(reloadFolder()) );
+    QAction *openUrlAction = new QAction(tr("Show folder in browser"), proxyView);
+    proxyView->insertAction(0, openUrlAction);
+    QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(browseFolder()) );
+    QAction *deleteSessionAction = new QAction(tr("Delete file"), proxyView);
+    proxyView->insertAction(0, deleteSessionAction);
+    QObject::connect(deleteSessionAction, SIGNAL(triggered()), this, SLOT(deleteSession()) );
+
+
     connect(dirButton, SIGNAL(clicked()),  this, SLOT(openFolder()));
     connect(dirDeleteButton, SIGNAL(clicked()),  this, SLOT(discardFolder()));
     connect(customButton, SIGNAL(clicked()),  this, SLOT(customizeTransition()));
@@ -314,43 +326,71 @@ SessionSwitcherWidget::~SessionSwitcherWidget()
     delete proxyFolderModel;
 }
 
-void SessionSwitcherWidget::nameFilterChanged(const QString &s)
+void SessionSwitcherWidget::reloadFolder()
 {
-    QRegExp regExp(s, Qt::CaseInsensitive, QRegExp::FixedString);
-    proxyFolderModel->setFilterRegExp(regExp);
+    QFileInfo sessionFolder( folderHistory->currentText() );
+
+    if ( sessionFolder.exists() )
+        folderChanged( sessionFolder.absoluteFilePath() );
+
 }
 
+void SessionSwitcherWidget::browseFolder()
+{
+    QFileInfo sessionFolder( folderHistory->currentText() );
+
+    if ( sessionFolder.exists() ) {
+
+        QUrl sessionURL = QUrl::fromLocalFile( sessionFolder.absoluteFilePath() ) ;
+
+        if ( sessionURL.isValid() )
+            QDesktopServices::openUrl(sessionURL);
+    }
+}
+
+void SessionSwitcherWidget::deleteSession()
+{
+    QFileInfo sessionFile( proxyFolderModel->data(proxyView->currentIndex(), Qt::UserRole).toString() );
+
+    if ( sessionFile.isFile() ) {
+        QDir sessionDir(sessionFile.canonicalPath());
+
+        sessionDir.remove(sessionFile.fileName());
+
+        reloadFolder();
+    }
+}
 
 void SessionSwitcherWidget::fileChanged(const QString & filename )
 {
-    if (filename.isEmpty())
-        return;
-
     QFileInfo fileinfo(filename);
 
-    // if the openning folder function returns true, it did change folder and so the list is updated
-    if (openFolder(fileinfo.absolutePath()))
-        return;
+    if ( fileinfo.exists() && fileinfo.isFile() ) {
 
-    // the folder is already the good one, change only the file item
-    if (folderModelAccesslock.tryLock(100)) {
+        // if the openning folder function returns true, it did change folder and so the list is updated
+        if (openFolder(fileinfo.absolutePath()))
+            return;
 
-        QList<QStandardItem *> items = folderModel->findItems( fileinfo.completeBaseName() );
+        // the folder is already the good one, change only the file item
+        if (folderModelAccesslock.tryLock(100)) {
 
-        // remove all items found
-        foreach (const QStandardItem *item, items)
-            folderModel->removeRow( item->row() );
+            // look for item in the list
+            QList<QStandardItem *> items = folderModel->findItems( fileinfo.completeBaseName() );
 
-        // (re)insert the file into the model
-        QModelIndex index = addFile(folderModel, fileinfo.completeBaseName(), fileinfo.lastModified(), fileinfo.absoluteFilePath());
+            // remove all items found
+            foreach (const QStandardItem *item, items)
+                folderModel->removeRow( item->row() );
 
-        // idem was added, select it
-        if ( index.isValid() )
-            proxyView->setCurrentIndex( proxyFolderModel->mapFromSource( index ) );
+            // (re)insert the file into the model
+            QModelIndex index = addFile(folderModel, fileinfo.completeBaseName(), fileinfo.lastModified(), fileinfo.absoluteFilePath());
 
-        folderModelAccesslock.unlock();
+            // idem was added, select it
+            if ( index.isValid() )
+                proxyView->setCurrentIndex( proxyFolderModel->mapFromSource( index ) );
+
+            folderModelAccesslock.unlock();
+        }
     }
-
 }
 
 void SessionSwitcherWidget::folderChanged(const QString & foldername )
@@ -366,6 +406,8 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
 
     folderHistory->updateGeometry();
 
+    folderModelAccesslock.lock();
+
     // remember sorting before disabling it temporarily
     sortingColumn = proxyFolderModel->sortColumn();
     sortingOrder = proxyFolderModel->sortOrder();
@@ -376,13 +418,11 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
     if (!workerThread)
         return;
 
-    if (folderModelAccesslock.tryLock(200)) {
-        setEnabled(false);
-        connect(workerThread, SIGNAL(finished()), this, SLOT(restoreFolderView()));
-        connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
-        workerThread->start();
-    } else
-        delete workerThread;
+    setEnabled(false);
+    connect(workerThread, SIGNAL(finished()), this, SLOT(restoreFolderView()));
+    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+    workerThread->start();
+
 }
 
 
@@ -400,32 +440,41 @@ void SessionSwitcherWidget::restoreFolderView()
 
 bool SessionSwitcherWidget::openFolder(QString directory)
 {
+    // open file dialog if no directory is given
     QString dirName;
     if ( directory.isNull() )
         dirName = QFileDialog::getExistingDirectory(0, QObject::tr("Select a directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly );
     else
         dirName = directory;
 
-    if ( dirName.isEmpty() )
+    // make sure we have a valid directory
+    QFileInfo sessionFolder (dirName);
+    if ( !sessionFolder.isDir() )
         return false;
 
-    // find the index of the directory given
+    // nothing to do is its already the current directory
+    QFileInfo currentFolder( folderHistory->currentText() );
+    if ( sessionFolder == currentFolder )
+        return false;
+
+    // find the index of the given directory
     int index = folderHistory->findText(dirName);
 
     // if not found, then insert it
-    // (disable signal to not trigger reloading of the list)
-    disconnect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
-    if ( index < 0 )
-        folderHistory->insertItem(0, dirName);
-    // (reconnect signal)
-    connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
+    if ( index < 0 ) {
+        // (disable signal to not trigger reloading of the list)
+        disconnect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
 
-    // do not change index if the current index is the one we found
-    if( index == folderHistory->currentIndex() )
-        return false;
+        folderHistory->insertItem(0, sessionFolder.absoluteFilePath());
+        index = 0;
 
-    // change of index (and trigger the reloading of the list)
-    folderHistory->setCurrentIndex( qBound(0, index, folderHistory->count()) );
+        // (reconnect signal)
+        connect(folderHistory, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(folderChanged(const QString &)));
+    }
+
+    // change the current index (this triggers the reloading of the list)
+    folderHistory->setCurrentIndex( index );
+
     return true;
 }
 
