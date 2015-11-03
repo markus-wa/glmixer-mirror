@@ -436,7 +436,9 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     int got_output = 0;
     r = avcodec_encode_video2(rec->enc->codec_context, &pkt, &frame, &got_output);
     if(r < 0 || got_output == 0) {
+#if LIBAVUTIL_VERSION_INT > AV_VERSION_INT(54,0,0)
         av_log(0, 0, "Err avcodec_encode_video2: %s\n", av_err2str(r));
+#endif
         return;
     }
 #endif
@@ -463,7 +465,9 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 
     r = av_write_frame(rec->enc->format_context, &pkt);
     if(r < 0){
+#if LIBAVUTIL_VERSION_INT > AV_VERSION_INT(54,0,0)
         av_log(0, 0, "Err av_write_frame: %s\n", av_err2str(r));
+#endif
         return;
     }
 
@@ -507,7 +511,9 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     if(got_output == 0)
         return;
     if(r < 0){
+#if LIBAVUTIL_VERSION_INT > AV_VERSION_INT(54,0,0)
         av_log(0, 0, "Err avcodec_encode_video2: %s\n", av_err2str(r));
+#endif
         return;
     }
 #endif
@@ -534,7 +540,9 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
 
     r = av_interleaved_write_frame(rec->enc->format_context, &pkt);
     if(r < 0){
+#if LIBAVUTIL_VERSION_INT > AV_VERSION_INT(54,0,0)
         av_log(0, 0, "Err av_interleaved_write_frame: %s\n", av_err2str(r));
+#endif
         return;
     }
 
