@@ -424,7 +424,7 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     // compute pts from time given
     frame.pts = av_rescale( (int64_t) timestamp, AV_TIME_BASE, 1000);
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54,0,0)
     r = avcodec_encode_video(rec->enc->codec_context, rec->enc->vbuf_ptr, rec->enc->vbuf_size, &frame);
     if(r == 0)
         return;
@@ -498,7 +498,7 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     rec->conv->picture->pts = av_rescale( (int64_t) timestamp, AV_TIME_BASE, 1000);
 
     // encode the frame in a packet
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54,0,0)
     r = avcodec_encode_video(rec->enc->codec_context, rec->enc->vbuf_ptr, rec->enc->vbuf_size, rec->conv->picture);
     if(r == 0)
         return;
