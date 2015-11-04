@@ -769,13 +769,23 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         emit markingChanged();
     }
 
-    // set picture size (NB : use coded width as some files have a width which is different)
+    // read picture width from video codec
+    // (NB : if available, use coded width as some files have a width which is different)
+    double actual_width = video_st->codec->coded_width > 0 ? video_st->codec->coded_width : video_st->codec->width;
+
+    // set picture size
     if (targetWidth == 0)
-        targetWidth = video_st->codec->coded_width;
+        targetWidth = actual_width;
+//    targetWidth = video_st->codec->width;
+
+    qDebug() << "targetWidth" << targetWidth;
+    qDebug() << "video_st->codec->coded_width" << video_st->codec->coded_width;
+    qDebug() << "video_st->codec->width" << video_st->codec->width;
+
     if (targetHeight == 0)
         targetHeight = video_st->codec->height;
 
-	// round target picture size to power of two size
+    // round target picture size to power of two size
 	if (powerOfTwo)
 	{
 		targetWidth = VideoFile::roundPowerOfTwo(targetWidth);
@@ -824,7 +834,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         filter = sws_getDefaultFilter(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0);
 
 	// create conversion context
-    img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
+    // (use the actual width to match with targetWidth and avoid useless scaling)
+    img_convert_ctx = sws_getCachedContext(NULL, actual_width,
                     video_st->codec->height, video_st->codec->pix_fmt,
 					targetWidth, targetHeight, targetFormat,
 					conversionAlgorithm, filter, NULL, NULL);
@@ -1459,14 +1470,21 @@ bool VideoFile::timeInQueue(double time)
 
 double VideoFile::getStreamAspectRatio() const
 {
-    double aspect_ratio = 1.0;
+    // read information from the video stream if avaialble
+    if (video_st && video_st->codec) {
 
-    if (video_st && video_st->codec)
-        aspect_ratio = (double) video_st->codec->width / (double) video_st->codec->height;
-    else
-        aspect_ratio = (double) firstPicture->getWidth() / (double) firstPicture->getHeight();
+        // base computation of aspect ratio
+        double aspect_ratio = (double) video_st->codec->width / (double) video_st->codec->height;
 
-	return aspect_ratio;
+        // use correction of aspect ratio if available in the video stream
+        if (video_st->codec->sample_aspect_ratio.num > 1)
+            aspect_ratio *= av_q2d(video_st->codec->sample_aspect_ratio);
+
+        return aspect_ratio;
+    }
+
+    // default case
+    return firstPicture->getAspectRatio();
 }
 
 /**

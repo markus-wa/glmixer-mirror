@@ -141,7 +141,7 @@ void MixerView::paint()
         ax = (*its)->getAlphaX();
         ay = (*its)->getAlphaY();
         glTranslated(ax, ay, (*its)->getDepth());
-        renderingAspectRatio = ABS( (*its)->getScaleX() / (*its)->getScaleY() );
+        renderingAspectRatio = (*its)->getAspectRatio();
         if ( ABS(renderingAspectRatio) > 1.0)
             glScaled(SOURCE_UNIT, SOURCE_UNIT / renderingAspectRatio,  1.0);
         else
@@ -196,7 +196,7 @@ void MixerView::paint()
     for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
         glPushMatrix();
         glTranslated((*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-        renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+        renderingAspectRatio = (*its)->getAspectRatio();
         if ( ABS(renderingAspectRatio) > 1.0)
             glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
         else
@@ -253,7 +253,7 @@ void MixerView::paint()
             glCallList(ViewRenderWidget::border_thin);
         }
         glPopMatrix();
-        renderingAspectRatio = s->getScaleX() / s->getScaleY();
+        renderingAspectRatio = s->getAspectRatio();
         if ( ABS(renderingAspectRatio) > 1.0)
             glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
         else
@@ -899,7 +899,7 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
         glPushMatrix();
         glTranslated( (*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-        double renderingAspectRatio = (*its)->getScaleX() / (*its)->getScaleY();
+        double renderingAspectRatio = (*its)->getAspectRatio();
         if ( ABS(renderingAspectRatio) > 1.0)
             glScaled(SOURCE_UNIT , SOURCE_UNIT / renderingAspectRatio,  1.0);
         else

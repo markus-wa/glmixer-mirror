@@ -201,11 +201,11 @@ void LayersView::paint()
             // animated displacement
             if (forwardDisplacement < MAXDISPLACEMENT)
                 forwardDisplacement += ( MAXDISPLACEMENT + 0.1 - forwardDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
-            glTranslatef( forwardDisplacement, 0.0, 0.0);
+            glTranslated( forwardDisplacement, 0.0, 0.0);
         }
 
-        glTranslatef( 0.0, 0.0, (*its)->getDepth());
-        glScalef((*its)->getAspectRatio(), 1.0, 1.0);
+        glTranslated( 0.0, 0.0, (*its)->getDepth());
+        glScaled((*its)->getAspectRatio(), 1.0, 1.0);
 
         // Blending Function For mixing like in the rendering window
         (*its)->blend();
