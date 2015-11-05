@@ -393,8 +393,8 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 #endif
 
 #ifndef NDEBUG
-        csvLogger *debugingLogger = new csvLogger("logsVideoFiles");
         // uncomment to activate debug logs
+        // csvLogger *debugingLogger = new csvLogger("logsVideoFiles");
         //        debugingLogger->startTimer(1000);
         //        qDebug() << "Starting CSV logger";
 #endif
@@ -771,22 +771,20 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
     // read picture width from video codec
     // (NB : if available, use coded width as some files have a width which is different)
-    double actual_width = video_st->codec->coded_width > 0 ? video_st->codec->coded_width : video_st->codec->width;
+    int actual_width = video_st->codec->coded_width > 0 ? video_st->codec->coded_width : video_st->codec->width;
+
+    // fix non-aligned width (causing alignment problem in sws conversion)
+    actual_width -= actual_width%16;
 
     // set picture size
     if (targetWidth == 0)
         targetWidth = actual_width;
-//    targetWidth = video_st->codec->width;
-
-    qDebug() << "targetWidth" << targetWidth;
-    qDebug() << "video_st->codec->coded_width" << video_st->codec->coded_width;
-    qDebug() << "video_st->codec->width" << video_st->codec->width;
 
     if (targetHeight == 0)
         targetHeight = video_st->codec->height;
 
     // round target picture size to power of two size
-	if (powerOfTwo)
+    if (powerOfTwo)
 	{
 		targetWidth = VideoFile::roundPowerOfTwo(targetWidth);
 		targetHeight = VideoFile::roundPowerOfTwo(targetHeight);
@@ -795,6 +793,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	// Default targetFormat to PIX_FMT_RGB24, not using color palette
     targetFormat = AV_PIX_FMT_RGB24;
     rgba_palette = false;
+
 
     // Change target format to keep Alpha channel if format requires
     if ( pixelFormatHasAlphaChannel() )
@@ -807,6 +806,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
             rgba_palette = true;
         }
     }
+    // format description screen (for later)
+    QString pfn(av_pix_fmt_desc_get(targetFormat)->name);
 
 	// Decide for optimal scaling algo if it was not specified
 	// NB: the algo is used only if the conversion is scaled or with filter
@@ -835,7 +836,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
 	// create conversion context
     // (use the actual width to match with targetWidth and avoid useless scaling)
-    img_convert_ctx = sws_getCachedContext(NULL, actual_width,
+    img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
                     video_st->codec->height, video_st->codec->pix_fmt,
 					targetWidth, targetHeight, targetFormat,
 					conversionAlgorithm, filter, NULL, NULL);
@@ -863,12 +864,11 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         recomputePictureQueueMaxCount();
 
         // tells everybody we are set !
-        QString pfn(av_pix_fmt_desc_get(targetFormat)->name);
-        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 frames in %4).").arg(video_st->nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(pfn);
+        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 %4 frames).").arg(video_st->nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(pfn);
 
     }
     else {
-        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (1 frame).");
+        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (1 %1 frame).").arg(pfn);
     }
 
     // use first picture as reset picture
@@ -894,19 +894,14 @@ bool VideoFile::pixelFormatHasAlphaChannel() const
             // does the format has ALPHA ?
             || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_ALPHA )
             // special case of PALLETE and GREY pixel formats(converters exist for rgba)
-            || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_PAL )
-            // special case of YUVJ
-            || ( video_st->codec->pix_fmt == PIX_FMT_YUVJ420P ) );
+            || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_PAL ) );
 #elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 	return  (av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3)
 			// special case of PALLETE and GREY pixel formats(converters exist for rgba)
-            || ( av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL
-            // special case of YUVJ
-            || video_st->codec->pix_fmt == PIX_FMT_YUVJ420P);
+            || ( av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL );
 #else
 	return (video_st->codec->pix_fmt == PIX_FMT_RGBA || video_st->codec->pix_fmt == PIX_FMT_BGRA ||
-			video_st->codec->pix_fmt == PIX_FMT_ARGB || video_st->codec->pix_fmt == PIX_FMT_ABGR ||
-			video_st->codec->pix_fmt == PIX_FMT_YUVJ420P );
+            video_st->codec->pix_fmt == PIX_FMT_ARGB || video_st->codec->pix_fmt == PIX_FMT_ABGR );
 #endif
 }
 
