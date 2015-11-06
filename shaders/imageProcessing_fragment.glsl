@@ -1,5 +1,3 @@
-#extension GL_EXT_gpu_shader4 : require
-
 /*
 ** Gamma correction
 ** Details: http://blog.mouaif.org/2009/01/22/photoshop-gamma-correction-shader/
