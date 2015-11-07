@@ -207,7 +207,7 @@ qt4_add_translation(GLMIXER_QM ${LANG})
 
 # multiplatform cpack info
 SET(CPACK_PACKAGE_NAME "GLMixer")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Graphic Live Mixer -- Real-time video mixing software for live performance.")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Graphic Live Mixer\n Real-time video mixing software for live performance.")
 SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.txt")
 SET(CPACK_PACKAGE_CONTACT "bruno.herbelin@gmail.com")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING.txt")
@@ -304,10 +304,10 @@ ELSE(APPLE)
         # Linux cpack info
         SET(CPACK_GENERATOR "DEB")
         SET(CPACK_DEBIAN_PACKAGE_NAME ${CPACK_PACKAGE_NAME})
-        execute_process(COMMAND dpkg --print-architecture OUTPUT_VARIABLE ARCHITECTURE)
-        execute_process(COMMAND lsb_release -sd OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
-        string(STRIP ${ARCHITECTURE} CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
-        SET(CPACK_SYSTEM_NAME "${DISTRIBUTION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+        execute_process(COMMAND dpkg --print-architecture OUTPUT_VARIABLE ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
+        execute_process(COMMAND lsb_release -si OUTPUT_VARIABLE DISTRIBUTION OUTPUT_STRIP_TRAILING_WHITESPACE)
+        execute_process(COMMAND lsb_release -sr OUTPUT_VARIABLE DISTRIB_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+        SET(CPACK_SYSTEM_NAME "${DISTRIBUTION}_${DISTRIB_VERSION}_${ARCHITECTURE}")
         SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <${CPACK_PACKAGE_CONTACT}>")
         SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${CPACK_PACKAGE_DESCRIPTION_SUMMARY})
         SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://sourceforge.net/projects/glmixer/")
@@ -441,7 +441,7 @@ ELSE(APPLE)
 
     # Write license file
     file(WRITE "${CMAKE_BINARY_DIR}/copyright"
-         "Copyright (C) 2010-2013 ${CPACK_DEBIAN_PACKAGE_MAINTAINER}
+         "Copyright (C) 2010-2015 ${CPACK_DEBIAN_PACKAGE_MAINTAINER}
 
        This software may be licensed under the terms of the
        GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -508,7 +508,7 @@ ELSE(APPLE)
         Version=${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}
         GenericName=${GLMIXER_BINARY}
         X-GNOME-FullName=${GLMIXER_BINARY}
-        Comment=${CPACK_PACKAGE_DESCRIPTION_SUMMARY}
+        Comment=Graphic Live Mixer
         Type=Application
         Categories=${CPACK_DEBIAN_PACKAGE_SECTION}
         Path=${CMAKE_INSTALL_PREFIX}/bin
