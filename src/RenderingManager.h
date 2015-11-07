@@ -258,6 +258,7 @@ protected:
 	QGLFramebufferObject *previousframe_fbo;
 	unsigned int countRenderingSource, previousframe_index, previousframe_delay;
     bool clearWhite;
+    unsigned int maxSourceCount;
     frameBufferQuality renderingQuality;
     standardAspectRatio renderingAspectRatio;
 

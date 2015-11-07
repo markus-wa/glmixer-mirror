@@ -23,7 +23,7 @@
  *
  */
 
-#include "common.h"
+#include "defines.h"
 #include "CatalogView.h"
 #include "ViewRenderWidget.h"
 #include "RenderingManager.h"
@@ -31,8 +31,6 @@
 #include "OutputRenderWindow.h"
 #include "Tag.h"
 
-#define CATALOG_TEXTURE_WIDTH 16384
-#define CATALOG_TEXTURE_HEIGHT 128
 #define TOPMARGIN 20
 
 CatalogView::CatalogView() : View(), _visible(true), _alpha(1.0), _catalogfbo(0)
@@ -96,8 +94,13 @@ void CatalogView::setVisible(bool on){
 
 void CatalogView::clear() {
 
+
+    GLint maxtexturewidth = 0;
+    glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
+
+
     if (!_catalogfbo)
-        _catalogfbo = new QGLFramebufferObject(CATALOG_TEXTURE_WIDTH, CATALOG_TEXTURE_HEIGHT);
+        _catalogfbo = new QGLFramebufferObject(maxtexturewidth, CATALOG_TEXTURE_HEIGHT);
 
     if (_catalogfbo->bind()) {
 

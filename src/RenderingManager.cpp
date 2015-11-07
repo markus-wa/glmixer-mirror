@@ -141,7 +141,7 @@ void RenderingManager::deleteInstance() {
 
 RenderingManager::RenderingManager() :
     QObject(), _fbo(NULL), previousframe_fbo(NULL), countRenderingSource(0),
-            previousframe_index(0), previousframe_delay(1), clearWhite(false),
+            previousframe_index(0), previousframe_delay(1), clearWhite(false), maxSourceCount(MAX_SOURCE_COUNT),
 #ifdef SHM
             _sharedMemory(NULL), _sharedMemoryGLFormat(GL_RGB), _sharedMemoryGLType(GL_UNSIGNED_SHORT_5_6_5),
 #endif
@@ -157,7 +157,6 @@ RenderingManager::RenderingManager() :
 
     _propertyBrowser = new SourcePropertyBrowser;
     Q_CHECK_PTR(_propertyBrowser);
-
 
     // for pixel buffer objects,
     index = nextIndex = 0;
@@ -237,11 +236,23 @@ void RenderingManager::setRenderingAspectRatio(standardAspectRatio ar)
 
 void RenderingManager::setFrameBufferResolution(QSize size) {
 
+    // activate OpenGL context
     _renderwidget->makeCurrent();
 
+    // Setup limit
+    GLint maxtexturewidth = 0;
+    glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
+    maxSourceCount = maxtexturewidth / CATALOG_TEXTURE_HEIGHT;
+    size.setWidth( qBound(0, size.width(), maxtexturewidth) );
+
+    qDebug() << "OpenGL Maximum texture width :" << maxtexturewidth;
+    qDebug() << "Maximum number of sources :" << maxSourceCount;
+
+    // cleanup
     if (_fbo) {
         delete _fbo;
     }
+
 
     // create an fbo (with internal automatic first texture attachment)
     _fbo = new QGLFramebufferObject(size);
@@ -965,7 +976,7 @@ bool RenderingManager::insertSource(Source *s)
         // replace the source name by another available one based on the original name
         s->setName( getAvailableNameFrom(s->getName()) );
 
-        if (_front_sources.size() < MAX_SOURCE_COUNT) {
+        if (_front_sources.size() < maxSourceCount) {
             //insert the source to the list
             if (_front_sources.insert(s).second)
                 // inform of success
@@ -974,7 +985,7 @@ bool RenderingManager::insertSource(Source *s)
                 qWarning() << tr("Not enough memory to insert the source into the stack.");
         }
         else
-            qWarning() << tr("You have reached the maximum amount of source supported (%1).").arg(MAX_SOURCE_COUNT);
+            qWarning() << tr("You have reached the maximum amount of source supported (%1).").arg(maxSourceCount);
     }
 
     return false;
