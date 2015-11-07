@@ -21,8 +21,8 @@ you apply to them.
 The principle of interaction is to drop video files into a workspace, and to move
 them in a circular area to change their opacity ; if you selects two videos, moving
 them together makes a fading transition, and this principle is generalized to any
-number of videos. Direct interaction with the video icons allows to be fast and reactive,
-and also to move and deform them on screen.
+number of videos. Direct interaction with the video icons allows you to be fast and reactive,
+and to move and deform videos on screen.
 
 The output of your operations is shown in the main rendering window, which should
 for example be displayed full-screen on an external monitor or a projector, or can
@@ -63,7 +63,7 @@ libx264-dev
 libxvidcore-dev
 libv4l-dev
 
-For optionnal OpenCV:
+For optional OpenCV:
 libcv-dev
 libcvaux-dev
 libhighgui-dev
