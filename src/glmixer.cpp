@@ -1328,18 +1328,36 @@ void GLMixer::on_actionEditSource_triggered()
         FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
         editShaderToyPlugin(  ffgls->freeframeGLPlugin() );
     }
-    // for others, edit mean show a widget with properties
+    else if ( (*cs)->rtti()  == Source::CAPTURE_SOURCE ) {
+        QMessageBox::information(this, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()), "There is nothing to edit on a Capture-Frame Source. ");
+
+    }
+    else if ( (*cs)->rtti()  == Source::RENDERING_SOURCE ) {
+        QMessageBox::information(this, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()), "There is nothing to edit on a Loopback Source. ");
+
+    }
+    else if ( (*cs)->rtti()  == Source::CLONE_SOURCE ) {
+        QMessageBox::information(this, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()), "There is nothing to edit on the Clone of a Source. ");
+
+        // TODO : show dialog for selecting a source to clone
+    }
+    else if ( (*cs)->rtti()  == Source::ALGORITHM_SOURCE ) {
+        // TODO : show dialog of Algorithm source
+
+    }
+    else if ( (*cs)->rtti()  == Source::WEB_SOURCE ) {
+        // TODO : show dialog of Web source
+
+    }
+    else if ( (*cs)->rtti()  == Source::CAMERA_SOURCE ) {
+        // TODO : show dialog of OpenCV source
+
+    }
+    // for others, edit mean show the dialog to change file
     else {
-        SourceEditDialog sed(this, *cs, tr("Edit source properties"));
-        QObject::connect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, bool)), mixingToolBox, SLOT(propertyChanged(QString, bool)) );
-        QObject::connect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
-        QObject::connect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
+        SourceFileEditDialog sed(this, *cs, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()));
 
         sed.exec();
-
-        QObject::disconnect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, bool)), mixingToolBox, SLOT(propertyChanged(QString, bool)) );
-        QObject::disconnect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, int)), mixingToolBox, SLOT(propertyChanged(QString, int)) );
-        QObject::disconnect(sed.sourcePropertyBrowser, SIGNAL(propertyChanged(QString, const QColor &)), mixingToolBox, SLOT(propertyChanged(QString, const QColor &)) );
 
     }
 
@@ -1369,8 +1387,8 @@ void GLMixer::on_actionDeleteSource_triggered()
             int numclones = (*sit)->getClones()->size();
             // popup a question dialog 'are u sure' if there are clones attached;
             if ( numclones ){
-                QString msg = tr("This source was cloned %1 times; Do you want to delete all the clones too?").arg(numclones);
-                if ( QMessageBox::question(this," Are you sure?", msg, QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
+                QString msg = tr("Source '%1' was cloned %2 times.\n\nDo you want to delete all the clones too?").arg((*its)->getName()).arg(numclones);
+                if ( QMessageBox::question(this, tr("%1 - Are you sure?").arg(QCoreApplication::applicationName()), msg, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
                     numclones = 0;
             }
 

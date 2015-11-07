@@ -45,18 +45,16 @@ public:
 
 };
 
-class SourceEditDialog: public QDialog {
+class SourceFileEditDialog: public QDialog {
 
 public:
     Source *s;
     PropertyBrowser *specificSourcePropertyBrowser;
-    SourcePropertyBrowser *sourcePropertyBrowser;
     SourceDisplayWidget *sourcedisplay;
 
-    SourceEditDialog(QWidget *parent, Source *source, QString caption): QDialog(parent), s(source) {
+    SourceFileEditDialog(QWidget *parent, Source *source, QString caption): QDialog(parent), s(source) {
 
         QVBoxLayout *verticalLayout;
-        QFrame *hline;
         QDialogButtonBox *DecisionButtonBox;
 
         setObjectName(QString::fromUtf8("SourceEditDialog"));
@@ -73,18 +71,6 @@ public:
         sourcedisplay->setSource(s);
         verticalLayout->addWidget(sourcedisplay);
 
-        sourcePropertyBrowser = new SourcePropertyBrowser(this);
-        QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), sourcePropertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
-
-        sourcePropertyBrowser->showProperties(s);
-        sourcePropertyBrowser->setDisplayPropertyTree(false);
-        sourcePropertyBrowser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        verticalLayout->addWidget(sourcePropertyBrowser);
-
-        hline = new QFrame(this);
-        hline->setFrameShape(QFrame::HLine);
-        verticalLayout->addWidget(hline);
-
         specificSourcePropertyBrowser = SourcePropertyBrowser::createSpecificPropertyBrowser(s, this);
         specificSourcePropertyBrowser->setDisplayPropertyTree(false);
         specificSourcePropertyBrowser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
@@ -97,9 +83,8 @@ public:
         QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
     }
 
-    ~SourceEditDialog() {
+    ~SourceFileEditDialog() {
 
-        delete sourcePropertyBrowser;
         delete specificSourcePropertyBrowser;
 
     }

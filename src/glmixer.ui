@@ -5188,6 +5188,9 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
   </action>
   <action name="actionEditSource">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/current.png</normaloff>:/glmixer/icons/current.png</iconset>
