@@ -31,8 +31,8 @@
 #include "OutputRenderWindow.h"
 #include "Tag.h"
 
-#define CATALOG_TEXTURE_WIDTH 10000
-#define CATALOG_TEXTURE_HEIGHT 100
+#define CATALOG_TEXTURE_WIDTH 16384
+#define CATALOG_TEXTURE_HEIGHT 128
 #define TOPMARGIN 20
 
 CatalogView::CatalogView() : View(), _visible(true), _alpha(1.0), _catalogfbo(0)
@@ -109,8 +109,8 @@ void CatalogView::clear() {
         _catalogfbo->release();
     }
     else
-        qFatal( "%s", qPrintable( QObject::tr("OpenGL Frame Buffer Objects is not accessible."
-            "\n\nThe program cannot operate properly anymore.")));
+        qFatal( "%s", qPrintable( QObject::tr("OpenGL Frame Buffer Objects is not accessible "
+            "(The program cannot initialize the catalog View).")));
 
     // clear the list of catalog sources
     while (!_icons.isEmpty()) {
@@ -162,7 +162,7 @@ void CatalogView::drawSource(const Source *s)
     }
     else
         qFatal( "%s", qPrintable( QObject::tr("OpenGL Frame Buffer Objects is not accessible."
-            "\n\nThe program cannot operate properly anymore.")));
+            "(The program cannot render in the catalog view.)")));
 
 }
 
@@ -199,6 +199,9 @@ void CatalogView::reorganize() {
 }
 
 void CatalogView::paint() {
+
+    if (!_catalogfbo)
+        return;
 
 	// Paint the catalog view is only drawing the off-screen rendered catalog texture.
 	// This texture is filled during rendering manager fbo update with the clear and drawSource methods.

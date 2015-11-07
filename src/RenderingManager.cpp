@@ -258,8 +258,8 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         _fbo->release();
     }
     else
-        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects Failed to initialize."
-                            "\n\nThe program cannot operate properly without it.")));
+        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible "
+                                     "(the program cannot initialize the rendering buffer).")));
 
     // store viewport info
     _renderwidget->_renderView->viewport[0] = 0;
@@ -524,8 +524,8 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
         _fbo->release();
     }
     else
-        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible."
-            "\n\nThe program cannot operate properly anymore.")));
+        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible "
+            "(the program cannot render properly).")));
 
 
     //
