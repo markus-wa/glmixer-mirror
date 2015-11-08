@@ -5189,7 +5189,7 @@ Shortcut:                         Ctrl + Tab</string>
   </action>
   <action name="actionEditSource">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">

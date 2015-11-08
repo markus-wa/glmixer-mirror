@@ -537,28 +537,34 @@ void GLMixer::on_saveLogsToFile_clicked() {
 
     if (logTexts->topLevelItemCount() > 0) {
 
-        QString suggestion = QString("glmixerlogs %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
+        QString suggestion = QFileInfo( QDir::home(), QString("glmixerlogs_%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
         QString fileName = getFileName(tr("Save Logs to file"),
                                        tr("GLMixer logs") + " (*.txt)",
                                        QString("txt"),
                                        suggestion);
 
-        if ( !fileName.isEmpty() ) {
-            // open file and put text into it
-            QFile fileContent(fileName);
-            fileContent.open(QIODevice::WriteOnly | QIODevice::Text);
-            QTextStream out(&fileContent);
-
-            QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
-            while (*it) {
-                out << (*it)->text(0) << " : " << (*it)->text(1) << "\n";
-                ++it;
-            }
-
-        }
+        saveLogsToFile(fileName);
     }
 }
 
+void GLMixer::saveLogsToFile(QString fileName) {
+
+    if ( !fileName.isEmpty() ) {
+        // open file and put text into it
+        QFile fileContent(fileName);
+        fileContent.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream out(&fileContent);
+
+        out << "GLMixer logs - " << QDate::currentDate().toString() << "  " << QTime::currentTime().toString() << "\n\n";
+
+        QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
+        while (*it) {
+            out << (*it)->text(0) << " : " << (*it)->text(1) << "\n";
+            ++it;
+        }
+    }
+
+}
 
 void GLMixer::on_copyNotes_clicked() {
 
@@ -609,18 +615,25 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
             msgBox.exec();
 
             // show logs if required
-            if ( msgBox.clickedButton() == logButton )
+            if ( _instance && msgBox.clickedButton() == logButton )
                  _instance->logDockWidget->show();
 
         }
         break;
     case QtFatalMsg:
         {
+        QString logFile = QFileInfo( QDir::home(), QString("glmixerlogs_%1%2.txt").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
+        // save logs to file
+        if (_instance)
+            _instance->saveLogsToFile(logFile);
+
             QMessageBox msgBox(QMessageBox::Warning, tr("Error"),
-                           tr("<b>The application %1 crashed.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
-            msgBox.setInformativeText(txt.simplified() + tr("\n\nThe program will stop now."));
+                           tr("<b>The application %1 encountered an error.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
+            msgBox.setInformativeText(txt.simplified() + tr("\n\nThe program will stop now. Logs are saved to %1").arg(logFile));
             msgBox.setDefaultButton(QMessageBox::Ok);
             msgBox.exec();
+
+
             abort();
         }
         break;
@@ -2763,10 +2776,11 @@ void GLMixer::screenshotView(){
     QPoint c = RenderingManager::getRenderingWidget()->mapFromGlobal( RenderingManager::getRenderingWidget()->cursor().pos() );
     p.drawPixmap(c, RenderingManager::getRenderingWidget()->cursor().pixmap());
     // create a unique filename and save to file
-    QString f = QString("glmixer_%1_%2.png").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
-    s.save( f );
+    QFileInfo f(QDir::home(), QString("glmixer_%1_%2.png").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString()) );
+
+    s.save( f.absoluteFilePath() );
     // log
-    qDebug() << f << QChar(124).toLatin1() << "Saved screenshot.";
+    qDebug() << f.absoluteFilePath() << QChar(124).toLatin1() << "Saved screenshot.";
 }
 
 

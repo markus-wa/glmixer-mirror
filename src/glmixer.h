@@ -139,6 +139,7 @@ public Q_SLOTS:
     // hidden actions
     void screenshotView();  // "Ctrl+<,<"
     void selectGLSLFragmentShader();  // "Shift+Ctrl+G,F"
+    void saveLogsToFile(QString fileName);
 
 #ifdef FFGL
     void editShaderToyPlugin(FFGLPluginSource *);
