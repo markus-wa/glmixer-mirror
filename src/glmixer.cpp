@@ -622,17 +622,18 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         break;
     case QtFatalMsg:
         {
-        QString logFile = QFileInfo( QDir::home(), QString("glmixerlogs_%1%2.txt").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
+
         // save logs to file
-        if (_instance)
+        if (_instance)  {
+            QString logFile = QFileInfo( QDir::home(), QString("glmixerlogs_%1%2.txt").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
             _instance->saveLogsToFile(logFile);
+        }
 
             QMessageBox msgBox(QMessageBox::Warning, tr("Error"),
                            tr("<b>The application %1 encountered an error.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
-            msgBox.setInformativeText(txt.simplified() + tr("\n\nThe program will stop now. Logs are saved to %1").arg(logFile));
+            msgBox.setInformativeText(txt.simplified() + tr("\n\nThe program will stop now."));
             msgBox.setDefaultButton(QMessageBox::Ok);
             msgBox.exec();
-
 
             abort();
         }

@@ -58,7 +58,8 @@ extern "C"
 #include <QThread>
 #include <QDebug>
 #include <QFileInfo>
-
+#include <QDir>
+#include <QDate>
 
 /**
  * Size of a Mega Byte
@@ -104,7 +105,7 @@ csvLogger::csvLogger(QString filename) : QObject(0) {
     logFile.setFileName(filename + ".csv");
     logFile.open(QFile::WriteOnly | QFile::Truncate | QFile::Text);
     logStream.setDevice(&logFile);
-    logStream << "vp,p,ple\n";
+    logStream << "videopicture,packet,packetlistsize\n";
 }
 
 void csvLogger::timerEvent(QTimerEvent *event)
@@ -394,9 +395,10 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 
 #ifndef NDEBUG
         // uncomment to activate debug logs
-        // csvLogger *debugingLogger = new csvLogger("logsVideoFiles");
-        //        debugingLogger->startTimer(1000);
-        //        qDebug() << "Starting CSV logger";
+        QString filevideologs = QFileInfo( QDir::home(), QString("glmixer_memory_logs_%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
+         csvLogger *debugingLogger = new csvLogger(filevideologs);
+         debugingLogger->startTimer(500);
+         qDebug() << "Starting CSV logger " << filevideologs;
 #endif
 	}
 
@@ -1978,7 +1980,8 @@ bool VideoFile::PacketQueue::put(AVPacket *pkt)
 
 #ifndef NDEBUG
     VideoFile::PacketListElementCountLock.lock();
-    VideoFile::PacketListElementCount += pkt1->pkt.size;
+    if ( !VideoFile::PacketQueue::isFlush( &(pkt1->pkt) ) && !VideoFile::PacketQueue::isEndOfFile( &(pkt1->pkt) ) )
+        VideoFile::PacketListElementCount += pkt1->pkt.size;
     VideoFile::PacketListElementCountLock.unlock();
 #endif
 
@@ -2008,7 +2011,8 @@ bool VideoFile::PacketQueue::get(AVPacket *pkt, bool block)
 
 #ifndef NDEBUG
     VideoFile::PacketListElementCountLock.lock();
-    VideoFile::PacketListElementCount -= pkt1->pkt.size;
+    if ( !VideoFile::PacketQueue::isFlush( &(pkt1->pkt) ) && !VideoFile::PacketQueue::isEndOfFile( &(pkt1->pkt) ) )
+        VideoFile::PacketListElementCount -= pkt1->pkt.size;
     VideoFile::PacketListElementCountLock.unlock();
 #endif
 
@@ -2103,7 +2107,6 @@ void VideoFile::PacketQueue::clear()
 
         // free list element
         av_freep(&pkt);
-
 
     }
 
