@@ -144,6 +144,7 @@ void FFGLPluginSource::resize(int w, int h)
         _fboSize.setWidth(w);
         _fboSize.setHeight(h);
         delete _fbo;
+        _fbo = 0;
         _initialized = false;
     }
 }
@@ -291,9 +292,6 @@ void FFGLPluginSource::bind() const
     if (_initialized) {
         // bind the FBO texture
         glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     }
 }
 
@@ -311,6 +309,28 @@ bool FFGLPluginSource::initialize()
             _fboViewport.width = _fbo->width();
             _fboViewport.height = _fbo->height();
 
+            if (_fbo->bind()) {
+
+                // initial clear to black
+                glPushAttrib(GL_COLOR_BUFFER_BIT);
+                glClearColor(0.f, 0.f, 0.f, 1.f);
+                glClear(GL_COLOR_BUFFER_BIT);
+                glPopAttrib();
+
+                _fbo->release();
+            }
+            else {
+                qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not initialize FBO");
+                FFGLPluginException().raise();
+            }
+
+
+            // set wrapping on FBO texture
+            glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
             //instantiate the plugin passing a viewport that matches
             //the FBO (plugin is rendered into our FBO)
             if ( _plugin->InstantiateGL( &_fboViewport ) == FF_SUCCESS ) {
@@ -322,6 +342,7 @@ bool FFGLPluginSource::initialize()
 
                 // inform that its initialized
                 emit initialized(this);
+
                 // disconnect because its a one shot signal
                 disconnect(SIGNAL(initialized(FFGLPluginSource *)));
 
@@ -331,7 +352,7 @@ bool FFGLPluginSource::initialize()
                 FFGLPluginException().raise();
             }
         }
-        else{
+        else {
             qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not create FBO");
             FFGLPluginException().raise();
         }

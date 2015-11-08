@@ -60,7 +60,9 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     GLint preferedinternalformat = GL_RGBA;
-    glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
+
+    if (glSupportsExtension("GL_ARB_internalformat_query2"))
+        glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
 
 #if QT_VERSION >= 0x040700
     glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, _rendered.width(), _rendered.height(),

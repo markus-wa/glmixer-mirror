@@ -120,12 +120,13 @@ RenderingManager *RenderingManager::getInstance() {
     if (_instance == 0) {
 
         if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-            qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects are not supported on this graphics hardware."
-                    "\n\nThe program cannot operate properly without it.") ));
+            qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects are not supported on this graphics hardware. The program cannot operate properly without it.") ));
 
         if (!glSupportsExtension("GL_ARB_vertex_program") || !glSupportsExtension("GL_ARB_fragment_program"))
-            qFatal( "%s", qPrintable( tr("OpenGL GLSL programming is not supported on this graphics hardware."
-                    "\n\nThe program cannot operate properly without it.")));
+            qFatal( "%s", qPrintable( tr("OpenGL GLSL programming is not supported on this graphics hardware. The program cannot operate properly without it.")));
+
+        if (!glSupportsExtension("GL_ARB_pixel_buffer_object"))
+            qFatal( "%s", qPrintable( tr("OpenGL Pixel Buffer Objects are not supported on this graphics hardware. The program cannot operate properly without it.")));
 
         _instance = new RenderingManager;
         Q_CHECK_PTR(_instance);
@@ -239,23 +240,32 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     // activate OpenGL context
     _renderwidget->makeCurrent();
 
-    // Setup limit
-    GLint maxtexturewidth = 0;
-    glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
-    maxSourceCount = maxtexturewidth / CATALOG_TEXTURE_HEIGHT;
-    size.setWidth( qBound(0, size.width(), maxtexturewidth) );
+    // Check limits of the openGL texture
+    GLint maxtexturewidth = TEXTURE_REQUIRED_MAXIMUM;
+    GLint maxtextureheight = TEXTURE_REQUIRED_MAXIMUM;
 
-    qDebug() << "OpenGL Maximum texture width :" << maxtexturewidth;
-    qDebug() << "Maximum number of sources :" << maxSourceCount;
-
-    // cleanup
-    if (_fbo) {
-        delete _fbo;
+    if (glSupportsExtension("GL_ARB_internalformat_query2")) {
+        glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
+        glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_HEIGHT, 1, &maxtextureheight);
+    } else {
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexturewidth);
+        maxtextureheight = maxtexturewidth;
     }
 
+    maxtexturewidth = qMin(maxtexturewidth, GL_MAX_FRAMEBUFFER_WIDTH);
+    maxtextureheight = qMin(maxtextureheight, GL_MAX_FRAMEBUFFER_WIDTH);
+    qDebug() << "OpenGL Maximum RGBA texture dimension: " << maxtexturewidth << "x" << maxtextureheight;
+
+    // setup the maximum texture count accordingly
+    maxSourceCount = maxtexturewidth / CATALOG_TEXTURE_HEIGHT;
+    qDebug() << "Maximum number of sources: " << maxSourceCount;
+
+    // cleanup
+    if (_fbo)
+        delete _fbo;
 
     // create an fbo (with internal automatic first texture attachment)
-    _fbo = new QGLFramebufferObject(size);
+    _fbo = new QGLFramebufferObject( qMin(size.width(), maxtexturewidth), qMin(size.height(), maxtextureheight));
     Q_CHECK_PTR(_fbo);
 
     if (_fbo->bind()) {
@@ -269,8 +279,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         _fbo->release();
     }
     else
-        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible "
-                                     "(the program cannot initialize the rendering buffer).")));
+        qFatal( "%s", qPrintable( QObject::tr("OpenGL Frame Buffer Objects is not accessible (cannot initialize the rendering buffer %1x%2).").arg(size.width()).arg(size.height())));
 
     // store viewport info
     _renderwidget->_renderView->viewport[0] = 0;

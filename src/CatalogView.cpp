@@ -94,13 +94,19 @@ void CatalogView::setVisible(bool on){
 
 void CatalogView::clear() {
 
+    // Check limits of the openGL texture
+    GLint maxtexturewidth = TEXTURE_REQUIRED_MAXIMUM;
 
-    GLint maxtexturewidth = 0;
-    glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
+    if (glSupportsExtension("GL_ARB_internalformat_query2"))
+        glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
+    else
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexturewidth);
 
+    maxtexturewidth = qMin(maxtexturewidth, GL_MAX_FRAMEBUFFER_WIDTH);
 
     if (!_catalogfbo)
         _catalogfbo = new QGLFramebufferObject(maxtexturewidth, CATALOG_TEXTURE_HEIGHT);
+    Q_CHECK_PTR(_catalogfbo);
 
     if (_catalogfbo->bind()) {
 
@@ -112,8 +118,7 @@ void CatalogView::clear() {
         _catalogfbo->release();
     }
     else
-        qFatal( "%s", qPrintable( QObject::tr("OpenGL Frame Buffer Objects is not accessible "
-            "(The program cannot initialize the catalog View).")));
+        qFatal( "%s", qPrintable( QObject::tr("OpenGL Frame Buffer Objects is not accessible  (cannot initialize the catalog View buffer %1x%2).").arg(maxtexturewidth).arg(CATALOG_TEXTURE_HEIGHT)));
 
     // clear the list of catalog sources
     while (!_icons.isEmpty()) {
