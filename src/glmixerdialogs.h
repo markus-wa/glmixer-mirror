@@ -11,11 +11,12 @@ class CaptureDialog: public QDialog {
 
 public:
     QImage img;
+    QComboBox *presetsSizeComboBox;
 
     CaptureDialog(QWidget *parent, QImage capture, QString caption): QDialog(parent), img(capture) {
 
         QVBoxLayout *verticalLayout;
-        QLabel *Question, *Display, *Info;
+        QLabel *Question, *Display, *Info, *Property;
         QDialogButtonBox *DecisionButtonBox;
 
         setObjectName(QString::fromUtf8("CaptureDialog"));
@@ -34,6 +35,32 @@ public:
         Info = new QLabel(this);
         Info->setText(tr("Original size: %1 x %2 px").arg(img.width()).arg(img.height()) );
         verticalLayout->addWidget(Info);
+
+
+        QGroupBox *sizeGroupBox = new QGroupBox(this);
+        sizeGroupBox->setTitle(tr("Properties"));
+        sizeGroupBox->setFlat(true);
+        verticalLayout->addWidget(sizeGroupBox);
+
+        QHBoxLayout *horizontalLayout = new QHBoxLayout(sizeGroupBox);
+
+        Property = new QLabel(sizeGroupBox);
+        Property->setText(tr("Size"));
+        horizontalLayout->addWidget(Property);
+
+        presetsSizeComboBox = new QComboBox(sizeGroupBox);
+        int w = img.width();
+        double ar = (double) img.height() / (double) img.width();
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)));
+        w = (int) ( (double) img.width() * 0.8 );
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)), QVariant(w));
+        w = (int) ( (double) img.width() * 0.6 );
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)), QVariant(w));
+        w = (int) ( (double) img.width() * 0.4 );
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)), QVariant(w));
+        w = (int) ( (double) img.width() * 0.2 );
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)), QVariant(w));
+        horizontalLayout->addWidget(presetsSizeComboBox);
 
         DecisionButtonBox = new QDialogButtonBox(this);
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);

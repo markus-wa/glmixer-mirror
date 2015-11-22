@@ -1585,12 +1585,12 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             QBuffer buffer(&ba);
             buffer.open(QIODevice::WriteOnly);
 
-            if (!QImageWriter::supportedImageFormats().count("JPG")){
-                qWarning() << cs->getName() << QChar(124).toLatin1() << tr("Qt JPEG plugin not found; using XPM format (slower).");
-                if (!cs->image().save(&buffer, "XPM") )
+            if (!QImageWriter::supportedImageFormats().count("jpeg")){
+                qWarning() << cs->getName() << QChar(124).toLatin1() << tr("Qt JPEG plugin not found; using XPM format (slower).") << QImageWriter::supportedImageFormats();
+                if (!cs->image().save(&buffer, "xpm") )
                     qWarning() << cs->getName() << QChar(124).toLatin1() << tr("Could not save captured source (XPM format).");
             } else
-                if (!cs->image().save(&buffer, "JPG") )
+                if (!cs->image().save(&buffer, "jpeg") )
                     qWarning() << cs->getName()  << QChar(124).toLatin1() << tr("Could not save captured source (JPG format).");
 
             buffer.close();
@@ -1989,18 +1989,18 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             QImage image;
             QByteArray data =  img.text().toLatin1();
 
-            if (!QImageReader::supportedImageFormats().count("JPG")){
-                if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "XPM") )
+            if (!QImageReader::supportedImageFormats().count("jpeg")){
+                if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "xpm") )
                     newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
             }
-            else if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "JPG") )
+            else if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "jpeg") )
                 newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
 
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create capture source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Capture source created.");
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Capture source created : ") << (QImageReader::supportedImageFormats().count("jpeg") ? "JPEG":"XPM");
         }
         else if ( type == Source::SVG_SOURCE) {
 

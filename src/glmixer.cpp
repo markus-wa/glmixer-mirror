@@ -1285,7 +1285,11 @@ void GLMixer::on_actionCaptureSource_triggered(){
 
     if (cd.exec() == QDialog::Accepted) {
 
-        Source *s = RenderingManager::getInstance()->newCaptureSource(cd.img);
+        int width = cd.presetsSizeComboBox->itemData(cd.presetsSizeComboBox->currentIndex()).toInt();
+        if (width)
+            capture = capture.scaledToWidth(width);
+
+        Source *s = RenderingManager::getInstance()->newCaptureSource(capture);
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName()<< QChar(124).toLatin1() << tr("New capture source created.");
