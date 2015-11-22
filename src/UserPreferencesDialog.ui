@@ -585,7 +585,7 @@ p, li { white-space: pre-wrap; }
            <item>
             <widget class="QGroupBox" name="Performance">
              <property name="title">
-              <string>Performance</string>
+              <string>OpenGL Performance</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
@@ -602,7 +602,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Frame rate (target)</string>
+                   <string>Maximum frame rate</string>
                   </property>
                   <property name="buddy">
                    <cstring>updatePeriod</cstring>
@@ -663,8 +663,8 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <layout class="QGridLayout" name="gridLayout_3">
-                <item row="0" column="0" rowspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_11">
+                <item>
                  <spacer name="horizontalSpacer">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -680,28 +680,49 @@ p, li { white-space: pre-wrap; }
                   </property>
                  </spacer>
                 </item>
-                <item row="0" column="1">
-                 <widget class="QCheckBox" name="disableFiltering">
-                  <property name="toolTip">
-                   <string>Disable filters if the rendering is too slow; the filters will not be available anymore.</string>
-                  </property>
-                  <property name="text">
-                   <string>Disable filters </string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QCheckBox" name="activateBlitFrameBuffer">
-                  <property name="toolTip">
-                   <string>Disable it if the rendering output window does not show anything. </string>
-                  </property>
-                  <property name="text">
-                   <string>Disable Frame Buffer Blit</string>
-                  </property>
-                  <property name="checked">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
+                <item>
+                 <layout class="QGridLayout" name="gridLayout">
+                  <item row="0" column="0">
+                   <widget class="QCheckBox" name="disableFiltering">
+                    <property name="toolTip">
+                     <string>Disable filters if the rendering is too slow; the filters will not be available anymore.</string>
+                    </property>
+                    <property name="text">
+                     <string>Disable filters </string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QCheckBox" name="disableCatalog">
+                    <property name="text">
+                     <string>Disable Catalog</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QCheckBox" name="disableBlitFrameBuffer">
+                    <property name="toolTip">
+                     <string>Disable it if the rendering output window does not show anything. </string>
+                    </property>
+                    <property name="text">
+                     <string>Disable Frame Buffer Blit</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QCheckBox" name="disablePixelBufferObject">
+                    <property name="toolTip">
+                     <string>Disable pixel buffer object if your graphics hardware does not accelerate this extension in hardware.</string>
+                    </property>
+                    <property name="text">
+                     <string>Disable Pixel Buffer Objects</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </item>

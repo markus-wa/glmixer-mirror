@@ -305,6 +305,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     OutputRenderWindow::getInstance()->setWindowIcon(icon);
     QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), switcherSession, SLOT(startTransitionToNextSession()));
     QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), OutputRenderWindow::getInstance(), SLOT(refresh()));
 
     // Setup dialogs
     mfd = new VideoFileDialog(this, "Open videos or pictures");
@@ -320,6 +321,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     outputpreview = new OutputRenderWidget(previewDockWidgetContents, mainRendering);
     Q_CHECK_PTR(outputpreview);
     previewDockWidgetContentsLayout->insertWidget(0, outputpreview);
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), outputpreview, SLOT(refresh()));
 
     // Default state without source selected
     vcontrolDockWidgetContents->setEnabled(false);
@@ -817,7 +819,7 @@ void GLMixer::on_actionMediaSource_triggered(){
 
             // if the dialog did not request power of two generation of textures
             // and if the opengl supports the extension, then open the source normally
-            if ( !generatePowerOfTwoRequested && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
+            if ( !generatePowerOfTwoRequested && (glewIsSupported("GL_EXT_texture_non_power_of_two") || glewIsSupported("GL_ARB_texture_non_power_of_two") ) )
                 newSourceVideoFile = new VideoFile(this);
             else
                 newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
@@ -2274,9 +2276,8 @@ void GLMixer::readSettings()
     // Switcher session
     switcherSession->restoreSettings();
 
-    // start O SC
-      qDebug() << "OpenSoundControlManager " ;
-    OpenSoundControlManager::getInstance()->setEnabled(true);
+    // start OSC
+//    OpenSoundControlManager::getInstance()->setEnabled(true);
 
     qDebug() << tr("All settings restored.");
 }
@@ -2344,12 +2345,14 @@ void GLMixer::on_actionPreferences_triggered()
     if (upd->exec() == QDialog::Accepted) {
 
         int mem = VideoFile::getMemoryUsagePolicy();
+        bool usepbo = RenderingManager::usePboExtension();
 
         restorePreferences( upd->getUserPreferences() );
 
-        if (mem != VideoFile::getMemoryUsagePolicy()) {
-            QMessageBox::information(this, QCoreApplication::applicationName(), "Reloading video files is necessary for the change of buffer size to take effect (reload session or restart the program). ");
+        if (mem != VideoFile::getMemoryUsagePolicy() || usepbo != RenderingManager::usePboExtension()) {
+            QMessageBox::information(this, QCoreApplication::applicationName(), "You need to reload the session for the changes to take effect.");
         }
+
     }
 }
 
@@ -2393,6 +2396,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> RenderingQuality >> useBlitFboExtension;
     RenderingManager::setUseFboBlitExtension(useBlitFboExtension);
     RenderingManager::getInstance()->setRenderingQuality((frameBufferQuality) RenderingQuality);
+
     int targetPeriod = 16;
     stream >> targetPeriod;
     if (targetPeriod > 0)
@@ -2443,8 +2447,6 @@ void GLMixer::restorePreferences(const QByteArray & state){
     // i. disable filtering
     bool disablefilter = false;
     stream >> disablefilter;
-    // better make the view render widget current before setting filtering enabled
-    RenderingManager::getRenderingWidget()->refresh();
     RenderingManager::getRenderingWidget()->setFilteringEnabled(!disablefilter);
 
     // j. antialiasing
@@ -2506,13 +2508,16 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> propertytree;
     RenderingManager::getPropertyBrowserWidget()->setDisplayPropertyTree(propertytree);
 
-    // Refresh widgets to make changes visible
-    OutputRenderWindow::getInstance()->refresh();
-    outputpreview->refresh();
+    // t. disable PBO
+    bool usepbo = false;
+    stream >> usepbo;
+    RenderingManager::setUsePboExtension(usepbo);
+
+    // ensure the Rendering Manager updates
+    RenderingManager::getInstance()->resetFrameBuffer();
 
     // de-select current source
     RenderingManager::getInstance()->unsetCurrentSource();
-
 
     qDebug() << tr("Preferences loaded.");
 }
@@ -2527,7 +2532,7 @@ QByteArray GLMixer::getPreferences() const {
 
     // a. Store rendering preferences
     stream << (uint) RenderingManager::getInstance()->getRenderingQuality();
-    stream << RenderingManager::getUseFboBlitExtension();
+    stream << RenderingManager::useFboBlitExtension();
     stream << glRenderWidget::updatePeriod();
 
     // b. Store source preferences
@@ -2591,6 +2596,9 @@ QByteArray GLMixer::getPreferences() const {
 
     // s. property tree
     stream << RenderingManager::getPropertyBrowserWidget()->getDisplayPropertyTree();
+
+    // t. disable PBO
+    stream << RenderingManager::usePboExtension();
 
     return data;
 }

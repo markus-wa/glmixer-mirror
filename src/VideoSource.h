@@ -72,11 +72,11 @@ private:
     GLenum format;
     VideoFile *is;
     VideoPicture *vp;
-#ifdef USE_PBO
+
     GLuint pboIds[2];
     int index, nextIndex;
     int imgsize;
-#endif
+
 };
 
 #endif /* VIDEOSOURCE_H_ */

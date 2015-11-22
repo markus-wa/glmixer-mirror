@@ -344,7 +344,10 @@ void AlgorithmThread::fill(double var) {
 AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
                                  int h, double v, unsigned long p, bool ia) :
     Source(texture, d), buffer(0), width(w), height(h), period(p), framerate(0), vertical( 1.0),
-    horizontal(1.0), variability(v), ignoreAlpha(false), frameChanged(true), format(GL_RGBA) {
+    horizontal(1.0), variability(v), ignoreAlpha(false), frameChanged(true), format(GL_RGBA)
+{
+    // no PBO by default
+    pboIds[0] = 0;
 
     algotype = CLAMP(AlgorithmSource::algorithmType(type), AlgorithmSource::FLAT, AlgorithmSource::NONE);
 
@@ -398,11 +401,9 @@ AlgorithmSource::~AlgorithmSource() {
     delete _mutex;
 
 
-#ifdef USE_PBO
     // delete picture buffer
     if (pboIds[0])
         glDeleteBuffers(1, pboIds);
-#endif
 }
 
 
@@ -440,25 +441,24 @@ bool AlgorithmSource::isPlaying() const {
 
 void AlgorithmSource::initBuffer() {
 
-#ifdef USE_PBO
+    if (RenderingManager::usePboExtension()) {
+        // create a pixel buffer object,
+        glGenBuffers(1, pboIds);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
+        buffer = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+        CHECK_PTR_EXCEPTION(buffer);
+        // CLEAR the buffer to white
+        memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
+        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-    // create 1 pixel buffer object,
-    glGenBuffers(1, pboIds);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
-    buffer = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-    CHECK_PTR_EXCEPTION(buffer);
-    // CLEAR the buffer to white
-    memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
-    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-#else
-    buffer = new unsigned char[width * height * 4];
-    CHECK_PTR_EXCEPTION(buffer);
-    // CLEAR the buffer to white
-    memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
-#endif
+    } else {
+        buffer = new unsigned char[width * height * 4];
+        CHECK_PTR_EXCEPTION(buffer);
+        // CLEAR the buffer to white
+        memset((void *) buffer, std::numeric_limits<unsigned char>::min(),  width * height * 4);
+    }
 
 }
 
@@ -469,45 +469,44 @@ void AlgorithmSource::update() {
         // bind the texture
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-#ifdef USE_PBO
+        if (pboIds[0]) {
 
-        // bind PBO
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
-        // copy pixels from PBO to texture object
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+            // bind PBO
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+            // copy pixels from PBO to texture object
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-        // lock filling thread
-        _mutex->lock();
+            // lock filling thread
+            _mutex->lock();
 
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
+            glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
 
-        // map the buffer object into client's memory
-        GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-        if (ptr)
-        {
-            // update data directly on the mapped buffer
-            buffer = ptr;
-            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
+            // map the buffer object into client's memory
+            GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+            if (ptr) {
+                // update data directly on the mapped buffer
+                buffer = ptr;
+                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
+            }
+            else
+                buffer = 0;
+
+            // unlock filling thread
+            _cond->wakeAll();
+            _mutex->unlock();
+
+            // release PBOs with ID 0 after use.
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+        } else {
+            _mutex->lock();
+
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
+                            GL_UNSIGNED_BYTE, (unsigned char*) buffer);
+
+            _cond->wakeAll();
+            _mutex->unlock();
         }
-        else
-            buffer = 0;
-
-        // unlock filling thread
-        _cond->wakeAll();
-        _mutex->unlock();
-
-        // release PBOs with ID 0 after use.
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-#else
-        _mutex->lock();
-
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
-                        GL_UNSIGNED_BYTE, (unsigned char*) buffer);
-
-        _cond->wakeAll();
-        _mutex->unlock();
-#endif
 
         frameChanged = false;
     }

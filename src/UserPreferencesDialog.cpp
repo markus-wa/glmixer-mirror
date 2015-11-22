@@ -51,7 +51,8 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 //    defaultProperties->setPropertyEnabled("Aspect ratio", false);
 
     // the rendering option for BLIT of frame buffer makes no sense if the computer does not supports it
-    activateBlitFrameBuffer->setEnabled(glSupportsExtension("GL_EXT_framebuffer_blit"));
+    disableBlitFrameBuffer->setEnabled(GLEW_EXT_framebuffer_blit);
+    disablePixelBufferObject->setEnabled(GLEW_EXT_pixel_buffer_object);
 
     // add a validator for folder selection in recording preference
     recordingFolderLine->setValidator(new folderValidator(this));
@@ -109,9 +110,10 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
     if (stackedPreferences->currentWidget() == PageRendering) {
         resolutionTable->selectRow(3);
         updatePeriod->setValue(16); // default fps at 60
-        activateBlitFrameBuffer->setChecked(!glSupportsExtension("GL_EXT_framebuffer_blit"));
         disableFiltering->setChecked(false);
         fullscreenMonitor->setCurrentIndex(0);
+        disableBlitFrameBuffer->setChecked(!GLEW_EXT_framebuffer_blit);
+        disablePixelBufferObject->setChecked(!GLEW_EXT_pixel_buffer_object);
     }
 
     if (stackedPreferences->currentWidget() == PageRecording) {
@@ -176,7 +178,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 
     bool useBlitFboExtension = true;
     stream >> useBlitFboExtension;
-    activateBlitFrameBuffer->setChecked(!useBlitFboExtension);
+    disableBlitFrameBuffer->setChecked(!useBlitFboExtension);
 
     int tfr = 16;
     stream >> tfr;
@@ -284,6 +286,10 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> propertytree;
     displayPropertyTree->setChecked(propertytree);
 
+    // t. disable PBO
+    bool usePBO = true;
+    stream >> usePBO;
+    disablePixelBufferObject->setChecked(!usePBO);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -295,7 +301,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     stream << magicNumber << majorVersion;
 
     // a. write the rendering preferences
-    stream << resolutionTable->currentRow() << !activateBlitFrameBuffer->isChecked();
+    stream << resolutionTable->currentRow() << !disableBlitFrameBuffer->isChecked();
     stream << updatePeriod->value();
 
     // b. Write the default source properties
@@ -355,6 +361,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // s. display property tree
     stream << displayPropertyTree->isChecked();
+
+    // t. disable pbo
+    stream << !disablePixelBufferObject->isChecked();
 
     return data;
 }

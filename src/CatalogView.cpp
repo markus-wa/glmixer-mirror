@@ -97,7 +97,7 @@ void CatalogView::clear() {
     // Check limits of the openGL texture
     GLint maxtexturewidth = TEXTURE_REQUIRED_MAXIMUM;
 
-    if (glSupportsExtension("GL_ARB_internalformat_query2"))
+    if (glewIsSupported("GL_ARB_internalformat_query2"))
         glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
     else
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexturewidth);

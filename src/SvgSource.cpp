@@ -61,7 +61,7 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
 
     GLint preferedinternalformat = GL_RGBA;
 
-    if (glSupportsExtension("GL_ARB_internalformat_query2"))
+    if (glewIsSupported("GL_ARB_internalformat_query2"))
         glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
 
 #if QT_VERSION >= 0x040700

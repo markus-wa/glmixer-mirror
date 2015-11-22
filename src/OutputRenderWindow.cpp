@@ -36,7 +36,7 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-		useAspectRatio(true), useWindowAspectRatio(true) {
+        useAspectRatio(true), useWindowAspectRatio(true), need_resize(true) {
 
 	rx = 0;
 	ry = 0;
@@ -145,12 +145,16 @@ void OutputRenderWidget::resizeGL(int w, int h)
 			glScalef(1.f, -1.0, 1.f);
 		}
 	}
+
+
+    need_resize = false;
 }
 
 
 void OutputRenderWindow::resizeGL(int w, int h)
 {
-	OutputRenderWidget::resizeGL(w, h);
+    OutputRenderWidget::resizeGL(w, h);
+
 	emit resized();
 }
 
@@ -162,10 +166,7 @@ void OutputRenderWidget::useFreeAspectRatio(bool on)
 
 void OutputRenderWidget::refresh()
 {
-	makeCurrent();
-	resizeGL();
-
-	update();
+    need_resize = true;
 }
 
 
@@ -173,20 +174,23 @@ void OutputRenderWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
-	if (!isEnabled())
+    // avoid drawing if not visible
+    if (!isEnabled() || !isVisible())
 		return;
 
-	if ( RenderingManager::blit_fbo_extension )
-	// use the accelerated GL_EXT_framebuffer_blit if available
+    if (need_resize)
+        resizeGL();
+
+    // use the accelerated GL_EXT_framebuffer_blit if available
+    if ( RenderingManager::blit_fbo_extension )
 	{
 		// select fbo texture read target
 	    glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
 
 	    // select screen target
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBlitFramebuffer(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(),
-									 rx, ry, rw, rh,
-                                     GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        glBlitFramebuffer(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(), rx, ry, rw, rh, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
 	} else
 	// 	Draw quad with fbo texture in a more basic OpenGL way
 	{
@@ -296,6 +300,7 @@ void OutputRenderWindow::setFullScreen(bool on) {
             show();
             switching = false;
         }
+
     }
 
 }

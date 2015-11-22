@@ -25,6 +25,8 @@
 
 #include "OpencvSource.moc"
 
+#include "RenderingManager.h"
+
 #include <opencv2/imgproc/imgproc_c.h>
 #include <opencv2/core/version.hpp>
 
@@ -85,6 +87,10 @@ void CameraThread::run(){
 OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
     Source(texture, d), framerate(0.0), needFrameCopy(false), frameChanged(true)  {
 
+    // no PBO by default
+    pboIds[0] = 0;
+    pboIds[1] = 0;
+
 	// prevent from creation of duplicated opencv sources and from creation of more than 2 sources
     if (  OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() > 4)
         UnavailableCameraIndexException().raise();
@@ -118,7 +124,7 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
 
     GLint preferedinternalformat = GL_RGB;
 
-    if (glSupportsExtension("GL_ARB_internalformat_query2"))
+    if (glewIsSupported("GL_ARB_internalformat_query2"))
         glGetInternalformativ(GL_TEXTURE_2D, GL_RGB, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
 
     glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
@@ -126,9 +132,9 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
 	width = frame->width;
 	height = frame->height;
 	aspectratio = (float)width / (float)height;
+    imgsize =  width * height * 3;
 
-#ifdef USE_PBO
-        imgsize =  width * height * 3;
+    if (RenderingManager::usePboExtension()) {
         // create 2 pixel buffer objects,
         glGenBuffers(2, pboIds);
         // create first PBO
@@ -156,7 +162,7 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
         }
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         index = nextIndex = 0;
-#endif
+    }
 
 	// create thread
 	mutex = new QMutex;
@@ -186,11 +192,10 @@ OpencvSource::~OpencvSource() {
 	delete mutex;
 	delete thread;
 
-#ifdef USE_PBO
     // delete picture buffer
     if (pboIds[0] || pboIds[1])
         glDeleteBuffers(2, pboIds);
-#endif
+
 }
 
 
@@ -222,56 +227,55 @@ bool OpencvSource::isPlaying() const{
 
 void OpencvSource::update(){
 
-	if( frameChanged )
-	{
+    if( frameChanged )
+    {
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-#ifdef USE_PBO
+        if (pboIds[0] && pboIds[1]) {
 
-        // In dual PBO mode, increment current index first then get the next index
-        index = (index + 1) % 2;
-        nextIndex = (index + 1) % 2;
+            // In dual PBO mode, increment current index first then get the next index
+            index = (index + 1) % 2;
+            nextIndex = (index + 1) % 2;
 
-        // bind PBO to read pixels
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
+            // bind PBO to read pixels
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
 
-        // copy pixels from PBO to texture object
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, 0);
+            // copy pixels from PBO to texture object
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, 0);
 
+            mutex->lock();
+            frameChanged = false;
 
-        mutex->lock();
-        frameChanged = false;
+            // bind PBO to update pixel values
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
 
-        // bind PBO to update pixel values
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
+            glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
 
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+            // map the buffer object into client's memory
+            GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+            if (ptr) {
+                // update data directly on the mapped buffer
+                memmove(ptr, frame->imageData, imgsize);
+                // release pointer to mapping buffer
+                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+            }
 
-        // map the buffer object into client's memory
-        GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-        if (ptr) {
-            // update data directly on the mapped buffer
-            memmove(ptr, frame->imageData, imgsize);
-            // release pointer to mapping buffer
-            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+            cond->wakeAll();
+            mutex->unlock();
+
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+        } else {
+
+            mutex->lock();
+            frameChanged = false;
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+            cond->wakeAll();
+            mutex->unlock();
         }
 
-        cond->wakeAll();
-        mutex->unlock();
-
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-#else
-
-		mutex->lock();
-        frameChanged = false;
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
-		cond->wakeAll();
-		mutex->unlock();
-#endif
-
         Source::update();
-	}
+    }
 
 }
 

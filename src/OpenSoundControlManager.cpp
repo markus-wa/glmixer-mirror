@@ -32,7 +32,7 @@ void OpenSoundControlManager::setEnabled(bool enabled)
     else
         disconnect(&_udpSocket, SIGNAL(readyRead()),  this, SLOT(readPendingDatagrams()));
 
-    qDebug() << "OpenSoundControlManager " << (enabled ? "enabled" : "disabled");
+    qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "Network Open Sound Control " << (enabled ? "enabled" : "disabled");
 }
 
 void OpenSoundControlManager::ReadPendingDatagrams()

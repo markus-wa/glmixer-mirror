@@ -117,11 +117,6 @@ void initListOfExtension()
 
 }
 
-bool glSupportsExtension(QString extname)
-{
-    return listofextensions.contains(extname, Qt::CaseInsensitive);
-}
-
 QStringList glSupportedExtensions()
 {
     return listofextensions;

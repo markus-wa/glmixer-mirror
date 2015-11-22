@@ -26,8 +26,6 @@
 #ifndef RENDERINGMANAGER_H_
 #define RENDERINGMANAGER_H_
 
-//#define USE_GLREADPIXELS
-
 #include "common.h"
 #include "SourceSet.h"
 
@@ -138,7 +136,6 @@ public:
 	bool setCurrentPrevious();
 	void unsetCurrentSource() { setCurrentSource( getEnd() ); }
 
-
 	void addSourceToBasket(Source *s);
 	int getSourceBasketSize() const;
 	Source *getSourceBasketTop() const;
@@ -155,6 +152,8 @@ public:
 	standardAspectRatio getRenderingAspectRatio() const {
 		return renderingAspectRatio;
 	}
+
+    void resetFrameBuffer();
 
 	double getFrameBufferAspectRatio() const;
 	inline QSize getFrameBufferResolution() const {
@@ -203,13 +202,17 @@ public:
 	inline void setDefaultPlayOnDrop(bool on){ _playOnDrop = on; }
 	inline bool isPaused () { return paused; }
 
-	static bool getUseFboBlitExtension() { return blit_fbo_extension; }
+    static inline bool useFboBlitExtension() { return blit_fbo_extension; }
 	static void setUseFboBlitExtension(bool on);
+
+    static inline bool usePboExtension() { return pbo_extension; }
+    static void setUsePboExtension(bool on);
+
 
 public Q_SLOTS:
 
-	void setClearToWhite(bool on) { clearWhite = on; }
-	void setPreviousFrameDelay(unsigned int delay) { previousframe_delay = CLAMP(delay,1,1000);}
+    inline void setClearToWhite(bool on) { clearWhite = on; }
+    inline void setPreviousFrameDelay(unsigned int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 
 	void pause(bool on);
 	void clearBasket();
@@ -236,6 +239,7 @@ public Q_SLOTS:
 #endif
 
 Q_SIGNALS:
+    void frameBufferChanged();
 	void currentSourceChanged(SourceSet::iterator csi);
 #ifdef SPOUT
     void spoutSharingEnabled(bool on);
@@ -256,20 +260,14 @@ protected:
     // the frame buffers
     QGLFramebufferObject *_fbo;
 	QGLFramebufferObject *previousframe_fbo;
-	unsigned int countRenderingSource, previousframe_index, previousframe_delay;
+    GLuint pboIds[2];
+    int pbo_index, pbo_nextIndex;
+    unsigned int previousframe_index, previousframe_delay;
     bool clearWhite;
-    unsigned int maxSourceCount;
+    GLint maxtexturewidth, maxtextureheight;
     frameBufferQuality renderingQuality;
     standardAspectRatio renderingAspectRatio;
 
-#ifdef SHM
-    // The shared memory buffer
-    class QSharedMemory *_sharedMemory;
-    GLenum _sharedMemoryGLFormat, _sharedMemoryGLType;
-#endif
-#ifdef SPOUT
-    bool _spoutEnabled, _spoutInitialized;
-#endif
     // the set of sources for display (front)
     SourceSet _front_sources;
     // the set of sources for pre-loading (back)
@@ -287,11 +285,18 @@ protected:
 	bool _playOnDrop;
 	bool paused;
 	bool _showProgressBar;
+    unsigned int maxSourceCount, countRenderingSource;
 
-    GLuint pboIds[2];
-    int index, nextIndex;
+#ifdef SHM
+    // The shared memory buffer
+    class QSharedMemory *_sharedMemory;
+    GLenum _sharedMemoryGLFormat, _sharedMemoryGLType;
+#endif
+#ifdef SPOUT
+    bool _spoutEnabled, _spoutInitialized;
+#endif
 
-    static bool blit_fbo_extension;
+    static bool blit_fbo_extension, pbo_extension;
     static QSize sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED];
 };
 

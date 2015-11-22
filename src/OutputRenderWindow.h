@@ -51,7 +51,7 @@ public Q_SLOTS:
 protected:
     bool useAspectRatio, useWindowAspectRatio;
 	int rx, ry, rw, rh;
-
+    bool need_resize;
 };
 
 class OutputRenderWindow : public OutputRenderWidget {

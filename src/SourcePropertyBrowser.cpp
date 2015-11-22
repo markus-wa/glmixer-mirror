@@ -875,7 +875,7 @@ public:
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
-        if (RenderingManager::getInstance()->getUseFboBlitExtension())
+        if (RenderingManager::getInstance()->useFboBlitExtension())
             infoManager->setValue(idToProperty["Rendering loop-back"], "Blit to frame buffer object" );
         else
             infoManager->setValue(idToProperty["Rendering loop-back"], "Draw in frame buffer object" );

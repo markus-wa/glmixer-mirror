@@ -53,7 +53,6 @@
 //#include <QGLBuffer>
 
 void initListOfExtension();
-bool glSupportsExtension(QString extname);
 QStringList glSupportedExtensions();
 
 GLenum blendfunctionFromInt(int);

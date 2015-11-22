@@ -39,8 +39,6 @@
 #include "FFGLPluginSourceStack.h"
 #endif
 
-#define USE_PBO
-
 class SourceConstructorException : public AllocationException {
 public:
     virtual QString message() { return "Could not allocate source"; }

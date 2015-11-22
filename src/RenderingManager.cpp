@@ -76,6 +76,8 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 // static members
 RenderingManager *RenderingManager::_instance = 0;
 bool RenderingManager::blit_fbo_extension = true;
+bool RenderingManager::pbo_extension = true;
+
 QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED] = { { QSize(640,480), QSize(768,576), QSize(800,600), QSize(1024,768), QSize(1600,1200), QSize(2048,1536) },
                                                                            { QSize(720,480), QSize(864,576), QSize(900,600), QSize(1152,768), QSize(1440,960), QSize(1920,1280) },
                                                                            { QSize(800,480), QSize(912,570), QSize(960,600), QSize(1280,800), QSize(1920,1200), QSize(2048,1280) },
@@ -103,16 +105,35 @@ SessionSwitcher *RenderingManager::getSessionSwitcher() {
 
 void RenderingManager::setUseFboBlitExtension(bool on){
 
-       if (glSupportsExtension("GL_EXT_framebuffer_blit"))
-               RenderingManager::blit_fbo_extension = on;
-       else {
-               // if extension not supported but it is requested, show warning
-               if (on) {
-                   qWarning()  << tr("OpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware. Rendering speed be sub-optimal but all should work properly.");
-                   qCritical() << tr("Cannot use Blit framebuffer extension.");
-               }
-               RenderingManager::blit_fbo_extension = false;
-       }
+    if (glewIsSupported("GL_EXT_framebuffer_blit"))
+        RenderingManager::blit_fbo_extension = on;
+    else {
+        // if extension not supported but it is requested, show warning
+        if (on) {
+            qCritical()  << tr("OpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware.\n\nRendering speed is sub-optimal but all should work properly.");
+            qWarning() << tr("Cannot use Blit framebuffer extension.");
+        }
+        RenderingManager::blit_fbo_extension = false;
+    }
+
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Extension framebuffer blit  (GL_EXT_framebuffer_blit) ") << (RenderingManager::blit_fbo_extension ? "ON" : "OFF");
+}
+
+
+void RenderingManager::setUsePboExtension(bool on){
+
+    if (glewIsSupported("GL_EXT_pixel_buffer_object") || glewIsSupported("GL_ARB_pixel_buffer_object") )
+        RenderingManager::pbo_extension = on;
+    else {
+        // if extension not supported but it is requested, show warning
+        if (on) {
+            qCritical()  << tr("OpenGL extension GL_EXT_pixel_buffer_object is not supported on this graphics hardware.\n\nRendering speed is sub-optimal but all should work properly.");
+            qWarning() << tr("Cannot use Pixel Buffer Object extension.");
+        }
+        RenderingManager::pbo_extension = false;
+    }
+
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Extension pixel buffer objects (GL_EXT_pixel_buffer_object) ") << (RenderingManager::pbo_extension ? "ON" : "OFF");
 }
 
 RenderingManager *RenderingManager::getInstance() {
@@ -122,11 +143,8 @@ RenderingManager *RenderingManager::getInstance() {
         if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
             qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects are not supported on this graphics hardware. The program cannot operate properly without it.") ));
 
-        if (!glSupportsExtension("GL_ARB_vertex_program") || !glSupportsExtension("GL_ARB_fragment_program"))
+        if (!glewIsSupported("GL_ARB_vertex_program") || !glewIsSupported("GL_ARB_fragment_program"))
             qFatal( "%s", qPrintable( tr("OpenGL GLSL programming is not supported on this graphics hardware. The program cannot operate properly without it.")));
-
-        if (!glSupportsExtension("GL_ARB_pixel_buffer_object"))
-            qFatal( "%s", qPrintable( tr("OpenGL Pixel Buffer Objects are not supported on this graphics hardware. The program cannot operate properly without it.")));
 
         _instance = new RenderingManager;
         Q_CHECK_PTR(_instance);
@@ -138,20 +156,12 @@ RenderingManager *RenderingManager::getInstance() {
 void RenderingManager::deleteInstance() {
     if (_instance != 0)
         delete _instance;
+    _instance = 0;
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), _fbo(NULL), previousframe_fbo(NULL), countRenderingSource(0),
-            previousframe_index(0), previousframe_delay(1), clearWhite(false), maxSourceCount(MAX_SOURCE_COUNT),
-#ifdef SHM
-            _sharedMemory(NULL), _sharedMemoryGLFormat(GL_RGB), _sharedMemoryGLType(GL_UNSIGNED_SHORT_5_6_5),
-#endif
-#ifdef SPOUT
-            _spoutEnabled(false), _spoutInitialized(false),
-#endif
-            _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true)
+    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true), maxSourceCount(0), countRenderingSource(0)
 {
-
     // 1. Create the view rendering widget
     _renderwidget = new ViewRenderWidget;
     Q_CHECK_PTR(_renderwidget);
@@ -159,8 +169,9 @@ RenderingManager::RenderingManager() :
     _propertyBrowser = new SourcePropertyBrowser;
     Q_CHECK_PTR(_propertyBrowser);
 
-    // for pixel buffer objects,
-    index = nextIndex = 0;
+    // no pixel buffer objects by default
+    pboIds[0] = 0;
+    pboIds[1] = 0;
 
     // create recorder and session switcher
     _recorder = new RenderingEncoder(this);
@@ -177,15 +188,22 @@ RenderingManager::RenderingManager() :
     QObject::connect(_renderwidget, SIGNAL(sourceGeometryDrop(double,double)), this, SLOT(dropSourceWithCoordinates(double, double)) );
     QObject::connect(_renderwidget, SIGNAL(sourceLayerDrop(double)), this, SLOT(dropSourceWithDepth(double)) );
 
-    // 3. Initialize the frame buffer
-    renderingQuality = QUALITY_VGA;
-    renderingAspectRatio = ASPECT_RATIO_4_3;
-    setFrameBufferResolution( sizeOfFrameBuffer[renderingAspectRatio][renderingQuality] );
 
+    QObject::connect(this, SIGNAL(frameBufferChanged()), _renderwidget, SLOT(refresh()));
+
+    // 3. Setup the default default values ! :)
+    _defaultSource = new Source();
     _currentSource = getEnd();
 
-    // 4. Setup the default default values ! :)
-    _defaultSource = new Source();
+#ifdef SHM
+    _sharedMemory = NULL;
+    _sharedMemoryGLFormat = GL_RGB;
+    _sharedMemoryGLType = GL_UNSIGNED_SHORT_5_6_5;
+#endif
+#ifdef SPOUT
+    _spoutEnabled = false;
+    _spoutInitialized = false;
+#endif
 }
 
 RenderingManager::~RenderingManager() {
@@ -205,64 +223,69 @@ RenderingManager::~RenderingManager() {
     delete _switcher;
 }
 
+void RenderingManager::resetFrameBuffer()
+{
+    // delete fbo to force update function to re-initialize it
+    if (_fbo)
+        delete _fbo;
+
+    _fbo = NULL;
+}
 
 void RenderingManager::setRenderingQuality(frameBufferQuality q)
 {
+    // by default, revert to lower resolution
     if ( q == QUALITY_UNSUPPORTED )
         q = QUALITY_VGA;
 
-    // ignore if nothing changes
-    if (q == renderingQuality)
-        return;
+    // request update of frame buffer only if changed
+    if (q != renderingQuality)
+        resetFrameBuffer();
 
-    // quality changed ; change resolution
+    // quality changed
     renderingQuality = q;
-    setFrameBufferResolution( sizeOfFrameBuffer[renderingAspectRatio][renderingQuality]);
 }
-
 
 void RenderingManager::setRenderingAspectRatio(standardAspectRatio ar)
 {
-    // ignore if nothing changes
-    if ( ar == renderingAspectRatio )
-        return;
-
-    renderingAspectRatio = ar;
-
     // by default, free windows are rendered with a 4:3 aspect ratio frame bufer
     if (ar == ASPECT_RATIO_FREE)
         ar = ASPECT_RATIO_4_3;
-    setFrameBufferResolution( sizeOfFrameBuffer[ar][renderingQuality]);
+
+    // request update of frame buffer only if changed
+    if (ar != renderingAspectRatio)
+        resetFrameBuffer();
+
+    // aspect ratio changed
+    renderingAspectRatio = ar;
 }
 
 void RenderingManager::setFrameBufferResolution(QSize size) {
 
-    // activate OpenGL context
-    _renderwidget->makeCurrent();
+    // Check limits based on openGL texture capabilities
+    if (maxSourceCount == 0) {
+        if (glewIsSupported("GL_ARB_internalformat_query2")) {
+            glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
+            glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_HEIGHT, 1, &maxtextureheight);
+        } else {
+            glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexturewidth);
+            maxtextureheight = maxtexturewidth;
+        }
 
-    // Check limits of the openGL texture
-    GLint maxtexturewidth = TEXTURE_REQUIRED_MAXIMUM;
-    GLint maxtextureheight = TEXTURE_REQUIRED_MAXIMUM;
+        maxtexturewidth = qMin(maxtexturewidth, GL_MAX_FRAMEBUFFER_WIDTH);
+        maxtextureheight = qMin(maxtextureheight, GL_MAX_FRAMEBUFFER_WIDTH);
+        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Maximum RGBA texture dimension: ") << maxtexturewidth << "x" << maxtextureheight;
 
-    if (glSupportsExtension("GL_ARB_internalformat_query2")) {
-        glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_WIDTH, 1, &maxtexturewidth);
-        glGetInternalformativ(GL_TEXTURE_2D, GL_RGBA8, GL_MAX_HEIGHT, 1, &maxtextureheight);
-    } else {
-        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexturewidth);
-        maxtextureheight = maxtexturewidth;
+        // setup the maximum texture count accordingly
+        maxSourceCount = maxtexturewidth / CATALOG_TEXTURE_HEIGHT;
+        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Maximum number of sources: ") << maxSourceCount;
     }
-
-    maxtexturewidth = qMin(maxtexturewidth, GL_MAX_FRAMEBUFFER_WIDTH);
-    maxtextureheight = qMin(maxtextureheight, GL_MAX_FRAMEBUFFER_WIDTH);
-    qDebug() << "OpenGL Maximum RGBA texture dimension: " << maxtexturewidth << "x" << maxtextureheight;
-
-    // setup the maximum texture count accordingly
-    maxSourceCount = maxtexturewidth / CATALOG_TEXTURE_HEIGHT;
-    qDebug() << "Maximum number of sources: " << maxSourceCount;
 
     // cleanup
     if (_fbo)
         delete _fbo;
+    if (pboIds[0] || pboIds[1])
+        glDeleteBuffers(2, pboIds);
 
     // create an fbo (with internal automatic first texture attachment)
     _fbo = new QGLFramebufferObject( qMin(size.width(), maxtexturewidth), qMin(size.height(), maxtextureheight));
@@ -279,7 +302,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         _fbo->release();
     }
     else
-        qFatal( "%s", qPrintable( QObject::tr("OpenGL Frame Buffer Objects is not accessible (cannot initialize the rendering buffer %1x%2).").arg(size.width()).arg(size.height())));
+        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible (cannot initialize the rendering buffer %1x%2).").arg(size.width()).arg(size.height())));
 
     // store viewport info
     _renderwidget->_renderView->viewport[0] = 0;
@@ -288,14 +311,21 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     _renderwidget->_renderView->viewport[3] = _fbo->height();
 
     // allocate PBOs
-    if (pboIds[0] || pboIds[1])
-        glDeleteBuffers(2, pboIds);
-    glGenBuffers(2, pboIds);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[0]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, _fbo->width() * _fbo->height() * 4, 0, GL_STREAM_READ);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[1]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, _fbo->width() * _fbo->height() * 4, 0, GL_STREAM_READ);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    if (RenderingManager::pbo_extension) {
+        glGenBuffers(2, pboIds);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[0]);
+        glBufferData(GL_PIXEL_PACK_BUFFER, _fbo->width() * _fbo->height() * 4, 0, GL_STREAM_READ);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[1]);
+        glBufferData(GL_PIXEL_PACK_BUFFER, _fbo->width() * _fbo->height() * 4, 0, GL_STREAM_READ);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Pixel Buffer Objects initialized: RGBA ") << _fbo->width() << "x" << _fbo->height();
+    }
+    else {
+        // no PBO
+        pboIds[0] = 0;
+        pboIds[1] = 0;
+    }
 
     // setup recorder frames size
     _recorder->setFrameSize(_fbo->size());
@@ -314,18 +344,24 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     }
 #endif
 
+    emit frameBufferChanged();
 
-    qDebug() << tr("Frame buffer set to ") << size.width() << "x" << size.height();
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Frame Buffer Object initialized : RGBA ") << size.width() << "x" << size.height();
 }
 
 
 double RenderingManager::getFrameBufferAspectRatio() const{
 
-    return ((double) _fbo->width() / (double) _fbo->height());
+    if (_fbo)
+        return ((double) _fbo->width() / (double) _fbo->height());
+    else
+        return 1.0;
 }
 
 void RenderingManager::postRenderToFrameBuffer() {
 
+    if (!_fbo)
+        return;
 
     // skip loop back if disabled
     if (previousframe_fbo)
@@ -400,48 +436,29 @@ void RenderingManager::postRenderToFrameBuffer() {
         ) {
 
 
-#ifdef USE_GLREADPIXELS
-
-        // bind rendering FBO as the current frame buffer
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
-
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]);
-
-        // read pixels from framebuffer to PBO should return immediately.
-        glReadPixels(0, 0, _fbo->width(), _fbo->height(), GL_BGRA, GL_UNSIGNED_BYTE, 0);
-
-        // map the PBO to process its data by CPU
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[nextIndex]);
-        unsigned char* ptr = (unsigned char*) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-        if(ptr)  {
-            _recorder->addFrame(ptr);
-            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-        }
-
-#else
-
         glEnable(GL_TEXTURE_2D);
         glActiveTexture(GL_TEXTURE0);
+        // read texture from the framebuferobject and record this frame (the recorder knows if it is active or not)
         glBindTexture(GL_TEXTURE_2D, _fbo->texture());
 
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[index]);
-        // read pixels from texture
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+        // use pixel buffer object if initialized
+        if (pboIds[0] && pboIds[1]) {
 
-        // map the PBO to process its data by CPU
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[nextIndex]);
-        unsigned char* ptr = (unsigned char*) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-        if(ptr)  {
-            _recorder->addFrame(ptr);
-            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_index]);
+            // read pixels from texture
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+
+            // map the PBO to process its data by CPU
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds[pbo_nextIndex]);
+            unsigned char* ptr = (unsigned char*) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+            if(ptr)  {
+                _recorder->addFrame(ptr);
+                glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+            }
         }
-
-        // read from the framebuferobject and record this frame (the recorder knows if it is active or not)
-//        _recorder->addFrame();
-
-        glDisable(GL_TEXTURE_2D);
-#endif
-
+        // just get current texture if not using pixel buffer object
+        else
+            _recorder->addFrame();
 
 
 #ifdef SHM
@@ -449,37 +466,34 @@ void RenderingManager::postRenderToFrameBuffer() {
         if (_sharedMemory != NULL) {
 
             _sharedMemory->lock();
-#ifdef USE_GLREADPIXELS
-            // read the pixels from the current frame buffer
-            glReadPixels((GLint)0, (GLint)0, (GLint) _fbo->width(), (GLint) _fbo->height(), _sharedMemoryGLFormat, _sharedMemoryGLType, (GLvoid *) _sharedMemory->data());
-#else
+
             // read the pixels from the texture
             glGetTexImage(GL_TEXTURE_2D, 0, _sharedMemoryGLFormat, _sharedMemoryGLType, (GLvoid *) _sharedMemory->data());
-#endif // READPIXELS
 
             _sharedMemory->unlock();
         }
 
-        glBindTexture(GL_TEXTURE_2D, 0);
-
 
 #endif // SHM
 
+        glDisable(GL_TEXTURE_2D);
 
-        // back to conventional pixel operation
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // restore state if using PBO
+        if (pboIds[0] && pboIds[1]) {
+            // back to conventional pixel operation
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
-        // "index" is used to read pixels from framebuffer to a PBO
-        // "nextIndex" is used to update pixels in the other PBO
-        index = (index + 1) % 2;
-        nextIndex = (index + 1) % 2;
+            // "index" is used to read pixels from framebuffer to a PBO
+            // "nextIndex" is used to update pixels in the other PBO
+            pbo_index = (pbo_index + 1) % 2;
+            pbo_nextIndex = (pbo_index + 1) % 2;
+        }
 
     }
     // end of recording : ensure PBO double buffer mechanism is reset
     else {
-        index = nextIndex = 0;
+        pbo_index = pbo_nextIndex = 0;
     }
 
 #ifdef SPOUT
@@ -496,6 +510,9 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last) {
 
+    if (!_fbo)
+        setFrameBufferResolution( sizeOfFrameBuffer[renderingAspectRatio][renderingQuality] );
+
     glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
     glViewport(0, 0, _renderwidget->_renderView->viewport[2], _renderwidget->_renderView->viewport[3]);
@@ -507,7 +524,6 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-
 
     // render to the frame buffer object
     if (_fbo->bind())
@@ -610,7 +626,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
 
 QImage RenderingManager::captureFrameBuffer(QImage::Format format) {
 
-    QImage img = _fbo->toImage();
+    QImage img = _fbo ? _fbo->toImage() : QImage();
 
     if (format != QImage::Format_RGB888)
         img = img.convertToFormat(format);
@@ -1203,7 +1219,7 @@ void RenderingManager::clearSourceSet() {
     // reset the id counter
     Source::lastid = 1;
 
-    qDebug("List of source cleared.");
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("List of source cleared.");
 }
 
 bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
@@ -1837,7 +1853,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
             // create the video file
             VideoFile *newSourceVideoFile = NULL;
-            if ( !Filename.attribute("PowerOfTwo","0").toInt() && (glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ) )
+            if ( !Filename.attribute("PowerOfTwo","0").toInt() && (glewIsSupported("GL_EXT_texture_non_power_of_two") || glewIsSupported("GL_ARB_texture_non_power_of_two") ) )
                 newSourceVideoFile = new VideoFile(this);
             else
                 newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR);

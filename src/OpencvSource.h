@@ -108,11 +108,10 @@ protected:
 
     static QMap<int, OpencvSource*> _existingSources;
 
-#ifdef USE_PBO
     GLuint pboIds[2];
     int index, nextIndex;
     int imgsize;
-#endif
+
 };
 
 #endif /* OPENCVSOURCE_H_ */

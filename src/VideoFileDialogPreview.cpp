@@ -36,7 +36,7 @@ VideoFileDialogPreview::VideoFileDialogPreview(QWidget *parent) : QWidget(parent
     setupUi(this);
     is = NULL;
 
-    if ( glSupportsExtension("GL_EXT_texture_non_power_of_two") || glSupportsExtension("GL_ARB_texture_non_power_of_two") ){
+    if ( glewIsSupported("GL_EXT_texture_non_power_of_two") || glewIsSupported("GL_ARB_texture_non_power_of_two") ){
         customSizeCheckBox->setChecked(false);
         customSizeCheckBox->setEnabled(true);
     }
