@@ -567,7 +567,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
     //
     // 2. Draw sources into second texture  attachment ; the catalog (if visible)
     //
-    if (_renderwidget->_catalogView->visible()) {
+    if (_renderwidget->_catalogView->visible() ) {
 
         if (first)
             // Clear Catalog view

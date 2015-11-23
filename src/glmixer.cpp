@@ -1319,6 +1319,10 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 
     if (cd.exec() == QDialog::Accepted) {
 
+        int width = cd.presetsSizeComboBox->itemData(cd.presetsSizeComboBox->currentIndex()).toInt();
+        if (width)
+            capture = capture.scaledToWidth(width);
+
         QString suggestion = QString("glmixerimage %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
         QString fileName = getFileName(tr("Save snapshot"),
