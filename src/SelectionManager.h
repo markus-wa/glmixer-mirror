@@ -28,7 +28,7 @@ public:
 	void deselect(Source *s);
 	void select(SourceList l);
 	void deselect(SourceList l);
-	bool isInSelection(Source *s);
+    bool isInSelection(Source *s) const;
 	void setSelection(SourceList l);
 	bool hasSelection() { return !_selectedSources.empty(); }
 	SourceList::iterator selectionBegin() { return _selectedSources.begin(); }

@@ -77,6 +77,7 @@ void CatalogView::setSize(catalogSize s){
 
 	_currentSize = s;
 	resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
+
 }
 
 
@@ -88,7 +89,7 @@ void CatalogView::setModelview()
 
 void CatalogView::setVisible(bool on){
 
-	_visible = on;
+    _visible = on;
     resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
 }
 
@@ -127,7 +128,7 @@ void CatalogView::clear() {
 
 }
 
-void CatalogView::drawSource(const Source *s)
+void CatalogView::drawSource(Source *s)
 {
     // This method is called by the rendering manager
     if (_catalogfbo->bind()) {
@@ -254,6 +255,7 @@ void CatalogView::paint() {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, _catalogfbo->texture());
 
+    // draw image of source icon
     foreach ( Icon *item, _icons) {
         glBegin(GL_QUADS);
             glTexCoord2f( item->texturecoordinates.left(), item->texturecoordinates.top());
@@ -269,9 +271,16 @@ void CatalogView::paint() {
 
     glDisable(GL_TEXTURE_2D);
 
+    // draw borders of source icon
     foreach ( Icon *item, _icons) {
-        // Tag color
-        glColor4ub(item->source->getTag()->getColor().red(), item->source->getTag()->getColor().green(), item->source->getTag()->getColor().blue(), 255 * _alpha);
+
+        // normal border
+        if (item->source->isModifiable()) {
+            // Tag color
+            glColor4ub(item->source->getTag()->getColor().red(), item->source->getTag()->getColor().green(), item->source->getTag()->getColor().blue(), 255 * _alpha);
+        } else {
+            glColor4ub(COLOR_SOURCE_STATIC, 255 * _alpha);
+        }
 
         if (RenderingManager::getInstance()->isCurrentSource(item->source))
             glLineWidth(3.0);
@@ -284,15 +293,31 @@ void CatalogView::paint() {
             glVertex2i( item->coordinates.right(), item->coordinates.bottom()); // Bottom Right
             glVertex2i( item->coordinates.left(), item->coordinates.bottom()); // Bottom Left
         glEnd();
+
+        // selection border
+        if ( SelectionManager::getInstance()->isInSelection(item->source) ) {
+            glColor4ub(COLOR_SELECTION, 255 * _alpha);
+            glLineStipple(1, 0x9999);
+            glLineWidth(2.0);
+            glEnable(GL_LINE_STIPPLE);
+            glBegin(GL_LINE_LOOP);
+                glVertex2i( item->coordinates.left() - 3, item->coordinates.top() -3); // Top Left
+                glVertex2i( item->coordinates.right() + 3, item->coordinates.top() -3); // Top Right
+                glVertex2i( item->coordinates.right() + 3, item->coordinates.bottom() +3); // Bottom Right
+                glVertex2i( item->coordinates.left() - 3, item->coordinates.bottom() +3); // Bottom Left
+            glEnd();
+            glDisable(GL_LINE_STIPPLE);
+        }
     }
 
 
     glLoadIdentity();
     glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[8]);
 
+    // draw overlay gradient to black (top and bottom) to indicate overflow
     if (zoom > 0.1) {
         glColor4f(0.8, 0.8, 0.8, _alpha * qBound(0.0, zoom , 1.0) );
-        glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[8]);
         glBegin(GL_QUADS);
             glTexCoord2f( 0.f, 1.f);
             glVertex2i( _size[_currentSize] + 1, 0);
@@ -307,7 +332,6 @@ void CatalogView::paint() {
     if ( maxpany - zoom > 0.1)
     {
         glColor4f(0.8, 0.8, 0.8, _alpha * qBound(0.0, maxpany -zoom , 1.0) );
-        glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[8]);
         glBegin(GL_QUADS);
             glTexCoord2f( 0.f, 1.f);
             glVertex2i( _size[_currentSize] + 1, viewport[3]);
@@ -322,7 +346,7 @@ void CatalogView::paint() {
 
     glDisable(GL_TEXTURE_2D);
 
-    // frame
+    // draw frame
     glColor4f(0.8, 0.8, 0.8, 1.0);
     glBegin(GL_LINES);
         glVertex2i( 1, 1);
@@ -337,6 +361,7 @@ void CatalogView::paint() {
 	glPopMatrix();
 
 	glPopAttrib();
+
 }
 
 
@@ -353,6 +378,7 @@ bool CatalogView::isInside(const QPoint &pos){
 bool CatalogView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
     bool foundsource = false;
+    clickedSources.clear();
 
     QPoint pos(mouseX - viewport[0], (_widgetArea.height() - mouseY) - viewport[1] + (int)pany );
 
@@ -361,7 +387,7 @@ bool CatalogView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
         if (item->coordinates.contains(pos)) {
             foundsource = true;
             if (clic)
-                RenderingManager::getInstance()->setCurrentSource( item->source->getId() );
+                clickedSources.insert( item->source );
             break;
         }
     }
@@ -378,9 +404,23 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
             return true;
         }
 
-        if (getSourcesAtCoordinates(event->pos().x(), event->pos().y(), true))
-            return true;
+        if (getSourcesAtCoordinates(event->pos().x(), event->pos().y(), true)) {
 
+            Source *clicked = *clickedSources.begin();
+
+            // SELECT MODE
+            if ( isUserInput(event, INPUT_SELECT) ) {
+                // add / remove the clicked source from the selection
+                if ( SelectionManager::getInstance()->isInSelection(clicked) )
+                    SelectionManager::getInstance()->deselect(clicked);
+                else
+                    SelectionManager::getInstance()->select(clicked);
+            }
+            else
+                RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
+
+            return true;
+        }
     }
 	return false;
 }

@@ -37,7 +37,7 @@ public:
 
     class Icon {
     public:
-        const Source *source;
+        Source *source;
         QRectF texturecoordinates;
         QRect fbocoordinates;
         QRect coordinates;
@@ -61,7 +61,7 @@ public:
 	// Specific implementation
     bool isInside(const QPoint &pos);
 	void setVisible(bool on);
-	bool visible() { return _visible;}
+    bool visible() { return _visible;}
 	void setTransparent(bool on);
 	inline bool isTransparent() const { return _alpha < 0.9; }
 	typedef enum { SMALL = 0, MEDIUM = 1, LARGE = 2 } catalogSize;
@@ -69,11 +69,11 @@ public:
 	inline catalogSize getSize() const { return _currentSize; }
 
 	// drawing
-    void drawSource(const Source *s);
+    void drawSource(Source *s);
     void reorganize();
 
 private:
-	bool _visible;
+    bool _visible;
     double _size[3], _iconSize[3], _spacing[3];
     catalogSize _currentSize;
     float _alpha;

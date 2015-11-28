@@ -53,10 +53,10 @@ void SelectionManager::select(Source *s) {
     if (!s || s == _selectionSource )
 		return;
 
-	if ( SelectionManager::_selectedSources.count(s) > 0)
-		SelectionManager::_selectedSources.erase(s);
+    if ( _selectedSources.count(s) > 0)
+        _selectedSources.erase(s);
 	else
-		SelectionManager::_selectedSources.insert(s);
+        _selectedSources.insert(s);
 
 	// update the selection source for geometry view
 	updateSelectionSource();
@@ -75,9 +75,9 @@ void SelectionManager::select(SourceList l)
 	l.erase(SelectionManager::_selectionSource);
 	// generate new set as union of current selection and give list
 	SourceList result;
-	std::set_union(SelectionManager::_selectedSources.begin(), SelectionManager::_selectedSources.end(), l.begin(), l.end(), std::inserter(result, result.begin()) );
+    std::set_union(_selectedSources.begin(), _selectedSources.end(), l.begin(), l.end(), std::inserter(result, result.begin()) );
 	// set new selection
-	SelectionManager::_selectedSources = SourceList(result);
+    _selectedSources = SourceList(result);
 	// update the selection source for geometry view
 	updateSelectionSource();
 }
@@ -88,9 +88,9 @@ void SelectionManager::deselect(SourceList l)
 	l.erase(SelectionManager::_selectionSource);
 	// generate new set as difference of current selection and give list
 	SourceList result;
-	std::set_difference(SelectionManager::_selectedSources.begin(), SelectionManager::_selectedSources.end(), l.begin(), l.end(), std::inserter(result, result.begin()) );
+    std::set_difference(_selectedSources.begin(), _selectedSources.end(), l.begin(), l.end(), std::inserter(result, result.begin()) );
 	// set new selection
-	SelectionManager::_selectedSources = SourceList(result);
+    _selectedSources = SourceList(result);
 	// update the selection source for geometry view
 	updateSelectionSource();
 }
@@ -101,14 +101,14 @@ void SelectionManager::setSelection(SourceList l)
 	// Do not consider the _selectionSource in a selection
 	l.erase(SelectionManager::_selectionSource);
 	// set new selection
-	SelectionManager::_selectedSources = SourceList(l);
+    _selectedSources = SourceList(l);
 	// update the selection source for geometry view
 	updateSelectionSource();
 }
 
-bool SelectionManager::isInSelection(Source *s)
+bool SelectionManager::isInSelection(Source *s) const
 {
-	return SelectionManager::_selectedSources.count(s) > 0;
+    return _selectedSources.count(s) > 0;
 }
 
 
