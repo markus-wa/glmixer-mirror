@@ -29,7 +29,7 @@ public:
         verticalLayout->addWidget(Question);
 
         Display = new QLabel(this);
-        Display->setPixmap(QPixmap::fromImage(img).scaledToWidth(300));
+        Display->setPixmap(QPixmap::fromImage(img).scaledToWidth(400));
         verticalLayout->addWidget(Display);
 
         Info = new QLabel(this);

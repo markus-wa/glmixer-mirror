@@ -182,6 +182,7 @@ private:
 
 	QTimer *refreshTimingTimer;
     bool _displayTimeAsFrame, _restoreLastSession;
+    bool _disableOutputWhenRecord;
 
 	QSettings settings;
 	QAction *recentFileActs[MAX_RECENT_FILES];

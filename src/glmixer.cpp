@@ -103,7 +103,8 @@ GLMixer *GLMixer::getInstance() {
 
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     selectedSourceVideoFile(NULL), usesystemdialogs(false), maybeSave(true),
-    refreshTimingTimer(0), _displayTimeAsFrame(false), _restoreLastSession(true)
+    refreshTimingTimer(0), _displayTimeAsFrame(false), _restoreLastSession(true),
+    _disableOutputWhenRecord(false)
 {
     setupUi ( this );
 
@@ -2517,9 +2518,15 @@ void GLMixer::restorePreferences(const QByteArray & state){
     RenderingManager::getPropertyBrowserWidget()->setDisplayPropertyTree(propertytree);
 
     // t. disable PBO
-    bool usepbo = false;
-    stream >> usepbo;
-    RenderingManager::setUsePboExtension(usepbo);
+    bool usePBO = true;
+    stream >> usePBO >> _disableOutputWhenRecord;
+    RenderingManager::setUsePboExtension(usePBO);
+    if (_disableOutputWhenRecord) {
+        QObject::connect(actionRecord, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setInactive(bool)));
+     } else {
+        QObject::disconnect(actionRecord, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setInactive(bool)));
+    }
+    OutputRenderWindow::getInstance()->setActive(true);
 
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
@@ -2607,6 +2614,7 @@ QByteArray GLMixer::getPreferences() const {
 
     // t. disable PBO
     stream << RenderingManager::usePboExtension();
+    stream << _disableOutputWhenRecord;
 
     return data;
 }

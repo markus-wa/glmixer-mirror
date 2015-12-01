@@ -44,14 +44,18 @@ public:
 	float getAspectRatio() const;
 	inline bool freeAspectRatio() const { return !useAspectRatio; }
 	void useFreeAspectRatio(bool on);
+    bool isActive() const { return output_active; }
 
 public Q_SLOTS:
-	void refresh();
+    void refresh();
+    void setActive(bool on) { output_active = on; }
+    void setInactive(bool off) { output_active = !off; }
 
 protected:
     bool useAspectRatio, useWindowAspectRatio;
 	int rx, ry, rw, rh;
     bool need_resize;
+    bool output_active;
 };
 
 class OutputRenderWindow : public OutputRenderWidget {

@@ -627,10 +627,10 @@ p, li { white-space: pre-wrap; }
                    <number>65</number>
                   </property>
                   <property name="value">
-                   <number>20</number>
+                   <number>16</number>
                   </property>
                   <property name="sliderPosition">
-                   <number>20</number>
+                   <number>16</number>
                   </property>
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -646,7 +646,7 @@ p, li { white-space: pre-wrap; }
                 <item>
                  <widget class="QLabel" name="frameRateString">
                   <property name="text">
-                   <string notr="true">50 fps</string>
+                   <string notr="true">60 fps</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -712,6 +712,13 @@ p, li { white-space: pre-wrap; }
                     </property>
                     <property name="text">
                      <string>Disable Pixel Buffer Objects</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QCheckBox" name="disableOutputRecording">
+                    <property name="text">
+                     <string>Disable outputs when recording</string>
                     </property>
                    </widget>
                   </item>

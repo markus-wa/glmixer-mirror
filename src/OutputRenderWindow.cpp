@@ -36,7 +36,7 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-        useAspectRatio(true), useWindowAspectRatio(true), need_resize(true) {
+        useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true) {
 
 	rx = 0;
 	ry = 0;
@@ -174,12 +174,12 @@ void OutputRenderWidget::paintGL()
 {
 	glRenderWidget::paintGL();
 
-    // avoid drawing if not visible
-    if (!isEnabled() || !isVisible())
-		return;
-
     if (need_resize)
         resizeGL();
+
+    // avoid drawing if not visible
+    if (!isEnabled() || !isVisible() || !output_active)
+		return;
 
     // use the accelerated GL_EXT_framebuffer_blit if available
     if ( RenderingManager::blit_fbo_extension )

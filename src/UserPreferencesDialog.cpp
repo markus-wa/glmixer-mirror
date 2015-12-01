@@ -114,6 +114,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         fullscreenMonitor->setCurrentIndex(0);
         disableBlitFrameBuffer->setChecked(!GLEW_EXT_framebuffer_blit);
         disablePixelBufferObject->setChecked(!GLEW_EXT_pixel_buffer_object);
+        disableOutputRecording->setChecked(false);
     }
 
     if (stackedPreferences->currentWidget() == PageRecording) {
@@ -288,8 +289,10 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
 
     // t. disable PBO
     bool usePBO = true;
-    stream >> usePBO;
+    bool disableoutput = false;
+    stream >> usePBO >> disableoutput;
     disablePixelBufferObject->setChecked(!usePBO);
+    disableOutputRecording->setChecked(disableoutput);
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -364,6 +367,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // t. disable pbo
     stream << !disablePixelBufferObject->isChecked();
+    stream << disableOutputRecording->isChecked();
 
     return data;
 }

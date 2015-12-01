@@ -50,9 +50,7 @@ public:
 	RenderingEncoder(QObject * parent = 0);
 	~RenderingEncoder();
 
-	bool start();
     void addFrame(unsigned char *data = 0);
-	bool close();
 
 	// preferences encoding
 	void setEncodingFormat(encodingformat f);
@@ -86,6 +84,9 @@ Q_SIGNALS:
 
 protected:
     void timerEvent(QTimerEvent *event);
+
+    bool start();
+    bool close();
 
 private:
 	// files location
