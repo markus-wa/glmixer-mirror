@@ -203,7 +203,7 @@ void GLSLCodeEditorWidget::restoreStyle()
 
 void GLSLCodeEditorWidget::showHelp()
 {
-    QDesktopServices::openUrl(QUrl("https://www.shadertoy.com", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://www.opengl.org/documentation/glsl/", QUrl::TolerantMode));
 }
 
 void GLSLCodeEditorWidget::pasteCode()

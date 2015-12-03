@@ -333,15 +333,18 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
 #ifdef Q_OS_WIN
 typedef __declspec() bool (__stdcall *_FuncPtrSetString)(unsigned int, const char *, DWORD);
 typedef __declspec() char * (__stdcall *_FuncPtrGetString)(unsigned int, DWORD);
+typedef __declspec() void (__stdcall *_FuncPtrSetKeyboard)(int, bool, DWORD);
 #else
 typedef bool (*_FuncPtrSetString)(unsigned int, const char *, DWORD);
 typedef char *(*_FuncPtrGetString)(unsigned int, DWORD);
+typedef void (*_FuncPtrSetKeyboard)(int, bool, DWORD);
 #endif
 
 #else
 // FFGL 1.6
 typedef bool (*_FuncPtrSetString)(unsigned int, const char *, FFInstanceID);
 typedef char *(*_FuncPtrGetString)(unsigned int, FFInstanceID);
+typedef bool (*_FuncPtrSetKeyboard)(int, bool, FFInstanceID);
 #endif
 
 class FFGLPluginInstanceShadertoyPlaftorm : public FFGLPluginInstanceFreeframePlatform, public FFGLPluginInstanceShadertoy {
@@ -353,9 +356,11 @@ public:
     bool declareShadertoyFunctions();
     bool setString(ShadertoyString, const char *code);
     char *getString(ShadertoyString);
+    bool setKeyboard(int key, bool status);
 
     _FuncPtrSetString m_ffPluginFunctionSetString;
     _FuncPtrGetString m_ffPluginFunctionGetString;
+    _FuncPtrSetKeyboard m_ffPluginFunctionSetKeyboard;
 };
 
 FFGLPluginInstance *FFGLPluginInstanceShadertoy::New()
@@ -366,7 +371,7 @@ FFGLPluginInstance *FFGLPluginInstanceShadertoy::New()
 
 bool FFGLPluginInstanceShadertoyPlaftorm::setString(ShadertoyString t, const char *code)
 {
-    if (m_ffPluginFunctionGetString==NULL || m_ffInstanceID==INVALIDINSTANCE)
+    if (m_ffPluginFunctionSetString==NULL || m_ffInstanceID==INVALIDINSTANCE)
         return false;
 
     return m_ffPluginFunctionSetString((unsigned int) t, code, m_ffInstanceID);
@@ -378,6 +383,14 @@ char *FFGLPluginInstanceShadertoyPlaftorm::getString(ShadertoyString t)
         return 0;
 
     return m_ffPluginFunctionGetString((unsigned int) t, m_ffInstanceID);
+}
+
+bool FFGLPluginInstanceShadertoyPlaftorm::setKeyboard(int key, bool status)
+{
+    if (m_ffPluginFunctionSetKeyboard==NULL || m_ffInstanceID==INVALIDINSTANCE)
+        return false;
+
+    return m_ffPluginFunctionSetKeyboard(key, status, m_ffInstanceID);
 }
 
 
@@ -392,8 +405,11 @@ bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
 
     m_ffPluginFunctionSetString = (_FuncPtrSetString)GetProcAddress(m_ffModule, "setString");
     m_ffPluginFunctionGetString = (_FuncPtrGetString)GetProcAddress(m_ffModule, "getString");
+    m_ffPluginFunctionSetKeyboard = (_FuncPtrSetKeyboard)GetProcAddress(m_ffModule, "setKeyboard");
 
-    return ( m_ffPluginFunctionSetString != NULL && m_ffPluginFunctionGetString != NULL);
+    return ( m_ffPluginFunctionSetString != NULL &&
+             m_ffPluginFunctionGetString != NULL &&
+             m_ffPluginFunctionSetKeyboard != NULL );
 }
 
 #else
@@ -406,9 +422,11 @@ bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
 
     m_ffPluginFunctionSetString = (_FuncPtrSetString)NSAddressOfSymbol( NSLookupSymbolInModule(m_ffModule, "setString") );
     m_ffPluginFunctionGetString = (_FuncPtrGetString)NSAddressOfSymbol( NSLookupSymbolInModule(m_ffModule, "getString") );
+    m_ffPluginFunctionSetKeyboard = (_FuncPtrSetKeyboard)NSAddressOfSymbol( NSLookupSymbolInModule(m_ffModule, "setKeyboard") );
 
-
-    return ( m_ffPluginFunctionSetString != NULL && m_ffPluginFunctionGetString != NULL);
+    return ( m_ffPluginFunctionSetString != NULL &&
+             m_ffPluginFunctionGetString != NULL &&
+             m_ffPluginFunctionSetKeyboard != NULL );
 }
 
 #else
@@ -420,8 +438,11 @@ bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
 
     m_ffPluginFunctionSetString = (_FuncPtrSetString) dlsym(plugin_handle, "setString");
     m_ffPluginFunctionGetString = (_FuncPtrGetString) dlsym(plugin_handle, "getString");
+    m_ffPluginFunctionSetKeyboard = (_FuncPtrSetKeyboard) dlsym(plugin_handle, "setKeyboard");
 
-    return ( m_ffPluginFunctionSetString != NULL && m_ffPluginFunctionGetString != NULL);
+    return ( m_ffPluginFunctionSetString != NULL &&
+             m_ffPluginFunctionGetString != NULL &&
+             m_ffPluginFunctionSetKeyboard != NULL );
 }
 
 #endif

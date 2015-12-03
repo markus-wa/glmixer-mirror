@@ -86,7 +86,8 @@ public:
     // get a string of the GLSL shadertoy plugin
     // wrapper for getString function of the FreeFrameFragmentCodePlugin
     virtual char *getString(ShadertoyString t) = 0;
-
+    // set the keyboard array
+    virtual bool setKeyboard(int key, bool status) = 0;
 };
 
 

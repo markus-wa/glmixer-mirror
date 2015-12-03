@@ -6,6 +6,7 @@ const char *fragmentMainCode = "\nvoid main(void){\n"
 
 GLuint displayList = 0;
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,6 +218,7 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         uniform_time = glGetUniformLocation(shaderProgram, "iGlobalTime");
         uniform_channeltime = glGetUniformLocation(shaderProgram, "iChannelTime[0]");
         uniform_date = glGetUniformLocation(shaderProgram, "iDate");
+        uniform_keys = glGetUniformLocation(shaderProgram, "key");
 
         // do not recompile shader next time
         code_changed = false;
@@ -231,6 +233,9 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     std::time_t now = std::time(0);
     std::tm *local = std::localtime(&now);
     glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*3600.0+local->tm_min*60.0+local->tm_sec);
+
+    // set keyboard uniform
+    glUniform1uiv(uniform_keys, 10, keyboard);
 
     // activate the fbo2 as our render target
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferObject);
@@ -263,7 +268,7 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
 #ifdef _WIN32
 
-__declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD instanceID)
+__declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD *instanceID)
 
 #else
 
@@ -300,18 +305,18 @@ bool setString(unsigned int t, const char *string, FFInstanceID *instanceID)
 
 #ifdef _WIN32
 
-__declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD instanceID)
+__declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD *instanceID)
 
 
 #else
 
-char *getString(unsigned int t, DWORD instanceID)
+char *getString(unsigned int t, DWORD *instanceID)
 
 #endif
 
 #else
 
-char *getString(unsigned int t, FFInstanceID instanceID)
+char *getString(unsigned int t, FFInstanceID *instanceID)
 
 #endif
 {
@@ -348,4 +353,35 @@ char *getString(unsigned int t, FFInstanceID instanceID)
     }
 
     return 0;
+}
+
+#ifdef FF_FAIL  // FFGL 1.5
+
+#ifdef _WIN32
+
+__declspec(dllexport) bool __stdcall setString(int key, bool status, DWORD *instanceID)
+
+#else
+
+bool setString(int key, bool status, DWORD *instanceID)
+
+#endif
+
+#else
+
+bool setKeyboard(int key, bool status, FFInstanceID *instanceID)
+
+#endif
+{
+    // declare pPlugObj (pointer to this instance)
+    // & typecast instanceid into pointer to a CFreeFrameGLPlugin
+    FreeFrameShadertoy* pPlugObj = (FreeFrameShadertoy*) instanceID;
+
+    if (pPlugObj) {
+
+        pPlugObj->setKeyboard(key, status);
+        return true;
+    }
+
+    return false;
 }

@@ -8,6 +8,7 @@ const char *fragmentShaderHeader =  "uniform vec3      iResolution;           //
                                     "uniform float     iGlobalTime;           // shader playback time (in seconds)\n"
                                     "uniform float     iChannelTime[1];       // channel playback time (in seconds)\n"
                                     "uniform vec4      iDate;                 // (year, month, day, time in seconds)\n"
+                                    "uniform bool      key[10];               // numpad key pressed\n"
                                     "uniform vec3      iChannelResolution[1]; // input channel resolution (in pixels)\n"
                                     "uniform sampler2D iChannel0;             // input channel (texture id).\0";
 
@@ -53,7 +54,10 @@ FreeFrameShadertoy::FreeFrameShadertoy()
     uniform_time = 0;
     uniform_channeltime = 0;
     uniform_date = 0;
+    uniform_keys = 0;
     m_curTime = 0.0;
+
+    for (int k=0; k<10; ++k) keyboard[k] = 0;
 
     // Input properties
     SetMinInputs(1);

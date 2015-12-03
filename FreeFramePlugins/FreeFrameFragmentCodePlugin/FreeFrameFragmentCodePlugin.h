@@ -48,6 +48,8 @@ public:
     char *getFragmentProgramCode();
     char *getFragmentProgramLogs();
 
+    void setKeyboard(int key, bool status) { keyboard[key] = status; }
+
 protected:
 
     FFGLViewportStruct viewport;
@@ -60,6 +62,7 @@ protected:
     GLuint uniform_time;
     GLuint uniform_channeltime;
     GLuint uniform_date;
+    GLuint uniform_keys;
 
     bool code_changed;
     char *fragmentShaderCode;
@@ -70,6 +73,9 @@ protected:
 
     // Time
     double m_curTime;
+
+    // keys
+    GLuint keyboard[10];
 };
 
 
@@ -81,22 +87,22 @@ extern "C" {
 
 #ifdef _WIN32
 
-__declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD instanceID);
-__declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD instanceID);
+__declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD *instanceID);
+__declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD *instanceID);
 
 
 #else
 
 bool setString(unsigned int t, const char *string, DWORD *instanceID);
-char *getString(unsigned int t, DWORD instanceID);
+char *getString(unsigned int t, DWORD *instanceID);
 
 #endif
 
 #else
 
 bool setString(unsigned int t, const char *string, FFInstanceID *instanceID);
-char *getString(unsigned int t, FFInstanceID instanceID);
-
+char *getString(unsigned int t, FFInstanceID *instanceID);
+bool setKeyboard(int key, bool status, FFInstanceID *instanceID);
 
 #endif
 
