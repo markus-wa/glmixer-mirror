@@ -2523,10 +2523,12 @@ void GLMixer::restorePreferences(const QByteArray & state){
     RenderingManager::setUsePboExtension(usePBO);
     if (_disableOutputWhenRecord) {
         QObject::connect(actionRecord, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setInactive(bool)));
+        QObject::connect(actionRecord, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setHidden(bool)));
      } else {
-        QObject::disconnect(actionRecord, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setInactive(bool)));
+        QObject::disconnect(actionRecord, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setHidden(bool)));
     }
     OutputRenderWindow::getInstance()->setActive(true);
+    OutputRenderWindow::getInstance()->setVisible(true);
 
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
