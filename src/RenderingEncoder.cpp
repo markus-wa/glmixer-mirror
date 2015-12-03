@@ -162,8 +162,7 @@ void EncodingThread::run() {
 	}
 }
 
-RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false),
-                                                    elapseTimer(0), skipframecount(0), update(40), displayupdate(33) {
+RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapseTimer(0), skipframecount(0), update(40), displayupdate(33) {
 
 	// set default format
     temporaryFileName = "__temp__";
@@ -206,7 +205,7 @@ void RenderingEncoder::setActive(bool on)
 
 	// restore former display update period
 	if (!started)
-		glRenderWidget::setUpdatePeriod( displayupdate );
+        glRenderWidget::setUpdatePeriod( displayupdate -1 );
 
 	// inform if we could be activated
     emit activated(started);
