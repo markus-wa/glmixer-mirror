@@ -3,6 +3,24 @@
  *
  *  Created on: Mar 13, 2011
  *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2012 Bruno Herbelin
+ *
  */
 
 #include "RenderingEncoder.moc"
@@ -38,7 +56,6 @@ EncodingThread::~EncodingThread(){
 
 void EncodingThread::initialize(video_rec_t *recorder, int bufferCount) {
     rec = recorder;
-//    period =  update;
     // compute buffer count from size
     pictq_max = bufferCount;
     // allocate buffers
@@ -110,9 +127,7 @@ bool EncodingThread::pictq_full() {
 void EncodingThread::run() {
 
 	// prepare
-	quit = false;
-//	int dt =  0;
-//	timer.start();
+    quit = false;
 
 	// loop until break
 	while (true) {
@@ -138,8 +153,6 @@ void EncodingThread::run() {
 			// tell main process that it can go on (in case it was waiting on a full queue)
 			pictq_cond->wakeAll();
 			pictq_mutex->unlock();
-
-//            qDebug() << "encoding  " << pictq_size << " / " << pictq_max;
 
 		}
 
@@ -446,7 +459,7 @@ void RenderingEncoder::setAutomaticSavingFolder(QDir d) {
 
 void RenderingEncoder::saveFile(){
 
-    QFileInfo infoFileDestination(savingFolder, QString("glmixervideo %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) + '.' + recorder->suffix);
+    QFileInfo infoFileDestination(savingFolder, QString("glmixervideo%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) + '.' + recorder->suffix);
 
 	if (infoFileDestination.exists()){
 		infoFileDestination.dir().remove(infoFileDestination.fileName());
@@ -462,7 +475,7 @@ void RenderingEncoder::saveFile(){
 
 void RenderingEncoder::saveFileAs(){
 
-    QString suggestion = QString("glmixervideo %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
+    QString suggestion = QString("glmixervideo%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
     QString newFileName = GLMixer::getInstance()->getFileName(tr("Save recorded video"),
                                                               recorder->description,

@@ -1326,11 +1326,16 @@ void GLMixer::on_actionSave_snapshot_triggered(){
         if (width)
             capture = capture.scaledToWidth(width);
 
-        QString suggestion = QString("glmixerimage %1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
+        QString fileName;
+        QString suggestion = QString("glmixerimage%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
-        QString fileName = getFileName(tr("Save snapshot"),
-                                       tr("Image") + " (*.png *.jpg *.tiff *.xpm)",
+        if (RenderingManager::getRecorder()->automaticSavingMode()) {
+            fileName = RenderingManager::getRecorder()->automaticSavingFolder().absoluteFilePath(suggestion + ".png");
+        }
+        else {
+            fileName = getFileName(tr("Save snapshot"), tr("Image") + " (*.png *.jpg *.tiff *.xpm)",
                                        QString("png"), suggestion);
+        }
 
         if ( !fileName.isEmpty() ) {
             if (!capture.save(fileName)) {
