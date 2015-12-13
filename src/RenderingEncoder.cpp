@@ -19,128 +19,100 @@
 #include <QGLFramebufferObject>
 #include <QThread>
 
-/**
- * Size of a Mega Byte
- */
-#define MEGABYTE 1048576
 
-class EncodingThread: public QThread {
+EncodingThread::EncodingThread() : QThread(), rec(NULL), quit(true), pictq(0), pictq_max(0),
+    pictq_size(0), pictq_rindex(0), pictq_windex(0), recordingTimeStamp(0)
+{
+    // create mutex
+    pictq_mutex = new QMutex;
+    Q_CHECK_PTR(pictq_mutex);
+    pictq_cond = new QWaitCondition;
+    Q_CHECK_PTR(pictq_cond);
+}
 
-public:
+EncodingThread::~EncodingThread(){
+    delete pictq_mutex;
+    delete pictq_cond;
+    clear();
+}
 
-    EncodingThread() : QThread(), rec(NULL), period(40), quit(true), pictq(0), pictq_max(0),
-        pictq_size(0), pictq_rindex(0), pictq_windex(0), recordingTimeStamp(0)
-    {
-		// create mutex
-	    pictq_mutex = new QMutex;
-	    Q_CHECK_PTR(pictq_mutex);
-	    pictq_cond = new QWaitCondition;
-	    Q_CHECK_PTR(pictq_cond);
-	}
-
-	~EncodingThread(){
-        delete pictq_mutex;
-        delete pictq_cond;
-        clear();
-	}
-
-    void initialize(video_rec_t *recorder, int update, int bufferCount) {
-    	rec = recorder;
-    	period =  update;
-        // compute buffer count from size
-        pictq_max = bufferCount;
-        // allocate buffers
-        pictq = (unsigned char **) malloc( pictq_max * sizeof(unsigned char *) );
-        recordingTimeStamp = (int *) malloc( pictq_max * sizeof(int) );
-        for (int i = 0; i < pictq_max; ++i) {
-            pictq[i] = (unsigned char *) malloc(rec->width * rec->height * 4);
-            recordingTimeStamp[i] = 0;
-        }
-    	// init variables
-    	pictq_size = pictq_rindex = pictq_windex = 0;
+void EncodingThread::initialize(video_rec_t *recorder, int bufferCount) {
+    rec = recorder;
+//    period =  update;
+    // compute buffer count from size
+    pictq_max = bufferCount;
+    // allocate buffers
+    pictq = (unsigned char **) malloc( pictq_max * sizeof(unsigned char *) );
+    recordingTimeStamp = (int *) malloc( pictq_max * sizeof(int) );
+    for (int i = 0; i < pictq_max; ++i) {
+        pictq[i] = (unsigned char *) malloc(rec->width * rec->height * 4);
+        recordingTimeStamp[i] = 0;
     }
+    // init variables
+    pictq_size = pictq_rindex = pictq_windex = 0;
+}
 
-    void clear() {
-        stop();
-        if (pictq) {
-            // free buffer
-            for (int i = 0; i < pictq_max; ++i)
-                free(pictq[i]);
-            free(pictq);
-        }
-        pictq = 0;
-        if (recordingTimeStamp)
-            free(recordingTimeStamp);
-        recordingTimeStamp = 0;
-        rec = 0;
+void EncodingThread::clear() {
+    stop();
+    if (pictq) {
+        // free buffer
+        for (int i = 0; i < pictq_max; ++i)
+            free(pictq[i]);
+        free(pictq);
     }
+    pictq = 0;
+    if (recordingTimeStamp)
+        free(recordingTimeStamp);
+    recordingTimeStamp = 0;
+    rec = 0;
+}
 
-    void stop() {
-        if (quit || !pictq)
-    		return;
-    	// end thread
-    	quit = true;
-        // TODO : NOT a busy wait
-    	// the thread now knows that it should end, we wait for it to terminate...
-        wait();
-    }
+void EncodingThread::stop() {
 
-    void pictq_push(int timestamp){
+    if (quit || !pictq)
+        return;
+    // end thread
+    quit = true;
 
-        // store time stamp
-        recordingTimeStamp[pictq_windex] = timestamp;
+}
 
-    	// set to write index to next in queue
-        if (++pictq_windex == pictq_max)
-            pictq_windex = 0;
-		/* now we inform our encoding thread that we have a picture ready */
-//        pictq_mutex->lock(); // was locked in pictq_top
-        pictq_size++;
-        pictq_mutex->unlock();
-    }
+void EncodingThread::pictq_push(int timestamp){
 
-    unsigned char *pictq_top(){
-    	// wait until we have space for a new picture
-		// (this happens only when the queue is full)
-		pictq_mutex->lock();
-        while ( pictq_full() && !quit)
-            pictq_cond->wait(pictq_mutex); // the condition is released in run()
-//		pictq_mutex->unlock();  // will be unlocked in pictq_push
+    // store time stamp
+    recordingTimeStamp[pictq_windex] = timestamp;
 
-        // Fill the queue with the given picture
-        return pictq[pictq_windex];
-    }
+    // set to write index to next in queue
+    if (++pictq_windex == pictq_max)
+        pictq_windex = 0;
+    /* now we inform our encoding thread that we have a picture ready */
+    //        pictq_mutex->lock(); // was locked in pictq_top
+    pictq_size++;
+    pictq_mutex->unlock();
+}
 
-    bool pictq_full() {
-        return pictq_size >= (pictq_max - 1);
-    }
+unsigned char *EncodingThread::pictq_top(){
+    // wait until we have space for a new picture
+    // (this happens only when the queue is full)
+    pictq_mutex->lock();
+    while ( pictq_full() && !quit)
+        pictq_cond->wait(pictq_mutex); // the condition is released in run()
+    //		pictq_mutex->unlock();  // will be unlocked in pictq_push
 
+    // Fill the queue with the given picture
+    return pictq[pictq_windex];
+}
 
-protected:
-    void run();
+bool EncodingThread::pictq_full() {
+    return pictq_size >= (pictq_max - 1);
+}
 
-    // ref to the recorder
-	video_rec_t *rec;
-	int period;
-
-    // execution management
-    bool quit;
-    QMutex *pictq_mutex;
-    QWaitCondition *pictq_cond;
-
-    // picture queue management
-    unsigned char** pictq;
-    int pictq_max, pictq_size, pictq_rindex, pictq_windex;
-    int *recordingTimeStamp;
-    QTime timer;
-};
 
 void EncodingThread::run() {
 
 	// prepare
 	quit = false;
-	int dt =  0;
-	timer.start();
+//	int dt =  0;
+//	timer.start();
 
 	// loop until break
 	while (true) {
@@ -149,13 +121,9 @@ void EncodingThread::run() {
 			// no picture ?
 			// if it is because we shall quit, then terminate thread
 			if (quit)
-				break;
-			// otherwise, quickly retry...
-			else
-				msleep(period / 2);
+                break;
 
-		} else {
-			timer.restart();
+        } else {
 
 			// record the picture to encode by calling the function specified in the recorder
             (*(rec)->pt2RecordingFunction)(rec, pictq[pictq_rindex], recordingTimeStamp[pictq_rindex]);
@@ -171,13 +139,14 @@ void EncodingThread::run() {
 			pictq_cond->wakeAll();
 			pictq_mutex->unlock();
 
-            // how long time remains ?
-            dt = period - (int) timer.elapsed();
-            if (dt > 0 && dt < period)
-                msleep(dt);
+//            qDebug() << "encoding  " << pictq_size << " / " << pictq_max;
 
 		}
+
+        msleep( 10 );
 	}
+
+    emit encodingFinished();
 }
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapseTimer(0), skipframecount(0), update(40), displayupdate(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE) {
@@ -190,6 +159,8 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(f
 	// create encoding thread
     encoder = new EncodingThread();
     Q_CHECK_PTR(encoder);
+
+    connect(encoder, SIGNAL(encodingFinished()), this, SLOT(close()));
 }
 
 RenderingEncoder::~RenderingEncoder() {
@@ -210,23 +181,23 @@ void RenderingEncoder::setActive(bool on)
 {
 	if (on) {
 		if (!start())
-            qCritical() << tr("Error starting video recording; ") << errormessage;
-    } else {
-		if (close()) {
-			if (automaticSaving)
-				saveFile();
-			else
-				saveFileAs();
+            qCritical() << tr("Error starting video recording; ") << errormessage;          
+
+    }
+    else {
+        if (started) {
+            // request stop to encoder
+            encoder->stop();
+            // stop recording
+            started = false;
+            // inform its still processing
+            emit processing(true);
         }
-        video_rec_free(recorder);
+
+        // restore rendering fps
+        glRenderWidget::setUpdatePeriod( displayupdate );
 	}
 
-	// restore former display update period
-	if (!started)
-        glRenderWidget::setUpdatePeriod( displayupdate -1 );
-
-	// inform if we could be activated
-    emit activated(started);
 }
 
 
@@ -321,22 +292,23 @@ bool RenderingEncoder::start(){
     skipframecount = 0;
 
     // compute buffer count from size
-    int bufCount = (int) ( (float) bufferSize / (float) (framesSize.width() * framesSize.height() * 4) );
+    int bufCount = (int) ( (double) bufferSize / (double) (framesSize.width() * framesSize.height() * 4) );
 
     // initialize encoder
-    encoder->initialize(recorder, update, bufCount);
+    encoder->initialize(recorder, bufCount);
 
     // inform about starting of recording
     emit selectAspectRatio(RenderingManager::getInstance()->getRenderingAspectRatio());
     emit status(tr("Start recording."), 1000);
 
+    // set status
+    started = true;
+    emit activated(started);
+
     // start the timers and the encoding thread
 	timer.start();
 	elapseTimer = startTimer(1000); // emit the duration of recording every second
     encoder->start();
-
-	// set status
-	started = true;
 
     qDebug() << temporaryFolder.absoluteFilePath(temporaryFileName) << QChar(124).toLatin1()  << tr("Recording started (%1 at %2 fps, buffer of %3 frames in %4 ).").arg(recorder->suffix).arg(freq).arg(bufCount).arg(getByteSizeString(bufferSize));
 
@@ -390,13 +362,7 @@ void RenderingEncoder::addFrame(unsigned char *data){
 }
 
 // Close the encoding process
-bool RenderingEncoder::close(){
-
-	if (!started)
-		return false;
-
-	// end encoder
-	encoder->stop();
+void RenderingEncoder::close(){
 
 	// stop recorder
     int framecount = video_rec_stop(recorder);
@@ -405,10 +371,16 @@ bool RenderingEncoder::close(){
     float duration = (float) timer.elapsed() / 1000.0;
 	emit selectAspectRatio(ASPECT_RATIO_FREE);
     emit status(tr("Recorded %1 s").arg(duration), 3000);
-	killTimer(elapseTimer);
+    killTimer(elapseTimer);
+
+    qDebug() << tr("Recording finished (%1 frames in %2 s).").arg(framecount).arg(duration);
+
+    // inform we are off
 	started = false;
+    emit activated(started);
 
 	// show warning if too many frames were bad
+    bool savefile = true;
     float percent = float(skipframecount) / float(framecount + skipframecount);
     if ( percent > 0.05f  ) {
 
@@ -421,22 +393,33 @@ bool RenderingEncoder::close(){
 				 "To avoid this, change the preferences to:\n"
                  " - a lower rendering resolution\n"
                  " - a lower recording frame rate\n"
-                 " - a faster recording codec (try FFVHUFF)").arg(framecount).arg(framecount + skipframecount));
+                 " - a faster recording codec (try MP4)").arg(framecount).arg(framecount + skipframecount));
 
 		 QPushButton *abortButton = msgBox.addButton(QMessageBox::Discard);
 		 msgBox.addButton(tr("Save anyway"), QMessageBox::AcceptRole);
 
+         // display dialog warning
 		 msgBox.exec();
-		 if (msgBox.clickedButton() == abortButton) {
-		     return false;
-		 }
+         if (msgBox.clickedButton() == abortButton) {
+             savefile = false;
+         }
 	}
 
+    // save file
+    if (savefile) {
+        if (automaticSaving)
+            saveFile();
+        else
+            saveFileAs();
+    }
+    else
+        qDebug() << tr("Recording not saved.");
+
+    // free encoder and recorder
     encoder->clear();
+    video_rec_free(recorder);
 
-    qDebug() << tr("Recording finished (%1 frames in %2 s).").arg(framecount).arg(duration);
-
-	return true;
+    emit processing(false);
 }
 
 
@@ -502,26 +485,26 @@ void RenderingEncoder::saveFileAs(){
 
 }
 
-void RenderingEncoder::setBufferSize(int bytes){
+void RenderingEncoder::setBufferSize(long bytes){
 
     bufferSize = qBound(MIN_RECORDING_BUFFER_SIZE, bytes, MAX_RECORDING_BUFFER_SIZE);
 
 }
 
-int RenderingEncoder::getBufferSize() {
+long RenderingEncoder::getBufferSize() {
     return bufferSize;
 }
 
-int RenderingEncoder::computeBufferSize(int percent) {
+long RenderingEncoder::computeBufferSize(int percent) {
     double p = qBound(0.0, (double) percent / 100.0, 1.0);
-    int megabytes = MIN_RECORDING_BUFFER_SIZE;
-    megabytes += (int) ( p * (MAX_RECORDING_BUFFER_SIZE - MIN_RECORDING_BUFFER_SIZE));
+    long int megabytes = MIN_RECORDING_BUFFER_SIZE;
+    megabytes += (long) ( p * (MAX_RECORDING_BUFFER_SIZE - MIN_RECORDING_BUFFER_SIZE));
     return megabytes;
 }
 
-int RenderingEncoder::computeBufferPercent(int bytes) {
+int RenderingEncoder::computeBufferPercent(long bytes) {
 
     bytes = bytes - MIN_RECORDING_BUFFER_SIZE;
-    double p = (float) bytes / (float)(MAX_RECORDING_BUFFER_SIZE - MIN_RECORDING_BUFFER_SIZE);
+    double p = (double) bytes / (double)(MAX_RECORDING_BUFFER_SIZE - MIN_RECORDING_BUFFER_SIZE);
     return ( qRound(p * 100.0) );
 }

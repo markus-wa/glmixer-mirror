@@ -182,7 +182,7 @@ void addPathToSystemPath(QByteArray path)
 }
 
 
-QString getByteSizeString(float numbytes)
+QString getByteSizeString(double numbytes)
 {
     QStringList list;
     list << "KB" << "MB" << "GB" << "TB";

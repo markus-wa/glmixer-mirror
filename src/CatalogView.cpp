@@ -310,7 +310,7 @@ void CatalogView::paint() {
         }
     }
 
-
+    // not drawing sources anymore (no zoom)
     glLoadIdentity();
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[8]);

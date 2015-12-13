@@ -471,6 +471,8 @@ void rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
         return;
     }
 
+    // free allocated packet
+    av_free_packet(&pkt);
 }
 
 

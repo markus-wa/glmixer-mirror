@@ -124,7 +124,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         recordingFolderBox->setChecked(false);
         recordingFolderLine->clear();
         sharedMemoryColorDepth->setCurrentIndex(0);
-        recordingBufferSize->setValue(20);
+        recordingBufferSize->setValue(5);
     }
 
     if (stackedPreferences->currentWidget() == PageSources) {

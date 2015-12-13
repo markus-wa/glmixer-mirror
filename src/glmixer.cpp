@@ -364,6 +364,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionRecord, SIGNAL(toggled(bool)), actionPause_recording, SLOT(setEnabled(bool)));
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
     QObject::connect(actionPause_recording, SIGNAL(toggled(bool)), RenderingManager::getRecorder(), SLOT(setPaused(bool)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(processing(bool)), actionRecord, SLOT(setDisabled(bool)));
+    QObject::connect(RenderingManager::getRecorder(), SIGNAL(processing(bool)), this, SLOT(showBusyRecording(bool)));
 
     // connect recorder to disable many actions, like quitting, opening session, preferences, etc.
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(activated(bool)), actionNew_Session, SLOT(setDisabled(bool)));
@@ -2904,3 +2906,9 @@ void GLMixer::on_actionTutorials_triggered() {
     QDesktopServices::openUrl(QUrl("https://vimeo.com/album/2401475", QUrl::TolerantMode));
 }
 
+void GLMixer::showBusyRecording(bool on) {
+
+    static QMessageBox busy(QMessageBox::Information, "Saving recording...", "Please wait while the file is being saved to disk.", QMessageBox::NoButton, this);
+
+    busy.setVisible(on);
+}

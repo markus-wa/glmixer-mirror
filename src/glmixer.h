@@ -122,6 +122,7 @@ public Q_SLOTS:
     void confirmSessionFileName();
     bool useSystemDialogs();
 	void updateStatusControlActions();
+    void showBusyRecording(bool);
 
 	// source config
 	void connectSource(SourceSet::iterator csi);

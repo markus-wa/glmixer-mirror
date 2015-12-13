@@ -35,11 +35,11 @@
  * Expressed in bytes
  */
 // 100 MB
-#define MIN_RECORDING_BUFFER_SIZE 104857600
-// 1 GB
-#define MAX_RECORDING_BUFFER_SIZE 1073741824
-// 20% of range, approx 300 MB
-#define DEFAULT_RECORDING_BUFFER_SIZE 298634445
+#define MIN_RECORDING_BUFFER_SIZE (long) 104857600
+// 4 GB
+#define MAX_RECORDING_BUFFER_SIZE (long) 4294967296
+// 5% of range, approx 200 MB
+#define DEFAULT_RECORDING_BUFFER_SIZE (long) 209505485
 
 extern "C" {
 #include "video_rec.h"
@@ -47,7 +47,45 @@ extern "C" {
 
 #include "RenderingManager.h"
 
-class EncodingThread;
+class EncodingThread: public QThread {
+
+    Q_OBJECT
+
+public:
+
+    EncodingThread();
+    ~EncodingThread();
+
+    void initialize(video_rec_t *recorder, int bufferCount);
+    void clear();
+    void stop();
+    void pictq_push(int timestamp);
+    unsigned char *pictq_top();
+    bool pictq_full();
+
+Q_SIGNALS:
+    void encodingFinished();
+
+protected:
+
+    // the update function
+    void run();
+
+    // ref to the recorder
+    video_rec_t *rec;
+//    int period;
+
+    // execution management
+    bool quit;
+    QMutex *pictq_mutex;
+    QWaitCondition *pictq_cond;
+//    QTime timer;
+
+    // picture queue management
+    unsigned char** pictq;
+    int pictq_max, pictq_size, pictq_rindex, pictq_windex;
+    int *recordingTimeStamp;
+};
 
 class RenderingEncoder: public QObject {
 
@@ -56,6 +94,7 @@ class RenderingEncoder: public QObject {
     friend class EncodingThread;
 
 public:
+
     RenderingEncoder(QObject * parent = 0);
 	~RenderingEncoder();
 
@@ -66,6 +105,7 @@ public:
 	encodingformat encodingFormat() { return format; }
 	void setUpdatePeriod(uint ms) { update=ms; }
 	uint updatePeriod() { return update; }
+    void setFrameSize(QSize s) { if (!started) framesSize = s; }
 
 	// preferences saving mode
 	void setAutomaticSavingMode(bool on);
@@ -79,29 +119,28 @@ public:
 	bool isRecording() { return started && !paused ; }
 
     // utility
-    static int computeBufferSize(int percent);
-    static int computeBufferPercent(int bytes);
+    static long int computeBufferSize(int percent);
+    static int computeBufferPercent(long int bytes);
 
 public Q_SLOTS:
-	void setFrameSize(QSize s) { if (!started) framesSize = s; }
 	void setActive(bool on);
 	void setPaused(bool on);
 	void saveFile();
 	void saveFileAs();
+    void close();
 
-    void setBufferSize(int bytes);
-    int  getBufferSize();
+    void setBufferSize(long int bytes);
+    long int getBufferSize();
 
 Q_SIGNALS:
 	void activated(bool);
+    void processing(bool);
 	void status(const QString &, int);
 	void selectAspectRatio(const standardAspectRatio );
 
 protected:
     void timerEvent(QTimerEvent *event);
-
     bool start();
-    bool close();
 
 private:
 	// files location
@@ -122,7 +161,7 @@ private:
 	encodingformat format;
 	video_rec_t *recorder;
 	char errormessage[256];
-    int bufferSize;
+    long int bufferSize;
 };
 
 #endif /* RENDERINGENCODER_H_ */
