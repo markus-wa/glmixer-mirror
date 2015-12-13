@@ -30,7 +30,16 @@
 #include <QTime>
 #include <QString>
 
-#define RECORDING_BUFFER_SIZE 50
+/**
+ * Minimum and Maximum size of the recording buffer
+ * Expressed in bytes
+ */
+// 100 MB
+#define MIN_RECORDING_BUFFER_SIZE 104857600
+// 1 GB
+#define MAX_RECORDING_BUFFER_SIZE 1073741824
+// 20% of range, approx 300 MB
+#define DEFAULT_RECORDING_BUFFER_SIZE 298634445
 
 extern "C" {
 #include "video_rec.h"
@@ -47,7 +56,7 @@ class RenderingEncoder: public QObject {
     friend class EncodingThread;
 
 public:
-	RenderingEncoder(QObject * parent = 0);
+    RenderingEncoder(QObject * parent = 0);
 	~RenderingEncoder();
 
     void addFrame(unsigned char *data = 0);
@@ -69,6 +78,9 @@ public:
 	int getRecodingTime();
 	bool isRecording() { return started && !paused ; }
 
+    // utility
+    static int computeBufferSize(int percent);
+    static int computeBufferPercent(int bytes);
 
 public Q_SLOTS:
 	void setFrameSize(QSize s) { if (!started) framesSize = s; }
@@ -76,6 +88,9 @@ public Q_SLOTS:
 	void setPaused(bool on);
 	void saveFile();
 	void saveFileAs();
+
+    void setBufferSize(int bytes);
+    int  getBufferSize();
 
 Q_SIGNALS:
 	void activated(bool);
@@ -100,13 +115,14 @@ private:
     int elapseTimer, skipframecount;
 
 	// encoder
-	QSize framesSize;
+    QSize framesSize;
     EncodingThread *encoder;
 
 	uint update, displayupdate;
 	encodingformat format;
 	video_rec_t *recorder;
 	char errormessage[256];
+    int bufferSize;
 };
 
 #endif /* RENDERINGENCODER_H_ */

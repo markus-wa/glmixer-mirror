@@ -65,4 +65,6 @@ int intFromBlendingPreset(GLenum, GLenum);
 
 void addPathToSystemPath(QByteArray path);
 
+QString getByteSizeString(float numbytes);
+
 #endif /*  COMMON_H_ */

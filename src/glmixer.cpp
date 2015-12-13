@@ -2530,6 +2530,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
     OutputRenderWindow::getInstance()->setActive(true);
     OutputRenderWindow::getInstance()->setVisible(true);
 
+    // u. recording buffer
+    int percent;
+    stream >> percent;
+    RenderingManager::getRecorder()->setBufferSize(RenderingEncoder::computeBufferSize(percent));
+
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
 
@@ -2617,6 +2622,9 @@ QByteArray GLMixer::getPreferences() const {
     // t. disable PBO
     stream << RenderingManager::usePboExtension();
     stream << _disableOutputWhenRecord;
+
+    // u. recording buffer
+    stream << RenderingEncoder::computeBufferPercent(RenderingManager::getRecorder()->getBufferSize());
 
     return data;
 }

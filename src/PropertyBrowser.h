@@ -7,8 +7,6 @@
 #include <QtCore/QUrl>
 
 
-QString getSizeString(float num);
-
 class QtProperty;
 class QtBrowserItem;
 

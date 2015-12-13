@@ -40,23 +40,30 @@ public:
 	UserPreferencesDialog(QWidget *parent = 0);
 	virtual ~UserPreferencesDialog();
 
+    // mini mode for first run display
 	void setModeMinimal(bool on);
-
-	QList<QAction *> getActionsList(QList<QAction *> al);
+    // get the data to save
+    QByteArray getUserPreferences() const;
+    // set current status of preferences
+    void showPreferences(const QByteArray & state);
 
 public Q_SLOTS:
+
 	void restoreDefaultPreferences();
-	void restoreAllDefaultPreferences();
-	void showPreferences(const QByteArray & state);
-	QByteArray getUserPreferences() const;
-	void on_updatePeriod_valueChanged(int period);
-	void on_recordingUpdatePeriod_valueChanged(int period);
+    void restoreAllDefaultPreferences();
+
+    // GUI actions
+    void on_updatePeriod_valueChanged(int period);
+    void on_recordingUpdatePeriod_valueChanged(int period);
+    void on_recordingBufferSize_valueChanged(int percent);
 	void on_recordingFolderButton_clicked();
     void recordingFolderPathChanged(const QString &);
     void on_MemoryUsagePolicySlider_valueChanged(int mem);
 
 private:
     class Source *defaultSource;
+
+    QList<QAction *> getActionsList(QList<QAction *> al);
 
 };
 

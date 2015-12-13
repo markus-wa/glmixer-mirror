@@ -30,6 +30,7 @@
 #include "Source.h"
 #include "OutputRenderWindow.h"
 #include "VideoFile.h"
+#include "RenderingEncoder.h"
 
 #include <QFileDialog>
 #include <QApplication>
@@ -123,6 +124,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         recordingFolderBox->setChecked(false);
         recordingFolderLine->clear();
         sharedMemoryColorDepth->setCurrentIndex(0);
+        recordingBufferSize->setValue(20);
     }
 
     if (stackedPreferences->currentWidget() == PageSources) {
@@ -293,6 +295,12 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> usePBO >> disableoutput;
     disablePixelBufferObject->setChecked(!usePBO);
     disableOutputRecording->setChecked(disableoutput);
+
+    // u. recording buffer
+    int percent = 20;
+    stream >> percent;
+    recordingBufferSize->setValue(percent);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -369,6 +377,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     stream << !disablePixelBufferObject->isChecked();
     stream << disableOutputRecording->isChecked();
 
+    // u. recording buffer
+    stream << recordingBufferSize->value();
+
     return data;
 }
 
@@ -424,5 +435,11 @@ QList<QAction *> UserPreferencesDialog::getActionsList(QList<QAction *> actionli
 
 void UserPreferencesDialog::on_MemoryUsagePolicySlider_valueChanged(int mem)
 {
-    MemoryUsageMaximumLabel->setText(QString("%1MB").arg(VideoFile::getMemoryUsageMaximum(mem)));
+    MemoryUsageMaximumLabel->setText(QString("%1 MB").arg(VideoFile::getMemoryUsageMaximum(mem)));
+}
+
+
+void UserPreferencesDialog::on_recordingBufferSize_valueChanged(int percent)
+{
+    recordingBuffersizeString->setText(getByteSizeString(RenderingEncoder::computeBufferSize(percent)));
 }

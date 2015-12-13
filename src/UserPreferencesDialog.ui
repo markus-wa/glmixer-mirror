@@ -602,7 +602,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Maximum frame rate</string>
+                   <string>Frame rate</string>
                   </property>
                   <property name="buddy">
                    <cstring>updatePeriod</cstring>
@@ -650,6 +650,16 @@ p, li { white-space: pre-wrap; }
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_20">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The program tries to keep this fixed frame rate (frames per seconds).&lt;/p&gt;&lt;p&gt;If the graphics hardware cannot manage, an indicator bar will be shown in the top-right corner of themain window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
                   </property>
                  </widget>
                 </item>
@@ -774,16 +784,13 @@ p, li { white-space: pre-wrap; }
           <layout class="QVBoxLayout" name="verticalLayout_9">
            <item>
             <widget class="QGroupBox" name="groupBoxFormat">
-             <property name="toolTip">
-              <string>Format of video file generated</string>
-             </property>
              <property name="title">
               <string>Recording</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_10">
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
-                <item>
+               <layout class="QGridLayout" name="gridLayout_3">
+                <item row="0" column="0">
                  <widget class="QLabel" name="label_5">
                   <property name="text">
                    <string>File format (codec)</string>
@@ -793,7 +800,7 @@ p, li { white-space: pre-wrap; }
                   </property>
                  </widget>
                 </item>
-                <item>
+                <item row="0" column="1">
                  <widget class="QComboBox" name="recordingFormatSelection">
                   <property name="toolTip">
                    <string>Select the recording Codec</string>
@@ -838,30 +845,60 @@ p, li { white-space: pre-wrap; }
                   </item>
                  </widget>
                 </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayoutFPS">
-                <property name="spacing">
-                 <number>10</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="targetfps">
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_17">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;RAW and FFVHUFF are looseless but produce large files (slower).&lt;/p&gt;&lt;p&gt;Other codecs are lossy but are compressed and more portable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="text">
-                   <string>Targeted file frame rate  </string>
+                   <string notr="true"/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+                  </property>
+                  <property name="scaledContents">
+                   <bool>true</bool>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="indent">
+                   <number>0</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="targetfps">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>24</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Frame rate  </string>
                   </property>
                   <property name="buddy">
                    <cstring>recordingUpdatePeriod</cstring>
                   </property>
                  </widget>
                 </item>
-                <item>
+                <item row="1" column="1">
                  <widget class="QSlider" name="recordingUpdatePeriod">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -870,7 +907,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="toolTip">
-                   <string>Select the recording frame rate</string>
+                   <string>Set the recording frame rate</string>
                   </property>
                   <property name="minimum">
                    <number>33</number>
@@ -892,7 +929,7 @@ p, li { white-space: pre-wrap; }
                   </property>
                  </widget>
                 </item>
-                <item>
+                <item row="1" column="2">
                  <widget class="QLabel" name="recordingFrameRateString">
                   <property name="text">
                    <string notr="true">25 fps</string>
@@ -902,33 +939,70 @@ p, li { white-space: pre-wrap; }
                   </property>
                  </widget>
                 </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_18">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>24</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Buffer size</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QSlider" name="recordingBufferSize">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How much RAM it can use to store images before writing to disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="minimum">
+                   <number>0</number>
+                  </property>
+                  <property name="maximum">
+                   <number>100</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>5</number>
+                  </property>
+                  <property name="pageStep">
+                   <number>50</number>
+                  </property>
+                  <property name="value">
+                   <number>20</number>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="tickPosition">
+                   <enum>QSlider::NoTicks</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="2">
+                 <widget class="QLabel" name="recordingBuffersizeString">
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string notr="true">300 MB</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
                </layout>
-              </item>
-              <item>
-               <widget class="QLabel" name="warning1">
-                <property name="styleSheet">
-                 <string notr="true">font: italic 9pt;</string>
-                </property>
-                <property name="text">
-                 <string>NB: RAW and FFVHUFF are looseless but produce large files.</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="warning2">
-                <property name="styleSheet">
-                 <string notr="true">font: italic 9pt;</string>
-                </property>
-                <property name="text">
-                 <string>Other codecs are lossy but are compressed and  more portable.</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
               </item>
               <item>
                <widget class="QGroupBox" name="recordingFolderBox">
@@ -996,6 +1070,9 @@ the user to select a file name</string>
                 </item>
                 <item>
                  <widget class="QComboBox" name="sharedMemoryColorDepth">
+                  <property name="toolTip">
+                   <string>Pixel format for shared memory</string>
+                  </property>
                   <item>
                    <property name="text">
                     <string notr="true">RGB 16bits</string>
@@ -1013,20 +1090,23 @@ the user to select a file name</string>
                   </item>
                  </widget>
                 </item>
+                <item>
+                 <widget class="QLabel" name="label_19">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>NB: High color depth lead to slower copy and risk of low frame rate.</string>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+                  </property>
+                 </widget>
+                </item>
                </layout>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_6">
-                <property name="styleSheet">
-                 <string notr="true">font: italic 9pt;</string>
-                </property>
-                <property name="text">
-                 <string>NB: High color depth lead to slower copy and risk of low frame rate.</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
               </item>
              </layout>
             </widget>
@@ -1087,7 +1167,7 @@ the user to select a file name</string>
                 <item>
                  <widget class="QLabel" name="ScalingLabel">
                   <property name="text">
-                   <string>Scaling of sources : </string>
+                   <string>Scaling of sources </string>
                   </property>
                   <property name="buddy">
                    <cstring>scalingModeSelection</cstring>
@@ -1220,24 +1300,21 @@ the user to select a file name</string>
                 <item>
                  <widget class="QLabel" name="MemoryUsageMaximumLabel">
                   <property name="text">
-                   <string>111MB</string>
+                   <string notr="true">111 MB</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_6">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Buffers are used to load frames in memory before display.&lt;br/&gt;Indicate how much RAM you can afford for each video file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
                   </property>
                  </widget>
                 </item>
                </layout>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_12">
-                <property name="styleSheet">
-                 <string notr="true">font: italic 9pt;</string>
-                </property>
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Buffers are used to load frames in memory before display.&lt;br/&gt;Indicate how much RAM you can afford for each video file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
               </item>
              </layout>
             </widget>
@@ -1320,6 +1397,16 @@ font: 75;</string>
                   </property>
                  </widget>
                 </item>
+                <item>
+                 <widget class="QLabel" name="label_12">
+                  <property name="toolTip">
+                   <string>You can use  multiple buttons and modifier keys (SHIFT, CMD, ALT, etc.)</string>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../icons.qrc">:/glmixer/icons/info.png</pixmap>
+                  </property>
+                 </widget>
+                </item>
                </layout>
               </item>
               <item>
@@ -1338,19 +1425,6 @@ font: 75;</string>
                 </property>
                 <property name="cursor">
                  <cursorShape>CrossCursor</cursorShape>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="instructions3">
-                <property name="styleSheet">
-                 <string notr="true">font: italic 9pt;</string>
-                </property>
-                <property name="text">
-                 <string>You can use  multiple buttons and modifier keys (SHIFT, CMD, ALT, etc.)</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -1582,7 +1656,7 @@ font: 75;</string>
          <widget class="QWidget" name="PageOptions">
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <item>
-            <widget class="QGroupBox" name="groupBox_4">
+            <widget class="QGroupBox" name="LanguageGroupBox">
              <property name="title">
               <string>Language</string>
              </property>
@@ -1603,7 +1677,7 @@ font: 75;</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_3">
+            <widget class="QGroupBox" name="SystemGroupBox">
              <property name="title">
               <string>System</string>
              </property>
@@ -1651,16 +1725,6 @@ font: 75;</string>
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="displayFramerate">
-                <property name="toolTip">
-                 <string>Shows the framerate in the upper right corner.</string>
-                </property>
-                <property name="text">
-                 <string>Display framerate</string>
-                </property>
-               </widget>
-              </item>
-              <item>
                <widget class="QCheckBox" name="displayTimeAsFrame">
                 <property name="toolTip">
                  <string>Shows time information as frame count instead of hh:mm:ss.</string>
@@ -1679,6 +1743,16 @@ font: 75;</string>
               <string>Views</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QCheckBox" name="displayFramerate">
+                <property name="toolTip">
+                 <string>Shows the framerate in the upper right corner.</string>
+                </property>
+                <property name="text">
+                 <string>Display framerate</string>
+                </property>
+               </widget>
+              </item>
               <item>
                <widget class="QCheckBox" name="antiAliasing">
                 <property name="toolTip">

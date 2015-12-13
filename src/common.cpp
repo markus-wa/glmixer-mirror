@@ -180,3 +180,20 @@ void addPathToSystemPath(QByteArray path)
         qputenv( pathEnvironmentVariableName, pathEnvironmentVariable);
     }
 }
+
+
+QString getByteSizeString(float numbytes)
+{
+    QStringList list;
+    list << "KB" << "MB" << "GB" << "TB";
+
+    QStringListIterator i(list);
+    QString unit("bytes");
+
+    while(numbytes >= 1024.0 && i.hasNext())
+     {
+        unit = i.next();
+        numbytes /= 1024.0;
+    }
+    return QString().setNum(numbytes,'f',1) + " " + unit;
+}

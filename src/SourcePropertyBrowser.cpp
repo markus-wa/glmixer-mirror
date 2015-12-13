@@ -816,7 +816,7 @@ public:
         VideoFile *vf = vs->getVideoFile();
         infoManager->setValue(idToProperty["File name"], QFileInfo(vf->getFileName()).fileName() );
         idToProperty["File name"]->setToolTip(vf->getFileName());
-        infoManager->setValue(idToProperty["File size"], getSizeString( QFileInfo(vf->getFileName()).size() ) );
+        infoManager->setValue(idToProperty["File size"], getByteSizeString( QFileInfo(vf->getFileName()).size() ) );
         infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
         infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
         infoManager->setValue(idToProperty["Duration"], vf->getStringTimeFromtime(vf->getEnd()) );
@@ -907,7 +907,7 @@ public:
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
-        infoManager->setValue(idToProperty["Captured image"], getSizeString(cs->image().byteCount() ) );
+        infoManager->setValue(idToProperty["Captured image"], getByteSizeString(cs->image().byteCount() ) );
         infoManager->setValue(idToProperty["Color depth"], QString::number(cs->image().depth()) + " bpp" );
 
         addProperty(idToProperty["Captured image"]);
@@ -932,7 +932,7 @@ public:
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
-        infoManager->setValue(idToProperty["Vector graphics"], getSizeString(cs->getDescription().size() ) );
+        infoManager->setValue(idToProperty["Vector graphics"], getByteSizeString(cs->getDescription().size() ) );
 
         addProperty(idToProperty["Vector graphics"]);
 
