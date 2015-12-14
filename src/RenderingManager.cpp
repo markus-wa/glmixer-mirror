@@ -389,7 +389,7 @@ void RenderingManager::postRenderToFrameBuffer() {
             } else
             // 	Draw quad with fbo texture in a more basic OpenGL way
             {
-                glPushAttrib(GL_ALL_ATTRIB_BITS);
+                glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
                 glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
 
@@ -403,14 +403,14 @@ void RenderingManager::postRenderToFrameBuffer() {
                 glLoadIdentity();
 
                 glColor4f(1.0, 1.0, 1.0, 1.0);
+                glEnable(GL_TEXTURE_2D);
 
                 // render to the frame buffer object
                 if (previousframe_fbo->bind())
                 {
-                    glClearColor(0.f, 0.f, 0.f, 1.f);
-                    glClear(GL_COLOR_BUFFER_BIT);
+//                    glClearColor(0.f, 0.f, 0.f, 1.f);
+//                    glClear(GL_COLOR_BUFFER_BIT);
 
-                    glEnable(GL_TEXTURE_2D);
                     glBindTexture(GL_TEXTURE_2D, _fbo->texture());
                     glCallList(ViewRenderWidget::quad_texured);
 
@@ -419,6 +419,7 @@ void RenderingManager::postRenderToFrameBuffer() {
 
                 // pop the projection matrix and GL state back for rendering the current view
                 // to the actual widget
+                glDisable(GL_TEXTURE_2D);
                 glPopAttrib();
                 glMatrixMode(GL_PROJECTION);
                 glPopMatrix();
@@ -599,7 +600,8 @@ Source *RenderingManager::newRenderingSource(double depth) {
 
     // create the previous frame (frame buffer object) if needed
     if (!previousframe_fbo) {
-        previousframe_fbo = new QGLFramebufferObject(_fbo->width(), _fbo->height());
+        QSize size = sizeOfFrameBuffer[renderingAspectRatio][renderingQuality];
+        previousframe_fbo = new QGLFramebufferObject(size.width(), size.height());
         // initial clear to black
         if (previousframe_fbo->bind())  {
             glPushAttrib(GL_COLOR_BUFFER_BIT);
