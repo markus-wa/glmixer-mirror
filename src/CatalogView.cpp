@@ -152,7 +152,14 @@ void CatalogView::drawSource(Source *s)
         glBlendEquation(GL_FUNC_ADD);
 
         // draw source in FBO
-        s->draw();
+        // texture coordinate to default
+        ViewRenderWidget::texc[0] = ViewRenderWidget::texc[6] = 0.0;
+        ViewRenderWidget::texc[1] = ViewRenderWidget::texc[3] = 0.0;
+        ViewRenderWidget::texc[2] = ViewRenderWidget::texc[4] = 1.0;
+        ViewRenderWidget::texc[5] = ViewRenderWidget::texc[7] = 1.0;
+        // draw vertex array
+        glCallList(ViewRenderWidget::vertex_array_coords);
+        glDrawArrays(GL_QUADS, 0, 4);
 
         // done drawing
         _catalogfbo->release();
