@@ -344,10 +344,11 @@ void AlgorithmThread::fill(double var) {
 AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
                                  int h, double v, unsigned long p, bool ia) :
     Source(texture, d), buffer(0), width(w), height(h), period(p), framerate(0), vertical( 1.0),
-    horizontal(1.0), variability(v), ignoreAlpha(false), frameChanged(true), format(GL_RGBA)
+    horizontal(1.0), ignoreAlpha(false), frameChanged(true), format(GL_RGBA)
 {
     // no PBO by default
     pboIds[0] = 0;
+    setVariability(v);
 
     algotype = CLAMP(AlgorithmSource::algorithmType(type), AlgorithmSource::FLAT, AlgorithmSource::NONE);
 
