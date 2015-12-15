@@ -1317,33 +1317,33 @@ void GLMixer::on_actionSave_snapshot_triggered(){
     // capture screen
     QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
 
-    // display and request action with this capture
-    CaptureDialog cd(this, capture, tr("Save this image ?"));
+    QString fileName;
+    QString suggestion = QString("glmixerimage%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
-    if (cd.exec() == QDialog::Accepted) {
+    if (RenderingManager::getRecorder()->automaticSavingMode()) {
+        fileName = RenderingManager::getRecorder()->automaticSavingFolder().absoluteFilePath(suggestion + ".png");
+    }
+    else {
+        // display and request action with this capture
+        CaptureDialog cd(this, capture, tr("Save this image ?"));
 
-        int width = cd.presetsSizeComboBox->itemData(cd.presetsSizeComboBox->currentIndex()).toInt();
-        if (width)
-            capture = capture.scaledToWidth(width);
+        if (cd.exec() == QDialog::Accepted) {
 
-        QString fileName;
-        QString suggestion = QString("glmixerimage%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
+            int width = cd.presetsSizeComboBox->itemData(cd.presetsSizeComboBox->currentIndex()).toInt();
+            if (width)
+                capture = capture.scaledToWidth(width);
 
-        if (RenderingManager::getRecorder()->automaticSavingMode()) {
-            fileName = RenderingManager::getRecorder()->automaticSavingFolder().absoluteFilePath(suggestion + ".png");
-        }
-        else {
             fileName = getFileName(tr("Save snapshot"), tr("Image") + " (*.png *.jpg *.tiff *.xpm)",
-                                       QString("png"), suggestion);
-        }
+                                   QString("png"), suggestion);
 
-        if ( !fileName.isEmpty() ) {
-            if (!capture.save(fileName)) {
-                qCritical() << fileName << QChar(124).toLatin1()<< tr("Could not save file.");
-            } else
-                qDebug() << fileName << QChar(124).toLatin1() << tr("Snapshot saved.");
         }
+    }
 
+    if ( !fileName.isEmpty() ) {
+        if (!capture.save(fileName)) {
+            qCritical() << fileName << QChar(124).toLatin1()<< tr("Could not save file.");
+        } else
+            qDebug() << fileName << QChar(124).toLatin1() << tr("Snapshot saved.");
     }
 }
 
@@ -1942,6 +1942,7 @@ void GLMixer::openSessionFile()
         qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load.");
     else {
         standardAspectRatio ar = (standardAspectRatio) renderConfig.attribute("aspectRatio", "0").toInt();
+
         switch(ar) {
         case ASPECT_RATIO_FREE:
             actionFree_aspect_ratio->trigger();
