@@ -31,39 +31,35 @@
 
 class RenderingSource: public Source {
 
-	friend class RenderingManager;
+    friend class RenderingManager;
 
 public:
 
-	static RTTI type;
-	RTTI rtti() const { return type; }
+    static RTTI type;
+    RTTI rtti() const { return type; }
 
     // only RenderingManager can create a source
 protected:
-	RenderingSource(GLuint texture, double d): Source(texture, d) {
-		// configure texture display
-		glBindTexture(GL_TEXTURE_2D, textureIndex);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		// increment the counter of rendering sources
-		RenderingManager::getInstance()->countRenderingSource++;
-		aspectratio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
-		name.prepend("render");
-	}
+    RenderingSource(double d): Source(0, d) {
+        // increment the counter of rendering sources
+        RenderingManager::getInstance()->countRenderingSource++;
+    }
 
-	virtual ~RenderingSource() {
-		// decrement the counter of rendering sources
-		RenderingManager::getInstance()->countRenderingSource--;
-	}
+    virtual ~RenderingSource() {
+        // decrement the counter of rendering sources
+        RenderingManager::getInstance()->countRenderingSource--;
+    }
+
+    GLuint getTextureIndex() const {
+        return RenderingManager::getInstance()->previousframe_fbo->texture();
+    }
 
     int getFrameWidth() const {
-        return RenderingManager::getInstance()->getFrameBufferWidth();
+        return RenderingManager::getInstance()->previousframe_fbo->width();
     }
 
     int getFrameHeight() const {
-        return RenderingManager::getInstance()->getFrameBufferHeight();
+        return RenderingManager::getInstance()->previousframe_fbo->height();
     }
 
     double getFrameRate() const {

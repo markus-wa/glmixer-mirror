@@ -43,7 +43,6 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     pboIds[1] = 0;
 
     QObject::connect(is, SIGNAL(frameReady(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
-    aspectratio = is->getStreamAspectRatio();
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIndex);

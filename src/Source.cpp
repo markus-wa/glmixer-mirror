@@ -44,12 +44,12 @@ bool Source::playable = false;
 
 // source constructor.
 Source::Source(GLuint texture, double depth):
-    standby(NOT_STANDBY), culled(false), needupdate(true), modifiable(true), fixedAspectRatio(false),
-    clones(NULL), textureIndex(texture), maskTextureIndex(-1), x(0.0), y(0.0), z(CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER)),
-    scalex(SOURCE_UNIT), scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0),
-    centerx(0.0), centery(0.0), rotangle(0.0), aspectratio(1.0), texalpha(1.0),
-    flipVertical(false), pixelated(false), filter(FILTER_NONE), invertMode(INVERT_NONE), mask_type(0),
-    brightness(0.f), contrast(1.f),	saturation(1.f),
+    standby(NOT_STANDBY), culled(false), needupdate(true), modifiable(true),
+    fixedAspectRatio(false), clones(NULL), textureIndex(texture), maskTextureIndex(-1), x(0.0),
+    y(0.0), z(CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER)), scalex(SOURCE_UNIT),
+    scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0), centerx(0.0), centery(0.0), rotangle(0.0),
+    texalpha(1.0), flipVertical(false), pixelated(false), filter(FILTER_NONE),
+    invertMode(INVERT_NONE), mask_type(0), brightness(0.f), contrast(1.f),	saturation(1.f),
     gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
     hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
     useChromaKey(false)
@@ -70,16 +70,11 @@ Source::Source(GLuint texture, double depth):
     // default tag
     Tag::apply(this, Tag::getDefault());
 
-    // if creating an active source
-    // (i.e. given a texture index)
-    if (textureIndex > 0) {
-        // give it a unique identifier
-        id = Source::lastid++;
+    // give it a unique identifier
+    id = Source::lastid++;
 
-        clones = new SourceList;
-        CHECK_PTR_EXCEPTION(clones)
-
-    }
+    clones = new SourceList;
+    CHECK_PTR_EXCEPTION(clones)
 
 }
 
@@ -96,6 +91,10 @@ Source::~Source() {
     if (textureIndex > 0)
         // free the OpenGL texture
         glDeleteTextures(1, &textureIndex);
+}
+
+GLuint Source::getTextureIndex() const {
+    return textureIndex;
 }
 
 void Source::setName(QString n) {
@@ -174,7 +173,8 @@ void Source::setAlphaCoordinates(double x, double y) {
 
     // TODO : configure the mixing to be linear or quadratic , or with a custom curve ?
     // Compute distance to the center
-    GLdouble d = ((x * x) + (y * y)) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE); // QUADRATIC
+    // QUADRATIC
+    GLdouble d = ((x * x) + (y * y)) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE);
 
     // adjust alpha according to distance to center
     if (d < 1.0)
@@ -249,6 +249,7 @@ void Source::resetScale(scalingMode sm) {
     scalex = SOURCE_UNIT;
     scaley = SOURCE_UNIT;
     float renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+    double aspectratio = getAspectRatio();
 
     switch (sm) {
     case Source::SCALE_PIXEL:
@@ -374,7 +375,7 @@ void Source::bind() const {
         _ffgl_plugins.bind();
     else
 #endif
-        glBindTexture(GL_TEXTURE_2D, textureIndex);
+        glBindTexture(GL_TEXTURE_2D, getTextureIndex());
 
     // magnification filter
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, pixelated ? GL_NEAREST : GL_LINEAR);
@@ -557,7 +558,8 @@ void Source::importProperties(const Source *source, bool withGeometry){
 
 QStringList Source::getFilterNames() {
 
-    static QStringList enumNames = QStringList() << "None" << "Gaussian blur" << "Median blur" << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
+    static QStringList enumNames = QStringList() << "None" << "Gaussian blur" << "Median blur"
+              << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
               << "Medium edge detect"<< "Hard edge detect"<<"Emboss"<<"Edge emboss"
               << "Erosion 3x3"<< "Erosion 5x5"<< "Erosion 7x7"
               << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7" << "Custom";

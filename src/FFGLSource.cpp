@@ -37,8 +37,6 @@ bool FFGLSource::playable = true;
 FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, int h):
     QObject(), Source(texture, d), _plugin(0), _playing(true), _buffer(0)
 {
-    aspectratio = double(w) / double(h);
-
     if ( !QFileInfo(pluginFileName).isFile()) {
         qCritical() << pluginFileName << QChar(124).toLatin1() << tr("FFGLSource given an invalid file");
         SourceConstructorException().raise();
@@ -84,8 +82,6 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
 FFGLSource::FFGLSource(GLuint texture, double d, int w, int h):
     QObject(), Source(texture, d), _plugin(0), _playing(true), _buffer(0)
 {
-    aspectratio = double(w) / double(h);
-
     // create new plugin with this file
     FFGLTextureStruct it;
     it.Handle = texture;

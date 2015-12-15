@@ -61,7 +61,6 @@ protected:
         ret = original->getClones()->insert((Source *) this);
         if (!ret.second)
             SourceConstructorException().raise();
-        aspectratio = original->getAspectRatio();
 	}
 
 	~CloneSource() {

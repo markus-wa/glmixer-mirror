@@ -117,10 +117,11 @@ public:
     // to be called in the OpenGL loop to draw this source
     void draw(GLenum mode = GL_RENDER) const;
 
-    // OpenGL access to the texture index
-    inline GLuint getTextureIndex() {
-        return textureIndex;
-    }
+    /*
+     * OpenGL access to the texture index
+     *
+     */
+    virtual GLuint getTextureIndex() const;
     /*
      * unique ID of this source
      *
@@ -150,7 +151,7 @@ public:
      */
     // gets
     inline GLdouble getAspectRatio() const {
-        return aspectratio;
+        return (GLdouble) getFrameWidth() / (GLdouble) getFrameHeight();;
     }
     inline GLdouble getX() const {
         return x;
@@ -180,9 +181,6 @@ public:
         return textureCoordinates;
     }
     // sets
-    inline void setAspectRatio(GLdouble ar) {
-        aspectratio = ar;
-    }
     inline void setX(GLdouble v) {
         x = v;
     }
@@ -495,7 +493,6 @@ protected:
     GLdouble scalex, scaley;
     GLdouble alphax, alphay;
     GLdouble centerx, centery, rotangle;
-    GLdouble aspectratio;
     GLfloat texalpha;
     QColor texcolor;
     GLenum source_blend, destination_blend;

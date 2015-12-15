@@ -130,8 +130,7 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
     glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 
 	width = frame->width;
-	height = frame->height;
-	aspectratio = (float)width / (float)height;
+    height = frame->height;
     imgsize =  width * height * 3;
 
     if (RenderingManager::usePboExtension()) {

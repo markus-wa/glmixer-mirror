@@ -216,6 +216,9 @@ RenderingManager::~RenderingManager() {
     if (_fbo)
         delete _fbo;
 
+    if (previousframe_fbo)
+        delete previousframe_fbo;
+
     if (pboIds[0] || pboIds[1])
         glDeleteBuffers(2, pboIds);
 
@@ -284,6 +287,8 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     // cleanup
     if (_fbo)
         delete _fbo;
+    if (previousframe_fbo)
+        delete previousframe_fbo;
     if (pboIds[0] || pboIds[1])
         glDeleteBuffers(2, pboIds);
 
@@ -292,7 +297,6 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     Q_CHECK_PTR(_fbo);
 
     if (_fbo->bind()) {
-
         // initial clear to black
         glPushAttrib(GL_COLOR_BUFFER_BIT);
         glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -303,6 +307,29 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     }
     else
         qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible (cannot initialize the rendering buffer %1x%2).").arg(size.width()).arg(size.height())));
+
+    // create the previous frame (frame buffer object) if needed
+    previousframe_fbo = new QGLFramebufferObject( _fbo->width(), _fbo->height());
+    // initial clear to black
+    if (previousframe_fbo->bind())  {
+        // initial clear to black
+        glPushAttrib(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glPopAttrib();
+
+        previousframe_fbo->release();
+    }
+    else
+        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible (cannot initialize the loopback buffer %1x%2).").arg(size.width()).arg(size.height())));
+
+    // configure texture display
+    glBindTexture(GL_TEXTURE_2D, previousframe_fbo->texture());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     // store viewport info
     _renderwidget->_renderView->viewport[0] = 0;
@@ -363,10 +390,9 @@ void RenderingManager::postRenderToFrameBuffer() {
     if (!_fbo)
         return;
 
-    // skip loop back if disabled
-    if (previousframe_fbo)
+    // skip loop back if no rendering source
+    if (countRenderingSource > 0)
     {
-
         // frame delay
         previousframe_index++;
         if (!(previousframe_index % previousframe_delay)) {
@@ -386,9 +412,9 @@ void RenderingManager::postRenderToFrameBuffer() {
                         GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-            } else
+            }
             // 	Draw quad with fbo texture in a more basic OpenGL way
-            {
+            else {
                 glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
                 glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
@@ -408,9 +434,6 @@ void RenderingManager::postRenderToFrameBuffer() {
                 // render to the frame buffer object
                 if (previousframe_fbo->bind())
                 {
-//                    glClearColor(0.f, 0.f, 0.f, 1.f);
-//                    glClear(GL_COLOR_BUFFER_BIT);
-
                     glBindTexture(GL_TEXTURE_2D, _fbo->texture());
                     glCallList(ViewRenderWidget::quad_texured);
 
@@ -598,23 +621,9 @@ Source *RenderingManager::newRenderingSource(double depth) {
     RenderingSource *s = 0;
     _renderwidget->makeCurrent();
 
-    // create the previous frame (frame buffer object) if needed
-    if (!previousframe_fbo) {
-        QSize size = sizeOfFrameBuffer[renderingAspectRatio][renderingQuality];
-        previousframe_fbo = new QGLFramebufferObject(size.width(), size.height());
-        // initial clear to black
-        if (previousframe_fbo->bind())  {
-            glPushAttrib(GL_COLOR_BUFFER_BIT);
-            glClearColor(0.f, 0.f, 0.f, 1.f);
-            glClear(GL_COLOR_BUFFER_BIT);
-            glPopAttrib();
-            previousframe_fbo->release();
-        }
-    }
-
     try {
         // create a source appropriate
-        s = new RenderingSource(previousframe_fbo->texture(), getAvailableDepthFrom(depth));
+        s = new RenderingSource(getAvailableDepthFrom(depth));
         renameSource( s, _defaultSource->getName() + "Render");
 
     } catch (AllocationException &e){
@@ -1203,13 +1212,6 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
         delete s;
     }
 
-    // is there no more rendering source ?
-    if (countRenderingSource == 0) {
-        // no more rendering source; we can disable update of previous frame
-        if (previousframe_fbo)
-            delete previousframe_fbo;
-        previousframe_fbo = NULL;
-    }
 }
 
 void RenderingManager::clearSourceSet() {

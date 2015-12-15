@@ -40,8 +40,6 @@ WebSource::WebSource(QUrl web, GLuint texture, double d, int height, int scroll,
     _webrenderer = new WebRenderer(web, height, scroll);
     _webrenderer->setUpdate(_updateFrequency);
 
-    aspectratio = 1.0;
-
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -72,8 +70,7 @@ void WebSource::play(bool on)
 void WebSource::adjust()
 {
     // rescale to match updated dimensions
-    aspectratio = double(getFrameWidth()) / double(getFrameHeight());
-    scaley = scalex / aspectratio;
+    scaley = scalex / getAspectRatio();
 
     // freeframe gl plugin
 #ifdef FFGL

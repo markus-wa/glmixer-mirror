@@ -36,7 +36,7 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
 
     // get aspect ratio from original box
     QRect vb = _svg->viewBox();
-	aspectratio = double(vb.width()) / double(vb.height());
+    double aspectratio = double(vb.width()) / double(vb.height());
 
 	// setup renderer resolution to match to rendering manager preference
     int w = RenderingManager::getInstance()->getFrameBufferWidth();
