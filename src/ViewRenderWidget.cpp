@@ -1435,14 +1435,14 @@ GLuint ViewRenderWidget::buildLineList()
 
         glBindTexture(GL_TEXTURE_2D,texwhite);
         glLineWidth(1.0);
-        glColor4ub(COLOR_SOURCE_STATIC, 180);
+//        glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
         glPopMatrix();
 
-        glPointSize(2.0);
-        glColor4ub(COLOR_SOURCE_STATIC, 180);
+        glPointSize(6.0);
+//        glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();
         glScalef(0.9, 0.9, 1.0);
         glDrawArrays(GL_POINTS, 0, 4);
@@ -1464,14 +1464,14 @@ GLuint ViewRenderWidget::buildLineList()
 
         glBindTexture(GL_TEXTURE_2D,texwhite);
         glLineWidth(3.0);
-        glColor4ub(COLOR_SOURCE_STATIC, 180);
+//        glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
         glPopMatrix();
 
-        glPointSize(3.0);
-        glColor4ub(COLOR_SOURCE_STATIC, 180);
+        glPointSize(8.0);
+//        glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();
         glScalef(0.9, 0.9, 1.0);
         glDrawArrays(GL_POINTS, 0, 4);
@@ -2039,37 +2039,37 @@ GLuint ViewRenderWidget::buildBordersList()
 
     // Static source color
     glNewList(base + 6, GL_COMPILE);
-    glColor4ub(COLOR_SOURCE_STATIC, 180);
+//    glColor4ub(COLOR_SOURCE_STATIC, 180);
     glCallList(base);
-    glPointSize(2.0);
-    glColor4ub(COLOR_SOURCE_STATIC, 180);
+    glPointSize(6.0);
+//    glColor4ub(COLOR_SOURCE_STATIC, 180);
     glCallList(vertex_array_coords);
     glPushMatrix();
-    glScalef(0.9, 0.9, 1.0);
+    glScalef(0.8, 0.8, 1.0);
     glDrawArrays(GL_POINTS, 0, 4);
     glPopMatrix();
     glEndList();
 
     glNewList(base + 7, GL_COMPILE);
-    glColor4ub(COLOR_SOURCE_STATIC, 200);
+//    glColor4ub(COLOR_SOURCE_STATIC, 200);
     glCallList(base+1);
-    glPointSize(3.0);
-    glColor4ub(COLOR_SOURCE_STATIC, 180);
+    glPointSize(8.0);
+//    glColor4ub(COLOR_SOURCE_STATIC, 180);
     glCallList(vertex_array_coords);
     glPushMatrix();
-    glScalef(0.9, 0.9, 1.0);
+    glScalef(0.8, 0.8, 1.0);
     glDrawArrays(GL_POINTS, 0, 4);
     glPopMatrix();
     glEndList();
 
     glNewList(base + 8, GL_COMPILE);
-    glColor4ub(COLOR_SOURCE_STATIC, 220);
+//    glColor4ub(COLOR_SOURCE_STATIC, 220);
     glCallList(base+1);
-    glPointSize(3.0);
-    glColor4ub(COLOR_SOURCE_STATIC, 180);
+    glPointSize(8.0);
+//    glColor4ub(COLOR_SOURCE_STATIC, 180);
     glCallList(vertex_array_coords);
     glPushMatrix();
-    glScalef(0.9, 0.9, 1.0);
+    glScalef(0.8, 0.8, 1.0);
     glDrawArrays(GL_POINTS, 0, 4);
     glPopMatrix();
     glEndList();

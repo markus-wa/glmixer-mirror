@@ -281,14 +281,10 @@ void CatalogView::paint() {
     // draw borders of source icon
     foreach ( Icon *item, _icons) {
 
-        // normal border
-        if (item->source->isModifiable()) {
-            // Tag color
-            glColor4ub(item->source->getTag()->getColor().red(), item->source->getTag()->getColor().green(), item->source->getTag()->getColor().blue(), 255 * _alpha);
-        } else {
-            glColor4ub(COLOR_SOURCE_STATIC, 255 * _alpha);
-        }
+        // Tag color
+        glColor4ub(item->source->getTag()->getColor().red(), item->source->getTag()->getColor().green(), item->source->getTag()->getColor().blue(), 255 * _alpha);
 
+        //  border
         if (RenderingManager::getInstance()->isCurrentSource(item->source))
             glLineWidth(3.0);
         else
@@ -300,6 +296,18 @@ void CatalogView::paint() {
             glVertex2i( item->coordinates.right(), item->coordinates.bottom()); // Bottom Right
             glVertex2i( item->coordinates.left(), item->coordinates.bottom()); // Bottom Left
         glEnd();
+
+        // indication that source is not modifiable
+        if (!item->source->isModifiable()) {
+
+            glPointSize(4.0);
+            glBegin(GL_POINTS);
+            glVertex2i( item->coordinates.left() +5, item->coordinates.top() +5); // Top Left
+            glVertex2i( item->coordinates.right() -5, item->coordinates.top() +5); // Top Right
+            glVertex2i( item->coordinates.right() -5, item->coordinates.bottom() -5); // Bottom Right
+            glVertex2i( item->coordinates.left() +5, item->coordinates.bottom() -5); // Bottom Left
+            glEnd();
+        }
 
         // selection border
         if ( SelectionManager::getInstance()->isInSelection(item->source) ) {
