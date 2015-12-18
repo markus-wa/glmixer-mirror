@@ -102,7 +102,7 @@ GLMixer *GLMixer::getInstance() {
 }
 
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
-    selectedSourceVideoFile(NULL), usesystemdialogs(false), maybeSave(true),
+    usesystemdialogs(false), maybeSave(true), selectedSourceVideoFile(NULL),
     refreshTimingTimer(0), _displayTimeAsFrame(false), _restoreLastSession(true),
     _disableOutputWhenRecord(false)
 {
@@ -492,6 +492,33 @@ void GLMixer::closeEvent ( QCloseEvent * event ){
     qApp->closeAllWindows ();
     event->accept();
 }
+
+
+void GLMixer::keyPressEvent(QKeyEvent * event) {
+
+    // React to Key pressed for numerical keys [0..9]
+    if (event->key() > Qt::Key_Slash && event->key() < Qt::Key_Colon) {
+        emit keyPressed((int) event->key() - (int) Qt::Key_0, true);
+        event->accept();
+    }
+    else
+        QMainWindow::keyPressEvent(event);
+
+}
+
+
+void GLMixer::keyReleaseEvent(QKeyEvent * event) {
+
+    // React to Key release for numerical keys [0..9]
+    if (event->key() > Qt::Key_Slash && event->key() < Qt::Key_Colon) {
+        emit keyPressed((int) event->key() - (int) Qt::Key_0, false);
+        event->accept();
+    }
+    else
+        QMainWindow::keyReleaseEvent(event);
+
+}
+
 
 void GLMixer::updateRefreshTimerState(){
 

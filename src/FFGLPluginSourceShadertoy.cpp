@@ -20,9 +20,9 @@
  *
  */
 
+#include "glmixer.h"
 #include "FFGLPluginSourceShadertoy.moc"
 #include "FFGLPluginInstances.h"
-
 
 FFGLPluginSource::RTTI FFGLPluginSourceShadertoy::type = FFGLPluginSource::SHADERTOY_PLUGIN;
 
@@ -63,10 +63,13 @@ FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(bool plugintype, int w, int
 #endif
     _info["About"] = about;
 
+    // connect for keyboard events
+    connect(GLMixer::getInstance(), SIGNAL(keyPressed(int,bool)), this, SLOT(setKey(int,bool)));
 }
 
 FFGLPluginSourceShadertoy::~FFGLPluginSourceShadertoy()
 {
+    disconnect(GLMixer::getInstance(), SIGNAL(keyPressed(int,bool)), this, SLOT(setKey(int,bool)));
     emit dying();
 }
 
@@ -155,6 +158,17 @@ void FFGLPluginSourceShadertoy::setCode(QString code)
     }
 }
 
+void FFGLPluginSourceShadertoy::setKey(int key, bool status)
+{
+    // access the functions for Shadertoy plugin
+    FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
+    if ( p ) {
+        // not initialized yet ?
+        if ( initialize() )
+            p->setKeyboard(key, status);
+
+    }
+}
 
 void FFGLPluginSourceShadertoy::setName(QString string)
 {

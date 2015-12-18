@@ -26,7 +26,6 @@
 #ifndef RENDERINGMANAGER_H_
 #define RENDERINGMANAGER_H_
 
-#include "common.h"
 #include "SourceSet.h"
 
 typedef enum {

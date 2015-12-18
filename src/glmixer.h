@@ -26,10 +26,9 @@
 #ifndef GLV_H_
 #define GLV_H_
 
+#include "SourceSet.h"
 #include "ui_glmixer.h"
 
-#include "VideoFile.h"
-#include "SourceSet.h"
 
 
 #define MAX_RECENT_FILES 7
@@ -48,6 +47,9 @@ public:
 	static void msgHandler(QtMsgType type, const char *msg);
 	// exit handler
 	static void exitHandler();
+
+    void keyPressEvent ( QKeyEvent * event );
+    void keyReleaseEvent ( QKeyEvent * event );
 
 public Q_SLOTS:
 
@@ -150,10 +152,11 @@ Q_SIGNALS:
 	void sourceMarksModified(bool);
 	void sessionSaved();
 	void sessionLoaded();
+    void keyPressed(int, bool);
 
 protected:
 
-	void closeEvent(QCloseEvent * event);
+    void closeEvent(QCloseEvent * event);
 
 	void restorePreferences(const QByteArray & state);
 	QByteArray getPreferences() const;
@@ -165,8 +168,8 @@ private:
 	static GLMixer *_instance;
 
 	QString currentSessionFileName;
-	VideoFile *selectedSourceVideoFile;
-	bool usesystemdialogs, maybeSave;
+    bool usesystemdialogs, maybeSave;
+    class VideoFile *selectedSourceVideoFile;
     class QFileDialog *sfd;
 	class VideoFileDialog *mfd;
 	class OutputRenderWidget *outputpreview;

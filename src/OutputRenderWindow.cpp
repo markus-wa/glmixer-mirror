@@ -23,7 +23,7 @@
  *
  */
 
-#include "common.h"
+#include "glmixer.h"
 #include "OutputRenderWindow.moc"
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
@@ -326,28 +326,46 @@ void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent *) {
 
 }
 
+
+void OutputRenderWindow::keyReleaseEvent(QKeyEvent * event) {
+
+    if (event->key() > Qt::Key_Slash && event->key() < Qt::Key_Colon) {
+        GLMixer::getInstance()->keyReleaseEvent(event);
+    }
+    else
+        QGLWidget::keyReleaseEvent(event);
+}
+
 void OutputRenderWindow::keyPressEvent(QKeyEvent * event) {
 
-	switch (event->key()) {
-	case Qt::Key_Escape:
-		emit toggleFullscreen(false);
-        break;
-    case Qt::Key_Enter:
-    case Qt::Key_Return:
-		emit toggleFullscreen(true);
-		break;
-	case Qt::Key_Right:
-		emit keyRightPressed();
-		break;
-	case Qt::Key_Left:
-		emit keyLeftPressed();
-		break;
-	default:
-		QWidget::keyPressEvent(event);
-		break;
-	}
-
-	event->accept();
+    if (event->key() > Qt::Key_Slash && event->key() < Qt::Key_Colon) {
+        GLMixer::getInstance()->keyPressEvent(event);
+    }
+    else {
+        switch (event->key()) {
+        case Qt::Key_Escape:
+            event->accept();
+            emit toggleFullscreen(false);
+            break;
+        case Qt::Key_Enter:
+        case Qt::Key_Return:
+            event->accept();
+            emit toggleFullscreen(true);
+            break;
+        case Qt::Key_Right:
+        case Qt::Key_PageDown:
+            event->accept();
+            emit keyRightPressed();
+            break;
+        case Qt::Key_Left:
+        case Qt::Key_PageUp:
+            event->accept();
+            emit keyLeftPressed();
+            break;
+        default:
+            QGLWidget::keyPressEvent(event);
+        }
+    }
 }
 
 

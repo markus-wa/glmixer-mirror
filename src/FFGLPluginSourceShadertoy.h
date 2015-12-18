@@ -57,7 +57,7 @@ public Q_SLOTS:
     void setAbout(QString);
     void setDescription(QString);
 
-//    void setKey
+    void setKey(int key, bool status);
 
 Q_SIGNALS:
     void dying();

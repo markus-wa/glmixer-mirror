@@ -74,8 +74,9 @@ public:
     void moveEvent ( QMoveEvent * );
     void resizeEvent ( QResizeEvent * );
 
-	// events handling
-	void keyPressEvent(QKeyEvent * event);
+    // events handling
+    void keyPressEvent(QKeyEvent * event);
+    void keyReleaseEvent(QKeyEvent * event);
     void mouseDoubleClickEvent(QMouseEvent *);
 
     // file dialog state restoration

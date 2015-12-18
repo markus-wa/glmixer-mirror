@@ -875,11 +875,10 @@ void ViewRenderWidget::tabletEvent ( QTabletEvent * event )
 
 void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
 {
-    makeCurrent();
-    event->accept();
-
     if (_currentView->keyPressEvent(event))
-    {   // the view 'keyPressEvent' returns true ; there was something changed!
+    {
+        event->accept();
+        // the view 'keyPressEvent' returns true ; there was something changed!
         if (_currentView == _mixingView)
             emit sourceMixingModified();
         else if (_currentView == _geometryView)
@@ -887,16 +886,17 @@ void ViewRenderWidget::keyPressEvent(QKeyEvent * event)
         else if (_currentView == _layersView)
             emit sourceLayerModified();
     }
+    else
+        QGLWidget::keyPressEvent(event);
 }
 
 
 void ViewRenderWidget::keyReleaseEvent(QKeyEvent * event)
 {
-    makeCurrent();
-    event->accept();
-
     if (_currentView->keyReleaseEvent(event))
-    {   // the view 'keyReleaseEvent' returns true ; there was something changed!
+    {
+        event->accept();
+        // the view 'keyReleaseEvent' returns true ; there was something changed!
         if (_currentView == _mixingView)
             emit sourceMixingModified();
         else if (_currentView == _geometryView)
@@ -904,6 +904,8 @@ void ViewRenderWidget::keyReleaseEvent(QKeyEvent * event)
         else if (_currentView == _layersView)
             emit sourceLayerModified();
     }
+    else
+        QGLWidget::keyPressEvent(event);
 }
 
 /**
