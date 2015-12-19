@@ -151,6 +151,12 @@ int main(int argc, char **argv)
     splash.finish(GLMixer::getInstance());
     a.processEvents();
 
+#ifdef GLMIXER_REVISION
+    qDebug() << a.applicationName() << " version " << a.applicationVersion() << " r"<<GLMIXER_REVISION << " ready to rock!";
+#else
+    qDebug() << a.applicationName() << " version " << a.applicationVersion() << " ready to rock!";
+#endif
+
     // 4. load eventual session file provided in argument or restore last session
     if (filename.isNull())
         filename = GLMixer::getInstance()->getRestorelastSessionFilename();
