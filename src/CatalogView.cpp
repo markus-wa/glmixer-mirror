@@ -416,10 +416,8 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
 
         if (isUserInput(event, INPUT_CONTEXT_MENU)) {
             RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_CATALOG, event->pos());
-            return true;
         }
-
-        if (getSourcesAtCoordinates(event->pos().x(), event->pos().y(), true)) {
+        else if (getSourcesAtCoordinates(event->pos().x(), event->pos().y(), true)) {
 
             Source *clicked = *clickedSources.begin();
 
@@ -434,8 +432,9 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
             else
                 RenderingManager::getInstance()->setCurrentSource( clicked->getId() );
 
-            return true;
         }
+
+        return true;
     }
 	return false;
 }
@@ -479,29 +478,23 @@ void CatalogView::setTransparent(bool on)
 	RenderingManager::getRenderingWidget()->setFaded(!on);
 }
 
-bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
+bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
 {
-//	// the clic (when mouse press was down) was on a source ?
-//	if (sourceClicked) {
+    if (isInside(event->pos())) {
+        return true;
+    }
 
-//		// detect select mode
-//		if ( isUserInput(cause, INPUT_SELECT) )
-//			SelectionManager::getInstance()->select(sourceClicked);
-//		else if ( isUserInput(cause, INPUT_TOOL) || isUserInput(cause, INPUT_TOOL_INDIVIDUAL) ||  isUserInput(cause, INPUT_ZOOM) ) {
-//			// make this source the current
-//			RenderingManager::getInstance()->setCurrentSource(sourceClicked->getId());
-//			// zoom current
-//			if ( isUserInput(cause, INPUT_ZOOM) )
-//				RenderingManager::getRenderingWidget()->zoomCurrentSource();
-//		}
-
-//		sourceClicked = 0;
-//		return true;
-//	}
-
-	return false;
+    return false;
 }
 
+bool CatalogView::mouseReleaseEvent ( QMouseEvent * event )
+{
+    if (isInside(event->pos())) {
+        return true;
+    }
+
+    return false;
+}
 
 bool CatalogView::wheelEvent ( QWheelEvent * event )
 {

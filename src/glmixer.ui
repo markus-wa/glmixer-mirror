@@ -3474,10 +3474,22 @@ QToolButton:hover {
         <property name="text">
          <string>Message</string>
         </property>
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
        </column>
        <column>
         <property name="text">
          <string>Origin</string>
+        </property>
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
         </property>
        </column>
       </widget>

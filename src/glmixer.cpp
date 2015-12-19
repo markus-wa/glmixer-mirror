@@ -661,9 +661,8 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
             _instance->saveLogsToFile(logFile);
         }
 
-            QMessageBox msgBox(QMessageBox::Warning, tr("Error"),
-                           tr("<b>The application %1 encountered an error.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
-            msgBox.setInformativeText(txt.simplified() + tr("\n\nThe program will stop now."));
+            QMessageBox msgBox(QMessageBox::Warning, tr("Error"), tr("<b>The application %1 encountered an error.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
+            msgBox.setInformativeText(txt.simplified() + tr("\n\nThe program will stop now. Logs have been saved in %1").arg(QDir::home().absolutePath()));
             msgBox.setDefaultButton(QMessageBox::Ok);
             msgBox.exec();
 
@@ -724,7 +723,6 @@ void GLMixer::Log(int type, QString msg)
 
     // auto scroll to new item
     logTexts->setCurrentItem( item );
-    logTexts->setColumnWidth(0, logTexts->width() * 70 / 100);
 }
 
 void GLMixer::setView(QAction *a){
@@ -1122,7 +1120,7 @@ void GLMixer::on_actionSvgSource_triggered(){
 
         QFileInfo file(fileName);
         if ( !file.isFile() || !file.isReadable()) {
-            qCritical() << fileName <<  QChar(124).toLatin1() << tr("File does not exist or is unreadable.");
+            qCritical() << fileName <<  QChar(124).toLatin1() << tr("File does not exist or is not readable.");
             return;
         }
 
@@ -1199,7 +1197,7 @@ void GLMixer::on_actionFreeframeSource_triggered(){
                 // if it is a Freeframe plugin
                 else {
                     // freeframe info (filename)
-                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New freeframe plugin source created with file ") << ps->freeframeGLPlugin()->fileName() ;
+                    qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Freeframe plugin source created with file ") << ps->freeframeGLPlugin()->fileName() ;
                     statusbar->showMessage( tr("Freeframe plugin source %1 created.").arg( s->getName() ), 3000 );
                 }
 
@@ -1990,7 +1988,7 @@ void GLMixer::openSessionFile()
         }
 
         // read the list of sources
-        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session.");
+        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session...");
 
         // if we got up to here, it should be fine
         int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
@@ -2270,6 +2268,9 @@ void GLMixer::readSettings()
         sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
         sfd->setDirectory( sfd->history().last() );
     }
+    if (settings.contains("logTextColumnWidth")) {
+        logTexts->setColumnWidth(0, settings.value("logTextColumnWidth").toInt());
+    }
 
     // Cursor status
     if (settings.contains("CursorMode")) {
@@ -2312,7 +2313,6 @@ void GLMixer::readSettings()
     if (settings.contains("cursorFuzzyFiltering"))
         cursorFuzzyFiltering->setValue(settings.value("cursorFuzzyFiltering").toInt());
 
-
     // Mixing presets
     if (settings.contains("MixingPresets"))
         mixingToolBox->restoreState(settings.value("MixingPresets").toByteArray());
@@ -2341,6 +2341,7 @@ void GLMixer::saveSettings()
     settings.setValue("vcontrolOptionSplitter", vcontrolOptionSplitter->saveState());
     settings.setValue("VideoFileDialog", mfd->saveState());
     settings.setValue("SessionFileDialog", sfd->saveState());
+    settings.setValue("logTextColumnWidth", logTexts->columnWidth(0));
 
     // Cursor status
     settings.setValue("CursorMode", RenderingManager::getRenderingWidget()->getCursorMode() );
@@ -2850,7 +2851,7 @@ void GLMixer::screenshotView(){
 
     s.save( f.absoluteFilePath() );
     // log
-    qDebug() << f.absoluteFilePath() << QChar(124).toLatin1() << "Saved screenshot.";
+    qDebug() << f.absoluteFilePath() << QChar(124).toLatin1() << "Screenshot saved.";
 }
 
 

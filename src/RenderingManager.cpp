@@ -373,7 +373,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
     emit frameBufferChanged();
 
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Frame Buffer Object initialized : RGBA ") << size.width() << "x" << size.height();
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Frame Buffer Objects initialized: RGBA ") << size.width() << "x" << size.height();
 }
 
 
@@ -1931,7 +1931,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                             newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
                             newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
 
-                            qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Media source created with ") << QFileInfo(fileNameToOpen).fileName();
+                            qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Media source created with ") << QFileInfo(fileNameToOpen).fileName() << " ("<<newSourceVideoFile->getFrameWidth()<<"x"<<newSourceVideoFile->getFrameHeight()<<").";
                         }
                         else {
                             qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not be created.");
@@ -1976,7 +1976,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create algorithm source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1() << tr("Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt()) << ").";
+                qDebug() << child.attribute("name") << QChar(124).toLatin1() << tr("Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt()) << ", "<<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << ").";
         }
         else if ( type == Source::RENDERING_SOURCE) {
             // no tags specific for a rendering source
@@ -1993,18 +1993,14 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             QImage image;
             QByteArray data =  img.text().toLatin1();
 
-            if (!QImageReader::supportedImageFormats().count("jpeg")){
-                if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "xpm") )
-                    newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
-            }
-            else if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size(), "jpeg") )
+            if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size()) )
                 newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
 
             if (!newsource) {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create capture source.");
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create capture source; invalid picture in session file.");
                 errors++;
             } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Capture source created : ") << (QImageReader::supportedImageFormats().count("jpeg") ? "JPEG":"XPM");
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Capture source created ( ") <<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
         }
         else if ( type == Source::SVG_SOURCE) {
 
@@ -2019,7 +2015,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create vector graphics source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Vector graphics source created.");
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Vector graphics source created ( ")<<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
         }
         else if ( type == Source::WEB_SOURCE) {
 
@@ -2032,7 +2028,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create web source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Web source created.");
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Web source created ( ")<<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
         }
         else if ( type == Source::CLONE_SOURCE) {
             // remember the node of the sources to clone
@@ -2089,7 +2085,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create FreeframeGL source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("FreeframeGL source created.");
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("FreeframeGL source created ( ") <<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";;
 #else
             qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create source: type FreeframeGL not supported.");
             errors++;
@@ -2104,7 +2100,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<<  tr("Could not open OpenCV device index %2.").arg(camera.text());
                 errors ++;
             } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()<<  tr("OpenCV source created (device index %2).").arg(camera.text());
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()<<  tr("OpenCV source created (device index %2, ").arg(camera.text()) <<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
 #else
             qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not create source: type OpenCV not supported.");
             errors++;

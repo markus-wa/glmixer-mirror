@@ -132,6 +132,7 @@ void FolderModelFiller::run()
             for (int i = 0; i < fileList.size(); ++i) {
                 QFileInfo fileinfo = fileList.at(i);
                 addFile(model, fileinfo.completeBaseName(), fileinfo.lastModified(), fileinfo.absoluteFilePath());
+
             }
         }
     }
@@ -631,6 +632,7 @@ void SessionSwitcherWidget::restoreSettings()
     sortingOrder = (Qt::SortOrder) appSettings->value("transitionSortingOrder", "0").toInt();
     folderModel->sort(sortingColumn, sortingOrder);
     proxyView->sortByColumn(sortingColumn, sortingOrder);
+    proxyView->setCurrentIndex(proxyView->currentIndex());
 
     // read folder
     folderChanged(folderHistory->itemText(0));
