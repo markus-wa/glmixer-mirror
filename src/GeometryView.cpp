@@ -1442,6 +1442,8 @@ Source *GeometryView::getCurrentSource()
     if (RenderingManager::getInstance()->isValid(RenderingManager::getInstance()->getCurrentSource()))
         // if yes, set it as current (it may has been selected in another view)
         currentSource = *RenderingManager::getInstance()->getCurrentSource();
+    else
+        currentSource = 0;
 
     // if current source is a valid source
     if (currentSource) {
@@ -1455,7 +1457,7 @@ Source *GeometryView::getCurrentSource()
             return currentSource;
     }
 
-    return 0;
+    return currentSource;
 }
 
 QRectF GeometryView::getBoundingBox(const Source *s, bool invert_y)
