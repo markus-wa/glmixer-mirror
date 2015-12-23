@@ -222,8 +222,11 @@ RenderingManager::~RenderingManager() {
     if (pboIds[0] || pboIds[1])
         glDeleteBuffers(2, pboIds);
 
-    delete _recorder;
-    delete _switcher;
+    if (_recorder)
+        delete _recorder;
+
+    if (_switcher)
+        delete _switcher;
 }
 
 void RenderingManager::resetFrameBuffer()

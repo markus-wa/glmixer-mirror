@@ -251,8 +251,11 @@ OutputRenderWindow *OutputRenderWindow::getInstance() {
 }
 
 void OutputRenderWindow::deleteInstance() {
-	if (_instance != 0)
-		delete _instance;
+    if (_instance != 0) {
+        _instance->close();
+        delete _instance;
+    }
+    _instance = 0;
 }
 
 void OutputRenderWindow::initializeGL()

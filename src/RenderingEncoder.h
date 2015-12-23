@@ -73,13 +73,11 @@ protected:
 
     // ref to the recorder
     video_rec_t *rec;
-//    int period;
 
     // execution management
     bool quit;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
-//    QTime timer;
 
     // picture queue management
     unsigned char** pictq;

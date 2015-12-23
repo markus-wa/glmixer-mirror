@@ -51,7 +51,6 @@ EncodingThread::EncodingThread() : QThread(), rec(NULL), quit(true), pictq(0), p
 EncodingThread::~EncodingThread(){
     delete pictq_mutex;
     delete pictq_cond;
-    clear();
 }
 
 void EncodingThread::initialize(video_rec_t *recorder, int bufferCount) {
@@ -70,18 +69,27 @@ void EncodingThread::initialize(video_rec_t *recorder, int bufferCount) {
 }
 
 void EncodingThread::clear() {
+
     stop();
+
+    // free picture queue array
     if (pictq) {
         // free buffer
-        for (int i = 0; i < pictq_max; ++i)
-            free(pictq[i]);
+        for (int i = 0; i < pictq_max; ++i) {
+            if (pictq[i]) free(pictq[i]);
+        }
         free(pictq);
     }
     pictq = 0;
+    // free array
     if (recordingTimeStamp)
         free(recordingTimeStamp);
     recordingTimeStamp = 0;
     rec = 0;
+
+#ifndef NDEBUG
+    qDebug() << "EncodingThread cleared.";
+#endif
 }
 
 void EncodingThread::stop() {
@@ -126,6 +134,10 @@ bool EncodingThread::pictq_full() {
 
 void EncodingThread::run() {
 
+#ifndef NDEBUG
+    qDebug() << "Encoding Thread Started.";
+#endif
+
 	// prepare
     quit = false;
 
@@ -157,9 +169,13 @@ void EncodingThread::run() {
 		}
 
         msleep( 10 );
-	}
+    }
 
     emit encodingFinished();
+
+#ifndef NDEBUG
+    qDebug() << "Encoding Thread finished.";
+#endif
 }
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapseTimer(0), skipframecount(0), update(40), displayupdate(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE) {
@@ -177,7 +193,16 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(f
 }
 
 RenderingEncoder::~RenderingEncoder() {
-    delete encoder;
+
+    if (encoder) {
+        disconnect(encoder, SIGNAL(encodingFinished()), this, SLOT(close()));
+        encoder->clear();
+        delete encoder;
+        encoder = NULL;
+#ifndef NDEBUG
+    qDebug() << "RenderingEncoder deleted.";
+#endif
+    }
 }
 
 void RenderingEncoder::setEncodingFormat(encodingformat f){
@@ -187,6 +212,8 @@ void RenderingEncoder::setEncodingFormat(encodingformat f){
 	} else {
         qCritical() << tr ("Cannot change video recording format; Recorder is busy.");
 	}
+
+//    format = FORMAT_MPG_H264;
 }
 
 
@@ -431,6 +458,11 @@ void RenderingEncoder::close(){
     // free encoder and recorder
     encoder->clear();
     video_rec_free(recorder);
+    recorder = NULL;
+
+#ifndef NDEBUG
+        qDebug() << "RenderingEncoder closed.";
+#endif
 
     emit processing(false);
 }
