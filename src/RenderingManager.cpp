@@ -187,7 +187,6 @@ RenderingManager::RenderingManager() :
     QObject::connect(_renderwidget, SIGNAL(sourceGeometryDrop(double,double)), this, SLOT(dropSourceWithCoordinates(double, double)) );
     QObject::connect(_renderwidget, SIGNAL(sourceLayerDrop(double)), this, SLOT(dropSourceWithDepth(double)) );
 
-
     QObject::connect(this, SIGNAL(frameBufferChanged()), _renderwidget, SLOT(refresh()));
 
     // 3. Setup the default default values ! :)
@@ -1239,6 +1238,19 @@ void RenderingManager::clearSourceSet() {
         qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("All sources cleared (%1/%2)").arg(num_sources_deleted).arg(total);
     }
 
+#ifndef NDEBUG
+    VideoPicture::VideoPictureCountLock.lock();
+    qDebug() << "Pending video Picture :" << VideoPicture::VideoPictureCount;
+    VideoPicture::VideoPictureCountLock.unlock();
+
+    VideoFile::PacketCountLock.lock();
+    qDebug() << "Pending video packets :" << VideoFile::PacketCount;
+    VideoFile::PacketCountLock.unlock();
+
+    VideoFile::PacketListElementCountLock.lock();
+    qDebug() << "Pending packets list elements :" << VideoFile::PacketListElementCount;
+    VideoFile::PacketListElementCountLock.unlock();
+#endif
 }
 
 bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
@@ -1444,12 +1456,9 @@ SourceSet::const_iterator RenderingManager::getByName(const QString name) const 
  */
 QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) {
 
-    // make a copy of the front list to the back list before operating in the background
-    _back_sources = _front_sources;
-
     QDomElement config = doc.createElement("SourceList");
 
-    for (SourceSet::iterator its = _back_sources.begin(); its != _back_sources.end(); its++) {
+    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
 
         QDomElement sourceElem = doc.createElement("Source");
         sourceElem.setAttribute("name", (*its)->getName());
@@ -1910,7 +1919,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                         }
 
                         // create the source as it is a valid video file (this also set it to be the current source)
-                        newsource = RenderingManager::getInstance()->newMediaSource(newSourceVideoFile, depth);
+                        newsource = RenderingManager::_instance->newMediaSource(newSourceVideoFile, depth);
                         if (newsource){
                             // all is good ! we can apply specific parameters to the video file
                             QDomElement play = t.firstChildElement("Play");
@@ -1992,7 +2001,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             if ( version.toDouble() < 0.8 && type == 0)
                 v = 0.0;
 
-            newsource = RenderingManager::getInstance()->newAlgorithmSource(type,  Frame.attribute("Width", "64").toInt(), Frame.attribute("Height", "64").toInt(), v, Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha", "0").toInt(), depth);
+            newsource = RenderingManager::_instance->newAlgorithmSource(type,  Frame.attribute("Width", "64").toInt(), Frame.attribute("Height", "64").toInt(), v, Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha", "0").toInt(), depth);
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create algorithm source.");
                 errors++;
@@ -2001,7 +2010,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
         }
         else if ( type == Source::RENDERING_SOURCE) {
             // no tags specific for a rendering source
-            newsource = RenderingManager::getInstance()->newRenderingSource(depth);
+            newsource = RenderingManager::_instance->newRenderingSource(depth);
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not create rendering loop-back source.");
                 errors++;
@@ -2015,7 +2024,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             QByteArray data =  img.text().toLatin1();
 
             if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size()) )
-                newsource = RenderingManager::getInstance()->newCaptureSource(image, depth);
+                newsource = RenderingManager::_instance->newCaptureSource(image, depth);
 
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create capture source; invalid picture in session file.");
@@ -2030,7 +2039,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
             QSvgRenderer *rendersvg = new QSvgRenderer(data);
             if ( rendersvg )
-                newsource = RenderingManager::getInstance()->newSvgSource(rendersvg, depth);
+                newsource = RenderingManager::_instance->newSvgSource(rendersvg, depth);
 
             if (!newsource) {
                 qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create vector graphics source.");
@@ -2043,7 +2052,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             QDomElement web = t.firstChildElement("Web");
             QUrl url =  QUrl(web.text());
 
-            newsource = RenderingManager::getInstance()->newWebSource(url, web.attribute("Height", "100").toInt(), web.attribute("Scroll", "0").toInt(), web.attribute("Update", "0").toInt(), depth);
+            newsource = RenderingManager::_instance->newWebSource(url, web.attribute("Height", "100").toInt(), web.attribute("Scroll", "0").toInt(), web.attribute("Update", "0").toInt(), depth);
 
             if (!newsource) {
                 qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create web source.");
@@ -2060,9 +2069,9 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             // read the tags specific for an algorithm source
             QDomElement SharedMemory = t.firstChildElement("SharedMemory");
 
-            qint64 shmid = SharedMemoryManager::getInstance()->findProgramSharedMap(SharedMemory.text());
+            qint64 shmid = SharedMemoryManager::_instance->findProgramSharedMap(SharedMemory.text());
             if (shmid != 0)
-                newsource = RenderingManager::getInstance()->newSharedMemorySource(shmid, depth);
+                newsource = RenderingManager::_instance->newSharedMemorySource(shmid, depth);
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the program %1.").arg(SharedMemory.text());
                 errors++;
@@ -2078,7 +2087,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             // read the tags specific for an algorithm source
             QDomElement spout = t.firstChildElement("Spout");
 
-            newsource = RenderingManager::getInstance()->newSpoutSource(spout.text(), depth);
+            newsource = RenderingManager::_instance->newSpoutSource(spout.text(), depth);
 
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the SPOUT sender %1.").arg(spout.text());
@@ -2098,9 +2107,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             if ( ffgl.isNull() )
                 ffgl = t.firstChildElement("ShadertoyPlugin");
 
-            newsource = RenderingManager::getInstance()->newFreeframeGLSource(ffgl,
-                                                                              Frame.attribute("Width", "64").toInt(),
-                                                                              Frame.attribute("Height", "64").toInt());
+            newsource = RenderingManager::_instance->newFreeframeGLSource(ffgl, Frame.attribute("Width", "64").toInt(),  Frame.attribute("Height", "64").toInt());
 
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create FreeframeGL source.");
@@ -2116,7 +2123,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 #ifdef OPEN_CV
             QDomElement camera = t.firstChildElement("CameraIndex");
 
-            newsource = RenderingManager::getInstance()->newOpencvSource( camera.text().toInt(), depth);
+            newsource = RenderingManager::_instance->newOpencvSource( camera.text().toInt(), depth);
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<<  tr("Could not open OpenCV device index %2.").arg(camera.text());
                 errors ++;
@@ -2163,7 +2170,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
         // find the source which name is f.text()
         SourceSet::iterator cloneof =  getByName(f.text());
         if (isValid(cloneof)) {
-            clonesource = RenderingManager::getInstance()->newCloneSource(cloneof, depth);
+            clonesource = RenderingManager::_instance->newCloneSource(cloneof, depth);
             if (clonesource) {
                 renameSource( clonesource, c.attribute("name") );
                 // Apply parameters to the created source

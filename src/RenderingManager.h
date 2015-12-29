@@ -228,7 +228,7 @@ public Q_SLOTS:
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);
 
-	void disableProgressBars(bool off) { _showProgressBar = !off; }
+    void disableProgressBars(bool off) { _showProgressBar = !off; }
 
 #ifdef SHM
 	void setFrameSharingEnabled(bool on);
@@ -254,6 +254,7 @@ private:
 protected:
 	// the rendering area
 	ViewRenderWidget *_renderwidget;
+    // properties of the sources
     class SourcePropertyBrowser *_propertyBrowser;
 
     // the frame buffers
@@ -269,8 +270,6 @@ protected:
 
     // the set of sources for display (front)
     SourceSet _front_sources;
-    // the set of sources for pre-loading (back)
-    SourceSet _back_sources;
     // the recorder
     RenderingEncoder *_recorder;
     // the session switcher

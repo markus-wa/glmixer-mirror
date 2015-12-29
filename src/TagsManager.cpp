@@ -41,7 +41,7 @@ QListWidgetItem *TagsManager::getTagItem(Tag *t)
     // not found, create a new tag
     {
         // create icon
-        static QBitmap mask(":/glmixer/icons/tagMask.png");
+        QBitmap mask(":/glmixer/icons/tagMask.png");
         QPixmap pix(mask.width(), mask.height());
         pix.fill(t->getColor());
         pix.setMask(mask);

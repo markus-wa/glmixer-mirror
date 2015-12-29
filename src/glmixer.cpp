@@ -534,25 +534,11 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
 
 void GLMixer::on_copyLogsToClipboard_clicked() {
 
-#ifndef NDEBUG
-    VideoPicture::VideoPictureCountLock.lock();
-    qDebug() << "Pending video Picture :" << VideoPicture::VideoPictureCount;
-    VideoPicture::VideoPictureCountLock.unlock();
-
-    VideoFile::PacketCountLock.lock();
-    qDebug() << "Pending video packets :" << VideoFile::PacketCount;
-    VideoFile::PacketCountLock.unlock();
-
-    VideoFile::PacketListElementCountLock.lock();
-    qDebug() << "Pending packets list elements :" << VideoFile::PacketListElementCount;
-    VideoFile::PacketListElementCountLock.unlock();
-#endif
-
     if (logTexts->topLevelItemCount() > 0) {
         QString logs;
         QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
         while (*it) {
-            logs.append( QString("%1:%2\n").arg((*it)->text(0)).arg((*it)->text(1)) );
+            logs.append( QString("%2: %1\n").arg((*it)->text(0)).arg((*it)->text(1)) );
             ++it;
         }
         QApplication::clipboard()->setText(logs);
@@ -733,7 +719,6 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         static QMetaMethod method = _instance->metaObject()->method(methodIndex);
         method.invoke(_instance, Qt::QueuedConnection, Q_ARG(int, (int)type), Q_ARG(QString, txt));
     }
- //   else QMessageBox::information(0, tr("%1 -- Debug").arg(QCoreApplication::applicationName()), txt);
 
 }
 
@@ -754,16 +739,17 @@ void GLMixer::Log(int type, QString msg)
         item->setToolTip(0, message[0].simplified());
         item->setText(1, QApplication::applicationName());
     } else {
-        item->setText(0, "");
+        item->setText(0, msg);
         item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
+        item->setText(1, "");
     }
 
     // adjust color and show dialog according to message type
     switch ( (QtMsgType) type) {
     case QtWarningMsg:
-         item->setBackgroundColor(0, QColor(220, 180, 50, 50));
-         item->setBackgroundColor(1, QColor(220, 180, 50, 50));
-         item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
+         item->setBackgroundColor(0, QColor(50, 180, 220, 50));
+         item->setBackgroundColor(1, QColor(50, 180, 220, 50));
+         item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
          break;
     case QtCriticalMsg:
         item->setBackgroundColor(0, QColor(220, 90, 50, 50));
