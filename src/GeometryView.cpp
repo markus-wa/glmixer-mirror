@@ -324,7 +324,8 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
         // context menu
         else if ( isUserInput(event, INPUT_CONTEXT_MENU) ) {
             // can show context menu only for regular sources
-            setCurrentSource(clickedSource);
+            if ( clickedSources.count( getCurrentSource() ) == 0 )
+                setCurrentSource(clickedSource);
             if (currentSource)
                 RenderingManager::getRenderingWidget()->showContextMenu(ViewRenderWidget::CONTEXT_MENU_SOURCE, event->pos());
 
