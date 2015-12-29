@@ -224,7 +224,7 @@ void GammaPlotArea::wheelEvent ( QWheelEvent * event )
 	emit gammaChanged();
 }
 
-void GammaPlotArea::paintEvent(QPaintEvent * /* event */)
+void GammaPlotArea::paintEvent(QPaintEvent *e)
 {
     QPainter painter(this);
     QPen p(Qt::DotLine);
@@ -268,5 +268,7 @@ void GammaPlotArea::paintEvent(QPaintEvent * /* event */)
 	painter.setPen(palette().dark().color());
 	painter.setBrush(Qt::NoBrush);
 	painter.drawRect(QRect(0, 0, width() - 1, height() - 1));
+
+    QWidget::paintEvent(e);
 }
 

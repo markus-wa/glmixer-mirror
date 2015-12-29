@@ -110,13 +110,12 @@ void RenderingManager::setUseFboBlitExtension(bool on){
     else {
         // if extension not supported but it is requested, show warning
         if (on) {
-            qCritical()  << tr("OpenGL extension GL_EXT_framebuffer_blit is not supported on this graphics hardware.\n\nRendering speed is sub-optimal but all should work properly.");
-            qWarning() << tr("Cannot use Blit framebuffer extension.");
+            qCritical()  << tr("OpenGL Framebuffer Blit operation is requested but not supported (GL_EXT_framebuffer_blit).\n\nDisabling Framebuffer Blit.");
         }
         RenderingManager::blit_fbo_extension = false;
     }
 
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Extension framebuffer blit  (GL_EXT_framebuffer_blit) ") << (RenderingManager::blit_fbo_extension ? "ON" : "OFF");
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Framebuffer Blit  (GL_EXT_framebuffer_blit) ") << (RenderingManager::blit_fbo_extension ? "ON" : "OFF");
 }
 
 
@@ -127,13 +126,12 @@ void RenderingManager::setUsePboExtension(bool on){
     else {
         // if extension not supported but it is requested, show warning
         if (on) {
-            qCritical()  << tr("OpenGL extension GL_EXT_pixel_buffer_object is not supported on this graphics hardware.\n\nRendering speed is sub-optimal but all should work properly.");
-            qWarning() << tr("Cannot use Pixel Buffer Object extension.");
+            qCritical()  << tr("OpenGL Pixel Buffer Object is requested but not supported (GL_EXT_pixel_buffer_object).\n\nDisabling Pixel Buffer Object.");
         }
         RenderingManager::pbo_extension = false;
     }
 
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Extension pixel buffer objects (GL_EXT_pixel_buffer_object) ") << (RenderingManager::pbo_extension ? "ON" : "OFF");
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Pixel Buffer Object (GL_EXT_pixel_buffer_object) ") << (RenderingManager::pbo_extension ? "ON" : "OFF");
 }
 
 RenderingManager *RenderingManager::getInstance() {
@@ -141,11 +139,12 @@ RenderingManager *RenderingManager::getInstance() {
     if (_instance == 0) {
 
         if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-            qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects are not supported on this graphics hardware. The program cannot operate properly without it.") ));
+            qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects are not supported (GL_EXT_framebuffer_object).") ));
 
         if (!glewIsSupported("GL_ARB_vertex_program") || !glewIsSupported("GL_ARB_fragment_program"))
-            qFatal( "%s", qPrintable( tr("OpenGL GLSL programming is not supported on this graphics hardware. The program cannot operate properly without it.")));
+            qFatal( "%s", qPrintable( tr("OpenGL GLSL programming is not supported (GL_ARB_vertex_program, GL_ARB_fragment_program).")));
 
+        // ok to instanciate rendering manager
         _instance = new RenderingManager;
         Q_CHECK_PTR(_instance);
     }
@@ -227,6 +226,8 @@ RenderingManager::~RenderingManager() {
 
     if (_switcher)
         delete _switcher;
+
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << "All clear.";
 }
 
 void RenderingManager::resetFrameBuffer()
@@ -309,7 +310,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         _fbo->release();
     }
     else
-        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible (cannot initialize the rendering buffer %1x%2).").arg(size.width()).arg(size.height())));
+        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible (RenderingManager FBO %1x%2 bind failed).").arg(_fbo->width()).arg(_fbo->height())));
 
     // create the previous frame (frame buffer object) if needed
     previousframe_fbo = new QGLFramebufferObject( _fbo->width(), _fbo->height());
@@ -324,7 +325,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         previousframe_fbo->release();
     }
     else
-        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible (cannot initialize the loopback buffer %1x%2).").arg(size.width()).arg(size.height())));
+        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible (RenderingManager background FBO %1x%2 bind failed).").arg(_fbo->width()).arg(_fbo->height())));
 
     // configure texture display
     glBindTexture(GL_TEXTURE_2D, previousframe_fbo->texture());
@@ -349,7 +350,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
         glBufferData(GL_PIXEL_PACK_BUFFER, _fbo->width() * _fbo->height() * 4, 0, GL_STREAM_READ);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
-        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Pixel Buffer Objects initialized: RGBA ") << _fbo->width() << "x" << _fbo->height();
+        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Pixel Buffer Objects initialized: RGBA (") << _fbo->width() << "x" << _fbo->height() <<").";
     }
     else {
         // no PBO
@@ -376,7 +377,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
     emit frameBufferChanged();
 
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Frame Buffer Objects initialized: RGBA ") << size.width() << "x" << size.height();
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("Frame Buffer Objects initialized: RGBA (") << size.width() << "x" << size.height() <<").";
 }
 
 
@@ -588,7 +589,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
     }
     else
         qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible "
-            "(the program cannot render properly).")));
+            "(RenderingManager %1x%2 bind failed).").arg(_fbo->width()).arg(_fbo->height())));
 
 
     //
@@ -780,7 +781,7 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, double depth) {
 
         // try to create the opencv source
         s = new OpencvSource(opencvIndex, textureIndex, getAvailableDepthFrom(depth));
-        renameSource( s, _defaultSource->getName() + tr("Camera%1").arg(opencvIndex) );
+        renameSource( s, _defaultSource->getName() + QString("Camera%1").arg(opencvIndex) );
 
     } catch (AllocationException &e){
         qWarning() << "Cannot create OpenCV source; " << e.message();
@@ -1021,7 +1022,7 @@ bool RenderingManager::insertSource(Source *s)
                 // inform of success
                 return true;
             else
-                qWarning() << tr("Not enough memory to insert the source into the stack.");
+                qWarning() << tr("Not enough memory to insert the source into the stack (%1).").arg(_front_sources.size());
         }
         else
             qWarning() << tr("You have reached the maximum amount of source supported (%1).").arg(maxSourceCount);
@@ -1179,17 +1180,16 @@ void RenderingManager::dropSource(){
 }
 
 
-void RenderingManager::removeSource(const GLuint idsource){
+int RenderingManager::removeSource(const GLuint idsource){
 
-    removeSource(getById(idsource));
-
+    return removeSource(getById(idsource));
 }
 
-void RenderingManager::removeSource(SourceSet::iterator itsource) {
+int RenderingManager::removeSource(SourceSet::iterator itsource) {
 
     if (!isValid(itsource)) {
         qWarning() << tr("Invalid Source cannot be deleted.");
-        return;
+        return 0;
     }
 
     // remove from selection and group
@@ -1201,35 +1201,48 @@ void RenderingManager::removeSource(SourceSet::iterator itsource) {
         emit currentSourceChanged(_currentSource);
     }
 
+    int num_sources_deleted = 0;
     if (itsource != _front_sources.end()) {
         Source *s = *itsource;
         // if this is not a clone
         if (s->rtti() != Source::CLONE_SOURCE)
             // remove every clone of the source to be removed
             for (SourceList::iterator clone = s->getClones()->begin(); clone != s->getClones()->end(); clone = s->getClones()->begin()) {
-                removeSource((*clone)->getId());
+                num_sources_deleted += removeSource((*clone)->getId());
             }
         // then remove the source itself
         qDebug() << s->getName() << QChar(124).toLatin1() << tr("Source deleted.");
         _front_sources.erase(itsource);
         delete s;
+        num_sources_deleted++;
     }
 
+    return num_sources_deleted;
 }
 
 void RenderingManager::clearSourceSet() {
 
-    // clear the list of sources
-    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its = _front_sources.begin())
-        removeSource(its);
+    // how many sources to remove ?
+    int total = _front_sources.size();
+    int num_sources_deleted = 0;
 
-    // reset the id counter
-    Source::lastid = 1;
+    // remove all sources in the stack
+    if (total > 0) {
 
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("List of source cleared.");
+        // clear the list of sources
+        for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its = _front_sources.begin())
+            num_sources_deleted += removeSource(its);
+
+        // reset the id counter
+        Source::lastid = 1;
+
+        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("All sources cleared (%1/%2)").arg(num_sources_deleted).arg(total);
+    }
+
 }
 
 bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
+
     return (itsource != _front_sources.end());
 }
 
@@ -1243,6 +1256,7 @@ bool RenderingManager::isValid(SourceSet::const_iterator itsource)  const{
 
 
 bool RenderingManager::isCurrentSource(const Source *s){
+
     if (_currentSource != _front_sources.end())
         return ( s == *_currentSource );
     else
@@ -1834,8 +1848,12 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     QDomElement child = xmlconfig.firstChildElement("Source");
     while (!child.isNull()) {
 
+        // increment counter
+        ++count;
+
+        // display progress
         if (progress) {
-            progress->setValue(++count);
+            progress->setValue(count);
 
             if (progress->wasCanceled()) {
                 delete progress;
@@ -2003,7 +2021,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create capture source; invalid picture in session file.");
                 errors++;
             } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Capture source created ( ") <<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Capture source created (") <<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << ").";
         }
         else if ( type == Source::SVG_SOURCE) {
 
@@ -2018,7 +2036,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create vector graphics source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Vector graphics source created ( ")<<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Vector graphics source created (")<<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << ").";
         }
         else if ( type == Source::WEB_SOURCE) {
 
@@ -2031,7 +2049,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name")<< QChar(124).toLatin1() << tr("Could not create web source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Web source created ( ")<<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
+                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Web source created (")<<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << ").";
         }
         else if ( type == Source::CLONE_SOURCE) {
             // remember the node of the sources to clone
@@ -2088,7 +2106,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create FreeframeGL source.");
                 errors++;
             } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("FreeframeGL source created ( ") <<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";;
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("FreeframeGL source created (") <<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << ").";;
 #else
             qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create source: type FreeframeGL not supported.");
             errors++;
@@ -2127,8 +2145,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
         child = child.nextSiblingElement("Source");
     }
+
     // end loop on sources to create
-    if (progress) progress->setValue(xmlconfig.childNodes().count());
+    if (progress)
+        progress->setValue(xmlconfig.childNodes().count());
 
     // Process the list of clones names ; now that every source exist, we can be sure they can be cloned
     QListIterator<QDomElement> it(clones);
@@ -2153,7 +2173,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                     delete clonesource;
                 else
                     qDebug() << c.attribute("name") << QChar(124).toLatin1() << tr("Clone of source %1 created.").arg(f.text());
-            }else {
+            } else {
                 qWarning() << c.attribute("name") << QChar(124).toLatin1() << tr("Could not create clone source.");
                 errors++;
             }
@@ -2165,7 +2185,13 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
     // set current source to none (end of list)
     unsetCurrentSource();
-    if (progress) delete progress;
+
+    // delete progress dialog
+    if (progress)
+        delete progress;
+
+    // log
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("%1 sources created (%1/%2).").arg(count-errors).arg(xmlconfig.childNodes().count());
 
     return errors;
 }
@@ -2212,7 +2238,7 @@ void RenderingManager::pause(bool on){
     if (!on)
         sourcePlayStatus.clear();
 
-    qDebug() << (on ? tr("All sources paused.") : tr("All source un-paused.") );
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << (on ? tr("All sources paused.") : tr("All source un-paused.") );
 }
 
 #ifdef SHM
@@ -2392,69 +2418,3 @@ QString RenderingManager::renameSource(Source *s, const QString name){
 
     return s->getName();
 }
-
-
-//void Source::renderFbo()  {
-
-//    glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
-
-//    glMatrixMode(GL_PROJECTION);
-//    glPushMatrix();
-//    glLoadIdentity();
-//    gluOrtho2D(-1.0, 1.0, 1.0, -1.0);
-
-//    glMatrixMode(GL_MODELVIEW);
-//    glPushMatrix();
-//    glLoadIdentity();
-
-//    glClearColor(0.f, 0.f, 0.f, 0.f);
-
-//    if ( textureFbo == 0 ){
-//        // create texture
-//        glGenTextures(1, &textureFbo);
-//        glBindTexture(GL_TEXTURE_2D, textureFbo);
-//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getFrameWidth(), getFrameHeight(), 0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//        // create the rendering FBO
-//        glGenFramebuffers(1, &fbo);
-//        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-//        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureFbo, 0);
-
-//    }
-
-
-//    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-//    glViewport(0, 0, getFrameWidth(), getFrameHeight());
-
-//    // clear
-//    glClear(GL_COLOR_BUFFER_BIT);
-
-//     // Blending Function For mixing like in the rendering window
-//    setShaderAttributes();
-
-//    // bind the source texture
-//    bind();
-
-//    // draw array
-//    draw();
-
-//    // restore no effect
-////    endEffectsSection();
-
-//    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-////        glBindTexture(GL_TEXTURE_2D, 0);
-
-////        ViewRenderWidget::setSourceDrawingMode(false);
-
-//    glMatrixMode(GL_PROJECTION);
-//    glPopMatrix();
-//    glMatrixMode(GL_MODELVIEW);
-//    glPopMatrix();
-
-//    glPopAttrib();
-
-//}

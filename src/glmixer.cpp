@@ -87,6 +87,8 @@
 #include "glmixer.moc"
 
 GLMixer *GLMixer::_instance = 0;
+QFile *GLMixer::logFile = 0;
+QTextStream GLMixer::logStream;
 
 QByteArray static_windowstate =
 QByteArray::fromHex("000000ff00000000fd0000000300000000000001150000022bfc0200000003fc0000003b000000d5000000d500fffffffa000000000100000002fb0000002200700072006500760069006500770044006f0063006b0057006900640067006500740100000000ffffffff000000d400fffffffb000000200063007500720073006f00720044006f0063006b005700690064006700650074010000000000000136000000e600fffffffc00000112000001540000009100fffffffa000000000100000002fb00000024007300770069007400630068006500720044006f0063006b0057006900640067006500740100000000ffffffff000000e500fffffffb000000240062006c006f0063006e006f007400650044006f0063006b0057006900640067006500740100000000ffffffff000000ac00fffffffb0000001a006c006f00670044006f0063006b005700690064006700650074020000044e0000029d000002ef0000018400000001000001040000022bfc0200000003fc0000003b0000022b000001c300fffffffa000000000100000003fb00000020006d006900780069006e00670044006f0063006b0057006900640067006500740100000000ffffffff000000ec00fffffffb000000200073006f00750072006300650044006f0063006b0057006900640067006500740100000000ffffffff0000004100fffffffb00000020006c00610079006f007500740044006f0063006b0057006900640067006500740100000000ffffffff000000a600fffffffc000002f2000000300000000000fffffffa000000000100000001fb0000001e0061006c00690067006e0044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000fb0000001e00670061006d006d00610044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000000000030000042d00000054fc0100000001fb0000002400760063006f006e00740072006f006c0044006f0063006b00570069006400670065007401000000000000042d000003070007ffff000002100000022b00000004000000040000000800000008fc0000000100000002000000060000001a0073006f00750072006300650054006f006f006c0042006100720100000000ffffffff00000000000000000000001600760069006500770054006f006f006c00420061007201000001e4ffffffff00000000000000000000001600660069006c00650054006f006f006c00420061007201000002a8ffffffff0000000000000000000000180074006f006f006c00730054006f006f006c0042006100720100000341ffffffff00000000000000000000002000720065006e0064006500720069006e00670054006f006f006c00420061007201000003b9ffffffff0000000000000000000000280073006f00750072006300650043006f006e00740072006f006c0054006f006f006c00420061007201000003f3ffffffff0000000000000000" );
@@ -100,6 +102,15 @@ GLMixer *GLMixer::getInstance() {
 
     return _instance;
 }
+
+void GLMixer::deleteInstance() {
+
+    if (_instance)
+        delete _instance;
+
+    _instance = 0;
+}
+
 
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     usesystemdialogs(false), maybeSave(true), selectedSourceVideoFile(NULL),
@@ -453,43 +464,26 @@ GLMixer::~GLMixer()
     delete mfd;
     delete sfd;
     delete upd;
+    delete refreshTimingTimer;
+    delete mixingToolBox;
+    delete switcherSession;
+    delete outputpreview;
+}
+
+
+void GLMixer::closeEvent(QCloseEvent * event ){
 
     refreshTimingTimer->stop();
-    delete refreshTimingTimer;
 
     mixingToolBox->close();
-    delete mixingToolBox;
-
     switcherSession->close();
-    delete switcherSession;
-
     outputpreview->close();
-    delete outputpreview;
-
-}
-
-
-void GLMixer::exitHandler() {
-
-    // no message handling when quit
-    qInstallMsgHandler(0);
-
-    // save window settings
-    _instance->saveSettings();
-
-    RenderingManager::deleteInstance();
-    OutputRenderWindow::deleteInstance();
-#ifdef SHM
-    SharedMemoryManager::deleteInstance();
+    layoutToolBox->close();
+#ifdef FFGL
+    pluginGLSLCodeEditor->close();
 #endif
-    if (_instance)
-        delete _instance;
 
-}
-
-void GLMixer::closeEvent ( QCloseEvent * event ){
-
-    qApp->closeAllWindows ();
+    QApplication::closeAllWindows();
     event->accept();
 }
 
@@ -565,39 +559,6 @@ void GLMixer::on_copyLogsToClipboard_clicked() {
     }
 }
 
-void GLMixer::on_saveLogsToFile_clicked() {
-
-    if (logTexts->topLevelItemCount() > 0) {
-
-        QString suggestion = QFileInfo( QDir::home(), QString("glmixerlogs_%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
-        QString fileName = getFileName(tr("Save Logs to file"),
-                                       tr("GLMixer logs") + " (*.txt)",
-                                       QString("txt"),
-                                       suggestion);
-
-        saveLogsToFile(fileName);
-    }
-}
-
-void GLMixer::saveLogsToFile(QString fileName) {
-
-    if ( !fileName.isEmpty() ) {
-        // open file and put text into it
-        QFile fileContent(fileName);
-        fileContent.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream out(&fileContent);
-
-        out << "GLMixer logs - " << QDate::currentDate().toString() << "  " << QTime::currentTime().toString() << "\n\n";
-
-        QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
-        while (*it) {
-            out << (*it)->text(0) << " : " << (*it)->text(1) << "\n";
-            ++it;
-        }
-    }
-
-}
-
 void GLMixer::on_copyNotes_clicked() {
 
     QApplication::clipboard()->setText( blocNoteEdit->toPlainText() );
@@ -617,59 +578,151 @@ void GLMixer::on_addListToNotes_clicked() {
     blocNoteEdit->append(list);
 }
 
+void GLMixer::on_saveLogsToFile_clicked() {
+
+    if (GLMixer::logFile) {
+
+        QString suggestion = QFileInfo(GLMixer::logFile->fileName()).fileName() ;
+        QString fileName = getFileName(tr("Save Logs to file"),
+                                       tr("GLMixer log file") + " (*.txt)",
+                                       QString("txt"),
+                                       QFileInfo( QDir::home(), suggestion).absoluteFilePath() );
+
+        // copy the temp log file to the new name (if filename is valid)
+        if (!fileName.isEmpty()) {
+            // delete previous file if exists
+            QFileInfo newfile(fileName);
+            if (newfile.exists())
+                newfile.dir().remove( newfile.fileName() );
+
+            // close the logfile and copy it to the new name
+            GLMixer::logFile->close();
+            GLMixer::logFile->copy(newfile.absoluteFilePath());
+            // re-open the log file (this removes its content)
+            GLMixer::logFile->open(QIODevice::WriteOnly | QIODevice::Text);
+            // re-copy the content of the logs
+            QFile file( newfile.absoluteFilePath());
+            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                // copy all lines of the log back to the log stream
+                QTextStream in(&file);
+                while (!in.atEnd()) {
+                    GLMixer::logStream << in.readLine() << "\n";
+                }
+                file.close();
+            }
+        }
+    }
+}
+
+void GLMixer::exitHandler() {
+
+    // cleanup logs on exit (if log file valid)
+    if ( GLMixer::logFile ) {
+
+        GLMixer::logStream << QApplication::applicationName() << " closed , " << QTime::currentTime().toString() << "\n";
+
+        // close properly
+        GLMixer::logStream.setDevice(0);
+        GLMixer::logFile->close();
+
+        // rename log file to default name (avoid overpopulating temp dir with too many log files)
+        QFileInfo defaultlogfile(QDir::temp(), GLMIXER_LOGFILE);
+        // delete previous default log file if exists
+        if (defaultlogfile.exists())
+            defaultlogfile.dir().remove(defaultlogfile.fileName());
+        // rename log file to default name
+        GLMixer::logFile->rename(defaultlogfile.absoluteFilePath());
+
+        // done with log file
+        delete GLMixer::logFile;
+        GLMixer::logFile = 0;
+    }
+
+}
 
 void GLMixer::msgHandler(QtMsgType type, const char *msg)
 {
+    // static log stream : open file if the stream is not open for writing
+    if ( GLMixer::logFile == 0 ) {
+
+        // open file and put text into it
+        GLMixer::logFile = new QFile(QDir::tempPath() + QString("/glmixer_log_%1%2.txt").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")));
+        GLMixer::logFile->open(QIODevice::WriteOnly | QIODevice::Text);
+        GLMixer::logStream.setDevice(GLMixer::logFile);
+
+#ifdef GLMIXER_REVISION
+        GLMixer::logStream << QApplication::applicationName() << " v" << QApplication::applicationVersion() << " r"<< GLMIXER_REVISION << " , " << QDate::currentDate().toString() << "  " << QTime::currentTime().toString() << "\n";
+#else
+        GLMixer::logStream << QApplication::applicationName() << " v" << QApplication::applicationVersion() << " , " << QDate::currentDate().toString() << "  " << QTime::currentTime().toString() << "\n";
+#endif
+    }
+
     QString txt = QString(msg).remove("\"");
     // message handler
     switch (type) {
     case QtCriticalMsg:
-        {
-            // create message box
-            QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),  tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
-            QStringList message = txt.split(QChar(124), QString::SkipEmptyParts);
-            QString displaytext = txt;
-            if (message.count() > 1 ) {
-                displaytext = message[1].simplified();
-                if ( !message[0].simplified().isEmpty() )
-                    displaytext += tr("\n\nOrigin of the problem:\n") + message[0].simplified();
-            } else if (message.count() > 0 )
-                displaytext = message[0].simplified();
+    {
+        // write message
+        GLMixer::logStream << "Critical| " << txt << "\n";
 
-            // add button to show logs
-            QPushButton *logButton = NULL;
-            if (_instance)
-                logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
+        // create message box
+        QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),  tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
+        QStringList message = txt.split(QChar(124), QString::SkipEmptyParts);
+        QString displaytext = txt;
+        if (message.count() > 1 ) {
+            displaytext = message[1].simplified();
+            if ( !message[0].simplified().isEmpty() )
+                displaytext += tr("\n\nOrigin of the problem:\n") + message[0].simplified();
+        } else if (message.count() > 0 )
+            displaytext = message[0].simplified();
 
-            // exec message box
-            msgBox.setInformativeText(displaytext);
-            msgBox.setDefaultButton(QMessageBox::Ok);
-            msgBox.exec();
+        // add button to show logs
+        QPushButton *logButton = NULL;
+        if (_instance)
+            logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
 
-            // show logs if required
-            if ( _instance && msgBox.clickedButton() == logButton )
-                 _instance->logDockWidget->show();
+        // exec message box
+        msgBox.setInformativeText(displaytext);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
 
-        }
+        // show logs if required
+        if ( _instance && msgBox.clickedButton() == logButton )
+            _instance->logDockWidget->show();
+
+    }
         break;
     case QtFatalMsg:
-        {
+    {
+        // write message
+        GLMixer::logStream << "Error   | " << txt << "\n";
+        // close logs
+        GLMixer::exitHandler();
 
-        // save logs to file
-        if (_instance)  {
-            QString logFile = QFileInfo( QDir::home(), QString("glmixerlogs_%1%2.txt").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
-            _instance->saveLogsToFile(logFile);
-        }
+        QMessageBox msgBox(QMessageBox::Warning, tr("Error"), tr("<b>The application %1 encountered an error.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
+        // add button to show logs
+        QPushButton *logButton = msgBox.addButton(tr("Open log file"), QMessageBox::ActionRole);
 
-            QMessageBox msgBox(QMessageBox::Warning, tr("Error"), tr("<b>The application %1 encountered an error.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
-            msgBox.setInformativeText(txt.simplified() + tr("\n\nThe program will stop now. Logs have been saved in %1").arg(QDir::home().absolutePath()));
-            msgBox.setDefaultButton(QMessageBox::Ok);
-            msgBox.exec();
+        msgBox.setInformativeText(txt.simplified() + tr("\n\nThe program will stop now. Logs have been saved in %1").arg(QDir::tempPath()));
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
 
-            abort();
-        }
+        // show logs if required
+        if ( msgBox.clickedButton() == logButton )
+            QDesktopServices::openUrl( QFileInfo( QDir::tempPath(), GLMIXER_LOGFILE).absoluteFilePath() );
+
+        abort();
+    }
         break;
+
+    case QtWarningMsg:
+        // write message
+        GLMixer::logStream << "Warning | " << txt << "\n";
+        break;
+
     default:
+        // write message
+        GLMixer::logStream << "Info    | " << txt << "\n";
         break;
     }
 
@@ -699,10 +752,10 @@ void GLMixer::Log(int type, QString msg)
     } else if (message.count() > 0 ) {
         item->setText(0, message[0].simplified());
         item->setToolTip(0, message[0].simplified());
-        item->setIcon(1, QIcon(":/glmixer/icons/info.png"));
+        item->setText(1, QApplication::applicationName());
     } else {
         item->setText(0, "");
-        item->setIcon(1, QIcon(":/glmixer/icons/info.png"));
+        item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
     }
 
     // adjust color and show dialog according to message type
@@ -710,12 +763,12 @@ void GLMixer::Log(int type, QString msg)
     case QtWarningMsg:
          item->setBackgroundColor(0, QColor(220, 180, 50, 50));
          item->setBackgroundColor(1, QColor(220, 180, 50, 50));
-         item->setIcon(1, QIcon(":/glmixer/icons/warning.png"));
+         item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
          break;
     case QtCriticalMsg:
         item->setBackgroundColor(0, QColor(220, 90, 50, 50));
         item->setBackgroundColor(1, QColor(220, 90, 50, 50));
-        item->setIcon(1, QIcon(":/glmixer/icons/warning.png"));
+        item->setIcon(0, QIcon(":/glmixer/icons/warning.png"));
         break;
     default:
         break;
@@ -745,10 +798,6 @@ void GLMixer::setView(QAction *a){
     // show appropriate icon
     viewIcon->setPixmap(RenderingManager::getRenderingWidget()->getView()->getIcon());
     viewLabel->setText(RenderingManager::getRenderingWidget()->getView()->getTitle());
-
-//	// disable / enable catalog view depending on the view
-//	actionShow_Catalog->setEnabled(a == actionMixingView || a == actionGeometryView);
-//	RenderingManager::getRenderingWidget()->setCatalogVisible(actionShow_Catalog->isEnabled() && actionShow_Catalog->isChecked() );
 
     // tools available in corresponding views
     toolsToolBar->setEnabled(a != actionRenderingView);
@@ -843,7 +892,7 @@ void GLMixer::on_actionMediaSource_triggered(){
         VideoFile *newSourceVideoFile = NULL;
         QString filename = fileNamesIt.next();
 
-        if ( QFileInfo(filename).isFile() ){
+        if ( !filename.isEmpty() && QFileInfo(filename).isFile() ){
 
             // if the dialog did not request power of two generation of textures
             // and if the opengl supports the extension, then open the source normally
@@ -963,9 +1012,9 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         timingControlFrame->setEnabled(false);
 
         // Set the status of start button without circular call to startCurrentSource
-        QObject::disconnect(startButton, SIGNAL(toggled(bool)), this, SLOT(on_startButton_toogled(bool)));
+        QObject::disconnect(startButton, SIGNAL(toggled(bool)), this, SLOT(startButton_toogled(bool)));
         startButton->setChecked( (*csi)->isPlaying() );
-        QObject::connect(startButton, SIGNAL(toggled(bool)), this, SLOT(on_startButton_toogled(bool)));
+        QObject::connect(startButton, SIGNAL(toggled(bool)), this, SLOT(startButton_toogled(bool)));
 
         // Among playable sources, there is the particular case of video sources :
         if ((*csi)->isPlayable() && (*csi)->rtti() == Source::VIDEO_SOURCE ) {
@@ -1358,7 +1407,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
             if (width)
                 capture = capture.scaledToWidth(width);
 
-            fileName = getFileName(tr("Save snapshot"), tr("Image") + " (*.png *.jpg *.tiff *.xpm)",
+            fileName = getFileName(tr("Save snapshot"), tr("Image") + " (*.png *.jpg)",
                                    QString("png"), suggestion);
 
         }
@@ -1375,10 +1424,6 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 
 void GLMixer::on_actionEditSource_triggered()
 {
-//    sourceDockWidget->setVisible(true);
-//    sourceDockWidget->activateWindow();
-//    sourceDockWidget->raise();
-
     // for SHADERTOY sources, edit means edit code
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if ( (*cs)->rtti()  == Source::FFGL_SOURCE ) {
@@ -1679,7 +1724,7 @@ void GLMixer::confirmSessionFileName(){
     // recent files history
     QStringList files = settings.value("recentFileList").toStringList();
 
-    if (currentSessionFileName.isNull()) {
+    if (currentSessionFileName.isNull() || currentSessionFileName.isEmpty()) {
         setWindowTitle(QString("%1 %2 - unsaved").arg(QCoreApplication::applicationName()).arg(QCoreApplication::applicationVersion()));
         actionAppend_Session->setEnabled(false);
     } else {
@@ -1699,6 +1744,7 @@ void GLMixer::confirmSessionFileName(){
          recentFileActs[i]->setData(files[i]);
          recentFileActs[i]->setVisible(true);
     }
+
     for (int j = files.size(); j < MAX_RECENT_FILES; ++j)
         recentFileActs[j]->setVisible(false);
 
@@ -1744,12 +1790,12 @@ void GLMixer::on_actionClose_Session_triggered()
 
     // make a new session
     currentSessionFileName = QString();
-    confirmSessionFileName();
 
     // trigger newSession after the smooth transition to black is finished (action is disabled meanwhile)
     actionToggleRenderingVisible->setEnabled(false);
     QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
     RenderingManager::getSessionSwitcher()->startTransition(false);
+
 }
 
 
@@ -1777,17 +1823,23 @@ void GLMixer::newSession()
 
     // refreshes the rendering areas
     outputpreview->refresh();
+
+    // broadcast session file ready
+    emit sessionLoaded();
+
     // reset
     maybeSave = false;
 
+    qDebug() << QApplication::applicationName() <<  QChar(124).toLatin1() << "New session.";
 }
 
 
 void GLMixer::on_actionSave_Session_triggered(){
 
-    if (currentSessionFileName.isNull())
+    if (currentSessionFileName.isNull() || currentSessionFileName.isEmpty())
         on_actionSave_Session_as_triggered();
-    else {
+    else
+    {
 
         QFile file(currentSessionFileName);
         if (!file.open(QFile::WriteOnly | QFile::Text) ) {
@@ -1833,8 +1885,12 @@ void GLMixer::on_actionSave_Session_triggered(){
             switcherSession->fileChanged( currentSessionFileName );
         }
 
-//        statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
-        emit sessionSaved();
+        // log
+        statusbar->showMessage( tr("File %1 saved.").arg( currentSessionFileName ), 3000 );
+        qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Session saved.");
+
+        // broadcast session file ready
+        emit sessionLoaded();
     }
 
     maybeSave = false;
@@ -1860,11 +1916,11 @@ void GLMixer::on_actionLoad_Session_triggered()
     QString fileName = getFileName(tr("Open session"),
                                    tr("GLMixer session" )+" (*.glm)" );
 
-    if (QFileInfo(fileName).isFile())
+    if (!fileName.isEmpty() && QFileInfo(fileName).isFile())
         // get the first file name selected
         switchToSessionFile( fileName );
     else
-        qWarning()<< fileName << QChar(124).toLatin1() << tr("Not a session file; ");
+        qWarning()<< fileName << QChar(124).toLatin1() << tr("Cannot open file.");
 }
 
 
@@ -1879,7 +1935,7 @@ void GLMixer::actionLoad_RecentSession_triggered()
 
 void GLMixer::switchToSessionFile(QString filename){
 
-    if (!QFileInfo(filename).isFile())
+    if (filename.isEmpty() || !QFileInfo(filename).isFile())
         newSession();
     else
     {
@@ -1903,17 +1959,21 @@ QString GLMixer::getRestorelastSessionFilename()
 {
     // if the option to restore last session is ON, give the name of the last session file
     if (_restoreLastSession && settings.contains("lastSessionFileName")) {
-        QFileInfo filename(settings.value("lastSessionFileName").toString());
-        sfd->setDirectory(filename.absolutePath());
-        return filename.absoluteFilePath();
+        QString filename = settings.value("lastSessionFileName").toString();
+        if (!filename.isEmpty()) {
+            QFileInfo fi(filename);
+            sfd->setDirectory(fi.absolutePath());
+            return fi.absoluteFilePath();
+        }
     }
-    else
-        return QString();
-
+    return QString();
 }
 
 void GLMixer::openSessionFile()
 {
+    if (currentSessionFileName.isNull() || currentSessionFileName.isEmpty())
+        return;
+
     // unpause if it was
     actionPause->setChecked ( false );
 
@@ -2061,6 +2121,8 @@ void GLMixer::openSessionFile()
     // message
     statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
 
+    qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << "Session loaded.";
+
 }
 
 
@@ -2074,7 +2136,7 @@ void GLMixer::on_actionAppend_Session_triggered(){
     QString fileName = getFileName(tr("Open session"),
                                    tr("GLMixer session" )+" (*.glm)" );
 
-        if (QFileInfo(fileName).isFile()) {
+    if (!fileName.isEmpty() && QFileInfo(fileName).isFile()) {
 
         QFile file(fileName);
 
@@ -2122,10 +2184,12 @@ void GLMixer::on_actionAppend_Session_triggered(){
             qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when reading session.");
 
         // confirm the loading of the file
-        statusbar->showMessage( tr("Sources from %1 appended to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
+        statusbar->showMessage( tr("Sources from %1 added to %2.").arg( fileName ).arg( currentSessionFileName ), 3000 );
+        qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Sources from %1 added.").arg( fileName );
     }
 
     maybeSave = true;
+
 }
 
 
@@ -2359,9 +2423,12 @@ void GLMixer::saveSettings()
     // last session file name
     settings.setValue("lastSessionFileName", currentSessionFileName);
 
+    // save settings of session switcher
+    switcherSession->saveSettings();
+
     // make sure system saves settings NOW
     settings.sync();
-    qDebug() << tr("Settings saved.");
+    qDebug() << tr("All settings saved.");
 }
 
 
@@ -2746,7 +2813,7 @@ bool GLMixer::useSystemDialogs()
 }
 
 
-void GLMixer::on_startButton_toogled(bool on) {
+void GLMixer::startButton_toogled(bool on) {
 
     // toggle play/stop of current source
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
@@ -2842,12 +2909,14 @@ void GLMixer::screenshotView(){
     /*RenderingManager::getRenderingWidget()->makeCurrent();
     QImage s = RenderingManager::getRenderingWidget()->grabFrameBuffer();*/
     QPixmap s = QPixmap::grabWindow(RenderingManager::getRenderingWidget()->winId());
+    if (s.isNull())
+        return;
     // paint a cursor at the curent mouse coordinates
     QPainter p(&s);
     QPoint c = RenderingManager::getRenderingWidget()->mapFromGlobal( RenderingManager::getRenderingWidget()->cursor().pos() );
     p.drawPixmap(c, RenderingManager::getRenderingWidget()->cursor().pixmap());
     // create a unique filename and save to file
-    QFileInfo f(QDir::home(), QString("glmixer_%1_%2.png").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString()) );
+    QFileInfo f(QDir::home(), QString("glmixer_view_%1_%2.png").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString()) );
 
     s.save( f.absoluteFilePath() );
     // log
@@ -2859,7 +2928,7 @@ void GLMixer::selectGLSLFragmentShader()
 {
     QString newfile = getFileName(tr("Open GLSL File"),
                                   tr("GLSL Fragment Shader") + " (*.glsl *.fsh *.txt)" );
-    if ( QFileInfo(newfile).isFile())
+    if ( !newfile.isEmpty() && QFileInfo(newfile).isFile())
         RenderingManager::getRenderingWidget()->setFilteringEnabled(true, newfile);
     else
         RenderingManager::getRenderingWidget()->setFilteringEnabled(RenderingManager::getRenderingWidget()->filteringEnabled());
@@ -2880,7 +2949,7 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
         else
             fileName = QFileDialog::getOpenFileName(this, title, dir.absolutePath(), filter );
 
-        if (QFileInfo(fileName).exists())
+        if (!fileName.isEmpty() && QFileInfo(fileName).exists())
             dir = QFileInfo(fileName).absoluteDir();
 
     } else {
@@ -2942,7 +3011,10 @@ void GLMixer::on_actionTutorials_triggered() {
 
 void GLMixer::showBusyRecording(bool on) {
 
-    static QMessageBox busy(QMessageBox::Information, "Saving recording...", "Please wait while the file is being saved to disk.", QMessageBox::NoButton, this);
+    static QMessageBox *busy = 0;
 
-    busy.setVisible(on);
+    if (!busy)
+        busy = new QMessageBox(QMessageBox::Information, "Saving recording...", "Please wait while the file is being saved to disk.", QMessageBox::NoButton, this);
+
+    busy->setVisible(on);
 }

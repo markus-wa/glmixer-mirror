@@ -150,7 +150,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 {
     QGridLayout *g;
 
-    transitionSelection = new QComboBox;
+    transitionSelection = new QComboBox(this);
     transitionSelection->addItem("Instantaneous");
     transitionSelection->addItem("Fade to black");
     transitionSelection->addItem("Fade to custom color   -->");
@@ -168,7 +168,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     transitionTab->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
 
     QLabel *transitionDurationLabel;
-    transitionDuration = new QSpinBox;
+    transitionDuration = new QSpinBox(this);
     transitionDuration->setSingleStep(200);
     transitionDuration->setMaximum(5000);
     transitionDuration->setValue(1000);
@@ -184,7 +184,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     easingCurvePicker->setCurrentRow(3);
 
     transitionTab->addTab( new QWidget(), "Auto");
-    g = new QGridLayout;
+    g = new QGridLayout(this);
     g->setContentsMargins(6, 6, 6, 6);
     g->addWidget(transitionDurationLabel, 1, 0);
     g->addWidget(transitionDuration, 1, 1);
@@ -194,7 +194,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     /**
      * Tab manual
      */
-    currentSessionLabel = new QLabel;
+    currentSessionLabel = new QLabel(this);
     currentSessionLabel->setText(tr("100%"));
     currentSessionLabel->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
     currentSessionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignBottom);
@@ -203,13 +203,13 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     overlayPreview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     overlayPreview->setMinimumSize(QSize(80, 60));
 
-    nextSessionLabel = new QLabel;
+    nextSessionLabel = new QLabel(this);
     nextSessionLabel->setText(tr("None"));
     nextSessionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     nextSessionLabel->setAlignment(Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing);
     nextSessionLabel->setStyleSheet("QLabel::disabled {\ncolor: rgb(128, 0, 0);\n}");
 
-    transitionSlider = new QSlider;
+    transitionSlider = new QSlider(this);
     transitionSlider->setMinimum(-100);
     transitionSlider->setMaximum(101);
     transitionSlider->setValue(-100);
@@ -219,7 +219,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     transitionSlider->setEnabled(false);
 
     transitionTab->addTab( new QWidget(), "Manual");
-    g = new QGridLayout;
+    g = new QGridLayout(this);
     g->setContentsMargins(6, 6, 6, 6);
     g->addWidget(currentSessionLabel, 0, 0);
     g->addWidget(overlayPreview, 0, 1);
@@ -245,13 +245,13 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyFolderModel->setFilterKeyColumn(0);
     proxyFolderModel->setSourceModel(folderModel);
 
-    QToolButton *dirButton = new QToolButton;
+    QToolButton *dirButton = new QToolButton(this);
     dirButton->setToolTip("Add a folder to the list");
     QIcon icon;
     icon.addFile(QString::fromUtf8(":/glmixer/icons/folderadd.png"), QSize(), QIcon::Normal, QIcon::Off);
     dirButton->setIcon(icon);
 
-    QToolButton *dirDeleteButton = new QToolButton;
+    QToolButton *dirDeleteButton = new QToolButton(this);
     dirDeleteButton->setToolTip("Remove a folder from the list");
     QIcon icon2;
     icon2.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
@@ -263,7 +263,6 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
     folderHistory = new QComboBox(this);
     folderHistory->setToolTip("List of folders containing session files");
-//    folderHistory->setEditable(true);
     folderHistory->setValidator(new folderValidator(this));
     folderHistory->setInsertPolicy (QComboBox::InsertAtTop);
     folderHistory->setMaxCount(MAX_RECENT_FOLDERS);
@@ -320,10 +319,6 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
 
 SessionSwitcherWidget::~SessionSwitcherWidget()
 {
-    // remember
-    appSettings->setValue("transitionSortingColumn", proxyFolderModel->sortColumn());
-    appSettings->setValue("transitionSortingOrder", (int) proxyFolderModel->sortOrder());
-
     delete proxyFolderModel;
 }
 

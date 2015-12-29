@@ -20,9 +20,7 @@
  *
  */
 
-#include <QPainter>
 #include <QtGui>
- #include <QApplication>
 
 #include "GLSLSyntaxHighlighter.h"
 #include "GLSLCodeEditor.moc"
@@ -32,7 +30,7 @@
 CodeEditor::CodeEditor(QWidget *parent, QTextEdit *lineNumberArea) : QTextEdit(parent), _lineNumberArea(lineNumberArea), _shiftLineNumber(0)
 {
     // highlight syntaxt of code area
-    GLSLSyntaxHighlighter *highlighter = new GLSLSyntaxHighlighter((QTextEdit *)this);
+    highlighter = new GLSLSyntaxHighlighter((QTextEdit *)this);
     highlighter->rehighlight();
 
     setTabStopWidth(30);
@@ -49,6 +47,10 @@ CodeEditor::CodeEditor(QWidget *parent, QTextEdit *lineNumberArea) : QTextEdit(p
 
     // show current line
     highlightCurrentLine();
+}
+
+CodeEditor::~CodeEditor(){
+    delete highlighter;
 }
 
 void CodeEditor::highlightCurrentLine()
@@ -148,6 +150,11 @@ GLSLCodeEditor::GLSLCodeEditor(QWidget *parent) : QWidget(parent)
 
     horizontalLayout->addWidget(codeArea);
 
+}
+
+GLSLCodeEditor::~GLSLCodeEditor(){
+    delete codeArea;
+    delete lineNumberArea;
 }
 
 void GLSLCodeEditor::gotoline(unsigned int lineNumber)

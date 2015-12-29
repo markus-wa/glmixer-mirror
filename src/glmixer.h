@@ -33,6 +33,7 @@
 
 #define MAX_RECENT_FILES 7
 #define MAX_DROP_FILES 20
+#define GLMIXER_LOGFILE "glmixer_log.txt"
 
 /**
 
@@ -43,11 +44,14 @@ Q_OBJECT
 
 public:
 	static GLMixer *getInstance();
+    static void deleteInstance();
+
 	// message handler
 	static void msgHandler(QtMsgType type, const char *msg);
-	// exit handler
-	static void exitHandler();
+    // exit handler
+    static void exitHandler();
 
+    // catch keyboard events
     void keyPressEvent ( QKeyEvent * event );
     void keyReleaseEvent ( QKeyEvent * event );
 
@@ -85,8 +89,7 @@ public Q_SLOTS:
     void on_actionClose_Session_triggered();
 	void on_actionSave_Session_triggered();
 	void on_actionSave_Session_as_triggered();
-	void on_actionLoad_Session_triggered();
-	void actionLoad_RecentSession_triggered();
+    void on_actionLoad_Session_triggered();
 	void on_actionAppend_Session_triggered();
 	void on_actionSelect_Next_triggered();
 	void on_actionSelect_Previous_triggered();
@@ -101,7 +104,6 @@ public Q_SLOTS:
     void on_addDateToNotes_clicked();
     void on_addListToNotes_clicked();
 
-    void on_startButton_toogled(bool);
 	void on_actionSourcePlay_triggered();
 	void on_actionSourceRestart_triggered();
 	void on_actionSourceSeekBackward_triggered();
@@ -120,11 +122,13 @@ public Q_SLOTS:
 	void newSession();
     void openSessionFile();
 	void switchToSessionFile(QString filename);
+    void actionLoad_RecentSession_triggered();
     QString getRestorelastSessionFilename();
     void confirmSessionFileName();
     bool useSystemDialogs();
 	void updateStatusControlActions();
     void showBusyRecording(bool);
+    void startButton_toogled(bool);
 
 	// source config
 	void connectSource(SourceSet::iterator csi);
@@ -142,7 +146,6 @@ public Q_SLOTS:
     // hidden actions
     void screenshotView();  // "Ctrl+<,<"
     void selectGLSLFragmentShader();  // "Shift+Ctrl+G,F"
-    void saveLogsToFile(QString fileName);
 
 #ifdef FFGL
     void editShaderToyPlugin(FFGLPluginSource *);
@@ -150,7 +153,6 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void sourceMarksModified(bool);
-	void sessionSaved();
 	void sessionLoaded();
     void keyPressed(int, bool);
 
@@ -191,6 +193,8 @@ private:
 	QSettings settings;
 	QAction *recentFileActs[MAX_RECENT_FILES];
 
+    static QFile *logFile;
+    static QTextStream logStream;
 };
 
 

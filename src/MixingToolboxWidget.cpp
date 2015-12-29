@@ -248,16 +248,24 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     while (i.hasNext()) {
         i.next();
 
-        // paint the texture on white background and with vertical flip
-        QIcon icon;
-        QPixmap pix(i.value().second);
-        pix.fill(QColor(0,0,0,0));
-        QPainter p;
-        p.begin(&pix);
-        p.drawImage(0,0,QImage(i.value().second).mirrored(0,1));
-        p.end();
+        QPixmap pix;
+        QString mask_image = i.value().second;
+
+        if (mask_image.isEmpty()) {
+            pix = QPixmap(QSize(64,64));
+            pix.fill(QColor(0,0,0,1));
+        } else {
+            // paint the texture on white background and with vertical flip
+            pix = QPixmap(mask_image);
+            pix.fill(QColor(0,0,0,0));
+            QPainter p;
+            p.begin(&pix);
+            p.drawImage(0,0,QImage(mask_image).mirrored(0,1));
+            p.end();
+        }
 
         // set icon (also when selected to avoid automatic color overlay)
+        QIcon icon;
         icon.addPixmap(pix, QIcon::Normal, QIcon::Off);
         icon.addPixmap(pix, QIcon::Selected, QIcon::Off);
 

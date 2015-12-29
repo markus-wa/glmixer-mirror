@@ -43,10 +43,11 @@ void testRegExp(QString pattern, Qt::CaseSensitivity cs, QRegExp::PatternSyntax 
 
 int main(int argc, char **argv)
 {
-    // empty file name by default
-    QString filename = QString::null;
+    int returnvalue = -1;
 
-    // create application
+    //
+    // 1. Create the Qt application and treat arguments
+    //
     QApplication a(argc, argv);
 
     // -1. sets global application name ; this is used application wide (e.g. QSettings)
@@ -65,9 +66,8 @@ int main(int argc, char **argv)
     QTextCodec::setCodecForTr(QTextCodec::codecForName("utf8"));
 #endif
 
-    //get the arguments into a list
+    // get the arguments into a list
     QStringList cmdline_args = a.arguments();
-    int returnvalue = -1;
 
     // Request for VERSION argument
     int idx = cmdline_args.indexOf(QRegExp("^(\\-v|\\-{2,2}version)"), 1);
@@ -94,44 +94,55 @@ int main(int argc, char **argv)
     // exit if already delt with one of the requests above (return value was set)
     if ( returnvalue != -1)
         exit(returnvalue);
-    // else maybe argument is a filename
-    else {
-        if ( cmdline_args.count() > 1 ) {
-            if (QFileInfo(cmdline_args.at(1)).isFile())
-                filename = cmdline_args.at(1);
-            else
-                qDebug("%s : invalid arguments (not a file name).", qPrintable(cmdline_args.at(1)));
-        }
+
+    // maybe argument is a filename ?
+    QString filename = QString::null;
+    if ( cmdline_args.count() > 1 ) {
+        if (QFileInfo(cmdline_args.at(1)).isFile())
+            filename = cmdline_args.at(1);
+        else
+            qDebug("%s : invalid arguments (not a file name).", qPrintable(cmdline_args.at(1)));
     }
 
+    //
+    // 1. Start of the GUI interface section.
+    //
+    // Show a splash screen to wait
+    QPixmap pixmap(":/glmixer/images/glmixer_splash.png");
+    QSplashScreen splash(pixmap);
+#ifdef GLMIXER_REVISION
+    splash.showMessage(QString("r%1").arg(GLMIXER_REVISION));
+#endif
+    splash.show();
+    a.processEvents();
 
-    // this redirects qDebug qWarning etc.
+    // Redirect qDebug, qWarning and qFatal to GUI and logger
     qInstallMsgHandler(GLMixer::msgHandler);
+    // this cleans up after the application ends
+    qAddPostRoutine(GLMixer::exitHandler);
+
 #ifndef Q_OS_MAC
-    // these redirect both cout/cerr (seems to crash under OSX :( )
+    // these redirects both cout/cerr (seems to crash under OSX :( )
     QLogStream qout(std::cout, GLMixer::msgHandler, QtDebugMsg);
     QLogStream qerr(std::cerr, GLMixer::msgHandler, QtWarningMsg);
 #endif
 
-    // 0. A splash screen to wait
-    QPixmap pixmap(":/glmixer/images/glmixer_splash.png");
-    QSplashScreen splash(pixmap);
-    splash.show();
-    a.processEvents();
+//    QTranslator translator;
+//    translator.load(QString("trans_") + QLocale::system().name());
+//    a.installTranslator(&translator);
+//    a.processEvents();
 
-    QTranslator translator;
-    translator.load(QString("trans_") + QLocale::system().name());
-    a.installTranslator(&translator);
-    a.processEvents();
-
-    // 0. Test OpenGL support
+    //
+    // 2. Test OpenGL support and initialize list of GL extensions
+    //
     if (!QGLFormat::hasOpenGL() )
     	qFatal( "%s", qPrintable( QObject::tr("This system does not support OpenGL and this program cannot work without it.")) );
     initListOfExtension();
     a.processEvents();
 
-    // 1. The application GUI : it integrates the Rendering Manager QGLWidget
-    qAddPostRoutine(GLMixer::exitHandler);
+    //
+    // 3. Start the application GUI
+    //
     GLMixer::getInstance()->readSettings();
     a.processEvents();
 
@@ -141,29 +152,43 @@ int main(int argc, char **argv)
     a.processEvents();
 #endif
 
-	// 2. The output rendering window ; the rendering manager widget has to be existing
+    // The output rendering window ; the rendering manager widget has to be existing
     OutputRenderWindow::getInstance()->setWindowTitle(QObject::tr("Output Window"));
     OutputRenderWindow::getInstance()->show();
     a.processEvents();
 
-    // 3. show the GUI in front
+    // Show the GUI in front and end the splash screen
     GLMixer::getInstance()->show();
     splash.finish(GLMixer::getInstance());
     a.processEvents();
 
-#ifdef GLMIXER_REVISION
-    qDebug() << a.applicationName() << " version " << a.applicationVersion() << " r"<<GLMIXER_REVISION << " ready to rock!";
-#else
-    qDebug() << a.applicationName() << " version " << a.applicationVersion() << " ready to rock!";
-#endif
-
+    //
     // 4. load eventual session file provided in argument or restore last session
+    //
     if (filename.isNull())
         filename = GLMixer::getInstance()->getRestorelastSessionFilename();
     GLMixer::getInstance()->switchToSessionFile(filename);
 
-    // start
-    return a.exec();
+    // start application loop
+    returnvalue = a.exec();
+
+    //
+    //  All done, exit properly
+    //
+    // save GUI settings
+    GLMixer::getInstance()->saveSettings();
+
+    // delete static objects
+    RenderingManager::deleteInstance();
+    OutputRenderWindow::deleteInstance();
+#ifdef SHM
+    SharedMemoryManager::deleteInstance();
+#endif
+    a.processEvents();
+
+    GLMixer::deleteInstance();
+
+    return returnvalue;
 }
 
 

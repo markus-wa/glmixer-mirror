@@ -88,7 +88,7 @@ void EncodingThread::clear() {
     rec = 0;
 
 #ifndef NDEBUG
-    qDebug() << "EncodingThread cleared.";
+    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << "All clear.";
 #endif
 }
 
@@ -134,9 +134,7 @@ bool EncodingThread::pictq_full() {
 
 void EncodingThread::run() {
 
-#ifndef NDEBUG
-    qDebug() << "Encoding Thread Started.";
-#endif
+    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << "Encoding started.";
 
 	// prepare
     quit = false;
@@ -173,9 +171,7 @@ void EncodingThread::run() {
 
     emit encodingFinished();
 
-#ifndef NDEBUG
-    qDebug() << "Encoding Thread finished.";
-#endif
+    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << "Encoding finished.";
 }
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapseTimer(0), skipframecount(0), update(40), displayupdate(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE) {
@@ -199,9 +195,8 @@ RenderingEncoder::~RenderingEncoder() {
         encoder->clear();
         delete encoder;
         encoder = NULL;
-#ifndef NDEBUG
-    qDebug() << "RenderingEncoder deleted.";
-#endif
+
+        qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << "All clear.";
     }
 }
 
@@ -257,13 +252,14 @@ void RenderingEncoder::setPaused(bool on)
 		elapsed = timer.elapsed();
 		killTimer(elapseTimer);
         emit status(tr("Recording paused after %1 s").arg((double)elapsed/1000.0), 3000);
-        qDebug()  << tr("Recording paused after %1 s.").arg((double)elapsed/1000.0);
-	} else {
+        qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << tr("Recording paused after %1 s.").arg((double)elapsed/1000.0);
+    }
+    else {
 		// restart a timer
 		timer = timer.addMSecs(timer.elapsed() - elapsed);
 		elapseTimer = startTimer(1000);
         emit status(tr("Recording resumed at %1 s").arg((double)timer.elapsed()/1000.0), 1000);
-        qDebug() << tr("Recording resumed at %1 s.").arg((double)elapsed/1000.0);
+        qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << tr("Recording resumed at %1 s.").arg((double)elapsed/1000.0);
 	}
 
 }
@@ -323,7 +319,7 @@ bool RenderingEncoder::start(){
 
 	// initialization of ffmpeg recorder
 	recorder = video_rec_init(qPrintable(temporaryFolder.absoluteFilePath(temporaryFileName)), format, framesSize.width(), framesSize.height(), freq, errormessage);
-    if (recorder == NULL){
+    if (recorder == NULL) {
         QByteArray(errormessage, 256) = "Failed to initialize recorder.";
         return false;
     }
@@ -413,7 +409,7 @@ void RenderingEncoder::close(){
     emit status(tr("Recorded %1 s").arg(duration), 3000);
     killTimer(elapseTimer);
 
-    qDebug() << tr("Recording finished (%1 frames in %2 s).").arg(framecount).arg(duration);
+    qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << tr("Recording finished (%1 frames in %2 s).").arg(framecount).arg(duration);
 
     // inform we are off
 	started = false;
@@ -460,9 +456,7 @@ void RenderingEncoder::close(){
     video_rec_free(recorder);
     recorder = NULL;
 
-#ifndef NDEBUG
-        qDebug() << "RenderingEncoder closed.";
-#endif
+    qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << "Done.";
 
     emit processing(false);
 }
@@ -498,7 +492,7 @@ void RenderingEncoder::saveFile(){
     }
 	// move the temporaryFileName to newFileName
     if (!temporaryFolder.rename(temporaryFileName, infoFileDestination.fileName()) )
-        qWarning()<< infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("Could not save file.");
+        qWarning() << infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("Could not save file (file exists already?).");
     else {
         emit status(tr("File %1 saved.").arg(infoFileDestination.absoluteFilePath()), 2000);
         qDebug() << infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("File saved.");
@@ -525,7 +519,7 @@ void RenderingEncoder::saveFileAs(){
         // move the temporaryFileName to newFileName
         temporaryFolder.rename(temporaryFileName, newFileName);
         emit status(tr("File %1 saved.").arg(newFileName), 2000);
-        qDebug() << newFileName << QChar(124).toLatin1() << tr("Recording saved.");
+        qDebug() << newFileName << QChar(124).toLatin1() << tr("File saved.");
     }
 
 }

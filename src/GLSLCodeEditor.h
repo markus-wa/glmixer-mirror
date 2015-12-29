@@ -33,6 +33,7 @@ class CodeEditor : public QTextEdit
 
 public:
     CodeEditor(QWidget *parent, QTextEdit *lineNumberArea);
+    virtual ~CodeEditor();
 
     // shift in line number display, 0 for none
     void setShiftLineNumber(int i) { _shiftLineNumber = i; }
@@ -68,6 +69,8 @@ private:
     QTextEdit *_lineNumberArea;
     // shift in line numbers (to start from a non-zero line number)
     int _shiftLineNumber;
+    // the syntax highlighter
+    class GLSLSyntaxHighlighter *highlighter;
 };
 
 
@@ -77,6 +80,7 @@ class GLSLCodeEditor : public QWidget
 
 public:
     GLSLCodeEditor(QWidget *parent = 0);
+    ~GLSLCodeEditor();
 
     // 'ala' QTextEdit API
     void setCode(QString text);
