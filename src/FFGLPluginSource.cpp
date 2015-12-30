@@ -395,6 +395,7 @@ QDomElement FFGLPluginSource::getConfiguration( QDir current )
     QDomElement f = root.createElement("Filename");
     if (current.isReadable())
         f.setAttribute("Relative", current.relativeFilePath( fileName() ));
+    f.setAttribute("Basename", QFileInfo(fileName()).baseName() );
     QDomText filename = root.createTextNode( QDir::root().absoluteFilePath( fileName() ));
     f.appendChild(filename);
     p.appendChild(f);

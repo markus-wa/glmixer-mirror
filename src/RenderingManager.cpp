@@ -807,6 +807,12 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
 
             // first reads with the absolute file name
             QString fileNameToOpen = Filename.text();
+            // if there is no such file, try generate a file name from the relative file name
+            if (!QFileInfo(fileNameToOpen).exists())
+                fileNameToOpen = Filename.attribute("Relative", "");
+            // if there is no such file, try generate a file name from the generic basename
+            if (!QFileInfo(fileNameToOpen).exists())
+                fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
             // if there is such a file
             if ( QFileInfo(fileNameToOpen).exists()) {
 
@@ -1822,6 +1828,9 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
         // if there is no such file, try generate a file name from the relative file name
         if (!QFileInfo(fileNameToOpen).exists())
             fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
+        // if there is no such file, try generate a file name from the generic basename
+        if (!QFileInfo(fileNameToOpen).exists())
+            fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
         // if there is such a file
         if (QFileInfo(fileNameToOpen).exists()) {
             // create and push the plugin to the source
