@@ -1198,6 +1198,17 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
                 tmp->setOriginal(it_newsource);
         }
 
+#ifdef FFGL
+        // copy the Freeframe plugin stack
+        for (FFGLPluginSourceStack::const_iterator it = (*it_oldsource)->getFreeframeGLPluginStack()->begin(); it != (*it_oldsource)->getFreeframeGLPluginStack()->end(); ++it) {
+
+            FFGLPluginSource *plugin = (*it_newsource)->addFreeframeGLPlugin( (*it)->fileName() );
+            // set configuration
+            if (plugin)
+                plugin->setConfiguration( (*it)->getConfiguration() );
+        }
+#endif
+
         // delete old source
         removeSource(it_oldsource);
 
