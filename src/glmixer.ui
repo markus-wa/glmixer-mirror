@@ -3355,6 +3355,26 @@ QToolButton:hover {
         <number>0</number>
        </property>
        <item>
+        <widget class="QToolButton" name="openLogsFolder">
+         <property name="toolTip">
+          <string>Show location of temporary log files in the system.</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/folderopen.png</normaloff>:/glmixer/icons/folderopen.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -3369,6 +3389,9 @@ QToolButton:hover {
        </item>
        <item>
         <widget class="QToolButton" name="saveLogsToFile">
+         <property name="toolTip">
+          <string>Save Logs to file</string>
+         </property>
          <property name="text">
           <string/>
          </property>

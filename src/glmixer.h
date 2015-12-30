@@ -100,6 +100,7 @@ public Q_SLOTS:
     void on_output_alpha_valueChanged(int);
     void on_copyLogsToClipboard_clicked();
     void on_saveLogsToFile_clicked();
+    void on_openLogsFolder_clicked();
     void on_copyNotes_clicked();
     void on_addDateToNotes_clicked();
     void on_addListToNotes_clicked();

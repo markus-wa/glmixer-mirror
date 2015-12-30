@@ -564,6 +564,12 @@ void GLMixer::on_addListToNotes_clicked() {
     blocNoteEdit->append(list);
 }
 
+
+void GLMixer::on_openLogsFolder_clicked() {
+
+    QDesktopServices::openUrl( QDir::tempPath() );
+}
+
 void GLMixer::on_saveLogsToFile_clicked() {
 
     if (GLMixer::logFile) {
