@@ -1178,6 +1178,37 @@ void RenderingManager::dropSource(){
     }
 }
 
+void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
+
+    SourceSet::iterator it_oldsource = getById(oldsource);
+    SourceSet::iterator it_newsource = getById(newsource);
+
+    if ( isValid(it_oldsource) && isValid(it_newsource)) {
+
+        double depth_oldsource = (*it_oldsource)->getDepth();
+        QString name_oldsource = (*it_oldsource)->getName();
+
+        // apply former parameters
+        (*it_newsource)->importProperties(*it_oldsource);
+
+        // change all clones of old source to clone the new source
+        for (SourceList::iterator clone = (*it_oldsource)->getClones()->begin(); clone != (*it_oldsource)->getClones()->end(); clone = (*it_oldsource)->getClones()->begin()) {
+            CloneSource *tmp = dynamic_cast<CloneSource *>(*clone);
+            if (tmp)
+                tmp->setOriginal(it_newsource);
+        }
+
+        // delete old source
+        removeSource(it_oldsource);
+
+        // restore former depth
+        changeDepth(it_newsource, depth_oldsource);
+
+        // log
+        qDebug() << name_oldsource  << QChar(124).toLatin1() << tr("Source replaced by %1").arg((*it_newsource)->getName());
+    }
+
+}
 
 int RenderingManager::removeSource(const GLuint idsource){
 

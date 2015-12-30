@@ -92,7 +92,7 @@ public:
         verticalLayout->setSpacing(9);
 
         sourcedisplay = new SourceDisplayWidget(this, SourceDisplayWidget::GRID, true);
-        sourcedisplay->setMinimumSize(QSize(160, 180));
+        sourcedisplay->setMinimumSize(QSize(160, 100));
         sourcedisplay->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
         sourcedisplay->setSource(s);
@@ -105,9 +105,12 @@ public:
 
         DecisionButtonBox = new QDialogButtonBox(this);
         DecisionButtonBox->setStandardButtons(QDialogButtonBox::Ok);
+        DecisionButtonBox->addButton("Replace by another source", QDialogButtonBox::RejectRole);
         verticalLayout->addWidget(DecisionButtonBox);
 
         QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
+        QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
+        QObject::connect(DecisionButtonBox, SIGNAL(rejected()), parent, SLOT(replaceCurrentSource()));
     }
 
     ~SourceFileEditDialog() {
@@ -117,7 +120,7 @@ public:
     }
 
     QSize sizeHint() const {
-        return QSize(500, 500);
+        return QSize(400, 400);
     }
 };
 

@@ -129,6 +129,7 @@ public Q_SLOTS:
 	void updateStatusControlActions();
     void showBusyRecording(bool);
     void startButton_toogled(bool);
+    void replaceCurrentSource();
 
 	// source config
 	void connectSource(SourceSet::iterator csi);

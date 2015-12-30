@@ -1283,8 +1283,7 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
         asd = new AlgorithmSelectionDialog(this);
 
     if (asd->exec() == QDialog::Accepted) {
-        Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(),
-                    asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod(), asd->getIngoreAlpha());
+        Source *s = RenderingManager::getInstance()->newAlgorithmSource(asd->getSelectedAlgorithmIndex(), asd->getSelectedWidth(), asd->getSelectedHeight(), asd->getSelectedVariability(), asd->getUpdatePeriod(), asd->getIngoreAlpha());
         if ( s ){
             RenderingManager::getInstance()->addSourceToBasket(s);
             qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New Algorithm source created (")<< AlgorithmSource::getAlgorithmDescription(asd->getSelectedAlgorithmIndex()) << ").";
@@ -1410,45 +1409,51 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 
 void GLMixer::on_actionEditSource_triggered()
 {
-    // for SHADERTOY sources, edit means edit code
+    // get the current source, if available
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
-    if ( (*cs)->rtti()  == Source::FFGL_SOURCE ) {
-        FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
-        editShaderToyPlugin(  ffgls->freeframeGLPlugin() );
-    }
-    else if ( (*cs)->rtti()  == Source::CAPTURE_SOURCE ) {
-        QMessageBox::information(this, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()), "There is nothing to edit on a Capture-Frame Source. ");
+    if ( RenderingManager::getInstance()->isValid(cs)) {
 
-    }
-    else if ( (*cs)->rtti()  == Source::RENDERING_SOURCE ) {
-        QMessageBox::information(this, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()), "There is nothing to edit on a Loopback Source. ");
+        // for SHADERTOY sources, edit means edit code
+        if ( (*cs)->rtti()  == Source::FFGL_SOURCE ) {
+            FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
+            if (ffgls) {
+                FFGLPluginSource *plugin = ffgls->freeframeGLPlugin();
+                if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
+                    editShaderToyPlugin(  plugin );
+                    return;
+                }
+            }
+        }
 
-    }
-    else if ( (*cs)->rtti()  == Source::CLONE_SOURCE ) {
-        QMessageBox::information(this, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()), "There is nothing to edit on the Clone of a Source. ");
-
-        // TODO : show dialog for selecting a source to clone
-    }
-    else if ( (*cs)->rtti()  == Source::ALGORITHM_SOURCE ) {
-        // TODO : show dialog of Algorithm source
-
-    }
-    else if ( (*cs)->rtti()  == Source::WEB_SOURCE ) {
-        // TODO : show dialog of Web source
-
-    }
-    else if ( (*cs)->rtti()  == Source::CAMERA_SOURCE ) {
-        // TODO : show dialog of OpenCV source
-
-    }
-    // for others, edit mean show the dialog to change file
-    else {
+        // for others, edit mean show the dialog to change source
         SourceFileEditDialog sed(this, *cs, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()));
 
         sed.exec();
 
     }
+}
 
+void GLMixer::replaceCurrentSource()
+{
+    // if the current source is valid
+    SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+    if ( RenderingManager::getInstance()->isValid(cs) ) {
+
+        // remember identifier of current source
+        GLuint previoussource = (*cs)->getId();
+
+        // show gui to select the type of source to create instead
+        on_actionNewSource_triggered();
+
+        // drop the source and make new source current
+        RenderingManager::getInstance()->dropSource();
+
+        SourceSet::iterator newsource = RenderingManager::getInstance()->getCurrentSource();
+        if ( RenderingManager::getInstance()->isValid(newsource) ) {
+
+            RenderingManager::getInstance()->replaceSource(previoussource, (*newsource)->getId());
+        }
+    }
 }
 
 void GLMixer::on_actionDeleteSource_triggered()

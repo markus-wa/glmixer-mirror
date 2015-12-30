@@ -33,46 +33,65 @@
 
 class CloneSource: public Source {
 
-	friend class RenderingManager;
+    friend class RenderingManager;
 
 public:
 
-	static RTTI type;
-	RTTI rtti() const { return type; }
+    static RTTI type;
+    RTTI rtti() const { return type; }
 
-	inline QString getOriginalName() { return original->getName(); }
-	inline GLuint getOriginalId() { return original->getId(); }
-	int getFrameWidth() const { return original->getFrameWidth(); }
-	int getFrameHeight() const { return original->getFrameHeight(); }
+    inline QString getOriginalName() { return original->getName(); }
+    inline GLuint getOriginalId() { return original->getId(); }
+    int getFrameWidth() const { return original->getFrameWidth(); }
+    int getFrameHeight() const { return original->getFrameHeight(); }
     double getFrameRate() const { return original->getFrameRate(); }
 
     // only RenderingManager can create a source
 protected:
-    CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->getTextureIndex(), d), original(*sit) {
+    CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->getTextureIndex(), d), original(NULL){
+
+        // initialize
+        setOriginal(sit);
+
         // clone the properties
         importProperties(original, true);
+    }
+
+    ~CloneSource() {
+        // remove myself from the list of clones or my original
+        original->getClones()->erase((Source*) this);
+        // avoid deleting the texture of the original
+        textureIndex = 0;
+    }
+
+    void setOriginal(SourceSet::iterator sit) {
+
+        // remove this clone from the list of previous original
+        if (original) {
+            original->getClones()->erase((Source*) this);
+        }
+
+        // set the original
+        original = *sit;
 
         // when cloning a clone, get back to the original ;
-		CloneSource *tmp = dynamic_cast<CloneSource *>(original);
+        CloneSource *tmp = dynamic_cast<CloneSource *>(original);
         if (tmp)
-			original = tmp->original;
+            original = tmp->original;
+
+        // set Texture index to the texture index of the source to clone
+        textureIndex = original->getTextureIndex();
+
         // add this clone to the list of clones into the original source
         std::pair<SourceList::iterator,bool> ret;
         ret = original->getClones()->insert((Source *) this);
         if (!ret.second)
             SourceConstructorException().raise();
-	}
 
-	~CloneSource() {
-        // remove myself from the list of clones or my original
-		original->getClones()->erase((Source*) this);
-        // avoid deleting the texture of the original
-        textureIndex = 0;
-	}
-
+    }
 
 private:
-	Source *original;
+    Source *original;
 
 };
 
