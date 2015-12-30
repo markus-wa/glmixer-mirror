@@ -16,15 +16,15 @@ GLuint displayList = 0;
 
 static CFFGLPluginInfo PluginInfo ( 
         FreeFrameQtScreenCapture::CreateInstance,	// Create method
-        "GLSC",								// Plugin unique ID
-        "FFGLQtScreenCapture",			// Plugin name
-        1,						   			// API major version number
-        500,								  // API minor version number
-        1,										// Plugin major version number
-        000,									// Plugin minor version number
-        FF_SOURCE,						// Plugin type
-        "Shows the content of the screen",	 // Plugin description
-        "by Bruno Herbelin"  // About
+        "GLSCQT",        					        // Plugin unique ID
+        "ScreenCapture",			                // Plugin name
+        1,						   			        // API major version number
+        500,								        // API minor version number
+        1,										    // Plugin major version number
+        000,									    // Plugin minor version number
+        FF_SOURCE,						            // Plugin type
+        "Shows the content of the screen",	        // Plugin description
+        "by Bruno Herbelin"                         // About
         );
 
 
@@ -58,8 +58,8 @@ FFResult FreeFrameQtScreenCapture::InitGL(const FFGLViewportStruct *vp)
     glEnable(GL_TEXTURE);
     glGenTextures(1, &textureIndex);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     QImage image = QPixmap::grabWindow(qApp->desktop()->winId()).toImage();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width(), image.height(), 0,

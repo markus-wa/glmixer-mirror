@@ -668,9 +668,9 @@ GLuint displayList = 0;
 static CFFGLPluginInfo PluginInfo ( 
         video4LinuxFreeFrameGL::CreateInstance,	// Create method
         "FFGLV4L",								// Plugin unique ID
-        "FFGLVideo4Linux",                      // Plugin name
+        "Video4Linux",                          // Plugin name
         1,                                      // API major version number
-        000,                                    // API minor version number
+        600,                                    // API minor version number
         1,										// Plugin major version number
         000,									// Plugin minor version number
         FF_SOURCE,                              // Plugin type
