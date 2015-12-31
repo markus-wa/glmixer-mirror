@@ -443,11 +443,13 @@ void VideoFile::close()
 	// request ending
 	quit = true;
 
-	// wait for threads to end properly
-    parse_tid->wait();
+    // wait for threads to end properly
+    if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) )
+        qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly.");
     pictq_cond->wakeAll();
     seek_cond->wakeAll();
-	decod_tid->wait();
+    if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) )
+        qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly.");
 
     if (pFormatCtx) {
 
@@ -539,10 +541,12 @@ void VideoFile::stop()
 		quit = true;
 
 		// wait fo threads to end properly
-		parse_tid->wait();
+        if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) )
+            qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly.");
         pictq_cond->wakeAll();
         seek_cond->wakeAll();
-		decod_tid->wait();
+        if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) )
+            qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly.");
 
         if (!restart_where_stopped)
         {

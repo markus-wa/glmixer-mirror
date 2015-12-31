@@ -394,7 +394,8 @@ AlgorithmSource::~AlgorithmSource() {
     _mutex->lock();
     _cond->wakeAll();
     _mutex->unlock();
-    _thread->wait(100 + period / 1000); // wait for usleep pediod time + 100 ms buffer
+    if (!_thread->wait(100 + period / 1000) ) // wait for usleep pediod time + 100 ms buffer
+        qWarning() << name << QChar(124).toLatin1() << tr("Thread interrupted unexpectedly.");
     delete _thread;
     delete _cond;
     delete _mutex;
@@ -428,7 +429,8 @@ void AlgorithmSource::play(bool on) {
         _cond->wakeAll();
         frameChanged = false;
         _mutex->unlock();
-        _thread->wait(100 + period / 1000);
+        if (!_thread->wait(100 + period / 1000) ) // wait for usleep pediod time + 100 ms buffer
+            qWarning() << name << QChar(124).toLatin1() << tr("Thread interrupted unexpectedly.");
     }
 }
 

@@ -552,44 +552,46 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
     glPushMatrix();
     glLoadIdentity();
 
-    // render to the frame buffer object
-    if (_fbo->bind())
+    if (!paused)
     {
-        //
-        // 1. Draw into first texture attachment; the final output rendering
-        //
-        if (first) {
-            if (clearWhite)
-                glClearColor(1.f, 1.f, 1.f, 1.f);
-            else
-                glClearColor(0.f, 0.f, 0.f, 1.f);
-            glClear(GL_COLOR_BUFFER_BIT);
-        }
-
-        if (source) {
-            // draw the source only if not culled and alpha not null
-            if (!source->isCulled() && source->getAlpha() > 0.0) {
-                glTranslated(source->getX(), source->getY(), 0.0);
-                glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
-                glScaled(source->getScaleX(), source->getScaleY(), 1.f);
-
-                source->blend();
-                source->draw();
+        // render to the frame buffer object
+        if (_fbo->bind())
+        {
+            //
+            // 1. Draw into first texture attachment; the final output rendering
+            //
+            if (first) {
+                if (clearWhite)
+                    glClearColor(1.f, 1.f, 1.f, 1.f);
+                else
+                    glClearColor(0.f, 0.f, 0.f, 1.f);
+                glClear(GL_COLOR_BUFFER_BIT);
             }
 
-        }
+            if (source) {
+                // draw the source only if not culled and alpha not null
+                if (!source->isCulled() && source->getAlpha() > 0.0) {
+                    glTranslated(source->getX(), source->getY(), 0.0);
+                    glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
+                    glScaled(source->getScaleX(), source->getScaleY(), 1.f);
 
-        // render the transition layer on top after the last frame
-        if (last) {
-            _switcher->render();
-        }
+                    source->blend();
+                    source->draw();
+                }
 
-        _fbo->release();
+            }
+
+            // render the transition layer on top after the last frame
+            if (last) {
+                _switcher->render();
+            }
+
+            _fbo->release();
+        }
+        else
+            qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible "
+                                         "(RenderingManager %1x%2 bind failed).").arg(_fbo->width()).arg(_fbo->height())));
     }
-    else
-        qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible "
-            "(RenderingManager %1x%2 bind failed).").arg(_fbo->width()).arg(_fbo->height())));
-
 
     //
     // 2. Draw sources into second texture  attachment ; the catalog (if visible)
@@ -2270,33 +2272,33 @@ standardAspectRatio doubleToAspectRatio(double ar)
 
 void RenderingManager::pause(bool on){
 
-    static std::map<Source *, bool> sourcePlayStatus;
     // setup status
     paused = on;
 
-    // for every source in the manager, start/stop it
-    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
-        // exception for video source which are paused
-        if ( (*its)->rtti() == Source::VIDEO_SOURCE ) {
-            VideoSource *s = dynamic_cast<VideoSource *>(*its);
-            if (on) {
-                sourcePlayStatus[s] = s->isPaused();
-                s->pause(true);
-            } else
-                s->pause(sourcePlayStatus[s]);
-        } else {
-            if (on) {
-                sourcePlayStatus[*its] = (*its)->isPlaying();
-                (*its)->play(!on);
-            } else
-                (*its)->play(sourcePlayStatus[*its]);
-        }
-    }
+//    static std::map<Source *, bool> sourcePlayStatus;
+//    // for every source in the manager, start/stop it
+//    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
+//        // exception for video source which are paused
+//        if ( (*its)->rtti() == Source::VIDEO_SOURCE ) {
+//            VideoSource *s = dynamic_cast<VideoSource *>(*its);
+//            if (on) {
+//                sourcePlayStatus[s] = s->isPaused();
+//                s->pause(true);
+//            } else
+//                s->pause(sourcePlayStatus[s]);
+//        } else {
+//            if (on) {
+//                sourcePlayStatus[*its] = (*its)->isPlaying();
+//                (*its)->play(!on);
+//            } else
+//                (*its)->play(sourcePlayStatus[*its]);
+//        }
+//    }
 
-    if (!on)
-        sourcePlayStatus.clear();
+//    if (!on)
+//        sourcePlayStatus.clear();
 
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << (on ? tr("All sources paused.") : tr("All source un-paused.") );
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << (on ? tr("Rendering paused.") : tr("Rendering un-paused.") );
 }
 
 #ifdef SHM
