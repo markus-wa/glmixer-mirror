@@ -813,7 +813,7 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
             if (!QFileInfo(fileNameToOpen).exists())
                 fileNameToOpen = Filename.attribute("Relative", "");
             // if there is no such file, try generate a file name from the generic basename
-            if (!QFileInfo(fileNameToOpen).exists())
+            if (!QFileInfo(fileNameToOpen).exists() && Filename.hasAttribute("Basename"))
                 fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
             // if there is such a file
             if ( QFileInfo(fileNameToOpen).exists()) {
@@ -1765,8 +1765,9 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
     return config;
 }
 
-void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
+int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
 
+    int errors = 0;
     QDomElement tmp;
 
     newsource->setModifiable( child.attribute("modifiable", "1").toInt() );
@@ -1831,7 +1832,7 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
         if (!QFileInfo(fileNameToOpen).exists())
             fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
         // if there is no such file, try generate a file name from the generic basename
-        if (!QFileInfo(fileNameToOpen).exists())
+        if (!QFileInfo(fileNameToOpen).exists() && Filename.hasAttribute("Basename"))
             fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
         // if there is such a file
         if (QFileInfo(fileNameToOpen).exists()) {
@@ -1842,13 +1843,18 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
                 plugin->setConfiguration(p);
                 qDebug() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeFrame plugin %1 added.").arg(fileNameToOpen);
 
+            }else {
+                errors++;
+                qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeFrame plugin %1 failed.").arg(fileNameToOpen);
             }
         }
         else {
+            errors++;
             qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
         }
 #else
         qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
+        errors++;
 #endif
         p = p.nextSiblingElement("FreeFramePlugin");
     }
@@ -1875,12 +1881,14 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
                 qDebug() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin %1 added.").arg(p.firstChildElement("Name").text());
             }
             else {
+                errors++;
                 qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("Failed to create Shadertoy plugin.");
             }
 
         }
 #else
         qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin not supported.");
+        errors++
 #endif
         p = p.nextSiblingElement("ShadertoyPlugin");
     }
@@ -1891,6 +1899,7 @@ void applySourceConfig(Source *newsource, QDomElement child, QDir current) {
     newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
     newsource->play( child.attribute("playing", "1").toInt() );
 
+    return errors;
 }
 
 int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QString version) {
@@ -1904,24 +1913,12 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
         progress = new QProgressDialog ("Loading sources...", "Abort", 1, xmlconfig.childNodes().count());
         progress->setWindowModality(Qt::NonModal);
         progress->setMinimumDuration( 500 );
+        progress->setValue(count);
     }
 
     // start loop of sources to create
     QDomElement child = xmlconfig.firstChildElement("Source");
     while (!child.isNull()) {
-
-        // increment counter
-        ++count;
-
-        // display progress
-        if (progress) {
-            progress->setValue(count);
-
-            if (progress->wasCanceled()) {
-                delete progress;
-                break;
-            }
-        }
 
         // pointer for new source
         Source *newsource = 0;
@@ -2192,9 +2189,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             renameSource( newsource, child.attribute("name") );
             // insert the source in the scene
             if ( insertSource(newsource) ) {
+                // increment counter
+                ++count;
                 // Apply parameters to the created source
-                applySourceConfig(newsource, child, current);
-
+                errors += applySourceConfig(newsource, child, current);
             }
             else {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not insert source.");
@@ -2203,12 +2201,21 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             }
         }
 
+        // display progress
+        if (progress) {
+            progress->setValue(count);
+
+            if (progress->wasCanceled()) {
+                delete progress;
+                progress = 0;
+                break;
+            }
+        }
+
         child = child.nextSiblingElement("Source");
     }
 
     // end loop on sources to create
-    if (progress)
-        progress->setValue(xmlconfig.childNodes().count());
 
     // Process the list of clones names ; now that every source exist, we can be sure they can be cloned
     QListIterator<QDomElement> it(clones);
@@ -2227,31 +2234,52 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             if (clonesource) {
                 renameSource( clonesource, c.attribute("name") );
                 // Apply parameters to the created source
-                applySourceConfig(clonesource, c, current);
+                errors += applySourceConfig(clonesource, c, current);
                 // insert the source in the scene
-                if ( !insertSource(clonesource) )
-                    delete clonesource;
-                else
+                if ( insertSource(clonesource) )  {
+                    // increment counter
+                    ++count;
+                    // log
                     qDebug() << c.attribute("name") << QChar(124).toLatin1() << tr("Clone of source %1 created.").arg(f.text());
-            } else {
+                }
+                else {
+                    errors++;
+                    delete clonesource;
+                }
+            }
+            else {
                 qWarning() << c.attribute("name") << QChar(124).toLatin1() << tr("Could not create clone source.");
                 errors++;
             }
-        } else {
+        }
+        else {
             qWarning() << c.attribute("name") << QChar(124).toLatin1() << tr("Cannot clone %2 ; no such source.").arg(f.text());
             errors++;
         }
+
+        // display progress
+        if (progress) {
+            progress->setValue(count);
+
+            if (progress->wasCanceled()) {
+                delete progress;
+                progress = 0;
+                break;
+            }
+        }
+    }
+
+    // end progress
+    if (progress) {
+        progress->setValue(xmlconfig.childNodes().count());
+        delete progress;
     }
 
     // set current source to none (end of list)
     unsetCurrentSource();
 
-    // delete progress dialog
-    if (progress)
-        delete progress;
-
     // log
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("%1 sources created (%1/%2).").arg(count-errors).arg(xmlconfig.childNodes().count());
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("%1 sources created (%1/%2).").arg(count).arg(xmlconfig.childNodes().count());
 
     return errors;
 }

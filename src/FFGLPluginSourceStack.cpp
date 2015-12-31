@@ -107,9 +107,11 @@ FFGLPluginSource *FFGLPluginSourceStack::pushNewPlugin(int width, int height, un
     }
     catch (FFGLPluginException &e)  {
         qCritical() << "Shadertoy" << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
+        ffgl_plugin = 0;
     }
     catch (...)  {
         qCritical() << "Shadertoy" << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
+        ffgl_plugin = 0;
     }
 
     return ffgl_plugin;
