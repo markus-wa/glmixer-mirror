@@ -67,9 +67,11 @@ FFGLPluginSource *FFGLPluginSourceStack::pushNewPlugin(QString filename, int wid
     }
     catch (FFGLPluginException &e)  {
         qCritical() << filename << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
+        ffgl_plugin = 0;
     }
     catch (...)  {
         qCritical() << filename << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
+        ffgl_plugin = 0;
     }
 
     return ffgl_plugin;
