@@ -1029,10 +1029,10 @@ bool RenderingManager::insertSource(Source *s)
                 // inform of success
                 return true;
             else
-                qWarning() << tr("Not enough memory to insert the source into the stack (%1).").arg(_front_sources.size());
+                qCritical() << tr("Not enough space to insert the source into the stack (%1).").arg(_front_sources.size());
         }
         else
-            qWarning() << tr("You have reached the maximum amount of source supported (%1).").arg(maxSourceCount);
+            qCritical() << tr("You have reached the maximum amount of source supported (%1).").arg(maxSourceCount);
     }
 
     return false;
@@ -1406,7 +1406,7 @@ double RenderingManager::getAvailableDepthFrom(double depth) const {
 
     // place it at the front if no depth is provided (default argument = -1)
     if (tentativeDepth < 0)
-        tentativeDepth  = (_front_sources.empty()) ? 0.0 : (*_front_sources.rbegin())->getDepth() + 1.0;
+        tentativeDepth  = (_front_sources.empty()) ? 0.0 : (*_front_sources.rbegin())->getDepth() + 0.4;
 
     tentativeDepth += dropBasket.size();
 
