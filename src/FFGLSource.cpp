@@ -38,7 +38,7 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
     QObject(), Source(texture, d), _plugin(0), _playing(true), _buffer(0)
 {
     if ( !QFileInfo(pluginFileName).isFile()) {
-        qCritical() << pluginFileName << QChar(124).toLatin1() << tr("FFGLSource given an invalid file");
+        qWarning() << pluginFileName << QChar(124).toLatin1() << tr("FFGLSource given an invalid file");
         SourceConstructorException().raise();
     }
 
@@ -58,11 +58,11 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
         _plugin->load(pluginFileName);
     }
     catch (FFGLPluginException &e)  {
-        qCritical() << pluginFileName << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
+        qWarning() << pluginFileName << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
         SourceConstructorException().raise();
     }
     catch (...)  {
-        qCritical() << pluginFileName << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
+        qWarning() << pluginFileName << QChar(124).toLatin1()<< QObject::tr("Unknown error in FreeframeGL plugin");
         SourceConstructorException().raise();
     }
 
