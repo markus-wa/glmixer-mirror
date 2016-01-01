@@ -42,7 +42,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     pboIds[0] = 0;
     pboIds[1] = 0;
 
-    QObject::connect(is, SIGNAL(frameReset(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
+    // request to update the frame when sending message
     QObject::connect(is, SIGNAL(frameReady(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
 
     glActiveTexture(GL_TEXTURE0);
