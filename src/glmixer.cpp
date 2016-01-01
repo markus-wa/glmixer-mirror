@@ -1800,6 +1800,9 @@ void GLMixer::on_actionClose_Session_triggered()
 
 void GLMixer::newSession()
 {
+    // unpause if it was
+    actionPause->setChecked ( false );
+
     // if coming from animation, disconnect it.
     QObject::disconnect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(newSession()) );
     actionToggleRenderingVisible->setEnabled(true);
@@ -1970,11 +1973,11 @@ QString GLMixer::getRestorelastSessionFilename()
 
 void GLMixer::openSessionFile()
 {
-    if (currentSessionFileName.isNull() || currentSessionFileName.isEmpty())
-        return;
-
     // unpause if it was
     actionPause->setChecked ( false );
+
+    if (currentSessionFileName.isNull() || currentSessionFileName.isEmpty())
+        return;
 
     // if we come from the smooth transition, disconnect the signal and enforce session switcher to show transition
     QObject::disconnect(RenderingManager::getSessionSwitcher(), SIGNAL(animationFinished()), this, SLOT(openSessionFile()) );

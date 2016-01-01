@@ -373,16 +373,11 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
             // look for item in the list
             QList<QStandardItem *> items = folderModel->findItems( fileinfo.completeBaseName() );
 
-            // remove all items found
-            foreach (const QStandardItem *item, items)
-                folderModel->removeRow( item->row() );
+            // update modified time field for all items found
+            foreach (const QStandardItem *item, items) {
+                folderModel->setData(folderModel->index(item->row(), 3), fileinfo.lastModified().toString("yy/MM/dd hh:mm"));
 
-            // (re)insert the file into the model
-            QModelIndex index = addFile(folderModel, fileinfo.completeBaseName(), fileinfo.lastModified(), fileinfo.absoluteFilePath());
-
-            // idem was added, select it
-            if ( index.isValid() )
-                proxyView->setCurrentIndex( proxyFolderModel->mapFromSource( index ) );
+            }
 
             folderModelAccesslock.unlock();
         }
