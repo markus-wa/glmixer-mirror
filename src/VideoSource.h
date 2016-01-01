@@ -67,6 +67,8 @@ public Q_SLOTS:
 
 private:
 
+    void fillFramePBO(VideoPicture *vp);
+
 	static RTTI type;
 
     GLenum format;

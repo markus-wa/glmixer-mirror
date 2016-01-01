@@ -550,8 +550,9 @@ void VideoFile::stop()
 
         if (!restart_where_stopped)
         {
+            // recreate first picture in case begin has changed
             current_frame_pts = fill_first_frame(true);
-            // display firstPicture frame
+            // display firstPicture or black picture
             emit frameReady( resetPicture );
         }
 

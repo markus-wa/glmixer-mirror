@@ -999,6 +999,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
         // Enable control pannels if the source is playable
         vcontrolOptionSplitter->setEnabled( (*csi)->isPlayable() );
+        QList<int> splitSizes = vcontrolOptionSplitter->sizes();
+        splitSizes[0] += splitSizes[1];
+        splitSizes[1] = 0;
+        vcontrolOptionSplitter->setSizes(splitSizes);
 
         // except for media source, these panels are disabled
         vcontrolDockWidgetOptions->setEnabled(false);
@@ -2743,7 +2747,7 @@ void GLMixer::on_controlOptionsButton_clicked()
         splitSizes[0] -= 140;
         splitSizes[1] = 140;
     } else {
-        splitSizes[0] += splitSizes[0];
+        splitSizes[0] += splitSizes[1];
         splitSizes[1] = 0;
     }
     vcontrolOptionSplitter->setSizes(splitSizes);

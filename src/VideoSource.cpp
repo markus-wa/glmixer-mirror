@@ -42,6 +42,7 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     pboIds[0] = 0;
     pboIds[1] = 0;
 
+    QObject::connect(is, SIGNAL(frameReset(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
     QObject::connect(is, SIGNAL(frameReady(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
 
     glActiveTexture(GL_TEXTURE0);
@@ -81,6 +82,8 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
                 // release pointer to mapping buffer
                 glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
             }
+            else
+                SourceConstructorException().raise();
 
             // idem with second PBO
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[1]);
@@ -92,6 +95,9 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
                 // release pointer to mapping buffer
                 glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
             }
+            else
+                SourceConstructorException().raise();
+
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
             index = nextIndex = 0;
         }
@@ -150,43 +156,56 @@ void VideoSource::pause(bool on)
 }
 
 
+void VideoSource::fillFramePBO(VideoPicture *vp)
+{
+    // In dual PBO mode, increment current index first then get the next index
+    index = (index + 1) % 2;
+    nextIndex = (index + 1) % 2;
+
+    // bind PBO to read pixels
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
+
+    // copy pixels from PBO to texture object
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(), vp->getHeight(), format, GL_UNSIGNED_BYTE, 0);
+
+    // bind PBO to update pixel values
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
+
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+
+    // map the buffer object into client's memory
+    GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    if (ptr) {
+        // update data directly on the mapped buffer
+        memmove(ptr, vp->getBuffer(), imgsize);
+        // release pointer to mapping buffer
+        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+    }
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
 // only Rendering Manager can call this
 void VideoSource::update()
 {
+
     // update texture if given a new vp
     if ( vp && vp->getBuffer() != NULL )
     {
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-        if (pboIds[0] && pboIds[1]) {
+        if ( pboIds[0] && pboIds[1] ) {
 
-            // In dual PBO mode, increment current index first then get the next index
-            index = (index + 1) % 2;
-            nextIndex = (index + 1) % 2;
+            // fill the texture using Pixel Buffer Object mechanism
+            fillFramePBO(vp);
 
-            // bind PBO to read pixels
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
+            // Do it once more if have to stop after a reset picture
+            if ( vp == is->getResetPicture() )
+                fillFramePBO(vp);
 
-            // copy pixels from PBO to texture object
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(), vp->getHeight(), format, GL_UNSIGNED_BYTE, 0);
-
-            // bind PBO to update pixel values
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
-
-            glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
-
-            // map the buffer object into client's memory
-            GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-            if (ptr) {
-                // update data directly on the mapped buffer
-                memmove(ptr, vp->getBuffer(), imgsize);
-                // release pointer to mapping buffer
-                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-            }
-
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-        } else {
+        }
+        else {
+            // without PBO, use standard opengl (slower)
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
                             vp->getHeight(), format, GL_UNSIGNED_BYTE, vp->getBuffer());
         }
