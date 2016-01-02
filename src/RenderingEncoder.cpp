@@ -26,6 +26,7 @@
 #include "RenderingEncoder.moc"
 
 #include "common.h"
+#include "defines.h"
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
 #include "glmixer.h"
@@ -328,7 +329,7 @@ bool RenderingEncoder::start(){
     skipframecount = 0;
 
     // compute buffer count from size
-    int bufCount = (int) ( (double) bufferSize / (double) (framesSize.width() * framesSize.height() * 4) );
+    int bufCount = (int) ( (long double) bufferSize / (long double) (framesSize.width() * framesSize.height() * 4) );
 
     // initialize encoder
     encoder->initialize(recorder, bufCount);
@@ -524,26 +525,29 @@ void RenderingEncoder::saveFileAs(){
 
 }
 
-void RenderingEncoder::setBufferSize(long bytes){
+void RenderingEncoder::setBufferSize(unsigned long bytes){
 
-    bufferSize = qBound(MIN_RECORDING_BUFFER_SIZE, bytes, MAX_RECORDING_BUFFER_SIZE);
-
+    bufferSize = CLAMP(bytes, MIN_RECORDING_BUFFER_SIZE, MAX_RECORDING_BUFFER_SIZE);
 }
 
-long RenderingEncoder::getBufferSize() {
+unsigned long RenderingEncoder::getBufferSize() {
+    
     return bufferSize;
 }
 
-long RenderingEncoder::computeBufferSize(int percent) {
-    double p = qBound(0.0, (double) percent / 100.0, 1.0);
-    long int megabytes = MIN_RECORDING_BUFFER_SIZE;
-    megabytes += (long) ( p * (MAX_RECORDING_BUFFER_SIZE - MIN_RECORDING_BUFFER_SIZE));
+unsigned long RenderingEncoder::computeBufferSize(int percent) {
+    
+    long double p = (double) CLAMP(percent, 0, 99) / 100.0;
+    unsigned long megabytes = MIN_RECORDING_BUFFER_SIZE;
+    megabytes += (unsigned long) ( p * (long double)(MAX_RECORDING_BUFFER_SIZE - MIN_RECORDING_BUFFER_SIZE));
+    
     return megabytes;
 }
 
-int RenderingEncoder::computeBufferPercent(long bytes) {
+int RenderingEncoder::computeBufferPercent(unsigned long bytes) {
 
-    bytes = bytes - MIN_RECORDING_BUFFER_SIZE;
-    double p = (double) bytes / (double)(MAX_RECORDING_BUFFER_SIZE - MIN_RECORDING_BUFFER_SIZE);
-    return ( qRound(p * 100.0) );
+    unsigned long b = bytes - MIN_RECORDING_BUFFER_SIZE;
+    double p = (double) b / (double)(MAX_RECORDING_BUFFER_SIZE - MIN_RECORDING_BUFFER_SIZE);
+    
+    return ( (int) qRound(p * 100.0) );
 }

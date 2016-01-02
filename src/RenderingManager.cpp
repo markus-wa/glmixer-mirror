@@ -105,7 +105,7 @@ SessionSwitcher *RenderingManager::getSessionSwitcher() {
 
 void RenderingManager::setUseFboBlitExtension(bool on){
 
-    if (glewIsSupported("GL_EXT_framebuffer_blit"))
+    if (glewIsSupported("GL_EXT_framebuffer_blit") )
         RenderingManager::blit_fbo_extension = on;
     else {
         // if extension not supported but it is requested, show warning
@@ -1888,7 +1888,7 @@ int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
         }
 #else
         qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin not supported.");
-        errors++
+        errors++;
 #endif
         p = p.nextSiblingElement("ShadertoyPlugin");
     }

@@ -43,7 +43,7 @@ struct video_rec {
 	int height;
 	int fps;
     int framenum;
-    int64_t previous_dts;
+    long int previous_dts;
 	char suffix[6];
 	char description[64];
     void(*pt2RecordingFunction)(video_rec_t *, void *, int);

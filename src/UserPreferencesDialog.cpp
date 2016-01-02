@@ -52,8 +52,8 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 //    defaultProperties->setPropertyEnabled("Aspect ratio", false);
 
     // the rendering option for BLIT of frame buffer makes no sense if the computer does not supports it
-    disableBlitFrameBuffer->setEnabled(GLEW_EXT_framebuffer_blit);
-    disablePixelBufferObject->setEnabled(GLEW_EXT_pixel_buffer_object);
+    disableBlitFrameBuffer->setEnabled( glewIsSupported("GL_EXT_framebuffer_blit") );
+    disablePixelBufferObject->setEnabled( glewIsSupported("GL_EXT_pixel_buffer_object") || glewIsSupported("GL_ARB_pixel_buffer_object") );
 
     // add a validator for folder selection in recording preference
     recordingFolderLine->setValidator(new folderValidator(this));

@@ -1425,6 +1425,7 @@ void GLMixer::on_actionEditSource_triggered()
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if ( RenderingManager::getInstance()->isValid(cs)) {
 
+#ifdef FFGL
         // for SHADERTOY sources, edit means edit code
         if ( (*cs)->rtti()  == Source::FFGL_SOURCE ) {
             FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
@@ -1436,7 +1437,7 @@ void GLMixer::on_actionEditSource_triggered()
                 }
             }
         }
-
+#endif
         // for others, edit mean show the dialog to change source
         SourceFileEditDialog sed(this, *cs, tr("%1 - Edit source '%2'").arg(QCoreApplication::applicationName()).arg((*cs)->getName()));
 

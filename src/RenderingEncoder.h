@@ -35,11 +35,11 @@
  * Expressed in bytes
  */
 // 100 MB
-#define MIN_RECORDING_BUFFER_SIZE (long) 104857600
+#define MIN_RECORDING_BUFFER_SIZE 104857600
 // 4 GB
-#define MAX_RECORDING_BUFFER_SIZE (long) 4294967296
+#define MAX_RECORDING_BUFFER_SIZE 4294967296
 // 5% of range, approx 200 MB
-#define DEFAULT_RECORDING_BUFFER_SIZE (long) 209505485
+#define DEFAULT_RECORDING_BUFFER_SIZE 209505485
 
 extern "C" {
 #include "video_rec.h"
@@ -117,8 +117,8 @@ public:
 	bool isRecording() { return started && !paused ; }
 
     // utility
-    static long int computeBufferSize(int percent);
-    static int computeBufferPercent(long int bytes);
+    static unsigned long computeBufferSize(int percent);
+    static int computeBufferPercent(unsigned long bytes);
 
 public Q_SLOTS:
 	void setActive(bool on);
@@ -127,8 +127,8 @@ public Q_SLOTS:
 	void saveFileAs();
     void close();
 
-    void setBufferSize(long int bytes);
-    long int getBufferSize();
+    void setBufferSize(unsigned long bytes);
+    unsigned long getBufferSize();
 
 Q_SIGNALS:
 	void activated(bool);
@@ -159,7 +159,7 @@ private:
 	encodingformat format;
 	video_rec_t *recorder;
 	char errormessage[256];
-    long int bufferSize;
+    unsigned long bufferSize;
 };
 
 #endif /* RENDERINGENCODER_H_ */
