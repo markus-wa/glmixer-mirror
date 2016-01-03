@@ -75,7 +75,7 @@ protected:
     video_rec_t *rec;
 
     // execution management
-    bool quit;
+    bool _quit;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
 

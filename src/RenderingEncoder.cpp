@@ -38,8 +38,11 @@
 #include <QGLFramebufferObject>
 #include <QThread>
 
+#ifdef Q_OS_UNIX
+#include <sys/mman.h>
+#endif
 
-EncodingThread::EncodingThread() : QThread(), rec(NULL), quit(true), pictq(0), pictq_max(0),
+EncodingThread::EncodingThread() : QThread(), rec(NULL), _quit(true), pictq(0), pictq_max(0),
     pictq_size(0), pictq_rindex(0), pictq_windex(0), recordingTimeStamp(0)
 {
     // create mutex
@@ -49,22 +52,22 @@ EncodingThread::EncodingThread() : QThread(), rec(NULL), quit(true), pictq(0), p
     Q_CHECK_PTR(pictq_cond);
 }
 
-EncodingThread::~EncodingThread(){
+EncodingThread::~EncodingThread()
+{
     delete pictq_mutex;
     delete pictq_cond;
+
+    qDebug() << "EncodingThread" << QChar(124).toLatin1() << tr("Done.");
+
 }
 
 void EncodingThread::initialize(video_rec_t *recorder, int bufferCount) {
     rec = recorder;
     // compute buffer count from size
     pictq_max = bufferCount;
-    // allocate buffers
-    pictq = (unsigned char **) malloc( pictq_max * sizeof(unsigned char *) );
-    recordingTimeStamp = (int *) malloc( pictq_max * sizeof(int) );
-    for (int i = 0; i < pictq_max; ++i) {
-        pictq[i] = (unsigned char *) malloc(rec->width * rec->height * 4);
-        recordingTimeStamp[i] = 0;
-    }
+    // allocate &  initialize arrays to zero
+    pictq = (unsigned char **) calloc( pictq_max, sizeof(unsigned char *) );
+    recordingTimeStamp = (int *) calloc( pictq_max, sizeof(int) );
     // init variables
     pictq_size = pictq_rindex = pictq_windex = 0;
 }
@@ -74,10 +77,19 @@ void EncodingThread::clear() {
     stop();
 
     // free picture queue array
+    int freedmemory = 0;
     if (pictq) {
         // free buffer
         for (int i = 0; i < pictq_max; ++i) {
-            if (pictq[i]) free(pictq[i]);
+            if (pictq[i]) {
+                freedmemory += 1;
+#ifdef Q_OS_UNIX
+                munmap(pictq[i], rec->width * rec->height * 4);
+#else
+                free(pictq[i]);
+#endif
+                pictq[i] = 0;
+            }
         }
         free(pictq);
     }
@@ -88,17 +100,16 @@ void EncodingThread::clear() {
     recordingTimeStamp = 0;
     rec = 0;
 
-#ifndef NDEBUG
-    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << "All clear.";
-#endif
+    qDebug() << "EncodingThread" << QChar(124).toLatin1() << tr("Buffer cleared (%1 frames).").arg(freedmemory);
+
 }
 
 void EncodingThread::stop() {
 
-    if (quit || !pictq)
+    if (_quit || !pictq)
         return;
     // end thread
-    quit = true;
+    _quit = true;
 
 }
 
@@ -120,9 +131,17 @@ unsigned char *EncodingThread::pictq_top(){
     // wait until we have space for a new picture
     // (this happens only when the queue is full)
     pictq_mutex->lock();
-    while ( pictq_full() && !quit)
+    while ( pictq_full() && !_quit)
         pictq_cond->wait(pictq_mutex); // the condition is released in run()
     //		pictq_mutex->unlock();  // will be unlocked in pictq_push
+
+    // if not already done, allocate for images in 4 bits RBGA
+    if (pictq[pictq_windex] == 0)
+#ifdef Q_OS_UNIX
+        pictq[pictq_windex] = (unsigned char *) mmap(0, rec->width * rec->height * 4, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+#else
+        pictq[pictq_windex] = (unsigned char *) malloc(rec->width * rec->height * 4);
+#endif
 
     // Fill the queue with the given picture
     return pictq[pictq_windex];
@@ -135,10 +154,9 @@ bool EncodingThread::pictq_full() {
 
 void EncodingThread::run() {
 
-    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << "Encoding started.";
-
 	// prepare
-    quit = false;
+    _quit = false;
+    int pictq_usage = 0, picq_size_usage = 0;
 
 	// loop until break
 	while (true) {
@@ -146,7 +164,7 @@ void EncodingThread::run() {
 		if (pictq_size < 1) {
 			// no picture ?
 			// if it is because we shall quit, then terminate thread
-			if (quit)
+            if (_quit)
                 break;
 
         } else {
@@ -159,6 +177,9 @@ void EncodingThread::run() {
 				pictq_rindex = 0;
 
 			pictq_mutex->lock();
+            // remember usage
+            pictq_usage = MAXI(pictq_usage, pictq_rindex + 1);
+            picq_size_usage = MAXI(picq_size_usage, pictq_size + 1);
 			// decrease the number of frames in the queue
 			pictq_size--;
 			// tell main process that it can go on (in case it was waiting on a full queue)
@@ -167,12 +188,18 @@ void EncodingThread::run() {
 
 		}
 
-        msleep( 10 );
+        // maintain a slow use of ressources for encoding during the recording
+        if (!_quit)
+            // sleep at least 5 ms, plus an amount of time proportionnal to the remaining buffer
+            msleep( 5 + (int)( 50.f * (float)  (pictq_max - pictq_size)  / (float) pictq_max ) );
+        else
+            // conversely, after quit recording, loop as fast as possible to finish quickly
+            msleep( 5 );
     }
 
     emit encodingFinished();
 
-    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << "Encoding finished.";
+    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << tr("Encoding finished (%1 % of buffer was used, %2 % was really necessary).").arg((int) (100.f * (float)pictq_usage/(float)pictq_max)).arg((int) (100.f * (float)picq_size_usage/(float)pictq_max));
 }
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapseTimer(0), skipframecount(0), update(40), displayupdate(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE) {
@@ -181,12 +208,9 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(f
     temporaryFileName = "__temp__";
 	setEncodingFormat(FORMAT_AVI_FFVHUFF);
     // init file saving
-	setAutomaticSavingMode(false);
-	// create encoding thread
-    encoder = new EncodingThread();
-    Q_CHECK_PTR(encoder);
+    setAutomaticSavingMode(false);
 
-    connect(encoder, SIGNAL(encodingFinished()), this, SLOT(close()));
+    encoder = NULL;
 }
 
 RenderingEncoder::~RenderingEncoder() {
@@ -209,13 +233,20 @@ void RenderingEncoder::setEncodingFormat(encodingformat f){
         qCritical() << tr ("Cannot change video recording format; Recorder is busy.");
 	}
 
-//    format = FORMAT_MPG_H264;
 }
 
 
 void RenderingEncoder::setActive(bool on)
 {
-	if (on) {
+    if (on) {
+
+        // create encoding thread
+        encoder = new EncodingThread();
+        Q_CHECK_PTR(encoder);
+        // connect encoder end to closing slot
+        connect(encoder, SIGNAL(encodingFinished()), this, SLOT(close()));
+        connect(encoder, SIGNAL(finished()), encoder, SLOT(deleteLater()));
+
 		if (!start())
             qCritical() << tr("Error starting video recording; ") << errormessage;          
 
@@ -228,12 +259,11 @@ void RenderingEncoder::setActive(bool on)
             started = false;
             // inform its still processing
             emit processing(true);
-        }
 
+        }
         // restore rendering fps
         glRenderWidget::setUpdatePeriod( displayupdate );
 	}
-
 }
 
 
@@ -454,10 +484,12 @@ void RenderingEncoder::close(){
 
     // free encoder and recorder
     encoder->clear();
+    encoder = NULL;
+
     video_rec_free(recorder);
     recorder = NULL;
 
-    qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << "Done.";
+//    qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << "Done.";
 
     emit processing(false);
 }
