@@ -52,6 +52,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
 {
     AVCodec *c = NULL;
 
+    // allocate and initialize to 0 the recorder structures
     video_rec_t *rec = calloc(1, sizeof(video_rec_t));
     rec->enc = calloc(1, sizeof(struct encoder));
 
@@ -225,6 +226,7 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
 
     if (!rec->enc->video_stream) {
         snprintf(errormessage, 256, "Could not create stream.\nUnable to record to %s.", filename);
+        video_rec_free(rec);
         return NULL;
     }
 
@@ -372,6 +374,8 @@ int video_rec_stop(video_rec_t *rec)
     avio_close(rec->enc->format_context->pb);
 #endif
 
+
+
     int i = 0;
     for(; i < rec->enc->format_context->nb_streams; i++) {
         AVStream *st = rec->enc->format_context->streams[i];
@@ -387,15 +391,19 @@ void video_rec_free(video_rec_t *rec)
 {
     if (rec) {
         // free data structures
-        if (rec->enc->format_context)
-            av_free(rec->enc->format_context);
-        if (rec->enc->vbuf_ptr)
-            av_free(rec->enc->vbuf_ptr);
-        if (rec->enc)
+        if (rec->enc) {
+            if (rec->enc->format_context)
+                av_free(rec->enc->format_context);
+            if (rec->enc->vbuf_ptr)
+                av_free(rec->enc->vbuf_ptr);
             free(rec->enc);
+        }
         if (rec->conv) {
-            free(rec->conv->picture_buf);
-            av_free(rec->conv->picture);
+            if (rec->conv->picture_buf)
+                free(rec->conv->picture_buf);
+            av_frame_free(&(rec->conv->picture));
+            if (rec->conv->picture)
+                av_free(rec->conv->picture);
             if (rec->conv->img_convert_ctx)
                 sws_freeContext(rec->conv->img_convert_ctx);
             free(rec->conv);
@@ -548,6 +556,8 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
         return;
     }
 
+    // free allocated packet
+    av_free_packet(&pkt);
 }
 
 
