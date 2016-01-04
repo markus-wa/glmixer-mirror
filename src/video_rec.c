@@ -401,7 +401,9 @@ void video_rec_free(video_rec_t *rec)
         if (rec->conv) {
             if (rec->conv->picture_buf)
                 free(rec->conv->picture_buf);
+#if LIBAVUTIL_VERSION_INT > AV_VERSION_INT(54, 0, 0)
             av_frame_free(&(rec->conv->picture));
+#endif
             if (rec->conv->picture)
                 av_free(rec->conv->picture);
             if (rec->conv->img_convert_ctx)
