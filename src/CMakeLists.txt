@@ -17,8 +17,8 @@ if( WIN32 )
     set(QT_USE_QTMAIN TRUE)
 
     # force Linker to link with / without console under Windows
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}  -mingw32 -Wl,-subsystem,console,--enable-auto-import")
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -mingw32 -Wl,-subsystem,windows,--enable-auto-import")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Wl,-subsystem,console,--enable-auto-import")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wl,-subsystem,windows,--enable-auto-import")
 endif( WIN32 )
 
 # add the corresponding path to include
@@ -279,15 +279,15 @@ ELSE(APPLE)
         SET(CPACK_NSIS_HELP_LINK "http://vimeo.com/album/2401475")
         SET(CPACK_NSIS_MENU_LINKS "http://sourceforge.net/projects/glmixer/" "GLMixer Web Site" "plugins" "GLMixer Plugins")
 
-        SET(CPACK_NSIS_CREATE_ICONS_EXTRA  "
-        CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\scribbleMix.lnk\\\"  \\\"$INSTDIR\\\\bin\\\\scribbleMix.exe\\\"
-        CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\screenMix.lnk\\\"  \\\"$INSTDIR\\\\bin\\\\screenMix.exe\\\"
-        ")
-        SET(CPACK_NSIS_DELETE_ICONS_EXTRA
-        "
-        Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\scribbleMix.lnk\\\"
-        Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\screenMix.lnk\\\"
-        " )
+        # SET(CPACK_NSIS_CREATE_ICONS_EXTRA  "
+        # CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\scribbleMix.lnk\\\"  \\\"$INSTDIR\\\\bin\\\\scribbleMix.exe\\\"
+        # CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\screenMix.lnk\\\"  \\\"$INSTDIR\\\\bin\\\\screenMix.exe\\\"
+        # ")
+        # SET(CPACK_NSIS_DELETE_ICONS_EXTRA
+        # "
+        # Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\scribbleMix.lnk\\\"
+        # Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\screenMix.lnk\\\"
+        # " )
 
         SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}")
 
@@ -354,7 +354,7 @@ ENDIF(APPLE)
 INSTALL(TARGETS ${GLMIXER_BINARY}
         CONFIGURATIONS Release RelWithDebInfo
         BUNDLE DESTINATION . COMPONENT Runtime
-        RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" COMPONENT Runtime
+        RUNTIME DESTINATION "./bin" COMPONENT Runtime
     )
 
 IF(APPLE)
@@ -413,13 +413,13 @@ ELSE(APPLE)
     INCLUDE(GetPrerequisites)
 
     # read full name of executable
-    GET_TARGET_PROPERTY(GLMIXER_BINARY_LOCATION ${GLMIXER_BINARY} LOCATION)
+	GET_TARGET_PROPERTY(GLMIXER_BINARY_LOCATION ${GLMIXER_BINARY} LOCATION)
 
     IF( EXISTS ${GLMIXER_BINARY_LOCATION} )
 
         # call the function get_prerequisites to fill the list DEPENDENCIES
         message( STATUS "Looking for DLL dependencies (please be patient...)" )
-        GET_PREREQUISITES(@GLMIXER_BINARY_LOCATION@ DEPENDENCIES 1 1 "" "${CMAKE_LIBRARY_PATH}")
+        GET_PREREQUISITES(${GLMIXER_BINARY_LOCATION} DEPENDENCIES 1 1 "" "${CMAKE_LIBRARY_PATH}")
 
         # request the installation of each dll file of the DEPENDENCIES list
         FOREACH(DEPENDENCY ${DEPENDENCIES})
@@ -427,9 +427,9 @@ ELSE(APPLE)
             INSTALL(FILES ${DEPENDENCY} DESTINATION bin COMPONENT Runtime)
         ENDFOREACH(DEPENDENCY)
 
-        IF(MINGW)
-            INSTALL(FILES "/MinGW/bin/mingwm10.dll" DESTINATION bin COMPONENT Runtime)
-        ENDIF(MINGW)
+        # IF(MINGW)
+            # INSTALL(FILES "/MinGW/bin/mingwm10.dll" DESTINATION bin COMPONENT Runtime)
+        # ENDIF(MINGW)
 
     ELSE( EXISTS ${GLMIXER_BINARY_LOCATION} )
 

@@ -9,10 +9,10 @@ set(LIBESCAPIFFGL_SRCS
     escapiFFGL.cpp
 )
 
-find_library(PTHREAD_LIBRARY pthread REQUIRED)
+#find_library(PTHREAD_LIBRARY pthread REQUIRED)
 
 add_library(escapiffgl SHARED ${LIBESCAPIFFGL_SRCS} )
 
-target_link_libraries(escapiffgl ${OPENGL_LIBRARY} -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${PTHREAD_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(escapiffgl ${OPENGL_LIBRARY} -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${GLEW_LIBRARY})
 
 

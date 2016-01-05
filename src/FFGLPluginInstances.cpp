@@ -333,11 +333,11 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
 #ifdef Q_OS_WIN
 typedef __declspec() bool (__stdcall *_FuncPtrSetString)(unsigned int, const char *, DWORD);
 typedef __declspec() char * (__stdcall *_FuncPtrGetString)(unsigned int, DWORD);
-typedef __declspec() void (__stdcall *_FuncPtrSetKeyboard)(int, bool, DWORD);
+typedef __declspec() bool (__stdcall *_FuncPtrSetKeyboard)(int, bool, DWORD);
 #else
 typedef bool (*_FuncPtrSetString)(unsigned int, const char *, DWORD);
 typedef char *(*_FuncPtrGetString)(unsigned int, DWORD);
-typedef void (*_FuncPtrSetKeyboard)(int, bool, DWORD);
+typedef bool (*_FuncPtrSetKeyboard)(int, bool, DWORD);
 #endif
 
 #else

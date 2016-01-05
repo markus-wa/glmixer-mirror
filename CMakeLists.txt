@@ -9,7 +9,7 @@ include(${CMAKE_SOURCE_DIR}/macros.cmake)
 IF(EXISTS "${CMAKE_SOURCE_DIR}/.svn")
     FIND_PACKAGE(Subversion)
     IF(Subversion_FOUND)
-      Subversion_WC_INFO(${PROJECT_SOURCE_DIR} GLMIXER)
+      Subversion_WC_INFO("/home/bh/glmixer-Source" GLMIXER)
       MESSAGE("Current subversion revision is ${GLMIXER_WC_REVISION}")
     ENDIF(Subversion_FOUND)
 ENDIF()
@@ -98,7 +98,7 @@ else( GLMIXER_LINK_STATIC )
     	set( CMAKE_FIND_LIBRARY_SUFFIXES .so .so.0 .dylib .framework .a )
     else( APPLE)
         if( WIN32 )
-      		set( CMAKE_FIND_LIBRARY_SUFFIXES .dll .lib .lib64 .a )
+      		set( CMAKE_FIND_LIBRARY_SUFFIXES .dll .dll.a .lib .lib64 .a )
         else( WIN32 )
                 # not APPLE, not WIN32 ; must be unix !
     		set( CMAKE_FIND_LIBRARY_SUFFIXES  .so .so.0 .so.1 .a )
@@ -113,6 +113,10 @@ set( CMAKE_LIBRARY_PATH
   /usr/lib
   /mingw/bin 
   /mingw/lib 
+  /mingw32/bin 
+  /mingw32/lib 
+  /mingw32/i686-w64-mingw32/bin/
+  /mingw32/i686-w64-mingw32/lib/
   ~/Library/Frameworks
   /System/Library/Frameworks
   ${CMAKE_SYSTEM_LIBRARY_PATH}
@@ -190,7 +194,7 @@ if(USE_OPENCV)
 
     find_library( OPENCV_CORE_LIBRARY NAMES opencv_core cxcore200 opencv_core230)
     find_library( OPENCV_IMGPROC_LIBRARY NAMES opencv_imgproc cvaux200 opencv_imgproc230)
-    find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_highgui highgui200 opencv_highgui230)
+    find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_videoio opencv_highgui highgui200 opencv_highgui230)
     # if we find the opencv libs required, then use opencv
     if(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY})
@@ -229,8 +233,8 @@ if(USE_OPENCV)
 
     else(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 
-#        unset(USE_OPENCV CACHE)
-        set(USE_OPENCV OFF CACHE BOOL)
+        unset(USE_OPENCV CACHE)
+ #       set(USE_OPENCV OFF CACHE BOOL)
 
     endif(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 
@@ -328,13 +332,12 @@ add_subdirectory(libQtProperty)
 add_subdirectory(libQtColorPicker)
 add_subdirectory(libOSCPack)
 
-add_subdirectory(src)
-
 if(USE_FREEFRAMEGL)
     message( STATUS "Using FreeFrameGL")
     add_subdirectory(${FREEFRAMEGL_PATH})
     add_subdirectory(FreeFramePlugins)
 endif(USE_FREEFRAMEGL)
 
+add_subdirectory(src)
 
 
