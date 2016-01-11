@@ -703,7 +703,8 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         if ( msgBox.clickedButton() == logButton )
             QDesktopServices::openUrl( QFileInfo( QDir::tempPath(), GLMIXER_LOGFILE).absoluteFilePath() );
 
-        abort();
+        // exit properly (it is not a crash)
+        exit(0);
     }
         break;
 

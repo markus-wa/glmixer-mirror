@@ -78,6 +78,7 @@ In short, under linux, the folowing command installs what is necessary :
 COMPILATION
 
   1. Install the dependencies
+
   2. Checkout GLMixer source files from https://sourceforge.net/p/glmixer/Source/HEAD/tree/.
 
         svn checkout svn://svn.code.sf.net/p/glmixer/Source/trunk glmixer-Source
@@ -86,25 +87,36 @@ COMPILATION
 
         https://sourceforge.net/projects/glmixer/files/Linux/
 
-  3. Run CMake GUI and select the GLMixer top directory as location of the source.
+  3. Create a folder for building (e.g. glmixer-Build)
+
+  4. Run CMake GUI and select the GLMixer top directory as location of the source.
      Do **configure** (choose Makefile)
      Make sure there is no error and set '`CMAKE_BUILD_TYPE`' to '`Release`'
      Do **generate** with CMake.
 
-  4. Compile : run 'make' in a terminal to build the program (or use an IDE).
+  5. Compile : cd to the build folder, and run 'make' in a terminal to build the program (or use an IDE).
 
 
+UNIX COMPILATION
 
   Alternatively for Linux, you can do all in a terminal :
 
+     Go to the building directory
+
+	$ cd glmixer-Build
+
      Run cmake command line and choose ninja generator.
 
-        $ cmake -G Ninja .
+        $ cmake -G Ninja ../glmixer-Source
 
-     [to compile with all options activated :
-        $ cmake -D CMAKE_BUILD_TYPE=Release -D USE_OPENCV=True -D USE_FREEFRAMEGL=1.6 -G Ninja .
-     ]
+     To run cmake for compiling with all options activated :
 
+        $ cmake -D CMAKE_BUILD_TYPE=Release -D USE_OPENCV=True -D USE_FREEFRAMEGL=1.6 -G Ninja ../glmixer-Source
+
+     To run cmake for compiling with all options and to generage a package :
+
+	$ cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo -D USE_OPENCV=True -D USE_FREEFRAMEGL=1.6 -D CMAKE_INSTALL_PREFIX=/usr -G Ninja ../glmixer-Source/
+	
      If all goes well, it ends with :
 
         -- Configuring done
