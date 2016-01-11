@@ -220,9 +220,6 @@
   <!-- set up the text to wrap -->
   <xsl:variable name="txt">
    <xsl:value-of select="$rev" />
-   <xsl:if test="$paths!=''">
-    <xsl:value-of select="concat($paths,':&#32;')" />
-   </xsl:if>
    <xsl:value-of select="$msg" />
   </xsl:variable>
   <!-- print the paths and message nicely wrapped -->
