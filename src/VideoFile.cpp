@@ -387,10 +387,10 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 
 #ifndef NDEBUG
         // uncomment to activate debug logs
-        QString filevideologs = QFileInfo( QDir::home(), QString("glmixer_memory_logs_%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
+        QString filevideologs = QFileInfo( QDir::temp(), QString("glmixer_memory_logs_%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
          csvLogger *debugingLogger = new csvLogger(filevideologs);
          debugingLogger->startTimer(500);
-         qDebug() << "Starting CSV logger " << filevideologs;
+         qDebug() << "Saving Memory CSV logs in " << filevideologs;
 #endif
 	}
 
