@@ -1255,28 +1255,45 @@ void ViewRenderWidget::setSourceDrawingMode(bool on)
 
 void ViewRenderWidget::setDrawMode(QColor c)
 {
+    static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
+    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
+    static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
+    static int _maskTexture  = ViewRenderWidget::program->uniformLocation("maskTexture");
+    static int _gamma  = ViewRenderWidget::program->uniformLocation("gamma");
+    static int _levels  = ViewRenderWidget::program->uniformLocation("levels");
+    static int _contrast  = ViewRenderWidget::program->uniformLocation("contrast");
+    static int _brightness  = ViewRenderWidget::program->uniformLocation("brightness");
+    static int _saturation  = ViewRenderWidget::program->uniformLocation("saturation");
+    static int _hueshift  = ViewRenderWidget::program->uniformLocation("hueshift");
+    static int _invertMode  = ViewRenderWidget::program->uniformLocation("invertMode");
+    static int _nbColors  = ViewRenderWidget::program->uniformLocation("nbColors");
+    static int _threshold  = ViewRenderWidget::program->uniformLocation("threshold");
+    static int _chromakey  = ViewRenderWidget::program->uniformLocation("chromakey");
+    static int _filter  = ViewRenderWidget::program->uniformLocation("filter");
+    static int _sourceTexture  = ViewRenderWidget::program->uniformLocation("sourceTexture");
+
     // set color & alpha
-    ViewRenderWidget::program->setUniformValue("baseColor", c);
-    ViewRenderWidget::program->setUniformValue("baseAlpha", 1.f);
+    ViewRenderWidget::program->setUniformValue(_baseColor, c);
+    ViewRenderWidget::program->setUniformValue(_baseAlpha, 1.f);
     // no texture
-    ViewRenderWidget::program->setUniformValue("stippling", 0.f);
-    ViewRenderWidget::program->setUniformValue("sourceTexture", 0);
-    ViewRenderWidget::program->setUniformValue("maskTexture", 0);
+    ViewRenderWidget::program->setUniformValue(_stippling, 0.f);
+    ViewRenderWidget::program->setUniformValue(_sourceTexture, 0);
+    ViewRenderWidget::program->setUniformValue(_maskTexture, 0);
     // gamma
-    ViewRenderWidget::program->setUniformValue("gamma", 1.f);
-    ViewRenderWidget::program->setUniformValue("levels", 0.f, 1.f, 0.f, 1.f);
+    ViewRenderWidget::program->setUniformValue(_gamma, 1.f);
+    ViewRenderWidget::program->setUniformValue(_levels, 0.f, 1.f, 0.f, 1.f);
     // effects
-    ViewRenderWidget::program->setUniformValue("contrast", 1.f);
-    ViewRenderWidget::program->setUniformValue("saturation", 1.f);
-    ViewRenderWidget::program->setUniformValue("brightness", 0.f);
-    ViewRenderWidget::program->setUniformValue("hueshift", 0.f);
-    ViewRenderWidget::program->setUniformValue("chromakey", 0.f, 0.f, 0.f, 0.f );
-    ViewRenderWidget::program->setUniformValue("threshold", 0.f);
-    ViewRenderWidget::program->setUniformValue("nbColors", (GLint) -1);
-    ViewRenderWidget::program->setUniformValue("invertMode", (GLint) 0);
+    ViewRenderWidget::program->setUniformValue(_contrast, 1.f);
+    ViewRenderWidget::program->setUniformValue(_saturation, 1.f);
+    ViewRenderWidget::program->setUniformValue(_brightness, 0.f);
+    ViewRenderWidget::program->setUniformValue(_hueshift, 0.f);
+    ViewRenderWidget::program->setUniformValue(_chromakey, 0.f, 0.f, 0.f, 0.f );
+    ViewRenderWidget::program->setUniformValue(_threshold, 0.f);
+    ViewRenderWidget::program->setUniformValue(_nbColors, (GLint) -1);
+    ViewRenderWidget::program->setUniformValue(_invertMode, (GLint) 0);
 
     // disable filtering
-    ViewRenderWidget::program->setUniformValue("filter", (GLint) 0);
+    ViewRenderWidget::program->setUniformValue(_filter, (GLint) 0);
 
 }
 
@@ -1738,8 +1755,8 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
         glBindTexture(GL_TEXTURE_2D, texid);
         QImage p(":/glmixer/textures/shadow.png");
         gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         GLclampf highpriority = 1.0;
         glPrioritizeTextures(1, &texid, &highpriority);
     }
@@ -1785,8 +1802,8 @@ GLuint ViewRenderWidget::buildFrameList()
         glBindTexture(GL_TEXTURE_2D, texid);
         QImage p(":/glmixer/textures/shadow_corner_selected.png");
         gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGBA, p.width(), p. height(), GL_RGBA, GL_UNSIGNED_BYTE, p.bits());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         GLclampf highpriority = 1.0;

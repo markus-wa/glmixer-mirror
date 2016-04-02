@@ -329,8 +329,8 @@ protected:
     bool modified;
 
 	GLint viewport[4];
-	GLdouble projection[16];
-	GLdouble modelview[16];
+	double projection[16];
+	double modelview[16];
 
 	reverseSourceSet clickedSources;
 	QPoint lastClicPos;
@@ -341,7 +341,7 @@ protected:
 
 private:
 
-	static GLdouble zoomspeed;
+	static double zoomspeed;
 	static bool zoomcentered;
 
     static QMap<View::UserInput,Qt::MouseButtons> _buttonmap;

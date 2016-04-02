@@ -58,7 +58,7 @@ public:
     Exception *clone() const { return new brokenCameraException(*this); }
 };
 
-class OpencvSource: public QObject, public Source {
+class OpencvSource: public Source {
 
 Q_OBJECT
 

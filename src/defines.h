@@ -53,6 +53,9 @@
 #include <QValidator>
 #include <QDir>
 
+typedef QPair<QVariant, QVariant> QVariantPair;
+#define S_ARG(before, after) QVariantPair(QVariant(before), QVariant(after))
+
 class folderValidator : public QValidator
 {
   public:

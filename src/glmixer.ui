@@ -2044,8 +2044,6 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionSave_Session_as"/>
     <addaction name="actionClose_Session"/>
     <addaction name="separator"/>
-    <addaction name="actionPreferences"/>
-    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="viewMenu">
@@ -2255,7 +2253,17 @@ Uncheck to display the restart frame when stopped.</string>
     <addaction name="actionShareToRAM"/>
     <addaction name="actionShareToSPOUT"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
+   </widget>
    <addaction name="fileMenu"/>
+   <addaction name="menuEdit"/>
    <addaction name="sessionMenu"/>
    <addaction name="menuExport"/>
    <addaction name="renderingMenu"/>
@@ -3317,6 +3325,13 @@ QToolButton:hover {
      <height>239</height>
     </size>
    </property>
+   <property name="windowIcon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
+   </property>
+   <property name="toolTip">
+    <string>View the logs </string>
+   </property>
    <property name="floating">
     <bool>true</bool>
    </property>
@@ -3577,6 +3592,13 @@ QToolButton:hover {
    </widget>
   </widget>
   <widget class="QDockWidget" name="mixingDockWidget">
+   <property name="windowIcon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/blending.png</normaloff>:/glmixer/icons/blending.png</iconset>
+   </property>
+   <property name="toolTip">
+    <string>Control mixing properties of current source</string>
+   </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
@@ -3610,6 +3632,9 @@ QToolButton:hover {
    <property name="windowIcon">
     <iconset resource="../icons.qrc">
      <normaloff>:/glmixer/icons/notes.png</normaloff>:/glmixer/icons/notes.png</iconset>
+   </property>
+   <property name="toolTip">
+    <string>Edit personnal notes </string>
    </property>
    <property name="windowTitle">
     <string>Bloc note</string>
@@ -3768,6 +3793,13 @@ QToolButton:hover {
    </widget>
   </widget>
   <widget class="QDockWidget" name="tagsDockWidget">
+   <property name="windowIcon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/tagDefault.png</normaloff>:/glmixer/icons/tagDefault.png</iconset>
+   </property>
+   <property name="toolTip">
+    <string>Set color tags</string>
+   </property>
    <property name="windowTitle">
     <string>Tags</string>
    </property>
@@ -3791,6 +3823,129 @@ QToolButton:hover {
      <property name="bottomMargin">
       <number>0</number>
      </property>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="actionHistoryDockWidget">
+   <property name="toolTip">
+    <string>History of actions for undo-redo</string>
+   </property>
+   <property name="windowTitle">
+    <string>Action History</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="actionHistorydockWidgetContents">
+    <layout class="QVBoxLayout" name="actionHistorydockWidgetContentsLayout">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QToolButton" name="historyBackwardKey">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/media-skip-backward.png</normaloff>:/glmixer/icons/media-skip-backward.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="historyBackward">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/media-seek-backward.png</normaloff>:/glmixer/icons/media-seek-backward.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="historyForward">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/media-seek-forward.png</normaloff>:/glmixer/icons/media-seek-forward.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="historyForwardKey">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/media-skip-forward.png</normaloff>:/glmixer/icons/media-skip-forward.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>18</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QToolButton" name="historyClear">
+         <property name="toolTip">
+          <string>Clear</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../icons.qrc">
+           <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -5256,6 +5411,22 @@ Shortcut:                         Ctrl + Tab</string>
    </property>
    <property name="text">
     <string>Video Tutorials</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Z</string>
    </property>
   </action>
  </widget>

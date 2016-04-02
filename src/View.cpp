@@ -80,7 +80,7 @@ bool View::getSourcesAtCoordinates(int mouseX, int mouseY, bool flag){
 void View::coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y){
 
 	double dum;
-	gluUnProject((GLdouble) mouseX, (GLdouble) (viewport[3] - mouseY), 0.0,
+	gluUnProject((double) mouseX, (double) (viewport[3] - mouseY), 0.0,
 	            modelview, projection, viewport, X, Y, &dum);
 
 }
@@ -265,7 +265,7 @@ void SelectionArea::draw() {
 	// The rectangle for selection
 	if ( enabled ) {
 		glColor4ub(COLOR_SELECTION_AREA, 25);
-		GLdouble start[2], end[2];
+		double start[2], end[2];
 		start[0] = area.topLeft().x();
 		start[1] = area.topLeft().y();
 		end[0] = area.bottomRight().x();

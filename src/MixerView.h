@@ -63,8 +63,8 @@ public:
     QDomElement getConfiguration(QDomDocument &doc);
     void setConfiguration(QDomElement xmlconfig);
 
-    GLdouble getLimboSize();
-    void setLimboSize(GLdouble s);
+    double getLimboSize();
+    void setLimboSize(double s);
 
     static QRectF getBoundingBox(const SourceList &l);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
@@ -73,7 +73,7 @@ public:
 
 private:
 
-    bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble scale = 1.0, GLdouble tolerance = 1.0 );
+    bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, double scale = 1.0, double tolerance = 1.0 );
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void grabSources(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy) ;
@@ -88,7 +88,7 @@ private:
     MixerSelectionArea _selectionArea;
 
     // limbo area (where sources are in standy)
-    GLdouble limboSize;
+    double limboSize;
     bool _modeScaleLimbo;
     bool _modeMoveCircle;
 

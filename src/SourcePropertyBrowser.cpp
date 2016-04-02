@@ -498,8 +498,8 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QPointF &va
         currentItem->setY( value.y() * SOURCE_UNIT);
     }
     else if ( property == idToProperty["Rotation center"] ) {
-        currentItem->setCenterX( value.x() * SOURCE_UNIT );
-        currentItem->setCenterY( value.y() * SOURCE_UNIT);
+        currentItem->setRotationCenterX( value.x() * SOURCE_UNIT );
+        currentItem->setRotationCenterY( value.y() * SOURCE_UNIT);
     }
     else if ( property == idToProperty["Scale"] ) {
         currentItem->setScaleX( value.x() * SOURCE_UNIT );

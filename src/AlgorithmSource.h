@@ -33,7 +33,7 @@ class AlgorithmThread;
 class QMutex;
 class QWaitCondition;
 
-class AlgorithmSource: public QObject, public Source {
+class AlgorithmSource: public Source {
 
     Q_OBJECT
 

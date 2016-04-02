@@ -64,7 +64,7 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include "RenderingEncoder.h"
 #include "SourcePropertyBrowser.h"
 #include "SessionSwitcher.h"
-
+#include "HistoryManager.h"
 
 #include <map>
 #include <algorithm>
@@ -93,6 +93,11 @@ SourcePropertyBrowser *RenderingManager::getPropertyBrowserWidget() {
     return getInstance()->_propertyBrowser;
 }
 
+HistoryManager *RenderingManager::getUndoHistory() {
+
+    return getInstance()->_undoHistory;
+}
+
 RenderingEncoder *RenderingManager::getRecorder() {
 
     return getInstance()->_recorder;
@@ -105,7 +110,7 @@ SessionSwitcher *RenderingManager::getSessionSwitcher() {
 
 void RenderingManager::setUseFboBlitExtension(bool on){
 
-    if (glewIsSupported("GL_EXT_framebuffer_blit") )
+    if (glewIsSupported("GL_EXT_framebuffer_blit"))
         RenderingManager::blit_fbo_extension = on;
     else {
         // if extension not supported but it is requested, show warning
@@ -176,6 +181,9 @@ RenderingManager::RenderingManager() :
     _recorder = new RenderingEncoder(this);
     _switcher = new SessionSwitcher(this);
 
+    // create the history manager used for undo
+    _undoHistory = new HistoryManager(this);
+
     // 2. Connect the above view holders to events
     QObject::connect(this, SIGNAL(currentSourceChanged(SourceSet::iterator)), _propertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
 
@@ -225,6 +233,9 @@ RenderingManager::~RenderingManager() {
 
     if (_switcher)
         delete _switcher;
+
+    if (_undoHistory)
+        delete _undoHistory;
 
     qDebug() << "RenderingManager" << QChar(124).toLatin1() << "All clear.";
 }
@@ -1025,10 +1036,14 @@ bool RenderingManager::insertSource(Source *s)
 
         if (_front_sources.size() < maxSourceCount) {
             //insert the source to the list
-            if (_front_sources.insert(s).second)
+            if (_front_sources.insert(s).second) {
+
+                // connect source to the history manager
+                _undoHistory->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
+
                 // inform of success
                 return true;
-            else
+            } else
                 qCritical() << tr("Not enough space to insert the source into the stack (%1).").arg(_front_sources.size());
         }
         else
@@ -1262,6 +1277,10 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
         // then remove the source itself
         qDebug() << s->getName() << QChar(124).toLatin1() << tr("Source deleted.");
         _front_sources.erase(itsource);
+
+        // disconnect this source from the history manager
+        _undoHistory->disconnect(s);
+
         delete s;
         num_sources_deleted++;
     }
@@ -1288,7 +1307,7 @@ void RenderingManager::clearSourceSet() {
         qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("All sources cleared (%1/%2)").arg(num_sources_deleted).arg(total);
     }
 
-#ifndef NDEBUG
+#ifndef VIDEOFILE_DEBUG
     VideoPicture::VideoPictureCountLock.lock();
     qDebug() << "Pending video Picture :" << VideoPicture::VideoPictureCount;
     VideoPicture::VideoPictureCountLock.unlock();
@@ -1523,8 +1542,8 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
         sourceElem.appendChild(pos);
 
         QDomElement rot = doc.createElement("Center");
-        rot.setAttribute("X", QString::number((*its)->getCenterX(),'f',PROPERTY_DECIMALS) );
-        rot.setAttribute("Y", QString::number((*its)->getCenterY(),'f',PROPERTY_DECIMALS) );
+        rot.setAttribute("X", QString::number((*its)->getRotationCenterX(),'f',PROPERTY_DECIMALS) );
+        rot.setAttribute("Y", QString::number((*its)->getRotationCenterY(),'f',PROPERTY_DECIMALS) );
         sourceElem.appendChild(rot);
 
         QDomElement a = doc.createElement("Angle");
@@ -1770,51 +1789,51 @@ int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
     int errors = 0;
     QDomElement tmp;
 
-    newsource->setModifiable( child.attribute("modifiable", "1").toInt() );
-    newsource->setFixedAspectRatio( child.attribute("fixedAR", "0").toInt() );
+    newsource->_setModifiable( child.attribute("modifiable", "1").toInt() );
+    newsource->_setFixedAspectRatio( child.attribute("fixedAR", "0").toInt() );
 
-    newsource->setX( child.firstChildElement("Position").attribute("X", "0").toDouble() );
-    newsource->setY( child.firstChildElement("Position").attribute("Y", "0").toDouble() );
-    newsource->setCenterX( child.firstChildElement("Center").attribute("X", "0").toDouble() );
-    newsource->setCenterY( child.firstChildElement("Center").attribute("Y", "0").toDouble() );
-    newsource->setRotationAngle( child.firstChildElement("Angle").attribute("A", "0").toDouble() );
-    newsource->setScaleX( child.firstChildElement("Scale").attribute("X", "1").toDouble() );
-    newsource->setScaleY( child.firstChildElement("Scale").attribute("Y", "1").toDouble() );
+    newsource->_setX( child.firstChildElement("Position").attribute("X", "0").toDouble() );
+    newsource->_setY( child.firstChildElement("Position").attribute("Y", "0").toDouble() );
+    newsource->_setRotationCenterX( child.firstChildElement("Center").attribute("X", "0").toDouble() );
+    newsource->_setRotationCenterY( child.firstChildElement("Center").attribute("Y", "0").toDouble() );
+    newsource->_setRotationAngle( child.firstChildElement("Angle").attribute("A", "0").toDouble() );
+    newsource->_setScaleX( child.firstChildElement("Scale").attribute("X", "1").toDouble() );
+    newsource->_setScaleY( child.firstChildElement("Scale").attribute("Y", "1").toDouble() );
 
     tmp = child.firstChildElement("Alpha");
-    newsource->setAlphaCoordinates( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble() );
+    newsource->_setAlphaCoordinates( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble() );
 
     tmp = child.firstChildElement("Color");
-    newsource->setColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "255").toInt(), tmp.attribute("B", "255").toInt() ) );
+    newsource->_setColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "255").toInt(), tmp.attribute("B", "255").toInt() ) );
 
     tmp = child.firstChildElement("Crop");
-    newsource->setTextureCoordinates( QRectF( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble(),tmp.attribute("W", "1").toDouble(),tmp.attribute("H", "1").toDouble() ) );
+    newsource->_setTextureCoordinates( QRectF( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble(),tmp.attribute("W", "1").toDouble(),tmp.attribute("H", "1").toDouble() ) );
 
     tmp = child.firstChildElement("Blending");
-    newsource->setBlendEquation( (GLenum) tmp.attribute("Equation", "32774").toInt()  );
-    newsource->setBlendFunc( GL_SRC_ALPHA, (GLenum) tmp.attribute("Function", "1").toInt() );
-    newsource->setMask( tmp.attribute("Mask", "0").toInt() );
+    newsource->_setBlendEquation( (uint) tmp.attribute("Equation", "32774").toInt()  );
+    newsource->_setBlendFunc( GL_SRC_ALPHA, (uint) tmp.attribute("Function", "1").toInt() );
+    newsource->_setMask( tmp.attribute("Mask", "0").toInt() );
 
     tmp = child.firstChildElement("Filter");
-    newsource->setPixelated( tmp.attribute("Pixelated", "0").toInt() );
-    newsource->setInvertMode( (Source::invertModeType) tmp.attribute("InvertMode", "0").toInt() );
-    newsource->setFilter( (Source::filterType) tmp.attribute("Filter", "0").toInt() );
+    newsource->_setPixelated( tmp.attribute("Pixelated", "0").toInt() );
+    newsource->_setInvertMode( (Source::invertModeType) tmp.attribute("InvertMode", "0").toInt() );
+    newsource->_setFilter( (Source::filterType) tmp.attribute("Filter", "0").toInt() );
 
     tmp = child.firstChildElement("Coloring");
-    newsource->setBrightness( tmp.attribute("Brightness", "0").toInt() );
-    newsource->setContrast( tmp.attribute("Contrast", "0").toInt() );
-    newsource->setSaturation( tmp.attribute("Saturation", "0").toInt() );
-    newsource->setHueShift( tmp.attribute("Hueshift", "0").toInt() );
-    newsource->setLuminanceThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
-    newsource->setNumberOfColors( tmp.attribute("numberOfColors", "0").toInt() );
+    newsource->_setBrightness( tmp.attribute("Brightness", "0").toInt() );
+    newsource->_setContrast( tmp.attribute("Contrast", "0").toInt() );
+    newsource->_setSaturation( tmp.attribute("Saturation", "0").toInt() );
+    newsource->_setHueShift( tmp.attribute("Hueshift", "0").toInt() );
+    newsource->_setLuminanceThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
+    newsource->_setNumberOfColors( tmp.attribute("numberOfColors", "0").toInt() );
 
     tmp = child.firstChildElement("Chromakey");
-    newsource->setChromaKey( tmp.attribute("on", "0").toInt() );
-    newsource->setChromaKeyColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "0").toInt(), tmp.attribute("B", "0").toInt() ) );
-    newsource->setChromaKeyTolerance( tmp.attribute("Tolerance", "7").toInt() );
+    newsource->_setChromaKey( tmp.attribute("on", "0").toInt() );
+    newsource->_setChromaKeyColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "0").toInt(), tmp.attribute("B", "0").toInt() ) );
+    newsource->_setChromaKeyTolerance( tmp.attribute("Tolerance", "7").toInt() );
 
     tmp = child.firstChildElement("Gamma");
-    newsource->setGamma( tmp.attribute("value", "1").toFloat(),
+    newsource->_setGamma( tmp.attribute("value", "1").toFloat(),
             tmp.attribute("minInput", "0").toFloat(),
             tmp.attribute("maxInput", "1").toFloat(),
             tmp.attribute("minOutput", "0").toFloat(),
@@ -2506,3 +2525,23 @@ QString RenderingManager::renameSource(Source *s, const QString name){
 
     return s->getName();
 }
+
+void RenderingManager::undo() {
+
+    // go backward in history
+    _undoHistory->setCursorNextKey(HistoryManager::BACKWARD);
+
+    // update current source displays
+    emit currentSourceChanged(_currentSource);
+}
+
+void RenderingManager::redo() {
+
+    // go forward in history
+    _undoHistory->setCursorNextKey(HistoryManager::FORWARD);
+
+    // update current source displays
+    emit currentSourceChanged(_currentSource);
+}
+
+

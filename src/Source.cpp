@@ -23,6 +23,10 @@
  *
  */
 
+
+#include "Source.moc"
+
+#include "common.h"
 #include "SourceSet.h"
 #include "ViewRenderWidget.h"
 #include "OutputRenderWindow.h"
@@ -43,39 +47,22 @@ bool Source::playable = false;
 
 
 // source constructor.
-Source::Source(GLuint texture, double depth):
-    standby(NOT_STANDBY), culled(false), needupdate(true), modifiable(true),
-    fixedAspectRatio(false), clones(NULL), textureIndex(texture), maskTextureIndex(-1), x(0.0),
-    y(0.0), z(CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER)), scalex(SOURCE_UNIT),
-    scaley(SOURCE_UNIT), alphax(0.0), alphay(0.0), centerx(0.0), centery(0.0), rotangle(0.0),
-    texalpha(1.0), flipVertical(false), pixelated(false), filter(FILTER_NONE),
-    invertMode(INVERT_NONE), mask_type(0), brightness(0.f), contrast(1.f),	saturation(1.f),
-    gamma(1.f), gammaMinIn(0.f), gammaMaxIn(1.f), gammaMinOut(0.f), gammaMaxOut(1.f),
-    hueShift(0.f), chromaKeyTolerance(0.1f), luminanceThreshold(0), numberOfColors (0),
-    useChromaKey(false)
+Source::Source(GLuint texture, double depth): ProtoSource(),
+    standby(NOT_STANDBY), culled(false), needupdate(true),
+    clones(NULL), textureIndex(texture)
 {
-    id = 0;
-
-    texcolor = Qt::white;
-    chromaKeyColor = Qt::green;
-    source_blend = GL_SRC_ALPHA;
-    destination_blend = GL_ONE;
-    blend_eq = GL_FUNC_ADD;
-
-    textureCoordinates.setCoords(0.0, 0.0, 1.0, 1.0);
-
-    // default name
-    name = QString("Source");
+    // give it a unique identifier
+    id = Source::lastid++;
 
     // default tag
     Tag::apply(this, Tag::getDefault());
 
-    // give it a unique identifier
-    id = Source::lastid++;
-
+    // empty clone list
     clones = new SourceList;
     CHECK_PTR_EXCEPTION(clones)
 
+    // apply depth
+    z = CLAMP(depth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 }
 
 Source::~Source() {
@@ -93,12 +80,229 @@ Source::~Source() {
         glDeleteTextures(1, &textureIndex);
 }
 
-GLuint Source::getTextureIndex() const {
-    return textureIndex;
-}
+/****
+ *
+ *  Implementation of ProtoSource methods
+ *
+ *  Call the base method of ProtoSource
+ * AND
+ *  inform the history managers (who might be listening)
+ *  that this method has been called.
+ *
+ * */
 
 void Source::setName(QString n) {
-    name = n;
+    emit methodCalled("_setName(QString)", S_ARG(name, n));
+
+    ProtoSource::_setName(n);
+}
+
+void Source::setX(double v) {
+    emit methodCalled("_setX(double)", S_ARG(x, v));
+
+    ProtoSource::_setX(v);
+}
+void Source::setY(double v) {
+    emit methodCalled("_setY(double)", S_ARG(y, v));
+
+    ProtoSource::_setY(v);
+}
+
+void Source::setPosition(double posx, double posy) {
+    emit methodCalled("_setPosition(double,double)", S_ARG(x, posx), S_ARG(y, posy));
+
+    ProtoSource::_setPosition(posx, posy);
+
+    // test for culling
+    testGeometryCulling();
+}
+
+void Source::setRotationCenterX(double v) {
+    emit methodCalled("_setCenterX(double)", S_ARG(centerx, v));
+
+    ProtoSource::_setRotationCenterX(v);
+}
+void Source::setRotationCenterY(double v) {
+    emit methodCalled("_setCenterY(double)", S_ARG(centery, v));
+
+    ProtoSource::_setRotationCenterY(v);
+}
+void Source::setRotationAngle(double v) {
+    emit methodCalled("_setRotationAngle(double)", S_ARG(rotangle, v));
+
+    ProtoSource::_setRotationAngle(v);
+}
+void Source::setScaleX(double v) {
+    emit methodCalled("_setScaleX(double)", S_ARG(scalex, v));
+
+    ProtoSource::_setScaleX(v);
+}
+void Source::setScaleY(double v) {
+    emit methodCalled("_setScaleY(double)", S_ARG(scaley, v));
+
+    ProtoSource::_setScaleY(v);
+}
+
+void Source::setScale(double sx, double sy) {
+    emit methodCalled("_setScale(double,double)", S_ARG(scalex, sx), S_ARG(scaley, sy));
+
+    ProtoSource::_setScale(sx, sy);
+
+    // test for culling
+    testGeometryCulling();
+}
+
+
+void Source::setFixedAspectRatio(bool on) {
+    emit methodCalled("_setFixedAspectRatio(bool)", S_ARG(fixedAspectRatio, on));
+
+    ProtoSource::_setFixedAspectRatio(on);
+}
+
+void Source::setTextureCoordinates(QRectF textureCoords) {
+    emit methodCalled("_setTextureCoordinates(QRectF)", S_ARG(textureCoordinates, textureCoords));
+
+    ProtoSource::_setTextureCoordinates(textureCoords);
+}
+
+void Source::setAlphaCoordinates(double x, double y) {
+    emit methodCalled("_setAlphaCoordinates(double,double)", S_ARG(alphax, x), S_ARG(alphay, y));
+
+    ProtoSource::_setAlphaCoordinates(x, y);
+}
+
+void Source::setAlpha(double a) {
+    emit methodCalled("_setAlpha(double)", S_ARG(texalpha, a));
+
+    ProtoSource::_setAlpha(a);
+}
+
+void Source::setMask(int maskType) {
+    emit methodCalled("_setMask(int)", S_ARG(mask_type, maskType));
+
+    ProtoSource::_setMask(maskType);
+}
+
+void Source::setColor(QColor c){
+    emit methodCalled("_setColor(QColor)", S_ARG(texcolor, c));
+
+    ProtoSource::_setColor(c);
+}
+
+void Source::setBrightness(int b) {
+    emit methodCalled("_setBrightness(int)", S_ARG(getBrightness(), b));
+
+    ProtoSource::_setBrightness(b);
+}
+
+void Source::setContrast(int c) {
+    emit methodCalled("_setContrast(int)", S_ARG(getContrast(), c));
+
+    ProtoSource::_setContrast(c);
+}
+
+void Source::setSaturation(int s){
+    emit methodCalled("_setSaturation(int)", S_ARG(getSaturation(), s));
+
+    ProtoSource::_setSaturation(s);
+}
+
+void Source::setHueShift(int h){
+    emit methodCalled("_setHueShift(int)", S_ARG(getHueShift(), h));
+
+    ProtoSource::_setHueShift(h);
+}
+
+void Source::setLuminanceThreshold(int l){
+    emit methodCalled("_setLuminanceThreshold(int)", S_ARG(luminanceThreshold, l));
+
+    ProtoSource::_setLuminanceThreshold(l);
+}
+
+void Source::setNumberOfColors(int n){
+    emit methodCalled("_setNumberOfColors(int)", S_ARG(numberOfColors, n));
+
+    ProtoSource::_setNumberOfColors(n);
+}
+
+void Source::setChromaKey(bool on) {
+    emit methodCalled("_setChromaKey(bool)", S_ARG(useChromaKey, on));
+
+    ProtoSource::_setChromaKey(on);
+}
+
+void Source::setChromaKeyColor(QColor c) {
+    emit methodCalled("_setChromaKeyColor(QColor)", S_ARG(chromaKeyColor, c));
+
+    ProtoSource::_setChromaKeyColor(c);
+}
+
+void Source::setChromaKeyTolerance(int t) {
+    emit methodCalled("_setChromaKeyTolerance(int)", S_ARG(getChromaKeyTolerance(), t));
+
+    ProtoSource::_setChromaKeyTolerance(t);
+}
+
+void Source::setGamma(double g, double minI, double maxI, double minO, double maxO){
+    emit methodCalled("_setGamma(double,double,double,double,double)", S_ARG(gamma, g), S_ARG(gammaMinIn, minI), S_ARG(gammaMaxIn, maxI), S_ARG(gammaMinOut, minO), S_ARG(gammaMaxOut, maxO));
+
+    ProtoSource::_setGamma(g, minI, maxI, minO, maxO);
+}
+
+void Source::setPixelated(bool on) {
+    emit methodCalled("_setPixelated(bool)", S_ARG(pixelated, on));
+    ProtoSource::_setPixelated(on);
+}
+
+void Source::setModifiable(bool on) {
+    emit methodCalled("_setModifiable(bool)", S_ARG(modifiable, on));
+
+    ProtoSource::_setModifiable(on);
+}
+
+
+void Source::setBlendFunc(uint sfactor, uint dfactor) {
+    emit methodCalled("_setBlendFunc(uint,uint)", S_ARG(source_blend, sfactor), S_ARG(destination_blend, dfactor));
+
+    ProtoSource::_setBlendFunc(sfactor, dfactor);
+}
+
+void Source::setBlendEquation(uint eq) {
+    emit methodCalled("_setBlendEquation(uint)", S_ARG(blend_eq, eq));
+
+    ProtoSource::_setBlendEquation(eq);
+}
+
+void Source::setInvertMode(invertModeType i) {
+    emit methodCalled("_setInvertMode(invertModeType)", S_ARG(invertMode, i));
+
+    ProtoSource::_setInvertMode(i);
+}
+
+void Source::setFilter(filterType c) {
+    emit methodCalled("_setFilter(filterType)", S_ARG(filter, c));
+
+    ProtoSource::_setFilter(c);
+}
+
+
+/****
+ *
+ *  Implementation of Source specific methods
+ *
+ *
+ * */
+
+void Source::scaleBy(double fx, double fy) {
+    setScale(scalex * fx, scaley * fy);
+}
+
+void Source::resetTextureCoordinates() {
+    setTextureCoordinates ( QRectF(0.0, 0.0, 1.0, 1.0) );
+}
+
+GLuint Source::getTextureIndex() const {
+    return textureIndex;
 }
 
 void Source::testGeometryCulling() {
@@ -128,61 +332,10 @@ void Source::testGeometryCulling() {
 
 }
 
-void Source::setDepth(GLdouble v) {
+void Source::setDepth(double v) {
     z = CLAMP(v, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 }
 
-void Source::moveTo(GLdouble posx, GLdouble posy) {
-    x = posx;
-    y = posy;
-
-    // test for culling
-    testGeometryCulling();
-}
-
-void Source::setScale(GLdouble sx, GLdouble sy) {
-    scalex = sx;
-    scaley = sy;
-
-    // test for culling
-    testGeometryCulling();
-}
-
-void Source::scaleBy(float fx, float fy) {
-    scalex *= fx;
-    scaley *= fy;
-
-    // test for culling
-    testGeometryCulling();
-}
-
-void Source::clampScale() {
-
-    scalex = (scalex > 0 ? 1.0 : -1.0) * CLAMP( ABS(scalex), MIN_SCALE, MAX_SCALE);
-    scaley = (scaley > 0 ? 1.0 : -1.0) * CLAMP( ABS(scaley), MIN_SCALE, MAX_SCALE);
-
-    // test for culling
-    testGeometryCulling();
-}
-
-void Source::setAlphaCoordinates(double x, double y) {
-
-    // set new alpha coordinates
-    alphax = x;
-    alphay = y;
-
-    // TODO : configure the mixing to be linear or quadratic , or with a custom curve ?
-    // Compute distance to the center
-    // QUADRATIC
-    GLdouble d = ((x * x) + (y * y)) / (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE);
-
-    // adjust alpha according to distance to center
-    if (d < 1.0)
-        texalpha = 1.0 - d;
-    else
-        texalpha = 0.0;
-
-}
 
 void Source::setStandby(bool on) {
 
@@ -221,34 +374,22 @@ void Source::play(bool on) {
 
 }
 
-void Source::setAlpha(GLfloat a) {
 
-    texalpha = CLAMP(a, 0.0, 1.0);
+void Source::clampScale() {
 
-    // compute new alpha coordinates to match this alpha
-    GLdouble dx = 0, dy = 0;
+    scalex = (scalex > 0 ? 1.0 : -1.0) * CLAMP( ABS(scalex), MIN_SCALE, MAX_SCALE);
+    scaley = (scaley > 0 ? 1.0 : -1.0) * CLAMP( ABS(scaley), MIN_SCALE, MAX_SCALE);
 
-    // special case when source at the center
-    if (ABS(alphax) < EPSILON && ABS(alphay) < EPSILON)
-        dy = 1.0;
-    else { // general case ; compute direction of the alpha coordinates
-        dx = alphax / sqrt(alphax * alphax + alphay * alphay);
-        dy = alphay / sqrt(alphax * alphax + alphay * alphay);
-    }
-
-    GLdouble da = sqrt((1.0 - texalpha) * (SOURCE_UNIT * SOURCE_UNIT * CIRCLE_SIZE * CIRCLE_SIZE));
-
-    // set new alpha coordinates
-    alphax = dx * da;
-    alphay = dy * da;
-
+    // test for culling
+    testGeometryCulling();
 }
+
 
 void Source::resetScale(scalingMode sm) {
 
     scalex = SOURCE_UNIT;
     scaley = SOURCE_UNIT;
-    float renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
+    double renderingAspectRatio = OutputRenderWindow::getInstance()->getAspectRatio();
     double aspectratio = getAspectRatio();
 
     switch (sm) {
@@ -288,8 +429,6 @@ void Source::resetScale(scalingMode sm) {
         break;
     }
 
-    scaley *= flipVertical ? -1.0 : 1.0;
-
     // test for culling
     testGeometryCulling();
 }
@@ -320,42 +459,59 @@ void Source::draw(GLenum mode) const {
 
 void Source::setShaderAttributes() const {
 
-    // set color & alpha
-    ViewRenderWidget::program->setUniformValue("baseColor", texcolor);
-    ViewRenderWidget::program->setUniformValue("baseAlpha", texalpha);
-    ViewRenderWidget::program->setUniformValue("stippling", 0.f);
-    ViewRenderWidget::program->setUniformValue("maskTexture", 1);
+    static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
+    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
+    static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
+    static int _maskTexture  = ViewRenderWidget::program->uniformLocation("maskTexture");
+    static int _gamma  = ViewRenderWidget::program->uniformLocation("gamma");
+    static int _levels  = ViewRenderWidget::program->uniformLocation("levels");
+    static int _contrast  = ViewRenderWidget::program->uniformLocation("contrast");
+    static int _brightness  = ViewRenderWidget::program->uniformLocation("brightness");
+    static int _saturation  = ViewRenderWidget::program->uniformLocation("saturation");
+    static int _hueshift  = ViewRenderWidget::program->uniformLocation("hueshift");
+    static int _invertMode  = ViewRenderWidget::program->uniformLocation("invertMode");
+    static int _nbColors  = ViewRenderWidget::program->uniformLocation("nbColors");
+    static int _threshold  = ViewRenderWidget::program->uniformLocation("threshold");
+    static int _chromakey  = ViewRenderWidget::program->uniformLocation("chromakey");
+    static int _chromadelta  = ViewRenderWidget::program->uniformLocation("chromadelta");
+    static int _filter  = ViewRenderWidget::program->uniformLocation("filter");
+    static int _filter_step  = ViewRenderWidget::program->uniformLocation("filter_step");
+    static int _filter_kernel  = ViewRenderWidget::program->uniformLocation("filter_kernel");
 
-    ViewRenderWidget::program->setUniformValue("gamma", gamma);
+    ViewRenderWidget::program->setUniformValue(_baseColor, texcolor);
+    ViewRenderWidget::program->setUniformValue(_baseAlpha, (GLfloat) texalpha);
+    ViewRenderWidget::program->setUniformValue(_stippling, 0.f);
+    ViewRenderWidget::program->setUniformValue(_maskTexture, 1);
+    ViewRenderWidget::program->setUniformValue(_gamma, (GLfloat) gamma);
     //             gamma levels : minInput, maxInput, minOutput, maxOutput:
-    ViewRenderWidget::program->setUniformValue("levels", gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut);
+    ViewRenderWidget::program->setUniformValue(_levels, (GLfloat) gammaMinIn, (GLfloat) gammaMaxIn, (GLfloat) gammaMinOut, (GLfloat) gammaMaxOut);
+    ViewRenderWidget::program->setUniformValue(_contrast, (GLfloat) contrast);
+    ViewRenderWidget::program->setUniformValue(_brightness, (GLfloat) brightness);
+    ViewRenderWidget::program->setUniformValue(_saturation, (GLfloat) saturation);
+    ViewRenderWidget::program->setUniformValue(_hueshift, (GLfloat) hueShift);
+    ViewRenderWidget::program->setUniformValue( _invertMode, (GLint) invertMode);
+    ViewRenderWidget::program->setUniformValue( _nbColors, (GLint) numberOfColors);
 
-    ViewRenderWidget::program->setUniformValue("contrast", contrast);
-    ViewRenderWidget::program->setUniformValue("brightness", brightness);
-    ViewRenderWidget::program->setUniformValue("saturation", saturation);
-    ViewRenderWidget::program->setUniformValue("hueshift", hueShift);
-
-    ViewRenderWidget::program->setUniformValue("invertMode", (GLint) invertMode);
-    ViewRenderWidget::program->setUniformValue("nbColors", (GLint) numberOfColors);
 
     if (luminanceThreshold > 0 )
-        ViewRenderWidget::program->setUniformValue("threshold", (GLfloat) luminanceThreshold / 100.f);
+        ViewRenderWidget::program->setUniformValue(_threshold, (GLfloat) luminanceThreshold / 100.f);
     else
-        ViewRenderWidget::program->setUniformValue("threshold", -1.f);
+        ViewRenderWidget::program->setUniformValue(_threshold, -1.f);
 
     if (useChromaKey) {
-        ViewRenderWidget::program->setUniformValue("chromakey", chromaKeyColor.redF(), chromaKeyColor.greenF(), chromaKeyColor.blueF(), 1.f );
-        ViewRenderWidget::program->setUniformValue("chromadelta", chromaKeyTolerance );
+        ViewRenderWidget::program->setUniformValue(_chromakey, (GLfloat) chromaKeyColor.redF(), (GLfloat) chromaKeyColor.greenF(), (GLfloat) chromaKeyColor.blueF(), 1.f );
+        ViewRenderWidget::program->setUniformValue(_chromadelta, (GLfloat) chromaKeyTolerance );
     } else
-        ViewRenderWidget::program->setUniformValue("chromakey", 0.0, 0.0, 0.0, 0.0 );
+        ViewRenderWidget::program->setUniformValue(_chromakey, 0.f, 0.f, 0.f, 0.f );
 
     if (ViewRenderWidget::disableFiltering)
         return;
 
     // else enabled filtering
-    ViewRenderWidget::program->setUniformValue("filter", (GLint) filter);
-    ViewRenderWidget::program->setUniformValue("filter_step", 1.0 / (float) getFrameWidth(), 1.0 / (float) getFrameHeight());
-    ViewRenderWidget::program->setUniformValue("filter_kernel", ViewRenderWidget::filter_kernel[filter]);
+    ViewRenderWidget::program->setUniformValue(_filter, (GLint) filter);
+    ViewRenderWidget::program->setUniformValue(_filter_step, 1.f / (GLfloat)  getFrameWidth(), 1.f / (GLfloat)  getFrameHeight());
+
+    ViewRenderWidget::program->setUniformValue( _filter_kernel, ViewRenderWidget::filter_kernel[filter]);
 
 }
 
@@ -364,7 +520,7 @@ void Source::bind() const {
     // activate texture 1 ; double texturing of the mask
     glActiveTexture(GL_TEXTURE1);
     // select and enable the texture corresponding to the mask
-    glBindTexture(GL_TEXTURE_2D, maskTextureIndex);
+    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[mask_type]);
     // back to texture 0 for the following
     glActiveTexture(GL_TEXTURE0);
 
@@ -401,172 +557,6 @@ void Source::blend() const {
 
 }
 
-void Source::setMask(int maskType, GLuint texture) {
-
-    mask_type = maskType;
-
-    if (texture != 0)
-        maskTextureIndex = texture;
-    else
-        maskTextureIndex = ViewRenderWidget::mask_textures[mask_type];
-
-}
-
-
-QDataStream &operator<<(QDataStream &stream, const Source *source){
-
-    if (!source) {
-        stream << (qint32) 0; // null source marker
-        return stream;
-    } else {
-        stream << (qint32) 1;
-        // continue ...
-    }
-
-    stream  << source->getX()
-            << source->getY()
-            << source->getCenterX()
-            << source->getCenterY()
-            << source->getRotationAngle()
-//			<< source->getScaleX()
-//			<< source->getScaleY()
-            << source->getAlpha()
-            << (unsigned int) source->getBlendFuncDestination()
-            << (unsigned int) source->getBlendEquation()
-            << source->getTextureCoordinates()
-            << source->getColor()
-            << source->isPixelated()
-            << (unsigned int) source->getFilter()
-            << (unsigned int) source->getInvertMode()
-            << source->getMask()
-            << source->getBrightness()
-            << source->getContrast()
-            << source->getSaturation()
-            << source->getGamma()
-            << source->getGammaMinInput()
-            << source->getGammaMaxInput()
-            << source->getGammaMinOuput()
-            << source->getGammaMaxOutput()
-            << source->getHueShift()
-            << source->getLuminanceThreshold()
-            << source->getNumberOfColors()
-            << source->getChromaKey()
-            << source->getChromaKeyColor()
-            << source->getChromaKeyTolerance()
-            << source->isModifiable()
-            << source->isFixedAspectRatio()
-            << source->getName();
-
-    return stream;
-}
-
-QDataStream &operator>>(QDataStream &stream, Source *source){
-
-    qint32 nullMarker;
-    stream >> nullMarker;
-    if (!nullMarker || !source) {
-        return stream; // null source
-    }
-
-    // Read and setup the source properties
-    QString stringValue;
-    unsigned int uintValue;
-    int intValue;
-    double doubleValue;
-    float floatValue, f2, f3, f4, f5;
-    QColor colorValue;
-    bool boolValue;
-    QRectF rectValue;
-
-    stream >> doubleValue; 	source->setX(doubleValue);
-    stream >> doubleValue; 	source->setY(doubleValue);
-    stream >> doubleValue; 	source->setCenterX(doubleValue);
-    stream >> doubleValue; 	source->setCenterY(doubleValue);
-    stream >> doubleValue; 	source->setRotationAngle(doubleValue);
-//	stream >> doubleValue; 	source->setScaleX(doubleValue);
-//	stream >> doubleValue; 	source->setScaleY(doubleValue);
-    stream >> floatValue; 	source->setAlpha(floatValue);
-    stream >> uintValue;	source->setBlendFunc(GL_SRC_ALPHA, (GLenum) uintValue);
-    stream >> uintValue;	source->setBlendEquation(uintValue);
-    stream >> rectValue;	source->setTextureCoordinates(rectValue);
-    stream >> colorValue;	source->setColor(colorValue);
-    stream >> boolValue;	source->setPixelated(boolValue);
-    stream >> uintValue;	source->setFilter( (Source::filterType) uintValue);
-    stream >> uintValue;	source->setInvertMode( (Source::invertModeType) uintValue);
-    stream >> intValue;		source->setMask(intValue);
-    stream >> intValue;		source->setBrightness(intValue);
-    stream >> intValue;		source->setContrast(intValue);
-    stream >> intValue;		source->setSaturation(intValue);
-    stream >> floatValue >> f2 >> f3 >> f4 >> f5; 	source->setGamma(floatValue, f2, f3, f4, f5);
-    stream >> intValue;		source->setHueShift(intValue);
-    stream >> intValue;		source->setLuminanceThreshold(intValue);
-    stream >> intValue;		source->setNumberOfColors(intValue);
-    stream >> boolValue;	source->setChromaKey(boolValue);
-    stream >> colorValue;	source->setChromaKeyColor(colorValue);
-    stream >> intValue;		source->setChromaKeyTolerance(intValue);
-    stream >> boolValue;	source->setModifiable(boolValue);
-    stream >> boolValue;	source->setFixedAspectRatio(boolValue);
-    stream >> stringValue;  source->setName(stringValue);
-
-    return stream;
-}
-
-
-void Source::importProperties(const Source *source, bool withGeometry){
-
-    destination_blend = source->destination_blend;
-    blend_eq =  source->blend_eq;
-    pixelated = source->pixelated;
-    texcolor = source->texcolor;
-    brightness = source->brightness;
-    contrast = source->contrast;
-    saturation = source->saturation;
-    hueShift = source->hueShift;
-    filter = source->filter;
-    invertMode = source->invertMode;
-    setMask( source->mask_type );
-
-    gamma = source->gamma;
-    gammaMinIn = source->gammaMinIn;
-    gammaMaxIn = source->gammaMaxIn;
-    gammaMinOut = source->gammaMinOut;
-    gammaMaxOut = source->gammaMaxOut;
-    luminanceThreshold = source->luminanceThreshold;
-    numberOfColors = source->numberOfColors;
-    chromaKeyColor = source->chromaKeyColor;
-    useChromaKey = source->useChromaKey;
-    chromaKeyTolerance = source->chromaKeyTolerance;
-
-    if (withGeometry) {
-        x = source->x;
-        y = source->y;
-        centerx = source->centerx;
-        centery = source->centery;
-        rotangle = source->rotangle;
-        scalex = source->scalex;
-        scaley = source->scaley;
-        modifiable = source->modifiable;
-        fixedAspectRatio = source->fixedAspectRatio;
-
-        setAlpha(source->texalpha);
-        textureCoordinates = source->textureCoordinates;
-        flipVertical = source->flipVertical;
-    }
-
-}
-
-
-QStringList Source::getFilterNames() {
-
-    static QStringList enumNames = QStringList() << "None" << "Gaussian blur" << "Median blur"
-              << "Sharpen" << "Sharpen more"<< "Smooth edge detect"
-              << "Medium edge detect"<< "Hard edge detect"<<"Emboss"<<"Edge emboss"
-              << "Erosion 3x3"<< "Erosion 5x5"<< "Erosion 7x7"
-              << "Dilation 3x3"<< "Dilation 5x5"<< "Dilation 7x7" << "Custom";
-
-    return enumNames;
-
-}
 
 
 // freeframe gl plugin

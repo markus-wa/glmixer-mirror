@@ -57,6 +57,7 @@ class QGLFramebufferObject;
 class VideoFile;
 class ViewRenderWidget;
 class SourcePropertyBrowser;
+class HistoryManager;
 class RenderingEncoder;
 class SessionSwitcher;
 
@@ -75,6 +76,7 @@ public:
 	static SourcePropertyBrowser *getPropertyBrowserWidget();
 	static RenderingEncoder *getRecorder();
 	static SessionSwitcher *getSessionSwitcher();
+    static HistoryManager *getUndoHistory();
 	static RenderingManager *getInstance();
 	static void deleteInstance();
 
@@ -230,6 +232,9 @@ public Q_SLOTS:
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);
 
+    void undo();
+    void redo();
+
     void disableProgressBars(bool off) { _showProgressBar = !off; }
 
 #ifdef SHM
@@ -257,7 +262,9 @@ protected:
 	// the rendering area
 	ViewRenderWidget *_renderwidget;
     // properties of the sources
-    class SourcePropertyBrowser *_propertyBrowser;
+    SourcePropertyBrowser *_propertyBrowser;
+    // history of events
+    HistoryManager *_undoHistory;
 
     // the frame buffers
     QGLFramebufferObject *_fbo;

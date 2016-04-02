@@ -50,7 +50,6 @@
 #include <QGLFramebufferObject>
 #include <QGLShaderProgram>
 #include <QGLPixelBuffer>
-//#include <QGLBuffer>
 
 void initListOfExtension();
 QStringList glSupportedExtensions();

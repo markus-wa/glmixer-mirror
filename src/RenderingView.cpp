@@ -218,13 +218,13 @@ bool RenderingView::wheelEvent ( QWheelEvent * event ){
 
     // remember position of cursor before zoom
     double bx, by, z;
-    gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+    gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &bx, &by, &z);
 
     setZoom (zoom + ((double) event->delta() * zoom * minzoom) / (View::zoomSpeed() * maxzoom) );
 
     double ax, ay;
-    gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+    gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &ax, &ay, &z);
 
     if (View::zoomCentered())
@@ -242,9 +242,9 @@ void RenderingView::panningBy(int x, int y, int dx, int dy) {
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement
 
-    gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+    gluUnProject((double) (x - dx), (double) (y - dy),
             0.0, modelview, projection, viewport, &bx, &by, &bz);
-    gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
+    gluUnProject((double) x, (double) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
     // apply panning

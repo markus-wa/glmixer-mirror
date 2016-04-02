@@ -53,7 +53,7 @@ void LayersSelectionArea::draw() {
 
     // The rectangle for selection
     if ( enabled ) {
-        GLdouble start[2], end[2];
+        double start[2], end[2];
         start[0] = area.topLeft().x();
         start[1] = area.topLeft().y();
         end[0] = area.bottomRight().x();
@@ -211,7 +211,9 @@ void LayersView::paint()
         (*its)->blend();
 
         //   draw stippled version of the source
-        ViewRenderWidget::program->setUniformValue("stippling", (float) ViewRenderWidget::getStipplingMode() / 100.f);
+
+        static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
+        ViewRenderWidget::program->setUniformValue( _stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
         (*its)->draw();
 
         //
@@ -233,7 +235,9 @@ void LayersView::paint()
 
         // draw border for selection
         if (SelectionManager::getInstance()->isInSelection(*its)) {
-            ViewRenderWidget::program->setUniformValue("baseColor", QColor(COLOR_SELECTION));
+
+            static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
+            ViewRenderWidget::program->setUniformValue( _baseColor, QColor(COLOR_SELECTION));
             glCallList(ViewRenderWidget::frame_selection);
         }
 
@@ -703,7 +707,7 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     glPushMatrix();
     // setup the projection for picking
     glLoadIdentity();
-    gluPickMatrix((GLdouble) mouseX, (GLdouble) mouseY, 1.0, 1.0, viewport);
+    gluPickMatrix((double) mouseX, (double) mouseY, 1.0, 1.0, viewport);
     glMultMatrixd(projection);
 
     // rendering for select mode
@@ -983,17 +987,17 @@ void LayersView::panningBy(int x, int y, int dx, int dy) {
 
     // we can make the un-projection if we got the 4 values we need :
     if (glRenderMode(GL_RENDER) == 4) {
-        gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+        gluUnProject((double) (x - dx), (double) (y - dy),
                 feedbuffer[3], modelview, projection, viewport, &bx, &by, &bz);
-        gluUnProject((GLdouble) x, (GLdouble) y, feedbuffer[3],
+        gluUnProject((double) x, (double) y, feedbuffer[3],
                 modelview, projection, viewport, &ax, &ay, &az);
 
     }
     // otherwise compute with a depth of 1.0 (this not correct but should never happen)
     else {
-        gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+        gluUnProject((double) (x - dx), (double) (y - dy),
                 1.0, modelview, projection, viewport, &bx, &by, &bz);
-        gluUnProject((GLdouble) x, (GLdouble) y, 1.0,
+        gluUnProject((double) x, (double) y, 1.0,
                 modelview, projection, viewport, &ax, &ay, &az);
     }
 

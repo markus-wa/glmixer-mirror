@@ -71,7 +71,7 @@ void MixerView::paint()
 {
     static double renderingAspectRatio = 1.0;
     static bool first = true;
-    static GLdouble ax, ay;
+    static double ax, ay;
 
 
 
@@ -157,12 +157,15 @@ void MixerView::paint()
         if (!(*its)->isStandby())
         {
             //   draw stippled version of the source
-            ViewRenderWidget::program->setUniformValue("stippling", (float) ViewRenderWidget::getStipplingMode() / 100.f);
+
+            static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
+            ViewRenderWidget::program->setUniformValue( _stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
             (*its)->draw();
 
         } else {
             // draw flat version of the source
-            ViewRenderWidget::program->setUniformValue("baseAlpha", 1.f);
+            static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
+            ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
             (*its)->draw();
         }
 
@@ -239,7 +242,7 @@ void MixerView::paint()
 
         glColor4ub(COLOR_SOURCE, 180);
         double ax, ay, az; // mouse cursor in rendering coordinates:
-        gluUnProject(GLdouble (lastClicPos.x()), GLdouble (viewport[3] - lastClicPos.y()), 1.0,
+        gluUnProject(double (lastClicPos.x()), double (viewport[3] - lastClicPos.y()), 1.0,
                 modelview, projection, viewport, &ax, &ay, &az);
         glPushMatrix();
         glTranslated( ax, ay, az);
@@ -300,7 +303,7 @@ void MixerView::resize(int w, int h)
 
     // compute largest mixing area for Mixing View (minimum zoom and max panning to both sides)
     double dum;
-    GLdouble maxmodelview[16];
+    double maxmodelview[16];
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
@@ -430,8 +433,8 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
     // click in background
 
     // remember coordinates of clic
-    GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+    double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+    gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
     _selectionArea.markStart(QPointF(cursorx,cursory));
 
     // context menu on the background
@@ -562,12 +565,12 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
         if ( !clicked ) {
 
             // get coordinate of cursor
-            GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-            gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+            double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+            gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
 
             // Are we scaling the limbo area ?
             if ( _modeScaleLimbo ) {
-                GLdouble sqr_limboSize = CIRCLE_SQUARE_DIST(cursorx, cursory);
+                double sqr_limboSize = CIRCLE_SQUARE_DIST(cursorx, cursory);
                 setLimboSize( sqrt(sqr_limboSize) );
             }
             // no, then we are SELECTING AREA
@@ -641,7 +644,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
     bool ret = true;
     // remember position of cursor before zoom
     double bx, by, z;
-    gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+    gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &bx, &by, &z);
 
     // apply zoom
@@ -649,7 +652,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
 
     // compute position of cursor after zoom
     double ax, ay;
-    gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+    gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &ax, &ay, &z);
 
     if (View::zoomCentered()) {
@@ -664,7 +667,7 @@ bool MixerView::wheelEvent ( QWheelEvent * event )
     if ( currentAction == View::GRAB || _modeScaleLimbo || _modeMoveCircle || _selectionArea.isEnabled() ){
 
         // where is the mouse cursor now (after zoom and panning)?
-        gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+        gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &ax, &ay, &z);
         // this means we have a delta of mouse position
         deltax = ax - bx;
@@ -830,7 +833,7 @@ void MixerView::removeFromGroup(Source *s)
 }
 
 
-bool MixerView::hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble scale, GLdouble tolerance)
+bool MixerView::hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, double scale, double tolerance)
 {
     // prepare variables
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
@@ -849,7 +852,7 @@ bool MixerView::hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplay
     glPushMatrix();
     // setup the projection for picking
     glLoadIdentity();
-    gluPickMatrix((GLdouble) mouseX, (GLdouble) mouseY, tolerance, tolerance, viewport);
+    gluPickMatrix((double) mouseX, (double) mouseY, tolerance, tolerance, viewport);
     glMultMatrixd(projection);
 
     // rendering for select mode
@@ -890,7 +893,7 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     glPushMatrix();
     // setup the projection for picking
     glLoadIdentity();
-    gluPickMatrix((GLdouble) mouseX, (GLdouble) mouseY, 1.0, 1.0, viewport);
+    gluPickMatrix((double) mouseX, (double) mouseY, 1.0, 1.0, viewport);
     glMultMatrixd(projection);
 
     // rendering for select mode
@@ -961,9 +964,9 @@ void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement
 
-    gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+    gluUnProject((double) (x - dx), (double) (y - dy),
             0.0, modelview, projection, viewport, &bx, &by, &bz);
-    gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
+    gluUnProject((double) x, (double) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
     double ix = s->getAlphaX() + ax - bx + deltax;
@@ -982,9 +985,9 @@ void MixerView::panningBy(int x, int y, int dx, int dy) {
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement
 
-    gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+    gluUnProject((double) (x - dx), (double) (y - dy),
             0.0, modelview, projection, viewport, &bx, &by, &bz);
-    gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
+    gluUnProject((double) x, (double) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
     // apply panning
@@ -1062,7 +1065,7 @@ void MixerView::setConfiguration(QDomElement xmlconfig){
 
 }
 
-void MixerView::setLimboSize(GLdouble s) {
+void MixerView::setLimboSize(double s) {
     limboSize = CLAMP(s, MIN_LIMBO_SIZE, MAX_LIMBO_SIZE);
     modified = true;
 }

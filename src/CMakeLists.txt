@@ -32,6 +32,7 @@ SET(GLMIXER_SRCS
     VideoFileDialog.cpp
     VideoFileDisplayWidget.cpp
     VideoFile.cpp
+    ProtoSource.cpp
     Source.cpp
     VideoSource.cpp
     CaptureSource.cpp
@@ -74,6 +75,8 @@ SET(GLMIXER_SRCS
     WebSourceCreationDialog.cpp
     Tag.cpp
     TagsManager.cpp
+    HistoryManager.cpp
+    HistoryManagerWidget.cpp
 )
 
 SET(GLMIXER_RCS
@@ -205,27 +208,11 @@ SET(LANG
 #qt4_create_translation(GLMIXER_QM  ${GLMIXER_UIS_H} ${GLMIXER_SRCS} ${LANG})
 qt4_add_translation(GLMIXER_QM ${LANG})
 
-# multiplatform cpack info
-SET(CPACK_PACKAGE_NAME "GLMixer")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Graphic Live Mixer\n Real-time video mixing software for live performance.")
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.txt")
-SET(CPACK_PACKAGE_CONTACT "bruno.herbelin@gmail.com")
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING.txt")
-SET(CPACK_PACKAGE_VERSION_MAJOR "${GLMIXER_VERSION_MAJOR}")
-SET(CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
-SET(CPACK_PACKAGE_VERSION_PATCH "${GLMIXER_WC_REVISION}")
-SET(CPACK_PACKAGE_VENDOR "Bruno Herbelin")
-SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
 
 #--------------------------------------------------------------------------------
 # For Apple set the icns file containing icons (to do before declaring executable MACOSX_BUNDLE)
 IF(APPLE)
-    # set how it shows up in the Info.plist file
-    SET(MACOSX_BUNDLE_ICON_FILE glmixer.icns)
-    # set where in the bundle to put the icns file
-    SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/osx/glmixer.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    # include the icns file in the target
-    SET(GLMIXER_SRCS ${GLMIXER_SRCS} ${CMAKE_SOURCE_DIR}/osx/glmixer.icns)
+
 
     # create the application
     add_executable(${GLMIXER_BINARY} MACOSX_BUNDLE
@@ -235,12 +222,6 @@ IF(APPLE)
             ${GLMIXER_QM}
     )
 
-    # OSX cpack info
-    set( CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
-    set( CPACK_BUNDLE_NAME ${CPACK_PACKAGE_NAME})
-    set( CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
-    set( CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
-    set( CPACK_BINARY_DRAGNDROP ON)
 
 ELSE(APPLE)
 
@@ -263,6 +244,70 @@ ELSE(APPLE)
                 ${GLMIXER_QM}
                 ${RES_FILES}
         )
+
+
+
+    ELSE(WIN32)
+
+        # create the application
+        add_executable(${GLMIXER_BINARY}
+                ${GLMIXER_SRCS}
+                ${GLMIXER_UIS_H}
+                ${GLMIXER_RCS_SRCS}
+                ${GLMIXER_QM}
+        )
+
+
+
+    ENDIF(WIN32)
+
+ENDIF(APPLE)
+
+# link the target against the libraries.
+target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
+
+
+
+
+# multiplatform cpack info
+SET(CPACK_PACKAGE_NAME "GLMixer")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Graphic Live Mixer\n Real-time video mixing software for live performance.")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.txt")
+SET(CPACK_PACKAGE_CONTACT "bruno.herbelin@gmail.com")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING.txt")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${GLMIXER_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${GLMIXER_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${GLMIXER_WC_REVISION}")
+SET(CPACK_PACKAGE_VENDOR "Bruno Herbelin")
+SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
+
+#--------------------------------------------------------------------------------
+# Now the installation stuff below
+#--------------------------------------------------------------------------------
+SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}-${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
+
+IF(APPLE)
+      SET(qtplugin_dest_dir GLMixer.app/Contents/MacOS)
+      SET(qtconf_dest_dir GLMixer.app/Contents/Resources)
+      SET(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
+
+    # set how it shows up in the Info.plist file
+    SET(MACOSX_BUNDLE_ICON_FILE glmixer.icns)
+    # set where in the bundle to put the icns file
+    SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/osx/glmixer.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    # include the icns file in the target
+    SET(GLMIXER_SRCS ${GLMIXER_SRCS} ${CMAKE_SOURCE_DIR}/osx/glmixer.icns)
+    # OSX cpack info
+    set( CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
+    set( CPACK_BUNDLE_NAME ${CPACK_PACKAGE_NAME})
+    set( CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
+    set( CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
+    set( CPACK_BINARY_DRAGNDROP ON)
+
+ELSE(APPLE)
+    IF(WIN32)
+        SET(APPS "\${CMAKE_INSTALL_PREFIX}/${GLMIXER_BINARY}.exe")
+        SET(CPACK_PACKAGE_EXECUTABLES "${GLMIXER_BINARY}" "GLMixer")
 
         SET(CPACK_SYSTEM_NAME "windows")
         SET(CPACK_GENERATOR "NSIS")
@@ -292,14 +337,8 @@ ELSE(APPLE)
         SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}")
 
     ELSE(WIN32)
-
-        # create the application
-        add_executable(${GLMIXER_BINARY}
-                ${GLMIXER_SRCS}
-                ${GLMIXER_UIS_H}
-                ${GLMIXER_RCS_SRCS}
-                ${GLMIXER_QM}
-        )
+        SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/${GLMIXER_BINARY}")
+        SET(CPACK_PACKAGE_EXECUTABLES "${GLMIXER_BINARY}" "GLMixer")
 
         # Linux cpack info
         SET(CPACK_GENERATOR "DEB")
@@ -319,31 +358,7 @@ ELSE(APPLE)
         SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
         SET(CPACK_STRIP_FILES ON)
 
-    ENDIF(WIN32)
 
-ENDIF(APPLE)
-
-# link the target against the libraries.
-target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
-
-
-
-#--------------------------------------------------------------------------------
-# Now the installation stuff below
-#--------------------------------------------------------------------------------
-SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}-${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
-
-IF(APPLE)
-      SET(qtplugin_dest_dir GLMixer.app/Contents/MacOS)
-      SET(qtconf_dest_dir GLMixer.app/Contents/Resources)
-      SET(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
-ELSE(APPLE)
-    IF(WIN32)
-        SET(APPS "\${CMAKE_INSTALL_PREFIX}/${GLMIXER_BINARY}.exe")
-        SET(CPACK_PACKAGE_EXECUTABLES "${GLMIXER_BINARY}" "GLMixer")
-    ELSE(WIN32)
-        SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/${GLMIXER_BINARY}")
-        SET(CPACK_PACKAGE_EXECUTABLES "${GLMIXER_BINARY}" "GLMixer")
     ENDIF(WIN32)
 ENDIF(APPLE)
 
@@ -356,6 +371,8 @@ INSTALL(TARGETS ${GLMIXER_BINARY}
         BUNDLE DESTINATION . COMPONENT Runtime
         RUNTIME DESTINATION "./bin" COMPONENT Runtime
     )
+
+
 
 IF(APPLE)
 
@@ -532,7 +549,6 @@ ENDIF(APPLE)
 # where CPackConfig.cmake is created by including CPack
 # And then there's ways to customize this as well
 include(CPack)
-
 
 
 

@@ -73,7 +73,7 @@ public:
 
 private:
 
-    bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble tolerance = 1.0 );
+    bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, double tolerance = 1.0 );
     char getSourceQuadrant(Source *s, int mouseX, int mouseY);
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void grabSources(Source *s, int x, int y, int dx, int dy);

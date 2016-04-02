@@ -107,7 +107,7 @@ void SourceDisplayWidget::paintGL()
 		else
 			glScalef( s->getAspectRatio() / aspectRatio, 1.f, 1.f);
 		// flip vertical if requested
-		glScalef( aspectRatio, s->isVerticalFlip() ? -1.0 : 1.0, 1.f);
+        glScalef( aspectRatio, 1.0, 1.f);
 
         if (_effects)
             // TODO

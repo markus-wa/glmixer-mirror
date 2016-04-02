@@ -32,7 +32,7 @@
 #include "VideoFile.h"
 #include "ViewRenderWidget.h"
 
-class VideoSource : public QObject, public Source {
+class VideoSource : public Source {
 
     Q_OBJECT
 

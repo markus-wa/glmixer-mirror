@@ -155,7 +155,9 @@ void GeometryView::paint()
 
 
         if (RenderingManager::getInstance()->isCurrentSource(its)) {
-            glCallList(borderType + ((*its)->isModifiable() ? 0 : 3));
+            // Border according to type and to status of source !!! GL ERROR invalid value
+            int b = borderType + ((*its)->isModifiable() ? 0 : 3);
+            glCallList(b);
             // Draw extra overlay information depending on tool
             if (currentAction == View::TOOL ) {
                 // show that the source has a fixed aspect ratio
@@ -218,7 +220,7 @@ void GeometryView::paint()
     if ( s ){
         glColor4ub(COLOR_SOURCE, 180);
         double ax, ay, az; // mouse cursor in rendering coordinates:
-        gluUnProject( GLdouble (lastClicPos.x()), GLdouble (viewport[3] - lastClicPos.y()), 1.0,
+        gluUnProject( double (lastClicPos.x()), double (viewport[3] - lastClicPos.y()), 1.0,
                 modelview, projection, viewport, &ax, &ay, &az);
         glPushMatrix();
         glTranslated( ax, ay, az);
@@ -257,7 +259,7 @@ void GeometryView::resize(int w, int h)
 
     // compute largest geometry area for Geometry View (minimum zoom and max panning to both sides)
     double dum;
-    GLdouble maxmodelview[16];
+    double maxmodelview[16];
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
@@ -398,8 +400,8 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
     // click in background
 
     // remember coordinates of clic
-    GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-    gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+    double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+    gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
     _selectionArea.markStart(QPointF(cursorx,cursory));
 
     // context menu on the background
@@ -492,8 +494,8 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
     if ( !currentSource  && isUserInput(event, INPUT_TOOL) ) {
 
         // get coordinate of cursor
-        GLdouble cursorx = 0.0, cursory = 0.0, dumm = 0.0;
-        gluUnProject((GLdouble) event->x(), (GLdouble) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
+        double cursorx = 0.0, cursory = 0.0, dumm = 0.0;
+        gluUnProject((double) event->x(), (double) viewport[3] - event->y(), 0.0, modelview, projection, viewport, &cursorx, &cursory, &dumm);
 
         // enable drawing of selection area
         _selectionArea.setEnabled(true);
@@ -592,13 +594,13 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
     bool ret = true;
     // remember position of cursor before zoom
     double bx, by, z;
-    gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+    gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &bx, &by, &z);
 
     setZoom (zoom + ((double) event->delta() * zoom * minzoom) / (View::zoomSpeed() * maxzoom) );
 
     double ax, ay;
-    gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0,
+    gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0,
             modelview, projection, viewport, &ax, &ay, &z);
 
     if (View::zoomCentered())
@@ -611,7 +613,7 @@ bool GeometryView::wheelEvent ( QWheelEvent * event ){
     if (currentAction == View::GRAB || currentAction == View::TOOL ){
 
         // where is the mouse cursor now (after zoom and panning)?
-        gluUnProject((GLdouble) event->x(), (GLdouble) (viewport[3] - event->y()), 0.0, modelview, projection, viewport, &ax, &ay, &z);
+        gluUnProject((double) event->x(), (double) (viewport[3] - event->y()), 0.0, modelview, projection, viewport, &ax, &ay, &z);
         // this means we have a delta of mouse position
         deltax = ax - bx;
         deltay = ay - by;
@@ -841,7 +843,7 @@ void GeometryView::zoomBestFit( bool onlyClickedSource ) {
 }
 
 
-bool GeometryView::hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, GLdouble tolerance)
+bool GeometryView::hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, double tolerance)
 {
     // prepare variables
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
@@ -860,7 +862,7 @@ bool GeometryView::hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisp
     glPushMatrix();
     // setup the projection for picking
     glLoadIdentity();
-    gluPickMatrix((GLdouble) mouseX, (GLdouble) mouseY, tolerance, tolerance, viewport);
+    gluPickMatrix((double) mouseX, (double) mouseY, tolerance, tolerance, viewport);
     glMultMatrixd(projection);
 
     // rendering for select mode
@@ -902,7 +904,7 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNo
     glPushMatrix();
     // setup the projection for picking
     glLoadIdentity();
-    gluPickMatrix((GLdouble) mouseX, (GLdouble) mouseY, 1.0, 1.0, viewport);
+    gluPickMatrix((double) mouseX, (double) mouseY, 1.0, 1.0, viewport);
     glMultMatrixd(projection);
 
     // rendering for select mode
@@ -964,9 +966,9 @@ void GeometryView::panningBy(int x, int y, int dx, int dy) {
     double bx, by, bz; // before movement
     double ax, ay, az; // after  movement
 
-    gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+    gluUnProject((double) (x - dx), (double) (y - dy),
             0.0, modelview, projection, viewport, &bx, &by, &bz);
-    gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
+    gluUnProject((double) x, (double) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
     // apply panning
@@ -987,9 +989,9 @@ void GeometryView::grabSource(Source *s, int x, int y, int dx, int dy) {
     double bx, by; // before movement
     double ax, ay; // after  movement
 
-    gluUnProject((GLdouble) (x - dx), (GLdouble) (y - dy),
+    gluUnProject((double) (x - dx), (double) (y - dy),
             0.0, modelview, projection, viewport, &bx, &by, &dum);
-    gluUnProject((GLdouble) x, (GLdouble) y, 0.0,
+    gluUnProject((double) x, (double) y, 0.0,
             modelview, projection, viewport, &ax, &ay, &dum);
 
     // take into account movement of the cursor due to zoom with scroll wheel
@@ -1000,7 +1002,7 @@ void GeometryView::grabSource(Source *s, int x, int y, int dx, int dy) {
     ay = s->getY() + (ay - by);
 
     // move source
-    s->moveTo( qBound(_geometryArea[0], ax, _geometryArea[2]), qBound(_geometryArea[1], ay, _geometryArea[3]) );
+    s->setPosition( qBound(_geometryArea[0], ax, _geometryArea[2]), qBound(_geometryArea[1], ay, _geometryArea[3]) );
 
 }
 
@@ -1050,9 +1052,9 @@ void GeometryView::scaleSource(Source *s, int X, int Y, int dx, int dy, char qua
     double ax, ay; // after  movement
 
     // get clic coordinates in Geometry view coordinate system
-    gluUnProject((GLdouble) (X - dx), (GLdouble) (Y - dy),
+    gluUnProject((double) (X - dx), (double) (Y - dy),
             1.0, modelview, projection, viewport, &bx, &by, &dum);
-    gluUnProject((GLdouble) X, (GLdouble) Y, 1.0,
+    gluUnProject((double) X, (double) Y, 1.0,
             modelview, projection, viewport, &ax, &ay, &dum);
 
     // take into account movement of the cursor due to zoom with scroll wheel
@@ -1101,7 +1103,7 @@ void GeometryView::scaleSource(Source *s, int X, int Y, int dx, int dy, char qua
     ax = dum;
 
     s->scaleBy(sx, sy);
-    s->moveTo( qBound(_geometryArea[0], x + ax, _geometryArea[2]), qBound(_geometryArea[1], y + ay, _geometryArea[3]) );
+    s->setPosition( qBound(_geometryArea[0], x + ax, _geometryArea[2]), qBound(_geometryArea[1], y + ay, _geometryArea[3]) );
 }
 
 void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool option) {
@@ -1158,9 +1160,9 @@ void GeometryView::rotateSource(Source *s, int X, int Y, int dx, int dy, bool op
     double bx, by; // before movement
     double ax, ay; // after  movement
 
-    gluUnProject((GLdouble) (X - dx), (GLdouble) (Y - dy),
+    gluUnProject((double) (X - dx), (double) (Y - dy),
             0.0, modelview, projection, viewport, &bx, &by, &dum);
-    gluUnProject((GLdouble) X, (GLdouble) Y, 0.0,
+    gluUnProject((double) X, (double) Y, 0.0,
             modelview, projection, viewport, &ax, &ay, &dum);
 
     // take into account movement of the cursor due to zoom with scroll wheel
@@ -1266,9 +1268,9 @@ void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool opti
     double ax, ay; // after  movement
 
     // get clic coordinates in Geometry view coordinate system
-    gluUnProject((GLdouble) (X - dx), (GLdouble) (Y - dy),
+    gluUnProject((double) (X - dx), (double) (Y - dy),
             1.0, modelview, projection, viewport, &bx, &by, &dum);
-    gluUnProject((GLdouble) X, (GLdouble) Y, 1.0,
+    gluUnProject((double) X, (double) Y, 1.0,
             modelview, projection, viewport, &ax, &ay, &dum);
 
     // take into account movement of the cursor due to zoom with scroll wheel
@@ -1350,7 +1352,7 @@ void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool opti
     tx = dum;
 
     s->scaleBy(sx, sy);
-    s->moveTo(x + tx, y + ty);
+    s->setPosition(x + tx, y + ty);
 
 }
 
@@ -1390,7 +1392,7 @@ char GeometryView::getSourceQuadrant(Source *s, int X, int Y) {
     char quadrant = 0;
     double ax, ay, az;
 
-    gluUnProject((GLdouble) X, (GLdouble) Y, 0.0,
+    gluUnProject((double) X, (double) Y, 0.0,
             modelview, projection, viewport, &ax, &ay, &az);
 
     // vector (source center -> cursor position)
@@ -1478,8 +1480,8 @@ QRectF GeometryView::getBoundingBox(const Source *s, bool invert_y)
     // compute Axis aligned bounding box
     cosa = cos(s->getRotationAngle() / 180.0 * M_PI);
     sina = sin(s->getRotationAngle() / 180.0 * M_PI);
-    for (GLdouble i = -1.0; i < 2.0; i += 2.0)
-        for (GLdouble j = -1.0; j < 2.0; j += 2.0) {
+    for (double i = -1.0; i < 2.0; i += 2.0)
+        for (double j = -1.0; j < 2.0; j += 2.0) {
             // corner with apply rotation
             point[0] = i * s->getScaleX() * cosa - j * s->getScaleY() * sina + s->getX();
             point[1] = j * s->getScaleY() * cosa + i * s->getScaleX() * sina + s->getY();
@@ -1515,8 +1517,8 @@ QRectF GeometryView::getBoundingBox(const SourceList &l, bool invert_y)
     for(SourceList::const_iterator  its = l.begin(); its != l.end(); its++) {
         cosa = cos((*its)->getRotationAngle() / 180.0 * M_PI);
         sina = sin((*its)->getRotationAngle() / 180.0 * M_PI);
-        for (GLdouble i = -1.0; i < 2.0; i += 2.0)
-            for (GLdouble j = -1.0; j < 2.0; j += 2.0) {
+        for (double i = -1.0; i < 2.0; i += 2.0)
+            for (double j = -1.0; j < 2.0; j += 2.0) {
                 // corner with apply rotation
                 point[0] = i * (*its)->getScaleX() * cosa - j * (*its)->getScaleY() * sina + (*its)->getX();
                 point[1] = j * (*its)->getScaleY() * cosa + i * (*its)->getScaleX() * sina + (*its)->getY();
@@ -1651,7 +1653,7 @@ void resizeSource(Source *s, QRectF ref, View::Axis a)
 
             // solves the rescaling of the bounding box to find the new position
             QRectF sbox = GeometryView::getBoundingBox(*its);
-            (*its)->moveTo( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()), selectionbox.center().y() + scale * ( sbox.center().y() - selectionbox.center().y()) );
+            (*its)->setPosition( selectionbox.center().x() + scale * ( sbox.center().x() - selectionbox.center().x()), selectionbox.center().y() + scale * ( sbox.center().y() - selectionbox.center().y()) );
 
         }
 
@@ -1709,12 +1711,12 @@ void rotate90Source(Source *s, QRectF box, View::Axis a)
             // rotate CLOCKWISE
             s->setRotationAngle( s->getRotationAngle() - 90.0);
             // rotate 90 is inverting x and y
-            s->moveTo( s->getY() - box.center().y() + box.center().x(), - s->getX() + box.center().x() + box.center().y() );
+            s->setPosition( s->getY() - box.center().y() + box.center().x(), - s->getX() + box.center().x() + box.center().y() );
         } else {
             // rotate COUNTER CLOCKWISE
             s->setRotationAngle( s->getRotationAngle() + 90.0);
             // rotate 90 is inverting x and y
-            s->moveTo( - s->getY() + box.center().y() + box.center().x(), s->getX() - box.center().x() + box.center().y() );
+            s->setPosition( - s->getY() + box.center().y() + box.center().x(), s->getX() - box.center().x() + box.center().y() );
 
         }
     }

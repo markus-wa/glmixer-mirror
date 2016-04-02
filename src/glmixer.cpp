@@ -47,7 +47,6 @@
 #include "VideoFileDisplayWidget.h"
 #include "SourcePropertyBrowser.h"
 #include "CloneSource.h"
-#include "SessionSwitcherWidget.h"
 #include "CatalogView.h"
 #include "DelayCursor.h"
 #include "SpringCursor.h"
@@ -62,7 +61,16 @@
 #include "OpenSoundControlManager.h"
 #include "NewSourceDialog.h"
 #include "WebSourceCreationDialog.h"
+
+#ifdef SESSION_MANAGEMENT
+#include "SessionSwitcherWidget.h"
+#endif
+#ifdef TAG_MANAGEMENT
 #include "TagsManager.h"
+#endif
+#ifdef HISTORY_MANAGEMENT
+#include "HistoryManagerWidget.h"
+#endif
 
 #ifdef SHM
 #include "SharedMemorySource.h"
@@ -143,13 +151,24 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(vcontrolDockWidget->toggleViewAction());
     toolBarsMenu->addAction(cursorDockWidget->toggleViewAction());
     toolBarsMenu->addAction(mixingDockWidget->toggleViewAction());
-    toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
     toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
-    toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());
+    toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());    
+#ifdef SESSION_MANAGEMENT
+    toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
+#endif
+#ifdef TAG_MANAGEMENT
     toolBarsMenu->addAction(tagsDockWidget->toggleViewAction());
+#endif
+    // The log widget
     QAction *showlog = logDockWidget->toggleViewAction();
+    showlog->setShortcut(QKeySequence("Ctrl+L"));
     toolBarsMenu->addAction(showlog);
     logDockWidget->hide();
+    // The history widget
+    QAction *showhistory = actionHistoryDockWidget->toggleViewAction();
+    showhistory->setShortcut(QKeySequence("Ctrl+H"));
+    toolBarsMenu->addAction(showhistory);
+    actionHistoryDockWidget->hide();
 
     toolBarsMenu->addSeparator();
     toolBarsMenu->addAction(sourceToolBar->toggleViewAction());
@@ -235,7 +254,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     addAction(setGLSLFragmentShader);
     QObject::connect(setGLSLFragmentShader, SIGNAL(triggered()), this, SLOT(selectGLSLFragmentShader()) );
 
-    showlog->setShortcut(QKeySequence("Ctrl+L"));
 
     // recent files history
     QMenu *recentFiles = new QMenu(this);
@@ -276,13 +294,33 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     layoutDockWidgetContentLayout->addWidget(layoutToolBox);
 
     // setup the tags toolbox
-//    tagsManager = new TagsManager(this);
-//    tagsDockWidgetContentLayout->addWidget(tagsManager);
-//    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
-
-//    // DISABLE TAG MANAGER
+#ifdef TAG_MANAGEMENT
+    tagsManager = new TagsManager(this);
+    tagsDockWidgetContentLayout->addWidget(tagsManager);
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
+#else
+    // DISABLE TAG MANAGER
     delete tagsDockWidget;
+#endif
 
+#ifdef HISTORY_MANAGEMENT
+    // setup the history toolbox
+    undoHistoryView = new HistoryManagerWidget(this);
+    undoHistoryView->setHistoryManager(RenderingManager::getUndoHistory());
+    actionHistorydockWidgetContentsLayout->addWidget(undoHistoryView);
+    QObject::connect(RenderingManager::getUndoHistory(), SIGNAL(changed()), undoHistoryView, SLOT(updateHistory()) );
+
+    QObject::connect( historyForward, SIGNAL(pressed()), RenderingManager::getUndoHistory(), SLOT(setCursorNextPositionForward()) );
+    QObject::connect( historyForwardKey, SIGNAL(pressed()), RenderingManager::getUndoHistory(), SLOT(setCursorNextKeyForward()) );
+    QObject::connect( historyBackward, SIGNAL(pressed()), RenderingManager::getUndoHistory(), SLOT(setCursorNextPositionBackward()) );
+    QObject::connect( historyBackwardKey, SIGNAL(pressed()), RenderingManager::getUndoHistory(), SLOT(setCursorNextKeyBackward()) );
+#else
+    delete actionUndo;
+    delete actionRedo;
+    delete actionHistoryDockWidget;
+#endif
+
+#ifdef SESSION_MANAGEMENT
     // Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);
     switcherDockWidgetContentsLayout->addWidget(switcherSession);
@@ -292,9 +330,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
     QObject::connect(nextSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToNextSession()));
     QObject::connect(prevSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToPreviousSession()));
+#else
+    delete switcherDockWidget;
+#endif
 
     // Set the docking tab vertical
-    setDockOptions(dockOptions () | QMainWindow::VerticalTabs);
+    setDockOptions( dockOptions() | QMainWindow::VerticalTabs);
 
     // Setup the central widget
     centralViewLayout->removeWidget(mainRendering);
@@ -315,9 +356,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     icon.addFile(QString::fromUtf8(":/glmixer/icons/glmixer.png"), QSize(), QIcon::Normal, QIcon::Off);
     setWindowIcon(icon);
     OutputRenderWindow::getInstance()->setWindowIcon(icon);
+    QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), OutputRenderWindow::getInstance(), SLOT(refresh()));
+
+#ifdef SESSION_MANAGEMENT
     QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), switcherSession, SLOT(startTransitionToNextSession()));
     QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
-    QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), OutputRenderWindow::getInstance(), SLOT(refresh()));
+#endif
 
     // Setup dialogs
     mfd = new VideoFileDialog(this, "Open videos or pictures");
@@ -351,7 +395,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), OutputRenderWindow::getInstance(), SLOT(setFullScreen(bool)));
     QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(disableProgressBars(bool)));
     QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
-//    QObject::connect(actionPause, SIGNAL(toggled(bool)), vcontrolDockWidget, SLOT(setDisabled(bool)));
+
+#ifdef HISTORY_MANAGEMENT
+    QObject::connect(actionUndo, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(undo()));
+    QObject::connect(actionRedo, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(redo()));
+#endif
+
 #ifdef SHM
     QObject::connect(actionShareToRAM, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setFrameSharingEnabled(bool)));
 #endif
@@ -390,7 +439,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
     // do not allow to record without a fixed aspect ratio
     QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
+
+#ifdef SESSION_MANAGEMENT
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(selectAspectRatio(const standardAspectRatio )), switcherSession, SLOT(setAllowedAspectRatio(const standardAspectRatio)));
+#endif
 
     // group the menu items of the catalog sizes ;
     QActionGroup *catalogActionGroup = new QActionGroup(this);
@@ -466,8 +518,17 @@ GLMixer::~GLMixer()
     delete upd;
     delete refreshTimingTimer;
     delete mixingToolBox;
-    delete switcherSession;
     delete outputpreview;
+
+#ifdef SESSION_MANAGEMENT
+    delete switcherSession;
+#endif
+#ifdef TAG_MANAGEMENT
+    delete tagsManager;
+#endif
+#ifdef HISTORY_MANAGEMENT
+    delete undoHistoryView;
+#endif
 }
 
 
@@ -476,11 +537,19 @@ void GLMixer::closeEvent(QCloseEvent * event ){
     refreshTimingTimer->stop();
 
     mixingToolBox->close();
-    switcherSession->close();
     outputpreview->close();
     layoutToolBox->close();
 #ifdef FFGL
     pluginGLSLCodeEditor->close();
+#endif
+#ifdef SESSION_MANAGEMENT
+    switcherSession->close();
+#endif
+#ifdef TAG_MANAGEMENT
+    tagsManager->close();
+#endif
+#ifdef HISTORY_MANAGEMENT
+    undoHistoryView->close();
 #endif
 
     QApplication::closeAllWindows();
@@ -1444,6 +1513,26 @@ void GLMixer::on_actionEditSource_triggered()
 
         sed.exec();
 
+        Source *s = *cs;
+        if (s) {
+            double x = 0.0, y = 0.0;
+            // invoke a delayed call (in Qt event loop) of the source method
+            int methodIndex = s->metaObject()->indexOfSlot("moveTo(double,double)");
+            QMetaMethod method = s->metaObject()->method(methodIndex);
+            method.invoke(s, Qt::QueuedConnection, Q_ARG(double, x), Q_ARG(double, y));
+//            s->moveTo(x, y);
+
+            QColor c("red");
+            methodIndex = s->metaObject()->indexOfSlot("setColor(QColor)");
+            method = s->metaObject()->method(methodIndex);
+            method.invoke(s, Qt::QueuedConnection, Q_ARG(QColor, c));
+
+            int v = -100;
+            methodIndex = s->metaObject()->indexOfSlot("setSaturation(int)");
+            method = s->metaObject()->method(methodIndex);
+            method.invoke(s, Qt::QueuedConnection, Q_ARG(int, v));
+        }
+
     }
 }
 
@@ -1889,8 +1978,10 @@ void GLMixer::on_actionSave_Session_triggered(){
         {
             confirmSessionFileName();
 
+#ifdef SESSION_MANAGEMENT
             // update session switcher
             switcherSession->fileChanged( currentSessionFileName );
+#endif
         }
 
         // log
@@ -2123,12 +2214,13 @@ void GLMixer::openSessionFile()
     // start the smooth transition
     RenderingManager::getSessionSwitcher()->startTransition(true);
 
+#ifdef SESSION_MANAGEMENT
     // update session switcher
     switcherSession->fileChanged( currentSessionFileName );
+#endif
 
     // message
     statusbar->showMessage( tr("Session file %1 loaded.").arg( currentSessionFileName ), 5000 );
-
     qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << "Session loaded.";
 
 }
@@ -2389,11 +2481,15 @@ void GLMixer::readSettings()
     if (settings.contains("MixingPresets"))
         mixingToolBox->restoreState(settings.value("MixingPresets").toByteArray());
 
+#ifdef SESSION_MANAGEMENT
     // Switcher session
     switcherSession->restoreSettings();
+#endif
 
+#ifdef OPENSOUNDCONTROL_MANAGEMENT
     // start OSC
-//    OpenSoundControlManager::getInstance()->setEnabled(true);
+    OpenSoundControlManager::getInstance()->setEnabled(true);
+#endif
 
     qDebug() << tr("All settings restored.");
 }
@@ -2431,8 +2527,10 @@ void GLMixer::saveSettings()
     // last session file name
     settings.setValue("lastSessionFileName", currentSessionFileName);
 
+#ifdef SESSION_MANAGEMENT
     // save settings of session switcher
     switcherSession->saveSettings();
+#endif
 
     // make sure system saves settings NOW
     settings.sync();
@@ -2450,8 +2548,20 @@ void GLMixer::on_actionResetToolbars_triggered()
     restoreDockWidget(vcontrolDockWidget);
     restoreDockWidget(cursorDockWidget);
     restoreDockWidget(mixingDockWidget);
+
+#ifdef SESSION_MANAGEMENT
     restoreDockWidget(switcherDockWidget);
+#endif
+#ifdef TAG_MANAGEMENT
+    restoreDockWidget(tagsDockWidget);
+#endif
+#ifdef HISTORY_MANAGEMENT
+    restoreDockWidget(actionHistoryDockWidget);
+#endif
+
+    // hide logs by default
     logDockWidget->hide();
+    logDockWidget->setGeometry(0,0,800,300);
 
     qDebug() << tr("Default layout restored.");
 }

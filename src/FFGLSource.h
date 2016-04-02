@@ -30,7 +30,7 @@
 
 #include "Source.h"
 
-class FFGLSource : public QObject, public Source
+class FFGLSource : public Source
 {
     Q_OBJECT
 

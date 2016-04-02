@@ -27,13 +27,9 @@
 #define SOURCE_H_
 
 #include <set>
-#include <QColor>
-#include <QMap>
-#include <QDataStream>
-#include <QRectF>
 
+#include "ProtoSource.h"
 #include "common.h"
-#include "defines.h"
 
 #ifdef FFGL
 #include "FFGLPluginSourceStack.h"
@@ -56,31 +52,34 @@ typedef std::set<Source *> SourceList;
 /**
  * Base class for every source mixed in GLMixer.
  *
- * A source is holding a texture index, all the geometric and mixing attributes, and the corresponding drawing methods.
- * Every sources shall be instanciated by the rendering manager; this is because the creation and manipulation of sources
- * requires an active opengl context; this is the task of the rendering manager to call source methods after having made
+ * A source is holding a texture index, and the drawing methods.
+ * Every sources shall be instanciated by the rendering manager;
+ * this is because the creation and manipulation of sources
+ * requires an active opengl context; this is the task of the
+ * rendering manager to call source methods after having made
  * an opengl context current.
  *
- *
+ * All properties manipulated by the user are held in ProtoSource.
  */
-class Source {
+class Source: public ProtoSource {
+
+    Q_OBJECT
 
     friend class RenderingManager;
     friend class Tag;
 
 public:
     /*
-     * Constructor ; only Rendering Manager is allowed
+     * Constructor
      */
     Source(GLuint texture = -1, double depth = MAX_DEPTH_LAYER);
 
     virtual ~Source();
 
-    bool operator==(Source s2) {
-        return (id == s2.id);
-    }
 
-    // Run-Time Type Information
+    /*
+     * Run-Time Type Information
+     */
     typedef enum {
         SIMPLE_SOURCE = 0,
         CLONE_SOURCE,
@@ -96,14 +95,20 @@ public:
         SPOUT_SOURCE
     } RTTI;
     virtual RTTI rtti() const { return type; }
+
+    /*
+     * Methods to be reimplemented in sub-classes
+     */
     virtual bool isPlayable() const { return playable; }
     virtual bool isPlaying() const { return false; }
     virtual void play(bool on);
+    virtual int getFrameWidth() const { return 1; }
+    virtual int getFrameHeight() const { return 1; }
+    virtual double getFrameRate() const { return 0.0; }
 
     /**
      *  Rendering
      */
-    // to be called in the OpenGL loop to bind the source texture before drawing
     // In subclasses of Source, the texture content is also updated
     virtual void update();
     // bind the texture
@@ -113,15 +118,11 @@ public:
     void blend() const;
     // begin and end the section which applies the various effects (convolution, color tables, etc).
     void setShaderAttributes() const;
-
     // to be called in the OpenGL loop to draw this source
     void draw(GLenum mode = GL_RENDER) const;
-
-    /*
-     * OpenGL access to the texture index
-     *
-     */
+    //OpenGL access to the texture index
     virtual GLuint getTextureIndex() const;
+
     /*
      * unique ID of this source
      *
@@ -129,15 +130,14 @@ public:
     inline GLuint getId() const {
         return id;
     }
+    // testing equality of source is testing if the ids are the same
+    inline bool operator==(Source s2) {
+        return (id == s2.id);
+    }
     /*
-     * Source Name
+     * Source manipulation
      *
      */
-    void setName(QString n);
-    inline QString getName() const {
-        return name;
-    }
-
     // returns the list of clones of this source (used to delete them)
     inline SourceList *getClones() const {
         return clones;
@@ -145,93 +145,38 @@ public:
     inline bool isCloned() const {
         return clones->size() > 0;
     }
+    // tags
+    inline Tag *getTag() const { return tag; }
 
     /**
      *  Geometry and deformation
      */
-    // gets
-    inline GLdouble getAspectRatio() const {
-        return (GLdouble) getFrameWidth() / (GLdouble) getFrameHeight();;
+    inline double getAspectRatio() const {
+        return (double) getFrameWidth() / (double) getFrameHeight();;
     }
-    inline GLdouble getX() const {
-        return x;
-    }
-    inline GLdouble getY() const {
-        return y;
-    }
-    inline GLdouble getDepth() const {
-        return z;
-    }
-    inline GLdouble getScaleX() const {
-        return scalex;
-    }
-    inline GLdouble getScaleY() const {
-        return scaley;
-    }
-    inline GLdouble getCenterX() const {
-        return centerx;
-    }
-    inline GLdouble getCenterY() const {
-        return centery;
-    }
-    inline GLdouble getRotationAngle() const {
-        return rotangle;
-    }
-    inline QRectF getTextureCoordinates() const {
-        return textureCoordinates;
-    }
-    // sets
-    inline void setX(GLdouble v) {
-        x = v;
-    }
-    inline void setY(GLdouble v) {
-        y = v;
-    }
-    inline void setScaleX(GLdouble v) {
-        scalex = v;
-    }
-    inline void setScaleY(GLdouble v) {
-        scaley = v;
-    }
-    inline void setCenterX(GLdouble v) {
-        centerx = v;
-    }
-    inline void setCenterY(GLdouble v) {
-        centery = v;
-    }
-    inline void setRotationAngle(GLdouble v) {
-        v += 360.0;
-        rotangle = ABS( v - (double)( (int) v / 360 ) * 360.0 );
-    }
-    void moveTo(GLdouble posx, GLdouble posy);
-
-    inline void setTextureCoordinates(QRectF textureCoords) {
-        textureCoordinates = textureCoords;
-    }
-    inline void resetTextureCoordinates() {
-        textureCoordinates.setCoords(0.0, 0.0, 1.0, 1.0);
-    }
-
-    void setScale(GLdouble sx, GLdouble sy);
-    void scaleBy(GLfloat fx, GLfloat fy);
-    void clampScale();
-
-    inline void setVerticalFlip(bool on) { flipVertical = on; }
-    inline bool isVerticalFlip() const { return flipVertical; }
-
-    inline void setFixedAspectRatio(bool on) { fixedAspectRatio = on; }
-    inline bool isFixedAspectRatio() const { return fixedAspectRatio; }
-
-    typedef enum { SCALE_CROP= 0, SCALE_FIT, SCALE_DEFORM, SCALE_PIXEL} scalingMode;
-    void resetScale(scalingMode sm = SCALE_CROP);
 
     inline bool isCulled() const {
         return culled;
     }
-    void testGeometryCulling();
+
     inline bool needUpdate() const {
         return needupdate;
     }
+
+    typedef enum {
+        SCALE_CROP= 0,
+        SCALE_FIT,
+        SCALE_DEFORM,
+        SCALE_PIXEL
+    } scalingMode;
+
+    void resetScale(scalingMode sm = SCALE_CROP);
+    void clampScale();
+    // relative scaling
+    void scaleBy(double fx, double fy);
+    // reset texture coordinates
+    void resetTextureCoordinates();
+
     /**
      * standby
      */
@@ -252,209 +197,6 @@ public:
     }
 
 
-    /**
-     * Blending
-     */
-    void setAlphaCoordinates(GLdouble x, GLdouble y);
-    void setAlpha(GLfloat a);
-    inline GLdouble getAlphaX() const {
-        return alphax;
-    }
-    inline GLdouble getAlphaY() const {
-        return alphay;
-    }
-    inline GLfloat getAlpha() const {
-        return texalpha;
-    }
-    inline QColor getColor() const {
-        return texcolor;
-    }
-    inline GLenum getBlendEquation() const {
-        return blend_eq;
-    }
-    inline GLenum getBlendFuncSource() const {
-        return source_blend;
-    }
-    inline GLenum getBlendFuncDestination() const {
-        return destination_blend;
-    }
-    inline void setBlendFunc(GLenum sfactor, GLenum dfactor) {
-        source_blend = sfactor;
-        destination_blend = dfactor;
-    }
-    inline void setBlendEquation(GLenum eq) {
-        blend_eq = eq;
-    }
-
-    void setMask(int maskType, GLuint texture = 0);
-    int getMask() const {
-        return (int) mask_type;
-    }
-
-    /**
-     * Coloring, image processing
-     */
-    // set canvas color
-    inline void setColor(QColor c){
-        texcolor = c;
-    }
-    // Adjust brightness factor
-    inline virtual void setBrightness(int b) {
-         brightness  = GLfloat(b) / 100.f;
-    }
-    inline virtual int getBrightness() const {
-        return (int)(brightness * 100.f);
-    }
-    // Adjust contrast factor
-    inline virtual void setContrast(int c) {
-         contrast  = GLfloat(c + 100) / 100.f;
-    }
-    inline virtual int getContrast() const {
-        return (int)(contrast * 100.f) -100;
-    }
-    // Adjust saturation factor
-    inline virtual void setSaturation(int s){
-        saturation  = GLfloat(s + 100) / 100.f;
-    }
-    inline virtual int getSaturation() const {
-        return (int)(saturation * 100.f) -100;
-    }
-
-    // Adjust hue shift factor
-    inline void setHueShift(int h){
-        hueShift = qBound(0.f, GLfloat(h) / 360.f, 1.f);
-    }
-    inline int getHueShift() const {
-        return (int)(hueShift * 360.f);
-    }
-    // Adjust Luminance Threshold
-    inline void setLuminanceThreshold(int l){
-        luminanceThreshold = qBound(0, l, 100);
-    }
-    inline int getLuminanceThreshold() const {
-        return luminanceThreshold;
-    }
-    // Adjust number of colors
-    inline void setNumberOfColors(int n){
-        numberOfColors = qBound(0, n, 256);
-    }
-    inline int getNumberOfColors() const {
-        return numberOfColors;
-    }
-    // chroma keying
-    inline void setChromaKey(bool on) {
-        useChromaKey = on;
-    }
-    inline bool getChromaKey() const {
-        return useChromaKey;
-    }
-    inline void setChromaKeyColor(QColor c) {
-        chromaKeyColor = c;
-    }
-    inline QColor getChromaKeyColor() const {
-        return chromaKeyColor;
-    }
-    inline void setChromaKeyTolerance(int t) {
-        chromaKeyTolerance = qBound(0.f, GLfloat(t) / 100.f, 1.f);;
-    }
-    inline int getChromaKeyTolerance() const {
-        return (int)(chromaKeyTolerance * 100.f);
-    }
-
-    // Adjust gamma and levels factors
-    inline void setGamma(float g, float minI, float maxI, float minO, float maxO){
-        gamma = g;
-        gammaMinIn = qBound(0.f, minI, 1.f);
-        gammaMaxIn = qBound(0.f, maxI, 1.f);
-        gammaMinOut = qBound(0.f, minO, 1.f);
-        gammaMaxOut = qBound(0.f, maxO, 1.f);
-    }
-    inline float getGamma() const {
-        return gamma;
-    }
-    inline float getGammaMinInput() const {
-        return gammaMinIn;
-    }
-    inline float getGammaMaxInput() const {
-        return gammaMaxIn;
-    }
-    inline float getGammaMinOuput() const {
-        return gammaMinOut;
-    }
-    inline float getGammaMaxOutput() const {
-        return gammaMaxOut;
-    }
-
-    // display pixelated ?
-    inline void setPixelated(bool on) {
-        pixelated = on;
-    }
-    inline bool isPixelated() const {
-        return pixelated;
-    }
-
-    // select a color table
-    typedef enum {
-        INVERT_NONE = 0,
-        INVERT_COLOR,
-        INVERT_LUMINANCE
-    } invertModeType;
-    inline void setInvertMode(invertModeType i) {
-        invertMode = qBound(INVERT_NONE, i, INVERT_LUMINANCE);
-    }
-    inline invertModeType getInvertMode() const {
-        return invertMode;
-    }
-
-    // select a filter
-    typedef enum {
-        FILTER_NONE = 0,
-        FILTER_BLUR_GAUSSIAN,
-        FILTER_BLUR_MEAN,
-        FILTER_SHARPEN,
-        FILTER_SHARPEN_MORE,
-        FILTER_EDGE_GAUSSIAN,
-        FILTER_EDGE_LAPLACE,
-        FILTER_EDGE_LAPLACE_2,
-        FILTER_EMBOSS,
-        FILTER_EMBOSS_EDGE,
-        FILTER_EROSION_3X3,
-        FILTER_EROSION_5X5,
-        FILTER_EROSION_7X7,
-        FILTER_DILATION_3X3,
-        FILTER_DILATION_5X5,
-        FILTER_DILATION_7X7,
-        FILTER_CUSTOM_GLSL
-    } filterType;
-
-    inline void setFilter(filterType c) {
-        filter = qBound(FILTER_NONE, c, FILTER_CUSTOM_GLSL);
-    }
-
-    inline filterType getFilter() const {
-        return filter;
-    }
-
-    static QStringList getFilterNames();
-
-    // tags
-    inline Tag *getTag() const { return tag; }
-
-
-    void importProperties(const Source *s, bool withGeometry = true);
-
-    virtual int getFrameWidth() const { return 1; }
-    virtual int getFrameHeight() const { return 1; }
-    virtual double getFrameRate() const { return 0.0; }
-
-    // stick the source
-    inline void setModifiable(bool on) {
-        modifiable = on;
-    }
-    inline bool isModifiable() const {
-        return modifiable;
-    }
-
 #ifdef FFGL
     // freeframe gl plugin
     FFGLPluginSource *addFreeframeGLPlugin(QString filename = QString::null);
@@ -463,61 +205,103 @@ public:
     void clearFreeframeGLPlugin();
 #endif
 
+    /*
+     *  Implementation of ProtoSource methods
+     */
+    // name
+    void setName(QString n);
+    // position X
+    void setX(double v);
+    // position Y
+    void setY(double v);
+    // absolute position
+    void setPosition(double, double);
+    // rotation center X
+    void setRotationCenterX(double v);
+    // rotation center Y
+    void setRotationCenterY(double v);
+    // rotation angle
+    void setRotationAngle(double v);
+    // change texture coordinates
+    void setTextureCoordinates(QRectF textureCoords);
+    // set absolute scale X
+    void setScaleX(double v);
+    // set absolute scale Y
+    void setScaleY(double v);
+    // set absolute scale X & Y
+    void setScale(double sx, double sy);
+    // fix the aspect ratio for scaling
+    void setFixedAspectRatio(bool on);
+    // set Alpha on mixing view (compute alpha)
+    void setAlphaCoordinates(double x, double y);
+    // set Alpha (compute alpha coordinates)
+    void setAlpha(double a);
+    // set canvas mask
+    void setMask(int maskType);
+    // set canvas color
+    void setColor(QColor c);
+    // Adjust brightness factor
+    void setBrightness(int b);
+    // Adjust contrast factor
+    void setContrast(int c);
+    // Adjust saturation factor
+    void setSaturation(int s);
+    // Adjust hue shift factor
+    void setHueShift(int h);
+    // Adjust Luminance Threshold
+    void setLuminanceThreshold(int l);
+    // Adjust number of colors
+    void setNumberOfColors(int n);
+    // chroma keying activation
+    void setChromaKey(bool on);
+    // chroma keying color
+    void setChromaKeyColor(QColor c);
+    // chroma keying tolerance
+    void setChromaKeyTolerance(int t);
+    // Adjust gamma and levels factors
+    void setGamma(double g, double minI, double maxI, double minO, double maxO);
+    // display pixelated ?
+    void setPixelated(bool on);
+    // stick the source
+    void setModifiable(bool on);
+    // Blending function
+    void setBlendFunc(uint sfactor, uint dfactor);
+    // Blending equation
+    void setBlendEquation(uint eq);
+    // Color inversion
+    void setInvertMode(invertModeType i);
+    // filtering
+    void setFilter(filterType c);
+
 protected:
     /*
-     * also depth should only be modified by Rendering Manager
-     *
+     * Depth should only be modified only by Rendering Manager
      */
-    void setDepth(GLdouble v);
+    void setDepth(double v);
+    void testGeometryCulling();
 
     // RTTI
     static RTTI type;
     static bool playable;
 
     // identity
+    static GLuint lastid;
     GLuint id;
-    QString name;
 
     // standby mode
     StandbyMode standby;
 
     // flags for updating (or not)
     bool culled, needupdate;
-    // properties and clone list
-    bool modifiable, fixedAspectRatio;
+
+    // clone list
     SourceList *clones;
 
     // GL Stuff
-    GLuint textureIndex, maskTextureIndex;
-    GLdouble x, y, z;
-    GLdouble scalex, scaley;
-    GLdouble alphax, alphay;
-    GLdouble centerx, centery, rotangle;
-    GLfloat texalpha;
-    QColor texcolor;
-    GLenum source_blend, destination_blend;
-    GLenum blend_eq;
-    QRectF textureCoordinates;
+    GLuint textureIndex;
 
     // some textures are inverted
     bool flipVertical;
-
-    // if should be set to GL_NEAREST
-    bool pixelated;
-    // which filter to apply?
-    filterType filter;
-    invertModeType invertMode;
-    // which mask to use ?
-    int mask_type;
-    // Brightness, contrast and saturation
-    GLfloat brightness, contrast, saturation;
-    // gamma and its levels
-    GLfloat gamma, gammaMinIn, gammaMaxIn, gammaMinOut, gammaMaxOut;
-    // color manipulation
-    GLfloat hueShift, chromaKeyTolerance;
-    int luminanceThreshold, numberOfColors;
-    QColor chromaKeyColor;
-    bool useChromaKey;
 
     // tag : only Tag class can set a tag
     inline void setTag(Tag *t) { tag = t; }
@@ -527,14 +311,8 @@ protected:
     // freeframe plugin
     FFGLPluginSourceStack _ffgl_plugins;
 #endif
-    // statics
-    static GLuint lastid;
 
 };
 
-// read and write of properties into data stream
-// (used for default source save and restore in preferences)
-QDataStream &operator<<(QDataStream &, const Source *);
-QDataStream &operator>>(QDataStream &, Source *);
 
 #endif /* SOURCE_H_ */

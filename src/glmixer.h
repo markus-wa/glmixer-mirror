@@ -180,10 +180,17 @@ private:
     class UserPreferencesDialog *upd;
     class MixingToolboxWidget *mixingToolBox;
     class LayoutToolboxWidget *layoutToolBox;
-    class TagsManager * tagsManager;
-    class SessionSwitcherWidget *switcherSession;
     class PropertyBrowser *specificSourcePropertyBrowser;
     class QSplitter *layoutPropertyBrowser;
+#ifdef SESSION_MANAGEMENT
+    class SessionSwitcherWidget *switcherSession;
+#endif
+#ifdef TAG_MANAGEMENT
+    class TagsManager *tagsManager;
+#endif
+#ifdef HISTORY_MANAGEMENT
+    class HistoryManagerWidget *undoHistoryView;
+#endif
 #ifdef FFGL
     class GLSLCodeEditorWidget *pluginGLSLCodeEditor;
 #endif

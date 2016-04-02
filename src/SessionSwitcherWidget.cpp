@@ -397,7 +397,7 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
 
     folderHistory->updateGeometry();
 
-    folderModelAccesslock.lock();
+    folderModelAccesslock.tryLock(100);
 
     // remember sorting before disabling it temporarily
     sortingColumn = proxyFolderModel->sortColumn();

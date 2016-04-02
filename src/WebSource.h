@@ -69,7 +69,7 @@ private:
     bool _imageChanged;
 };
 
-class WebSource : public QObject, public Source
+class WebSource : public Source
 {
     Q_OBJECT
 

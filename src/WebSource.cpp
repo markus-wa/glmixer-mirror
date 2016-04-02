@@ -35,7 +35,7 @@ Source::RTTI WebSource::type = Source::WEB_SOURCE;
 bool WebSource::playable = true;
 
 
-WebSource::WebSource(QUrl web, GLuint texture, double d, int height, int scroll, int update): QObject(), Source(texture, d), _playing(true), _updateFrequency(update)
+WebSource::WebSource(QUrl web, GLuint texture, double d, int height, int scroll, int update):  Source(texture, d), _playing(true), _updateFrequency(update)
 {
     _webrenderer = new WebRenderer(web, height, scroll);
     _webrenderer->setUpdate(_updateFrequency);
