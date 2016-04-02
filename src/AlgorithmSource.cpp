@@ -391,7 +391,7 @@ AlgorithmSource::~AlgorithmSource() {
 
     // end the update thread
     _thread->end = true;
-    _mutex->lock();
+    _mutex->tryLock(50);
     _cond->wakeAll();
     _mutex->unlock();
     if (!_thread->wait(100 + period / 1000) ) // wait for usleep pediod time + 100 ms buffer
@@ -425,7 +425,7 @@ void AlgorithmSource::play(bool on) {
         _thread->start();
     } else { // stop play
         _thread->end = true;
-        _mutex->lock();
+        _mutex->tryLock(50);
         _cond->wakeAll();
         frameChanged = false;
         _mutex->unlock();
@@ -478,29 +478,29 @@ void AlgorithmSource::update() {
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
             // lock filling thread
-            _mutex->lock();
+            if ( _mutex->tryLock(100) ) {
 
-            glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
+                glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
 
-            // map the buffer object into client's memory
-            GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-            if (ptr) {
-                // update data directly on the mapped buffer
-                buffer = ptr;
-                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
+                // map the buffer object into client's memory
+                GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+                if (ptr) {
+                    // update data directly on the mapped buffer
+                    buffer = ptr;
+                    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
+                }
+                else
+                    buffer = 0;
+
+                // unlock filling thread
+                _cond->wakeAll();
+                _mutex->unlock();
             }
-            else
-                buffer = 0;
-
-            // unlock filling thread
-            _cond->wakeAll();
-            _mutex->unlock();
 
             // release PBOs with ID 0 after use.
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-        } else {
-            _mutex->lock();
+        } else  if ( _mutex->tryLock(100) ) {
 
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
                             GL_UNSIGNED_BYTE, (unsigned char*) buffer);

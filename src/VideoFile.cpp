@@ -85,7 +85,7 @@ bool VideoFile::ffmpegregistered = false;
 AVPacket *VideoFile::PacketQueue::flush_pkt = 0;
 AVPacket *VideoFile::PacketQueue::eof_pkt = 0;
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
 int VideoFile::PacketCount = 0;
 QMutex VideoFile::PacketCountLock;
 int VideoFile::PacketListElementCount = 0;
@@ -265,7 +265,7 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
 {
     avpicture_alloc(&rgb, pixelformat, width, height);
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
     VideoPicture::VideoPictureCountLock.lock();
     VideoPicture::VideoPictureCount++;
     VideoPicture::VideoPictureCountLock.unlock();
@@ -283,7 +283,7 @@ VideoPicture::~VideoPicture()
 {
     avpicture_free(&rgb);
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
     VideoPicture::VideoPictureCountLock.lock();
     VideoPicture::VideoPictureCount--;
     VideoPicture::VideoPictureCountLock.unlock();
@@ -378,19 +378,19 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 		av_register_all();
         VideoFile::ffmpegregistered = true;
 
-        // set log level for libav (do it once)
-#ifdef VIDEOFILE_DEBUG
-        av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
-#else
-		av_log_set_level( AV_LOG_DEBUG  ); /* print debug info from ffmpeg */
-#endif
 
-#ifndef VIDEOFILE_DEBUG
-        // uncomment to activate debug logs
+#ifdef VIDEOFILE_DEBUG
+        /* print debug info from ffmpeg */
+        av_log_set_level( AV_LOG_DEBUG  );
+
+        // activate debug logs
         QString filevideologs = QFileInfo( QDir::temp(), QString("glmixer_memory_logs_%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
          csvLogger *debugingLogger = new csvLogger(filevideologs);
          debugingLogger->startTimer(500);
          qDebug() << "Saving Memory CSV logs in " << filevideologs;
+
+#else
+        av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
 #endif
 	}
 
@@ -819,7 +819,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 			conversionAlgorithm = SWS_POINT;   // optimal speed scaling for videos
 	}
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
 	// print all info if in debug
 	conversionAlgorithm |= SWS_PRINT_INFO;
 #endif
@@ -942,16 +942,19 @@ double VideoFile::fill_first_frame(bool seek)
         if (av_read_frame(pFormatCtx, packet) < 0){
             // one trial less
             trial++;
+            av_free_packet(packet);
             continue;
         }
 
         // ignore non-video stream packets
-        if (packet->stream_index != videoStream)
+        if (packet->stream_index != videoStream) {
+            av_free_packet(packet);
             continue;
+        }
 
         // if we can decode it
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-        if (avcodec_decode_video2(video_st->codec, tmpframe, &frameFinished, packet) >= 0)
+        if ( avcodec_decode_video2(video_st->codec, tmpframe, &frameFinished, packet) >= 0)
         {
 #else
         if ( avcodec_decode_video(video_st->codec, tmpframe, &frameFinished, packet->data, packet->size) >= 0)
@@ -1043,7 +1046,7 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 #endif
 
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
     if ( codec->capabilities & CODEC_CAP_HWACCEL_VDPAU) {
 
         qDebug() << filename << QChar(124).toLatin1()<< tr("This is H264 file with VDPAU capabilities.");
@@ -1063,27 +1066,27 @@ void VideoFile::video_refresh_timer()
     VideoPicture *currentvp = NULL, *nextvp = NULL;
 
     // lock the thread to operate on the queue
-    pictq_mutex->lock();
+    if ( pictq_mutex->tryLock(100) ) {
 
-    // if all is in order, deal with the picture in the queue
-    // (i.e. there is a stream, there is a picture in the queue, and the clock is not paused)
-    // NB: if paused BUT the first pict in the queue is tagged for ACTION_RESET_PTS, then still proceed
-    if (video_st && !pictq.empty() && (!_videoClock.paused() ||  pictq.head()->hasAction(VideoPicture::ACTION_RESET_PTS) ) )
-    {
-        // now working on the head of the queue, that we take off the queue
-        currentvp = pictq.dequeue();
+        // if all is in order, deal with the picture in the queue
+        // (i.e. there is a stream, there is a picture in the queue, and the clock is not paused)
+        // NB: if paused BUT the first pict in the queue is tagged for ACTION_RESET_PTS, then still proceed
+        if (video_st && !pictq.empty() && (!_videoClock.paused() ||  pictq.head()->hasAction(VideoPicture::ACTION_RESET_PTS) ) )
+        {
+            // now working on the head of the queue, that we take off the queue
+            currentvp = pictq.dequeue();
 
-        // remember it if there is a next picture
-        if (!pictq.empty())
-            nextvp = pictq.head();
+            // remember it if there is a next picture
+            if (!pictq.empty())
+                nextvp = pictq.head();
 
-        // unblock the queue for the decoding thread
-        // by informing it about the new size of the queue
-        pictq_cond->wakeAll();
+            // unblock the queue for the decoding thread
+            // by informing it about the new size of the queue
+            pictq_cond->wakeAll();
+        }
+        // release lock
+        pictq_mutex->unlock();
     }
-    // release lock
-    pictq_mutex->unlock();
-
 
     if (currentvp)
     {
@@ -1566,7 +1569,7 @@ void ParsingThread::run()
         }
         else {
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
             VideoFile::PacketCountLock.lock();
             VideoFile::PacketCount++;
             VideoFile::PacketCountLock.unlock();
@@ -1575,7 +1578,7 @@ void ParsingThread::run()
             if ( !is->videoq.put(packet) ) {
                 // we need to free the packet if it was not put in the queue
                 av_free_packet(packet);
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
                 VideoFile::PacketCountLock.lock();
                 VideoFile::PacketCount--;
                 VideoFile::PacketCountLock.unlock();
@@ -1605,10 +1608,11 @@ void VideoFile::flush_picture_queue()
 {
     pictq_flush_req = false;
 
-    pictq_mutex->lock();
-    clear_picture_queue();
-    pictq_cond->wakeAll();
-    pictq_mutex->unlock();
+    if ( pictq_mutex->tryLock(1000) ) {
+        clear_picture_queue();
+        pictq_cond->wakeAll();
+        pictq_mutex->unlock();
+    }
 
 }
 
@@ -1617,12 +1621,13 @@ void VideoFile::parsingSeekRequest(double time)
 {
     if ( parsing_mode != VideoFile::SEEKING_PARSING_REQUEST )
     {
-        seek_mutex->lock();
-        seek_pos = time;
-        parsing_mode = VideoFile::SEEKING_PARSING_REQUEST;
-        // wait for the parsing thread to aknowledge the seek request
-        seek_cond->wait(seek_mutex);
-        seek_mutex->unlock();
+        if ( seek_mutex->tryLock(1000) ) {
+            seek_pos = time;
+            parsing_mode = VideoFile::SEEKING_PARSING_REQUEST;
+            // wait for the parsing thread to aknowledge the seek request
+            seek_cond->wait(seek_mutex);
+            seek_mutex->unlock();
+        }
     }
 }
 
@@ -1916,7 +1921,7 @@ void DecodingThread::run()
 		// packet was decoded, should be removed
         av_free_packet(packet);
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
         VideoFile::PacketCountLock.lock();
         VideoFile::PacketCount--;
         VideoFile::PacketCountLock.unlock();
@@ -1975,7 +1980,7 @@ bool VideoFile::PacketQueue::put(AVPacket *pkt)
 	nb_packets++;
 	size += pkt1->pkt.size;
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
     VideoFile::PacketListElementCountLock.lock();
     if ( !VideoFile::PacketQueue::isFlush( &(pkt1->pkt) ) && !VideoFile::PacketQueue::isEndOfFile( &(pkt1->pkt) ) )
         VideoFile::PacketListElementCount += pkt1->pkt.size;
@@ -2006,7 +2011,7 @@ bool VideoFile::PacketQueue::get(AVPacket *pkt, bool block)
 			nb_packets--;
             size -= pkt1->pkt.size;
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
     VideoFile::PacketListElementCountLock.lock();
     if ( !VideoFile::PacketQueue::isFlush( &(pkt1->pkt) ) && !VideoFile::PacketQueue::isEndOfFile( &(pkt1->pkt) ) )
         VideoFile::PacketListElementCount -= pkt1->pkt.size;
@@ -2087,14 +2092,14 @@ void VideoFile::PacketQueue::clear()
         // do not free flush or eof packets
         if ( !VideoFile::PacketQueue::isFlush( &(pkt->pkt) ) && !VideoFile::PacketQueue::isEndOfFile( &(pkt->pkt) ) ) {
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
             VideoFile::PacketListElementCountLock.lock();
             VideoFile::PacketListElementCount -= pkt->pkt.size;
             VideoFile::PacketListElementCountLock.unlock();
 #endif
             av_free_packet(&(pkt->pkt));
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
             VideoFile::PacketCountLock.lock();
             VideoFile::PacketCount--;
             VideoFile::PacketCountLock.unlock();

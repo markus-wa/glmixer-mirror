@@ -211,7 +211,7 @@ private:
     SwsContext *img_convert_ctx_filtering;
     Action action;
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
 public:
     static QMutex VideoPictureCountLock;
     static int VideoPictureCount;
@@ -992,7 +992,7 @@ protected:
     static bool ffmpegregistered;
 
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
 public:
     static QMutex PacketCountLock;
     static int PacketCount;

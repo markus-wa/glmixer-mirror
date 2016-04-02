@@ -122,9 +122,11 @@ void CatalogView::clear() {
         qFatal( "%s", qPrintable( QObject::tr("OpenGL Frame Buffer Objects is not accessible  (CatalogView FBO %1x%2 bind failed).").arg(maxtexturewidth).arg(CATALOG_TEXTURE_HEIGHT)));
 
     // clear the list of catalog sources
-    while (!_icons.isEmpty()) {
-        delete _icons.pop();
-    }
+//    while (!_icons.isEmpty()) {
+//        delete _icons.pop();
+//    }
+    qDeleteAll(_icons);
+    _icons.clear();
 
 }
 

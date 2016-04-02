@@ -164,7 +164,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true), maxSourceCount(0), countRenderingSource(0)
+    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(false), maxSourceCount(0), countRenderingSource(0)
 {
     // 1. Create the view rendering widget
     _renderwidget = new ViewRenderWidget;
@@ -1307,7 +1307,7 @@ void RenderingManager::clearSourceSet() {
         qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("All sources cleared (%1/%2)").arg(num_sources_deleted).arg(total);
     }
 
-#ifndef VIDEOFILE_DEBUG
+#ifdef VIDEOFILE_DEBUG
     VideoPicture::VideoPictureCountLock.lock();
     qDebug() << "Pending video Picture :" << VideoPicture::VideoPictureCount;
     VideoPicture::VideoPictureCountLock.unlock();

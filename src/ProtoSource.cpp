@@ -186,7 +186,7 @@ void ProtoSource::_setGamma(double g, double minI, double maxI, double minO, dou
     gammaMinOut = CLAMP(minO, 0.0, 1.0);
     gammaMaxOut = CLAMP(maxO, 0.0, 1.0);
 
-    qDebug() << "_setGamma " << gamma ;
+//    qDebug() << "_setGamma " << gamma ;
 }
 
 void ProtoSource::_setPixelated(bool on) {

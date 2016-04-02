@@ -145,6 +145,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     actionFreeframeSource->setVisible(false);
 #endif
 
+    // The log widget
+    QAction *showlog = logDockWidget->toggleViewAction();
+    showlog->setShortcut(QKeySequence("Ctrl+L"));
+    toolBarsMenu->addAction(showlog);
+    showlog->setChecked(false);
+
     // add the show/hide menu items for the dock widgets
     toolBarsMenu->addAction(previewDockWidget->toggleViewAction());
     toolBarsMenu->addAction(sourceDockWidget->toggleViewAction());
@@ -152,23 +158,21 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(cursorDockWidget->toggleViewAction());
     toolBarsMenu->addAction(mixingDockWidget->toggleViewAction());
     toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
-    toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());    
+    toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());
+
 #ifdef SESSION_MANAGEMENT
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
 #endif
 #ifdef TAG_MANAGEMENT
     toolBarsMenu->addAction(tagsDockWidget->toggleViewAction());
 #endif
-    // The log widget
-    QAction *showlog = logDockWidget->toggleViewAction();
-    showlog->setShortcut(QKeySequence("Ctrl+L"));
-    toolBarsMenu->addAction(showlog);
-    logDockWidget->hide();
+#if HISTORY_MANAGEMENT
     // The history widget
     QAction *showhistory = actionHistoryDockWidget->toggleViewAction();
     showhistory->setShortcut(QKeySequence("Ctrl+H"));
     toolBarsMenu->addAction(showhistory);
     actionHistoryDockWidget->hide();
+#endif
 
     toolBarsMenu->addSeparator();
     toolBarsMenu->addAction(sourceToolBar->toggleViewAction());
@@ -585,7 +589,7 @@ void GLMixer::keyReleaseEvent(QKeyEvent * event) {
 
 void GLMixer::updateRefreshTimerState(){
 
-    if (selectedSourceVideoFile && /*!selectedSourceVideoFile->isPaused() &&*/ selectedSourceVideoFile->isRunning() && vcontrolDockWidget->isVisible())
+    if (selectedSourceVideoFile && /*!selectedSourceVideoFile->isPaused() &&*/ selectedSourceVideoFile->isRunning() && vcontrolDockWidget->isVisible() )
         refreshTimingTimer->start();
     else
         refreshTimingTimer->stop();
@@ -726,30 +730,34 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
         // write message
         GLMixer::logStream << "Critical| " << txt << "\n";
 
-        // create message box
-        QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),  tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
-        QStringList message = txt.split(QChar(124), QString::SkipEmptyParts);
-        QString displaytext = txt;
-        if (message.count() > 1 ) {
-            displaytext = message[1].simplified();
-            if ( !message[0].simplified().isEmpty() )
-                displaytext += tr("\n\nOrigin of the problem:\n") + message[0].simplified();
-        } else if (message.count() > 0 )
-            displaytext = message[0].simplified();
+        if ( !_instance->logDockWidget->isVisible() ) {
 
-        // add button to show logs
-        QPushButton *logButton = NULL;
-        if (_instance)
-            logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
+            // create message box
+            QMessageBox msgBox(QMessageBox::Warning, tr("Warning"),  tr("<b>The application %1 encountered a problem.</b>").arg(QCoreApplication::applicationName()), QMessageBox::Ok);
+            QStringList message = txt.split(QChar(124), QString::SkipEmptyParts);
+            QString displaytext = txt;
+            if (message.count() > 1 ) {
+                displaytext = message[1].simplified();
+                if ( !message[0].simplified().isEmpty() )
+                    displaytext += tr("\n\nOrigin of the problem:\n") + message[0].simplified();
+            } else if (message.count() > 0 )
+                displaytext = message[0].simplified();
 
-        // exec message box
-        msgBox.setInformativeText(displaytext);
-        msgBox.setDefaultButton(QMessageBox::Ok);
-        msgBox.exec();
+            // add button to show logs
+            QPushButton *logButton = NULL;
+            if (_instance)
+                logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);
 
-        // show logs if required
-        if ( _instance && msgBox.clickedButton() == logButton )
-            _instance->logDockWidget->show();
+            // exec message box
+            msgBox.setInformativeText(displaytext);
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            msgBox.exec();
+
+            // show logs if required
+            if ( _instance && msgBox.clickedButton() == logButton )
+                _instance->logDockWidget->show();
+
+        }
 
     }
         break;
