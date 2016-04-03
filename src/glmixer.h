@@ -29,8 +29,6 @@
 #include "SourceSet.h"
 #include "ui_glmixer.h"
 
-
-
 #define MAX_RECENT_FILES 7
 #define MAX_DROP_FILES 20
 #define GLMIXER_LOGFILE "glmixer_log.txt"

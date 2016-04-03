@@ -449,16 +449,17 @@ void VideoFile::close()
 
     // wait for threads to end properly
     if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) )
-        qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly.");
+        qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly when closing.");
+
     pictq_cond->wakeAll();
-    seek_cond->wakeAll();
+////    seek_cond->wakeAll();
     if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) )
-        qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly.");
+        qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when closing.");
 
     if (pFormatCtx) {
 
         // does not hurt to ensure we flush buffers
-//        avcodec_flush_buffers(pFormatCtx->streams[videoStream]->codec);
+        avcodec_flush_buffers(pFormatCtx->streams[videoStream]->codec);
 
         // Close codec (& threads inside)
         avcodec_close(pFormatCtx->streams[videoStream]->codec);
@@ -504,8 +505,8 @@ VideoFile::~VideoFile()
     close();
 
     // delete threads
-    parse_tid->quit();
-    decod_tid->quit();
+    parse_tid->terminate();
+    decod_tid->terminate();
 	delete parse_tid;
 	delete decod_tid;
 	delete pictq_mutex;
@@ -527,7 +528,7 @@ void VideoFile::reset()
     pictq_flush_req = false;
     parsing_mode = VideoFile::SEEKING_NONE;
 
-    flush_picture_queue();
+    clear_picture_queue();
 
     if (video_st)
         _videoClock.reset(0.0, av_q2d(video_st->time_base));
@@ -546,11 +547,11 @@ void VideoFile::stop()
 
 		// wait fo threads to end properly
         if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) )
-            qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly.");
+            qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly when stopping.");
         pictq_cond->wakeAll();
-        seek_cond->wakeAll();
+//        seek_cond->wakeAll();
         if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) )
-            qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly.");
+            qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when stopping.");
 
         if (!restart_where_stopped)
         {
@@ -560,7 +561,7 @@ void VideoFile::stop()
             emit frameReady( resetPicture );
         }
 
-        flush_picture_queue();
+        clear_picture_queue();
 
 		/* say if we are running or not */
         emit running(!quit);
@@ -1793,10 +1794,13 @@ void DecodingThread::run()
             // flush buffers
             avcodec_flush_buffers(is->video_st->codec);
 
-            // now asking the decoding thread to find the seeked frame
-            is->seek_mutex->lock();
-            is->parsing_mode = VideoFile::SEEKING_DECODING_REQUEST;
-            is->seek_mutex->unlock();
+            // seeking or quitting ?
+            if (!is->quit) {
+                // ask the decoding thread to find the seeked frame
+                is->seek_mutex->lock();
+                is->parsing_mode = VideoFile::SEEKING_DECODING_REQUEST;
+                is->seek_mutex->unlock();
+            }
 
             // go on to next packet (do not free flush packet)
             continue;

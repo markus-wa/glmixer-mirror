@@ -847,8 +847,6 @@ public slots:
     {
         if ( property == idToProperty["Ignore alpha"] ) {
             VideoFile *vf = vs->getVideoFile();
-            vf->stop();
-            vf->close();
             vf->open(vf->getFileName(), vf->getMarkIn(), vf->getMarkOut(), value);
         }
     }

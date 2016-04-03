@@ -397,7 +397,7 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
 
     folderHistory->updateGeometry();
 
-    if ( folderModelAccesslock.tryLock(1000) ) {
+    if ( folderModelAccesslock.tryLock(100) ) {
 
         // remember sorting before disabling it temporarily
         sortingColumn = proxyFolderModel->sortColumn();
@@ -406,8 +406,10 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
 
         // Threaded version of fillFolderModel(folderModel, text);
         FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, foldername);
-        if (!workerThread)
+        if (!workerThread) {
+            folderModelAccesslock.unlock();
             return;
+        }
 
         setEnabled(false);
         connect(workerThread, SIGNAL(finished()), this, SLOT(restoreFolderView()));
@@ -713,9 +715,10 @@ void SessionSwitcherWidget::setAllowedAspectRatio(const standardAspectRatio ar)
             folderModel->itemFromIndex(folderModel->index(r, 2))->setFlags (flags);
             folderModel->itemFromIndex(folderModel->index(r, 3))->setFlags (flags);
         }
+
+        folderModelAccesslock.unlock();
     }
 
-    folderModelAccesslock.unlock();
 }
 
 

@@ -145,8 +145,11 @@ set( CMAKE_INCLUDE_PATH
   ${CMAKE_SYSTEM_INCLUDE_PATH}
 )
 
+# HERE ARE THE OPTIONNAL MODULES TO COMPILE
+SET(USE_SESSION_MANAGEMENT ON CACHE BOOL "CHECK if you want to compile with Session switcher")
+
 # HERE IS THE OPTIONNAL USE OF SHARED MEMORY
-SET(USE_SHAREDMEMORY ${USE_SHAREDMEMORY} CACHE BOOL "CHECK if you want to compile with Shared Memory support")
+SET(USE_SHAREDMEMORY OFF CACHE BOOL "CHECK if you want to compile with Shared Memory support")
 
 if( USE_SHAREDMEMORY )
 
@@ -184,7 +187,7 @@ endif( USE_SHAREDMEMORY )
 
 
 # HERE IS THE OPTIONNAL INSTALLATION OF OPENCV
-SET(USE_OPENCV ${USE_OPENCV} CACHE BOOL "CHECK if you want to compile with OpenCV library")
+SET(USE_OPENCV ON CACHE BOOL "CHECK if you want to compile with OpenCV library")
 
 if(USE_OPENCV)
 

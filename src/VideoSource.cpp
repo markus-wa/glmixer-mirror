@@ -33,7 +33,7 @@
 Source::RTTI VideoSource::type = Source::VIDEO_SOURCE;
 
 VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
-    Source(texture, d), is(f), format(GL_RGBA), vp(NULL)
+    Source(texture, d), format(GL_RGBA), is(f), vp(NULL)
 {
     if (!is)
         SourceConstructorException().raise();

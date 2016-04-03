@@ -341,6 +341,18 @@ public:
 
 
     /**
+     * Opens the file and reads first frame.
+     *
+     * Emits a frameReady signal to display this first frame (this is useful for 1 frame files like jpg or png).
+     *
+     * @param file Full path of the file to open
+     * @param markIn Position of the mark IN where to start.
+     * @param markOut Position of the mark OUT where to stop.
+     * @return true on success
+     */
+    bool open(QString file, double  markIn = -1.0, double  markOut = -1.0, bool ignoreAlphaChannel = false);
+
+    /**
      * Test if a file was open for this VideoFile.
      *
      * @return true if a file was open, false otherwise.
@@ -622,21 +634,6 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     /**
-     * Opens the file and reads first frame.
-     *
-     * Emits a frameReady signal to display this first frame (this is useful for 1 frame files like jpg or png).
-     *
-     * @param file Full path of the file to open
-     * @param markIn Position of the mark IN where to start.
-     * @param markOut Position of the mark OUT where to stop.
-     * @return true on success
-     */
-    bool open(QString file, double  markIn = -1.0, double  markOut = -1.0, bool ignoreAlphaChannel = false);
-    /**
-     *
-     */
-    void close();
-    /**
      * Starts the decoding-conversion process.
      * Does nothing if the process was already started.
      *
@@ -886,6 +883,7 @@ protected:
     };
 
     // internal methods
+    void close();
     void reset();
     double fill_first_frame(bool);
     int stream_component_open(AVFormatContext *);

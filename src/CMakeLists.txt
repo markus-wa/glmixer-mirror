@@ -98,6 +98,11 @@ SET(GLMIXER_UIS
     TagsManager.ui
 )
 
+if(USE_SESSION_MANAGEMENT)
+    add_definitions(-DSESSION_MANAGEMENT)
+endif(USE_SESSION_MANAGEMENT)
+
+
 # If SharedMemory was set, then link with its source files
 if(USE_SHAREDMEMORY)
     add_definitions(-DSHM)
