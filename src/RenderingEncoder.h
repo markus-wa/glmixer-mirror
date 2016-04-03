@@ -81,7 +81,7 @@ protected:
 
     // picture queue management
     unsigned char** pictq;
-    int pictq_max, pictq_size, pictq_rindex, pictq_windex;
+    int pictq_max_count, pictq_size_count, pictq_rindex, pictq_windex;
     int *recordingTimeStamp;
 };
 
@@ -123,8 +123,8 @@ public:
 public Q_SLOTS:
 	void setActive(bool on);
 	void setPaused(bool on);
-	void saveFile();
-	void saveFileAs();
+    void saveFile(QString suffix, QString filename = QString::null);
+    void saveFileAs(QString suffix, QString description);
     void close();
 
     void setBufferSize(unsigned long bytes);

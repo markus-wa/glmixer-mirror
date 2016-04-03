@@ -42,8 +42,8 @@
 #include <sys/mman.h>
 #endif
 
-EncodingThread::EncodingThread() : QThread(), rec(NULL), _quit(true), pictq(0), pictq_max(0),
-    pictq_size(0), pictq_rindex(0), pictq_windex(0), recordingTimeStamp(0)
+EncodingThread::EncodingThread() : QThread(), rec(NULL), _quit(true), pictq(0), pictq_max_count(0),
+    pictq_size_count(0), pictq_rindex(0), pictq_windex(0), recordingTimeStamp(0)
 {
     // create mutex
     pictq_mutex = new QMutex;
@@ -63,13 +63,13 @@ EncodingThread::~EncodingThread()
 
 void EncodingThread::initialize(video_rec_t *recorder, int bufferCount) {
     rec = recorder;
-    // compute buffer count from size
-    pictq_max = bufferCount;
+    // store buffer count as maximum buffer size
+    pictq_max_count = bufferCount;
     // allocate &  initialize arrays to zero
-    pictq = (unsigned char **) calloc( pictq_max, sizeof(unsigned char *) );
-    recordingTimeStamp = (int *) calloc( pictq_max, sizeof(int) );
+    pictq = (unsigned char **) calloc( bufferCount, sizeof(unsigned char *) );
+    recordingTimeStamp = (int *) calloc( bufferCount, sizeof(int) );
     // init variables
-    pictq_size = pictq_rindex = pictq_windex = 0;
+    pictq_size_count = pictq_rindex = pictq_windex = 0;
 }
 
 void EncodingThread::clear() {
@@ -80,21 +80,23 @@ void EncodingThread::clear() {
     int freedmemory = 0;
     if (pictq) {
         // free buffer
-        for (int i = 0; i < pictq_max; ++i) {
+        for (int i = 0; i < pictq_max_count; ++i) {
             if (pictq[i]) {
-                freedmemory += 1;
 #ifdef Q_OS_UNIX
                 munmap(pictq[i], rec->width * rec->height * 4);
 #else
                 free(pictq[i]);
 #endif
                 pictq[i] = 0;
+                freedmemory += 1;
             }
         }
+        // free pictq array
         free(pictq);
+        pictq = 0;
     }
-    pictq = 0;
-    // free array
+
+    // free recordingTimeStamp array
     if (recordingTimeStamp)
         free(recordingTimeStamp);
     recordingTimeStamp = 0;
@@ -119,36 +121,39 @@ void EncodingThread::pictq_push(int timestamp){
     recordingTimeStamp[pictq_windex] = timestamp;
 
     // set to write index to next in queue
-    if (++pictq_windex == pictq_max)
+    if (++pictq_windex == pictq_max_count)
         pictq_windex = 0;
     /* now we inform our encoding thread that we have a picture ready */
     //        pictq_mutex->lock(); // was locked in pictq_top
-    pictq_size++;
+    pictq_size_count++;
     pictq_mutex->unlock();
 }
 
-unsigned char *EncodingThread::pictq_top(){
+unsigned char *EncodingThread::pictq_top() {
     // wait until we have space for a new picture
     // (this happens only when the queue is full)
-    pictq_mutex->lock();
-    while ( pictq_full() && !_quit)
-        pictq_cond->wait(pictq_mutex); // the condition is released in run()
-    //		pictq_mutex->unlock();  // will be unlocked in pictq_push
+    if ( pictq_mutex->tryLock(500) )
+    {
 
-    // if not already done, allocate for images in 4 bits RBGA
-    if (pictq[pictq_windex] == 0)
+        while ( pictq_full() && !_quit)
+            pictq_cond->wait(pictq_mutex); // the condition is released in run()
+        //		pictq_mutex->unlock();  // will be unlocked in pictq_push
+
+        // if not already done, allocate for images in 4 bits RBGA
+        if (pictq[pictq_windex] == 0)
 #ifdef Q_OS_UNIX
-        pictq[pictq_windex] = (unsigned char *) mmap(0, rec->width * rec->height * 4, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+            pictq[pictq_windex] = (unsigned char *) mmap(0, rec->width * rec->height * 4, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 #else
-        pictq[pictq_windex] = (unsigned char *) malloc(rec->width * rec->height * 4);
+            pictq[pictq_windex] = (unsigned char *) malloc(rec->width * rec->height * 4);
 #endif
 
+    }
     // Fill the queue with the given picture
     return pictq[pictq_windex];
 }
 
 bool EncodingThread::pictq_full() {
-    return pictq_size >= (pictq_max - 1);
+    return (pictq_size_count >= (pictq_max_count - 1));
 }
 
 
@@ -161,7 +166,7 @@ void EncodingThread::run() {
 	// loop until break
 	while (true) {
 
-		if (pictq_size < 1) {
+        if (pictq_size_count < 1) {
 			// no picture ?
 			// if it is because we shall quit, then terminate thread
             if (_quit)
@@ -173,15 +178,15 @@ void EncodingThread::run() {
             (*(rec)->pt2RecordingFunction)(rec, pictq[pictq_rindex], recordingTimeStamp[pictq_rindex]);
 
 			/* update queue for next picture at the read index */
-			if (++pictq_rindex == pictq_max)
+            if (++pictq_rindex == pictq_max_count)
 				pictq_rindex = 0;
 
 			pictq_mutex->lock();
             // remember usage
             pictq_usage = MAXI(pictq_usage, pictq_rindex + 1);
-            picq_size_usage = MAXI(picq_size_usage, pictq_size + 1);
+            picq_size_usage = MAXI(picq_size_usage, pictq_size_count + 1);
 			// decrease the number of frames in the queue
-			pictq_size--;
+            pictq_size_count--;
 			// tell main process that it can go on (in case it was waiting on a full queue)
 			pictq_cond->wakeAll();
 			pictq_mutex->unlock();
@@ -191,15 +196,15 @@ void EncodingThread::run() {
         // maintain a slow use of ressources for encoding during the recording
         if (!_quit)
             // sleep at least 5 ms, plus an amount of time proportionnal to the remaining buffer
-            msleep( 5 + (int)( 50.f * (float)  (pictq_max - pictq_size)  / (float) pictq_max ) );
+            msleep( 5 + (int)( 50.f * (float)  (pictq_max_count - pictq_size_count)  / (float) pictq_max_count ) );
         else
             // conversely, after quit recording, loop as fast as possible to finish quickly
-            msleep( 5 );
+            msleep( 3 );
     }
 
     emit encodingFinished();
 
-    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << tr("Encoding finished (%1 % of buffer was used, %2 % was really necessary).").arg((int) (100.f * (float)pictq_usage/(float)pictq_max)).arg((int) (100.f * (float)picq_size_usage/(float)pictq_max));
+    qDebug() << "EncodingThread" << QChar(124).toLatin1()  << tr("Encoding finished (%1 % of buffer was used, %2 % was really necessary).").arg((int) (100.f * (float)pictq_usage/(float)pictq_max_count)).arg((int) (100.f * (float)picq_size_usage/(float)pictq_max_count));
 }
 
 RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(false), paused(false), elapseTimer(0), skipframecount(0), update(40), displayupdate(33), bufferSize(DEFAULT_RECORDING_BUFFER_SIZE) {
@@ -216,6 +221,7 @@ RenderingEncoder::RenderingEncoder(QObject * parent): QObject(parent), started(f
 RenderingEncoder::~RenderingEncoder() {
 
     if (encoder) {
+
         disconnect(encoder, SIGNAL(encodingFinished()), this, SLOT(close()));
         encoder->clear();
         delete encoder;
@@ -444,7 +450,19 @@ void RenderingEncoder::close(){
 
     // inform we are off
 	started = false;
-    emit activated(started);
+    emit activated(false);
+
+    // free encoder and stop all
+    encoder->clear();
+    encoder = NULL;
+
+    // free recorder
+    QString suffix_file = recorder->suffix;
+    QString description_file = recorder->description;
+    video_rec_free(recorder);
+    recorder = NULL;
+
+    emit processing(false);
 
 	// show warning if too many frames were bad
     bool savefile = true;
@@ -475,23 +493,14 @@ void RenderingEncoder::close(){
     // save file
     if (savefile) {
         if (automaticSaving)
-            saveFile();
+            saveFile(suffix_file);
         else
-            saveFileAs();
+            saveFileAs(suffix_file, description_file);
     }
     else
         qDebug() << tr("Recording not saved.");
 
-    // free encoder and recorder
-    encoder->clear();
-    encoder = NULL;
 
-    video_rec_free(recorder);
-    recorder = NULL;
-
-//    qDebug() << "RenderingEncoder" << QChar(124).toLatin1() << "Done.";
-
-    emit processing(false);
 }
 
 
@@ -516,13 +525,18 @@ void RenderingEncoder::setAutomaticSavingFolder(QDir d) {
 	setAutomaticSavingMode(automaticSaving);
 }
 
-void RenderingEncoder::saveFile(){
+void RenderingEncoder::saveFile(QString suffix, QString filename){
 
-    QFileInfo infoFileDestination(savingFolder, QString("glmixervideo%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) + '.' + recorder->suffix);
+    if (filename.isNull())
+        filename = QString("glmixervideo%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) + '.' + suffix;
 
+    QFileInfo infoFileDestination(savingFolder, filename);
+
+    // delete file if exists
 	if (infoFileDestination.exists()){
 		infoFileDestination.dir().remove(infoFileDestination.fileName());
     }
+
 	// move the temporaryFileName to newFileName
     if (!temporaryFolder.rename(temporaryFileName, infoFileDestination.fileName()) )
         qWarning() << infoFileDestination.absoluteFilePath() << QChar(124).toLatin1() << tr("Could not save file (file exists already?).");
@@ -532,27 +546,20 @@ void RenderingEncoder::saveFile(){
     }
 }
 
-void RenderingEncoder::saveFileAs(){
+void RenderingEncoder::saveFileAs(QString suffix, QString description){
 
     QString suggestion = QString("glmixervideo%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss"));
 
     QString newFileName = GLMixer::getInstance()->getFileName(tr("Save recorded video"),
-                                                              recorder->description,
-                                                              recorder->suffix,
+                                                              description,
+                                                              suffix,
                                                               suggestion);
 
     // if we got a filename, save the file:
     if (!newFileName.isEmpty()) {
 
-        // delete file if exists
-        QFileInfo infoFileDestination(newFileName);
-        if (infoFileDestination.exists()){
-            infoFileDestination.dir().remove(infoFileDestination.fileName());
-        }
-        // move the temporaryFileName to newFileName
-        temporaryFolder.rename(temporaryFileName, newFileName);
-        emit status(tr("File %1 saved.").arg(newFileName), 2000);
-        qDebug() << newFileName << QChar(124).toLatin1() << tr("File saved.");
+        saveFile(suffix, newFileName);
+
     }
 
 }
