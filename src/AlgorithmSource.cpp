@@ -391,9 +391,10 @@ AlgorithmSource::~AlgorithmSource() {
 
     // end the update thread
     _thread->end = true;
-    _mutex->tryLock(50);
-    _cond->wakeAll();
-    _mutex->unlock();
+    if ( _mutex->tryLock(500) ) {
+        _cond->wakeAll();
+        _mutex->unlock();
+    }
     if (!_thread->wait(100 + period / 1000) ) // wait for usleep pediod time + 100 ms buffer
         qWarning() << name << QChar(124).toLatin1() << tr("Thread interrupted unexpectedly.");
     delete _thread;
@@ -425,10 +426,11 @@ void AlgorithmSource::play(bool on) {
         _thread->start();
     } else { // stop play
         _thread->end = true;
-        _mutex->tryLock(50);
-        _cond->wakeAll();
-        frameChanged = false;
-        _mutex->unlock();
+        if ( _mutex->tryLock(500) ) {
+            _cond->wakeAll();
+            frameChanged = false;
+            _mutex->unlock();
+        }
         if (!_thread->wait(100 + period / 1000) ) // wait for usleep pediod time + 100 ms buffer
             qWarning() << name << QChar(124).toLatin1() << tr("Thread interrupted unexpectedly.");
     }

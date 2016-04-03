@@ -70,6 +70,10 @@ extern "C"
  * Waiting time when update has nothing to do (ms)
  */
 #define UPDATE_SLEEP_DELAY 5
+/**
+ * Waiting timout when trying to acquire lock
+ */
+#define LOCKING_TIMEOUT 500
 
 // memory policy
 #define MIN_VIDEO_PICTURE_QUEUE_COUNT 3
@@ -1066,7 +1070,7 @@ void VideoFile::video_refresh_timer()
     VideoPicture *currentvp = NULL, *nextvp = NULL;
 
     // lock the thread to operate on the queue
-    if ( pictq_mutex->tryLock(100) ) {
+    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
 
         // if all is in order, deal with the picture in the queue
         // (i.e. there is a stream, there is a picture in the queue, and the clock is not paused)
@@ -1347,26 +1351,27 @@ void VideoFile::cleanupPictureQueue(double time) {
         time = getEnd();
 
     // get hold on the picture queue
-    pictq_mutex->lock();
+    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
 
-    // loop to find a mark frame in the queue
-    int i =  0;
-    while ( i < pictq.size() && !pictq[i]->hasAction(VideoPicture::ACTION_MARK) && pictq[i]->getPts() < time)
-        i++;
+        // loop to find a mark frame in the queue
+        int i =  0;
+        while ( i < pictq.size() && !pictq[i]->hasAction(VideoPicture::ACTION_MARK) && pictq[i]->getPts() < time)
+            i++;
 
-    // found a mark frame in the queue
-    if ( pictq.size() > i ) {
-        // remove all what is after
-        while ( pictq.size() > i)
-            delete pictq.takeLast();
+        // found a mark frame in the queue
+        if ( pictq.size() > i ) {
+            // remove all what is after
+            while ( pictq.size() > i)
+                delete pictq.takeLast();
 
-        // sanity check (but should never be the case)
-        if (! pictq.empty())
-            // restart filling in at the last pts of the cleanned queue
-            parsingSeekRequest( pictq.takeLast()->getPts() );
+            // sanity check (but should never be the case)
+            if (! pictq.empty())
+                // restart filling in at the last pts of the cleanned queue
+                parsingSeekRequest( pictq.takeLast()->getPts() );
+        }
+        // done with the cleanup
+        pictq_mutex->unlock();
     }
-    // done with the cleanup
-    pictq_mutex->unlock();
 
 }
 
@@ -1608,7 +1613,7 @@ void VideoFile::flush_picture_queue()
 {
     pictq_flush_req = false;
 
-    if ( pictq_mutex->tryLock(1000) ) {
+    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
         clear_picture_queue();
         pictq_cond->wakeAll();
         pictq_mutex->unlock();
@@ -1621,7 +1626,7 @@ void VideoFile::parsingSeekRequest(double time)
 {
     if ( parsing_mode != VideoFile::SEEKING_PARSING_REQUEST )
     {
-        if ( seek_mutex->tryLock(1000) ) {
+        if ( seek_mutex->tryLock(LOCKING_TIMEOUT) ) {
             seek_pos = time;
             parsing_mode = VideoFile::SEEKING_PARSING_REQUEST;
             // wait for the parsing thread to aknowledge the seek request
@@ -1650,36 +1655,41 @@ bool VideoFile::decodingSeekRequest(double time)
 
     // now for sure the seek time is in the queue
     // get hold on the picture queue
-    pictq_mutex->lock();
+    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
 
-    // does the queue loop ?
-    bool loopingbuffer = pictq.first()->getPts() > pictq.last()->getPts();
-    // in this case, remove all till mark out
-    if ( loopingbuffer &&  (time > mark_in && time < pictq.last()->getPts()) ) {
-        // remove all frames till the mark out, ie every frame above the last
-        while ( pictq.size() > 1 && pictq.first()->getPts() > pictq.last()->getPts() ) {
+        // does the queue loop ?
+        bool loopingbuffer = pictq.first()->getPts() > pictq.last()->getPts();
+        // in this case, remove all till mark out
+        if ( loopingbuffer &&  (time > mark_in && time < pictq.last()->getPts()) ) {
+            // remove all frames till the mark out, ie every frame above the last
+            while ( pictq.size() > 1 && pictq.first()->getPts() > pictq.last()->getPts() ) {
+                VideoPicture *p = pictq.dequeue();
+                delete p;
+            }
+        }
+
+        // remove all frames before the time of seek (except if queue is empty)
+        while ( pictq.size() > 1 && time > pictq.first()->getPts() ){
             VideoPicture *p = pictq.dequeue();
             delete p;
         }
+
+        // mark this frame for reset of time
+        pictq.first()->addAction(VideoPicture::ACTION_RESET_PTS);
+
+        // inform about the new size of the queue
+        pictq_cond->wakeAll();
+        pictq_mutex->unlock();
+
+        // yes we could seek in decoder picture queue
+        return true;
     }
-
-    // remove all frames before the time of seek (except if queue is empty)
-    while ( pictq.size() > 1 && time > pictq.first()->getPts() ){
-        VideoPicture *p = pictq.dequeue();
-        delete p;
-    }
-
-    // mark this frame for reset of time
-    pictq.first()->addAction(VideoPicture::ACTION_RESET_PTS);
-
-    // inform about the new size of the queue
-    pictq_cond->wakeAll();
-    pictq_mutex->unlock();
-
-    // yes we could seek in decoder picture queue
-    return true;
+    else
+        // no we couldn't seek in decoder picture queue
+        return false;
 }
 
+// called exclusively in Decoding Thread
 void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a)
 {
     // create vp as the picture in the queue to be written
@@ -1955,6 +1965,7 @@ bool VideoFile::isPaused() const {
  */
 
 // put a packet at the tail of the queue.
+// called exclusively in Parsing Thread
 bool VideoFile::PacketQueue::put(AVPacket *pkt)
 {
 //    if (pkt != VideoFile::PacketQueue::flush_pkt &&

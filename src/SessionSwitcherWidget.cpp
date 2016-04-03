@@ -397,23 +397,24 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
 
     folderHistory->updateGeometry();
 
-    folderModelAccesslock.tryLock(100);
+    if ( folderModelAccesslock.tryLock(1000) ) {
 
-    // remember sorting before disabling it temporarily
-    sortingColumn = proxyFolderModel->sortColumn();
-    sortingOrder = proxyFolderModel->sortOrder();
-    proxyView->setSortingEnabled(false);
+        // remember sorting before disabling it temporarily
+        sortingColumn = proxyFolderModel->sortColumn();
+        sortingOrder = proxyFolderModel->sortOrder();
+        proxyView->setSortingEnabled(false);
 
-    // Threaded version of fillFolderModel(folderModel, text);
-    FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, foldername);
-    if (!workerThread)
-        return;
+        // Threaded version of fillFolderModel(folderModel, text);
+        FolderModelFiller *workerThread = new FolderModelFiller(this, folderModel, foldername);
+        if (!workerThread)
+            return;
 
-    setEnabled(false);
-    connect(workerThread, SIGNAL(finished()), this, SLOT(restoreFolderView()));
-    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
-    workerThread->start();
+        setEnabled(false);
+        connect(workerThread, SIGNAL(finished()), this, SLOT(restoreFolderView()));
+        connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+        workerThread->start();
 
+    }
 }
 
 
