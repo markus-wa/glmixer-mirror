@@ -95,8 +95,11 @@
 #include "glmixer.moc"
 
 GLMixer *GLMixer::_instance = 0;
+
+#ifdef LOG_MANAGEMENT
 QFile *GLMixer::logFile = 0;
 QTextStream GLMixer::logStream;
+#endif
 
 QByteArray static_windowstate =
 QByteArray::fromHex("000000ff00000000fd0000000300000000000001150000022bfc0200000003fc0000003b000000d5000000d500fffffffa000000000100000002fb0000002200700072006500760069006500770044006f0063006b0057006900640067006500740100000000ffffffff000000d400fffffffb000000200063007500720073006f00720044006f0063006b005700690064006700650074010000000000000136000000e600fffffffc00000112000001540000009100fffffffa000000000100000002fb00000024007300770069007400630068006500720044006f0063006b0057006900640067006500740100000000ffffffff000000e500fffffffb000000240062006c006f0063006e006f007400650044006f0063006b0057006900640067006500740100000000ffffffff000000ac00fffffffb0000001a006c006f00670044006f0063006b005700690064006700650074020000044e0000029d000002ef0000018400000001000001040000022bfc0200000003fc0000003b0000022b000001c300fffffffa000000000100000003fb00000020006d006900780069006e00670044006f0063006b0057006900640067006500740100000000ffffffff000000ec00fffffffb000000200073006f00750072006300650044006f0063006b0057006900640067006500740100000000ffffffff0000004100fffffffb00000020006c00610079006f007500740044006f0063006b0057006900640067006500740100000000ffffffff000000a600fffffffc000002f2000000300000000000fffffffa000000000100000001fb0000001e0061006c00690067006e0044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000fb0000001e00670061006d006d00610044006f0063006b0057006900640067006500740100000000ffffffff0000000000000000000000030000042d00000054fc0100000001fb0000002400760063006f006e00740072006f006c0044006f0063006b00570069006400670065007401000000000000042d000003070007ffff000002100000022b00000004000000040000000800000008fc0000000100000002000000060000001a0073006f00750072006300650054006f006f006c0042006100720100000000ffffffff00000000000000000000001600760069006500770054006f006f006c00420061007201000001e4ffffffff00000000000000000000001600660069006c00650054006f006f006c00420061007201000002a8ffffffff0000000000000000000000180074006f006f006c00730054006f006f006c0042006100720100000341ffffffff00000000000000000000002000720065006e0064006500720069006e00670054006f006f006c00420061007201000003b9ffffffff0000000000000000000000280073006f00750072006300650043006f006e00740072006f006c0054006f006f006c00420061007201000003f3ffffffff0000000000000000" );
@@ -145,11 +148,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     actionFreeframeSource->setVisible(false);
 #endif
 
+
+#ifdef LOG_MANAGEMENT
     // The log widget
     QAction *showlog = logDockWidget->toggleViewAction();
     showlog->setShortcut(QKeySequence("Ctrl+L"));
     toolBarsMenu->addAction(showlog);
     showlog->setChecked(false);
+#endif
 
     // add the show/hide menu items for the dock widgets
     toolBarsMenu->addAction(previewDockWidget->toggleViewAction());
@@ -605,18 +611,6 @@ void GLMixer::on_actionOpenGL_extensions_triggered(){
     glRenderWidget::showGlExtensionsInformationDialog(QString::fromUtf8(":/glmixer/icons/display.png"));
 }
 
-void GLMixer::on_copyLogsToClipboard_clicked() {
-
-    if (logTexts->topLevelItemCount() > 0) {
-        QString logs;
-        QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
-        while (*it) {
-            logs.append( QString("%2: %1\n").arg((*it)->text(0)).arg((*it)->text(1)) );
-            ++it;
-        }
-        QApplication::clipboard()->setText(logs);
-    }
-}
 
 void GLMixer::on_copyNotes_clicked() {
 
@@ -637,10 +631,24 @@ void GLMixer::on_addListToNotes_clicked() {
     blocNoteEdit->append(list);
 }
 
+#ifdef LOG_MANAGEMENT
 
 void GLMixer::on_openLogsFolder_clicked() {
 
     QDesktopServices::openUrl( QDir::tempPath() );
+}
+
+void GLMixer::on_copyLogsToClipboard_clicked() {
+
+    if (logTexts->topLevelItemCount() > 0) {
+        QString logs;
+        QTreeWidgetItemIterator it(logTexts->topLevelItem(0));
+        while (*it) {
+            logs.append( QString("%2: %1\n").arg((*it)->text(0)).arg((*it)->text(1)) );
+            ++it;
+        }
+        QApplication::clipboard()->setText(logs);
+    }
 }
 
 void GLMixer::on_saveLogsToFile_clicked() {
@@ -679,6 +687,7 @@ void GLMixer::on_saveLogsToFile_clicked() {
     }
 }
 
+
 void GLMixer::exitHandler() {
 
     // cleanup logs on exit (if log file valid)
@@ -704,6 +713,7 @@ void GLMixer::exitHandler() {
     }
 
 }
+
 
 void GLMixer::msgHandler(QtMsgType type, const char *msg)
 {
@@ -849,6 +859,8 @@ void GLMixer::Log(int type, QString msg)
     // auto scroll to new item
     logTexts->setCurrentItem( item );
 }
+
+#endif
 
 void GLMixer::setView(QAction *a){
 

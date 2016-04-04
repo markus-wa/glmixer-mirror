@@ -102,6 +102,17 @@ if(USE_SESSION_MANAGEMENT)
     add_definitions(-DSESSION_MANAGEMENT)
 endif(USE_SESSION_MANAGEMENT)
 
+if(USE_LOG_MANAGEMENT)
+    add_definitions(-DLOG_MANAGEMENT)
+endif(USE_LOG_MANAGEMENT)
+
+if(USE_TAG_MANAGEMENT)
+    add_definitions(-DTAG_MANAGEMENT)
+endif(USE_TAG_MANAGEMENT)
+
+if(USE_HISTORY_MANAGEMENT)
+    add_definitions(-DHISTORY_MANAGEMENT)
+endif(USE_HISTORY_MANAGEMENT)
 
 # If SharedMemory was set, then link with its source files
 if(USE_SHAREDMEMORY)

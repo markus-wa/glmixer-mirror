@@ -44,10 +44,12 @@ public:
 	static GLMixer *getInstance();
     static void deleteInstance();
 
+#ifdef LOG_MANAGEMENT
 	// message handler
 	static void msgHandler(QtMsgType type, const char *msg);
     // exit handler
     static void exitHandler();
+#endif
 
     // catch keyboard events
     void keyPressEvent ( QKeyEvent * event );
@@ -96,9 +98,6 @@ public Q_SLOTS:
     void on_actionSave_snapshot_triggered();
     void on_actionCopy_snapshot_triggered();
     void on_output_alpha_valueChanged(int);
-    void on_copyLogsToClipboard_clicked();
-    void on_saveLogsToFile_clicked();
-    void on_openLogsFolder_clicked();
     void on_copyNotes_clicked();
     void on_addDateToNotes_clicked();
     void on_addListToNotes_clicked();
@@ -134,7 +133,13 @@ public Q_SLOTS:
 	void connectSource(SourceSet::iterator csi);
 	void sourceChanged(Source *s);
 
+#ifdef LOG_MANAGEMENT
     void Log(int, QString);
+    void on_copyLogsToClipboard_clicked();
+    void on_saveLogsToFile_clicked();
+    void on_openLogsFolder_clicked();
+#endif
+
 	void readSettings();
     void saveSettings();
 
@@ -180,6 +185,7 @@ private:
     class LayoutToolboxWidget *layoutToolBox;
     class PropertyBrowser *specificSourcePropertyBrowser;
     class QSplitter *layoutPropertyBrowser;
+
 #ifdef SESSION_MANAGEMENT
     class SessionSwitcherWidget *switcherSession;
 #endif
@@ -200,8 +206,10 @@ private:
 	QSettings settings;
 	QAction *recentFileActs[MAX_RECENT_FILES];
 
+#ifdef LOG_MANAGEMENT
     static QFile *logFile;
     static QTextStream logStream;
+#endif
 };
 
 

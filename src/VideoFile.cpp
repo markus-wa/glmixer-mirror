@@ -226,6 +226,7 @@ public:
 	ParsingThread(VideoFile *video = 0) :
 		QThread(), is(video)
 	{
+        setTerminationEnabled(true);
 	}
 
 	void run();
@@ -246,6 +247,8 @@ public:
         _pFrame = av_frame_alloc();
 #endif
 		Q_CHECK_PTR(_pFrame);
+
+        setTerminationEnabled(true);
 	}
 	~DecodingThread()
 	{
@@ -448,18 +451,23 @@ void VideoFile::close()
 	quit = true;
 
     // wait for threads to end properly
-    if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) )
+    if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) ) {
+        parse_tid->terminate();
         qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly when closing.");
+    }
 
     pictq_cond->wakeAll();
-////    seek_cond->wakeAll();
-    if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) )
+    seek_cond->wakeAll();
+
+    if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) ) {
+        decod_tid->terminate();
         qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when closing.");
+    }
 
     if (pFormatCtx) {
 
         // does not hurt to ensure we flush buffers
-        avcodec_flush_buffers(pFormatCtx->streams[videoStream]->codec);
+//        avcodec_flush_buffers(pFormatCtx->streams[videoStream]->codec);
 
         // Close codec (& threads inside)
         avcodec_close(pFormatCtx->streams[videoStream]->codec);
@@ -546,12 +554,18 @@ void VideoFile::stop()
 		quit = true;
 
 		// wait fo threads to end properly
-        if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) )
+        if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) ) {
+            parse_tid->terminate();
             qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly when stopping.");
+        }
+
         pictq_cond->wakeAll();
-//        seek_cond->wakeAll();
-        if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) )
+        seek_cond->wakeAll();
+
+        if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) ) {
+            decod_tid->terminate();
             qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when stopping.");
+        }
 
         if (!restart_where_stopped)
         {
@@ -1930,6 +1944,10 @@ void DecodingThread::run()
                         is->flush_picture_queue();
                 }
             }
+        }
+        else {
+            qWarning() << is->getFileName() << QChar(124).toLatin1() << tr("Libav codec decoding failed.");
+            is->quit = true;
         }
 
 		// packet was decoded, should be removed

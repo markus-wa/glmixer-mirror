@@ -116,15 +116,17 @@ int main(int argc, char **argv)
     splash.show();
     a.processEvents();
 
+#ifdef LOG_MANAGEMENT
     // Redirect qDebug, qWarning and qFatal to GUI and logger
     qInstallMsgHandler(GLMixer::msgHandler);
     // this cleans up after the application ends
     qAddPostRoutine(GLMixer::exitHandler);
-
 #ifndef Q_OS_MAC
     // these redirects both cout/cerr (seems to crash under OSX :( )
     QLogStream qout(std::cout, GLMixer::msgHandler, QtDebugMsg);
     QLogStream qerr(std::cerr, GLMixer::msgHandler, QtWarningMsg);
+#endif
+
 #endif
 
 //    QTranslator translator;
