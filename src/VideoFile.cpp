@@ -125,6 +125,7 @@ csvLogger::csvLogger(QString filename) : QObject(0) {}
 void csvLogger::timerEvent(QTimerEvent *event) {}
 #endif
 
+
 /**
  * VideoFile::Clock
  */
@@ -382,23 +383,26 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 	{
         // register all codecs (do it once)
 		avcodec_register_all();
-		av_register_all();
-        VideoFile::ffmpegregistered = true;
-
+        av_register_all();
 
 #ifdef VIDEOFILE_DEBUG
-        /* print debug info from ffmpeg */
-        av_log_set_level( AV_LOG_DEBUG  );
 
         // activate debug logs
         QString filevideologs = QFileInfo( QDir::temp(), QString("glmixer_memory_logs_%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
          csvLogger *debugingLogger = new csvLogger(filevideologs);
          debugingLogger->startTimer(500);
          qDebug() << "Saving Memory CSV logs in " << filevideologs;
-
-#else
-        av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
 #endif
+
+#ifndef NDEBUG
+         /* print debug info from ffmpeg */
+         av_log_set_level( AV_LOG_DEBUG  );
+#else
+         av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
+#endif
+
+        // remember ffmpeg is registered
+        VideoFile::ffmpegregistered = true;
 	}
 
 	// Init some pointers to NULL
@@ -470,7 +474,7 @@ void VideoFile::close()
 //        avcodec_flush_buffers(pFormatCtx->streams[videoStream]->codec);
 
         // Close codec (& threads inside)
-        avcodec_close(pFormatCtx->streams[videoStream]->codec);
+//        avcodec_close(pFormatCtx->streams[videoStream]->codec);
 
         // close file & free context  Free it and all its contents and set to NULL.
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)

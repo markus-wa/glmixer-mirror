@@ -2167,7 +2167,7 @@ void GLMixer::openSessionFile()
         }
 
         // read the list of sources
-        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session...");
+        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session sources...");
 
         // if we got up to here, it should be fine
         int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
@@ -2175,6 +2175,7 @@ void GLMixer::openSessionFile()
             qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when reading session.");
 
     }
+    qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session configuration...");
     // read the views configuration
     RenderingManager::getRenderingWidget()->clearViews();
     QDomElement vconfig = root.firstChildElement("Views");
