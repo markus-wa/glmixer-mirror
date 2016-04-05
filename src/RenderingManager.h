@@ -75,10 +75,13 @@ public:
 	static ViewRenderWidget *getRenderingWidget();
 	static SourcePropertyBrowser *getPropertyBrowserWidget();
 	static RenderingEncoder *getRecorder();
-	static SessionSwitcher *getSessionSwitcher();
-    static HistoryManager *getUndoHistory();
+    static SessionSwitcher *getSessionSwitcher();
 	static RenderingManager *getInstance();
 	static void deleteInstance();
+
+#ifdef HISTORY_MANAGEMENT
+    static HistoryManager *getUndoHistory();
+#endif
 
 	/**
 	* Management of the sources
@@ -232,8 +235,10 @@ public Q_SLOTS:
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);
 
+#ifdef HISTORY_MANAGEMENT
     void undo();
     void redo();
+#endif
 
     void disableProgressBars(bool off) { _showProgressBar = !off; }
 
@@ -263,8 +268,6 @@ protected:
 	ViewRenderWidget *_renderwidget;
     // properties of the sources
     SourcePropertyBrowser *_propertyBrowser;
-    // history of events
-    HistoryManager *_undoHistory;
 
     // the frame buffers
     QGLFramebufferObject *_fbo;
@@ -293,6 +296,11 @@ protected:
 	bool paused;
 	bool _showProgressBar;
     unsigned int maxSourceCount, countRenderingSource;
+
+#ifdef HISTORY_MANAGEMENT
+    // history of events
+    HistoryManager *_undoHistory;
+#endif
 
 #ifdef SHM
     // The shared memory buffer

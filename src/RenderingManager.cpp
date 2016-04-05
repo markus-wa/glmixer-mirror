@@ -64,7 +64,10 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include "RenderingEncoder.h"
 #include "SourcePropertyBrowser.h"
 #include "SessionSwitcher.h"
+
+#ifdef HISTORY_MANAGEMENT
 #include "HistoryManager.h"
+#endif
 
 #include <map>
 #include <algorithm>
@@ -91,11 +94,6 @@ ViewRenderWidget *RenderingManager::getRenderingWidget() {
 SourcePropertyBrowser *RenderingManager::getPropertyBrowserWidget() {
 
     return getInstance()->_propertyBrowser;
-}
-
-HistoryManager *RenderingManager::getUndoHistory() {
-
-    return getInstance()->_undoHistory;
 }
 
 RenderingEncoder *RenderingManager::getRecorder() {
@@ -164,7 +162,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(false), maxSourceCount(0), countRenderingSource(0)
+    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true), maxSourceCount(0), countRenderingSource(0)
 {
     // 1. Create the view rendering widget
     _renderwidget = new ViewRenderWidget;
@@ -181,8 +179,10 @@ RenderingManager::RenderingManager() :
     _recorder = new RenderingEncoder(this);
     _switcher = new SessionSwitcher(this);
 
+#ifdef HISTORY_MANAGEMENT
     // create the history manager used for undo
     _undoHistory = new HistoryManager(this);
+#endif
 
     // 2. Connect the above view holders to events
     QObject::connect(this, SIGNAL(currentSourceChanged(SourceSet::iterator)), _propertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
@@ -234,8 +234,10 @@ RenderingManager::~RenderingManager() {
     if (_switcher)
         delete _switcher;
 
+#ifdef HISTORY_MANAGEMENT
     if (_undoHistory)
         delete _undoHistory;
+#endif
 
     qDebug() << "RenderingManager" << QChar(124).toLatin1() << "All clear.";
 }
@@ -634,6 +636,10 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
 
 Source *RenderingManager::newRenderingSource(double depth) {
 
+#ifndef NDEBUG
+    qDebug() << tr("RenderingManager::newRenderingSource ")<< depth;
+#endif
+
     RenderingSource *s = 0;
     _renderwidget->makeCurrent();
 
@@ -664,6 +670,10 @@ QImage RenderingManager::captureFrameBuffer(QImage::Format format) {
 
 Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 
+#ifndef NDEBUG
+    qDebug() << tr("RenderingManager::newSvgSource ")<< depth;
+#endif
+
     SvgSource *s = 0;
     // create the texture for this source
     GLuint textureIndex;
@@ -692,6 +702,10 @@ Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
 Source *RenderingManager::newWebSource(QUrl web, int height, int scroll, int update, double depth){
     WebSource *s = 0;
 
+#ifndef NDEBUG
+    qDebug() << tr("RenderingManager::newWebSource ")<< depth;
+#endif
+
     // create the texture for this source
     GLuint textureIndex;
     _renderwidget->makeCurrent();
@@ -719,6 +733,10 @@ Source *RenderingManager::newWebSource(QUrl web, int height, int scroll, int upd
 
 Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 
+#ifndef NDEBUG
+    qDebug() << tr("RenderingManager::newCaptureSource ")<< depth;
+#endif
+
     CaptureSource *s = 0;
     // create the texture for this source
     GLuint textureIndex;
@@ -745,6 +763,10 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
 }
 
 Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
+
+#ifndef NDEBUG
+    qDebug() << tr("RenderingManager::newMediaSource ")<< depth << vf->getFileName() ;
+#endif
 
     VideoSource *s = 0;
     // create the texture for this source
@@ -924,6 +946,9 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
 Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
                                              int p, bool ia, double depth) {
 
+#ifndef NDEBUG
+    qDebug() << tr("RenderingManager::newAlgorithmSource ")<< depth << type;
+#endif
     AlgorithmSource *s = 0;
     // create the texture for this source
     GLuint textureIndex;
@@ -1006,8 +1031,11 @@ Source *RenderingManager::newSpoutSource(QString senderName, double depth) {
 
 Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) {
 
-    CloneSource *s = 0;
+#ifndef NDEBUG
+    qDebug() << tr("RenderingManager::newCloneSource ")<< depth;
+#endif
 
+    CloneSource *s = 0;
     try{
         // create a source appropriate for this videofile
         s = new CloneSource(sit, getAvailableDepthFrom(depth));
@@ -1038,8 +1066,10 @@ bool RenderingManager::insertSource(Source *s)
             //insert the source to the list
             if (_front_sources.insert(s).second) {
 
+#ifdef HISTORY_MANAGEMENT
                 // connect source to the history manager
                 _undoHistory->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
+#endif
 
                 // inform of success
                 return true;
@@ -1278,8 +1308,10 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
         qDebug() << s->getName() << QChar(124).toLatin1() << tr("Source deleted.");
         _front_sources.erase(itsource);
 
+#ifdef HISTORY_MANAGEMENT
         // disconnect this source from the history manager
         _undoHistory->disconnect(s);
+#endif
 
         delete s;
         num_sources_deleted++;
@@ -2526,6 +2558,13 @@ QString RenderingManager::renameSource(Source *s, const QString name){
     return s->getName();
 }
 
+#ifdef HISTORY_MANAGEMENT
+
+HistoryManager *RenderingManager::getUndoHistory() {
+
+    return getInstance()->_undoHistory;
+}
+
 void RenderingManager::undo() {
 
     // go backward in history
@@ -2544,4 +2583,5 @@ void RenderingManager::redo() {
     emit currentSourceChanged(_currentSource);
 }
 
+#endif
 
