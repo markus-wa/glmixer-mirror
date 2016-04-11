@@ -406,7 +406,7 @@ void RenderingManager::postRenderToFrameBuffer() {
         return;
 
     // skip loop back if no rendering source
-    if (countRenderingSource > 0)
+    if (countRenderingSource > 0 && !paused)
     {
         // frame delay
         previousframe_index++;
@@ -604,6 +604,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
             qFatal( "%s", qPrintable( tr("OpenGL Frame Buffer Objects is not accessible "
                                          "(RenderingManager %1x%2 bind failed).").arg(_fbo->width()).arg(_fbo->height())));
     }
+
 
     //
     // 2. Draw sources into second texture  attachment ; the catalog (if visible)
@@ -1959,14 +1960,11 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     int count = 0;
 
     // busy
-//    RenderingManager::getRenderingWidget()->setFaded(true);
-    pause(true);
+
 
     // start loop of sources to create
     QDomElement child = xmlconfig.firstChildElement("Source");
     while (!child.isNull()) {
-
-        qApp->processEvents();
 
         // pointer for new source
         Source *newsource = 0;
@@ -2258,8 +2256,6 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     QListIterator<QDomElement> it(clones);
     while (it.hasNext()) {
 
-        qApp->processEvents();
-
         Source *clonesource = 0;
 
         QDomElement c = it.next();
@@ -2295,12 +2291,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             qWarning() << c.attribute("name") << QChar(124).toLatin1() << tr("Cannot clone %2 ; no such source.").arg(f.text());
             errors++;
         }
-
     }
 
     // un-busy
-//    RenderingManager::getRenderingWidget()->setFaded(false);
-    pause(false);
+
 
     // set current source to none (end of list)
     unsetCurrentSource();

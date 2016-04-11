@@ -2140,8 +2140,51 @@ void GLMixer::openSessionFile()
 
     // if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
 
+    // suspend display
+    RenderingManager::getInstance()->pause(true);
+    QCoreApplication::processEvents();
+
     // clear sources
     RenderingManager::getInstance()->clearSourceSet();
+    QCoreApplication::processEvents();
+
+    // read the source list and its configuration
+    QDomElement renderConfig = root.firstChildElement("SourceList");
+    if (renderConfig.isNull())
+        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load.");
+    else {
+        standardAspectRatio ar = (standardAspectRatio) renderConfig.attribute("aspectRatio", "0").toInt();
+
+        switch(ar) {
+        case ASPECT_RATIO_FREE:
+            actionFree_aspect_ratio->trigger();
+            break;
+        case ASPECT_RATIO_16_10:
+            action16_10_aspect_ratio->trigger();
+            break;
+        case ASPECT_RATIO_16_9:
+            action16_9_aspect_ratio->trigger();
+            break;
+        case ASPECT_RATIO_3_2:
+            action3_2_aspect_ratio->trigger();
+            break;
+        default:
+        case ASPECT_RATIO_4_3:
+            action4_3_aspect_ratio->trigger();
+            break;
+        }
+
+        RenderingManager::getInstance()->resetFrameBuffer();
+
+        // read the list of sources
+        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: opening sources.");
+
+        // if we got up to here, it should be fine
+        int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
+        if ( errors > 0)
+            qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when opening the session.");
+
+    }
 
     // read and apply the views configuration
     qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: applying configuration.");
@@ -2150,6 +2193,10 @@ void GLMixer::openSessionFile()
     if (vconfig.isNull())
         qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("No configuration specified.");
     else  {
+
+        // apply the view config (after sources are loaded to greate groups)
+        RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
+
         // activate the view specified as 'current' in the xml config
         switch (vconfig.attribute("current").toInt()){
         case (View::NULLVIEW):
@@ -2184,49 +2231,8 @@ void GLMixer::openSessionFile()
 
     // read the rendering configuration
     QDomElement rconfig = root.firstChildElement("Rendering");
-    if (!rconfig.isNull()) {
+    if (!rconfig.isNull())
         actionWhite_background->setChecked(rconfig.attribute("clearToWhite").toInt());
-    }
-
-
-    // read the source list and its configuration
-    QDomElement renderConfig = root.firstChildElement("SourceList");
-    if (renderConfig.isNull())
-        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load.");
-    else {
-        standardAspectRatio ar = (standardAspectRatio) renderConfig.attribute("aspectRatio", "0").toInt();
-
-        switch(ar) {
-        case ASPECT_RATIO_FREE:
-            actionFree_aspect_ratio->trigger();
-            break;
-        case ASPECT_RATIO_16_10:
-            action16_10_aspect_ratio->trigger();
-            break;
-        case ASPECT_RATIO_16_9:
-            action16_9_aspect_ratio->trigger();
-            break;
-        case ASPECT_RATIO_3_2:
-            action3_2_aspect_ratio->trigger();
-            break;
-        default:
-        case ASPECT_RATIO_4_3:
-            action4_3_aspect_ratio->trigger();
-            break;
-        }
-
-        // read the list of sources
-        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("Loading session: opening sources.");
-
-        // if we got up to here, it should be fine
-        int errors = RenderingManager::getInstance()->addConfiguration(renderConfig, QFileInfo(currentSessionFileName).canonicalPath(), version);
-        if ( errors > 0)
-            qCritical() << currentSessionFileName << QChar(124).toLatin1() << errors << tr(" error(s) occurred when opening the session.");
-
-    }
-
-    // apply the view config (after sources are loaded to greate groups)
-    RenderingManager::getRenderingWidget()->setConfiguration(vconfig);
 
     // read the notes text
     QString text;
@@ -2234,6 +2240,9 @@ void GLMixer::openSessionFile()
     if (!notes.isNull())
         text = notes.text();
     blocNoteEdit->setPlainText(text);
+
+    // unsuspend display
+    RenderingManager::getInstance()->pause(false);
 
     // broadcast that the session is loaded
     emit sessionLoaded();
