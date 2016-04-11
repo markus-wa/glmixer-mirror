@@ -225,31 +225,31 @@ class ParsingThread: public QThread
 {
 public:
 	ParsingThread(VideoFile *video = 0) :
-		QThread(), is(video)
-	{
+        QThread(), is(video), _working(false)
+    {
         setTerminationEnabled(true);
 	}
 
+    inline bool isWorking() { return _working; }
 	void run();
 private:
 	VideoFile *is;
-
+    bool _working;
 };
 
 class DecodingThread: public QThread
 {
 public:
-    DecodingThread(VideoFile *video = 0) : QThread(), is(video)
+    DecodingThread(VideoFile *video = 0) : QThread(), is(video), _working(false)
 	{
+        setTerminationEnabled(true);
         // allocate a frame to fill
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
         _pFrame = avcodec_alloc_frame();
 #else
         _pFrame = av_frame_alloc();
 #endif
-		Q_CHECK_PTR(_pFrame);
-
-        setTerminationEnabled(true);
+        Q_CHECK_PTR(_pFrame);
 	}
 	~DecodingThread()
 	{
@@ -260,11 +260,13 @@ public:
         av_frame_free(&_pFrame);
 #endif
 	}
+    inline bool isWorking() { return _working; }
 
 	void run();
 private:
 	VideoFile *is;
 	AVFrame *_pFrame;
+    bool _working;
 };
 
 
@@ -386,7 +388,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
         av_register_all();
 
 #ifdef VIDEOFILE_DEBUG
-
         // activate debug logs
         QString filevideologs = QFileInfo( QDir::temp(), QString("glmixer_memory_logs_%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
          csvLogger *debugingLogger = new csvLogger(filevideologs);
@@ -396,7 +397,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 
 #ifndef NDEBUG
          /* print debug info from ffmpeg */
-         av_log_set_level( AV_LOG_DEBUG  );
+         av_log_set_level( AV_LOG_ERROR  );
 #else
          av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
 #endif
@@ -419,8 +420,8 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 
 	// Contruct some objects
 	parse_tid = new ParsingThread(this);
-	Q_CHECK_PTR(parse_tid);
-	decod_tid = new DecodingThread(this);
+    Q_CHECK_PTR(parse_tid);
+    decod_tid = new DecodingThread(this);
     Q_CHECK_PTR(decod_tid);
     pictq_mutex = new QMutex;
     Q_CHECK_PTR(pictq_mutex);
@@ -451,41 +452,69 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 
 void VideoFile::close()
 {
-	// request ending
-	quit = true;
+#ifdef VIDEOFILE_DEBUG
+    qDebug() << filename << QChar(124).toLatin1() << tr("Closing.");
+#endif
 
-    // wait for threads to end properly
-    if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) ) {
-        parse_tid->terminate();
-        qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly when closing.");
-    }
+    if ( isRunning() ) {
 
-    pictq_cond->wakeAll();
-    seek_cond->wakeAll();
+        // request ending
+        quit = true;
 
-    if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) ) {
-        decod_tid->terminate();
-        qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when closing.");
+        // wait for threads to end properly
+        while ( !parse_tid->wait( LOCKING_TIMEOUT ) ) {
+            qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly when closing.");
+            parse_tid->terminate();
+        }
+
+#ifdef VIDEOFILE_DEBUG
+        qDebug() << filename << QChar(124).toLatin1() << tr(".");
+#endif
+
+        pictq_cond->wakeAll();
+        seek_cond->wakeAll();
+
+        while ( !decod_tid->wait( LOCKING_TIMEOUT ) ) {
+            qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when closing.");
+            decod_tid->terminate();
+        }
+
+#ifdef VIDEOFILE_DEBUG
+        qDebug() << filename << QChar(124).toLatin1() << tr(".");
+#endif
+
     }
 
     if (pFormatCtx) {
 
-        // does not hurt to ensure we flush buffers
-//        avcodec_flush_buffers(pFormatCtx->streams[videoStream]->codec);
+        AVCodecContext *cdctx = pFormatCtx->streams[videoStream]->codec;
 
-        // Close codec (& threads inside)
-//        avcodec_close(pFormatCtx->streams[videoStream]->codec);
+        // do not attempt to close codec if
+        // - codec is not valid
+        // - decoding thread didn't end properly (probably terminated)
+        if (cdctx && !decod_tid->isWorking() ) {
 
-        // close file & free context  Free it and all its contents and set to NULL.
+            // does not hurt to ensure we flush buffers
+            avcodec_flush_buffers(cdctx);
+
+            // Close codec (& threads inside)
+            if (avcodec_is_open(cdctx)) {
+#ifdef VIDEOFILE_DEBUG
+                qDebug() << filename << QChar(124).toLatin1() << tr("Close Codec.");
+#endif
+                avcodec_close(cdctx);
+            }
+
+        }
+
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
+        // close file & free context  Free it and all its contents and set to NULL.
         avformat_close_input(&pFormatCtx);
 #else
         av_close_input_file(pFormatCtx);
 #endif
-    }
 
-    // empy pictq
-    clear_picture_queue();
+    }
 
     // free context & filter
     if (img_convert_ctx)
@@ -509,6 +538,10 @@ void VideoFile::close()
     blackPicture = NULL;
     firstPicture = NULL;
 
+
+#ifdef VIDEOFILE_DEBUG
+     qDebug() << filename << QChar(124).toLatin1() << tr("Closed.");
+#endif
 }
 
 VideoFile::~VideoFile()
@@ -517,18 +550,15 @@ VideoFile::~VideoFile()
     close();
 
     // delete threads
-    parse_tid->terminate();
-    decod_tid->terminate();
-	delete parse_tid;
-	delete decod_tid;
-	delete pictq_mutex;
-	delete pictq_cond;
+    delete parse_tid;
+    delete decod_tid;
+    delete pictq_mutex;
+    delete pictq_cond;
     delete seek_mutex;
     delete seek_cond;
-	delete ptimer;
+    delete ptimer;
 
     QObject::disconnect(this, 0, 0, 0);
-
 }
 
 void VideoFile::reset()
@@ -539,8 +569,6 @@ void VideoFile::reset()
     seek_pos = 0.0;
     pictq_flush_req = false;
     parsing_mode = VideoFile::SEEKING_NONE;
-
-    clear_picture_queue();
 
     if (video_st)
         _videoClock.reset(0.0, av_q2d(video_st->time_base));
@@ -558,17 +586,17 @@ void VideoFile::stop()
 		quit = true;
 
 		// wait fo threads to end properly
-        if ( !parse_tid->wait( 2 * PARSING_SLEEP_DELAY) ) {
-            parse_tid->terminate();
+        while ( !parse_tid->wait( LOCKING_TIMEOUT ) ) {
             qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly when stopping.");
+            parse_tid->terminate();
         }
 
         pictq_cond->wakeAll();
         seek_cond->wakeAll();
 
-        if ( !decod_tid->wait( 2 * PARSING_SLEEP_DELAY) ) {
-            decod_tid->terminate();
+        while ( !decod_tid->wait( LOCKING_TIMEOUT ) ) {
             qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when stopping.");
+            decod_tid->terminate();
         }
 
         if (!restart_where_stopped)
@@ -1518,6 +1546,7 @@ void ParsingThread::run()
 
 	AVPacket pkt1, *packet = &pkt1;
 
+    _working = true;
 	while (is && !is->quit)
     {
 
@@ -1612,14 +1641,22 @@ void ParsingThread::run()
 
     }
     // quit
+    _working = false;
 
 	// request flushing of the video queue (this will end the decoding thread)
     if (!is->videoq.flush())
         qWarning() << is->filename << QChar(124).toLatin1() << QObject::tr("Flushing error at end.");
 
+#ifdef VIDEOFILE_DEBUG
+    qDebug()<< is->filename << QChar(124).toLatin1() << tr("Parsing ended.");
+#endif
 }
 
 void VideoFile::clear_picture_queue() {
+
+#ifdef VIDEOFILE_DEBUG
+    qDebug() << filename << QChar(124).toLatin1() << tr("Clear Picture queue N = %1.").arg(pictq.size());
+#endif
 
     while (!pictq.isEmpty()) {
         VideoPicture *p = pictq.dequeue();
@@ -1796,6 +1833,7 @@ void DecodingThread::run()
     double pts = 0.0; // Presentation time stamp
     int64_t dts = 0; // Decoding time stamp
 
+    _working = true;
 	while (is)
     {
 
@@ -1951,7 +1989,12 @@ void DecodingThread::run()
         }
         else {
             qWarning() << is->getFileName() << QChar(124).toLatin1() << tr("Libav codec decoding failed.");
-            is->quit = true;
+            // cleanup
+            is->flush_picture_queue();
+            avcodec_flush_buffers(is->video_st->codec);
+
+            // and retry
+            is->parsingSeekRequest(is->mark_in);
         }
 
 		// packet was decoded, should be removed
@@ -1963,12 +2006,16 @@ void DecodingThread::run()
         VideoFile::PacketCountLock.unlock();
 #endif
 	}
+    _working = false;
 
     // if normal exit through break (couldn't get any more packet)
     if (is)
         // clear the queue
         is->videoq.clear();
 
+#ifdef VIDEOFILE_DEBUG
+    qDebug() << is->filename << QChar(124).toLatin1() << tr("Decoding ended.");
+#endif
 }
 
 void VideoFile::pause(bool pause)

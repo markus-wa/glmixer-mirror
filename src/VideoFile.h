@@ -42,6 +42,10 @@ extern "C" {
 #include <QFile>
 #include <QTextStream>
 
+/**
+ * uncomment to monitor execution with debug information
+ */
+#define VIDEOFILE_DEBUG
 
 /**
  * Default memory usage policy (in percent)
