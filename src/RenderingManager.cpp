@@ -72,7 +72,6 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include <map>
 #include <algorithm>
 #include <QGLFramebufferObject>
-#include <QProgressDialog>
 #include <QElapsedTimer>
 
 
@@ -162,7 +161,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), _showProgressBar(true), maxSourceCount(0), countRenderingSource(0)
+    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), maxSourceCount(0), countRenderingSource(0)
 {
     // 1. Create the view rendering widget
     _renderwidget = new ViewRenderWidget;
@@ -1305,7 +1304,7 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
                 num_sources_deleted += removeSource((*clone)->getId());
             }
         // then remove the source itself
-        qDebug() << s->getName() << QChar(124).toLatin1() << tr("Source deleted.");
+        qDebug() << s->getName() << QChar(124).toLatin1() << tr("Delete source.");
         _front_sources.erase(itsource);
 
 #ifdef HISTORY_MANAGEMENT
@@ -1957,19 +1956,17 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
     QList<QDomElement> clones;
     int errors = 0;
-
     int count = 0;
-    QProgressDialog *progress = 0;
-    if (_showProgressBar) {
-        progress = new QProgressDialog ("Loading sources...", "Abort", 1, xmlconfig.childNodes().count());
-        progress->setWindowModality(Qt::NonModal);
-        progress->setMinimumDuration( 500 );
-        progress->setValue(count);
-    }
+
+    // busy
+//    RenderingManager::getRenderingWidget()->setFaded(true);
+    pause(true);
 
     // start loop of sources to create
     QDomElement child = xmlconfig.firstChildElement("Source");
     while (!child.isNull()) {
+
+        qApp->processEvents();
 
         // pointer for new source
         Source *newsource = 0;
@@ -2252,17 +2249,6 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             }
         }
 
-        // display progress
-        if (progress) {
-            progress->setValue(count);
-
-            if (progress->wasCanceled()) {
-                delete progress;
-                progress = 0;
-                break;
-            }
-        }
-
         child = child.nextSiblingElement("Source");
     }
 
@@ -2271,6 +2257,8 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     // Process the list of clones names ; now that every source exist, we can be sure they can be cloned
     QListIterator<QDomElement> it(clones);
     while (it.hasNext()) {
+
+        qApp->processEvents();
 
         Source *clonesource = 0;
 
@@ -2308,23 +2296,11 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             errors++;
         }
 
-        // display progress
-        if (progress) {
-            progress->setValue(count);
-
-            if (progress->wasCanceled()) {
-                delete progress;
-                progress = 0;
-                break;
-            }
-        }
     }
 
-    // end progress
-    if (progress) {
-        progress->setValue(xmlconfig.childNodes().count());
-        delete progress;
-    }
+    // un-busy
+//    RenderingManager::getRenderingWidget()->setFaded(false);
+    pause(false);
 
     // set current source to none (end of list)
     unsetCurrentSource();
@@ -2354,28 +2330,6 @@ void RenderingManager::pause(bool on){
     // setup status
     paused = on;
 
-//    static std::map<Source *, bool> sourcePlayStatus;
-//    // for every source in the manager, start/stop it
-//    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
-//        // exception for video source which are paused
-//        if ( (*its)->rtti() == Source::VIDEO_SOURCE ) {
-//            VideoSource *s = dynamic_cast<VideoSource *>(*its);
-//            if (on) {
-//                sourcePlayStatus[s] = s->isPaused();
-//                s->pause(true);
-//            } else
-//                s->pause(sourcePlayStatus[s]);
-//        } else {
-//            if (on) {
-//                sourcePlayStatus[*its] = (*its)->isPlaying();
-//                (*its)->play(!on);
-//            } else
-//                (*its)->play(sourcePlayStatus[*its]);
-//        }
-//    }
-
-//    if (!on)
-//        sourcePlayStatus.clear();
 
     qDebug() << "RenderingManager" << QChar(124).toLatin1() << (on ? tr("Rendering paused.") : tr("Rendering un-paused.") );
 }

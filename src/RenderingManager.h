@@ -240,8 +240,6 @@ public Q_SLOTS:
     void redo();
 #endif
 
-    void disableProgressBars(bool off) { _showProgressBar = !off; }
-
 #ifdef SHM
 	void setFrameSharingEnabled(bool on);
 #endif
@@ -293,8 +291,7 @@ protected:
 	Source *_defaultSource;
 	Source::scalingMode _scalingMode;
 	bool _playOnDrop;
-	bool paused;
-	bool _showProgressBar;
+    bool paused;
     unsigned int maxSourceCount, countRenderingSource;
 
 #ifdef HISTORY_MANAGEMENT
