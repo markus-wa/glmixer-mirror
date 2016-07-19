@@ -151,7 +151,7 @@ public:
     void distributeSelection(View::Axis a, View::RelativePoint p);
     void transformSelection(View::Transformation t, View::Axis a, View::Reference r);
 
-Q_SIGNALS:
+signals:
 	void sourceMixingModified();
 	void sourceGeometryModified();
 	void sourceLayerModified();
@@ -162,7 +162,7 @@ Q_SIGNALS:
 
     void zoomPercentChanged(int);
 
-public Q_SLOTS:
+public slots:
 
     void clearViews();
     void zoom(int percent);

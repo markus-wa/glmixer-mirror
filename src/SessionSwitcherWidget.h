@@ -39,7 +39,7 @@ public:
 	SessionSwitcherWidget(QWidget *parent, QSettings *settings);
     virtual ~SessionSwitcherWidget();
 
-public Q_SLOTS:
+public slots:
 
     bool openFolder(QString directory = QString::null);
     void discardFolder();
@@ -71,7 +71,7 @@ public Q_SLOTS:
     void browseFolder();
     void deleteSession();
 
-Q_SIGNALS:
+signals:
 	void sessionTriggered(QString);
 
 private:

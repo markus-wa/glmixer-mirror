@@ -82,7 +82,7 @@ public:
 
     static QString getOpencvVersion();
 
-public Q_SLOTS:
+public slots:
 	void play(bool on);
 
 protected:

@@ -40,7 +40,7 @@ public:
     virtual void showEvent ( QShowEvent * event ) { QGLWidget::showEvent(event);}
 
 
-public Q_SLOTS:
+public slots:
     void updateFrame (VideoPicture *);
     void setVideo(VideoFile* f);
     void setVideoAspectRatio(bool usevideoratio);

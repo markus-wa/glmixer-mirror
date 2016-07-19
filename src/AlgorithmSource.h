@@ -66,7 +66,7 @@ public:
 	int getFrameWidth() const;
 	int getFrameHeight() const;
 
-public Q_SLOTS:
+public slots:
 	void play(bool on);
 
     // only friends can create a source

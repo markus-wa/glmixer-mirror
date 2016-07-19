@@ -47,7 +47,7 @@ public:
     // set current status of preferences
     void showPreferences(const QByteArray & state);
 
-public Q_SLOTS:
+public slots:
 
 	void restoreDefaultPreferences();
     void restoreAllDefaultPreferences();

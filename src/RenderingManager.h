@@ -215,7 +215,7 @@ public:
     static void setUsePboExtension(bool on);
 
 
-public Q_SLOTS:
+public slots:
 
     inline void setClearToWhite(bool on) { clearWhite = on; }
     inline void setPreviousFrameDelay(unsigned int delay) { previousframe_delay = CLAMP(delay,1,1000);}
@@ -247,7 +247,7 @@ public Q_SLOTS:
     void setSpoutSharingEnabled(bool on);
 #endif
 
-Q_SIGNALS:
+signals:
     void frameBufferChanged();
 	void currentSourceChanged(SourceSet::iterator csi);
 #ifdef SPOUT

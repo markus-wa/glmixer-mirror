@@ -47,7 +47,7 @@ public:
 	unsigned long  getUpdatePeriod();
 	bool getIngoreAlpha();
 
-public Q_SLOTS:
+public slots:
 
 	void done(int r);
 

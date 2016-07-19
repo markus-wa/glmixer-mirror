@@ -40,7 +40,7 @@ protected:
     void paintEvent(QPaintEvent *event);
     void showEvent(QShowEvent *event);
 
-public Q_SLOTS:
+public slots:
 	void setSpeed(int);
 	void setCentered(bool);
 

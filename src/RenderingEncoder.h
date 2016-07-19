@@ -63,7 +63,7 @@ public:
     unsigned char *pictq_top();
     bool pictq_full();
 
-Q_SIGNALS:
+signals:
     void encodingFinished();
 
 protected:
@@ -120,7 +120,7 @@ public:
     static unsigned long computeBufferSize(int percent);
     static int computeBufferPercent(unsigned long bytes);
 
-public Q_SLOTS:
+public slots:
 	void setActive(bool on);
 	void setPaused(bool on);
     void saveFile(QString suffix, QString filename = QString::null);
@@ -130,7 +130,7 @@ public Q_SLOTS:
     void setBufferSize(unsigned long bytes);
     unsigned long getBufferSize();
 
-Q_SIGNALS:
+signals:
 	void activated(bool);
     void processing(bool);
 	void status(const QString &, int);

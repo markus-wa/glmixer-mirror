@@ -51,7 +51,7 @@ public:
     // get the header of the plugin shadertoy
     QString getHeaders();
 
-public Q_SLOTS:
+public slots:
     // set information fields
     void setName(QString);
     void setAbout(QString);
@@ -59,7 +59,7 @@ public Q_SLOTS:
 
     void setKey(int key, bool status);
 
-Q_SIGNALS:
+signals:
     void dying();
 
 private:

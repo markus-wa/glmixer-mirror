@@ -87,13 +87,13 @@ public:
     int maximum(const QtProperty *property) const;
     int singleStep(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, int val);
     void setMinimum(QtProperty *property, int minVal);
     void setMaximum(QtProperty *property, int maxVal);
     void setRange(QtProperty *property, int minVal, int maxVal);
     void setSingleStep(QtProperty *property, int step);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, int val);
     void rangeChanged(QtProperty *property, int minVal, int maxVal);
     void singleStepChanged(QtProperty *property, int step);
@@ -118,9 +118,9 @@ public:
 
     bool value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, bool val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, bool val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -148,14 +148,14 @@ public:
     double singleStep(const QtProperty *property) const;
     int decimals(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, double val);
     void setMinimum(QtProperty *property, double minVal);
     void setMaximum(QtProperty *property, double maxVal);
     void setRange(QtProperty *property, double minVal, double maxVal);
     void setSingleStep(QtProperty *property, double step);
     void setDecimals(QtProperty *property, int prec);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, double val);
     void rangeChanged(QtProperty *property, double minVal, double maxVal);
     void singleStepChanged(QtProperty *property, double step);
@@ -182,10 +182,10 @@ public:
     QString value(const QtProperty *property) const;
     QRegExp regExp(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QString &val);
     void setRegExp(QtProperty *property, const QRegExp &regExp);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QString &val);
     void regExpChanged(QtProperty *property, const QRegExp &regExp);
 protected:
@@ -211,12 +211,12 @@ public:
     QDate minimum(const QtProperty *property) const;
     QDate maximum(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QDate &val);
     void setMinimum(QtProperty *property, const QDate &minVal);
     void setMaximum(QtProperty *property, const QDate &maxVal);
     void setRange(QtProperty *property, const QDate &minVal, const QDate &maxVal);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QDate &val);
     void rangeChanged(QtProperty *property, const QDate &minVal, const QDate &maxVal);
 protected:
@@ -240,9 +240,9 @@ public:
 
     QTime value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QTime &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QTime &val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -265,9 +265,9 @@ public:
 
     QDateTime value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QDateTime &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QDateTime &val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -290,9 +290,9 @@ public:
 
     QKeySequence value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QKeySequence &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QKeySequence &val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -315,9 +315,9 @@ public:
 
     QChar value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QChar &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QChar &val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -343,9 +343,9 @@ public:
 
     QLocale value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QLocale &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QLocale &val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -372,9 +372,9 @@ public:
 
     QPoint value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QPoint &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QPoint &val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -402,10 +402,10 @@ public:
     QPointF value(const QtProperty *property) const;
     int decimals(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QPointF &val);
     void setDecimals(QtProperty *property, int prec);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QPointF &val);
     void decimalsChanged(QtProperty *property, int prec);
 protected:
@@ -435,12 +435,12 @@ public:
     QSize minimum(const QtProperty *property) const;
     QSize maximum(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QSize &val);
     void setMinimum(QtProperty *property, const QSize &minVal);
     void setMaximum(QtProperty *property, const QSize &maxVal);
     void setRange(QtProperty *property, const QSize &minVal, const QSize &maxVal);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QSize &val);
     void rangeChanged(QtProperty *property, const QSize &minVal, const QSize &maxVal);
 protected:
@@ -471,13 +471,13 @@ public:
     QSizeF maximum(const QtProperty *property) const;
     int decimals(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QSizeF &val);
     void setMinimum(QtProperty *property, const QSizeF &minVal);
     void setMaximum(QtProperty *property, const QSizeF &maxVal);
     void setRange(QtProperty *property, const QSizeF &minVal, const QSizeF &maxVal);
     void setDecimals(QtProperty *property, int prec);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QSizeF &val);
     void rangeChanged(QtProperty *property, const QSizeF &minVal, const QSizeF &maxVal);
     void decimalsChanged(QtProperty *property, int prec);
@@ -507,10 +507,10 @@ public:
     QRect value(const QtProperty *property) const;
     QRect constraint(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QRect &val);
     void setConstraint(QtProperty *property, const QRect &constraint);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QRect &val);
     void constraintChanged(QtProperty *property, const QRect &constraint);
 protected:
@@ -540,11 +540,11 @@ public:
     QRectF constraint(const QtProperty *property) const;
     int decimals(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QRectF &val);
     void setConstraint(QtProperty *property, const QRectF &constraint);
     void setDecimals(QtProperty *property, int prec);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QRectF &val);
     void constraintChanged(QtProperty *property, const QRectF &constraint);
     void decimalsChanged(QtProperty *property, int prec);
@@ -573,11 +573,11 @@ public:
     QStringList enumNames(const QtProperty *property) const;
     QMap<int, QIcon> enumIcons(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, int val);
     void setEnumNames(QtProperty *property, const QStringList &names);
     void setEnumIcons(QtProperty *property, const QMap<int, QIcon> &icons);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, int val);
     void enumNamesChanged(QtProperty *property, const QStringList &names);
     void enumIconsChanged(QtProperty *property, const QMap<int, QIcon> &icons);
@@ -606,10 +606,10 @@ public:
     int value(const QtProperty *property) const;
     QStringList flagNames(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, int val);
     void setFlagNames(QtProperty *property, const QStringList &names);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, int val);
     void flagNamesChanged(QtProperty *property, const QStringList &names);
 protected:
@@ -638,9 +638,9 @@ public:
 
     QSizePolicy value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QSizePolicy &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QSizePolicy &val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -670,9 +670,9 @@ public:
 
     QFont value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QFont &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QFont &val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -704,9 +704,9 @@ public:
 
     QColor value(const QtProperty *property) const;
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QColor &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QColor &val);
 protected:
     QString valueText(const QtProperty *property) const;
@@ -734,9 +734,9 @@ public:
     QCursor value(const QtProperty *property) const;
 #endif
 
-public Q_SLOTS:
+public slots:
     void setValue(QtProperty *property, const QCursor &val);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QCursor &val);
 protected:
     QString valueText(const QtProperty *property) const;

@@ -97,16 +97,16 @@ public:
 
     static QColor getColor(const QPoint &pos, bool allowCustomColors = true);
 
-public Q_SLOTS:
+public slots:
     void setCurrentColor(const QColor &col);
 
-Q_SIGNALS:
+signals:
     void colorChanged(const QColor &);
 
 protected:
     void paintEvent(QPaintEvent *e);
 
-private Q_SLOTS:
+private slots:
     void buttonPressed(bool toggled);
     void popupClosed();
 

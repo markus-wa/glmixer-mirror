@@ -56,7 +56,7 @@ public:
     int getFrameWidth() const;
     int getFrameHeight() const;
 
-public Q_SLOTS:
+public slots:
     void play(bool on);
 
 private:

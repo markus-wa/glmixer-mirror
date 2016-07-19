@@ -23,7 +23,7 @@ public:
     int getSelectedScroll();
     int getSelectedUpdate();
 
-public Q_SLOTS:
+public slots:
 
     void done(int r);
 

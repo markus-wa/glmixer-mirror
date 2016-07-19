@@ -24,7 +24,7 @@ public:
     QListWidgetItem *getTagItem(Tag *t);
     void selectTag(Tag *t);
 
-public Q_SLOTS:
+public slots:
 
     void createTag();
     void deleteTag();

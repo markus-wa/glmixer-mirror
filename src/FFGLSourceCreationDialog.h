@@ -43,7 +43,7 @@ public:
     int getSelectedWidth();
     int getSelectedHeight();
 
-public Q_SLOTS:
+public slots:
 
     void done(int r);
 

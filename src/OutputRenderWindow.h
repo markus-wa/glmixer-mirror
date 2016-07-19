@@ -46,7 +46,7 @@ public:
 	void useFreeAspectRatio(bool on);
     bool isActive() const { return output_active; }
 
-public Q_SLOTS:
+public slots:
     void refresh();
     void setActive(bool on) { output_active = on; }
     void setInactive(bool off) { output_active = !off; }
@@ -83,11 +83,11 @@ public:
     QByteArray saveState();
     bool restoreState(const QByteArray &state);
 
-public Q_SLOTS:
+public slots:
 	void setFullScreen(bool on);
     void setFullScreenMonitor(int index);
 
-Q_SIGNALS:
+signals:
 	void resized();
 	void keyRightPressed();
 	void keyLeftPressed();

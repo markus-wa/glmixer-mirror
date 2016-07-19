@@ -70,7 +70,7 @@ public:
 	void setTransitionType(transitionType t);
 	transitionType getTransitionType() const {return transition_type;}
 
-public Q_SLOTS:
+public slots:
 	// initiate the transition animation
 	void startTransition(bool sceneVisible, bool instanteneous = false);
 	// end the transition
@@ -87,7 +87,7 @@ public Q_SLOTS:
 	void setAlpha(int a);
 	void smoothAlphaTransition(bool visible);
 
-Q_SIGNALS:
+signals:
 	void animationFinished();
 	void transitionSourceChanged(Source *s);
 	void alphaChanged(int);

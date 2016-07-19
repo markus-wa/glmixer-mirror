@@ -49,10 +49,10 @@ public:
 
 	inline int getMass() const { return (int)mass; }
 
-public Q_SLOTS:
+public slots:
 	inline void setMass(int m) { mass = (double) CLAMP(m, MIN_MASS, MAX_MASS); }
 
-Q_SIGNALS:
+signals:
 	void massChanged(int m);
 
 private:

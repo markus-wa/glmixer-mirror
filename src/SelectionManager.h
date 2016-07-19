@@ -37,7 +37,7 @@ public:
 	Source *selectionSource() { return _selectionSource; }
 
 
-public Q_SLOTS:
+public slots:
 
 	void clearSelection();
 	void selectAll();
@@ -46,7 +46,7 @@ public Q_SLOTS:
 	void updateSelectionSource();
 
 
-Q_SIGNALS:
+signals:
 	void selectionChanged(bool notempty);
 
 

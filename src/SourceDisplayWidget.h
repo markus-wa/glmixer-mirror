@@ -49,7 +49,7 @@ public:
 
 	GLuint getNewTextureIndex();
 
-public Q_SLOTS:
+public slots:
 
 	void setBlendingFunction(int functionindex);
 	void setBlendingEquation(int equationindex);

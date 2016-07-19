@@ -47,11 +47,11 @@ public:
 
 	inline int getRadius() const { return radius; }
 
-public Q_SLOTS:
+public slots:
 	inline void setRadius(int r) { radius = CLAMP(r, MIN_RADIUS, MAX_RADIUS); }
 	void setFiltering(int p);
 
-Q_SIGNALS:
+signals:
 	void radiusChanged(int m);
 
 private:

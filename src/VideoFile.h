@@ -607,7 +607,7 @@ public:
     static int getMemoryUsageMaximum(int policy);
 
 
-Q_SIGNALS:
+signals:
     /**
      * Signal emmited when a new VideoPicture is ready;
      *
@@ -636,7 +636,7 @@ Q_SIGNALS:
 
     void seekEnabled(bool);
 
-public Q_SLOTS:
+public slots:
     /**
      * Starts the decoding-conversion process.
      * Does nothing if the process was already started.
@@ -847,7 +847,7 @@ public Q_SLOTS:
      */
     bool isInterlaced() const { return deinterlacing_buffer != 0; }
 
-protected Q_SLOTS:
+protected slots:
 	/**
 	 * Slot called from an internal timer synchronized on the video time code.
 	 */

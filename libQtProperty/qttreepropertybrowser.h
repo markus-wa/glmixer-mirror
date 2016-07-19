@@ -117,7 +117,7 @@ public:
 
     void editItem(QtBrowserItem *item);
 
-Q_SIGNALS:
+signals:
 
     void collapsed(QtBrowserItem *item);
     void expanded(QtBrowserItem *item);

@@ -38,7 +38,7 @@ public:
     VideoFileDialogPreview(QWidget *parent = 0);
     ~VideoFileDialogPreview();
 
-public Q_SLOTS:
+public slots:
     void showFilePreview(const QString & file);
     void closeFilePreview();
     void on_customSizeCheckBox_toggled(bool);

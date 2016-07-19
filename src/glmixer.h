@@ -55,7 +55,7 @@ public:
     void keyPressEvent ( QKeyEvent * event );
     void keyReleaseEvent ( QKeyEvent * event );
 
-public Q_SLOTS:
+public slots:
 
 	// menu and actions
     void on_actionNewSource_triggered();
@@ -156,7 +156,7 @@ public Q_SLOTS:
     void editShaderToyPlugin(FFGLPluginSource *);
 #endif
 
-Q_SIGNALS:
+signals:
 	void sourceMarksModified(bool);
 	void sessionLoaded();
     void keyPressed(int, bool);

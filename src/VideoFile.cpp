@@ -1993,8 +1993,12 @@ void DecodingThread::run()
             is->flush_picture_queue();
             avcodec_flush_buffers(is->video_st->codec);
 
-            // and retry
-            is->parsingSeekRequest(is->mark_in);
+//            // and retry
+//            is->parsingSeekRequest(is->mark_in);
+
+            // and stop
+            is->quit = true;
+            break;
         }
 
 		// packet was decoded, should be removed

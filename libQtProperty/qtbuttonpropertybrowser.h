@@ -67,7 +67,7 @@ public:
     void setExpanded(QtBrowserItem *item, bool expanded);
     bool isExpanded(QtBrowserItem *item) const;
 
-Q_SIGNALS:
+signals:
 
     void collapsed(QtBrowserItem *item);
     void expanded(QtBrowserItem *item);

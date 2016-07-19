@@ -45,7 +45,7 @@ public:
     void showEvent ( QShowEvent * );
     void hideEvent ( QHideEvent * );
 
-public Q_SLOTS:
+public slots:
     void setPreviewVisible(bool visible);
 
 private:

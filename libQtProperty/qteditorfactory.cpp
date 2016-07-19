@@ -1540,9 +1540,9 @@ void QtKeySequenceEditorFactory::disconnectPropertyManager(QtKeySequenceProperty
 //
 //    QChar value() const;
 //    bool eventFilter(QObject *o, QEvent *e);
-//public Q_SLOTS:
+//public slots:
 //    void setValue(const QChar &value);
-//Q_SIGNALS:
+//signals:
 //    void valueChanged(const QChar &value);
 //protected:
 //    void focusInEvent(QFocusEvent *e);
@@ -2160,13 +2160,13 @@ void QtCursorEditorFactory::disconnectPropertyManager(QtCursorPropertyManager *m
 //
 //    bool eventFilter(QObject *obj, QEvent *ev);
 //
-//public Q_SLOTS:
+//public slots:
 //    void setValue(const QColor &value);
 //
-//private Q_SLOTS:
+//private slots:
 //    void buttonClicked();
 //
-//Q_SIGNALS:
+//signals:
 //    void valueChanged(const QColor &value);
 //
 //private:
@@ -2358,13 +2358,13 @@ void QtColorEditorFactory::disconnectPropertyManager(QtColorPropertyManager *man
 //
 //    bool eventFilter(QObject *obj, QEvent *ev);
 //
-//public Q_SLOTS:
+//public slots:
 //    void setValue(const QFont &value);
 //
-//private Q_SLOTS:
+//private slots:
 //    void buttonClicked();
 //
-//Q_SIGNALS:
+//signals:
 //    void valueChanged(const QFont &value);
 //
 //private:

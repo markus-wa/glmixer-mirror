@@ -61,7 +61,7 @@ public slots:
     void resetAll();
     void defaultValue();
 
-Q_SIGNALS:
+signals:
     void changed(Source *s);
 
 private:

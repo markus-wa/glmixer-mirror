@@ -55,7 +55,7 @@ public slots:
     void removePlugin();
     void editPlugin();
 
-Q_SIGNALS:
+signals:
     // inform to refresh the GUI
     void pluginChanged();
     void edit(FFGLPluginSource *);

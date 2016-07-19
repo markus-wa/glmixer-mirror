@@ -131,7 +131,7 @@ public:
     void clear() const;
 
     QtProperty *addProperty(const QString &name = QString());
-Q_SIGNALS:
+signals:
 
     void propertyInserted(QtProperty *property,
                 QtProperty *parent, QtProperty *after);
@@ -162,7 +162,7 @@ protected:
         : QObject(parent) {}
 
     virtual void breakConnection(QtAbstractPropertyManager *manager) = 0;
-protected Q_SLOTS:
+protected slots:
     virtual void managerDestroyed(QObject *manager) = 0;
 
     friend class QtAbstractPropertyBrowser;
@@ -299,11 +299,11 @@ public:
     QtBrowserItem *currentItem() const;
     void setCurrentItem(QtBrowserItem *);
 
-Q_SIGNALS:
+signals:
     void currentItemChanged(QtBrowserItem *);
 //    void doubleClickRequested();
 
-public Q_SLOTS:
+public slots:
 
     QtBrowserItem *addProperty(QtProperty *property);
     QtBrowserItem *insertProperty(QtProperty *property, QtProperty *afterProperty);

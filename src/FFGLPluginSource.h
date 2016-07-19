@@ -93,14 +93,14 @@ public:
     static QString libraryFileName(QString embeddedName);
 
 
-public Q_SLOTS:
+public slots:
     // enable updates
     void play(bool on);
     // reset
     void restoreDefaults();
     void resize(int w, int h);
 
-Q_SIGNALS:
+signals:
     void initialized(FFGLPluginSource *);
     void updated();
     void changed();

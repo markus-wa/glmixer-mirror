@@ -12,7 +12,7 @@ class OpenSoundControlManager: public QObject
 public:
     static OpenSoundControlManager *getInstance();
 
-public Q_SLOTS:
+public slots:
     void ReadPendingDatagrams();
     void setEnabled(bool);
 

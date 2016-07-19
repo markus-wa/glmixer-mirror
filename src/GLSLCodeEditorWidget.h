@@ -39,7 +39,7 @@ public:
     GLSLCodeEditorWidget(QWidget *parent = 0);
     ~GLSLCodeEditorWidget();
 
-public Q_SLOTS:
+public slots:
 
     // associate / dissociate plugin to the GUI
     void linkPlugin(FFGLPluginSourceShadertoy *plugin);

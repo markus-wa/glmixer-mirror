@@ -106,11 +106,11 @@ public:
     static int flagTypeId();
     static int groupTypeId();
     static int iconMapTypeId();
-public Q_SLOTS:
+public slots:
     virtual void setValue(QtProperty *property, const QVariant &val);
     virtual void setAttribute(QtProperty *property,
                 const QString &attribute, const QVariant &value);
-Q_SIGNALS:
+signals:
     void valueChanged(QtProperty *property, const QVariant &val);
     void attributeChanged(QtProperty *property,
                 const QString &attribute, const QVariant &val);

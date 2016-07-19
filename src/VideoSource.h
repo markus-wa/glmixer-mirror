@@ -60,7 +60,7 @@ public:
 
 	double getStorageAspectRatio() const { return is->getStreamAspectRatio(); }
 
-public Q_SLOTS:
+public slots:
 	void play(bool on);
     void pause(bool on);
     void updateFrame (VideoPicture *);

@@ -36,7 +36,7 @@ public:
     void showEvent ( QShowEvent * event );
     void setAntialiasing(bool antialiased);
 
-public Q_SLOTS:
+public slots:
 
     void connectSource(SourceSet::iterator);
     void updateSource();
@@ -66,7 +66,7 @@ public:
     void setPen(const QPen &pen);
     void setAntialiased(bool antialiased);
 
-Q_SIGNALS:
+signals:
 	void gammaChanged();
 
 protected:

@@ -49,11 +49,11 @@ protected:
     void paintEvent(QPaintEvent *event);
     void tabletEvent(QTabletEvent *event);
 
-public Q_SLOTS:
+public slots:
 	void reset();
 	void unset();
 
-Q_SIGNALS:
+signals:
 	void inputChanged(QString);
 
 private:

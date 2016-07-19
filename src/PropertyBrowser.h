@@ -64,7 +64,7 @@ public slots:
     // enable / disable a property
     void setPropertyEnabled(QString propertyName, bool enabled);
 
-Q_SIGNALS:
+signals:
     void propertyChanged(QString, bool);
     void propertyChanged(QString, int);
     void propertyChanged(QString, double);

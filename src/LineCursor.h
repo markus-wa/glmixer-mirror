@@ -52,11 +52,11 @@ public:
 	inline int getSpeed() const { return (int) speed; }
 	inline double getWaitTime() const { return waitTime; }
 
-public Q_SLOTS:
+public slots:
 	inline void setSpeed(int s) { speed = (double) CLAMP(s, MIN_SPEED, MAX_SPEED); }
 	inline void setWaitTime(double t) { waitTime = CLAMP(t, MIN_WAIT, MAX_WAIT); }
 
-Q_SIGNALS:
+signals:
 	void speedChanged(int s);
 
 private:

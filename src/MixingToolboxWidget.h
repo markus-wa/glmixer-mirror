@@ -24,7 +24,7 @@ public:
     ~MixingToolboxWidget();
     void setAntialiasing(bool antialiased);
 
-public Q_SLOTS:
+public slots:
 
     // get informed when a property is changed
     void connectSource(SourceSet::iterator);
@@ -86,7 +86,7 @@ public Q_SLOTS:
 
     void changed();
 
-Q_SIGNALS:
+signals:
     // inform property manager when a property is modified here
     void valueChanged(QString propertyname, bool value);
     void valueChanged(QString propertyname, int value);
