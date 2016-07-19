@@ -986,13 +986,14 @@ double VideoFile::fill_first_frame(bool seek)
         avcodec_flush_buffers(video_st->codec);
     }
 
-    // loop while we didn't finish the frame, maxi 10 times
-    while (!frameFinished && trial < 10)
+    // loop while we didn't finish the frame, maxi 128 times
+    while (!frameFinished && trial < 128)
     {
+        // one trial less
+        trial++;
+
         // read a packet
         if (av_read_frame(pFormatCtx, packet) < 0){
-            // one trial less
-            trial++;
             av_free_packet(packet);
             continue;
         }
