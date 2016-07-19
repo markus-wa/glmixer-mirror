@@ -65,6 +65,9 @@ public slots:
     void pause(bool on);
     void updateFrame (VideoPicture *);
 
+signals:
+    void failed();
+
 private:
 
     void fillFramePBO(VideoPicture *vp);

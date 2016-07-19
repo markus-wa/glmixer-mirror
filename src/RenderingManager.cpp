@@ -782,6 +782,8 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
         s = new VideoSource(vf, textureIndex, getAvailableDepthFrom(depth) );
         renameSource( s, _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
 
+        QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
+
     } catch (AllocationException &e){
         qWarning() << "Cannot create Media source; " << e.message();
         // free the OpenGL texture
@@ -2327,6 +2329,24 @@ void RenderingManager::pause(bool on){
 
     qDebug() << "RenderingManager" << QChar(124).toLatin1() << (on ? tr("Rendering paused.") : tr("Rendering un-paused.") );
 }
+
+void RenderingManager::onSourceFailure() {
+
+    Source *s = qobject_cast<Source *>(sender());
+
+    if (s) {
+
+        QString name = s->getName();
+        removeSource(s->getId());
+
+//    qDebug() << "RenderingManager" << QChar(124).toLatin1() << "deleting source " << s->getId();
+
+
+    qCritical() << name << QChar(124).toLatin1() << tr("Libav codec decoding failed. The video was closed and removed.");
+
+    }
+}
+
 
 #ifdef SHM
 void RenderingManager::setFrameSharingEnabled(bool on){

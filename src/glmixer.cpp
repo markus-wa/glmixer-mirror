@@ -2617,7 +2617,7 @@ void GLMixer::on_actionPreferences_triggered()
         restorePreferences( upd->getUserPreferences() );
 
         if (mem != VideoFile::getMemoryUsagePolicy() || usepbo != RenderingManager::usePboExtension()) {
-            QMessageBox::information(this, QCoreApplication::applicationName(), "You need to reload the session for the changes to take effect.");
+            QMessageBox::information(this, QCoreApplication::applicationName(), "Your preferences will be used to create new sources. \nTo apply the changes to the currently playing session, save it and reload.");
         }
 
     }

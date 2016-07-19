@@ -235,6 +235,8 @@ public slots:
 	void dropSourceWithCoordinates(double x, double y);
 	void dropSourceWithDepth(double depth);
 
+    void onSourceFailure();
+
 #ifdef HISTORY_MANAGEMENT
     void undo();
     void redo();

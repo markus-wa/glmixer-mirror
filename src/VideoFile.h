@@ -45,7 +45,7 @@ extern "C" {
 /**
  * uncomment to monitor execution with debug information
  */
-//#define VIDEOFILE_DEBUG
+#define VIDEOFILE_DEBUG
 
 /**
  * Default memory usage policy (in percent)
@@ -630,11 +630,22 @@ signals:
      * Signal emited when a mark (IN or OUT) has been moved.
      */
     void markingChanged();
-
+    /**
+     * Signal emited when playing speed changed.
+     */
     void playSpeedChanged(double);
+    /**
+     * Signal emited when speed factor changed.
+     */
     void playSpeedFactorChanged(int);
-
+    /**
+     * Signal emited when seeking is enabled / disabled.
+     */
     void seekEnabled(bool);
+    /**
+     * Signal emited on reading or decoding failure.
+     */
+    void failed();
 
 public slots:
     /**
@@ -1004,6 +1015,29 @@ public:
 
 };
 
+class videoFileThread: public QThread
+{
+    Q_OBJECT
+
+public:
+    videoFileThread(VideoFile *video) :
+        QThread(), is(video), _working(false), _forceQuit(false)
+    {
+    }
+
+    inline bool isWorking() { return _working; }
+    inline void forceQuit() { _forceQuit = true; }
+
+    virtual void run() = 0;
+
+signals:
+    void failed();
+
+protected:
+    VideoFile *is;
+    bool _working;
+    bool _forceQuit;
+};
 
 
 class csvLogger : public QObject {

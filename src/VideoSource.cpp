@@ -44,6 +44,8 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
 
     // request to update the frame when sending message
     QObject::connect(is, SIGNAL(frameReady(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
+    // forward the message on failure
+    QObject::connect(is, SIGNAL(failed()), this, SIGNAL(failed()));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
