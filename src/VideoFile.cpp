@@ -2196,7 +2196,7 @@ void VideoFile::PacketQueue::clear()
         }
 
         // free list element
-        av_freep(&pkt);
+        av_freep(pkt);
 
     }
 

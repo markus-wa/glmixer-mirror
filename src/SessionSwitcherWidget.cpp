@@ -373,13 +373,18 @@ void SessionSwitcherWidget::fileChanged(const QString & filename )
             // look for item in the list
             QList<QStandardItem *> items = folderModel->findItems( fileinfo.completeBaseName() );
 
-            // update modified time field for all items found
-            foreach (const QStandardItem *item, items) {
-                folderModel->setData(folderModel->index(item->row(), 3), fileinfo.lastModified().toString("yy/MM/dd hh:mm"));
-
+            // if couldn't find file in the list,
+            if (items.isEmpty()) {
+                folderModelAccesslock.unlock();
+                reloadFolder();
+            }
+            // else, only update modified time field for all files found
+            else {
+                foreach (const QStandardItem *item, items)
+                    folderModel->setData(folderModel->index(item->row(), 3), fileinfo.lastModified().toString("yy/MM/dd hh:mm"));
+                folderModelAccesslock.unlock();
             }
 
-            folderModelAccesslock.unlock();
         }
     }
 }
