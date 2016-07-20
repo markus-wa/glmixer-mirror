@@ -459,10 +459,6 @@ void VideoFile::close()
             parse_tid->forceQuit();
         }
 
-#ifdef VIDEOFILE_DEBUG
-        qDebug() << filename << QChar(124).toLatin1() << tr(".");
-#endif
-
         pictq_cond->wakeAll();
         seek_cond->wakeAll();
 
@@ -470,10 +466,6 @@ void VideoFile::close()
             qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when closing.");
             decod_tid->forceQuit();
         }
-
-#ifdef VIDEOFILE_DEBUG
-        qDebug() << filename << QChar(124).toLatin1() << tr(".");
-#endif
 
     }
 
@@ -492,7 +484,7 @@ void VideoFile::close()
             // Close codec (& threads inside)
             if (avcodec_is_open(cdctx)) {
 #ifdef VIDEOFILE_DEBUG
-                qDebug() << filename << QChar(124).toLatin1() << tr("Close Codec.");
+                qDebug() << filename << QChar(124).toLatin1() << tr("Closing Codec.");
 #endif
                 avcodec_close(cdctx);
             }
@@ -556,6 +548,7 @@ VideoFile::~VideoFile()
 void VideoFile::reset()
 {
     // reset variables to 0
+    current_frame_pts = 0.0;
     fast_forward = false;
     video_pts = 0.0;
     seek_pos = 0.0;
@@ -965,25 +958,23 @@ double VideoFile::fill_first_frame(bool seek)
     double pts = mark_in;
     int trial = 0;
 
+    // flush decoder
+    avcodec_flush_buffers(video_st->codec);
+
     if (seek) {
         int64_t seek_target = av_rescale_q(mark_in, (AVRational){1, 1}, video_st->time_base);
 
-        int flags = AVSEEK_FLAG_BACKWARD;
+        int flags = (mark_in < current_frame_pts) ? AVSEEK_FLAG_BACKWARD : 0;
         if ( seek_any )
             flags |= AVSEEK_FLAG_ANY;
 
-        av_seek_frame(pFormatCtx, videoStream, seek_target, 0);
-
-        // flush seek stuff
-        avcodec_flush_buffers(video_st->codec);
+        // seek
+        av_seek_frame(pFormatCtx, videoStream, seek_target, flags);
     }
 
     // loop while we didn't finish the frame, or looped for too long
-    while (!frameFinished && trial < 1024 )
+    while (!frameFinished && trial++ < 500 )
     {
-        // one trial less
-        trial++;
-
         // read a packet
         if (av_read_frame(pFormatCtx, packet) < 0){
             av_free_packet(packet);
@@ -1010,14 +1001,23 @@ double VideoFile::fill_first_frame(bool seek)
                 if (packet->dts != (int64_t) AV_NOPTS_VALUE) {
                     pts =  double(packet->dts) * av_q2d(video_st->time_base);
 
-                    // if the obtained pts is before seeking mark
+                    // if the obtained pts is before seeking mark,
+                    // read forward untill reaching the mark_in (target)
                     if (seek && pts < mark_in) {
                         // retry
                         frameFinished = false;
                     }
                 }
             }
+            else {
+                avformat_flush(pFormatCtx);
+            }
         }
+        else {
+            frameFinished = false;
+            avformat_flush(pFormatCtx);
+        }
+
     }
 
     if (frameFinished) {
@@ -1891,6 +1891,8 @@ void DecodingThread::run()
 #else
         if ( avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet->data, packet->size) < 0) {
 #endif
+            // flush decoder
+            avcodec_flush_buffers(is->video_st->codec);
 
             // send failure message
             emit failed();
