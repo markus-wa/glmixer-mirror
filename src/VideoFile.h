@@ -50,7 +50,7 @@ extern "C" {
 /**
  * Default memory usage policy (in percent)
  */
-#define DEFAULT_MEMORY_USAGE_POLICY 25
+#define DEFAULT_MEMORY_USAGE_POLICY 10
 /**
  * Minimum and Maximum size of the queue of VideoPictures (between decoding and display)
  * Expressed in Megabytes
@@ -888,8 +888,8 @@ protected:
         static bool isEndOfFile(AVPacket pkt);
         static bool isStop(AVPacket pkt);
 
-        AVPacket get(bool block);
-        bool put(AVPacket pkt);
+        bool get(AVPacket *pkt, bool block);
+        bool put(AVPacket *pkt);
         bool flush();
         void clear();
         bool endFile();

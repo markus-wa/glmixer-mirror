@@ -322,6 +322,8 @@ MixingToolboxWidget::~MixingToolboxWidget()
     foreach (Source *s, _userPresets)
         delete s;
 
+    blendingMaskList->clear();
+
     delete gammaAdjust;
 
 #ifdef FFGL
