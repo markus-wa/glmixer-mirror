@@ -2326,8 +2326,7 @@ void RenderingManager::pause(bool on){
     // setup status
     paused = on;
 
-
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << (on ? tr("Rendering paused.") : tr("Rendering un-paused.") );
+    //qDebug() << "RenderingManager" << QChar(124).toLatin1() << (on ? tr("Rendering paused.") : tr("Rendering un-paused.") );
 }
 
 void RenderingManager::onSourceFailure() {

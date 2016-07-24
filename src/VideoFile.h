@@ -119,7 +119,7 @@ public:
      *
      * Finally, the timestamp given is kept into the Video Picture for later use.
      */
-    void fill(AVPicture *pFrame, double timestamp = 0.0);
+    void fill(AVFrame *pFrame, double timestamp = 0.0);
 
     /**
      * Get a pointer to the buffer containing the frame.
@@ -874,6 +874,7 @@ protected:
         AVPacketList *first_pkt, *last_pkt;
         static AVPacket *flush_pkt;
         static AVPacket *eof_pkt;
+        static AVPacket *stop_pkt;
         int nb_packets;
         int size;
         QMutex *mutex;
@@ -883,11 +884,12 @@ protected:
         PacketQueue();
         ~PacketQueue();
 
-        static bool isFlush(AVPacket *pkt);
-        static bool isEndOfFile(AVPacket *pkt);
+        static bool isFlush(AVPacket pkt);
+        static bool isEndOfFile(AVPacket pkt);
+        static bool isStop(AVPacket pkt);
 
-        bool get(AVPacket *pkt, bool block);
-        bool put(AVPacket *pkt);
+        AVPacket get(bool block);
+        bool put(AVPacket pkt);
         bool flush();
         void clear();
         bool endFile();
