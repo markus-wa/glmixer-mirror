@@ -96,6 +96,9 @@ AVPacket *VideoFile::PacketQueue::eof_pkt = 0;
 AVPacket *VideoFile::PacketQueue::stop_pkt = 0;
 AVPacket initializePacketQueueStatics();
 
+QList<VideoPicture::PictureMap*> VideoPicture::_pictureMaps;
+QMutex VideoPicture::VideoPictureMapLock;
+
 #ifdef VIDEOFILE_DEBUG
 int VideoFile::PacketCount = 0;
 QMutex VideoFile::PacketCountLock;
@@ -104,8 +107,6 @@ QMutex VideoFile::PacketListElementCountLock;
 int VideoPicture::VideoPictureCount = 0;
 QMutex VideoPicture::VideoPictureCountLock;
 
-QList<VideoPicture::PictureMap*> VideoPicture::_pictureMaps;
-QMutex VideoPicture::VideoPictureMapLock;
 
 csvLogger::csvLogger(QString filename) : QObject(0) {
     logFile.setFileName(filename + ".csv");
