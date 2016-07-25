@@ -269,7 +269,7 @@ private:
 
 
 VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
-        enum PixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixelformat(format),  img_convert_ctx_filtering(img_convert_ctx), action(ACTION_SHOW)
+        enum PixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixelformat(format),  img_convert_ctx_filtering(img_convert_ctx), action(0)
 {
     avpicture_alloc(&rgb, pixelformat, width, height);
 
@@ -603,18 +603,17 @@ void VideoFile::stop()
         while ( !decod_tid->wait( LOCKING_TIMEOUT ) ) {
             qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when stopping.");
             decod_tid->forceQuit();
+            clear_picture_queue();
         }
 
 
         if (!restart_where_stopped)
         {
             // recreate first picture in case begin has changed
-//BHBN            current_frame_pts = fill_first_frame(true);
+            current_frame_pts = fill_first_frame(true);
             // display firstPicture or black picture
             emit frameReady( resetPicture );
         }
-
-//        clear_picture_queue();
 
 		/* say if we are running or not */
         emit running(!quit);
@@ -917,11 +916,14 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	}
 
     // we need a picture to display when not playing (also for single frame media)
-    firstPicture = new VideoPicture(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette);
-
-    // read firstPicture (and get actual pts of first picture)
+    // create firstPicture (and get actual pts of first picture)
     // (NB : seek in stream only if not reading the first frame)
     current_frame_pts = fill_first_frame( mark_in != getBegin() );
+    if (!firstPicture) {
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Could not create first picture.");
+        return false;
+    }
+
     mark_stop = mark_in;
 
     // For videos only
@@ -980,6 +982,10 @@ double VideoFile::fill_first_frame(bool seek)
     if (!first_picture_changed)
         return mark_in;
 
+    if (firstPicture)
+        delete firstPicture;
+    firstPicture = NULL;
+
     AVPacket packet;
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
@@ -1009,6 +1015,9 @@ double VideoFile::fill_first_frame(bool seek)
     // loop while we didn't finish the frame, or looped for too long
     while (!frameFinished && trial++ < 500 )
     {
+        // unreference buffers
+        av_frame_unref(tmpframe);
+
         // read a packet
         if (av_read_frame(pFormatCtx, &packet) < 0){
             av_free_packet(&packet);
@@ -1036,15 +1045,12 @@ double VideoFile::fill_first_frame(bool seek)
                     pts =  double(packet.dts) * av_q2d(video_st->time_base);
 
                     // if the obtained pts is before seeking mark,
-                    // read forward untill reaching the mark_in (target)
+                    // read forward until reaching the mark_in (target)
                     if (seek && pts < mark_in) {
                         // retry
                         frameFinished = false;
                     }
                 }
-            }
-            else {
-                avformat_flush(pFormatCtx);
             }
         }
         else {
@@ -1058,16 +1064,20 @@ double VideoFile::fill_first_frame(bool seek)
 
     if (frameFinished) {
 
+        // create the picture
+        firstPicture = new VideoPicture(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette);
+
         // we can now fill in the first picture with this frame
         firstPicture->fill(tmpframe, pts);
 
-        // unreference buffers
-        av_frame_unref(tmpframe);
     }
     else
         qWarning() << filename << QChar(124).toLatin1()<< tr("Could not read first frame.");
 
 
+    // flush
+    avformat_flush(pFormatCtx);
+    avcodec_flush_buffers(video_st->codec);
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
     av_free(tmpframe);
@@ -1317,7 +1327,7 @@ void VideoFile::setOptionAllowDirtySeek(bool dirty)
 
 void VideoFile::setOptionRevertToBlackWhenStop(bool black)
 {
-	if (black)
+    if (black || !firstPicture)
         resetPicture = blackPicture;
 	else
         resetPicture = firstPicture;
@@ -1926,9 +1936,9 @@ void DecodingThread::run()
                 continue;
             }
             else {
-                // if stopping,  re-sends the previous frame with stop flag
-                // and pretending it is one frame later
-               //BHBN is->queue_picture(_pFrame, pts + is->getFrameDuration(), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
+                // if stopping, send an empty frame with stop flag
+                // (and pretending pts is one frame later)
+               is->queue_picture(_pFrame, pts + is->getFrameDuration(), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
                 // stop here (do not free eof packet)
                 break;
             }
@@ -1957,7 +1967,7 @@ void DecodingThread::run()
         // No error, but did we get a full video frame?
         else if (frameFinished > 0)
         {
-            VideoPicture::Action actionFrame = 0;
+            VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
             // get packet decompression time stamp (dts)
             dts = 0;
@@ -1997,15 +2007,15 @@ void DecodingThread::run()
                         actionFrame |= VideoPicture::ACTION_MARK;
 
                 }
-                else {
-                    // save a bit of time for filling in the first frame : detect it
-                    // (time between pts and mark in is less than time for one frame)
-                    if ( is->first_picture_changed &&  (qAbs(pts - is->mark_in) < is->getFrameDuration() ) ) {
-                        is->firstPicture->fill(_pFrame, pts);
-                        is->first_picture_changed = false;
+//                else {
+//                    // save a bit of time for filling in the first frame : detect it
+//                    // (time between pts and mark in is less than time for one frame)
+//                    if ( is->first_picture_changed &&  (qAbs(pts - is->mark_in) < is->getFrameDuration() ) ) {
+//                        is->firstPicture->fill(_pFrame, pts);
+//                        is->first_picture_changed = false;
 
-                    }
-                }
+//                    }
+//                }
             }
 
             // if not seeking, queue picture for display
@@ -2021,7 +2031,7 @@ void DecodingThread::run()
                         is->parsingSeekRequest(is->mark_in);
                     else
                         // if loop mode off, stop after this frame
-                        is->queue_picture(_pFrame, pts, VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
+                        is->queue_picture(_pFrame, pts, VideoPicture::ACTION_SHOW |VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
 
                 }
                 else
