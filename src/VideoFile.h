@@ -45,7 +45,7 @@ extern "C" {
 /**
  * uncomment to monitor execution with debug information
  */
-//#define VIDEOFILE_DEBUG
+#define VIDEOFILE_DEBUG
 
 /**
  * Default memory usage policy (in percent)
@@ -69,6 +69,7 @@ extern "C" {
  */
 #define SEEK_STEP 0.1
 
+#define PICTUREMAP_SIZE 20
 
 /**
  * Frames of a VideoFile are decoded and converted to VideoPictures.
@@ -206,6 +207,8 @@ public:
 
     inline int getBufferSize() { return avpicture_get_size(pixelformat, width, height); }
 
+
+
 private:
     AVPicture rgb;
     double pts;
@@ -215,8 +218,34 @@ private:
     SwsContext *img_convert_ctx_filtering;
     Action action;
 
-#ifdef VIDEOFILE_DEBUG
+    class PictureMap
+    {
+        uint8_t *_map;
+        uint8_t *_picture[PICTUREMAP_SIZE];
+        int _pageSize;
+        bool _isFull;
+
+    public:
+        PictureMap(int pageSize);
+        ~PictureMap();
+
+        uint8_t *getAvailablePictureMemory();
+        void freePictureMemory(uint8_t *p);
+        bool isEmpty();
+        bool isFull(); // { return _isFull; }
+        int getPageSize() { return _pageSize; }
+    };
+    PictureMap *_pictureMap;
+
+    static PictureMap *getAvailablePictureMap(int w, int h, enum PixelFormat format);
+    static void freePictureMap(PictureMap *pmap);
+    static QList<PictureMap*> _pictureMaps;
+    static QMutex VideoPictureMapLock;
+
 public:
+    static void clearPictureMaps();
+
+#ifdef VIDEOFILE_DEBUG
     static QMutex VideoPictureCountLock;
     static int VideoPictureCount;
 #endif

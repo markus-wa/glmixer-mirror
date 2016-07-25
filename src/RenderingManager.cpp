@@ -1341,6 +1341,9 @@ void RenderingManager::clearSourceSet() {
         qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("All sources cleared (%1/%2)").arg(num_sources_deleted).arg(total);
     }
 
+    // cleanup VideoPicture memory map
+    VideoPicture::clearPictureMaps();
+
 #ifdef VIDEOFILE_DEBUG
     VideoPicture::VideoPictureCountLock.lock();
     qDebug() << "Pending video Picture :" << VideoPicture::VideoPictureCount;

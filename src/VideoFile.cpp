@@ -54,6 +54,10 @@ extern "C"
 #include <QDir>
 #include <QDate>
 
+#ifdef Q_OS_UNIX
+#include <sys/mman.h>
+#endif
+
 /**
  * Size of a Mega Byte
  */
@@ -99,6 +103,9 @@ int VideoFile::PacketListElementCount = 0;
 QMutex VideoFile::PacketListElementCountLock;
 int VideoPicture::VideoPictureCount = 0;
 QMutex VideoPicture::VideoPictureCountLock;
+
+QList<VideoPicture::PictureMap*> VideoPicture::_pictureMaps;
+QMutex VideoPicture::VideoPictureMapLock;
 
 csvLogger::csvLogger(QString filename) : QObject(0) {
     logFile.setFileName(filename + ".csv");
@@ -268,10 +275,146 @@ private:
 };
 
 
+VideoPicture::PictureMap::PictureMap(int pageSize) : _pageSize(pageSize), _isFull(false)
+{
+
+#ifdef Q_OS_UNIX
+    _map = (uint8_t *) mmap(0, PICTUREMAP_SIZE * _pageSize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+#endif
+
+    int j=0;
+    for (j=0; j<PICTUREMAP_SIZE;++j){
+        _picture[j] = 0;
+    }
+}
+
+VideoPicture::PictureMap::~PictureMap()
+{
+#ifdef Q_OS_UNIX
+    munmap(_map, PICTUREMAP_SIZE * _pageSize);
+#endif
+}
+
+void VideoPicture::PictureMap::freePictureMemory(uint8_t *p)
+{
+    int j=0;
+    for (j=0;j<PICTUREMAP_SIZE;++j){
+        if (_picture[j] == p) {
+            _picture[j] = NULL;
+            break;
+        }
+    }
+}
+
+bool VideoPicture::PictureMap::isEmpty()
+{
+    int j=0;
+    for (j=0;j<PICTUREMAP_SIZE;++j){
+        if (_picture[j] != NULL)
+           return false;
+    }
+    return true;
+}
+
+bool VideoPicture::PictureMap::isFull()
+{
+    int j=0;
+    for (j=0;j<PICTUREMAP_SIZE;++j){
+        if (_picture[j] == NULL)
+           return false;
+    }
+    return true;
+}
+
+uint8_t *VideoPicture::PictureMap::getAvailablePictureMemory()
+{
+
+    int j=0;
+    for (j=0;j<PICTUREMAP_SIZE;++j){
+        if (_picture[j] == NULL) {
+            _picture[j] = _map + j * _pageSize;
+            return _picture[j];
+        }
+    }
+
+    return NULL;
+}
+
+VideoPicture::PictureMap *VideoPicture::getAvailablePictureMap(int w, int h, enum PixelFormat format) {
+    PictureMap *m = NULL;
+    int pageSize = 0;
+    if(format==AV_PIX_FMT_RGB24)
+        pageSize = w * h * 3 * sizeof(uint8_t);
+    else
+        pageSize = w * h * 4 * sizeof(uint8_t);
+
+    QList<PictureMap*>::iterator it = _pictureMaps.begin();
+    while (it != _pictureMaps.end() ) {
+        if ( (*it)->getPageSize() == pageSize && !(*it)->isFull() ) {
+            m = *it;
+            break;
+        }
+        it++;
+    }
+
+    // nothing found
+    if (m == NULL) {
+        m = new PictureMap(pageSize);
+        VideoPicture::_pictureMaps.append(m);
+#ifdef VIDEOFILE_DEBUG
+        qDebug() << "VideoPicture::_pictureMaps size = " << _pictureMaps.size();
+#endif
+    }
+
+    return m;
+}
+
+
+void VideoPicture::clearPictureMaps()
+{
+    while (!_pictureMaps.isEmpty())
+         delete _pictureMaps.takeFirst();
+#ifdef VIDEOFILE_DEBUG
+    qDebug() << "VideoPicture::_pictureMaps size = " << _pictureMaps.size();
+#endif
+}
+
+void VideoPicture::freePictureMap(PictureMap *pmap)
+{
+    int i = _pictureMaps.indexOf(pmap);
+    if (i != -1 && _pictureMaps.at(i)->isEmpty() ) {
+        _pictureMaps.removeAt(i);
+        delete pmap;
+#ifdef VIDEOFILE_DEBUG
+        qDebug() << "VideoPicture::_pictureMaps size = " << _pictureMaps.size();
+#endif
+    }
+}
+
 VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
         enum PixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixelformat(format),  img_convert_ctx_filtering(img_convert_ctx), action(0)
 {
+    for(int i=0; i<AV_NUM_DATA_POINTERS; ++i) {
+        rgb.data[i] = NULL;
+        rgb.linesize[i] = 0;
+    }
+
+#ifdef Q_OS_UNIX
+
+    VideoPicture::VideoPictureMapLock.lock();
+    do {
+        _pictureMap = VideoPicture::getAvailablePictureMap(width, height, format);
+        rgb.data[0] = _pictureMap->getAvailablePictureMemory();
+    } while (rgb.data[0] == NULL);
+    VideoPicture::VideoPictureMapLock.unlock();
+
+
+    rgb.linesize[0] = ( format == AV_PIX_FMT_RGB24 ? 3 : 4 ) * width;
+
+#else
     avpicture_alloc(&rgb, pixelformat, width, height);
+#endif
+
 
 #ifdef VIDEOFILE_DEBUG
     VideoPicture::VideoPictureCountLock.lock();
@@ -289,7 +432,17 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
 
 VideoPicture::~VideoPicture()
 {
+#ifdef Q_OS_UNIX
+
+    VideoPicture::VideoPictureMapLock.lock();
+    _pictureMap->freePictureMemory(rgb.data[0]);
+    VideoPicture::freePictureMap(_pictureMap);
+    VideoPicture::VideoPictureMapLock.unlock();
+
+#else
     avpicture_free(&rgb);
+    rgb.data[0] = NULL;
+#endif
 
 #ifdef VIDEOFILE_DEBUG
     VideoPicture::VideoPictureCountLock.lock();
@@ -487,7 +640,7 @@ void VideoFile::close()
 #else
         av_close_input_file(pFormatCtx);
 #endif
-
+        // just to be sure...
         avformat_free_context(pFormatCtx);
 
     }
@@ -551,9 +704,6 @@ void VideoFile::reset()
     if (video_st)
         _videoClock.reset(0.0, av_q2d(video_st->time_base));
 
-    // flush buffers
-    clear_picture_queue();
-    videoq.clear();
 }
 
 void VideoFile::stop()
@@ -582,7 +732,6 @@ void VideoFile::stop()
         while ( !decod_tid->wait( LOCKING_TIMEOUT ) ) {
             qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when stopping.");
             decod_tid->forceQuit();
-            clear_picture_queue();
         }
 
 
@@ -1688,6 +1837,7 @@ void ParsingThread::run()
         // cleanup
         avformat_flush(is->pFormatCtx);
 
+        // clear the packet queue
         // request flushing of the video queue (this will end the decoding thread)
         if (!is->videoq.flush())
             qWarning() << is->filename << QChar(124).toLatin1() << QObject::tr("Flushing error ending parsing thread.");
@@ -1893,8 +2043,11 @@ void DecodingThread::run()
         if (VideoFile::PacketQueue::isFlush(packet))
         {
             // flush buffers
-            avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &_nullPacket);
-            avcodec_flush_buffers(is->video_st->codec);
+            do {
+                avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &_nullPacket);
+                avcodec_flush_buffers(is->video_st->codec);
+                av_frame_unref(_pFrame);
+            } while (frameFinished > 0);
 
             // seeking or quitting ?
             if (!is->quit) {
@@ -1943,9 +2096,6 @@ void DecodingThread::run()
 #else
         if ( avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet.data, packet.size) < 0) {
 #endif
-//            // flush decoder
-//            avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &_nullPacket);
-//            avcodec_flush_buffers(is->video_st->codec);
 
             // send failure message
             emit failed();
@@ -2061,13 +2211,16 @@ void DecodingThread::run()
 
     // if normal exit through break (couldn't get any more packet)
     if (is) {
-        // clear the queue
-        is->videoq.clear();
 
         // flush buffers
-        avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &_nullPacket);
-        av_frame_unref(_pFrame);
-        avcodec_flush_buffers(is->video_st->codec);
+        do {
+            avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &_nullPacket);
+            avcodec_flush_buffers(is->video_st->codec);
+            av_frame_unref(_pFrame);
+        } while (frameFinished > 0);
+
+        // clear the picture queue
+        is->clear_picture_queue();
 
 #ifdef VIDEOFILE_DEBUG
     qDebug() << is->filename << QChar(124).toLatin1() << tr("Decoding ended.");
