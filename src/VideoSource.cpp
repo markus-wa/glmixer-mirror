@@ -110,11 +110,11 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
 
 VideoSource::~VideoSource()
 {
+    // cancel updated frame
+    updateFrame(NULL);
+
     if (is)
         delete is;
-
-    if (vp)
-        delete vp;
 
     // delete picture buffer
     if (pboIds[0] || pboIds[1])
