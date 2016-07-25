@@ -456,27 +456,7 @@ void VideoFile::close()
     qDebug() << filename << QChar(124).toLatin1() << tr("Closing.");
 #endif
 
-//    if ( isRunning() ) {
-
-//        // request ending
-//        quit = true;
-
-//        // wait for threads to end properly
-//        while ( !parse_tid->wait( LOCKING_TIMEOUT ) ) {
-//            qWarning() << filename << QChar(124).toLatin1() << tr("Parsing interrupted unexpectedly when closing.");
-//            parse_tid->forceQuit();
-//        }
-
-//        pictq_cond->wakeAll();
-//        seek_cond->wakeAll();
-
-//        while ( !decod_tid->wait( LOCKING_TIMEOUT ) ) {
-//            qWarning() << filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly when closing.");
-//            decod_tid->forceQuit();
-//        }
-
-//    }
-
+    //    Stop playing
     stop();
 
     if (pFormatCtx) {
@@ -533,7 +513,7 @@ void VideoFile::close()
     deinterlacing_buffer = NULL;
     blackPicture = NULL;
     firstPicture = NULL;
-
+    resetPicture = NULL;
 
 #ifdef VIDEOFILE_DEBUG
      qDebug() << filename << QChar(124).toLatin1() << tr("Closed.");
@@ -570,7 +550,6 @@ void VideoFile::reset()
 
     if (video_st)
         _videoClock.reset(0.0, av_q2d(video_st->time_base));
-
 
     // flush buffers
     clear_picture_queue();
@@ -622,7 +601,7 @@ void VideoFile::stop()
     qDebug() << filename << QChar(124).toLatin1() << tr("Stopped.");
 #endif
 
-	}
+    }
 }
 
 void VideoFile::start()
@@ -931,6 +910,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
         // we may need a black frame to return to when stopped
         blackPicture = new VideoPicture(0, targetWidth, targetHeight);
+        blackPicture->addAction(VideoPicture::ACTION_SHOW);
 
         // set picture queue maximum size
         recomputePictureQueueMaxCount();
@@ -981,6 +961,9 @@ double VideoFile::fill_first_frame(bool seek)
 {
     if (!first_picture_changed)
         return mark_in;
+
+    if (resetPicture == firstPicture)
+        resetPicture = NULL;
 
     if (firstPicture)
         delete firstPicture;
@@ -1066,9 +1049,15 @@ double VideoFile::fill_first_frame(bool seek)
 
         // create the picture
         firstPicture = new VideoPicture(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette);
+        firstPicture->addAction(VideoPicture::ACTION_SHOW);
 
         // we can now fill in the first picture with this frame
         firstPicture->fill(tmpframe, pts);
+
+        if (resetPicture == NULL)
+            resetPicture = firstPicture;
+
+        qDebug() << filename << QChar(124).toLatin1()<< tr("First frame updated.");
 
     }
     else

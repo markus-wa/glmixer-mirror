@@ -198,7 +198,7 @@ public:
         ACTION_MARK = 16
     };
     typedef unsigned short Action;
-    inline void resetAction() { action = ACTION_SHOW; }
+    inline void resetAction() { action = 0; }
     inline void addAction(Action a) { action |= a; }
     inline void removeAction(Action a) { action ^= (action & a); }
     inline bool hasAction(Action a) const { return (action & a); }
