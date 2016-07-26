@@ -280,6 +280,8 @@ void RenderingManager::setRenderingAspectRatio(standardAspectRatio ar)
 
 void RenderingManager::setFrameBufferResolution(QSize size) {
 
+    renderingSize = size;
+
     // Check limits based on openGL texture capabilities
     if (maxSourceCount == 0) {
         if (glewIsSupported("GL_ARB_internalformat_query2")) {

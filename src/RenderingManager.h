@@ -163,13 +163,13 @@ public:
 
 	double getFrameBufferAspectRatio() const;
 	inline QSize getFrameBufferResolution() const {
-			return _fbo ? _fbo->size() : QSize(0,0);
+            return renderingSize;
 	}
 	inline int getFrameBufferWidth() const{
-		return _fbo ? _fbo->width() : 0;
+        return renderingSize.width();
 	}
 	inline int getFrameBufferHeight() const{
-		return _fbo ? _fbo->height() : 0;
+        return renderingSize.height();
 	}
 
 	inline GLuint getFrameBufferTexture() const{
@@ -270,6 +270,7 @@ protected:
     SourcePropertyBrowser *_propertyBrowser;
 
     // the frame buffers
+    QSize renderingSize;
     QGLFramebufferObject *_fbo;
 	QGLFramebufferObject *previousframe_fbo;
     GLuint pboIds[2];

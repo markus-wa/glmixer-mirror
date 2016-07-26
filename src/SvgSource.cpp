@@ -40,10 +40,14 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
 
 	// setup renderer resolution to match to rendering manager preference
     int w = RenderingManager::getInstance()->getFrameBufferWidth();
-    _rendered = QImage(w, w / aspectratio, QImage::Format_ARGB32_Premultiplied);
+    qDebug() << " RenderingManager::getInstance()->getFrameBufferWidth() " << w;
+    _rendered = QImage(w, w / aspectratio, QImage::Format_ARGB32);
 
 	// render an image from the svg
 	QPainter imagePainter(&_rendered);
+    if (!imagePainter.isActive())
+        SvgRenderingException().raise();
+
     imagePainter.setRenderHint(QPainter::HighQualityAntialiasing, true);
 	imagePainter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 	imagePainter.setRenderHint(QPainter::TextAntialiasing, true);
