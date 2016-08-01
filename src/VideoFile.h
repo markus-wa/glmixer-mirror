@@ -45,7 +45,7 @@ extern "C" {
 /**
  * uncomment to monitor execution with debug information
  */
-//#define VIDEOFILE_DEBUG
+#define VIDEOFILE_DEBUG
 
 /**
  * Default memory usage policy (in percent)
@@ -57,12 +57,7 @@ extern "C" {
  */
 #define MIN_VIDEO_PICTURE_QUEUE_SIZE 20
 #define MAX_VIDEO_PICTURE_QUEUE_SIZE 260
-/**
- * Minimum and Maximum size of the queue of packets (between parsing and decoding)
- * Expressed in Megabytes
- */
-#define MIN_PACKET_QUEUE_SIZE 10
-#define MAX_PACKET_QUEUE_SIZE 40
+
 /**
  * Portion of a movie to jump by (seek) when calling seekForward() or seekBackward() on a VideoFile.
  * (e.g. (0.05 * duration of the movie) = a jump by 5% of the movie)
@@ -224,6 +219,7 @@ private:
         uint8_t *_picture[PICTUREMAP_SIZE];
         int _pageSize;
         bool _isFull;
+        static long int _totalmemory;
 
     public:
         PictureMap(int pageSize);
@@ -895,39 +891,6 @@ protected slots:
 
 protected:
 
-    /**
-     * Packets are queued during the decoding process and unqueued in the conversion process.
-     * This class is just the abstract data type needed for that.
-     */
-    class PacketQueue {
-        AVPacketList *first_pkt, *last_pkt;
-        static AVPacket *flush_pkt;
-        static AVPacket *eof_pkt;
-        static AVPacket *stop_pkt;
-        int nb_packets;
-        int size;
-        QMutex *mutex;
-        QWaitCondition *cond;
-
-    public:
-        PacketQueue();
-        ~PacketQueue();
-
-        static bool isFlush(AVPacket pkt);
-        static bool isEndOfFile(AVPacket pkt);
-        static bool isStop(AVPacket pkt);
-
-        bool get(AVPacket *pkt, bool block);
-        bool put(AVPacket *pkt);
-        bool flush();
-        void clear();
-        bool endFile();
-        bool isFull() const;
-        inline bool isEmpty() const { return size == 0; }
-        inline int getSize() const { return size; }
-
-    };
-
     // internal methods
     void close();
     void reset();
@@ -960,7 +923,6 @@ protected:
     AVStream *video_st;
     SwsContext *img_convert_ctx;
     int videoStream;
-    PacketQueue videoq;
     bool ignoreAlpha;
     uint8_t *deinterlacing_buffer;
     AVPicture deinterlacing_picture;
@@ -1022,11 +984,9 @@ protected:
 
     // memory policy management (static)
     static int memory_usage_policy;
-    static int maximum_packet_queue_size;
     static int maximum_video_picture_queue_size;
 
     // Threads and execution manangement
-    ParsingThread *parse_tid;
     DecodingThread *decod_tid;
     bool quit;
     bool loop_video;
@@ -1035,14 +995,6 @@ protected:
     // ffmpeg util
     static bool ffmpegregistered;
 
-
-#ifdef VIDEOFILE_DEBUG
-public:
-    static QMutex PacketCountLock;
-    static int PacketCount;
-    static QMutex PacketListElementCountLock;
-    static int PacketListElementCount;
-#endif
 
 };
 

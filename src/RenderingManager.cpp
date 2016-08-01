@@ -1350,14 +1350,6 @@ void RenderingManager::clearSourceSet() {
     VideoPicture::VideoPictureCountLock.lock();
     qDebug() << "Pending video Picture :" << VideoPicture::VideoPictureCount;
     VideoPicture::VideoPictureCountLock.unlock();
-
-    VideoFile::PacketCountLock.lock();
-    qDebug() << "Pending video packets :" << VideoFile::PacketCount;
-    VideoFile::PacketCountLock.unlock();
-
-    VideoFile::PacketListElementCountLock.lock();
-    qDebug() << "Pending packets list elements :" << VideoFile::PacketListElementCount;
-    VideoFile::PacketListElementCountLock.unlock();
 #endif
 }
 
