@@ -201,8 +201,9 @@ void VideoSource::update()
             // fill the texture using Pixel Buffer Object mechanism
             fillFramePBO(vp);
 
-            // Do it once more if have to stop after a reset picture
-            if ( vp == is->getResetPicture() )
+            // Do it once more if not refreshing immediately
+            // (dual buffer mechanism)
+            if ( vp->hasAction(VideoPicture::ACTION_STOP) || vp->hasAction(VideoPicture::ACTION_RESET_PTS) )
                 fillFramePBO(vp);
 
         }

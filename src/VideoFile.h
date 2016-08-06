@@ -50,7 +50,7 @@ extern "C" {
 /**
  * Default memory usage policy (in percent)
  */
-#define DEFAULT_MEMORY_USAGE_POLICY 10
+#define DEFAULT_MEMORY_USAGE_POLICY 20
 /**
  * Minimum and Maximum size of the queue of VideoPictures (between decoding and display)
  * Expressed in Megabytes
@@ -64,6 +64,10 @@ extern "C" {
  */
 #define SEEK_STEP 0.1
 
+
+/**
+ * Number of Pictures in one page of Memory Map
+ */
 #define PICTUREMAP_SIZE 20
 
 /**
@@ -300,7 +304,6 @@ class DecodingThread;
 class VideoFile: public QObject {
 Q_OBJECT
 
-    friend class ParsingThread;
     friend class DecodingThread;
 
 public:
@@ -748,7 +751,7 @@ public slots:
     /**
      * Sets the reading to loop at the end or not.
      * When loop mode is active, the playback will restart at MarkIn when arriving at MarkOut.
-     * Else, playing will pause after the last frame.
+     * Else, playing will stop after the last frame.
      *
      * @param loop activate the loop mode if true,
      */
@@ -897,13 +900,16 @@ protected:
     double fill_first_frame(bool);
     int stream_component_open(AVFormatContext *);
     double synchronize_video(AVFrame *src_frame, double pts);
+
     void queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a);
     void clear_picture_queue();
     void flush_picture_queue();
-    void parsingSeekRequest(double time);
-    bool decodingSeekRequest(double time);
-    bool timeInQueue(double pts);
-    void cleanupPictureQueue(double time = -1.0);
+    void recompute_max_count_picture_queue();
+    bool time_in_picture_queue(double time);
+    void clean_until_time_picture_queue(double time = -1.0);
+    bool jump_in_picture_queue(double time);
+
+    void requestSeek(double time, bool lock = false);
     static int roundPowerOfTwo(int v);
 
     // Video and general information
@@ -932,8 +938,8 @@ protected:
     QWaitCondition *seek_cond;
     typedef enum {
         SEEKING_NONE = 0,
-        SEEKING_PARSING_REQUEST,
-        SEEKING_DECODING_REQUEST
+        SEEKING_PARSING,
+        SEEKING_DECODING
     } SeekingMode;
     SeekingMode parsing_mode;
     bool  seek_any;
@@ -977,10 +983,8 @@ protected:
     // picture queue management
     int pictq_max_count;
     QQueue<VideoPicture*> pictq;
-    bool pictq_flush_req;
     QMutex *pictq_mutex;
     QWaitCondition *pictq_cond;
-    void recomputePictureQueueMaxCount();
 
     // memory policy management (static)
     static int memory_usage_policy;

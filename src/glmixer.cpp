@@ -1064,6 +1064,10 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         selectedSourceVideoFile = NULL;
     }
 
+    // in any case uncheck pause and loop buttons
+    pauseButton->setChecked( false );
+    videoLoopButton->setChecked( false );
+
     // if we are given a valid iterator, we have a source to control
     if ( RenderingManager::getInstance()->isValid(csi) ) {
 
@@ -1156,7 +1160,8 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 
             } // end video file
         } // end video source
-    } else {  // it is not a valid source
+    }
+    else {  // it is not a valid source
 
         // disable control panel widgets
         vcontrolDockWidgetContents->setEnabled(false);
