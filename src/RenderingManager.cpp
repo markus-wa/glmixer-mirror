@@ -1683,7 +1683,6 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             specific.appendChild(p);
 
             QDomElement o = doc.createElement("Options");
-            o.setAttribute("AllowDirtySeek", vf->getOptionAllowDirtySeek());
             o.setAttribute("RestartToMarkIn", vf->getOptionRestartToMarkIn());
             o.setAttribute("RevertToBlackWhenStop", vf->getOptionRevertToBlackWhenStop());
             specific.appendChild(o);
@@ -2052,9 +2051,12 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
                             newSourceVideoFile->setLoop(play.attribute("Loop","1").toInt());
                             QDomElement options = t.firstChildElement("Options");
-                            newSourceVideoFile->setOptionAllowDirtySeek(options.attribute("AllowDirtySeek","0").toInt());
                             newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
                             newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
+
+                            if ( version.toDouble() < 0.9 &&  options.hasAttribute("AllowDirtySeek"))
+                                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Ignoring option Allow Seek Dirty Frames.");
+
 
                             qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Media source created with ") << QFileInfo(fileNameToOpen).fileName() << " ("<<newSourceVideoFile->getFrameWidth()<<"x"<<newSourceVideoFile->getFrameHeight()<<").";
                         }

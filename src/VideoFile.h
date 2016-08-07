@@ -45,8 +45,9 @@ extern "C" {
 /**
  * uncomment to monitor execution with debug information
  */
+#ifndef NDEBUG
 #define VIDEOFILE_DEBUG
-
+#endif
 /**
  * Default memory usage policy (in percent)
  */
@@ -816,29 +817,7 @@ public slots:
      * Seek forward of one frame exactly.
      */
     void seekForwardOneFrame();
-    /**
-     * Sets the "allow dirty seek" option.
-     *
-     * This option is a parameter of ffmpeg seek; when dirty seek is allowed, seek to position will allow
-     * any frame to be accepted (AVSEEK_FLAG_ANY) and displayed. However, with files using frame difference
-     * for compressed encoding, this means that only a partial information is available, and that the frame
-     * is incomplete, aka dirty.
-     *
-     * This option tries to compensate for some cases where seeking into a file causes jumps to 'real' key frames
-     * at times which are quite far from the target seekToPosition time (the default behavior is to find the closest
-     * full frame to display). Use it carefully!
-     *
-     * @param dirty true to activate the option.
-     */
-    void setOptionAllowDirtySeek(bool dirty);
-    /**
-     * Gets the "allow dirty seek" option.
-     *
-     * @return true if the option is active.
-     */
-    inline bool getOptionAllowDirtySeek() {
-    	return seek_any;
-    }
+
     /**
      * Sets the "restart to Mark IN" option.
      *
@@ -942,7 +921,6 @@ protected:
         SEEKING_DECODING
     } SeekingMode;
     SeekingMode parsing_mode;
-    bool  seek_any;
     double  seek_pos;
     double  mark_in;
     double  mark_out;

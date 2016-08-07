@@ -1852,33 +1852,6 @@ QToolButton:pressed {
           <number>0</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="dirtySeekCheckBox">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="mouseTracking">
-            <bool>false</bool>
-           </property>
-           <property name="toolTip">
-            <string>Allow to jump in-between full frames (MPEG).
-This produces ugly incomplete frames
-but is more precise in time..</string>
-           </property>
-           <property name="text">
-            <string>Allow seek dirty frames</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QCheckBox" name="restartWhereStoppedCheckBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -2026,7 +1999,7 @@ Uncheck to display the restart frame when stopped.</string>
      <x>0</x>
      <y>0</y>
      <width>1424</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <property name="defaultUp">
