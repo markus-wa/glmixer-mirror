@@ -300,7 +300,6 @@ SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
 #--------------------------------------------------------------------------------
 # Now the installation stuff below
 #--------------------------------------------------------------------------------
-SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}-${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
 
 IF(APPLE)
       SET(qtplugin_dest_dir GLMixer.app/Contents/MacOS)
@@ -377,6 +376,9 @@ ELSE(APPLE)
 
     ENDIF(WIN32)
 ENDIF(APPLE)
+
+
+SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}-${GLMIXER_WC_REVISION}_${CPACK_SYSTEM_NAME}")
 
 #--------------------------------------------------------------------------------
 # Install the glmixer application.

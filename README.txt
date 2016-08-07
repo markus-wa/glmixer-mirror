@@ -69,7 +69,7 @@ libcvaux-dev
 libhighgui-dev
 libv4l-dev
 
-In short, under linux, the folowing command installs what is necessary :
+In short, under linux, the following command installs what is necessary :
 
 	$ sudo apt-get install subversion cmake-qt-gui ninja-build libqt4-opengl-dev libglew-dev libavformat-dev libhighgui-dev libavfilter-dev libv4l-dev xsltproc
 
