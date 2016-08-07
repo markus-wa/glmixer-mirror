@@ -516,7 +516,7 @@ ELSE(APPLE)
 
         execute_process(COMMAND ${CMAKE_SOURCE_DIR}/linux/svn2cl.sh ${CMAKE_SOURCE_DIR}
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-        execute_process(COMMAND gzip -9 -c ${CMAKE_BINARY_DIR}/ChangeLog
+        execute_process(COMMAND gzip -9 -n -c ${CMAKE_BINARY_DIR}/ChangeLog
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                         OUTPUT_FILE "${CMAKE_BINARY_DIR}/changelog.gz")
         install(FILES "${CMAKE_BINARY_DIR}/changelog.gz"
@@ -526,7 +526,7 @@ ELSE(APPLE)
     ENDIF()
 
     # man pages
-    execute_process(COMMAND gzip -9 -c ${CMAKE_SOURCE_DIR}/linux/glmixer.7
+    execute_process(COMMAND gzip -9 -n -c ${CMAKE_SOURCE_DIR}/linux/glmixer.7
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     OUTPUT_FILE "${CMAKE_BINARY_DIR}/glmixer.7.gz")
     install(FILES "${CMAKE_BINARY_DIR}/glmixer.7.gz"
