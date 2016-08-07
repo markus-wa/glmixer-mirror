@@ -1535,26 +1535,6 @@ void GLMixer::on_actionEditSource_triggered()
 
         sed.exec();
 
-        Source *s = *cs;
-        if (s) {
-            double x = 0.0, y = 0.0;
-            // invoke a delayed call (in Qt event loop) of the source method
-            int methodIndex = s->metaObject()->indexOfSlot("moveTo(double,double)");
-            QMetaMethod method = s->metaObject()->method(methodIndex);
-            method.invoke(s, Qt::QueuedConnection, Q_ARG(double, x), Q_ARG(double, y));
-//            s->moveTo(x, y);
-
-            QColor c("red");
-            methodIndex = s->metaObject()->indexOfSlot("setColor(QColor)");
-            method = s->metaObject()->method(methodIndex);
-            method.invoke(s, Qt::QueuedConnection, Q_ARG(QColor, c));
-
-            int v = -100;
-            methodIndex = s->metaObject()->indexOfSlot("setSaturation(int)");
-            method = s->metaObject()->method(methodIndex);
-            method.invoke(s, Qt::QueuedConnection, Q_ARG(int, v));
-        }
-
     }
 }
 
@@ -3175,3 +3155,26 @@ void GLMixer::showBusyRecording(bool on) {
 
     busy->setVisible(on);
 }
+
+
+// Example snippets
+
+//        Source *s = *cs;
+//        if (s) {
+//            double x = 0.0, y = 0.0;
+//            // invoke a delayed call (in Qt event loop) of the source method
+//            int methodIndex = s->metaObject()->indexOfSlot("setPosition(double,double)");
+//            QMetaMethod method = s->metaObject()->method(methodIndex);
+//            method.invoke(s, Qt::QueuedConnection, Q_ARG(double, x), Q_ARG(double, y));
+////            s->moveTo(x, y);
+
+//            QColor c("red");
+//            methodIndex = s->metaObject()->indexOfSlot("setColor(QColor)");
+//            method = s->metaObject()->method(methodIndex);
+//            method.invoke(s, Qt::QueuedConnection, Q_ARG(QColor, c));
+
+//            int v = -100;
+//            methodIndex = s->metaObject()->indexOfSlot("setSaturation(int)");
+//            method = s->metaObject()->method(methodIndex);
+//            method.invoke(s, Qt::QueuedConnection, Q_ARG(int, v));
+//        }

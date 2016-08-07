@@ -2017,16 +2017,12 @@ void DecodingThread::run()
                     is->parsing_mode = VideoFile::SEEKING_NONE;
                     is->seek_mutex->unlock();
 
-                    fprintf(stderr, "                  DecodingThread reached pts %f queue size %d\n", pts, is->pictq.size());
-
                     // if the seek position we reached equals the mark_in
                     if ( qAbs( is->seek_pos - is->mark_in ) < is->getFrameDuration() )
                         // tag the frame as a MARK frame
                         actionFrame |= VideoPicture::ACTION_MARK;
 
-                }
-                else
-                    fprintf(stderr, "                  DecodingThread pts %f,  seek %f\n", pts, is->seek_pos);
+                }                
 
             }
 
