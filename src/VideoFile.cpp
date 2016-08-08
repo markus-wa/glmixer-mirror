@@ -28,7 +28,6 @@
 extern "C"
 {
 #include <libavcodec/avcodec.h>
-#include <libavutil/tea.h>
 #include <libswscale/swscale.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/common.h>
@@ -1138,7 +1137,9 @@ double VideoFile::fill_first_frame(bool seek)
 
         frameFinished = 0;
         // unreference buffers
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
         av_frame_unref(tmpframe);
+#endif
 
         // if we can decode it
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
@@ -1165,7 +1166,10 @@ double VideoFile::fill_first_frame(bool seek)
         }
         else {
             frameFinished = false;
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
             avformat_flush(pFormatCtx);
+#endif
         }
 
         // free memory
@@ -1210,6 +1214,9 @@ double VideoFile::fill_first_frame(bool seek)
     av_init_packet(&packet);
     do {
         avcodec_decode_video2(video_st->codec, tmpframe, &frameFinished, &packet);
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
+        av_frame_unref(tmpframe);
+#endif
         avcodec_flush_buffers(video_st->codec);
         av_frame_unref(tmpframe);
     } while (frameFinished > 0);
@@ -1222,6 +1229,7 @@ double VideoFile::fill_first_frame(bool seek)
     av_free(tmpframe);
 #else
     av_frame_free(&tmpframe);
+    avformat_flush(pFormatCtx);
 #endif
 
     first_picture_changed = false;
@@ -1924,6 +1932,9 @@ void DecodingThread::run()
         // Read packet
         if ( av_read_frame(is->pFormatCtx, &packet) < 0)
         {
+            // restart parsing at beginning in any case
+            is->requestSeek(is->mark_in);
+
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error != 0) {
                 qWarning() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not read frame.");
@@ -1933,10 +1944,6 @@ void DecodingThread::run()
             }
 
             // not really an error : read_frame reached the end of file
-
-            // restart parsing at beginning in any case
-            is->requestSeek(is->mark_in);
-
             // react according to loop mode
             if ( !is->loop_video ) {
                 // if stopping, send an empty frame with stop flag
@@ -1948,8 +1955,9 @@ void DecodingThread::run()
             // cleanup parsing buffers
             avcodec_flush_buffers(is->video_st->codec);
             avio_flush(is->pFormatCtx->pb);
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
             avformat_flush(is->pFormatCtx);
-
+#endif
             // and go on to next packet
             continue;
 
@@ -1987,7 +1995,7 @@ void DecodingThread::run()
 
 
         // No error, but did we get a full video frame?
-        if (frameFinished > 0)
+        if ( frameFinished > 0)
         {
             VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
@@ -2063,7 +2071,9 @@ void DecodingThread::run()
         } // end if (frameFinished > 0)
 
         // free internal buffers
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
         av_frame_unref(_pFrame);
+#endif
 
     } // end while
 
@@ -2080,12 +2090,16 @@ void DecodingThread::run()
         do {
             avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &_nullPacket);
             avcodec_flush_buffers(is->video_st->codec);
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
             av_frame_unref(_pFrame);
+#endif
         } while (frameFinished > 0);
 
         // cleanup parsing buffers
         avio_flush(is->pFormatCtx->pb);
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
         avformat_flush(is->pFormatCtx);
+#endif
 
 
     if (_forceQuit)
@@ -2099,7 +2113,9 @@ void DecodingThread::run()
 
     // free internal buffers
     av_free_packet(&packet);
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
     av_frame_unref(_pFrame);
+#endif
 
 }
 
