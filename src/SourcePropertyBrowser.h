@@ -34,6 +34,8 @@ class SourcePropertyBrowser  : public PropertyBrowser {
 
 	Q_OBJECT
 
+    friend class SourcePropertyTreeFiller;
+
 public:
 	SourcePropertyBrowser(QWidget *parent = 0);
 
@@ -77,8 +79,23 @@ private:
     void createSourcePropertyTree();
     void updatePropertyTree();
 
+
+    QMutex propertyTreeAccesslock;
+
 };
 
 
+class SourcePropertyTreeFiller : public QThread
+ {
+     Q_OBJECT
+
+     void run();
+
+     SourcePropertyBrowser *_spb;
+
+public:
+     SourcePropertyTreeFiller(SourcePropertyBrowser *spb);
+
+};
 
 #endif /* SOURCEPROPERTYBROWSER_H_ */

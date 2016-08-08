@@ -73,6 +73,11 @@
 #include "FFGLPluginBrowser.h"
 #endif
 
+SourcePropertyTreeFiller::SourcePropertyTreeFiller(SourcePropertyBrowser *spb)
+    : QThread(spb), _spb(spb)
+{
+
+}
 
 SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : PropertyBrowser(parent) {
 
@@ -84,6 +89,18 @@ SourcePropertyBrowser::SourcePropertyBrowser(QWidget *parent) : PropertyBrowser(
    // use the managers to create the property tree
     createSourcePropertyTree();
 
+    // show all the Properties into the browser:
+    QListIterator<QtProperty *> it(root->subProperties());
+
+    // first property ; the name
+    addProperty(it.next());
+
+    // the rest of the properties
+    while (it.hasNext()) {
+        addProperty(it.next());
+    }
+
+    setVisible(false);
 }
 
 
@@ -422,17 +439,23 @@ void SourcePropertyBrowser::updatePropertyTree(){
     }
 }
 
+void SourcePropertyTreeFiller::run()
+{
+    if (_spb) {
+
+        _spb->updatePropertyTree();
+
+        // reconnect the managers to the corresponding value change
+        _spb->propertyTreeAccesslock.unlock();
+    }
+}
 
 void SourcePropertyBrowser::showProperties(SourceSet::iterator sourceIt)
 {
     // this slot is called only when a different source is clicked (or when none is clicked)
 
     // remember expanding state
-    updateExpandState(propertyTreeEditor->topLevelItems());
-
-    // clear the GUI
-    propertyTreeEditor->clear();
-    propertyGroupEditor->clear();
+//    updateExpandState(propertyTreeEditor->topLevelItems());
 
     if ( RenderingManager::getInstance()->isValid(sourceIt) )
         showProperties(*sourceIt);
@@ -443,25 +466,31 @@ void SourcePropertyBrowser::showProperties(SourceSet::iterator sourceIt)
 
 void SourcePropertyBrowser::showProperties(Source *source)
 {
+    if (source == currentItem)
+        return;
+
     currentItem = source;
 
     if (currentItem) {
 
-        updatePropertyTree();
+        if ( propertyTreeAccesslock.tryLock(100) )
+        {
 
-        // show all the Properties into the browser:
-        QListIterator<QtProperty *> it(root->subProperties());
+            SourcePropertyTreeFiller *workerThread = new SourcePropertyTreeFiller(this);
+            if (!workerThread) {
+                propertyTreeAccesslock.unlock();
+                return;
+            }
 
-        // first property ; the name
-        addProperty(it.next());
+            connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+            workerThread->start();
 
-        // the rest of the properties
-        while (it.hasNext()) {
-            addProperty(it.next());
         }
 
-        restoreExpandState(propertyTreeEditor->topLevelItems());
+        setVisible(true);
     }
+    else
+        setVisible(false);
 }
 
 
