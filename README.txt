@@ -90,11 +90,11 @@ COMPILATION
   3. Create a folder for building (e.g. glmixer-Build)
 
   4. Run CMake GUI and select the GLMixer top directory as location of the source.
-     Do **configure** (choose Makefile)
+     Do **configure** (choose Ninja)
      Make sure there is no error and set '`CMAKE_BUILD_TYPE`' to '`Release`'
      Do **generate** with CMake.
 
-  5. Compile : cd to the build folder, and run 'make' in a terminal to build the program (or use an IDE).
+  5. Compile : cd to the build folder, and run 'ninja' in a terminal to build the program (or use an IDE).
 
 
 UNIX COMPILATION
