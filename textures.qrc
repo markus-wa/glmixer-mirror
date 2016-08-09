@@ -33,5 +33,11 @@
         <file>textures/loading.png</file>
         <file>textures/timeout.png</file>
         <file>textures/checkerboard.png</file>
+        <file>textures/mask_custom.png</file>
+        <file>textures/mask_grid.png</file>
+        <file>textures/mask_gabor_h.png</file>
+        <file>textures/mask_gabor_v.png</file>
+        <file>textures/mask_pixel_horizontal.png</file>
+        <file>textures/mask_pixel_vertical.png</file>
     </qresource>
 </RCC>

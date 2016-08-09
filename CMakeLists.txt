@@ -276,7 +276,7 @@ endif(USE_FREEFRAMEGL)
 
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
 
-SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} avformat avcodec avutil swscale avfilter)
+SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} avformat avcodec avutil swscale avfilter x264)
     
 FOREACH(GLMIXER_DEPENDENCY ${GLMIXER_DEPENDENCIES})
     STRING(TOUPPER ${GLMIXER_DEPENDENCY} _upper_glmixer_dependency)
@@ -294,7 +294,7 @@ ENDFOREACH(GLMIXER_DEPENDENCY)
 # BELLOW IS THE LIST OF FFMPEG OPTIONNAL DEPENDENCIES.
 # ADD THE LIBRARIES AS REQUIRED BY YOUR INSTALLATION OF FFMPEG
 
-SET(GLMIXER_UTILITIES avcore pthread theora modplug theoraenc theoradec x264 xvidcore faac gsm
+SET(GLMIXER_UTILITIES avcore pthread theora modplug theoraenc theoradec xvidcore faac gsm
                       mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0 va png14
                       speex dirac_encoder jpeg vpx bz2 z)
     

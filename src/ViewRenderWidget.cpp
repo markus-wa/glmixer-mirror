@@ -227,8 +227,14 @@ ViewRenderWidget::ViewRenderWidget() :
     createMask("Sand", ":/glmixer/textures/mask_sand.png");
     createMask("Diapo", ":/glmixer/textures/mask_diapo.png");
     createMask("Ink", ":/glmixer/textures/mask_ink.png");
-    createMask("Say", ":/glmixer/textures/mask_says.png");
-    createMask("Think", ":/glmixer/textures/mask_think.png");
+    createMask("Movie", ":/glmixer/textures/mask_think.png");
+    createMask("Pixel H", ":/glmixer/textures/mask_pixel_horizontal.png");
+    createMask("Pixel V", ":/glmixer/textures/mask_pixel_vertical.png");
+    createMask("PixelGrid", ":/glmixer/textures/mask_says.png");
+    createMask("Gabor H", ":/glmixer/textures/mask_gabor_h.png");
+    createMask("Gabor V", ":/glmixer/textures/mask_gabor_v.png");
+    createMask("GaborGrid", ":/glmixer/textures/mask_grid.png");
+    createMask("Custom", ":/glmixer/textures/mask_custom.png");
 
     installEventFilter(this);
 }
