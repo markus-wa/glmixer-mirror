@@ -58,5 +58,6 @@ void video_rec_free(video_rec_t *);
 
 void sws_rec_deliver_vframe(video_rec_t *gr, void *data, int timestamp);
 void rec_deliver_vframe(video_rec_t *gr, void *data, int timestamp);
+void x264_deliver_vframe(video_rec_t *gr, void *data, int timestamp);
 
 #endif // FFVHUFF_REC_H__

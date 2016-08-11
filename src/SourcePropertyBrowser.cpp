@@ -876,7 +876,7 @@ public:
         addProperty(idToProperty["Pixel format"]);
         addProperty(idToProperty["Interlaced"]);
         addProperty(idToProperty["Duration"]);
-        if (vf->pixelFormatHasAlphaChannel())
+        if (vf->PixelFormatHasAlphaChannel())
             addProperty(idToProperty["Ignore alpha"]);
         if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight())
             addProperty(idToProperty["Original size"]);

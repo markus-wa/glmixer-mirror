@@ -101,7 +101,7 @@ public:
      * @param h Height of the frame
      * @param format Internal pixel format of the buffer. PIX_FMT_RGB24 (by default), PIX_FMT_RGBA if there is alpha channel
      */
-    VideoPicture(SwsContext *img_convert_ctx, int w, int h, enum PixelFormat format = AV_PIX_FMT_RGB24, bool palettized = false);
+    VideoPicture(SwsContext *img_convert_ctx, int w, int h, enum AVPixelFormat format = AV_PIX_FMT_RGB24, bool palettized = false);
 
     /**
       * Deletes the VideoPicture and frees the av picture
@@ -185,8 +185,8 @@ public:
      *
      * @return PIX_FMT_RGB24 by default, PIX_FMT_RGBA if there is alpha channel
      */
-    enum PixelFormat getFormat() const {
-         return pixelformat;
+    enum AVPixelFormat getFormat() const {
+         return pixel_format;
     }
     /**
       *
@@ -205,7 +205,7 @@ public:
     inline bool hasAction(Action a) const { return (action & a); }
     inline double presentationTime() const { return pts; }
 
-    inline int getBufferSize() { return avpicture_get_size(pixelformat, width, height); }
+    inline int getBufferSize() { return avpicture_get_size(pixel_format, width, height); }
 
 
 
@@ -214,7 +214,7 @@ private:
     double pts;
     int width, height;
     bool convert_rgba_palette;
-    enum PixelFormat pixelformat;
+    enum AVPixelFormat pixel_format;
     SwsContext *img_convert_ctx_filtering;
     Action action;
 
@@ -238,7 +238,7 @@ private:
     };
     PictureMap *_pictureMap;
 
-    static PictureMap *getAvailablePictureMap(int w, int h, enum PixelFormat format);
+    static PictureMap *getAvailablePictureMap(int w, int h, enum AVPixelFormat format);
     static void freePictureMap(PictureMap *pmap);
     static QList<PictureMap*> _pictureMaps;
     static QMutex VideoPictureMapLock;
@@ -858,7 +858,7 @@ public slots:
     /**
      *
      */
-    bool pixelFormatHasAlphaChannel() const;
+    bool PixelFormatHasAlphaChannel() const;
     inline bool ignoresAlphaChannel() const { return ignoreAlpha; }
     /**
      *
@@ -899,7 +899,7 @@ protected:
     int conversionAlgorithm;
     VideoPicture *firstPicture, *blackPicture;
     VideoPicture *resetPicture;
-    enum PixelFormat targetFormat;
+    enum AVPixelFormat targetFormat;
     bool rgba_palette;
     SwsFilter *filter;
 

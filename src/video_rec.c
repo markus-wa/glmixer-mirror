@@ -29,6 +29,7 @@
 #include <libavutil/mathematics.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/imgutils.h>
+#include <x264.h>
 
 #include "video_rec.h"
 #include <stdio.h>
@@ -66,13 +67,13 @@ video_rec_t *video_rec_init(const char *filename, encodingformat f, int width, i
     // vars defining the format
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,0,0)
     enum CodecID f_codec_id = CODEC_ID_NONE;
-    enum PixelFormat f_pix_fmt =  PIX_FMT_NONE;
+    enum AVPixelFormat f_pix_fmt =  PIX_FMT_NONE;
 #elif LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
     enum AVCodecID f_codec_id = CODEC_ID_NONE;
-    enum PixelFormat f_pix_fmt =  PIX_FMT_NONE;
+    enum AVPixelFormat f_pix_fmt =  PIX_FMT_NONE;
 #else
     enum AVCodecID f_codec_id = AV_CODEC_ID_NONE;
-    enum PixelFormat f_pix_fmt =  AV_PIX_FMT_NONE;
+    enum AVPixelFormat f_pix_fmt =  AV_PIX_FMT_NONE;
 #endif
 
     // setup codec vars according to selected encoding format
@@ -562,5 +563,10 @@ void sws_rec_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
     av_free_packet(&pkt);
 }
 
+
+void x264_deliver_vframe(video_rec_t *rec, void *data, int timestamp)
+{
+
+}
 
 

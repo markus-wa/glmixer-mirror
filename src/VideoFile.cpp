@@ -37,7 +37,6 @@ extern "C"
 #endif
 }
 
-#include "VideoFile.h"
 #include "VideoFile.moc"
 
 #include <QtGui/QButtonGroup>
@@ -331,7 +330,7 @@ uint8_t *VideoPicture::PictureMap::getAvailablePictureMemory()
     return NULL;
 }
 
-VideoPicture::PictureMap *VideoPicture::getAvailablePictureMap(int w, int h, enum PixelFormat format) {
+VideoPicture::PictureMap *VideoPicture::getAvailablePictureMap(int w, int h, enum AVPixelFormat format) {
     PictureMap *m = NULL;
     int pageSize = 0;
     if(format==AV_PIX_FMT_RGB24)
@@ -384,7 +383,7 @@ void VideoPicture::freePictureMap(PictureMap *pmap)
 }
 
 VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
-        enum PixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixelformat(format),  img_convert_ctx_filtering(img_convert_ctx), action(0)
+        enum AVPixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixel_format(format),  img_convert_ctx_filtering(img_convert_ctx), action(0)
 {
     for(int i=0; i<AV_NUM_DATA_POINTERS; ++i) {
         rgb.data[i] = NULL;
@@ -404,7 +403,7 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
     rgb.linesize[0] = ( format == AV_PIX_FMT_RGB24 ? 3 : 4 ) * width;
 
 #else
-    avpicture_alloc(&rgb, pixelformat, width, height);
+    avpicture_alloc(&rgb, pixel_format, width, height);
 #endif
 
 
@@ -416,7 +415,7 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
 
     // initialize buffer if no conversion context is provided
     if (!img_convert_ctx_filtering) {
-        int nbytes = avpicture_get_size(pixelformat, width, height);
+        int nbytes = avpicture_get_size(pixel_format, width, height);
         for(int i = 0; i < nbytes; ++i)
             rgb.data[0][i] = 0;
     }
@@ -445,7 +444,7 @@ VideoPicture::~VideoPicture()
 
 void VideoPicture::saveToPPM(QString filename) const
 {
-    if (pixelformat != AV_PIX_FMT_RGBA)
+    if (pixel_format != AV_PIX_FMT_RGBA)
 	{
 		FILE *pFile;
 		int y;
@@ -507,7 +506,7 @@ void VideoPicture::fill(AVFrame *frame, double timestamp)
 					*bgr++ = palette[4 * map[x] + 2]; // B
 					*bgr++ = palette[4 * map[x] + 1]; // G
 					*bgr++ = palette[4 * map[x]];     // R
-                    if (pixelformat == AV_PIX_FMT_RGBA)
+                    if (pixel_format == AV_PIX_FMT_RGBA)
 						*bgr++ = palette[4 * map[x] + 3]; // A
 				}
                 map += frame->linesize[0];
@@ -968,7 +967,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
 
     // Change target format to keep Alpha channel if format requires
-    if ( pixelFormatHasAlphaChannel() )
+    if ( PixelFormatHasAlphaChannel() )
     {
         targetFormat = AV_PIX_FMT_RGBA;
 
@@ -1061,7 +1060,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	return true;
 }
 
-bool VideoFile::pixelFormatHasAlphaChannel() const
+bool VideoFile::PixelFormatHasAlphaChannel() const
 {
 	if (!video_st)
 		return false;
@@ -2349,11 +2348,11 @@ QString VideoFile::getPixelFormatName() const
 	return pfn;
 }
 #else
-QString VideoFile::getPixelFormatName(PixelFormat ffmpegPixelFormat) const
+QString VideoFile::getPixelFormatName(AVPixelFormat ffmpegAVPixelFormat) const
 {
-    PixelFormat ffmpegPixelFormat =video_st->codec->pix_fmt;
+    AVPixelFormat ffmpegAVPixelFormat =video_st->codec->pix_fmt;
 
-	switch (ffmpegPixelFormat )
+    switch (ffmpegAVPixelFormat )
 	{
 
 		case PIX_FMT_YUV420P: return QString("planar YUV 4:2:0, 12bpp");
