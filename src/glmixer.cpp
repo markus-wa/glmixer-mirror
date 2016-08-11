@@ -827,19 +827,23 @@ void GLMixer::Log(int type, QString msg)
     // reads the text passed and split into object|message
     QStringList message = msg.split(QChar(124), QString::SkipEmptyParts);
     if (message.count() > 1 ) {
-        item->setText(0, message[1].simplified());
-        item->setToolTip(0, message[1].simplified());
-        item->setText(1, message[0].simplified());
+        message[0] = message[0].simplified();
+        message[1] = message[1].simplified();
+        item->setText(0, message[1]);
+        item->setToolTip(0, message[1]);
+        if (message[1].endsWith("!"))
+            item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
+        item->setText(1, message[0]);
     } else if (message.count() > 0 ) {
-        item->setText(0, message[0].simplified());
-        item->setToolTip(0, message[0].simplified());
+        message[0] = message[0].simplified();
+        item->setText(0, message[0]);
+        item->setToolTip(0, message[0]);
         item->setText(1, QApplication::applicationName());
     } else {
         item->setText(0, msg);
         item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
         item->setText(1, "");
-    }
-
+    }       
     // adjust color and show dialog according to message type
     switch ( (QtMsgType) type) {
     case QtWarningMsg:
@@ -855,7 +859,6 @@ void GLMixer::Log(int type, QString msg)
     default:
         break;
     }
-
     // auto scroll to new item
     logTexts->setCurrentItem( item );
 }
@@ -2117,7 +2120,7 @@ void GLMixer::openSessionFile()
     if ( root.hasAttribute("version") )
         version = root.attribute("version");
     if ( version != XML_GLM_VERSION ) {
-        qWarning() << currentSessionFileName << QChar(124).toLatin1()<< tr("The version of the file is old (") << root.attribute("version") << tr(") : converting file to current version (") << XML_GLM_VERSION << ").";
+        qDebug() << currentSessionFileName << QChar(124).toLatin1()<< tr("The version of the file is old (") << root.attribute("version") << tr(") : converting file to current version (") << XML_GLM_VERSION << ")!";
     }
 
     // if we got up to here, it should be fine ; reset for a new session and apply loaded configurations
@@ -2133,7 +2136,7 @@ void GLMixer::openSessionFile()
     // read the source list and its configuration
     QDomElement renderConfig = root.firstChildElement("SourceList");
     if (renderConfig.isNull())
-        qWarning() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load.");
+        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("There is no source to load!");
     else {
         standardAspectRatio ar = (standardAspectRatio) renderConfig.attribute("aspectRatio", "0").toInt();
 
@@ -2173,7 +2176,7 @@ void GLMixer::openSessionFile()
     RenderingManager::getRenderingWidget()->clearViews();
     QDomElement vconfig = root.firstChildElement("Views");
     if (vconfig.isNull())
-        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("No configuration specified.");
+        qDebug() << currentSessionFileName << QChar(124).toLatin1() << tr("No configuration specified!");
     else  {
 
         // apply the view config (after sources are loaded to greate groups)
@@ -2351,7 +2354,7 @@ void GLMixer::drop(QDropEvent *event)
         }
     }
     else
-        qWarning() << "[" << ++errors << "]" << tr("Not a valid drop; Ignoring.");
+        qDebug() << "[" << ++errors << "]" << tr("Not a valid drop; Ignoring!");
 
     if (!glmfile.isNull()) {
         currentSessionFileName = glmfile;

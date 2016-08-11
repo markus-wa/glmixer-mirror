@@ -1204,7 +1204,7 @@ double VideoFile::fill_first_frame(bool seek)
 #endif
     }
     else {
-        qWarning() << filename << QChar(124).toLatin1()<< tr("Could not read first frame.");
+        qDebug() << filename << QChar(124).toLatin1()<< tr("Could not read frame!");
         resetPicture = blackPicture;
     }
 
@@ -1936,7 +1936,7 @@ void DecodingThread::run()
 
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error != 0) {
-                qWarning() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not read frame.");
+                qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
                 // do not treat the error; just wait a bit for the end of the packet and continue
                 msleep(PARSING_SLEEP_DELAY);
                 continue;

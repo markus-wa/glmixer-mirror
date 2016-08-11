@@ -2055,7 +2055,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                             newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
 
                             if ( version.toDouble() < 0.9 &&  options.hasAttribute("AllowDirtySeek"))
-                                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Ignoring option Allow Seek Dirty Frames.");
+                                qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Option Allow Seek Dirty Frames is deprecated: ignoring!");
 
 
                             qDebug() << child.attribute("name") << QChar(124).toLatin1()<< tr("Media source created with ") << QFileInfo(fileNameToOpen).fileName() << " ("<<newSourceVideoFile->getFrameWidth()<<"x"<<newSourceVideoFile->getFrameHeight()<<").";

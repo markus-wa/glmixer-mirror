@@ -109,7 +109,7 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
         brokenCameraException().raise();
 
 	if ( raw->depth != IPL_DEPTH_8U || raw->nChannels != 3 || raw->widthStep > 3 * raw->width + 1) {
-        qWarning()<< tr("Video capture slowed down by image format conversion.");
+        qDebug()<< tr("Image format conversion required: Video capture might be slow!");
 		frame = cvCreateImage(cvSize(raw->width, raw->height), IPL_DEPTH_8U, 3);
 		cvCopy(raw, frame);
 		needFrameCopy = true;
