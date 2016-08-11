@@ -235,7 +235,7 @@ ViewRenderWidget::ViewRenderWidget() :
     createMask("Gabor V", ":/glmixer/textures/mask_gabor_v.png");
     createMask("GaborGrid", ":/glmixer/textures/mask_grid.png");
 //    createMask("Custom", ":/glmixer/textures/mask_custom.png");
-        ViewRenderWidget::mask_description[100] = QPair<QString, QString>("Custom", ":/glmixer/textures/mask_custom.png");
+//        ViewRenderWidget::mask_description[100] = QPair<QString, QString>("Custom", ":/glmixer/textures/mask_custom.png");
 
     installEventFilter(this);
 }

@@ -30,7 +30,7 @@ FFGLPluginSource::RTTI FFGLPluginSourceShadertoy::type = FFGLPluginSource::SHADE
 FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(bool plugintype, int w, int h, FFGLTextureStruct inputTexture) : FFGLPluginSource(w, h, inputTexture)
 {
     // free the FFGLPluginInstanceFreeframe instance
-    if (_plugin) free(_plugin);
+    if (_plugin) delete(_plugin);
 
     // instanciate a FFGLPluginInstanceShadertoy plugin instead
     _plugin =  FFGLPluginInstanceShadertoy::New();

@@ -300,7 +300,7 @@ void LayersView::resize(int w, int h)
 
     // do the same with the image to get the fbo texture into
     if (picking_fbo_map)
-        delete picking_fbo_map;
+        delete [] picking_fbo_map;
     picking_fbo_map = new GLfloat[ 3 * w * h / PICKING_FBO_FACTOR];
     // inform that the picking map needs to be recomputed
     picking_map_needsupdate = true;
