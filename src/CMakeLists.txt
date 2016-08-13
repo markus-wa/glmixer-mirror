@@ -199,6 +199,20 @@ elseif(USE_OPENCV)
     remove_definitions(-DOPEN_CV)
 endif(USE_OPENCV)
 
+# if we use CUDA
+if(USE_NVIDIA_CUDA)
+
+    add_definitions(-DCUDA)
+    include_directories(${LIBCUDADECODER_SOURCE_DIR} )
+    SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
+        CUDAVideoFile.cpp
+    )
+
+else(USE_NVIDIA_CUDA)
+
+    remove_definitions(-DCUDA)
+endif(USE_NVIDIA_CUDA)
+
 #include the current source dir
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -282,10 +296,6 @@ ENDIF(APPLE)
 
 # link the target against the libraries.
 if(USE_NVIDIA_CUDA)
-
-    add_definitions(-DCUDA)
-    include_directories(${LIBCUDADECODER_SOURCE_DIR} )
-
     target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack CUDADecoder ${GLMIXER_LIBRARIES} ${QT_LIBRARIES} ${CUDA_LIBRARIES})
 else(USE_NVIDIA_CUDA)
     target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})

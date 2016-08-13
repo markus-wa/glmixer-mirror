@@ -34,6 +34,10 @@ extern "C" {
 #endif
 }
 
+#ifdef CUDA
+#include <VideoManager.h>
+#endif
+
 #include <QQueue>
 #include <QMutex>
 #include <QWaitCondition>
@@ -793,6 +797,9 @@ protected:
     // ffmpeg util
     static bool ffmpegregistered;
 
+#ifdef CUDA
+    cuda::VideoManager *cv;
+#endif
 
 };
 
