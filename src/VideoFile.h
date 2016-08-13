@@ -34,10 +34,6 @@ extern "C" {
 #endif
 }
 
-#ifdef CUDA
-#include <VideoManager.h>
-#endif
-
 #include <QQueue>
 #include <QMutex>
 #include <QWaitCondition>
@@ -121,7 +117,8 @@ class DecodingThread;
  *  This code was inpired by the C/SDL tutorial by Martin Bohme (http://www.dranger.com/ffmpeg/)
  *  and by the C/SDL code of ffplay provided with ffmpeg (http://ffmpeg.org/)
  */
-class VideoFile: public QObject {
+class VideoFile: public QObject
+{
 
 Q_OBJECT
 
@@ -157,7 +154,8 @@ public:
      *  @param destinationHeight Height of the VideoPicture to produce; leave at 0 for auto detection from the file resolution.
      */
     VideoFile(QObject *parent = 0,  bool generatePowerOfTwo = false,
-                int swsConversionQuality = 0, int destinationWidth = 0, int destinationHeight = 0);
+              int swsConversionQuality = 0, int destinationWidth = 0,
+              int destinationHeight = 0);
     /**
      * Destructor.
      *
@@ -187,10 +185,7 @@ public:
      */
     VideoPicture *getResetPicture() const;
 
-    inline int getNumFrames() const {
-        if (video_st) return video_st->nb_frames;
-        else return 0;
-    }
+    virtual int getNumFrames() const ;
 
 
     /**
@@ -203,16 +198,14 @@ public:
      * @param markOut Position of the mark OUT where to stop.
      * @return true on success
      */
-    bool open(QString file, double  markIn = -1.0, double  markOut = -1.0, bool ignoreAlphaChannel = false);
+    virtual bool open(QString file, double  markIn = -1.0, double  markOut = -1.0, bool ignoreAlphaChannel = false);
 
     /**
      * Test if a file was open for this VideoFile.
      *
      * @return true if a file was open, false otherwise.
      */
-    inline bool isOpen() const {
-        return (pFormatCtx != NULL);
-    }
+    virtual bool isOpen() const ;
     /**
      * Test if running (playing).
      *
@@ -509,7 +502,7 @@ public slots:
      *
      * Emits running(true) on success.
      */
-    void start();
+    virtual void start();
     /**
      * Stops the decoding-conversion process.
      * Does nothing if the process was not started.
@@ -523,7 +516,7 @@ public slots:
      *
      * Emits running(false) on success.
      */
-    void stop();
+    virtual void stop();
     /**
      * Starts or stop the reading of the video.
      * Executes start() if argument it true, stop() otherwise.
@@ -796,10 +789,6 @@ protected:
 
     // ffmpeg util
     static bool ffmpegregistered;
-
-#ifdef CUDA
-    cuda::VideoManager *cv;
-#endif
 
 };
 

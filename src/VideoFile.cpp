@@ -218,7 +218,6 @@ private:
 
 
 
-
 VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 		int swsConversionAlgorithm, int destinationWidth, int destinationHeight) :
 	QObject(parent), filename(QString()), powerOfTwo(generatePowerOfTwo),
@@ -523,6 +522,15 @@ double VideoFile::getPlaySpeed()
 VideoPicture *VideoFile::getResetPicture() const
 {
     return (resetPicture);
+}
+
+int VideoFile::getNumFrames() const {
+    if (video_st) return video_st->nb_frames;
+    else return 0;
+}
+
+bool VideoFile::isOpen() const {
+    return (pFormatCtx != NULL);
 }
 
 bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlphaChannel)
