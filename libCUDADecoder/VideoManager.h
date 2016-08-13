@@ -54,7 +54,7 @@ class VideoParser;
 // The video-source spawns its own thread for processing the stream.
 // The user can register call-back methods for handling chucks of demuxed
 // audio and video data.
-class VideoSource
+class VideoManager
 {
     public:
         // Default constructor.
@@ -62,10 +62,10 @@ class VideoSource
         //      pFrameQueue - A frame queue object that the decoding
         //          thread and the main render thread use to exchange
         //          decoded frames.
-        VideoSource(const std::string sFileName, FrameQueue *pFrameQueue);
+        VideoManager(const std::string sFileName, FrameQueue *pFrameQueue);
 
         // Destructor
-        ~VideoSource();
+        ~VideoManager();
 
         // This reloads the video source file
         void ReloadVideo(const std::string sFileName, FrameQueue *pFrameQueue, VideoParser *pVideoParser);
@@ -95,6 +95,10 @@ class VideoSource
         bool
         isStarted();
 
+        // Was it correctly created ?
+        bool
+        isValid() { return hVideoSource_ != NULL; }
+
         // Retrieve source dimensions (width, height) from the video
         void getSourceDimensions(unsigned int &width, unsigned int &height);
 
@@ -107,7 +111,7 @@ class VideoSource
     private:
         // This struct contains the data we need inside the source's
         // video callback in order to processes the video data.
-        struct VideoSourceData
+        struct VideoManagerData
         {
             CUvideoparser hVideoParser;
             FrameQueue   *pFrameQueue;			
@@ -130,16 +134,16 @@ class VideoSource
         HandleVideoData(void *pUserData, CUVIDSOURCEDATAPACKET *pPacket);
 
         // Default constructor. Don't implement.
-        VideoSource();
+        VideoManager();
 
         // Copy constructor. Don't implement.
-        VideoSource(const VideoSource &);
+        VideoManager(const VideoManager &);
 
         // Assignment operator. Don't implement.
         void
-        operator= (const VideoSource &);
+        operator= (const VideoManager &);
 
-        VideoSourceData oSourceData_;       // Instance of the user-data struct we use in the video-data handle callback.
+        VideoManagerData oSourceData_;       // Instance of the user-data struct we use in the video-data handle callback.
         CUvideosource   hVideoSource_;      // Handle to the CUDA video-source object.
 };
 

@@ -24,22 +24,34 @@ SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} CACHE STRING "You may add additiona
 SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE STRING "You may add additional search paths here. Use ; to separate multiple paths.")
 
 # Propose two build configurations
-#set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Compilation configuration" FORCE)
 if(DEFINED CMAKE_BUILD_TYPE)
+    # Default
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build." FORCE)
+    endif(NOT CMAKE_BUILD_TYPE)
+
     set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo" )
 endif()
 
 
 if( APPLE )
-
-    #set(CMAKE_OSX_ARCHS "i386;x86_64" CACHE STRING "Compilation architecture" FORCE)
     if(DEFINED CMAKE_OSX_ARCHITECTURES)
+        # Default
+        if(NOT CMAKE_OSX_ARCHITECTURES)
+            set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING "Choose compilation architecture." FORCE)
+        endif(NOT CMAKE_OSX_ARCHITECTURES)
+
         set_property( CACHE CMAKE_OSX_ARCHITECTURES PROPERTY STRINGS "i386;x86_64" )
     endif()
 
     #set(CMAKE_OSX_TARGETS "10.5;10.6;10.7" CACHE STRING "Target OSX version (Min requirement)" FORCE)
     if(DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
-            set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS ";10.5;10.6;10.7,10.8" )
+        # Default
+        if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+            set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10 CACHE STRING "Choose OSX Version for Deployment." FORCE)
+        endif(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+
+        set_property( CACHE CMAKE_OSX_DEPLOYMENT_TARGET PROPERTY STRINGS ";10.5;10.6;10.7;10.8;10.9;10.10;10.11" )
     endif()
 
 endif( APPLE )
@@ -280,6 +292,9 @@ if(USE_NVIDIA_CUDA)
 
     if(CUDA_VERSION)
         add_subdirectory(libCUDADecoder)
+
+        SET(CUDA_LIBRARIES ${CUDA_CUDA_LIBRARY}  ${CUDA_CUDART_LIBRARY} )
+
     else (CUDA_VERSION)
         unset(USE_NVIDIA_CUDA CACHE)
     endif(CUDA_VERSION)
@@ -287,7 +302,7 @@ if(USE_NVIDIA_CUDA)
 endif(USE_NVIDIA_CUDA)
 
 if(USE_NVIDIA_CUDA)
-        message(STATUS "Using Nvidia CUDA.")
+        message(STATUS "Using Nvidia CUDA version ${CUDA_VERSION}")
 endif(USE_NVIDIA_CUDA)
 
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES

@@ -157,6 +157,12 @@ void VideoSource::pause(bool on)
 		is->pause(on);
 }
 
+int VideoSource::getFrameWidth() const { return is->getFrameWidth(); }
+int VideoSource::getFrameHeight() const { return is->getFrameHeight(); }
+double VideoSource::getFrameRate() const { return is->getFrameRate(); }
+
+double VideoSource::getStorageAspectRatio() const { return is->getStreamAspectRatio(); }
+
 
 void VideoSource::fillFramePBO(VideoPicture *vp)
 {
@@ -232,4 +238,19 @@ void VideoSource::updateFrame(VideoPicture *p)
 
 }
 
+#ifdef CUDA
 
+VideoSource::VideoSource(cuda::VideoSource *f, GLuint texture, double d) :
+    Source(texture, d), format(GL_RGBA), is(NULL), vp(NULL), cv(f)
+{
+    if (!is)
+        SourceConstructorException().raise();
+
+    // no PBO by default
+    pboIds[0] = 0;
+    pboIds[1] = 0;
+}
+
+
+
+#endif

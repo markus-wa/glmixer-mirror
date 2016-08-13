@@ -9,7 +9,7 @@
  *
  */
 
-#include "VideoSource.h"
+#include "VideoManager.h"
 
 #include "FrameQueue.h"
 #include "VideoParser.h"
@@ -19,7 +19,7 @@
 namespace cuda {
 
 
-VideoSource::VideoSource(const std::string sFileName, FrameQueue *pFrameQueue): hVideoSource_(0)
+VideoManager::VideoManager(const std::string sFileName, FrameQueue *pFrameQueue): hVideoSource_(NULL)
 {
     // fill in SourceData struct as much as we can
     // right now. Client must specify parser at a later point
@@ -36,16 +36,17 @@ VideoSource::VideoSource(const std::string sFileName, FrameQueue *pFrameQueue): 
     oVideoSourceParameters.pfnAudioDataHandler = 0;
     // now create the actual source
     CUresult oResult = cuvidCreateVideoSource(&hVideoSource_, sFileName.c_str(), &oVideoSourceParameters);
-    assert(CUDA_SUCCESS == oResult);
+    if (CUDA_SUCCESS != oResult)
+        hVideoSource_ = NULL;
 }
 
-VideoSource::~VideoSource()
+VideoManager::~VideoManager()
 {
     cuvidDestroyVideoSource(hVideoSource_);
 }
 
 void
-VideoSource::ReloadVideo(const std::string sFileName, FrameQueue *pFrameQueue, VideoParser *pVideoParser)
+VideoManager::ReloadVideo(const std::string sFileName, FrameQueue *pFrameQueue, VideoParser *pVideoParser)
 {
     // fill in SourceData struct as much as we can right now. Client must specify parser at a later point
     assert(0 != pFrameQueue);
@@ -67,7 +68,7 @@ VideoSource::ReloadVideo(const std::string sFileName, FrameQueue *pFrameQueue, V
 
 
 CUVIDEOFORMAT
-VideoSource::format()
+VideoManager::format()
 const
 {
     CUVIDEOFORMAT oFormat;
@@ -78,7 +79,7 @@ const
 }
 
 void
-VideoSource::getSourceDimensions(unsigned int &width, unsigned int &height)
+VideoManager::getSourceDimensions(unsigned int &width, unsigned int &height)
 {
     CUVIDEOFORMAT rCudaVideoFormat=  format();
 
@@ -87,7 +88,7 @@ VideoSource::getSourceDimensions(unsigned int &width, unsigned int &height)
 }
 
 void
-VideoSource::getDisplayDimensions(unsigned int &width, unsigned int &height)
+VideoManager::getDisplayDimensions(unsigned int &width, unsigned int &height)
 {
     CUVIDEOFORMAT rCudaVideoFormat=  format();
 
@@ -96,42 +97,42 @@ VideoSource::getDisplayDimensions(unsigned int &width, unsigned int &height)
 }
 
 void
-VideoSource::getProgressive(bool &progressive)
+VideoManager::getProgressive(bool &progressive)
 {
     CUVIDEOFORMAT rCudaVideoFormat=  format();
     progressive = (rCudaVideoFormat.progressive_sequence != 0);
 }
 
 void
-VideoSource::setParser(VideoParser &rVideoParser)
+VideoManager::setParser(VideoParser &rVideoParser)
 {
     oSourceData_.hVideoParser = rVideoParser.hParser_;
 }
 
 void
-VideoSource::start()
+VideoManager::start()
 {
     CUresult oResult = cuvidSetVideoSourceState(hVideoSource_, cudaVideoState_Started);
     assert(CUDA_SUCCESS == oResult);
 }
 
 void
-VideoSource::stop()
+VideoManager::stop()
 {
     CUresult oResult = cuvidSetVideoSourceState(hVideoSource_, cudaVideoState_Stopped);
     assert(CUDA_SUCCESS == oResult);
 }
 
 bool
-VideoSource::isStarted()
+VideoManager::isStarted()
 {
     return (cuvidGetVideoSourceState(hVideoSource_) == cudaVideoState_Started);
 }
 
 int
-VideoSource::HandleVideoData(void *pUserData, CUVIDSOURCEDATAPACKET *pPacket)
+VideoManager::HandleVideoData(void *pUserData, CUVIDSOURCEDATAPACKET *pPacket)
 {
-    VideoSourceData *pVideoSourceData = (VideoSourceData *)pUserData;
+    VideoManagerData *pVideoSourceData = (VideoManagerData *)pUserData;
 
     // Parser calls back for decode & display within cuvidParseVideoData
     if (!pVideoSourceData->pFrameQueue->isDecodeFinished())

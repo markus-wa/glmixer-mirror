@@ -32,6 +32,10 @@
 #include "VideoFile.h"
 #include "ViewRenderWidget.h"
 
+#ifdef CUDA
+#include "VideoManager.h"
+#endif
+
 class VideoSource : public Source {
 
     Q_OBJECT
@@ -41,7 +45,12 @@ class VideoSource : public Source {
 
     // only friends can create a source
 protected:
-	VideoSource(VideoFile *f, GLuint texture, double d);
+    VideoSource(VideoFile *f, GLuint texture, double d);
+
+#ifdef CUDA
+    VideoSource(cuda::VideoSource *f, GLuint texture, double d);
+#endif
+
     ~VideoSource();
     void update();
 
@@ -54,11 +63,11 @@ public:
 
     inline VideoFile *getVideoFile() const { return is; }
 
-	int getFrameWidth() const { return is->getFrameWidth(); }
-	int getFrameHeight() const { return is->getFrameHeight(); }
-    double getFrameRate() const { return is->getFrameRate(); }
+    int getFrameWidth() const;
+    int getFrameHeight() const;
+    double getFrameRate() const;
 
-	double getStorageAspectRatio() const { return is->getStreamAspectRatio(); }
+    double getStorageAspectRatio() const;
 
 public slots:
 	void play(bool on);
@@ -82,6 +91,9 @@ private:
     int index, nextIndex;
     int imgsize;
 
+#ifdef CUDA
+    cuda::VideoSource *cv;
+#endif
 };
 
 #endif /* VIDEOSOURCE_H_ */

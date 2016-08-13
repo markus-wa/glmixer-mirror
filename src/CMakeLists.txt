@@ -280,9 +280,13 @@ ELSE(APPLE)
 ENDIF(APPLE)
 
 # link the target against the libraries.
-target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
+if(USE_NVIDIA_CUDA)
 
-
+    add_definitions(-DCUDA)
+    target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack CUDADecoder ${GLMIXER_LIBRARIES} ${QT_LIBRARIES} ${CUDA_LIBRARIES})
+else(USE_NVIDIA_CUDA)
+    target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})
+endif(USE_NVIDIA_CUDA)
 
 
 # multiplatform cpack info
