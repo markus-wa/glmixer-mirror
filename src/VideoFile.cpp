@@ -1288,14 +1288,6 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
     }
 #endif
 
-
-#ifdef VIDEOFILE_DEBUG
-    if ( codec->capabilities & CODEC_CAP_HWACCEL_VDPAU) {
-
-        qDebug() << filename << QChar(124).toLatin1()<< tr("This is H264 file with VDPAU capabilities.");
-    }
-#endif
-
     codecname = QString(codec->long_name);
 
 	return stream_index;
