@@ -146,13 +146,13 @@ set( CMAKE_INCLUDE_PATH
 )
 
 # HERE ARE THE OPTIONNAL MODULES TO COMPILE
-SET(USE_SESSION_MANAGEMENT ON CACHE BOOL "CHECK if you want to compile with Session switcher")
-SET(USE_LOG_MANAGEMENT ON CACHE BOOL "CHECK if you want to compile with the Logger")
-SET(USE_TAG_MANAGEMENT ON CACHE BOOL "CHECK if you want to compile with the Tag manager")
-SET(USE_HISTORY_MANAGEMENT ON CACHE BOOL "CHECK if you want to compile with Undo History manager")
+SET(USE_SESSION_MANAGEMENT ON CACHE BOOL "CHECK to compile with Session switcher")
+SET(USE_LOG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Logger")
+SET(USE_TAG_MANAGEMENT OFF CACHE BOOL "CHECK to compile with the Tag manager")
+SET(USE_HISTORY_MANAGEMENT OFF CACHE BOOL "CHECK to compile with Undo History manager")
 
 # HERE IS THE OPTIONNAL USE OF SHARED MEMORY
-SET(USE_SHAREDMEMORY OFF CACHE BOOL "CHECK if you want to compile with Shared Memory support")
+SET(USE_SHAREDMEMORY OFF CACHE BOOL "CHECK to compile with Shared Memory support")
 
 if( USE_SHAREDMEMORY )
 
@@ -269,10 +269,26 @@ if(USE_FREEFRAMEGL)
         SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} dl)
     endif(UNIX)
 
-    # HERE IS THE OPTIONNAL USE OF CUDA
-    SET(USE_CUDA ${USE_CUDA} CACHE BOOL "CHECK if you want to compile with CUDA plugin")
-
 endif(USE_FREEFRAMEGL)
+
+
+SET(USE_NVIDIA_CUDA OFF CACHE BOOL "CHECK to compile with NVIDIA CUDA Video Decoding")
+
+if(USE_NVIDIA_CUDA)
+
+    find_package(CUDA REQUIRED)
+
+    if(CUDA_VERSION)
+        add_subdirectory(libCUDADecoder)
+    else (CUDA_VERSION)
+        unset(USE_NVIDIA_CUDA CACHE)
+    endif(CUDA_VERSION)
+
+endif(USE_NVIDIA_CUDA)
+
+if(USE_NVIDIA_CUDA)
+        message(STATUS "Using Nvidia CUDA.")
+endif(USE_NVIDIA_CUDA)
 
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
 
