@@ -18,6 +18,9 @@
 
 #define MAX_FRAME_COUNT 2
 
+
+namespace cuda {
+
 // Wrapper class around the CUDA Video Decoding API.
 //
 class VideoDecoder
@@ -85,5 +88,7 @@ class VideoDecoder
         CUcontext               m_Context;
         CUvideoctxlock          m_VidCtxLock;
 };
+
+}
 
 #endif // NV_VIDEODECODER_H

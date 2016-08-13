@@ -39,6 +39,9 @@ GLuint compile_glsl_shader(GLenum program_type, const char *code)
     return program_id;
 }
 
+namespace cuda {
+
+
 ImageGL::ImageGL(unsigned int nDispWidth,
                  unsigned int nDispHeight,
                  unsigned int nTexWidth,
@@ -230,4 +233,6 @@ const
         glBindTexture(GL_TEXTURE_TYPE, 0);
         glDisable(GL_FRAGMENT_PROGRAM_ARB);
     }
+}
+
 }

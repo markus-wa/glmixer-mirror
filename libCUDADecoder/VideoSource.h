@@ -15,6 +15,8 @@
 #include <nvcuvid.h>
 #include <string>
 
+namespace cuda {
+
 typedef struct
 {
     int        codecs;
@@ -143,6 +145,9 @@ class VideoSource
 
 std::ostream &
 operator << (std::ostream &rOutputStream, const CUVIDEOFORMAT &rCudaVideoFormat);
+
+
+}
 
 #endif // VIDEOSOURCE_H
 

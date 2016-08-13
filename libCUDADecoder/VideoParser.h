@@ -17,6 +17,9 @@
 
 #include <iostream>
 
+namespace cuda {
+
+
 class FrameQueue;
 class VideoDecoder;
 
@@ -94,6 +97,8 @@ class VideoParser
 
 std::ostream &
 operator << (std::ostream &rOutputStream, const CUVIDPARSERDISPINFO &rParserDisplayInfo);
+
+}
 
 #endif // NV_VIDEO_PARSER
 

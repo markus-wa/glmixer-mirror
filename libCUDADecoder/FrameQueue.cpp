@@ -21,6 +21,8 @@
 #define dbgprintf(x)
 #endif
 
+namespace cuda {
+
 FrameQueue::FrameQueue():
     nReadPosition_(0)
     , nFramesInQueue_(0)
@@ -182,3 +184,4 @@ FrameQueue::waitUntilFrameAvailable(int nPictureIndex)
     return true;
 }
 
+}

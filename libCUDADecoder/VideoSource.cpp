@@ -16,6 +16,9 @@
 
 #include <assert.h>
 
+namespace cuda {
+
+
 VideoSource::VideoSource(const std::string sFileName, FrameQueue *pFrameQueue): hVideoSource_(0)
 {
     // fill in SourceData struct as much as we can
@@ -206,3 +209,4 @@ operator << (std::ostream &rOutputStream, const CUVIDEOFORMAT &rCudaVideoFormat)
     return rOutputStream;
 }
 
+}

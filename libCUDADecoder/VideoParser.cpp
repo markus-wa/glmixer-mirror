@@ -17,6 +17,10 @@
 #include <cstring>
 #include <cassert>
 
+
+namespace cuda {
+
+
 VideoParser::VideoParser(VideoDecoder *pVideoDecoder, FrameQueue *pFrameQueue, CUcontext *pCudaContext): hParser_(0)
 {
     assert(0 != pFrameQueue);
@@ -115,3 +119,4 @@ operator << (std::ostream &rOutputStream, const CUVIDPARSERDISPINFO &rParserDisp
     return rOutputStream;
 }
 
+}

@@ -25,6 +25,9 @@ typedef unsigned int CRITICAL_SECTION;
 typedef unsigned int HANDLE;
 #endif
 
+
+namespace cuda {
+
 class FrameQueue
 {
     public:
@@ -93,5 +96,7 @@ class FrameQueue
         volatile int        aIsFrameInUse_[cnMaximumSize];
         volatile int        bEndOfDecode_;
 };
+
+}
 
 #endif // FRAMEQUEUE_H

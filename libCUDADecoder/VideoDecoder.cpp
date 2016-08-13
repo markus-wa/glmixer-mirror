@@ -17,6 +17,10 @@
 #include <cassert>
 #include <string>
 
+
+namespace cuda {
+
+
 VideoDecoder::VideoDecoder(const CUVIDEOFORMAT &rVideoFormat,
                            CUcontext &rContext,
                            cudaVideoCreateFlags eCreateFlags,
@@ -182,3 +186,4 @@ VideoDecoder::unmapFrame(CUdeviceptr pDevice)
     assert(CUDA_SUCCESS == oResult);
 }
 
+}

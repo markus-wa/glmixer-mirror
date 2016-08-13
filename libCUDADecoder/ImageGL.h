@@ -44,6 +44,9 @@ static const char *gl_shader_code =
 #endif
 
 
+namespace cuda {
+
+
 const int Format2Bpp[] = { 1, 4, 0 };
 
 class ImageGL
@@ -170,6 +173,8 @@ class ImageGL
         CUcontext oContext_;
         CUdevice  oDevice_;
 };
+
+}
 
 #endif // IMAGE_GL
 
