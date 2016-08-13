@@ -33,7 +33,7 @@
 #include "ViewRenderWidget.h"
 
 #ifdef CUDA
-#include "VideoManager.h"
+#include <VideoManager.h>
 #endif
 
 class VideoSource : public Source {
@@ -48,7 +48,7 @@ protected:
     VideoSource(VideoFile *f, GLuint texture, double d);
 
 #ifdef CUDA
-    VideoSource(cuda::VideoSource *f, GLuint texture, double d);
+    VideoSource(cuda::VideoManager *f, GLuint texture, double d);
 #endif
 
     ~VideoSource();
@@ -92,7 +92,7 @@ private:
     int imgsize;
 
 #ifdef CUDA
-    cuda::VideoSource *cv;
+    cuda::VideoManager *cv;
 #endif
 };
 

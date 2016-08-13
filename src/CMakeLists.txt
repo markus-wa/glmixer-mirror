@@ -31,6 +31,7 @@ SET(GLMIXER_SRCS
     VideoFileDialogPreview.cpp
     VideoFileDialog.cpp
     VideoFileDisplayWidget.cpp
+    VideoPicture.cpp
     VideoFile.cpp
     ProtoSource.cpp
     Source.cpp
@@ -283,6 +284,8 @@ ENDIF(APPLE)
 if(USE_NVIDIA_CUDA)
 
     add_definitions(-DCUDA)
+    include_directories(${LIBCUDADECODER_SOURCE_DIR} )
+
     target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack CUDADecoder ${GLMIXER_LIBRARIES} ${QT_LIBRARIES} ${CUDA_LIBRARIES})
 else(USE_NVIDIA_CUDA)
     target_link_libraries(${GLMIXER_BINARY} QtProperty QtColorPicker OSCPack ${GLMIXER_LIBRARIES} ${QT_LIBRARIES})

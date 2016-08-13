@@ -240,7 +240,7 @@ void VideoSource::updateFrame(VideoPicture *p)
 
 #ifdef CUDA
 
-VideoSource::VideoSource(cuda::VideoSource *f, GLuint texture, double d) :
+VideoSource::VideoSource(cuda::VideoManager *f, GLuint texture, double d) :
     Source(texture, d), format(GL_RGBA), is(NULL), vp(NULL), cv(f)
 {
     if (!is)
