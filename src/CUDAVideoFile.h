@@ -3,6 +3,9 @@
 
 #include "VideoFile.h"
 #include "VideoManager.h"
+#include "FrameQueue.h"
+
+
 
 class CUDAVideoFile : public VideoFile
 {    
@@ -22,7 +25,17 @@ public:
 
 private:
 
-    cuda::VideoManager *cv;
+    void requestSeek(double time, bool lock = false);
+
+    // CUDA wrapper
+    cuda::VideoManager *apVideoManager;
+    cuda::FrameQueue *apFrameQueue;
+
+    // CUDA internal
+    cudaVideoCreateFlags g_eVideoCreateFlags;
+
+    static bool cudaregistered;
+    static CUdevice g_oDevice;
 
 };
 

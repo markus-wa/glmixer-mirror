@@ -676,7 +676,7 @@ public slots:
     /**
      *
      */
-    bool isInterlaced() const { return deinterlacing_buffer != 0; }
+    bool isInterlaced() const { return interlaced; }
 
 protected slots:
 	/**
@@ -701,7 +701,7 @@ protected:
     void clean_until_time_picture_queue(double time = -1.0);
     bool jump_in_picture_queue(double time);
 
-    void requestSeek(double time, bool lock = false);
+    virtual void requestSeek(double time, bool lock = false);
     static int roundPowerOfTwo(int v);
 
     // Video and general information
@@ -721,9 +721,7 @@ protected:
     AVStream *video_st;
     SwsContext *img_convert_ctx;
     int videoStream;
-    bool ignoreAlpha;
-    uint8_t *deinterlacing_buffer;
-    AVPicture deinterlacing_picture;
+    bool ignoreAlpha, interlaced;
 
     // seeking management
     QMutex *seek_mutex;

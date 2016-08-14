@@ -59,6 +59,10 @@ Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 #include "FFGLSource.h"
 #endif
 
+#ifdef CUDA
+#include "CUDAVideoFile.h"
+#endif
+
 #include "ViewRenderWidget.h"
 #include "CatalogView.h"
 #include "RenderingEncoder.h"
@@ -1957,9 +1961,6 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     int errors = 0;
     int count = 0;
 
-    // busy
-
-
     // start loop of sources to create
     QDomElement child = xmlconfig.firstChildElement("Source");
     while (!child.isNull()) {
@@ -1981,10 +1982,32 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
             // create the video file
             VideoFile *newSourceVideoFile = NULL;
-            if ( !Filename.attribute("PowerOfTwo","0").toInt() && (glewIsSupported("GL_EXT_texture_non_power_of_two") || glewIsSupported("GL_ARB_texture_non_power_of_two") ) )
-                newSourceVideoFile = new VideoFile(this);
-            else
-                newSourceVideoFile = new VideoFile(this, true, SWS_FAST_BILINEAR);
+
+            // generate texture of size in power of two if required
+            bool power2 = false;
+            int convert = 0;
+            if ( Filename.attribute("PowerOfTwo","0").toInt() > 0
+                 || !( glewIsSupported("GL_EXT_texture_non_power_of_two")
+                 || glewIsSupported("GL_ARB_texture_non_power_of_two") ) ) {
+                power2 = true;
+                convert = SWS_FAST_BILINEAR;
+            }
+
+#ifdef CUDA
+            try {
+                newSourceVideoFile = new CUDAVideoFile(this, power2, convert);
+
+                qDebug() << child.attribute("name") << QChar(124).toLatin1() << "Using GPU accelerated CUDA Decoding.";
+
+            }
+            catch (AllocationException &e){
+                qDebug() << child.attribute("name") << QChar(124).toLatin1() <<"CANNOT use GPU accelerated CUDA Decoding.";
+                newSourceVideoFile = 0;
+            }
+#endif
+            if (!newSourceVideoFile)
+                newSourceVideoFile = new VideoFile(this, power2, convert);
+
             // if the video file was created successfully
             if (newSourceVideoFile){
                 // first reads with the absolute file name

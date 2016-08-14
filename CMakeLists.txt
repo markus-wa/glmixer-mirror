@@ -290,10 +290,32 @@ if(USE_NVIDIA_CUDA)
 
     find_package(CUDA REQUIRED)
 
+    # Found CUDA package
     if(CUDA_VERSION)
-        add_subdirectory(libCUDADecoder)
+        #
+        # Search for libnvcuvid.so in NVidia drivers (not in the package)
+        #
+        # Query nvidia-settings for the version string
+        execute_process(COMMAND nvidia-settings -q 0/NvidiaDriverVersion OUTPUT_VARIABLE NVIDIA_DRIVER_STRING OUTPUT_STRIP_TRAILING_WHITESPACE)
+        # make a list of the string
+        separate_arguments(NVIDIA_DRIVER_STRING)
+        # get the last element of the list (e.g. 361.42)
+        list(GET NVIDIA_DRIVER_STRING -1 NVIDIA_DRIVER_VERSION)
+        # keep only the major version (e.g. replace '.42' by empty string)
+        string(REGEX REPLACE "\\.[0-9]+" "" NVIDIA_DRIVER_MAJOR_VERSION ${NVIDIA_DRIVER_VERSION})
+        # suggest the path where to find the library (e.g. /usr/lib/nvidia-361)
+        string(CONCAT NVIDIA_DRIVER_PATH "/usr/lib/nvidia-" ${NVIDIA_DRIVER_MAJOR_VERSION})
+        # find the library in the given driver path
+        find_library(NVIDIA_NVCUVID_LIBRARY NAMES nvcuvid PATHS ${NVIDIA_DRIVER_PATH})
+        if(NVIDIA_NVCUVID_LIBRARY)
+         message( STATUS "Found nvcuvid: " ${NVIDIA_NVCUVID_LIBRARY})
+        endif(NVIDIA_NVCUVID_LIBRARY)
 
-        SET(CUDA_LIBRARIES ${CUDA_CUDA_LIBRARY}  ${CUDA_CUDART_LIBRARY} )
+        # put together all CUDA Libraries (for linker)
+        SET(CUDA_LIBRARIES ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY} ${NVIDIA_NVCUVID_LIBRARY} )
+
+        # Enter libCUDADecoder to compile it
+        add_subdirectory(libCUDADecoder)
 
     else (CUDA_VERSION)
         unset(USE_NVIDIA_CUDA CACHE)

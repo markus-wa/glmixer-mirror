@@ -231,14 +231,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 		avcodec_register_all();
         av_register_all();
 
-#ifdef VIDEOFILE_DEBUG
-        // activate debug logs
-        QString filevideologs = QFileInfo( QDir::temp(), QString("glmixer_memory_logs_%1%2").arg(QDate::currentDate().toString("yyMMdd")).arg(QTime::currentTime().toString("hhmmss")) ).absoluteFilePath();
-         csvLogger *debugingLogger = new csvLogger(filevideologs);
-         debugingLogger->startTimer(500);
-         qDebug() << "Saving Memory CSV logs in " << filevideologs;
-#endif
-
 #ifndef NDEBUG
          /* print debug info from ffmpeg */
          av_log_set_level( AV_LOG_ERROR  );
@@ -252,8 +244,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 
 	// Init some pointers to NULL
 	videoStream = -1;
-	video_st = NULL;
-	deinterlacing_buffer = NULL;
+    video_st = NULL;
 	pFormatCtx = NULL;
     img_convert_ctx = NULL;
     firstPicture = NULL;
@@ -286,6 +277,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     loop_video = true; // loop by default
     restart_where_stopped = true; // by default restart where stopped
     ignoreAlpha = false; // by default ignore alpha channel
+    interlaced = false;  // TODO: detect and deinterlace
 
 	// reset
     quit = true; // not running yet
@@ -333,8 +325,6 @@ void VideoFile::close()
         sws_freeContext(img_convert_ctx);
     if (filter)
         sws_freeFilter(filter);
-    if (deinterlacing_buffer)
-        av_free(deinterlacing_buffer);
 
     // free pictures
     if (blackPicture)
@@ -346,7 +336,6 @@ void VideoFile::close()
     pFormatCtx = NULL;
     img_convert_ctx = NULL;
     filter = NULL;
-    deinterlacing_buffer = NULL;
     blackPicture = NULL;
     firstPicture = NULL;
     resetPicture = NULL;

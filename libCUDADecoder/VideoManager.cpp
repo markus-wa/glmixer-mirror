@@ -79,7 +79,7 @@ const
 }
 
 void
-VideoManager::getSourceDimensions(unsigned int &width, unsigned int &height)
+VideoManager::getSourceDimensions(int &width, int &height)
 {
     CUVIDEOFORMAT rCudaVideoFormat=  format();
 
@@ -88,7 +88,7 @@ VideoManager::getSourceDimensions(unsigned int &width, unsigned int &height)
 }
 
 void
-VideoManager::getDisplayDimensions(unsigned int &width, unsigned int &height)
+VideoManager::getDisplayDimensions(int &width, int &height)
 {
     CUVIDEOFORMAT rCudaVideoFormat=  format();
 

@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef VIDEOSOURCE_H
-#define VIDEOSOURCE_H
+#ifndef VIDEOMANAGER_H
+#define VIDEOMANAGER_H
 
 #include <nvcuvid.h>
 #include <string>
@@ -100,10 +100,10 @@ class VideoManager
         isValid() { return hVideoSource_ != NULL; }
 
         // Retrieve source dimensions (width, height) from the video
-        void getSourceDimensions(unsigned int &width, unsigned int &height);
+        void getSourceDimensions(int &width, int &height);
 
         // Retrieve display dimensions (width, height) for the video
-        void getDisplayDimensions(unsigned int &width, unsigned int &height);
+        void getDisplayDimensions(int &width, int &height);
 
         // Retrieve information about the video (is this progressive?)
         void getProgressive(bool &progressive);
@@ -153,5 +153,5 @@ operator << (std::ostream &rOutputStream, const CUVIDEOFORMAT &rCudaVideoFormat)
 
 }
 
-#endif // VIDEOSOURCE_H
+#endif // VIDEOMANAGER_H
 
