@@ -2025,8 +2025,12 @@ void VideoFile::displayFormatsCodecsInformation(QString iconfile)
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
 QString VideoFile::getPixelFormatName() const
 {
-    QString pfn(av_pix_fmt_desc_get(video_st->codec->pix_fmt)->name);
-    pfn += QString(" (%1 bpp)").arg(av_get_bits_per_pixel( av_pix_fmt_desc_get(video_st->codec->pix_fmt)) );
+    QString pfn = "Unknown";
+
+    if (video_st) {
+        pfn = QString(av_pix_fmt_desc_get(video_st->codec->pix_fmt)->name);
+        pfn += QString(" (%1 bpp)").arg(av_get_bits_per_pixel( av_pix_fmt_desc_get(video_st->codec->pix_fmt)) );
+    }
 
     return pfn;
 }

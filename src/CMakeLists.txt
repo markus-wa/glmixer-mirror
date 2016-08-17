@@ -84,6 +84,7 @@ SET(GLMIXER_RCS
     ../icons.qrc
     ../textures.qrc
     ../images.qrc
+    ../opengl.qrc
 )
 
 SET(GLMIXER_UIS

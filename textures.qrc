@@ -17,9 +17,6 @@
         <file>textures/mask_linear_vertical.png</file>
         <file>textures/mask_antialiasing.png</file>
         <file>textures/transparencygrid.png</file>
-        <file>shaders/imageProcessing_fragment.glsl</file>
-        <file>shaders/imageProcessing_fragment_simplified.glsl</file>
-        <file>shaders/imageProcessing_vertex.glsl</file>
         <file>textures/mask_scratch.png</file>
         <file>textures/mask_dirty.png</file>
         <file>textures/mask_tv.png</file>

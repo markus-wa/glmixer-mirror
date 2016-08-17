@@ -1161,9 +1161,9 @@ void ViewRenderWidget::setupFilteringShaderProgram(QGLShaderProgram *program, QS
     QString fshfile;
     if (glslfilename.isNull()) {
         if (ViewRenderWidget::disableFiltering)
-            fshfile = ":/glmixer/shaders/imageProcessing_fragment_simplified.glsl";
+            fshfile = ":/glsl/shaders/imageProcessing_fragment_simplified.glsl";
         else
-            fshfile = ":/glmixer/shaders/imageProcessing_fragment.glsl";
+            fshfile = ":/glsl/shaders/imageProcessing_fragment.glsl";
     }
     else
         fshfile = glslfilename;
@@ -1173,7 +1173,7 @@ void ViewRenderWidget::setupFilteringShaderProgram(QGLShaderProgram *program, QS
     else if (program->log().contains("warning"))
         qCritical() << fshfile << QChar(124).toLatin1() << QObject::tr("OpenGL GLSL warning in fragment shader;%1").arg(program->log());
 
-    if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glmixer/shaders/imageProcessing_vertex.glsl"))
+    if (!program->addShaderFromSourceFile(QGLShader::Vertex, ":/glsl/shaders/imageProcessing_vertex.glsl"))
         qFatal( "%s", qPrintable( QObject::tr("OpenGL GLSL error in vertex shader; \n\n%1").arg(program->log()) ) );
     else if (program->log().contains("warning"))
         qCritical() << "imageProcessing_vertex.glsl" << QChar(124).toLatin1()<< QObject::tr("OpenGL GLSL warning in vertex shader;%1").arg(program->log());

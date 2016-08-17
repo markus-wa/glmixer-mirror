@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/glsl">
+        <file>shaders/imageProcessing_vertex.glsl</file>
+        <file>shaders/imageProcessing_fragment.glsl</file>
+        <file>shaders/imageProcessing_fragment_simplified.glsl</file>
+    </qresource>
+    <qresource prefix="/cuda">
+        <file>libCUDADecoder/NV12ToARGB_drvapi64.ptx</file>
+    </qresource>
+</RCC>

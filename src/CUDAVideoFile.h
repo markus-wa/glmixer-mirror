@@ -33,6 +33,9 @@ private:
 
     // CUDA internal
     cudaVideoCreateFlags g_eVideoCreateFlags;
+    CUcontext          g_oContext;
+    class CUmoduleManager   *g_pCudaModule;
+
 
     static bool cudaregistered;
     static CUdevice g_oDevice;
