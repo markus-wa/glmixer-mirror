@@ -68,7 +68,7 @@ extern "C" {
 #define SEEK_STEP 0.1
 
 
-class DecodingThread;
+class videoFileThread;
 
 /**
  *  A VideoFile holds the ffmpeg video decoding and conversion processes required to read a
@@ -123,6 +123,9 @@ class VideoFile: public QObject
 Q_OBJECT
 
     friend class DecodingThread;
+#ifdef CUDA
+    friend class CUDADecodingThread;
+#endif
 
 public:
 
@@ -780,7 +783,7 @@ protected:
     static int maximum_video_picture_queue_size;
 
     // Threads and execution manangement
-    DecodingThread *decod_tid;
+    videoFileThread *decod_tid;
     bool quit;
     bool loop_video;
     bool restart_where_stopped;

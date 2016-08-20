@@ -24,7 +24,6 @@
 #include <builtin_types.h>
 
 #include "helper_cuda_drvapi.h"
-
 #include "cudaModuleMgr.h"
 
 #define ERROR_BUFFER_SIZE 256
@@ -46,6 +45,7 @@ bool modInitCTX(sCtxModule *pCtx, const char *filename, const char *exec_path, i
     pCtx->mModuleName    = filename;
 
     CUresult cuStatus;
+    int file_size = 0;
     string module_path;
     string ptx_source;
 
@@ -73,9 +73,7 @@ bool modInitCTX(sCtxModule *pCtx, const char *filename, const char *exec_path, i
         int file_size = ftell(fp);
         char *buf = new char[file_size+1];
         fseek(fp, 0, SEEK_SET);
-        size_t r = fread(buf, sizeof(char), file_size, fp);
-        if (r <1)
-            printf(">> modInitCTX() <%36s> empty!\n", pCtx->mModuleName.c_str());
+        fread(buf, sizeof(char), file_size, fp);
         fclose(fp);
         buf[file_size] = '\0';
         ptx_source = buf;

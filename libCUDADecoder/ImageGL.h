@@ -52,7 +52,7 @@ const int Format2Bpp[] = { 1, 4, 0 };
 class ImageGL
 {
     public:
-        enum PixelFormat
+        enum PixelFormatGL
         {
             LUMINANCE_PIXEL_FORMAT,
             BGRA_PIXEL_FORMAT,
@@ -61,8 +61,8 @@ class ImageGL
 
         ImageGL(unsigned int nDispWidth, unsigned int nDispHeight,
                 unsigned int nTexWidth,  unsigned int nTexHeight,
-                bool bIsProgressive,
-                PixelFormat ePixelFormat = BGRA_PIXEL_FORMAT);
+                bool bIsProgressive = false,
+                PixelFormatGL ePixelFormat = BGRA_PIXEL_FORMAT);
 
         // Destructor
         ~ImageGL();
@@ -166,7 +166,7 @@ class ImageGL
         unsigned int nHeight_;
         unsigned int nTexWidth_;
         unsigned int nTexHeight_;
-        PixelFormat e_PixFmt_;
+        PixelFormatGL e_PixFmt_;
         bool bIsProgressive_;
         bool bIsCudaResource_;
 

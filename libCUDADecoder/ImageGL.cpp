@@ -47,7 +47,7 @@ ImageGL::ImageGL(unsigned int nDispWidth,
                  unsigned int nTexWidth,
                  unsigned int nTexHeight,
                  bool bIsProgressive,
-                 PixelFormat ePixelFormat)
+                 PixelFormatGL ePixelFormat)
     : nWidth_(nDispWidth)
     , nHeight_(nDispHeight)
     , nTexWidth_(nTexWidth)

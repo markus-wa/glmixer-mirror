@@ -4,12 +4,17 @@
 #include "VideoFile.h"
 #include "VideoManager.h"
 #include "FrameQueue.h"
+#include "VideoDecoder.h"
+#include "VideoParser.h"
+#include "ImageGL.h"
 
 
 
 class CUDAVideoFile : public VideoFile
 {    
     Q_OBJECT
+
+    friend class CUDADecodingThread;
 
 public:
     CUDAVideoFile(QObject *parent = 0,  bool generatePowerOfTwo = false,
@@ -28,13 +33,19 @@ private:
     void requestSeek(double time, bool lock = false);
 
     // CUDA wrapper
-    cuda::VideoManager *apVideoManager;
+    cuda::VideoManager *apVideoSource;
     cuda::FrameQueue *apFrameQueue;
+    cuda::VideoDecoder *apVideoDecoder;
+    cuda::VideoParser *apVideoParser;
+    cuda::ImageGL       *apImageGL;
 
     // CUDA internal
     cudaVideoCreateFlags g_eVideoCreateFlags;
     CUcontext          g_oContext;
     class CUmoduleManager   *g_pCudaModule;
+    CUfunction         g_kernelNV12toARGB;
+    CUfunction         g_kernelPassThru;
+    CUvideoctxlock       g_CtxLock;
 
 
     static bool cudaregistered;

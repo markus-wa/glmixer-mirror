@@ -176,95 +176,118 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
         for(int i = 0; i < nbytes; ++i)
             rgb.data[0][i] = 0;
     }
+
+#ifdef CUDA
+    // do not use CUDA
+    CUDAImage = NULL;
+#endif
 }
+
+
+#ifdef CUDA
+
+VideoPicture::VideoPicture(cuda::ImageGL *Image): pts(0), width(0), height(0), convert_rgba_palette(0),  pixel_format(AV_PIX_FMT_RGBA),  img_convert_ctx_filtering(0), action(0)
+{
+    // store the cuda image
+    CUDAImage = Image;
+
+    width = CUDAImage->nWidth();
+    height = CUDAImage->nHeight();
+
+    // do not use the rgb AVPicture
+    rgb.data[0] = NULL;
+}
+
+#endif
 
 VideoPicture::~VideoPicture()
 {
+    if (rgb.data[0]) {
 #ifdef Q_OS_UNIX
-
-    VideoPicture::VideoPictureMapLock.lock();
-    _pictureMap->freePictureMemory(rgb.data[0]);
-    VideoPicture::freePictureMap(_pictureMap);
-    VideoPicture::VideoPictureMapLock.unlock();
+        VideoPicture::VideoPictureMapLock.lock();
+        _pictureMap->freePictureMemory(rgb.data[0]);
+        VideoPicture::freePictureMap(_pictureMap);
+        VideoPicture::VideoPictureMapLock.unlock();
 
 #else
-    avpicture_free(&rgb);
-    rgb.data[0] = NULL;
+        avpicture_free(&rgb);
+        rgb.data[0] = NULL;
 #endif
-
+    }
 }
 
 void VideoPicture::saveToPPM(QString filename) const
 {
-    if (pixel_format != AV_PIX_FMT_RGBA)
-        {
-                FILE *pFile;
-                int y;
+    if (pixel_format != AV_PIX_FMT_RGBA
+            && rgb.linesize[0] > 0)
+    {
+        FILE *pFile;
+        int y;
 
-                // Open file
-                pFile = fopen(filename.toUtf8().data(), "wb");
-                if (pFile == NULL)
-                        return;
+        // Open file
+        pFile = fopen(filename.toUtf8().data(), "wb");
+        if (pFile == NULL)
+            return;
 
-                // Write header
-                fprintf(pFile, "P6\n%d %d\n255\n", width, height);
+        // Write header
+        fprintf(pFile, "P6\n%d %d\n255\n", width, height);
 
-                // Write pixel data
-                for (y = 0; y < height; y++)
-                        fwrite(rgb.data[0] + y * rgb.linesize[0], 1, width * 3, pFile);
+        // Write pixel data
+        for (y = 0; y < height; y++)
+            fwrite(rgb.data[0] + y * rgb.linesize[0], 1, width * 3, pFile);
 
-                // Close file
-                fclose(pFile);
-        }
+        // Close file
+        fclose(pFile);
+    }
 }
 
-void VideoPicture::fill(AVFrame *frame, double timestamp)
+void VideoPicture::fill(AVFrame *frame, double Pts)
 {
-    // remember pts
-    pts = timestamp;
-
     // ignore null frame
     if (!frame)
         return;
+
+    // remember pts
+    pts = Pts;
 
     if (img_convert_ctx_filtering && !convert_rgba_palette)
     {
         // Convert the image with ffmpeg sws
         if ( 0 == sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0,
-                  height, (uint8_t**) rgb.data, (int *) rgb.linesize) )
+                            height, (uint8_t**) rgb.data, (int *) rgb.linesize) )
             // fail : set pointer to NULL (do not display)
             rgb.data[0] = NULL;
 
-        }
-        // I reimplement here sws_convertPalette8ToPacked32 which does not work with alpha channel (RGBA)...
-        else
-        {
-                // get pointer to the palette
+    }
+    // I reimplement here sws_convertPalette8ToPacked32 which does not work with alpha channel (RGBA)...
+    else
+    {
+        // get pointer to the palette
         uint8_t *palette = frame->data[1];
-                if ( palette != 0 ) {
-                        // clear RGB to zeros when alpha is 0 (optional but cleaner)
-                        for (int i = 0; i < 4 * 256; i += 4)
-                        {
-                                if (palette[i + 3] == 0)
-                                        palette[i + 0] = palette[i + 1] = palette[i + 2] = 0;
-                        }
-                        // copy BGR palette color from frame to RGBA buffer of VideoPicture
+        if ( palette != 0 ) {
+            // clear RGB to zeros when alpha is 0 (optional but cleaner)
+            for (int i = 0; i < 4 * 256; i += 4)
+            {
+                if (palette[i + 3] == 0)
+                    palette[i + 0] = palette[i + 1] = palette[i + 2] = 0;
+            }
+            // copy BGR palette color from frame to RGBA buffer of VideoPicture
             uint8_t *map = frame->data[0];
-                        uint8_t *bgr = rgb.data[0];
-                        for (int y = 0; y < height; y++)
-                        {
-                                for (int x = 0; x < width; x++)
-                                {
-                                        *bgr++ = palette[4 * map[x] + 2]; // B
-                                        *bgr++ = palette[4 * map[x] + 1]; // G
-                                        *bgr++ = palette[4 * map[x]];     // R
+            uint8_t *bgr = rgb.data[0];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    *bgr++ = palette[4 * map[x] + 2]; // B
+                    *bgr++ = palette[4 * map[x] + 1]; // G
+                    *bgr++ = palette[4 * map[x]];     // R
                     if (pixel_format == AV_PIX_FMT_RGBA)
-                                                *bgr++ = palette[4 * map[x] + 3]; // A
-                                }
-                map += frame->linesize[0];
-                        }
+                        *bgr++ = palette[4 * map[x] + 3]; // A
                 }
+                map += frame->linesize[0];
+            }
         }
+    }
 
 }
 

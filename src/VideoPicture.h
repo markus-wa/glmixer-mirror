@@ -6,6 +6,10 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#ifdef CUDA
+#include "ImageGL.h"
+#endif
+
 #include <QList>
 #include <QMutex>
 #include <QString>
@@ -53,12 +57,17 @@ public:
      */
     VideoPicture(SwsContext *img_convert_ctx, int w, int h, enum AVPixelFormat format = AV_PIX_FMT_RGB24, bool palettized = false);
 
+
+#ifdef CUDA
+    VideoPicture(cuda::ImageGL *Image);
+#endif
+
     /**
       * Deletes the VideoPicture and frees the av picture
       */
     ~VideoPicture();
 
-        /**
+     /**
      * Fills the rgb buffer of this Video Picture with the content of the ffmpeg AVFrame given.
      * If pFrame is not given, it fills the Picture with the formerly given one.
      *
@@ -69,9 +78,11 @@ public:
      * copy of pixels is done accordingly (slower).
      *
      * Finally, the timestamp given is kept into the Video Picture for later use.
+     *
+     * @param pFrame Frame containing image data, to be converted to RGB(A)
+     * @param Pts Presentation Timestamp
      */
-    void fill(AVFrame *pFrame, double timestamp = 0.0);
-
+    void fill(AVFrame *pFrame, double Pts = 0.0);
     /**
      * Get a pointer to the buffer containing the frame.
      *
@@ -88,13 +99,18 @@ public:
     inline char *getBuffer() const {
         return (char*) rgb.data[0];
     }
+    /**
+     * Get the Presentation timestamp
+     *
+     * @return Presentation Time of the picture in second.
+     */
     inline double getPts() const {
         return pts;
     }
     /**
      * Get the width of the picture.
      *
-     * @return Width of the pixture in pixels.
+     * @return Width of the picture in pixels.
      */
     inline int getWidth() const {
         return width;
@@ -102,7 +118,7 @@ public:
     /**
      * Get the height of the picture.
      *
-     * @return Height of the pixture in pixels.
+     * @return Height of the picture in pixels.
      */
     inline int getHeight() const {
         return height;
@@ -138,8 +154,9 @@ public:
     enum AVPixelFormat getFormat() const {
          return pixel_format;
     }
+
     /**
-      *
+      * Actions to perform on the Video Picture
       */
     enum {
         ACTION_SHOW = 1,
@@ -158,7 +175,6 @@ public:
     inline int getBufferSize() { return avpicture_get_size(pixel_format, width, height); }
 
 
-
 private:
     AVPicture rgb;
     double pts;
@@ -167,6 +183,10 @@ private:
     enum AVPixelFormat pixel_format;
     SwsContext *img_convert_ctx_filtering;
     Action action;
+
+#ifdef CUDA
+    cuda::ImageGL *CUDAImage;
+#endif
 
     class PictureMap
     {
