@@ -348,7 +348,7 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
     horizontal(1.0), ignoreAlpha(false), frameChanged(true), format(GL_RGBA)
 {
     // no PBO by default
-    pboIds[0] = 0;
+    pboIds = 0;
     setVariability(v);
 
     algotype = CLAMP(AlgorithmSource::algorithmType(type), AlgorithmSource::FLAT, AlgorithmSource::NONE);
@@ -408,8 +408,8 @@ AlgorithmSource::~AlgorithmSource() {
 
 
     // delete picture buffer
-    if (pboIds[0])
-        glDeleteBuffers(1, pboIds);
+    if (pboIds)
+        glDeleteBuffers(1, &pboIds);
 }
 
 
@@ -457,8 +457,8 @@ void AlgorithmSource::initBuffer() {
 
     if (RenderingManager::usePboExtension()) {
         // create a pixel buffer object,
-        glGenBuffers(1, pboIds);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+        glGenBuffers(1, &pboIds);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds);
         glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
         buffer = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
         CHECK_PTR_EXCEPTION(buffer);
@@ -483,10 +483,10 @@ void AlgorithmSource::update() {
         // bind the texture
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
-        if (pboIds[0]) {
+        if (pboIds) {
 
             // bind PBO
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds);
             // copy pixels from PBO to texture object
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 

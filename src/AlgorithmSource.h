@@ -94,7 +94,7 @@ protected:
     QMutex *_mutex;
     QWaitCondition *_cond;
 
-    GLuint pboIds[1];
+    GLuint pboIds;
 };
 
 #endif /* ALGORITHMSOURCE_H_ */
