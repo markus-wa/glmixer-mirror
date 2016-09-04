@@ -6,14 +6,18 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#ifdef CUDA
-#include "ImageGL.h"
-#endif
-
 #include <QList>
 #include <QMutex>
 #include <QString>
 
+#ifdef CUDA
+#include <cuda.h>
+#endif
+
+/**
+ * Size of a Mega Byte
+ */
+#define MEGABYTE 1048576
 /**
  * Number of Pictures in one page of Memory Map
  */
@@ -45,6 +49,9 @@ class VideoPicture {
 
 public:
 
+    // default constructor
+    VideoPicture();
+
     /**
      * create the VideoPicture and Allocate its av picture (w x h pixels)
      *
@@ -55,17 +62,7 @@ public:
      * @param h Height of the frame
      * @param format Internal pixel format of the buffer. PIX_FMT_RGB24 (by default), PIX_FMT_RGBA if there is alpha channel
      */
-    VideoPicture(SwsContext *img_convert_ctx, int w, int h, enum AVPixelFormat format = AV_PIX_FMT_RGB24, bool palettized = false);
-
-
-#ifdef CUDA
-    VideoPicture(cuda::ImageGL *Image);
-#endif
-
-    /**
-      * Deletes the VideoPicture and frees the av picture
-      */
-    ~VideoPicture();
+    VideoPicture(int w, int h, SwsContext *img_convert_ctx = 0, enum AVPixelFormat format = AV_PIX_FMT_RGB24, bool palettized = false);
 
      /**
      * Fills the rgb buffer of this Video Picture with the content of the ffmpeg AVFrame given.
@@ -83,6 +80,7 @@ public:
      * @param Pts Presentation Timestamp
      */
     void fill(AVFrame *pFrame, double Pts = 0.0);
+
     /**
      * Get a pointer to the buffer containing the frame.
      *
@@ -99,6 +97,19 @@ public:
     inline char *getBuffer() const {
         return (char*) rgb.data[0];
     }
+
+#ifdef CUDA
+    /**
+     * Fill the VideoPicture
+     *
+     */
+    void fill(CUdeviceptr pInteropFrame, double Pts = 0.0);
+#endif
+
+    /**
+      * Deletes the VideoPicture and frees the av picture
+      */
+    ~VideoPicture();
     /**
      * Get the Presentation timestamp
      *
@@ -185,7 +196,7 @@ private:
     Action action;
 
 #ifdef CUDA
-    cuda::ImageGL *CUDAImage;
+    CUdeviceptr    g_pInteropFrame;
 #endif
 
     class PictureMap

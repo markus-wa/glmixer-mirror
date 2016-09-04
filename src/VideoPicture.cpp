@@ -1,11 +1,13 @@
 
-
 extern "C"
 {
 #include <libavcodec/avcodec.h>
 }
 
 #include "VideoPicture.h"
+
+#include <QObject>
+#include <QDebug>
 
 #ifdef Q_OS_UNIX
 #include <sys/mman.h>
@@ -146,8 +148,30 @@ void VideoPicture::freePictureMap(PictureMap *pmap)
     }
 }
 
-VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
-        enum AVPixelFormat format, bool rgba_palette) : pts(0), width(w), height(h), convert_rgba_palette(rgba_palette),  pixel_format(format),  img_convert_ctx_filtering(img_convert_ctx), action(0)
+VideoPicture::VideoPicture() :
+    pts(0),
+    width(0),
+    height(0),
+    convert_rgba_palette(false),
+    pixel_format(AV_PIX_FMT_NONE),
+    img_convert_ctx_filtering(0),
+    action(0),
+    _pictureMap(NULL)
+{
+    rgb.data[0] = NULL;
+
+}
+
+VideoPicture::VideoPicture(int w, int h, SwsContext *img_convert_ctx,
+        enum AVPixelFormat format, bool rgba_palette) :
+    pts(0),
+    width(w),
+    height(h),
+    convert_rgba_palette(rgba_palette),
+    pixel_format(format),
+    img_convert_ctx_filtering(img_convert_ctx),
+    action(0),
+    _pictureMap(NULL)
 {
     for(int i=0; i<AV_NUM_DATA_POINTERS; ++i) {
         rgb.data[i] = NULL;
@@ -155,14 +179,12 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
     }
 
 #ifdef Q_OS_UNIX
-
     VideoPicture::VideoPictureMapLock.lock();
     do {
         _pictureMap = VideoPicture::getAvailablePictureMap(width, height, format);
         rgb.data[0] = _pictureMap->getAvailablePictureMemory();
     } while (rgb.data[0] == NULL);
     VideoPicture::VideoPictureMapLock.unlock();
-
 
     rgb.linesize[0] = ( format == AV_PIX_FMT_RGB24 ? 3 : 4 ) * width;
 
@@ -173,32 +195,12 @@ VideoPicture::VideoPicture(SwsContext *img_convert_ctx, int w, int h,
     // initialize buffer if no conversion context is provided
     if (!img_convert_ctx_filtering) {
         int nbytes = avpicture_get_size(pixel_format, width, height);
-        for(int i = 0; i < nbytes; ++i)
-            rgb.data[0][i] = 0;
+        memset((void *) rgb.data[0], 0,  nbytes);
     }
 
-#ifdef CUDA
-    // do not use CUDA
-    CUDAImage = NULL;
-#endif
 }
 
 
-#ifdef CUDA
-
-VideoPicture::VideoPicture(cuda::ImageGL *Image): pts(0), width(0), height(0), convert_rgba_palette(0),  pixel_format(AV_PIX_FMT_RGBA),  img_convert_ctx_filtering(0), action(0)
-{
-    // store the cuda image
-    CUDAImage = Image;
-
-    width = CUDAImage->nWidth();
-    height = CUDAImage->nHeight();
-
-    // do not use the rgb AVPicture
-    rgb.data[0] = NULL;
-}
-
-#endif
 
 VideoPicture::~VideoPicture()
 {
@@ -214,6 +216,13 @@ VideoPicture::~VideoPicture()
         rgb.data[0] = NULL;
 #endif
     }
+
+#ifdef CUDA
+    if (g_pInteropFrame)
+    {
+        cuMemFree(g_pInteropFrame);
+    }
+#endif
 }
 
 void VideoPicture::saveToPPM(QString filename) const
@@ -240,6 +249,23 @@ void VideoPicture::saveToPPM(QString filename) const
         fclose(pFile);
     }
 }
+
+#ifdef CUDA
+
+void VideoPicture::fill(CUdeviceptr  pInteropFrame, double Pts)
+{
+    g_pInteropFrame = pInteropFrame;
+
+    // remember pts
+    pts = Pts;
+
+    pixel_format = AV_PIX_FMT_RGBA;
+
+    // no AVFrame
+    rgb.data[0] = 0;
+}
+
+#endif
 
 void VideoPicture::fill(AVFrame *frame, double Pts)
 {

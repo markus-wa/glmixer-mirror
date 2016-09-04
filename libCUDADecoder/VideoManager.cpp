@@ -141,6 +141,7 @@ VideoManager::HandleVideoData(void *pUserData, CUVIDSOURCEDATAPACKET *pPacket)
 
         if ((pPacket->flags & CUVID_PKT_ENDOFSTREAM) || (oResult != CUDA_SUCCESS))
             pVideoSourceData->pFrameQueue->endDecode();
+
     }
 
     return !pVideoSourceData->pFrameQueue->isDecodeFinished();

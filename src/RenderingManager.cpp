@@ -1350,11 +1350,7 @@ void RenderingManager::clearSourceSet() {
     // cleanup VideoPicture memory map
     VideoPicture::clearPictureMaps();
 
-#ifdef VIDEOFILE_DEBUG
-    VideoPicture::VideoPictureCountLock.lock();
-    qDebug() << "Pending video Picture :" << VideoPicture::VideoPictureCount;
-    VideoPicture::VideoPictureCountLock.unlock();
-#endif
+
 }
 
 bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
@@ -1995,6 +1991,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
 #ifdef CUDA
             try {
+
                 newSourceVideoFile = new CUDAVideoFile(this, power2, convert);
 
                 qDebug() << child.attribute("name") << QChar(124).toLatin1() << "Using GPU accelerated CUDA Decoding.";
@@ -2026,6 +2023,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                     }
 
                     // can we open this existing file ?
+                    _renderwidget->makeCurrent();
                     if ( newSourceVideoFile->open( fileNameToOpen, markin, markout, Filename.attribute("IgnoreAlpha").toInt() ) ) {
 
                         // fix old version marking : compute marks correctly

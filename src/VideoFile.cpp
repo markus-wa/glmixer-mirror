@@ -32,12 +32,10 @@ extern "C"
 #include <libavutil/mathematics.h>
 #include <libavutil/common.h>
 #include <libavfilter/avfiltergraph.h>
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-#include <libavutil/pixdesc.h>
-#endif
 }
 
 #include "VideoFile.moc"
+#include "CodecManager.h"
 
 #include <QtGui/QButtonGroup>
 #include <QtGui/QDialog>
@@ -54,10 +52,6 @@ extern "C"
 #include <QDate>
 
 
-/**
- * Size of a Mega Byte
- */
-#define MEGABYTE 1048576
 /**
  * Get time using libav
  */
@@ -81,9 +75,6 @@ extern "C"
 #define MAX_VIDEO_PICTURE_QUEUE_COUNT 100
 int VideoFile::memory_usage_policy = DEFAULT_MEMORY_USAGE_POLICY;
 int VideoFile::maximum_video_picture_queue_size = MIN_VIDEO_PICTURE_QUEUE_SIZE;
-
-// register ffmpeg / libav formats
-bool VideoFile::ffmpegregistered = false;
 
 
 /**
@@ -225,22 +216,7 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 			conversionAlgorithm(swsConversionAlgorithm)
 {
     // first time a video file is created?
-    if (!VideoFile::ffmpegregistered)
-	{
-        // register all codecs (do it once)
-		avcodec_register_all();
-        av_register_all();
-
-#ifndef NDEBUG
-         /* print debug info from ffmpeg */
-         av_log_set_level( AV_LOG_ERROR  );
-#else
-         av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
-#endif
-
-        // remember ffmpeg is registered
-        VideoFile::ffmpegregistered = true;
-	}
+    CodecManager::registerAll();
 
 	// Init some pointers to NULL
 	videoStream = -1;
@@ -533,13 +509,10 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	filename = file;
 	ignoreAlpha = ignoreAlphaChannel;
 
-#ifdef CONFIG_MPEG4_VDPAU_DECODER
-#endif
-
 	// Check file
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
 	_pFormatCtx = avformat_alloc_context();
-	err = avformat_open_input(&_pFormatCtx, qPrintable(filename), NULL, NULL);
+    err = avformat_open_input(&_pFormatCtx, qPrintable(filename), NULL, NULL);
 #else
 	err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0, NULL);
 #endif
@@ -655,10 +628,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
     // round target picture size to power of two size
     if (powerOfTwo)
-	{
-		targetWidth = VideoFile::roundPowerOfTwo(targetWidth);
-		targetHeight = VideoFile::roundPowerOfTwo(targetHeight);
-	}
+        CodecManager::convertSizePowerOfTwo(targetWidth, targetHeight);
 
 	// Default targetFormat to PIX_FMT_RGB24, not using color palette
     targetFormat = AV_PIX_FMT_RGB24;
@@ -666,7 +636,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
 
     // Change target format to keep Alpha channel if format requires
-    if ( PixelFormatHasAlphaChannel() )
+    if ( hasAlphaChannel() )
     {
         targetFormat = AV_PIX_FMT_RGBA;
 
@@ -677,7 +647,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         }
     }
     // format description screen (for later)
-    QString pfn(av_pix_fmt_desc_get(targetFormat)->name);
+    QString pfn = CodecManager::getPixelFormatName(targetFormat);
 
 	// Decide for optimal scaling algo if it was not specified
 	// NB: the algo is used only if the conversion is scaled or with filter
@@ -732,7 +702,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     if (video_st->nb_frames > 1) {
 
         // we may need a black frame to return to when stopped
-        blackPicture = new VideoPicture(0, targetWidth, targetHeight);
+        blackPicture = new VideoPicture(targetWidth, targetHeight);
         blackPicture->addAction(VideoPicture::ACTION_SHOW | VideoPicture::ACTION_RESET_PTS);
 
         // set picture queue maximum size
@@ -759,25 +729,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 	return true;
 }
 
-bool VideoFile::PixelFormatHasAlphaChannel() const
+bool VideoFile::hasAlphaChannel() const
 {
-	if (!video_st)
-		return false;
+    if (!video_st)
+        return false;
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-    return  (  (av_pix_fmt_desc_get(video_st->codec->pix_fmt)->nb_components > 3)
-            // does the format has ALPHA ?
-            || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_ALPHA )
-            // special case of PALLETE and GREY pixel formats(converters exist for rgba)
-            || ( av_pix_fmt_desc_get(video_st->codec->pix_fmt)->flags & AV_PIX_FMT_FLAG_PAL ) );
-#elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-	return  (av_pix_fmt_descriptors[video_st->codec->pix_fmt].nb_components > 3)
-			// special case of PALLETE and GREY pixel formats(converters exist for rgba)
-            || ( av_pix_fmt_descriptors[video_st->codec->pix_fmt].flags & PIX_FMT_PAL );
-#else
-	return (video_st->codec->pix_fmt == PIX_FMT_RGBA || video_st->codec->pix_fmt == PIX_FMT_BGRA ||
-            video_st->codec->pix_fmt == PIX_FMT_ARGB || video_st->codec->pix_fmt == PIX_FMT_ABGR );
-#endif
+    return CodecManager::pixelFormatHasAlphaChannel(video_st->codec->pix_fmt);
 }
 
 double VideoFile::fill_first_frame(bool seek)
@@ -889,7 +846,7 @@ double VideoFile::fill_first_frame(bool seek)
         }
 
         // create the picture
-        firstPicture = new VideoPicture(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette);
+        firstPicture = new VideoPicture(targetWidth, targetHeight, img_convert_ctx, targetFormat, rgba_palette);
         firstPicture->addAction(VideoPicture::ACTION_SHOW | VideoPicture::ACTION_RESET_PTS);
 
         // we can now fill in the first picture with this frame
@@ -1516,7 +1473,7 @@ bool VideoFile::jump_in_picture_queue(double time)
 void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a)
 {
     // create vp as the picture in the queue to be written
-    VideoPicture *vp = new VideoPicture(img_convert_ctx, targetWidth, targetHeight, targetFormat, rgba_palette);
+    VideoPicture *vp = new VideoPicture(targetWidth, targetHeight, img_convert_ctx, targetFormat, rgba_palette);
 
     if (!vp)
         return;
@@ -1824,19 +1781,6 @@ bool VideoFile::isPaused() const {
 }
 
 
-
-int VideoFile::roundPowerOfTwo(int v)
-{
-	int k;
-	if (v == 0)
-		return 1;
-	for (k = sizeof(int) * 8 - 1; ((static_cast<int> (1U) << k) & v) == 0; k--)
-		;
-	if (((static_cast<int> (1U) << (k - 1)) & v) == 0)
-		return static_cast<int> (1U) << k;
-	return static_cast<int> (1U) << (k + 1);
-}
-
 void VideoFile::setMemoryUsagePolicy(int percent)
 {
     VideoFile::memory_usage_policy = percent;
@@ -1859,250 +1803,13 @@ int VideoFile::getMemoryUsageMaximum(int policy)
 }
 
 
-void VideoFile::displayFormatsCodecsInformation(QString iconfile)
-{
-
-    if (!VideoFile::ffmpegregistered)
-	{
-		avcodec_register_all();
-        av_register_all();
-        avfilter_register_all();
-        VideoFile::ffmpegregistered = true;
-	}
-
-    QVBoxLayout *verticalLayout;
-    QLabel *label;
-    QPlainTextEdit *options;
-    QLabel *label_2;
-	QTreeWidget *availableFormatsTreeWidget;
-    QLabel *label_3;
-	QTreeWidget *availableCodecsTreeWidget;
-    QDialogButtonBox *buttonBox;
-
-	QDialog *ffmpegInfoDialog = new QDialog;
-	QIcon icon;
-	icon.addFile(iconfile, QSize(), QIcon::Normal, QIcon::Off);
-	ffmpegInfoDialog->setWindowIcon(icon);
-    ffmpegInfoDialog->resize(450, 600);
-    verticalLayout = new QVBoxLayout(ffmpegInfoDialog);
-    label = new QLabel(ffmpegInfoDialog);
-    label_2 = new QLabel(ffmpegInfoDialog);
-    label_3 = new QLabel(ffmpegInfoDialog);
-
-    availableFormatsTreeWidget = new QTreeWidget(ffmpegInfoDialog);
-	availableFormatsTreeWidget->setAlternatingRowColors(true);
-	availableFormatsTreeWidget->setRootIsDecorated(false);
-	availableFormatsTreeWidget->header()->setVisible(true);
-
-	availableCodecsTreeWidget = new QTreeWidget(ffmpegInfoDialog);
-	availableCodecsTreeWidget->setAlternatingRowColors(true);
-    availableCodecsTreeWidget->setRootIsDecorated(false);
-	availableCodecsTreeWidget->header()->setVisible(true);
-
-    buttonBox = new QDialogButtonBox(ffmpegInfoDialog);
-	buttonBox->setOrientation(Qt::Horizontal);
-	buttonBox->setStandardButtons(QDialogButtonBox::Close);
-    QObject::connect(buttonBox, SIGNAL(rejected()), ffmpegInfoDialog, SLOT(reject()));
-
-    ffmpegInfoDialog->setWindowTitle(tr("About Libav formats and codecs"));
-
-    label->setWordWrap(true);
-    label->setOpenExternalLinks(true);
-    label->setTextFormat(Qt::RichText);
-    label->setText(tr( "<H3>About Libav</H3>"
-                       "<br>This program uses <b>libavcodec %1.%2.%3</b>."
-                       "<br><br><b>Libav</b> provides cross-platform tools and libraries to convert, manipulate and "
-                       "stream a wide range of multimedia formats and protocols."
-                       "<br>For more information : <a href=\"http://www.libav.org\">http://www.libav.org</a>"
-                       "<br><br>Compilation options:").arg(LIBAVCODEC_VERSION_MAJOR).arg(LIBAVCODEC_VERSION_MINOR).arg( LIBAVCODEC_VERSION_MICRO));
-
-    options = new QPlainTextEdit( QString(avcodec_configuration()), ffmpegInfoDialog);
-
-    label_2->setText(tr("Available codecs:"));
-    label_3->setText(tr("Available formats:"));
-
-	QTreeWidgetItem *title = availableFormatsTreeWidget->headerItem();
-	title->setText(1, tr("Description"));
-	title->setText(0, tr("Name"));
-
-	title = availableCodecsTreeWidget->headerItem();
-	title->setText(1, tr("Description"));
-	title->setText(0, tr("Name"));
-
-	QTreeWidgetItem *formatitem;
-	AVInputFormat *ifmt = NULL;
-	AVCodec *p = NULL, *p2;
-	const char *last_name;
-
-	last_name = "000";
-	for (;;)
-	{
-		const char *name = NULL;
-		const char *long_name = NULL;
-
-		while ((ifmt = av_iformat_next(ifmt)))
-		{
-			if ((name == NULL || strcmp(ifmt->name, name) < 0) && strcmp(
-					ifmt->name, last_name) > 0)
-			{
-				name = ifmt->name;
-				long_name = ifmt->long_name;
-			}
-		}
-		if (name == NULL)
-			break;
-		last_name = name;
-
-		formatitem = new QTreeWidgetItem(availableFormatsTreeWidget);
-		formatitem->setText(0, QString(name));
-		formatitem->setText(1, QString(long_name));
-		availableFormatsTreeWidget->addTopLevelItem(formatitem);
-	}
-
-	last_name = "000";
-	for (;;)
-	{
-		int decode = 0;
-		int cap = 0;
-
-		p2 = NULL;
-		while ((p = av_codec_next(p)))
-		{
-			if ((p2 == NULL || strcmp(p->name, p2->name) < 0) && strcmp(
-					p->name, last_name) > 0)
-			{
-				p2 = p;
-				decode = cap = 0;
-			}
-			if (p2 && strcmp(p->name, p2->name) == 0)
-			{
-				if (p->decode)
-					decode = 1;
-				cap |= p->capabilities;
-			}
-		}
-		if (p2 == NULL)
-			break;
-		last_name = p2->name;
-
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-		if (decode && p2->type == AVMEDIA_TYPE_VIDEO)
-#else
-		if (decode && p2->type == CODEC_TYPE_VIDEO)
-#endif
-		{
-			formatitem = new QTreeWidgetItem(availableCodecsTreeWidget);
-			formatitem->setText(0, QString(p2->name));
-			formatitem->setText(1, QString(p2->long_name));
-			availableCodecsTreeWidget->addTopLevelItem(formatitem);
-		}
-	}
-
-    verticalLayout->setSpacing(10);
-    verticalLayout->addWidget(label);
-    verticalLayout->addWidget(options);
-    verticalLayout->addWidget(label_2);
-	verticalLayout->addWidget(availableCodecsTreeWidget);
-    verticalLayout->addWidget(label_3);
-	verticalLayout->addWidget(availableFormatsTreeWidget);
-	verticalLayout->addWidget(buttonBox);
-
-	ffmpegInfoDialog->exec();
-
-	delete verticalLayout;
-    delete label;
-    delete label_2;
-    delete label_3;
-    delete options;
-    delete availableFormatsTreeWidget;
-    delete availableCodecsTreeWidget;
-    delete buttonBox;
-
-    delete ffmpegInfoDialog;
-}
-
-
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
 QString VideoFile::getPixelFormatName() const
 {
-    QString pfn = "Unknown";
+    QString pfn = "Invalid";
 
-    if (video_st) {
-        pfn = QString(av_pix_fmt_desc_get(video_st->codec->pix_fmt)->name);
-        pfn += QString(" (%1 bpp)").arg(av_get_bits_per_pixel( av_pix_fmt_desc_get(video_st->codec->pix_fmt)) );
-    }
+    if (video_st)
+        pfn = CodecManager::getPixelFormatName(video_st->codec->pix_fmt);
 
     return pfn;
 }
-#elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-QString VideoFile::getPixelFormatName() const
-{
-    QString pfn(av_pix_fmt_descriptors[video_st->codec->pix_fmt].name);
-    pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[video_st->codec->pix_fmt]));
-
-	return pfn;
-}
-#else
-QString VideoFile::getPixelFormatName(AVPixelFormat ffmpegAVPixelFormat) const
-{
-    AVPixelFormat ffmpegAVPixelFormat =video_st->codec->pix_fmt;
-
-    switch (ffmpegAVPixelFormat )
-	{
-
-		case PIX_FMT_YUV420P: return QString("planar YUV 4:2:0, 12bpp");
-		case PIX_FMT_YUYV422: return QString("packed YUV 4:2:2, 16bpp");
-		case PIX_FMT_RGB24:
-		case PIX_FMT_BGR24: return QString("packed RGB 8:8:8, 24bpp");
-		case PIX_FMT_YUV422P: return QString("planar YUV 4:2:2, 16bpp");
-		case PIX_FMT_YUV444P: return QString("planar YUV 4:4:4, 24bpp");
-		case PIX_FMT_RGB32: return QString("packed RGB 8:8:8, 32bpp");
-		case PIX_FMT_YUV410P: return QString("planar YUV 4:1:0,  9bpp");
-		case PIX_FMT_YUV411P: return QString("planar YUV 4:1:1, 12bpp");
-		case PIX_FMT_RGB565: return QString("packed RGB 5:6:5, 16bpp");
-		case PIX_FMT_RGB555: return QString("packed RGB 5:5:5, 16bpp");
-		case PIX_FMT_GRAY8: return QString("Y,  8bpp");
-		case PIX_FMT_MONOWHITE:
-		case PIX_FMT_MONOBLACK: return QString("Y,  1bpp");
-		case PIX_FMT_PAL8: return QString("RGB32 palette, 8bpp");
-		case PIX_FMT_YUVJ420P: return QString("planar YUV 4:2:0, 12bpp (JPEG)");
-		case PIX_FMT_YUVJ422P: return QString("planar YUV 4:2:2, 16bpp (JPEG)");
-		case PIX_FMT_YUVJ444P: return QString("planar YUV 4:4:4, 24bpp (JPEG)");
-		case PIX_FMT_XVMC_MPEG2_MC: return QString("XVideo Motion Acceleration (MPEG2)");
-		case PIX_FMT_UYVY422: return QString("packed YUV 4:2:2, 16bpp");
-		case PIX_FMT_UYYVYY411: return QString("packed YUV 4:1:1, 12bpp");
-		case PIX_FMT_BGR32: return QString("packed RGB 8:8:8, 32bpp");
-		case PIX_FMT_BGR565: return QString("packed RGB 5:6:5, 16bpp");
-		case PIX_FMT_BGR555: return QString("packed RGB 5:5:5, 16bpp");
-		case PIX_FMT_BGR8: return QString("packed RGB 3:3:2, 8bpp");
-		case PIX_FMT_BGR4: return QString("packed RGB 1:2:1, 4bpp");
-		case PIX_FMT_BGR4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
-		case PIX_FMT_RGB8: return QString("packed RGB 3:3:2,  8bpp");
-		case PIX_FMT_RGB4: return QString("packed RGB 1:2:1,  4bpp");
-		case PIX_FMT_RGB4_BYTE: return QString("packed RGB 1:2:1,  8bpp");
-		case PIX_FMT_NV12:
-		case PIX_FMT_NV21: return QString("planar YUV 4:2:0, 12bpp");
-		case PIX_FMT_RGB32_1:
-		case PIX_FMT_BGR32_1: return QString("packed RGB 8:8:8, 32bpp");
-		case PIX_FMT_GRAY16BE:
-		case PIX_FMT_GRAY16LE: return QString("Y, 16bpp");
-		case PIX_FMT_YUV440P: return QString("planar YUV 4:4:0");
-		case PIX_FMT_YUVJ440P: return QString("planar YUV 4:4:0 (JPEG)");
-		case PIX_FMT_YUVA420P: return QString("planar YUV 4:2:0, 20bpp");
-		case PIX_FMT_VDPAU_H264: return QString("H.264 HW");
-		case PIX_FMT_VDPAU_MPEG1: return QString("MPEG-1 HW");
-		case PIX_FMT_VDPAU_MPEG2: return QString("MPEG-2 HW");
-		case PIX_FMT_VDPAU_WMV3: return QString("WMV3 HW");
-		case PIX_FMT_VDPAU_VC1: return QString("VC-1 HW");
-		case PIX_FMT_RGB48BE: return QString("packed RGB 16:16:16, 48bpp");
-		case PIX_FMT_RGB48LE: return QString("packed RGB 16:16:16, 48bpp");
-		case PIX_FMT_VAAPI_MOCO:
-		case PIX_FMT_VAAPI_IDCT:
-		case PIX_FMT_VAAPI_VLD: return QString("HW acceleration through VA API");
-		default:
-		return QString("unknown");
-	}
-}
-#endif
-
 

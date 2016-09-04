@@ -24,25 +24,6 @@
 
 #define PAD_ALIGN(x,mask) ( (x + mask) & ~mask )
 
-#define USE_TEXTURE_RECT 1
-
-
-#if USE_TEXTURE_RECT
-#define GL_TEXTURE_TYPE GL_TEXTURE_RECTANGLE_ARB
-// gl_shader_ for displaying floating-point texture
-static const char *gl_shader_code =
-    "!!ARBfp1.0\n"
-    "TEX result.color, fragment.texcoord, texture[0], RECT; \n"
-    "END";
-#else
-#define GL_TEXTURE_TYPE GL_TEXTURE_2D
-// gl_shader_ for displaying floating-point texture
-static const char *gl_shader_code =
-    "!!ARBfp1.0\n"
-    "TEX result.color, fragment.texcoord, texture[0], 2D; \n"
-    "END";
-#endif
-
 
 namespace cuda {
 
@@ -60,21 +41,16 @@ class ImageGL
         };
 
         ImageGL(unsigned int nDispWidth, unsigned int nDispHeight,
-                unsigned int nTexWidth,  unsigned int nTexHeight,
-                bool bIsProgressive = false,
                 PixelFormatGL ePixelFormat = BGRA_PIXEL_FORMAT);
 
         // Destructor
         ~ImageGL();
 
         void
-        registerAsCudaResource(int field_num);
+        registerAsCudaResource();
 
         void
-        unregisterAsCudaResource(int field_num);
-
-        void
-        setTextureFilterMode(GLuint nMINfilter, GLuint nMAGfilter);
+        unregisterAsCudaResource();
 
         void
         setCUDAcontext(CUcontext oContext);
@@ -97,14 +73,12 @@ class ImageGL
         //          pointer references the mapped data.
         //      pImagePitch - pointer to image pitch. On return of this
         //          pointer contains the pitch of the mapped image surface.
-        //      field_num   - optional, if we are going to deinterlace and display fields separately
-        // Note:
         //      This method will fail, if this image is not a registered CUDA resource.
         void
-        map(CUdeviceptr *ppImageData, size_t *pImagePitch, int field_num = 0);
+        map(CUdeviceptr *ppImageData, size_t *pImagePitch);
 
         void
-        unmap(int field_num = 0);
+        unmap();
 
         // Clear the image.
         // Parameters:
@@ -129,43 +103,17 @@ class ImageGL
             return nHeight_;
         }
 
-        unsigned int
-        nTexWidth()
-        const
+        GLuint getPBO()
         {
-            return nTexWidth_;
+            return gl_pbo_;
         }
 
-        unsigned int
-        nTexHeight()
-        const
-        {
-            return nTexHeight_;
-        }
-
-
-        void
-        render(int field_num)
-        const;
-
-        GLuint getPBO(int field_num = 0)
-        {
-            return gl_pbo_[field_num];
-        }
-        GLuint getTexID(int field_num = 0)
-        {
-            return gl_texid_[field_num];
-        }
 
     private:
-        GLuint gl_pbo_[2];     // OpenGL pixel buffer object
-        GLuint gl_texid_[2];   // Texture resource for rendering
-        GLuint gl_shader_;
+        GLuint gl_pbo_;     // OpenGL pixel buffer object
 
         unsigned int nWidth_;
         unsigned int nHeight_;
-        unsigned int nTexWidth_;
-        unsigned int nTexHeight_;
         PixelFormatGL e_PixFmt_;
         bool bIsProgressive_;
         bool bIsCudaResource_;

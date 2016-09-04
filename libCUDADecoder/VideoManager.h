@@ -114,7 +114,7 @@ class VideoManager
         struct VideoManagerData
         {
             CUvideoparser hVideoParser;
-            FrameQueue   *pFrameQueue;			
+            FrameQueue   *pFrameQueue;
         };
 
 

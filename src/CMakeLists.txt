@@ -78,6 +78,7 @@ SET(GLMIXER_SRCS
     TagsManager.cpp
     HistoryManager.cpp
     HistoryManagerWidget.cpp
+    CodecManager.cpp
 )
 
 SET(GLMIXER_RCS

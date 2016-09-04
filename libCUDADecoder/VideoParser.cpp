@@ -40,6 +40,10 @@ VideoParser::VideoParser(VideoDecoder *pVideoDecoder, FrameQueue *pFrameQueue, C
     oVideoParserParameters.pfnDisplayPicture      = HandlePictureDisplay;   // Called whenever a picture is ready to be displayed (display order)
     CUresult oResult = cuvidCreateVideoParser(&hParser_, &oVideoParserParameters);
     assert(CUDA_SUCCESS == oResult);
+
+
+    // remember the default clockrate
+    ulClockRate_ = 10000000;
 }
 
 int

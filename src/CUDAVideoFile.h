@@ -25,6 +25,7 @@ public:
 
     bool open(QString file, double  markIn = -1.0, double  markOut = -1.0, bool ignoreAlphaChannel = false);
     bool isOpen() const;
+    void close();
     void start();
     void stop();
 
@@ -37,7 +38,7 @@ private:
     cuda::FrameQueue *apFrameQueue;
     cuda::VideoDecoder *apVideoDecoder;
     cuda::VideoParser *apVideoParser;
-    cuda::ImageGL       *apImageGL;
+    void cleanup(bool destroyContext = false);
 
     // CUDA internal
     cudaVideoCreateFlags g_eVideoCreateFlags;
@@ -45,9 +46,12 @@ private:
     class CUmoduleManager   *g_pCudaModule;
     CUfunction         g_kernelNV12toARGB;
     CUfunction         g_kernelPassThru;
-    CUvideoctxlock       g_CtxLock;
+    CUvideoctxlock     g_CtxLock;
+    CUstream           g_KernelSID;
+//    CUstream           g_ReadbackSID;
 
 
+    // registration global of CUDA
     static bool cudaregistered;
     static CUdevice g_oDevice;
 

@@ -61,6 +61,7 @@
 #include "OpenSoundControlManager.h"
 #include "NewSourceDialog.h"
 #include "WebSourceCreationDialog.h"
+#include "CodecManager.h"
 
 #ifdef SESSION_MANAGEMENT
 #include "SessionSwitcherWidget.h"
@@ -603,7 +604,7 @@ void GLMixer::updateRefreshTimerState(){
 
 void GLMixer::on_actionFormats_and_Codecs_triggered(){
 
-    VideoFile::displayFormatsCodecsInformation(QString::fromUtf8(":/glmixer/icons/video.png"));
+    CodecManager::displayFormatsCodecsInformation(QString::fromUtf8(":/glmixer/icons/video.png"));
 }
 
 void GLMixer::on_actionOpenGL_extensions_triggered(){

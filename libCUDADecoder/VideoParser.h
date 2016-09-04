@@ -45,6 +45,11 @@ class VideoParser
         //          by  the parser-callbacks to store decoded frames in it.
         VideoParser(VideoDecoder *pVideoDecoder, FrameQueue *pFrameQueue, CUcontext *pCudaContext = NULL);
 
+        unsigned int getClockRate() const
+        {
+            return ulClockRate_;
+        }
+
     private:
         // Struct containing user-data to be passed by parser-callbacks.
         struct VideoParserData
@@ -91,6 +96,7 @@ class VideoParser
 
         VideoParserData oParserData_;   // instance of the user-data we have passed into the parser-callbacks.
         CUvideoparser   hParser_;       // handle to the CUDA video-parser
+        unsigned int ulClockRate_;       // Timestamp units in Hz (0=default=10000000Hz)
 
         friend class VideoManager;
 };

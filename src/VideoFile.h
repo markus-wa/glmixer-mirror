@@ -428,12 +428,7 @@ public:
      * @param t a string in 'hh:mm:ss.ms' format
      */
 //    double  getFrameFromTime(QString t) const;
-    /**
-     * Displays a dialog window (QDialog) listing the formats and video codecs supported for reading.
-     *
-     * @param iconfile Name of the file to put as icon of the window
-     */
-    static void displayFormatsCodecsInformation(QString iconfile);
+
     /**
      * Sets the memory usage policy to define the bounding size of internal
      * buffers (both packet queue and video picture queue) used for decoding.
@@ -567,7 +562,8 @@ public slots:
     }
     /**
      * Sets the reading to loop at the end or not.
-     * When loop mode is active, the playback will restart at MarkIn when arriving at MarkOut.
+     * When loop mode is active, the playback will restart
+     * sat MarkIn when arriving at MarkOut.
      * Else, playing will stop after the last frame.
      *
      * @param loop activate the loop mode if true,
@@ -637,7 +633,8 @@ public slots:
     /**
      * Sets the "restart to Mark IN" option.
      *
-     * When this option is active, stopping a VideoFile will jump back to the IN mark, ready to restart from there.
+     * When this option is active, stopping a VideoFile will
+     * jump back to the IN mark, ready to restart from there.
      *
      * @param on true to activate the option.
      */
@@ -655,7 +652,8 @@ public slots:
     /**
      * Sets the "revert to black" option.
      *
-     * When this option AND the "restart to Mark IN" option are active, stopping a VideoFile will show a black frame
+     * When this option AND the "restart to Mark IN" option are active,
+     * stopping a VideoFile will show a black frame
      * instead of the begining frame.
      *
      * @param black true to activate the option.
@@ -674,7 +672,7 @@ public slots:
     /**
      *
      */
-    bool PixelFormatHasAlphaChannel() const;
+    bool hasAlphaChannel() const;
     inline bool ignoresAlphaChannel() const { return ignoreAlpha; }
     /**
      *
@@ -690,7 +688,7 @@ protected slots:
 protected:
 
     // internal methods
-    void close();
+    virtual void close();
     void reset();
     double fill_first_frame(bool);
     int stream_component_open(AVFormatContext *);
@@ -705,7 +703,6 @@ protected:
     bool jump_in_picture_queue(double time);
 
     virtual void requestSeek(double time, bool lock = false);
-    static int roundPowerOfTwo(int v);
 
     // Video and general information
     QString filename;
@@ -787,9 +784,6 @@ protected:
     bool quit;
     bool loop_video;
     bool restart_where_stopped;
-
-    // ffmpeg util
-    static bool ffmpegregistered;
 
 };
 
