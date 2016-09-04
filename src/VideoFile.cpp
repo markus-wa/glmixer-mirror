@@ -503,76 +503,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     if (pFormatCtx)
         close();
 
-	int err = 0;
-	AVFormatContext *_pFormatCtx = 0;
+    filename = file;
+    ignoreAlpha = ignoreAlphaChannel;
 
-	filename = file;
-	ignoreAlpha = ignoreAlphaChannel;
-
-	// Check file
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
-	_pFormatCtx = avformat_alloc_context();
-    err = avformat_open_input(&_pFormatCtx, qPrintable(filename), NULL, NULL);
-#else
-	err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0, NULL);
-#endif
-    if (err < 0)
-	{
-		switch (err)
-		{
-		case AVERROR_INVALIDDATA:
-            qWarning() << filename << QChar(124).toLatin1() << tr("Error while parsing header.");
-			break;
-		case AVERROR(EIO):
-            qWarning() << filename << QChar(124).toLatin1()
-                    << tr("I/O error. Usually that means that input file is truncated and/or corrupted");
-			break;
-		case AVERROR(ENOMEM):
-            qWarning() << filename << QChar(124).toLatin1()<< tr("Memory allocation error.");
-			break;
-		case AVERROR(ENOENT):
-            qWarning() << filename << QChar(124).toLatin1()<< tr("No such file.");
-			break;
-		default:
-            qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
-			break;
-		}
-
-		return false;
-	}
-
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
-    err = avformat_find_stream_info(_pFormatCtx, NULL);
-#else
-    err = av_find_stream_info(_pFormatCtx);
-#endif
-	if (err < 0)
-	{
-		switch (err)
-		{
-		case AVERROR_INVALIDDATA:
-            qWarning() << filename << QChar(124).toLatin1()<< tr("Error while parsing header.");
-			break;
-		case AVERROR(EIO):
-            qWarning() << filename<< QChar(124).toLatin1()
-                    << tr("I/O error. Usually that means that input file is truncated and/or corrupted");
-			break;
-		case AVERROR(ENOMEM):
-            qWarning() << filename << QChar(124).toLatin1()<< tr("Memory allocation error");
-			break;
-		case AVERROR(ENOENT):
-            qWarning() << filename << QChar(124).toLatin1()<< tr("No such entry.");
-			break;
-		default:
-            qWarning() << filename << QChar(124).toLatin1()<< tr("Unsupported format.");
-			break;
-		}
-
-        // free openned context
-        avformat_free_context(_pFormatCtx);
-
-		return false;
-	}
+    AVFormatContext *_pFormatCtx = CodecManager::openFormatContext(filename);
+    if (_pFormatCtx == 0)
+        return false;
 
 	// if video_index not set (no video stream found) or stream open call failed
 	videoStream = stream_component_open(_pFormatCtx);
@@ -835,7 +771,9 @@ double VideoFile::fill_first_frame(bool seek)
 
         // interlacing
         if (tmpframe->interlaced_frame) {
-////AVFilter *buffersrc  = avfilter_get_by_name("buffer");
+// TODO : deinterlacing
+
+            ////AVFilter *buffersrc  = avfilter_get_by_name("buffer");
 
 //AVFilter *yadif_filter = avfilter_get_by_name("yadif");
 
@@ -896,9 +834,6 @@ double VideoFile::fill_first_frame(bool seek)
 // TODO : use av_find_best_stream instead of my own implementation ?
 int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 {
-
-	AVCodecContext *codecCtx;
-	AVCodec *codec;
 	int stream_index = -1;
 
 	// Find the first video stream index
@@ -921,30 +856,11 @@ int VideoFile::stream_component_open(AVFormatContext *pFCtx)
 		return -1;
 	}
 
-	// Get a pointer to the codec context for the video stream
-	codecCtx = pFCtx->streams[stream_index]->codec;
+    // open the codec
+    codecname = CodecManager::openCodec( pFCtx->streams[stream_index]->codec );
 
-    codec = avcodec_find_decoder(codecCtx->codec_id);
-
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-    AVDictionary *opts = NULL;
-    av_dict_set(&opts, "threads", "auto", 0);
-    av_dict_set(&opts, "refcounted_frames", "1", 0);
-    if ( !codec || ( avcodec_open2(codecCtx, codec, &opts) < 0 ))
-    {
-        qWarning() << filename << QChar(124).toLatin1()<< tr("The codec ") << avcodec_descriptor_get(codecCtx->codec_id)->long_name << tr("is not supported.");
-        return -1;
-    }
-#else
-    if (!codec || (avcodec_open(codecCtx, codec) < 0))
-	{
-        qWarning() << filename << QChar(124).toLatin1()<< tr("The codec ") << codecCtx->codec_name
-				<< tr("is not supported.");
-		return -1;
-    }
-#endif
-
-    codecname = QString(codec->long_name);
+    if (codecname.isNull())
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot decode file.");
 
 	return stream_index;
 }

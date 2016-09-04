@@ -11,9 +11,10 @@ extern "C"
 
 #include <QtGui>
 
-class CodecManager
+class CodecManager : public QObject
 {
 
+    Q_OBJECT
 
 public:
 
@@ -22,6 +23,15 @@ public:
      *  (Can be called multiple times)
      */
     static void registerAll();
+    /**
+     *  Open a video stream
+     */
+    static AVFormatContext *openFormatContext(QString streamToOpen);
+    /**
+     *  Open a Codec
+     *
+     */
+    static QString openCodec(AVCodecContext *codeccontext);
     /**
      *  Get the name of the pixel format of the frames of the file opened.
      *
@@ -50,7 +60,7 @@ public:
 
 private:
 
-    CodecManager();
+    CodecManager(QObject *parent = 0);
     static CodecManager *_instance;
 
 };

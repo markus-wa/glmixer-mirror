@@ -1,4 +1,4 @@
-#include "CodecManager.h"
+#include "CodecManager.moc"
 
 
 extern "C"
@@ -24,7 +24,7 @@ int roundPowerOfTwo(int v)
     return static_cast<int> (1U) << (k + 1);
 }
 
-CodecManager::CodecManager()
+CodecManager::CodecManager(QObject *parent) : QObject(parent)
 {
 
     avcodec_register_all();
@@ -47,12 +47,112 @@ void CodecManager::registerAll()
     }
 }
 
+AVFormatContext *CodecManager::openFormatContext(QString streamToOpen)
+{
+    registerAll();
+
+    int err = 0;
+    AVFormatContext *_pFormatCtx = 0;
+
+    // Check file
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
+    _pFormatCtx = avformat_alloc_context();
+    err = avformat_open_input(&_pFormatCtx, qPrintable(streamToOpen), NULL, NULL);
+#else
+    err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0, NULL);
+#endif
+    if (err < 0)
+    {
+        switch (err)
+        {
+        case AVERROR_INVALIDDATA:
+            qWarning() << streamToOpen << QChar(124).toLatin1() << tr("Error while parsing header.");
+            break;
+        case AVERROR(EIO):
+            qWarning() << streamToOpen << QChar(124).toLatin1()
+                    << tr("I/O error. Usually that means that input file is truncated and/or corrupted");
+            break;
+        case AVERROR(ENOMEM):
+            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Memory allocation error.");
+            break;
+        case AVERROR(ENOENT):
+            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("No such file.");
+            break;
+        default:
+            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Cannot open file.");
+            break;
+        }
+
+        return 0;
+    }
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
+    err = avformat_find_stream_info(_pFormatCtx, NULL);
+#else
+    err = av_find_stream_info(_pFormatCtx);
+#endif
+    if (err < 0)
+    {
+        switch (err)
+        {
+        case AVERROR_INVALIDDATA:
+            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Error while parsing header.");
+            break;
+        case AVERROR(EIO):
+            qWarning() << streamToOpen<< QChar(124).toLatin1()
+                    << tr("I/O error. Usually that means that input file is truncated and/or corrupted");
+            break;
+        case AVERROR(ENOMEM):
+            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Memory allocation error");
+            break;
+        case AVERROR(ENOENT):
+            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("No such entry.");
+            break;
+        default:
+            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Unsupported format.");
+            break;
+        }
+
+        // free openned context
+        avformat_free_context(_pFormatCtx);
+        _pFormatCtx = 0;
+    }
+
+    return _pFormatCtx;
+}
+
+
+QString CodecManager::openCodec(AVCodecContext *codeccontext)
+{
+    QString codecname = QString::null;
+    AVCodec *codec = avcodec_find_decoder(codeccontext->codec_id);
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+    AVDictionary *opts = NULL;
+    av_dict_set(&opts, "threads", "auto", 0);
+    av_dict_set(&opts, "refcounted_frames", "1", 0);
+    if ( !codec || avcodec_open2(codeccontext, codec, &opts) < 0 )
+    {
+        qWarning() << avcodec_descriptor_get(codeccontext->codec_id)->long_name << QChar(124).toLatin1() << tr("Unsupported Codec.");
+        return codecname;
+    }
+#else
+    if ( !codec || avcodec_open(codeccontext, codec) < 0 )
+    {
+        qWarning() << codeccontext->codec_name << QChar(124).toLatin1()<< tr("Unsupported Codec.");
+        return codecname;
+    }
+#endif
+
+    codecname = avcodec_descriptor_get(codeccontext->codec_id)->long_name;
+
+    return codecname;
+}
 
 void CodecManager::convertSizePowerOfTwo(int &width, int &height)
 {
     width = roundPowerOfTwo(width);
     height = roundPowerOfTwo(height);
-
 }
 
 void CodecManager::displayFormatsCodecsInformation(QString iconfile)
@@ -93,12 +193,12 @@ void CodecManager::displayFormatsCodecsInformation(QString iconfile)
         buttonBox->setStandardButtons(QDialogButtonBox::Close);
     QObject::connect(buttonBox, SIGNAL(rejected()), ffmpegInfoDialog, SLOT(reject()));
 
-    ffmpegInfoDialog->setWindowTitle(QObject::tr("About Libav formats and codecs"));
+    ffmpegInfoDialog->setWindowTitle(tr("About Libav formats and codecs"));
 
     label->setWordWrap(true);
     label->setOpenExternalLinks(true);
     label->setTextFormat(Qt::RichText);
-    label->setText(QObject::tr( "<H3>About Libav</H3>"
+    label->setText(tr( "<H3>About Libav</H3>"
                        "<br>This program uses <b>libavcodec %1.%2.%3</b>."
                        "<br><br><b>Libav</b> provides cross-platform tools and libraries to convert, manipulate and "
                        "stream a wide range of multimedia formats and protocols."
@@ -107,16 +207,16 @@ void CodecManager::displayFormatsCodecsInformation(QString iconfile)
 
     options = new QPlainTextEdit( QString(avcodec_configuration()), ffmpegInfoDialog);
 
-    label_2->setText( QObject::tr("Available codecs:"));
-    label_3->setText( QObject::tr("Available formats:"));
+    label_2->setText( tr("Available codecs:"));
+    label_3->setText( tr("Available formats:"));
 
         QTreeWidgetItem *title = availableFormatsTreeWidget->headerItem();
-        title->setText(1, QObject::tr("Description"));
-        title->setText(0, QObject::tr("Name"));
+        title->setText(1, tr("Description"));
+        title->setText(0, tr("Name"));
 
         title = availableCodecsTreeWidget->headerItem();
-        title->setText(1, QObject::tr("Description"));
-        title->setText(0, QObject::tr("Name"));
+        title->setText(1, tr("Description"));
+        title->setText(0, tr("Name"));
 
         QTreeWidgetItem *formatitem;
         AVInputFormat *ifmt = NULL;
@@ -225,7 +325,8 @@ QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt)
 }
 #elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt) const
-{
+{    
+    registerAll();
     QString pfn(av_pix_fmt_descriptors[pix_fmt].name);
     pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[pix_fmt]));
 
@@ -234,7 +335,6 @@ QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt) const
 #else
 QString CodecManager::getPixelFormatName(AVPixelFormat ffmpegAVPixelFormat) const
 {
-
     switch (ffmpegAVPixelFormat )
         {
 
@@ -294,7 +394,8 @@ QString CodecManager::getPixelFormatName(AVPixelFormat ffmpegAVPixelFormat) cons
 #endif
 
 bool CodecManager::pixelFormatHasAlphaChannel(AVPixelFormat pix_fmt)
-{
+{    
+    registerAll();
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
     return  (  (av_pix_fmt_desc_get(pix_fmt)->nb_components > 3)

@@ -421,13 +421,6 @@ public:
      * @return a time in stream time base
      */
     double getTimefromFrame(int64_t  f) const;
-    /**
-     * Gives a value in stream time-base (frames) from a given string in a human readable time format (hh:mm:ss.ms).
-     *
-     * @return a time in stream time base (usually frame number) if the parameter was ok, -1 otherwise.
-     * @param t a string in 'hh:mm:ss.ms' format
-     */
-//    double  getFrameFromTime(QString t) const;
 
     /**
      * Sets the memory usage policy to define the bounding size of internal
