@@ -40,7 +40,7 @@ QMap<int, OpencvSource*> OpencvSource::_existingSources;
 class CameraThread: public QThread {
 public:
 	CameraThread(OpencvSource *source) :
-        QThread(), cvs(source), end(false) {
+        QThread(), cvs(source), end(true) {
     }
     ~CameraThread() {
     }
@@ -57,6 +57,16 @@ void CameraThread::run(){
 	QTime t;
 	int f = 0;
 	IplImage *raw;
+
+    // flush input
+    cvGrabFrame( cvs->capture );
+    cvGrabFrame( cvs->capture );
+    cvGrabFrame( cvs->capture );
+    cvGrabFrame( cvs->capture );
+    cvGrabFrame( cvs->capture );
+
+    // make sure we read first frame
+    cvs->frameChanged = false;
 
 	t.start();
 	while (!end) {
@@ -104,6 +114,9 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
     cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, (double) 1024);
     cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, (double) 768);
 
+    cvGrabFrame( capture );
+    cvGrabFrame( capture );
+    cvGrabFrame( capture );
 	IplImage *raw = cvQueryFrame( capture );
 	if (!raw)
         brokenCameraException().raise();
@@ -169,9 +182,7 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
     cond = new QWaitCondition;
     CHECK_PTR_EXCEPTION(cond)
 	thread = new CameraThread(this);
-	CHECK_PTR_EXCEPTION(thread)
-	thread->start();
-    thread->setPriority(QThread::LowPriority);
+    CHECK_PTR_EXCEPTION(thread)
 
     // store this pointer to the global list
     OpencvSource::_existingSources[opencvCameraIndex] = this;
@@ -211,11 +222,11 @@ void OpencvSource::play(bool on){
 	} else { // stop play
 		thread->end = true;
 		mutex->lock();
-		cond->wakeAll();
-		frameChanged = false;
+        cond->wakeAll();
 		mutex->unlock();
-		thread->wait(300);
-	}
+        thread->wait(300);
+        frameChanged = true;
+    }
 }
 
 bool OpencvSource::isPlaying() const{
@@ -243,7 +254,6 @@ void OpencvSource::update(){
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, 0);
 
             mutex->lock();
-            frameChanged = false;
 
             // bind PBO to update pixel values
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[nextIndex]);
@@ -259,6 +269,7 @@ void OpencvSource::update(){
                 glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
             }
 
+            frameChanged = false;
             cond->wakeAll();
             mutex->unlock();
 
@@ -267,15 +278,15 @@ void OpencvSource::update(){
         } else {
 
             mutex->lock();
-            frameChanged = false;
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
+            frameChanged = false;
             cond->wakeAll();
             mutex->unlock();
         }
 
-        Source::update();
     }
 
+    Source::update();
 }
 
 OpencvSource *OpencvSource::getExistingSourceForCameraIndex(int index){
