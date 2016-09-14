@@ -160,18 +160,16 @@ private:
 void AlgorithmThread::run() {
 
     QTime t;
-    t.start();
     as->framerate = 30.0;
     unsigned long e = 0;
 
+    t.start();
     while (!end) {
 
         as->_mutex->lock();
         if (!as->frameChanged) {
 
-            // change random
-            srand(e);
-
+            // fill frame
             if (as->variability > EPSILON )
                 fill(as->variability);
 
@@ -180,13 +178,17 @@ void AlgorithmThread::run() {
         }
         as->_mutex->unlock();
 
-        e = t.elapsed();
+        // computing time
+        e = CLAMP( (unsigned long) t.elapsed() * 1000, 0, as->period ) ;
 
         // wait for the period duration minus time spent before updating next frame
-        usleep(as->period - e * 1000);
+        usleep( as->period - e);
 
         // exponential moving average to compute FPS
         as->framerate = 0.7 * 1000.0 / (double) t.restart() + 0.3 * as->framerate;
+
+        // change random
+        srand(e);
     }
 }
 
@@ -390,22 +392,17 @@ AlgorithmSource::AlgorithmSource(int type, GLuint texture, double d, int w,
 
 AlgorithmSource::~AlgorithmSource() {
 
-    // end the update thread
+    // stop play
     _thread->end = true;
-    if ( _mutex->tryLock(500) ) {
-        _cond->wakeAll();
-        _mutex->unlock();
-    }
+    _mutex->lock();
+    _cond->wakeAll();
+    _mutex->unlock();
     // wait for usleep pediod time + 100 ms buffer
-    if (!_thread->wait(100 + period / 1000) )  {
-        _thread->terminate();
-        qWarning() << name << QChar(124).toLatin1() << tr("Thread interrupted unexpectedly.");
-    }
+    _thread->wait(100 + period / 1000);
 
     delete _thread;
     delete _cond;
     delete _mutex;
-
 
     // delete picture buffer
     if (pboIds)
@@ -432,16 +429,13 @@ void AlgorithmSource::play(bool on) {
     else {
         // stop play
         _thread->end = true;
-        if ( _mutex->tryLock(500) ) {
-            _cond->wakeAll();
-            frameChanged = false;
-            _mutex->unlock();
-        }
+        _mutex->lock();
+        _cond->wakeAll();
+        _mutex->unlock();
         // wait for usleep pediod time + 100 ms buffer
-        if (!_thread->wait(100 + period / 1000) )  {
-            _thread->terminate();
-            qWarning() << name << QChar(124).toLatin1() << tr("Thread interrupted unexpectedly.");
-        }
+        _thread->wait(100 + period / 1000);
+        // make sure last frame is displayed
+        frameChanged = false;
     }
 
     Source::play(on);
@@ -491,38 +485,39 @@ void AlgorithmSource::update() {
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
             // lock filling thread
-            if ( _mutex->tryLock(100) ) {
+            _mutex->lock();
 
-                glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
+            glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, 0, GL_STREAM_DRAW);
 
-                // map the buffer object into client's memory
-                GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-                if (ptr) {
-                    // update data directly on the mapped buffer
-                    buffer = ptr;
-                    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
-                }
-                else
-                    buffer = 0;
-
-                // unlock filling thread
-                _cond->wakeAll();
-                _mutex->unlock();
+            // map the buffer object into client's memory
+            GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+            if (ptr) {
+                // update data directly on the mapped buffer
+                buffer = ptr;
+                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
             }
+            else
+                buffer = 0;
+
+            // unlock filling thread
+            frameChanged = false;
+            _cond->wakeAll();
+            _mutex->unlock();
 
             // release PBOs with ID 0 after use.
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-        } else  if ( _mutex->tryLock(100) ) {
+        } else {
 
+            _mutex->lock();
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
                             GL_UNSIGNED_BYTE, (unsigned char*) buffer);
 
+            frameChanged = false;
             _cond->wakeAll();
             _mutex->unlock();
         }
 
-        frameChanged = false;
     }
 
     Source::update();
