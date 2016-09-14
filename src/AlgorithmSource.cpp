@@ -160,16 +160,17 @@ private:
 void AlgorithmThread::run() {
 
     QTime t;
-    int f = 0;
-
     t.start();
+    as->framerate = 30.0;
+    unsigned long e = 0;
+
     while (!end) {
 
         as->_mutex->lock();
         if (!as->frameChanged) {
 
             // change random
-            srand(t.elapsed());
+            srand(e);
 
             if (as->variability > EPSILON )
                 fill(as->variability);
@@ -179,14 +180,13 @@ void AlgorithmThread::run() {
         }
         as->_mutex->unlock();
 
-        // wait for the period duration before updating next frame
-        usleep(as->period);
+        e = t.elapsed();
 
-        if (++f == 100) { // hundred frames to average the frame rate {
-            as->framerate = 100000.0 / (double) t.elapsed();
-            t.restart();
-            f = 0;
-        }
+        // wait for the period duration minus time spent before updating next frame
+        usleep(as->period - e * 1000);
+
+        // exponential moving average to compute FPS
+        as->framerate = 0.7 * 1000.0 / (double) t.restart() + 0.3 * as->framerate;
     }
 }
 
@@ -421,8 +421,6 @@ void AlgorithmSource::setVariability(double v) {
 
 void AlgorithmSource::play(bool on) {
 
-    Source::play(on);
-
     if (isPlaying() == on)
         return;
 
@@ -445,6 +443,8 @@ void AlgorithmSource::play(bool on) {
             qWarning() << name << QChar(124).toLatin1() << tr("Thread interrupted unexpectedly.");
         }
     }
+
+    Source::play(on);
 }
 
 bool AlgorithmSource::isPlaying() const {
