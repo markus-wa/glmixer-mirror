@@ -53,8 +53,6 @@ bool WebSource::isPlaying() const
 
 void WebSource::play(bool on)
 {
-    Source::play(on);
-
     if ( isPlaying() == on )
         return;
 
@@ -65,6 +63,7 @@ void WebSource::play(bool on)
     else
         _webrenderer->setUpdate(0);
 
+    Source::play(on);
 }
 
 void WebSource::adjust()
@@ -242,6 +241,7 @@ WebRenderer::WebRenderer(const QUrl &url, int height, int scroll) : _url(url), _
 
     // enable cookies
     _page.networkAccessManager()->setCookieJar( new QNetworkCookieJar(&_page) );
+    _page.setPreferredContentsSize(RenderingManager::getInstance()->getFrameBufferResolution());
 
     // render page when loaded
     _page.mainFrame()->load(_url);
