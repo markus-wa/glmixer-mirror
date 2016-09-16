@@ -512,8 +512,8 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     filename = file;
     ignoreAlpha = ignoreAlphaChannel;
 
-    AVFormatContext *_pFormatCtx = CodecManager::openFormatContext(filename);
-    if (_pFormatCtx == 0)
+    AVFormatContext *_pFormatCtx = avformat_alloc_context();
+    if ( !CodecManager::openFormatContext( &_pFormatCtx, filename) )
         return false;
 
     // get index of video stream

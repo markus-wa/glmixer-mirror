@@ -47,22 +47,20 @@ void CodecManager::registerAll()
     }
 }
 
-AVFormatContext *CodecManager::openFormatContext(QString streamToOpen)
+bool CodecManager::openFormatContext(AVFormatContext **_pFormatCtx, QString streamToOpen)
 {
     registerAll();
 
     int err = 0;
-    AVFormatContext *_pFormatCtx = 0;
 
     // Check file
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
     err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0, NULL);
 #else
-    _pFormatCtx = avformat_alloc_context();
     if ( !_pFormatCtx)
         return 0;
 
-    err = avformat_open_input(&_pFormatCtx, qPrintable(streamToOpen), NULL, NULL);
+    err = avformat_open_input(_pFormatCtx, qPrintable(streamToOpen), NULL, NULL);
 #endif
     if (err < 0)
     {
@@ -86,15 +84,13 @@ AVFormatContext *CodecManager::openFormatContext(QString streamToOpen)
             break;
         }
 
-        // free openned context
-        avformat_free_context(_pFormatCtx);
-        return 0;
+        return false;
     }
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
     err = av_find_stream_info(_pFormatCtx);
 #else
-    err = avformat_find_stream_info(_pFormatCtx, NULL);
+    err = avformat_find_stream_info( *_pFormatCtx, NULL);
 #endif
     if (err < 0)
     {
@@ -118,12 +114,10 @@ AVFormatContext *CodecManager::openFormatContext(QString streamToOpen)
             break;
         }
 
-        // free openned context
-        avformat_free_context(_pFormatCtx);
-        _pFormatCtx = 0;
+        return false;
     }
 
-    return _pFormatCtx;
+    return true;
 }
 
 

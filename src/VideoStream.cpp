@@ -273,7 +273,9 @@ VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationH
 VideoStream::~VideoStream()
 {
     if (open_tid->isWorking()) {
-        open_tid->terminate();
+        if ( !open_tid->wait(50) ) {
+            open_tid->terminate();
+        }
     }
 
     // make sure all is closed
@@ -305,7 +307,7 @@ void VideoStream::stop()
         // unlock all conditions
         pictq_cond->wakeAll();
         // wait for thread to end
-        if ( !decod_tid->wait(500) ) {
+        if ( !decod_tid->wait(50) ) {
             decod_tid->terminate();
         }
         pictq_mutex->unlock();
@@ -385,32 +387,39 @@ void VideoStream::open(QString url)
 
 bool VideoStream::openStream()
 {
-    AVFormatContext *_pFormatCtx = CodecManager::openFormatContext(urlname);
-    if (_pFormatCtx == 0)
+    pFormatCtx = NULL;
+    video_st = NULL;
+    videoStream = -1;
+
+
+    pFormatCtx = avformat_alloc_context();
+    if ( !CodecManager::openFormatContext( &pFormatCtx, urlname) )
         return false;
 
     // get index of video stream
-    videoStream = CodecManager::getVideoStream(_pFormatCtx);
+    videoStream = CodecManager::getVideoStream(pFormatCtx);
     if (videoStream < 0) {
         // free openned context
-        avformat_free_context(_pFormatCtx);
-        // Cannot initialize the conversion context!
+        avformat_close_input(&pFormatCtx);
+        pFormatCtx = NULL;
+        // Cannot find video stream
         qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot find video stream.");
-        //could not open Codecs
         return false;
     }
 
     // open the codec
-    codecname = CodecManager::openCodec( _pFormatCtx->streams[videoStream]->codec );
+    codecname = CodecManager::openCodec( pFormatCtx->streams[videoStream]->codec );
     if (codecname.isNull())
     {
-        // Cannot initialize the conversion context!
+        // free openned context
+        avformat_close_input(&pFormatCtx);
+        pFormatCtx = NULL;
+        // Cannot open codec
         qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot open Codec");
         return false;
     }
 
     // all ok, we can set the internal pointers to the good values
-    pFormatCtx = _pFormatCtx;
     video_st = pFormatCtx->streams[videoStream];
 
     // read picture width from video codec
@@ -463,16 +472,18 @@ void VideoStream::close()
     // close context
     if (pFormatCtx) {
 
-        pFormatCtx->streams[videoStream]->discard = AVDISCARD_ALL;
-        AVCodecContext *cdctx = pFormatCtx->streams[videoStream]->codec;
+        if ( videoStream > -1 && pFormatCtx->streams ) {
 
-        // do not attempt to close codec context if
-        // codec is not valid
-        if (cdctx && cdctx->codec) {
-            // Close codec (& threads inside)
-            avcodec_close(cdctx);
+            pFormatCtx->streams[videoStream]->discard = AVDISCARD_ALL;
+            AVCodecContext *cdctx = pFormatCtx->streams[videoStream]->codec;
+
+            // do not attempt to close codec context if
+            // codec is not valid
+            if (cdctx && cdctx->codec) {
+                // Close codec (& threads inside)
+                avcodec_close(cdctx);
+            }
         }
-
         // close file & free context
         // Free it and all its contents and set it to NULL.
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
