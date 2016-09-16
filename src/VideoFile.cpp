@@ -513,14 +513,17 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     ignoreAlpha = ignoreAlphaChannel;
 
     AVFormatContext *_pFormatCtx = avformat_alloc_context();
-    if ( !CodecManager::openFormatContext( &_pFormatCtx, filename) )
+    if ( !CodecManager::openFormatContext( &_pFormatCtx, filename) ) {
+        // free context
+        avformat_free_context(_pFormatCtx);
         return false;
+    }
 
     // get index of video stream
     videoStream = CodecManager::getVideoStream(_pFormatCtx);
     if (videoStream < 0) {
-        // free openned context
-        avformat_free_context(_pFormatCtx);
+        // free context
+        avformat_close_input( &_pFormatCtx);
         //could not open Codecs (error message already sent)
 		return false;
     }
@@ -1608,7 +1611,7 @@ void DecodingThread::run()
                 // wait until we have space for a new pic
                 // the condition is released in video_refresh_timer()
                 is->pictq_mutex->lock();
-                while ( (is->pictq.count() > is->pictq_max_count) && !is->quit )
+                while ( !is->quit && (is->pictq.count() > is->pictq_max_count) )
                     is->pictq_cond->wait(is->pictq_mutex);
                 is->pictq_mutex->unlock();
 

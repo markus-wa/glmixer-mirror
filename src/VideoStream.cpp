@@ -290,6 +290,10 @@ VideoStream::~VideoStream()
     delete pictq_cond;
     delete ptimer;
 
+    while (!pictq.isEmpty()) {
+        VideoPicture *p = pictq.dequeue();
+        delete p;
+    }
 }
 
 void VideoStream::stop()
@@ -303,6 +307,9 @@ void VideoStream::stop()
         // request quit
         quit = true;
 
+        // stop play
+        av_read_pause(pFormatCtx);
+
         pictq_mutex->lock();
         // unlock all conditions
         pictq_cond->wakeAll();
@@ -311,9 +318,6 @@ void VideoStream::stop()
             decod_tid->terminate();
         }
         pictq_mutex->unlock();
-
-        // stop play
-        av_read_pause(pFormatCtx);
 
 #ifdef VIDEOSTREAM_DEBUG
         qDebug() << urlname << QChar(124).toLatin1() << tr("Stopped.");
@@ -393,8 +397,12 @@ bool VideoStream::openStream()
 
 
     pFormatCtx = avformat_alloc_context();
-    if ( !CodecManager::openFormatContext( &pFormatCtx, urlname) )
+    if ( !CodecManager::openFormatContext( &pFormatCtx, urlname) ){
+        // free context
+        avformat_free_context(pFormatCtx);
+        pFormatCtx = NULL;
         return false;
+    }
 
     // get index of video stream
     videoStream = CodecManager::getVideoStream(pFormatCtx);
