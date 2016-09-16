@@ -948,6 +948,7 @@ void VideoFile::video_refresh_timer()
 
        if (fast_forward) {
            _videoClock.reset(current_frame_pts);
+           ptimer_delay = UPDATE_SLEEP_DELAY;
        }
 
     }
