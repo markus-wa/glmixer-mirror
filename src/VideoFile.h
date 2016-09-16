@@ -188,7 +188,7 @@ public:
      */
     VideoPicture *getResetPicture() const;
 
-    virtual int getNumFrames() const ;
+    int getNumFrames() const ;
 
 
     /**
@@ -201,14 +201,14 @@ public:
      * @param markOut Position of the mark OUT where to stop.
      * @return true on success
      */
-    virtual bool open(QString file, double  markIn = -1.0, double  markOut = -1.0, bool ignoreAlphaChannel = false);
+    bool open(QString file, double  markIn = -1.0, double  markOut = -1.0, bool ignoreAlphaChannel = false);
 
     /**
      * Test if a file was open for this VideoFile.
      *
      * @return true if a file was open, false otherwise.
      */
-    virtual bool isOpen() const ;
+    bool isOpen() const ;
     /**
      * Test if running (playing).
      *

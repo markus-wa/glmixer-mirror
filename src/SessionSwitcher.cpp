@@ -29,6 +29,7 @@
 #include "OutputRenderWindow.h"
 #include "RenderingManager.h"
 #include "VideoSource.h"
+#include "VideoFile.h"
 #include "AlgorithmSource.h"
 #include "CaptureSource.h"
 
@@ -175,8 +176,11 @@ void SessionSwitcher::setTransitionMedia(QString filename, bool generatePowerOfT
 
 QString SessionSwitcher::transitionMedia() const
 {
-	if (customTransitionVideoSource )
-		return customTransitionVideoSource->getVideoFile()->getFileName();
+    if ( customTransitionVideoSource ) {
+        VideoFile *vf = customTransitionVideoSource->getVideoFile();
+        if ( vf )
+            return vf->getFileName();
+    }
 
 	return QString();
 }

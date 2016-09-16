@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>356</width>
-    <height>521</height>
+    <height>635</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -206,7 +206,7 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>Properties</string>
+         <string>Web page rendering</string>
         </property>
         <property name="flat">
          <bool>true</bool>
@@ -374,6 +374,29 @@
         </layout>
        </widget>
       </item>
+      <item>
+       <widget class="SizeSelectionWidget" name="sizeselection" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>10</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; font-size:8pt; font-style:italic;&quot;&gt;The source resolution might be automatically&lt;br&gt;adjusted to enable the rendering of the web page.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -395,6 +418,15 @@
    <extends>QWidget</extends>
    <header>SourceDisplayWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SizeSelectionWidget</class>
+   <extends>QWidget</extends>
+   <header>SizeSelectionWidget.h</header>
+   <container>1</container>
+   <slots>
+    <signal>sizeChanged()</signal>
+   </slots>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -421,8 +453,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>236</x>
-     <y>511</y>
+     <x>245</x>
+     <y>549</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -437,8 +469,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>304</x>
-     <y>511</y>
+     <x>313</x>
+     <y>549</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -453,12 +485,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>250</y>
+     <x>266</x>
+     <y>291</y>
     </hint>
     <hint type="destinationlabel">
      <x>337</x>
-     <y>284</y>
+     <y>319</y>
     </hint>
    </hints>
   </connection>
@@ -469,12 +501,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>217</x>
-     <y>311</y>
+     <x>235</x>
+     <y>345</y>
     </hint>
     <hint type="destinationlabel">
-     <x>315</x>
-     <y>343</y>
+     <x>333</x>
+     <y>374</y>
     </hint>
    </hints>
   </connection>
@@ -486,7 +518,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>337</x>
-     <y>340</y>
+     <y>374</y>
     </hint>
     <hint type="destinationlabel">
      <x>407</x>
@@ -501,8 +533,8 @@
    <slot>browseHtmlPage()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>309</x>
-     <y>340</y>
+     <x>307</x>
+     <y>374</y>
     </hint>
     <hint type="destinationlabel">
      <x>370</x>
@@ -517,8 +549,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>272</x>
-     <y>250</y>
+     <x>290</x>
+     <y>291</y>
     </hint>
     <hint type="destinationlabel">
      <x>430</x>
@@ -533,8 +565,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>192</x>
-     <y>311</y>
+     <x>210</x>
+     <y>345</y>
     </hint>
     <hint type="destinationlabel">
      <x>479</x>
@@ -549,8 +581,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>207</x>
-     <y>343</y>
+     <x>234</x>
+     <y>373</y>
     </hint>
     <hint type="destinationlabel">
      <x>408</x>
@@ -565,8 +597,8 @@
    <slot>validateWebUrl(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>117</x>
-     <y>284</y>
+     <x>144</x>
+     <y>319</y>
     </hint>
     <hint type="destinationlabel">
      <x>-24</x>
@@ -581,8 +613,8 @@
    <slot>setHeight(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>331</x>
-     <y>397</y>
+     <x>328</x>
+     <y>429</y>
     </hint>
     <hint type="destinationlabel">
      <x>415</x>
@@ -597,8 +629,8 @@
    <slot>setScroll(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>210</x>
-     <y>416</y>
+     <x>328</x>
+     <y>458</y>
     </hint>
     <hint type="destinationlabel">
      <x>375</x>
@@ -613,8 +645,8 @@
    <slot>setUpdate(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>279</x>
-     <y>449</y>
+     <x>328</x>
+     <y>487</y>
     </hint>
     <hint type="destinationlabel">
      <x>395</x>
@@ -629,12 +661,28 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>323</x>
-     <y>270</y>
+     <x>337</x>
+     <y>318</y>
     </hint>
     <hint type="destinationlabel">
      <x>177</x>
      <y>260</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sizeselection</sender>
+   <signal>sizeChanged()</signal>
+   <receiver>WebSourceCreationDialog</receiver>
+   <slot>updateSourcePreview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>506</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>395</x>
+     <y>507</y>
     </hint>
    </hints>
   </connection>

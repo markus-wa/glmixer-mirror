@@ -107,7 +107,7 @@ void WebSourceCreationDialog::updateSourcePreview(){
         // ok, got a valid URL
         try {
             // create a new source with a new texture index and the new parameters
-            s = new WebSource(url, tex, 0, getSelectedHeight(), getSelectedScroll(), getSelectedUpdate());
+            s = new WebSource(url, tex, 0, getSelectedWidth(), getSelectedHeight(), getSelectedWindowHeight(), getSelectedScroll(), getSelectedUpdate());
 
         }
         catch (...)  {
@@ -127,6 +127,17 @@ void WebSourceCreationDialog::updateSourcePreview(){
     ui->preview->setSource(s);
     ui->preview->playSource(true);
 
+}
+
+int  WebSourceCreationDialog::getSelectedWidth(){
+
+    return ui->sizeselection->getWidth();
+}
+
+
+int  WebSourceCreationDialog::getSelectedHeight(){
+
+    return ui->sizeselection->getHeight();
 }
 
 QUrl  WebSourceCreationDialog::getSelectedUrl(){
@@ -158,7 +169,7 @@ void WebSourceCreationDialog::setScroll(int i){
         updateSourcePreview();
 }
 
-int  WebSourceCreationDialog::getSelectedHeight(){
+int  WebSourceCreationDialog::getSelectedWindowHeight(){
 
     return ui->heightPercentBox->value();
 }

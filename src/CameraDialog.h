@@ -54,11 +54,12 @@ class CameraDialog : public QDialog, Ui_CameraDialog
 #ifdef OPEN_CV
 		void setOpencvCamera(int i);
 
-	public:
-		inline int indexOpencvCamera() const {return currentCameraIndex;}
+    public:
+        inline int indexOpencvCamera() const {return currentCameraIndex;}
+        int modeOpencvCamera() const;
 
 	private:
-		int currentCameraIndex;
+        int currentCameraIndex;
 #endif
 
 	protected:

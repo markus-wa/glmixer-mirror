@@ -25,7 +25,6 @@
 
 #include "VideoSource.moc"
 
-#include "VideoFile.h"
 #include "RenderingManager.h"
 
 #include <QGLFramebufferObject>
@@ -133,8 +132,6 @@ bool VideoSource::isPlaying() const
 
 void VideoSource::play(bool on)
 {
-    Source::play(on);
-
     if ( isPlaying() == on )
         return;
 
@@ -144,6 +141,7 @@ void VideoSource::play(bool on)
     // transfer the order to the videoFile
     is->play(on);
 
+    Source::play(on);
 }
 
 bool VideoSource::isPaused() const

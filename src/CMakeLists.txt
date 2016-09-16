@@ -79,6 +79,10 @@ SET(GLMIXER_SRCS
     HistoryManager.cpp
     HistoryManagerWidget.cpp
     CodecManager.cpp
+    VideoStream.cpp
+    VideoStreamSource.cpp
+    VideoStreamDialog.cpp
+    SizeSelectionWidget.cpp
 )
 
 SET(GLMIXER_RCS
@@ -99,6 +103,8 @@ SET(GLMIXER_UIS
     NewSourceDialog.ui
     WebSourceCreationDialog.ui
     TagsManager.ui
+    VideoStreamDialog.ui
+    SizeSelectionWidget.ui
 )
 
 if(USE_SESSION_MANAGEMENT)

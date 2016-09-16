@@ -50,5 +50,6 @@
         <file>images/new_algo.png</file>
         <file>images/new_web.png</file>
         <file>images/new_plugin.png</file>
+        <file>images/new_stream.png</file>
     </qresource>
 </RCC>

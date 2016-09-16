@@ -79,15 +79,21 @@ public:
 	int getFrameHeight() const { return height; }
 
 	static OpencvSource *getExistingSourceForCameraIndex(int);
-
     static QString getOpencvVersion();
+
+    typedef enum {
+        DEFAULT_MODE = 0,
+        LOWRES_MODE,
+        HIGHRES_MODE
+    } CameraMode;
+    inline CameraMode getMode() {return mode;}
 
 public slots:
 	void play(bool on);
 
 protected:
     // only friends can create a source (need its GL context)
-	OpencvSource(int opencvIndex, GLuint texture, double d);
+    OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double d);
     ~OpencvSource();
 
 	static RTTI type;
@@ -96,11 +102,13 @@ protected:
 	void update();
 
 	int opencvCameraIndex;
+    CameraMode mode;
 	CvCapture* capture;
 	int width, height;
 	double framerate;
     IplImage *frame;
     bool needFrameCopy, frameChanged;
+    bool failure;
 
     CameraThread *thread;
     QMutex *mutex;

@@ -51,229 +51,19 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="sizeGroupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+    <widget class="QCheckBox" name="ignoreAlphaCheckbox">
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
      </property>
-     <property name="title">
-      <string>Properties</string>
+     <property name="styleSheet">
+      <string notr="true"/>
      </property>
-     <property name="flat">
+     <property name="text">
+      <string>Enable transparency</string>
+     </property>
+     <property name="checked">
       <bool>true</bool>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0" colspan="2">
-       <widget class="QCheckBox" name="ignoreAlphaCheckbox">
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="styleSheet">
-         <string notr="true"/>
-        </property>
-        <property name="text">
-         <string>Transparent</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Size   </string>
-        </property>
-        <property name="buddy">
-         <cstring>presetsSizeComboBox</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="presetsSizeComboBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="currentIndex">
-         <number>14</number>
-        </property>
-        <property name="sizeAdjustPolicy">
-         <enum>QComboBox::AdjustToContents</enum>
-        </property>
-        <item>
-         <property name="text">
-          <string>Custom</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">2 x 2</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">8 x 8</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">16 x 16</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">32 x 32</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">64 x 64</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">128 x 128</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">256 x 256</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">160 x 120</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">320 x 240  (QVGA)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">640 x 480  (VGA)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">720 x 480  (NTSC)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">768 x 576  (PAL)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">800 x 600  (SVGA)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">1024 x 768 (XGA)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">1280 x 720 (HD)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">1600 x 1200 (UXGA)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">1920 x 1080 (FHD)</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QWidget" name="sizeGrid" native="true">
-        <layout class="QGridLayout" name="sizeGridLayout">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="w">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>Width</string>
-           </property>
-           <property name="buddy">
-            <cstring>widthSpinBox</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="widthSpinBox">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="minimum">
-            <number>2</number>
-           </property>
-           <property name="maximum">
-            <number>1920</number>
-           </property>
-           <property name="value">
-            <number>320</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="heightSpinBox">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="minimum">
-            <number>2</number>
-           </property>
-           <property name="maximum">
-            <number>1200</number>
-           </property>
-           <property name="value">
-            <number>240</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="h">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>Height</string>
-           </property>
-           <property name="buddy">
-            <cstring>heightSpinBox</cstring>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-     </layout>
     </widget>
    </item>
    <item>
@@ -398,6 +188,22 @@
     </widget>
    </item>
    <item>
+    <widget class="SizeSelectionWidget" name="sizeselection" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>10</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="validationButtonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -415,6 +221,15 @@
    <extends>QWidget</extends>
    <header>SourceDisplayWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SizeSelectionWidget</class>
+   <extends>QWidget</extends>
+   <header>SizeSelectionWidget.h</header>
+   <container>1</container>
+   <slots>
+    <signal>sizeChanged()</signal>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources>

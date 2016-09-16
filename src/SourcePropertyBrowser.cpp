@@ -59,8 +59,10 @@
 #include "CaptureSource.h"
 #include "CloneSource.h"
 #include "VideoSource.h"
+#include "VideoFile.h"
 #include "SvgSource.h"
 #include "WebSource.h"
+#include "VideoStreamSource.h"
 #include "glmixer.h"
 #ifdef OPEN_CV
 #include "OpencvSource.h"
@@ -473,7 +475,7 @@ void SourcePropertyBrowser::showProperties(Source *source)
 
     if (currentItem) {
 
-        if ( propertyTreeAccesslock.tryLock(100) )
+        if ( propertyTreeAccesslock.tryLock(200) )
         {
 
             SourcePropertyTreeFiller *workerThread = new SourcePropertyTreeFiller(this);
@@ -484,7 +486,7 @@ void SourcePropertyBrowser::showProperties(Source *source)
 
             connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
             workerThread->start();
-
+            // the lock will be released in the worker thread
         }
 
         setVisible(true);
@@ -809,90 +811,112 @@ class VideoSourcePropertyBrowser : public PropertyBrowser {
 public:
     VideoSourcePropertyBrowser(VideoSource *source, QWidget *parent = 0):PropertyBrowser(parent), vs(source)
     {
-        QtProperty *property;
-        property = infoManager->addProperty( QLatin1String("Type") );
-        property->setToolTip("Type of the source");
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
-        infoManager->setValue(idToProperty["Type"], "Video or Image file" );
-        addProperty(idToProperty["Type"]);
-
-
-        // File Name
-        property = infoManager->addProperty( QLatin1String("File name") );
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
-        // File size
-        property = infoManager->addProperty( QLatin1String("File size") );
-        property->setToolTip("Size of the file on disk.");
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
-        // Codec
-        property = infoManager->addProperty( QLatin1String("Codec") );
-        property->setToolTip("Encoding codec of the media.");
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
-        // Pixel Format
-        property = infoManager->addProperty( QLatin1String("Pixel format") );
-        property->setToolTip("Format of pixels of the media.");
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
-        // interlacing
-        property = infoManager->addProperty( QLatin1String("Interlaced") );
-        property->setToolTip("Is the source encoded with interlaced frames?");
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
-        // Frames size special case when power of two dimensions are generated
-        property = sizeManager->addProperty( QLatin1String("Original size") );
-        property->setToolTip("Resolution of the original frames.");
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
-        // Duration
-        property = infoManager->addProperty( QLatin1String("Duration") );
-        property->setToolTip("Duration of the media.");
-        property->setItalics(true);
-        idToProperty[property->propertyName()] = property;
-
-        // Ignore alpha channel
-        property = boolManager->addProperty("Ignore alpha");
-        property->setToolTip("Do not use the alpha channel of the images (black instead).");
-        idToProperty[property->propertyName()] = property;
-
+        QtProperty *property = 0;
         VideoFile *vf = vs->getVideoFile();
-        infoManager->setValue(idToProperty["File name"], QFileInfo(vf->getFileName()).fileName() );
-        idToProperty["File name"]->setToolTip(vf->getFileName());
-        infoManager->setValue(idToProperty["File size"], getByteSizeString( QFileInfo(vf->getFileName()).size() ) );
-        infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
-        infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
-        infoManager->setValue(idToProperty["Duration"], vf->getStringTimeFromtime(vf->getEnd()) );
-        infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? QObject::tr("Yes") : QObject::tr("No") );
-        boolManager->setValue(idToProperty["Ignore alpha"], vf->ignoresAlphaChannel());
-        sizeManager->setValue(idToProperty["Original size"], QSize(vf->getStreamFrameWidth(),vf->getStreamFrameHeight()) );
 
-        //  show Properties
-        addProperty(idToProperty["File name"]);
-        addProperty(idToProperty["File size"]);
-        addProperty(idToProperty["Codec"]);
-        addProperty(idToProperty["Pixel format"]);
-        addProperty(idToProperty["Interlaced"]);
-        addProperty(idToProperty["Duration"]);
-        if (vf->hasAlphaChannel())
-            addProperty(idToProperty["Ignore alpha"]);
-        if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight())
-            addProperty(idToProperty["Original size"]);
+        if ( vf != NULL ) {
 
+            QFileInfo videoFileInfo(vf->getFileName());
+            setReferenceURL( QUrl::fromLocalFile( videoFileInfo.canonicalPath()) );
+
+            // Type
+            property = infoManager->addProperty( QLatin1String("Type") );
+            property->setToolTip("Type of the source");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+            infoManager->setValue(idToProperty["Type"], "Video or Image file" );
+            addProperty(idToProperty["Type"]);
+
+            // File Name
+            property = infoManager->addProperty( QLatin1String("File name") );
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["File name"], videoFileInfo.fileName() );
+            idToProperty["File name"]->setToolTip(vf->getFileName());
+            addProperty(idToProperty["File name"]);
+
+            // File size
+            property = infoManager->addProperty( QLatin1String("File size") );
+            property->setToolTip("Size of the file on disk.");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["File size"], getByteSizeString( videoFileInfo.size() ) );
+            addProperty(idToProperty["File size"]);
+
+            // Codec
+            property = infoManager->addProperty( QLatin1String("Codec") );
+            property->setToolTip("Encoding codec of the media.");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
+            addProperty(idToProperty["Codec"]);
+
+            // Pixel Format
+            property = infoManager->addProperty( QLatin1String("Pixel format") );
+            property->setToolTip("Format of pixels of the media.");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["Pixel format"], vf->getPixelFormatName() );
+            addProperty(idToProperty["Pixel format"]);
+
+            // Duration
+            property = infoManager->addProperty( QLatin1String("Duration") );
+            property->setToolTip("Duration of the media.");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["Duration"], vf->getStringTimeFromtime(vf->getEnd()) );
+            addProperty(idToProperty["Duration"]);
+
+            // interlacing
+            property = infoManager->addProperty( QLatin1String("Interlaced") );
+            property->setToolTip("Is the source encoded with interlaced frames?");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["Interlaced"], vf->isInterlaced() ? QObject::tr("Yes") : QObject::tr("No") );
+            addProperty(idToProperty["Interlaced"]);
+
+            if (vf->hasAlphaChannel()) {
+                // Ignore alpha channel
+                property = boolManager->addProperty("Ignore alpha");
+                property->setToolTip("Do not use the alpha channel of the images (black instead).");
+                idToProperty[property->propertyName()] = property;
+
+                boolManager->setValue(idToProperty["Ignore alpha"], vf->ignoresAlphaChannel());
+                addProperty(idToProperty["Ignore alpha"]);
+            }
+
+            if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight()) {
+
+                // Frames size special case when power of two dimensions are generated
+                property = sizeManager->addProperty( QLatin1String("Original size") );
+                property->setToolTip("Resolution of the original frames.");
+                property->setItalics(true);
+                idToProperty[property->propertyName()] = property;
+
+                sizeManager->setValue(idToProperty["Original size"], QSize(vf->getStreamFrameWidth(), vf->getStreamFrameHeight()) );
+                addProperty(idToProperty["Original size"]);
+            }
+
+        }
         connectManagers();
 
-        setReferenceURL( QUrl::fromLocalFile( QFileInfo(vf->getFileName()).canonicalPath()) );
     }
 
 public slots:
 
     void valueChanged(QtProperty *property, bool value)
     {
-        if ( property == idToProperty["Ignore alpha"] ) {
+        if ( property == idToProperty["Ignore alpha"] ) {            
             VideoFile *vf = vs->getVideoFile();
-            vf->open(vf->getFileName(), vf->getMarkIn(), vf->getMarkOut(), value);
+            if ( vf ) {
+                vf->open(vf->getFileName(), vf->getMarkIn(), vf->getMarkOut(), value);
+            }
         }
     }
 
@@ -1189,6 +1213,82 @@ private:
 #endif
 
 
+class VideoStreamSourcePropertyBrowser : public PropertyBrowser {
+
+public:
+    VideoStreamSourcePropertyBrowser(VideoStreamSource *source, QWidget *parent = 0):PropertyBrowser(parent), vs(source)
+    {
+        QtProperty *property = 0;
+        VideoStream *vf = vs->getVideoStream();
+
+        if ( vf != NULL ) {
+
+            // Type
+            property = infoManager->addProperty( QLatin1String("Type") );
+            property->setToolTip("Type of the source");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+            infoManager->setValue(idToProperty["Type"], "Network Stream" );
+            addProperty(idToProperty["Type"]);
+
+            // File Name
+            property = infoManager->addProperty( QLatin1String("URL") );
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["URL"], vf->getUrl() );
+            idToProperty["URL"]->setToolTip(vf->getUrl());
+            addProperty(idToProperty["URL"]);
+
+            // Codec
+            property = infoManager->addProperty( QLatin1String("Codec") );
+            property->setToolTip("Encoding codec of the media.");
+            property->setItalics(true);
+            idToProperty[property->propertyName()] = property;
+
+            infoManager->setValue(idToProperty["Codec"], vf->getCodecName() );
+            addProperty(idToProperty["Codec"]);
+
+            // TODO : more information on stream
+
+//            if (vf->getStreamFrameWidth() != vf->getFrameWidth() || vf->getStreamFrameHeight() != vf->getFrameHeight()) {
+
+//                // Frames size special case when power of two dimensions are generated
+//                property = sizeManager->addProperty( QLatin1String("Original size") );
+//                property->setToolTip("Resolution of the original frames.");
+//                property->setItalics(true);
+//                idToProperty[property->propertyName()] = property;
+
+//                sizeManager->setValue(idToProperty["Original size"], QSize(vf->getStreamFrameWidth(), vf->getStreamFrameHeight()) );
+//                addProperty(idToProperty["Original size"]);
+//            }
+
+        }
+        connectManagers();
+
+    }
+
+public slots:
+
+    // TODO Allow changing url
+//    void valueChanged(QtProperty *property, bool value)
+//    {
+//        if ( property == idToProperty["Ignore alpha"] ) {
+//            VideoFile *vf = vs->getVideoFile();
+//            if ( vf ) {
+//                vf->open(vf->getFileName(), vf->getMarkIn(), vf->getMarkOut(), value);
+//            }
+//        }
+//    }
+
+
+private:
+
+    VideoStreamSource *vs;
+
+};
+
+
 PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s, QWidget *parent)
 {
     PropertyBrowser *pb = NULL;
@@ -1266,6 +1366,11 @@ PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s,
         }
     }
 #endif
+    else if ( s->rtti() == Source::STREAM_SOURCE ) {
+        VideoStreamSource *vs = dynamic_cast<VideoStreamSource *>(s);
+        if (vs != 0)
+            pb = new VideoStreamSourcePropertyBrowser(vs, parent);
+    }
     else
         pb = new PropertyBrowser(parent);
 

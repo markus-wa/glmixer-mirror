@@ -40,7 +40,6 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
 {
     // setup the user interface
     ui->setupUi(this);
-    ui->sizeGrid->setVisible(false);
 
     // setup filenames for embeded plugins
     ui->freeframeEmbededList->setItemData(0, QVariant::fromValue(QString("")));
@@ -175,7 +174,7 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
             // ok, got a valid file, try to load it
             try {
                 // create a new source with a new texture index and the new parameters
-                s = new FFGLSource(filename, tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
+                s = new FFGLSource(filename, tex, 0, ui->sizeselection->getWidth(), ui->sizeselection->getHeight());
 
             }
             catch (FFGLPluginException &e)  {
@@ -187,7 +186,7 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
         else if ( !code.isNull() ){
             try {
                 // create a new source with a new texture index and the new parameters
-                s = new FFGLSource(tex, 0, ui->widthSpinBox->value(), ui->heightSpinBox->value());
+                s = new FFGLSource(tex, 0, ui->sizeselection->getWidth(), ui->sizeselection->getHeight());
 
                 // if code provided, then set code to the plugin
                 if ( !code.isEmpty() ) {
@@ -299,104 +298,13 @@ QDomElement FFGLSourceCreationDialog::getFreeframePluginConfiguration(){
 
 int  FFGLSourceCreationDialog::getSelectedWidth(){
 
-    return ui->widthSpinBox->value();
+    return ui->sizeselection->getWidth();
 }
 
 
 int  FFGLSourceCreationDialog::getSelectedHeight(){
 
-    return ui->heightSpinBox->value();
-}
-
-
-void  FFGLSourceCreationDialog::selectSizePreset(int preset)
-{
-    if (preset == 0) {
-        ui->sizeGrid->setVisible(true);
-
-        QObject::connect(ui->heightSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateSourcePreview()));
-        QObject::connect(ui->widthSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateSourcePreview()));
-    }
-    else {
-        ui->sizeGrid->setVisible(false);
-
-        QObject::disconnect(ui->heightSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateSourcePreview()));
-        QObject::disconnect(ui->widthSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateSourcePreview()));
-
-        switch (preset) {
-        case 1:
-            ui->heightSpinBox->setValue(2);
-            ui->widthSpinBox->setValue(2);
-            break;
-        case 2:
-            ui->heightSpinBox->setValue(8);
-            ui->widthSpinBox->setValue(8);
-            break;
-        case 3:
-            ui->heightSpinBox->setValue(16);
-            ui->widthSpinBox->setValue(16);
-            break;
-        case 4:
-            ui->heightSpinBox->setValue(32);
-            ui->widthSpinBox->setValue(32);
-            break;
-        case 5:
-            ui->heightSpinBox->setValue(64);
-            ui->widthSpinBox->setValue(64);
-            break;
-        case 6:
-            ui->heightSpinBox->setValue(128);
-            ui->widthSpinBox->setValue(128);
-            break;
-        case 7:
-            ui->heightSpinBox->setValue(256);
-            ui->widthSpinBox->setValue(256);
-            break;
-        case 8:
-            ui->widthSpinBox->setValue(160);
-            ui->heightSpinBox->setValue(120);
-            break;
-        case 9:
-            ui->widthSpinBox->setValue(320);
-            ui->heightSpinBox->setValue(240);
-            break;
-        case 10:
-            ui->widthSpinBox->setValue(640);
-            ui->heightSpinBox->setValue(480);
-            break;
-        case 11:
-            ui->widthSpinBox->setValue(720);
-            ui->heightSpinBox->setValue(480);
-            break;
-        case 12:
-            ui->widthSpinBox->setValue(768);
-            ui->heightSpinBox->setValue(576);
-            break;
-        case 13:
-            ui->widthSpinBox->setValue(800);
-            ui->heightSpinBox->setValue(600);
-            break;
-        case 14:
-            ui->widthSpinBox->setValue(1024);
-            ui->heightSpinBox->setValue(768);
-            break;
-        case 15:
-            ui->widthSpinBox->setValue(1280);
-            ui->heightSpinBox->setValue(720);
-            break;
-        case 16:
-            ui->widthSpinBox->setValue(1600);
-            ui->heightSpinBox->setValue(1200);
-            break;
-        case 17:
-            ui->widthSpinBox->setValue(1920);
-            ui->heightSpinBox->setValue(1080);
-            break;
-        }
-
-        updateSourcePreview();
-    }
-
+    return ui->sizeselection->getHeight();
 }
 
 

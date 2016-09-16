@@ -35,9 +35,9 @@ Source::RTTI WebSource::type = Source::WEB_SOURCE;
 bool WebSource::playable = true;
 
 
-WebSource::WebSource(QUrl web, GLuint texture, double d, int height, int scroll, int update):  Source(texture, d), _playing(true), _updateFrequency(update)
+WebSource::WebSource(QUrl web, GLuint texture, double d, int w, int h, int height, int scroll, int update):  Source(texture, d), _playing(true), _updateFrequency(update)
 {
-    _webrenderer = new WebRenderer(web, height, scroll);
+    _webrenderer = new WebRenderer(web, w, h, height, scroll);
     _webrenderer->setUpdate(_updateFrequency);
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -229,7 +229,7 @@ void WebRenderer::setUpdate(int u)
 }
 
 
-WebRenderer::WebRenderer(const QUrl &url, int height, int scroll) : _url(url), _propertyChanged(true)
+WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) : _url(url), _propertyChanged(true)
 {
     // init
     setHeight(height);
@@ -241,7 +241,7 @@ WebRenderer::WebRenderer(const QUrl &url, int height, int scroll) : _url(url), _
 
     // enable cookies
     _page.networkAccessManager()->setCookieJar( new QNetworkCookieJar(&_page) );
-    _page.setPreferredContentsSize(RenderingManager::getInstance()->getFrameBufferResolution());
+    _page.setPreferredContentsSize(QSize(w,h));
 
     // render page when loaded
     _page.mainFrame()->load(_url);

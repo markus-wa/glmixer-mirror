@@ -91,8 +91,8 @@ void SourceDisplayWidget::paintGL()
         // draw the background
         glScalef(2.f * aspectRatio, 2.f * aspectRatio, 1.f);
 		glBindTexture(GL_TEXTURE_2D, _bgTexture);
-		glCallList(ViewRenderWidget::quad_texured);
-		glLoadIdentity();
+        glCallList(ViewRenderWidget::quad_texured);
+        glLoadIdentity();
 	}
 
 

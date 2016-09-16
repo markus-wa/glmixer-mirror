@@ -70,6 +70,8 @@ Source::RTTI NewSourceDialog::selectedType()
         t = Source::SHM_SOURCE;
     else if ( text.contains("Web"))
         t = Source::WEB_SOURCE;
+    else if ( text.contains("Network"))
+        t = Source::STREAM_SOURCE;
 
     return t;
 }

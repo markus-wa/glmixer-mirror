@@ -132,22 +132,20 @@ void EncodingThread::pictq_push(int timestamp){
 unsigned char *EncodingThread::pictq_top() {
     // wait until we have space for a new picture
     // (this happens only when the queue is full)
-    if ( pictq_mutex->tryLock(500) )
-    {
+    pictq_mutex->lock();
 
-        while ( pictq_full() && !_quit)
-            pictq_cond->wait(pictq_mutex); // the condition is released in run()
-        //		pictq_mutex->unlock();  // will be unlocked in pictq_push
+    while ( pictq_full() && !_quit)
+        pictq_cond->wait(pictq_mutex); // the condition is released in run()
+    //		pictq_mutex->unlock();  // will be unlocked in pictq_push
 
-        // if not already done, allocate for images in 4 bits RBGA
-        if (pictq[pictq_windex] == 0)
+    // if not already done, allocate for images in 4 bits RBGA
+    if (pictq[pictq_windex] == 0)
 #ifdef Q_OS_UNIX
-            pictq[pictq_windex] = (unsigned char *) mmap(0, rec->width * rec->height * 4, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+        pictq[pictq_windex] = (unsigned char *) mmap(0, rec->width * rec->height * 4, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 #else
-            pictq[pictq_windex] = (unsigned char *) malloc(rec->width * rec->height * 4);
+        pictq[pictq_windex] = (unsigned char *) malloc(rec->width * rec->height * 4);
 #endif
 
-    }
     // Fill the queue with the given picture
     return pictq[pictq_windex];
 }

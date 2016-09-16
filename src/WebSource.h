@@ -35,7 +35,7 @@ class WebRenderer : public QObject
     Q_OBJECT
 
 public:
-    WebRenderer(const QUrl &url, int height, int scroll);
+    WebRenderer(const QUrl &url, int w, int h, int height, int scroll);
     ~WebRenderer();
 
     QImage image() const;
@@ -103,7 +103,7 @@ public slots:
 protected:
 
     // only friends can create a source
-    WebSource(const QUrl url, GLuint texture, double d, int height = 100, int scroll = 0, int update = 0);
+    WebSource(const QUrl url, GLuint texture, double d, int w = 256, int h = 256, int height = 100, int scroll = 0, int update = 0);
     ~WebSource();
     void update();
 

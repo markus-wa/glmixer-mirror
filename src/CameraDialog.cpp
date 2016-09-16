@@ -46,13 +46,14 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
     nopreview->setText(tr("Preview disabled in this version."));
 #else
     preview = new SourceDisplayWidget(this);
+    preview->setSizePolicy( QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding) );
     preview->hide();
     QObject::connect(showPreview, SIGNAL(toggled(bool)), this, SLOT(setPreviewEnabled(bool)));
 #endif
 
 #ifdef OPEN_CV
     currentCameraIndex = -1;
-    QObject::connect(opencvComboBox, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
+    QObject::connect( indexSelection, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
 #endif
 
 }
@@ -82,7 +83,7 @@ void CameraDialog::createSource(){
 
 			GLuint tex = preview->getNewTextureIndex();
 			try {
-				s = (Source *) new OpencvSource(currentCameraIndex, tex, 0);
+                s = (Source *) new OpencvSource(currentCameraIndex, OpencvSource::LOWRES_MODE, tex, 0);
 
 			} catch (AllocationException &e){
                 qCritical() << "Error creating OpenCV camera source; " << e.message();
@@ -105,7 +106,7 @@ void CameraDialog::createSource(){
 void CameraDialog::showEvent(QShowEvent *e){
 
 #ifdef OPEN_CV
-    setOpencvCamera(opencvComboBox->currentIndex());
+    setOpencvCamera(indexSelection->currentIndex());
 #endif
 	QWidget::showEvent(e);
 }
@@ -149,6 +150,12 @@ void CameraDialog::setOpencvCamera(int i){
 	// create the source
 	if (showPreview->isChecked())
 		createSource();
+}
+
+
+int CameraDialog::modeOpencvCamera() const {
+
+    return ModeSelection->currentIndex();
 }
 
 #endif

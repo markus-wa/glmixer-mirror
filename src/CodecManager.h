@@ -28,8 +28,15 @@ public:
      */
     static AVFormatContext *openFormatContext(QString streamToOpen);
     /**
+     *  Find video stream
+     *
+     * @return id of video stream or -1 on failure
+     */
+    static int getVideoStream(AVFormatContext *codeccontext);
+    /**
      *  Open a Codec
      *
+     * @return name of the codec if open, QString::null on failure
      */
     static QString openCodec(AVCodecContext *codeccontext);
     /**

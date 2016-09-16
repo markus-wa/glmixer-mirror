@@ -27,17 +27,19 @@
 
 #include "SourceDisplayWidget.h"
 #include "AlgorithmSource.h"
+#include "SizeSelectionWidget.h"
 
 
 AlgorithmSelectionDialog::AlgorithmSelectionDialog(QWidget *parent) : QDialog(parent), s(0)
 {
     setupUi(this);
 
-    sizeGrid->setVisible(false);
     AlgorithmComboBox->clear();
     // create sources with selected algo
     for (int i = 0; i < AlgorithmSource::NONE; ++i)
     	AlgorithmComboBox->addItem(AlgorithmSource::getAlgorithmDescription(i));
+
+    QObject::connect(sizeselection, SIGNAL(sizeChanged()), this, SLOT(updateSourcePreview()));
 
 }
 
@@ -48,7 +50,7 @@ AlgorithmSelectionDialog::~AlgorithmSelectionDialog()
 
 void AlgorithmSelectionDialog::showEvent(QShowEvent *e){
 
-	createSource();
+    updateSourcePreview();
 
 	QWidget::showEvent(e);
 }
@@ -65,20 +67,23 @@ void AlgorithmSelectionDialog::done(int r){
 }
 
 
-void AlgorithmSelectionDialog::createSource(){
+void AlgorithmSelectionDialog::updateSourcePreview(){
 
 	if(s) {
 		// remove source from preview: this deletes the texture in the preview
 		preview->setSource(0);
 		// delete the source:
 		delete s;
+        s = 0;
 	}
 
 	GLuint tex = preview->getNewTextureIndex();
 	try {
 		// create a new source with a new texture index and the new parameters
-		s = new AlgorithmSource(AlgorithmComboBox->currentIndex(), tex, 0, widthSpinBox->value(), heightSpinBox->value(),
-								getSelectedVariability(), getUpdatePeriod(), !ignoreAlphaCheckbox->isChecked());
+        s = new AlgorithmSource(AlgorithmComboBox->currentIndex(), tex, 0,
+                                sizeselection->getWidth(), sizeselection->getHeight(),
+                                getSelectedVariability(), getUpdatePeriod(),
+                                !ignoreAlphaCheckbox->isChecked());
 
 	} catch (AllocationException &e){
         qCritical() << "Error creating an Algorithm source; " << e.message();
@@ -94,16 +99,18 @@ void AlgorithmSelectionDialog::createSource(){
 }
 
 void AlgorithmSelectionDialog::on_AlgorithmComboBox_currentIndexChanged(int algo){
-	createSource();
+    updateSourcePreview();
 }
 
 
 void AlgorithmSelectionDialog::on_frequencySlider_valueChanged(int v){
-	s->setPeriodicity(getUpdatePeriod());
+    if (s)
+        s->setPeriodicity(getUpdatePeriod());
 }
 
 void AlgorithmSelectionDialog::on_variabilitySlider_valueChanged(int v){
-	s->setVariability( double ( v ) / 100.0);
+    if (s)
+        s->setVariability( double ( v ) / 100.0);
 }
 
 
@@ -113,98 +120,8 @@ void  AlgorithmSelectionDialog::on_customUpdateFrequency_toggled(bool flag){
 }
 
 void AlgorithmSelectionDialog::on_ignoreAlphaCheckbox_toggled(bool on){
-	s->setIgnoreAlpha(!on);
-}
-
-void  AlgorithmSelectionDialog::on_widthSpinBox_valueChanged(int w){
-	createSource();
-}
-
-void  AlgorithmSelectionDialog::on_heightSpinBox_valueChanged(int h){
-	createSource();
-}
-
-
-void AlgorithmSelectionDialog::on_presetsSizeComboBox_currentIndexChanged(int preset){
-
-	if (preset == 0) {
-        sizeGrid->setVisible(true);
-    }
-    else {
-        sizeGrid->setVisible(false);
-
-		switch (preset) {
-		case 1:
-			heightSpinBox->setValue(2);
-			widthSpinBox->setValue(2);
-			break;
-		case 2:
-			heightSpinBox->setValue(8);
-			widthSpinBox->setValue(8);
-			break;
-		case 3:
-			heightSpinBox->setValue(16);
-			widthSpinBox->setValue(16);
-			break;
-		case 4:
-			heightSpinBox->setValue(32);
-			widthSpinBox->setValue(32);
-			break;
-		case 5:
-			heightSpinBox->setValue(64);
-			widthSpinBox->setValue(64);
-			break;
-		case 6:
-			heightSpinBox->setValue(128);
-			widthSpinBox->setValue(128);
-			break;
-		case 7:
-			heightSpinBox->setValue(256);
-			widthSpinBox->setValue(256);
-			break;
-		case 8:
-			widthSpinBox->setValue(160);
-			heightSpinBox->setValue(120);
-			break;
-		case 9:
-			widthSpinBox->setValue(320);
-			heightSpinBox->setValue(240);
-			break;
-		case 10:
-			widthSpinBox->setValue(640);
-			heightSpinBox->setValue(480);
-			break;
-		case 11:
-			widthSpinBox->setValue(720);
-			heightSpinBox->setValue(480);
-			break;
-		case 12:
-			widthSpinBox->setValue(768);
-			heightSpinBox->setValue(576);
-			break;
-		case 13:
-			widthSpinBox->setValue(800);
-			heightSpinBox->setValue(600);
-            break;
-        case 14:
-            widthSpinBox->setValue(1024);
-            heightSpinBox->setValue(768);
-            break;
-        case 15:
-            widthSpinBox->setValue(1280);
-            heightSpinBox->setValue(720);
-            break;
-        case 16:
-            widthSpinBox->setValue(1600);
-            heightSpinBox->setValue(1200);
-            break;
-        case 17:
-            widthSpinBox->setValue(1920);
-            heightSpinBox->setValue(1080);
-            break;
-		}
-	}
-
+    if (s)
+        s->setIgnoreAlpha(!on);
 }
 
 
@@ -222,13 +139,13 @@ double AlgorithmSelectionDialog::getSelectedVariability(){
 
 int AlgorithmSelectionDialog::getSelectedWidth(){
 
-	return widthSpinBox->value();
+    return sizeselection->getWidth();
 }
 
 
 int AlgorithmSelectionDialog::getSelectedHeight(){
 
-	return heightSpinBox->value();
+    return sizeselection->getHeight();
 }
 
 unsigned long  AlgorithmSelectionDialog::getUpdatePeriod(){

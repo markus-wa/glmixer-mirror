@@ -92,7 +92,8 @@ public:
         SHM_SOURCE,
         FFGL_SOURCE,
         WEB_SOURCE,
-        SPOUT_SOURCE
+        SPOUT_SOURCE,
+        STREAM_SOURCE
     } RTTI;
     virtual RTTI rtti() const { return type; }
 
@@ -272,6 +273,12 @@ public:
     void setInvertMode(invertModeType i);
     // filtering
     void setFilter(filterType c);
+
+signals:
+    // on playing
+    void playing(bool);
+    // on failure
+    void failed();
 
 protected:
     /*

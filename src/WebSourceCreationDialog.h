@@ -18,8 +18,10 @@ public:
     explicit WebSourceCreationDialog(QWidget *parent = 0, QSettings *settings = 0);
     ~WebSourceCreationDialog();
 
-    QUrl getSelectedUrl();
+    int getSelectedWidth();
     int getSelectedHeight();
+    QUrl getSelectedUrl();
+    int getSelectedWindowHeight();
     int getSelectedScroll();
     int getSelectedUpdate();
 

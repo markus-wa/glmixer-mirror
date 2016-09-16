@@ -372,6 +372,7 @@ void Source::play(bool on) {
         _ffgl_plugins.play( isPlayable() ? on : standby == NOT_STANDBY );
 #endif
 
+    emit playing(on);
 }
 
 

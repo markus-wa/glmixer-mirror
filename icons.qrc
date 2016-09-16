@@ -178,5 +178,6 @@
         <file>icons/glmixer_64x64.png</file>
         <file>icons/go-home.png</file>
         <file>icons/vimeo.png</file>
+        <file>icons/networkstream.png</file>
     </qresource>
 </RCC>

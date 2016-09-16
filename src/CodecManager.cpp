@@ -55,11 +55,14 @@ AVFormatContext *CodecManager::openFormatContext(QString streamToOpen)
     AVFormatContext *_pFormatCtx = 0;
 
     // Check file
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
-    _pFormatCtx = avformat_alloc_context();
-    err = avformat_open_input(&_pFormatCtx, qPrintable(streamToOpen), NULL, NULL);
-#else
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
     err = av_open_input_file(&_pFormatCtx, qPrintable(filename), NULL, 0, NULL);
+#else
+    _pFormatCtx = avformat_alloc_context();
+    if ( !_pFormatCtx)
+        return 0;
+
+    err = avformat_open_input(&_pFormatCtx, qPrintable(streamToOpen), NULL, NULL);
 #endif
     if (err < 0)
     {
@@ -70,26 +73,28 @@ AVFormatContext *CodecManager::openFormatContext(QString streamToOpen)
             break;
         case AVERROR(EIO):
             qWarning() << streamToOpen << QChar(124).toLatin1()
-                    << tr("I/O error. Usually that means that input file is truncated and/or corrupted");
+                    << tr("I/O error. The file is corrupted or the stream is unavailable.");
             break;
         case AVERROR(ENOMEM):
             qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Memory allocation error.");
             break;
         case AVERROR(ENOENT):
-            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("No such file.");
+            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("No such media.");
             break;
         default:
-            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Cannot open file.");
+            qWarning() << streamToOpen << QChar(124).toLatin1()<< tr("Cannot open media.");
             break;
         }
 
+        // free openned context
+        avformat_free_context(_pFormatCtx);
         return 0;
     }
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
-    err = avformat_find_stream_info(_pFormatCtx, NULL);
-#else
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
     err = av_find_stream_info(_pFormatCtx);
+#else
+    err = avformat_find_stream_info(_pFormatCtx, NULL);
 #endif
     if (err < 0)
     {
@@ -122,24 +127,53 @@ AVFormatContext *CodecManager::openFormatContext(QString streamToOpen)
 }
 
 
+// TODO : use av_find_best_stream instead of my own implementation ?
+int CodecManager::getVideoStream(AVFormatContext *codeccontext)
+{
+    // Find the first video stream index
+    int stream_index = -1;
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56,0,0)
+    for (int i = 0; i < (int) codeccontext->nb_streams; i++)
+    {
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+        if (codeccontext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+#else
+        if (codeccontext->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
+#endif
+        {
+            stream_index = i;
+            break;
+        }
+    }
+
+    if (stream_index >= (int) codeccontext->nb_streams)
+        stream_index = -1;
+#else
+    stream_index = av_find_best_stream(codeccontext, AVMEDIA_TYPE_VIDEO,  -1, -1, NULL, 0);
+#endif
+
+    return stream_index;
+}
+
 QString CodecManager::openCodec(AVCodecContext *codeccontext)
 {
     QString codecname = QString::null;
     AVCodec *codec = avcodec_find_decoder(codeccontext->codec_id);
 
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,0,0)
+    if ( !codec || avcodec_open(codeccontext, codec) < 0 )
+    {
+        qWarning() << codeccontext->codec_name << QChar(124).toLatin1()<< tr("Unsupported Codec.");
+        return codecname;
+    }
+#else
     AVDictionary *opts = NULL;
     av_dict_set(&opts, "threads", "auto", 0);
     av_dict_set(&opts, "refcounted_frames", "1", 0);
     if ( !codec || avcodec_open2(codeccontext, codec, &opts) < 0 )
     {
         qWarning() << avcodec_descriptor_get(codeccontext->codec_id)->long_name << QChar(124).toLatin1() << tr("Unsupported Codec.");
-        return codecname;
-    }
-#else
-    if ( !codec || avcodec_open(codeccontext, codec) < 0 )
-    {
-        qWarning() << codeccontext->codec_name << QChar(124).toLatin1()<< tr("Unsupported Codec.");
         return codecname;
     }
 #endif
@@ -154,6 +188,7 @@ void CodecManager::convertSizePowerOfTwo(int &width, int &height)
     width = roundPowerOfTwo(width);
     height = roundPowerOfTwo(height);
 }
+
 
 void CodecManager::displayFormatsCodecsInformation(QString iconfile)
 {

@@ -54,8 +54,7 @@ public:
 
 void CameraThread::run(){
 
-	QTime t;
-	int f = 0;
+    QTime t;
 	IplImage *raw;
 
     // flush input
@@ -63,39 +62,42 @@ void CameraThread::run(){
     cvGrabFrame( cvs->capture );
     cvGrabFrame( cvs->capture );
     cvGrabFrame( cvs->capture );
-    cvGrabFrame( cvs->capture );
 
     // make sure we read first frame
     cvs->frameChanged = false;
+    cvs->framerate = 30.0;
 
 	t.start();
 	while (!end) {
 
 		cvs->mutex->lock();
 		if (!cvs->frameChanged) {
-			raw = cvQueryFrame( cvs->capture );
-			if (raw) {
+
+            if ( cvGrabFrame( cvs->capture )) {
+                raw = cvRetrieveFrame( cvs->capture );
+
 				if (cvs->needFrameCopy)
 					cvCopy(raw, cvs->frame);
 				else
 					cvs->frame = raw;
 				cvs->frameChanged = true;
-			} else
-				end = true;
-			cvs->cond->wait(cvs->mutex);
+                cvs->cond->wait(cvs->mutex);
+            }
+            else {
+                end = true;
+                cvs->failure = true;
+            }
 		}
 		cvs->mutex->unlock();
 
-		if ( ++f == 100 ) { // hundred frames to average the frame rate {
-			cvs->framerate = 100000.0 / (double) t.elapsed();
-			t.restart();
-			f = 0;
-		}
+        // exponential moving average to compute FPS
+        cvs->framerate = 0.7 * 1000.0 / (double) t.restart() + 0.3 * cvs->framerate;
+
 	}
 }
 
-OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
-    Source(texture, d), framerate(0.0), needFrameCopy(false), frameChanged(true)  {
+OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double d) :
+    Source(texture, d), mode(m), framerate(0.0), needFrameCopy(false), frameChanged(true), failure(false)  {
 
     // no PBO by default
     pboIds[0] = 0;
@@ -110,13 +112,28 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
 	if (!capture)
         NoCameraIndexException().raise();
 
-    cvSetCaptureProperty( capture, CV_CAP_PROP_FPS, (double) 30);
-    cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, (double) 1024);
-    cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, (double) 768);
+    // selected mode ; adjust the resolution
+    double w = cvGetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH);
+    double h = cvGetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT);
+    if (mode == LOWRES_MODE)
+    {
+        // divide resolution to minimum
+        cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, w / 3);
+        cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, h / 3);
+    }
+    if (mode == HIGHRES_MODE)
+    {
+        // multiply resolution to maximum
+        cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, w * 3);
+        cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, h * 3);
+    }
 
+    // flush
     cvGrabFrame( capture );
     cvGrabFrame( capture );
     cvGrabFrame( capture );
+
+    // fill first frame
 	IplImage *raw = cvQueryFrame( capture );
 	if (!raw)
         brokenCameraException().raise();
@@ -129,14 +146,14 @@ OpencvSource::OpencvSource(int opencvIndex, GLuint texture, double d) :
 	} else
 		frame = raw;
 
-    // fill in first frame
+
+    // init texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     GLint preferedinternalformat = GL_RGB;
-
     if (glewIsSupported("GL_ARB_internalformat_query2"))
         glGetInternalformativ(GL_TEXTURE_2D, GL_RGB, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
 
@@ -209,24 +226,29 @@ OpencvSource::~OpencvSource() {
 }
 
 
-void OpencvSource::play(bool on){
-
-    Source::play(on);
-
+void OpencvSource::play(bool on)
+{
 	if ( isPlaying() == on )
 		return;
 
-	if ( on ) { // start play
+    if ( on ) {
+        // ignore pre-mapped frame
+        index = (index + 1) % 2;
+        // start play
 		thread->end = false;
 		thread->start();
-	} else { // stop play
+    } else {
+        // stop play
 		thread->end = true;
 		mutex->lock();
         cond->wakeAll();
 		mutex->unlock();
         thread->wait(300);
+        // make sure last frame is displayed
         frameChanged = true;
     }
+
+    Source::play(on);
 }
 
 bool OpencvSource::isPlaying() const{
@@ -285,6 +307,9 @@ void OpencvSource::update(){
         }
 
     }
+
+    if (failure)
+        emit failed();
 
     Source::update();
 }

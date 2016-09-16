@@ -419,8 +419,10 @@ void SessionSwitcherWidget::folderChanged(const QString & foldername )
         setEnabled(false);
         connect(workerThread, SIGNAL(finished()), this, SLOT(restoreFolderView()));
         connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
-        workerThread->start();
 
+        // do the job in parallel
+        workerThread->start();
+        // NB: the lock will be released in restoreFolderView after thread is finished
     }
 }
 

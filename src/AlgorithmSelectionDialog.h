@@ -55,10 +55,9 @@ public slots:
 	void on_customUpdateFrequency_toggled(bool flag);
 	void on_ignoreAlphaCheckbox_toggled(bool on);
 	void on_frequencySlider_valueChanged(int v);
-	void on_variabilitySlider_valueChanged(int v);
-	void on_widthSpinBox_valueChanged(int w);
-	void on_heightSpinBox_valueChanged(int h);
-	void on_presetsSizeComboBox_currentIndexChanged(int preset);
+    void on_variabilitySlider_valueChanged(int v);
+
+    void updateSourcePreview();
 
 protected:
 	void showEvent(QShowEvent *);
@@ -66,7 +65,6 @@ protected:
 private:
     AlgorithmSource *s;
 
-	void createSource();
 
 };
 

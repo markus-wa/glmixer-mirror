@@ -231,8 +231,8 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
 
     // Contruct some objects
     decod_tid = new DecodingThread(this);
-    QObject::connect(decod_tid, SIGNAL(failed()), this, SIGNAL(failed()));
     Q_CHECK_PTR(decod_tid);
+    QObject::connect(decod_tid, SIGNAL(failed()), this, SIGNAL(failed()));
     pictq_mutex = new QMutex;
     Q_CHECK_PTR(pictq_mutex);
 	pictq_cond = new QWaitCondition;
@@ -242,13 +242,14 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     seek_cond = new QWaitCondition;
     Q_CHECK_PTR(seek_cond);
 
-
 	ptimer = new QTimer(this);
 	Q_CHECK_PTR(ptimer);
 	ptimer->setSingleShot(true);
 	QObject::connect(ptimer, SIGNAL(timeout()), this, SLOT(video_refresh_timer()));
 
     // initialize behavior
+    filename = QString::null;
+    codecname = QString::null;
     first_picture_changed = true; // no mark_in set
     loop_video = true; // loop by default
     restart_where_stopped = true; // by default restart where stopped
@@ -311,6 +312,7 @@ void VideoFile::close()
     // reset pointers
     pFormatCtx = NULL;
     img_convert_ctx = NULL;
+    video_st = NULL;
     filter = NULL;
     blackPicture = NULL;
     firstPicture = NULL;
@@ -367,15 +369,17 @@ void VideoFile::stop()
         // unlock all conditions
         pictq_cond->wakeAll();
         seek_cond->wakeAll();
+        decod_tid->wait();
 
-        // wait for thread to end
-        while ( !decod_tid->wait( LOCKING_TIMEOUT ) ) {
-            // try to enforce exit
-            decod_tid->forceQuit();
-            // unlock all conditions
-            pictq_cond->wakeAll();
-            seek_cond->wakeAll();
-        }
+//        // wait for thread to end
+//        while ( !decod_tid->wait( LOCKING_TIMEOUT ) ) {
+//            qDebug() << "stop lock failed";
+//            // try to enforce exit
+//            decod_tid->forceQuit();
+//            // unlock all conditions
+//            pictq_cond->wakeAll();
+//            seek_cond->wakeAll();
+//        }
 
         if (!restart_where_stopped)
         {
@@ -397,6 +401,9 @@ void VideoFile::stop()
 
 void VideoFile::start()
 {
+    if ( !isOpen() )
+        return;
+
     // nothing to play if there is ONE frame only...
     if ( getNumFrames() < 2)
 		return;
@@ -426,7 +433,6 @@ void VideoFile::start()
         // start timer and decoding threads
         ptimer->start();
         decod_tid->start();
-
 
 #ifdef VIDEOFILE_DEBUG
         qDebug() << filename << QChar(124).toLatin1() << tr("Started.");
@@ -510,14 +516,19 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     if (_pFormatCtx == 0)
         return false;
 
-	// if video_index not set (no video stream found) or stream open call failed
-	videoStream = stream_component_open(_pFormatCtx);
+    // get index of video stream
+    videoStream = CodecManager::getVideoStream(_pFormatCtx);
     if (videoStream < 0) {
         // free openned context
         avformat_free_context(_pFormatCtx);
         //could not open Codecs (error message already sent)
 		return false;
     }
+
+    // open the codec
+    codecname = CodecManager::openCodec( _pFormatCtx->streams[videoStream]->codec );
+    if (codecname.isNull())
+        return false;
 
     // all ok, we can set the internal pointers to the good values
     pFormatCtx = _pFormatCtx;
@@ -811,12 +822,10 @@ double VideoFile::fill_first_frame(bool seek)
         av_frame_unref(tmpframe);
 #endif
         avcodec_flush_buffers(video_st->codec);
-        av_frame_unref(tmpframe);
     } while (frameFinished > 0);
 
     // cleanup parsing buffers
     avio_flush(pFormatCtx->pb);
-    avformat_flush(pFormatCtx);
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,60,0)
     av_free(tmpframe);
@@ -830,40 +839,6 @@ double VideoFile::fill_first_frame(bool seek)
     return pts;
 }
 
-
-// TODO : use av_find_best_stream instead of my own implementation ?
-int VideoFile::stream_component_open(AVFormatContext *pFCtx)
-{
-	int stream_index = -1;
-
-	// Find the first video stream index
-	for (int i = 0; i < (int) pFCtx->nb_streams; i++)
-	{
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(53,0,0)
-		if (pFCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
-#else
-		if (pFCtx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
-#endif
-		{
-			stream_index = i;
-			break;
-		}
-	}
-
-	if (stream_index < 0 || stream_index >= (int) pFCtx->nb_streams)
-	{
-        qWarning() << filename << QChar(124).toLatin1()<< tr("This is not a video or an image file.");
-		return -1;
-	}
-
-    // open the codec
-    codecname = CodecManager::openCodec( pFCtx->streams[stream_index]->codec );
-
-    if (codecname.isNull())
-        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot decode file.");
-
-	return stream_index;
-}
 
 void VideoFile::video_refresh_timer()
 {
@@ -896,6 +871,7 @@ void VideoFile::video_refresh_timer()
         // release lock
         pictq_mutex->unlock();
     }
+    // NB: if either of the above failed, currentvp is still null and we just retry
 
     if (currentvp)
     {
@@ -1158,7 +1134,9 @@ void VideoFile::clean_until_time_picture_queue(double time) {
         time = getEnd();
 
     // get hold on the picture queue
-    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
+//    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
+
+    pictq_mutex->lock();
 
         // loop to find a mark frame in the queue
         int i =  0;
@@ -1180,7 +1158,9 @@ void VideoFile::clean_until_time_picture_queue(double time) {
         }
         // done with the cleanup
         pictq_mutex->unlock();
-    }
+//    }
+//    else
+//        qDebug() << "clean_until_time_picture_queue lock failed";
 
 }
 
@@ -1313,11 +1293,19 @@ void VideoFile::clear_picture_queue() {
 
 void VideoFile::flush_picture_queue()
 {
-    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
-        clear_picture_queue();
-        pictq_cond->wakeAll();
-        pictq_mutex->unlock();
-    }
+//    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
+//        clear_picture_queue();
+//        pictq_cond->wakeAll();
+//        pictq_mutex->unlock();
+//    }
+//    else
+//        qDebug() << "flush_picture_queue lock failed";
+
+    pictq_mutex->lock();
+    clear_picture_queue();
+    pictq_cond->wakeAll();
+    pictq_mutex->unlock();
+
 }
 
 
@@ -1325,14 +1313,25 @@ void VideoFile::requestSeek(double time, bool lock)
 {
     if ( parsing_mode != VideoFile::SEEKING_PARSING )
     {
-        if ( seek_mutex->tryLock(LOCKING_TIMEOUT) ) {
-            seek_pos = time;
-            parsing_mode = VideoFile::SEEKING_PARSING;
-            if (lock)
-                // wait for the thread to aknowledge the seek request
-                seek_cond->wait(seek_mutex);
-            seek_mutex->unlock();
-        }
+//        if ( seek_mutex->tryLock(LOCKING_TIMEOUT) ) {
+//            seek_pos = time;
+//            parsing_mode = VideoFile::SEEKING_PARSING;
+//            if (lock)
+//                // wait for the thread to aknowledge the seek request
+//                seek_cond->wait(seek_mutex);
+//            seek_mutex->unlock();
+//        }
+//        else
+//            qDebug() << "requestSeek lock failed";
+
+        seek_mutex->lock();
+        seek_pos = time;
+        parsing_mode = VideoFile::SEEKING_PARSING;
+        if (lock)
+            // wait for the thread to aknowledge the seek request
+            seek_cond->wait(seek_mutex);
+        seek_mutex->unlock();
+
     }
 }
 
@@ -1351,7 +1350,9 @@ bool VideoFile::jump_in_picture_queue(double time)
 
     // now for sure the seek time is in the queue
     // get hold on the picture queue
-    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
+//    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
+
+    pictq_mutex->lock();
 
         // does the queue loop ?
         bool loopingbuffer = pictq.first()->getPts() > pictq.last()->getPts();
@@ -1379,10 +1380,12 @@ bool VideoFile::jump_in_picture_queue(double time)
 
         // yes we could seek in decoder picture queue
         return true;
-    }
-    else
-        // no we couldn't seek in decoder picture queue
-        return false;
+//    }
+//    else {
+//        qDebug() << "jump_in_picture_queue lock failed";
+//        // no we couldn't seek in decoder picture queue
+//        return false;
+//    }
 }
 
 // called exclusively in Decoding Thread
@@ -1434,6 +1437,8 @@ double VideoFile::synchronize_video(AVFrame *src_frame, double pts_)
 	/* update the video clock */
     video_pts += frame_delay;
 
+    // TODO : Why not add frame delay to pts ??
+
     return pts;
 }
 
@@ -1453,7 +1458,6 @@ void DecodingThread::run()
     _working = true;
     while (is && !is->quit && !_forceQuit)
     {
-
         /**
          *
          *   PARSING
@@ -1640,10 +1644,7 @@ void DecodingThread::run()
 
     } // end while
 
-    _working = false;
-
-
-    // if normal exit through break (couldn't get any more packet)
+    // if normal exit
     if (is) {
 
         // clear the picture queue
@@ -1680,6 +1681,7 @@ void DecodingThread::run()
     av_frame_unref(_pFrame);
 #endif
 
+    _working = false;
 }
 
 void VideoFile::pause(bool pause)

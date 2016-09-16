@@ -55,6 +55,7 @@ standardAspectRatio doubleToAspectRatio(double ar);
 
 class QGLFramebufferObject;
 class VideoFile;
+class VideoStream;
 class ViewRenderWidget;
 class SourcePropertyBrowser;
 class HistoryManager;
@@ -93,12 +94,12 @@ public:
 	Source *newCaptureSource(QImage img, double depth = -1.0);
     Source *newMediaSource(VideoFile *vf, double depth = -1.0);
     Source *newSvgSource(QSvgRenderer *svg, double depth = -1.0);
-    Source *newWebSource(QUrl web, int height, int scroll, int update, double depth = -1.0);
+    Source *newWebSource(QUrl web, int w, int h, int height, int scroll, int update, double depth = -1.0);
 	Source *newAlgorithmSource(int type, int w, int h, double v, int p, bool ia, double depth = -1.0);
     Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
 
 #ifdef OPEN_CV
-    Source *newOpencvSource(int opencvIndex, double depth = -1.0);
+    Source *newOpencvSource(int opencvIndex, int mode, double depth = -1.0);
 #endif
 #ifdef SHM
     Source *newSharedMemorySource(qint64 shmid, double depth = -1.0);
@@ -109,6 +110,9 @@ public:
 #ifdef FFGL
     Source *newFreeframeGLSource(QDomElement configuration, int w, int h, double depth = -1.0);
 #endif
+    Source *newStreamSource(VideoStream *vs, double depth = -1.0);
+
+
 	// insert the source into the scene
 	bool insertSource(Source *s);
 

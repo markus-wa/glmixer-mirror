@@ -151,8 +151,6 @@ bool FFGLSource::isPlaying() const
 
 void FFGLSource::play(bool on)
 {
-    Source::play(on);
-
     if ( isPlaying() == on )
         return;
 
@@ -160,6 +158,8 @@ void FFGLSource::play(bool on)
 
     if (_plugin)
         _plugin->play(_playing);
+
+    Source::play(on);
 }
 
 void FFGLSource::update() {

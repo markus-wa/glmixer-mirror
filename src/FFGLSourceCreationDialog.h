@@ -48,7 +48,6 @@ public slots:
     void done(int r);
 
     void updateSourcePreview();
-    void selectSizePreset(int preset);
 
     void browseFreeframePlugin();
     void deleteFreeframePlugin();
