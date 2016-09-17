@@ -353,7 +353,7 @@ QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt)
     return pfn;
 }
 #elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt) const
+QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt)
 {    
     registerAll();
     QString pfn(av_pix_fmt_descriptors[pix_fmt].name);
@@ -362,7 +362,7 @@ QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt) const
     return pfn;
 }
 #else
-QString CodecManager::getPixelFormatName(AVPixelFormat ffmpegAVPixelFormat) const
+QString CodecManager::getPixelFormatName(AVPixelFormat ffmpegAVPixelFormat)
 {
     switch (ffmpegAVPixelFormat )
         {
