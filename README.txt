@@ -148,4 +148,24 @@ UNIX COMPILATION
         $ sudo apt-get install /home/[YOUR SOURCE PATH]/GLMixer_[version]_amd64.deb
 
 
+WINDOWS COMPILATION
+
+
+Install msys2
+
+    Follow instructions from https://msys2.github.io/
+
+Install programs and mingw x86_64
+
+	pacman -S subversion
+	pacman -S mingw-w64-x86_64-gcc
+	pacman -S mingw-w64-x86_64-ninja
+	pacman -S mingw-w64-x86_64-cmake
+	pacman -S mingw-w64-x86_64-glew
+	pacman -S mingw-w64-x86_64-qt4
+	pacman -S mingw-w64-x86_64-opencv
+	pacman -S mingw-w64-x86_64-ffmpeg
+
+Now, you can open a mingw terminal and compile line under Linux (see above)
+
 

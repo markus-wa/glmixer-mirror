@@ -129,7 +129,13 @@ escapiFreeFrameGL::escapiFreeFrameGL() : CFreeFrameGLPlugin()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef FF_FAIL
+// FFGL 1.5
 DWORD   escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
+#else
+// FFGL 1.6
+FFResult escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
+#endif
 {
     if (!data)
         return FF_FAIL;
@@ -214,8 +220,13 @@ DWORD   escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
     return FF_SUCCESS;
 }
 
-
+#ifdef FF_FAIL
+// FFGL 1.5
 DWORD   escapiFreeFrameGL::DeInitGL()
+#else
+// FFGL 1.6
+FFResult escapiFreeFrameGL::DeInitGL()
+#endif
 {
     if (!data)
         return FF_FAIL;
@@ -230,7 +241,13 @@ DWORD   escapiFreeFrameGL::DeInitGL()
     return FF_SUCCESS;
 }
 
+#ifdef FF_FAIL
+// FFGL 1.5
 DWORD   escapiFreeFrameGL::SetTime(double time)
+#else
+// FFGL 1.6
+FFResult escapiFreeFrameGL::SetTime(double time)
+#endif
 {
   if (data)
       data->m_curTime = time;
@@ -238,7 +255,13 @@ DWORD   escapiFreeFrameGL::SetTime(double time)
   return FF_SUCCESS;
 }
 
+#ifdef FF_FAIL
+// FFGL 1.5
 DWORD	escapiFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+#else
+// FFGL 1.6
+FFResult escapiFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+#endif
 {
   if (!data)
         return FF_FAIL;

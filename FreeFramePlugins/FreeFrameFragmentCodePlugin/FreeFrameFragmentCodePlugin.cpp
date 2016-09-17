@@ -267,18 +267,18 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #ifdef FF_FAIL  // FFGL 1.5
 
 #ifdef _WIN32
-
 __declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, DWORD *instanceID)
-
 #else
-
 bool setString(unsigned int t, const char *string, DWORD *instanceID)
-
 #endif
 
 #else
 
+#ifdef _WIN32
+__declspec(dllexport) bool __stdcall setString(unsigned int t, const char *string, FFInstanceID *instanceID)
+#else
 bool setString(unsigned int t, const char *string, FFInstanceID *instanceID)
+#endif
 
 #endif
 {

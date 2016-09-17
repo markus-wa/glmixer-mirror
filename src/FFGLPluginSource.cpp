@@ -446,6 +446,8 @@ QString FFGLPluginSource::libraryFileName(QString embeddedName)
 #else
     QFileInfo plugindll( QString(QDesktopServices::storageLocation(QDesktopServices::TempLocation)).append(QString("/%1.so").arg(embeddedName)) );
 #endif
+    qDebug() << "Loading dll " << plugindll.absoluteFilePath();
+
 
     // replace the plugin file in temporary location
     // copy the file if

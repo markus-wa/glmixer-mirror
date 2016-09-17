@@ -49,7 +49,11 @@ FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(bool plugintype, int w, int
 
     // perform declaration of extra functions for Shadertoy
     FFGLPluginInstanceShadertoy *p = dynamic_cast<FFGLPluginInstanceShadertoy *>(_plugin);
-    if ( !p || !p->declareShadertoyFunctions() ){
+    if ( !p ){
+        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Cannot create plugin.");
+        FFGLPluginException().raise();
+    }
+    if ( !p->declareShadertoyFunctions() ){
         qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Invalid plugin.");
         FFGLPluginException().raise();
     }

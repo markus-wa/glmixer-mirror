@@ -342,9 +342,17 @@ typedef bool (*_FuncPtrSetKeyboard)(int, bool, DWORD);
 
 #else
 // FFGL 1.6
+
+#ifdef Q_OS_WIN
+typedef __declspec() bool (__stdcall *_FuncPtrSetString)(unsigned int, const char *, FFInstanceID);
+typedef __declspec() char * (__stdcall *_FuncPtrGetString)(unsigned int, FFInstanceID);
+typedef __declspec() bool (__stdcall *_FuncPtrSetKeyboard)(int, bool, FFInstanceID);
+#else
 typedef bool (*_FuncPtrSetString)(unsigned int, const char *, FFInstanceID);
 typedef char *(*_FuncPtrGetString)(unsigned int, FFInstanceID);
 typedef bool (*_FuncPtrSetKeyboard)(int, bool, FFInstanceID);
+#endif
+
 #endif
 
 class FFGLPluginInstanceShadertoyPlaftorm : public FFGLPluginInstanceFreeframePlatform, public FFGLPluginInstanceShadertoy {
