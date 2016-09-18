@@ -10,7 +10,7 @@ endif(WIN32)
 target_link_libraries(ffglMonteCarlo -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
-    INSTALL(FILES $<TARGET_LINKER_FILE:ffglMonteCarlo>
+    INSTALL(FILES $<TARGET_FILE:ffglMonteCarlo>
         CONFIGURATIONS Release RelWithDebInfo
         RUNTIME DESTINATION "./lib/${GLMIXER_BINARY}" COMPONENT Runtime
     )

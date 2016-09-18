@@ -2,9 +2,6 @@
 #include <GL/glew.h>
 #include <FFGL.h>
 
-#include <cmath>
-#include <iostream>
-
 #include "escapiFFGL.h"
 #include "escapi.h"
 #include "error_image.h"
@@ -14,10 +11,11 @@
 #define MAX_WIDTH 640
 #define MAX_HEIGHT 480
 
+GLuint errorTextureIndex = 0;
+    
 class escapiFreeFrameGLData {
 
 public:
-    static GLuint errorTextureIndex;
     static unsigned int num_device;
     static bool device_used[10];
 
@@ -47,7 +45,7 @@ public:
 
 };
 
-GLuint escapiFreeFrameGLData::errorTextureIndex = 0;
+//GLuint escapiFreeFrameGLData::errorTextureIndex = 0;
 unsigned int escapiFreeFrameGLData::num_device = 0;
 bool escapiFreeFrameGLData::device_used[10] = {0,0,0,0,0,0,0,0,0,0};
 
@@ -102,12 +100,12 @@ static CFFGLPluginInfo PluginInfo (
     "FFGLESCAPI",							// Plugin unique ID
     "escapiFFGL",                           // Plugin name
     1,                                      // API major version number
-    000,                                    // API minor version number
-	1,										// Plugin major version number
-	000,									// Plugin minor version number
+    500,                                    // API minor version number
+    1,										// Plugin major version number
+    000,									// Plugin minor version number
     FF_SOURCE,                              // Plugin type
     "Webcam input using ESCAPI",            // Plugin description
-    "by Bruno Herbelin\nESCAPI: http://sol.gfxile.net/escapi"                     // About
+    "http://sol.gfxile.net/escapi"                     // About
 );
 
 
@@ -117,6 +115,7 @@ static CFFGLPluginInfo PluginInfo (
 
 escapiFreeFrameGL::escapiFreeFrameGL() : CFreeFrameGLPlugin()
 {
+
     data = new escapiFreeFrameGLData;
 
 	// Input properties
@@ -124,7 +123,6 @@ escapiFreeFrameGL::escapiFreeFrameGL() : CFreeFrameGLPlugin()
     SetMaxInputs(0);
 
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
@@ -137,16 +135,19 @@ DWORD   escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
 FFResult escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
+//            std::cerr << "ESCAPI initialization "<< std::endl;
+            
     if (!data)
-        return FF_FAIL;
+      return FF_FAIL;
+
 
     glEnable(GL_TEXTURE);
     glActiveTexture(GL_TEXTURE0);
 
-    if (escapiFreeFrameGLData::errorTextureIndex == 0) {
+    if (errorTextureIndex == 0) {
 
-        glGenTextures(1, &(escapiFreeFrameGLData::errorTextureIndex));
-        glBindTexture(GL_TEXTURE_2D, escapiFreeFrameGLData::errorTextureIndex);
+        glGenTextures(1, &errorTextureIndex);
+        glBindTexture(GL_TEXTURE_2D, errorTextureIndex);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, error_image.width, error_image.height, 0,
@@ -154,6 +155,7 @@ FFResult escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
 
     }
 
+            
     // make sure by default we do not start
     data->stop = true;
 
@@ -161,7 +163,6 @@ FFResult escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
     if(escapiFreeFrameGLData::num_device == 0)
     {
         escapiFreeFrameGLData::num_device = setupESCAPI();
-        std::cerr << "ESCAPI initialization : "<< escapiFreeFrameGLData::num_device <<" device available." <<std::endl;
     }
 
     if (escapiFreeFrameGLData::num_device > 0) {
@@ -185,7 +186,6 @@ FFResult escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
 
             // keep track of used devices
             escapiFreeFrameGLData::device_used[data->deviceid] = true;
-            std::cerr << "ESCAPI initialization : using device "<<data->deviceid <<std::endl;
 
             getCaptureDeviceName(data->deviceid, data->dev_name, 255);
 
@@ -209,13 +209,16 @@ FFResult escapiFreeFrameGL::InitGL(const FFGLViewportStruct *vp)
             data->stop = false;
             int rc = pthread_create( &(data->thread), NULL, &update_thread, (void *) data);
             if( rc != 0 )
-                std::cerr << "ESCAPI initialization : Thread creation failed" <<std::endl;
+                return FF_FAIL;
 
         }
-        else
-            std::cerr << "ESCAPI initialization : no device available" <<std::endl;
+        else 
+            return FF_FAIL;
+
 
     }
+        else 
+            return FF_FAIL;
 
     return FF_SUCCESS;
 }
@@ -228,6 +231,7 @@ DWORD   escapiFreeFrameGL::DeInitGL()
 FFResult escapiFreeFrameGL::DeInitGL()
 #endif
 {
+  
     if (!data)
         return FF_FAIL;
 
@@ -263,27 +267,28 @@ DWORD	escapiFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 FFResult escapiFreeFrameGL::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
+  
   if (!data)
         return FF_FAIL;
 
   glClear(GL_COLOR_BUFFER_BIT );
   glEnable(GL_TEXTURE_2D);
 
-  if (!data->stop) {
+          if (!data->stop) {
 
-      glBindTexture(GL_TEXTURE_2D, data->textureIndex);
+              glBindTexture(GL_TEXTURE_2D, data->textureIndex);
 
-      if ( pthread_mutex_trylock( &(data->mutex) ) ) {
-          // get a new frame
-          glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->capture.mWidth, data->capture.mHeight,
-                          GL_BGRA, GL_UNSIGNED_BYTE,(GLvoid*) data->capture.mTargetBuf);
+              if ( pthread_mutex_trylock( &(data->mutex) ) ) {
+                  
+                  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->capture.mWidth, data->capture.mHeight,
+                                  GL_BGRA, GL_UNSIGNED_BYTE,(GLvoid*) data->capture.mTargetBuf);
 
-          pthread_mutex_unlock( &(data->mutex) );
-      }
+                  pthread_mutex_unlock( &(data->mutex) );
+              }
 
-  }
-  else
-      glBindTexture(GL_TEXTURE_2D, escapiFreeFrameGLData::errorTextureIndex);
+          }
+          else
+                glBindTexture(GL_TEXTURE_2D, errorTextureIndex);
 
       //modulate texture colors with white (just show
       //the texture colors as they are)

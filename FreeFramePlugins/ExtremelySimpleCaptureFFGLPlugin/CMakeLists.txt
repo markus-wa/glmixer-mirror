@@ -11,8 +11,11 @@ set(LIBESCAPIFFGL_SRCS
 
 #find_library(PTHREAD_LIBRARY pthread REQUIRED)
 
-add_library(escapiffgl SHARED ${LIBESCAPIFFGL_SRCS} )
+add_library(escapiffgl MODULE ${LIBESCAPIFFGL_SRCS} )
 
-target_link_libraries(escapiffgl ${OPENGL_LIBRARY} -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${GLEW_LIBRARY})
+target_link_libraries(escapiffgl -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY}  ${GLEW_LIBRARY} )
 
-
+INSTALL(FILES "escapi.dll"
+    CONFIGURATIONS Release RelWithDebInfo
+    RUNTIME DESTINATION "./bin" COMPONENT Runtime
+)

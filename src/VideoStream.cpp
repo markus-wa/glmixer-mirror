@@ -308,7 +308,8 @@ void VideoStream::stop()
         quit = true;
 
         // stop play
-        av_read_pause(pFormatCtx);
+        if (pFormatCtx)
+            av_read_pause(pFormatCtx);
 
         pictq_mutex->lock();
         // unlock all conditions
@@ -343,8 +344,9 @@ void VideoStream::start()
         // reset quit flag
         quit = false;
 
-        // start play
-        av_read_play(pFormatCtx);
+        // start play        
+        if (pFormatCtx)
+            av_read_play(pFormatCtx);
 
         // start timer and decoding threads
         ptimer->start();

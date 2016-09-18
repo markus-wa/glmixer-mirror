@@ -11,7 +11,7 @@ endif(WIN32)
 target_link_libraries(ffglDelay -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive  ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
-INSTALL(FILES $<TARGET_LINKER_FILE:ffglDelay>
+INSTALL(FILES $<TARGET_FILE:ffglDelay>
         CONFIGURATIONS Release RelWithDebInfo
         RUNTIME DESTINATION "./lib/${GLMIXER_BINARY}" COMPONENT Runtime
 )
@@ -19,6 +19,6 @@ ELSE()
     get_property(PLUGIN TARGET ffglDelay PROPERTY LOCATION)
     INSTALL(FILES ${PLUGIN}
             CONFIGURATIONS Release RelWithDebInfo
-            RUNTIME DESTINATION "./lib/${GLMIXER_BINARY}" COMPONENT Runtime
+            RUNTIME DESTINATION "./bin/" COMPONENT Runtime
     )
 ENDIF()

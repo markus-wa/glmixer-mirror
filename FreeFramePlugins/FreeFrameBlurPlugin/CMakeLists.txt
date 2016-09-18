@@ -11,7 +11,8 @@ endif(WIN32)
 target_link_libraries(ffglBlur -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
-    INSTALL(FILES $<TARGET_LINKER_FILE:ffglBlur>
+
+    INSTALL(FILES $<TARGET_FILE:ffglBlur>
             CONFIGURATIONS Release RelWithDebInfo
             RUNTIME DESTINATION "./lib/${GLMIXER_BINARY}" COMPONENT Runtime
     )

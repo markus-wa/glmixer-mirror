@@ -1,5 +1,5 @@
-#ifndef FFGLMirror_H
-#define FFGLMirror_H
+#ifndef FFGLESCAP_H
+#define FFGLESCAP_H
 
 #include <FFGLPluginSDK.h>
 
@@ -17,7 +17,7 @@ public:
 
 #ifdef FF_FAIL
     // FFGL 1.5
-    DWORD	ProcessOpenGL(ProcessOpenGLStruct* pGL);
+    DWORD   ProcessOpenGL(ProcessOpenGLStruct* pGL);
     DWORD   SetTime(double time);
     DWORD   InitGL(const FFGLViewportStruct *vp);
     DWORD   DeInitGL();
@@ -38,7 +38,7 @@ public:
     static DWORD __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
 #else
     // FFGL 1.6
-        static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
+    static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
 #endif
     {
         *ppOutInstance = new escapiFreeFrameGL();

@@ -11,7 +11,7 @@ endif(WIN32)
 target_link_libraries(ffglWave -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive   ${OPENGL_LIBRARY})
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
-    INSTALL(FILES $<TARGET_LINKER_FILE:ffglWave>
+    INSTALL(FILES $<TARGET_FILE:ffglWave>
         CONFIGURATIONS Release RelWithDebInfo
         RUNTIME DESTINATION "./lib/${GLMIXER_BINARY}" COMPONENT Runtime
     )

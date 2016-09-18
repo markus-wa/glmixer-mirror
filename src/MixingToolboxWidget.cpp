@@ -696,13 +696,14 @@ void MixingToolboxWidget::changed(){
 
 void MixingToolboxWidget::on_addPlugin_pressed(){
 
-    static QDir dir(QDir::home());
+    static QDir dir(QDir::current());
 
 #ifdef Q_OS_MAC
     QString ext = " (*.bundle *.so)";
 #else
 #ifdef Q_OS_WIN
     QString ext = " (*.dll)";
+    dir.cd("../lib/glmixer");
 #else
     QString ext = " (*.so)";
     dir.cd("/usr/lib/glmixer");
