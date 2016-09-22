@@ -2033,11 +2033,12 @@ int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
         p = p.nextSiblingElement("ShadertoyPlugin");
     }
 
-    // ok source is configured, can start it
-    // play the source if attribute says so
-    // and if no attribute, then play by default.
+    // ok source is configured, can start it !
+    // Play the source if playing attributes says so (and not standby)
+    // NB: if no attribute, then play by default.
     newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
-    newsource->play( child.attribute("playing", "1").toInt() );
+    if (!newsource->isStandby())
+        newsource->play( child.attribute("playing", "1").toInt() );
 
     return errors;
 }
@@ -2504,6 +2505,7 @@ void RenderingManager::onSourceFailure() {
 
     if (s) {
         QString name = s->getName();
+        qCritical() << name << QChar(124).toLatin1() << tr("This source failed and is removed.");
 
         // try to remove the source from the manager
         if ( isValid( getByName(name) ) )
@@ -2518,9 +2520,6 @@ void RenderingManager::onSourceFailure() {
                 }
             }
         }
-
-        qCritical() << name << QChar(124).toLatin1() << tr("This source failed and was removed.");
-
     }
 }
 

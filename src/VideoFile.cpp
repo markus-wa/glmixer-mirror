@@ -274,17 +274,19 @@ void VideoFile::close()
     // close context
     if (pFormatCtx) {
 
-        pFormatCtx->streams[videoStream]->discard = AVDISCARD_ALL;
-        AVCodecContext *cdctx = pFormatCtx->streams[videoStream]->codec;
+        if ( pFormatCtx->streams[videoStream]->discard != AVDISCARD_ALL ) {
 
-        // do not attempt to close codec context if
-        // codec is not valid
-        if (cdctx && cdctx->codec) {
-            // Close codec (& threads inside)
+            AVCodecContext *cdctx = pFormatCtx->streams[videoStream]->codec;
+
+            // do not attempt to close codec context if
+            // codec is not valid
+            if (cdctx && cdctx->codec) {
+                // Close codec (& threads inside)
 #ifdef VIDEOFILE_DEBUG
-            qDebug() << filename << QChar(124).toLatin1() << tr("Closing Codec...");
+                qDebug() << filename << QChar(124).toLatin1() << tr("Closing Codec...");
 #endif
-            avcodec_close(cdctx);
+                avcodec_close(cdctx);
+            }
         }
 
         // close file & free context
@@ -1558,6 +1560,8 @@ void DecodingThread::run()
 #endif
 
             // decoding error : send failure message
+            _forceQuit = true;
+            is->video_st->discard = AVDISCARD_ALL;
             emit failed();
 
             // break loop
