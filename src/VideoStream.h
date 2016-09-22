@@ -90,6 +90,7 @@ protected slots:
     bool openStream();
     void start();
     void stop();
+    void onStop();
 
 private:
     // Video and general information
@@ -125,11 +126,9 @@ class videoStreamThread: public QThread
 
 public:
     videoStreamThread(VideoStream *video) :
-        QThread(), is(video), _working(false)
+        QThread(), is(video)
     {
     }
-
-    inline bool isWorking() { return _working; }
 
     virtual void run() = 0;
 
@@ -138,7 +137,6 @@ signals:
 
 protected:
     VideoStream *is;
-    bool _working;
 };
 
 

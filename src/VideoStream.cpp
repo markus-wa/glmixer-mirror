@@ -50,14 +50,11 @@ public:
 
 void StreamOpeningThread::run()
 {
-    _working = true;
-
     if (!is->openStream())
         emit failed();
     else
         qDebug() << is->urlname << QChar(124).toLatin1() << tr("Connected to stream.");
 
-    _working = false;
 }
 
 
@@ -109,7 +106,6 @@ void StreamDecodingThread::run()
     double pts = 0.0; // Presentation time stamp
     int64_t dts = 0; // Decoding time stamp
 
-    _working = true;
     while (is && !is->quit)
     {
         /**
@@ -223,7 +219,6 @@ void StreamDecodingThread::run()
         qDebug() << is->urlname << QChar(124).toLatin1() << tr("Decoding ended.");
 #endif
 
-    _working = false;
 }
 
 
@@ -246,6 +241,7 @@ VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationH
     decod_tid = new StreamDecodingThread(this);
     Q_CHECK_PTR(decod_tid);
     QObject::connect(decod_tid, SIGNAL(failed()), this, SIGNAL(failed()));
+    QObject::connect(decod_tid, SIGNAL(finished()), this, SLOT(onStop()));
     pictq_mutex = new QMutex;
     Q_CHECK_PTR(pictq_mutex);
     pictq_cond = new QWaitCondition;
@@ -272,20 +268,30 @@ VideoStream::VideoStream(QObject *parent, int destinationWidth, int destinationH
 
 VideoStream::~VideoStream()
 {
-    if (open_tid->isWorking()) {
-        if ( !open_tid->wait(50) ) {
-            open_tid->terminate();
-        }
-    }
 
     // make sure all is closed
     close();
 
     QObject::disconnect(this, 0, 0, 0);
 
+
     // delete threads
-    delete open_tid;
-    delete decod_tid;
+    if (open_tid->isRunning()) {
+        QObject::disconnect(open_tid, 0, 0, 0);
+        QObject::connect(open_tid, SIGNAL(terminated()), open_tid, SLOT(deleteLater()));
+        open_tid->terminate();
+    }
+    else
+        delete open_tid;
+
+    if (decod_tid->isRunning()) {
+        QObject::disconnect(decod_tid, 0, 0, 0);
+        QObject::connect(decod_tid, SIGNAL(terminated()), decod_tid, SLOT(deleteLater()));
+        decod_tid->terminate();
+    }
+    else
+        delete decod_tid;
+
     delete pictq_mutex;
     delete pictq_cond;
     delete ptimer;
@@ -296,9 +302,16 @@ VideoStream::~VideoStream()
     }
 }
 
+
+
+void VideoStream::onStop()
+{
+    emit running(false);
+}
+
 void VideoStream::stop()
 {
-    if (decod_tid->isWorking())
+    if (decod_tid->isRunning())
     {
 #ifdef VIDEOSTREAM_DEBUG
         qDebug() << urlname << QChar(124).toLatin1() << tr("Stopping.");
@@ -315,9 +328,7 @@ void VideoStream::stop()
         // unlock all conditions
         pictq_cond->wakeAll();
         // wait for thread to end
-        if ( !decod_tid->wait(50) ) {
-            decod_tid->terminate();
-        }
+        decod_tid->wait(100);
         pictq_mutex->unlock();
 
 #ifdef VIDEOSTREAM_DEBUG
@@ -325,8 +336,6 @@ void VideoStream::stop()
 #endif
     }
 
-    /* say if we are running or not */
-    emit running(!quit);
 }
 
 
@@ -335,7 +344,7 @@ void VideoStream::start()
     if ( !isOpen() )
         return;
 
-    if (!decod_tid->isWorking())
+    if (!decod_tid->isRunning())
     {
 #ifdef VIDEOSTREAM_DEBUG
         qDebug() << urlname << QChar(124).toLatin1() << tr("Starting.");
@@ -352,13 +361,14 @@ void VideoStream::start()
         ptimer->start();
         decod_tid->start();
 
+        /* say if we are running */
+        emit running(true);
+
 #ifdef VIDEOSTREAM_DEBUG
         qDebug() << urlname << QChar(124).toLatin1() << tr("Started.");
 #endif
     }
 
-    /* say if we are running or not */
-    emit running(!quit);
 }
 
 
