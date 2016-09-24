@@ -142,7 +142,6 @@ public:
     AlgorithmThread(AlgorithmSource *source) :
         QThread(), as(source), end(false), phase(0), i(0.0), j(0.0), k(0.0), l(0.0), di(0.5), dj(0.4), dk(0.3), dl(0.7) {
 
-        setTerminationEnabled(true);
     }
 
     void run();
