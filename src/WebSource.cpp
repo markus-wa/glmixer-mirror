@@ -104,18 +104,28 @@ void WebSource::update()
     glBindTexture(GL_TEXTURE_2D, textureIndex);
 
     // readjust the properties and plugins if required
-    if ( _webrenderer->propertyChanged() )
+    if ( _webrenderer->propertyChanged() ) {
+
         adjust();
 
-    // update texture if image changed (might be because property change also affected image)
-    if ( _webrenderer->imageChanged() )
-    {
         QImage i = _webrenderer->image();
 
 #if QT_VERSION >= 0x040700
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  i.width(), i.height(), 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, i.constBits() );
 #else
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, i.width(), i.height(), 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, i.bits() );
+#endif
+    }
+    // update texture if image changed (might be because property change also affected image)
+    else if ( _webrenderer->imageChanged() )
+    {
+        QImage i = _webrenderer->image();
+
+#if QT_VERSION >= 0x040700
+
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, i.width(), i.height(), GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, i.constBits() );
+#else
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,  i.width(), i.height(), GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, i.bits() );
 #endif
     }
 
@@ -209,9 +219,7 @@ bool WebRenderer::imageChanged() {
 
 void WebRenderer::timerEvent(QTimerEvent *event)
 {
-    // set image as changed every timer event (if initialized)
-    if (!_render.isNull())
-        _imageChanged = true;
+    _imageChanged = true;
 }
 
 void WebRenderer::setUpdate(int u)
@@ -252,6 +260,7 @@ WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) 
     connect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
     _timer.start(10000);
 
+    _pagesize = QSize();
 }
 
 WebRenderer::~WebRenderer()
@@ -269,9 +278,9 @@ void WebRenderer::render(bool ok)
 
     // could load
     if (ok) {
-        // setup viewport and render buffer
-        _page.setViewportSize(_page.mainFrame()->contentsSize());
-        _render = QImage(_page.viewportSize(), QImage::Format_ARGB32_Premultiplied);
+        // remember page size
+        _pagesize = _page.mainFrame()->contentsSize();
+
         _propertyChanged = true;
         _imageChanged = true;
     }
@@ -282,26 +291,30 @@ void WebRenderer::render(bool ok)
 void WebRenderer::update()
 {
     // cancel update if render buffer not initialized
-    if (_render.isNull())
+    if ( !_pagesize.isValid() )
         return;
 
+    // setup viewport
+    _page.setViewportSize(QSize(_pagesize.width(), _pagesize.height() * _height / 100));
+    QImage render = QImage(_page.viewportSize(), QImage::Format_ARGB32_Premultiplied);
+
+    // setup scroll
+    _page.mainFrame()->setScrollPosition(QPoint(0, _pagesize.height() * _scroll / 100));
+
     // render the page into the render buffer
-    QPainter pagePainter(&_render);
+    QPainter pagePainter(&render);
     pagePainter.setRenderHint(QPainter::TextAntialiasing, true);
     _page.mainFrame()->render(&pagePainter);
     pagePainter.end();
 
     // fill image with section of render
-    _image = _render.copy(0, _render.height() * _scroll / 100, _render.width(), _render.height() * _height / 100);
-
+    _image = render;
 }
 
 void WebRenderer::timeout()
 {
     // cancel loading
     disconnect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
-    // reset rendering
-    _render = QImage();
     // display timeout
     _image = QImage(QString(":/glmixer/textures/timeout.png"));
     // inform of need to change

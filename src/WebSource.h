@@ -61,7 +61,8 @@ protected:
 private:
     QUrl _url;
     QWebPage _page;
-    QImage _render, _image;
+    QSize _pagesize;
+    QImage _image;
     int _height, _scroll;
     QTimer _timer;
     int _updateTimerId;
