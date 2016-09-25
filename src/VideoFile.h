@@ -685,7 +685,7 @@ protected:
     void reset();
     double fill_first_frame(bool);
     int stream_component_open(AVFormatContext *);
-    double synchronize_video(AVFrame *src_frame, double pts);
+    double synchronize_video(AVFrame *src_frame, double dts);
 
     void queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a);
     void clear_picture_queue();

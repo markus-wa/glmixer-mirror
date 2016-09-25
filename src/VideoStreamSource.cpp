@@ -45,6 +45,8 @@ VideoStreamSource::VideoStreamSource(VideoStream *s, GLuint texture, double d) :
     QObject::connect(is, SIGNAL(frameReady(VideoPicture *)), this, SLOT(updateFrame(VideoPicture *)));
     // forward the message on failure
     QObject::connect(is, SIGNAL(failed()), this, SIGNAL(failed()));
+    // forward the message on play
+    QObject::connect(is, SIGNAL(running(bool)), this, SIGNAL(playing(bool)) );
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIndex);

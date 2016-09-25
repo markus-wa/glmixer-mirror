@@ -373,16 +373,6 @@ void VideoFile::stop()
         seek_cond->wakeAll();
         decod_tid->wait();
 
-//        // wait for thread to end
-//        while ( !decod_tid->wait( LOCKING_TIMEOUT ) ) {
-//            qDebug() << "stop lock failed";
-//            // try to enforce exit
-//            decod_tid->forceQuit();
-//            // unlock all conditions
-//            pictq_cond->wakeAll();
-//            seek_cond->wakeAll();
-//        }
-
         if (!restart_where_stopped)
         {
             // recreate first picture in case begin has changed
@@ -716,12 +706,12 @@ double VideoFile::fill_first_frame(bool seek)
     // flush decoder
     avcodec_flush_buffers(video_st->codec);
 
+    int64_t seek_target = 0;
     if (seek) {
-        int64_t seek_target = av_rescale_q(mark_in, (AVRational){1, 1}, video_st->time_base);
-
-        // seek
-        av_seek_frame(pFormatCtx, videoStream, seek_target, AVSEEK_FLAG_BACKWARD);
+        seek_target = av_rescale_q(mark_in, (AVRational){1, 1}, video_st->time_base);
     }
+    // seek back to begining
+    av_seek_frame(pFormatCtx, videoStream, seek_target, AVSEEK_FLAG_BACKWARD);
 
     // loop while we didn't finish the frame, or looped for too long
     while (!frameFinished && trial++ < 500 )
@@ -749,11 +739,11 @@ double VideoFile::fill_first_frame(bool seek)
 #endif
 
         // if we can decode it
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-        if ( avcodec_decode_video2(video_st->codec, tmpframe, &frameFinished, &packet) >= 0)
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,30,0)
+        if ( avcodec_decode_video(video_st->codec, tmpframe, &frameFinished, packet->data, packet->size) >= 0)
         {
 #else
-        if ( avcodec_decode_video(video_st->codec, tmpframe, &frameFinished, packet->data, packet->size) >= 0)
+        if ( avcodec_decode_video2(video_st->codec, tmpframe, &frameFinished, &packet) >= 0)
         {
 #endif
             // if the frame is full
@@ -766,13 +756,13 @@ double VideoFile::fill_first_frame(bool seek)
                     // read forward until reaching the mark_in (target)
                     if (seek && pts < mark_in) {
                         // retry
-                        frameFinished = false;
+                        frameFinished = 0;
                     }
                 }
             }
         }
         else {
-            frameFinished = false;
+            frameFinished = 0;
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
             avformat_flush(pFormatCtx);
@@ -1120,13 +1110,23 @@ double VideoFile::getBegin() const
 
 double VideoFile::getDuration() const
 {
+    double d = 0.0;
+
+    // get duration from stream
     if (video_st && video_st->duration != (int64_t) AV_NOPTS_VALUE )
-        return double(video_st->duration) * av_q2d(video_st->time_base);
+        d = double(video_st->duration) * av_q2d(video_st->time_base);
 
-    if (pFormatCtx && pFormatCtx->duration != (int64_t) AV_NOPTS_VALUE )
-        return double(pFormatCtx->duration) * av_q2d(AV_TIME_BASE_Q);
+    // try to get the duration from context (codec info)
+    else if (pFormatCtx && pFormatCtx->duration != (int64_t) AV_NOPTS_VALUE )
+        d = double(pFormatCtx->duration) * av_q2d(AV_TIME_BASE_Q);
 
-    return 0.0;
+    // does this looks logical ?
+    if ( video_st->nb_frames > 1 && d < av_q2d(video_st->time_base))
+        // not logical, compute duration from nmber of frames
+        return video_st->nb_frames * av_q2d(video_st->time_base);
+    else
+        // looks ok
+        return d;
 }
 
 double VideoFile::getEnd() const
@@ -1299,13 +1299,6 @@ void VideoFile::clear_picture_queue() {
 
 void VideoFile::flush_picture_queue()
 {
-//    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
-//        clear_picture_queue();
-//        pictq_cond->wakeAll();
-//        pictq_mutex->unlock();
-//    }
-//    else
-//        qDebug() << "flush_picture_queue lock failed";
 
     pictq_mutex->lock();
     clear_picture_queue();
@@ -1319,16 +1312,6 @@ void VideoFile::requestSeek(double time, bool lock)
 {
     if ( parsing_mode != VideoFile::SEEKING_PARSING )
     {
-//        if ( seek_mutex->tryLock(LOCKING_TIMEOUT) ) {
-//            seek_pos = time;
-//            parsing_mode = VideoFile::SEEKING_PARSING;
-//            if (lock)
-//                // wait for the thread to aknowledge the seek request
-//                seek_cond->wait(seek_mutex);
-//            seek_mutex->unlock();
-//        }
-//        else
-//            qDebug() << "requestSeek lock failed";
 
         seek_mutex->lock();
         seek_pos = time;
@@ -1423,27 +1406,24 @@ void VideoFile::queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action 
  * compute the exact PTS for the picture if it is omitted in the stream
  * @param pts1 the dts of the pkt / pts of the frame
  */
-double VideoFile::synchronize_video(AVFrame *src_frame, double pts_)
+double VideoFile::synchronize_video(AVFrame *src_frame, double dts)
 {
-    double pts = pts_;
+    double pts = dts;
+    double frame_delay = av_q2d(video_st->codec->time_base);
 
-	if (pts >= 0)
-		/* if we have pts, set video clock to it */
+    if (pts > 0)
+        /* if we have dts, set video clock to it */
         video_pts = pts;
 	else
-		/* if we aren't given a pts, set it to the clock */
-		// this happens rarely (I noticed it on last frame)
+        /* if we aren't given a dts, set it to the clock */
+        // this happens rarely (I noticed it on last frame, or in GIF files)
         pts = video_pts;
-
-    double frame_delay = av_q2d(video_st->codec->time_base);
 
     /* for MPEG2, the frame can be repeated, so we update the clock accordingly */
     frame_delay +=  (double) src_frame->repeat_pict * (frame_delay * 0.5);
 
 	/* update the video clock */
     video_pts += frame_delay;
-
-    // TODO : Why not add frame delay to pts ??
 
     return pts;
 }
@@ -1505,18 +1485,20 @@ void DecodingThread::run()
         // Read packet
         if ( av_read_frame(is->pFormatCtx, &packet) < 0)
         {
-            // restart parsing at beginning in any case
-            is->requestSeek(is->mark_in);
-
             // if could NOT read full frame, was it an error?
             if (is->pFormatCtx->pb && is->pFormatCtx->pb->error != 0) {
                 qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
+                // forget error
+                avio_flush(is->pFormatCtx->pb);
                 // do not treat the error; just wait a bit for the end of the packet and continue
                 msleep(PARSING_SLEEP_DELAY);
                 continue;
             }
 
             // not really an error : read_frame reached the end of file
+            // restart parsing at beginning in any case
+            is->requestSeek(is->mark_in);
+
             // react according to loop mode
             if ( !is->loop_video ) {
                 // if stopping, send an empty frame with stop flag
@@ -1524,14 +1506,14 @@ void DecodingThread::run()
                is->queue_picture(NULL, pts + is->getFrameDuration(), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
 
             }
-
-            // cleanup parsing buffers
-            avcodec_flush_buffers(is->video_st->codec);
+            // forget error
             avio_flush(is->pFormatCtx->pb);
+
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
+            // cleanup parsing buffers
             avformat_flush(is->pFormatCtx);
 #endif
-            // and go on to next packet
+            // go on to next packet
             continue;
 
         }
