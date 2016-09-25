@@ -419,6 +419,8 @@ void VideoFile::start()
         if (restart_where_stopped && mark_stop < mark_out && mark_stop > mark_in)
             seek_pos =  mark_stop;
 
+        current_frame_pts = seek_pos;
+
         // request parsing thread to perform seek
         parsing_mode = VideoFile::SEEKING_PARSING;
 
@@ -1036,6 +1038,10 @@ void VideoFile::seekToPosition(double t)
         }
 
         emit seekEnabled(false);
+
+        // if paused, unpause for 1 frame
+        if ( _videoClock.paused() )
+            seekForwardOneFrame();
     }
 }
 
@@ -1058,6 +1064,7 @@ void VideoFile::seekBySeconds(double seekStep)
 
     // call seeking to the computed position
     seekToPosition( position );
+
 }
 
 void VideoFile::seekByFrames(int seekFrameStep)
