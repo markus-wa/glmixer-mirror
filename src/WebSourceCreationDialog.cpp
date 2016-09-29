@@ -84,12 +84,12 @@ void WebSourceCreationDialog::updateSourcePreview(){
 
     if (ui->webURL->isChecked() && !ui->webUrlEdit->text().isEmpty()) {
 
-        url.setUrl(ui->webUrlEdit->text(), QUrl::TolerantMode);
+        url = QUrl::fromUserInput(ui->webUrlEdit->text());
 
     }
     else if (ui->htmlPage->isChecked() && ui->htmlPageList->currentIndex() > 0) {
 
-        url.setUrl(ui->htmlPageList->itemData(ui->htmlPageList->currentIndex()).toString());
+        url = QUrl::fromLocalFile(ui->htmlPageList->itemData(ui->htmlPageList->currentIndex()).toString());
 
         // remove entry if not valid
         if (!QFileInfo(url.toLocalFile()).exists()) {
@@ -111,7 +111,7 @@ void WebSourceCreationDialog::updateSourcePreview(){
 
         }
         catch (...)  {
-            qCritical() << tr("Web Page Creation error; ");
+            qCritical() << url << QChar(124).toLatin1() << tr("Web Source Creation error.");
             // free the OpenGL texture
             glDeleteTextures(1, &tex);
             // return an invalid pointer
@@ -120,7 +120,6 @@ void WebSourceCreationDialog::updateSourcePreview(){
     }
 
     // enable / disable ok button
-
     ui->validationBox->button(QDialogButtonBox::Ok)->setEnabled( s != NULL );
 
     // apply the source to the preview (null pointer is ok to reset preview)
@@ -192,14 +191,17 @@ void WebSourceCreationDialog::browseHtmlPage() {
     // check validity of file
     QFileInfo htmlfile(fileName);
     if (htmlfile.isFile() && htmlfile.isReadable()) {
-
+    
         // try to find & remove the file in the list
         ui->htmlPageList->removeItem( ui->htmlPageList->findData(htmlfile.absoluteFilePath()) );
 
         // add the filename to the pluginFileList
         ui->htmlPageList->insertItem(1, htmlfile.fileName(), htmlfile.absoluteFilePath());
         ui->htmlPageList->setCurrentIndex(1);
+
     }
+    else
+        qWarning() << fileName << QChar(124).toLatin1() << tr("Not a valid and readable file.");
 
 }
 
