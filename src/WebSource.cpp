@@ -23,7 +23,7 @@
  *
  */
 
-#include "QNetworkCookieJar"
+#include <QNetworkCookieJar>
 
 #include "RenderingManager.h"
 #include "WebSource.moc"
@@ -37,8 +37,14 @@ bool WebSource::playable = true;
 
 WebSource::WebSource(QUrl web, GLuint texture, double d, int w, int h, int height, int scroll, int update):  Source(texture, d), _playing(true), _updateFrequency(update)
 {
+
+   // Web browser settings
+   QWebSettings::setIconDatabasePath("");  
+   QWebSettings::setOfflineStoragePath("");
+   QWebSettings::setMaximumPagesInCache(0);
+
     _webrenderer = new WebRenderer(web, w, h, height, scroll);
-    _webrenderer->setUpdate(_updateFrequency);
+    //_webrenderer->setUpdate(_updateFrequency);
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -48,12 +54,12 @@ WebSource::WebSource(QUrl web, GLuint texture, double d, int w, int h, int heigh
 
 bool WebSource::isPlaying() const
 {
-    return _playing;
+    return (_playing);
 }
 
 void WebSource::play(bool on)
 {
-    if ( isPlaying() == on )
+    if (!_webrenderer || isPlaying() == on )
         return;
 
     _playing = on;
@@ -83,17 +89,18 @@ void WebSource::adjust()
 
 void WebSource::setPageHeight(int h)
 {
+    if (_webrenderer)
     _webrenderer->setHeight(h);
 }
 
 void WebSource::setPageScroll(int s)
 {
+    if (_webrenderer)
     _webrenderer->setScroll(s);
 }
 
 void WebSource::setPageUpdate(int u)
 {
-    _webrenderer->setUpdate(u);
     _updateFrequency = u;
 }
 
@@ -102,6 +109,9 @@ void WebSource::update()
     // bind texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIndex);
+
+    if (!_webrenderer)
+        return;
 
     // readjust the properties and plugins if required
     if ( _webrenderer->propertyChanged() ) {
@@ -142,30 +152,42 @@ WebSource::~WebSource()
 
 int WebSource::getFrameWidth() const
 {
+    if (_webrenderer)
     return _webrenderer->image().width();
+    else 
+    return 0;
 }
 
 int WebSource::getFrameHeight() const
 {
+    if (_webrenderer)
     return _webrenderer->image().height();
+    else 
+    return 0;
 }
 
 QUrl WebSource::getUrl() const
 {
+    if (_webrenderer)
     return _webrenderer->url();
-
+    else
+    return QUrl();
 }
 
 int WebSource::getPageHeight() const
 {
+    if (_webrenderer)
     return _webrenderer->height();
-
+    else 
+    return 0;
 }
 
 int WebSource::getPageScroll() const
 {
+    if (_webrenderer)
     return _webrenderer->scroll();
-
+    else 
+    return 0;
 }
 
 int WebSource::getPageUpdate() const
@@ -197,7 +219,7 @@ bool WebRenderer::propertyChanged() {
 
         update();
 
-        _imageChanged = true;
+//        _imageChanged = true;
         _propertyChanged = false;
         return true;
     }
@@ -239,19 +261,24 @@ void WebRenderer::setUpdate(int u)
 
 WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) : _url(url), _propertyChanged(true)
 {
+
     // init
     setHeight(height);
     setScroll(scroll);
     _updateTimerId = -1;
+    _pagesize = QSize();
 
     // display loading screen
     _image = QImage(QString(":/glmixer/textures/loading.png"));
 
+    _page.settings()->setAttribute( QWebSettings::AutoLoadImages,  true);
+
     // enable cookies
     _page.networkAccessManager()->setCookieJar( new QNetworkCookieJar(&_page) );
-    _page.setPreferredContentsSize(QSize(w,h));
+    _page.setPreferredContentsSize(QSize(w,h)); 
 
     // render page when loaded
+    qDebug() << _url << QChar(124).toLatin1() << tr("Loading web page...");
     _page.mainFrame()->load(_url);
     connect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
 
@@ -260,22 +287,21 @@ WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) 
     connect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
     _timer.start(10000);
 
-    _pagesize = QSize();
 }
 
 WebRenderer::~WebRenderer()
 {
-    disconnect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
-    disconnect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
+    disconnect(&_page, 0, 0, 0);
+    disconnect(&_timer, 0, 0, 0);
     _timer.stop();
 }
 
 void WebRenderer::render(bool ok)
 {
     // cancel time out
-    disconnect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
+    disconnect(&_timer, 0, 0, 0);
     _timer.stop();
-
+    
     // could load
     if (ok) {
         // remember page size
@@ -285,7 +311,7 @@ void WebRenderer::render(bool ok)
         _imageChanged = true;
     }
     else
-        timeout();
+        timeout(); 
 }
 
 void WebRenderer::update()
@@ -314,11 +340,11 @@ void WebRenderer::update()
 void WebRenderer::timeout()
 {
     // cancel loading
-    disconnect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
+    disconnect(&_page, 0, 0, 0);
     // display timeout
     _image = QImage(QString(":/glmixer/textures/timeout.png"));
     // inform of need to change
     _imageChanged = true;
     _propertyChanged = true;
-
 }
+
