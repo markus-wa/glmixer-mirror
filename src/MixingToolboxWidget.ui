@@ -413,7 +413,7 @@ QListWidget::item:focus:hover {
  }</string>
          </property>
          <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOn</enum>
+          <enum>Qt::ScrollBarAsNeeded</enum>
          </property>
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -547,224 +547,6 @@ QListWidget::item:focus:hover {
         </widget>
        </item>
        <item>
-        <widget class="QListWidget" name="listWidget">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>80</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>Adjust the color filters</string>
-         </property>
-         <property name="statusTip">
-          <string>Adjust the color filters</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QListWidget{ 
-	font-size: 11px;
- }
-QListWidget::item{     
-   color: palette(text);
- }
-QListWidget::item:hover {     
-    background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.2, stop: 0 palette(AlternateBase), stop: 1 transparent );
-	 color: palette(bright-text);
- }
-QListWidget::item:selected {
-     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
-	 color: palette(highlighted-text);
- }
-QListWidget::item:selected:hover {
-     background-color: palette(highlight);
- }
-QListWidget::item:focus {
-     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
-	 color: palette( highlighted-text);
- }
-QListWidget::item:focus:hover {
-     background-color: palette(highlight);
- }</string>
-         </property>
-         <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOn</enum>
-         </property>
-         <property name="horizontalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOff</enum>
-         </property>
-         <property name="editTriggers">
-          <set>QAbstractItemView::NoEditTriggers</set>
-         </property>
-         <property name="showDropIndicator" stdset="0">
-          <bool>false</bool>
-         </property>
-         <property name="dragDropMode">
-          <enum>QAbstractItemView::NoDragDrop</enum>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>60</width>
-           <height>60</height>
-          </size>
-         </property>
-         <property name="verticalScrollMode">
-          <enum>QAbstractItemView::ScrollPerPixel</enum>
-         </property>
-         <property name="horizontalScrollMode">
-          <enum>QAbstractItemView::ScrollPerPixel</enum>
-         </property>
-         <property name="movement">
-          <enum>QListView::Static</enum>
-         </property>
-         <property name="flow">
-          <enum>QListView::LeftToRight</enum>
-         </property>
-         <property name="isWrapping" stdset="0">
-          <bool>true</bool>
-         </property>
-         <property name="resizeMode">
-          <enum>QListView::Adjust</enum>
-         </property>
-         <property name="spacing">
-          <number>1</number>
-         </property>
-         <property name="viewMode">
-          <enum>QListView::IconMode</enum>
-         </property>
-         <property name="uniformItemSizes">
-          <bool>true</bool>
-         </property>
-         <property name="selectionRectVisible">
-          <bool>false</bool>
-         </property>
-         <property name="currentRow">
-          <number>-1</number>
-         </property>
-         <item>
-          <property name="text">
-           <string>Saturation</string>
-          </property>
-          <property name="toolTip">
-           <string>Saturation (intensity of colors)</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/filter_saturation.png</normaloff>
-            <selectedoff>:/glmixer/images/filter_saturation.png</selectedoff>:/glmixer/images/filter_saturation.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Brightness</string>
-          </property>
-          <property name="toolTip">
-           <string>Brightness (dark or light)</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/filter_brightness.png</normaloff>
-            <selectedoff>:/glmixer/images/filter_brightness.png</selectedoff>:/glmixer/images/filter_brightness.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Contrast</string>
-          </property>
-          <property name="toolTip">
-           <string>Contrast (uniform or sharp)</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/filter_contrast.png</normaloff>
-            <selectedoff>:/glmixer/images/filter_contrast.png</selectedoff>:/glmixer/images/filter_contrast.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Hue shift</string>
-          </property>
-          <property name="toolTip">
-           <string>Color hue (shift in color tint)</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/filter_hue.png</normaloff>
-            <selectedoff>:/glmixer/images/filter_hue.png</selectedoff>:/glmixer/images/filter_hue.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Threshold</string>
-          </property>
-          <property name="toolTip">
-           <string>Threshold by color (anything below threshold is black, above is white)</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/filter_threshold.png</normaloff>
-            <selectedoff>:/glmixer/images/filter_threshold.png</selectedoff>:/glmixer/images/filter_threshold.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Posterize</string>
-          </property>
-          <property name="toolTip">
-           <string>Posterize the image (reduce the number of colors)</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/filter_posterize.png</normaloff>
-            <selectedoff>:/glmixer/images/filter_posterize.png</selectedoff>:/glmixer/images/filter_posterize.png</iconset>
-          </property>
-          <property name="flags">
-           <set>ItemIsSelectable|ItemIsEnabled</set>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Chromakey</string>
-          </property>
-          <property name="toolTip">
-           <string>Make transparent a given color</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/filter_chromakey.png</normaloff>
-            <selectedoff>:/glmixer/images/filter_chromakey.png</selectedoff>:/glmixer/images/filter_chromakey.png</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Invert</string>
-          </property>
-          <property name="toolTip">
-           <string>Inverse colors</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../images.qrc">
-            <normaloff>:/glmixer/images/filter_invert.png</normaloff>
-            <selectedoff>:/glmixer/images/filter_invert.png</selectedoff>:/glmixer/images/filter_invert.png</iconset>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item>
         <widget class="QStackedWidget" name="stackedWidget">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -779,7 +561,7 @@ QListWidget::item:focus:hover {
           </size>
          </property>
          <property name="currentIndex">
-          <number>3</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="pageSaturation">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -1632,6 +1414,224 @@ QComboBox:!editable {
          </widget>
         </widget>
        </item>
+       <item>
+        <widget class="QListWidget" name="listWidget">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>80</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Adjust the color filters</string>
+         </property>
+         <property name="statusTip">
+          <string>Adjust the color filters</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QListWidget{ 
+	font-size: 11px;
+ }
+QListWidget::item{     
+   color: palette(text);
+ }
+QListWidget::item:hover {     
+    background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.2, stop: 0 palette(AlternateBase), stop: 1 transparent );
+	 color: palette(bright-text);
+ }
+QListWidget::item:selected {
+     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
+	 color: palette(highlighted-text);
+ }
+QListWidget::item:selected:hover {
+     background-color: palette(highlight);
+ }
+QListWidget::item:focus {
+     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
+	 color: palette( highlighted-text);
+ }
+QListWidget::item:focus:hover {
+     background-color: palette(highlight);
+ }</string>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAsNeeded</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="showDropIndicator" stdset="0">
+          <bool>false</bool>
+         </property>
+         <property name="dragDropMode">
+          <enum>QAbstractItemView::NoDragDrop</enum>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>60</width>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="verticalScrollMode">
+          <enum>QAbstractItemView::ScrollPerPixel</enum>
+         </property>
+         <property name="horizontalScrollMode">
+          <enum>QAbstractItemView::ScrollPerPixel</enum>
+         </property>
+         <property name="movement">
+          <enum>QListView::Static</enum>
+         </property>
+         <property name="flow">
+          <enum>QListView::LeftToRight</enum>
+         </property>
+         <property name="isWrapping" stdset="0">
+          <bool>true</bool>
+         </property>
+         <property name="resizeMode">
+          <enum>QListView::Adjust</enum>
+         </property>
+         <property name="spacing">
+          <number>1</number>
+         </property>
+         <property name="viewMode">
+          <enum>QListView::IconMode</enum>
+         </property>
+         <property name="uniformItemSizes">
+          <bool>true</bool>
+         </property>
+         <property name="selectionRectVisible">
+          <bool>false</bool>
+         </property>
+         <property name="currentRow">
+          <number>0</number>
+         </property>
+         <item>
+          <property name="text">
+           <string>Saturation</string>
+          </property>
+          <property name="toolTip">
+           <string>Saturation (intensity of colors)</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_saturation.png</normaloff>
+            <selectedoff>:/glmixer/images/filter_saturation.png</selectedoff>:/glmixer/images/filter_saturation.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Brightness</string>
+          </property>
+          <property name="toolTip">
+           <string>Brightness (dark or light)</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_brightness.png</normaloff>
+            <selectedoff>:/glmixer/images/filter_brightness.png</selectedoff>:/glmixer/images/filter_brightness.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Contrast</string>
+          </property>
+          <property name="toolTip">
+           <string>Contrast (uniform or sharp)</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_contrast.png</normaloff>
+            <selectedoff>:/glmixer/images/filter_contrast.png</selectedoff>:/glmixer/images/filter_contrast.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hue shift</string>
+          </property>
+          <property name="toolTip">
+           <string>Color hue (shift in color tint)</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_hue.png</normaloff>
+            <selectedoff>:/glmixer/images/filter_hue.png</selectedoff>:/glmixer/images/filter_hue.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Threshold</string>
+          </property>
+          <property name="toolTip">
+           <string>Threshold by color (anything below threshold is black, above is white)</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_threshold.png</normaloff>
+            <selectedoff>:/glmixer/images/filter_threshold.png</selectedoff>:/glmixer/images/filter_threshold.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Posterize</string>
+          </property>
+          <property name="toolTip">
+           <string>Posterize the image (reduce the number of colors)</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_posterize.png</normaloff>
+            <selectedoff>:/glmixer/images/filter_posterize.png</selectedoff>:/glmixer/images/filter_posterize.png</iconset>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Chromakey</string>
+          </property>
+          <property name="toolTip">
+           <string>Make transparent a given color</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_chromakey.png</normaloff>
+            <selectedoff>:/glmixer/images/filter_chromakey.png</selectedoff>:/glmixer/images/filter_chromakey.png</iconset>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Invert</string>
+          </property>
+          <property name="toolTip">
+           <string>Inverse colors</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../images.qrc">
+            <normaloff>:/glmixer/images/filter_invert.png</normaloff>
+            <selectedoff>:/glmixer/images/filter_invert.png</selectedoff>:/glmixer/images/filter_invert.png</iconset>
+          </property>
+         </item>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="Filters">
@@ -1709,7 +1709,7 @@ QListWidget::item:focus:hover {
  }</string>
          </property>
          <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOn</enum>
+          <enum>Qt::ScrollBarAsNeeded</enum>
          </property>
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -1766,7 +1766,7 @@ QListWidget::item:focus:hover {
           <bool>false</bool>
          </property>
          <property name="currentRow">
-          <number>-1</number>
+          <number>0</number>
          </property>
          <item>
           <property name="text">
@@ -2015,60 +2015,6 @@ QListWidget::item:focus:hover {
         </widget>
        </item>
        <item>
-        <widget class="QListWidget" name="presetsList">
-         <property name="baseSize">
-          <size>
-           <width>2</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>Double clic on a preset to apply it to the selected source(s).</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolTip {
-	font: 8pt &quot;Monospace, Courier&quot;;
-}
-QListWidget::item{     
-   color: palette(text);
- }
-QListWidget::item:hover {     
-     background-color: palette(mid);
-     color: palette(bright-text);
- }
-QListWidget::item:selected {
-    background-color: palette(Highlight);
-   color: palette(highlighted-text );
- }
-QListWidget::item:focus {
-    background-color: palette(Highlight);
-   color: palette(highlighted-text );
- }</string>
-         </property>
-         <property name="editTriggers">
-          <set>QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
-         </property>
-         <property name="showDropIndicator" stdset="0">
-          <bool>false</bool>
-         </property>
-         <property name="alternatingRowColors">
-          <bool>true</bool>
-         </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::NoSelection</enum>
-         </property>
-         <property name="spacing">
-          <number>1</number>
-         </property>
-         <property name="currentRow">
-          <number>-1</number>
-         </property>
-         <property name="sortingEnabled">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QToolButton" name="presetApply">
@@ -2188,6 +2134,60 @@ QListWidget::item:focus {
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QListWidget" name="presetsList">
+         <property name="baseSize">
+          <size>
+           <width>2</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Double clic on a preset to apply it to the selected source(s).</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolTip {
+	font: 8pt &quot;Monospace, Courier&quot;;
+}
+QListWidget::item{     
+   color: palette(text);
+ }
+QListWidget::item:hover {     
+     background-color: palette(mid);
+     color: palette(bright-text);
+ }
+QListWidget::item:selected {
+    background-color: palette(Highlight);
+   color: palette(highlighted-text );
+ }
+QListWidget::item:focus {
+    background-color: palette(Highlight);
+   color: palette(highlighted-text );
+ }</string>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+         </property>
+         <property name="showDropIndicator" stdset="0">
+          <bool>false</bool>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::NoSelection</enum>
+         </property>
+         <property name="spacing">
+          <number>1</number>
+         </property>
+         <property name="currentRow">
+          <number>-1</number>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

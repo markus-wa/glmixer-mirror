@@ -912,7 +912,7 @@ public slots:
 
     void valueChanged(QtProperty *property, bool value)
     {
-        if ( property == idToProperty["Ignore alpha"] ) {            
+        if ( property == idToProperty["Ignore alpha"] ) {
             VideoFile *vf = vs->getVideoFile();
             if ( vf ) {
                 vf->open(vf->getFileName(), vf->getMarkIn(), vf->getMarkOut(), value);

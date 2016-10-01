@@ -250,6 +250,9 @@ void PropertyBrowser::restoreExpandState(QList<QtBrowserItem *> list)
         QtBrowserItem *item = it.next();
         if (idToExpanded.contains(item->property()->propertyName()))
             propertyTreeEditor->setExpanded(item, idToExpanded[item->property()->propertyName()]);
+        // default to expanded state
+        else
+            propertyTreeEditor->setExpanded(item, true);
 
         restoreExpandState(item->children());
     }

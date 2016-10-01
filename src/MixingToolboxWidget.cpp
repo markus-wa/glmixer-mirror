@@ -274,6 +274,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
         item->setToolTip(i.value().first);
         blendingMaskList->addItem( item );
     }
+    blendingMaskList->setCurrentRow(0);
 
     // Setup the gamma levels toolbox
     gammaAdjust = new GammaLevelsWidget(this);
@@ -290,7 +291,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
     // Setup the FFGL plugin property browser
     pluginBrowser = new FFGLPluginBrowser(Plugin);
 
-    pluginBrowserLayout->insertWidget(1, pluginBrowser);
+    pluginBrowserLayout->insertWidget(2, pluginBrowser);
     QObject::connect(pluginBrowser, SIGNAL(pluginChanged()), this, SLOT(changed()) );
     QObject::connect(pluginBrowser, SIGNAL(edit(FFGLPluginSource *)), parent, SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
 #else
@@ -344,6 +345,7 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
         setEnabled(true);
         source = *csi;
         propertyChanged("Color", source->getColor());
+
 #ifdef FFGL
         pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
 #endif
