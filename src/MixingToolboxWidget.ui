@@ -6,15 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>236</width>
-    <height>371</height>
+    <width>253</width>
+    <height>314</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>236</width>
-    <height>214</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Mixing</string>
@@ -28,13 +22,13 @@
     <number>0</number>
    </property>
    <property name="leftMargin">
-    <number>0</number>
+    <number>3</number>
    </property>
    <property name="topMargin">
     <number>0</number>
    </property>
    <property name="rightMargin">
-    <number>0</number>
+    <number>3</number>
    </property>
    <property name="bottomMargin">
     <number>0</number>
@@ -42,19 +36,28 @@
    <item>
     <widget class="QTabWidget" name="mixingToolBox">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize">
-      <size>
-       <width>227</width>
-       <height>210</height>
-      </size>
-     </property>
      <property name="styleSheet">
-      <string notr="true"/>
+      <string notr="true">QToolButton { 
+     border-style: solid;
+     border-width: 1px;
+     border-radius:0px;
+	 padding: 0px;
+     min-height: 6px;
+     min-width: 6px;
+     border-color: palette(dark);
+     background: palette(window);
+}
+
+QTabBar::tab {
+    padding: 6px -3px 6px 9px;
+}
+
+</string>
      </property>
      <property name="tabPosition">
       <enum>QTabWidget::North</enum>
@@ -70,6 +73,9 @@
        <width>16</width>
        <height>16</height>
       </size>
+     </property>
+     <property name="elideMode">
+      <enum>Qt::ElideRight</enum>
      </property>
      <property name="usesScrollButtons">
       <bool>true</bool>
@@ -123,12 +129,6 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>46</height>
-            </size>
            </property>
            <property name="toolTip">
             <string>Blending mode
@@ -230,7 +230,7 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Subtract layer</string>
+             <string notr="true">Sub layer</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -252,8 +252,8 @@ QComboBox:!editable {
           <widget class="QToolButton" name="blendingCustomButton">
            <property name="minimumSize">
             <size>
-             <width>0</width>
-             <height>40</height>
+             <width>8</width>
+             <height>8</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -333,8 +333,8 @@ QPushButton:hover {
           <widget class="QToolButton" name="blendingPixelatedButton">
            <property name="minimumSize">
             <size>
-             <width>40</width>
-             <height>40</height>
+             <width>42</width>
+             <height>42</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -455,7 +455,7 @@ QListWidget::item:focus:hover {
           <enum>QListView::Adjust</enum>
          </property>
          <property name="spacing">
-          <number>1</number>
+          <number>2</number>
          </property>
          <property name="viewMode">
           <enum>QListView::IconMode</enum>
@@ -1319,7 +1319,7 @@ border:0px
            <item>
             <widget class="QComboBox" name="EffectsInvertBox">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -1416,12 +1416,6 @@ QComboBox:!editable {
        </item>
        <item>
         <widget class="QListWidget" name="listWidget">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>80</height>
-          </size>
-         </property>
          <property name="toolTip">
           <string>Adjust the color filters</string>
          </property>
@@ -1494,7 +1488,7 @@ QListWidget::item:focus:hover {
           <enum>QListView::Adjust</enum>
          </property>
          <property name="spacing">
-          <number>1</number>
+          <number>2</number>
          </property>
          <property name="viewMode">
           <enum>QListView::IconMode</enum>
@@ -1670,11 +1664,11 @@ QListWidget::item:focus:hover {
        </item>
        <item>
         <widget class="QListWidget" name="filterList">
-         <property name="minimumSize">
-          <size>
-           <width>180</width>
-           <height>0</height>
-          </size>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
          <property name="toolTip">
           <string>Imaging effects (convolution and morphological operators)</string>
@@ -1754,7 +1748,7 @@ QListWidget::item:focus:hover {
           <enum>QListView::Adjust</enum>
          </property>
          <property name="spacing">
-          <number>1</number>
+          <number>2</number>
          </property>
          <property name="viewMode">
           <enum>QListView::IconMode</enum>
@@ -2200,6 +2194,18 @@ QListWidget::item:focus {
        <string notr="true"/>
       </attribute>
       <layout class="QVBoxLayout" name="pluginBrowserLayout">
+       <property name="leftMargin">
+        <number>6</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>6</number>
+       </property>
+       <property name="bottomMargin">
+        <number>6</number>
+       </property>
        <item>
         <widget class="QLabel" name="label_5">
          <property name="styleSheet">

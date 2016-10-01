@@ -378,7 +378,10 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, bool value)
 void MixingToolboxWidget::propertyChanged(QString propertyname, int value)
 {
     if (propertyname == "Mask")
+    {
         blendingMaskList->setCurrentRow(value);
+        blendingMaskList->scrollTo( blendingMaskList->currentIndex() );
+    }
     else if (propertyname == "Blending")
         blendingBox->setCurrentIndex(value);
     else if (propertyname == "Color inversion")
@@ -396,7 +399,10 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, int value)
     else if (propertyname == "Hue shift")
         hueSlider->setValue(value);
     else if (propertyname == "Filter")
+    {
         filterList->setCurrentRow(value);
+        filterList->scrollTo( filterList->currentIndex() );
+    }
     else if (propertyname == "Key Tolerance")
         chromakeySlider->setValue(value);
 
