@@ -23,9 +23,7 @@
 #include "FFGLSourceCreationDialog.moc"
 #include "ui_FFGLSourceCreationDialog.h"
 
-#include <QFileInfo>
-#include <QApplication>
-#include <QClipboard>
+#include <QtGui>
 
 #include "SourceDisplayWidget.h"
 #include "FFGLPluginSource.h"
@@ -322,4 +320,14 @@ void FFGLSourceCreationDialog::showErrorMessage() {
             // show warning if selected plugin is not of type 'Source'
             ui->freeframeLabelWarning->setVisible( !s->freeframeGLPlugin()->isSourceType() );
     }
+}
+
+void FFGLSourceCreationDialog::showFreeframeHelp()
+{
+    QDesktopServices::openUrl(QUrl("http://freeframe.sourceforge.net/specification_1-5.html", QUrl::TolerantMode));
+}
+
+void FFGLSourceCreationDialog::showShadertoyHelp()
+{
+    QDesktopServices::openUrl(QUrl("https://www.shadertoy.com/howto", QUrl::TolerantMode));
 }

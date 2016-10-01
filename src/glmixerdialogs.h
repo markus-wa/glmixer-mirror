@@ -38,14 +38,14 @@ public:
 
 
         QGroupBox *sizeGroupBox = new QGroupBox(this);
-        sizeGroupBox->setTitle(tr("Properties"));
+        sizeGroupBox->setTitle(tr("Pixel resolution"));
         sizeGroupBox->setFlat(true);
         verticalLayout->addWidget(sizeGroupBox);
 
         QHBoxLayout *horizontalLayout = new QHBoxLayout(sizeGroupBox);
 
         Property = new QLabel(sizeGroupBox);
-        Property->setText(tr("Size"));
+        Property->setText(tr("Width x Height "));
         horizontalLayout->addWidget(Property);
 
         presetsSizeComboBox = new QComboBox(sizeGroupBox);

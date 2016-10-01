@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>261</width>
+    <width>290</width>
     <height>133</height>
    </rect>
   </property>
@@ -35,7 +35,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Source Dimension</string>
+      <string>Pixel Resolution</string>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -172,7 +172,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Resolution</string>
+         <string>Width x Height </string>
         </property>
         <property name="buddy">
          <cstring>presetsSizeComboBox</cstring>

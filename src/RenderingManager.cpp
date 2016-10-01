@@ -300,7 +300,7 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
 
         maxtexturewidth = qMin(maxtexturewidth, GL_MAX_FRAMEBUFFER_WIDTH);
         maxtextureheight = qMin(maxtextureheight, GL_MAX_FRAMEBUFFER_WIDTH);
-        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Maximum RGBA texture dimension: ") << maxtexturewidth << "x" << maxtextureheight;
+        qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("OpenGL Maximum RGBA texture resolution: ") << maxtexturewidth << "x" << maxtextureheight;
 
         // setup the maximum texture count accordingly
         maxSourceCount = maxtexturewidth / CATALOG_TEXTURE_HEIGHT;

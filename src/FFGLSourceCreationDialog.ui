@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>346</width>
-    <height>669</height>
+    <width>354</width>
+    <height>686</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,10 +18,17 @@
     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">QToolButton { 
+   <string notr="true">QToolButton {
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+         padding: 3px;
      min-height: 16px;
      min-width: 16px;
-}</string>
+     border-color: transparent;
+     background: transparent;
+}
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
@@ -57,22 +64,51 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="../icons.qrc">:/glmixer/icons/freeframe.png</pixmap>
-        </property>
-        <property name="scaledContents">
-         <bool>false</bool>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="../icons.qrc">:/glmixer/icons/freeframe.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="helpFreeFrameButton">
+          <property name="toolTip">
+           <string>Open Online Documentation</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton {
+     min-height: 16px;
+     min-width: 16px;
+     max-height: 16px;
+     max-width: 16px;
+        font: bold;
+}
+
+</string>
+          </property>
+          <property name="text">
+           <string>?</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/question.png</normaloff>:/glmixer/icons/question.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="QRadioButton" name="freeframeEmbededPlugin">
         <property name="text">
-         <string>Embeded plugin (platform specific)</string>
+         <string>Embeded plugin</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -81,9 +117,12 @@
       </item>
       <item>
        <widget class="QComboBox" name="freeframeEmbededList">
+        <property name="toolTip">
+         <string>Select a plugin generating graphics to become a source. </string>
+        </property>
         <item>
          <property name="text">
-          <string/>
+          <string>Select...</string>
          </property>
         </item>
         <item>
@@ -109,7 +148,7 @@
       <item>
        <widget class="QRadioButton" name="freeframeFilePlugin">
         <property name="text">
-         <string>Freeframe plugin file (shared library)</string>
+         <string>Other Freeframe plugin</string>
         </property>
        </widget>
       </item>
@@ -137,7 +176,7 @@
          <item>
           <widget class="QComboBox" name="freeframeFileList">
            <property name="toolTip">
-            <string>Select a FreeFrame plugin</string>
+            <string>Select a FreeFrame DLL generating graphics to become a source.</string>
            </property>
            <property name="editable">
             <bool>false</bool>
@@ -196,7 +235,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning: &lt;/span&gt;The selected plugin is an &lt;span style=&quot; font-style:italic;&quot;&gt;effect&lt;/span&gt; filter; it may not generate any graphics.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:600;&quot;&gt;Warning: &lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;The selected plugin is an &lt;/span&gt;&lt;span style=&quot; font-size:10pt; font-style:italic;&quot;&gt;effect&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt; filter; it may not generate any graphics.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -210,14 +249,43 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="../icons.qrc">:/glmixer/icons/shadertoy_black.png</pixmap>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="../icons.qrc">:/glmixer/icons/shadertoy_black.png</pixmap>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="helpShadertoyButton">
+          <property name="toolTip">
+           <string>Open Online Documentation</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton {
+     min-height: 16px;
+     min-width: 16px;
+     max-height: 16px;
+     max-width: 16px;
+        font: bold;
+}
+
+</string>
+          </property>
+          <property name="text">
+           <string>?</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../icons.qrc">
+            <normaloff>:/glmixer/icons/question.png</normaloff>:/glmixer/icons/question.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="QRadioButton" name="shadertoyGeneric">
@@ -227,8 +295,11 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Create a new empty  ShaderToy source</string>
+        </property>
         <property name="text">
-         <string>Blank</string>
+         <string>Empty</string>
         </property>
         <property name="checked">
          <bool>false</bool>
@@ -243,8 +314,11 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Use the text in clibboard as code of the new ShaderToy</string>
+        </property>
         <property name="text">
-         <string>Use clibboard text as shader code</string>
+         <string>Paste code</string>
         </property>
        </widget>
       </item>
@@ -256,8 +330,11 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Open a text file to define code of the new ShaderToy</string>
+        </property>
         <property name="text">
-         <string>Shader code in text file (GLSL)</string>
+         <string>Open File</string>
         </property>
        </widget>
       </item>
@@ -282,7 +359,7 @@
          <item>
           <widget class="QComboBox" name="shadertoyFileList">
            <property name="toolTip">
-            <string>Select a text file</string>
+            <string>Select a text file containing GLSL ShaderToy code</string>
            </property>
            <property name="editable">
             <bool>false</bool>
@@ -341,7 +418,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning: &lt;/span&gt;The given code has error(s), but you will be able to fix it in the code editor later.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:600;&quot;&gt;Warning: &lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;The given code has error(s), but you will be able to fix it in the code editor later.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -445,8 +522,8 @@
    <slot>browseFreeframePlugin()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>288</x>
-     <y>396</y>
+     <x>293</x>
+     <y>388</y>
     </hint>
     <hint type="destinationlabel">
      <x>359</x>
@@ -461,12 +538,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>152</x>
-     <y>367</y>
+     <x>170</x>
+     <y>355</y>
     </hint>
     <hint type="destinationlabel">
-     <x>152</x>
-     <y>396</y>
+     <x>170</x>
+     <y>388</y>
     </hint>
    </hints>
   </connection>
@@ -477,8 +554,8 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>186</x>
-     <y>543</y>
+     <x>204</x>
+     <y>539</y>
     </hint>
     <hint type="destinationlabel">
      <x>166</x>
@@ -493,12 +570,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>152</x>
-     <y>311</y>
+     <x>170</x>
+     <y>299</y>
     </hint>
     <hint type="destinationlabel">
-     <x>152</x>
-     <y>341</y>
+     <x>170</x>
+     <y>329</y>
     </hint>
    </hints>
   </connection>
@@ -525,8 +602,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>327</x>
-     <y>311</y>
+     <x>335</x>
+     <y>299</y>
     </hint>
     <hint type="destinationlabel">
      <x>408</x>
@@ -541,8 +618,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>317</x>
-     <y>367</y>
+     <x>335</x>
+     <y>355</y>
     </hint>
     <hint type="destinationlabel">
      <x>409</x>
@@ -557,8 +634,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>229</x>
-     <y>491</y>
+     <x>247</x>
+     <y>487</y>
     </hint>
     <hint type="destinationlabel">
      <x>81</x>
@@ -573,8 +650,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>137</x>
-     <y>543</y>
+     <x>155</x>
+     <y>539</y>
     </hint>
     <hint type="destinationlabel">
      <x>106</x>
@@ -589,8 +666,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>81</x>
-     <y>517</y>
+     <x>99</x>
+     <y>513</y>
     </hint>
     <hint type="destinationlabel">
      <x>64</x>
@@ -605,8 +682,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>294</x>
-     <y>341</y>
+     <x>312</x>
+     <y>329</y>
     </hint>
     <hint type="destinationlabel">
      <x>404</x>
@@ -621,8 +698,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>83</x>
-     <y>395</y>
+     <x>104</x>
+     <y>385</y>
     </hint>
     <hint type="destinationlabel">
      <x>-11</x>
@@ -637,8 +714,8 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>63</x>
-     <y>571</y>
+     <x>90</x>
+     <y>569</y>
     </hint>
     <hint type="destinationlabel">
      <x>-10</x>
@@ -669,8 +746,8 @@
    <slot>deleteFreeframePlugin()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>318</x>
-     <y>396</y>
+     <x>326</x>
+     <y>388</y>
     </hint>
     <hint type="destinationlabel">
      <x>398</x>
@@ -685,12 +762,44 @@
    <slot>updateSourcePreview()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>244</x>
-     <y>616</y>
+     <x>262</x>
+     <y>639</y>
     </hint>
     <hint type="destinationlabel">
      <x>423</x>
      <y>615</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>helpFreeFrameButton</sender>
+   <signal>clicked()</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>showFreeframeHelp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>256</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>380</x>
+     <y>258</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>helpShadertoyButton</sender>
+   <signal>clicked()</signal>
+   <receiver>FFGLSourceCreationDialog</receiver>
+   <slot>showShadertoyHelp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>443</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>392</x>
+     <y>447</y>
     </hint>
    </hints>
   </connection>
@@ -702,5 +811,7 @@
   <slot>browseShadertoyPlugin()</slot>
   <slot>deleteShadertoyPlugin()</slot>
   <slot>deleteFreeframePlugin()</slot>
+  <slot>showFreeframeHelp()</slot>
+  <slot>showShadertoyHelp()</slot>
  </slots>
 </ui>

@@ -55,6 +55,8 @@ public slots:
     void deleteShadertoyPlugin();
 
     void showErrorMessage();
+    void showFreeframeHelp();
+    void showShadertoyHelp();
 
 protected:
     void showEvent(QShowEvent *);
