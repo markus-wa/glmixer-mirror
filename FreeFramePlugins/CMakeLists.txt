@@ -16,6 +16,7 @@ add_subdirectory(FreeFrameBlurPlugin)
 add_subdirectory(FreeFrameMonteCarloPlugin)
 add_subdirectory(FreeFrameDelayPlugin)
 add_subdirectory(FreeFrameShadowPlugin)
+add_subdirectory(FreeFrameShakePlugin)
 add_subdirectory(FreeFrameQtScreenCapturePlugin)
 add_subdirectory(FreeFrameFragmentCodePlugin)
 
