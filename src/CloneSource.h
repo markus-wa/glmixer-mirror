@@ -34,6 +34,9 @@
 class CloneSource: public Source {
 
     friend class RenderingManager;
+#ifdef FFGL
+    friend class FFGLEffectSelectionDialog;
+#endif
 
 public:
 

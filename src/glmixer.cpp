@@ -289,7 +289,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     sourceDockWidgetContentsLayout->addWidget(layoutPropertyBrowser);
 
     // setup the mixing toolbox
-    mixingToolBox = new MixingToolboxWidget(this);
+    mixingToolBox = new MixingToolboxWidget(this, &settings);
     mixingDockWidgetContentLayout->addWidget(mixingToolBox);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), mixingToolBox, SLOT(connectSource(SourceSet::iterator) ) );
     QObject::connect(mixingToolBox, SIGNAL( sourceChanged(SourceSet::iterator)), RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)) );
@@ -852,7 +852,7 @@ void GLMixer::Log(int type, QString msg)
         item->setText(0, msg);
         item->setIcon(0, QIcon(":/glmixer/icons/info.png"));
         item->setText(1, "");
-    }       
+    }
     // adjust color and show dialog according to message type
     switch ( (QtMsgType) type) {
     case QtWarningMsg:
@@ -2545,10 +2545,6 @@ void GLMixer::readSettings()
     if (settings.contains("cursorFuzzyFiltering"))
         cursorFuzzyFiltering->setValue(settings.value("cursorFuzzyFiltering").toInt());
 
-    // Mixing presets
-    if (settings.contains("MixingPresets"))
-        mixingToolBox->restoreState(settings.value("MixingPresets").toByteArray());
-
 #ifdef SESSION_MANAGEMENT
     // Switcher session
     switcherSession->restoreSettings();
@@ -2588,9 +2584,6 @@ void GLMixer::saveSettings()
     settings.setValue("cursorDelayFiltering", cursorDelayFiltering->value() );
     settings.setValue("cursorFuzzyRadius", cursorFuzzyRadius->value() );
     settings.setValue("cursorFuzzyFiltering", cursorFuzzyFiltering->value() );
-
-    // Mixing presets
-    settings.setValue("MixingPresets", mixingToolBox->saveState());
 
     // last session file name
     settings.setValue("lastSessionFileName", currentSessionFileName);

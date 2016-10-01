@@ -66,7 +66,6 @@ private:
     Ui::FFGLSourceCreationDialog *ui;
 
     class FFGLSource *s;
-    class SourceDisplayWidget *preview;
 
     QDomElement pluginConfiguration;
     QSettings *appSettings;

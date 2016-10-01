@@ -64,9 +64,6 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
         }
     }
 
-
-    // show !
-    updateSourcePreview();
 }
 
 

@@ -53,7 +53,7 @@ const GLchar *fragmentShaderCode =  "varying vec2 texc;"
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static CFFGLPluginInfo PluginInfo ( 
+static CFFGLPluginInfo PluginInfo (
         FreeFrameBlur::CreateInstance,	// Create method
         "GLBLR",								// Plugin unique ID
         "GaussianBlur",			// Plugin name
@@ -90,8 +90,8 @@ FreeFrameBlur::FreeFrameBlur()
     SetTimeSupported(false);
 
     // Parameters
-    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, 0.7f);
-    blur = 0.7;
+    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, 0.8f);
+    blur = 0.8;
     param_changed = true;
 }
 

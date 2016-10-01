@@ -159,6 +159,7 @@ endif( USE_SHAREDMEMORY OR USE_SPOUT )
 # If FreeframeGL was set, then link with its source files
 if(USE_FREEFRAMEGL)
     add_definitions(-DFFGL)
+    add_definitions(-DFFGLPATH="${CMAKE_INSTALL_PREFIX}/lib/${GLMIXER_BINARY}/")
 
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         FFGLPluginInstances.cpp
@@ -167,6 +168,7 @@ if(USE_FREEFRAMEGL)
         FFGLPluginBrowser.cpp
         FFGLSource.cpp
         FFGLSourceCreationDialog.cpp
+        FFGLEffectSelectionDialog.cpp
         FFGLPluginSourceShadertoy.cpp
         GLSLCodeEditor.cpp
         GLSLCodeEditorWidget.cpp
@@ -178,6 +180,7 @@ if(USE_FREEFRAMEGL)
     SET(GLMIXER_UIS  ${GLMIXER_UIS}
         GLSLCodeEditorWidget.ui
         FFGLSourceCreationDialog.ui
+        FFGLEffectSelectionDialog.ui
     )
 
     SET(GLMIXER_RCS  ${GLMIXER_RCS}
@@ -349,7 +352,7 @@ ELSE(APPLE)
         SET(APPS "\${CMAKE_INSTALL_PREFIX}/${GLMIXER_BINARY}.exe")
         SET(CPACK_PACKAGE_EXECUTABLES "${GLMIXER_BINARY}" "GLMixer")
         SET(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
-        
+
         SET(CPACK_GENERATOR "NSIS")
         SET(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/win\\\\glmixer.ico")
         SET(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/win\\\\glmixer.ico")

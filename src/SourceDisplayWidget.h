@@ -38,21 +38,24 @@ public:
 
     enum backgroundType { BLACK = 0, WHITE, GRID};
 
-    SourceDisplayWidget(QWidget *parent = 0, enum backgroundType bg = GRID, bool witheffects = false);
+    SourceDisplayWidget(QWidget *parent = 0, enum backgroundType bg = GRID);
 
     virtual void initializeGL();
     virtual void resizeGL(int w, int h);
     virtual void paintGL();
 
-	void setSource(Source *sourceptr);
-	void playSource(bool on);
+    void setSource(Source *sourceptr);
+    void playSource(bool on);
 
-	GLuint getNewTextureIndex();
+    GLuint getNewTextureIndex();
+
+    void setEffectsEnabled(bool on) { _effects = on; }
+    bool effectsEnabled() const { return _effects; }
 
 public slots:
 
-	void setBlendingFunction(int functionindex);
-	void setBlendingEquation(int equationindex);
+    void setBlendingFunction(int functionindex);
+    void setBlendingEquation(int equationindex);
 
 private:
     Source *s;

@@ -31,29 +31,29 @@
 #include "RenderingManager.h"
 #include "ViewRenderWidget.h"
 
-SourceDisplayWidget::SourceDisplayWidget(QWidget *parent, enum backgroundType bg, bool witheffects) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()),
-    s(0), background(bg), _bgTexture(0),_playSource(false), _effects(witheffects)
+SourceDisplayWidget::SourceDisplayWidget(QWidget *parent, enum backgroundType bg) : glRenderWidget(parent, (QGLWidget *)RenderingManager::getRenderingWidget()),
+    s(0), background(bg), _bgTexture(0),_playSource(false), _effects(false)
 {
-	function = GL_ONE_MINUS_SRC_ALPHA;
-	equation = GL_FUNC_ADD;
+    function = GL_ONE_MINUS_SRC_ALPHA;
+    equation = GL_FUNC_ADD;
 
 }
 
 
 void SourceDisplayWidget::initializeGL()
 {
-	glRenderWidget::initializeGL();
+    glRenderWidget::initializeGL();
 
-	if (background == GRID)
-		setBackgroundColor( QColor(102, 102, 102) );
-	else if (background == WHITE)
-		setBackgroundColor(Qt::white);
-	else
-		setBackgroundColor(Qt::black);
+    if (background == GRID)
+        setBackgroundColor( QColor(102, 102, 102) );
+    else if (background == WHITE)
+        setBackgroundColor(Qt::white);
+    else
+        setBackgroundColor(Qt::black);
 
-	glGenTextures(1, &_bgTexture);
-	glBindTexture(GL_TEXTURE_2D, _bgTexture);
-	QImage p(":/glmixer/textures/transparencygrid.png");
+    glGenTextures(1, &_bgTexture);
+    glBindTexture(GL_TEXTURE_2D, _bgTexture);
+    QImage p(":/glmixer/textures/transparencygrid.png");
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  p.width(), p. height(), 0, GL_RGBA, GL_UNSIGNED_BYTE,  p.bits());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -63,7 +63,7 @@ void SourceDisplayWidget::initializeGL()
 
 void SourceDisplayWidget::setSource(Source *sourceptr)
 {
-	s = sourceptr;
+    s = sourceptr;
 }
 
 void SourceDisplayWidget::playSource(bool on)
@@ -77,23 +77,23 @@ void SourceDisplayWidget::playSource(bool on)
 
 void SourceDisplayWidget::paintGL()
 {
-	glRenderWidget::paintGL();
+    glRenderWidget::paintGL();
 
-	if (!isEnabled())
-		return;
+    if (!isEnabled())
+        return;
 
-	// reset
-	glLoadIdentity();
-	glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
+    // reset
+    glLoadIdentity();
+    glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
 
-	if ( background == GRID) {
+    if ( background == GRID) {
         // draw the background
         glScalef(2.f * aspectRatio, 2.f * aspectRatio, 1.f);
-		glBindTexture(GL_TEXTURE_2D, _bgTexture);
+        glBindTexture(GL_TEXTURE_2D, _bgTexture);
         glCallList(ViewRenderWidget::quad_texured);
         glLoadIdentity();
-	}
+    }
 
 
     if (s) {
@@ -101,20 +101,21 @@ void SourceDisplayWidget::paintGL()
         if(_playSource)
             s->update();
 
-		// adjust size to show all the square and ensure aspect ratio is preserved
-		if ( s->getAspectRatio() > aspectRatio )
-			glScalef( 1.f, aspectRatio / s->getAspectRatio(), 1.f);
-		else
-			glScalef( s->getAspectRatio() / aspectRatio, 1.f, 1.f);
-		// flip vertical if requested
+        // adjust size to show all the square and ensure aspect ratio is preserved
+        if ( s->getAspectRatio() > aspectRatio )
+            glScalef( 1.f, aspectRatio / s->getAspectRatio(), 1.f);
+        else
+            glScalef( s->getAspectRatio() / aspectRatio, 1.f, 1.f);
+        // flip vertical if requested
         glScalef( aspectRatio, 1.0, 1.f);
 
-        if (_effects)
-            // TODO
-            glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
-        else
-            // bind texture
-            glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
+        if (_effects) {
+            glScissor(0, 0, width()/2 - 1, height());
+            glEnable(GL_SCISSOR_TEST);
+        }
+
+        // bind raw texture
+        glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
 
         // blending
         glBlendEquationSeparate(equation, GL_MAX);
@@ -123,16 +124,29 @@ void SourceDisplayWidget::paintGL()
         // draw a quad with the texture
         glCallList(ViewRenderWidget::quad_texured);
 
+        // display effect on top
+        if (_effects) {
+
+            glScissor(width()/2, 0, width()/2, height());
+
+            // bind texture after effects
+            s->bind();
+            // draw a quad with the texture
+            glCallList(ViewRenderWidget::quad_texured);
+
+            glDisable(GL_SCISSOR_TEST);
+        }
+
         // revert color
         glColor4f(1.0, 1.0, 1.0, 1.0);
 
-	}
+    }
 }
 
 void SourceDisplayWidget::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
-	aspectRatio = (float) w / (float) h;
+    aspectRatio = (float) w / (float) h;
 
     // Setup specific projection and view for this window
     glMatrixMode(GL_PROJECTION);
@@ -145,18 +159,18 @@ void SourceDisplayWidget::resizeGL(int w, int h)
 
 GLuint SourceDisplayWidget::getNewTextureIndex() {
     GLuint textureIndex;
-	makeCurrent();
-	glGenTextures(1, &textureIndex);
-	return textureIndex;
+    makeCurrent();
+    glGenTextures(1, &textureIndex);
+    return textureIndex;
 }
 
 void SourceDisplayWidget::setBlendingFunction(int functionindex)
 {
-	function = blendfunctionFromInt(functionindex);
+    function = blendfunctionFromInt(functionindex);
 }
 
 void SourceDisplayWidget::setBlendingEquation(int equationindex)
 {
-	equation = blendequationFromInt(equationindex);
+    equation = blendequationFromInt(equationindex);
 }
 

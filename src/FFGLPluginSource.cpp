@@ -34,7 +34,7 @@ FFGLPluginSource::RTTI FFGLPluginSource::type = FFGLPluginSource::FREEFRAME_PLUG
 
 
 FFGLPluginSource::FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture)
-    : _filename("Freeframe"), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _fboSize(w,h)
+    : _filename("Freeframe"), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _fbo(0), _fboSize(w,h)
 {
     _plugin =  FFGLPluginInstanceFreeframe::New();
 

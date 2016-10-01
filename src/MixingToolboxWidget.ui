@@ -2236,6 +2236,12 @@ QListWidget::item:focus {
           </property>
           <item>
            <widget class="QToolButton" name="addPlugin">
+            <property name="minimumSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
             <property name="toolTip">
              <string>Add a Freeframe plugin (shared library)</string>
             </property>
@@ -2259,6 +2265,12 @@ QListWidget::item:focus {
           </item>
           <item>
            <widget class="QToolButton" name="addShadertoyPlugin">
+            <property name="minimumSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
             <property name="toolTip">
              <string>Add a Shadertoy plugin (GLSL code)</string>
             </property>

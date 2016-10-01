@@ -47,13 +47,13 @@ const GLchar *fragmentShaderCode = "#define ITER 32\n"
         "gl_FragColor = c;"
         "}";
 
-	
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static CFFGLPluginInfo PluginInfo ( 
+static CFFGLPluginInfo PluginInfo (
         FreeFrameMonteCarlo::CreateInstance,	// Create method
         "GLMTCRLO",								// Plugin unique ID
         "MonteCarloBlur",			// Plugin name
@@ -90,10 +90,10 @@ FreeFrameMonteCarlo::FreeFrameMonteCarlo()
     SetTimeSupported(false);
 
     // Parameters
-    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, 0.7f);
-    blur = 0.7;
-    SetParamInfo(FFPARAM_SIZE, "Size", FF_TYPE_STANDARD, 0.1f);
-    size = 0.1;
+    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, 0.8f);
+    blur = 0.8;
+    SetParamInfo(FFPARAM_SIZE, "Size", FF_TYPE_STANDARD, 0.5f);
+    size = 0.5;
     param_changed = true;
 }
 
@@ -221,7 +221,7 @@ FFResult FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     // no depth test
     glDisable(GL_DEPTH_TEST);
-	
+
     // use the blurring shader program
     glUseProgram(shaderProgram);
 

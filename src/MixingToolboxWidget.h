@@ -20,7 +20,7 @@ class MixingToolboxWidget: public QWidget, public Ui::MixingToolboxWidget {
 
 public:
 
-    MixingToolboxWidget(QWidget *parent);
+    MixingToolboxWidget(QWidget *parent, QSettings *settings = 0);
     ~MixingToolboxWidget();
     void setAntialiasing(bool antialiased);
 
@@ -102,6 +102,7 @@ private:
 
     QMap<QListWidgetItem *, Source *> _defaultPresets;
     QMap<QListWidgetItem *, Source *> _userPresets;
+    QSettings *appSettings;
 
 #ifdef FFGL
     class FFGLPluginBrowser *pluginBrowser;

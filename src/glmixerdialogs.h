@@ -91,7 +91,7 @@ public:
         verticalLayout = new QVBoxLayout(this);
         verticalLayout->setSpacing(9);
 
-        sourcedisplay = new SourceDisplayWidget(this, SourceDisplayWidget::GRID, true);
+        sourcedisplay = new SourceDisplayWidget(this, SourceDisplayWidget::GRID);
         sourcedisplay->setMinimumSize(QSize(160, 100));
         sourcedisplay->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 

@@ -25,6 +25,7 @@
 #include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
 #include "FFGLPluginBrowser.h"
+#include "FFGLEffectSelectionDialog.h"
 #endif
 
 #include "MixingToolboxWidget.moc"
@@ -238,7 +239,7 @@ public:
     }
 };
 
-MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), source(0)
+MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) : QWidget(parent), source(0), appSettings(settings)
 {
     setupUi(this);
     setEnabled(false);
@@ -311,11 +312,24 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent) : QWidget(parent), sou
         f.setItalic(true);
         presetsList->item(0)->setFont( f );
     }
+
+    // restore settings
+    if (appSettings) {
+        // Mixing presets
+        if (appSettings->contains("MixingPresets"))
+            restoreState(appSettings->value("MixingPresets").toByteArray());
+    }
 }
 
 
 MixingToolboxWidget::~MixingToolboxWidget()
 {
+    // save settings
+    if (appSettings) {
+        // Mixing presets
+        appSettings->setValue("MixingPresets", saveState());
+    }
+
     // clean presets list
     foreach (Source *s, _defaultPresets)
         delete s;
@@ -704,38 +718,32 @@ void MixingToolboxWidget::changed(){
 
 void MixingToolboxWidget::on_addPlugin_pressed(){
 
-    static QDir dir(QDir::current());
+    static FFGLEffectSelectionDialog *effectDialog = new FFGLEffectSelectionDialog(this, appSettings);
 
+    effectDialog->exec();
+
+    QString fileName = effectDialog->getSelectedFreeframePlugin();
+
+    if (!fileName.isNull())
+    {
+
+        QFileInfo pluginfile(fileName);
 #ifdef Q_OS_MAC
-    QString ext = " (*.bundle *.so)";
-#else
-#ifdef Q_OS_WIN
-    QString ext = " (*.dll)";
-    dir.cd("../lib/glmixer");
-#else
-    QString ext = " (*.so)";
-    dir.cd("/usr/lib/glmixer");
+        if (pluginfile.isBundle())
+            pluginfile.setFile( pluginfile.absoluteFilePath() + "/Contents/MacOS/" + pluginfile.baseName() );
 #endif
-#endif
-    // browse for a plugin file
-    //QString fileName = GLMixer::getInstance()->getFileName(tr("Open FreeFrameGL Plugin library"), tr("Freeframe GL Plugin") + ext);
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open FreeFrameGL Plugin library"), dir.absolutePath(), tr("Freeframe GL Plugin") + ext );
+        if (source && pluginfile.isFile()) {
 
-    QFileInfo pluginfile(fileName);
-#ifdef Q_OS_MAC
-    if (pluginfile.isBundle())
-        pluginfile.setFile( pluginfile.absoluteFilePath() + "/Contents/MacOS/" + pluginfile.baseName() );
-#endif
-    if (source && pluginfile.isFile()) {
+            // add a the given freeframe plugin
+            FFGLPluginSource *plugin = source->addFreeframeGLPlugin( pluginfile.absoluteFilePath() );
 
-        // add a the given freeframe plugin
-        FFGLPluginSource *plugin = source->addFreeframeGLPlugin( pluginfile.absoluteFilePath() );
-
-        // test if plugin was added
-        if ( plugin ) {
-            pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
-            changed();
+            // test if plugin was added
+            if ( plugin ) {
+                pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
+                changed();
+            }
         }
+
     }
 }
 
