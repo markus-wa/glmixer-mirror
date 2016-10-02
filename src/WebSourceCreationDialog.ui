@@ -90,7 +90,7 @@
             <string>Enter a web URL (http://...)</string>
            </property>
            <property name="text">
-            <string>http://sourceforge.net/projects/glmixer/</string>
+            <string></string>
            </property>
           </widget>
          </item>

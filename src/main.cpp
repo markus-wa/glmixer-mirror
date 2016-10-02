@@ -145,7 +145,7 @@ int main(int argc, char **argv)
     //
     // 3. Start the application GUI
     //
-    GLMixer::getInstance()->readSettings();
+    GLMixer::getInstance()->readSettings( a.applicationDirPath() );
     a.processEvents();
 
 #ifdef SHM

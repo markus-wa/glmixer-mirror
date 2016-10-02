@@ -2465,8 +2465,11 @@ void GLMixer::drop(QDropEvent *event)
 
 }
 
-void GLMixer::readSettings()
+void GLMixer::readSettings( QString pathtobin )
 {
+    if ( !pathtobin.isNull() )
+        settings.setValue("ExecutionPath", pathtobin);
+
     // preferences
     if (settings.contains("UserPreferences"))
         restorePreferences(settings.value("UserPreferences").toByteArray());

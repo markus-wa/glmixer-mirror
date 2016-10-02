@@ -15,22 +15,33 @@ FFGLEffectSelectionDialog::FFGLEffectSelectionDialog(QWidget *parent, QSettings 
     ui->setupUi(this);
     ui->preview->setEffectsEnabled(true);
 
-    QDir effectDir(FFGLPATH);
-    if (!effectDir.exists()) {
-        ui->freeframeEmbededPlugin->setEnabled(false);
-        ui->freeframeFilePlugin->setChecked(true);
-    }
-    else {
+    QDir effectDir = QDir::current();
+    if (appSettings && appSettings->contains("ExecutionPath")) {
+        effectDir = QDir(appSettings->value("ExecutionPath").toString());
+    }    
+    
+    if ( effectDir.cd("../lib/glmixer/")  ||  effectDir.cd("./lib/glmixer/")) {
 
+        #ifdef Q_OS_WIN
+        QString ext = "dll";
+        #else
+        QString ext = "so";
+        #endif
+    
+        qDebug() << effectDir.absolutePath() << QChar(124).toLatin1() << tr("Loading Freeframe plugins.");
         // list installed plugins
         QStringList d = effectDir.entryList();
         for (QStringList::iterator p = d.begin(); p != d.end(); ++p ) {
             QFileInfo effectFile(effectDir, *p);
-            if (effectFile.exists() && effectFile.isFile() ) {
-//                effects.append( QPair <QString, QFileInfo> (effectFile.baseName(), effectFile ) );
+            if (effectFile.exists() && effectFile.isFile() && effectFile.suffix() == ext ) {
                 ui->freeframeEmbededList->addItem(effectFile.baseName(), effectFile.absoluteFilePath());
             }
         }
+    }
+    else {
+        ui->freeframeEmbededPlugin->setEnabled(false);
+        ui->freeframeFilePlugin->setChecked(true);
+        qWarning() << effectDir.absolutePath() << QChar(124).toLatin1() << tr("Freeframe plugins not installed.");
     }
 
 

@@ -9,7 +9,7 @@ include(${CMAKE_SOURCE_DIR}/macros.cmake)
 IF(EXISTS "${CMAKE_SOURCE_DIR}/.svn")
     FIND_PACKAGE(Subversion)
     IF(Subversion_FOUND)
-      Subversion_WC_INFO(${CMAKE_SOURCE_DIR} GLMIXER)
+      Subversion_WC_INFO( "/home/herbelin/glmixer-Source" GLMIXER)
       MESSAGE("Current subversion revision is ${GLMIXER_WC_REVISION}")
     ENDIF(Subversion_FOUND)
 ENDIF()
@@ -97,7 +97,7 @@ if( GLMIXER_LINK_STATIC )
     	set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .dylib .framework)
     else( APPLE )
         if(WIN32)
-      		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .lib .lib64 .dll )
+      		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .lib .lib64 .dll.a .dll )
         else(WIN32)
                 # not APPLE, not WIN32 ; must be unix !
     		set( CMAKE_FIND_LIBRARY_SUFFIXES  .a .so .so.0 .so.1 )
@@ -110,7 +110,7 @@ else( GLMIXER_LINK_STATIC )
     	set( CMAKE_FIND_LIBRARY_SUFFIXES .so .so.0 .dylib .framework .a )
     else( APPLE)
         if( WIN32 )
-      		set( CMAKE_FIND_LIBRARY_SUFFIXES .dll .dll.a .lib .lib64 .a )
+      		set( CMAKE_FIND_LIBRARY_SUFFIXES .dll.a .dll .lib .lib64 .a )
         else( WIN32 )
                 # not APPLE, not WIN32 ; must be unix !
     		set( CMAKE_FIND_LIBRARY_SUFFIXES  .so .so.0 .so.1 .a )
@@ -206,13 +206,15 @@ SET(USE_OPENCV ON CACHE BOOL "CHECK if you want to compile with OpenCV library")
 
 if(USE_OPENCV)
 
+message(STATUS "Looking for OpenCV.")
+
     unset(OPENCV_CORE_LIBRARY CACHE)
     unset(OPENCV_IMGPROC_LIBRARY CACHE)
     unset(OPENCV_HIGHGUI_LIBRARY CACHE)
 
-    find_library( OPENCV_CORE_LIBRARY NAMES opencv_core cxcore200 opencv_core230)
-    find_library( OPENCV_IMGPROC_LIBRARY NAMES opencv_imgproc cvaux200 opencv_imgproc230)
-    find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_videoio opencv_highgui highgui200 opencv_highgui230)
+    find_library( OPENCV_CORE_LIBRARY NAMES opencv_core cxcore200 opencv_core230 opencv_core2413)
+    find_library( OPENCV_IMGPROC_LIBRARY NAMES opencv_imgproc cvaux200 opencv_imgproc2413)
+    find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_videoio opencv_highgui highgui200 opencv_highgui2413)
     # if we find the opencv libs required, then use opencv
     if(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY})
@@ -253,6 +255,7 @@ if(USE_OPENCV)
 
         unset(USE_OPENCV CACHE)
  #       set(USE_OPENCV OFF CACHE BOOL)
+ message(STATUS "Did not find OpenCV.")
 
     endif(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
 

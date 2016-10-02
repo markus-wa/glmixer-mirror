@@ -141,7 +141,7 @@ public slots:
     void on_openLogsFolder_clicked();
 #endif
 
-	void readSettings();
+	void readSettings(QString pathtobin = QString::null);
     void saveSettings();
 
     // interaction
