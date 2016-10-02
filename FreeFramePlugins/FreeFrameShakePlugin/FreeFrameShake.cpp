@@ -1,6 +1,7 @@
 #include "FreeFrameShake.h"
 
 #include <cmath>
+#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -8,18 +9,18 @@
 
 #define FFPARAM_DISTORT (0)
 
-static CFFGLPluginInfo PluginInfo ( 
-    FreeFrameShake::CreateInstance,	// Create method
-    "GLSHAK",           // Plugin unique ID
-    "FreeFrameShake",   // Plugin name
-    1,                  // API major version number
-    500,                // API minor version number
-    1,                  // Plugin major version number
-    000,                // Plugin minor version number
-    FF_EFFECT,          // Plugin type
-    "Shaking plugin",	 // Plugin description
-    "by Bruno Herbelin"  // About
-);
+static CFFGLPluginInfo PluginInfo (
+        FreeFrameShake::CreateInstance,	// Create method
+        "GLSHAK",           // Plugin unique ID
+        "FreeFrameShake",   // Plugin name
+        1,                  // API major version number
+        500,                // API minor version number
+        1,                  // Plugin major version number
+        000,                // Plugin minor version number
+        FF_EFFECT,          // Plugin type
+        "Shakes the image",	 // Plugin description
+        "by Bruno Herbelin"  // About
+        );
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +28,7 @@ static CFFGLPluginInfo PluginInfo (
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FreeFrameShake::FreeFrameShake()
-: CFreeFrameGLPlugin()
+    : CFreeFrameGLPlugin()
 {
     // Input properties
     SetMinInputs(1);
@@ -36,10 +37,12 @@ FreeFrameShake::FreeFrameShake()
     SetTimeSupported(true);
 
     // Parameters
-    SetParamInfo(FFPARAM_DISTORT, "Shaking", FF_TYPE_STANDARD, 0.7f);
+    SetParamInfo(FFPARAM_DISTORT, "Amplitude", FF_TYPE_STANDARD, 0.7f);
     distort = 0.7;
-    param_changed = true;
+
     deltaTime = 0.01;
+    m_curTime = 0.0;
+    tx = ty = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +70,7 @@ FFResult FreeFrameShake::DeInitGL()
 #endif
 {
 
-  return FF_SUCCESS;
+    return FF_SUCCESS;
 }
 
 #ifdef FF_FAIL
@@ -78,9 +81,9 @@ DWORD   FreeFrameTest::SetTime(double time)
 FFResult FreeFrameShake::SetTime(double time)
 #endif
 {
-  deltaTime = time - m_curTime;
-  m_curTime = time;
-  return FF_SUCCESS;
+    deltaTime = time - m_curTime;
+    m_curTime = time;
+    return FF_SUCCESS;
 }
 
 #ifdef FF_FAIL
@@ -91,70 +94,78 @@ DWORD	FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 FFResult FreeFrameShake::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
-  if (pGL->numInputTextures<1)
-    return FF_FAIL;
+    if (!pGL)
+        return FF_FAIL;
 
-  if (pGL->inputTextures[0]==NULL)
-    return FF_FAIL;
-  
-  FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
+    if (pGL->numInputTextures<1)
+        return FF_FAIL;
 
-  //bind the texture handle to its target
-  glBindTexture(GL_TEXTURE_2D, Texture.Handle);
+    if (pGL->inputTextures[0]==NULL)
+        return FF_FAIL;
 
-  //enable texturemapping
-  glEnable(GL_TEXTURE_2D);
+    FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
-  glColor4f(1.f, 1.f, 1.f, 1.f);
+    //bind the texture handle to its target
+    glBindTexture(GL_TEXTURE_2D, Texture.Handle);
 
-  double a = distort * 0.1;
-  tx = 0.6 * ( a * (double) rand() / RAND_MAX ) + 0.4 * tx;
-  ty = 0.6 * ( a * (double) rand() / RAND_MAX ) + 0.4 * ty;
+    //enable texturemapping
+    glEnable(GL_TEXTURE_2D);
 
-  glBegin(GL_QUADS);
+    glColor4f(1.f, 1.f, 1.f, 1.f);
 
-  //lower left
-  glTexCoord2d(a-tx, a-ty);
-  glVertex2f(-1,-1);
+    double amplitude = distort * 0.1;
 
-  //upper left
-  glTexCoord2d(a-tx, 1.0-a-ty);
-  glVertex2f(-1,1);
+    double speed = amplitude * ( (double) rand() / (double) (RAND_MAX / 2) - 1.0) * deltaTime;
 
-  //upper right
-  glTexCoord2d(1.0-a-tx, 1.0-a-ty);
-  glVertex2f(1,1);
+    tx = CLAMP( tx + speed * 2.0, 0, amplitude);
 
-  //lower right
-  glTexCoord2d(1.0-a-tx, a-ty);
-  glVertex2f(1,-1);
-  glEnd();
+    speed = amplitude * ( (double) rand() / (double) (RAND_MAX / 2) -1.0 ) * deltaTime;
 
-  //unbind the texture
-  glBindTexture(GL_TEXTURE_2D, 0);
+    ty = CLAMP( ty + speed * 2.0, 0, amplitude);
 
-  //disable texturemapping
-  glDisable(GL_TEXTURE_2D);
+    glBegin(GL_QUADS);
 
-  return FF_SUCCESS;
+    //lower left
+    glTexCoord2d(amplitude-tx, amplitude-ty);
+    glVertex2f(-1,-1);
+
+    //upper left
+    glTexCoord2d(amplitude-tx, 1.0-amplitude-ty);
+    glVertex2f(-1,1);
+
+    //upper right
+    glTexCoord2d(1.0-amplitude-tx, 1.0-amplitude-ty);
+    glVertex2f(1,1);
+
+    //lower right
+    glTexCoord2d(1.0-amplitude-tx, amplitude-ty);
+    glVertex2f(1,-1);
+    glEnd();
+
+    //unbind the texture
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    //disable texturemapping
+    glDisable(GL_TEXTURE_2D);
+
+    return FF_SUCCESS;
 }
 
 
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD FreeFrameBlur::SetParameter(const SetParameterStruct* pParam)
+DWORD FreeFrameShake::SetParameter(const SetParameterStruct* pParam)
 {
     if (pParam != NULL && pParam->ParameterNumber == FFPARAM_DISTORT) {
         distort = *((float *)(unsigned)&(pParam->NewParameterValue));
-        param_changed = true;
         return FF_SUCCESS;
     }
 
     return FF_FAIL;
 }
 
-DWORD FreeFrameBlur::GetParameter(DWORD index)
+DWORD FreeFrameShake::GetParameter(DWORD index)
 {
     DWORD dwRet = 0;
     *((float *)(unsigned)&dwRet) = distort;
@@ -171,7 +182,6 @@ FFResult FreeFrameShake::SetFloatParameter(unsigned int index, float value)
 {
     if (index == FFPARAM_DISTORT) {
         distort = value;
-        param_changed = true;
         return FF_SUCCESS;
     }
 

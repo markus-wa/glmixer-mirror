@@ -10,7 +10,7 @@ GLuint displayList = 0;
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static CFFGLPluginInfo PluginInfo ( 
+static CFFGLPluginInfo PluginInfo (
         FreeFrameDelay::CreateInstance,	// Create method
         "GLDLY",								// Plugin unique ID
         "Delay",			// Plugin name
@@ -19,7 +19,7 @@ static CFFGLPluginInfo PluginInfo (
         1,										// Plugin major version number
         000,									// Plugin minor version number
         FF_EFFECT,						// Plugin type
-        "Delay (in second) the display of the provided input",	 // Plugin description
+        "Delays the display",	 // Plugin description
         "by Bruno Herbelin"  // About
         );
 

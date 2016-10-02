@@ -62,7 +62,7 @@ static CFFGLPluginInfo PluginInfo (
         1,										// Plugin major version number
         000,									// Plugin minor version number
         FF_EFFECT,						// Plugin type
-        "Blurs the display of the provided input",	 // Plugin description
+        "Blurs with Gaussian linear sampling",	 // Plugin description
         "by Bruno Herbelin"  // About
         );
 

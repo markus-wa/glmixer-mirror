@@ -12,7 +12,7 @@ GLuint texid = 0;
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static CFFGLPluginInfo PluginInfo ( 
+static CFFGLPluginInfo PluginInfo (
     FreeFrameTest::CreateInstance,	// Create method
     "GLSH",             // Plugin unique ID
     "FreeFrameShadow",    // Plugin name
@@ -21,7 +21,7 @@ static CFFGLPluginInfo PluginInfo (
     1,                  // Plugin major version number
     000,                // Plugin minor version number
     FF_EFFECT,          // Plugin type
-    "Sample plugin",	 // Plugin description
+    "Drops a shadow",	 // Plugin description
     "by Bruno Herbelin"  // About
 );
 
@@ -71,8 +71,13 @@ FFResult FreeFrameTest::InitGL(const FFGLViewportStruct *vp)
         glEndList();
     }
 
+    glGenTextures(1, &texid);
+    glBindTexture(GL_TEXTURE_2D, texid);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, shadow.width,
+            shadow.height,  0, GL_RGBA, GL_UNSIGNED_BYTE, shadow.pixel_data);
 
-//    glBindTexture(GL_TEXTURE_2D, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     return FF_SUCCESS;
 }
@@ -118,7 +123,7 @@ FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
   if (pGL->inputTextures[0]==NULL)
     return FF_FAIL;
-  
+
   FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
   glClearColor(0.f, 0.f, 0.f, 0.f);
@@ -126,17 +131,6 @@ FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
   //enable texturemapping
   glEnable(GL_TEXTURE_2D);
-
-  if (!texid) {
-      glGenTextures(1, &texid);
-      glBindTexture(GL_TEXTURE_2D, texid);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, shadow.width,
-              shadow.height,  0, GL_RGBA, GL_UNSIGNED_BYTE, shadow.pixel_data);
-
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  }
-
 
   //bind the texture handle to its target
   glBindTexture(GL_TEXTURE_2D, texid);
@@ -146,7 +140,7 @@ FFResult FreeFrameTest::ProcessOpenGL(ProcessOpenGLStruct *pGL)
   //bind the texture handle to its target
   glBindTexture(GL_TEXTURE_2D, Texture.Handle);
 
-  glTranslated(-0.01, -0.01, 0.0);
+  glTranslated(-0.01, -0.01, 0.01);
   glScaled(0.8, 0.8, 1.0);
   glCallList(displayList);
 

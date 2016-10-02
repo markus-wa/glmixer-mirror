@@ -4,11 +4,14 @@
 
 GLuint displayList = 0;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
-////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
-static CFFGLPluginInfo PluginInfo ( 
+#define FFPARAM_DISTORT (0)
+#define FFPARAM_SPEED (1)
+
+static CFFGLPluginInfo PluginInfo (
         FreeFrameWave::CreateInstance,	// Create method
         "GLwAVE",           // Plugin unique ID
         "FreeFrameWave",    // Plugin name
@@ -17,7 +20,7 @@ static CFFGLPluginInfo PluginInfo (
         1,                  // Plugin major version number
         000,                // Plugin minor version number
         FF_EFFECT,          // Plugin type
-        "Wavy plugin",      // Plugin description
+        "Sinusoidal waves",      // Plugin description
         "by Bruno Herbelin" // About
         );
 
@@ -33,6 +36,19 @@ FreeFrameWave::FreeFrameWave()
     SetMinInputs(1);
     SetMaxInputs(1);
 
+    SetTimeSupported(true);
+
+    // Parameters
+    SetParamInfo(FFPARAM_DISTORT, "Amplitude", FF_TYPE_STANDARD, 0.5f);
+    distort = 0.5;
+    // Parameters
+    SetParamInfo(FFPARAM_SPEED, "Speed", FF_TYPE_STANDARD, 0.5f);
+    speed = 0.5;
+
+    deltaTime = 0.01;
+    m_curTime = 0.0;
+    relTime = 0.0;
+    phase = 0.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,8 +63,8 @@ FFResult FreeFrameWave::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
 
-    width = vp->width;
-    height = vp->height;
+    width = (float) vp->width;
+    height = (float) vp->height;
 
     return FF_SUCCESS;
 }
@@ -74,7 +90,9 @@ DWORD   FreeFrameWave::SetTime(double time)
 FFResult FreeFrameWave::SetTime(double time)
 #endif
 {
+    deltaTime = time - m_curTime;
     m_curTime = time;
+    relTime += deltaTime * speed;
     return FF_SUCCESS;
 }
 
@@ -107,7 +125,7 @@ FFResult FreeFrameWave::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     //the texture colors as they are)
     glColor4f(1.f, 1.f, 1.f, 1.f);
 
-    unsigned long tick = (unsigned long) (m_curTime * 1000);
+    unsigned long tick = (unsigned long) (relTime * 1000);
     int i, j;
 
     glMatrixMode(GL_PROJECTION);
@@ -118,24 +136,27 @@ FFResult FreeFrameWave::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     glMatrixMode(GL_MODELVIEW);
 
+    phase = 1.0 + 0.001 * ( 0.1 * ( ( (float) rand() / (float) (RAND_MAX) ) ) + 0.9 * phase );
+
     // Generate a 16x16 grid, and perturb the UV coordinates
     glBegin(GL_TRIANGLE_STRIP);
     for (j = 0; j < 16; j++)
     {
         for (i = 0; i < 17; i++)
         {
+
             float u, v;
             u = i * (1 / 16.0f);
             v = j * (1 / 16.0f);
-            u += (float)((sin((tick + i*100) * 0.012387) * 0.04) * sin(tick * 0.000514382));
-            v += (float)((cos((tick + j*100) * 0.012387) * 0.04) * sin(tick * 0.000714282));
+            u += distort * (float)((sin((tick + i*100) * 0.012387 * phase) * 0.04) );
+            v += distort * (float)((cos((tick + j*100) * 0.012387) * 0.04) );
             glTexCoord2f(u, v);
             glVertex2f(i * (width / 16.0f), j * (height / 16.0f));
 
             u = i * (1 / 16.0f);
             v = (j + 1) * (1 / 16.0f);
-            u += (float)((sin((tick +       i*100) * 0.012387) * 0.04) * sin(tick * 0.000514382));
-            v += (float)((cos((tick + (j + 1)*100) * 0.012387) * 0.04) * sin(tick * 0.000714282));
+            u += distort * (float)((sin((tick +       i*100) * 0.012387 * phase) * 0.04) );
+            v += distort * (float)((cos((tick + (j + 1)*100) * 0.012387) * 0.04) );
             glTexCoord2f(u, v);
             glVertex2f(i * (width / 16.0f), (j + 1) * (height / 16.0f));
         }
@@ -153,3 +174,61 @@ FFResult FreeFrameWave::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     return FF_SUCCESS;
 }
+
+
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD FreeFrameWave::SetParameter(const SetParameterStruct* pParam)
+{
+    if (pParam != NULL && pParam->ParameterNumber == FFPARAM_DISTORT) {
+        distort = *((float *)(unsigned)&(pParam->NewParameterValue));
+        return FF_SUCCESS;
+    } else  if (pParam != NULL && pParam->ParameterNumber == FFPARAM_DISTORT) {
+        speed = *((float *)(unsigned)&(pParam->NewParameterValue));
+        return FF_SUCCESS;
+    }
+
+    return FF_FAIL;
+}
+
+DWORD FreeFrameWave::GetParameter(DWORD index)
+{
+    DWORD dwRet = 0;
+
+    if (index == FFPARAM_DISTORT) {
+        *((float *)(unsigned)&dwRet) = distort;
+        return dwRet;
+    }
+    else if (index == FFPARAM_SPEED){
+        *((float *)(unsigned)&dwRet) = speed;
+        return dwRet;
+    }
+    else
+        return FF_FAIL;
+}
+
+#else
+// FFGL 1.6
+FFResult FreeFrameWave::SetFloatParameter(unsigned int index, float value)
+{
+    if (index == FFPARAM_DISTORT) {
+        distort = value;
+        return FF_SUCCESS;
+    } else if (index == FFPARAM_SPEED) {
+        speed = value;
+        return FF_SUCCESS;
+    }
+
+    return FF_FAIL;
+}
+
+float FreeFrameWave::GetFloatParameter(unsigned int index)
+{
+    if (index == FFPARAM_DISTORT)
+        return distort;
+    else if (index == FFPARAM_SPEED)
+        return speed;
+
+    return 0.0;
+}
+#endif

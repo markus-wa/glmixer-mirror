@@ -96,7 +96,7 @@
     <widget class="QComboBox" name="freeframeEmbededList">
      <item>
       <property name="text">
-       <string/>
+       <string>Select...</string>
       </property>
      </item>
     </widget>
@@ -104,7 +104,7 @@
    <item>
     <widget class="QRadioButton" name="freeframeFilePlugin">
      <property name="text">
-      <string>Other Freeframe plugin file</string>
+      <string>Other Freeframe plugin</string>
      </property>
     </widget>
    </item>
@@ -185,10 +185,13 @@
    <item>
     <widget class="QLabel" name="warningLabel">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning:&lt;/span&gt; Could not load plugin.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning:&lt;/span&gt; A plugin with the same filename but from another location is already in the list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="textFormat">
       <enum>Qt::RichText</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

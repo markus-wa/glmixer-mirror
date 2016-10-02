@@ -114,23 +114,24 @@ void SourceDisplayWidget::paintGL()
             glEnable(GL_SCISSOR_TEST);
         }
 
-        // bind raw texture
-        glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
-
         // blending
         glBlendEquationSeparate(equation, GL_MAX);
         glBlendFuncSeparate(GL_SRC_ALPHA, function, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO);
 
+        // bind raw texture
+        glBindTexture(GL_TEXTURE_2D, s->getTextureIndex());
+
         // draw a quad with the texture
         glCallList(ViewRenderWidget::quad_texured);
 
-        // display effect on top
+        // display effect on the right
         if (_effects) {
 
             glScissor(width()/2, 0, width()/2, height());
 
             // bind texture after effects
             s->bind();
+
             // draw a quad with the texture
             glCallList(ViewRenderWidget::quad_texured);
 

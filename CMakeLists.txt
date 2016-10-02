@@ -1,6 +1,6 @@
 ##
 ## CMake configuration
-## 
+##
 project(glmixer)
 cmake_minimum_required(VERSION 2.8.0)
 include(${CMAKE_SOURCE_DIR}/macros.cmake)
@@ -9,7 +9,7 @@ include(${CMAKE_SOURCE_DIR}/macros.cmake)
 IF(EXISTS "${CMAKE_SOURCE_DIR}/.svn")
     FIND_PACKAGE(Subversion)
     IF(Subversion_FOUND)
-      Subversion_WC_INFO( "/home/herbelin/glmixer-Source" GLMIXER)
+      Subversion_WC_INFO( ${CMAKE_SOURCE_DIR} GLMIXER)
       MESSAGE("Current subversion revision is ${GLMIXER_WC_REVISION}")
     ENDIF(Subversion_FOUND)
 ENDIF()
@@ -79,11 +79,11 @@ SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 # defines used by preprocessor to integrate program version and SVN revision into the application
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_VERSION=${GLMIXER_VERSION_MAJOR}.${GLMIXER_VERSION_MINOR}" )
 IF(GLMIXER_WC_REVISION)
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${GLMIXER_WC_REVISION}" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLMIXER_REVISION=${GLMIXER_WC_REVISION}" )
 ENDIF(GLMIXER_WC_REVISION)
 
 ##
-## LIBRARIES 
+## LIBRARIES
 ##
 
 # Propose two library link modes> static or shared
@@ -94,39 +94,39 @@ if( GLMIXER_LINK_STATIC )
     message(STATUS "Searching for static libraries preferably." )
     # set the possible suffix for library files in favor of static libs
     if( APPLE )
-    	set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .dylib .framework)
+        set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .dylib .framework)
     else( APPLE )
         if(WIN32)
-      		set( CMAKE_FIND_LIBRARY_SUFFIXES .a .lib .lib64 .dll.a .dll )
+                set( CMAKE_FIND_LIBRARY_SUFFIXES .a .lib .lib64 .dll.a .dll )
         else(WIN32)
                 # not APPLE, not WIN32 ; must be unix !
-    		set( CMAKE_FIND_LIBRARY_SUFFIXES  .a .so .so.0 .so.1 )
+                set( CMAKE_FIND_LIBRARY_SUFFIXES  .a .so .so.0 .so.1 )
         endif(WIN32)
     endif( APPLE )
 else( GLMIXER_LINK_STATIC )
     message(STATUS "Searching for shared libraries preferably" )
-    # set the possible suffix for library files in favor of dynamic libs 
+    # set the possible suffix for library files in favor of dynamic libs
     if( APPLE )
-    	set( CMAKE_FIND_LIBRARY_SUFFIXES .so .so.0 .dylib .framework .a )
+        set( CMAKE_FIND_LIBRARY_SUFFIXES .so .so.0 .dylib .framework .a )
     else( APPLE)
         if( WIN32 )
-      		set( CMAKE_FIND_LIBRARY_SUFFIXES .dll.a .dll .lib .lib64 .a )
+                set( CMAKE_FIND_LIBRARY_SUFFIXES .dll.a .dll .lib .lib64 .a )
         else( WIN32 )
                 # not APPLE, not WIN32 ; must be unix !
-    		set( CMAKE_FIND_LIBRARY_SUFFIXES  .so .so.0 .so.1 .a )
+                set( CMAKE_FIND_LIBRARY_SUFFIXES  .so .so.0 .so.1 .a )
         endif( WIN32 )
     endif( APPLE )
 endif( GLMIXER_LINK_STATIC )
 
-set( CMAKE_LIBRARY_PATH 
+set( CMAKE_LIBRARY_PATH
   /opt/local/lib
   /opt/lib
   /usr/local/lib
   /usr/lib
-  /mingw/bin 
-  /mingw/lib 
-  /mingw32/bin 
-  /mingw32/lib 
+  /mingw/bin
+  /mingw/lib
+  /mingw32/bin
+  /mingw32/lib
   /mingw32/i686-w64-mingw32/bin/
   /mingw32/i686-w64-mingw32/lib/
   ~/Library/Frameworks
@@ -147,7 +147,7 @@ set( GLMIXER_LIBRARIES  ${OPENGL_LIBRARY})
 # set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES}  ${FOUNDATION_LIBRARY})
 
 # SOME HINTS FOR THE FIND_LIBRARY BELLOW
-set( CMAKE_INCLUDE_PATH 
+set( CMAKE_INCLUDE_PATH
   ${CMAKE_INCLUDE_PATH}
   /opt/local/include
   /opt/include
@@ -217,38 +217,38 @@ message(STATUS "Looking for OpenCV.")
     find_library( OPENCV_HIGHGUI_LIBRARY NAMES opencv_videoio opencv_highgui highgui200 opencv_highgui2413)
     # if we find the opencv libs required, then use opencv
     if(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
-	set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY})
-	message(STATUS "Found OpenCV libraries (${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY}).")
-	
-	if( APPLE )
-	    SET(USE_QUICKTIME ${USE_QUICKTIME} CACHE BOOL "CHECK if you want to compile with QuickTime library")
-	
-		if(USE_QUICKTIME)
-			find_package( QuickTime REQUIRED)
-			set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${QUICKTIME_LIBRARY} )
-			set(OSX_ARCHITECTURES "i386")
-			message(STATUS "Set the variable CMAKE_OSX_ARCHITECTURE to i386 because QuickTime is i386 only.")
-		else(USE_QUICKTIME)
-			find_library( QTKIT_LIBRARY NAMES QTKit )
-			if(QTKIT_LIBRARY)
-				set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${QTKIT_LIBRARY} )
-				message(STATUS "Found QTKit framework.")
-			endif(QTKIT_LIBRARY)
-		endif(USE_QUICKTIME)
-		find_library( COCOA_LIBRARY NAMES Cocoa )
-		find_library( QUARTZCORE_LIBRARY NAMES QuartzCore )
+        set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY})
+        message(STATUS "Found OpenCV libraries (${OPENCV_IMGPROC_LIBRARY} ${OPENCV_HIGHGUI_LIBRARY} ${OPENCV_CORE_LIBRARY}).")
+
+        if( APPLE )
+            SET(USE_QUICKTIME ${USE_QUICKTIME} CACHE BOOL "CHECK if you want to compile with QuickTime library")
+
+                if(USE_QUICKTIME)
+                        find_package( QuickTime REQUIRED)
+                        set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${QUICKTIME_LIBRARY} )
+                        set(OSX_ARCHITECTURES "i386")
+                        message(STATUS "Set the variable CMAKE_OSX_ARCHITECTURE to i386 because QuickTime is i386 only.")
+                else(USE_QUICKTIME)
+                        find_library( QTKIT_LIBRARY NAMES QTKit )
+                        if(QTKIT_LIBRARY)
+                                set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${QTKIT_LIBRARY} )
+                                message(STATUS "Found QTKit framework.")
+                        endif(QTKIT_LIBRARY)
+                endif(USE_QUICKTIME)
+                find_library( COCOA_LIBRARY NAMES Cocoa )
+                find_library( QUARTZCORE_LIBRARY NAMES QuartzCore )
                 if(COCOA_LIBRARY AND QUARTZCORE_LIBRARY)
-			set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY}  )
+                        set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${COCOA_LIBRARY} ${QUARTZCORE_LIBRARY}  )
                         message(STATUS "OpenCV OSX dependencies OK.")
                 endif(COCOA_LIBRARY AND QUARTZCORE_LIBRARY)
         else( APPLE )
-		if( UNIX )
-			find_library( V4L_LIBRARY NAMES v4l1 )
+                if( UNIX )
+                        find_library( V4L_LIBRARY NAMES v4l1 )
                         if(V4L_LIBRARY)
-				set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${V4L_LIBRARY}  )
+                                set( GLMIXER_LIBRARIES ${GLMIXER_LIBRARIES} ${V4L_LIBRARY}  )
                                 message(STATUS "OpenCV UNIX dependencies OK.")
                         endif(V4L_LIBRARY)
-		endif( UNIX )
+                endif( UNIX )
         endif( APPLE )
 
     else(OPENCV_CORE_LIBRARY AND OPENCV_IMGPROC_LIBRARY AND OPENCV_HIGHGUI_LIBRARY)
@@ -262,7 +262,7 @@ message(STATUS "Looking for OpenCV.")
 endif(USE_OPENCV)
 
 if(USE_OPENCV)
-	message(STATUS "Using OpenCV.")
+        message(STATUS "Using OpenCV.")
 endif(USE_OPENCV)
 
 
@@ -333,16 +333,16 @@ endif(USE_NVIDIA_CUDA)
 # HERE ARE THE FFMPEG ESSENTIAL AND REQUIRED LIBRARIES
 
 SET(GLMIXER_DEPENDENCIES ${GLMIXER_DEPENDENCIES} avformat avcodec avutil swscale avfilter x264)
-    
+
 FOREACH(GLMIXER_DEPENDENCY ${GLMIXER_DEPENDENCIES})
     STRING(TOUPPER ${GLMIXER_DEPENDENCY} _upper_glmixer_dependency)
     unset(${_upper_glmixer_dependency}_LIBRARY CACHE)
     find_library(${_upper_glmixer_dependency}_LIBRARY ${GLMIXER_DEPENDENCY})
         if(${_upper_glmixer_dependency}_LIBRARY)
-		set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${${_upper_glmixer_dependency}_LIBRARY} )
-		message( STATUS "Found ${GLMIXER_DEPENDENCY}: ${${_upper_glmixer_dependency}_LIBRARY}")
+                set( GLMIXER_LIBRARIES  ${GLMIXER_LIBRARIES} ${${_upper_glmixer_dependency}_LIBRARY} )
+                message( STATUS "Found ${GLMIXER_DEPENDENCY}: ${${_upper_glmixer_dependency}_LIBRARY}")
         else(${_upper_glmixer_dependency}_LIBRARY)
-	    message( FATAL_ERROR "${GLMIXER_DEPENDENCY} library NOT found but required.")
+            message( FATAL_ERROR "${GLMIXER_DEPENDENCY} library NOT found but required.")
         endif(${_upper_glmixer_dependency}_LIBRARY)
 ENDFOREACH(GLMIXER_DEPENDENCY)
 
@@ -353,7 +353,7 @@ ENDFOREACH(GLMIXER_DEPENDENCY)
 SET(GLMIXER_UTILITIES avcore pthread theora modplug theoraenc theoradec xvidcore faac gsm
                       mp3lame vorbis vorbisenc ogg orc-0.4 schroedinger-1.0 va png14
                       speex dirac_encoder jpeg vpx bz2 z)
-    
+
 FOREACH(GLMIXER_UTILITY ${GLMIXER_UTILITIES})
     STRING(TOUPPER ${GLMIXER_UTILITY} _upper_glmixer_utility)
     # unset the variable to force the search for the library

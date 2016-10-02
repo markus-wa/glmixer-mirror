@@ -62,7 +62,7 @@ static CFFGLPluginInfo PluginInfo (
         1,										// Plugin major version number
         000,									// Plugin minor version number
         FF_EFFECT,						// Plugin type
-        "Blurs the display using Monte Carlo algorithm",	 // Plugin description
+        "Blurs using Monte Carlo algorithm",	 // Plugin description
         "by Bruno Herbelin"  // About
         );
 

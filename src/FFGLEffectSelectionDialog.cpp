@@ -7,6 +7,7 @@
 #include "RenderingManager.h"
 #include "CloneSource.h"
 #include "SourceDisplayWidget.h"
+#include "FFGLPluginInstances.h"
 
 FFGLEffectSelectionDialog::FFGLEffectSelectionDialog(QWidget *parent, QSettings *settings) :
     QDialog(parent),
@@ -14,12 +15,13 @@ FFGLEffectSelectionDialog::FFGLEffectSelectionDialog(QWidget *parent, QSettings 
 {
     ui->setupUi(this);
     ui->preview->setEffectsEnabled(true);
+    ui->warningLabel->setVisible(false);
 
     QDir effectDir = QDir::current();
     if (appSettings && appSettings->contains("ExecutionPath")) {
         effectDir = QDir(appSettings->value("ExecutionPath").toString());
-    }    
-    
+    }
+
     if ( effectDir.cd("../lib/glmixer/")  ||  effectDir.cd("./lib/glmixer/")) {
 
         #ifdef Q_OS_WIN
@@ -27,14 +29,28 @@ FFGLEffectSelectionDialog::FFGLEffectSelectionDialog(QWidget *parent, QSettings 
         #else
         QString ext = "so";
         #endif
-    
+
         qDebug() << effectDir.absolutePath() << QChar(124).toLatin1() << tr("Loading Freeframe plugins.");
         // list installed plugins
         QStringList d = effectDir.entryList();
         for (QStringList::iterator p = d.begin(); p != d.end(); ++p ) {
             QFileInfo effectFile(effectDir, *p);
             if (effectFile.exists() && effectFile.isFile() && effectFile.suffix() == ext ) {
-                ui->freeframeEmbededList->addItem(effectFile.baseName(), effectFile.absoluteFilePath());
+
+                // load dll plugin
+                char fname[4096];
+                strcpy(fname, effectFile.absoluteFilePath().toLatin1().data());
+                FFGLPluginInstance *_plugin =  FFGLPluginInstanceFreeframe::New();
+                if (_plugin->Load(fname) != FF_FAIL ){
+                    FFGLPluginInstanceFreeframe *p = dynamic_cast<FFGLPluginInstanceFreeframe *>(_plugin);
+                    // ensure functionnalities plugin
+                    if ( p && p->hasProcessOpenGLCapability() ) {
+                            QVariantHash _info = p->getExtendedInfo();
+                            ui->freeframeEmbededList->addItem( _info["Description"].toString().simplified(), effectFile.absoluteFilePath());
+
+                    }
+                }
+                delete _plugin;
             }
         }
     }
@@ -100,8 +116,6 @@ void FFGLEffectSelectionDialog::done(int r){
 
 void FFGLEffectSelectionDialog::updateSourcePreview(){
 
-    ui->warningLabel->setVisible(false);
-
     // delete previous
     if(s) {
         // remove source from preview: this deletes the texture in the preview
@@ -111,16 +125,16 @@ void FFGLEffectSelectionDialog::updateSourcePreview(){
         s = NULL;
     }
 
+    // display a clone of the current source
     s = new CloneSource( RenderingManager::getInstance()->getCurrentSource(), 0);
 
-
-    // reset plugin
+    // reset plugin file name
     selectedFreeframePlugin = QString::null;
 
 
     // fill in variables depending on selection :
     //
-    // CASE 1: Embeded Freeframe plugin
+    // CASE 1: Installed Freeframe plugin
     if ( ui->freeframeEmbededPlugin->isChecked() && ui->freeframeEmbededList->currentIndex() > 0 )
     {
         selectedFreeframePlugin = ui->freeframeEmbededList->itemData(ui->freeframeEmbededList->currentIndex()).toString();
@@ -145,12 +159,11 @@ void FFGLEffectSelectionDialog::updateSourcePreview(){
         // add a the given freeframe plugin
         FFGLPluginSource *plugin = s->addFreeframeGLPlugin( pluginfile.absoluteFilePath() );
 
+        qDebug() << pluginfile.absoluteFilePath() << QChar(124).toLatin1() << tr("Trying Freeframe plugin.");
         // test if plugin was added
         if ( !plugin ) {
-//            pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
-//            changed();
-            ui->warningLabel->setVisible(true);
             selectedFreeframePlugin = QString::null;
+            deleteFreeframePlugin();
         }
     }
 
@@ -183,9 +196,16 @@ void FFGLEffectSelectionDialog::browseFreeframePlugin() {
         // try to find & remove the file in the recent plugins list
         ui->freeframeFileList->removeItem( ui->freeframeFileList->findData(pluginfile.absoluteFilePath()) );
 
+        // inform that identical filename already in the list
+        if (  ui->freeframeFileList->findText(pluginfile.fileName()) > -1 ) {
+            ui->warningLabel->setVisible(true);
+            QTimer::singleShot(5000, ui->warningLabel, SLOT(hide()));
+        }
+
         // add the filename to the pluginFileList
         ui->freeframeFileList->insertItem(1, pluginfile.fileName(), pluginfile.absoluteFilePath());
         ui->freeframeFileList->setCurrentIndex(1);
+
     }
 
 }
