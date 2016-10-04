@@ -1,4 +1,5 @@
 #include <GL/glew.h>
+#include "FreeFrameFreiChen.h"
 
 #ifdef DEBUG
 #include <cstdio>
@@ -17,52 +18,89 @@ void printLog(GLuint obj)
 }
 #endif
 
-#include "FreeFrameMonteCarlo.h"
 
 #define FFPARAM_BLUR (0)
-#define FFPARAM_SIZE (1)
 
 GLuint displayList = 0;
 
-const GLchar *fragmentShaderCode = "#define ITER 32\n"
-        "#define SIZE 100.0\n"
+// Original Shader code by Daniel Rákos : http://rastergrid.com/blog/2011/01/frei-chen-edge-detector/
+
+const GLchar *fragmentShaderCode = "#version 330 core \n"
         "uniform sampler2D texture;"
-        "uniform float     factor;"
-        "uniform float     size;"
         "uniform vec3      iResolution;\n"
-        "void srand(vec2 a, out float r) {r=sin(dot(a,vec2(1233.224,1743.335)));}\n"
-        "float rand(inout float r) { r=fract(3712.65*r+0.61432); return (r-0.5)*2.0;}\n"
-        "void main(void) {"
-        "vec2 uv = gl_FragCoord.xy / iResolution.xy;\n"
-        "float p = (SIZE * size + 1.0)/iResolution.y * factor;"
-        "vec4 c=vec4(0.0);"
-        "float r;"
-        "srand(uv, r);"
-        "vec2 rv;"
-        "for(int i=0;i<ITER;i++) {"
-        "rv.x=rand(r);"
-        "rv.y=rand(r);"
-        "c+=texture2D(texture,uv+rv*p)/float(ITER);"
-        "}"
-        "gl_FragColor = c;"
+        "uniform float     factor;"
+        "uniform mat3 G[9] = mat3[]("
+        "mat3( 0.3535533845424652, 0, -0.3535533845424652, 0.5, 0, -0.5, 0.3535533845424652, 0, -0.3535533845424652 ),"
+        "mat3( 0.3535533845424652, 0.5, 0.3535533845424652, 0, 0, 0, -0.3535533845424652, -0.5, -0.3535533845424652 ),"
+        "mat3( 0, 0.3535533845424652, -0.5, -0.3535533845424652, 0, 0.3535533845424652, 0.5, -0.3535533845424652, 0 ),"
+        "mat3( 0.5, -0.3535533845424652, 0, -0.3535533845424652, 0, 0.3535533845424652, 0, 0.3535533845424652, -0.5 ),"
+       " mat3( 0, -0.5, 0, 0.5, 0, 0.5, 0, -0.5, 0 ),"
+        "mat3( -0.5, 0, 0.5, 0, 0, 0, 0.5, 0, -0.5 ),"
+        "mat3( 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.6666666865348816, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204 ),"
+        "mat3( -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, 0.6666666865348816, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408 ),"
+        "mat3( 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408 )"
+        ");\n"
+        "out vec4 FragmentColor;\n"
+        "void main(void)"
+        "{"
+        "    mat3 I;"
+        "    float cnv[9];"
+        "    vec3 sample;"
+        "    for (int i=0; i<3; i++)"
+        "    for (int j=0; j<3; j++) {"
+        "        sample = texture2D(texture, (gl_FragCoord.xy + vec2(i-1,j-1)) / iResolution.xy  ).rgb;"
+        "        I[i][j] = length(sample); "
+        "    }"
+        "    for (int i=0; i<9; i++) {"
+        "        float dp3 = dot(G[i][0], I[0]) + dot(G[i][1], I[1]) + dot(G[i][2], I[2]);"
+        "        cnv[i] = dp3 * dp3; "
+        "    }\n"
+        "    float M = cnv[0] + cnv[1] + cnv[2] + cnv[3];\n"
+        "    float S = M + cnv[4] + cnv[5] + cnv[6] + cnv[7] + cnv[8];\n"
+        "    float a = texture2D(texture, gl_FragCoord.xy / iResolution.xy ).a;"
+        "    FragmentColor = vec4( vec3( 1.0 - ( (1.0 + 10.0 * factor) * sqrt(M/S) ) ), a);\n"
         "}";
 
-
+const GLchar *fragmentShaderCode2 = "#version 330 core \n"
+        "uniform sampler2D texture;"
+        "uniform vec3      iResolution;\n"
+        "uniform mat3 G[2] = mat3[]("
+        "    mat3( 1.0, 2.0, 1.0, 0.0, 0.0, 0.0, -1.0, -2.0, -1.0 ),"
+        "    mat3( 1.0, 0.0, -1.0, 2.0, 0.0, -2.0, 1.0, 0.0, -1.0 )"
+        ");\n"
+        "out vec4 FragmentColor;\n"
+        "void main(void)"
+        "{"
+        "    mat3 I;"
+        "    float cnv[2];"
+        "    vec3 sample;"
+        "    for (int i=0; i<3; i++)"
+        "    for (int j=0; j<3; j++) {"
+        "        sample = texture2D(texture, (gl_FragCoord.xy + vec2(i-1,j-1)) / iResolution.xy  ).rgb;"
+        "        I[i][j] = length(sample); "
+        "    }"
+        "    for (int i=0; i<2; i++) {"
+        "        float dp3 = dot(G[i][0], I[0]) + dot(G[i][1], I[1]) + dot(G[i][2], I[2]);"
+        "        cnv[i] = dp3 * dp3; "
+        "    }"
+        "    float a = texture2D(texture, gl_FragCoord.xy / iResolution.xy ).a;"
+        "    FragmentColor = vec4 ( vec3(0.5 * sqrt(cnv[0]*cnv[0]+cnv[1]*cnv[1])), a);"
+        "}";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static CFFGLPluginInfo PluginInfo (
-        FreeFrameMonteCarlo::CreateInstance,	// Create method
-        "GLMTCRLO",								// Plugin unique ID
-        "MonteCarloBlur",			// Plugin name
+        FreeFrameFreiChen::CreateInstance,	// Create method
+        "GLFREICHEN",				// Plugin unique ID
+        "Frei-Chen Edge",			// Plugin name
         1,						   			// API major version number
         500,								  // API minor version number
         1,										// Plugin major version number
         000,									// Plugin minor version number
         FF_EFFECT,						// Plugin type
-        "Blurs using Monte Carlo algorithm",	 // Plugin description
+        "Detects edge using Frei-Chen algorithm",	 // Plugin description
         "by Bruno Herbelin"  // About
         );
 
@@ -71,18 +109,16 @@ static CFFGLPluginInfo PluginInfo (
 //  Constructor and destructor
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FreeFrameMonteCarlo::FreeFrameMonteCarlo()
+FreeFrameFreiChen::FreeFrameFreiChen()
     : CFreeFrameGLPlugin()
 {
     // clean start
     tex_fbo.Handle = 0;
     fbo = 0;
     shaderProgram = 0;
-    vertexShader = 0;
     fragmentShader = 0;
     uniform_viewportsize = 0;
     uniform_blur = 0;
-    uniform_size = 0;
 
     // Input properties
     SetMinInputs(1);
@@ -90,10 +126,9 @@ FreeFrameMonteCarlo::FreeFrameMonteCarlo()
     SetTimeSupported(false);
 
     // Parameters
-    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, 0.8f);
-    blur = 0.8;
-    SetParamInfo(FFPARAM_SIZE, "Size", FF_TYPE_STANDARD, 0.5f);
-    size = 0.5;
+    SetParamInfo(FFPARAM_BLUR, "Contrast", FF_TYPE_STANDARD, 0.5f);
+    blur = 0.5;
+
     param_changed = true;
 }
 
@@ -103,10 +138,10 @@ FreeFrameMonteCarlo::FreeFrameMonteCarlo()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameMonteCarlo::InitGL(const FFGLViewportStruct *vp)
+DWORD   FreeFrameFreiChen::InitGL(const FFGLViewportStruct *vp)
 #else
 // FFGL 1.6
-FFResult FreeFrameMonteCarlo::InitGL(const FFGLViewportStruct *vp)
+FFResult FreeFrameFreiChen::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
     viewport.x = 0;
@@ -138,7 +173,6 @@ FFResult FreeFrameMonteCarlo::InitGL(const FFGLViewportStruct *vp)
 
     uniform_viewportsize = glGetUniformLocation(shaderProgram, "iResolution");
     uniform_blur = glGetUniformLocation(shaderProgram, "factor");
-    uniform_size = glGetUniformLocation(shaderProgram, "size");
 
     if (displayList == 0) {
         displayList = glGenLists(1);
@@ -171,13 +205,12 @@ FFResult FreeFrameMonteCarlo::InitGL(const FFGLViewportStruct *vp)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameMonteCarlo::DeInitGL()
+DWORD   FreeFrameFreiChen::DeInitGL()
 #else
 // FFGL 1.6
-FFResult FreeFrameMonteCarlo::DeInitGL()
+FFResult FreeFrameFreiChen::DeInitGL()
 #endif
 {
-    if (vertexShader)   glDeleteShader(vertexShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
 
     return FF_SUCCESS;
@@ -198,10 +231,10 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD	FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+DWORD	FreeFrameFreiChen::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 #else
 // FFGL 1.6
-FFResult FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+FFResult FreeFrameFreiChen::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
     if (!pGL)
@@ -231,7 +264,6 @@ FFResult FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     // new value of the blur parameter
     if(param_changed) {
         glUniform1f(uniform_blur, blur);
-        glUniform1f(uniform_size, size);
         glUniform3f(uniform_viewportsize, viewport.width, viewport.height, 0.0);
         param_changed = false;
     }
@@ -253,15 +285,11 @@ FFResult FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD FreeFrameMonteCarlo::SetParameter(const SetParameterStruct* pParam)
+DWORD FreeFrameFreiChen::SetParameter(const SetParameterStruct* pParam)
 {
     if (pParam != NULL) {
         if (pParam->ParameterNumber == FFPARAM_BLUR) {
             blur = *((float *)(unsigned)&(pParam->NewParameterValue));
-            param_changed = true;
-            return FF_SUCCESS;
-        } else if (pParam->ParameterNumber == FFPARAM_SIZE) {
-            size = *((float *)(unsigned)&(pParam->NewParameterValue));
             param_changed = true;
             return FF_SUCCESS;
         }
@@ -269,15 +297,12 @@ DWORD FreeFrameMonteCarlo::SetParameter(const SetParameterStruct* pParam)
     return FF_FAIL;
 }
 
-DWORD FreeFrameMonteCarlo::GetParameter(DWORD index)
+DWORD FreeFrameFreiChen::GetParameter(DWORD index)
 {
     DWORD dwRet = 0;
 
     if (index == FFPARAM_BLUR) {
         *((float *)(unsigned)&dwRet) = blur;
-        return dwRet;
-    } else if (index == FFPARAM_SIZE) {
-        *((float *)(unsigned)&dwRet) = size;
         return dwRet;
     } else
         return FF_FAIL;
@@ -285,14 +310,10 @@ DWORD FreeFrameMonteCarlo::GetParameter(DWORD index)
 
 #else
 // FFGL 1.6
-FFResult FreeFrameMonteCarlo::SetFloatParameter(unsigned int index, float value)
+FFResult FreeFrameFreiChen::SetFloatParameter(unsigned int index, float value)
 {
     if (index == FFPARAM_BLUR) {
         blur = value;
-        param_changed = true;
-        return FF_SUCCESS;
-    } else if (index == FFPARAM_SIZE) {
-        size = value;
         param_changed = true;
         return FF_SUCCESS;
     }
@@ -300,12 +321,10 @@ FFResult FreeFrameMonteCarlo::SetFloatParameter(unsigned int index, float value)
     return FF_FAIL;
 }
 
-float FreeFrameMonteCarlo::GetFloatParameter(unsigned int index)
+float FreeFrameFreiChen::GetFloatParameter(unsigned int index)
 {
     if (index == FFPARAM_BLUR)
         return blur;
-    else if (index == FFPARAM_SIZE)
-        return size;
 
     return 0.0;
 }

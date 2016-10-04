@@ -1,4 +1,7 @@
 #include <GL/glew.h>
+#include "FreeFramePixelation.h"
+
+#define DEBUG
 
 #ifdef DEBUG
 #include <cstdio>
@@ -17,52 +20,54 @@ void printLog(GLuint obj)
 }
 #endif
 
-#include "FreeFrameMonteCarlo.h"
 
-#define FFPARAM_BLUR (0)
-#define FFPARAM_SIZE (1)
+#define FFPARAM_PIXELSCALE (0)
+#define FFPARAM_PIXELSMOOTH (1)
 
 GLuint displayList = 0;
 
-const GLchar *fragmentShaderCode = "#define ITER 32\n"
-        "#define SIZE 100.0\n"
-        "uniform sampler2D texture;"
-        "uniform float     factor;"
-        "uniform float     size;"
+const GLchar *fragmentShaderCode = "uniform sampler2D texture;\n"
         "uniform vec3      iResolution;\n"
-        "void srand(vec2 a, out float r) {r=sin(dot(a,vec2(1233.224,1743.335)));}\n"
-        "float rand(inout float r) { r=fract(3712.65*r+0.61432); return (r-0.5)*2.0;}\n"
-        "void main(void) {"
-        "vec2 uv = gl_FragCoord.xy / iResolution.xy;\n"
-        "float p = (SIZE * size + 1.0)/iResolution.y * factor;"
-        "vec4 c=vec4(0.0);"
-        "float r;"
-        "srand(uv, r);"
-        "vec2 rv;"
-        "for(int i=0;i<ITER;i++) {"
-        "rv.x=rand(r);"
-        "rv.y=rand(r);"
-        "c+=texture2D(texture,uv+rv*p)/float(ITER);"
-        "}"
-        "gl_FragColor = c;"
+        "uniform float     scale;\n"
+        "uniform float     smooth;\n"
+        "const mat3 I = mat3( 0, 0, 0, 0, 1, 0, 0, 0, 0);\n"
+        "const mat3 G = mat3( 0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625);\n"
+        "void main(void)\n"
+        "{"
+        "    vec2 size = floor( scale / 10.0 * iResolution.xy );"
+        "    vec2 vUv = size / iResolution.xy;"
+        "    vec4 sample;"
+        "    for (int i=0; i<3; i++)"
+        "    for (int j=0; j<3; j++) {"
+        "        sample += mix( I[i][j], G[i][j], smooth) * texture2D(texture, floor(vUv * (gl_FragCoord.xy + vec2(i-1,j-1))) / size );"
+        "    }"
+        "    gl_FragColor = sample;\n"
         "}";
 
-
+const GLchar *fragmentShaderCodeSimple = "uniform sampler2D texture;\n"
+        "uniform vec3      iResolution;\n"
+        "uniform float     scale;\n"
+        "void main(void)\n"
+        "{"
+        "    vec2 d = max(factor, 0.01) / 10.0 * vec2( 1.0, iResolution.x / iResolution.y  );\n"
+        "    vec2 coords =  d * floor( gl_FragCoord.xy / ( iResolution.xy * d) );\n"
+        "    gl_FragColor = texture2D(texture, coords );\n"
+        "}";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static CFFGLPluginInfo PluginInfo (
-        FreeFrameMonteCarlo::CreateInstance,	// Create method
-        "GLMTCRLO",								// Plugin unique ID
-        "MonteCarloBlur",			// Plugin name
-        1,						   			// API major version number
-        500,								  // API minor version number
-        1,										// Plugin major version number
-        000,									// Plugin minor version number
-        FF_EFFECT,						// Plugin type
-        "Blurs using Monte Carlo algorithm",	 // Plugin description
+        FreeFramePixelation::CreateInstance,	// Create method
+        "GLPIXELATE",	     	// Plugin unique ID
+        "Pixelation",			// Plugin name
+        1,						// API major version number
+        500,				    // API minor version number
+        1,						// Plugin major version number
+        000,					// Plugin minor version number
+        FF_EFFECT,				// Plugin type
+        "Pixelates image",	 // Plugin description
         "by Bruno Herbelin"  // About
         );
 
@@ -71,18 +76,16 @@ static CFFGLPluginInfo PluginInfo (
 //  Constructor and destructor
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FreeFrameMonteCarlo::FreeFrameMonteCarlo()
+FreeFramePixelation::FreeFramePixelation()
     : CFreeFrameGLPlugin()
 {
     // clean start
     tex_fbo.Handle = 0;
     fbo = 0;
     shaderProgram = 0;
-    vertexShader = 0;
     fragmentShader = 0;
     uniform_viewportsize = 0;
-    uniform_blur = 0;
-    uniform_size = 0;
+    uniform_scale = 0;
 
     // Input properties
     SetMinInputs(1);
@@ -90,10 +93,11 @@ FreeFrameMonteCarlo::FreeFrameMonteCarlo()
     SetTimeSupported(false);
 
     // Parameters
-    SetParamInfo(FFPARAM_BLUR, "Blur", FF_TYPE_STANDARD, 0.8f);
-    blur = 0.8;
-    SetParamInfo(FFPARAM_SIZE, "Size", FF_TYPE_STANDARD, 0.5f);
-    size = 0.5;
+    SetParamInfo(FFPARAM_PIXELSCALE, "Scale", FF_TYPE_STANDARD, 0.25f);
+    scale = 0.25;
+    SetParamInfo(FFPARAM_PIXELSMOOTH, "Antialiasing", FF_TYPE_STANDARD, 0.5f);
+    scale = 0.5;
+
     param_changed = true;
 }
 
@@ -103,10 +107,10 @@ FreeFrameMonteCarlo::FreeFrameMonteCarlo()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameMonteCarlo::InitGL(const FFGLViewportStruct *vp)
+DWORD   FreeFrameFreiChen::InitGL(const FFGLViewportStruct *vp)
 #else
 // FFGL 1.6
-FFResult FreeFrameMonteCarlo::InitGL(const FFGLViewportStruct *vp)
+FFResult FreeFramePixelation::InitGL(const FFGLViewportStruct *vp)
 #endif
 {
     viewport.x = 0;
@@ -137,8 +141,8 @@ FFResult FreeFrameMonteCarlo::InitGL(const FFGLViewportStruct *vp)
 #endif
 
     uniform_viewportsize = glGetUniformLocation(shaderProgram, "iResolution");
-    uniform_blur = glGetUniformLocation(shaderProgram, "factor");
-    uniform_size = glGetUniformLocation(shaderProgram, "size");
+    uniform_scale = glGetUniformLocation(shaderProgram, "scale");
+    uniform_smooth = glGetUniformLocation(shaderProgram, "smooth");
 
     if (displayList == 0) {
         displayList = glGenLists(1);
@@ -171,13 +175,12 @@ FFResult FreeFrameMonteCarlo::InitGL(const FFGLViewportStruct *vp)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameMonteCarlo::DeInitGL()
+DWORD   FreeFrameFreiChen::DeInitGL()
 #else
 // FFGL 1.6
-FFResult FreeFrameMonteCarlo::DeInitGL()
+FFResult FreeFramePixelation::DeInitGL()
 #endif
 {
-    if (vertexShader)   glDeleteShader(vertexShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
 
     return FF_SUCCESS;
@@ -189,6 +192,11 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture.Handle);
 
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
     // setup display
     glViewport(vp.x, vp.y, vp.width, vp.height);
 
@@ -198,10 +206,10 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD	FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+DWORD	FreeFrameFreiChen::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 #else
 // FFGL 1.6
-FFResult FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct *pGL)
+FFResult FreeFramePixelation::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 #endif
 {
     if (!pGL)
@@ -230,8 +238,8 @@ FFResult FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     // new value of the blur parameter
     if(param_changed) {
-        glUniform1f(uniform_blur, blur);
-        glUniform1f(uniform_size, size);
+        glUniform1f(uniform_scale, scale);
+        glUniform1f(uniform_smooth, smooth);
         glUniform3f(uniform_viewportsize, viewport.width, viewport.height, 0.0);
         param_changed = false;
     }
@@ -253,31 +261,31 @@ FFResult FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD FreeFrameMonteCarlo::SetParameter(const SetParameterStruct* pParam)
+DWORD FreeFrameFreiChen::SetParameter(const SetParameterStruct* pParam)
 {
     if (pParam != NULL) {
-        if (pParam->ParameterNumber == FFPARAM_BLUR) {
-            blur = *((float *)(unsigned)&(pParam->NewParameterValue));
+        if (pParam->ParameterNumber == FFPARAM_PIXELSCALE) {
+            scale = *((float *)(unsigned)&(pParam->NewParameterValue));
             param_changed = true;
             return FF_SUCCESS;
-        } else if (pParam->ParameterNumber == FFPARAM_SIZE) {
-            size = *((float *)(unsigned)&(pParam->NewParameterValue));
-            param_changed = true;
-            return FF_SUCCESS;
-        }
+        } else  if (pParam->ParameterNumber == FFPARAM_PIXELSMOOTH) {
+                smooth = *((float *)(unsigned)&(pParam->NewParameterValue));
+                param_changed = true;
+                return FF_SUCCESS;
+            }
     }
     return FF_FAIL;
 }
 
-DWORD FreeFrameMonteCarlo::GetParameter(DWORD index)
+DWORD FreeFrameFreiChen::GetParameter(DWORD index)
 {
     DWORD dwRet = 0;
 
-    if (index == FFPARAM_BLUR) {
-        *((float *)(unsigned)&dwRet) = blur;
+    if (index == FFPARAM_PIXELSCALE) {
+        *((float *)(unsigned)&dwRet) = scale;
         return dwRet;
-    } else if (index == FFPARAM_SIZE) {
-        *((float *)(unsigned)&dwRet) = size;
+    } else if (index == FFPARAM_PIXELSMOOTH) {
+        *((float *)(unsigned)&dwRet) = smooth;
         return dwRet;
     } else
         return FF_FAIL;
@@ -285,14 +293,14 @@ DWORD FreeFrameMonteCarlo::GetParameter(DWORD index)
 
 #else
 // FFGL 1.6
-FFResult FreeFrameMonteCarlo::SetFloatParameter(unsigned int index, float value)
+FFResult FreeFramePixelation::SetFloatParameter(unsigned int index, float value)
 {
-    if (index == FFPARAM_BLUR) {
-        blur = value;
+    if (index == FFPARAM_PIXELSCALE) {
+        scale = value;
         param_changed = true;
         return FF_SUCCESS;
-    } else if (index == FFPARAM_SIZE) {
-        size = value;
+    } else if (index == FFPARAM_PIXELSMOOTH) {
+        smooth = value;
         param_changed = true;
         return FF_SUCCESS;
     }
@@ -300,12 +308,12 @@ FFResult FreeFrameMonteCarlo::SetFloatParameter(unsigned int index, float value)
     return FF_FAIL;
 }
 
-float FreeFrameMonteCarlo::GetFloatParameter(unsigned int index)
+float FreeFramePixelation::GetFloatParameter(unsigned int index)
 {
-    if (index == FFPARAM_BLUR)
-        return blur;
-    else if (index == FFPARAM_SIZE)
-        return size;
+    if (index == FFPARAM_PIXELSCALE)
+        return scale;
+    else if (index == FFPARAM_PIXELSMOOTH)
+        return smooth;
 
     return 0.0;
 }

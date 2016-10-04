@@ -105,6 +105,9 @@ FFResult FreeFrameShake::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     //bind the texture handle to its target
     glBindTexture(GL_TEXTURE_2D, Texture.Handle);
 
