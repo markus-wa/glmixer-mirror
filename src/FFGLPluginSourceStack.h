@@ -38,7 +38,10 @@ public:
 
     FFGLPluginSource *pushNewPlugin(QString filename, int widht, int height, unsigned int inputTexture);
     FFGLPluginSource *pushNewPlugin(int widht, int height, unsigned int inputTexture);
+
     void removePlugin(FFGLPluginSource *p);
+    void moveUp(FFGLPluginSource *p);
+    void moveDown(FFGLPluginSource *p);
 
     void update();
     void bind() const;

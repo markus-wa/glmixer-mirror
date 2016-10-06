@@ -59,13 +59,21 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
     if (allowRemove) {
         menuTree.addSeparator();
         // actions of context menus
+        moveUpAction = new QAction(tr("Move Up"), this);
+        QObject::connect(moveUpAction, SIGNAL(triggered()), this, SLOT(moveUpPlugin()) );
+        menuTree.addAction(moveUpAction);
+        moveDownAction = new QAction(tr("Move Down"), this);
+        QObject::connect(moveDownAction, SIGNAL(triggered()), this, SLOT(moveDownPlugin()) );
+        menuTree.addAction(moveDownAction);
         removeAction = new QAction(tr("Remove"), this);
         QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removePlugin()) );
-
         menuTree.addAction(removeAction);
     }
-    else
+    else {
         removeAction = NULL;
+        moveUpAction = NULL;
+        moveDownAction = NULL;
+    }
 
     // create edit action
     editAction = new QAction(tr("Edit"), this);
@@ -289,6 +297,37 @@ void FFGLPluginBrowser::removePlugin()
     emit pluginChanged();
 }
 
+
+void FFGLPluginBrowser::moveUpPlugin()
+{
+    if ( propertyTreeEditor->currentItem() && currentStack ) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( propertyToPluginParameter.contains(property) ) {
+            currentStack->moveUp(propertyToPluginParameter[property].first);
+        }
+    }
+    // refresh display
+    showProperties(currentStack);
+
+    emit pluginChanged();
+}
+
+
+void FFGLPluginBrowser::moveDownPlugin()
+{
+    if ( propertyTreeEditor->currentItem() && currentStack ) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( propertyToPluginParameter.contains(property) ) {
+            currentStack->moveDown(propertyToPluginParameter[property].first);
+        }
+    }
+    // refresh display
+    showProperties(currentStack);
+
+    emit pluginChanged();
+}
+
+
 void FFGLPluginBrowser::editPlugin()
 {
     if ( propertyTreeEditor->currentItem() ) {
@@ -307,14 +346,24 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
     // reset is disabled by default
     resetAction->setVisible(false);
     // remove is disabled by default
-    if(removeAction) removeAction->setEnabled(false);
+    if(removeAction) removeAction->setVisible(false);
+    if(moveUpAction) moveUpAction->setVisible(false);
+    if(moveDownAction) moveDownAction->setVisible(false);
 
     if ( propertyTreeEditor->currentItem() ) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
         // ok, a plugin is selected
-        if ( propertyToPluginParameter.contains(property) ) {
+        if ( propertyToPluginParameter.contains(property) &&
+             propertyTreeEditor->topLevelItem(property) != 0) {
             // allow to remove it if there is a remove action
-            if(removeAction) removeAction->setEnabled(true);
+            if(removeAction) removeAction->setVisible(true);
+
+            // allow moving if possible
+            QList<QtBrowserItem *> L = propertyTreeEditor->topLevelItems();
+            if(moveUpAction && propertyTreeEditor->currentItem() != L.first() )
+                moveUpAction->setVisible(true);
+            if(moveDownAction && propertyTreeEditor->currentItem() != L.last() )
+                moveDownAction->setVisible(true);
 
             // enable the edit action for shadertoy plugins only
             if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN)

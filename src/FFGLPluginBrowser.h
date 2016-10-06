@@ -52,6 +52,8 @@ public slots:
     void ctxMenuTree(const QPoint &);
 
     // Context menu actions
+    void moveUpPlugin();
+    void moveDownPlugin();
     void removePlugin();
     void editPlugin();
 
@@ -71,6 +73,7 @@ private:
 
     QtProperty *createPluginPropertyTree(FFGLPluginSource *plugin);
     QAction *removeAction;
+    QAction *moveUpAction, *moveDownAction;
     QAction *editAction;
 };
 

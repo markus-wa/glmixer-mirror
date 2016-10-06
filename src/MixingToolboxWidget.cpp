@@ -398,7 +398,7 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, int value)
     }
     else if (propertyname == "Blending")
         blendingBox->setCurrentIndex(value);
-    else if (propertyname == "Color inversion")
+    else if (propertyname == "Invert")
         EffectsInvertBox->setCurrentIndex(value);
     else if (propertyname == "Saturation")
         saturationSlider->setValue(value);
@@ -480,7 +480,7 @@ void MixingToolboxWidget::on_blendingColorButton_pressed() {
 
 void MixingToolboxWidget::on_EffectsInvertBox_currentIndexChanged(int value)
 {
-    emit(enumChanged("Color inversion", value));
+    emit(enumChanged("Invert", value));
 }
 
 void MixingToolboxWidget::on_invertReset_pressed()

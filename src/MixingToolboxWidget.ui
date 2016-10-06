@@ -2212,7 +2212,7 @@ QListWidget::item:focus {
           <string notr="true">font: bold;</string>
          </property>
          <property name="text">
-          <string>OpenGL plugins</string>
+          <string>Plugins</string>
          </property>
          <property name="margin">
           <number>2</number>
@@ -2238,8 +2238,8 @@ QListWidget::item:focus {
            <widget class="QToolButton" name="addPlugin">
             <property name="minimumSize">
              <size>
-              <width>16</width>
-              <height>16</height>
+              <width>8</width>
+              <height>8</height>
              </size>
             </property>
             <property name="toolTip">
@@ -2267,8 +2267,8 @@ QListWidget::item:focus {
            <widget class="QToolButton" name="addShadertoyPlugin">
             <property name="minimumSize">
              <size>
-              <width>16</width>
-              <height>16</height>
+              <width>8</width>
+              <height>8</height>
              </size>
             </property>
             <property name="toolTip">
@@ -2302,8 +2302,8 @@ QListWidget::item:focus {
   </layout>
  </widget>
  <resources>
-  <include location="../icons.qrc"/>
   <include location="../images.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

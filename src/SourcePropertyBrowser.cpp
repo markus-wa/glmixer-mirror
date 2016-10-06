@@ -272,7 +272,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     root->addSubProperty(property);
 
     // enum list of inversion types
-    property = enumManager->addProperty("Color inversion");
+    property = enumManager->addProperty("Invert");
     idToProperty[property->propertyName()] = property;
     property->setToolTip("Invert colors or luminance");
     enumNames.clear();
@@ -408,7 +408,7 @@ void SourcePropertyBrowser::updatePropertyTree(){
         boolManager->setValue(idToProperty["Pixelated"], s->isPixelated());
 
         // properties of color effects
-        enumManager->setValue(idToProperty["Color inversion"], (int) s->getInvertMode() );
+        enumManager->setValue(idToProperty["Invert"], (int) s->getInvertMode() );
         intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
         intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
         intManager->setValue(idToProperty["Contrast"], s->getContrast() );
@@ -676,7 +676,7 @@ void SourcePropertyBrowser::enumChanged(QtProperty *property,  int value){
         // set the current filter
         currentItem->setFilter( (Source::filterType) value );
     }
-    else if ( property == idToProperty["Color inversion"] ) {
+    else if ( property == idToProperty["Invert"] ) {
 
         currentItem->setInvertMode( (Source::invertModeType) value );
     }
@@ -727,15 +727,33 @@ void SourcePropertyBrowser::resetAll()
     RenderingManager::getInstance()->resetCurrentSource();
 }
 
+
+// TOdO
 void SourcePropertyBrowser::defaultValue()
 {
-//    QtAbstractPropertyManager *pm = propertyTreeEditor->currentItem()->property()->propertyManager();
+    Source *defaultsource = RenderingManager::getInstance()->defaultSource();
 
-//    QtProperty *p =  idToProperty[propertyTreeEditor->currentItem()->property()->propertyName()];
+    if ( propertyTreeEditor->currentItem() )
+    {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
 
-////    pm->setProperty()
-//    Source *defaultsource = RenderingManager::getInstance()->defaultSource();
+        if ( intManager->properties().contains(property) ) {
+            intManager->setValue(property, 0);
+        }
+        else if ( boolManager->properties().contains(property) ) {
+            boolManager->setValue(property, false);
+        }
+        else if ( enumManager->properties().contains(property) ) {
+            enumManager->setValue(property, 0);
+        }
+        else if ( doubleManager->properties().contains(property) ) {
+            doubleManager->setValue(property, 0.0);
+        }
+        else if ( colorManager->properties().contains(property) ) {
+            colorManager->setValue(property, QColor(255,255,255,255));
+        }
 
+    }
 }
 
 

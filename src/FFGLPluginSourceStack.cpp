@@ -145,6 +145,71 @@ void FFGLPluginSourceStack::removePlugin(FFGLPluginSource *p)
 
 }
 
+
+void FFGLPluginSourceStack::moveUp(FFGLPluginSource *p)
+{
+    // finds the index of the plugin in the list
+    int id = indexOf(p);
+
+    // if the plugin *p is found and not the first in the stack
+    if (id > 0) {
+
+        // if there is a plugin after *p in the stack
+        // then we have to update the input texture of the one after *p
+        if (id+1 < count())  {
+                // chain the plugin before with the plugin after
+                at(id+1)->setInputTextureStruct(at(id-1)->getOutputTextureStruct());
+        }
+        // remove it from its current position in the stack
+        remove(id);
+
+        // set input texture of *p to the one of the previous
+        p->setInputTextureStruct( at(id-1)->getInputTextureStruct());
+
+        // set input texture of previous to the output of *p
+        at(id-1)->setInputTextureStruct( p->getOutputTextureStruct());
+
+        // now insert the plugin to the position before
+        insert(id -1, p);
+    }
+
+    qDebug() << namesList();
+}
+
+void FFGLPluginSourceStack::moveDown(FFGLPluginSource *p)
+{
+    // finds the index of the plugin in the list
+    int id = indexOf(p);
+
+    // if the plugin *p is found and not the last in the stack
+    if (id > -1 && id+1 < count()) {
+
+        // if id is the first in the stack
+        if ( id == 0 )
+            // set input texture of the next to be the one of *p (current first)
+            at(1)->setInputTextureStruct(p->getInputTextureStruct());
+        else
+            // chain the plugin before with the plugin after
+            at(id+1)->setInputTextureStruct(at(id-1)->getOutputTextureStruct());
+
+        // remove it from its current position in the stack
+        remove(id);
+
+        // set input texture of *p to the output of the previous (now at id)
+        p->setInputTextureStruct( at(id)->getOutputTextureStruct());
+
+        // if not last
+        if ( id+1 < count() )
+            // set input texture of next to the output of *p
+            at(id+1)->setInputTextureStruct( p->getOutputTextureStruct());
+
+        // now insert the plugin to the position after
+        insert(id+1, p);
+    }
+
+    qDebug() << namesList();
+}
+
 void FFGLPluginSourceStack::clear(){
     while (!isEmpty())
         delete pop();

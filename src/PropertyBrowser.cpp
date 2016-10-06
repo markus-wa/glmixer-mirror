@@ -124,12 +124,14 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(showReferenceURL() ) );
 
     // TODO : enable the default value action
-    //    menuTree.addAction(defaultValueAction);
+    menuTree.addAction(defaultValueAction);
     menuTree.addAction(resetAction);
     menuTree.addAction(openUrlAction);
-    menuTree.addSeparator();
-    menuTree.addAction(QObject::tr("Expand tree"), this, SLOT(expandAll()));
-    menuTree.addAction(QObject::tr("Collapse tree"), this, SLOT(collapseAll()));
+
+    // TODO : expand and collapse with another mean than context menu
+//    menuTree.addSeparator();
+//    menuTree.addAction(QObject::tr("Expand tree"), this, SLOT(expandAll()));
+//    menuTree.addAction(QObject::tr("Collapse tree"), this, SLOT(collapseAll()));
 
     // TODO : enable the default value action
     //    menuGroup.addAction(defaultValueAction);
@@ -333,11 +335,11 @@ void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
 
     defaultValueAction->setEnabled( false );
 
-    if (propertyGroupEditor->currentItem() &&
-        propertyGroupEditor->currentItem()->children().count() == 0 &&
-        !propertyGroupEditor->currentItem()->property()->isItalics() )
-        defaultValueAction->setEnabled( true );
-
+    if (propertyGroupEditor->currentItem()) {
+        QtProperty *property = propertyGroupEditor->currentItem()->property();
+        if (propertyGroupEditor->topLevelItem(property) != 0 &&  !property->isItalics() )
+            defaultValueAction->setEnabled( true );
+    }
     menuGroup.exec( propertyGroupEditor->mapToGlobal(pos) );
 }
 
@@ -348,11 +350,11 @@ void PropertyBrowser::ctxMenuTree(const QPoint &pos)
 
     defaultValueAction->setEnabled(false);
 
-    if (propertyTreeEditor->currentItem() &&
-        propertyTreeEditor->currentItem()->children().count() == 0 &&
-        !propertyTreeEditor->currentItem()->property()->isItalics() )
-        defaultValueAction->setEnabled( true );
-
+    if (propertyTreeEditor->currentItem()) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if (propertyTreeEditor->topLevelItem(property) != 0 && !property->isItalics() )
+            defaultValueAction->setEnabled( true );
+    }
     menuTree.exec( propertyTreeEditor->mapToGlobal(pos) );
 }
 
