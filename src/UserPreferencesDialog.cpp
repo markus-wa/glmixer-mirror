@@ -44,11 +44,7 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 
     // the default source property browser
     defaultSource = new Source();
-    defaultProperties->setPropertyEnabled("Type", false);
-    defaultProperties->setPropertyEnabled("Scale", false);
-    defaultProperties->setPropertyEnabled("Depth", false);
-    defaultProperties->setPropertyEnabled("Frames size", false);
-    defaultProperties->setPropertyEnabled("Aspect ratio", false);
+    defaultProperties->setContextMenuPolicy(Qt::NoContextMenu);
 
     // the rendering option for BLIT of frame buffer makes no sense if the computer does not supports it
     disableBlitFrameBuffer->setEnabled( glewIsSupported("GL_EXT_framebuffer_blit") );
@@ -59,10 +55,6 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
     recordingFolderLine->setProperty("exists", true);
     QObject::connect(recordingFolderLine, SIGNAL(textChanged(const QString &)), this, SLOT(recordingFolderPathChanged(const QString &)));
 
-    // set number of available monitors
-    fullscreenMonitor->clear();
-    for( int i = 0; i < QApplication::desktop()->screenCount(); ++i)
-        fullscreenMonitor->addItem(QString("Monitor %1").arg(i));
 
     // TODO fill in the list of available languages
 
@@ -81,6 +73,16 @@ UserPreferencesDialog::~UserPreferencesDialog()
 void UserPreferencesDialog::showEvent(QShowEvent *e){
 
     defaultProperties->showProperties(defaultSource);
+    defaultProperties->setPropertyEnabled("Resolution", false);
+    defaultProperties->setPropertyEnabled("Frame rate", false);
+    defaultProperties->setPropertyEnabled("Aspect ratio", false);
+    defaultProperties->setPropertyEnabled("Scale", false);
+    defaultProperties->setPropertyEnabled("Depth", false);
+
+    // set number of available monitors
+    fullscreenMonitor->clear();
+    for( int i = 0; i < QApplication::desktop()->screenCount(); ++i)
+        fullscreenMonitor->addItem(QString("Monitor %1").arg(i));
 
     QWidget::showEvent(e);
 }

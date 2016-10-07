@@ -74,18 +74,15 @@ private:
     // property tree
     QtProperty *root;
 
+    // the link with source
+    Source *currentItem;
+    QMutex propertyTreeAccesslock;
+
     // implementation methods
     bool canChange();
-
-    // the link with sources
-    Source *currentItem;
     void createSourcePropertyTree();
-
     void updateProperty(QString name, Source *s);
     void updatePropertyTree();
-
-
-    QMutex propertyTreeAccesslock;
 
 };
 

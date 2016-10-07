@@ -171,8 +171,8 @@ void PropertyBrowser::showReferenceURL(){
 
 void PropertyBrowser::setPropertyEnabled(QString propertyName, bool enabled){
 
-    if (idToProperty.contains(propertyName))
-        idToProperty[propertyName]->setEnabled(enabled);
+    if (idToProperty.contains(propertyName.toLatin1()))
+        idToProperty[propertyName.toLatin1()]->setEnabled(enabled);
 
 }
 
@@ -331,13 +331,16 @@ void PropertyBrowser::propertyValueChanged(QtProperty *property, double value)
 
 void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
 {
+    if (contextMenuPolicy() == Qt::NoContextMenu)
+        return;
+
     openUrlAction->setVisible( referenceURL.isValid() );
 
     defaultValueAction->setEnabled( false );
 
     if (propertyGroupEditor->currentItem()) {
         QtProperty *property = propertyGroupEditor->currentItem()->property();
-        if (property->hasValue() &&  !property->isItalics() )
+        if (property->hasValue() && property->isEnabled() && !property->isItalics() )
             defaultValueAction->setEnabled( true );
 
     }
@@ -347,17 +350,18 @@ void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
 
 void PropertyBrowser::ctxMenuTree(const QPoint &pos)
 {
+    if (contextMenuPolicy() == Qt::NoContextMenu)
+        return;
+
     openUrlAction->setVisible( referenceURL.isValid() );
 
     defaultValueAction->setEnabled(false);
 
     if (propertyTreeEditor->currentItem()) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
-        if (property->hasValue() && !property->isItalics() )
+        if (property->hasValue() && property->isEnabled() && !property->isItalics() )
             defaultValueAction->setEnabled( true );
 
-//        QtAbstractPropertyManager *p = property->propertyManager();
-//        p->
     }
     menuTree.exec( propertyTreeEditor->mapToGlobal(pos) );
 }
