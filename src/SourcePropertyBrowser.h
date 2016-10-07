@@ -32,22 +32,23 @@
 
 class SourcePropertyBrowser  : public PropertyBrowser {
 
-	Q_OBJECT
+    Q_OBJECT
 
     friend class SourcePropertyTreeFiller;
 
 public:
-	SourcePropertyBrowser(QWidget *parent = 0);
+    SourcePropertyBrowser(QWidget *parent = 0);
 
     static PropertyBrowser *createSpecificPropertyBrowser(Source *s, QWidget *parent);
 
-public slots:
-	// Shows the properties in the browser for the given source (iterator in the Manager list)
-	// This is called every time we want to get information on a source
-	void showProperties(Source *source);
-	void showProperties(SourceSet::iterator sourceIt);
 
-	// Update the values of the property browser for the current source
+public slots:
+    // Shows the properties in the browser for the given source (iterator in the Manager list)
+    // This is called every time we want to get information on a source
+    void showProperties(Source *source);
+    void showProperties(SourceSet::iterator sourceIt);
+
+    // Update the values of the property browser for the current source
     void updateMixingProperties();
     void updateGeometryProperties();
     void updateLayerProperties();
@@ -61,6 +62,8 @@ public slots:
     void valueChanged(QtProperty *property, const QString &value);
     void valueChanged(QtProperty *property, const QRectF &value);
     void resetAll();
+
+    // restore default values to current item
     void defaultValue();
 
 signals:
@@ -77,6 +80,8 @@ private:
     // the link with sources
     Source *currentItem;
     void createSourcePropertyTree();
+
+    void updateProperty(QString name, Source *s);
     void updatePropertyTree();
 
 

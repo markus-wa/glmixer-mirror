@@ -37,11 +37,11 @@ class UserPreferencesDialog : public QDialog, Ui::UserPreferencesDialog
     Q_OBJECT
 
 public:
-	UserPreferencesDialog(QWidget *parent = 0);
-	virtual ~UserPreferencesDialog();
+    UserPreferencesDialog(QWidget *parent = 0);
+    virtual ~UserPreferencesDialog();
 
     // mini mode for first run display
-	void setModeMinimal(bool on);
+    void setModeMinimal(bool on);
     // get the data to save
     QByteArray getUserPreferences() const;
     // set current status of preferences
@@ -49,16 +49,20 @@ public:
 
 public slots:
 
-	void restoreDefaultPreferences();
+    void restoreDefaultPreferences();
     void restoreAllDefaultPreferences();
 
     // GUI actions
     void on_updatePeriod_valueChanged(int period);
     void on_recordingUpdatePeriod_valueChanged(int period);
     void on_recordingBufferSize_valueChanged(int percent);
-	void on_recordingFolderButton_clicked();
+    void on_recordingFolderButton_clicked();
     void recordingFolderPathChanged(const QString &);
     void on_MemoryUsagePolicySlider_valueChanged(int mem);
+
+protected:
+
+    void showEvent(QShowEvent *);
 
 private:
     class Source *defaultSource;

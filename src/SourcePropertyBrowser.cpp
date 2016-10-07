@@ -379,61 +379,12 @@ void SourcePropertyBrowser::updatePropertyTree(){
         infoManager->setValue(idToProperty["Frame rate"], QString::number(s->getFrameRate(),'f',2)+ QString(" fps") );
         infoManager->setValue(idToProperty["Aspect ratio"], aspectRatioToString(s->getAspectRatio()) );
 
-        // modification properties
-        boolManager->setValue(idToProperty["Modifiable"], s->isModifiable() );
-        idToProperty["Position"]->setEnabled(s->isModifiable());
-        pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
-        idToProperty["Angle"]->setEnabled(s->isModifiable());
-        doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
-        idToProperty["Scale"]->setEnabled(s->isModifiable());
-        pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
-        idToProperty["Fixed aspect ratio"]->setEnabled(s->isModifiable());
-        boolManager->setValue(idToProperty["Fixed aspect ratio"], s->isFixedAspectRatio());
-        idToProperty["Crop"]->setEnabled(s->isModifiable());
-        rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
-        idToProperty["Depth"]->setEnabled(s->isModifiable());
-        doubleManager->setValue(idToProperty["Depth"], s->getDepth() );
-        idToProperty["Alpha"]->setEnabled(s->isModifiable());
-        doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
 
-        // properties of blending
-        int preset = intFromBlendingPreset( s->getBlendFuncDestination(), s->getBlendEquation() );
-        enumManager->setValue(idToProperty["Blending"], preset );
-        enumManager->setValue(idToProperty["Destination"], intFromBlendfunction( s->getBlendFuncDestination() ));
-        enumManager->setValue(idToProperty["Equation"], intFromBlendequation( s->getBlendEquation() ));
-        idToProperty["Destination"]->setEnabled(preset == 0);
-        idToProperty["Equation"]->setEnabled(preset == 0);
-        enumManager->setValue(idToProperty["Mask"], s->getMask());
-        colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
-        boolManager->setValue(idToProperty["Pixelated"], s->isPixelated());
+        QList<QString> props = idToProperty.keys();
+        QList<QString>::iterator i;
+        for (i = props.begin(); i != props.end(); ++i) {
 
-        // properties of color effects
-        enumManager->setValue(idToProperty["Invert"], (int) s->getInvertMode() );
-        intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
-        intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
-        intManager->setValue(idToProperty["Contrast"], s->getContrast() );
-        intManager->setValue(idToProperty["Hue shift"], s->getHueShift());
-        intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
-        intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
-        boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
-        idToProperty["Key Color"]->setEnabled(s->getChromaKey());
-        idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
-        colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
-        intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
-#ifdef FFGL
-        // fill in the FFGL plugins if exist
-        if(s->hasFreeframeGLPlugin())
-            infoManager->setValue(idToProperty["FFGL Plugins"], s->getFreeframeGLPluginStack()->namesList().join(", ") );
-        else
-            infoManager->setValue(idToProperty["FFGL Plugins"], "none");
-#endif
-        // properties of filters
-        if (ViewRenderWidget::filteringEnabled()) {
-            enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
-            idToProperty["Filter"]->setEnabled( true );
-        } else {
-            enumManager->setValue(idToProperty["Filter"], 0);
-            idToProperty["Filter"]->setEnabled( false );
+            updateProperty(*i, s);
         }
 
         // reconnect the managers to the corresponding value change
@@ -689,7 +640,7 @@ void SourcePropertyBrowser::updateMixingProperties(){
         return;
 
     disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
-    doubleManager->setValue(idToProperty["Alpha"], currentItem->getAlpha() );
+    updateProperty("Alpha", currentItem);
     connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 }
 
@@ -700,13 +651,15 @@ void SourcePropertyBrowser::updateGeometryProperties(){
             return;
 
     disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
-    pointManager->setValue(idToProperty["Position"], QPointF( currentItem->getX() / SOURCE_UNIT, currentItem->getY() / SOURCE_UNIT));
-    pointManager->setValue(idToProperty["Scale"], QPointF( currentItem->getScaleX() / SOURCE_UNIT, currentItem->getScaleY() / SOURCE_UNIT));
-    doubleManager->setValue(idToProperty["Angle"], currentItem->getRotationAngle());
+
+    updateProperty("Position", currentItem);
+    updateProperty("Scale", currentItem);
+    updateProperty("Angle", currentItem);
+
     connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
 
     disconnect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)), this, SLOT(valueChanged(QtProperty *, const QRectF &)));
-    rectManager->setValue(idToProperty["Crop"], currentItem->getTextureCoordinates() );
+    updateProperty("Crop", currentItem);
     connect(rectManager, SIGNAL(valueChanged(QtProperty *, const QRectF &)), this, SLOT(valueChanged(QtProperty *, const QRectF &)));
 
 }
@@ -717,7 +670,7 @@ void SourcePropertyBrowser::updateLayerProperties(){
             return;
 
     disconnect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
-    doubleManager->setValue(idToProperty["Depth"], currentItem->getDepth() );
+    updateProperty("Depth", currentItem);
     connect(doubleManager, SIGNAL(valueChanged(QtProperty *, double)), this, SLOT(valueChanged(QtProperty *, double)));
 }
 
@@ -728,30 +681,100 @@ void SourcePropertyBrowser::resetAll()
 }
 
 
+void SourcePropertyBrowser::updateProperty(QString name, Source *s)
+{
+    if ( name.contains("Position") )
+        pointManager->setValue(idToProperty["Position"], QPointF( s->getX() / SOURCE_UNIT, s->getY() / SOURCE_UNIT));
+    else if ( name.contains("Angle"))
+        doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
+    else if ( name.contains("Scale"))
+        pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
+    else if ( name.contains("Fixed aspect ratio"))
+        boolManager->setValue(idToProperty["Fixed aspect ratio"], s->isFixedAspectRatio());
+    else if ( name.contains("Crop"))
+        rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
+    else if ( name.contains("Depth"))
+        doubleManager->setValue(idToProperty["Depth"], s->getDepth() );
+    else if ( name.contains("Alpha"))
+        doubleManager->setValue(idToProperty["Alpha"], s->getAlpha() );
+    else if ( name.contains("Modifiable")) {
+        boolManager->setValue(idToProperty["Modifiable"], s->isModifiable() );
+        idToProperty["Position"]->setEnabled(s->isModifiable());
+        idToProperty["Angle"]->setEnabled(s->isModifiable());
+        idToProperty["Fixed aspect ratio"]->setEnabled(s->isModifiable());
+        idToProperty["Scale"]->setEnabled(s->isModifiable());
+        idToProperty["Crop"]->setEnabled(s->isModifiable());
+        idToProperty["Depth"]->setEnabled(s->isModifiable());
+        idToProperty["Alpha"]->setEnabled(s->isModifiable());
+    }
+    else if ( name.contains("Blending")) {
+        int preset = intFromBlendingPreset( s->getBlendFuncDestination(), s->getBlendEquation() );
+        enumManager->setValue(idToProperty["Blending"], preset );
+        idToProperty["Destination"]->setEnabled(preset == 0);
+        idToProperty["Equation"]->setEnabled(preset == 0);
+    }
+    else if ( name.contains("Destination"))
+        enumManager->setValue(idToProperty["Destination"], intFromBlendfunction( s->getBlendFuncDestination() ));
+    else if ( name.contains("Equation"))
+        enumManager->setValue(idToProperty["Equation"], intFromBlendequation( s->getBlendEquation() ));
+    else if ( name.contains("Depth"))
+        enumManager->setValue(idToProperty["Mask"], s->getMask());
+    else if ( name.contains("Color"))
+        colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
+    else if ( name.contains("Pixelated"))
+        boolManager->setValue(idToProperty["Pixelated"], s->isPixelated());
+    else if ( name.contains("Invert"))
+        enumManager->setValue(idToProperty["Invert"], (int) s->getInvertMode() );
+    else if ( name.contains("Saturation"))
+        intManager->setValue(idToProperty["Saturation"], s->getSaturation() );
+    else if ( name.contains("Brightness"))
+        intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
+    else if ( name.contains("Contrast"))
+        intManager->setValue(idToProperty["Contrast"], s->getContrast() );
+    else if ( name.contains("Hue shift"))
+        intManager->setValue(idToProperty["Hue shift"], s->getHueShift());
+    else if ( name.contains("Threshold"))
+        intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
+    else if ( name.contains("Posterize"))
+        intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
+    else if ( name.contains("Chroma key")) {
+        boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
+        idToProperty["Key Color"]->setEnabled(s->getChromaKey());
+        idToProperty["Key Tolerance"]->setEnabled(s->getChromaKey());
+    }
+    else if ( name.contains("Key Color"))
+        colorManager->setValue(idToProperty["Key Color"], QColor( s->getChromaKeyColor() ) );
+    else if ( name.contains("Key Tolerance"))
+        intManager->setValue(idToProperty["Key Tolerance"], s->getChromaKeyTolerance() );
+    else if ( name.contains("Filter")) {
+        if (ViewRenderWidget::filteringEnabled()) {
+            enumManager->setValue(idToProperty["Filter"], (int) s->getFilter());
+            idToProperty["Filter"]->setEnabled( true );
+        } else {
+            enumManager->setValue(idToProperty["Filter"], 0);
+            idToProperty["Filter"]->setEnabled( false );
+        }
+    }
+#ifdef FFGL
+    else if ( name.contains("FFGL Plugins")) {
+        // fill in the FFGL plugins if exist
+        if(s->hasFreeframeGLPlugin())
+            infoManager->setValue(idToProperty["FFGL Plugins"], s->getFreeframeGLPluginStack()->namesList().join(", ") );
+        else
+            infoManager->setValue(idToProperty["FFGL Plugins"], "none");
+    }
+#endif
+
+}
+
+
 // TOdO
 void SourcePropertyBrowser::defaultValue()
 {
-    Source *defaultsource = RenderingManager::getInstance()->defaultSource();
-
-    if ( propertyTreeEditor->currentItem() )
+    QtBrowserItem *it = propertyTreeEditor->currentItem() ;
+    if ( it )
     {
-        QtProperty *property = propertyTreeEditor->currentItem()->property();
-
-        if ( intManager->properties().contains(property) ) {
-            intManager->setValue(property, 0);
-        }
-        else if ( boolManager->properties().contains(property) ) {
-            boolManager->setValue(property, false);
-        }
-        else if ( enumManager->properties().contains(property) ) {
-            enumManager->setValue(property, 0);
-        }
-        else if ( doubleManager->properties().contains(property) ) {
-            doubleManager->setValue(property, 0.0);
-        }
-        else if ( colorManager->properties().contains(property) ) {
-            colorManager->setValue(property, QColor(255,255,255,255));
-        }
+        updateProperty(it->property()->propertyName(), RenderingManager::getInstance()->defaultSource());
 
     }
 }

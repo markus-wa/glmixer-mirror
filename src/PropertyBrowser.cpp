@@ -337,8 +337,9 @@ void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
 
     if (propertyGroupEditor->currentItem()) {
         QtProperty *property = propertyGroupEditor->currentItem()->property();
-        if (propertyGroupEditor->topLevelItem(property) != 0 &&  !property->isItalics() )
+        if (property->hasValue() &&  !property->isItalics() )
             defaultValueAction->setEnabled( true );
+
     }
     menuGroup.exec( propertyGroupEditor->mapToGlobal(pos) );
 }
@@ -352,8 +353,11 @@ void PropertyBrowser::ctxMenuTree(const QPoint &pos)
 
     if (propertyTreeEditor->currentItem()) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
-        if (propertyTreeEditor->topLevelItem(property) != 0 && !property->isItalics() )
+        if (property->hasValue() && !property->isItalics() )
             defaultValueAction->setEnabled( true );
+
+//        QtAbstractPropertyManager *p = property->propertyManager();
+//        p->
     }
     menuTree.exec( propertyTreeEditor->mapToGlobal(pos) );
 }
