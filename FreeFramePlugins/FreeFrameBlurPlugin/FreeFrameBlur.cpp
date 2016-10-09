@@ -39,13 +39,13 @@ const GLchar *fragmentShaderCode =  "varying vec2 texc;"
         "uniform sampler2D texture;"
         "void main(void)"
         "{"
-        "vec3 sum = vec3(0.0);"
-        "sum += 0.2270270270  * texture2D(texture, texc ).rgb ;"
-        "sum += 0.3162162162  * texture2D(texture, texc + 1.3846153846 * textureoffset ).rgb ;"
-        "sum += 0.3162162162  * texture2D(texture, texc  -1.3846153846 * textureoffset ).rgb ;"
-        "sum += 0.0702702703  * texture2D(texture, texc + 3.2307692308 * textureoffset ).rgb ;"
-        "sum += 0.0702702703  * texture2D(texture, texc -3.2307692308 * textureoffset ).rgb ;"
-        "gl_FragColor = vec4(sum, 1.0);"
+        "vec4 sum = vec4(0.0);"
+        "sum += 0.2270270270  * texture2D(texture, texc ) ;"
+        "sum += 0.3162162162  * texture2D(texture, texc + 1.3846153846 * textureoffset ) ;"
+        "sum += 0.3162162162  * texture2D(texture, texc  -1.3846153846 * textureoffset ) ;"
+        "sum += 0.0702702703  * texture2D(texture, texc + 3.2307692308 * textureoffset ) ;"
+        "sum += 0.0702702703  * texture2D(texture, texc -3.2307692308 * textureoffset ) ;"
+        "gl_FragColor = sum;"
         "}";
 
 
@@ -233,6 +233,8 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     //enable texturemapping
     glEnable(GL_TEXTURE_2D);
+    // no depth test
+    glDisable(GL_DEPTH_TEST);
 
     // new value of the blur parameter
     if(param_changed) {
@@ -288,14 +290,13 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         param_changed = false;
     }
 
-    // no depth test
-    glDisable(GL_DEPTH_TEST);
 
-    if (blur >0)
+    if (blur > 0.001)
     {
         // activate the fbo2 as our render target
         glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
 
+        glClear(GL_COLOR_BUFFER_BIT);
         //render the original texture on a quad in fbo2
         drawQuad( fboViewport, Texture);
 
@@ -308,6 +309,7 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         // activate the fbo1 as our render target
         glBindFramebuffer(GL_FRAMEBUFFER, fbo1);
 
+        glClear(GL_COLOR_BUFFER_BIT);
         //render the fbo2 texture on a quad in fbo1
         drawQuad( fboViewport, tex_fbo2);
 
@@ -317,6 +319,7 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         // activate the fbo2 as our render target
         glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
 
+        glClear(GL_COLOR_BUFFER_BIT);
         // render the fbo1 texture on a quad in fbo2
         drawQuad( fboViewport, tex_fbo1);
 
@@ -326,12 +329,13 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         // (re)activate the HOST fbo as render target
         glBindFramebuffer(GL_FRAMEBUFFER, pGL->HostFBO);
 
+        glClear(GL_COLOR_BUFFER_BIT);
         // render the fbo2 texture texture on a quad in the host fbo
         drawQuad( viewport, tex_fbo2 );
     }
     else
     {
-        // render the fbo2 texture texture on a quad in the host fbo
+        // render the input texture on a quad in the host fbo
         drawQuad( viewport, Texture );
     }
 
