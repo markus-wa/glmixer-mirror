@@ -1,8 +1,9 @@
 #include <GL/glew.h>
-
+#include <cmath>
 #include "FreeFrameDelay.h"
 
 #define FFPARAM_DELAY (0)
+#define FFPARAM_BLUR (1)
 
 GLuint displayList = 0;
 
@@ -39,6 +40,9 @@ FreeFrameDelay::FreeFrameDelay()
     // Parameters
     SetParamInfo(FFPARAM_DELAY, "Second", FF_TYPE_STANDARD, 0.5f);
     delay = 0.5f;
+    // Parameters
+    SetParamInfo(FFPARAM_BLUR, "Motionblur", FF_TYPE_BOOLEAN, false);
+    blur = false;
 
     // init
     writeIndex = 0;
@@ -91,7 +95,6 @@ FFResult FreeFrameDelay::InitGL(const FFGLViewportStruct *vp)
     if (displayList == 0) {
         displayList = glGenLists(1);
         glNewList(displayList, GL_COMPILE);
-            glColor4f(1.f, 1.f, 1.f, 1.f);
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             glMatrixMode(GL_MODELVIEW);
@@ -144,16 +147,15 @@ FFResult FreeFrameDelay::SetTime(double time)
     return FF_SUCCESS;
 }
 
-void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
+void drawQuad( FFGLViewportStruct vp, GLuint texture, float alpha)
 {
     // bind the texture to apply
-    glBindTexture(GL_TEXTURE_2D, texture.Handle);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
     // setup display
     glViewport(vp.x,vp.y,vp.width,vp.height);
 
+    glColor4f(1.f, 1.f, 1.f, alpha);
     glCallList(displayList);
 
 }
@@ -188,13 +190,14 @@ FFResult FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo[writeIndex]);
 
     // draw the input texture
-    drawQuad( viewport, Texture);
+    drawQuad( viewport, Texture.Handle, 1.0);
 
     // find the read index where the time difference is just above the delay requested.
     if ( delay > 0.0) {
 
         // loop over the whole buffer
         for (int i = (readIndex + 1)%MAX_NUM_FRAMES; i != readIndex; i = (i+1)%MAX_NUM_FRAMES) {
+
             // break if found times corresponding to the delay
             if ( m_curTime - times[(i+1)%MAX_NUM_FRAMES] < delay && !(m_curTime - times[i] < delay) ) {
                 readIndex = i;
@@ -204,16 +207,36 @@ FFResult FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     } else
         readIndex = writeIndex;
 
+    if (blur) {
 
-    // draw this index
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo[readIndex]);
+        // (re)activate the HOST fbo as render target
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pGL->HostFBO);
 
-    // (re)activate the HOST fbo as render target
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pGL->HostFBO);
+        // accumulative color display
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+        // display all previous frames
+        int numframes = (writeIndex - readIndex + MAX_NUM_FRAMES) % MAX_NUM_FRAMES;
+        float alpha = 1.0 / (float) numframes;
+        for (int i = 0; i < numframes; ++i)
+        {
+            int index = (readIndex + i) % MAX_NUM_FRAMES;
+            drawQuad( viewport, textures[index], alpha);
+        }
+
+    }
+    else {
+        // draw this index
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo[readIndex]);
+
+        // (re)activate the HOST fbo as render target
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pGL->HostFBO);
 
 
-    glBlitFramebuffer(0, 0, Texture.Width, Texture.Height, 0, 0, Texture.Width, Texture.Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
+        glBlitFramebuffer(0, 0, Texture.Width, Texture.Height, 0, 0, Texture.Width, Texture.Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -273,17 +296,26 @@ float FreeFrameDelay::GetFloatParameter(unsigned int index)
 
     return 0.0;
 }
+
+FFResult FreeFrameDelay::SetBoolParameter(unsigned int index, bool value)
+{
+    if (index == FFPARAM_BLUR) {
+        blur =  value;
+        return FF_SUCCESS;
+    }
+
+    return FF_FAIL;
+}
+
+bool FreeFrameDelay::GetBoolParameter(unsigned int index)
+{
+    if (index == FFPARAM_BLUR)
+        return blur;
+
+    return false;
+}
+
 #endif
 
 
-// find the index where the time difference is just above the delay requested.
-//  int i = (writeIndex - 1) < 0 ? MAX_NUM_FRAMES - 1 : writeIndex - 1;
-//  while (i != writeIndex )  {
-//      if ( m_curTime - times[i] > delay ) {
-//          readIndex = (i + 1)%MAX_NUM_FRAMES;
-//          break;
-//      }
-//      N++;
-//      i =  (i - 1) < 0 ? MAX_NUM_FRAMES - 1 : i - 1;
-//  }
 
