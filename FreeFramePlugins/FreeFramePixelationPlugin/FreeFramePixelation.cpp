@@ -1,8 +1,6 @@
 #include <GL/glew.h>
 #include "FreeFramePixelation.h"
 
-#define DEBUG
-
 #ifdef DEBUG
 #include <cstdio>
 void printLog(GLuint obj)
@@ -34,9 +32,9 @@ const GLchar *fragmentShaderCode = "uniform sampler2D texture;\n"
         "const mat3 G = mat3( 0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625);\n"
         "void main(void)\n"
         "{"
-        "    vec2 size = floor( scale / 10.0 * iResolution.xy );"
+        "    vec2 size = floor( scale * min(iResolution.x,iResolution.y) * 0.001 * iResolution.xy );"
         "    vec2 vUv = size / iResolution.xy;"
-        "    vec4 sample;"
+        "    vec4 sample = vec4(0,0,0,0);"
         "    for (int i=0; i<3; i++)"
         "    for (int j=0; j<3; j++) {"
         "        sample += mix( I[i][j], G[i][j], smooth) * texture2D(texture, floor(vUv * (gl_FragCoord.xy + vec2(i-1,j-1))) / size );"
@@ -80,12 +78,11 @@ FreeFramePixelation::FreeFramePixelation()
     : CFreeFrameGLPlugin()
 {
     // clean start
-    tex_fbo.Handle = 0;
-    fbo = 0;
     shaderProgram = 0;
     fragmentShader = 0;
     uniform_viewportsize = 0;
     uniform_scale = 0;
+    uniform_smooth = 0;
 
     // Input properties
     SetMinInputs(1);
@@ -95,8 +92,8 @@ FreeFramePixelation::FreeFramePixelation()
     // Parameters
     SetParamInfo(FFPARAM_PIXELSCALE, "Scale", FF_TYPE_STANDARD, 0.25f);
     scale = 0.25;
-    SetParamInfo(FFPARAM_PIXELSMOOTH, "Antialiasing", FF_TYPE_STANDARD, 0.5f);
-    scale = 0.5;
+    SetParamInfo(FFPARAM_PIXELSMOOTH, "Smooth", FF_TYPE_STANDARD, 0.5f);
+    smooth = 0.5;
 
     param_changed = true;
 }
@@ -192,8 +189,6 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture.Handle);
 
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 

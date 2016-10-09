@@ -58,7 +58,7 @@ FFGLSource::FFGLSource(QString pluginFileName, GLuint texture, double d, int w, 
         _plugin->load(pluginFileName);
     }
     catch (FFGLPluginException &e)  {
-        qWarning() << pluginFileName << QChar(124).toLatin1()<< e.message() << QObject::tr("\nThe FreeframeGL plugin was not added.");
+        qWarning() << pluginFileName << QChar(124).toLatin1()<< e.message() << QObject::tr("\nIt is required.");
         SourceConstructorException().raise();
     }
     catch (...)  {

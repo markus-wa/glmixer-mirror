@@ -169,7 +169,7 @@ QVariantHash FFGLPluginInstanceFreeframePlatform::getParametersDefaults() {
                 break;
             case FF_TYPE_BOOLEAN:
                 returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
-                value.setValue(  *((bool *)&returned)  );
+                value.setValue( returned > 0 );
                 break;
             default:
             case FF_TYPE_STANDARD:
@@ -224,7 +224,7 @@ QVariantHash FFGLPluginInstanceFreeframePlatform::getParameters()
         switch ( ffParameterType ) {
             case FF_TYPE_BOOLEAN:
                 returned = m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID).UIntValue;
-                value.setValue(  *((bool *)&returned)  );
+                value.setValue( returned > 0 );
             break;
 
             case FF_TYPE_TEXT:
@@ -309,14 +309,14 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QV
         m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
 #endif
     }
-    else if ( ffParameterType == FF_TYPE_BOOLEAN && value.canConvert(QVariant::UInt) )
+    else if ( ffParameterType == FF_TYPE_BOOLEAN && value.canConvert(QVariant::Bool) )
     {
         // Cast to unsigned int
 #ifdef FF_FAIL
-        ArgStruct.NewParameterValue = value.toUInt();
+        ArgStruct.NewParameterValue = value.toBool() ? 1 : 0;
         m_ffPluginMain(FF_SETPARAMETER, (DWORD)(&ArgStruct), m_ffInstanceID);
 #else
-        ArgStruct.NewParameterValue.UIntValue = value.toUInt();
+        ArgStruct.NewParameterValue.UIntValue = value.toBool() ? 1 : 0;
         m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
 #endif
     }

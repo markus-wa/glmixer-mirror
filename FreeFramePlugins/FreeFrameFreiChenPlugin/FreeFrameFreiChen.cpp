@@ -20,6 +20,7 @@ void printLog(GLuint obj)
 
 
 #define FFPARAM_BLUR (0)
+#define FFPARAM_TRANS (1)
 
 GLuint displayList = 0;
 
@@ -29,6 +30,7 @@ const GLchar *fragmentShaderCode = "#version 330 core \n"
         "uniform sampler2D texture;"
         "uniform vec3      iResolution;\n"
         "uniform float     factor;"
+        "uniform bool      transparent;"
         "uniform mat3 G[9] = mat3[]("
         "mat3( 0.3535533845424652, 0, -0.3535533845424652, 0.5, 0, -0.5, 0.3535533845424652, 0, -0.3535533845424652 ),"
         "mat3( 0.3535533845424652, 0.5, 0.3535533845424652, 0, 0, 0, -0.3535533845424652, -0.5, -0.3535533845424652 ),"
@@ -57,8 +59,10 @@ const GLchar *fragmentShaderCode = "#version 330 core \n"
         "    }\n"
         "    float M = cnv[0] + cnv[1] + cnv[2] + cnv[3];\n"
         "    float S = M + cnv[4] + cnv[5] + cnv[6] + cnv[7] + cnv[8];\n"
-        "    float a = texture2D(texture, gl_FragCoord.xy / iResolution.xy ).a;"
-        "    FragmentColor = vec4( vec3( 1.0 - ( (1.0 + 10.0 * factor) * sqrt(M/S) ) ), a);\n"
+        "    float v = (1.0 + 10.0 * factor) * sqrt(M/S); "
+        "    sample = transparent ? vec3(0.0) : vec3( 1.0 - v );"
+        "    float a = transparent ? v : texture2D(texture, gl_FragCoord.xy / iResolution.xy ).a;"
+        "    FragmentColor = vec4( sample, a);\n"
         "}";
 
 const GLchar *fragmentShaderCode2 = "#version 330 core \n"
@@ -113,12 +117,11 @@ FreeFrameFreiChen::FreeFrameFreiChen()
     : CFreeFrameGLPlugin()
 {
     // clean start
-    tex_fbo.Handle = 0;
-    fbo = 0;
     shaderProgram = 0;
     fragmentShader = 0;
     uniform_viewportsize = 0;
-    uniform_blur = 0;
+    uniform_contrast = 0;
+    uniform_transparency = 0;
 
     // Input properties
     SetMinInputs(1);
@@ -127,7 +130,10 @@ FreeFrameFreiChen::FreeFrameFreiChen()
 
     // Parameters
     SetParamInfo(FFPARAM_BLUR, "Contrast", FF_TYPE_STANDARD, 0.5f);
-    blur = 0.5;
+    contrast = 0.5;
+
+    SetParamInfo(FFPARAM_TRANS, "Transparent", FF_TYPE_BOOLEAN, false);
+    transparency = false;
 
     param_changed = true;
 }
@@ -172,7 +178,8 @@ FFResult FreeFrameFreiChen::InitGL(const FFGLViewportStruct *vp)
 #endif
 
     uniform_viewportsize = glGetUniformLocation(shaderProgram, "iResolution");
-    uniform_blur = glGetUniformLocation(shaderProgram, "factor");
+    uniform_contrast = glGetUniformLocation(shaderProgram, "factor");
+    uniform_transparency = glGetUniformLocation(shaderProgram, "transparent");
 
     if (displayList == 0) {
         displayList = glGenLists(1);
@@ -263,7 +270,8 @@ FFResult FreeFrameFreiChen::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     // new value of the blur parameter
     if(param_changed) {
-        glUniform1f(uniform_blur, blur);
+        glUniform1f(uniform_contrast, contrast);
+        glUniform1i(uniform_transparency, (int) transparency);
         glUniform3f(uniform_viewportsize, viewport.width, viewport.height, 0.0);
         param_changed = false;
     }
@@ -292,6 +300,10 @@ DWORD FreeFrameFreiChen::SetParameter(const SetParameterStruct* pParam)
             blur = *((float *)(unsigned)&(pParam->NewParameterValue));
             param_changed = true;
             return FF_SUCCESS;
+        } else if (pParam->ParameterNumber == FFPARAM_TRANS) {
+            transparency = *((bool *)(unsigned)&(pParam->NewParameterValue));
+            param_changed = true;
+            return FF_SUCCESS;
         }
     }
     return FF_FAIL;
@@ -304,6 +316,9 @@ DWORD FreeFrameFreiChen::GetParameter(DWORD index)
     if (index == FFPARAM_BLUR) {
         *((float *)(unsigned)&dwRet) = blur;
         return dwRet;
+    } else if (index == FFPARAM_TRANS) {
+        *((bool *)(unsigned)&dwRet) = transparency;
+        return dwRet;
     } else
         return FF_FAIL;
 }
@@ -313,7 +328,7 @@ DWORD FreeFrameFreiChen::GetParameter(DWORD index)
 FFResult FreeFrameFreiChen::SetFloatParameter(unsigned int index, float value)
 {
     if (index == FFPARAM_BLUR) {
-        blur = value;
+        contrast = value;
         param_changed = true;
         return FF_SUCCESS;
     }
@@ -324,10 +339,30 @@ FFResult FreeFrameFreiChen::SetFloatParameter(unsigned int index, float value)
 float FreeFrameFreiChen::GetFloatParameter(unsigned int index)
 {
     if (index == FFPARAM_BLUR)
-        return blur;
+        return contrast;
 
     return 0.0;
 }
+
+FFResult FreeFrameFreiChen::SetBoolParameter(unsigned int index, bool value)
+{
+    if (index == FFPARAM_TRANS) {
+        transparency =  value;
+        param_changed = true;
+        return FF_SUCCESS;
+    }
+
+    return FF_FAIL;
+}
+
+bool FreeFrameFreiChen::GetBoolParameter(unsigned int index)
+{
+    if (index == FFPARAM_TRANS)
+        return transparency;
+
+    return false;
+}
+
 #endif
 
 

@@ -26,6 +26,8 @@ public:
     FFResult    DeInitGL();
     FFResult	SetFloatParameter(unsigned int index, float value);
     float		GetFloatParameter(unsigned int index);
+    FFResult	SetBoolParameter(unsigned int index, bool value);
+    bool		GetBoolParameter(unsigned int index);
 #endif
 
     ///////////////////////////////////////////////////
@@ -47,12 +49,11 @@ public:
     }
 
 protected:
-    double blur;
-    GLuint uniform_blur;
+    double contrast;
+    bool transparency;
+    GLuint uniform_contrast, uniform_transparency;
     bool param_changed;
     FFGLViewportStruct viewport;
-    FFGLTextureStruct tex_fbo;
-    GLuint fbo;
     GLuint shaderProgram;
     GLuint fragmentShader;
     GLuint uniform_viewportsize;

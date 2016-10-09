@@ -2,20 +2,20 @@
 // FFGL.cpp
 //
 // FreeFrame is an open-source cross-platform real-time video effects plugin system.
-// It provides a framework for developing video effects plugins and hosts on Windows, 
-// Linux and Mac OSX. 
-// 
+// It provides a framework for developing video effects plugins and hosts on Windows,
+// Linux and Mac OSX.
+//
 // FreeFrameGL (FFGL) is an extension to the FreeFrame spec to support video processing
 // with OpenGL on Windows, Linux, and Mac OSX.
 //
 // Copyright (c) 2002, 2003, 2004, 2006 www.freeframe.org
-// All rights reserved. 
+// All rights reserved.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Redistribution and use in source and binary forms, with or without modification, 
+// Redistribution and use in source and binary forms, with or without modification,
 //	are permitted provided that the following conditions are met:
 //
 //  * Redistributions of source code must retain the above copyright
@@ -29,28 +29,28 @@
 //    from this software without specific prior written permission.
 //
 //
-//	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-//	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-//	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-//	IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-//	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-//	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-//	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
-//	OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
-//	OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
-//	OF THE POSSIBILITY OF SUCH DAMAGE. 
+//	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+//	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+//	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//	IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+//	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+//	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+//	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+//	OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+//	OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+//	OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// First version, Marcus Clements (marcus@freeframe.org) 
+// First version, Marcus Clements (marcus@freeframe.org)
 // www.freeframe.org
 //
 // FreeFrame 1.0 upgrade by Russell Blakeborough
 // email: boblists@brightonart.org
 //
-// FreeFrame 1.0 - 03 upgrade 
+// FreeFrame 1.0 - 03 upgrade
 // and implementation of FreeFrame SDK methods by Gualtiero Volpe
 // email: Gualtiero.Volpe@poste.it
 //
@@ -61,14 +61,14 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Includes 
+// Includes
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "FFGLPluginSDK.h"
 #include <memory.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Static and extern variables used in the FreeFrame SDK 
+// Static and extern variables used in the FreeFrame SDK
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern CFFGLPluginInfo* g_CurrPluginInfo;
@@ -77,11 +77,11 @@ static CFreeFrameGLPlugin* s_pPrototype = NULL;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// FreeFrame SDK default implementation of the FreeFrame global functions. 
+// FreeFrame SDK default implementation of the FreeFrame global functions.
 // Such function are called by the plugMain function, the only function a plugin exposes.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void *getInfo() 
+void *getInfo()
 {
     return (void *)(g_CurrPluginInfo->GetPluginInfo());
 }
@@ -118,7 +118,7 @@ FFResult deInitialise()
     return FF_SUCCESS;
 }
 
-unsigned int getNumParameters() 
+unsigned int getNumParameters()
 {
     if (s_pPrototype == NULL) {
         FFResult dwRet = initialise();
@@ -250,12 +250,13 @@ void *instantiateGL(const FFGLViewportStruct *pGLViewport)
     {
         unsigned int pType = s_pPrototype->GetParamType(i);
         FFMixed pDefault = s_pPrototype->GetParamDefault(i);
+        dwRet = FF_FAIL;
         if (pType == FF_TYPE_TEXT)
             dwRet = pInstance->SetTextParameter(i, (const char *)pDefault.PointerValue);
-        else
+        else if (pType == FF_TYPE_BOOLEAN)
+            dwRet = pInstance->SetBoolParameter(i, pDefault.UIntValue > 0);
+        else if (pType == FF_TYPE_STANDARD)
             dwRet = pInstance->SetFloatParameter(i, *((float *)(&pDefault.UIntValue)) );
-        //    dwRet = pInstance->SetFloatParameter(i, *(float *)&pDefault.UIntValue);
-
 
         if (dwRet == FF_FAIL)
         {
@@ -311,7 +312,7 @@ FFMixed plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanc
 
 FFMixed plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanceID)
 
-#endif	
+#endif
 
 {
     FFMixed retval;
@@ -368,30 +369,37 @@ FFMixed plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanc
         break;
 
     case FF_SETPARAMETER:
+    {
+        retval.UIntValue = FF_FAIL;
         if (pPlugObj != NULL) {
-            if (getParameterType(((const SetParameterStruct*)inputValue.PointerValue)->ParameterNumber) == FF_TYPE_TEXT)
-                retval.UIntValue = pPlugObj->SetTextParameter(((const SetParameterStruct*)inputValue.PointerValue)->ParameterNumber,
-                                                              (const char *)((const SetParameterStruct*)inputValue.PointerValue)->NewParameterValue.PointerValue);
-            else
+            unsigned int pType = getParameterType(((const SetParameterStruct*)inputValue.PointerValue)->ParameterNumber);
+            if (pType == FF_TYPE_TEXT)
+                retval.UIntValue = pPlugObj->SetTextParameter(((const SetParameterStruct*)inputValue.PointerValue)->ParameterNumber, (const char *)((const SetParameterStruct*)inputValue.PointerValue)->NewParameterValue.PointerValue);
+            else if (pType == FF_TYPE_BOOLEAN)
+                retval.UIntValue = pPlugObj->SetBoolParameter(((const SetParameterStruct*)inputValue.PointerValue)->ParameterNumber, ( ((const SetParameterStruct*)inputValue.PointerValue)->NewParameterValue.UIntValue > 0));
+            else if (pType == FF_TYPE_STANDARD)
                 retval.UIntValue = pPlugObj->SetFloatParameter(((const SetParameterStruct*)inputValue.PointerValue)->ParameterNumber,(*(float *)&((const SetParameterStruct*)inputValue.PointerValue)->NewParameterValue.UIntValue));
         }
-        else
-            retval.UIntValue = FF_FAIL;
+    }
         break;
 
     case FF_GETPARAMETER:
+    {
+        retval.UIntValue = FF_FAIL;
         if (pPlugObj != NULL) {
-            if (getParameterType(inputValue.UIntValue) == FF_TYPE_TEXT)
+            unsigned int pType = getParameterType(inputValue.UIntValue);
+            if ( pType == FF_TYPE_TEXT)
                 retval.PointerValue = pPlugObj->GetTextParameter(inputValue.UIntValue);
-            else {
+            else if (pType == FF_TYPE_BOOLEAN)  {
+                retval.UIntValue = pPlugObj->GetBoolParameter(inputValue.UIntValue);
+            }
+            else if (pType == FF_TYPE_STANDARD)  {
                 float fValue = pPlugObj->GetFloatParameter(inputValue.UIntValue);
                 retval.UIntValue = *(FFUInt32 *)&fValue;
             }
 
         }
-
-        else
-            retval.UIntValue = FF_FAIL;
+    }
         break;
 
     case FF_INSTANTIATEGL:

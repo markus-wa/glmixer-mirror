@@ -2,7 +2,7 @@
 // Copyright (c) 2004 - InfoMus Lab - DIST - University of Genova
 //
 // InfoMus Lab (Laboratorio di Informatica Musicale)
-// DIST - University of Genova 
+// DIST - University of Genova
 //
 // http://www.infomus.dist.unige.it
 // news://infomus.dist.unige.it
@@ -34,7 +34,7 @@ CFreeFrameGLPlugin::CFreeFrameGLPlugin()
 {
 }
 
-CFreeFrameGLPlugin::~CFreeFrameGLPlugin() 
+CFreeFrameGLPlugin::~CFreeFrameGLPlugin()
 {
 }
 
@@ -43,28 +43,42 @@ CFreeFrameGLPlugin::~CFreeFrameGLPlugin()
 // Default implementation of CFreeFrameGLPlugin methods
 ////////////////////////////////////////////////////////
 
-char* CFreeFrameGLPlugin::GetParameterDisplay(unsigned int index) 
-{	
-	unsigned int pType = m_pPlugin->GetParamType(index);
+char* CFreeFrameGLPlugin::GetParameterDisplay(unsigned int index)
+{
+    unsigned int pType = m_pPlugin->GetParamType(index);
 
-	if (pType != FF_FAIL)
-  {
-		if (pType == FF_TYPE_TEXT)
+    if (pType != FF_FAIL)
     {
-			return m_pPlugin->GetTextParameter(index);
+        if (pType == FF_TYPE_TEXT)
+        {
+            return m_pPlugin->GetTextParameter(index);
+        }
+        else    if (pType == FF_TYPE_BOOLEAN)
+        {
+            memset(s_DisplayValue, 0, 5);
+            if (m_pPlugin->GetBoolParameter(index))
+                sprintf(s_DisplayValue, "True");
+            else
+                sprintf(s_DisplayValue, "False");
+            return s_DisplayValue;
+        }
+        else
+        {
+            float fValue = m_pPlugin->GetFloatParameter(index);
+            memset(s_DisplayValue, 0, 5);
+            sprintf(s_DisplayValue, "%f", fValue);
+            return s_DisplayValue;
+        }
     }
-		else
-    {
-			float fValue = m_pPlugin->GetFloatParameter(index);
-			memset(s_DisplayValue, 0, 5);
-			sprintf(s_DisplayValue, "%f", fValue);
-			return s_DisplayValue;
-		}
-	}
-	return NULL;
-}			
+    return NULL;
+}
 
 FFResult CFreeFrameGLPlugin::SetFloatParameter(unsigned int index, float value)
+{
+  return FF_FAIL;
+}
+
+FFResult CFreeFrameGLPlugin::SetBoolParameter(unsigned int index, bool value)
 {
   return FF_FAIL;
 }
@@ -79,13 +93,19 @@ float CFreeFrameGLPlugin::GetFloatParameter(unsigned int index)
   return 0.0;
 }
 
+bool CFreeFrameGLPlugin::GetBoolParameter(unsigned int index)
+{
+  return false;
+}
+
+
 char* CFreeFrameGLPlugin::GetTextParameter(unsigned int index)
 {
   return (char *)FF_FAIL;
-}					
+}
 
 FFResult CFreeFrameGLPlugin::GetInputStatus(unsigned int index)
 {
-	if (index >= GetMaxInputs()) return FF_FAIL;
-	return FF_INPUT_INUSE;
+    if (index >= GetMaxInputs()) return FF_FAIL;
+    return FF_INPUT_INUSE;
 }

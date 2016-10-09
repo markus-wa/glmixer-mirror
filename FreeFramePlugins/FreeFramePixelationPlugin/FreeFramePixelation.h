@@ -51,8 +51,6 @@ protected:
     GLuint uniform_scale, uniform_smooth;
     bool param_changed;
     FFGLViewportStruct viewport;
-    FFGLTextureStruct tex_fbo;
-    GLuint fbo;
     GLuint shaderProgram;
     GLuint fragmentShader;
     GLuint uniform_viewportsize;

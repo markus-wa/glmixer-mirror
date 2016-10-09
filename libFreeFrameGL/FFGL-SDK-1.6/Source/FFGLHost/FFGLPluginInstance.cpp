@@ -55,13 +55,38 @@ void FFGLPluginInstance::SetFloatParameter(unsigned int paramNum, float value)
     FFMixed arg;
     arg.UIntValue = paramNum;
     FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, arg, 0).UIntValue;
-    if (ffParameterType!=FF_TYPE_TEXT)
+    if (ffParameterType == FF_TYPE_STANDARD)
     {
         SetParameterStruct ArgStruct;
         ArgStruct.ParameterNumber = paramNum;
 
         // Cast to pack our float into FFUInt32
         ArgStruct.NewParameterValue.UIntValue = *(FFUInt32 *)&value;
+        arg.PointerValue = &ArgStruct;
+        m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
+    }
+}
+
+
+void FFGLPluginInstance::SetBoolParameter(unsigned int paramNum, bool value)
+{
+    if (paramNum<0 || paramNum>=m_numParameters ||
+            m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
+    {
+        //the parameter or the plugin doesn't exist
+        return;
+    }
+
+    //make sure its a float parameter type
+    FFMixed arg;
+    arg.UIntValue = paramNum;
+    FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, arg, 0).UIntValue;
+    if (ffParameterType == FF_TYPE_BOOLEAN)
+    {
+        SetParameterStruct ArgStruct;
+        ArgStruct.ParameterNumber = paramNum;
+
+        ArgStruct.NewParameterValue.UIntValue = value ? 1 : 0;
         arg.PointerValue = &ArgStruct;
         m_ffPluginMain(FF_SETPARAMETER, arg, m_ffInstanceID);
     }
@@ -91,13 +116,34 @@ float FFGLPluginInstance::GetFloatParameter(unsigned int paramNum)
     arg.UIntValue = paramNum;
     //make sure its a float parameter type
     FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, arg, 0).UIntValue;
-    if (ffParameterType!=FF_TYPE_TEXT)
+    if (ffParameterType == FF_TYPE_STANDARD)
     {
         FFMixed result = m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID);
         return *((float *)&result.UIntValue);
     }
 
     return 0.f;
+}
+
+bool FFGLPluginInstance::GetBoolParameter(unsigned int paramNum)
+{
+    if (paramNum<0 || paramNum>=m_numParameters ||
+            m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
+    {
+        FFDebugMessage("Invalid GetBoolParameter call");
+        return false;
+    }
+    FFMixed arg;
+    arg.UIntValue = paramNum;
+    //make sure its a float parameter type
+    FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE, arg, 0).UIntValue;
+    if (ffParameterType == FF_TYPE_BOOLEAN)
+    {
+        FFMixed result = m_ffPluginMain(FF_GETPARAMETER, arg, m_ffInstanceID);
+        return ( result.UIntValue > 0 ? true : false);
+    }
+
+    return false;
 }
 
 FFResult FFGLPluginInstance::CallProcessOpenGL(ProcessOpenGLStructTag &t)
@@ -218,10 +264,23 @@ FFResult FFGLPluginInstance::InstantiateGL(const FFGLViewportStruct *viewport)
     for (i=0; i<MAX_PARAMETERS && i<m_numParameters; i++)
     {
         arg.UIntValue = i;
-        FFUInt32 returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
-        float result = *((float *)&returned);
-        // Removed check for zero which was wrongly made here - TWB
-        SetFloatParameter(i,result);
+
+
+        FFUInt32 ffParameterType = m_ffPluginMain(FF_GETPARAMETERTYPE,arg,0).UIntValue;
+        // depending on type assign value in data structure
+        if ( ffParameterType == FF_TYPE_STANDARD )
+        {
+            FFUInt32 returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
+            float result = *((float *)&returned);
+            // Removed check for zero which was wrongly made here - TWB
+            SetFloatParameter(i,result);
+        }
+        else if ( ffParameterType == FF_TYPE_BOOLEAN )
+        {
+            FFUInt32 returned = m_ffPluginMain(FF_GETPARAMETERDEFAULT,arg,0).UIntValue;
+            bool result = returned > 0;
+            SetBoolParameter(i,result);
+        }
     }
 
     return FF_SUCCESS;

@@ -16,6 +16,8 @@ add_subdirectory(FreeFrameBlurPlugin)
 add_subdirectory(FreeFrameMonteCarloPlugin)
 add_subdirectory(FreeFrameFreiChenPlugin)
 add_subdirectory(FreeFramePixelationPlugin)
+add_subdirectory(FreeFrameKuwaharaPlugin)
+add_subdirectory(FreeFrameScatterPlugin)
 add_subdirectory(FreeFrameDelayPlugin)
 add_subdirectory(FreeFrameShadowPlugin)
 add_subdirectory(FreeFrameShakePlugin)
@@ -44,7 +46,7 @@ else(WIN32)
 
 # Linux
         add_subdirectory(video4LinuxFFGLPlugin)
-        
+
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins_linux.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.qrc)
     endif(APPLE)
 

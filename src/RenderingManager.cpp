@@ -1971,19 +1971,26 @@ int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
             fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
         // if there is such a file
         if (QFileInfo(fileNameToOpen).exists()) {
-            // create and push the plugin to the source
-            FFGLPluginSource *plugin = newsource->addFreeframeGLPlugin( fileNameToOpen );
-            // apply the configuration
-            if (plugin) {
-                plugin->setConfiguration(p);
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                         << QObject::tr("FreeFrame plugin %1 added.").arg(fileNameToOpen);
 
-            }else {
-                errors++;
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << QObject::tr("FreeFrame plugin %1 failed.").arg(fileNameToOpen);
+            try {
+                // create and push the plugin to the source
+                FFGLPluginSource *plugin = newsource->addFreeframeGLPlugin( fileNameToOpen );
+                // apply the configuration
+                if (plugin) {
+                    plugin->setConfiguration(p);
+                    qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                             << QObject::tr("FreeFrame plugin %1 added.").arg(fileNameToOpen);
+
+                } else {
+                    errors++;
+                    qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                               << QObject::tr("FreeFrame plugin %1 failed.").arg(fileNameToOpen);
+                }
             }
+            catch (FFGLPluginException &e)  {
+                qWarning() << fileNameToOpen << QChar(124).toLatin1()<< e.message() << QObject::tr("\nIt was not added.");
+            }
+
         }
         else {
             errors++;
