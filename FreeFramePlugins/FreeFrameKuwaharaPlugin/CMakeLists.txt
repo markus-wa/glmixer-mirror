@@ -1,0 +1,23 @@
+cmake_minimum_required (VERSION 2.8)
+project (LIBFFGLKUWA)
+
+if(WIN32)
+  add_library(ffglKuwahara SHARED FreeFrameKuwahara.cpp)
+else(WIN32)
+  add_library(ffglKuwahara MODULE FreeFrameKuwahara.cpp)
+endif(WIN32)
+
+target_link_libraries(ffglKuwahara -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+
+IF(CMAKE_VERSION VERSION_GREATER 2.9)
+    INSTALL(FILES $<TARGET_FILE:ffglKuwahara>
+        CONFIGURATIONS Release RelWithDebInfo
+        RUNTIME DESTINATION "./lib/${GLMIXER_BINARY}" COMPONENT Runtime
+    )
+ELSE()
+    get_property(PLUGIN TARGET ffglKuwahara PROPERTY LOCATION)
+    INSTALL(FILES ${PLUGIN}
+            CONFIGURATIONS Release RelWithDebInfo
+            RUNTIME DESTINATION "./lib/${GLMIXER_BINARY}" COMPONENT Runtime
+    )
+ENDIF()
