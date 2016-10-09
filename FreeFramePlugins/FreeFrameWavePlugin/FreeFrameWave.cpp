@@ -13,14 +13,14 @@ GLuint displayList = 0;
 
 static CFFGLPluginInfo PluginInfo (
         FreeFrameWave::CreateInstance,	// Create method
-        "GLwAVE",           // Plugin unique ID
+        "GLWAVE",           // Plugin unique ID
         "FreeFrameWave",    // Plugin name
         1,                  // API major version number
         500,                // API minor version number
         1,                  // Plugin major version number
         000,                // Plugin minor version number
         FF_EFFECT,          // Plugin type
-        "Sinusoidal waves",      // Plugin description
+        "Distort with sinusoidal waves",      // Plugin description
         "by Bruno Herbelin" // About
         );
 

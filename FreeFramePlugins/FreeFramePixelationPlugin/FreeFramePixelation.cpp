@@ -65,7 +65,7 @@ static CFFGLPluginInfo PluginInfo (
         1,						// Plugin major version number
         000,					// Plugin minor version number
         FF_EFFECT,				// Plugin type
-        "Pixelates image",	 // Plugin description
+        "Pixelate image",	 // Plugin description
         "by Bruno Herbelin"  // About
         );
 
