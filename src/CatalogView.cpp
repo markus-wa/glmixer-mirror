@@ -150,8 +150,9 @@ void CatalogView::drawSource(Source *s)
         glLoadIdentity();
 
         // non-transparency blending
-        glBlendFunc(GL_ONE, GL_ONE);
-        glBlendEquation(GL_FUNC_ADD);
+        static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
+
+        ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
 
         // draw source in FBO
         // texture coordinate to default
@@ -162,6 +163,9 @@ void CatalogView::drawSource(Source *s)
         // draw vertex array
         glCallList(ViewRenderWidget::vertex_array_coords);
         glDrawArrays(GL_QUADS, 0, 4);
+
+        // restore source alpha
+        ViewRenderWidget::program->setUniformValue( _baseAlpha, (GLfloat) s->getAlpha());
 
         // done drawing
         _catalogfbo->release();
