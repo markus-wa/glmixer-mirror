@@ -47,7 +47,7 @@ CatalogView::CatalogView() : View(), _visible(true), _alpha(1.0), _catalogfbo(0)
     _iconSize[LARGE] = 100.0;
     _spacing[LARGE] = 18.0;
 
-	_currentSize = MEDIUM;
+    _currentSize = MEDIUM;
     title = "Catalog";
 
 }
@@ -60,11 +60,11 @@ CatalogView::~CatalogView() {
 
 void CatalogView::resize(int w, int h) {
 
-	// compute viewport considering width
-	// TODO : switch depending on side (top, bottom, left, right..)
-	viewport[0] = w - _size[_currentSize];
+    // compute viewport considering width
+    // TODO : switch depending on side (top, bottom, left, right..)
+    viewport[0] = w - _size[_currentSize];
     viewport[1] = 0;
-	viewport[2] = _size[_currentSize];
+    viewport[2] = _size[_currentSize];
     viewport[3] = h -TOPMARGIN;
 
     _widgetArea.setWidth(w);
@@ -75,8 +75,8 @@ void CatalogView::resize(int w, int h) {
 
 void CatalogView::setSize(catalogSize s){
 
-	_currentSize = s;
-	resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
+    _currentSize = s;
+    resize(RenderingManager::getRenderingWidget()->width(), RenderingManager::getRenderingWidget()->height());
 
 }
 
@@ -113,7 +113,7 @@ void CatalogView::clear() {
 
         glViewport(0, 0, _catalogfbo->width(), _catalogfbo->height());
         // clear to transparent
-        glClearColor( 0.0, 0.0, 0.0, 1.0);
+        glClearColor( 0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
 
         _catalogfbo->release();
@@ -221,25 +221,25 @@ void CatalogView::paint() {
     if (!_catalogfbo)
         return;
 
-	// Paint the catalog view is only drawing the off-screen rendered catalog texture.
-	// This texture is filled during rendering manager fbo update with the clear and drawSource methods.
-	//
-	// This paint is called by ViewRenderWidget
+    // Paint the catalog view is only drawing the off-screen rendered catalog texture.
+    // This texture is filled during rendering manager fbo update with the clear and drawSource methods.
+    //
+    // This paint is called by ViewRenderWidget
 
-	glPushAttrib(GL_COLOR_BUFFER_BIT  | GL_VIEWPORT_BIT);
+    glPushAttrib(GL_COLOR_BUFFER_BIT  | GL_VIEWPORT_BIT);
 
     // draw only in the area of the screen covered by the catalog
     viewport[3] =  qBound( (int) (_spacing[_currentSize]), _allSourcesArea.height(), _widgetArea.height() - TOPMARGIN);
     glViewport(viewport[0],viewport[1], viewport[2], viewport[3]);
 
-	// use a standard ortho projection to paint the quad with catalog
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
+    // use a standard ortho projection to paint the quad with catalog
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
     glLoadIdentity();
     gluOrtho2D(0, viewport[2], 0, viewport[3]);
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
     glLoadIdentity();
 
     // standard transparency
@@ -372,12 +372,12 @@ void CatalogView::paint() {
         glVertex2i( _size[_currentSize],  viewport[3] - 1);
     glEnd();
 
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 
-	glPopAttrib();
+    glPopAttrib();
 
 }
 
@@ -386,9 +386,9 @@ void CatalogView::paint() {
 bool CatalogView::isInside(const QPoint &pos){
 
     if (_visible && pos.x() > viewport[0] && pos.y() > (_widgetArea.height()-viewport[3]) )
-		return true;
+        return true;
 
-	return false;
+    return false;
 }
 
 
@@ -438,16 +438,16 @@ bool CatalogView::mousePressEvent(QMouseEvent *event)
 
         return true;
     }
-	return false;
+    return false;
 }
 
 
 bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 {
-	bool isin = isInside(event->pos());
+    bool isin = isInside(event->pos());
 
-	if (isin != !isTransparent())
-		setTransparent(!isin);
+    if (isin != !isTransparent())
+        setTransparent(!isin);
 
     if (isin) {
 
@@ -470,14 +470,14 @@ bool CatalogView::mouseMoveEvent(QMouseEvent *event)
 
     }
 
-	return isin;
+    return isin;
 }
 
 
 void CatalogView::setTransparent(bool on)
 {
-	_alpha = on ? 0.5 : 1.0;
-	RenderingManager::getRenderingWidget()->setFaded(!on);
+    _alpha = on ? 0.5 : 1.0;
+    RenderingManager::getRenderingWidget()->setFaded(!on);
 }
 
 bool CatalogView::mouseDoubleClickEvent ( QMouseEvent * event )
@@ -504,9 +504,9 @@ bool CatalogView::wheelEvent ( QWheelEvent * event )
 
         pany = qBound( 0.0, pany + double(event->delta()) / 2.0, maxpany);
         return true;
-	}
+    }
 
-	return false;
+    return false;
 }
 
 
