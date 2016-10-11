@@ -229,7 +229,7 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
     glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT);
+//    glClear(GL_COLOR_BUFFER_BIT);
 
     //enable texturemapping
     glEnable(GL_TEXTURE_2D);
@@ -330,7 +330,7 @@ FFResult FreeFrameBlur::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         glBindFramebuffer(GL_FRAMEBUFFER, pGL->HostFBO);
 
         glClear(GL_COLOR_BUFFER_BIT);
-        // render the fbo2 texture texture on a quad in the host fbo
+        // render the fbo2 texture texture on a quad
         drawQuad( viewport, tex_fbo2 );
     }
     else

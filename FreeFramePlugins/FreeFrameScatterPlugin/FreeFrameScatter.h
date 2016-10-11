@@ -51,7 +51,11 @@ protected:
     GLuint uniform_scale, uniform_smooth;
     bool param_changed;
     FFGLViewportStruct viewport;
+    FFGLViewportStruct fboViewport;
+    FFGLTextureStruct tex_fbo;
+    GLuint fbo;
     GLuint shaderProgram;
+    GLuint vertexShader;
     GLuint fragmentShader;
     GLuint uniform_viewportsize;
 };

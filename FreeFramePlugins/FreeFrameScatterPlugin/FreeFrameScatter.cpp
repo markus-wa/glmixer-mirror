@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include "FreeFrameScatter.h"
 
+
 #ifdef DEBUG
 #include <cstdio>
 void printLog(GLuint obj)
@@ -24,29 +25,44 @@ void printLog(GLuint obj)
 
 GLuint displayList = 0;
 
-const GLchar *fragmentShaderCode = "uniform sampler2D texture;\n"
+// texture coords interpolation via varying texc
+const GLchar *vertexShaderCode =    "varying vec2 texc;"
+        "attribute vec2 texcoord2d;"
+        "void main(void)"
+        "{"
+        "gl_Position = ftransform();"
+        "texc = gl_MultiTexCoord0.st;"
+        "}";
+
+const GLchar *fragmentShaderCode = "varying vec2 texc;"
+        "uniform sampler2D texture;\n"
         "uniform vec3      iResolution;\n"
         "uniform float     radius;\n"
-        "vec2 destCoord() {\n"
-        "    return vec2(gl_FragCoord.xy / iResolution.xy);\n"
-        "}\n"
+        "uniform bool      smooth;\n"
+        "const mat3 G = mat3( 0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625);\n"
         "float noise(vec2 co)"
         "{ \n"
         "    vec2 seed = vec2(sin(co.x), cos(co.y)); "
         "    return fract(sin(dot(seed ,vec2(12.9898,78.233))) * 43758.5453); "
         "} "
-
         "vec2 scatter(float r)"
         "{ \n"
-        "   float offsetX = r * (-1.0 + noise(destCoord()) * 2.0); \n"
-        "   float offsetY = r * (-1.0 + noise(destCoord().yx) * 2.0); \n"
-        "   return vec2(destCoord().x + offsetX, destCoord().y + offsetY); \n"
+        "   float offsetX = r * (-1.0 + noise(texc) * 2.0); \n"
+        "   float offsetY = r * (-1.0 + noise(texc.yx) * 2.0); \n"
+        "   return vec2(texc.x + offsetX, texc.y + offsetY); \n"
         "} \n"
-
-
         "void main(void)\n"
         "{"
-        "        gl_FragColor = texture2D(texture, scatter(radius*0.1) );\n"
+        "    if (smooth) {"
+        "      vec4 sample = vec4(0,0,0,0);"
+        "      for (int i=0; i<3; i++)"
+        "        for (int j=0; j<3; j++) {"
+        "          sample +=  G[i][j] * texture2D(texture, texc + vec2(i-1,j-1) / iResolution.xy );"
+        "        }"
+        "      gl_FragColor = sample;\n"
+        "    }"
+        "    else "
+        "      gl_FragColor = texture2D(texture, scatter(radius*0.1) );\n"
         "}";
 
 
@@ -77,8 +93,11 @@ FreeFrameScatter::FreeFrameScatter()
     : CFreeFrameGLPlugin()
 {
     // clean start
+    tex_fbo.Handle = 0;
+    fbo = 0;
     shaderProgram = 0;
     fragmentShader = 0;
+    vertexShader = 0;
     uniform_viewportsize = 0;
     uniform_scale = 0;
     uniform_smooth = 0;
@@ -123,6 +142,14 @@ FFResult FreeFrameScatter::InitGL(const FFGLViewportStruct *vp)
         return FF_FAIL;
     }
 
+    glGenFramebuffers(1, &fbo);
+
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
+    glCompileShader(vertexShader);
+#ifdef DEBUG
+    printLog(vertexShader);
+#endif
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
     glCompileShader(fragmentShader);
@@ -130,6 +157,7 @@ FFResult FreeFrameScatter::InitGL(const FFGLViewportStruct *vp)
     printLog(fragmentShader);
 #endif
     shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
 #ifdef DEBUG
@@ -138,7 +166,7 @@ FFResult FreeFrameScatter::InitGL(const FFGLViewportStruct *vp)
 
     uniform_viewportsize = glGetUniformLocation(shaderProgram, "iResolution");
     uniform_scale = glGetUniformLocation(shaderProgram, "radius");
-    uniform_smooth = glGetUniformLocation(shaderProgram, "edge_thres2");
+    uniform_smooth = glGetUniformLocation(shaderProgram, "smooth");
 
     if (displayList == 0) {
         displayList = glGenLists(1);
@@ -177,6 +205,10 @@ DWORD   FreeFrameFreiChen::DeInitGL()
 FFResult FreeFrameScatter::DeInitGL()
 #endif
 {
+    if (tex_fbo.Handle) glDeleteTextures(1, &tex_fbo.Handle);
+    if (fbo) glDeleteFramebuffers( 1, &fbo );
+    if (vertexShader)   glDeleteShader(vertexShader);
+    if (fragmentShader) glDeleteShader(fragmentShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
 
     return FF_SUCCESS;
@@ -190,8 +222,8 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     // setup display
     glViewport(vp.x, vp.y, vp.width, vp.height);
@@ -221,7 +253,6 @@ FFResult FreeFrameScatter::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
     glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT);
 
     //enable texturemapping
     glEnable(GL_TEXTURE_2D);
@@ -229,18 +260,75 @@ FFResult FreeFrameScatter::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     // no depth test
     glDisable(GL_DEPTH_TEST);
 
-    // use the blurring shader program
+    // use the scatter shader program
     glUseProgram(shaderProgram);
 
-    // new value of the blur parameter
+    // new value of the parameter
     if(param_changed) {
+
+        // disable fbo
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // compute new viewport size for the new blur value
+        fboViewport.x = 0;
+        fboViewport.y = 0;
+        fboViewport.width = (int)((double)viewport.width * (1.0 - smooth) );
+        fboViewport.height = (int)((double)viewport.height * (1.0 - smooth) );
+
+        // sanity check for size
+        fboViewport.width = fboViewport.width < 1 ? 1 : fboViewport.width;
+        fboViewport.height = fboViewport.height < 1 ? 1 : fboViewport.height;
+
+        // create texture for FBO
+        if (tex_fbo.Handle) glDeleteTextures(1, &tex_fbo.Handle);
+        glGenTextures(1,&tex_fbo.Handle);
+        tex_fbo.Width = fboViewport.width;
+        tex_fbo.Height = fboViewport.height;
+        glBindTexture(GL_TEXTURE_2D, tex_fbo.Handle);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_fbo.Width, tex_fbo.Height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        // attach texture to FBO
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_fbo.Handle, 0);
+
+        // return to default state
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glUniform1i(uniform_smooth, 0);
+        // (re)activate the HOST fbo as render target
+        glBindFramebuffer(GL_FRAMEBUFFER, pGL->HostFBO);
+
         glUniform1f(uniform_scale, scale);
-        glUniform1f(uniform_smooth, smooth);
         glUniform3f(uniform_viewportsize, viewport.width, viewport.height, 0.0);
+
         param_changed = false;
     }
 
-    drawQuad( viewport, Texture );
+    if ( smooth > 0.001)
+    {
+        // activate the fbo2 as our render target
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        //render the original texture on a quad in fbo
+        glUniform1i(uniform_smooth, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        drawQuad( fboViewport, Texture);
+
+        // (re)activate the HOST fbo as render target
+        glBindFramebuffer(GL_FRAMEBUFFER, pGL->HostFBO);
+
+        // render the fbo texture texture on a quad
+        glUniform1i(uniform_smooth, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        drawQuad( viewport, tex_fbo );
+    }
+    else
+        drawQuad( viewport, Texture );
 
     // disable shader program
     glUseProgram(0);
