@@ -32,7 +32,7 @@ const GLchar *fragmentShaderCode = "uniform sampler2D texture;\n"
         "const mat3 G = mat3( 0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625);\n"
         "void main(void)\n"
         "{"
-        "    vec2 size = floor( scale * min(iResolution.x,iResolution.y) * 0.001 * iResolution.xy );"
+        "    vec2 size = floor( scale * 0.1 * iResolution.xy );"
         "    vec2 vUv = size / iResolution.xy;"
         "    vec4 sample = vec4(0,0,0,0);"
         "    for (int i=0; i<3; i++)"
@@ -47,7 +47,7 @@ const GLchar *fragmentShaderCodeSimple = "uniform sampler2D texture;\n"
         "uniform float     scale;\n"
         "void main(void)\n"
         "{"
-        "    vec2 d = max(factor, 0.01) / 10.0 * vec2( 1.0, iResolution.x / iResolution.y  );\n"
+        "    vec2 d = max(scale, 0.01) / 10.0 * vec2( 1.0, iResolution.x / iResolution.y  );\n"
         "    vec2 coords =  d * floor( gl_FragCoord.xy / ( iResolution.xy * d) );\n"
         "    gl_FragColor = texture2D(texture, coords );\n"
         "}";
@@ -172,7 +172,7 @@ FFResult FreeFramePixelation::InitGL(const FFGLViewportStruct *vp)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD   FreeFrameFreiChen::DeInitGL()
+DWORD   FreeFramePixelation::DeInitGL()
 #else
 // FFGL 1.6
 FFResult FreeFramePixelation::DeInitGL()
@@ -201,7 +201,7 @@ void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD	FreeFrameFreiChen::ProcessOpenGL(ProcessOpenGLStruct* pGL)
+DWORD	FreeFramePixelation::ProcessOpenGL(ProcessOpenGLStruct* pGL)
 #else
 // FFGL 1.6
 FFResult FreeFramePixelation::ProcessOpenGL(ProcessOpenGLStruct *pGL)
@@ -256,7 +256,7 @@ FFResult FreeFramePixelation::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
 #ifdef FF_FAIL
 // FFGL 1.5
-DWORD FreeFrameFreiChen::SetParameter(const SetParameterStruct* pParam)
+DWORD FreeFramePixelation::SetParameter(const SetParameterStruct* pParam)
 {
     if (pParam != NULL) {
         if (pParam->ParameterNumber == FFPARAM_PIXELSCALE) {
@@ -272,7 +272,7 @@ DWORD FreeFrameFreiChen::SetParameter(const SetParameterStruct* pParam)
     return FF_FAIL;
 }
 
-DWORD FreeFrameFreiChen::GetParameter(DWORD index)
+DWORD FreeFramePixelation::GetParameter(DWORD index)
 {
     DWORD dwRet = 0;
 
