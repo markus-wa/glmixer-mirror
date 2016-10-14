@@ -304,19 +304,18 @@ bool setString(unsigned int t, const char *string, FFInstanceID *instanceID)
 #ifdef FF_FAIL  // FFGL 1.5
 
 #ifdef _WIN32
-
 __declspec(dllexport) char * __stdcall getString(unsigned int t, DWORD *instanceID)
-
-
 #else
-
 char *getString(unsigned int t, DWORD *instanceID)
-
 #endif
 
 #else
 
+#ifdef _WIN32
+__declspec(dllexport) char * __stdcall getString(unsigned int t, FFInstanceID *instanceID)
+#else
 char *getString(unsigned int t, FFInstanceID *instanceID)
+#endif
 
 #endif
 {
@@ -358,18 +357,18 @@ char *getString(unsigned int t, FFInstanceID *instanceID)
 #ifdef FF_FAIL  // FFGL 1.5
 
 #ifdef _WIN32
-
-__declspec(dllexport) bool __stdcall setString(int key, bool status, DWORD *instanceID)
-
+__declspec(dllexport) bool __stdcall setKeyboard(int key, bool status, DWORD *instanceID)
 #else
-
-bool setString(int key, bool status, DWORD *instanceID)
-
+bool setKeyboard(int key, bool status, DWORD *instanceID)
 #endif
 
 #else
 
+#ifdef _WIN32
+__declspec(dllexport) bool __stdcall setKeyboard(int key, bool status, FFInstanceID *instanceID)
+#else
 bool setKeyboard(int key, bool status, FFInstanceID *instanceID)
+#endif
 
 #endif
 {
