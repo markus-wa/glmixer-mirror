@@ -177,6 +177,11 @@ DWORD   FreeFrameMonteCarlo::DeInitGL()
 FFResult FreeFrameMonteCarlo::DeInitGL()
 #endif
 {
+
+    if (tex_fbo.Handle) glDeleteTextures(1, &tex_fbo.Handle);
+    if (fbo) glDeleteFramebuffers( 1, &fbo );
+
+    if (fragmentShader)   glDeleteShader(fragmentShader);
     if (vertexShader)   glDeleteShader(vertexShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
 

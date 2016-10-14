@@ -218,6 +218,7 @@ DWORD   FreeFrameFreiChen::DeInitGL()
 FFResult FreeFrameFreiChen::DeInitGL()
 #endif
 {
+    if (fragmentShader) glDeleteShader(fragmentShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
 
     return FF_SUCCESS;

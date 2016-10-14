@@ -178,6 +178,7 @@ DWORD   FreeFramePixelation::DeInitGL()
 FFResult FreeFramePixelation::DeInitGL()
 #endif
 {
+    if (fragmentShader) glDeleteShader(fragmentShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
 
     return FF_SUCCESS;

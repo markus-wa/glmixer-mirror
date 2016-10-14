@@ -309,6 +309,7 @@ DWORD   FreeFrameKuwahara::DeInitGL()
 FFResult FreeFrameKuwahara::DeInitGL()
 #endif
 {
+    if (fragmentShader) glDeleteShader(fragmentShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
 
     return FF_SUCCESS;
