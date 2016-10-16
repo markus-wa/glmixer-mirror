@@ -264,11 +264,10 @@ void FFGLPluginSource::update()
         if (_enabled)
             // call the plugin's ProcessOpenGL
             callresult = _plugin->CallProcessOpenGL(processStruct);
-        else if (_inputTexture.Handle > 0) {
+        else if ( !_isFreeframeTypeSource && _inputTexture.Handle > 0) {
             // fill-in the FBO with input texture
             glEnable(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, _inputTexture.Handle);
-            glColor4f(1.f, 1.f, 1.f, 1.f);
             glBegin(GL_QUADS);
             //lower left
             glTexCoord2d(0.0, 0.0);
@@ -338,7 +337,7 @@ bool FFGLPluginSource::initialize()
 
                 // initial clear to black
                 glPushAttrib(GL_COLOR_BUFFER_BIT);
-                glClearColor(0.f, 0.f, 0.f, 1.f);
+                glClearColor(0.f, 0.f, 0.f, 0.f);
                 glClear(GL_COLOR_BUFFER_BIT);
                 glPopAttrib();
 
