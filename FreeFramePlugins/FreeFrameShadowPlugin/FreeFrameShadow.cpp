@@ -91,7 +91,6 @@ DWORD   FreeFrameTest::DeInitGL()
 FFResult FreeFrameTest::DeInitGL()
 #endif
 {
-
    if (texid)
         glDeleteTextures(1, &texid);
 
