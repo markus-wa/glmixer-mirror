@@ -80,7 +80,7 @@ static CFFGLPluginInfo PluginInfo (
         1,						// Plugin major version number
         000,					// Plugin minor version number
         FF_EFFECT,				// Plugin type
-        "Scatter pixels",	 // Plugin description
+        "Scatter pixels & smooth",	 // Plugin description
         "by Bruno Herbelin"  // About
         );
 

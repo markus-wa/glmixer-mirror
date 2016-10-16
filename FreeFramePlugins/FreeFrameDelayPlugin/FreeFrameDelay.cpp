@@ -20,7 +20,7 @@ static CFFGLPluginInfo PluginInfo (
         1,										// Plugin major version number
         000,									// Plugin minor version number
         FF_EFFECT,						// Plugin type
-        "Delays the display",	 // Plugin description
+        "Delays the display (motion blur)",	 // Plugin description
         "by Bruno Herbelin"  // About
         );
 

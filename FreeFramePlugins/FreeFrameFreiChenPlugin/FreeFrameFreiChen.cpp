@@ -31,7 +31,7 @@ const GLchar *fragmentShaderCode = "#version 330 core \n"
         "uniform vec3      iResolution;\n"
         "uniform float     factor;"
         "uniform bool      transparent;"
-        "uniform mat3 G[9] = mat3[]("
+        "const mat3 G[9] = mat3[]("
         "mat3( 0.3535533845424652, 0, -0.3535533845424652, 0.5, 0, -0.5, 0.3535533845424652, 0, -0.3535533845424652 ),"
         "mat3( 0.3535533845424652, 0.5, 0.3535533845424652, 0, 0, 0, -0.3535533845424652, -0.5, -0.3535533845424652 ),"
         "mat3( 0, 0.3535533845424652, -0.5, -0.3535533845424652, 0, 0.3535533845424652, 0.5, -0.3535533845424652, 0 ),"
@@ -65,31 +65,6 @@ const GLchar *fragmentShaderCode = "#version 330 core \n"
         "    FragmentColor = vec4( sample, a);\n"
         "}";
 
-const GLchar *fragmentShaderCode2 = "#version 330 core \n"
-        "uniform sampler2D texture;"
-        "uniform vec3      iResolution;\n"
-        "uniform mat3 G[2] = mat3[]("
-        "    mat3( 1.0, 2.0, 1.0, 0.0, 0.0, 0.0, -1.0, -2.0, -1.0 ),"
-        "    mat3( 1.0, 0.0, -1.0, 2.0, 0.0, -2.0, 1.0, 0.0, -1.0 )"
-        ");\n"
-        "out vec4 FragmentColor;\n"
-        "void main(void)"
-        "{"
-        "    mat3 I;"
-        "    float cnv[2];"
-        "    vec3 sample;"
-        "    for (int i=0; i<3; i++)"
-        "    for (int j=0; j<3; j++) {"
-        "        sample = texture2D(texture, (gl_FragCoord.xy + vec2(i-1,j-1)) / iResolution.xy  ).rgb;"
-        "        I[i][j] = length(sample); "
-        "    }"
-        "    for (int i=0; i<2; i++) {"
-        "        float dp3 = dot(G[i][0], I[0]) + dot(G[i][1], I[1]) + dot(G[i][2], I[2]);"
-        "        cnv[i] = dp3 * dp3; "
-        "    }"
-        "    float a = texture2D(texture, gl_FragCoord.xy / iResolution.xy ).a;"
-        "    FragmentColor = vec4 ( vec3(0.5 * sqrt(cnv[0]*cnv[0]+cnv[1]*cnv[1])), a);"
-        "}";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -104,7 +79,7 @@ static CFFGLPluginInfo PluginInfo (
         1,										// Plugin major version number
         000,									// Plugin minor version number
         FF_EFFECT,						// Plugin type
-        "Detects edge using Frei-Chen algorithm",	 // Plugin description
+        "Detect edge using Frei-Chen algorithm",	 // Plugin description
         "by Bruno Herbelin"  // About
         );
 
