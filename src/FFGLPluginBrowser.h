@@ -56,6 +56,7 @@ public slots:
     void moveDownPlugin();
     void removePlugin();
     void editPlugin();
+    void enablePlugin(bool);
 
 signals:
     // inform to refresh the GUI
@@ -74,7 +75,7 @@ private:
     QtProperty *createPluginPropertyTree(FFGLPluginSource *plugin);
     QAction *removeAction;
     QAction *moveUpAction, *moveDownAction;
-    QAction *editAction;
+    QAction *editAction, *enableAction;
 };
 
 #endif // FFGLPLUGINBROWSER_H

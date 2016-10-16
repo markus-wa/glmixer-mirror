@@ -76,6 +76,7 @@ public:
     // query state
     bool isPlaying() { return !_pause;}
     bool isinitialized() { return _initialized;}
+    bool isEnabled() { return _enabled; }
 
     // plugin parameters
     QVariantHash getParameters();
@@ -96,6 +97,7 @@ public:
 public slots:
     // enable updates
     void play(bool on);
+    void enable(bool on);
     // reset
     void restoreDefaults();
     void resize(int w, int h);
@@ -126,7 +128,7 @@ private:
     // timer
     QElapsedTimer timer;
     qint64 _elapsedtime;
-    bool _pause;
+    bool _pause, _enabled;
 
     // Frame buffer objet
     class QGLFramebufferObject *_fbo;

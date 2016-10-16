@@ -34,7 +34,7 @@ FFGLPluginSource::RTTI FFGLPluginSource::type = FFGLPluginSource::FREEFRAME_PLUG
 
 
 FFGLPluginSource::FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture)
-    : _filename("Freeframe"), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _fbo(0), _fboSize(w,h)
+    : _filename("Freeframe"), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _enabled(true), _fbo(0), _fboSize(w,h)
 {
     _plugin =  FFGLPluginInstanceFreeframe::New();
 
@@ -218,7 +218,7 @@ void FFGLPluginSource::update()
         glLoadIdentity();
 
         //clear all buffers
-        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClearColor(0.f, 0.f, 0.f, 0.f);
         glClearDepth(0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -253,14 +253,37 @@ void FFGLPluginSource::update()
             processStruct.inputTextures = NULL;
         }
 
-        //call the plugin's ProcessOpenGL
 #ifdef FF_FAIL
         // FFGL 1.5
-        DWORD callresult = _plugin->CallProcessOpenGL(processStruct);
+        DWORD callresult = FF_SUCCESS;
 #else
         // FFGL 1.6
-        FFResult callresult = _plugin->CallProcessOpenGL(processStruct);
+        FFResult callresult = FF_SUCCESS;
 #endif
+
+        if (_enabled)
+            // call the plugin's ProcessOpenGL
+            callresult = _plugin->CallProcessOpenGL(processStruct);
+        else if (_inputTexture.Handle > 0) {
+            // fill-in the FBO with input texture
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, _inputTexture.Handle);
+            glColor4f(1.f, 1.f, 1.f, 1.f);
+            glBegin(GL_QUADS);
+            //lower left
+            glTexCoord2d(0.0, 0.0);
+            glVertex2f(-1,-1);
+            //upper left
+            glTexCoord2d(0.0, 1.0);
+            glVertex2f(-1,1);
+            //upper right
+            glTexCoord2d(1.0, 1.0);
+            glVertex2f(1,1);
+            //lower right
+            glTexCoord2d(1.0, 0.0);
+            glVertex2f(1,-1);
+            glEnd();
+        }
 
         // make sure we restore state
         glMatrixMode(GL_TEXTURE);
@@ -289,10 +312,12 @@ void FFGLPluginSource::update()
 
 void FFGLPluginSource::bind() const
 {
-    if (_initialized) {
+    if (_initialized)
         // bind the FBO texture
         glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-    }
+    else if (_inputTexture.Handle > 0)
+        // bind the input texture
+        glBindTexture(GL_TEXTURE_2D, _inputTexture.Handle);
 }
 
 bool FFGLPluginSource::initialize()
@@ -378,15 +403,19 @@ void FFGLPluginSource::restoreDefaults()
     }
 }
 
-void FFGLPluginSource::play(bool play) {
+void FFGLPluginSource::play(bool on) {
 
-    _pause = !play;
+    _pause = !on;
 
     if (!_pause)
         timer.restart();
 
 }
 
+void FFGLPluginSource::enable(bool on) {
+
+    _enabled = on;
+}
 
 QDomElement FFGLPluginSource::getConfiguration( QDir current )
 {

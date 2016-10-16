@@ -81,6 +81,14 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
     // insert edit action on top
     menuTree.insertAction(resetAction, editAction);
 
+    // create edit action
+    enableAction = new QAction(tr("Enable"), this);
+    enableAction->setCheckable(true);
+    enableAction->setChecked(true);
+    QObject::connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(enablePlugin(bool)) );
+    // insert edit action on top
+    menuTree.insertAction(editAction, enableAction);
+
     // hide actions by default
     resetAction->setVisible(false);
     editAction->setVisible(false);
@@ -338,6 +346,16 @@ void FFGLPluginBrowser::editPlugin()
 }
 
 
+void FFGLPluginBrowser::enablePlugin(bool on)
+{
+    if ( propertyTreeEditor->currentItem() ) {
+        QtProperty *property = propertyTreeEditor->currentItem()->property();
+        if ( propertyToPluginParameter.contains(property) )
+            propertyToPluginParameter[property].first->enable(on);
+    }
+}
+
+
 void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
 {
     setReferenceURL();
@@ -345,6 +363,8 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
     editAction->setVisible(false);
     // reset is disabled by default
     resetAction->setVisible(false);
+    // enable is disabled by default
+    enableAction->setVisible(false);
     // remove is disabled by default
     if(removeAction) removeAction->setVisible(false);
     if(moveUpAction) moveUpAction->setVisible(false);
@@ -364,6 +384,9 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
                 moveUpAction->setVisible(true);
             if(moveDownAction && propertyTreeEditor->currentItem() != L.last() )
                 moveDownAction->setVisible(true);
+
+            enableAction->setVisible(true);
+            enableAction->setChecked(propertyToPluginParameter[property].first->isEnabled());
 
             // enable the edit action for shadertoy plugins only
             if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN)
