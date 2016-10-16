@@ -1,0 +1,23 @@
+cmake_minimum_required (VERSION 2.8)
+project (LIBFFGLGLOW)
+
+if(WIN32)
+  add_library(ffglGlow SHARED FreeFrameGlow.cpp)
+else(WIN32)
+  add_library(ffglGlow MODULE FreeFrameGlow.cpp)
+endif(WIN32)
+
+target_link_libraries(ffglGlow -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+
+IF(CMAKE_VERSION VERSION_GREATER 2.9)
+    INSTALL(FILES $<TARGET_FILE:ffglGlow>
+        CONFIGURATIONS Release RelWithDebInfo
+        RUNTIME DESTINATION "./lib/${GLMIXER_BINARY}" COMPONENT Runtime
+    )
+ELSE()
+    get_property(PLUGIN TARGET ffglGlow PROPERTY LOCATION)
+    INSTALL(FILES ${PLUGIN}
+            CONFIGURATIONS Release RelWithDebInfo
+            RUNTIME DESTINATION "./lib/${GLMIXER_BINARY}" COMPONENT Runtime
+    )
+ENDIF()
