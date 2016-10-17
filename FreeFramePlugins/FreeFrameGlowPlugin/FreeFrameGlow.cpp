@@ -76,7 +76,7 @@ const GLchar *fragmentShaderCode =
         "                           / iResolution.xy ) * incrementalGaussian.x;  "
         "     avgValue += texture2D(texture, (gl_FragCoord.xy + i * blurMultiplyVec) "
         "                           / iResolution.xy ) * incrementalGaussian.x;  "
-        "     coefficientSum += 2.0 * incrementalGaussian.x;"
+        "     coefficientSum += 1.8 * incrementalGaussian.x;"
         "     incrementalGaussian.xy *= incrementalGaussian.yz;"
         "   }"
 
