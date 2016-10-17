@@ -123,6 +123,7 @@ class VideoFile: public QObject
 Q_OBJECT
 
     friend class DecodingThread;
+    friend class FirstFrameFiller;
 #ifdef CUDA
     friend class CUDADecodingThread;
 #endif
@@ -673,10 +674,10 @@ public slots:
     bool isInterlaced() const { return interlaced; }
 
 protected slots:
-	/**
-	 * Slot called from an internal timer synchronized on the video time code.
-	 */
-	void video_refresh_timer();
+    /**
+     * Slot called from an internal timer synchronized on the video time code.
+     */
+    void video_refresh_timer();
 
 protected:
 

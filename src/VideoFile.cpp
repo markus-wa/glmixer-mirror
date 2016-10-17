@@ -210,18 +210,18 @@ private:
 
 
 VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
-		int swsConversionAlgorithm, int destinationWidth, int destinationHeight) :
-	QObject(parent), filename(QString()), powerOfTwo(generatePowerOfTwo),
-			targetWidth(destinationWidth), targetHeight(destinationHeight),
-			conversionAlgorithm(swsConversionAlgorithm)
+        int swsConversionAlgorithm, int destinationWidth, int destinationHeight) :
+    QObject(parent), filename(QString()), powerOfTwo(generatePowerOfTwo),
+            targetWidth(destinationWidth), targetHeight(destinationHeight),
+            conversionAlgorithm(swsConversionAlgorithm)
 {
     // first time a video file is created?
     CodecManager::registerAll();
 
-	// Init some pointers to NULL
-	videoStream = -1;
+    // Init some pointers to NULL
+    videoStream = -1;
     video_st = NULL;
-	pFormatCtx = NULL;
+    pFormatCtx = NULL;
     img_convert_ctx = NULL;
     firstPicture = NULL;
     blackPicture = NULL;
@@ -235,17 +235,17 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     QObject::connect(decod_tid, SIGNAL(failed()), this, SIGNAL(failed()));
     pictq_mutex = new QMutex;
     Q_CHECK_PTR(pictq_mutex);
-	pictq_cond = new QWaitCondition;
-	Q_CHECK_PTR(pictq_cond);
+    pictq_cond = new QWaitCondition;
+    Q_CHECK_PTR(pictq_cond);
     seek_mutex = new QMutex;
     Q_CHECK_PTR(seek_mutex);
     seek_cond = new QWaitCondition;
     Q_CHECK_PTR(seek_cond);
 
-	ptimer = new QTimer(this);
-	Q_CHECK_PTR(ptimer);
-	ptimer->setSingleShot(true);
-	QObject::connect(ptimer, SIGNAL(timeout()), this, SLOT(video_refresh_timer()));
+    ptimer = new QTimer(this);
+    Q_CHECK_PTR(ptimer);
+    ptimer->setSingleShot(true);
+    QObject::connect(ptimer, SIGNAL(timeout()), this, SLOT(video_refresh_timer()));
 
     // initialize behavior
     filename = QString::null;
@@ -256,9 +256,9 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     ignoreAlpha = false; // by default ignore alpha channel
     interlaced = false;  // TODO: detect and deinterlace
 
-	// reset
+    // reset
     quit = true; // not running yet
-	reset();
+    reset();
 }
 
 void VideoFile::close()
@@ -325,7 +325,7 @@ void VideoFile::close()
 
 VideoFile::~VideoFile()
 {
-	// make sure all is closed
+    // make sure all is closed
     close();
 
     QObject::disconnect(this, 0, 0, 0);
@@ -357,7 +357,7 @@ void VideoFile::reset()
 void VideoFile::stop()
 {
     if (!quit)
-	{
+    {
 #ifdef VIDEOFILE_DEBUG
         qDebug() << filename << QChar(124).toLatin1() << tr("Stopping.");
 #endif
@@ -366,7 +366,7 @@ void VideoFile::stop()
         quit = true;
 
         // remember where we are for next restart
-        mark_stop = getCurrentFrameTime();      
+        mark_stop = getCurrentFrameTime();
 
         // unlock all conditions
         pictq_cond->wakeAll();
@@ -398,10 +398,10 @@ void VideoFile::start()
 
     // nothing to play if there is ONE frame only...
     if ( getNumFrames() < 2)
-		return;
+        return;
 
     if (quit)
-	{
+    {
 #ifdef VIDEOFILE_DEBUG
         qDebug() << filename << QChar(124).toLatin1() << tr("Starting.");
 #endif
@@ -409,8 +409,8 @@ void VideoFile::start()
         // reset internal state
         reset();
 
-		// reset quit flag
-		quit = false;
+        // reset quit flag
+        quit = false;
 
         // restart at beginning
         seek_pos = mark_in;
@@ -431,7 +431,7 @@ void VideoFile::start()
 #ifdef VIDEOFILE_DEBUG
         qDebug() << filename << QChar(124).toLatin1() << tr("Started.");
 #endif
-	}
+    }
 
     /* say if we are running or not */
     emit running(!quit);
@@ -439,10 +439,10 @@ void VideoFile::start()
 
 void VideoFile::play(bool startorstop)
 {
-	if (startorstop)
-		start();
-	else
-		stop();
+    if (startorstop)
+        start();
+    else
+        stop();
 }
 
 void VideoFile::setPlaySpeedFactor(int s)
@@ -498,6 +498,33 @@ bool VideoFile::isOpen() const {
     return (pFormatCtx != NULL);
 }
 
+class FirstFrameFiller : public QThread
+ {
+     void run();
+
+     VideoFile *_vf;
+     bool option;
+     double value;
+
+public:
+     FirstFrameFiller(VideoFile *vf, bool o);
+
+     double getValue() { return value; }
+};
+
+FirstFrameFiller::FirstFrameFiller(VideoFile *vf, bool o)
+    : QThread(vf), _vf(vf), option(o), value(0.0)
+{
+
+}
+
+void FirstFrameFiller::run()
+{
+    if(_vf)
+        value = _vf->fill_first_frame(option);
+}
+
+
 bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlphaChannel)
 {
     if (pFormatCtx)
@@ -519,7 +546,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         // free context
         avformat_close_input( &_pFormatCtx);
         //could not open Codecs (error message already sent)
-		return false;
+        return false;
     }
 
     // open the codec
@@ -574,7 +601,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     if (powerOfTwo)
         CodecManager::convertSizePowerOfTwo(targetWidth, targetHeight);
 
-	// Default targetFormat to PIX_FMT_RGB24, not using color palette
+    // Default targetFormat to PIX_FMT_RGB24, not using color palette
     targetFormat = AV_PIX_FMT_RGB24;
     rgba_palette = false;
 
@@ -593,20 +620,20 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // format description screen (for later)
     QString pfn = CodecManager::getPixelFormatName(targetFormat);
 
-	// Decide for optimal scaling algo if it was not specified
-	// NB: the algo is used only if the conversion is scaled or with filter
-	// (i.e. optimal 'unscaled' converter is used by default)
-	if (conversionAlgorithm == 0)
-	{
+    // Decide for optimal scaling algo if it was not specified
+    // NB: the algo is used only if the conversion is scaled or with filter
+    // (i.e. optimal 'unscaled' converter is used by default)
+    if (conversionAlgorithm == 0)
+    {
         if ( video_st->nb_frames < 2 )
-			conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
-		else
-			conversionAlgorithm = SWS_POINT;   // optimal speed scaling for videos
-	}
+            conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
+        else
+            conversionAlgorithm = SWS_POINT;   // optimal speed scaling for videos
+    }
 
 #ifdef VIDEOFILE_DEBUG
-	// print all info if in debug
-	conversionAlgorithm |= SWS_PRINT_INFO;
+    // print all info if in debug
+    conversionAlgorithm |= SWS_PRINT_INFO;
 #endif
 
     filter = NULL;
@@ -618,23 +645,33 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         // Setup a filter to enforce a per-pixel conversion (here a slight blur)
         filter = sws_getDefaultFilter(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0);
 
-	// create conversion context
+    // create conversion context
     // (use the actual width to match with targetWidth and avoid useless scaling)
     img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
                     video_st->codec->height, video_st->codec->pix_fmt,
-					targetWidth, targetHeight, targetFormat,
-					conversionAlgorithm, filter, NULL, NULL);
-	if (img_convert_ctx == NULL)
-	{
-		// Cannot initialize the conversion context!
+                    targetWidth, targetHeight, targetFormat,
+                    conversionAlgorithm, filter, NULL, NULL);
+    if (img_convert_ctx == NULL)
+    {
+        // Cannot initialize the conversion context!
         qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot create a suitable conversion context.");
-		return false;
-	}
+        return false;
+    }
 
     // we need a picture to display when not playing (also for single frame media)
     // create firstPicture (and get actual pts of first picture)
     // (NB : seek in stream only if not reading the first frame)
-    current_frame_pts = fill_first_frame( mark_in != getBegin() );
+
+//    current_frame_pts = fill_first_frame( mark_in != getBegin() );
+    FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
+    fff->start();
+    if ( !fff->wait(200) ) {
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
+        return false;
+    }
+    current_frame_pts = fff->getValue();
+
+
     if (!firstPicture) {
         qWarning() << filename << QChar(124).toLatin1()<< tr("Could not create first picture.");
         return false;
@@ -663,14 +700,14 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // use first picture as reset picture
     resetPicture = firstPicture;
 
-	// display a firstPicture frame ; this shows that the video is open
+    // display a firstPicture frame ; this shows that the video is open
     emit frameReady( resetPicture );
 
     // say we are not running
     emit running(false);
 
     // all ok
-	return true;
+    return true;
 }
 
 bool VideoFile::hasAlphaChannel() const
@@ -1010,11 +1047,11 @@ void VideoFile::setOptionRevertToBlackWhenStop(bool black)
 {
     if (black || !firstPicture)
         resetPicture = blackPicture;
-	else
+    else
         resetPicture = firstPicture;
 
-	// if the option is toggled while being stopped, then we should show the good frame now!
-	if (quit)
+    // if the option is toggled while being stopped, then we should show the good frame now!
+    if (quit)
         emit frameReady( resetPicture );
 }
 
@@ -1085,14 +1122,14 @@ void VideoFile::seekForwardOneFrame()
 
 QString VideoFile::getStringTimeFromtime(double time) const
 {
-	int s = (int) time;
-	time -= s;
-	int h = s / 3600;
-	int m = (s % 3600) / 60;
-	s = (s % 3600) % 60;
-	int ds = (int) (time * 100.0);
-	return QString("%1h %2m %3.%4s").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s,
-			2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
+    int s = (int) time;
+    time -= s;
+    int h = s / 3600;
+    int m = (s % 3600) / 60;
+    s = (s % 3600) % 60;
+    int ds = (int) (time * 100.0);
+    return QString("%1h %2m %3.%4s").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s,
+            2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
 }
 
 QString VideoFile::getStringFrameFromTime(double t) const
@@ -1187,7 +1224,7 @@ void VideoFile::setLoop(bool loop) {
 }
 
 void VideoFile::recompute_max_count_picture_queue()
-{  
+{
     // the number of frames allowed in order to fit into the maximum picture queue size (in MB)
     int max_count = (int) ( (float) (VideoFile::maximum_video_picture_queue_size * MEGABYTE) / (float) firstPicture->getBufferSize() );
 
@@ -1421,7 +1458,7 @@ double VideoFile::synchronize_video(AVFrame *src_frame, double dts)
     if (pts > 0)
         /* if we have dts, set video clock to it */
         video_pts = pts;
-	else
+    else
         /* if we aren't given a dts, set it to the clock */
         // this happens rarely (I noticed it on last frame, or in GIF files)
         pts = video_pts;
@@ -1429,7 +1466,7 @@ double VideoFile::synchronize_video(AVFrame *src_frame, double dts)
     /* for MPEG2, the frame can be repeated, so we update the clock accordingly */
     frame_delay +=  (double) src_frame->repeat_pict * (frame_delay * 0.5);
 
-	/* update the video clock */
+    /* update the video clock */
     video_pts += frame_delay;
 
     return pts;
@@ -1555,7 +1592,7 @@ void DecodingThread::run()
 
             // break loop
             break;
-        }       
+        }
 
 
         // No error, but did we get a full video frame?
@@ -1594,7 +1631,7 @@ void DecodingThread::run()
                         // tag the frame as a MARK frame
                         actionFrame |= VideoPicture::ACTION_MARK;
 
-                }                
+                }
 
             }
 
@@ -1687,8 +1724,8 @@ void VideoFile::pause(bool pause)
     {
         _videoClock.pause(pause);
 
-		emit paused(pause);
-	}
+        emit paused(pause);
+    }
 }
 
 bool VideoFile::isPaused() const {
