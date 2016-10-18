@@ -515,6 +515,7 @@ public:
 FirstFrameFiller::FirstFrameFiller(VideoFile *vf, bool o)
     : QThread(vf), _vf(vf), option(o), value(0.0)
 {
+    setTerminationEnabled(true);
 
 }
 
@@ -665,7 +666,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 //    current_frame_pts = fill_first_frame( mark_in != getBegin() );
     FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
     fff->start();
-    if ( !fff->wait(200) ) {
+    if ( !fff->wait(300) ) {
         qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
         return false;
     }
