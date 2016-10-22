@@ -133,6 +133,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 {
     setupUi ( this );
 
+
 #ifndef SHM
     actionShareToRAM->setVisible(false);
     actionShmSource->setVisible(false);
@@ -690,6 +691,14 @@ void GLMixer::on_saveLogsToFile_clicked() {
     }
 }
 
+
+void GLMixer::on_logTexts_doubleClicked() {
+
+    QString origin = logTexts->currentItem()->text(1);
+    QFileInfo file(origin);
+    if (file.isFile())
+        QDesktopServices::openUrl( file.absoluteFilePath() );
+}
 
 void GLMixer::exitHandler() {
 
