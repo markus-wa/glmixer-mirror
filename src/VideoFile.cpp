@@ -749,9 +749,9 @@ double VideoFile::fill_first_frame(bool seek)
     int64_t seek_target = 0;
     if (seek) {
         seek_target = av_rescale_q(mark_in, (AVRational){1, 1}, video_st->time_base);
+        // seek back to begining
+        av_seek_frame(pFormatCtx, videoStream, seek_target, AVSEEK_FLAG_BACKWARD);
     }
-    // seek back to begining
-    av_seek_frame(pFormatCtx, videoStream, seek_target, AVSEEK_FLAG_BACKWARD);
 
     // loop while we didn't finish the frame, or looped for too long
     while (!frameFinished && trial++ < 500 )
