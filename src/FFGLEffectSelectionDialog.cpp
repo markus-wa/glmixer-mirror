@@ -50,6 +50,7 @@ FFGLEffectSelectionDialog::FFGLEffectSelectionDialog(QWidget *parent, QSettings 
 
                     }
                 }
+                _plugin->Unload();
                 delete _plugin;
             }
         }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>360</width>
-    <height>382</height>
+    <width>442</width>
+    <height>476</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -85,7 +85,7 @@
    <item>
     <widget class="QRadioButton" name="freeframeEmbededPlugin">
      <property name="text">
-      <string>Installed plugins</string>
+      <string>I&amp;nstalled plugins</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -104,7 +104,7 @@
    <item>
     <widget class="QRadioButton" name="freeframeFilePlugin">
      <property name="text">
-      <string>Other Freeframe plugin</string>
+      <string>Other Freefra&amp;me plugin</string>
      </property>
     </widget>
    </item>
