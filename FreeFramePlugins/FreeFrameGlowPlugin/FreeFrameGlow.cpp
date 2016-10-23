@@ -1,8 +1,6 @@
 #include <GL/glew.h>
 #include "FreeFrameGlow.h"
 
-#define DEBUG
-
 #ifdef DEBUG
 #include <cstdio>
 void printLog(GLuint obj)

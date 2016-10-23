@@ -8,14 +8,14 @@
 
 TestButtonFrame::TestButtonFrame(QWidget * parent, Qt::WindowFlags f):QWidget(parent, f) {
 
-	setMouseTracking ( true );
+    setMouseTracking ( true );
 
-	assignedBrushColor = palette().color(QPalette::Highlight);
-	assignedPenColor = palette().color(QPalette::Highlight);
-	unassignedBrushColor = palette().color(QPalette::Button);
-	unassignedPenColor = palette().color(QPalette::Mid);
+    assignedBrushColor = palette().color(QPalette::Highlight);
+    assignedPenColor = palette().color(QPalette::Highlight);
+    unassignedBrushColor = palette().color(QPalette::Button);
+    unassignedPenColor = palette().color(QPalette::Mid);
 
-	reset();
+    reset();
 }
 
 bool TestButtonFrame::event(QEvent *event)
@@ -38,9 +38,9 @@ bool TestButtonFrame::event(QEvent *event)
 
 void TestButtonFrame::leaveEvent(QEvent *event){
 
-	hover = View::INPUT_NONE;
-	emit inputChanged("");
-	repaint();
+    hover = View::INPUT_NONE;
+    emit inputChanged("");
+    repaint();
 }
 
 
@@ -60,51 +60,51 @@ void TestButtonFrame::tabletEvent(QTabletEvent *event){
 
 void TestButtonFrame::mousePressEvent(QMouseEvent *event){
 
-	int b;
-	// which action box was clicked ?
-	View::UserInput clicked = View::INPUT_NONE;
-	for (b = 0; b < View::INPUT_NONE; ++b) {
-		if ( qareamap[(View::UserInput) b].contains(event->pos()) ) {
-			clicked = (View::UserInput) b;
-			break;
-		}
-	}
+    int b;
+    // which action box was clicked ?
+    View::UserInput clicked = View::INPUT_NONE;
+    for (b = 0; b < View::INPUT_NONE; ++b) {
+        if ( qareamap[(View::UserInput) b].contains(event->pos()) ) {
+            clicked = (View::UserInput) b;
+            break;
+        }
+    }
 
-	// special case; SELECT MUST have a modifier
-	if (clicked == View::INPUT_SELECT && QApplication::keyboardModifiers() == Qt::NoModifier ) {
-		qCritical()<< tr("Selection action *must* use a modifier key (e.g. [CTRL]).");
-		return;
-	}
+    // special case; SELECT MUST have a modifier
+    if (clicked == View::INPUT_SELECT && QApplication::keyboardModifiers() == Qt::NoModifier ) {
+        qCritical()<< tr("Selection action *must* use a modifier key (e.g. [CTRL]).");
+        return;
+    }
 
-	// discard all other actions with the same button and modifiers
-	for (b = 0; b < View::INPUT_NONE; ++b) {
-		if ( qbuttonmap[(View::UserInput) b] == event->buttons() && qmodifiermap[(View::UserInput) b] == QApplication::keyboardModifiers()) {
-			qbuttonmap[(View::UserInput) b] = Qt::NoButton;
-			qmodifiermap[(View::UserInput) b] = Qt::NoModifier;
-		}
-	}
+    // discard all other actions with the same button and modifiers
+    for (b = 0; b < View::INPUT_NONE; ++b) {
+        if ( qbuttonmap[(View::UserInput) b] == event->buttons() && qmodifiermap[(View::UserInput) b] == QApplication::keyboardModifiers()) {
+            qbuttonmap[(View::UserInput) b] = Qt::NoButton;
+            qmodifiermap[(View::UserInput) b] = Qt::NoModifier;
+        }
+    }
 
-	// assign button and modifiers to this action
-	qbuttonmap[clicked] = event->buttons();
-	qmodifiermap[clicked] = QApplication::keyboardModifiers();
-	emit inputChanged( View::userInputDescription(clicked, qbuttonmap, qmodifiermap));
+    // assign button and modifiers to this action
+    qbuttonmap[clicked] = event->buttons();
+    qmodifiermap[clicked] = QApplication::keyboardModifiers();
+    emit inputChanged( View::userInputDescription(clicked, qbuttonmap, qmodifiermap));
 
-	update();
+    update();
 }
 
 void TestButtonFrame::mouseMoveEvent(QMouseEvent *event){
 
-	QString text;
-	hover = View::INPUT_NONE;
-	QString action;
-	for (int b = 0; b < View::INPUT_NONE; ++b) {
-		if ( qareamap[(View::UserInput) b].contains(event->pos()) ) {
-			hover = (View::UserInput) b;
-			emit inputChanged( View::userInputDescription(hover, qbuttonmap, qmodifiermap));
-			break;
-		}
-	}
-	update();
+    QString text;
+    hover = View::INPUT_NONE;
+    QString action;
+    for (int b = 0; b < View::INPUT_NONE; ++b) {
+        if ( qareamap[(View::UserInput) b].contains(event->pos()) ) {
+            hover = (View::UserInput) b;
+            emit inputChanged( View::userInputDescription(hover, qbuttonmap, qmodifiermap));
+            break;
+        }
+    }
+    update();
 }
 
 
@@ -115,36 +115,36 @@ void TestButtonFrame::paintEvent(QPaintEvent *event){
     painter.setRenderHint(QPainter::Antialiasing);
     painter.fillRect(event->rect(), palette().window());
 
-	QFont f = font();
-	f.setPixelSize(12);
-	painter.setFont(f);
-	QColor colortext, colorbrush;
+    QFont f = font();
+    f.setPixelSize(12);
+    painter.setFont(f);
+    QColor colortext, colorbrush;
 
     int w = event->rect().width();
     for (int b = 0; b < View::INPUT_NONE; ++b) {
 
-    	if ( qbuttonmap[(View::UserInput) b] == Qt::NoButton ) {
-    		colorbrush = unassignedBrushColor;
-    		painter.setPen(unassignedPenColor);
-			colortext = palette().color(QPalette::ButtonText);
-    	} else {
-    		colorbrush = assignedBrushColor;
-    		painter.setPen(assignedPenColor);
-			colortext = palette().color(QPalette::HighlightedText);
-    	}
+        if ( qbuttonmap[(View::UserInput) b] == Qt::NoButton ) {
+            colorbrush = unassignedBrushColor;
+            painter.setPen(unassignedPenColor);
+            colortext = palette().color(QPalette::ButtonText);
+        } else {
+            colorbrush = assignedBrushColor;
+            painter.setPen(assignedPenColor);
+            colortext = palette().color(QPalette::HighlightedText);
+        }
 
-    	if (b != hover)
-    		colorbrush.setAlpha(128);
+        if (b != hover)
+            colorbrush.setAlpha(128);
 
-    	painter.setBrush(QBrush(colorbrush));
-    	qareamap[(View::UserInput) b].setRect( w * b / View::INPUT_NONE + b, 1, w / View::INPUT_NONE - View::INPUT_NONE, event->rect().height() -1 );
-    	painter.drawRoundRect(qareamap[(View::UserInput) b], 20, 20);
+        painter.setBrush(QBrush(colorbrush));
+        qareamap[(View::UserInput) b].setRect( w * b / View::INPUT_NONE + b, 1, w / View::INPUT_NONE - View::INPUT_NONE, event->rect().height() -1 );
+        painter.drawRoundRect(qareamap[(View::UserInput) b], 20, 20);
 
-    	if (b == View::INPUT_SELECT )
-    		painter.drawRoundRect(qareamap[(View::UserInput) b].adjusted(4, 4, -4, -4), 20, 20);
+        if (b == View::INPUT_SELECT )
+            painter.drawRoundRect(qareamap[(View::UserInput) b].adjusted(4, 4, -4, -4), 20, 20);
 
-		painter.setPen(colortext);
-    	painter.drawText(qareamap[(View::UserInput) b], Qt::AlignCenter, View::userInputLabel((View::UserInput) b));
+        painter.setPen(colortext);
+        painter.drawText(qareamap[(View::UserInput) b], Qt::AlignCenter, View::userInputLabel((View::UserInput) b));
 
     }
 
@@ -154,43 +154,43 @@ void TestButtonFrame::paintEvent(QPaintEvent *event){
 
 void TestButtonFrame::setConfiguration(QMap<int, int> buttonmap, QMap<int, int> modifiermap) {
 
-	QMapIterator<int, int> i(buttonmap);
-	while ( i.hasNext() ) {
-		i.next();
-		qbuttonmap [ (View::UserInput) i.key() ] = Qt::MouseButtons(i.value());
-	}
+    QMapIterator<int, int> i(buttonmap);
+    while ( i.hasNext() ) {
+        i.next();
+        qbuttonmap [ (View::UserInput) i.key() ] = Qt::MouseButtons(i.value());
+    }
 
-	QMapIterator<int, int> j(modifiermap);
-	while ( j.hasNext() ) {
-		j.next();
-	     qmodifiermap [ (View::UserInput) j.key() ] = Qt::KeyboardModifiers(j.value());
-	}
+    QMapIterator<int, int> j(modifiermap);
+    while ( j.hasNext() ) {
+        j.next();
+        qmodifiermap [ (View::UserInput) j.key() ] = Qt::KeyboardModifiers(j.value());
+    }
 
-	update();
+    update();
 }
 
 void TestButtonFrame::reset() {
 
-	qbuttonmap = View::defaultMouseButtonsMap();
-	qmodifiermap = View::defaultModifiersMap();
+    qbuttonmap = View::defaultMouseButtonsMap();
+    qmodifiermap = View::defaultModifiersMap();
 
-	update();
+    update();
 }
 
 
 void TestButtonFrame::unset() {
 
-	QMapIterator<View::UserInput,Qt::KeyboardModifiers> i(qmodifiermap);
-	while ( i.hasNext() ) {
-		i.next();
-		qmodifiermap[i.key()] = Qt::NoModifier;;
-	}
-	QMapIterator<View::UserInput,Qt::MouseButtons> j(qbuttonmap);
-	while ( j.hasNext() ) {
-		j.next();
-		qbuttonmap[j.key()] = Qt::NoButton;
-	}
+    QMapIterator<View::UserInput,Qt::KeyboardModifiers> i(qmodifiermap);
+    while ( i.hasNext() ) {
+        i.next();
+        qmodifiermap[i.key()] = Qt::NoModifier;;
+    }
+    QMapIterator<View::UserInput,Qt::MouseButtons> j(qbuttonmap);
+    while ( j.hasNext() ) {
+        j.next();
+        qbuttonmap[j.key()] = Qt::NoButton;
+    }
 
-	update();
+    update();
 }
 

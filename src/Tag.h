@@ -13,6 +13,7 @@ class Tag
     SourceList sources;
 
     static Tag *defaultTag;
+    static QList<Tag *> tags;
 
 public:
     Tag(QString l = "Default", QColor c = QColor(255,255,60));

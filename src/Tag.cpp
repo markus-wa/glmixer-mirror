@@ -1,7 +1,7 @@
 #include "Tag.h"
 
 Tag *Tag::defaultTag = 0;
-
+QList<Tag *> Tag::tags;
 
 
 Tag::Tag(QString l, QColor c): label(l), color(c)
@@ -43,6 +43,8 @@ void Tag::apply(Source *s, Tag *t)
 
     s->setTag(t);
     t->sources.insert(s);
+
+    //tODO remove source from previous tag
 }
 
 

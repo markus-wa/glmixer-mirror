@@ -41,10 +41,10 @@
     <widget class="QToolBox" name="SourceTypeToolBox">
      <property name="styleSheet">
       <string notr="true">QToolBox {
-	icon-size: 24px;
+        icon-size: 24px;
 }
 QToolBox::tab {
-	padding: -3px;
+        padding: -3px;
 }
 </string>
      </property>
@@ -704,7 +704,7 @@ p, li { white-space: pre-wrap; }
       <attribute name="label">
        <string>Network Stream</string>
       </attribute>
-      <widget class="QTextBrowser" name="textBrowser_6">
+      <widget class="QTextBrowser" name="textBrowser_10">
        <property name="geometry">
         <rect>
          <x>10</x>

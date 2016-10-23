@@ -39,7 +39,7 @@ QMap<int, OpencvSource*> OpencvSource::_existingSources;
 
 class CameraThread: public QThread {
 public:
-	CameraThread(OpencvSource *source) :
+    CameraThread(OpencvSource *source) :
         QThread(), cvs(source), end(true) {
     }
     ~CameraThread() {
@@ -55,7 +55,7 @@ public:
 void CameraThread::run(){
 
     QTime t;
-	IplImage *raw;
+    IplImage *raw;
 
     // flush input
     cvGrabFrame( cvs->capture );
@@ -67,33 +67,33 @@ void CameraThread::run(){
     cvs->frameChanged = false;
     cvs->framerate = 30.0;
 
-	t.start();
-	while (!end) {
+    t.start();
+    while (!end) {
 
-		cvs->mutex->lock();
-		if (!cvs->frameChanged) {
+        cvs->mutex->lock();
+        if (!cvs->frameChanged) {
 
             if ( cvGrabFrame( cvs->capture )) {
                 raw = cvRetrieveFrame( cvs->capture );
 
-				if (cvs->needFrameCopy)
-					cvCopy(raw, cvs->frame);
-				else
-					cvs->frame = raw;
-				cvs->frameChanged = true;
+                if (cvs->needFrameCopy)
+                    cvCopy(raw, cvs->frame);
+                else
+                    cvs->frame = raw;
+                cvs->frameChanged = true;
                 cvs->cond->wait(cvs->mutex);
             }
             else {
                 end = true;
                 cvs->failure = true;
             }
-		}
-		cvs->mutex->unlock();
+        }
+        cvs->mutex->unlock();
 
         // exponential moving average to compute FPS
         cvs->framerate = 0.7 * 1000.0 / (double) t.restart() + 0.3 * cvs->framerate;
 
-	}
+    }
 }
 
 OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double d) :
@@ -103,13 +103,13 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
     pboIds[0] = 0;
     pboIds[1] = 0;
 
-	// prevent from creation of duplicated opencv sources and from creation of more than 2 sources
+    // prevent from creation of duplicated opencv sources and from creation of more than 2 sources
     if (  OpencvSource::_existingSources.contains(opencvIndex) || OpencvSource::_existingSources.size() > 4)
         UnavailableCameraIndexException().raise();
 
-	opencvCameraIndex = opencvIndex;
-	capture = cvCaptureFromCAM(opencvCameraIndex);
-	if (!capture)
+    opencvCameraIndex = opencvIndex;
+    capture = cvCaptureFromCAM(opencvCameraIndex);
+    if (!capture)
         NoCameraIndexException().raise();
 
     // selected mode ; adjust the resolution
@@ -134,17 +134,17 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
     cvGrabFrame( capture );
 
     // fill first frame
-	IplImage *raw = cvQueryFrame( capture );
-	if (!raw)
+    IplImage *raw = cvQueryFrame( capture );
+    if (!raw)
         brokenCameraException().raise();
 
-	if ( raw->depth != IPL_DEPTH_8U || raw->nChannels != 3 || raw->widthStep > 3 * raw->width + 1) {
+    if ( raw->depth != IPL_DEPTH_8U || raw->nChannels != 3 || raw->widthStep > 3 * raw->width + 1) {
         qDebug()<< tr("Image format conversion required: Video capture might be slow!");
-		frame = cvCreateImage(cvSize(raw->width, raw->height), IPL_DEPTH_8U, 3);
-		cvCopy(raw, frame);
-		needFrameCopy = true;
-	} else
-		frame = raw;
+        frame = cvCreateImage(cvSize(raw->width, raw->height), IPL_DEPTH_8U, 3);
+        cvCopy(raw, frame);
+        needFrameCopy = true;
+    } else
+        frame = raw;
 
 
     // init texture
@@ -159,7 +159,7 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
 
     glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, frame->width, frame->height, 0, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*) frame->imageData);
 
-	width = frame->width;
+    width = frame->width;
     height = frame->height;
     imgsize =  width * height * 3;
 
@@ -193,31 +193,31 @@ OpencvSource::OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double
         index = nextIndex = 0;
     }
 
-	// create thread
-	mutex = new QMutex;
-	CHECK_PTR_EXCEPTION(mutex)
-    cond = new QWaitCondition;
+    // create thread
+    mutex = new QMutex;
+    CHECK_PTR_EXCEPTION(mutex)
+            cond = new QWaitCondition;
     CHECK_PTR_EXCEPTION(cond)
-	thread = new CameraThread(this);
+            thread = new CameraThread(this);
     CHECK_PTR_EXCEPTION(thread)
 
-    // store this pointer to the global list
-    OpencvSource::_existingSources[opencvCameraIndex] = this;
+            // store this pointer to the global list
+            OpencvSource::_existingSources[opencvCameraIndex] = this;
 }
 
 
 OpencvSource::~OpencvSource() {
 
-	// end capture
-	play(false);
-	cvReleaseCapture(&capture);
+    // end capture
+    play(false);
+    cvReleaseCapture(&capture);
 
     // remove this element from the global list
     OpencvSource::_existingSources.remove(opencvCameraIndex);
 
-	delete cond;
-	delete mutex;
-	delete thread;
+    delete cond;
+    delete mutex;
+    delete thread;
 
     // delete picture buffer
     if (pboIds[0] || pboIds[1])
@@ -228,21 +228,21 @@ OpencvSource::~OpencvSource() {
 
 void OpencvSource::play(bool on)
 {
-	if ( isPlaying() == on )
-		return;
+    if ( isPlaying() == on )
+        return;
 
     if ( on ) {
         // ignore pre-mapped frame
         index = (index + 1) % 2;
         // start play
-		thread->end = false;
-		thread->start();
+        thread->end = false;
+        thread->start();
     } else {
         // stop play
-		thread->end = true;
-		mutex->lock();
+        thread->end = true;
+        mutex->lock();
         cond->wakeAll();
-		mutex->unlock();
+        mutex->unlock();
         thread->wait(300);
         // make sure last frame is displayed
         frameChanged = true;
@@ -253,7 +253,7 @@ void OpencvSource::play(bool on)
 
 bool OpencvSource::isPlaying() const{
 
-	return !thread->end;
+    return !thread->end;
 
 }
 
@@ -316,10 +316,10 @@ void OpencvSource::update(){
 
 OpencvSource *OpencvSource::getExistingSourceForCameraIndex(int index){
 
-	if (  OpencvSource::_existingSources.contains(index) )
-		return OpencvSource::_existingSources[index];
+    if (  OpencvSource::_existingSources.contains(index) )
+        return OpencvSource::_existingSources[index];
 
-	return 0;
+    return 0;
 }
 
 QString OpencvSource::getOpencvVersion()

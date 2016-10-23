@@ -697,7 +697,7 @@ void GLMixer::on_logTexts_doubleClicked() {
     QString origin = logTexts->currentItem()->text(1);
     QFileInfo file(origin);
     if (file.isFile())
-        QDesktopServices::openUrl( file.absoluteFilePath() );
+        QDesktopServices::openUrl( QUrl::fromLocalFile(file.absoluteFilePath()) );
 }
 
 void GLMixer::exitHandler() {
@@ -806,7 +806,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 
         // show logs if required
         if ( msgBox.clickedButton() == logButton )
-            QDesktopServices::openUrl( QFileInfo( QDir::tempPath(), GLMIXER_LOGFILE).absoluteFilePath() );
+            QDesktopServices::openUrl( QUrl::fromLocalFile(QFileInfo( QDir::tempPath(), GLMIXER_LOGFILE).absoluteFilePath()) );
 
         // exit properly (it is not a crash)
         exit(0);
