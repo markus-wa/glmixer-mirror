@@ -226,7 +226,6 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     firstPicture = NULL;
     blackPicture = NULL;
     resetPicture = NULL;
-    filter = NULL;
     pictq_max_count = 0;
 
     // Contruct some objects
@@ -302,8 +301,6 @@ void VideoFile::close()
     // free context & filter
     if (img_convert_ctx)
         sws_freeContext(img_convert_ctx);
-    if (filter)
-        sws_freeFilter(filter);
 
     // free pictures
     if (blackPicture)
@@ -315,7 +312,6 @@ void VideoFile::close()
     pFormatCtx = NULL;
     img_convert_ctx = NULL;
     video_st = NULL;
-    filter = NULL;
     blackPicture = NULL;
     firstPicture = NULL;
     resetPicture = NULL;
@@ -637,21 +633,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     conversionAlgorithm |= SWS_PRINT_INFO;
 #endif
 
-    filter = NULL;
-    // For single frames media or when ignorealpha flag is on, force filtering
-    // (The ignore alpha flag is normally requested when the source is rgba
-    // and in this case, optimal conversion from rgba to rgba is to do nothing : but
-    // this means there is no conversion, and no brightness/contrast is applied)
-    if (ignoreAlpha)
-        // Setup a filter to enforce a per-pixel conversion (here a slight blur)
-        filter = sws_getDefaultFilter(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0);
-
     // create conversion context
     // (use the actual width to match with targetWidth and avoid useless scaling)
     img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
                     video_st->codec->height, video_st->codec->pix_fmt,
                     targetWidth, targetHeight, targetFormat,
-                    conversionAlgorithm, filter, NULL, NULL);
+                    conversionAlgorithm, NULL, NULL, NULL);
     if (img_convert_ctx == NULL)
     {
         // Cannot initialize the conversion context!

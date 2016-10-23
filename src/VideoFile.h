@@ -708,7 +708,6 @@ protected:
     VideoPicture *resetPicture;
     enum AVPixelFormat targetFormat;
     bool rgba_palette;
-    SwsFilter *filter;
 
     // Video file, streams and packets
     AVFormatContext *pFormatCtx;
