@@ -280,7 +280,7 @@ void VideoPicture::fill(AVFrame *frame, double Pts)
     {
         // Convert the image with ffmpeg sws
         if ( 0 == sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0,
-                            height, (uint8_t**) rgb.data, (int *) rgb.linesize) )
+                            frame->height, (uint8_t**) rgb.data, (int *) rgb.linesize) )
             // fail : set pointer to NULL (do not display)
             rgb.data[0] = NULL;
 
