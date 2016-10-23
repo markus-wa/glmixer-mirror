@@ -1430,13 +1430,13 @@ double VideoFile::synchronize_video(AVFrame *src_frame, double dts)
     double pts = dts;
     double frame_delay = av_q2d(video_st->codec->time_base);
 
-    if (pts > 0)
-        /* if we have dts, set video clock to it */
-        video_pts = pts;
-    else
+    if (pts < 0)
         /* if we aren't given a dts, set it to the clock */
         // this happens rarely (I noticed it on last frame, or in GIF files)
         pts = video_pts;
+    else
+        /* if we have dts, set video clock to it */
+        video_pts = pts;
 
     /* for MPEG2, the frame can be repeated, so we update the clock accordingly */
     frame_delay +=  (double) src_frame->repeat_pict * (frame_delay * 0.5);
