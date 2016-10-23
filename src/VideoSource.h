@@ -49,10 +49,10 @@ protected:
 
 public:
 
-	RTTI rtti() const { return VideoSource::type; }
-	bool isPlayable() const;
-	bool isPlaying() const;
-	bool isPaused() const;
+    RTTI rtti() const { return VideoSource::type; }
+    bool isPlayable() const;
+    bool isPlaying() const;
+    bool isPaused() const;
 
     inline VideoFile *getVideoFile() const { return is; }
 
@@ -60,10 +60,10 @@ public:
     int getFrameHeight() const;
     double getFrameRate() const;
 
-    double getStorageAspectRatio() const;
+    double getAspectRatio() const;
 
 public slots:
-	void play(bool on);
+    void play(bool on);
     void pause(bool on);
     void updateFrame (VideoPicture *);
 
@@ -71,7 +71,7 @@ private:
 
     void fillFramePBO(VideoPicture *vp);
 
-	static RTTI type;
+    static RTTI type;
 
     GLenum format;
     VideoFile *is;

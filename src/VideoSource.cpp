@@ -153,15 +153,14 @@ bool VideoSource::isPaused() const
 
 void VideoSource::pause(bool on)
 {
-	if (on != isPaused())
-		is->pause(on);
+    if (on != isPaused())
+        is->pause(on);
 }
 
 int VideoSource::getFrameWidth() const { return is->getFrameWidth(); }
 int VideoSource::getFrameHeight() const { return is->getFrameHeight(); }
 double VideoSource::getFrameRate() const { return is->getFrameRate(); }
-
-double VideoSource::getStorageAspectRatio() const { return is->getStreamAspectRatio(); }
+double VideoSource::getAspectRatio() const { return is->getStreamAspectRatio(); }
 
 
 void VideoSource::fillFramePBO(VideoPicture *vp)

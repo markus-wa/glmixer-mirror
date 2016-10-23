@@ -106,6 +106,9 @@ public:
     virtual int getFrameWidth() const { return 1; }
     virtual int getFrameHeight() const { return 1; }
     virtual double getFrameRate() const { return 0.0; }
+    virtual double getAspectRatio() const {
+        return (double) getFrameWidth() / (double) getFrameHeight();
+    }
 
     /**
      *  Rendering
@@ -152,10 +155,6 @@ public:
     /**
      *  Geometry and deformation
      */
-    inline double getAspectRatio() const {
-        return (double) getFrameWidth() / (double) getFrameHeight();;
-    }
-
     inline bool isCulled() const {
         return culled;
     }
