@@ -70,12 +70,14 @@ public slots:
 private:
 
     void fillFramePBO(VideoPicture *vp);
+    bool setVideoFormat(VideoPicture *vp);
 
     static RTTI type;
 
     GLenum format;
     VideoFile *is;
     VideoPicture *vp;
+    AVPixelFormat internalFormat;
 
     GLuint pboIds[2];
     int index, nextIndex;

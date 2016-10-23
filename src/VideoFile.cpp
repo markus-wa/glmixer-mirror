@@ -608,12 +608,12 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
 
     // Change target format to keep Alpha channel if format requires
-    if ( hasAlphaChannel() )
+    if ( hasAlphaChannel() && !ignoreAlpha )
     {
         targetFormat = AV_PIX_FMT_RGBA;
 
         // special case of PALETTE formats which have ALPHA channel in their colors
-        if (video_st->codec->pix_fmt == AV_PIX_FMT_PAL8 && !ignoreAlpha) {
+        if (video_st->codec->pix_fmt == AV_PIX_FMT_PAL8) {
             // if should NOT ignore alpha channel, use rgba palette (flag used in VideoFile)
             rgba_palette = true;
         }
@@ -642,7 +642,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // (The ignore alpha flag is normally requested when the source is rgba
     // and in this case, optimal conversion from rgba to rgba is to do nothing : but
     // this means there is no conversion, and no brightness/contrast is applied)
-    if (ignoreAlpha || (video_st->nb_frames < 2))
+    if (ignoreAlpha)
         // Setup a filter to enforce a per-pixel conversion (here a slight blur)
         filter = sws_getDefaultFilter(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0);
 
@@ -664,6 +664,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // (NB : seek in stream only if not reading the first frame)
 
 //    current_frame_pts = fill_first_frame( mark_in != getBegin() );
+    first_picture_changed = true;
     FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
     fff->start();
     if ( !fff->wait(300) ) {
@@ -814,20 +815,6 @@ double VideoFile::fill_first_frame(bool seek)
     }
 
     if (frameFinished) {
-
-        // interlacing
-        if (tmpframe->interlaced_frame) {
-// TODO : deinterlacing
-
-            ////AVFilter *buffersrc  = avfilter_get_by_name("buffer");
-
-//AVFilter *yadif_filter = avfilter_get_by_name("yadif");
-
-
-//if (yadif_filter)
-//    qDebug() << "YADIF DE-INTERLACING";
-
-        }
 
         // create the picture
         firstPicture = new VideoPicture(targetWidth, targetHeight, img_convert_ctx, targetFormat, rgba_palette);

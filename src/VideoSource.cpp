@@ -37,6 +37,11 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     if (!is)
         SourceConstructorException().raise();
 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureIndex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
     // no PBO by default
     pboIds[0] = 0;
     pboIds[1] = 0;
@@ -48,64 +53,10 @@ VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
     // forward the message on play
     QObject::connect(is, SIGNAL(running(bool)), this, SIGNAL(playing(bool)) );
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureIndex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
     // fills in the first frame
-    const VideoPicture *_vp = is->getResetPicture();
-    if (_vp)
-    {
-        format = (_vp->getFormat() == AV_PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
-
-        GLint preferedinternalformat = GL_RGB;
-
-        if (glewIsSupported("GL_ARB_internalformat_query2"))
-            glGetInternalformativ(GL_TEXTURE_2D, format, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
-
-        // create texture and fill-in with reset picture
-        glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, _vp->getWidth(),
-                     _vp->getHeight(), 0, format, GL_UNSIGNED_BYTE, _vp->getBuffer());
-
-        if ( f->getNumFrames() > 1 && RenderingManager::usePboExtension())
-        {
-            imgsize =  _vp->getWidth() * _vp->getHeight() * (format == GL_RGB ? 3 : 4);
-            // create 2 pixel buffer objects,
-            glGenBuffers(2, pboIds);
-            // create first PBO
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
-            // glBufferDataARB with NULL pointer reserves only memory space.
-            glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
-            // fill in with reset picture
-            GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-            if (ptr)  {
-                // update data directly on the mapped buffer
-                memmove(ptr, _vp->getBuffer(), imgsize);
-                // release pointer to mapping buffer
-                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-            }
-            else
-                SourceConstructorException().raise();
-
-            // idem with second PBO
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[1]);
-            glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
-            ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-            if (ptr) {
-                // update data directly on the mapped buffer
-                memmove(ptr, _vp->getBuffer(), imgsize);
-                // release pointer to mapping buffer
-                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-            }
-            else
-                SourceConstructorException().raise();
-
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-            index = nextIndex = 0;
-        }
-
-    }
+    VideoPicture *_vp = is->getResetPicture();
+    if (!setVideoFormat(_vp))
+        SourceConstructorException().raise();
 
 }
 
@@ -205,6 +156,9 @@ void VideoSource::update()
     {
         glBindTexture(GL_TEXTURE_2D, textureIndex);
 
+        if (internalFormat != vp->getFormat())
+            setVideoFormat(vp);
+
         if ( pboIds[0] && pboIds[1] ) {
 
             // fill the texture using Pixel Buffer Object mechanism
@@ -239,4 +193,68 @@ void VideoSource::updateFrame(VideoPicture *p)
     // set new vp
     vp = p;
 
+}
+
+bool VideoSource::setVideoFormat(VideoPicture *p)
+{
+    if (p)
+    {
+        internalFormat = p->getFormat();
+        format = (internalFormat == AV_PIX_FMT_RGBA) ? GL_RGBA : GL_RGB;
+
+        GLint preferedinternalformat = GL_RGB;
+
+        if (glewIsSupported("GL_ARB_internalformat_query2"))
+            glGetInternalformativ(GL_TEXTURE_2D, format, GL_INTERNALFORMAT_PREFERRED, 1, &preferedinternalformat);
+
+        // create texture and fill-in with reset picture
+        glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, p->getWidth(),
+                     p->getHeight(), 0, format, GL_UNSIGNED_BYTE, p->getBuffer());
+
+        if ( isPlayable() && RenderingManager::usePboExtension())
+        {
+            imgsize =  p->getWidth() * p->getHeight() * (format == GL_RGB ? 3 : 4);
+
+            // delete picture buffer
+            if (pboIds[0] || pboIds[1])
+                glDeleteBuffers(2, pboIds);
+            // create 2 pixel buffer objects,
+            glGenBuffers(2, pboIds);
+            // create first PBO
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[0]);
+            // glBufferDataARB with NULL pointer reserves only memory space.
+            glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+            // fill in with reset picture
+            GLubyte* ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+            if (ptr)  {
+                // update data directly on the mapped buffer
+                memmove(ptr, p->getBuffer(), imgsize);
+                // release pointer to mapping buffer
+                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+            }
+            else
+                return false;
+
+            // idem with second PBO
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[1]);
+            glBufferData(GL_PIXEL_UNPACK_BUFFER, imgsize, 0, GL_STREAM_DRAW);
+            ptr = (GLubyte*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+            if (ptr) {
+                // update data directly on the mapped buffer
+                memmove(ptr, p->getBuffer(), imgsize);
+                // release pointer to mapping buffer
+                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+            }
+            else
+                return false;
+
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+            index = nextIndex = 0;
+        }
+
+    }
+    else
+        return false;
+
+    return true;
 }
