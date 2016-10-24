@@ -62,6 +62,9 @@ protected:
     GLuint fbo[MAX_NUM_FRAMES];
     double times[MAX_NUM_FRAMES];
     int writeIndex, readIndex;
+    GLuint displayList;
+
+    void drawQuad( FFGLViewportStruct vp, GLuint texture, float alpha);
 };
 
 

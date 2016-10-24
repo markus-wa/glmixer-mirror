@@ -22,8 +22,6 @@ void printLog(GLuint obj)
 #define FFPARAM_PIXELSCALE (0)
 #define FFPARAM_PIXELSMOOTH (1)
 
-GLuint displayList = 0;
-
 const GLchar *fragmentShaderCode = "uniform sampler2D texture;\n"
         "uniform vec3      iResolution;\n"
         "uniform float     scale;\n"
@@ -83,6 +81,8 @@ FreeFramePixelation::FreeFramePixelation()
     uniform_viewportsize = 0;
     uniform_scale = 0;
     uniform_smooth = 0;
+    displayList = 0;
+
 
     // Input properties
     SetMinInputs(1);
@@ -180,23 +180,9 @@ FFResult FreeFramePixelation::DeInitGL()
 {
     if (fragmentShader) glDeleteShader(fragmentShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
+    if (displayList) glDeleteLists(displayList, 1);
 
     return FF_SUCCESS;
-}
-
-
-void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
-{
-    // bind the texture to apply
-    glBindTexture(GL_TEXTURE_2D, texture.Handle);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    // setup display
-    glViewport(vp.x, vp.y, vp.width, vp.height);
-
-    glCallList(displayList);
 }
 
 
@@ -240,7 +226,14 @@ FFResult FreeFramePixelation::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         param_changed = false;
     }
 
-    drawQuad( viewport, Texture );
+    // bind the texture to apply
+    glBindTexture(GL_TEXTURE_2D, Texture.Handle);
+
+    // setup display
+    glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+    // draw
+    glCallList(displayList);
 
     // disable shader program
     glUseProgram(0);

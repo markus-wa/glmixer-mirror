@@ -21,7 +21,6 @@ void printLog(GLuint obj)
 
 #define FFPARAM_BLUR (0)
 
-GLuint displayList = 0;
 
 // texture coords interpolation via varying texc
 const GLchar *vertexShaderCode =    "varying vec2 texc;"
@@ -83,6 +82,7 @@ FreeFrameBlur::FreeFrameBlur()
     vertexShader = 0;
     fragmentShader = 0;
     uniform_textureoffset = 0;
+    displayList = 0;
 
     // Input properties
     SetMinInputs(1);
@@ -192,11 +192,14 @@ FFResult FreeFrameBlur::DeInitGL()
     if (fragmentShader) glDeleteShader(fragmentShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
 
+    if (displayList)
+        glDeleteLists(displayList, 1);
+
     return FF_SUCCESS;
 }
 
 
-void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
+void FreeFrameBlur::drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 {
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture.Handle);

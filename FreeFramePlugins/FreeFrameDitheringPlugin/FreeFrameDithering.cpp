@@ -26,7 +26,6 @@ void printLog(GLuint obj)
 #define FFPARAM_PIXELSCALE (0)
 #define FFPARAM_LARGENOISE (1)
 
-GLuint displayList = 0;
 
 // Original shader by RavenWorks
 // https://www.shadertoy.com/view/Xs23zW
@@ -92,6 +91,7 @@ FreeFrameDithering::FreeFrameDithering()
     noiseTextureIndex = 0;
     largeNoiseTextureIndex = 0;
     uniform_noiseTexture = 0;
+    displayList = 0;
 
     // Input properties
     SetMinInputs(1);
@@ -218,20 +218,12 @@ FFResult FreeFrameDithering::DeInitGL()
     if (largeNoiseTextureIndex)
         glDeleteTextures(1, &largeNoiseTextureIndex);
 
+    if (displayList)
+        glDeleteLists(displayList, 1);
+
     return FF_SUCCESS;
 }
 
-
-void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
-{
-    // bind the texture to apply
-    glBindTexture(GL_TEXTURE_2D, texture.Handle);
-
-    // setup display
-    glViewport(vp.x, vp.y, vp.width, vp.height);
-
-    glCallList(displayList);
-}
 
 
 #ifdef FF_FAIL
@@ -283,7 +275,15 @@ FFResult FreeFrameDithering::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glBindTexture(GL_TEXTURE_2D, large ? largeNoiseTextureIndex : noiseTextureIndex);
 
     glActiveTexture(GL_TEXTURE0);
-    drawQuad( viewport, Texture );
+
+    // bind the texture to apply
+    glBindTexture(GL_TEXTURE_2D, Texture.Handle);
+
+    // setup display
+    glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+    // draw
+    glCallList(displayList);
 
     // disable shader program
     glUseProgram(0);

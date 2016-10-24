@@ -22,7 +22,6 @@ void printLog(GLuint obj)
 #define FFPARAM_BLUR (0)
 #define FFPARAM_SIZE (1)
 
-GLuint displayList = 0;
 
 const GLchar *fragmentShaderCode = "#define ITER 32\n"
         "#define SIZE 100.0\n"
@@ -83,6 +82,7 @@ FreeFrameMonteCarlo::FreeFrameMonteCarlo()
     uniform_viewportsize = 0;
     uniform_blur = 0;
     uniform_size = 0;
+    displayList = 0;
 
     // Input properties
     SetMinInputs(1);
@@ -185,19 +185,9 @@ FFResult FreeFrameMonteCarlo::DeInitGL()
     if (vertexShader)   glDeleteShader(vertexShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
 
+    if (displayList) glDeleteLists(displayList, 1);
+
     return FF_SUCCESS;
-}
-
-
-void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
-{
-    // bind the texture to apply
-    glBindTexture(GL_TEXTURE_2D, texture.Handle);
-
-    // setup display
-    glViewport(vp.x, vp.y, vp.width, vp.height);
-
-    glCallList(displayList);
 }
 
 
@@ -241,7 +231,14 @@ FFResult FreeFrameMonteCarlo::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         param_changed = false;
     }
 
-    drawQuad( viewport, Texture );
+    // bind the texture to apply
+    glBindTexture(GL_TEXTURE_2D, Texture.Handle);
+
+    // setup display
+    glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+    // draw
+    glCallList(displayList);
 
     // disable shader program
     glUseProgram(0);

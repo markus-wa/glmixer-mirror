@@ -58,6 +58,9 @@ protected:
     GLuint vertexShader;
     GLuint fragmentShader;
     GLuint uniform_viewportsize;
+    GLuint displayList;
+
+    void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture);
 };
 
 

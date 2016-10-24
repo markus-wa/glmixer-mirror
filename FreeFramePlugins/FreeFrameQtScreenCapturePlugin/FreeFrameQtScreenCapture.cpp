@@ -8,13 +8,12 @@
 #include "FreeFrameQtScreenCapture.h"
 
 
-GLuint displayList = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static CFFGLPluginInfo PluginInfo ( 
+static CFFGLPluginInfo PluginInfo (
         FreeFrameQtScreenCapture::CreateInstance,	// Create method
         "GLSCQT",        					        // Plugin unique ID
         "ScreenCapture",			                // Plugin name
@@ -38,9 +37,10 @@ FreeFrameQtScreenCapture::FreeFrameQtScreenCapture()
     // Input properties
     SetMinInputs(0);
     SetMaxInputs(0);
+    SetTimeSupported(false);
 
-    // No Parameters
-
+    displayList = 0;
+    textureIndex = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,6 +101,9 @@ DWORD   FreeFrameQtScreenCapture::DeInitGL()
 FFResult FreeFrameQtScreenCapture::DeInitGL()
 #endif
 {
+
+    if (textureIndex) glDeleteTextures(1, &textureIndex);
+    if (displayList) glDeleteLists(displayList, 1);
 
     return FF_SUCCESS;
 }

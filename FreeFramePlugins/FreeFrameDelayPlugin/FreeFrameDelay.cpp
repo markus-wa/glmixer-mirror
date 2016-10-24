@@ -5,7 +5,6 @@
 #define FFPARAM_DELAY (0)
 #define FFPARAM_BLUR (1)
 
-GLuint displayList = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -48,6 +47,7 @@ FreeFrameDelay::FreeFrameDelay()
     writeIndex = 0;
     readIndex = 0;
     m_curTime = 0.0;
+    displayList = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,6 +130,8 @@ FFResult FreeFrameDelay::DeInitGL()
 {
     glDeleteFramebuffers(MAX_NUM_FRAMES, fbo);
     glDeleteTextures(MAX_NUM_FRAMES, textures);
+    if (displayList)
+        glDeleteLists(displayList, 1);
 
     return FF_SUCCESS;
 }
@@ -147,7 +149,7 @@ FFResult FreeFrameDelay::SetTime(double time)
     return FF_SUCCESS;
 }
 
-void drawQuad( FFGLViewportStruct vp, GLuint texture, float alpha)
+void FreeFrameDelay::drawQuad( FFGLViewportStruct vp, GLuint texture, float alpha)
 {
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture);

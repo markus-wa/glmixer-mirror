@@ -1,5 +1,5 @@
-#ifndef FFGLMONTECARLO_H
-#define FFGLMONTECARLO_H
+#ifndef FFGLGLOW_H
+#define FFGLGLOW_H
 
 #include <FFGLPluginSDK.h>
 
@@ -25,7 +25,7 @@ public:
     FFResult    InitGL(const FFGLViewportStruct *vp);
     FFResult    DeInitGL();
     FFResult	SetFloatParameter(unsigned int index, float value);
-    float	GetFloatParameter(unsigned int index);
+    float	    GetFloatParameter(unsigned int index);
 #endif
 
     ///////////////////////////////////////////////////
@@ -57,6 +57,9 @@ protected:
     GLuint shaderProgram;
     GLuint fragmentShader;
     GLuint uniform_viewportsize;
+    GLuint displayList;
+
+    void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture);
 };
 
 

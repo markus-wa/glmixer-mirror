@@ -61,6 +61,7 @@ protected:
     GLuint uniform_viewportsize;
     GLuint noiseTextureIndex, largeNoiseTextureIndex;
     GLuint uniform_noiseTexture;
+    GLuint displayList;
 };
 
 

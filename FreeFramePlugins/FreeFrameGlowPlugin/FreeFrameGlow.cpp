@@ -22,9 +22,8 @@ void printLog(GLuint obj)
 #define FFPARAM_PIXELSCALE (0)
 #define FFPARAM_PIXELSMOOTH (1)
 
-GLuint displayList = 0;
 
-// original shader from http://callumhay.blogspot.fr/2010/09/gaussian-blur-shader-glsl.html
+// original blur shader from http://callumhay.blogspot.fr/2010/09/gaussian-blur-shader-glsl.html
 
 const GLchar *fragmentShaderCode =
         "#version 330 core \n"
@@ -127,6 +126,9 @@ FreeFrameGlow::FreeFrameGlow()
     fragmentShader = 0;
     uniform_viewportsize = 0;
     uniform_scale = 0;
+    uniform_smooth = 0;
+    uniform_operation = 0;
+    displayList = 0;
 
     // Input properties
     SetMinInputs(1);
@@ -137,7 +139,7 @@ FreeFrameGlow::FreeFrameGlow()
     SetParamInfo(FFPARAM_PIXELSCALE, "Blur", FF_TYPE_STANDARD, 0.5f);
     scale = 0.5;
     SetParamInfo(FFPARAM_PIXELSMOOTH, "Edge", FF_TYPE_STANDARD, 0.5f);
-    scale = 0.5;
+    smooth = 0.5;
 
     param_changed = true;
 }
@@ -214,38 +216,6 @@ FFResult FreeFrameGlow::InitGL(const FFGLViewportStruct *vp)
         glEndList();
     }
 
-    glGenTextures(1,&tex_fbo1.Handle);
-    tex_fbo1.Width = viewport.width;
-    tex_fbo1.Height = viewport.height;
-    glBindTexture(GL_TEXTURE_2D, tex_fbo1.Handle);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_fbo1.Width, tex_fbo1.Height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // attach texture to FBO 1
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo1);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_fbo1.Handle, 0);
-
-    glGenTextures(1,&tex_fbo2.Handle);
-    tex_fbo2.Width = viewport.width;
-    tex_fbo2.Height = viewport.height;
-    glBindTexture(GL_TEXTURE_2D, tex_fbo2.Handle);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_fbo2.Width, tex_fbo2.Height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // attach texture to FBO 2
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_fbo2.Handle, 0);
-
-    // return to default state
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
     return FF_SUCCESS;
 }
 
@@ -264,12 +234,13 @@ FFResult FreeFrameGlow::DeInitGL()
     if (fbo2) glDeleteFramebuffers( 1, &fbo2 );
     if (fragmentShader) glDeleteShader(fragmentShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
+    if (displayList) glDeleteLists(displayList, 1);
 
     return FF_SUCCESS;
 }
 
 
-void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
+void FreeFrameGlow::drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 {
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture.Handle);
@@ -305,13 +276,43 @@ FFResult FreeFrameGlow::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
     glClearColor(0.f, 0.f, 0.f, 0.f);
-//    glClear(GL_COLOR_BUFFER_BIT);
 
     //enable texturemapping
     glEnable(GL_TEXTURE_2D);
 
     // no depth test
     glDisable(GL_DEPTH_TEST);
+
+    if (tex_fbo1.Handle == 0) {
+        glGenTextures(1,&tex_fbo1.Handle);
+        tex_fbo1.Width = viewport.width;
+        tex_fbo1.Height = viewport.height;
+        glBindTexture(GL_TEXTURE_2D, tex_fbo1.Handle);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_fbo1.Width, tex_fbo1.Height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        // attach texture to FBO 1
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo1);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_fbo1.Handle, 0);
+
+        glGenTextures(1,&tex_fbo2.Handle);
+        tex_fbo2.Width = viewport.width;
+        tex_fbo2.Height = viewport.height;
+        glBindTexture(GL_TEXTURE_2D, tex_fbo2.Handle);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_fbo2.Width, tex_fbo2.Height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        // attach texture to FBO 2
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_fbo2.Handle, 0);
+
+    }
 
     // use the blurring shader program
     glUseProgram(shaderProgram);
@@ -361,16 +362,9 @@ FFResult FreeFrameGlow::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     // display the glow overlay
     // Color and alpha a treated separately
     // Colors a just added (to add while glow on top)
-    // Alpha is the minimum, i.e. the alpha of Texture
-//    glBlendEquationSeparate(GL_FUNC_ADD, GL_MIN);
-//    glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
-
-
     glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
     glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_DST_ALPHA);
-
     drawQuad( viewport, tex_fbo1 );
-
 
     //unbind the texture
     glBindTexture(GL_TEXTURE_2D, 0);

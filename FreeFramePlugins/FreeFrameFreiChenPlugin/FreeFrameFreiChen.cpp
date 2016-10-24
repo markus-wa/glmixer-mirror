@@ -22,7 +22,6 @@ void printLog(GLuint obj)
 #define FFPARAM_BLUR (0)
 #define FFPARAM_TRANS (1)
 
-GLuint displayList = 0;
 
 // Original Shader code by Daniel Rákos : http://rastergrid.com/blog/2011/01/frei-chen-edge-detector/
 
@@ -97,6 +96,7 @@ FreeFrameFreiChen::FreeFrameFreiChen()
     uniform_viewportsize = 0;
     uniform_contrast = 0;
     uniform_transparency = 0;
+    displayList = 0;
 
     // Input properties
     SetMinInputs(1);
@@ -195,21 +195,11 @@ FFResult FreeFrameFreiChen::DeInitGL()
 {
     if (fragmentShader) glDeleteShader(fragmentShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
+    if (displayList) glDeleteLists(displayList, 1);
 
     return FF_SUCCESS;
 }
 
-
-void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
-{
-    // bind the texture to apply
-    glBindTexture(GL_TEXTURE_2D, texture.Handle);
-
-    // setup display
-    glViewport(vp.x, vp.y, vp.width, vp.height);
-
-    glCallList(displayList);
-}
 
 
 #ifdef FF_FAIL
@@ -252,7 +242,14 @@ FFResult FreeFrameFreiChen::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         param_changed = false;
     }
 
-    drawQuad( viewport, Texture );
+    // bind the texture to apply
+    glBindTexture(GL_TEXTURE_2D, Texture.Handle);
+
+    // setup display
+    glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+    // draw
+    glCallList(displayList);
 
     // disable shader program
     glUseProgram(0);

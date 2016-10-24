@@ -57,6 +57,7 @@ protected:
     GLuint shaderProgram;
     GLuint fragmentShader;
     GLuint uniform_viewportsize;
+    GLuint displayList;
 };
 
 

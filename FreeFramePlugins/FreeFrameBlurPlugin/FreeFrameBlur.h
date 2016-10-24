@@ -1,5 +1,5 @@
-#ifndef FFGLMirror_H
-#define FFGLMirror_H
+#ifndef FFGLBLUR_H
+#define FFGLBLUR_H
 
 #include <FFGLPluginSDK.h>
 
@@ -9,9 +9,9 @@ public:
     FreeFrameBlur();
     virtual ~FreeFrameBlur() {}
 
-	///////////////////////////////////////////////////
-	// FreeFrame plugin methods
-	///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // FreeFrame plugin methods
+    ///////////////////////////////////////////////////
 #ifdef FF_FAIL
     // FFGL 1.5
     DWORD	ProcessOpenGL(ProcessOpenGLStruct* pGL);
@@ -28,16 +28,16 @@ public:
     float		GetFloatParameter(unsigned int index);
 #endif
 
-	///////////////////////////////////////////////////
-	// Factory method
-	///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Factory method
+    ///////////////////////////////////////////////////
 
 #ifdef FF_FAIL
     // FFGL 1.5
     static DWORD __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
 #else
     // FFGL 1.6
-	static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
+    static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
 #endif
     {
         *ppOutInstance = new FreeFrameBlur();
@@ -45,6 +45,7 @@ public:
             return FF_SUCCESS;
         return FF_FAIL;
     }
+
 
 protected:
     double blur;
@@ -57,6 +58,10 @@ protected:
     GLuint vertexShader;
     GLuint fragmentShader;
     GLuint uniform_textureoffset;
+    GLuint displayList;
+
+    void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture);
+
 };
 
 
