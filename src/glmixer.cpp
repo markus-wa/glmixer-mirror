@@ -1477,15 +1477,8 @@ void GLMixer::on_actionCloneSource_triggered(){
             QString name = (*RenderingManager::getInstance()->getCurrentSource())->getName();
 
 #ifdef FFGL
-        // copy the Freeframe plugin stack
-        for (FFGLPluginSourceStack::const_iterator it = (*original)->getFreeframeGLPluginStack()->begin();
-             it != (*original)->getFreeframeGLPluginStack()->end(); ++it) {
-
-            FFGLPluginSource *plugin = s->addFreeframeGLPlugin( (*it)->fileName() );
-            // set configuration
-            if (plugin)
-                plugin->setConfiguration( (*it)->getConfiguration() );
-        }
+            // copy the Freeframe plugin stack
+            s->reproduceFreeframeGLPluginStack( (*original) );
 #endif
 
             RenderingManager::getInstance()->addSourceToBasket(s);

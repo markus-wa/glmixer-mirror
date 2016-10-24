@@ -203,6 +203,7 @@ public:
     FFGLPluginSourceStack *getFreeframeGLPluginStack();
     bool hasFreeframeGLPlugin();
     void clearFreeframeGLPlugin();
+    void reproduceFreeframeGLPluginStack(Source *s);
 #endif
 
     /*

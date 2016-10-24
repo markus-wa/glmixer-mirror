@@ -587,5 +587,20 @@ void Source::clearFreeframeGLPlugin() {
     _ffgl_plugins.clear();
 }
 
+
+void Source::reproduceFreeframeGLPluginStack(Source *s)
+{
+    clearFreeframeGLPlugin();
+
+    // copy the Freeframe plugin stack
+    for (FFGLPluginSourceStack::const_iterator it = s->getFreeframeGLPluginStack()->begin(); it != s->getFreeframeGLPluginStack()->end(); ++it) {
+
+        FFGLPluginSource *plugin = addFreeframeGLPlugin( (*it)->fileName() );
+        // set configuration
+        if (plugin)
+            plugin->setConfiguration( (*it)->getConfiguration() );
+    }
+}
+
 #endif
 

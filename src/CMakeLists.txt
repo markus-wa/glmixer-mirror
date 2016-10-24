@@ -83,6 +83,7 @@ SET(GLMIXER_SRCS
     VideoStreamSource.cpp
     VideoStreamDialog.cpp
     SizeSelectionWidget.cpp
+    CloneSource.cpp
 )
 
 SET(GLMIXER_RCS

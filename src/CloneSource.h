@@ -26,10 +26,7 @@
 #ifndef CLONESOURCE_H_
 #define CLONESOURCE_H_
 
-#include <algorithm>
-
 #include "SourceSet.h"
-#include "RenderingManager.h"
 
 class CloneSource: public Source {
 
@@ -51,47 +48,10 @@ public:
 
     // only RenderingManager can create a source
 protected:
-    CloneSource(SourceSet::iterator sit,  double d): Source( (*sit)->getTextureIndex(), d), original(NULL){
+    CloneSource(SourceSet::iterator sit,  double d);
+    ~CloneSource();
 
-        // initialize
-        setOriginal(sit);
-
-        // clone the properties
-        importProperties(original, true);
-    }
-
-    ~CloneSource() {
-        // remove myself from the list of clones or my original
-        original->getClones()->erase((Source*) this);
-        // avoid deleting the texture of the original
-        textureIndex = 0;
-    }
-
-    void setOriginal(SourceSet::iterator sit) {
-
-        // remove this clone from the list of previous original
-        if (original) {
-            original->getClones()->erase((Source*) this);
-        }
-
-        // set the original
-        original = *sit;
-
-        // when cloning a clone, get back to the original ;
-        CloneSource *tmp = dynamic_cast<CloneSource *>(original);
-        if (tmp)
-            original = tmp->original;
-
-        // set Texture index to the texture index of the source to clone
-        textureIndex = original->getTextureIndex();
-
-        // add this clone to the list of clones into the original source
-        std::pair<SourceList::iterator,bool> ret;
-        ret = original->getClones()->insert((Source *) this);
-        if (!ret.second)
-            SourceConstructorException().raise();
-
-    }
+    void setOriginal(SourceSet::iterator sit);
 
 private:
     Source *original;

@@ -38,7 +38,6 @@
 #include "RenderingSource.h"
 Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "CloneSource.h"
-Source::RTTI CloneSource::type = Source::CLONE_SOURCE;
 
 #ifdef SHM
 #include <QSharedMemory>
@@ -1314,22 +1313,18 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
         // change all clones of old source to clone the new source
         for (SourceList::iterator clone = (*it_oldsource)->getClones()->begin(); clone != (*it_oldsource)->getClones()->end(); clone = (*it_oldsource)->getClones()->begin()) {
             CloneSource *tmp = dynamic_cast<CloneSource *>(*clone);
-            if (tmp)
+            if (tmp) {
+                // change original of clone (this removes it from list of old source clones)
                 tmp->setOriginal(it_newsource);
+            }
         }
 
 #ifdef FFGL
         // copy the Freeframe plugin stack
-        for (FFGLPluginSourceStack::const_iterator it = (*it_oldsource)->getFreeframeGLPluginStack()->begin(); it != (*it_oldsource)->getFreeframeGLPluginStack()->end(); ++it) {
-
-            FFGLPluginSource *plugin = (*it_newsource)->addFreeframeGLPlugin( (*it)->fileName() );
-            // set configuration
-            if (plugin)
-                plugin->setConfiguration( (*it)->getConfiguration() );
-        }
+        (*it_newsource)->reproduceFreeframeGLPluginStack( (*it_oldsource) );
 #endif
 
-        // delete old source
+        // delete old source (and eventual plugins)
         removeSource(it_oldsource);
 
         // restore former depth
