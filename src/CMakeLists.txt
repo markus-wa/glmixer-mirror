@@ -35,6 +35,7 @@ SET(GLMIXER_SRCS
     VideoFile.cpp
     ProtoSource.cpp
     Source.cpp
+    CloneSource.cpp
     VideoSource.cpp
     CaptureSource.cpp
     SvgSource.cpp
@@ -83,7 +84,6 @@ SET(GLMIXER_SRCS
     VideoStreamSource.cpp
     VideoStreamDialog.cpp
     SizeSelectionWidget.cpp
-    CloneSource.cpp
 )
 
 SET(GLMIXER_RCS

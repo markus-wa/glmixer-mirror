@@ -45,6 +45,7 @@ public:
     int getFrameWidth() const { return original->getFrameWidth(); }
     int getFrameHeight() const { return original->getFrameHeight(); }
     double getFrameRate() const { return original->getFrameRate(); }
+    double getAspectRatio() const { return original->getAspectRatio(); }
 
     // only RenderingManager can create a source
 protected:

@@ -117,7 +117,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     defaultValueAction = new QAction(QObject::tr("Default value"), this);
     QObject::connect(defaultValueAction, SIGNAL(triggered()), this, SLOT(defaultValue() ) );
 
-    resetAction = new QAction(QObject::tr("Reset all values"), this);
+    resetAction = new QAction(QObject::tr("Reset"), this);
     QObject::connect(resetAction, SIGNAL(triggered()), this, SLOT(resetAll() ) );
 
     openUrlAction = new QAction(QObject::tr("Show file in browser"), this);
@@ -134,7 +134,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
 //    menuTree.addAction(QObject::tr("Collapse tree"), this, SLOT(collapseAll()));
 
     // TODO : enable the default value action
-    //    menuGroup.addAction(defaultValueAction);
+    menuGroup.addAction(defaultValueAction);
     menuGroup.addAction(resetAction);
     menuGroup.addAction(openUrlAction);
 }
@@ -336,13 +336,20 @@ void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
 
     openUrlAction->setVisible( referenceURL.isValid() );
 
-    defaultValueAction->setEnabled( false );
+    defaultValueAction->setVisible( false );
+    defaultValueAction->setEnabled(true);
+    resetAction->setVisible(true);
 
     if (propertyGroupEditor->currentItem()) {
         QtProperty *property = propertyGroupEditor->currentItem()->property();
-        if (property->hasValue() && property->isEnabled() && !property->isItalics() )
-            defaultValueAction->setEnabled( true );
+        if ( property->hasValue() ) {
+            defaultValueAction->setVisible( true );
+            resetAction->setVisible(false);
 
+            if ( !property->isEnabled() || property->isItalics()) {
+                defaultValueAction->setEnabled(false);
+            }
+        }
     }
     menuGroup.exec( propertyGroupEditor->mapToGlobal(pos) );
 }
@@ -355,14 +362,22 @@ void PropertyBrowser::ctxMenuTree(const QPoint &pos)
 
     openUrlAction->setVisible( referenceURL.isValid() );
 
-    defaultValueAction->setEnabled(false);
+    defaultValueAction->setVisible(false);
+    defaultValueAction->setEnabled(true);
+    resetAction->setVisible(true);
 
     if (propertyTreeEditor->currentItem()) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
-        if (property->hasValue() && property->isEnabled() && !property->isItalics() )
-            defaultValueAction->setEnabled( true );
+        if ( property->hasValue() ) {
+            defaultValueAction->setVisible( true );
+            resetAction->setVisible(false);
 
+            if ( !property->isEnabled() || property->isItalics()) {
+                defaultValueAction->setEnabled(false);
+            }
+        }
     }
+
     menuTree.exec( propertyTreeEditor->mapToGlobal(pos) );
 }
 

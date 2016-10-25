@@ -55,9 +55,24 @@
 
 FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : PropertyBrowser(parent), currentStack(0) {
 
+    menuTree.addSeparator();
+
+    // create edit action
+    editAction = new QAction(tr("Edit"), this);
+    QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
+    // insert edit action on top
+    menuTree.addAction(editAction);
+
+    // create edit action
+    enableAction = new QAction(tr("Enable"), this);
+    enableAction->setCheckable(true);
+    enableAction->setChecked(true);
+    QObject::connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(enablePlugin(bool)) );
+    // insert edit action on top
+    menuTree.addAction(enableAction);
+
     // append remove action if allowed
     if (allowRemove) {
-        menuTree.addSeparator();
         // actions of context menus
         moveUpAction = new QAction(tr("Move Up"), this);
         QObject::connect(moveUpAction, SIGNAL(triggered()), this, SLOT(moveUpPlugin()) );
@@ -74,24 +89,6 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
         moveUpAction = NULL;
         moveDownAction = NULL;
     }
-
-    // create edit action
-    editAction = new QAction(tr("Edit"), this);
-    QObject::connect(editAction, SIGNAL(triggered()), this, SLOT(editPlugin()) );
-    // insert edit action on top
-    menuTree.insertAction(resetAction, editAction);
-
-    // create edit action
-    enableAction = new QAction(tr("Enable"), this);
-    enableAction->setCheckable(true);
-    enableAction->setChecked(true);
-    QObject::connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(enablePlugin(bool)) );
-    // insert edit action on top
-    menuTree.insertAction(editAction, enableAction);
-
-    // hide actions by default
-    resetAction->setVisible(false);
-    editAction->setVisible(false);
 
     setStyleSheet(QString::fromUtf8("QToolTip {\n"
         "	font: 8pt \"Monospace,Courier\";\n"
@@ -253,21 +250,15 @@ void FFGLPluginBrowser::valueChanged(QtProperty *property, const QString &value)
 
 void FFGLPluginBrowser::resetAll()
 {
-//    if (currentStack) {
-//        // loop over the stack
-//        for (FFGLPluginSourceStack::iterator it = currentStack->begin(); it != currentStack->end(); ++it )
-//            (*it)->restoreDefaults();
-
-//        // refresh display
-//        showProperties(currentStack);
-//    }
-
     if ( propertyTreeEditor->currentItem() ) {
         QtProperty *property = propertyTreeEditor->currentItem()->property();
         if ( propertyToPluginParameter.contains(property) ) {
             propertyToPluginParameter[property].first->restoreDefaults();
         }
     }
+    else
+        currentStack->clear();
+
     // refresh display
     showProperties(currentStack);
 }
@@ -361,8 +352,6 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
     setReferenceURL();
     // edit is disabled by default
     editAction->setVisible(false);
-    // reset is disabled by default
-    resetAction->setVisible(false);
     // enable is disabled by default
     enableAction->setVisible(false);
     // remove is disabled by default
@@ -389,11 +378,10 @@ void FFGLPluginBrowser::ctxMenuTree(const QPoint &pos)
             enableAction->setChecked(propertyToPluginParameter[property].first->isEnabled());
 
             // enable the edit action for shadertoy plugins only
-            if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN)
+            if (propertyToPluginParameter[property].first->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
                 editAction->setVisible(true);
-            else {
-                // allow to reset values for freeframe plugins only
-                resetAction->setVisible(true);
+            } else {
+                // allow context menu openUrlAction
                 setReferenceURL( QUrl::fromLocalFile( QFileInfo(propertyToPluginParameter[property].first->fileName()).canonicalPath()) );
             }
         }

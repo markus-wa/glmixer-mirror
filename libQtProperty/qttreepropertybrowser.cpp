@@ -219,6 +219,10 @@ void QtPropertyEditorView::mousePressEvent(QMouseEvent *event)
                 item->setExpanded(!item->isExpanded());
         }
     }
+    else {
+        m_editorPrivate->setCurrentItem(0, false);
+        clearSelection();
+    }
 }
 
 //// ------------ QtPropertyEditorDelegate
