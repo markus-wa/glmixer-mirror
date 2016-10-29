@@ -64,7 +64,7 @@ protected:
     int writeIndex, readIndex;
     GLuint displayList;
 
-    void drawQuad( FFGLViewportStruct vp, GLuint texture, float alpha);
+    void drawQuad( GLuint texture, float alpha);
 };
 
 

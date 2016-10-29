@@ -5,6 +5,9 @@
 #define FFPARAM_DELAY (0)
 #define FFPARAM_BLUR (1)
 
+#ifdef DEBUG
+#include <cstdio>
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -95,10 +98,6 @@ FFResult FreeFrameDelay::InitGL(const FFGLViewportStruct *vp)
     if (displayList == 0) {
         displayList = glGenLists(1);
         glNewList(displayList, GL_COMPILE);
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
             glBegin(GL_QUADS);
             //lower left
             glTexCoord2d(0.0, 0.0);
@@ -149,13 +148,10 @@ FFResult FreeFrameDelay::SetTime(double time)
     return FF_SUCCESS;
 }
 
-void FreeFrameDelay::drawQuad( FFGLViewportStruct vp, GLuint texture, float alpha)
+void FreeFrameDelay::drawQuad( GLuint texture, float alpha)
 {
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture);
-
-    // setup display
-    glViewport(vp.x,vp.y,vp.width,vp.height);
 
     glColor4f(1.f, 1.f, 1.f, alpha);
     glCallList(displayList);
@@ -181,6 +177,9 @@ FFResult FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
+    // setup display
+    glViewport(viewport.x,viewport.y,viewport.width,viewport.height);
+
     //enable texturemapping
     glEnable(GL_TEXTURE_2D);
 
@@ -189,10 +188,12 @@ FFResult FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
     // recals the time of the writing of this frame into the fbo buffer
     times[writeIndex] = m_curTime;
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo[writeIndex]);
 
-    // draw the input texture
-    drawQuad( viewport, Texture.Handle, 1.0);
+    // draw the input texture in FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo[writeIndex]);
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawQuad( Texture.Handle, 1.0);
 
     // find the read index where the time difference is just above the delay requested.
     if ( delay > 0.0) {
@@ -206,36 +207,39 @@ FFResult FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct *pGL)
                 break;
             }
         }
-    } else
+    }
+    else
         readIndex = writeIndex;
 
     if (blur) {
 
         // (re)activate the HOST fbo as render target
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pGL->HostFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, pGL->HostFBO);
+
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         // accumulative color display
-        glEnable(GL_BLEND);
-        glBlendEquation(GL_FUNC_ADD);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        glBlendEquation(GL_FUNC_ADD);
 
         // display all previous frames
         int numframes = (writeIndex - readIndex + MAX_NUM_FRAMES) % MAX_NUM_FRAMES;
+        numframes = numframes > 0 ? numframes : 1;
         float alpha = 1.0 / (float) numframes;
-        for (int i = 0; i < numframes; ++i)
+        for (int i = 0; i < numframes ; ++i)
         {
-            int index = (readIndex + i) % MAX_NUM_FRAMES;
-            drawQuad( viewport, textures[index], alpha);
+            int index = (readIndex + i + MAX_NUM_FRAMES) % MAX_NUM_FRAMES;
+            drawQuad( textures[index],  alpha);
         }
 
     }
     else {
-        // draw this index
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo[readIndex]);
-
         // (re)activate the HOST fbo as render target
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pGL->HostFBO);
 
+        // draw this index
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo[readIndex]);
 
         glBlitFramebuffer(0, 0, Texture.Width, Texture.Height, 0, 0, Texture.Width, Texture.Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     }
