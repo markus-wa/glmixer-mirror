@@ -39,12 +39,12 @@ WebSource::WebSource(QUrl web, GLuint texture, double d, int w, int h, int heigh
 {
 
    // Web browser settings
-   QWebSettings::setIconDatabasePath("");  
+   QWebSettings::setIconDatabasePath("");
    QWebSettings::setOfflineStoragePath("");
    QWebSettings::setMaximumPagesInCache(0);
 
     _webrenderer = new WebRenderer(web, w, h, height, scroll);
-    //_webrenderer->setUpdate(_updateFrequency);
+    _webrenderer->setUpdate(_updateFrequency);
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -154,7 +154,7 @@ int WebSource::getFrameWidth() const
 {
     if (_webrenderer)
     return _webrenderer->image().width();
-    else 
+    else
     return 0;
 }
 
@@ -162,7 +162,7 @@ int WebSource::getFrameHeight() const
 {
     if (_webrenderer)
     return _webrenderer->image().height();
-    else 
+    else
     return 0;
 }
 
@@ -178,7 +178,7 @@ int WebSource::getPageHeight() const
 {
     if (_webrenderer)
     return _webrenderer->height();
-    else 
+    else
     return 0;
 }
 
@@ -186,7 +186,7 @@ int WebSource::getPageScroll() const
 {
     if (_webrenderer)
     return _webrenderer->scroll();
-    else 
+    else
     return 0;
 }
 
@@ -275,7 +275,7 @@ WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) 
 
     // enable cookies
     _page.networkAccessManager()->setCookieJar( new QNetworkCookieJar(&_page) );
-    _page.setPreferredContentsSize(QSize(w,h)); 
+    _page.setPreferredContentsSize(QSize(w,h));
 
     // render page when loaded
     qDebug() << _url << QChar(124).toLatin1() << tr("Loading web page...");
@@ -301,7 +301,7 @@ void WebRenderer::render(bool ok)
     // cancel time out
     disconnect(&_timer, 0, 0, 0);
     _timer.stop();
-    
+
     // could load
     if (ok) {
         // remember page size
@@ -311,7 +311,7 @@ void WebRenderer::render(bool ok)
         _imageChanged = true;
     }
     else
-        timeout(); 
+        timeout();
 }
 
 void WebRenderer::update()
