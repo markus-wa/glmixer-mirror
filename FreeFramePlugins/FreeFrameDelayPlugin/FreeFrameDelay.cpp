@@ -216,17 +216,18 @@ FFResult FreeFrameDelay::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         // (re)activate the HOST fbo as render target
         glBindFramebuffer(GL_FRAMEBUFFER, pGL->HostFBO);
 
+        // clear to opaque black
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // accumulative color display
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        glBlendEquation(GL_FUNC_ADD);
+        // accumulative alpha display
+        glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE);
 
         // display all previous frames
         int numframes = (writeIndex - readIndex + MAX_NUM_FRAMES) % MAX_NUM_FRAMES;
-        numframes = numframes > 0 ? numframes : 1;
-        float alpha = 1.0 / (float) numframes;
+        numframes++; // at least one frame
+        float alpha = 2.0 / (float) numframes;
         for (int i = 0; i < numframes ; ++i)
         {
             int index = (readIndex + i + MAX_NUM_FRAMES) % MAX_NUM_FRAMES;
