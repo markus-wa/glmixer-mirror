@@ -393,13 +393,10 @@ void FFGLPluginSource::restoreDefaults()
 {
     // iterate over the list of parameters
     QHashIterator<QString, QVariant> i(_parametersDefaults);
-    unsigned int paramNum = 0;
     i.toBack();
     while (i.hasPrevious()) {
         i.previous();
-        setParameter(paramNum, i.value());
-        // increment paramNum
-        paramNum++;
+        setParameter(i.key(), i.value());
     }
 }
 
