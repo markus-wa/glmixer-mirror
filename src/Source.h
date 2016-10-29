@@ -171,7 +171,7 @@ public:
     } scalingMode;
 
     void resetScale(scalingMode sm = SCALE_CROP);
-    void clampScale();
+    void clampScale(bool updateTextureCoordinates = false);
     // relative scaling
     void scaleBy(double fx, double fy);
     // reset texture coordinates

@@ -566,6 +566,24 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
 
     Source *cs = getCurrentSource();
 
+    // enforces minimal size ;
+    // check that the tool action did not go beyond the limits and fix it
+    if ( cs && currentAction == View::TOOL) {
+
+        if ( cs == SelectionManager::getInstance()->selectionSource() ) {
+
+            for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+
+                (*its)->clampScale();
+
+            }
+            SelectionManager::getInstance()->updateSelectionSource();
+        }
+        else
+            cs->clampScale( currentTool == GeometryView::CROP );
+
+    }
+
     // default to no action
     setAction(View::NONE);
 
@@ -574,11 +592,8 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
     else if (currentAction == View::PANNING )
         setAction(previousAction);
     else if (cs && currentAction != View::SELECT )
-            setAction(View::OVER);
+        setAction(View::OVER);
 
-    // enforces minimal size ; check that the scaling did not go beyond the limits and fix it
-    if ( cs )
-        cs->clampScale();
 
     // end of selection area
     if (_selectionArea.isEnabled()) {
@@ -1319,29 +1334,26 @@ void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool opti
     double tx = w * (sx - 1.0);
     double ty = h * (sy - 1.0);
 
-    // Crop
+    // Crop texture coordinates
     QRectF tex = s->getTextureCoordinates();
-    // compute texture coordinate of point clicked before movement
-    double bs = bx / (2.0 * s->getScaleX());
-    double bt = by / (2.0 * s->getScaleY());
-    // compute texture coordinate of point clicked after movement, considering the movement changes
-    double as =  ( ax + tx ) / (2.0 * s->getScaleX() * sx);
-    double at =  ( ay + ty ) / (2.0 * s->getScaleY() * sy);
-    // depending on the quadrant, it is not the same corner of texture coordinates to change
+    double ds = tex.width() * ( ax + tx - bx * sx) / (2.0 * s->getScaleX());
+    double dt = tex.height() * ( by * sy - ay - ty) / (2.0 * s->getScaleY());
+
+    // depending on the quadrant,
+    // it is not the same corner of texture coordinates to change
     if ( quadrant == 1 ) {
-        tex.setLeft( tex.left() + tex.width() * (as - bs) );
-        tex.setTop( tex.top() + tex.height() * (bt - at) );
+        tex.setLeft( tex.left() +  ds );
+        tex.setTop( tex.top() +  dt );
     } else if ( quadrant == 2 ) {
-        tex.setRight( tex.right() + tex.width() * (as - bs) );
-        tex.setTop( tex.top() + tex.height() * (bt - at) );
+        tex.setRight( tex.right() +  ds );
+        tex.setTop( tex.top() +  dt );
     } else if ( quadrant == 3 ) {
-        tex.setRight( tex.right() + tex.width() * (as - bs) );
-        tex.setBottom( tex.bottom() + tex.height() * (bt - at) );
+        tex.setRight( tex.right() + ds );
+        tex.setBottom( tex.bottom() + dt );
     } else {
-        tex.setLeft( tex.left() + tex.width() * (as - bs) );
-        tex.setBottom( tex.bottom() + tex.height() * (bt - at) );
+        tex.setLeft( tex.left() + ds );
+        tex.setBottom( tex.bottom() + dt );
     }
-    s->setTextureCoordinates(tex);
 
     // reverse rotation to apply translation shift in the world reference
     cosa = cos(s->getRotationAngle() / 180.0 * M_PI);
@@ -1351,8 +1363,12 @@ void GeometryView::cropSource(Source *s, int X, int Y, int dx, int dy, bool opti
     ty = ty  * cosa + tx * sina;
     tx = dum;
 
+    // Apply changes in scale and translation
     s->scaleBy(sx, sy);
     s->setPosition(x + tx, y + ty);
+
+    // Apply the change of texture coordinates
+    s->setTextureCoordinates(tex);
 
 }
 
@@ -1366,8 +1382,12 @@ void GeometryView::cropSources(Source *s, int x, int y, int dx, int dy, bool opt
 
     // if the source is the View::selection, move the selection
     if ( s == SelectionManager::getInstance()->selectionSource() ) {
-        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++)
-            cropSource( *its, x, y, dx, dy, option);
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+
+            // TODO implement cropping of selection
+
+        }
+//        SelectionManager::getInstance()->updateSelectionSource();
     }
     // otherwise, update selection source if we move a source of the selection
     else if (SelectionManager::getInstance()->isInSelection(s))

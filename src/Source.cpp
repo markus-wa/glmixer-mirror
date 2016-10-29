@@ -376,10 +376,25 @@ void Source::play(bool on) {
 }
 
 
-void Source::clampScale() {
+void Source::clampScale(bool updateTextureCoordinates) {
 
-    scalex = (scalex > 0 ? 1.0 : -1.0) * CLAMP( ABS(scalex), MIN_SCALE, MAX_SCALE);
-    scaley = (scaley > 0 ? 1.0 : -1.0) * CLAMP( ABS(scaley), MIN_SCALE, MAX_SCALE);
+    // clamp scaling factors
+    double newscalex = (scalex > 0 ? 1.0 : -1.0) * CLAMP( ABS(scalex), MIN_SCALE, MAX_SCALE);
+    double newscaley = (scaley > 0 ? 1.0 : -1.0) * CLAMP( ABS(scaley), MIN_SCALE, MAX_SCALE);
+
+    // if was cropping the source
+    if (updateTextureCoordinates) {
+        // compute a correct crop
+        QRectF tex = getTextureCoordinates();
+        if ( ABS(newscalex) > ABS(scalex))
+            tex.setWidth( tex.width() * newscalex / scalex);
+        if ( ABS(newscaley) > ABS(scaley))
+            tex.setHeight( tex.height() * newscaley / scaley);
+        setTextureCoordinates(tex);
+    }
+
+    // apply correction of scale
+    setScale(newscalex, newscaley);
 
     // test for culling
     testGeometryCulling();
