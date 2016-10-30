@@ -2,20 +2,20 @@
 // FFGL.cpp
 //
 // FreeFrame is an open-source cross-platform real-time video effects plugin system.
-// It provides a framework for developing video effects plugins and hosts on Windows, 
-// Linux and Mac OSX. 
-// 
+// It provides a framework for developing video effects plugins and hosts on Windows,
+// Linux and Mac OSX.
+//
 // FreeFrameGL (FFGL) is an extension to the FreeFrame spec to support video processing
 // with OpenGL on Windows, Linux, and Mac OSX.
 //
 // Copyright (c) 2002, 2003, 2004, 2006 www.freeframe.org
-// All rights reserved. 
+// All rights reserved.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Redistribution and use in source and binary forms, with or without modification, 
+// Redistribution and use in source and binary forms, with or without modification,
 //	are permitted provided that the following conditions are met:
 //
 //  * Redistributions of source code must retain the above copyright
@@ -29,28 +29,28 @@
 //    from this software without specific prior written permission.
 //
 //
-//	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-//	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-//	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-//	IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-//	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-//	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-//	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
-//	OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
-//	OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
-//	OF THE POSSIBILITY OF SUCH DAMAGE. 
+//	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+//	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+//	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//	IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+//	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+//	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+//	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+//	OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+//	OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+//	OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// First version, Marcus Clements (marcus@freeframe.org) 
+// First version, Marcus Clements (marcus@freeframe.org)
 // www.freeframe.org
 //
 // FreeFrame 1.0 upgrade by Russell Blakeborough
 // email: boblists@brightonart.org
 //
-// FreeFrame 1.0 - 03 upgrade 
+// FreeFrame 1.0 - 03 upgrade
 // and implementation of FreeFrame SDK methods by Gualtiero Volpe
 // email: Gualtiero.Volpe@poste.it
 //
@@ -61,14 +61,14 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Includes 
+// Includes
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "FFGLPluginSDK.h"
 #include <memory.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Static and extern variables used in the FreeFrame SDK 
+// Static and extern variables used in the FreeFrame SDK
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern CFFGLPluginInfo* g_CurrPluginInfo;
@@ -77,11 +77,11 @@ static CFreeFrameGLPlugin* s_pPrototype = NULL;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// FreeFrame SDK default implementation of the FreeFrame global functions. 
+// FreeFrame SDK default implementation of the FreeFrame global functions.
 // Such function are called by the plugMain function, the only function a plugin exposes.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void *getInfo() 
+void *getInfo()
 {
 	return (void *)(g_CurrPluginInfo->GetPluginInfo());
 }
@@ -106,7 +106,7 @@ DWORD initialise()
     return FF_SUCCESS;
 	}
 
-	return FF_SUCCESS; 
+	return FF_SUCCESS;
 }
 
 DWORD deInitialise()
@@ -118,7 +118,7 @@ DWORD deInitialise()
 	return FF_SUCCESS;
 }
 
-DWORD getNumParameters() 
+DWORD getNumParameters()
 {
 	if (s_pPrototype == NULL) {
 		DWORD dwRet = initialise();
@@ -127,14 +127,14 @@ DWORD getNumParameters()
 
 	return (DWORD) s_pPrototype->GetNumParams();
 }
-							
+
 char* getParameterName(DWORD index)
 {
 	if (s_pPrototype == NULL) {
 		DWORD dwRet = initialise();
 		if (dwRet == FF_FAIL) return NULL;
 	}
-	
+
 	return s_pPrototype->GetParamName(index);
 }
 
@@ -209,7 +209,7 @@ DWORD getPluginCaps(DWORD index)
 	default:
 		return FF_FALSE;
 	}
-	
+
 	return FF_FAIL;
 }
 
@@ -224,7 +224,7 @@ DWORD getParameterType(DWORD index)
 		DWORD dwRet = initialise();
 		if (dwRet == FF_FAIL) return FF_FAIL;
 	}
-	
+
 	return s_pPrototype->GetParamType(index);
 }
 
@@ -241,7 +241,7 @@ DWORD instantiateGL(const FFGLViewportStruct *pGLViewport)
 	  if ((dwRet == FF_FAIL) || (s_pPrototype == NULL))
       return FF_FAIL;
 	}
-		
+
 	//get the instantiate function pointer
   FPCREATEINSTANCEGL *pInstantiate = g_CurrPluginInfo->GetFactoryMethod();
 
@@ -255,7 +255,7 @@ DWORD instantiateGL(const FFGLViewportStruct *pGLViewport)
     return FF_FAIL;
 
 	pInstance->m_pPlugin = pInstance;
-		
+
 	// Initializing instance with default values
 	for (int i = 0; i < s_pPrototype->GetNumParams(); ++i)
   {
@@ -263,13 +263,13 @@ DWORD instantiateGL(const FFGLViewportStruct *pGLViewport)
 		void* pValue = s_pPrototype->GetParamDefault(DWORD(i));
 		SetParameterStruct ParamStruct;
 		ParamStruct.ParameterNumber = DWORD(i);
-    
+
     if( s_pPrototype->GetParamType(DWORD(i)) == FF_TYPE_TEXT ){
     	ParamStruct.NewParameterValue = (DWORD)pValue;
     }else{
 			memcpy(&ParamStruct.NewParameterValue, pValue, 4);
 		}
-    
+
     dwRet = pInstance->SetParameter(&ParamStruct);
 		if (dwRet == FF_FAIL)
     {
@@ -315,17 +315,17 @@ DWORD deInstantiateGL(void *instanceID)
 
 #ifdef WIN32
 
-   plugMainUnion __stdcall plugMain(DWORD functionCode, DWORD inputValue, DWORD instanceID) 
+   plugMainUnion __stdcall plugMain(DWORD functionCode, DWORD inputValue, DWORD instanceID)
 
-#elif TARGET_OS_MAC
+#elif __APPLE__
 
-   plugMainUnion plugMain(DWORD functionCode, DWORD inputValue, DWORD instanceID) 
+   plugMainUnion plugMain(DWORD functionCode, DWORD inputValue, DWORD instanceID)
 
 #elif __linux__
 
    plugMainUnion plugMain(DWORD functionCode, DWORD inputValue, DWORD instanceID)
 
-#endif	
+#endif
 
 {
 	plugMainUnion retval;
@@ -347,7 +347,7 @@ DWORD deInstantiateGL(void *instanceID)
 		break;
 
 	case FF_DEINITIALISE:
-		retval.ivalue = deInitialise();	
+		retval.ivalue = deInitialise();
 		break;
 
 	case FF_GETNUMPARAMETERS:
@@ -357,7 +357,7 @@ DWORD deInstantiateGL(void *instanceID)
 	case FF_GETPARAMETERNAME:
 		retval.svalue = getParameterName(inputValue);
 		break;
-	
+
 	case FF_GETPARAMETERDEFAULT:
 		retval.ivalue = getParameterDefault(inputValue);
 		break;
@@ -366,35 +366,35 @@ DWORD deInstantiateGL(void *instanceID)
 		retval.ivalue = getPluginCaps(inputValue);
 		break;
 
-	case FF_GETEXTENDEDINFO: 
+	case FF_GETEXTENDEDINFO:
 		retval.ivalue = (DWORD) getExtendedInfo();
 		break;
 
-	case FF_GETPARAMETERTYPE:		
+	case FF_GETPARAMETERTYPE:
 		retval.ivalue = getParameterType(inputValue);
 		break;
 
 	case FF_GETPARAMETERDISPLAY:
-		if (pPlugObj != NULL) 
+		if (pPlugObj != NULL)
 			retval.svalue = pPlugObj->GetParameterDisplay(inputValue);
 		else
 			retval.svalue = (char*)FF_FAIL;
 		break;
-		
+
 	case FF_SETPARAMETER:
 		if (pPlugObj != NULL)
 			retval.ivalue = pPlugObj->SetParameter((const SetParameterStruct*) inputValue);
 		else
 			retval.ivalue = FF_FAIL;
 		break;
-	
+
 	case FF_GETPARAMETER:
-		if (pPlugObj != NULL) 
+		if (pPlugObj != NULL)
 			retval.ivalue = pPlugObj->GetParameter(inputValue);
-		else 
+		else
 			retval.ivalue = FF_FAIL;
 		break;
-		
+
   case FF_INSTANTIATEGL:
     retval.ivalue = (DWORD)instantiateGL((const FFGLViewportStruct *)inputValue);
     break;
@@ -405,7 +405,7 @@ DWORD deInstantiateGL(void *instanceID)
 		else
 			retval.ivalue = FF_FAIL;
     break;
-	
+
 	case FF_GETIPUTSTATUS:
 		if (pPlugObj != NULL)
 			retval.ivalue = pPlugObj->GetInputStatus(inputValue);
@@ -448,6 +448,6 @@ DWORD deInstantiateGL(void *instanceID)
 		retval.ivalue = FF_FAIL;
 		break;
 	}
-	
+
 	return retval;
 }

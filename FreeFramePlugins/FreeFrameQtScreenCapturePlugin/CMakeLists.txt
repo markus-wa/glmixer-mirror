@@ -11,5 +11,9 @@ else(WIN32)
   add_library(ffglQtScreenCapture MODULE FreeFrameQtScreenCapture.cpp)
 endif(WIN32)
 
-target_link_libraries(ffglQtScreenCapture -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${QT_LIBRARIES} )
 
+if(APPLE)
+target_link_libraries(ffglQtScreenCapture FreeFrameGL ${OPENGL_LIBRARY} ${QT_LIBRARIES})
+else(APPLE)
+target_link_libraries(ffglQtScreenCapture -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${QT_LIBRARIES})
+endif(APPLE)

@@ -7,7 +7,11 @@ else(WIN32)
   add_library(ffglPixelation MODULE FreeFramePixelation.cpp)
 endif(WIN32)
 
+if(APPLE)
+target_link_libraries(ffglPixelation FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+else(APPLE)
 target_link_libraries(ffglPixelation -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+endif(APPLE)
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
     INSTALL(FILES $<TARGET_FILE:ffglPixelation>

@@ -11,6 +11,11 @@ else(WIN32)
 endif(WIN32)
 
 message( STATUS "Using ShadertoyEffect and ShadertoySource")
+
+if(APPLE)
+target_link_libraries(ShadertoyEffect FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(ShadertoySource FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+else(APPLE)
 target_link_libraries(ShadertoyEffect -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 target_link_libraries(ShadertoySource -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
-
+endif(APPLE)

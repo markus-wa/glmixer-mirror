@@ -2,11 +2,11 @@
 // FFGL.h
 //
 // FreeFrame is an open-source cross-platform real-time video effects plugin system.
-// It provides a framework for developing video effects plugins and hosts on Windows, 
-// Linux and Mac OSX. 
-// 
+// It provides a framework for developing video effects plugins and hosts on Windows,
+// Linux and Mac OSX.
+//
 // Copyright (c) 2006 www.freeframe.org
-// All rights reserved. 
+// All rights reserved.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -17,7 +17,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Redistribution and use in source and binary forms, with or without modification, 
+// Redistribution and use in source and binary forms, with or without modification,
 //	are permitted provided that the following conditions are met:
 //
 //  * Redistributions of source code must retain the above copyright
@@ -31,16 +31,16 @@
 //    from this software without specific prior written permission.
 //
 //
-//	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-//	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-//	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-//	IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-//	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-//	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-//	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
-//	OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
-//	OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
-//	OF THE POSSIBILITY OF SUCH DAMAGE. 
+//	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+//	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+//	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//	IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+//	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+//	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+//	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+//	OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+//	OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+//	OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -60,7 +60,7 @@
 
 #else
 
-#ifdef TARGET_OS_MAC
+#ifdef __APPLE__
 //on osx, <OpenGl/gl.h> auto-includes gl_ext.h for OpenGL extensions, which will interfere
 //with the FFGL SDK's own FFGLExtensions headers (included below). this #define disables
 //the auto-inclusion of gl_ext.h in OpenGl.h on OSX
@@ -113,13 +113,13 @@ typedef struct FFGLTextureStructTag
 typedef struct ProcessOpenGLStructTag {
   FFUInt32 numInputTextures;
   FFGLTextureStruct **inputTextures;
-  
+
   //if the host calls ProcessOpenGL with a framebuffer object actively bound
   //(as is the case when the host is capturing the plugins output to an offscreen texture)
   //the host must provide the GL handle to its EXT_framebuffer_object
   //so that the plugin can restore that binding if the plugin
   //makes use of its own FBO's for intermediate rendering
-  GLuint HostFBO; 
+  GLuint HostFBO;
 } ProcessOpenGLStruct;
 
 

@@ -304,7 +304,7 @@ FFResult deInstantiateGL(void *instanceID)
 
 FFMixed __stdcall plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanceID)
 
-#elif TARGET_OS_MAC
+#elif __APPLE__
 
 FFMixed plugMain(FFUInt32 functionCode, FFMixed inputValue, FFInstanceID instanceID)
 

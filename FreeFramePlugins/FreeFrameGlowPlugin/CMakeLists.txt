@@ -7,7 +7,11 @@ else(WIN32)
   add_library(ffglGlow MODULE FreeFrameGlow.cpp)
 endif(WIN32)
 
+if(APPLE)
+target_link_libraries(ffglGlow FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+else(APPLE)
 target_link_libraries(ffglGlow -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+endif(APPLE)
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
     INSTALL(FILES $<TARGET_FILE:ffglGlow>

@@ -8,7 +8,11 @@ else(WIN32)
   add_library(ffglWave MODULE FreeFrameWave.cpp)
 endif(WIN32)
 
-target_link_libraries(ffglWave -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive   ${OPENGL_LIBRARY})
+if(APPLE)
+target_link_libraries(ffglWave FreeFrameGL ${OPENGL_LIBRARY})
+else(APPLE)
+target_link_libraries(ffglWave -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY})
+endif(APPLE)
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
     INSTALL(FILES $<TARGET_FILE:ffglWave>

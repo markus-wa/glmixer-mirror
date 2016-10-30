@@ -8,7 +8,11 @@ else(WIN32)
   add_library(ffglBlur MODULE FreeFrameBlur.cpp)
 endif(WIN32)
 
+if(APPLE)
+target_link_libraries(ffglBlur FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+else(APPLE)
 target_link_libraries(ffglBlur -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+endif(APPLE)
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
 

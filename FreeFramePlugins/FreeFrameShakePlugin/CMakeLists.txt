@@ -8,7 +8,12 @@ else(WIN32)
   add_library(ffglShake MODULE FreeFrameShake.cpp)
 endif(WIN32)
 
+
+if(APPLE)
+target_link_libraries(ffglShake FreeFrameGL ${OPENGL_LIBRARY})
+else(APPLE)
 target_link_libraries(ffglShake -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY})
+endif(APPLE)
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
     INSTALL(FILES $<TARGET_FILE:ffglShake>

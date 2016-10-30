@@ -8,8 +8,11 @@ else(WIN32)
   add_library(ffglShadow MODULE FreeFrameShadow.cpp)
 endif(WIN32)
 
-
+if(APPLE)
+target_link_libraries(ffglShadow FreeFrameGL ${OPENGL_LIBRARY})
+else(APPLE)
 target_link_libraries(ffglShadow -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY})
+endif(APPLE)
 
 IF(CMAKE_VERSION VERSION_GREATER 2.9)
     INSTALL(FILES $<TARGET_FILE:ffglShadow>
