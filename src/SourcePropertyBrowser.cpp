@@ -717,7 +717,7 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
         enumManager->setValue(idToProperty["Destination"], intFromBlendfunction( s->getBlendFuncDestination() ));
     else if ( name.contains("Equation"))
         enumManager->setValue(idToProperty["Equation"], intFromBlendequation( s->getBlendEquation() ));
-    else if ( name.contains("Depth"))
+    else if ( name.contains("Mask"))
         enumManager->setValue(idToProperty["Mask"], s->getMask());
     else if ( name.contains("Color"))
         colorManager->setValue(idToProperty["Color"], QColor( s->getColor()));
