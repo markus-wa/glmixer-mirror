@@ -29,21 +29,21 @@
 #include "SourceSet.h"
 
 typedef enum {
-	QUALITY_VGA = 0,
-	QUALITY_PAL,
-	QUALITY_SVGA,
+    QUALITY_VGA = 0,
+    QUALITY_PAL,
+    QUALITY_SVGA,
     QUALITY_XGA,
     QUALITY_UXGA,
     QUALITY_QXGA,
-	QUALITY_UNSUPPORTED
+    QUALITY_UNSUPPORTED
 } frameBufferQuality;
 
 typedef enum {
-	ASPECT_RATIO_4_3 = 0,
-	ASPECT_RATIO_3_2,
-	ASPECT_RATIO_16_10,
-	ASPECT_RATIO_16_9,
-	ASPECT_RATIO_FREE
+    ASPECT_RATIO_4_3 = 0,
+    ASPECT_RATIO_3_2,
+    ASPECT_RATIO_16_10,
+    ASPECT_RATIO_16_9,
+    ASPECT_RATIO_FREE
 } standardAspectRatio;
 
 standardAspectRatio doubleToAspectRatio(double ar);
@@ -64,38 +64,34 @@ class SessionSwitcher;
 
 class RenderingManager: public QObject {
 
-	Q_OBJECT
+    Q_OBJECT
 
-	friend class RenderingSource;
-	friend class OutputRenderWidget;
+    friend class RenderingSource;
+    friend class OutputRenderWidget;
 
 public:
-	/**
-	 * singleton mechanism
-	 */
-	static ViewRenderWidget *getRenderingWidget();
-	static SourcePropertyBrowser *getPropertyBrowserWidget();
-	static RenderingEncoder *getRecorder();
+    /**
+     * singleton mechanism
+     */
+    static ViewRenderWidget *getRenderingWidget();
+    static SourcePropertyBrowser *getPropertyBrowserWidget();
+    static RenderingEncoder *getRecorder();
     static SessionSwitcher *getSessionSwitcher();
-	static RenderingManager *getInstance();
-	static void deleteInstance();
+    static RenderingManager *getInstance();
+    static void deleteInstance();
 
-#ifdef HISTORY_MANAGEMENT
-    static HistoryManager *getUndoHistory();
-#endif
+    /**
+    * Management of the sources
+    **/
+    QString renameSource(Source *s, const QString name);
 
-	/**
-	* Management of the sources
-	**/
-	QString renameSource(Source *s, const QString name);
-
-	// create source per type :
-	Source *newRenderingSource(double depth = -1.0);
-	Source *newCaptureSource(QImage img, double depth = -1.0);
+    // create source per type :
+    Source *newRenderingSource(double depth = -1.0);
+    Source *newCaptureSource(QImage img, double depth = -1.0);
     Source *newMediaSource(VideoFile *vf, double depth = -1.0);
     Source *newSvgSource(QSvgRenderer *svg, double depth = -1.0);
     Source *newWebSource(QUrl web, int w, int h, int height, int scroll, int update, double depth = -1.0);
-	Source *newAlgorithmSource(int type, int w, int h, double v, int p, bool ia, double depth = -1.0);
+    Source *newAlgorithmSource(int type, int w, int h, double v, int p, bool ia, double depth = -1.0);
     Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
 
 #ifdef OPEN_CV
@@ -113,8 +109,8 @@ public:
     Source *newStreamSource(VideoStream *vs, double depth = -1.0);
 
 
-	// insert the source into the scene
-	bool insertSource(Source *s);
+    // insert the source into the scene
+    bool insertSource(Source *s);
 
     SourceSet::iterator getBegin();
     SourceSet::iterator getEnd();
@@ -125,9 +121,9 @@ public:
     SourceSet::const_iterator getByName(const QString name) const;
     bool notAtEnd(SourceSet::const_iterator itsource) const;
     bool isValid(SourceSet::const_iterator itsource) const;
-	QString getAvailableNameFrom(QString name) const;
-	double getAvailableDepthFrom(double depth = -1) const;
-	SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
+    QString getAvailableNameFrom(QString name) const;
+    double getAvailableDepthFrom(double depth = -1) const;
+    SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
 
     inline bool empty() const { return _front_sources.empty(); }
 
@@ -136,84 +132,84 @@ public:
     void replaceSource(GLuint oldsource, GLuint newsource);
 
     bool isCurrentSource(const Source *s);
-	bool isCurrentSource(SourceSet::iterator si);
-	void setCurrentSource(SourceSet::iterator si);
-	void setCurrentSource(GLuint id);
-	inline SourceSet::iterator getCurrentSource()  const{
-		return _currentSource;
-	}
-	bool setCurrentNext();
-	bool setCurrentPrevious();
-	void unsetCurrentSource() { setCurrentSource( getEnd() ); }
+    bool isCurrentSource(SourceSet::iterator si);
+    void setCurrentSource(SourceSet::iterator si);
+    void setCurrentSource(GLuint id);
+    inline SourceSet::iterator getCurrentSource()  const{
+        return _currentSource;
+    }
+    bool setCurrentNext();
+    bool setCurrentPrevious();
+    void unsetCurrentSource() { setCurrentSource( getEnd() ); }
 
-	void addSourceToBasket(Source *s);
-	int getSourceBasketSize() const;
-	Source *getSourceBasketTop() const;
+    void addSourceToBasket(Source *s);
+    int getSourceBasketSize() const;
+    Source *getSourceBasketTop() const;
 
-	/**
-	 * management of the rendering
-	 */
-	void setRenderingQuality(frameBufferQuality q);
-	inline frameBufferQuality getRenderingQuality() const {
-		return renderingQuality;
-	}
+    /**
+     * management of the rendering
+     */
+    void setRenderingQuality(frameBufferQuality q);
+    inline frameBufferQuality getRenderingQuality() const {
+        return renderingQuality;
+    }
 
-	void setRenderingAspectRatio(standardAspectRatio ar);
-	standardAspectRatio getRenderingAspectRatio() const {
-		return renderingAspectRatio;
-	}
+    void setRenderingAspectRatio(standardAspectRatio ar);
+    standardAspectRatio getRenderingAspectRatio() const {
+        return renderingAspectRatio;
+    }
 
     void resetFrameBuffer();
 
-	double getFrameBufferAspectRatio() const;
-	inline QSize getFrameBufferResolution() const {
+    double getFrameBufferAspectRatio() const;
+    inline QSize getFrameBufferResolution() const {
             return renderingSize;
-	}
-	inline int getFrameBufferWidth() const{
+    }
+    inline int getFrameBufferWidth() const{
         return renderingSize.width();
-	}
-	inline int getFrameBufferHeight() const{
+    }
+    inline int getFrameBufferHeight() const{
         return renderingSize.height();
-	}
+    }
 
-	inline GLuint getFrameBufferTexture() const{
-		return _fbo ? _fbo->texture() : 0;
-	}
+    inline GLuint getFrameBufferTexture() const{
+        return _fbo ? _fbo->texture() : 0;
+    }
 
-	inline GLuint getFrameBufferHandle() const{
-		return _fbo ? _fbo->handle() : 0;
-	}
+    inline GLuint getFrameBufferHandle() const{
+        return _fbo ? _fbo->handle() : 0;
+    }
 
-	void renderToFrameBuffer(Source *source, bool first, bool last = false);
-	void postRenderToFrameBuffer();
-	inline unsigned int getPreviousFrameDelay() const {
-		return previousframe_delay;
-	}
+    void renderToFrameBuffer(Source *source, bool first, bool last = false);
+    void postRenderToFrameBuffer();
+    inline unsigned int getPreviousFrameDelay() const {
+        return previousframe_delay;
+    }
 
-	QImage captureFrameBuffer(QImage::Format format = QImage::Format_RGB888);
-	inline bool clearToWhite() const {
-		return clearWhite;
-	}
+    QImage captureFrameBuffer(QImage::Format format = QImage::Format_RGB888);
+    inline bool clearToWhite() const {
+        return clearWhite;
+    }
 
 #ifdef SHM
-	uint getSharedMemoryColorDepth();
-	void setSharedMemoryColorDepth(uint mode);
+    uint getSharedMemoryColorDepth();
+    void setSharedMemoryColorDepth(uint mode);
 #endif
 
-	/**
-	 * save and load configuration
-	 */
-	QDomElement getConfiguration(QDomDocument &doc, QDir current);
+    /**
+     * save and load configuration
+     */
+    QDomElement getConfiguration(QDomDocument &doc, QDir current = QDir());
     int addConfiguration(QDomElement xmlconfig, QDir current, QString version = XML_GLM_VERSION);
-	inline Source *defaultSource() { return _defaultSource; }
-	inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
-	inline void setDefaultScalingMode(Source::scalingMode sm) { _scalingMode = sm; }
-	inline bool getDefaultPlayOnDrop() const { return _playOnDrop; }
-	inline void setDefaultPlayOnDrop(bool on){ _playOnDrop = on; }
-	inline bool isPaused () { return paused; }
+    inline Source *defaultSource() { return _defaultSource; }
+    inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
+    inline void setDefaultScalingMode(Source::scalingMode sm) { _scalingMode = sm; }
+    inline bool getDefaultPlayOnDrop() const { return _playOnDrop; }
+    inline void setDefaultPlayOnDrop(bool on){ _playOnDrop = on; }
+    inline bool isPaused () { return paused; }
 
     static inline bool useFboBlitExtension() { return blit_fbo_extension; }
-	static void setUseFboBlitExtension(bool on);
+    static void setUseFboBlitExtension(bool on);
 
     static inline bool usePboExtension() { return pbo_extension; }
     static void setUsePboExtension(bool on);
@@ -224,10 +220,10 @@ public slots:
     inline void setClearToWhite(bool on) { clearWhite = on; }
     inline void setPreviousFrameDelay(unsigned int delay) { previousframe_delay = CLAMP(delay,1,1000);}
 
-	void pause(bool on);
-	void clearBasket();
-	void clearSourceSet();
-	void resetSource(SourceSet::iterator sit);
+    void pause(bool on);
+    void clearBasket();
+    void clearSourceSet();
+    void resetSource(SourceSet::iterator sit);
     void resetCurrentSource();
     void toggleUnchangeableCurrentSource(bool);
     void toggleFixAspectRatioCurrentSource(bool);
@@ -235,19 +231,14 @@ public slots:
     void setRenderingAspectRatioCurrentSource();
 
     void dropSource();
-	void dropSourceWithAlpha(double alphax, double alphay);
-	void dropSourceWithCoordinates(double x, double y);
-	void dropSourceWithDepth(double depth);
+    void dropSourceWithAlpha(double alphax, double alphay);
+    void dropSourceWithCoordinates(double x, double y);
+    void dropSourceWithDepth(double depth);
 
     void onSourceFailure();
 
-#ifdef HISTORY_MANAGEMENT
-    void undo();
-    void redo();
-#endif
-
 #ifdef SHM
-	void setFrameSharingEnabled(bool on);
+    void setFrameSharingEnabled(bool on);
 #endif
 #ifdef SPOUT
     void setSpoutSharingEnabled(bool on);
@@ -255,28 +246,28 @@ public slots:
 
 signals:
     void frameBufferChanged();
-	void currentSourceChanged(SourceSet::iterator csi);
+    void currentSourceChanged(SourceSet::iterator csi);
 #ifdef SPOUT
     void spoutSharingEnabled(bool on);
 #endif
 
 private:
-	RenderingManager();
-	virtual ~RenderingManager();
-	static RenderingManager *_instance;
+    RenderingManager();
+    virtual ~RenderingManager();
+    static RenderingManager *_instance;
 
     void setFrameBufferResolution(QSize size);
 
 protected:
-	// the rendering area
-	ViewRenderWidget *_renderwidget;
+    // the rendering area
+    ViewRenderWidget *_renderwidget;
     // properties of the sources
     SourcePropertyBrowser *_propertyBrowser;
 
     // the frame buffers
     QSize renderingSize;
     QGLFramebufferObject *_fbo;
-	QGLFramebufferObject *previousframe_fbo;
+    QGLFramebufferObject *previousframe_fbo;
     GLuint pboIds[2];
     int pbo_index, pbo_nextIndex;
     unsigned int previousframe_index, previousframe_delay;
@@ -292,19 +283,15 @@ protected:
     // the session switcher
     SessionSwitcher *_switcher;
 
-	// manipulation of sources
-	SourceSet::iterator _currentSource;
-	SourceList dropBasket;
-	Source *_defaultSource;
-	Source::scalingMode _scalingMode;
-	bool _playOnDrop;
+    // manipulation of sources
+    SourceSet::iterator _currentSource;
+    SourceList dropBasket;
+    Source *_defaultSource;
+    Source::scalingMode _scalingMode;
+    bool _playOnDrop;
     bool paused;
     unsigned int maxSourceCount, countRenderingSource;
 
-#ifdef HISTORY_MANAGEMENT
-    // history of events
-    HistoryManager *_undoHistory;
-#endif
 
 #ifdef SHM
     // The shared memory buffer

@@ -12,31 +12,31 @@ HistoryArgument::HistoryArgument(QVariant val) : intValue(0), uintValue(0), doub
         switch (val.type()) {
         case QVariant::Int:
             intValue = val.toInt();
-            argument = Q_ARG(int, intValue);
+            type = "int";
             break;
         case QVariant::UInt:
             uintValue = val.toUInt();
-            argument = Q_ARG(uint, uintValue);
+            type = "uint";
             break;
         case QVariant::Double:
             doubleValue = val.toDouble();
-            argument = Q_ARG(double, doubleValue);
+            type = "double";
             break;
         case QVariant::Bool:
             boolValue = val.toBool();
-            argument = Q_ARG(bool, boolValue);
+            type = "bool";
             break;
         case QVariant::RectF:
             rectValue = val.toRectF();
-            argument = Q_ARG(QRectF, rectValue);
+            type = "QRectF";
             break;
         case QVariant::Color:
             colorValue = val.value<QColor>();
-            argument = Q_ARG(QColor, colorValue);
+            type = "QColor";
             break;
         case QVariant::String:
             stringValue = val.toString();
-            argument = Q_ARG(QString, stringValue);
+            type = "QString";
             break;
         default:
             break;
@@ -46,31 +46,54 @@ HistoryArgument::HistoryArgument(QVariant val) : intValue(0), uintValue(0), doub
 
 QVariant HistoryArgument::variant() const
 {
-    if (argument.data()) {
-        QVariant val( QVariant::nameToType(argument.name()) );
-        switch (val.type()) {
-        case QVariant::Int:
-            return QVariant(intValue);
-        case QVariant::UInt:
-            return QVariant(uintValue);
-        case QVariant::Double:
-            return QVariant(doubleValue);
-        case QVariant::Bool:
-            return QVariant(boolValue);
-        case QVariant::RectF:
-            return QVariant(rectValue);
-        case QVariant::String:
-            return QVariant(stringValue);
-        case QVariant::Color:
-        {
-            QVariant col = colorValue;
-            return col;
-        }
-        default:
-            break;
-        }
+    QVariant val( QVariant::nameToType(type) );
+    switch (val.type()) {
+    case QVariant::Int:
+        return QVariant(intValue);
+    case QVariant::UInt:
+        return QVariant(uintValue);
+    case QVariant::Double:
+        return QVariant(doubleValue);
+    case QVariant::Bool:
+        return QVariant(boolValue);
+    case QVariant::RectF:
+        return QVariant(rectValue);
+    case QVariant::String:
+        return QVariant(stringValue);
+    case QVariant::Color:
+    {
+        QVariant col = colorValue;
+        return col;
     }
+    default:
+        break;
+    }
+
     return QVariant();
+}
+
+QGenericArgument HistoryArgument::argument() const
+{
+    QVariant val( QVariant::nameToType(type) );
+    switch (val.type()) {
+    case QVariant::Int:
+        return QArgument<int>(type, intValue);
+    case QVariant::UInt:
+        return QArgument<uint>(type, uintValue);
+    case QVariant::Double:
+        return QArgument<double>(type, doubleValue);
+    case QVariant::Bool:
+        return QArgument<bool>(type, boolValue);
+    case QVariant::RectF:
+        return QArgument<QRectF>(type, rectValue);
+    case QVariant::String:
+        return QArgument<QString>(type, stringValue);
+    case QVariant::Color:
+        return QArgument<QColor>(type, colorValue);
+    default:
+        break;
+    }
+    return QGenericArgument();
 }
 
 
@@ -79,7 +102,7 @@ QString HistoryArgument::string() const
     QVariant v = variant();
 
     if ( !v.isValid() )
-        return QString("");
+        return QString("-");
     else if (v.type() == QVariant::Double)
         return QString().setNum( v.toDouble(), 'f', 3);
     else
@@ -103,7 +126,7 @@ HistoryManager::Event::Event(QObject *o, QMetaMethod m, QVector< QVariantPair > 
         if (a.first.isValid()) {
             argument.append( HistoryArgument(a.first) );
             argument.append( HistoryArgument(a.second) );
-            qDebug() << argument[BACKWARD] << argument[FORWARD];
+//            qDebug() << argument[BACKWARD] << argument[FORWARD];
         } else {
             // else create empty arguments
             argument.append( HistoryArgument() );
@@ -113,15 +136,15 @@ HistoryManager::Event::Event(QObject *o, QMetaMethod m, QVector< QVariantPair > 
         _arguments.append(argument);
     }
 
-    qDebug() << "Stored to " << _method.signature() << _arguments.size();
+//    qDebug() << "Stored to " << _method.signature() << _arguments.size();
 }
 
 void HistoryManager::Event::invoke(HistoryManager::Direction dir) {
 
-    qDebug() << "Invoke " << objectName() << signature() << _arguments.size() << " arguments : " << _arguments[0][dir] << _arguments[1][dir] << _arguments[2][dir] << _arguments[3][dir] << _arguments[4][dir];
+//    qDebug() << "Invoke " << objectName() << signature() << _arguments.size() << " arguments : " << _arguments[0][dir] << _arguments[1][dir] << _arguments[2][dir] << _arguments[3][dir] << _arguments[4][dir];
 
     // invoke the method with all arguments (including empty arguments)
-    _method.invoke(_object, Qt::QueuedConnection, _arguments[0][dir].argument, _arguments[1][dir].argument, _arguments[2][dir].argument, _arguments[3][dir].argument, _arguments[4][dir].argument );
+    _method.invoke(_object, Qt::QueuedConnection, _arguments[0][dir].argument(), _arguments[1][dir].argument(), _arguments[2][dir].argument(), _arguments[3][dir].argument(), _arguments[4][dir].argument() );
 
 }
 
@@ -135,15 +158,6 @@ QString HistoryManager::Event::objectName() const {
     return _object->objectName();
 }
 
-bool HistoryManager::Event::isKey() const {
-
-    return _iskey;
-}
-
-void HistoryManager::Event::setKey(bool k) {
-
-    _iskey = k;
-}
 
 QString HistoryManager::Event::arguments(Direction dir) const {
 
@@ -167,7 +181,7 @@ bool HistoryManager::Event::operator != ( const HistoryManager::Event & other ) 
 }
 
 
-HistoryManager::HistoryManager(QObject *parent) : QObject(parent), _currentKey(-1), _maximumSize(1000)
+HistoryManager::HistoryManager(QObject *parent) : QObject(parent), _maximumSize(1000)
 {
     _currentEvent = _eventHistory.begin();
 
@@ -222,25 +236,6 @@ void HistoryManager::rememberEvent(QString signature, QVariantPair arg0, QVarian
         // create an object storing this method call
         Event *newcall = new Event(sender_object, method, arguments );
 
-        // the first event is always a key
-        if ( _eventHistory.empty() ) {
-            _currentKey = t;
-            newcall->setKey(true);
-        }
-        else {
-            // in the multimap, get the list of all events at the current (past) key
-            QList<Event *> keyCalls = _eventHistory.values( _currentKey );
-            foreach ( Event *call, keyCalls) {
-                // if the new call is different from one of the previous events at the current key
-                if ( *call != *newcall ) {
-                    // declare a new key event
-                    _currentKey = t;
-                    newcall->setKey(true);
-                    break;
-                }
-            }
-        }
-
         // if current event is not the last in the history
         // then remove all the remaining items
         EventMap::iterator it = ++_currentEvent;
@@ -259,6 +254,7 @@ void HistoryManager::rememberEvent(QString signature, QVariantPair arg0, QVarian
     }
 }
 
+
 void HistoryManager::clear()
 {
     // delete all objects
@@ -269,7 +265,6 @@ void HistoryManager::clear()
 
     // go to end
     _currentEvent = _eventHistory.begin();
-    _currentKey = -1;
 
     // inform that history changed
     emit changed();
@@ -279,79 +274,59 @@ void HistoryManager::clear()
 
 
 
-// remove the top key event
-//        qint64 k = _keyEvents.pop();
-
-//        // find the action at the undo key
-//        QMultiMap<qint64, Event *>::iterator i = _eventHistory.find(k);
-
-//        // do the action of the given key
-//        qDebug() << "undo " << i.key() << i.value()->signature() << i.value()->arguments(HistoryManager::BACKWARD);
-
-//        i.value()->invoke(HistoryManager::BACKWARD);
-
-//        // increment the iterator
-//        _currentEvent = i++;
-
-//        // remove the remaining events in the  map
-//        for (; i != _eventHistory.end(); i = _eventHistory.erase(i)) {
-
-//            qDebug() << "undo delete " << i.key() << i.value()->signature();
-//            delete i.value();
-//        }
-
-
-
-//        if ( i.key() == k) {
-//            qDebug() << "undo " << i.key() << i.value()->signature();
-//            i.value()->invoke(HistoryManager::BACKWARD);
-//        }
-
 
 void HistoryManager::setCursorPosition(qint64 t)
 {
 
 }
 
-void HistoryManager::setCursorNextPosition(HistoryManager::Direction dir)
+void HistoryManager::setCursorNextPositionForward()
 {
+    // ignore if no event
+    if (_eventHistory.empty())
+        return;
+    if ( _currentEvent != _eventHistory.end() ) {
 
-    if (dir == HistoryManager::BACKWARD) {
+        // invoke the previous event
+        _currentEvent.value()->invoke(HistoryManager::FORWARD);
 
-
-        if ( _currentEvent != _eventHistory.begin() ) {
-
-            // invoke the previous event
-            _currentEvent.value()->invoke(HistoryManager::BACKWARD);
-
-            // move the cursor to the previous event
-            _currentEvent--;
-
-        }
-
-
-    } else {
-
-        if ( _currentEvent != _eventHistory.end() ) {
-
-            // invoke the previous event
-            _currentEvent.value()->invoke(HistoryManager::FORWARD);
-
-            // move the cursor to the previous event
-            _currentEvent++;
-
-        }
+        // move the cursor to the previous event
+        _currentEvent++;
     }
-
     // inform that history changed
     emit changed();
 }
 
-void HistoryManager::setCursorNextKey(HistoryManager::Direction dir)
+void HistoryManager::setCursorNextPositionBackward()
 {
+    // ignore if no event
+    if (_eventHistory.empty())
+        return;
+    if ( _currentEvent == _eventHistory.end() )
+        _currentEvent--;
 
-    while ( _currentEvent != _eventHistory.begin() && _currentEvent != _eventHistory.end() && ! _currentEvent.value()->isKey() )
-        setCursorNextPosition(dir);
+    if ( _currentEvent != _eventHistory.begin() ) {
+
+        // invoke the previous event
+        _currentEvent.value()->invoke(HistoryManager::BACKWARD);
+
+        // move the cursor to the previous event
+        _currentEvent--;
+    }
+    // inform that history changed
+    emit changed();
+}
+
+void HistoryManager::setCursorNextPosition(HistoryManager::Direction dir)
+{
+    // Backward in time
+    if (dir == HistoryManager::BACKWARD) {
+        setCursorNextPositionBackward();
+    }
+    // Forward in time
+    else {
+        setCursorNextPositionForward();
+    }
 
 }
 
@@ -407,3 +382,67 @@ void HistoryManager::setMaximumSize(int max)
 
 ////    clearAll();
 //}
+
+
+// remove the top key event
+//        qint64 k = _keyEvents.pop();
+
+//        // find the action at the undo key
+//        QMultiMap<qint64, Event *>::iterator i = _eventHistory.find(k);
+
+//        // do the action of the given key
+//        qDebug() << "undo " << i.key() << i.value()->signature() << i.value()->arguments(HistoryManager::BACKWARD);
+
+//        i.value()->invoke(HistoryManager::BACKWARD);
+
+//        // increment the iterator
+//        _currentEvent = i++;
+
+//        // remove the remaining events in the  map
+//        for (; i != _eventHistory.end(); i = _eventHistory.erase(i)) {
+
+//            qDebug() << "undo delete " << i.key() << i.value()->signature();
+//            delete i.value();
+//        }
+
+
+
+//        if ( i.key() == k) {
+//            qDebug() << "undo " << i.key() << i.value()->signature();
+//            i.value()->invoke(HistoryManager::BACKWARD);
+//        }
+
+//        else {
+//            // in the multimap, get the list of all events at the current (past) key
+//            QList<Event *> keyCalls = _eventHistory.values( _currentKey );
+//            foreach ( Event *call, keyCalls) {
+//                // if the new call is different from one of the previous events at the current key
+//                if ( *call != *newcall ) {
+//                    // declare a new key event
+//                    _currentKey = t;
+//                    newcall->setKey(true);
+//                    break;
+//                }
+//            }
+//        }
+
+//static QDomDocument doc;
+//static int counter = 0;
+
+//QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc);
+
+//QDomElement root = doc.createElement( QString("%1").arg(counter));
+//root.appendChild(renderConfig);
+//doc.appendChild(root);
+//counter++;
+
+//if (counter == 100) {
+//    QFile file("/home/bh/testhistory.xml");
+//    if (!file.open(QFile::WriteOnly | QFile::Text) ) {
+//        return;
+//    }
+//    QTextStream out(&file);
+//    doc.save(out, 4);
+//    file.close();
+//}
+

@@ -319,18 +319,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
 #ifdef HISTORY_MANAGEMENT
     // setup the history toolbox
-    undoHistoryView = new HistoryManagerWidget(this);
-    undoHistoryView->setHistoryManager(RenderingManager::getUndoHistory());
-    actionHistorydockWidgetContentsLayout->addWidget(undoHistoryView);
-    QObject::connect(RenderingManager::getUndoHistory(), SIGNAL(changed()), undoHistoryView, SLOT(updateHistory()) );
+    actionHistoryView = new HistoryManagerWidget(this);
+    actionHistorydockWidgetContentsLayout->addWidget(actionHistoryView);
 
-    QObject::connect( historyForward, SIGNAL(pressed()), RenderingManager::getUndoHistory(), SLOT(setCursorNextPositionForward()) );
-    QObject::connect( historyForwardKey, SIGNAL(pressed()), RenderingManager::getUndoHistory(), SLOT(setCursorNextKeyForward()) );
-    QObject::connect( historyBackward, SIGNAL(pressed()), RenderingManager::getUndoHistory(), SLOT(setCursorNextPositionBackward()) );
-    QObject::connect( historyBackwardKey, SIGNAL(pressed()), RenderingManager::getUndoHistory(), SLOT(setCursorNextKeyBackward()) );
 #else
-    delete actionUndo;
-    delete actionRedo;
     delete actionHistoryDockWidget;
 #endif
 
@@ -541,7 +533,7 @@ GLMixer::~GLMixer()
     delete tagsManager;
 #endif
 #ifdef HISTORY_MANAGEMENT
-    delete undoHistoryView;
+    delete actionHistoryView;
 #endif
 }
 
@@ -563,7 +555,7 @@ void GLMixer::closeEvent(QCloseEvent * event ){
     tagsManager->close();
 #endif
 #ifdef HISTORY_MANAGEMENT
-    undoHistoryView->close();
+    actionHistoryView->close();
 #endif
 
     QApplication::closeAllWindows();
@@ -2006,7 +1998,7 @@ void GLMixer::on_actionSave_Session_triggered(){
         QDomElement root = doc.createElement("GLMixer");
         root.setAttribute("version", XML_GLM_VERSION);
 
-        QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(currentSessionFileName).canonicalPath());
+        QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc, QFileInfo(currentSessionFileName).dir());
         renderConfig.setAttribute("aspectRatio", (int) RenderingManager::getInstance()->getRenderingAspectRatio());
         root.appendChild(renderConfig);
 

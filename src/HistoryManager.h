@@ -28,11 +28,13 @@ class HistoryArgument
     QString stringValue;
     QColor colorValue;
 
+    char *type;
+
 public:
     HistoryArgument(QVariant v = QVariant());
     QVariant variant() const;
     QString string() const;
-    QGenericArgument argument;
+    QGenericArgument argument() const;
 };
 
 QDebug operator << ( QDebug out, const HistoryArgument & a );
@@ -74,9 +76,6 @@ public:
         QString signature() const;
         QString arguments(Direction dir = FORWARD) const;
 
-        void setKey(bool k);
-        bool isKey() const;
-
         bool operator == ( const Event & other ) const;
         bool operator != ( const Event & other ) const;
 
@@ -110,12 +109,8 @@ public slots:
     void setCursorPosition(qint64 t);
     // jump to the next event in history (bakward or forward)
     void setCursorNextPosition(Direction dir);
-    void setCursorNextPositionForward()  { setCursorNextPosition(FORWARD); }
-    void setCursorNextPositionBackward() { setCursorNextPosition(BACKWARD); }
-    // jump to the next KEY event in history (bakward or forward)
-    void setCursorNextKey(Direction dir);
-    void setCursorNextKeyForward()  { setCursorNextKey(FORWARD); }
-    void setCursorNextKeyBackward() { setCursorNextKey(BACKWARD); }
+    void setCursorNextPositionForward();
+    void setCursorNextPositionBackward();
 
     // store an event in history
     void rememberEvent(QString signature, QVariantPair arg0, QVariantPair arg1, QVariantPair arg2, QVariantPair arg3, QVariantPair arg4);
@@ -125,10 +120,9 @@ public slots:
 
 private:
 
-//    QStack<qint64> _keyEvents;
     EventMap _eventHistory;
     EventMap::iterator _currentEvent;
-    qint64 _currentKey;
+//    qint64 _currentTime;
     int _maximumSize;
 
     QElapsedTimer _timer;

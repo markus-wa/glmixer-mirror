@@ -736,7 +736,8 @@ void ViewRenderWidget::mouseMoveEvent(QMouseEvent *event)
     event->accept();
 
     // ask the catalog view if it wants this mouse move event
-    if ( (_currentView->currentAction == View::NONE || _currentView->currentAction == View::OVER )
+    if ( (_currentView->currentAction == View::NONE ||
+          _currentView->currentAction == View::OVER )
          && _catalogView->mouseMoveEvent(event) )
         return;
 
@@ -802,6 +803,7 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
         else if (_currentView == _layersView)
             emit sourceLayerModified();
     }
+
 }
 
 void ViewRenderWidget::mouseDoubleClickEvent(QMouseEvent * event)
@@ -1756,7 +1758,7 @@ GLuint ViewRenderWidget::buildWindowList(GLubyte r, GLubyte g, GLubyte b)
     static GLuint texid = 0;
 
     if (texid == 0) {
-        // generate the texture with optimal performance ;       
+        // generate the texture with optimal performance ;
         glEnable(GL_TEXTURE_2D);
         glGenTextures(1, &texid);
         glBindTexture(GL_TEXTURE_2D, texid);

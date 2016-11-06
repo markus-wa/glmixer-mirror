@@ -183,11 +183,6 @@ RenderingManager::RenderingManager() :
     _recorder = new RenderingEncoder(this);
     _switcher = new SessionSwitcher(this);
 
-#ifdef HISTORY_MANAGEMENT
-    // create the history manager used for undo
-    _undoHistory = new HistoryManager(this);
-#endif
-
     // 2. Connect the above view holders to events
     QObject::connect(this, SIGNAL(currentSourceChanged(SourceSet::iterator)), _propertyBrowser, SLOT(showProperties(SourceSet::iterator) ) );
 
@@ -238,10 +233,6 @@ RenderingManager::~RenderingManager() {
     if (_switcher)
         delete _switcher;
 
-#ifdef HISTORY_MANAGEMENT
-    if (_undoHistory)
-        delete _undoHistory;
-#endif
 
     qDebug() << "RenderingManager" << QChar(124).toLatin1() << "All clear.";
 }
@@ -1132,10 +1123,10 @@ bool RenderingManager::insertSource(Source *s)
             //insert the source to the list
             if (_front_sources.insert(s).second) {
 
-#ifdef HISTORY_MANAGEMENT
-                // connect source to the history manager
-                _undoHistory->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
-#endif
+//#ifdef HISTORY_MANAGEMENT
+//                // connect source to the history manager
+//                _undoHistory->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
+//#endif
 
                 // inform of success
                 return true;
@@ -1369,11 +1360,6 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
         // then remove the source itself
         qDebug() << s->getName() << QChar(124).toLatin1() << tr("Delete source.");
         _front_sources.erase(itsource);
-
-#ifdef HISTORY_MANAGEMENT
-        // disconnect this source from the history manager
-        _undoHistory->disconnect(s);
-#endif
 
         delete s;
         num_sources_deleted++;
@@ -1723,8 +1709,10 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
                 QDomElement f = doc.createElement("Filename");
                 f.setAttribute("PowerOfTwo", (int) vf->getPowerOfTwoConversion());
                 f.setAttribute("IgnoreAlpha", (int) vf->ignoresAlphaChannel());
-                f.setAttribute("Relative", current.relativeFilePath(vf->getFileName()) );
-                QDomText filename = doc.createTextNode( current.absoluteFilePath( vf->getFileName() ));
+                QString completefilename = QFileInfo( vf->getFileName() ).absoluteFilePath();
+                if (current.isReadable())
+                    f.setAttribute("Relative", current.relativeFilePath( completefilename ) );
+                QDomText filename = doc.createTextNode( completefilename );
                 f.appendChild(filename);
                 specific.appendChild(f);
 
@@ -2704,30 +2692,4 @@ QString RenderingManager::renameSource(Source *s, const QString name){
     return s->getName();
 }
 
-#ifdef HISTORY_MANAGEMENT
-
-HistoryManager *RenderingManager::getUndoHistory() {
-
-    return getInstance()->_undoHistory;
-}
-
-void RenderingManager::undo() {
-
-    // go backward in history
-    _undoHistory->setCursorNextKey(HistoryManager::BACKWARD);
-
-    // update current source displays
-    emit currentSourceChanged(_currentSource);
-}
-
-void RenderingManager::redo() {
-
-    // go forward in history
-    _undoHistory->setCursorNextKey(HistoryManager::FORWARD);
-
-    // update current source displays
-    emit currentSourceChanged(_currentSource);
-}
-
-#endif
 

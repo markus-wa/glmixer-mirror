@@ -195,7 +195,7 @@ private:
     class TagsManager *tagsManager;
 #endif
 #ifdef HISTORY_MANAGEMENT
-    class HistoryManagerWidget *undoHistoryView;
+    class HistoryManagerWidget *actionHistoryView;
 #endif
 #ifdef FFGL
     class GLSLCodeEditorWidget *pluginGLSLCodeEditor;

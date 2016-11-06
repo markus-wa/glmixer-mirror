@@ -71,11 +71,6 @@ QVariant HistoryManagerModel::data(const QModelIndex &index, int role) const
 
         returnvalue = int(Qt::AlignRight | Qt::AlignVCenter);
     }
-    else if (role == Qt::FontRole) {
-
-        QMultiMap<qint64, HistoryManager::Event *>::const_iterator i = _historyMap.begin() + index.row();
-        returnvalue = i.value()->isKey() ? keyFont : standardFont;
-    }
     else if (role == Qt::DisplayRole) {
 
         QMultiMap<qint64, HistoryManager::Event *>::const_iterator i = _historyMap.begin() + index.row();
