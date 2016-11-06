@@ -631,7 +631,7 @@ void GLMixer::on_addListToNotes_clicked() {
 
 void GLMixer::on_openLogsFolder_clicked() {
 
-    QDesktopServices::openUrl( QDir::tempPath() );
+    QDesktopServices::openUrl( QUrl::fromLocalFile(QDir::tempPath()) );
 }
 
 void GLMixer::on_copyLogsToClipboard_clicked() {
@@ -760,7 +760,7 @@ void GLMixer::msgHandler(QtMsgType type, const char *msg)
 
             // add buttons with more actions
             QPushButton *ignoreButton = NULL;
-            ignoreButton = msgBox.addButton(tr("Ignore error messages"), QMessageBox::ActionRole);
+            ignoreButton = msgBox.addButton(tr("Ignore warnings"), QMessageBox::ActionRole);
             QPushButton *logButton = NULL;
             if (_instance)
                 logButton = msgBox.addButton(tr("Check logs"), QMessageBox::ActionRole);

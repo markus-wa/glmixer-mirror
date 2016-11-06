@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>678</width>
-    <height>629</height>
+    <width>624</width>
+    <height>566</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -112,7 +112,7 @@ p, li { white-space: pre-wrap; }
            <string>Render</string>
           </property>
           <property name="textAlignment">
-           <set>AlignLeft|AlignVCenter</set>
+           <set>AlignLeading|AlignVCenter</set>
           </property>
           <property name="icon">
            <iconset resource="../icons.qrc">
@@ -205,7 +205,7 @@ p, li { white-space: pre-wrap; }
               <item>
                <widget class="QLabel" name="label">
                 <property name="text">
-                 <string>Select a category of resolutions:</string>
+                 <string>Se&amp;lect a category of resolutions:</string>
                 </property>
                 <property name="buddy">
                  <cstring>resolutionTable</cstring>
@@ -602,7 +602,7 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Frame rate</string>
+                   <string>Fra&amp;me rate</string>
                   </property>
                   <property name="buddy">
                    <cstring>updatePeriod</cstring>
@@ -793,7 +793,7 @@ p, li { white-space: pre-wrap; }
                 <item row="0" column="0">
                  <widget class="QLabel" name="label_5">
                   <property name="text">
-                   <string>File format (codec)</string>
+                   <string>Fi&amp;le format (codec)</string>
                   </property>
                   <property name="buddy">
                    <cstring>recordingFormatSelection</cstring>
@@ -891,7 +891,7 @@ p, li { white-space: pre-wrap; }
                    </size>
                   </property>
                   <property name="text">
-                   <string>Frame rate  </string>
+                   <string>Fra&amp;me rate  </string>
                   </property>
                   <property name="buddy">
                    <cstring>recordingUpdatePeriod</cstring>
@@ -1167,7 +1167,7 @@ the user to select a file name</string>
                 <item>
                  <widget class="QLabel" name="ScalingLabel">
                   <property name="text">
-                   <string>Scaling of sources </string>
+                   <string>Sca&amp;ling of sources </string>
                   </property>
                   <property name="buddy">
                    <cstring>scalingModeSelection</cstring>
@@ -1224,7 +1224,7 @@ the user to select a file name</string>
                  <string>The rendering loop-back source shows the frame rendered N frame(s) before; </string>
                 </property>
                 <property name="text">
-                 <string> Number of frames to skip</string>
+                 <string> Nu&amp;mber of frames to skip</string>
                 </property>
                 <property name="buddy">
                  <cstring>numberOfFramesRendering</cstring>
@@ -1683,12 +1683,12 @@ font: 75;</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_8">
               <item>
-               <widget class="QCheckBox" name="displayPropertyTree">
+               <widget class="QCheckBox" name="restoreLastSession">
                 <property name="toolTip">
-                 <string>Display tree of properties of the current source (side panel)</string>
+                 <string>Re-open the last session when launching GLMixer.</string>
                 </property>
                 <property name="text">
-                 <string>Display source property in tree</string>
+                 <string>Restore previous session on start</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -1696,12 +1696,12 @@ font: 75;</string>
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="restoreLastSession">
+               <widget class="QCheckBox" name="displayPropertyTree">
                 <property name="toolTip">
-                 <string>Re-open the last session when launching GLMixer.</string>
+                 <string>Display tree of properties of the current source (side panel)</string>
                 </property>
                 <property name="text">
-                 <string>Restore previous session on start</string>
+                 <string>Show source properties in tree</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -1717,7 +1717,7 @@ font: 75;</string>
                  <string>Use GLMixer improved dialogs (instead of operating system native dialogs)</string>
                 </property>
                 <property name="text">
-                 <string>Use improved file dialogs</string>
+                 <string>Show preview in file dialogs</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -1730,7 +1730,7 @@ font: 75;</string>
                  <string>Shows time information as frame count instead of hh:mm:ss.</string>
                 </property>
                 <property name="text">
-                 <string>Display frame numbers instead of time</string>
+                 <string>Show frame numbers instead of time</string>
                 </property>
                </widget>
               </item>
@@ -1770,18 +1770,31 @@ font: 75;</string>
                </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_9">
-                <item>
+               <layout class="QGridLayout" name="gridLayout_4">
+                <item row="0" column="0" rowspan="2">
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Maximum</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>22</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="1" colspan="2">
                  <widget class="QLabel" name="label_16">
                   <property name="text">
-                   <string>Source icons style  </string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                   <string>Transparency style</string>
                   </property>
                  </widget>
                 </item>
-                <item>
+                <item row="1" column="1" rowspan="2">
                  <widget class="QLabel" name="label_14">
                   <property name="text">
                    <string/>
@@ -1791,7 +1804,20 @@ font: 75;</string>
                   </property>
                  </widget>
                 </item>
-                <item>
+                <item row="1" column="3" rowspan="2">
+                 <widget class="QLabel" name="label_15">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../images.qrc">:/glmixer/images/stippling_2.png</pixmap>
+                  </property>
+                  <property name="scaledContents">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="2">
                  <widget class="QSlider" name="stipplingSlider">
                   <property name="minimum">
                    <number>1</number>
@@ -1825,19 +1851,6 @@ font: 75;</string>
                   </property>
                   <property name="tickInterval">
                    <number>1</number>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_15">
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="pixmap">
-                   <pixmap resource="../images.qrc">:/glmixer/images/stippling_2.png</pixmap>
-                  </property>
-                  <property name="scaledContents">
-                   <bool>false</bool>
                   </property>
                  </widget>
                 </item>
