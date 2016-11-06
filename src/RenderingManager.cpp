@@ -1634,7 +1634,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
         sourceElem.appendChild(crop);
 
         QDomElement d = doc.createElement("Depth");
-        d.setAttribute("Z", (*its)->getDepth());
+        d.setAttribute("Z", QString::number((*its)->getDepth(),'f',PROPERTY_DECIMALS) );
         sourceElem.appendChild(d);
 
         QDomElement alpha = doc.createElement("Alpha");
@@ -1678,11 +1678,11 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
         sourceElem.appendChild(Chromakey);
 
         QDomElement Gamma = doc.createElement("Gamma");
-        Gamma.setAttribute("value", (*its)->getGamma());
-        Gamma.setAttribute("minInput", (*its)->getGammaMinInput());
-        Gamma.setAttribute("maxInput", (*its)->getGammaMaxInput());
-        Gamma.setAttribute("minOutput", (*its)->getGammaMinOuput());
-        Gamma.setAttribute("maxOutput", (*its)->getGammaMaxOutput());
+        Gamma.setAttribute("value", QString::number((*its)->getGamma(),'f',PROPERTY_DECIMALS));
+        Gamma.setAttribute("minInput", QString::number((*its)->getGammaMinInput(),'f',PROPERTY_DECIMALS));
+        Gamma.setAttribute("maxInput", QString::number((*its)->getGammaMaxInput(),'f',PROPERTY_DECIMALS));
+        Gamma.setAttribute("minOutput", QString::number((*its)->getGammaMinOuput(),'f',PROPERTY_DECIMALS));
+        Gamma.setAttribute("maxOutput", QString::number((*its)->getGammaMaxOutput(),'f',PROPERTY_DECIMALS));
         sourceElem.appendChild(Gamma);
 
 // freeframe gl plugin
@@ -1932,11 +1932,11 @@ int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
     newsource->_setChromaKeyTolerance( tmp.attribute("Tolerance", "7").toInt() );
 
     tmp = child.firstChildElement("Gamma");
-    newsource->_setGamma( tmp.attribute("value", "1").toFloat(),
-            tmp.attribute("minInput", "0").toFloat(),
-            tmp.attribute("maxInput", "1").toFloat(),
-            tmp.attribute("minOutput", "0").toFloat(),
-            tmp.attribute("maxOutput", "1").toFloat());
+    newsource->_setGamma( tmp.attribute("value", "1").toDouble(),
+            tmp.attribute("minInput", "0").toDouble(),
+            tmp.attribute("maxInput", "1").toDouble(),
+            tmp.attribute("minOutput", "0").toDouble(),
+            tmp.attribute("maxOutput", "1").toDouble());
 
     // apply FreeFrame plugins
     // start loop of plugins to load
