@@ -198,10 +198,21 @@ void CatalogView::reorganize() {
     foreach ( Icon *item, _icons) {
 
         // stack icons vertically
-        item->coordinates.setLeft( (int) (_size[_currentSize] - _iconSize[_currentSize]) / 2.0  );
-        item->coordinates.setTop( previous.bottom() + _spacing[_currentSize]);
-        item->coordinates.setWidth( (int) _iconSize[_currentSize] );
-        item->coordinates.setHeight( (int) _iconSize[_currentSize] / item->source->getAspectRatio() );
+        int borderleft = (int) (_size[_currentSize] - _iconSize[_currentSize]) / 2.0;
+        double ar = item->source->getAspectRatio();
+        if ( ar < 1 ) {
+            int w = (int) _iconSize[_currentSize] * item->source->getAspectRatio();
+            item->coordinates.setLeft( borderleft + (_iconSize[_currentSize] - w) / 2 );
+            item->coordinates.setTop( previous.bottom() + _spacing[_currentSize]);
+            item->coordinates.setWidth( w );
+            item->coordinates.setHeight( (int) _iconSize[_currentSize]  );
+        }
+        else {
+            item->coordinates.setLeft( borderleft );
+            item->coordinates.setTop( previous.bottom() + _spacing[_currentSize]);
+            item->coordinates.setWidth( (int) _iconSize[_currentSize] );
+            item->coordinates.setHeight( (int) _iconSize[_currentSize] / item->source->getAspectRatio() );
+        }
 
         // remember last for loop
         previous = item->coordinates;
