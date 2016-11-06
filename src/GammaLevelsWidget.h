@@ -13,9 +13,9 @@
 #include "ui_GammaLevelsDialog.h"
 
 // convert gamma log into linear scale [0-1000]
-#define GammaToScale(gamma) (int)(200.f*log((exp(1000.f/200.f)-1.f)*(gamma/10.f)+1.f))
-#define ScaleToGamma(val) (10.f*exp((float)(val)/200.f)-1.f)/(exp(1000.f/200.f)-1.f)
-#define NUM_POINTS_PLOT 40
+#define GammaToScale(gamma) (int)(200.f*log( exp(1000.f/200.f)/20.f * gamma + 0.8f ))
+#define ScaleToGamma(val) 20.f*(exp((float)(val)/200.f) -0.8f)/exp(1000.f/200.f)
+#define NUM_POINTS_PLOT 80
 
 class GammaLevelsWidget : public QWidget, Ui::GammaLevelsWidget {
 
@@ -67,7 +67,7 @@ public:
     void setAntialiased(bool antialiased);
 
 signals:
-	void gammaChanged();
+    void gammaChanged();
 
 protected:
     void paintEvent(QPaintEvent *event);

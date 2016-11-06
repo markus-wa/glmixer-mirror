@@ -180,7 +180,7 @@ void ProtoSource::_setChromaKeyTolerance(int t) {
 }
 
 void ProtoSource::_setGamma(double g, double minI, double maxI, double minO, double maxO){
-    gamma = g;
+    gamma = CLAMP(g, 0.001, 50.0);
     gammaMinIn = CLAMP(minI, 0.0, 1.0);
     gammaMaxIn = CLAMP(maxI, 0.0, 1.0);
     gammaMinOut = CLAMP(minO, 0.0, 1.0);

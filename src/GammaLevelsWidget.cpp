@@ -34,21 +34,21 @@ GammaLevelsWidget::GammaLevelsWidget(QWidget *parent) : QWidget(parent), source(
 
 void GammaLevelsWidget::setAntialiasing(bool antialiased)
 {
-	plot->setAntialiased(antialiased);
+    plot->setAntialiased(antialiased);
 }
 
 void GammaLevelsWidget::connectSource(SourceSet::iterator csi){
 
-	if ( RenderingManager::getInstance()->isValid(csi) ) {
-		setEnabled(true);
-		source = *csi;
-		setValues(source->getGamma(), source->getGammaMinInput(), source->getGammaMaxInput(), source->getGammaMinOuput(), source->getGammaMaxOutput());
+    if ( RenderingManager::getInstance()->isValid(csi) ) {
+        setEnabled(true);
+        source = *csi;
+        setValues(source->getGamma(), source->getGammaMinInput(), source->getGammaMaxInput(), source->getGammaMinOuput(), source->getGammaMaxOutput());
 
-	} else {
-		setEnabled(false);
-		source = 0;
-		setValues(1.f, 0.f, 1.f, 0.f, 1.f);
-	}
+    } else {
+        setEnabled(false);
+        source = 0;
+        setValues(1.f, 0.f, 1.f, 0.f, 1.f);
+    }
 }
 
 void GammaLevelsWidget::setValues(float gamma, float minInput, float maxInput, float minOutput, float maxOutput){
@@ -62,50 +62,50 @@ void GammaLevelsWidget::setValues(float gamma, float minInput, float maxInput, f
     plot->ymax = qBound(maxOutput, 0.f, 1.f);
     plot->ymin = qMin(plot->ymax, plot->ymin);
 
-	plot->update();
+    plot->update();
 
-	QList<int> s = outSplit->sizes();
-	int total = s[0] + s[1] + s[2];
-	s[2] = plot->ymin * total;
-	s[0] = total - total * plot->ymax;
-	s[1] = total - s[0] - s[2];
-	outSplit->setSizes(s);
+    QList<int> s = outSplit->sizes();
+    int total = s[0] + s[1] + s[2];
+    s[2] = plot->ymin * total;
+    s[0] = total - total * plot->ymax;
+    s[1] = total - s[0] - s[2];
+    outSplit->setSizes(s);
 
-	s = inSplit->sizes();
-	total = s[0] + s[1] + s[2];
-	s[0] = plot->xmin * total;
-	s[2] = total - total * plot->xmax;
-	s[1] = total - s[0] - s[2];
-	inSplit->setSizes(s);
+    s = inSplit->sizes();
+    total = s[0] + s[1] + s[2];
+    s[0] = plot->xmin * total;
+    s[2] = total - total * plot->xmax;
+    s[1] = total - s[0] - s[2];
+    inSplit->setSizes(s);
 }
 
 void GammaLevelsWidget::showEvent ( QShowEvent * event ){
 
     QWidget::showEvent(event);
 
-	QList<int> s = outSplit->sizes();
-	int total = s[0] + s[1] + s[2];
-	s[2] = plot->ymin * total;
-	s[0] = total - total * plot->ymax;
-	s[1] = total - s[0] - s[2];
-	outSplit->setSizes(s);
+    QList<int> s = outSplit->sizes();
+    int total = s[0] + s[1] + s[2];
+    s[2] = plot->ymin * total;
+    s[0] = total - total * plot->ymax;
+    s[1] = total - s[0] - s[2];
+    outSplit->setSizes(s);
 
-	s = inSplit->sizes();
-	total = s[0] + s[1] + s[2];
-	s[0] = plot->xmin * total;
-	s[2] = total - total * plot->xmax;
-	s[1] = total - s[0] - s[2];
-	inSplit->setSizes(s);
+    s = inSplit->sizes();
+    total = s[0] + s[1] + s[2];
+    s[0] = plot->xmin * total;
+    s[2] = total - total * plot->xmax;
+    s[1] = total - s[0] - s[2];
+    inSplit->setSizes(s);
 
-	plot->update();
+    plot->update();
 }
 
 
 void GammaLevelsWidget::on_resetButton_clicked (){
 
-	setValues(1.f, 0.f, 1.f, 0.f, 1.f);
+    setValues(1.f, 0.f, 1.f, 0.f, 1.f);
 
-	updateSource();
+    updateSource();
 }
 
 float GammaLevelsWidget::minOutput(){
@@ -168,10 +168,10 @@ void GammaLevelsWidget::on_outSplit_splitterMoved ( int pos, int index )
 
 void GammaLevelsWidget::updateSource()
 {
-	plot->update();
+    plot->update();
 
-	if (source)
-		source->setGamma(plot->gamma, plot->xmin, plot->xmax, plot->ymin, plot->ymax);
+    if (source)
+        source->setGamma(plot->gamma, plot->xmin, plot->xmax, plot->ymin, plot->ymax);
 }
 
 GammaPlotArea::GammaPlotArea(QWidget *parent) : QWidget(parent), gamma(1.0), xmin(0.0), xmax(1.0), ymin(0.0), ymax(1.0)
@@ -208,20 +208,23 @@ void GammaPlotArea::setAntialiased(bool antialiased)
 
 void GammaPlotArea::mouseMoveEvent ( QMouseEvent * event )
 {
-	if (event->buttons() != Qt::NoButton)
-	{
-		int y = qBound( 0, event->y(), this->height());
-		gamma = ScaleToGamma( (1.f - ((float) y / (float) this->height()) ) * 1000.0 );
-		emit gammaChanged();
-	}
+    if (event->buttons() != Qt::NoButton)
+    {
+        int y = qBound( 0, event->y(), this->height());
+        gamma = ScaleToGamma( (1.f - ((float) y / (float) this->height()) ) * 1000.0 );
+
+        qDebug() << (1.f - ((float) y / (float) this->height()) ) * 1000.0;
+        qDebug() << gamma;
+        emit gammaChanged();
+    }
 }
 
 
 void GammaPlotArea::wheelEvent ( QWheelEvent * event )
 {
-	int lg = GammaToScale(gamma) + event->delta() / 2;
-	gamma = ScaleToGamma( qBound(0, lg, 1000) );
-	emit gammaChanged();
+    int lg = GammaToScale(gamma) + event->delta() / 2;
+    gamma = ScaleToGamma( qBound(0, lg, 1000) );
+    emit gammaChanged();
 }
 
 void GammaPlotArea::paintEvent(QPaintEvent *e)
@@ -233,41 +236,41 @@ void GammaPlotArea::paintEvent(QPaintEvent *e)
     if (!isEnabled())
         p.setColor(Qt::lightGray);
     else
-		p.setColor(Qt::darkGray);
-	painter.setPen(p);
-	for (int x = 0; x < width(); x += width()/4)
-		painter.drawLine(x, 0, x, height());
-	for (int y = 0; y < height(); y += height() / 4)
-		painter.drawLine(0, y, width(), y);
+        p.setColor(Qt::darkGray);
+    painter.setPen(p);
+    for (int x = 0; x < width(); x += width()/4)
+        painter.drawLine(x, 0, x, height());
+    for (int y = 0; y < height(); y += height() / 4)
+        painter.drawLine(0, y, width(), y);
 
-	// draw plot
-	if (isEnabled()){
-		painter.setPen(pen);
-		if (antialiased)
-			painter.setRenderHint(QPainter::Antialiasing, true);
+    // draw plot
+    if (isEnabled()){
+        painter.setPen(pen);
+        if (antialiased)
+            painter.setRenderHint(QPainter::Antialiasing, true);
 
-		float incr = 1.f / (float)( NUM_POINTS_PLOT - 1);
-		float x = 0.f;
-		float y = 0.f;
-		for (int i = 0; i < NUM_POINTS_PLOT; i++, x += incr) {
+        float incr = 1.f / (float)( NUM_POINTS_PLOT - 1);
+        float x = 0.f;
+        float y = 0.f;
+        for (int i = 0; i < NUM_POINTS_PLOT; i++, x += incr) {
 
-			y = LevelsControl(x, xmin, gamma, xmax, ymin, ymax);
+            y = LevelsControl(x, xmin, gamma, xmax, ymin, ymax);
 
-			points[i].setX( (int) (x * (float) width() ) );
-			points[i].setY( height() - (int)( y * (float) height() ) );
+            points[i].setX( (int) (x * (float) width() ) );
+            points[i].setY( height() - (int)( y * (float) height() ) );
 
-		}
-		painter.drawPolyline(points, NUM_POINTS_PLOT);
-		QPoint tp = points[NUM_POINTS_PLOT/2] + QPoint( gamma < 1 ? -50 : 5, gamma < 1 ? -10 : 10 );
-		painter.drawText( tp, QString::number(gamma,'f',3));
+        }
+        painter.drawPolyline(points, NUM_POINTS_PLOT);
+        QPoint tp = points[NUM_POINTS_PLOT/2] + QPoint( gamma < 1 ? -50 : 5, gamma < 1 ? -10 : 10 );
+        painter.drawText( tp, QString::number(gamma,'f',3));
 
     }
 
-	// draw frame
-	painter.setRenderHint(QPainter::Antialiasing, false);
-	painter.setPen(palette().dark().color());
-	painter.setBrush(Qt::NoBrush);
-	painter.drawRect(QRect(0, 0, width() - 1, height() - 1));
+    // draw frame
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setPen(palette().dark().color());
+    painter.setBrush(Qt::NoBrush);
+    painter.drawRect(QRect(0, 0, width() - 1, height() - 1));
 
     QWidget::paintEvent(e);
 }
