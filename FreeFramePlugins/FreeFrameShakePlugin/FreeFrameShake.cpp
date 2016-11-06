@@ -1,6 +1,9 @@
 #include "FreeFrameShake.h"
 
+#include <cstdio>
+#include <random>
 #include <cmath>
+#include <ctime>
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,14 +120,13 @@ FFResult FreeFrameShake::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glColor4f(1.f, 1.f, 1.f, 1.f);
 
     double amplitude = distort * 0.1;
+    srandom((uint) (m_curTime * 1000));
 
-    double speed = amplitude * ( (double) rand() / (double) (RAND_MAX / 2) - 1.0) * deltaTime;
+    double speed = amplitude * ( 2.0 * ((double) random() / (double) (RAND_MAX)) - 1.0);
+    tx = CLAMP( tx + deltaTime * speed * 2.0, 0, amplitude);
 
-    tx = CLAMP( tx + speed * 2.0, 0, amplitude);
-
-    speed = amplitude * ( (double) rand() / (double) (RAND_MAX / 2) -1.0 ) * deltaTime;
-
-    ty = CLAMP( ty + speed * 2.0, 0, amplitude);
+    speed = amplitude * ( 2.0 * ((double) random() / (double) (RAND_MAX)) -1.0 );
+    ty = CLAMP( ty + deltaTime * speed * 2.0, 0, amplitude);
 
     glBegin(GL_QUADS);
 
