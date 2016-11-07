@@ -1749,7 +1749,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 
             QDomElement x = doc.createElement("Update");
             x.setAttribute("Periodicity", QString::number(as->getPeriodicity()) );
-            x.setAttribute("Variability", as->getVariability());
+            x.setAttribute("Variability", QString::number(as->getVariability(),'f',PROPERTY_DECIMALS) );
             specific.appendChild(x);
         }
         else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
