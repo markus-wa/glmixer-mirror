@@ -402,10 +402,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 //    QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(disableProgressBars(bool)));
     QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
 
-#ifdef HISTORY_MANAGEMENT
-    QObject::connect(actionUndo, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(undo()));
-    QObject::connect(actionRedo, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(redo()));
-#endif
+//#ifdef HISTORY_MANAGEMENT
+//    QObject::connect(actionUndo, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(undo()));
+//    QObject::connect(actionRedo, SIGNAL(triggered()), RenderingManager::getInstance(), SLOT(redo()));
+//#endif
 
 #ifdef SHM
     QObject::connect(actionShareToRAM, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setFrameSharingEnabled(bool)));

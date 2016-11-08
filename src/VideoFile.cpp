@@ -210,10 +210,10 @@ private:
 
 
 VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
-        int swsConversionAlgorithm, int destinationWidth, int destinationHeight) :
+                     int swsConversionAlgorithm, int destinationWidth, int destinationHeight) :
     QObject(parent), filename(QString()), powerOfTwo(generatePowerOfTwo),
-            targetWidth(destinationWidth), targetHeight(destinationHeight),
-            conversionAlgorithm(swsConversionAlgorithm)
+    targetWidth(destinationWidth), targetHeight(destinationHeight),
+    conversionAlgorithm(swsConversionAlgorithm)
 {
     // first time a video file is created?
     CodecManager::registerAll();
@@ -260,6 +260,42 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     reset();
 }
 
+
+class CodecWorker : public QThread
+{
+    void run();
+
+    VideoFile *_vf;
+
+public:
+    CodecWorker(VideoFile *vf);
+
+};
+
+CodecWorker::CodecWorker(VideoFile *vf)
+    : QThread(vf), _vf(vf)
+{
+    setTerminationEnabled(true);
+
+}
+
+void CodecWorker::run()
+{
+    // close context
+    if (_vf->video_st && _vf->video_st->discard != AVDISCARD_ALL ) {
+
+        AVCodecContext *cdctx = _vf->video_st->codec;
+
+        // do not attempt to close codec context if
+        // codec is not valid
+        if (cdctx && cdctx->codec) {
+            // Close codec (& threads inside)
+            avcodec_close(cdctx);
+        }
+    }
+}
+
+
 void VideoFile::close()
 {
 
@@ -267,35 +303,28 @@ void VideoFile::close()
     qDebug() << filename << QChar(124).toLatin1() << tr("Closing...");
 #endif
 
-    //    Stop playing
+    // Stop playing
     stop();
 
-    // close context
-    if (pFormatCtx) {
-
-        if ( pFormatCtx->streams[videoStream]->discard != AVDISCARD_ALL ) {
-
-            AVCodecContext *cdctx = pFormatCtx->streams[videoStream]->codec;
-
-            // do not attempt to close codec context if
-            // codec is not valid
-            if (cdctx && cdctx->codec) {
-                // Close codec (& threads inside)
+    // close codec context
 #ifdef VIDEOFILE_DEBUG
-                qDebug() << filename << QChar(124).toLatin1() << tr("Closing Codec...");
+    qDebug() << filename << QChar(124).toLatin1() << tr("Closing Codec...");
 #endif
-                avcodec_close(cdctx);
-            }
-        }
+    CodecWorker *cw = new CodecWorker(this);
+    cw->start();
+    // call avcodec_close in a thread for no more than 300ms
+    // (happens that function blocks)
+    if ( !cw->wait(300) ) {
+        qWarning() << filename << QChar(124).toLatin1()<< tr("Could not close codec.");
+    }
 
-        // close file & free context
-        // Free it and all its contents and set it to NULL.
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,100,0)
-        avformat_close_input(&pFormatCtx);
-#else
+    if (pFormatCtx) {
+        // close file & free context and all its contents and set it to NULL.
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,100,0)
         av_close_input_file(pFormatCtx);
+#else
+        avformat_close_input(&pFormatCtx);
 #endif
-
     }
 
     // free context & filter
@@ -316,7 +345,7 @@ void VideoFile::close()
     firstPicture = NULL;
     resetPicture = NULL;
 
-     qDebug() << filename << QChar(124).toLatin1() << tr("Media closed.");
+    qDebug() << filename << QChar(124).toLatin1() << tr("Media closed.");
 }
 
 VideoFile::~VideoFile()
@@ -464,11 +493,11 @@ void VideoFile::setPlaySpeed(double s)
     // change the picture queue size according to play speed
     // this is because, in principle, more frames are skipped when play faster
     // and we empty the queue faster
-//    double sizeq = qBound(2.0, (double) video_st->nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
+    //    double sizeq = qBound(2.0, (double) video_st->nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
 
-//    sizeq *= s;
+    //    sizeq *= s;
 
-//    pictq_max_count = qBound(2, (int) sizeq, (int) video_st->nb_frames);
+    //    pictq_max_count = qBound(2, (int) sizeq, (int) video_st->nb_frames);
 
     _videoClock.setSpeed( s );
     emit playSpeedChanged(s);
@@ -495,17 +524,17 @@ bool VideoFile::isOpen() const {
 }
 
 class FirstFrameFiller : public QThread
- {
-     void run();
+{
+    void run();
 
-     VideoFile *_vf;
-     bool option;
-     double value;
+    VideoFile *_vf;
+    bool option;
+    double value;
 
 public:
-     FirstFrameFiller(VideoFile *vf, bool o);
+    FirstFrameFiller(VideoFile *vf, bool o);
 
-     double getValue() { return value; }
+    double getValue() { return value; }
 };
 
 FirstFrameFiller::FirstFrameFiller(VideoFile *vf, bool o)
@@ -636,9 +665,9 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // create conversion context
     // (use the actual width to match with targetWidth and avoid useless scaling)
     img_convert_ctx = sws_getCachedContext(NULL, video_st->codec->width,
-                    video_st->codec->height, video_st->codec->pix_fmt,
-                    targetWidth, targetHeight, targetFormat,
-                    conversionAlgorithm, NULL, NULL, NULL);
+                                           video_st->codec->height, video_st->codec->pix_fmt,
+                                           targetWidth, targetHeight, targetFormat,
+                                           conversionAlgorithm, NULL, NULL, NULL);
     if (img_convert_ctx == NULL)
     {
         // Cannot initialize the conversion context!
@@ -650,7 +679,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // create firstPicture (and get actual pts of first picture)
     // (NB : seek in stream only if not reading the first frame)
 
-//    current_frame_pts = fill_first_frame( mark_in != getBegin() );
+    //    current_frame_pts = fill_first_frame( mark_in != getBegin() );
     first_picture_changed = true;
     FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
     fff->start();
@@ -890,7 +919,7 @@ void VideoFile::video_refresh_timer()
         // store time of this current frame
         current_frame_pts =  currentvp->presentationTime();
 
-//        fprintf(stderr, "video_refresh_timer pts %f \n", current_frame_pts);
+        //        fprintf(stderr, "video_refresh_timer pts %f \n", current_frame_pts);
 
         // if this frame was tagged as stopping frame
         if ( currentvp->hasAction(VideoPicture::ACTION_STOP) ) {
@@ -913,7 +942,7 @@ void VideoFile::video_refresh_timer()
             currentvp->addAction(VideoPicture::ACTION_DELETE);
             emit frameReady(currentvp);
 
-//              fprintf(stderr, "                         Display picture pts %f queue size %d\n", currentvp->getPts(), pictq.size());
+            //              fprintf(stderr, "                         Display picture pts %f queue size %d\n", currentvp->getPts(), pictq.size());
 
             // if there is a next picture
             // we can compute when to present the next frame
@@ -933,7 +962,7 @@ void VideoFile::video_refresh_timer()
                     // schedule normal delayed display of next frame
                     ptimer_delay = (int) (delay * 1000.0);
 
-                // delay is too small, or negative
+                    // delay is too small, or negative
                 } else {
 
                     // retry shortly (but not too fast to avoid glitches)
@@ -950,12 +979,12 @@ void VideoFile::video_refresh_timer()
         else {
             // delete the picture
             delete currentvp;
-       }
+        }
 
-       if (fast_forward) {
-           _videoClock.reset(current_frame_pts);
-           ptimer_delay = UPDATE_SLEEP_DELAY;
-       }
+        if (fast_forward) {
+            _videoClock.reset(current_frame_pts);
+            ptimer_delay = UPDATE_SLEEP_DELAY;
+        }
 
     }
 
@@ -967,7 +996,7 @@ void VideoFile::video_refresh_timer()
         ptimer->start( ptimer_delay );
 
 
-//    fprintf(stderr, "video_refresh_timer update in %d \n", ptimer_delay);
+    //    fprintf(stderr, "video_refresh_timer update in %d \n", ptimer_delay);
 }
 
 double VideoFile::getCurrentFrameTime() const
@@ -1104,7 +1133,7 @@ QString VideoFile::getStringTimeFromtime(double time) const
     s = (s % 3600) % 60;
     int ds = (int) (time * 100.0);
     return QString("%1h %2m %3.%4s").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s,
-            2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
+                                                                             2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
 }
 
 QString VideoFile::getStringFrameFromTime(double t) const
@@ -1159,33 +1188,28 @@ void VideoFile::clean_until_time_picture_queue(double time) {
         time = getEnd();
 
     // get hold on the picture queue
-//    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
-
     pictq_mutex->lock();
 
-        // loop to find a mark frame in the queue
-        int i =  0;
-        while ( i < pictq.size()
-                && !pictq[i]->hasAction(VideoPicture::ACTION_MARK)
-                && pictq[i]->getPts() < time)
-            i++;
+    // loop to find a mark frame in the queue
+    int i =  0;
+    while ( i < pictq.size()
+            && !pictq[i]->hasAction(VideoPicture::ACTION_MARK)
+            && pictq[i]->getPts() < time)
+        i++;
 
-        // found a mark frame in the queue
-        if ( pictq.size() > i ) {
-            // remove all what is after
-            while ( pictq.size() > i)
-                delete pictq.takeLast();
+    // found a mark frame in the queue
+    if ( pictq.size() > i ) {
+        // remove all what is after
+        while ( pictq.size() > i)
+            delete pictq.takeLast();
 
-            // sanity check (but should never be the case)
-            if (! pictq.empty())
-                // restart filling in at the last pts of the cleanned queue
-                requestSeek( pictq.takeLast()->getPts() );
-        }
-        // done with the cleanup
-        pictq_mutex->unlock();
-//    }
-//    else
-//        qDebug() << "clean_until_time_picture_queue lock failed";
+        // sanity check (but should never be the case)
+        if (! pictq.empty())
+            // restart filling in at the last pts of the cleanned queue
+            requestSeek( pictq.takeLast()->getPts() );
+    }
+    // done with the cleanup
+    pictq_mutex->unlock();
 
 }
 
@@ -1358,42 +1382,36 @@ bool VideoFile::jump_in_picture_queue(double time)
 
     // now for sure the seek time is in the queue
     // get hold on the picture queue
-//    if ( pictq_mutex->tryLock(LOCKING_TIMEOUT) ) {
 
     pictq_mutex->lock();
 
-        // does the queue loop ?
-        bool loopingbuffer = pictq.first()->getPts() > pictq.last()->getPts();
-        // in this case, remove all till mark out
-        if ( loopingbuffer &&  (time > mark_in && time < pictq.last()->getPts()) ) {
-            // remove all frames till the mark out, ie every frame above the last
-            while ( pictq.size() > 1 && pictq.first()->getPts() > pictq.last()->getPts() ) {
-                VideoPicture *p = pictq.dequeue();
-                delete p;
-            }
-        }
-
-        // remove all frames before the time of seek (except if queue is empty)
-        while ( pictq.size() > 1 && time > pictq.first()->getPts() ){
+    // does the queue loop ?
+    bool loopingbuffer = pictq.first()->getPts() > pictq.last()->getPts();
+    // in this case, remove all till mark out
+    if ( loopingbuffer &&  (time > mark_in && time < pictq.last()->getPts()) ) {
+        // remove all frames till the mark out, ie every frame above the last
+        while ( pictq.size() > 1 && pictq.first()->getPts() > pictq.last()->getPts() ) {
             VideoPicture *p = pictq.dequeue();
             delete p;
         }
+    }
 
-        // mark this frame for reset of time
-        pictq.first()->addAction(VideoPicture::ACTION_RESET_PTS);
+    // remove all frames before the time of seek (except if queue is empty)
+    while ( pictq.size() > 1 && time > pictq.first()->getPts() ){
+        VideoPicture *p = pictq.dequeue();
+        delete p;
+    }
 
-        // inform about the new size of the queue
-        pictq_cond->wakeAll();
-        pictq_mutex->unlock();
+    // mark this frame for reset of time
+    pictq.first()->addAction(VideoPicture::ACTION_RESET_PTS);
 
-        // yes we could seek in decoder picture queue
-        return true;
-//    }
-//    else {
-//        qDebug() << "jump_in_picture_queue lock failed";
-//        // no we couldn't seek in decoder picture queue
-//        return false;
-//    }
+    // inform about the new size of the queue
+    pictq_cond->wakeAll();
+    pictq_mutex->unlock();
+
+    // yes we could seek in decoder picture queue
+    return true;
+
 }
 
 // called exclusively in Decoding Thread
@@ -1459,6 +1477,7 @@ void DecodingThread::run()
     int frameFinished = 0;
     double pts = 0.0; // Presentation time stamp
     int64_t dts = 0; // Decoding time stamp
+    int error_count = 0;
 
     _working = true;
     while (is && !is->quit && !_forceQuit)
@@ -1494,7 +1513,7 @@ void DecodingThread::run()
 
             if (av_seek_frame(is->pFormatCtx, is->videoStream, seek_target, AVSEEK_FLAG_BACKWARD) < 0)
                 qDebug() << is->filename << QChar(124).toLatin1()
-                        << QObject::tr("Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos);
+                         << QObject::tr("Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos);
 
             // flush buffers after seek
             avcodec_flush_buffers(is->video_st->codec);
@@ -1522,7 +1541,7 @@ void DecodingThread::run()
             if ( !is->loop_video ) {
                 // if stopping, send an empty frame with stop flag
                 // (and pretending pts is one frame later)
-               is->queue_picture(NULL, pts + is->getFrameDuration(), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
+                is->queue_picture(NULL, pts + is->getFrameDuration(), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
 
             }
             // forget error
@@ -1560,7 +1579,11 @@ void DecodingThread::run()
         if ( avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet.data, packet.size) < 0) {
 #endif
 
-            // decoding error : send failure message
+            error_count++;
+            if (error_count < 10)
+                continue;
+
+            // recurrent decoding error : send failure message
             _forceQuit = true;
             is->video_st->discard = AVDISCARD_ALL;
             emit failed();
@@ -1675,11 +1698,11 @@ void DecodingThread::run()
 #endif
 
 
-    if (_forceQuit)
-        qWarning() << is->filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly.");
+        if (_forceQuit)
+            qWarning() << is->filename << QChar(124).toLatin1() << tr("Decoding interrupted unexpectedly.");
 #ifdef VIDEOFILE_DEBUG
-    else
-        qDebug() << is->filename << QChar(124).toLatin1() << tr("Decoding ended.");
+        else
+            qDebug() << is->filename << QChar(124).toLatin1() << tr("Decoding ended.");
 #endif
 
     }
