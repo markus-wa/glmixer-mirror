@@ -22,7 +22,7 @@ FFGLPluginInstance::~FFGLPluginInstance()
 
 void FFGLPluginInstance::SetParameterName(unsigned int paramNum, const char *name)
 {
-    if (paramNum<0 || paramNum>=MAX_PARAMETERS)
+    if (paramNum>=MAX_PARAMETERS)
         return;
 
     int i = paramNum;
@@ -36,7 +36,7 @@ void FFGLPluginInstance::SetParameterName(unsigned int paramNum, const char *nam
 
 const char *FFGLPluginInstance::GetParameterName(unsigned int paramNum)
 {
-    if (paramNum >= 0 && paramNum < MAX_PARAMETERS && m_paramNames[paramNum]!=NULL)
+    if (paramNum < MAX_PARAMETERS && m_paramNames[paramNum]!=NULL)
         return m_paramNames[paramNum];
 
     return "";
@@ -44,7 +44,7 @@ const char *FFGLPluginInstance::GetParameterName(unsigned int paramNum)
 
 void FFGLPluginInstance::SetFloatParameter(unsigned int paramNum, float value)
 {
-    if (paramNum<0 || paramNum>=m_numParameters ||
+    if (paramNum>=m_numParameters ||
             m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
     {
         //the parameter or the plugin doesn't exist
@@ -70,7 +70,7 @@ void FFGLPluginInstance::SetFloatParameter(unsigned int paramNum, float value)
 
 void FFGLPluginInstance::SetBoolParameter(unsigned int paramNum, bool value)
 {
-    if (paramNum<0 || paramNum>=m_numParameters ||
+    if (paramNum>=m_numParameters ||
             m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
     {
         //the parameter or the plugin doesn't exist
@@ -106,7 +106,7 @@ void FFGLPluginInstance::SetTime(double curTime)
 
 float FFGLPluginInstance::GetFloatParameter(unsigned int paramNum)
 {
-    if (paramNum<0 || paramNum>=m_numParameters ||
+    if (paramNum>=m_numParameters ||
             m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
     {
         FFDebugMessage("Invalid GetFloatParameter call");
@@ -127,7 +127,7 @@ float FFGLPluginInstance::GetFloatParameter(unsigned int paramNum)
 
 bool FFGLPluginInstance::GetBoolParameter(unsigned int paramNum)
 {
-    if (paramNum<0 || paramNum>=m_numParameters ||
+    if (paramNum>=m_numParameters ||
             m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
     {
         FFDebugMessage("Invalid GetBoolParameter call");
