@@ -478,7 +478,6 @@ void Source::setShaderAttributes() const {
     static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
     static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
     static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
-    static int _maskTexture  = ViewRenderWidget::program->uniformLocation("maskTexture");
     static int _gamma  = ViewRenderWidget::program->uniformLocation("gamma");
     static int _levels  = ViewRenderWidget::program->uniformLocation("levels");
     static int _contrast  = ViewRenderWidget::program->uniformLocation("contrast");
@@ -497,9 +496,7 @@ void Source::setShaderAttributes() const {
     ViewRenderWidget::program->setUniformValue(_baseColor, texcolor);
     ViewRenderWidget::program->setUniformValue(_baseAlpha, (GLfloat) texalpha);
     ViewRenderWidget::program->setUniformValue(_stippling, 0.f);
-    ViewRenderWidget::program->setUniformValue(_maskTexture, 1);
     ViewRenderWidget::program->setUniformValue(_gamma, (GLfloat) gamma);
-    //             gamma levels : minInput, maxInput, minOutput, maxOutput:
     ViewRenderWidget::program->setUniformValue(_levels, (GLfloat) gammaMinIn, (GLfloat) gammaMaxIn, (GLfloat) gammaMinOut, (GLfloat) gammaMaxOut);
     ViewRenderWidget::program->setUniformValue(_contrast, (GLfloat) contrast);
     ViewRenderWidget::program->setUniformValue(_brightness, (GLfloat) brightness);
@@ -531,12 +528,12 @@ void Source::setShaderAttributes() const {
 
 }
 
-void Source::bind() const {
+void Source::bind(bool withmask) const {
 
     // activate texture 1 ; double texturing of the mask
     glActiveTexture(GL_TEXTURE1);
     // select and enable the texture corresponding to the mask
-    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[mask_type]);
+    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[withmask ? mask_type : 0]);
     // back to texture 0 for the following
     glActiveTexture(GL_TEXTURE0);
 

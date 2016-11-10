@@ -116,7 +116,7 @@ public:
     // In subclasses of Source, the texture content is also updated
     virtual void update();
     // bind the texture
-    void bind() const;
+    void bind(bool withmask = true) const;
     // apply the blending (including mask)
     // to be called in the OpenGL loop before drawing if the source shall be blended
     void blend() const;

@@ -1267,7 +1267,6 @@ void ViewRenderWidget::setDrawMode(QColor c)
     static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
     static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
     static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
-    static int _maskTexture  = ViewRenderWidget::program->uniformLocation("maskTexture");
     static int _gamma  = ViewRenderWidget::program->uniformLocation("gamma");
     static int _levels  = ViewRenderWidget::program->uniformLocation("levels");
     static int _contrast  = ViewRenderWidget::program->uniformLocation("contrast");
@@ -1279,15 +1278,11 @@ void ViewRenderWidget::setDrawMode(QColor c)
     static int _threshold  = ViewRenderWidget::program->uniformLocation("threshold");
     static int _chromakey  = ViewRenderWidget::program->uniformLocation("chromakey");
     static int _filter  = ViewRenderWidget::program->uniformLocation("filter");
-    static int _sourceTexture  = ViewRenderWidget::program->uniformLocation("sourceTexture");
 
     // set color & alpha
     ViewRenderWidget::program->setUniformValue(_baseColor, c);
     ViewRenderWidget::program->setUniformValue(_baseAlpha, 1.f);
-    // no texture
     ViewRenderWidget::program->setUniformValue(_stippling, 0.f);
-    ViewRenderWidget::program->setUniformValue(_sourceTexture, 0);
-    ViewRenderWidget::program->setUniformValue(_maskTexture, 0);
     // gamma
     ViewRenderWidget::program->setUniformValue(_gamma, 1.f);
     ViewRenderWidget::program->setUniformValue(_levels, 0.f, 1.f, 0.f, 1.f);

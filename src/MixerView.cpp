@@ -120,7 +120,7 @@ void MixerView::paint()
         //
 
         // bind the source textures
-        (*its)->bind();
+        (*its)->bind(false);
 
         //
         (*its)->setShaderAttributes();
