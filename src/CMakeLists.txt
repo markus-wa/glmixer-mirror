@@ -256,6 +256,12 @@ qt4_add_translation(GLMIXER_QM ${LANG})
 # For Apple set the icns file containing icons (to do before declaring executable MACOSX_BUNDLE)
 IF(APPLE)
 
+  # set how it shows up in the Info.plist file
+  SET(MACOSX_BUNDLE_ICON_FILE glmixer.icns)
+  # set where in the bundle to put the icns file
+  SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  # include the icns file in the target
+  SET(GLMIXER_SRCS ${GLMIXER_SRCS} ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
 
     # create the application
     add_executable(${GLMIXER_BINARY} MACOSX_BUNDLE
@@ -335,12 +341,7 @@ IF(APPLE)
       SET(qtconf_dest_dir GLMixer.app/Contents/Resources)
       SET(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
 
-    # set how it shows up in the Info.plist file
-    SET(MACOSX_BUNDLE_ICON_FILE glmixer.icns)
-    # set where in the bundle to put the icns file
-    SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/osx/glmixer.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    # include the icns file in the target
-    SET(GLMIXER_SRCS ${GLMIXER_SRCS} ${CMAKE_SOURCE_DIR}/osx/glmixer.icns)
+
     # OSX cpack info
     set( CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
     set( CPACK_BUNDLE_NAME ${CPACK_PACKAGE_NAME})
@@ -446,7 +447,7 @@ IF(APPLE)
     # install a qt_menu.nib files structure
     INSTALL(CODE "
         file(MAKE_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt_menu.nib\")
-        file(COPY \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}\" NO_SOURCE_PERMISSIONS )
+        file(COPY \"${QT_LIBRARY_DIR}/QtGui.framework/Versions/4/Resources/qt_menu.nib\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}\" NO_SOURCE_PERMISSIONS )
         " COMPONENT Runtime)
 
     #--------------------------------------------------------------------------------
@@ -602,9 +603,3 @@ ENDIF(APPLE)
 # where CPackConfig.cmake is created by including CPack
 # And then there's ways to customize this as well
 include(CPack)
-
-
-
-
-
-
