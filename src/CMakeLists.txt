@@ -86,12 +86,25 @@ SET(GLMIXER_SRCS
     SizeSelectionWidget.cpp
 )
 
+
+if(WIN32)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../win/style.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/style.qrc)
+else(WIN32)
+    if(APPLE)
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../osx/style.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/style.qrc)
+    else(APPLE)
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../linux/style.qrc.in ${CMAKE_CURRENT_BINARY_DIR}/style.qrc)
+    endif(APPLE)
+endif(WIN32)
+
 SET(GLMIXER_RCS
     ../icons.qrc
     ../textures.qrc
     ../images.qrc
     ../opengl.qrc
+    ${CMAKE_CURRENT_BINARY_DIR}/style.qrc
 )
+
 
 SET(GLMIXER_UIS
     glmixer.ui

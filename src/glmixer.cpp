@@ -139,6 +139,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 {
     setupUi ( this );
 
+    QFile file(":/style/default");
+    file.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(file.readAll());
+    setStyleSheet(styleSheet);
 
 #ifndef SHM
     actionShareToRAM->setVisible(false);
