@@ -1344,6 +1344,7 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
 
     // if we are removing the current source, ensure it is not the current one anymore
     if (itsource == _currentSource) {
+        (*_currentSource)->disconnect();
         _currentSource = _front_sources.end();
         emit currentSourceChanged(_currentSource);
     }
@@ -1424,6 +1425,10 @@ bool RenderingManager::isCurrentSource(SourceSet::iterator si){
 void RenderingManager::setCurrentSource(SourceSet::iterator si) {
 
     if (si != _currentSource){
+        // disconnect current source from play actions
+        if ( isValid(_currentSource) )
+            (*_currentSource)->disconnect(SIGNAL(playing(bool)));
+
         _currentSource = si;
         emit currentSourceChanged(_currentSource);
     }
@@ -1439,6 +1444,10 @@ bool RenderingManager::setCurrentNext(){
 
     if (_front_sources.empty() )
         return false;
+
+    // disconnect current source from play actions
+    if ( isValid(_currentSource) )
+        (*_currentSource)->disconnect(SIGNAL(playing(bool)));
 
     if (_currentSource != _front_sources.end()) {
         // increment to next source
@@ -1458,8 +1467,11 @@ bool RenderingManager::setCurrentPrevious(){
     if (_front_sources.empty() )
         return false;
 
-    if (_currentSource != _front_sources.end()) {
+    // disconnect current source from play actions
+    if ( isValid(_currentSource) )
+        (*_currentSource)->disconnect(SIGNAL(playing(bool)));
 
+    if (_currentSource != _front_sources.end()) {
         // if at the beginning, go to the end
         if (_currentSource == _front_sources.begin())
             _currentSource = _front_sources.end();
