@@ -23,6 +23,7 @@
  *
  */
 
+
 #include <iostream>
 
 #include <QApplication>
@@ -92,6 +93,11 @@
 #include "FFGLPluginSourceShadertoy.h"
 #include "FFGLSourceCreationDialog.h"
 #include "GLSLCodeEditorWidget.h"
+#endif
+
+#ifdef Q_OS_MAC
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFUrl.h>
 #endif
 
 #include "glmixerdialogs.h"
@@ -2374,7 +2380,50 @@ void GLMixer::drop(QDropEvent *event)
             qWarning() << "[" << ++errors << "]" << tr("Cannot open more than %1 files at a time.").arg(MAX_DROP_FILES);
 
         for (int i = 0; i < urlList.size() && i < MAX_DROP_FILES; ++i) {
+
+#ifdef Q_OS_MAC
+
+      QString localFileQString = urlList.at(i).toLocalFile();
+      // [pzion 20150805] Work around
+      // https://bugreports.qt.io/browse/QTBUG-40449
+      if ( localFileQString.startsWith("/.file/id=") )
+      {
+        CFStringRef relCFStringRef = CFStringCreateWithCString( kCFAllocatorDefault,
+            localFileQString.toUtf8().constData(),
+            kCFStringEncodingUTF8 );
+        CFURLRef relCFURL = CFURLCreateWithFileSystemPath( kCFAllocatorDefault,
+            relCFStringRef,
+            kCFURLPOSIXPathStyle,
+            false );
+        CFErrorRef error = 0;
+        CFURLRef absCFURL = CFURLCreateFilePathURL( kCFAllocatorDefault,
+            relCFURL, &error );
+        if ( !error )
+        {
+          static const CFIndex maxAbsPathCStrBufLen = 4096;
+          char absPathCStr[maxAbsPathCStrBufLen];
+          if ( CFURLGetFileSystemRepresentation(
+            absCFURL,
+            true, // resolveAgainstBase
+            reinterpret_cast<UInt8 *>( &absPathCStr[0] ),
+            maxAbsPathCStrBufLen
+            ) )
+          {
+            localFileQString = QString( absPathCStr );
+          }
+        }
+        CFRelease( absCFURL );
+        CFRelease( relCFURL );
+        CFRelease( relCFStringRef );
+      }
+
+      QFileInfo urlname(localFileQString);
+
+#else
+
             QFileInfo urlname(urlList.at(i).toLocalFile());
+#endif
+
             if ( urlname.exists() && urlname.isReadable() && urlname.isFile()) {
 
                 if ( urlname.suffix() == "glm") {

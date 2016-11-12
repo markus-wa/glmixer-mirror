@@ -30,7 +30,7 @@
 #define CLASSPLUGININSTANCE WinPluginInstance
 
 #else
-#ifdef Q_OS_MAC
+#ifdef __APPLE__
 
 #include <OSX/OSXPluginInstance.cpp>
 #define CLASSPLUGININSTANCE OSXPluginInstance

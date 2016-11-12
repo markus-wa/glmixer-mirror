@@ -1,5 +1,6 @@
-#include "../FFGLPluginInstance.h"
-#include <FFDebugMessage.h>
+#include "FFGLPluginInstance.h"
+#include "FFDebugMessage.h"
+
 #include <stdio.h>
 #include <mach-o/dyld.h>
 
@@ -8,10 +9,10 @@ public FFGLPluginInstance
 {
 public:
   OSXPluginInstance();
-  
+
   FFResult Load(const char *filename);
   FFResult Unload();
-  
+
   virtual ~OSXPluginInstance();
 
 protected:
@@ -36,7 +37,7 @@ FFResult OSXPluginInstance::Load(const char *fname)
     return FF_FAIL;
 
   Unload();
-  
+
   if (NSCreateObjectFileImageFromFile(fname, &m_ffImage)!=NSObjectFileImageSuccess)
     return FF_FAIL;
 
@@ -45,20 +46,20 @@ FFResult OSXPluginInstance::Load(const char *fname)
       m_ffImage,
       fname,
       NSLINKMODULE_OPTION_NONE);
-      
+
   if (m_ffModule==NULL)
   {
     Unload(); //to undo NSCreateObjectFileImageFromFile
     return FF_FAIL;
   }
-  
+
   NSSymbol s = NSLookupSymbolInModule(m_ffModule, "_plugMain");
   if (s==NULL)
   {
     Unload();//to undo NSLinkModule and NSCreateObjectFileImageFromFile
     return FF_FAIL;
   }
-  
+
 	FF_Main_FuncPtr pFreeFrameMain = (FF_Main_FuncPtr)NSAddressOfSymbol(s);
 
 	if (pFreeFrameMain==NULL)
@@ -66,13 +67,13 @@ FFResult OSXPluginInstance::Load(const char *fname)
     Unload(); //to undo same
     return FF_FAIL;
   }
-  
+
   m_ffPluginMain = pFreeFrameMain;
-  
+
   FFResult rval = InitPluginLibrary();
   if (rval!=FF_SUCCESS)
     return rval;
-  
+
   return FF_SUCCESS;
 }
 
@@ -83,9 +84,9 @@ FFResult OSXPluginInstance::Unload()
     FFDebugMessage("Failed to call DeInstantiateGL before Unload()");
     return FF_FAIL;
   }
-  
+
   DeinitPluginLibrary();
-  
+
 	if (m_ffModule != NULL)
   {
     if (NSUnLinkModule(m_ffModule, NSUNLINKMODULE_OPTION_NONE))

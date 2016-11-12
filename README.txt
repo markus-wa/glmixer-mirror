@@ -148,6 +148,20 @@ UNIX COMPILATION
         $ sudo apt-get install /home/[YOUR SOURCE PATH]/GLMixer_[version]_amd64.deb
 
 
+
+OSX COMPILATION
+
+Install home-brew
+
+	Follow instructions from http://brew.sh/
+
+Install programs and libraries
+	
+	brew install subversion
+	brew install ninja
+
+
+
 WINDOWS COMPILATION
 
 
@@ -155,7 +169,7 @@ Install msys2
 
     Follow instructions from https://msys2.github.io/
 
-Install programs and mingw x86_64
+Install programs and x86_64 libraries
 
 	pacman -S subversion
 	pacman -S mingw-w64-x86_64-gcc
