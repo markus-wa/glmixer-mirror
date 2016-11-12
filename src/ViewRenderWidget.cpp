@@ -1299,6 +1299,13 @@ void ViewRenderWidget::setDrawMode(QColor c)
     // disable filtering
     ViewRenderWidget::program->setUniformValue(_filter, (GLint) 0);
 
+    // activate texture 1 ; double texturing of the mask
+    glActiveTexture(GL_TEXTURE1);
+    // select and enable the texture corresponding to the mask
+    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[0]);
+    // back to texture 0 for the following
+    glActiveTexture(GL_TEXTURE0);
+
 }
 
 

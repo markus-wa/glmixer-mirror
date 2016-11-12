@@ -120,7 +120,7 @@ void MixerView::paint()
         //
 
         // bind the source textures
-        (*its)->bind(false);
+        (*its)->bind();
 
         //
         (*its)->setShaderAttributes();
@@ -150,24 +150,23 @@ void MixerView::paint()
         // test if the source is passed the standby line
         (*its)->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
 
-        // standard transparency blending
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendEquation(GL_FUNC_ADD);
-
         if (!(*its)->isStandby())
         {
             //   draw stippled version of the source
-
             static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
             ViewRenderWidget::program->setUniformValue( _stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
-            (*its)->draw();
 
         } else {
             // draw flat version of the source
             static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
             ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
-            (*its)->draw();
         }
+
+        // standard transparency blending
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
+
+        (*its)->draw();
 
         //
         // 3. draw border and handles if active

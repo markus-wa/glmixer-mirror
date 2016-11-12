@@ -180,7 +180,7 @@ void LayersView::paint()
         //
 
         // bind the source textures
-        (*its)->bind(false);
+        (*its)->bind();
 
         //
         (*its)->setShaderAttributes();

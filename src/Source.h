@@ -116,7 +116,7 @@ public:
     // In subclasses of Source, the texture content is also updated
     virtual void update();
     // bind the texture
-    void bind(bool withmask = true) const;
+    void bind() const;
     // apply the blending (including mask)
     // to be called in the OpenGL loop before drawing if the source shall be blended
     void blend() const;
@@ -185,7 +185,7 @@ public:
         PLAY_STANDBY,
         STOP_STANDBY
     } StandbyMode;
-    virtual void setStandby(bool on);
+    void setStandby(bool on);
     inline bool isStandby() const {
         return standby != NOT_STANDBY;
     }

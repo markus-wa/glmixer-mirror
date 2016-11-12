@@ -47,7 +47,7 @@ vec3 erosion(int N)
 {
     vec3 minValue = vec3(1.0);
 
-        minValue = min(texture2D(sourceTexture, texc + vec2 (0.0,0.0) * filter_step ).rgb, minValue); 
+        minValue = min(texture2D(sourceTexture, texc + vec2 (0.0,0.0) * filter_step ).rgb, minValue);
         minValue = min(texture2D(sourceTexture, texc + vec2 (0.0,-1.0) * filter_step ).rgb, minValue);
         minValue = min(texture2D(sourceTexture, texc + vec2 (-1.0, 0.0) * filter_step ).rgb, minValue);
         minValue = min(texture2D(sourceTexture, texc + vec2 (1.0, 0.0) * filter_step ).rgb, minValue);

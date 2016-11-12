@@ -350,11 +350,9 @@ void Source::setStandby(bool on) {
 
     StandbyMode previous = standby;
 
-#ifdef FFGL
     if (!isPlayable())
         standby = on ? PLAY_STANDBY : NOT_STANDBY;
     else
-#endif
         // new status is based on request and play mode
         standby = on ? (isPlaying() ? PLAY_STANDBY : STOP_STANDBY) : NOT_STANDBY;
 
@@ -528,12 +526,12 @@ void Source::setShaderAttributes() const {
 
 }
 
-void Source::bind(bool withmask) const {
+void Source::bind() const {
 
     // activate texture 1 ; double texturing of the mask
     glActiveTexture(GL_TEXTURE1);
     // select and enable the texture corresponding to the mask
-    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[withmask ? mask_type : 0]);
+    glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[mask_type]);
     // back to texture 0 for the following
     glActiveTexture(GL_TEXTURE0);
 
