@@ -19,14 +19,8 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-         padding: 3px;
      min-height: 16px;
      min-width: 16px;
-     border-color: transparent;
-     background: transparent;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">

@@ -13,18 +13,6 @@
   <property name="windowTitle">
    <string>Mixing</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">QToolButton { 
-     border: 1px solid transparent;
-     border-radius:5px;
-     padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     background: transparent;
-}
-QToolButton:pressed { background: palette(midlight); }
-QToolButton:hover { border-color:  palette(highlight); }</string>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
     <number>1</number>

@@ -32,6 +32,11 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QFile file(":/style/default");
+    file.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(file.readAll());
+    setStyleSheet(styleSheet);
+
     // name entry should be validated
     ui->nameEdit->setValidator(new nameValidator(this));
 

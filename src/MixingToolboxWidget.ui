@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>253</width>
-    <height>314</height>
+    <width>281</width>
+    <height>331</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,6 +16,16 @@
   <property name="windowIcon">
    <iconset resource="../icons.qrc">
     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QSpinBox {
+	Background-color: transparent;
+     border-color: transparent;
+}
+QToolButton {
+     min-width: 16px;
+     min-height: 16px;
+}</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <property name="spacing">
@@ -35,30 +45,6 @@
    </property>
    <item>
     <widget class="QTabWidget" name="mixingToolBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QToolButton { 
-     border-style: solid;
-     border-width: 1px;
-     border-radius:0px;
-	 padding: 0px;
-     min-height: 6px;
-     min-width: 6px;
-     border-color: palette(dark);
-     background: palette(window);
-}
-
-QTabBar::tab {
-    padding: 6px -3px 6px 9px;
-}
-
-</string>
-     </property>
      <property name="tabPosition">
       <enum>QTabWidget::North</enum>
      </property>
@@ -105,17 +91,35 @@ QTabBar::tab {
         <number>6</number>
        </property>
        <item>
-        <widget class="QLabel" name="label">
-         <property name="styleSheet">
-          <string notr="true">font: bold;</string>
-         </property>
-         <property name="text">
-          <string>Blending &amp; masking</string>
-         </property>
-         <property name="margin">
-          <number>2</number>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="styleSheet">
+            <string notr="true">font: bold;</string>
+           </property>
+           <property name="text">
+            <string>Blending &amp; masking</string>
+           </property>
+           <property name="margin">
+            <number>2</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="resetBlending">
+           <property name="toolTip">
+            <string>Clear all</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -124,12 +128,6 @@ QTabBar::tab {
          </property>
          <item>
           <widget class="QComboBox" name="blendingBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="toolTip">
             <string>Blending mode
 (how the colors are mixed with other sources)</string>
@@ -137,51 +135,8 @@ QTabBar::tab {
            <property name="statusTip">
             <string>Blending mode\n(how the colors are mixed with other sources)</string>
            </property>
-           <property name="styleSheet">
-            <string notr="true">QComboBox {
-     border: 1px solid palette(button);
-     border-radius: 6px;
-     padding: 1px 3px 1px 3px;
-     icon-size: 40px;
-font-size: 12px;
- }
-
-QComboBox:!editable {
-      background: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
- }
-
- QComboBox:!editable:on {
-     background: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.9, stop: 0 palette(dark), stop: 1 transparent );
- }
-
- QComboBox:on { /* shift the text when the popup opens */
-     padding-top: 3px;
-     padding-left: 4px;
- }
-
- QComboBox::drop-down {
-     subcontrol-origin: padding;
-     subcontrol-position: top right;
-     width: 15px;
-
-     border-left-width: 1px;
-     border-left-color: palette(dark);
-     border-left-style: solid; /* just a single line */
-     border-top-right-radius: 6px; /* same radius as the QComboBox */
-     border-bottom-right-radius: 6px;
- }
-
- QComboBox::down-arrow {
-     image: url(:/glmixer/icons/downarrow.png);
- }
-
- QComboBox::down-arrow:on { /* shift the arrow when popup is open */
-     top: 1px;
-     left: 1px;
- }</string>
-           </property>
            <property name="currentIndex">
-            <number>1</number>
+            <number>5</number>
            </property>
            <property name="iconSize">
             <size>
@@ -203,7 +158,7 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Add</string>
+             <string>Add</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -212,7 +167,7 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Subtract</string>
+             <string>Subtract</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -221,7 +176,7 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Add layer</string>
+             <string>Add layer</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -230,7 +185,7 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Sub layer</string>
+             <string>Sub layer</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -239,7 +194,7 @@ QComboBox:!editable {
            </item>
            <item>
             <property name="text">
-             <string notr="true">Opacity</string>
+             <string>Opacity</string>
             </property>
             <property name="icon">
              <iconset resource="../images.qrc">
@@ -252,13 +207,13 @@ QComboBox:!editable {
           <widget class="QToolButton" name="blendingCustomButton">
            <property name="minimumSize">
             <size>
-             <width>8</width>
-             <height>8</height>
+             <width>24</width>
+             <height>20</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>16777215</width>
+             <width>24</width>
              <height>40</height>
             </size>
            </property>
@@ -266,7 +221,10 @@ QComboBox:!editable {
             <string>Customize blending</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolButton {  border: 1px solid transparent;    border-radius:5px;   background: transparent;} QToolButton:pressed { background: palette(midlight); } QToolButton:hover { border-color:  palette(highlight); }</string>
+            <string notr="true">QToolButton {
+     min-width: 20px;
+     max-width: 20px;
+}</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -304,26 +262,6 @@ QComboBox:!editable {
            <property name="statusTip">
             <string>Base color \n(tint of the source)</string>
            </property>
-           <property name="styleSheet">
-            <string notr="true">QPushButton{
-     border-width: 1px;
-     border-style: solid;
-     border-color: palette(button);
-     background-color: palette(window);
-     border-radius: 5px;
-}
-QPushButton:disabled{
-     background-color: palette(window);
-}
-QPushButton:pressed { 
-     border-width: 1px;
-     border-style: inset;
-     border-color: palette(dark);
-}
-QPushButton:hover { 
-     border-color: palette(highlight);
-}</string>
-           </property>
            <property name="flat">
             <bool>false</bool>
            </property>
@@ -333,8 +271,8 @@ QPushButton:hover {
           <widget class="QToolButton" name="blendingPixelatedButton">
            <property name="minimumSize">
             <size>
-             <width>42</width>
-             <height>42</height>
+             <width>20</width>
+             <height>20</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -351,7 +289,14 @@ QPushButton:hover {
             <string>Smoothed / Pixelated \n(smooth between pixels or show square pixels)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolButton {  border: 1px solid transparent;  background: transparent; width: 40px; height: 40px;} QToolButton:pressed { background: palette(midlight); } QToolButton:hover { border-color:  palette(highlight); } QToolButton:checked { border: 1px solid transparent;  }</string>
+            <string notr="true">QToolButton:checked {    
+     border-color: transparent;
+     background: transparent;
+}
+
+QToolButton:checked:hover {
+    border-color: palette(highlight);
+}</string>
            </property>
            <property name="icon">
             <iconset resource="../images.qrc">
@@ -385,32 +330,6 @@ QPushButton:hover {
          <property name="toolTip">
           <string>Layer mask 
 (smooth blending following an alpha mask)</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QListWidget{ 
-	font-size: 11px;
- }
-QListWidget::item{     
-   color: palette(text);
- }
-QListWidget::item:hover {     
-    background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.2, stop: 0 palette(AlternateBase), stop: 1 transparent );
-	 color: palette(bright-text);
- }
-QListWidget::item:selected {
-     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
-	 color: palette(highlighted-text);
- }
-QListWidget::item:selected:hover {
-     background-color: palette(highlight);
- }
-QListWidget::item:focus {
-     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
-	 color: palette( highlighted-text);
- }
-QListWidget::item:focus:hover {
-     background-color: palette(highlight);
- }</string>
          </property>
          <property name="verticalScrollBarPolicy">
           <enum>Qt::ScrollBarAsNeeded</enum>
@@ -482,9 +401,6 @@ QListWidget::item:focus:hover {
        <string notr="true"/>
       </attribute>
       <layout class="QVBoxLayout" name="gammaContentsLayout">
-       <property name="spacing">
-        <number>6</number>
-       </property>
        <property name="leftMargin">
         <number>6</number>
        </property>
@@ -498,17 +414,35 @@ QListWidget::item:focus:hover {
         <number>6</number>
        </property>
        <item>
-        <widget class="QLabel" name="label_2">
-         <property name="styleSheet">
-          <string notr="true">font: bold;</string>
-         </property>
-         <property name="text">
-          <string>Gamma adjustment</string>
-         </property>
-         <property name="margin">
-          <number>2</number>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="styleSheet">
+            <string notr="true">font: bold;</string>
+           </property>
+           <property name="text">
+            <string>Gamma adjustment</string>
+           </property>
+           <property name="margin">
+            <number>2</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="resetGamma">
+           <property name="toolTip">
+            <string>Clear all</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
@@ -534,17 +468,35 @@ QListWidget::item:focus:hover {
         <number>6</number>
        </property>
        <item>
-        <widget class="QLabel" name="label_3">
-         <property name="styleSheet">
-          <string notr="true">font: bold;</string>
-         </property>
-         <property name="text">
-          <string>Color manipulation</string>
-         </property>
-         <property name="margin">
-          <number>2</number>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="styleSheet">
+            <string notr="true">font: bold;</string>
+           </property>
+           <property name="text">
+            <string>Color manipulation</string>
+           </property>
+           <property name="margin">
+            <number>2</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="resetColor">
+           <property name="toolTip">
+            <string>Clear all</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
@@ -560,16 +512,25 @@ QListWidget::item:focus:hover {
            <height>32</height>
           </size>
          </property>
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>6</number>
          </property>
          <widget class="QWidget" name="pageSaturation">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QToolButton" name="saturationReset">
@@ -577,13 +538,7 @@ QListWidget::item:focus:hover {
               <string>Reset saturation</string>
              </property>
              <property name="styleSheet">
-              <string notr="true">QToolButton {
-border:1px
-}
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}</string>
+              <string notr="true"/>
              </property>
              <property name="text">
               <string>Reset</string>
@@ -618,19 +573,8 @@ QToolButton:hover {
            </item>
            <item>
             <widget class="QSpinBox" name="saturationBox">
-             <property name="styleSheet">
-              <string notr="true">QSpinBox {
-	Background-color: transparent;
-     border-color: transparent;
-     border-width: 1px;
-	border-style: solid;
-    border-radius:5px;
-}
-
-QSpinBox:hover{
-	Background-color: palette(Light);
-     border-color: palette(Dark);
-}</string>
+             <property name="toolTip">
+              <string>Enter value</string>
              </property>
              <property name="frame">
               <bool>false</bool>
@@ -662,11 +606,17 @@ QSpinBox:hover{
          </widget>
          <widget class="QWidget" name="pageBrightness">
           <layout class="QHBoxLayout" name="horizontalLayoutBrightness">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QToolButton" name="brightnessReset">
@@ -674,9 +624,7 @@ QSpinBox:hover{
               <string>Reset brightness</string>
              </property>
              <property name="styleSheet">
-              <string notr="true">QToolButton {
-border:0px
-}</string>
+              <string notr="true"/>
              </property>
              <property name="text">
               <string>Reset</string>
@@ -711,19 +659,8 @@ border:0px
            </item>
            <item>
             <widget class="QSpinBox" name="brightnessBox">
-             <property name="styleSheet">
-              <string notr="true">QSpinBox {
-	Background-color: transparent;
-     border-color: transparent;
-     border-width: 1px;
-	border-style: solid;
-    border-radius:5px;
-}
-
-QSpinBox:hover{
-	Background-color: palette(Light);
-     border-color: palette(Dark);
-}</string>
+             <property name="toolTip">
+              <string>Enter value</string>
              </property>
              <property name="frame">
               <bool>false</bool>
@@ -755,21 +692,22 @@ QSpinBox:hover{
          </widget>
          <widget class="QWidget" name="pageContrast">
           <layout class="QHBoxLayout" name="horizontalLayoutcontrast">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QToolButton" name="contrastReset">
              <property name="toolTip">
               <string>Reset contrast</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QToolButton {
-border:0px
-}</string>
              </property>
              <property name="text">
               <string>Reset</string>
@@ -805,24 +743,10 @@ border:0px
            <item>
             <widget class="QSpinBox" name="contrastBox">
              <property name="toolTip">
-              <string>Adjust contrast</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QSpinBox {
-	Background-color: transparent;
-     border-color: transparent;
-     border-width: 1px;
-	border-style: solid;
-    border-radius:5px;
-}
-
-QSpinBox:hover{
-	Background-color: palette(Light);
-     border-color: palette(Dark);
-}</string>
+              <string>Enter value</string>
              </property>
              <property name="frame">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -851,21 +775,22 @@ QSpinBox:hover{
          </widget>
          <widget class="QWidget" name="pageHue">
           <layout class="QHBoxLayout" name="horizontalLayoutHue">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QToolButton" name="hueReset">
              <property name="toolTip">
               <string>Reset hue shift</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QToolButton {
-border:0px
-}</string>
              </property>
              <property name="text">
               <string>Reset</string>
@@ -901,21 +826,7 @@ border:0px
            <item>
             <widget class="QSpinBox" name="hueBox">
              <property name="toolTip">
-              <string>Adjust color hue</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QSpinBox {
-	Background-color: transparent;
-     border-color: transparent;
-     border-width: 1px;
-	border-style: solid;
-    border-radius:5px;
-}
-
-QSpinBox:hover{
-	Background-color: palette(Light);
-     border-color: palette(Dark);
-}</string>
+              <string>Enter value</string>
              </property>
              <property name="frame">
               <bool>false</bool>
@@ -947,21 +858,22 @@ QSpinBox:hover{
          </widget>
          <widget class="QWidget" name="pageThreshold">
           <layout class="QHBoxLayout" name="horizontalLayoutThreshold">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QToolButton" name="thresholdReset">
              <property name="toolTip">
               <string>Reset threshold</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QToolButton {
-border:0px
-}</string>
              </property>
              <property name="text">
               <string>Reset</string>
@@ -996,19 +908,8 @@ border:0px
            </item>
            <item>
             <widget class="QSpinBox" name="thresholdBox">
-             <property name="styleSheet">
-              <string notr="true">QSpinBox {
-	Background-color: transparent;
-     border-color: transparent;
-     border-width: 1px;
-	border-style: solid;
-    border-radius:5px;
-}
-
-QSpinBox:hover{
-	Background-color: palette(Light);
-     border-color: palette(Dark);
-}</string>
+             <property name="toolTip">
+              <string>Enter value</string>
              </property>
              <property name="frame">
               <bool>false</bool>
@@ -1040,21 +941,22 @@ QSpinBox:hover{
          </widget>
          <widget class="QWidget" name="pagePosterize">
           <layout class="QHBoxLayout" name="horizontalLayoutPosterize">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QToolButton" name="posterizeReset">
              <property name="toolTip">
               <string>Reset posterization</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QToolButton {
-border:0px
-}</string>
              </property>
              <property name="text">
               <string>Reset</string>
@@ -1098,19 +1000,8 @@ border:0px
            </item>
            <item>
             <widget class="QSpinBox" name="posterizeBox">
-             <property name="styleSheet">
-              <string notr="true">QSpinBox {
-	Background-color: transparent;
-     border-color: transparent;
-     border-width: 1px;
-	border-style: solid;
-    border-radius:5px;
-}
-
-QSpinBox:hover{
-	Background-color: palette(Light);
-     border-color: palette(Dark);
-}</string>
+             <property name="toolTip">
+              <string>Enter value</string>
              </property>
              <property name="frame">
               <bool>false</bool>
@@ -1145,11 +1036,17 @@ QSpinBox:hover{
          </widget>
          <widget class="QWidget" name="pageChromakey">
           <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QCheckBox" name="chromakeyEnable">
@@ -1171,12 +1068,6 @@ border:0px
              <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="toolTip">
               <string>Chromakeying color
 (color to remove)</string>
@@ -1185,23 +1076,9 @@ border:0px
               <string>Chromakeying color\n(color to remove)</string>
              </property>
              <property name="styleSheet">
-              <string notr="true">QPushButton{
-     border-width: 1px;
-     border-style: solid;
-     border-color: palette(button);
-     background-color: black;
-     border-radius: 5px;
-}
-QPushButton:disabled{
-     background-color: palette(window);
-}
-QPushButton:pressed { 
-     border-width: 1px;
-     border-style: inset;
-     border-color: palette(dark);
-}
-QPushButton:hover { 
-     border-color: palette(highlight);
+              <string notr="true">QToolButton {
+     min-width: 20px;
+     max-width: 20px;
 }</string>
              </property>
              <property name="flat">
@@ -1239,21 +1116,8 @@ QPushButton:hover {
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QSpinBox {
-	Background-color: transparent;
-     border-color: transparent;
-     border-width: 1px;
-	border-style: solid;
-    border-radius:5px;
-}
-QSpinBox:hover{
-	Background-color: palette(Light);
-     border-color: palette(Dark);
-}
-QSpinBox:disabled{
-	color: palette(Dark);
-}</string>
+             <property name="toolTip">
+              <string>Enter value</string>
              </property>
              <property name="frame">
               <bool>false</bool>
@@ -1285,21 +1149,22 @@ QSpinBox:disabled{
          </widget>
          <widget class="QWidget" name="pageInvert">
           <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
            <property name="topMargin">
-            <number>2</number>
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QToolButton" name="invertReset">
              <property name="toolTip">
               <string>Reset inversion mode</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QToolButton {
-border:0px
-}</string>
              </property>
              <property name="text">
               <string>Reset</string>
@@ -1329,48 +1194,6 @@ border:0px
              </property>
              <property name="statusTip">
               <string>Choose a color inversion mode</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QComboBox {
-     border: 1px solid palette(button);
-     border-radius: 3px;
-     padding: 1px 3px 1px 3px;
-     icon-size: 40px;
- }
-
-QComboBox:!editable {
-      background: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
- }
-
- QComboBox:!editable:on {
-     background: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.9, stop: 0 palette(dark), stop: 1 transparent );
- }
-
- QComboBox:on { /* shift the text when the popup opens */
-     padding-top: 3px;
-     padding-left: 4px;
- }
-
- QComboBox::drop-down {
-     subcontrol-origin: padding;
-     subcontrol-position: top right;
-     width: 15px;
-
-     border-left-width: 1px;
-     border-left-color: palette(dark);
-     border-left-style: solid; /* just a single line */
-     border-top-right-radius: 6px; /* same radius as the QComboBox */
-     border-bottom-right-radius: 6px;
- }
-
- QComboBox::down-arrow {
-     image: url(:/glmixer/icons/downarrow.png);
- }
-
- QComboBox::down-arrow:on { /* shift the arrow when popup is open */
-     top: 1px;
-     left: 1px;
- }</string>
              </property>
              <property name="currentIndex">
               <number>0</number>
@@ -1421,32 +1244,6 @@ QComboBox:!editable {
          </property>
          <property name="statusTip">
           <string>Adjust the color filters</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QListWidget{ 
-	font-size: 11px;
- }
-QListWidget::item{     
-   color: palette(text);
- }
-QListWidget::item:hover {     
-    background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.2, stop: 0 palette(AlternateBase), stop: 1 transparent );
-	 color: palette(bright-text);
- }
-QListWidget::item:selected {
-     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
-	 color: palette(highlighted-text);
- }
-QListWidget::item:selected:hover {
-     background-color: palette(highlight);
- }
-QListWidget::item:focus {
-     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
-	 color: palette( highlighted-text);
- }
-QListWidget::item:focus:hover {
-     background-color: palette(highlight);
- }</string>
          </property>
          <property name="verticalScrollBarPolicy">
           <enum>Qt::ScrollBarAsNeeded</enum>
@@ -1650,17 +1447,35 @@ QListWidget::item:focus:hover {
         <number>6</number>
        </property>
        <item>
-        <widget class="QLabel" name="label_4">
-         <property name="styleSheet">
-          <string notr="true">font: bold;</string>
-         </property>
-         <property name="text">
-          <string>Filter</string>
-         </property>
-         <property name="margin">
-          <number>2</number>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_10">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="styleSheet">
+            <string notr="true">font: bold;</string>
+           </property>
+           <property name="text">
+            <string>Filter</string>
+           </property>
+           <property name="margin">
+            <number>2</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="resetFilter">
+           <property name="toolTip">
+            <string>Clear all</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QListWidget" name="filterList">
@@ -1675,32 +1490,6 @@ QListWidget::item:focus:hover {
          </property>
          <property name="statusTip">
           <string>Imaging effects (convolution and morphological operators)</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QListWidget{ 
-	font-size: 11px;
- }
-QListWidget::item{     
-   color: palette(text);
- }
-QListWidget::item:hover {     
-    background-color: qradialgradient(cx: 0.7, cy: 1.5, fx: 0.7, fy: 1.9, radius: 1.2, stop: 0 palette(AlternateBase), stop: 1 transparent );
-	 color: palette(bright-text);
- }
-QListWidget::item:selected {
-     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
-	 color: palette(highlighted-text);
- }
-QListWidget::item:selected:hover {
-     background-color: palette(highlight);
- }
-QListWidget::item:focus {
-     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0,  stop: 0 palette(highlight), stop: 1 transparent );
-	 color: palette( highlighted-text);
- }
-QListWidget::item:focus:hover {
-     background-color: palette(highlight);
- }</string>
          </property>
          <property name="verticalScrollBarPolicy">
           <enum>Qt::ScrollBarAsNeeded</enum>
@@ -1996,17 +1785,35 @@ QListWidget::item:focus:hover {
         <number>6</number>
        </property>
        <item>
-        <widget class="QLabel" name="label_6">
-         <property name="styleSheet">
-          <string notr="true">font: bold;</string>
-         </property>
-         <property name="text">
-          <string>Presets</string>
-         </property>
-         <property name="margin">
-          <number>2</number>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_11">
+         <item>
+          <widget class="QLabel" name="label_6">
+           <property name="styleSheet">
+            <string notr="true">font: bold;</string>
+           </property>
+           <property name="text">
+            <string>Presets</string>
+           </property>
+           <property name="margin">
+            <number>2</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="resetPresets">
+           <property name="toolTip">
+            <string>Clear all</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
@@ -2017,9 +1824,6 @@ QListWidget::item:focus:hover {
            </property>
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply the preset to the current source&lt;/p&gt;&lt;p&gt;(or double clic on the list item)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QToolButton {  border: 1px solid transparent;    border-radius:5px;   background: transparent;} QToolButton:pressed { background: palette(midlight); } QToolButton:hover { border-color:  palette(highlight); }</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -2058,7 +1862,7 @@ QListWidget::item:focus:hover {
             <string>Create a new preset from the settings of the current source.</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolButton {  border: 1px solid transparent;    border-radius:5px;   background: transparent;} QToolButton:pressed { background: palette(midlight); } QToolButton:hover { border-color:  palette(highlight); }</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>...</string>
@@ -2083,9 +1887,6 @@ QListWidget::item:focus:hover {
            <property name="toolTip">
             <string>Update this preset with  the settings of the current source.</string>
            </property>
-           <property name="styleSheet">
-            <string notr="true">QToolButton {  border: 1px solid transparent;    border-radius:5px;   background: transparent;} QToolButton:pressed { background: palette(midlight); } QToolButton:hover { border-color:  palette(highlight); }</string>
-           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -2108,9 +1909,6 @@ QListWidget::item:focus:hover {
            </property>
            <property name="toolTip">
             <string>Remove this preset.</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QToolButton {  border: 1px solid transparent;    border-radius:5px;   background: transparent;} QToolButton:pressed { background: palette(midlight); } QToolButton:hover { border-color:  palette(highlight); }</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -2144,21 +1942,7 @@ QListWidget::item:focus:hover {
           <string notr="true">QToolTip {
 	font: 8pt &quot;Monospace, Courier&quot;;
 }
-QListWidget::item{     
-   color: palette(text);
- }
-QListWidget::item:hover {     
-     background-color: palette(mid);
-     color: palette(bright-text);
- }
-QListWidget::item:selected {
-    background-color: palette(Highlight);
-   color: palette(highlighted-text );
- }
-QListWidget::item:focus {
-    background-color: palette(Highlight);
-   color: palette(highlighted-text );
- }</string>
+</string>
          </property>
          <property name="editTriggers">
           <set>QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
@@ -2207,46 +1991,58 @@ QListWidget::item:focus {
         <number>6</number>
        </property>
        <item>
-        <widget class="QLabel" name="label_5">
-         <property name="styleSheet">
-          <string notr="true">font: bold;</string>
-         </property>
-         <property name="text">
-          <string>Plugins</string>
-         </property>
-         <property name="margin">
-          <number>2</number>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_12">
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="styleSheet">
+            <string notr="true">font: bold;</string>
+           </property>
+           <property name="text">
+            <string>Plugins</string>
+           </property>
+           <property name="margin">
+            <number>2</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="resetPlugins">
+           <property name="toolTip">
+            <string>Clear all</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../icons.qrc">
+             <normaloff>:/glmixer/icons/clean.png</normaloff>:/glmixer/icons/clean.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QWidget" name="widget" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="spacing">
+           <number>3</number>
+          </property>
           <property name="leftMargin">
            <number>0</number>
           </property>
           <property name="topMargin">
-           <number>0</number>
+           <number>2</number>
           </property>
           <property name="rightMargin">
            <number>0</number>
           </property>
           <property name="bottomMargin">
-           <number>0</number>
+           <number>2</number>
           </property>
           <item>
            <widget class="QToolButton" name="addPlugin">
-            <property name="minimumSize">
-             <size>
-              <width>8</width>
-              <height>8</height>
-             </size>
-            </property>
             <property name="toolTip">
              <string>Add a Freeframe plugin (shared library)</string>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QToolButton {  border: 1px solid transparent;    border-radius:5px;   background: transparent;} QToolButton:pressed { background: palette(midlight); } QToolButton:hover { border-color:  palette(highlight); }</string>
             </property>
             <property name="text">
              <string>...</string>
@@ -2265,17 +2061,8 @@ QListWidget::item:focus {
           </item>
           <item>
            <widget class="QToolButton" name="addShadertoyPlugin">
-            <property name="minimumSize">
-             <size>
-              <width>8</width>
-              <height>8</height>
-             </size>
-            </property>
             <property name="toolTip">
              <string>Add a Shadertoy plugin (GLSL code)</string>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QToolButton {  border: 1px solid transparent;    border-radius:5px;   background: transparent;} QToolButton:pressed { background: palette(midlight); } QToolButton:hover { border-color:  palette(highlight); }</string>
             </property>
             <property name="text">
              <string>...</string>
@@ -2302,8 +2089,8 @@ QListWidget::item:focus {
   </layout>
  </widget>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

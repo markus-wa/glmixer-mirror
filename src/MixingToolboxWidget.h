@@ -74,6 +74,14 @@ public slots:
     // Effects page
     void on_filterList_currentRowChanged(int);
 
+    // Clear All
+    void on_resetBlending_pressed();
+    void on_resetGamma_pressed();
+    void on_resetColor_pressed();
+    void on_resetFilter_pressed();
+    void on_resetPresets_pressed();
+    void on_resetPlugins_pressed();
+
 #ifdef FFGL
     // Plugin page
     void on_addPlugin_pressed();

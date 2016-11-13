@@ -175,8 +175,7 @@ border-bottom-right-radius: 0px;
 border-top-left-radius: 5px;
 border-bottom-left-radius: 5px;
 }
-
-F</string>
+</string>
          </property>
          <property name="maximum">
           <number>100</number>
@@ -711,8 +710,8 @@ QToolButton:hover {
            </property>
            <property name="minimumSize">
             <size>
-             <width>56</width>
-             <height>40</height>
+             <width>52</width>
+             <height>36</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -729,27 +728,8 @@ QToolButton:hover {
            </property>
            <property name="styleSheet">
             <string notr="true">QToolButton { 
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
      min-height: 32px;
      min-width: 48px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-	background: palette(midlight);
-}
-
-QToolButton:hover { 
-     border-color: palette(highlight);
 }
 </string>
            </property>
@@ -1263,64 +1243,6 @@ QToolButton:hover {
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QPushButton" name="markInButton">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="baseSize">
-                 <size>
-                  <width>60</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the begin to the current time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton { 
-     border-style: solid;
-     border-width: 1px;
-     border-radius:3px;
-	 padding: 3px;
-     border-color: transparent;
-     background: transparent;
-	 max-height: 16px;
-     min-height: 16px;
-	 font-size: 8pt;
-}
-
-QPushButton:pressed { 
-	background: palette(midlight);
-}
-
-QPushButton:hover { 
-     border-color: palette(highlight);
-}
-
-QPushButton:disabled { 
-     color: palette(button);
-}
-</string>
-                </property>
-                <property name="text">
-                 <string>Set begin</string>
-                </property>
-                <property name="icon">
-                 <iconset resource="../icons.qrc">
-                  <normaloff>:/glmixer/icons/media-in.png</normaloff>:/glmixer/icons/media-in.png</iconset>
-                </property>
-                <property name="shortcut">
-                 <string>I</string>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="1">
                <widget class="QToolButton" name="resetMarkInButton">
                 <property name="enabled">
@@ -1337,26 +1259,12 @@ QPushButton:disabled {
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton { 
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
-     border-color: transparent;
-     background: transparent;
+     border-radius: 3px;
 	max-height: 16px;
 	max-width: 16px;
      min-height: 16px;
      min-width: 16px;
 }
-
-QToolButton:pressed { 
-	background: palette(midlight);
-}
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}
-
 </string>
                 </property>
                 <property name="icon">
@@ -1387,29 +1295,13 @@ QToolButton:hover {
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QPushButton { 
-     border-style: solid;
-     border-width: 1px;
      border-radius:3px;
 	 padding: 3px;
-     border-color: transparent;
-     background: transparent;
-	font-size: 9pt;
-	max-height: 16px;
+	 max-height: 16px;
      min-height: 16px;
-	font-size: 8pt;
+	 font-size: 8pt;
 }
 
-QPushButton:pressed { 
-	background: palette(midlight);
-}
-
-QPushButton:hover { 
-     border-color: palette(highlight);
-}
-
-QPushButton:disabled { 
-     color: palette(button);
-}
 </string>
                 </property>
                 <property name="text">
@@ -1446,26 +1338,12 @@ QPushButton:disabled {
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton { 
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
-     border-color: transparent;
-     background: transparent;
+     border-radius:3px;
 	max-height: 16px;
 	max-width: 16px;
      min-height: 16px;
      min-width: 16px;
 }
-
-QToolButton:pressed { 
-	background: palette(midlight);
-}
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}
-
 </string>
                 </property>
                 <property name="icon">
@@ -1477,6 +1355,49 @@ QToolButton:hover {
                   <width>16</width>
                   <height>16</height>
                  </size>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="markInButton">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="baseSize">
+                 <size>
+                  <width>60</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the begin to the current time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">QPushButton { 
+     border-radius:3px;
+	 padding: 3px;
+	 max-height: 16px;
+     min-height: 16px;
+	 font-size: 8pt;
+}
+
+</string>
+                </property>
+                <property name="text">
+                 <string>Set begin</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="../icons.qrc">
+                  <normaloff>:/glmixer/icons/media-in.png</normaloff>:/glmixer/icons/media-in.png</iconset>
+                </property>
+                <property name="shortcut">
+                 <string>I</string>
                 </property>
                </widget>
               </item>
@@ -1752,11 +1673,6 @@ s</string>
      min-height: 64px;
      min-width: 16px;
 }
-
-QToolButton:pressed { 
-	background: palette(midlight);
-}
-
 </string>
            </property>
            <property name="text">
@@ -1922,32 +1838,11 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Configuration of the source currently highlighted (clic on a source icon to highlight it).</string>
    </property>
    <property name="styleSheet">
-    <string notr="true">QToolButton { 
-     border-style: solid;
-     border-width: 1px;
-     border-radius:3px;
-	 padding: 1px;
-     min-height: 6px;
-     min-width: 6px;
-     border-color: palette(midlight);;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-	background: palette(midlight);
-}
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}
-
-
-</string>
+    <string notr="true">QToolButton {
+     border-radius:2px;
+     min-height: 12px;
+     min-width: 12px;
+}</string>
    </property>
    <property name="floating">
     <bool>false</bool>
@@ -2227,32 +2122,6 @@ QToolButton:hover {
   <widget class="QToolBar" name="sourceToolBar">
    <property name="windowTitle">
     <string>Sources </string>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QToolButton { 
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-	background: palette(midlight);
-}
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}
-</string>
    </property>
    <property name="iconSize">
     <size>
@@ -3197,32 +3066,11 @@ QToolButton:hover {
    </property>
    <property name="styleSheet">
     <string notr="true">QToolButton { 
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
      min-height:16 px;
      min-width: 16 px;
      max-height:20 px;
      max-width: 20 px;
-     border-color: transparent;
-     background: transparent;
 }
-
-QToolButton:checked { 
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed { 
-	background: palette(midlight);
-}
-
-QToolButton:hover { 
-     border-color: palette(highlight);
-}
-
-
 </string>
    </property>
    <property name="windowTitle">

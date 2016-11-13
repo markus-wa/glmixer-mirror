@@ -38,7 +38,16 @@ QSplitter::handle {
    <property name="spacing">
     <number>0</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
@@ -262,22 +271,13 @@ border-color::disabled: black;</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QPushButton { 
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
-     border-color: transparent;
-     background: transparent;
-	width: 13px;
-	height: 13px;
-}
-QPushButton:pressed { 
-	background: palette(midlight);
-}
-QPushButton:hover { 
-     border-color: palette(highlight);
-}
-</string>
+	min-width: 13px;
+	min-height: 13px;
+	max-width: 13px;
+	max-height: 13px;
+     border-radius:2px;
+     padding: 2px;
+}</string>
        </property>
        <property name="text">
         <string/>

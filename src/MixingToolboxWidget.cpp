@@ -426,10 +426,10 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, int value)
 void MixingToolboxWidget::propertyChanged(QString propertyname, const QColor &c)
 {
     QString stylesheet =
-                QString("QPushButton{ border-width: 1px; border-style: solid; border-color: palette(button); "
-                        "background-color: rgb(%1, %2, %3); border-radius: 5px;}\nQPushButton:pressed { border-width: 1px; "
-                        "border-style: inset; border-color: palette(dark);}\n\nQPushButton:hover { border-color: palette(highlight);}\n"
-                        "QPushButton:disabled{ background-color: palette(window);}").arg(c.red()).arg(c.green()).arg(c.blue());
+                QString("QPushButton{ border-width: 1px; border-style: solid; border-color: palette(midlight); padding: 1px; "
+                        "background-color: rgb(%1, %2, %3); border-radius: 5px;}\nQPushButton:pressed { "
+                        "border-color: palette(dark);}\n\nQPushButton:hover { border-color: palette(highlight);}\n"
+                        "QPushButton:disabled{ background-color: transparent;}").arg(c.red()).arg(c.green()).arg(c.blue());
 
     if (propertyname == "Color")
         blendingColorButton->setStyleSheet(stylesheet);
@@ -466,16 +466,19 @@ void MixingToolboxWidget::on_blendingPixelatedButton_toggled(bool value){
 
 void MixingToolboxWidget::on_blendingColorButton_pressed() {
 
+    QColor color(Qt::white);
     if (source) {
-        QColor color;
-        if (GLMixer::getInstance()->useSystemDialogs())
-            color = QColorDialog::getColor(source->getColor(), this);
-        else
-            color = QColorDialog::getColor(source->getColor(), this, "Select Color", QColorDialog::DontUseNativeDialog);
-
-        if (color.isValid())
-            emit( valueChanged("Color", color));
+        color = source->getColor();
     }
+
+    if (GLMixer::getInstance()->useSystemDialogs())
+        color = QColorDialog::getColor(color, this);
+    else
+        color = QColorDialog::getColor(color, this, "Select Color", QColorDialog::DontUseNativeDialog);
+
+    if (color.isValid())
+        emit( valueChanged("Color", color));
+
 }
 
 void MixingToolboxWidget::on_EffectsInvertBox_currentIndexChanged(int value)
@@ -707,6 +710,55 @@ bool MixingToolboxWidget::restoreState(const QByteArray &state) {
 
     qDebug() << tr("Mixing presets restored (") << _userPresets.count() << QObject::tr(" user presets)");
     return true;
+}
+
+
+void MixingToolboxWidget::on_resetBlending_pressed()
+{
+    blendingBox->setCurrentIndex(5);
+    blendingMaskList->setCurrentRow(0);;
+    blendingPixelatedButton->setChecked(false);
+    emit( valueChanged("Color", QColor(Qt::white)) );
+}
+
+void MixingToolboxWidget::on_resetGamma_pressed()
+{
+    gammaAdjust->on_resetButton_clicked();
+}
+
+void MixingToolboxWidget::on_resetColor_pressed()
+{
+    saturationReset->click();
+    brightnessReset->click();
+    contrastReset->click();
+    hueReset->click();
+    thresholdReset->click();
+    posterizeReset->click();
+    invertReset->click();
+    chromakeyEnable->setChecked(false);
+}
+
+void MixingToolboxWidget::on_resetFilter_pressed()
+{
+    filterList->setCurrentRow(0);
+}
+
+void MixingToolboxWidget::on_resetPresets_pressed()
+{
+    QMap<QListWidgetItem *, Source *>::iterator i = _userPresets.begin();
+    while ( i!= _userPresets.end()) {
+        // free source
+        delete i.value();
+        // remove item
+        delete i.key();
+        // remove element
+        i = _userPresets.erase(i);
+    }
+}
+
+void MixingToolboxWidget::on_resetPlugins_pressed()
+{
+    pluginBrowser->resetAll();
 }
 
 void MixingToolboxWidget::changed(){

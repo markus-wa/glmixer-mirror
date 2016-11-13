@@ -17,33 +17,6 @@
    <iconset resource="../icons.qrc">
     <normaloff>:/glmixer/icons/glmixer.png</normaloff>:/glmixer/icons/glmixer.png</iconset>
   </property>
-  <property name="styleSheet">
-   <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-         padding: 3px;
-     min-height: 24px;
-     min-width: 24px;
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked {
-     border-color: palette(dark);
-     background-color: qradialgradient(cx: 0.7, cy: 1.4, fx: 0.7, fy: 1.9, radius: 1.5, stop: 0 palette(dark), stop: 1 transparent );
-}
-
-QToolButton:pressed {
-        background: palette(midlight);
-}
-
-QToolButton:hover {
-     border-color: palette(highlight);
-}
-
-</string>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QSplitter" name="splitter">
@@ -201,6 +174,11 @@ QToolButton:hover {
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="styleSheet">
+              <string notr="true">QTextEdit {
+     border-width: 0px;
+}</string>
+             </property>
             </widget>
            </item>
           </layout>
@@ -227,6 +205,16 @@ QToolButton:hover {
            </property>
            <item>
             <widget class="QTextBrowser" name="textBrowser">
+             <property name="styleSheet">
+              <string notr="true">QTextEdit{
+     border-width: 0px;
+     color:palette(button-text);
+     background-color: transparent;
+}</string>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
              <property name="documentTitle">
               <string>Help shadertoy</string>
              </property>
@@ -521,6 +509,12 @@ p, li { white-space: pre-wrap; }
              <width>24</width>
              <height>24</height>
             </size>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="default">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
