@@ -22,7 +22,7 @@
 #include <memory.h>
 
 // Buffer used by the default implementation of getParameterDisplay
-static char s_DisplayValue[5];
+static char s_DisplayValue[6];
 
 
 ////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ char* CFreeFrameGLPlugin::GetParameterDisplay(unsigned int index)
         }
         else    if (pType == FF_TYPE_BOOLEAN)
         {
-            memset(s_DisplayValue, 0, 5);
+            memset(s_DisplayValue, 0, 6);
             if (m_pPlugin->GetBoolParameter(index))
                 sprintf(s_DisplayValue, "True");
             else
