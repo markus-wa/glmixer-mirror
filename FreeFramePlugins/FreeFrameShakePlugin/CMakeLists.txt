@@ -2,6 +2,10 @@
 cmake_minimum_required (VERSION 2.8)
 project (LIBFFGLSHAKE)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS -std=gnu++11)
+endif()
+
 if(WIN32)
   add_library(ffglShake SHARED FreeFrameShake.cpp)
 else(WIN32)
