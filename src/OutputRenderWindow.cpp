@@ -36,115 +36,115 @@
 OutputRenderWindow *OutputRenderWindow::_instance = 0;
 
 OutputRenderWidget::OutputRenderWidget(QWidget *parent, const QGLWidget * shareWidget, Qt::WindowFlags f) : glRenderWidget(parent, shareWidget, f),
-        useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true) {
+    useAspectRatio(true), useWindowAspectRatio(true), need_resize(true), output_active(true) {
 
-	rx = 0;
-	ry = 0;
-	rw = width();
-	rh = height();
-	
+    rx = 0;
+    ry = 0;
+    rw = width();
+    rh = height();
+
 }
 
 float OutputRenderWidget::getAspectRatio() const{
 
-	if (useAspectRatio)
-		return RenderingManager::getInstance()->getFrameBufferAspectRatio();
-	else
-		return aspectRatio;
+    if (useAspectRatio)
+        return RenderingManager::getInstance()->getFrameBufferAspectRatio();
+    else
+        return aspectRatio;
 }
 
 void OutputRenderWidget::initializeGL() {
 
-	glRenderWidget::initializeGL();
+    glRenderWidget::initializeGL();
 
-	// set antialiasing
-	setAntiAliasing(false);
+    // set antialiasing
+    setAntiAliasing(false);
 
     // Turn blending off
     glDisable(GL_BLEND);
 
 #ifdef Q_OS_MAC
-	setBackgroundColor(Qt::black);
+    setBackgroundColor(Qt::black);
 #else
-	setBackgroundColor(palette().color(QPalette::Window));
+    setBackgroundColor(palette().color(QPalette::Window));
 #endif
 
 }
 
 void OutputRenderWidget::resizeGL(int w, int h)
 {
-	if (w == 0 || h == 0) {
-		w = width();
-		h = height();
-	}
+    if (w == 0 || h == 0) {
+        w = width();
+        h = height();
+    }
 
-	// generic widget resize (also computes aspectRatio)
-	glRenderWidget::resizeGL(w, h);
+    // generic widget resize (also computes aspectRatio)
+    glRenderWidget::resizeGL(w, h);
 
-	if ( RenderingManager::blit_fbo_extension ) {
-		// respect the aspect ratio of the rendering manager
-		if ( useAspectRatio ) {
-			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
-			if (aspectRatio < renderingAspectRatio) {
-				int nh = (int)( float(w) / renderingAspectRatio);
-				rx = 0;
-				ry = (h - nh) / 2;
-				rw = w;
-				rh = (h + nh) / 2;
+    if ( RenderingManager::blit_fbo_extension ) {
+        // respect the aspect ratio of the rendering manager
+        if ( useAspectRatio ) {
+            float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
+            if (aspectRatio < renderingAspectRatio) {
+                int nh = (int)( float(w) / renderingAspectRatio);
+                rx = 0;
+                ry = (h - nh) / 2;
+                rw = w;
+                rh = (h + nh) / 2;
 
-			} else {
-				int nw = (int)( float(h) * renderingAspectRatio );
-				rx = (w - nw) / 2;
-				ry = 0;
-				rw = (w + nw) / 2;
-				rh = h;
-			}
-		}
-		// the option 'free aspect ratio' is on ; use the window dimensions
-		// (only valid for widget, not window)
-		else if ( useWindowAspectRatio ) {
-			float windowAspectRatio = OutputRenderWindow::getInstance()->aspectRatio;
-			if ( aspectRatio < windowAspectRatio) {
-				int nh = (int)( float(w) / windowAspectRatio);
-				rx = 0;
-				ry = (h - nh) / 2;
-				rw = w;
-				rh = (h + nh) / 2;
+            } else {
+                int nw = (int)( float(h) * renderingAspectRatio );
+                rx = (w - nw) / 2;
+                ry = 0;
+                rw = (w + nw) / 2;
+                rh = h;
+            }
+        }
+        // the option 'free aspect ratio' is on ; use the window dimensions
+        // (only valid for widget, not window)
+        else if ( useWindowAspectRatio ) {
+            float windowAspectRatio = OutputRenderWindow::getInstance()->aspectRatio;
+            if ( aspectRatio < windowAspectRatio) {
+                int nh = (int)( float(w) / windowAspectRatio);
+                rx = 0;
+                ry = (h - nh) / 2;
+                rw = w;
+                rh = (h + nh) / 2;
 
-			} else {
-				int nw = (int)( float(h) * windowAspectRatio );
-				rx = (w - nw) / 2;
-				ry = 0;
-				rw = (w + nw) / 2;
-				rh = h;
-			}
-		} else {
-			rx = 0;
-			ry = 0;
-			rw = w;
-			rh = h;
-		}
-	}
-	else
-	{
-		glLoadIdentity();
+            } else {
+                int nw = (int)( float(h) * windowAspectRatio );
+                rx = (w - nw) / 2;
+                ry = 0;
+                rw = (w + nw) / 2;
+                rh = h;
+            }
+        } else {
+            rx = 0;
+            ry = 0;
+            rw = w;
+            rh = h;
+        }
+    }
+    else
+    {
+        glLoadIdentity();
 
-		if (useAspectRatio) {
-			float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
-			if (aspectRatio < renderingAspectRatio)
-				glScalef(1.f, -aspectRatio / renderingAspectRatio, 1.f);
-			else
-				glScalef(renderingAspectRatio / aspectRatio, -1.f, 1.f);
-		} else if (useWindowAspectRatio) { // (only valid for widget, not window)
-			float windowAspectRatio = OutputRenderWindow::getInstance()->aspectRatio;
-			if (aspectRatio < windowAspectRatio)
-				glScalef(1.f, -aspectRatio / windowAspectRatio, 1.f);
-			else
-				glScalef(windowAspectRatio / aspectRatio, -1.f, 1.f);
-		} else {
-			glScalef(1.f, -1.0, 1.f);
-		}
-	}
+        if (useAspectRatio) {
+            float renderingAspectRatio = RenderingManager::getInstance()->getFrameBufferAspectRatio();
+            if (aspectRatio < renderingAspectRatio)
+                glScalef(1.f, -aspectRatio / renderingAspectRatio, 1.f);
+            else
+                glScalef(renderingAspectRatio / aspectRatio, -1.f, 1.f);
+        } else if (useWindowAspectRatio) { // (only valid for widget, not window)
+            float windowAspectRatio = OutputRenderWindow::getInstance()->aspectRatio;
+            if (aspectRatio < windowAspectRatio)
+                glScalef(1.f, -aspectRatio / windowAspectRatio, 1.f);
+            else
+                glScalef(windowAspectRatio / aspectRatio, -1.f, 1.f);
+        } else {
+            glScalef(1.f, -1.0, 1.f);
+        }
+    }
 
 
     need_resize = false;
@@ -155,13 +155,13 @@ void OutputRenderWindow::resizeGL(int w, int h)
 {
     OutputRenderWidget::resizeGL(w, h);
 
-	emit resized();
+    emit resized();
 }
 
 void OutputRenderWidget::useFreeAspectRatio(bool on)
 {
-	useAspectRatio = !on;
-	refresh();
+    useAspectRatio = !on;
+    refresh();
 }
 
 void OutputRenderWidget::refresh()
@@ -172,65 +172,65 @@ void OutputRenderWidget::refresh()
 
 void OutputRenderWidget::paintGL()
 {
-	glRenderWidget::paintGL();
+    glRenderWidget::paintGL();
 
     if (need_resize)
         resizeGL();
 
     // avoid drawing if not visible
     if (!isEnabled() || !isVisible() || !output_active)
-		return;
+        return;
 
     // use the accelerated GL_EXT_framebuffer_blit if available
     if ( RenderingManager::blit_fbo_extension )
-	{
-		// select fbo texture read target
-	    glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
+    {
+        // select fbo texture read target
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderingManager::getInstance()->getFrameBufferHandle());
 
-	    // select screen target
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        // select screen target
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(0, 0, RenderingManager::getInstance()->getFrameBufferWidth(), RenderingManager::getInstance()->getFrameBufferHeight(), rx, ry, rw, rh, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-	} else
-	// 	Draw quad with fbo texture in a more basic OpenGL way
-	{
-		// apply the texture of the frame buffer
-		glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+    } else
+        // 	Draw quad with fbo texture in a more basic OpenGL way
+    {
+        // apply the texture of the frame buffer
+        glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
 
-		// draw the polygon with texture
+        // draw the polygon with texture
         glCallList(ViewRenderWidget::quad_texured);
-	}
+    }
 
-	// draw the pause symbol on top
-	if (RenderingManager::getInstance()->isPaused() && !(windowFlags() & Qt::Window)){
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		gluOrtho2D(0.0, width(), 0.0, height());
+    // draw the pause symbol on top
+    if (RenderingManager::getInstance()->isPaused() && !(windowFlags() & Qt::Window)){
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        gluOrtho2D(0.0, width(), 0.0, height());
 
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
 
-		glDisable(GL_TEXTURE_2D);
-		qglColor(Qt::lightGray);
-		glRecti(15, height() - 5, 25, height() - 30);
-		glRecti(30, height() - 5, 40, height() - 30);
-		glEnable(GL_TEXTURE_2D);
+        glDisable(GL_TEXTURE_2D);
+        qglColor(Qt::lightGray);
+        glRecti(15, height() - 5, 25, height() - 30);
+        glRecti(30, height() - 5, 40, height() - 30);
+        glEnable(GL_TEXTURE_2D);
 
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-	}
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+    }
 }
 
 
 OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)RenderingManager::getRenderingWidget(), Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowSystemMenuHint  | Qt::WindowMinimizeButtonHint  )
 {
-	// this is not a windet, but a window
-	useWindowAspectRatio = false;
-	setCursor(Qt::BlankCursor);
+    // this is not a windet, but a window
+    useWindowAspectRatio = false;
+    setCursor(Qt::BlankCursor);
     fullscreenMonitorIndex = 0;
     setMinimumSize(160,120);
     // set initial geometry
@@ -242,12 +242,12 @@ OutputRenderWindow::OutputRenderWindow() : OutputRenderWidget(0, (QGLWidget *)Re
 
 OutputRenderWindow *OutputRenderWindow::getInstance() {
 
-	if (_instance == 0) {
-		_instance = new OutputRenderWindow;
-	    Q_CHECK_PTR(_instance);
-	}
+    if (_instance == 0) {
+        _instance = new OutputRenderWindow;
+        Q_CHECK_PTR(_instance);
+    }
 
-	return _instance;
+    return _instance;
 }
 
 void OutputRenderWindow::deleteInstance() {
@@ -260,13 +260,13 @@ void OutputRenderWindow::deleteInstance() {
 
 void OutputRenderWindow::initializeGL()
 {
-	glRenderWidget::initializeGL();
+    glRenderWidget::initializeGL();
 
-	// one little line for a big alpha blending problem !
-	// the modulation of alpha of the fbo texture should NOT take into
-	// account the alpha of this texture (not be transparent with the background)
+    // one little line for a big alpha blending problem !
+    // the modulation of alpha of the fbo texture should NOT take into
+    // account the alpha of this texture (not be transparent with the background)
     // although the polygon itself should be blended.
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
 
     // setup default background color to black
     glClearColor(0.0, 0.0, 0.0, 1.0f);
@@ -325,7 +325,7 @@ void OutputRenderWindow::mouseDoubleClickEvent(QMouseEvent *) {
 
     // toggle fullscreen / window on double clic
     if ( windowFlags().testFlag(Qt::Window) )
-		emit toggleFullscreen(! (windowState() & Qt::WindowFullScreen) 	);
+        emit toggleFullscreen(! (windowState() & Qt::WindowFullScreen) 	);
 
 }
 

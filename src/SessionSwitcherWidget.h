@@ -36,7 +36,7 @@ class SessionSwitcherWidget  : public QWidget {
     Q_OBJECT
 
 public:
-	SessionSwitcherWidget(QWidget *parent, QSettings *settings);
+    SessionSwitcherWidget(QWidget *parent, QSettings *settings);
     virtual ~SessionSwitcherWidget();
 
 public slots:
@@ -49,15 +49,15 @@ public slots:
     void startTransitionToSession(const QModelIndex & index);
     void startTransitionToNextSession();
     void startTransitionToPreviousSession();
-	// unblock the GUI suspended when loading new session
-	void unsuspend();
+    // unblock the GUI suspended when loading new session
+    void unsuspend();
     void selectSession(const QModelIndex & index);
 
     void setTransitionType(int t);
     void setTransitionMode(int m);
     void transitionSliderChanged(int t);
-	void resetTransitionSlider();
-	void setTransitionSourcePreview(Source *s);
+    void resetTransitionSlider();
+    void setTransitionSourcePreview(Source *s);
 
     void customizeTransition();
     void saveSettings();
@@ -72,7 +72,7 @@ public slots:
     void deleteSession();
 
 signals:
-	void sessionTriggered(QString);
+    void sessionTriggered(QString);
 
 private:
 
@@ -82,7 +82,7 @@ private:
     QTreeView *proxyView;
     QMutex folderModelAccesslock;
 
-	// folder toolbox
+    // folder toolbox
     QListWidget *createCurveIcons();
     QComboBox *folderHistory, *transitionSelection;
     QTabWidget *transitionTab;
@@ -95,7 +95,7 @@ private:
     standardAspectRatio allowedAspectRatio;
     QMenu menuFolderModel;
 
-    class SourceDisplayWidget *overlayPreview;
+    QLabel *overlayLabel;
     QLabel *currentSessionLabel, *nextSessionLabel;
     QString nextSession;
     bool nextSessionSelected, suspended;

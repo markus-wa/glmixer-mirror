@@ -156,7 +156,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     transitionSelection->addItem("Fade to custom color   -->");
     transitionSelection->addItem("Fade with last frame");
     transitionSelection->addItem("Fade with media file   -->");
-    transitionSelection->setToolTip("Select the transition type");
+    transitionSelection->setToolTip(tr("Select the transition type"));
     transitionSelection->setCurrentIndex(-1);
 
     /**
@@ -164,16 +164,18 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
      */
     transitionTab = new QTabWidget(this);
     transitionTab->setTabPosition(QTabWidget::East);
-    transitionTab->setToolTip("Choose how you control the transition");
+    transitionTab->setToolTip(tr("Choose how you control the transition"));
     transitionTab->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
 
     QLabel *transitionDurationLabel;
     transitionDuration = new QSpinBox(this);
     transitionDuration->setSingleStep(200);
+    transitionDuration->setMinimum(100);
     transitionDuration->setMaximum(5000);
     transitionDuration->setValue(1000);
     transitionDurationLabel = new QLabel(tr("&Duration (ms):"));
     transitionDurationLabel->setBuddy(transitionDuration);
+    transitionDuration->setToolTip(tr("How long is the transition (miliseconds)"));
 
     // create the curves into the transition easing curve selector
     easingCurvePicker = createCurveIcons();
@@ -182,6 +184,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     easingCurvePicker->setIconSize(m_iconSize);
     easingCurvePicker->setFixedHeight(m_iconSize.height()+26);
     easingCurvePicker->setCurrentRow(3);
+    easingCurvePicker->setToolTip(tr("How the transition is done through time."));
 
     transitionTab->addTab( new QWidget(), "Auto");
     g = new QGridLayout(this);
@@ -198,16 +201,19 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     currentSessionLabel->setText(tr("100%"));
     currentSessionLabel->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding);
     currentSessionLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignBottom);
-
-    overlayPreview = new SourceDisplayWidget(this);
-    overlayPreview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    overlayPreview->setMinimumSize(QSize(80, 60));
+    currentSessionLabel->setToolTip(tr("Percent of current session visible."));
 
     nextSessionLabel = new QLabel(this);
-    nextSessionLabel->setText(tr("None"));
+    nextSessionLabel->setText(tr("0%"));
     nextSessionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     nextSessionLabel->setAlignment(Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing);
-    nextSessionLabel->setStyleSheet("QLabel::disabled {\ncolor: rgb(128, 0, 0);\n}");
+    nextSessionLabel->setToolTip(tr("Percent of destination session visible."));
+
+    overlayLabel = new QLabel(this);
+    overlayLabel->setText(tr("Select destination."));
+    overlayLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    overlayLabel->setAlignment(Qt::AlignCenter);
+    overlayLabel->setToolTip(tr("Double clic on a session to activate destination."));
 
     transitionSlider = new QSlider(this);
     transitionSlider->setMinimum(-100);
@@ -217,12 +223,13 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     transitionSlider->setTickPosition(QSlider::TicksAbove);
     transitionSlider->setTickInterval(100);
     transitionSlider->setEnabled(false);
+    transitionSlider->setToolTip(tr("Slide to the right to open destination."));
 
     transitionTab->addTab( new QWidget(), "Manual");
     g = new QGridLayout(this);
     g->setContentsMargins(6, 6, 6, 6);
     g->addWidget(currentSessionLabel, 0, 0);
-    g->addWidget(overlayPreview, 0, 1);
+    g->addWidget(overlayLabel, 0, 1);
     g->addWidget(nextSessionLabel, 0, 2);
     g->addWidget(transitionSlider, 1, 0, 1, 3);
     transitionTab->widget(1)->setLayout(g);
@@ -246,13 +253,13 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyFolderModel->setSourceModel(folderModel);
 
     QToolButton *dirButton = new QToolButton(this);
-    dirButton->setToolTip("Add a folder to the list");
+    dirButton->setToolTip(tr("Add a folder to the list"));
     QIcon icon;
     icon.addFile(QString::fromUtf8(":/glmixer/icons/folderadd.png"), QSize(), QIcon::Normal, QIcon::Off);
     dirButton->setIcon(icon);
 
     QToolButton *dirDeleteButton = new QToolButton(this);
-    dirDeleteButton->setToolTip("Remove a folder from the list");
+    dirDeleteButton->setToolTip(tr("Remove a folder from the list"));
     QIcon icon2;
     icon2.addFile(QString::fromUtf8(":/glmixer/icons/fileclose.png"), QSize(), QIcon::Normal, QIcon::Off);
     dirDeleteButton->setIcon(icon2);
@@ -262,7 +269,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     customButton->setVisible(false);
 
     folderHistory = new QComboBox(this);
-    folderHistory->setToolTip("List of folders containing session files");
+    folderHistory->setToolTip(tr("List of folders containing session files"));
     folderHistory->setValidator(new folderValidator(this));
     folderHistory->setInsertPolicy (QComboBox::InsertAtTop);
     folderHistory->setMaxCount(MAX_RECENT_FOLDERS);
@@ -525,7 +532,8 @@ void SessionSwitcherWidget::selectSession(const QModelIndex & index)
     nextSessionLabel->setEnabled(true);
 
     // display that we can do transition to new selected session
-    nextSessionLabel->setText(QString("0% %1").arg(QFileInfo(nextSession).baseName()));
+    nextSessionLabel->setText(QString("0%"));
+    overlayLabel->setText(QString("Current destination is:\n'%1'").arg(QFileInfo(nextSession).baseName()));
 }
 
 void SessionSwitcherWidget::setTransitionType(int t)
@@ -600,7 +608,6 @@ void SessionSwitcherWidget::saveSettings()
     appSettings->setValue("transitionSelection", transitionSelection->currentIndex());
     appSettings->setValue("transitionDuration", transitionDuration->value());
     appSettings->setValue("transitionCurve", easingCurvePicker->currentRow());
-    appSettings->setValue("transitionTab", transitionTab->currentIndex());
 
     if (RenderingManager::getSessionSwitcher()) {
         QVariant variant = RenderingManager::getSessionSwitcher()->transitionColor();
@@ -646,12 +653,10 @@ void SessionSwitcherWidget::restoreSettings()
     transitionSelection->setCurrentIndex(appSettings->value("transitionSelection", "0").toInt());
     transitionDuration->setValue(appSettings->value("transitionDuration", "1000").toInt());
     easingCurvePicker->setCurrentRow(appSettings->value("transitionCurve", "3").toInt());
-    transitionTab->setCurrentIndex(appSettings->value("transitionTab", 0).toInt());
 
     connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(saveSettings()));
     connect(transitionDuration, SIGNAL(valueChanged(int)), this, SLOT(saveSettings()));
     connect(easingCurvePicker, SIGNAL(currentRowChanged (int)), this, SLOT(saveSettings()));
-    connect(transitionTab, SIGNAL(currentChanged(int)), this, SLOT(saveSettings()));
 }
 
 QListWidget *SessionSwitcherWidget::createCurveIcons()
@@ -740,11 +745,9 @@ void SessionSwitcherWidget::resetTransitionSlider()
     // clear the selection
     proxyView->clearSelection();
 
-    // ensure correct re-display
-    if (!nextSessionSelected) {
-        RenderingManager::getSessionSwitcher()->setTransitionType(RenderingManager::getSessionSwitcher()->getTransitionType());
-        nextSessionLabel->setText(QObject::tr("None"));
-    }
+    if(!nextSessionSelected)
+        overlayLabel->setText(tr("Select destination."));
+
 }
 
 void  SessionSwitcherWidget::setTransitionMode(int m)
@@ -757,9 +760,10 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
         // adjust slider to represent current transparency
         transitionSlider->setValue(RenderingManager::getSessionSwitcher()->overlay() * 100.f - (nextSessionSelected?0.f:100.f));
         // single clic to select next session
-        proxyView->setToolTip("Click on a session to choose target session");
+        proxyView->setToolTip("Double click on a session to choose target session");
         disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
         connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+
     }
     // mode is automatic
     else {
@@ -796,7 +800,7 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
     if ( nextSessionSelected ) {
 
         // display that we can do transition to new selected session
-        nextSessionLabel->setText(QString("%1% %2").arg(ABS(t)).arg(QFileInfo(nextSession).baseName()));
+        nextSessionLabel->setText(QString("%1%").arg(ABS(t)));
 
         // prevent coming back to previous
         if (t < 0) {
@@ -811,6 +815,10 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
                 // no target
                 transitionSlider->setValue(-100);
                 resetTransitionSlider();
+
+                // ensure correct re-display
+                RenderingManager::getSessionSwitcher()->setTransitionType(RenderingManager::getSessionSwitcher()->getTransitionType());
+                nextSessionLabel->setText(QString("0%"));
             }
 
 
@@ -824,8 +832,8 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
             // request to load session file
             emit sessionTriggered(nextSession);
 
-        } else if (t > -100 && RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_CUSTOM_MEDIA) {
-            overlayPreview->playSource(true);
+//        } else if (t > -100 && RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_CUSTOM_MEDIA) {
+//            overlayPreview->playSource(true);
         }
         // show percent of mixing
         currentSessionLabel->setText(QString("%1%").arg(ABS(t)));
@@ -836,7 +844,7 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
 void SessionSwitcherWidget::setTransitionSourcePreview(Source *s)
 {
     // set the overlay source
-    overlayPreview->setSource(s);
+//    overlayPreview->setSource(s);
 }
 
 void SessionSwitcherWidget::unsuspend()

@@ -32,18 +32,18 @@ class Source;
 
 class OutputRenderWidget: public glRenderWidget {
 
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	OutputRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
+    OutputRenderWidget(QWidget *parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
 
     virtual void initializeGL();
     virtual void paintGL();
     virtual void resizeGL(int w = 0, int h = 0);
 
-	float getAspectRatio() const;
-	inline bool freeAspectRatio() const { return !useAspectRatio; }
-	void useFreeAspectRatio(bool on);
+    float getAspectRatio() const;
+    inline bool freeAspectRatio() const { return !useAspectRatio; }
+    void useFreeAspectRatio(bool on);
     bool isActive() const { return output_active; }
 
 public slots:
@@ -53,19 +53,19 @@ public slots:
 
 protected:
     bool useAspectRatio, useWindowAspectRatio;
-	int rx, ry, rw, rh;
+    int rx, ry, rw, rh;
     bool need_resize;
     bool output_active;
 };
 
 class OutputRenderWindow : public OutputRenderWidget {
 
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	// get singleton instance
-	static OutputRenderWindow *getInstance();
-	static void deleteInstance();
+    // get singleton instance
+    static OutputRenderWindow *getInstance();
+    static void deleteInstance();
 
     int getFullScreenMonitor() { return fullscreenMonitorIndex; }
 
@@ -84,21 +84,21 @@ public:
     bool restoreState(const QByteArray &state);
 
 public slots:
-	void setFullScreen(bool on);
+    void setFullScreen(bool on);
     void setFullScreenMonitor(int index);
 
 signals:
-	void resized();
-	void keyRightPressed();
-	void keyLeftPressed();
-	void toggleFullscreen(bool);
+    void resized();
+    void keyRightPressed();
+    void keyLeftPressed();
+    void toggleFullscreen(bool);
 
-	/**
-	 * singleton mechanism
-	 */
+    /**
+     * singleton mechanism
+     */
 private:
-	OutputRenderWindow();
-	static OutputRenderWindow *_instance;
+    OutputRenderWindow();
+    static OutputRenderWindow *_instance;
     int fullscreenMonitorIndex;
     QRect windowGeometry;
     bool switching;

@@ -28,77 +28,77 @@
 
 #include <QColor>
 #include <QPropertyAnimation>
-
+#include <QDebug>
 class Source;
 
 class SessionSwitcher: public QObject {
 
-	Q_OBJECT
+    Q_OBJECT
     Q_PROPERTY(float overlay READ overlay WRITE setOverlay)
     Q_PROPERTY(float alpha READ alpha WRITE setAlpha)
 
-	friend class SessionSwitcherWidget;
+    friend class SessionSwitcherWidget;
 
 public:
-	SessionSwitcher(QObject *parent = 0);
-	virtual ~SessionSwitcher();
+    SessionSwitcher(QObject *parent = 0);
+    virtual ~SessionSwitcher();
 
-	void render();
+    void render();
 
-	void setAlpha(float a);
-	float alpha() const { return currentAlpha; }
-	void setOverlay(float a) { overlayAlpha = a; }
-	float overlay() const { return overlayAlpha; }
+    void setAlpha(float a);
+    float alpha() const { return currentAlpha; }
+    void setOverlay(float a) { overlayAlpha = a; qDebug()<<a;}
+    float overlay() const { return overlayAlpha; }
 
-	int transitionDuration() const;
-	int transitionCurve() const ;
-	bool transitionActive() const;
+    int transitionDuration() const;
+    int transitionCurve() const ;
+    bool transitionActive() const;
 
-	void setTransitionColor(QColor c) { customTransitionColor = c; }
-	QColor transitionColor() const { return customTransitionColor; }
+    void setTransitionColor(QColor c) { customTransitionColor = c; }
+    QColor transitionColor() const { return customTransitionColor; }
 
     void setTransitionMedia(QString filename, bool generatePowerOfTwoRequested = false);
-	QString transitionMedia() const ;
+    QString transitionMedia() const ;
 
-	typedef enum {
-		TRANSITION_NONE = 0,
-		TRANSITION_BACKGROUND = 1,
-		TRANSITION_CUSTOM_COLOR = 2,
-		TRANSITION_LAST_FRAME = 3,
-		TRANSITION_CUSTOM_MEDIA = 4
-	} transitionType;
-	void setTransitionType(transitionType t);
-	transitionType getTransitionType() const {return transition_type;}
+    typedef enum {
+        TRANSITION_NONE = 0,
+        TRANSITION_BACKGROUND = 1,
+        TRANSITION_CUSTOM_COLOR = 2,
+        TRANSITION_LAST_FRAME = 3,
+        TRANSITION_CUSTOM_MEDIA = 4
+    } transitionType;
+    void setTransitionType(transitionType t);
+    transitionType getTransitionType() const {return transition_type;}
 
 public slots:
-	// initiate the transition animation
-	void startTransition(bool sceneVisible, bool instanteneous = false);
-	// end the transition
-	void endTransition();
-	// choose the transition source (for custom transition types)
-	void setTransitionSource(Source *s = NULL);
-	// set the duration of fading
-	void setTransitionDuration(int ms);
-	// set the profile of fading
-	void setTransitionCurve(int curveType);
-	// instantaneous set transparency of overlay
-	void setTransparency(int alpha);
-	// alpha mask
-	void setAlpha(int a);
-	void smoothAlphaTransition(bool visible);
+    // initiate the transition animation
+    void startTransition(bool sceneVisible, bool instanteneous = false);
+    // end the transition
+    void endTransition();
+    // choose the transition source (for custom transition types)
+    void setTransitionSource(Source *s = NULL);
+    // set the duration of fading
+    void setTransitionDuration(int ms);
+    // set the profile of fading
+    void setTransitionCurve(int curveType);
+    // instantaneous set transparency of overlay
+    void setTransparency(int alpha);
+    // alpha mask
+    void setAlpha(int a);
+    void smoothAlphaTransition(bool visible);
 
 signals:
-	void animationFinished();
-	void transitionSourceChanged(Source *s);
-	void alphaChanged(int);
+    void animationFinished();
+    void transitionSourceChanged(Source *s);
+    void alphaChanged(int);
 
 private:
-	bool manual_mode;
-	int duration;
-	float currentAlpha, overlayAlpha;
-	QPropertyAnimation *alphaAnimation, *overlayAnimation;
-	Source *overlaySource;
-	transitionType transition_type;
+    bool manual_mode;
+    int duration;
+    float currentAlpha, overlayAlpha;
+    QPropertyAnimation *alphaAnimation, *overlayAnimation;
+    Source *overlaySource;
+    transitionType transition_type;
     QColor customTransitionColor;
     class VideoSource *customTransitionVideoSource;
 };
