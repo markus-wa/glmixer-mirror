@@ -206,7 +206,7 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
     overlayAnimation->setEndValue( sceneVisible ? 0.0 : 1.0 );
     // do not do "animationAlpha->start();" immediately ; there is a delay in rendering
     // so, we also delay a little the start of the transition to make sure it is fully applied
-    QTimer::singleShot(100, overlayAnimation, SLOT(start()));
+    QTimer::singleShot(60, overlayAnimation, SLOT(start()));
 
     RenderingManager::getRenderingWidget()->setFaded(!instanteneous);
 }
