@@ -59,6 +59,10 @@ QToolButton:checked {
     background-color: qradialgradient(cx: 0.5, cy: 0.75, fx: 0.5, fy: 1.25, radius: 0.8, stop: 0 palette(dark), stop: 1 transparent );
 }
 
+QToolButton:checked#startButton {
+    border-width: 2px;
+}
+
 QToolButton:pressed {
     background-color: palette(midlight);
 }

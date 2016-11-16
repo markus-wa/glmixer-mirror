@@ -387,6 +387,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     Q_CHECK_PTR(sfd);
     sfd->setOption(QFileDialog::DontUseNativeDialog, true);
     sfd->setFilter( QDir::AllEntries | QDir::NoDotAndDotDot);
+
     upd = new UserPreferencesDialog(this);
     Q_CHECK_PTR(upd);
 
@@ -2546,10 +2547,34 @@ void GLMixer::readSettings( QString pathtobin )
     if (settings.contains("VideoFileDialog")) {
         mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
         mfd->setDirectory( mfd->history().last() );
+        // Side Bar URLS
+        QSet<QUrl> urls = mfd->sidebarUrls().toSet();
+        urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MusicLocation));
+        QFileInfoList driv = QDir::drives();
+        while (!driv.isEmpty())
+             urls << QUrl::fromLocalFile(driv.takeFirst().absolutePath());
+        mfd->setSidebarUrls(urls.toList());
     }
     if (settings.contains("SessionFileDialog")) {
         sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
         sfd->setDirectory( sfd->history().last() );
+
+        // Side Bar URLS
+        QSet<QUrl> urls = sfd->sidebarUrls().toSet();
+        urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MusicLocation));
+        QFileInfoList driv = QDir::drives();
+        while (!driv.isEmpty())
+             urls << QUrl::fromLocalFile(driv.takeFirst().absolutePath());
+        sfd->setSidebarUrls(urls.toList());
+
     }
     if (settings.contains("logTextColumnWidth")) {
         logTexts->setColumnWidth(0, settings.value("logTextColumnWidth").toInt());
@@ -3194,7 +3219,7 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
         sfd->setWindowTitle(title);
         sfd->setNameFilter(filter);
         sfd->selectFile(" ");
-
+qDebug() << sfd->history();
         // open file or save file?
         // if a saving extension is provided, the dialog is in save file selection mode
         if (!saveExtention.isNull()) {

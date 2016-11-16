@@ -33,15 +33,19 @@ VideoFileDialog::VideoFileDialog( QWidget * parent, const QString & caption, con
 
     setFilter(tr(VIDEOFILE_DIALOG_FORMATS));
     setOption(QFileDialog::DontUseNativeDialog, true);
+    setOption(QFileDialog::DontUseCustomDirectoryIcons, true);
     setFilter(QDir::NoDotAndDotDot);
 
     QLayout *grid = layout();
+    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
     pv = new QCheckBox(QObject::tr("Preview"), this);
+    pv->setSizePolicy(sizePolicy);
     grid->addWidget(pv);
 
     preview = new VideoFileDialogPreview(this);
     preview->setEnabled(false);
+    preview->setSizePolicy(sizePolicy);
     grid->addWidget(preview);
 
     QObject::connect(pv, SIGNAL(toggled(bool)), this, SLOT(setPreviewVisible(bool)));
