@@ -136,6 +136,7 @@ void SessionSwitcher::setTransparency(int alpha)
 void SessionSwitcher::setTransitionMedia(QString filename)
 {
     customTransitionMedia = filename;
+    setTransitionType(TRANSITION_CUSTOM_MEDIA);
 }
 
 QString SessionSwitcher::transitionMedia() const

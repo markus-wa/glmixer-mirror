@@ -155,7 +155,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     transitionSelection->addItem("Fade to black");
     transitionSelection->addItem("Fade to custom color   -->");
     transitionSelection->addItem("Fade with last frame");
-    transitionSelection->addItem("Fade with media file   -->");
+    transitionSelection->addItem("Fade with image file   -->");
     transitionSelection->setToolTip(tr("Select the transition type"));
     transitionSelection->setCurrentIndex(-1);
 
@@ -556,11 +556,14 @@ void SessionSwitcherWidget::setTransitionType(int t)
 
     } else if ( tt == SessionSwitcher::TRANSITION_CUSTOM_MEDIA ) {
         customButton->setIcon(QIcon(QString::fromUtf8(":/glmixer/icons/folderopen.png")));
-
-        if ( !QFileInfo(RenderingManager::getSessionSwitcher()->transitionMedia()).exists() )
-            customButton->setStyleSheet("QToolButton { border: 1px solid red }");
         customButton->setVisible(true);
-        customButton->setToolTip("Choose media");
+
+        if ( !QFileInfo(RenderingManager::getSessionSwitcher()->transitionMedia()).exists() ) {
+            customButton->setStyleSheet("QToolButton { border: 1px solid red }");
+            customButton->setToolTip("Choose Image");
+        }
+        else
+            customButton->setToolTip(QString("%1").arg(RenderingManager::getSessionSwitcher()->transitionMedia()));
     } else
         customButton->setVisible(false);
 
@@ -586,6 +589,7 @@ void SessionSwitcherWidget::customizeTransition()
 
             RenderingManager::getSessionSwitcher()->setTransitionMedia(fileName);
             customButton->setStyleSheet("");
+            customButton->setToolTip(QString("%1").arg(RenderingManager::getSessionSwitcher()->transitionMedia()));
         }
         // no valid file name was given
         else {
@@ -837,13 +841,6 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
         // show percent of mixing
         currentSessionLabel->setText(QString("%1%").arg(ABS(t)));
     }
-}
-
-
-void SessionSwitcherWidget::setTransitionSourcePreview(Source *s)
-{
-    // set the overlay source
-//    overlayPreview->setSource(s);
 }
 
 void SessionSwitcherWidget::unsuspend()

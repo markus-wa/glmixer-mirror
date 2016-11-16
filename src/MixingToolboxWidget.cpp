@@ -359,15 +359,18 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
         setEnabled(true);
         source = *csi;
         propertyChanged("Color", source->getColor());
+        propertyChanged("Key Color", source->getChromaKeyColor());
 
 #ifdef FFGL
         pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
 #endif
-    } else {
+    }
+    else {
         setEnabled(false);
         presetsList->setCurrentItem(0);
         source = 0;
         propertyChanged("Color", palette().color(QPalette::Window));
+        propertyChanged("Key Color",  palette().color(QPalette::Window));
 #ifdef FFGL
         pluginBrowser->clear();
 #endif
@@ -425,16 +428,13 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, int value)
 
 void MixingToolboxWidget::propertyChanged(QString propertyname, const QColor &c)
 {
-    QString stylesheet =
-                QString("QPushButton{ border-width: 1px; border-style: solid; border-color: palette(midlight); padding: 1px; "
-                        "background-color: rgb(%1, %2, %3); border-radius: 5px;}\nQPushButton:pressed { "
-                        "border-color: palette(dark);}\n\nQPushButton:hover { border-color: palette(highlight);}\n"
-                        "QPushButton:disabled{ background-color: transparent;}").arg(c.red()).arg(c.green()).arg(c.blue());
+    QPixmap p = QPixmap(32, 32);
+    p.fill(c);
 
     if (propertyname == "Color")
-        blendingColorButton->setStyleSheet(stylesheet);
+        blendingColorButton->setIcon( QIcon(p) );
     else if (propertyname == "Key Color")
-        chromakeyColor->setStyleSheet(stylesheet);
+        chromakeyColor->setIcon( QIcon(p) );
 }
 
 void MixingToolboxWidget::on_blendingMaskList_currentRowChanged(int value)

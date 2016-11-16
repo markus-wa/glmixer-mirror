@@ -336,6 +336,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     delete actionHistoryDockWidget;
 #endif
 
+
 #ifdef SESSION_MANAGEMENT
     // Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);

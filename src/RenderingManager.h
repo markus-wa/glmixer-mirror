@@ -201,6 +201,7 @@ public:
      */
     QDomElement getConfiguration(QDomDocument &doc, QDir current = QDir());
     int addConfiguration(QDomElement xmlconfig, QDir current, QString version = XML_GLM_VERSION);
+
     inline Source *defaultSource() { return _defaultSource; }
     inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
     inline void setDefaultScalingMode(Source::scalingMode sm) { _scalingMode = sm; }

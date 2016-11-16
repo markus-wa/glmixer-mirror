@@ -57,7 +57,6 @@ public slots:
     void setTransitionMode(int m);
     void transitionSliderChanged(int t);
     void resetTransitionSlider();
-    void setTransitionSourcePreview(Source *s);
 
     void customizeTransition();
     void saveSettings();
