@@ -28,7 +28,8 @@
 
 #include <QColor>
 #include <QPropertyAnimation>
-#include <QDebug>
+#include <QImage>
+
 class Source;
 
 class SessionSwitcher: public QObject {
@@ -47,7 +48,7 @@ public:
 
     void setAlpha(float a);
     float alpha() const { return currentAlpha; }
-    void setOverlay(float a) { overlayAlpha = a; qDebug()<<a;}
+    void setOverlay(float a) { overlayAlpha = a; }
     float overlay() const { return overlayAlpha; }
 
     int transitionDuration() const;
@@ -57,7 +58,7 @@ public:
     void setTransitionColor(QColor c) { customTransitionColor = c; }
     QColor transitionColor() const { return customTransitionColor; }
 
-    void setTransitionMedia(QString filename, bool generatePowerOfTwoRequested = false);
+    void setTransitionMedia(QString filename);
     QString transitionMedia() const ;
 
     typedef enum {
@@ -75,8 +76,6 @@ public slots:
     void startTransition(bool sceneVisible, bool instanteneous = false);
     // end the transition
     void endTransition();
-    // choose the transition source (for custom transition types)
-    void setTransitionSource(Source *s = NULL);
     // set the duration of fading
     void setTransitionDuration(int ms);
     // set the profile of fading
@@ -89,7 +88,6 @@ public slots:
 
 signals:
     void animationFinished();
-    void transitionSourceChanged(Source *s);
     void alphaChanged(int);
 
 private:
@@ -97,10 +95,10 @@ private:
     int duration;
     float currentAlpha, overlayAlpha;
     QPropertyAnimation *alphaAnimation, *overlayAnimation;
-    Source *overlaySource;
     transitionType transition_type;
-    QColor customTransitionColor;
-    class VideoSource *customTransitionVideoSource;
+    QColor customTransitionColor, overlayColor;
+    QString customTransitionMedia;
+    QImage overlayMedia;
 };
 
 #endif /* SESSIONSWITCHER_H_ */

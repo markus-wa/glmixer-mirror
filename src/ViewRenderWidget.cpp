@@ -55,6 +55,7 @@ QMap<int, GLuint>  ViewRenderWidget::mask_textures;
 QMap<int, QPair<QString, QString> >  ViewRenderWidget::mask_description;
 GLuint ViewRenderWidget::fading = 0;
 GLuint ViewRenderWidget::stipplingMode = 100;
+GLuint ViewRenderWidget::black_texture = 0, ViewRenderWidget::white_texture = 0;
 
 GLubyte ViewRenderWidget::stippling[] = {
         // stippling fine
@@ -277,6 +278,10 @@ void ViewRenderWidget::initializeGL()
     glRenderWidget::initializeGL();
     setBackgroundColor(QColor(COLOR_BGROUND));
 
+    // useful textures
+    white_texture = bindTexture(QPixmap(white_xpm), GL_TEXTURE_2D);
+    black_texture = bindTexture(QPixmap(black_xpm), GL_TEXTURE_2D);
+
     // Create mask textures from predefined
     QMapIterator<int, QPair<QString, QString> > i(ViewRenderWidget::mask_description);
     while (i.hasNext()) {
@@ -284,7 +289,7 @@ void ViewRenderWidget::initializeGL()
         i.next();
         // create and store texture index
         if (i.value().second.isNull()) {
-            ViewRenderWidget::mask_textures[i.key()] = bindTexture(QPixmap(black_xpm), GL_TEXTURE_2D);
+            ViewRenderWidget::mask_textures[i.key()] = black_texture;
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         } else {
@@ -1390,7 +1395,6 @@ GLuint ViewRenderWidget::buildTexturedQuadList()
  **/
 GLuint ViewRenderWidget::buildLineList()
 {
-    GLuint texwhite = bindTexture(QPixmap(white_xpm), GL_TEXTURE_2D);
     GLuint texid = bindTexture(QPixmap(QString(":/glmixer/textures/shadow_corner.png")), GL_TEXTURE_2D );
     GLuint texid2 = bindTexture(QPixmap(QString(":/glmixer/textures/shadow_corner_selected.png")), GL_TEXTURE_2D);
 
@@ -1416,7 +1420,7 @@ GLuint ViewRenderWidget::buildLineList()
 
         glPopAttrib();
 
-        glBindTexture(GL_TEXTURE_2D,texwhite);
+        glBindTexture(GL_TEXTURE_2D, white_texture);
         glLineWidth(1.0);
       //  glColor4ub(COLOR_SOURCE, 180);
         glPushMatrix();
@@ -1441,7 +1445,7 @@ GLuint ViewRenderWidget::buildLineList()
 
         glPopAttrib();
 
-        glBindTexture(GL_TEXTURE_2D,texwhite);
+        glBindTexture(GL_TEXTURE_2D, white_texture);
         glLineWidth(3.0);
 //        glColor4ub(COLOR_SOURCE, 180);
         glPushMatrix();
@@ -1463,7 +1467,7 @@ GLuint ViewRenderWidget::buildLineList()
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
-        glBindTexture(GL_TEXTURE_2D,texwhite);
+        glBindTexture(GL_TEXTURE_2D, white_texture);
         glLineWidth(1.0);
 //        glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();
@@ -1492,7 +1496,7 @@ GLuint ViewRenderWidget::buildLineList()
         glDrawArrays(GL_QUADS, 0, 4);
         glPopMatrix();
 
-        glBindTexture(GL_TEXTURE_2D,texwhite);
+        glBindTexture(GL_TEXTURE_2D, white_texture);
         glLineWidth(3.0);
 //        glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();

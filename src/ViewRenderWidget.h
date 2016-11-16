@@ -48,29 +48,29 @@ class FuzzyCursor;
 
 class ViewRenderWidget: public glRenderWidget {
 
-	Q_OBJECT
+    Q_OBJECT
 
-	friend class RenderingManager;
-	friend class Source;
-	friend class RenderingView;
-	friend class MixerView;
-	friend class GeometryView;
-	friend class LayersView;
-	friend class CatalogView;
-	friend class OutputRenderWidget;
-	friend class SessionSwitcher;
-	friend class SourceDisplayWidget;
+    friend class RenderingManager;
+    friend class Source;
+    friend class RenderingView;
+    friend class MixerView;
+    friend class GeometryView;
+    friend class LayersView;
+    friend class CatalogView;
+    friend class OutputRenderWidget;
+    friend class SessionSwitcher;
+    friend class SourceDisplayWidget;
 
 public:
-	ViewRenderWidget();
-	virtual ~ViewRenderWidget();
+    ViewRenderWidget();
+    virtual ~ViewRenderWidget();
 
-	/**
-	 * QGLWidget implementation
-	 */
-	void paintGL();
-	void initializeGL();
-	void resizeGL(int w = 0, int h = 0);
+    /**
+     * QGLWidget implementation
+     */
+    void paintGL();
+    void initializeGL();
+    void resizeGL(int w = 0, int h = 0);
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent ( QMouseEvent * event );
@@ -88,56 +88,56 @@ public:
     void dragLeaveEvent(QDragLeaveEvent *event);
     void dropEvent(QDropEvent *event);
 
-	/**
-	 * CONTEXT MENUS
-	 */
-	typedef enum {
-		CONTEXT_MENU_VIEW,
-		CONTEXT_MENU_SOURCE,
-		CONTEXT_MENU_CATALOG,
-		CONTEXT_MENU_DROP
-	} ViewContextMenu;
-	void setViewContextMenu(QMenu *m) { viewMenu = m; }
+    /**
+     * CONTEXT MENUS
+     */
+    typedef enum {
+        CONTEXT_MENU_VIEW,
+        CONTEXT_MENU_SOURCE,
+        CONTEXT_MENU_CATALOG,
+        CONTEXT_MENU_DROP
+    } ViewContextMenu;
+    void setViewContextMenu(QMenu *m) { viewMenu = m; }
     QMenu *getViewContexMenu() const { return viewMenu; }
-	void setCatalogContextMenu(QMenu *m) { catalogMenu = m; }
-	void setSourceContextMenu(QMenu *m) { sourceMenu = m; }
-	void showContextMenu(ViewContextMenu m, const QPoint &);
+    void setCatalogContextMenu(QMenu *m) { catalogMenu = m; }
+    void setSourceContextMenu(QMenu *m) { sourceMenu = m; }
+    void showContextMenu(ViewContextMenu m, const QPoint &);
 
     /**
      * Specific methods
      */
     void displayFramerate();
-	float getFramerate() { return f_p_s_; }
+    float getFramerate() { return f_p_s_; }
     void setFramerateVisible(bool on);
     bool getFramerateVisible(){ return showFps_; }
-	void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
+    void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
     int catalogWidth();
 
-	/**
-	 * management of the manipulation views
+    /**
+     * management of the manipulation views
      */
     void setViewMode(View::viewMode mode);
-	View *getView() {return _currentView;}
+    View *getView() {return _currentView;}
 
-	typedef enum {MOUSE_ARROW = 0, MOUSE_HAND_OPEN, MOUSE_HAND_CLOSED, MOUSE_SCALE_F, MOUSE_SCALE_B, MOUSE_ROT_TOP_RIGHT, MOUSE_ROT_TOP_LEFT, MOUSE_ROT_BOTTOM_RIGHT, MOUSE_ROT_BOTTOM_LEFT, MOUSE_QUESTION, MOUSE_SIZEALL, MOUSE_HAND_INDEX} mouseCursor;
-	void setMouseCursor(mouseCursor c);
+    typedef enum {MOUSE_ARROW = 0, MOUSE_HAND_OPEN, MOUSE_HAND_CLOSED, MOUSE_SCALE_F, MOUSE_SCALE_B, MOUSE_ROT_TOP_RIGHT, MOUSE_ROT_TOP_LEFT, MOUSE_ROT_BOTTOM_RIGHT, MOUSE_ROT_BOTTOM_LEFT, MOUSE_QUESTION, MOUSE_SIZEALL, MOUSE_HAND_INDEX} mouseCursor;
+    void setMouseCursor(mouseCursor c);
 
-	typedef enum {TOOL_GRAB=0, TOOL_SCALE, TOOL_ROTATE, TOOL_CUT } toolMode;
-	void setToolMode(toolMode m);
-	toolMode getToolMode();
+    typedef enum {TOOL_GRAB=0, TOOL_SCALE, TOOL_ROTATE, TOOL_CUT } toolMode;
+    void setToolMode(toolMode m);
+    toolMode getToolMode();
 
-	typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_LINE, CURSOR_FUZZY} cursorMode;
-	void setCursorMode(cursorMode m);
-	cursorMode getCursorMode();
-	Cursor *getCursor(cursorMode m = CURSOR_NORMAL);
+    typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_LINE, CURSOR_FUZZY} cursorMode;
+    void setCursorMode(cursorMode m);
+    cursorMode getCursorMode();
+    Cursor *getCursor(cursorMode m = CURSOR_NORMAL);
 
-	/**
-	 * save and load configuration
-	 */
-	QDomElement getConfiguration(QDomDocument &doc);
-	void setConfiguration(QDomElement xmlconfig);
+    /**
+     * save and load configuration
+     */
+    QDomElement getConfiguration(QDomDocument &doc);
+    void setConfiguration(QDomElement xmlconfig);
 
-	static inline unsigned int getStipplingMode() { return stipplingMode; }
+    static inline unsigned int getStipplingMode() { return stipplingMode; }
     static inline void setStipplingMode(unsigned int m) { stipplingMode = CLAMP(m, 10, 100); }
 
     static inline bool filteringEnabled() { return !disableFiltering; }
@@ -152,13 +152,13 @@ public:
     void transformSelection(View::Transformation t, View::Axis a, View::Reference r);
 
 signals:
-	void sourceMixingModified();
-	void sourceGeometryModified();
-	void sourceLayerModified();
+    void sourceMixingModified();
+    void sourceGeometryModified();
+    void sourceLayerModified();
 
-	void sourceMixingDrop(double, double);
-	void sourceGeometryDrop(double, double);
-	void sourceLayerDrop(double);
+    void sourceMixingDrop(double, double);
+    void sourceGeometryDrop(double, double);
+    void sourceLayerDrop(double);
 
     void zoomPercentChanged(int);
 
@@ -167,22 +167,22 @@ public slots:
     void clearViews();
     void zoom(int percent);
     void zoomIn();
-	void zoomOut();
-	void zoomReset();
-	void zoomBestFit();
-	void zoomCurrentSource();
-	void refresh();
-	void showMessage(QString s);
-	void hideMessage();
-	void setCatalogVisible(bool on = false);
-	void setCatalogSizeSmall();
-	void setCatalogSizeMedium();
-	void setCatalogSizeLarge();
-	void setFaded(bool on) { faded = on; }
-	void setCursorEnabled(bool on);
+    void zoomOut();
+    void zoomReset();
+    void zoomBestFit();
+    void zoomCurrentSource();
+    void refresh();
+    void showMessage(QString s);
+    void hideMessage();
+    void setCatalogVisible(bool on = false);
+    void setCatalogSizeSmall();
+    void setCatalogSizeMedium();
+    void setCatalogSizeLarge();
+    void setFaded(bool on) { faded = on; }
+    void setCursorEnabled(bool on);
 
 public:
-	// Shading
+    // Shading
     static GLfloat coords[8];
     static GLfloat texc[8];
     static GLfloat maskc[8];
@@ -196,16 +196,17 @@ public:
     static void setupFilteringShaderProgram(QGLShaderProgram *program, QString glslfilename = QString());
 
 protected:
-	// all the display lists
-	static GLuint border_thin_shadow, border_large_shadow;
-	static GLuint border_thin, border_large, border_scale, border_tooloverlay;
-	static GLuint frame_selection, frame_screen, frame_screen_thin, frame_screen_mask;
-	static GLuint quad_texured, quad_window[2];
+    // all the display lists
+    static GLuint border_thin_shadow, border_large_shadow;
+    static GLuint border_thin, border_large, border_scale, border_tooloverlay;
+    static GLuint frame_selection, frame_screen, frame_screen_thin, frame_screen_mask;
+    static GLuint quad_texured, quad_window[2];
     static GLuint circle_mixing, circle_limbo, layerbg;
-	static GLuint fading;
-	static GLuint stipplingMode;
+    static GLuint fading;
+    static GLuint stipplingMode;
     static GLubyte stippling[];
     static GLuint vertex_array_coords;
+    static GLuint black_texture, white_texture;
 
     // shared mask textures
     static QMap<int, GLuint> mask_textures;
@@ -213,35 +214,35 @@ protected:
 
 private:
     // V i e w s
-	View *_currentView, *_renderView;
-	class MixerView *_mixingView;
-	class GeometryView *_geometryView;
-	class LayersView *_layersView;
-	class RenderingView *_renderingView;
-	class CatalogView *_catalogView;
-	bool faded;
+    View *_currentView, *_renderView;
+    class MixerView *_mixingView;
+    class GeometryView *_geometryView;
+    class LayersView *_layersView;
+    class RenderingView *_renderingView;
+    class CatalogView *_catalogView;
+    bool faded;
 
-	// C u r s o r s
-	Cursor *_currentCursor;
-	SpringCursor *_springCursor;
-	DelayCursor *_delayCursor;
-	AxisCursor *_axisCursor;
-	LineCursor *_lineCursor;
-	FuzzyCursor *_fuzzyCursor;
-	bool cursorEnabled;
+    // C u r s o r s
+    Cursor *_currentCursor;
+    SpringCursor *_springCursor;
+    DelayCursor *_delayCursor;
+    AxisCursor *_axisCursor;
+    LineCursor *_lineCursor;
+    FuzzyCursor *_fuzzyCursor;
+    bool cursorEnabled;
 
-	// M e s s a g e s
-	QLabel *messageLabel, *fpsLabel;
-	QTimer messageTimer;
-	QMenu *viewMenu, *catalogMenu, *sourceMenu;
+    // M e s s a g e s
+    QLabel *messageLabel, *fpsLabel;
+    QTimer messageTimer;
+    QMenu *viewMenu, *catalogMenu, *sourceMenu;
 
-	// F P S    d i s p l a y
+    // F P S    d i s p l a y
     QElapsedTimer fpsTime_;
-	unsigned int fpsCounter_;
-	float f_p_s_;
-	bool showFps_;
+    unsigned int fpsCounter_;
+    float f_p_s_;
+    bool showFps_;
 
-	// utility to build the display lists
+    // utility to build the display lists
     GLuint buildSelectList();
     GLuint buildLineList();
     GLuint buildTexturedQuadList();

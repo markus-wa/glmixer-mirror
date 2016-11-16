@@ -579,20 +579,19 @@ void SessionSwitcherWidget::customizeTransition()
     }
     else if (RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_CUSTOM_MEDIA ) {
 
-        bool generatePowerOfTwoRequested = false;
-        QStringList fileNames = GLMixer::getInstance()->getMediaFileNames(generatePowerOfTwoRequested);
+        QString fileName = GLMixer::getInstance()->getFileName(tr("Open Image"), tr("Image") + " (*.png *.jpg)");
 
         // media file dialog returns a list of filenames :
-        if (!fileNames.empty() && QFileInfo(fileNames.front()).exists()) {
+        if (QFileInfo(fileName).exists()) {
 
-            RenderingManager::getSessionSwitcher()->setTransitionMedia(fileNames.front(), generatePowerOfTwoRequested);
+            RenderingManager::getSessionSwitcher()->setTransitionMedia(fileName);
             customButton->setStyleSheet("");
         }
         // no valid file name was given
         else {
             // not a valid file ; show a warning only if the QFileDialog did not return null (cancel)
-            if (!fileNames.empty() && !fileNames.front().isNull())
-                qCritical() << fileNames.front() << QChar(124).toLatin1() << QObject::tr("File does not exist.");
+            if (!fileName.isNull())
+                qCritical() << fileName << QChar(124).toLatin1() << QObject::tr("File does not exist.");
             // if no valid oldfile neither; show icon in red
             if (RenderingManager::getSessionSwitcher()->transitionMedia().isEmpty())
                 customButton->setStyleSheet("QToolButton { border: 1px solid red }");

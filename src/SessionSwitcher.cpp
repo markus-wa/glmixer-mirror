@@ -35,8 +35,9 @@
 
 #include <QGLWidget>
 
-SessionSwitcher::SessionSwitcher(QObject *parent)  : QObject(parent), manual_mode(false), duration(1000), currentAlpha(0.0), overlayAlpha(0.0), overlaySource(0),
-transition_type(TRANSITION_NONE), customTransitionColor(QColor()), customTransitionVideoSource(0) {
+SessionSwitcher::SessionSwitcher(QObject *parent)  : QObject(parent), manual_mode(false), duration(1000), currentAlpha(0.0), overlayAlpha(0.0),
+transition_type(TRANSITION_NONE), customTransitionColor(Qt::black), overlayColor(Qt::black)
+{
 
     // alpha opacity mask
     alphaAnimation = new QPropertyAnimation(this, "alpha");
@@ -62,8 +63,6 @@ SessionSwitcher::~SessionSwitcher() {
         delete alphaAnimation;
     if (overlayAnimation)
         delete overlayAnimation;
-    if (overlaySource)
-        delete overlaySource;
 }
 
 void SessionSwitcher::render() {
@@ -79,17 +78,24 @@ void SessionSwitcher::render() {
     }
 
     // if we shall render the overlay, do it !
-    if ( overlayAlpha > 0.0 && overlaySource ) {
+    if ( overlayAlpha > 0.0 ) {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
-
-        glColor4f(overlaySource->getColor().redF(), overlaySource->getColor().greenF(), overlaySource->getColor().blueF(), overlayAlpha);
-
-        glActiveTexture(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
-        overlaySource->update();
-        overlaySource->bind();
-        glScaled( OutputRenderWindow::getInstance()->getAspectRatio() * overlaySource->getScaleX(), overlaySource->getScaleY(), 1.0);
+        glActiveTexture(GL_TEXTURE0);
+
+        glColor4f(overlayColor.redF(), overlayColor.greenF(), overlayColor.blueF(), overlayAlpha);
+
+        if (transition_type > TRANSITION_CUSTOM_COLOR) {
+//            if (overlayMedia.isNull())
+//                overlayMedia = RenderingManager::getInstance()->captureFrameBuffer().mirrored();
+            RenderingManager::getRenderingWidget()->bindTexture(overlayMedia);
+        }
+        else {
+            glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::white_texture);
+        }
+
+        glScaled( OutputRenderWindow::getInstance()->getAspectRatio() * SOURCE_UNIT, SOURCE_UNIT, 1.0);
         glCallList(ViewRenderWidget::quad_texured);
         glDisable(GL_TEXTURE_2D);
     }
@@ -115,7 +121,6 @@ int SessionSwitcher::transitionCurve() const
 void SessionSwitcher::setTransitionDuration(int ms)
 {
     duration = ms;
-
 }
 
 int SessionSwitcher::transitionDuration() const
@@ -128,97 +133,44 @@ void SessionSwitcher::setTransparency(int alpha)
     overlayAlpha = 1.f - ((float) alpha / 100.f);
 }
 
-
-void SessionSwitcher::setTransitionSource(Source *s)
+void SessionSwitcher::setTransitionMedia(QString filename)
 {
-    if (overlaySource) {
-        if (overlaySource == (Source*) customTransitionVideoSource)
-            customTransitionVideoSource->play(false);
-        else
-            delete overlaySource;
-    }
-
-    overlaySource = s;
-    emit transitionSourceChanged(overlaySource);
+    customTransitionMedia = filename;
 }
-
-
-void SessionSwitcher::setTransitionMedia(QString filename, bool generatePowerOfTwoRequested)
-{
-    if (customTransitionVideoSource)
-        delete customTransitionVideoSource;
-
-    customTransitionVideoSource = NULL;
-
-    VideoFile *newSourceVideoFile = NULL;
-    if ( !generatePowerOfTwoRequested && (glewIsSupported("GL_EXT_texture_non_power_of_two") || glewIsSupported("GL_ARB_texture_non_power_of_two") ) )
-        newSourceVideoFile = new VideoFile(this);
-    else
-        newSourceVideoFile = new VideoFile(this, true, SWS_POINT);
-
-    Q_CHECK_PTR(newSourceVideoFile);
-
-    if ( newSourceVideoFile->open( filename ) ) {
-        newSourceVideoFile->setOptionRestartToMarkIn(true);
-        newSourceVideoFile->setLoop(true);
-        // create new video source
-        customTransitionVideoSource = (VideoSource*) RenderingManager::getInstance()->newMediaSource(newSourceVideoFile);
-    } else {
-        qCritical() << filename << QChar(124).toLatin1()<< QObject::tr("Session file could not be loaded.");
-        delete newSourceVideoFile;
-    }
-
-    if (transition_type == TRANSITION_CUSTOM_MEDIA)
-        overlaySource = customTransitionVideoSource;
-
-    emit transitionSourceChanged(overlaySource);
-}
-
 
 QString SessionSwitcher::transitionMedia() const
 {
-    if ( customTransitionVideoSource ) {
-        VideoFile *vf = customTransitionVideoSource->getVideoFile();
-        if ( vf )
-            return vf->getFileName();
-    }
-
-    return QString();
+    return customTransitionMedia;
 }
-
 
 void SessionSwitcher::setTransitionType(transitionType t)
 {
-    qDebug() << "transition type changed";
     transition_type = t;
 
-    Source *s = NULL;
     switch (transition_type) {
-        case TRANSITION_CUSTOM_COLOR:
-            s =  RenderingManager::getInstance()->newAlgorithmSource(int(AlgorithmSource::FLAT), 2, 2, 0, 0, true) ;
-            s->setColor(customTransitionColor);
-            break;
-        case TRANSITION_BACKGROUND:
-            s =  RenderingManager::getInstance()->newAlgorithmSource(int(AlgorithmSource::FLAT), 2, 2, 0, 0, true) ;
-            s->setColor(QColor(Qt::black)); // TODO what if white background ?
-            break;
-        case TRANSITION_CUSTOM_MEDIA:
-            // did we load a transition source?
-            s = customTransitionVideoSource ? (Source *) customTransitionVideoSource : NULL;
-            break;
-        default:
-            s = NULL;
-            break;
+    case TRANSITION_CUSTOM_COLOR:
+        overlayColor = customTransitionColor;
+        break;
+    case TRANSITION_BACKGROUND:
+        overlayColor = QColor(Qt::black);
+        break;
+    case TRANSITION_CUSTOM_MEDIA:
+        overlayColor = QColor(Qt::white);
+        overlayMedia = QImage(customTransitionMedia).mirrored();
+        break;
+    case TRANSITION_LAST_FRAME:
+        overlayColor = QColor(Qt::white);
+        overlayMedia = QImage();
+        break;
+    default:
+        overlayColor = QColor(Qt::black);
+        break;
     }
 
-    setTransitionSource(s);
 }
 
 void SessionSwitcher::endTransition()
 {
-    if (customTransitionVideoSource)
-        customTransitionVideoSource->play(false);
-
     RenderingManager::getRenderingWidget()->setFaded(false);
 }
 
@@ -229,27 +181,19 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
         overlayAnimation->stop();
 
     switch (transition_type) {
-        case TRANSITION_LAST_FRAME:
-            // special case ; don't behave identically for fade in than fade out
-            if (sceneVisible)
-                break;
-            else {
-                // capture screen and use it immediately as transition source
-                QImage capture = RenderingManager::getInstance()->captureFrameBuffer();
-                capture = capture.convertToFormat(QImage::Format_RGB32);
-                setTransitionSource( RenderingManager::getInstance()->newCaptureSource(capture) );
-                // no break
-            }
-        case TRANSITION_NONE:
+    case TRANSITION_LAST_FRAME:
+        // special case ; don't behave identically for fade in than fade out
+        if (!sceneVisible) {
+            // capture screen and use it immediately as transition image
+            overlayMedia = RenderingManager::getInstance()->captureFrameBuffer().mirrored();
             instanteneous = true;
-            break;
-        case TRANSITION_CUSTOM_MEDIA:
-            // did we load a transition source?
-            if (customTransitionVideoSource)
-                customTransitionVideoSource->play(true);
-            break;
-        default:
-            break;
+        }
+        break;
+    case TRANSITION_NONE:
+        instanteneous = true;
+        break;
+    default:
+        break;
     }
 
     if (manual_mode) {
@@ -265,7 +209,6 @@ void SessionSwitcher::startTransition(bool sceneVisible, bool instanteneous){
     QTimer::singleShot(100, overlayAnimation, SLOT(start()));
 
     RenderingManager::getRenderingWidget()->setFaded(!instanteneous);
-
 }
 
 
