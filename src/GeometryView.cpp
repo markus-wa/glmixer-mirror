@@ -315,11 +315,7 @@ bool GeometryView::mousePressEvent(QMouseEvent *event)
 
         // SELECT MODE : add/remove from selection
         if ( isUserInput(event, INPUT_SELECT) ) {
-            // add remove the clicked source from the selection
-            if ( SelectionManager::getInstance()->isInSelection(clickedSource) )
-                SelectionManager::getInstance()->deselect(clickedSource);
-            else
-                SelectionManager::getInstance()->select(clickedSource);
+            SelectionManager::getInstance()->select(clickedSource);
             // set selection as current
             setCurrentSource(SelectionManager::getInstance()->selectionSource());
         }

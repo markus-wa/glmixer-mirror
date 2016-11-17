@@ -51,15 +51,15 @@ public:
         presetsSizeComboBox = new QComboBox(sizeGroupBox);
         int w = img.width();
         double ar = (double) img.height() / (double) img.width();
-        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)));
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2 (original)").arg(w).arg((int)((double) w * ar)));
         w = (int) ( (double) img.width() * 0.8 );
-        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)), QVariant(w));
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2 (80%)").arg(w).arg((int)((double) w * ar)), QVariant(w));
         w = (int) ( (double) img.width() * 0.6 );
-        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)), QVariant(w));
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2 (60%)").arg(w).arg((int)((double) w * ar)), QVariant(w));
         w = (int) ( (double) img.width() * 0.4 );
-        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)), QVariant(w));
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2 (40%)").arg(w).arg((int)((double) w * ar)), QVariant(w));
         w = (int) ( (double) img.width() * 0.2 );
-        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2").arg(w).arg((int)((double) w * ar)), QVariant(w));
+        presetsSizeComboBox->addItem(QString::fromUtf8("%1 x %2 (20%)").arg(w).arg((int)((double) w * ar)), QVariant(w));
         horizontalLayout->addWidget(presetsSizeComboBox);
 
         DecisionButtonBox = new QDialogButtonBox(this);

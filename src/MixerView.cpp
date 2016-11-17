@@ -379,11 +379,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
 
         // SELECT MODE : add/remove from selection
         if ( isUserInput(event, View::INPUT_SELECT) ) {
-
-                if ( SelectionManager::getInstance()->isInSelection(clicked) )
-                    SelectionManager::getInstance()->deselect(clicked);
-                else
-                    SelectionManager::getInstance()->select(clicked);
+            SelectionManager::getInstance()->select(clicked);
         }
         // not in (INPUT_SELECT) action mode,
         else {

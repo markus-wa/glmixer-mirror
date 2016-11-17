@@ -394,13 +394,6 @@ bool LayersView::mousePressEvent ( QMouseEvent *event )
             if ( isUserInput(event, INPUT_TOOL) || isUserInput(event, INPUT_TOOL_INDIVIDUAL)) {
                 // ready for grabbing the current source
                 if ( clicked->isModifiable() ){
-//                    // put this source in the forward list
-//					bringForward(clicked);
-
-//                    picking_map_width = MAXDISPLACEMENT + clicked->getAspectRatio() +  OutputRenderWindow::getInstance()->getAspectRatio();
-//                    picking_map_needsupdate = true;
-//                    picking_grab_depth = unProjectDepth(event->x(), viewport[3] - event->y());
-
                     // ready for grabbing the current source
                     setAction(View::GRAB);
                 }
