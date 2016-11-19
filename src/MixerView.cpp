@@ -213,26 +213,25 @@ void MixerView::paint()
     glLineStipple(1, 0xFC00);
     glLineWidth(2.0);
     glPointSize(15);
-    for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-        for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
-           // use color of the group
-           glColor4f(groupColor[itss].redF(), groupColor[itss].greenF(),groupColor[itss].blueF(), 0.8);
-           for(SourceList::iterator  its1 = (*itss).begin(); its1 != (*itss).end(); its1++) {
-               // Connect to every source
-               glBegin(GL_LINES);
-               for(SourceList::iterator  its2 = its1; its2 != (*itss).end(); its2++) {
-                   glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
-                   glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
-               }
-               glEnd();
-               // dot to identifiy source in the group
-               glBegin(GL_POINTS);
-               glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
-               glEnd();
-           }
+    int c = 0;
+    for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++, c++) {
+        // use color of the group
+        glColor4f(groupColors[c].redF(), groupColors[c].greenF(),groupColors[c].blueF(), 0.8);
+        for(SourceList::iterator  its1 = (*itss).begin(); its1 != (*itss).end(); its1++) {
+            // Connect to every source
+            glBegin(GL_LINES);
+            for(SourceList::iterator  its2 = its1; its2 != (*itss).end(); its2++) {
+                glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
+                glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
+            }
+            glEnd();
+            // dot to identifiy source in the group
+            glBegin(GL_POINTS);
+            glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
+            glEnd();
         }
-
     }
+
     glDisable(GL_LINE_STIPPLE);
 
     // the source dropping icon
@@ -277,7 +276,7 @@ void MixerView::clear()
     View::clear();
 
     groupSources.clear();
-    groupColor.clear();
+    groupColors.clear();
     limboSize = DEFAULT_LIMBO_SIZE;
 
 }
@@ -476,8 +475,8 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
             if ( itss != groupSources.end() && (*itss).size() >= SelectionManager::getInstance()->copySelection().size()  ) {
                 SelectionManager::getInstance()->setSelection(*itss);
                 // erase group and its color
-                groupColor.remove(itss);
-                groupSources.erase(itss);
+                removeGroup(itss);
+
             }
             // if double clic on a selection ; convert selection into a new group
             else {
@@ -498,7 +497,7 @@ bool MixerView::mouseDoubleClickEvent ( QMouseEvent * event )
                 if ( selection.size()>1 ) {
                     // create a new group from the selection
                     groupSources.push_front(selection);
-                    groupColor[groupSources.begin()] = QColor::fromHsv ( rand()%180 + 179, 200, 255);
+                    groupColors.prepend( QColor::fromHsv ( rand()%127 + 127, 200, 255) );
                 }
             }
             return true;
@@ -820,11 +819,26 @@ void MixerView::removeFromGroup(Source *s)
         (*itss).erase(s);
 
         // if the group is now a singleton, delete it
-        if( (*itss).size() < 2 ){
-            groupSources.erase(itss);
-        }
+        if( (*itss).size() < 2 )
+            removeGroup(itss);
+
     }
 
+}
+
+
+void MixerView::removeGroup(SourceListArray::iterator i)
+{
+    int c = 0;
+    SourceListArray::iterator itss = groupSources.begin();
+    for(; itss != groupSources.end(); itss++, c++ ) {
+        if ( itss == i )
+        {
+            itss = groupSources.erase(itss);
+            groupColors.removeAt(c);
+            break;
+        }
+    }
 }
 
 
@@ -1000,15 +1014,16 @@ QDomElement MixerView::getConfiguration(QDomDocument &doc){
     mixviewelem.appendChild(l);
 
     // Mixer View groups
+    int c = 0;
     QDomElement groups = doc.createElement("Groups");
-    for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++) {
+    for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++, c++) {
         // if this group has more than 1 element
         if (itss->size() > 1) {
             // create a group dom element, with color
             QDomElement group = doc.createElement("Group");
-            group.setAttribute("R", groupColor[itss].red());
-            group.setAttribute("G", groupColor[itss].green());
-            group.setAttribute("B", groupColor[itss].blue());
+            group.setAttribute("R", groupColors[c].red());
+            group.setAttribute("G", groupColors[c].green());
+            group.setAttribute("B", groupColors[c].blue());
             // fill in the group with the list of sources.
             for(SourceList::iterator  its = (*itss).begin(); its != (*itss).end(); its++) {
                 QDomElement s = doc.createElement("Source");
@@ -1052,7 +1067,7 @@ void MixerView::setConfiguration(QDomElement xmlconfig){
                 }
 
                 groupSources.push_front(newgroup);
-                groupColor[groupSources.begin()] = QColor( group.attribute("R").toInt(),group.attribute("G").toInt(), group.attribute("B").toInt() );
+                groupColors.prepend( QColor( group.attribute("R").toInt(),group.attribute("G").toInt(), group.attribute("B").toInt() ) );
             }
             group = group.nextSiblingElement();
         }

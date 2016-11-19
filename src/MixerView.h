@@ -56,9 +56,10 @@ public:
     void zoomReset();
     void zoomBestFit( bool onlyClickedSource = false );
 
-    SourceListArray::iterator findGroup(Source *s);
     bool isInAGroup(Source *);
     void removeFromGroup(Source *s);
+    SourceListArray::iterator findGroup(Source *s);
+    void removeGroup(SourceListArray::iterator its);
 
     QDomElement getConfiguration(QDomDocument &doc);
     void setConfiguration(QDomElement xmlconfig);
@@ -82,7 +83,7 @@ private:
 
     // creation of groups from set of selection
     SourceListArray groupSources;
-    QMap<SourceListArray::iterator, QColor> groupColor;
+    QList<QColor> groupColors;
 
     // selection area
     MixerSelectionArea _selectionArea;
