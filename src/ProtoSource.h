@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QColor>
 #include <QRect>
+#include <QDomDocument>
 
 #include "defines.h"
 
@@ -168,6 +169,11 @@ public:
     // import all the properties of a source
     void importProperties(const ProtoSource *s, bool withGeometry = true);
 
+    // get XML config
+    QDomElement getConfiguration(QDomDocument &doc);
+    // set XML config
+//    void setConfiguration(QDomElement config, QDomDocument doc);
+
 signals:
 
     void methodCalled(QString signature,
@@ -175,20 +181,14 @@ signals:
                       QVariantPair arg1 = QVariantPair(),
                       QVariantPair arg2 = QVariantPair(),
                       QVariantPair arg3 = QVariantPair(),
-                      QVariantPair arg4 = QVariantPair() );
+                      QVariantPair arg4 = QVariantPair(),
+                      QVariantPair arg5 = QVariantPair(),
+                      QVariantPair arg6 = QVariantPair() );
 
 public:
 
     Q_INVOKABLE void _setName(QString n);
-    Q_INVOKABLE void _setX(double v);
-    Q_INVOKABLE void _setY(double v);
-    Q_INVOKABLE void _setPosition(double, double);
-    Q_INVOKABLE void _setRotationCenterX(double v);
-    Q_INVOKABLE void _setRotationCenterY(double v);
-    Q_INVOKABLE void _setRotationAngle(double v);
-    Q_INVOKABLE void _setScaleX(double v);
-    Q_INVOKABLE void _setScaleY(double v);
-    Q_INVOKABLE void _setScale(double sx, double sy);
+    Q_INVOKABLE void _setGeometry(double px, double py, double sx, double sy, double rx, double ry, double a);
     Q_INVOKABLE void _setFixedAspectRatio(bool on);
     Q_INVOKABLE void _setTextureCoordinates(QRectF textureCoords);
     Q_INVOKABLE void _setAlphaCoordinates(double x, double y);
@@ -207,8 +207,7 @@ public:
     Q_INVOKABLE void _setGamma(double g, double minI, double maxI, double minO, double maxO);
     Q_INVOKABLE void _setPixelated(bool on);
     Q_INVOKABLE void _setModifiable(bool on);
-    Q_INVOKABLE void _setBlendFunc(uint sfactor, uint dfactor);
-    Q_INVOKABLE void _setBlendEquation(uint eq);
+    Q_INVOKABLE void _setBlending(uint sfactor, uint dfactor, uint eq);
     Q_INVOKABLE void _setInvertMode(invertModeType i);
     Q_INVOKABLE void _setFilter(filterType c);
 

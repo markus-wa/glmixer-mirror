@@ -23,7 +23,7 @@
  *
  */
 
-#include <stdint.h>
+//#include <stdint.h>
 
 extern "C"
 {

@@ -69,16 +69,16 @@ Q_OBJECT
 
 public:
 
-	RTTI rtti() const { return type; }
-	bool isPlayable() const { return playable; }
-	bool isPlaying() const;
+    RTTI rtti() const { return type; }
+    bool isPlayable() const { return playable; }
+    bool isPlaying() const;
 
     inline int getOpencvCameraIndex() const { return opencvCameraIndex; }
-	inline double getFrameRate() const { return framerate; }
-	int getFrameWidth() const { return width; }
-	int getFrameHeight() const { return height; }
+    inline double getFrameRate() const { return framerate; }
+    int getFrameWidth() const { return width; }
+    int getFrameHeight() const { return height; }
 
-	static OpencvSource *getExistingSourceForCameraIndex(int);
+    static OpencvSource *getExistingSourceForCameraIndex(int);
     static QString getOpencvVersion();
 
     typedef enum {
@@ -88,24 +88,26 @@ public:
     } CameraMode;
     inline CameraMode getMode() {return mode;}
 
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
+
 public slots:
-	void play(bool on);
+    void play(bool on);
 
 protected:
     // only friends can create a source (need its GL context)
     OpencvSource(int opencvIndex, CameraMode m, GLuint texture, double d);
     ~OpencvSource();
 
-	static RTTI type;
-	static bool playable;
+    static RTTI type;
+    static bool playable;
 
-	void update();
+    void update();
 
-	int opencvCameraIndex;
+    int opencvCameraIndex;
     CameraMode mode;
-	CvCapture* capture;
-	int width, height;
-	double framerate;
+    CvCapture* capture;
+    int width, height;
+    double framerate;
     IplImage *frame;
     bool needFrameCopy, frameChanged;
     bool failure;

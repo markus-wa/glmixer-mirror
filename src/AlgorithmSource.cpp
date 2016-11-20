@@ -577,7 +577,7 @@ QString AlgorithmSource::getAlgorithmDescription(int t) {
 
 void AlgorithmSource::setIgnoreAlpha(bool on) {
 
-    ignoreAlpha = on;    
+    ignoreAlpha = on;
     format = ignoreAlpha ? GL_RGB : GL_RGBA;
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
@@ -587,3 +587,33 @@ void AlgorithmSource::setIgnoreAlpha(bool on) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
+
+QDomElement AlgorithmSource::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = Source::getConfiguration(doc, current);
+    sourceElem.setAttribute("playing", isPlaying());
+
+    QDomElement specific = doc.createElement("TypeSpecific");
+    specific.setAttribute("type", rtti());
+
+    QDomElement f = doc.createElement("Algorithm");
+    QDomText algo = doc.createTextNode(QString::number(getAlgorithmType()));
+    f.appendChild(algo);
+    f.setAttribute("IgnoreAlpha", getIgnoreAlpha());
+    specific.appendChild(f);
+
+    // get size
+    QDomElement s = doc.createElement("Frame");
+    s.setAttribute("Width", getFrameWidth());
+    s.setAttribute("Height", getFrameHeight());
+    specific.appendChild(s);
+
+    QDomElement x = doc.createElement("Update");
+    x.setAttribute("Periodicity", QString::number(getPeriodicity()) );
+    x.setAttribute("Variability", QString::number(getVariability(),'f',PROPERTY_DECIMALS) );
+    specific.appendChild(x);
+
+    sourceElem.appendChild(specific);
+    return sourceElem;
+}

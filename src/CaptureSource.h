@@ -30,28 +30,30 @@
 
 class CaptureSource: public Source {
 
-	friend class RenderingManager;
+    friend class RenderingManager;
     friend class OutputRenderWidget;
 
 public:
 
-	static RTTI type;
-	RTTI rtti() const { return type; }
+    static RTTI type;
+    RTTI rtti() const { return type; }
 
 protected:
     // only friends can create a source
-	CaptureSource(QImage capture, GLuint texture, double d);
-	~CaptureSource();
+    CaptureSource(QImage capture, GLuint texture, double d);
+    ~CaptureSource();
 
 public:
 
-	int getFrameWidth() const { return _capture.width(); }
-	int getFrameHeight() const { return _capture.height(); }
+    int getFrameWidth() const { return _capture.width(); }
+    int getFrameHeight() const { return _capture.height(); }
 
-	QImage image() { return _capture; }
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
+
+    QImage image() { return _capture; }
 
 private:
-	QImage _capture;
+    QImage _capture;
 
 };
 

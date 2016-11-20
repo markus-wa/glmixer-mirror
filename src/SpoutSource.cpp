@@ -166,3 +166,21 @@ void SpoutSource::update()
     }
 
 }
+
+
+QDomElement SpoutSource::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = Source::getConfiguration(doc, current);
+    sourceElem.setAttribute("playing", isPlaying());
+    QDomElement specific = doc.createElement("TypeSpecific");
+    specific.setAttribute("type", rtti());
+
+    QDomElement f = doc.createElement("Spout");
+    QDomText name = doc.createTextNode(getSenderName());
+    f.appendChild(name);
+    specific.appendChild(f);
+
+    sourceElem.appendChild(specific);
+    return sourceElem;
+}

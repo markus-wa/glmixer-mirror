@@ -178,3 +178,25 @@ void FFGLSource::update() {
     // normal update (other ffgl plugins)
     Source::update();
 }
+
+
+
+QDomElement FFGLSource::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = Source::getConfiguration(doc, current);
+    sourceElem.setAttribute("playing", isPlaying());
+    QDomElement specific = doc.createElement("TypeSpecific");
+    specific.setAttribute("type", rtti());
+
+    QDomElement s = doc.createElement("Frame");
+    s.setAttribute("Width", getFrameWidth());
+    s.setAttribute("Height", getFrameHeight());
+    specific.appendChild(s);
+
+    // get FFGL plugin config
+    specific.appendChild( _plugin->getConfiguration(current));
+
+    sourceElem.appendChild(specific);
+    return sourceElem;
+}

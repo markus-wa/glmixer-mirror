@@ -59,8 +59,9 @@ public:
     int getFrameWidth() const;
     int getFrameHeight() const;
     double getFrameRate() const;
-
     double getAspectRatio() const;
+
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
 public slots:
     void play(bool on);

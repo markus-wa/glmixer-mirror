@@ -56,6 +56,8 @@ public:
     int getFrameWidth() const;
     int getFrameHeight() const;
 
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
+
 public slots:
     void play(bool on);
 

@@ -69,6 +69,7 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "RenderingEncoder.h"
 #include "SourcePropertyBrowser.h"
 #include "SessionSwitcher.h"
+#include "UndoManager.h"
 
 #ifdef HISTORY_MANAGEMENT
 #include "HistoryManager.h"
@@ -1128,6 +1129,9 @@ bool RenderingManager::insertSource(Source *s)
 //                _undoHistory->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
 //#endif
 
+                // connect source to the undo manager
+                UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
+
                 // inform of success
                 return true;
             } else
@@ -1603,6 +1607,7 @@ SourceSet::const_iterator RenderingManager::getByName(const QString name) const 
 
     return std::find_if(_front_sources.begin(), _front_sources.end(), hasName(name));
 }
+
 /**
  * save and load configuration
  */
@@ -1612,283 +1617,68 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 
     for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++) {
 
-        QDomElement sourceElem = doc.createElement("Source");
-        sourceElem.setAttribute("name", (*its)->getName());
-        sourceElem.setAttribute("playing", (*its)->isPlaying());
-        sourceElem.setAttribute("stanbyMode", (int) (*its)->getStandbyMode());
-        sourceElem.setAttribute("modifiable", (*its)->isModifiable());
-        sourceElem.setAttribute("fixedAR", (*its)->isFixedAspectRatio());
-
-        QDomElement pos = doc.createElement("Position");
-        pos.setAttribute("X", QString::number((*its)->getX(),'f',PROPERTY_DECIMALS)  );
-        pos.setAttribute("Y", QString::number((*its)->getY(),'f',PROPERTY_DECIMALS) );
-        sourceElem.appendChild(pos);
-
-        QDomElement rot = doc.createElement("Center");
-        rot.setAttribute("X", QString::number((*its)->getRotationCenterX(),'f',PROPERTY_DECIMALS) );
-        rot.setAttribute("Y", QString::number((*its)->getRotationCenterY(),'f',PROPERTY_DECIMALS) );
-        sourceElem.appendChild(rot);
-
-        QDomElement a = doc.createElement("Angle");
-        a.setAttribute("A", QString::number((*its)->getRotationAngle(),'f',PROPERTY_DECIMALS) );
-        sourceElem.appendChild(a);
-
-        QDomElement scale = doc.createElement("Scale");
-        scale.setAttribute("X", QString::number((*its)->getScaleX(),'f',PROPERTY_DECIMALS) );
-        scale.setAttribute("Y", QString::number((*its)->getScaleY(),'f',PROPERTY_DECIMALS) );
-        sourceElem.appendChild(scale);
-
-        QDomElement crop = doc.createElement("Crop");
-        crop.setAttribute("X", QString::number((*its)->getTextureCoordinates().x(),'f',PROPERTY_DECIMALS) );
-        crop.setAttribute("Y", QString::number((*its)->getTextureCoordinates().y(),'f',PROPERTY_DECIMALS) );
-        crop.setAttribute("W", QString::number((*its)->getTextureCoordinates().width(),'f',PROPERTY_DECIMALS) );
-        crop.setAttribute("H", QString::number((*its)->getTextureCoordinates().height(),'f',PROPERTY_DECIMALS) );
-        sourceElem.appendChild(crop);
-
-        QDomElement d = doc.createElement("Depth");
-        d.setAttribute("Z", QString::number((*its)->getDepth(),'f',PROPERTY_DECIMALS) );
-        sourceElem.appendChild(d);
-
-        QDomElement alpha = doc.createElement("Alpha");
-        alpha.setAttribute("X", QString::number((*its)->getAlphaX(),'f',PROPERTY_DECIMALS) );
-        alpha.setAttribute("Y", QString::number((*its)->getAlphaY(),'f',PROPERTY_DECIMALS) );
-        sourceElem.appendChild(alpha);
-
-        QDomElement color = doc.createElement("Color");
-        color.setAttribute("R", (*its)->getColor().red());
-        color.setAttribute("G", (*its)->getColor().green());
-        color.setAttribute("B", (*its)->getColor().blue());
-        sourceElem.appendChild(color);
-
-        QDomElement blend = doc.createElement("Blending");
-        blend.setAttribute("Function", (*its)->getBlendFuncDestination());
-        blend.setAttribute("Equation", (*its)->getBlendEquation());
-        blend.setAttribute("Mask", (*its)->getMask());
-        sourceElem.appendChild(blend);
-
-        QDomElement filter = doc.createElement("Filter");
-        filter.setAttribute("Pixelated", (*its)->isPixelated());
-        filter.setAttribute("InvertMode", (*its)->getInvertMode());
-        filter.setAttribute("Filter", (*its)->getFilter());
-        sourceElem.appendChild(filter);
-
-        QDomElement Coloring = doc.createElement("Coloring");
-        Coloring.setAttribute("Brightness", (*its)->getBrightness());
-        Coloring.setAttribute("Contrast", (*its)->getContrast());
-        Coloring.setAttribute("Saturation", (*its)->getSaturation());
-        Coloring.setAttribute("Hueshift", (*its)->getHueShift());
-        Coloring.setAttribute("luminanceThreshold", (*its)->getLuminanceThreshold());
-        Coloring.setAttribute("numberOfColors", (*its)->getNumberOfColors());
-        sourceElem.appendChild(Coloring);
-
-        QDomElement Chromakey = doc.createElement("Chromakey");
-        Chromakey.setAttribute("on", (*its)->getChromaKey());
-        Chromakey.setAttribute("R", (*its)->getChromaKeyColor().red());
-        Chromakey.setAttribute("G", (*its)->getChromaKeyColor().green());
-        Chromakey.setAttribute("B", (*its)->getChromaKeyColor().blue());
-        Chromakey.setAttribute("Tolerance", (*its)->getChromaKeyTolerance());
-        sourceElem.appendChild(Chromakey);
-
-        QDomElement Gamma = doc.createElement("Gamma");
-        Gamma.setAttribute("value", QString::number((*its)->getGamma(),'f',PROPERTY_DECIMALS));
-        Gamma.setAttribute("minInput", QString::number((*its)->getGammaMinInput(),'f',PROPERTY_DECIMALS));
-        Gamma.setAttribute("maxInput", QString::number((*its)->getGammaMaxInput(),'f',PROPERTY_DECIMALS));
-        Gamma.setAttribute("minOutput", QString::number((*its)->getGammaMinOuput(),'f',PROPERTY_DECIMALS));
-        Gamma.setAttribute("maxOutput", QString::number((*its)->getGammaMaxOutput(),'f',PROPERTY_DECIMALS));
-        sourceElem.appendChild(Gamma);
-
-// freeframe gl plugin
-#ifdef FFGL
-        // list of plugins
-        FFGLPluginSourceStack *plugins = (*its)->getFreeframeGLPluginStack();
-        for (FFGLPluginSourceStack::iterator it = plugins->begin(); it != plugins->end(); ++it ) {
-
-            sourceElem.appendChild( (*it)->getConfiguration(current) );
-        }
-#endif
+        QDomElement sourceElem;
 
         // type specific settings
-        QDomElement specific = doc.createElement("TypeSpecific");
-        specific.setAttribute("type", (*its)->rtti());
-
         if ((*its)->rtti() == Source::VIDEO_SOURCE) {
             VideoSource *vs = dynamic_cast<VideoSource *> (*its);
-            VideoFile *vf = vs->getVideoFile();
-            if ( vf != NULL ) {
-
-                // Necessary information for re-creating this video File:
-                // filename, marks, and options
-                QDomElement f = doc.createElement("Filename");
-                f.setAttribute("PowerOfTwo", (int) vf->getPowerOfTwoConversion());
-                f.setAttribute("IgnoreAlpha", (int) vf->ignoresAlphaChannel());
-                QString completefilename = QFileInfo( vf->getFileName() ).absoluteFilePath();
-                if (current.isReadable())
-                    f.setAttribute("Relative", current.relativeFilePath( completefilename ) );
-                QDomText filename = doc.createTextNode( completefilename );
-                f.appendChild(filename);
-                specific.appendChild(f);
-
-                QDomElement m = doc.createElement("Marks");
-                m.setAttribute("In", QString::number(vf->getMarkIn(),'f',PROPERTY_DECIMALS) );
-                m.setAttribute("Out",QString::number(vf->getMarkOut(),'f',PROPERTY_DECIMALS));
-                specific.appendChild(m);
-
-                QDomElement p = doc.createElement("Play");
-                p.setAttribute("Speed", QString::number(vf->getPlaySpeed(),'f',PROPERTY_DECIMALS));
-                p.setAttribute("Loop", vf->isLoop());
-                specific.appendChild(p);
-
-                QDomElement o = doc.createElement("Options");
-                o.setAttribute("RestartToMarkIn", vf->getOptionRestartToMarkIn());
-                o.setAttribute("RevertToBlackWhenStop", vf->getOptionRevertToBlackWhenStop());
-                specific.appendChild(o);
-            }
+            sourceElem = vs->getConfiguration(doc, current);
         }
         else if ((*its)->rtti() == Source::ALGORITHM_SOURCE) {
             AlgorithmSource *as = dynamic_cast<AlgorithmSource *> (*its);
-
-            QDomElement f = doc.createElement("Algorithm");
-            QDomText algo = doc.createTextNode(QString::number(as->getAlgorithmType()));
-            f.appendChild(algo);
-            f.setAttribute("IgnoreAlpha", as->getIgnoreAlpha());
-            specific.appendChild(f);
-
-            // get size
-            QDomElement s = doc.createElement("Frame");
-            s.setAttribute("Width", as->getFrameWidth());
-            s.setAttribute("Height", as->getFrameHeight());
-            specific.appendChild(s);
-
-            QDomElement x = doc.createElement("Update");
-            x.setAttribute("Periodicity", QString::number(as->getPeriodicity()) );
-            x.setAttribute("Variability", QString::number(as->getVariability(),'f',PROPERTY_DECIMALS) );
-            specific.appendChild(x);
+            sourceElem = as->getConfiguration(doc, current);
         }
         else if ((*its)->rtti() == Source::CAPTURE_SOURCE) {
             CaptureSource *cs = dynamic_cast<CaptureSource *> (*its);
-
-            QByteArray ba;
-            QBuffer buffer(&ba);
-            buffer.open(QIODevice::WriteOnly);
-
-            if (!QImageWriter::supportedImageFormats().count("jpeg")){
-                qWarning() << cs->getName() << QChar(124).toLatin1() << tr("Qt JPEG plugin not found; using XPM format (slower).") << QImageWriter::supportedImageFormats();
-                if (!cs->image().save(&buffer, "xpm") )
-                    qWarning() << cs->getName() << QChar(124).toLatin1() << tr("Could not save captured source (XPM format).");
-            } else
-                if (!cs->image().save(&buffer, "jpeg") )
-                    qWarning() << cs->getName()  << QChar(124).toLatin1() << tr("Could not save captured source (JPG format).");
-
-            buffer.close();
-
-            QDomElement f = doc.createElement("Image");
-            QDomText img = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
-
-            f.appendChild(img);
-            specific.appendChild(f);
+            sourceElem = cs->getConfiguration(doc, current);
         }
         else if ((*its)->rtti() == Source::CLONE_SOURCE) {
             CloneSource *cs = dynamic_cast<CloneSource *> (*its);
-
-            QDomElement f = doc.createElement("CloneOf");
-            QDomText name = doc.createTextNode(cs->getOriginalName());
-            f.appendChild(name);
-            specific.appendChild(f);
+            sourceElem = cs->getConfiguration(doc, current);
         }
         else if ((*its)->rtti() == Source::SVG_SOURCE) {
             SvgSource *svgs = dynamic_cast<SvgSource *> (*its);
-            QByteArray ba = svgs->getDescription();
-
-            QDomElement f = doc.createElement("Svg");
-            QDomText name = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
-            f.appendChild(name);
-            specific.appendChild(f);
+            sourceElem = svgs->getConfiguration(doc, current);
         }
         else if ((*its)->rtti() == Source::WEB_SOURCE) {
             WebSource *ws = dynamic_cast<WebSource *> (*its);
-
-            QDomElement f = doc.createElement("Web");
-            f.setAttribute("Scroll", ws->getPageScroll());
-            f.setAttribute("Height", ws->getPageHeight());
-            f.setAttribute("Update", ws->getPageUpdate());
-            QDomText name = doc.createTextNode( ws->getUrl().toString() );
-            f.appendChild(name);
-            specific.appendChild(f);
-
-            QDomElement s = doc.createElement("Frame");
-            s.setAttribute("Width", ws->getFrameWidth());
-            s.setAttribute("Height", ws->getFrameHeight());
-            specific.appendChild(s);
+            sourceElem = ws->getConfiguration(doc, current);
         }
 #ifdef OPEN_CV
         else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
             OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
-
-            QDomElement f = doc.createElement("CameraIndex");
-            f.setAttribute("Mode", (int) cs->getMode());
-            QDomText id = doc.createTextNode(QString::number(cs->getOpencvCameraIndex()));
-            f.appendChild(id);
-            specific.appendChild(f);
+            sourceElem = cs->getConfiguration(doc, current);
         }
 #endif
 #ifdef SHM
         else if ((*its)->rtti() == Source::SHM_SOURCE) {
             SharedMemorySource *shms = dynamic_cast<SharedMemorySource *> (*its);
-
-            QDomElement f = doc.createElement("SharedMemory");
-            f.setAttribute("Info", shms->getInfo());
-            QDomText key = doc.createTextNode(shms->getProgram());
-            f.appendChild(key);
-            specific.appendChild(f);
-
+            sourceElem = shms->getConfiguration(doc, current);
         }
 #endif
 #ifdef SPOUT
         else if ((*its)->rtti() == Source::SPOUT_SOURCE) {
             SpoutSource *spouts = dynamic_cast<SpoutSource *> (*its);
-
-            QDomElement f = doc.createElement("Spout");
-            QDomText name = doc.createTextNode(spouts->getSenderName());
-            f.appendChild(name);
-            specific.appendChild(f);
-
+            sourceElem = spouts->getConfiguration(doc, current);
         }
 #endif
 #ifdef FFGL
         else if ((*its)->rtti() == Source::FFGL_SOURCE) {
             FFGLSource *ffs = dynamic_cast<FFGLSource *> (*its);
-
-            // get size
-            QDomElement s = doc.createElement("Frame");
-            s.setAttribute("Width", ffs->getFrameWidth());
-            s.setAttribute("Height", ffs->getFrameHeight());
-            specific.appendChild(s);
-
-            // get FFGL plugin config
-            specific.appendChild(ffs->freeframeGLPlugin()->getConfiguration());
-
+            sourceElem = ffs->getConfiguration(doc, current);
         }
 #endif
         else if ((*its)->rtti() == Source::STREAM_SOURCE) {
-            VideoStreamSource *as = dynamic_cast<VideoStreamSource *> (*its);
-            VideoStream *v = as->getVideoStream();
-
-            QDomElement f = doc.createElement("Url");
-            QDomText url = doc.createTextNode( v->getUrl() );
-            f.appendChild(url);
-            specific.appendChild(f);
-
-            // store size if not automatic
-            if ( as->getFrameWidth() != v->getFrameWidth() || as->getFrameHeight() != v->getFrameHeight()) {
-                QDomElement s = doc.createElement("Frame");
-                s.setAttribute("Width", as->getFrameWidth());
-                s.setAttribute("Height", as->getFrameHeight());
-                specific.appendChild(s);
-            }
-
+            VideoStreamSource *sts = dynamic_cast<VideoStreamSource *> (*its);
+            sourceElem = sts->getConfiguration(doc, current);
         }
+        else if ((*its)->rtti() == Source::RENDERING_SOURCE) {
+            RenderingSource *rs = dynamic_cast<RenderingSource *> (*its);
+            sourceElem = rs->getConfiguration(doc, current);
+        }
+        else
+            sourceElem = (*its)->getConfiguration(doc, current);
 
-        sourceElem.appendChild(specific);
         config.appendChild(sourceElem);
     }
 
@@ -1903,13 +1693,14 @@ int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
     newsource->_setModifiable( child.attribute("modifiable", "1").toInt() );
     newsource->_setFixedAspectRatio( child.attribute("fixedAR", "0").toInt() );
 
-    newsource->_setX( child.firstChildElement("Position").attribute("X", "0").toDouble() );
-    newsource->_setY( child.firstChildElement("Position").attribute("Y", "0").toDouble() );
-    newsource->_setRotationCenterX( child.firstChildElement("Center").attribute("X", "0").toDouble() );
-    newsource->_setRotationCenterY( child.firstChildElement("Center").attribute("Y", "0").toDouble() );
-    newsource->_setRotationAngle( child.firstChildElement("Angle").attribute("A", "0").toDouble() );
-    newsource->_setScaleX( child.firstChildElement("Scale").attribute("X", "1").toDouble() );
-    newsource->_setScaleY( child.firstChildElement("Scale").attribute("Y", "1").toDouble() );
+    double x = child.firstChildElement("Position").attribute("X", "0").toDouble();
+    double y = child.firstChildElement("Position").attribute("Y", "0").toDouble();
+    double sx = child.firstChildElement("Scale").attribute("X", "1").toDouble();
+    double sy = child.firstChildElement("Scale").attribute("Y", "1").toDouble();
+    double rx = child.firstChildElement("Center").attribute("X", "0").toDouble();
+    double ry = child.firstChildElement("Center").attribute("Y", "0").toDouble();
+    double a = child.firstChildElement("Angle").attribute("A", "0").toDouble();
+    newsource->_setGeometry(x, y, sx, sy, rx, ry, a);
 
     tmp = child.firstChildElement("Alpha");
     newsource->_setAlphaCoordinates( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble() );
@@ -1921,8 +1712,8 @@ int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
     newsource->_setTextureCoordinates( QRectF( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble(),tmp.attribute("W", "1").toDouble(),tmp.attribute("H", "1").toDouble() ) );
 
     tmp = child.firstChildElement("Blending");
-    newsource->_setBlendEquation( (uint) tmp.attribute("Equation", "32774").toInt()  );
-    newsource->_setBlendFunc( GL_SRC_ALPHA, (uint) tmp.attribute("Function", "1").toInt() );
+    newsource->_setBlending( GL_SRC_ALPHA, (uint) tmp.attribute("Function", "1").toInt(),
+                              (uint) tmp.attribute("Equation", "32774").toInt());
     newsource->_setMask( tmp.attribute("Mask", "0").toInt() );
 
     tmp = child.firstChildElement("Filter");
@@ -2043,6 +1834,18 @@ int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
         newsource->play( child.attribute("playing", "1").toInt() );
 
     return errors;
+}
+
+void RenderingManager::setConfiguration(QDomElement config, QDomDocument &doc, QDir current)
+{
+    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++)
+    {
+
+
+
+
+
+    }
 }
 
 int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QString version) {

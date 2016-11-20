@@ -348,3 +348,28 @@ void WebRenderer::timeout()
     _propertyChanged = true;
 }
 
+QDomElement WebSource::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = Source::getConfiguration(doc, current);
+    sourceElem.setAttribute("playing", isPlaying());
+    QDomElement specific = doc.createElement("TypeSpecific");
+    specific.setAttribute("type", rtti());
+
+    QDomElement f = doc.createElement("Web");
+    f.setAttribute("Scroll", getPageScroll());
+    f.setAttribute("Height", getPageHeight());
+    f.setAttribute("Update", getPageUpdate());
+    QDomText name = doc.createTextNode( getUrl().toString() );
+    f.appendChild(name);
+    specific.appendChild(f);
+
+    QDomElement s = doc.createElement("Frame");
+    s.setAttribute("Width", getFrameWidth());
+    s.setAttribute("Height", getFrameHeight());
+    specific.appendChild(s);
+
+    sourceElem.appendChild(specific);
+    return sourceElem;
+}
+

@@ -114,6 +114,48 @@ double VideoSource::getFrameRate() const { return is->getFrameRate(); }
 double VideoSource::getAspectRatio() const { return is->getStreamAspectRatio(); }
 
 
+QDomElement VideoSource::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = Source::getConfiguration(doc, current);
+    sourceElem.setAttribute("playing", isPlaying());
+
+    QDomElement specific = doc.createElement("TypeSpecific");
+    specific.setAttribute("type", rtti());
+    if ( is != NULL ) {
+
+        // Necessary information for re-creating this video File:
+        // filename, marks, and options
+        QDomElement f = doc.createElement("Filename");
+        f.setAttribute("PowerOfTwo", (int) is->getPowerOfTwoConversion());
+        f.setAttribute("IgnoreAlpha", (int) is->ignoresAlphaChannel());
+        QString completefilename = QFileInfo( is->getFileName() ).absoluteFilePath();
+        if (current.isReadable())
+            f.setAttribute("Relative", current.relativeFilePath( completefilename ) );
+        QDomText filename = doc.createTextNode( completefilename );
+        f.appendChild(filename);
+        specific.appendChild(f);
+
+        QDomElement m = doc.createElement("Marks");
+        m.setAttribute("In", QString::number(is->getMarkIn(),'f',PROPERTY_DECIMALS) );
+        m.setAttribute("Out",QString::number(is->getMarkOut(),'f',PROPERTY_DECIMALS));
+        specific.appendChild(m);
+
+        QDomElement p = doc.createElement("Play");
+        p.setAttribute("Speed", QString::number(is->getPlaySpeed(),'f',PROPERTY_DECIMALS));
+        p.setAttribute("Loop", is->isLoop());
+        specific.appendChild(p);
+
+        QDomElement o = doc.createElement("Options");
+        o.setAttribute("RestartToMarkIn", is->getOptionRestartToMarkIn());
+        o.setAttribute("RevertToBlackWhenStop", is->getOptionRevertToBlackWhenStop());
+        specific.appendChild(o);
+    }
+
+    sourceElem.appendChild(specific);
+    return sourceElem;
+}
+
 void VideoSource::fillFramePBO(VideoPicture *vp)
 {
     if ( vp->getBuffer() ) {

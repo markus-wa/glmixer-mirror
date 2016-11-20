@@ -65,6 +65,16 @@ protected:
     double getFrameRate() const {
         return RenderingManager::getRenderingWidget()->getFramerate() / double(RenderingManager::getInstance()->getPreviousFrameDelay());
     }
+
+    QDomElement getConfiguration(QDomDocument &doc, QDir current) {
+        QDomElement sourceElem = Source::getConfiguration(doc, current);
+        sourceElem.setAttribute("playing", isPlaying());
+        QDomElement specific = doc.createElement("TypeSpecific");
+        specific.setAttribute("type", rtti());
+        sourceElem.appendChild(specific);
+        return sourceElem;
+    }
+
 };
 
 #endif /* RENDERINGSOURCE_H_ */

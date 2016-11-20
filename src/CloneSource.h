@@ -47,6 +47,8 @@ public:
     double getFrameRate() const { return original->getFrameRate(); }
     double getAspectRatio() const { return original->getAspectRatio(); }
 
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
+
     // only RenderingManager can create a source
 protected:
     CloneSource(SourceSet::iterator sit,  double d);

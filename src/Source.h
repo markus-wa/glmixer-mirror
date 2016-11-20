@@ -196,6 +196,7 @@ public:
         standby = m;
     }
 
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
 #ifdef FFGL
     // freeframe gl plugin
@@ -207,10 +208,8 @@ public:
 #endif
 
     /*
-     *  Implementation of ProtoSource methods
+     *  Implementation of geometry methods
      */
-    // name
-    void setName(QString n);
     // position X
     void setX(double v);
     // position Y
@@ -223,16 +222,22 @@ public:
     void setRotationCenterY(double v);
     // rotation angle
     void setRotationAngle(double v);
-    // change texture coordinates
-    void setTextureCoordinates(QRectF textureCoords);
     // set absolute scale X
     void setScaleX(double v);
     // set absolute scale Y
     void setScaleY(double v);
     // set absolute scale X & Y
     void setScale(double sx, double sy);
+
+    /*
+     *  Implementation of ProtoSource methods
+     */
+    // name
+    void setName(QString n);
     // fix the aspect ratio for scaling
     void setFixedAspectRatio(bool on);
+    // change texture coordinates
+    void setTextureCoordinates(QRectF textureCoords);
     // set Alpha on mixing view (compute alpha)
     void setAlphaCoordinates(double x, double y);
     // set Alpha (compute alpha coordinates)
@@ -273,6 +278,7 @@ public:
     void setInvertMode(invertModeType i);
     // filtering
     void setFilter(filterType c);
+
 
 signals:
     // on playing

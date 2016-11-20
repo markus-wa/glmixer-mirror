@@ -54,6 +54,8 @@ public:
     int getFrameWidth() const { return width; }
     int getFrameHeight() const { return height; }
 
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
+
     QString getSenderName() { return QString(senderName); }
 
 public Q_SLOTS:
@@ -64,7 +66,7 @@ protected:
     SpoutSource(GLuint texture, double d, QString spoutSenderName);
     ~SpoutSource();
     void update();
-    
+
 private:
 
     static unsigned int width, height;

@@ -24,7 +24,7 @@ void HistoryManagerWidget::setHistoryManager(HistoryManager *hm)
 void HistoryManagerWidget::updateHistory()
 {
     // reload the events
-    _historyModel.setHistoryMap( _history->getEvents() );
+    _historyModel.setHistoryMap( _history->events() );
 
     // scroll to end of list
     scrollToBottom ();

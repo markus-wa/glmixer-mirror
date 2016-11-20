@@ -1142,8 +1142,8 @@ void GeometryView::scaleSources(Source *s, int x, int y, int dx, int dy, bool op
                 SelectionManager::getInstance()->updateSelectionSource();
                 continue;
             }
-            (*its)->setX( s->getX() + ((*its)->getX() - sx) * sxratio);
-            (*its)->setY( s->getY() + ((*its)->getY() - sy) * syratio);
+            (*its)->setPosition( s->getX() + ((*its)->getX() - sx) * sxratio,
+                                 s->getY() + ((*its)->getY() - sy) * syratio);
             (*its)->scaleBy(sxratio , syratio);
         }
     }
@@ -1246,8 +1246,7 @@ void GeometryView::rotateSources(Source *s, int x, int y, int dx, int dy, bool o
             dy =  dy * cosa + dx * sina ;
             dx = dum;
 
-            (*its)->setX( s->getX() + dx * sxratio );
-            (*its)->setY( s->getY() + dy * syratio );
+            (*its)->setPosition( s->getX() + dx * sxratio, s->getY() + dy * syratio );
 
         }
     }

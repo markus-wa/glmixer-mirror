@@ -93,6 +93,8 @@ public:
     int getFrameHeight() const;
     inline double getFrameRate() const { return double(_updateFrequency); }
 
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
+
 public slots:
 
     void play(bool on);

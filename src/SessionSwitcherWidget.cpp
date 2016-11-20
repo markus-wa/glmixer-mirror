@@ -156,7 +156,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     transitionSelection->addItem("Fade to custom color   -->");
     transitionSelection->addItem("Fade with last frame");
     transitionSelection->addItem("Fade with image file   -->");
-    transitionSelection->setToolTip(tr("Select the transition type"));
+    transitionSelection->setToolTip(tr("Select the transition mode"));
     transitionSelection->setCurrentIndex(-1);
 
     /**
@@ -164,7 +164,7 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
      */
     transitionTab = new QTabWidget(this);
     transitionTab->setTabPosition(QTabWidget::East);
-    transitionTab->setToolTip(tr("Choose how you control the transition"));
+    transitionTab->setToolTip(tr("How you control the transition"));
     transitionTab->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
 
     QLabel *transitionDurationLabel;
@@ -541,7 +541,7 @@ void SessionSwitcherWidget::setTransitionType(int t)
     SessionSwitcher::transitionType tt = (SessionSwitcher::transitionType) CLAMP(SessionSwitcher::TRANSITION_NONE, t, SessionSwitcher::TRANSITION_CUSTOM_MEDIA);
     RenderingManager::getSessionSwitcher()->setTransitionType( tt );
 
-    customButton->setStyleSheet("");
+    customButton->setStyleSheet("QToolButton { padding: 1px;}");
     //	transitionTab->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
     transitionTab->setVisible(tt != SessionSwitcher::TRANSITION_NONE);
     // hack ; NONE transition type should emulate automatic transition mode
@@ -559,7 +559,7 @@ void SessionSwitcherWidget::setTransitionType(int t)
         customButton->setVisible(true);
 
         if ( !QFileInfo(RenderingManager::getSessionSwitcher()->transitionMedia()).exists() ) {
-            customButton->setStyleSheet("QToolButton { border: 1px solid red }");
+            customButton->setStyleSheet("QToolButton { border: 1px solid red; }");
             customButton->setToolTip("Choose Image");
         }
         else

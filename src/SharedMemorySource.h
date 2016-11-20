@@ -31,66 +31,68 @@
 
 class SharedMemoryAttachException : public QtConcurrent::Exception {
 public:
-	virtual QString message() { return "Cannot attach to shared memory to "; }
-	void raise() const { throw *this; }
-	Exception *clone() const { return new SharedMemoryAttachException(*this); }
+    virtual QString message() { return "Cannot attach to shared memory to "; }
+    void raise() const { throw *this; }
+    Exception *clone() const { return new SharedMemoryAttachException(*this); }
 };
 
 class InvalidFormatException : public QtConcurrent::Exception {
 public:
     virtual QString message() { return "Invalid image format from shared memory program "; }
-	void raise() const { throw *this; }
-	Exception *clone() const { return new InvalidFormatException(*this); }
+    void raise() const { throw *this; }
+    Exception *clone() const { return new InvalidFormatException(*this); }
 };
 
 class SharedMemorySource:  public QObject, public Source
 {
-	Q_OBJECT
+    Q_OBJECT
 
-	friend class SharedMemoryDialog;
-	friend class RenderingManager;
+    friend class SharedMemoryDialog;
+    friend class RenderingManager;
     friend class OutputRenderWidget;
 
 public:
 
-	static RTTI type;
-	static bool playable;
-	RTTI rtti() const { return type; }
-	bool isPlayable() const { return playable; }
-	bool isPlaying() const;
+    static RTTI type;
+    static bool playable;
+    RTTI rtti() const { return type; }
+    bool isPlayable() const { return playable; }
+    bool isPlaying() const;
 
-	int getFrameWidth() const { return width; }
-	int getFrameHeight() const { return height; }
+    int getFrameWidth() const { return width; }
+    int getFrameHeight() const { return height; }
 
-	qint64  getShmId() { return shmId; }
-	QString getProgram() { return programName; }
-	QString getInfo() { return infoString; }
-	QString getKey() { return shmKey; }
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
+
+    qint64  getShmId() { return shmId; }
+    QString getProgram() { return programName; }
+    QString getInfo() { return infoString; }
+    QString getKey() { return shmKey; }
     QString getFormatDescritor() { return formatDescriptor; }
 
 public Q_SLOTS:
-	void play(bool on);
+    void play(bool on);
 
 protected:
     // only friends can create a source
-	SharedMemorySource(GLuint texture, double d, qint64 shid);
+    SharedMemorySource(GLuint texture, double d, qint64 shid);
     ~SharedMemorySource();
-	void update();
+    void update();
 
 private:
-	qint64 shmId;
-	QString shmKey, programName, infoString;
-	class QSharedMemory *shm;
+    qint64 shmId;
+    QString shmKey, programName, infoString;
+    class QSharedMemory *shm;
 
-	int width, height;
-	QImage::Format format;
+    int width, height;
+    QImage::Format format;
     QString formatDescriptor;
-	GLenum glformat, gltype;
-	GLint glunpackalign;
-	bool textureInitialized;
+    GLenum glformat, gltype;
+    GLint glunpackalign;
+    bool textureInitialized;
 
-	void setGLFormat(QImage::Format f);
-	void setupSharedMemory(QVariantMap descriptor);
+    void setGLFormat(QImage::Format f);
+    void setupSharedMemory(QVariantMap descriptor);
 };
 
 #endif /* SHMSOURCE_H_ */

@@ -30,38 +30,38 @@ Source::RTTI SvgSource::type = Source::SVG_SOURCE;
 
 SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(texture, d), _svg(svg) {
 
-	// if the svg renderer could load the file
-	if (!_svg || !_svg->isValid())
-		SourceConstructorException().raise();
+    // if the svg renderer could load the file
+    if (!_svg || !_svg->isValid())
+        SourceConstructorException().raise();
 
     // get aspect ratio from original box
     QRect vb = _svg->viewBox();
     double aspectratio = double(vb.width()) / double(vb.height());
 
-	// setup renderer resolution to match to rendering manager preference
+    // setup renderer resolution to match to rendering manager preference
     int w = RenderingManager::getInstance()->getFrameBufferWidth();
     qDebug() << " RenderingManager::getInstance()->getFrameBufferWidth() " << w;
     _rendered = QImage(w, w / aspectratio, QImage::Format_ARGB32);
 
-	// render an image from the svg
-	QPainter imagePainter(&_rendered);
+    // render an image from the svg
+    QPainter imagePainter(&_rendered);
     if (!imagePainter.isActive())
         SvgRenderingException().raise();
 
     imagePainter.setRenderHint(QPainter::HighQualityAntialiasing, true);
-	imagePainter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-	imagePainter.setRenderHint(QPainter::TextAntialiasing, true);
-	_svg->render(&imagePainter);
-	imagePainter.end();
+    imagePainter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+    imagePainter.setRenderHint(QPainter::TextAntialiasing, true);
+    _svg->render(&imagePainter);
+    imagePainter.end();
 
-	if (_rendered.isNull())
-		SvgRenderingException().raise();
+    if (_rendered.isNull())
+        SvgRenderingException().raise();
 
-	// generate a texture from the rendered image
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureIndex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // generate a texture from the rendered image
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureIndex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     GLint preferedinternalformat = GL_RGBA;
 
@@ -72,34 +72,52 @@ SvgSource::SvgSource(QSvgRenderer *svg, GLuint texture, double d): Source(textur
     glTexImage2D(GL_TEXTURE_2D, 0, (GLenum) preferedinternalformat, _rendered.width(), _rendered.height(),
                   0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.constBits() );
 #else
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
-				  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.bits() );
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  _rendered.width(), _rendered. height(),
+                  0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _rendered.bits() );
 #endif
 
 }
 
 SvgSource::~SvgSource()
 {
-	if (_svg)
-		delete _svg;
+    if (_svg)
+        delete _svg;
+}
+
+QDomElement SvgSource::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = Source::getConfiguration(doc, current);
+    sourceElem.setAttribute("playing", isPlaying());
+    QDomElement specific = doc.createElement("TypeSpecific");
+    specific.setAttribute("type", rtti());
+
+    QByteArray ba = getDescription();
+    QDomElement f = doc.createElement("Svg");
+    QDomText name = doc.createTextNode( QString::fromLatin1(ba.constData(), ba.size()) );
+    f.appendChild(name);
+    specific.appendChild(f);
+
+    sourceElem.appendChild(specific);
+    return sourceElem;
 }
 
 
 QByteArray SvgSource::getDescription(){
 
-	QBuffer dev;
+    QBuffer dev;
 
-	QSvgGenerator generator;
-	generator.setOutputDevice(&dev);
-	generator.setTitle(getName());
-	generator.setResolution(150);
+    QSvgGenerator generator;
+    generator.setOutputDevice(&dev);
+    generator.setTitle(getName());
+    generator.setResolution(150);
 
-	QPainter painter;
-	painter.begin(&generator);
-	_svg->render(&painter,_svg->viewBoxF());
-	painter.end();
+    QPainter painter;
+    painter.begin(&generator);
+    _svg->render(&painter,_svg->viewBoxF());
+    painter.end();
 
-	return dev.buffer();
+    return dev.buffer();
 }
 
 

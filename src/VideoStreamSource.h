@@ -28,13 +28,14 @@ public:
     bool isPlayable() const;
     bool isPlaying() const;
 
-    inline VideoStream *getVideoStream() const { return is; }
-
     int getFrameWidth() const;
     int getFrameHeight() const;
     double getFrameRate() const;
 
+    inline VideoStream *getVideoStream() const { return is; }
     double getStorageAspectRatio() const;
+
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
 public slots:
     void play(bool on);

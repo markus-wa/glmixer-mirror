@@ -98,55 +98,81 @@ void Source::setName(QString n) {
 }
 
 void Source::setX(double v) {
-    emit methodCalled("_setX(double)", S_ARG(x, v));
+    emit methodCalled("_setGeometry(double,double,double,double,double,double,double)", S_ARG(x, v), S_ARG(y, y), S_ARG(scalex, scalex), S_ARG(scaley, scaley), S_ARG(centerx, centerx), S_ARG(centery, centery), S_ARG(rotangle, rotangle));
 
-    ProtoSource::_setX(v);
+    ProtoSource::_setGeometry(v, y, scalex, scaley, centerx, centery, rotangle);
+
+    // test for culling
+    testGeometryCulling();
 }
-void Source::setY(double v) {
-    emit methodCalled("_setY(double)", S_ARG(y, v));
 
-    ProtoSource::_setY(v);
+void Source::setY(double v) {
+    emit methodCalled("_setGeometry(double,double,double,double,double,double,double)", S_ARG(x, x), S_ARG(y, v), S_ARG(scalex, scalex), S_ARG(scaley, scaley), S_ARG(centerx, centerx), S_ARG(centery, centery), S_ARG(rotangle, rotangle));
+
+    ProtoSource::_setGeometry(x, v, scalex, scaley, centerx, centery, rotangle);
+
+    // test for culling
+    testGeometryCulling();
 }
 
 void Source::setPosition(double posx, double posy) {
-    emit methodCalled("_setPosition(double,double)", S_ARG(x, posx), S_ARG(y, posy));
+    emit methodCalled("_setGeometry(double,double,double,double,double,double,double)", S_ARG(x, posx), S_ARG(y, posy), S_ARG(scalex, scalex), S_ARG(scaley, scaley), S_ARG(centerx, centerx), S_ARG(centery, centery), S_ARG(rotangle, rotangle));
 
-    ProtoSource::_setPosition(posx, posy);
+    ProtoSource::_setGeometry(posx, posy, scalex, scaley, centerx, centery, rotangle);
 
     // test for culling
     testGeometryCulling();
 }
 
 void Source::setRotationCenterX(double v) {
-    emit methodCalled("_setCenterX(double)", S_ARG(centerx, v));
+    emit methodCalled("_setGeometry(double,double,double,double,double,double,double)", S_ARG(x, x), S_ARG(y, y), S_ARG(scalex, scalex), S_ARG(scaley, scaley), S_ARG(centerx, v), S_ARG(centery, centery), S_ARG(rotangle, rotangle));
 
-    ProtoSource::_setRotationCenterX(v);
+    ProtoSource::_setGeometry(x, y, scalex, scaley, v, centery, rotangle);
+
+    // test for culling
+    testGeometryCulling();
 }
+
 void Source::setRotationCenterY(double v) {
-    emit methodCalled("_setCenterY(double)", S_ARG(centery, v));
+    emit methodCalled("_setGeometry(double,double,double,double,double,double,double)", S_ARG(x, x), S_ARG(y, y), S_ARG(scalex, scalex), S_ARG(scaley, scaley), S_ARG(centerx, centerx), S_ARG(centery, v), S_ARG(rotangle, rotangle));
 
-    ProtoSource::_setRotationCenterY(v);
+    ProtoSource::_setGeometry(x, y, scalex, scaley, centerx, v, rotangle);
+
+    // test for culling
+    testGeometryCulling();
 }
+
 void Source::setRotationAngle(double v) {
-    emit methodCalled("_setRotationAngle(double)", S_ARG(rotangle, v));
+    emit methodCalled("_setGeometry(double,double,double,double,double,double,double)", S_ARG(x, x), S_ARG(y, y), S_ARG(scalex, scalex), S_ARG(scaley, scaley), S_ARG(centerx, centerx), S_ARG(centery, centery), S_ARG(rotangle, v));
 
-    ProtoSource::_setRotationAngle(v);
+    ProtoSource::_setGeometry(x, y, scalex, scaley, centerx, centery, v);
+
+    // test for culling
+    testGeometryCulling();
 }
+
 void Source::setScaleX(double v) {
-    emit methodCalled("_setScaleX(double)", S_ARG(scalex, v));
+    emit methodCalled("_setGeometry(double,double,double,double,double,double,double)", S_ARG(x, x), S_ARG(y, y), S_ARG(scalex, v), S_ARG(scaley, scaley), S_ARG(centerx, centerx), S_ARG(centery, centery), S_ARG(rotangle, rotangle));
 
-    ProtoSource::_setScaleX(v);
+    ProtoSource::_setGeometry(x, y, v, scaley, centerx, centery, rotangle);
+
+    // test for culling
+    testGeometryCulling();
 }
-void Source::setScaleY(double v) {
-    emit methodCalled("_setScaleY(double)", S_ARG(scaley, v));
 
-    ProtoSource::_setScaleY(v);
+void Source::setScaleY(double v) {
+    emit methodCalled("_setGeometry(double,double,double,double,double,double,double)", S_ARG(x, x), S_ARG(y, y), S_ARG(scalex, scalex), S_ARG(scaley, v), S_ARG(centerx, centerx), S_ARG(centery, centery), S_ARG(rotangle, rotangle));
+
+    ProtoSource::_setGeometry(x, y, scalex, v, centerx, centery, rotangle);
+
+    // test for culling
+    testGeometryCulling();
 }
 
 void Source::setScale(double sx, double sy) {
-    emit methodCalled("_setScale(double,double)", S_ARG(scalex, sx), S_ARG(scaley, sy));
+    emit methodCalled("_setGeometry(double,double,double,double,double,double,double)", S_ARG(x, x), S_ARG(y, y), S_ARG(scalex, sx), S_ARG(scaley, sy), S_ARG(centerx, centerx), S_ARG(centery, centery), S_ARG(rotangle, rotangle));
 
-    ProtoSource::_setScale(sx, sy);
+    ProtoSource::_setGeometry(x, y, sx, sy, centerx, centery, rotangle);
 
     // test for culling
     testGeometryCulling();
@@ -262,15 +288,15 @@ void Source::setModifiable(bool on) {
 
 
 void Source::setBlendFunc(uint sfactor, uint dfactor) {
-    emit methodCalled("_setBlendFunc(uint,uint)", S_ARG(source_blend, sfactor), S_ARG(destination_blend, dfactor));
+    emit methodCalled("_setBlending(uint,uint,uint)", S_ARG(source_blend, sfactor), S_ARG(destination_blend, dfactor), S_ARG(blend_eq, blend_eq));
 
-    ProtoSource::_setBlendFunc(sfactor, dfactor);
+    ProtoSource::_setBlending(sfactor, dfactor, blend_eq);
 }
 
 void Source::setBlendEquation(uint eq) {
-    emit methodCalled("_setBlendEquation(uint)", S_ARG(blend_eq, eq));
+    emit methodCalled("_setBlending(uint,uint,uint)", S_ARG(source_blend, source_blend), S_ARG(destination_blend, destination_blend), S_ARG(blend_eq, eq));
 
-    ProtoSource::_setBlendEquation(eq);
+    ProtoSource::_setBlending(source_blend, destination_blend, eq);
 }
 
 void Source::setInvertMode(invertModeType i) {
@@ -285,6 +311,29 @@ void Source::setFilter(filterType c) {
     ProtoSource::_setFilter(c);
 }
 
+
+QDomElement Source::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = ProtoSource::getConfiguration(doc);
+    // set more config from Source
+    sourceElem.setAttribute("stanbyMode", (int) getStandbyMode());
+
+    // freeframe gl plugin
+#ifdef FFGL
+    FFGLPluginSourceStack *plugins = getFreeframeGLPluginStack();
+    for (FFGLPluginSourceStack::iterator it = plugins->begin(); it != plugins->end(); ++it ) {
+
+        sourceElem.appendChild( (*it)->getConfiguration(current) );
+    }
+#endif
+
+
+    return sourceElem;
+
+    // done in subclass:
+    // sourceElem.setAttribute("playing", isPlaying());
+}
 
 /****
  *

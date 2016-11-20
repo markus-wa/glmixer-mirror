@@ -32,35 +32,37 @@
 
 class SvgRenderingException : public SourceConstructorException {
 public:
-	virtual QString message() { return "Cannot render these vector graphics."; }
-	void raise() const { throw *this; }
-	Exception *clone() const { return new SvgRenderingException(*this); }
+    virtual QString message() { return "Cannot render these vector graphics."; }
+    void raise() const { throw *this; }
+    Exception *clone() const { return new SvgRenderingException(*this); }
 };
 
 class SvgSource: public Source
 {
-	friend class RenderingManager;
+    friend class RenderingManager;
     friend class OutputRenderWidget;
 
 public:
 
-	static RTTI type;
-	RTTI rtti() const { return type; }
+    static RTTI type;
+    RTTI rtti() const { return type; }
 
-	int getFrameWidth() const { return _rendered.width(); }
-	int getFrameHeight() const { return _rendered.height(); }
+    int getFrameWidth() const { return _rendered.width(); }
+    int getFrameHeight() const { return _rendered.height(); }
 
-	QByteArray getDescription();
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
+
+    QByteArray getDescription();
 
     // only friends can create a source
 protected:
 
-	SvgSource(QSvgRenderer *svg, GLuint texture, double d);
+    SvgSource(QSvgRenderer *svg, GLuint texture, double d);
     ~SvgSource();
 
 private:
-	QSvgRenderer *_svg;
-	QImage _rendered;
+    QSvgRenderer *_svg;
+    QImage _rendered;
 
 };
 

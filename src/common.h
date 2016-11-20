@@ -46,6 +46,7 @@
 #include <GL/glext.h>
 #endif
 
+#include <QDir>
 #include <QGLWidget>
 #include <QGLFramebufferObject>
 #include <QGLShaderProgram>

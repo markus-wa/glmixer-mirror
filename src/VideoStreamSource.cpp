@@ -263,3 +263,27 @@ void VideoStreamSource::updateFrame(VideoPicture *p)
 
 }
 
+QDomElement VideoStreamSource::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = Source::getConfiguration(doc, current);
+    sourceElem.setAttribute("playing", isPlaying());
+    QDomElement specific = doc.createElement("TypeSpecific");
+    specific.setAttribute("type", rtti());
+
+    QDomElement f = doc.createElement("Url");
+    QDomText url = doc.createTextNode(is->getUrl() );
+    f.appendChild(url);
+    specific.appendChild(f);
+
+    // store size if not automatic
+    if ( getFrameWidth() != is->getFrameWidth() || getFrameHeight() != is->getFrameHeight()) {
+        QDomElement s = doc.createElement("Frame");
+        s.setAttribute("Width", getFrameWidth());
+        s.setAttribute("Height", getFrameHeight());
+        specific.appendChild(s);
+    }
+
+    sourceElem.appendChild(specific);
+    return sourceElem;
+}

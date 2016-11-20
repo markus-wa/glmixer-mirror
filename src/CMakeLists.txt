@@ -84,6 +84,7 @@ SET(GLMIXER_SRCS
     VideoStreamSource.cpp
     VideoStreamDialog.cpp
     SizeSelectionWidget.cpp
+    UndoManager.cpp
 )
 
 

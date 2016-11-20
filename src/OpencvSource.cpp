@@ -326,3 +326,22 @@ QString OpencvSource::getOpencvVersion()
 {
     return QString("%1").arg(CV_VERSION);
 }
+
+
+QDomElement OpencvSource::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = Source::getConfiguration(doc, current);
+    sourceElem.setAttribute("playing", isPlaying());
+    QDomElement specific = doc.createElement("TypeSpecific");
+    specific.setAttribute("type", rtti());
+
+    QDomElement f = doc.createElement("CameraIndex");
+    f.setAttribute("Mode", (int) getMode());
+    QDomText id = doc.createTextNode(QString::number(getOpencvCameraIndex()));
+    f.appendChild(id);
+    specific.appendChild(f);
+
+    sourceElem.appendChild(specific);
+    return sourceElem;
+}

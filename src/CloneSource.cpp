@@ -100,3 +100,22 @@ void CloneSource::setOriginal(SourceSet::iterator sit) {
 #endif
 
 }
+
+
+QDomElement CloneSource::getConfiguration(QDomDocument &doc, QDir current)
+{
+    // get the config from proto source
+    QDomElement sourceElem = Source::getConfiguration(doc, current);
+    sourceElem.setAttribute("playing", isPlaying());
+    QDomElement specific = doc.createElement("TypeSpecific");
+    specific.setAttribute("type", rtti());
+
+    QDomElement f = doc.createElement("CloneOf");
+    QDomText name = doc.createTextNode(getOriginalName());
+    f.appendChild(name);
+    specific.appendChild(f);
+
+    sourceElem.appendChild(specific);
+    return sourceElem;
+}
+
