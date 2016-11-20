@@ -4119,7 +4119,7 @@ Uncheck to display the restart frame when stopped.</string>
   </action>
   <action name="actionCloneSource">
    <property name="enabled">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">

@@ -89,22 +89,22 @@ public:
     typedef QMultiMap<qint64, Event *> EventMap;
 
     // get the history of events
-    EventMap getEvents(Direction dir = BACKWARD) const;
+    EventMap events(Direction dir = BACKWARD) const;
 
     // get the cursor time
-    qint64 getCursorPosition() const;
+    qint64 cursorPosition() const;
 
     // get maximum size
-    int getMaximumSize() const;
+    int maximumSize() const;
 
-    // clear the history
-    void clear();
 
 signals:
     void changed();
 
 public slots:
 
+    // clear the history
+    void clear();
     // go to the position given time
     void setCursorPosition(qint64 t);
     // jump to the next event in history (bakward or forward)
@@ -113,15 +113,15 @@ public slots:
     void setCursorNextPositionBackward();
 
     // store an event in history
-    void rememberEvent(QString signature, QVariantPair arg0, QVariantPair arg1, QVariantPair arg2, QVariantPair arg3, QVariantPair arg4);
+    void rememberEvent(QString signature, QVariantPair arg1, QVariantPair arg2, QVariantPair arg3, QVariantPair arg4, QVariantPair arg5, QVariantPair arg6, QVariantPair arg7);
 
     // set the maximum number of items in the history
     void setMaximumSize(int max);
 
 private:
 
-    EventMap _eventHistory;
-    EventMap::iterator _currentEvent;
+    EventMap _history;
+    EventMap::iterator _current;
 //    qint64 _currentTime;
     int _maximumSize;
 

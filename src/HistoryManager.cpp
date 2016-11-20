@@ -144,7 +144,7 @@ void HistoryManager::Event::invoke(HistoryManager::Direction dir) {
 //    qDebug() << "Invoke " << objectName() << signature() << _arguments.size() << " arguments : " << _arguments[0][dir] << _arguments[1][dir] << _arguments[2][dir] << _arguments[3][dir] << _arguments[4][dir];
 
     // invoke the method with all arguments (including empty arguments)
-    _method.invoke(_object, Qt::QueuedConnection, _arguments[0][dir].argument(), _arguments[1][dir].argument(), _arguments[2][dir].argument(), _arguments[3][dir].argument(), _arguments[4][dir].argument() );
+    _method.invoke(_object, Qt::QueuedConnection, _arguments[0][dir].argument(), _arguments[1][dir].argument(), _arguments[2][dir].argument(), _arguments[3][dir].argument(), _arguments[4][dir].argument(), _arguments[5][dir].argument(), _arguments[6][dir].argument() );
 
 }
 
@@ -183,19 +183,19 @@ bool HistoryManager::Event::operator != ( const HistoryManager::Event & other ) 
 
 HistoryManager::HistoryManager(QObject *parent) : QObject(parent), _maximumSize(1000)
 {
-    _currentEvent = _eventHistory.begin();
+    _current = _history.begin();
 
     _timer.start();
 }
 
-HistoryManager::EventMap HistoryManager::getEvents(HistoryManager::Direction dir) const {
+HistoryManager::EventMap HistoryManager::events(HistoryManager::Direction dir) const {
 
     HistoryManager::EventMap eventmap;
 
     if (dir == HistoryManager::BACKWARD) {
 
-        EventMap::iterator i = (EventMap::iterator) _eventHistory.begin();
-        while ( i != _currentEvent ){
+        EventMap::iterator i = (EventMap::iterator) _history.begin();
+        while ( i != _current ){
 
             eventmap.insert(i.key(),i.value());
             ++i;
@@ -209,7 +209,7 @@ HistoryManager::EventMap HistoryManager::getEvents(HistoryManager::Direction dir
     return eventmap;
 }
 
-void HistoryManager::rememberEvent(QString signature, QVariantPair arg0, QVariantPair arg1, QVariantPair arg2, QVariantPair arg3, QVariantPair arg4)
+void HistoryManager::rememberEvent(QString signature, QVariantPair arg1, QVariantPair arg2, QVariantPair arg3, QVariantPair arg4, QVariantPair arg5, QVariantPair arg6, QVariantPair arg7)
 {
 
     QObject *sender_object = sender();
@@ -231,21 +231,21 @@ void HistoryManager::rememberEvent(QString signature, QVariantPair arg0, QVarian
 
         // list of arguments
         QVector< QVariantPair > arguments;
-        arguments << arg0 << arg1 << arg2 << arg3 << arg4;
+        arguments << arg1 << arg2 << arg3 << arg4 << arg5 << arg6 << arg7;
 
         // create an object storing this method call
         Event *newcall = new Event(sender_object, method, arguments );
 
         // if current event is not the last in the history
         // then remove all the remaining items
-        EventMap::iterator it = ++_currentEvent;
-        while ( it != _eventHistory.end() ){
+        EventMap::iterator it = ++_current;
+        while ( it != _history.end() ){
             delete it.value();
-            it = _eventHistory.erase(it);
+            it = _history.erase(it);
         }
 
         // remember the event in the history
-         _currentEvent = _eventHistory.insert(t, newcall);
+         _current = _history.insert(t, newcall);
 
 //        qDebug() << "Stored " << t << sender_metaobject->className() << newcall->signature() << newcall->arguments();
 
@@ -258,18 +258,18 @@ void HistoryManager::rememberEvent(QString signature, QVariantPair arg0, QVarian
 void HistoryManager::clear()
 {
     // delete all objects
-    qDeleteAll(_eventHistory);
+    qDeleteAll(_history);
 
     // empty the list
-    _eventHistory.clear();
+    _history.clear();
 
     // go to end
-    _currentEvent = _eventHistory.begin();
+    _current = _history.begin();
 
     // inform that history changed
     emit changed();
 
-    qDebug() << "HistoryManager " << _eventHistory.size() << " elements";
+    qDebug() << "HistoryManager " << _history.size() << " elements";
 }
 
 
@@ -283,15 +283,15 @@ void HistoryManager::setCursorPosition(qint64 t)
 void HistoryManager::setCursorNextPositionForward()
 {
     // ignore if no event
-    if (_eventHistory.empty())
+    if (_history.empty())
         return;
-    if ( _currentEvent != _eventHistory.end() ) {
+    if ( _current != _history.end() ) {
 
         // invoke the previous event
-        _currentEvent.value()->invoke(HistoryManager::FORWARD);
+        _current.value()->invoke(HistoryManager::FORWARD);
 
         // move the cursor to the previous event
-        _currentEvent++;
+        _current++;
     }
     // inform that history changed
     emit changed();
@@ -300,18 +300,18 @@ void HistoryManager::setCursorNextPositionForward()
 void HistoryManager::setCursorNextPositionBackward()
 {
     // ignore if no event
-    if (_eventHistory.empty())
+    if (_history.empty())
         return;
-    if ( _currentEvent == _eventHistory.end() )
-        _currentEvent--;
+    if ( _current == _history.end() )
+        _current--;
 
-    if ( _currentEvent != _eventHistory.begin() ) {
+    if ( _current != _history.begin() ) {
 
         // invoke the previous event
-        _currentEvent.value()->invoke(HistoryManager::BACKWARD);
+        _current.value()->invoke(HistoryManager::BACKWARD);
 
         // move the cursor to the previous event
-        _currentEvent--;
+        _current--;
     }
     // inform that history changed
     emit changed();
@@ -330,7 +330,7 @@ void HistoryManager::setCursorNextPosition(HistoryManager::Direction dir)
 
 }
 
-int HistoryManager::getMaximumSize() const
+int HistoryManager::maximumSize() const
 {
     return _maximumSize;
 }
@@ -426,23 +426,4 @@ void HistoryManager::setMaximumSize(int max)
 //            }
 //        }
 
-//static QDomDocument doc;
-//static int counter = 0;
-
-//QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(doc);
-
-//QDomElement root = doc.createElement( QString("%1").arg(counter));
-//root.appendChild(renderConfig);
-//doc.appendChild(root);
-//counter++;
-
-//if (counter == 100) {
-//    QFile file("/home/bh/testhistory.xml");
-//    if (!file.open(QFile::WriteOnly | QFile::Text) ) {
-//        return;
-//    }
-//    QTextStream out(&file);
-//    doc.save(out, 4);
-//    file.close();
-//}
 
