@@ -13,6 +13,8 @@ extern "C"
 #include <sys/mman.h>
 #endif
 
+#define PICTURE_MAP
+
 // memory map
 QList<VideoPicture::PictureMap*> VideoPicture::_pictureMaps;
 QMutex VideoPicture::VideoPictureMapLock;
@@ -178,7 +180,7 @@ VideoPicture::VideoPicture(int w, int h, SwsContext *img_convert_ctx,
         rgb.linesize[i] = 0;
     }
 
-#ifdef Q_OS_UNIX
+#ifdef PICTURE_MAP
     VideoPicture::VideoPictureMapLock.lock();
     do {
         _pictureMap = VideoPicture::getAvailablePictureMap(width, height, format);
@@ -205,7 +207,7 @@ VideoPicture::VideoPicture(int w, int h, SwsContext *img_convert_ctx,
 VideoPicture::~VideoPicture()
 {
     if (rgb.data[0]) {
-#ifdef Q_OS_UNIX
+#ifdef PICTURE_MAP
         VideoPicture::VideoPictureMapLock.lock();
         _pictureMap->freePictureMemory(rgb.data[0]);
         VideoPicture::freePictureMap(_pictureMap);

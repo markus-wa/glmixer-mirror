@@ -683,7 +683,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     first_picture_changed = true;
     FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
     fff->start();
-    if ( !fff->wait(300) ) {
+    if ( !fff->wait(1500) ) {
         qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
         return false;
     }
