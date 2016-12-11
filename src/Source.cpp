@@ -39,6 +39,7 @@
 
 #ifdef FFGL
 #include "FFGLPluginSource.h"
+#include "FFGLPluginSourceShadertoy.h"
 #endif
 
 GLuint Source::lastid = 1;
@@ -48,7 +49,7 @@ bool Source::playable = false;
 
 // source constructor.
 Source::Source(GLuint texture, double depth): ProtoSource(),
-    standby(NOT_STANDBY), culled(false), needupdate(true),
+    standby(NOT_STANDBY), culled(false),
     clones(NULL), textureIndex(texture)
 {
     // give it a unique identifier
@@ -92,9 +93,11 @@ Source::~Source() {
  * */
 
 void Source::setName(QString n) {
-    emit methodCalled("_setName(QString)", S_ARG(name, n));
+    QString newname = RenderingManager::getInstance()->getAvailableNameFrom(n);
 
-    ProtoSource::_setName(n);
+    emit methodCalled("_setName(QString)", S_ARG(name, newname));
+
+    ProtoSource::_setName(newname);
 }
 
 void Source::setX(double v) {
@@ -328,12 +331,169 @@ QDomElement Source::getConfiguration(QDomDocument &doc, QDir current)
     }
 #endif
 
-
     return sourceElem;
-
-    // done in subclass:
-    // sourceElem.setAttribute("playing", isPlaying());
 }
+
+
+bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
+{
+    bool ret = true;
+    QDomElement tmp;
+
+    _setName( xmlconfig.attribute("name") );
+    _setModifiable( xmlconfig.attribute("modifiable", "1").toInt() );
+    _setFixedAspectRatio( xmlconfig.attribute("fixedAR", "0").toInt() );
+
+    double x = xmlconfig.firstChildElement("Position").attribute("X", "0").toDouble();
+    double y = xmlconfig.firstChildElement("Position").attribute("Y", "0").toDouble();
+    double sx = xmlconfig.firstChildElement("Scale").attribute("X", "1").toDouble();
+    double sy = xmlconfig.firstChildElement("Scale").attribute("Y", "1").toDouble();
+    double rx = xmlconfig.firstChildElement("Center").attribute("X", "0").toDouble();
+    double ry = xmlconfig.firstChildElement("Center").attribute("Y", "0").toDouble();
+    double a = xmlconfig.firstChildElement("Angle").attribute("A", "0").toDouble();
+    _setGeometry(x, y, sx, sy, rx, ry, a);
+
+    tmp = xmlconfig.firstChildElement("Alpha");
+    _setAlphaCoordinates( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble() );
+
+    tmp = xmlconfig.firstChildElement("Color");
+    _setColor( QColor( tmp.attribute("R", "255").toInt(),
+                       tmp.attribute("G", "255").toInt(),
+                       tmp.attribute("B", "255").toInt() ) );
+
+    tmp = xmlconfig.firstChildElement("Crop");
+    _setTextureCoordinates( QRectF( tmp.attribute("X", "0").toDouble(),
+                                    tmp.attribute("Y", "0").toDouble(),
+                                    tmp.attribute("W", "1").toDouble(),
+                                    tmp.attribute("H", "1").toDouble() ) );
+
+    tmp = xmlconfig.firstChildElement("Blending");
+    _setBlending( GL_SRC_ALPHA, (uint) tmp.attribute("Function", "1").toInt(),
+                                (uint) tmp.attribute("Equation", "32774").toInt());
+    _setMask( tmp.attribute("Mask", "0").toInt() );
+
+    tmp = xmlconfig.firstChildElement("Filter");
+    _setPixelated( tmp.attribute("Pixelated", "0").toInt() );
+    _setInvertMode( (Source::invertModeType) tmp.attribute("InvertMode", "0").toInt() );
+    _setFilter( (Source::filterType) tmp.attribute("Filter", "0").toInt() );
+
+    tmp = xmlconfig.firstChildElement("Coloring");
+    _setBrightness( tmp.attribute("Brightness", "0").toInt() );
+    _setContrast( tmp.attribute("Contrast", "0").toInt() );
+    _setSaturation( tmp.attribute("Saturation", "0").toInt() );
+    _setHueShift( tmp.attribute("Hueshift", "0").toInt() );
+    _setLuminanceThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
+    _setNumberOfColors( tmp.attribute("numberOfColors", "0").toInt() );
+
+    tmp = xmlconfig.firstChildElement("Chromakey");
+    _setChromaKey( tmp.attribute("on", "0").toInt() );
+    _setChromaKeyColor( QColor( tmp.attribute("R", "255").toInt(),
+                                tmp.attribute("G", "0").toInt(),
+                                tmp.attribute("B", "0").toInt() ) );
+    _setChromaKeyTolerance( tmp.attribute("Tolerance", "7").toInt() );
+
+    tmp = xmlconfig.firstChildElement("Gamma");
+    _setGamma( tmp.attribute("value", "1").toDouble(),
+               tmp.attribute("minInput", "0").toDouble(),
+               tmp.attribute("maxInput", "1").toDouble(),
+               tmp.attribute("minOutput", "0").toDouble(),
+               tmp.attribute("maxOutput", "1").toDouble());
+
+#ifdef FFGL
+    clearFreeframeGLPlugin();
+#endif
+
+    // apply FreeFrame plugins
+    // start loop of plugins to load
+    QDomElement p = xmlconfig.firstChildElement("FreeFramePlugin");
+    while (!p.isNull()) {
+#ifdef FFGL
+        QDomElement Filename = p.firstChildElement("Filename");
+        // first reads with the absolute file name
+        QString fileNameToOpen = Filename.text();
+        // if there is no such file, try generate a file name from the relative file name
+        if (!QFileInfo(fileNameToOpen).exists())
+            fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
+        // if there is no such file, try generate a file name from the generic basename
+        if (!QFileInfo(fileNameToOpen).exists() && Filename.hasAttribute("Basename"))
+            fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
+        // if there is such a file
+        if (QFileInfo(fileNameToOpen).exists()) {
+
+            try {
+                // create and push the plugin to the source
+                FFGLPluginSource *plugin = addFreeframeGLPlugin( fileNameToOpen );
+                // apply the configuration
+                if (plugin) {
+                    plugin->setConfiguration(p);
+                    qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                             << tr("FreeFrame plugin %1 added.").arg(fileNameToOpen);
+
+                }
+                else {
+                    ret = false;
+                    qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                               << tr("FreeFrame plugin %1 failed.").arg(fileNameToOpen);
+                }
+            }
+            catch (FFGLPluginException &e)  {
+                ret = false;
+                qWarning() << fileNameToOpen << QChar(124).toLatin1()<< e.message() << tr("\nIt was not added.");
+            }
+
+        }
+        else {
+            ret = false;
+            qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                       << tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+        }
+#else
+        qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
+        ret = false;
+#endif
+        p = p.nextSiblingElement("FreeFramePlugin");
+    }
+
+    // apply Shadertoy plugins
+    // start loop of plugins to load
+    p = xmlconfig.firstChildElement("ShadertoyPlugin");
+    while (!p.isNull()) {
+#ifdef FFGL
+
+        // create and push the plugin to the source
+        FFGLPluginSource *plugin = addFreeframeGLPlugin();
+        // apply the code
+        if (plugin && plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
+
+            FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
+
+            if (stp) {
+                stp->setCode(p.firstChildElement("Code").text());
+                stp->setName(p.firstChildElement("Name").text());
+                stp->setAbout(p.firstChildElement("About").text());
+                stp->setDescription(p.firstChildElement("Description").text());
+
+                qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                         << QObject::tr("Shadertoy plugin %1 added.").arg(p.firstChildElement("Name").text());
+            }
+            else {
+                ret = false;
+                qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
+                           << QObject::tr("Failed to create Shadertoy plugin.");
+            }
+
+        }
+#else
+        qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin not supported.");
+        ret = false;
+#endif
+        p = p.nextSiblingElement("ShadertoyPlugin");
+    }
+
+
+    return ret;
+}
+
 
 /****
  *
@@ -604,7 +764,7 @@ void Source::update()  {
     if (! _ffgl_plugins.isEmpty())
         _ffgl_plugins.update();
 #endif
-    needupdate = false;
+
 }
 
 void Source::blend() const {

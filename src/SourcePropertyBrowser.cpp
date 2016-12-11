@@ -464,7 +464,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QString &va
             return;
 
     if ( property == idToProperty["Name"] ) {
-        RenderingManager::getInstance()->renameSource(currentItem, value);
+        currentItem->setName(value);
         updatePropertyTree();
     }
 }

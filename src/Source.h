@@ -110,6 +110,9 @@ public:
         return (double) getFrameWidth() / (double) getFrameHeight();
     }
 
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
+    bool setConfiguration(QDomElement xmlconfig, QDir current = QDir());
+
     /**
      *  Rendering
      */
@@ -159,10 +162,6 @@ public:
         return culled;
     }
 
-    inline bool needUpdate() const {
-        return needupdate;
-    }
-
     typedef enum {
         SCALE_CROP= 0,
         SCALE_FIT,
@@ -195,8 +194,6 @@ public:
     inline void setStandbyMode(StandbyMode m) {
         standby = m;
     }
-
-    QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
 #ifdef FFGL
     // freeframe gl plugin
@@ -305,7 +302,7 @@ protected:
     StandbyMode standby;
 
     // flags for updating (or not)
-    bool culled, needupdate;
+    bool culled;
 
     // clone list
     SourceList *clones;

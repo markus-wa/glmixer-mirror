@@ -104,6 +104,8 @@
 #include "glmixerdialogs.h"
 #include "glmixer.moc"
 
+#define DISABLE_UNDO
+
 GLMixer *GLMixer::_instance = 0;
 
 #ifdef LOG_MANAGEMENT
@@ -415,8 +417,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 //    QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(disableProgressBars(bool)));
     QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
 
+#ifdef DISABLE_UNDO
+    delete actionUndo;
+    delete actionRedo;
+#else
     QObject::connect(actionUndo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(undo()));
     QObject::connect(actionRedo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(redo()));
+#endif
 
 #ifdef SHM
     QObject::connect(actionShareToRAM, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setFrameSharingEnabled(bool)));

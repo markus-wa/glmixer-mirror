@@ -353,7 +353,7 @@ void VideoStream::start()
         // reset quit flag
         quit = false;
 
-        // start play        
+        // start play
         if (pFormatCtx)
             av_read_play(pFormatCtx);
 
@@ -374,7 +374,7 @@ void VideoStream::start()
 
 
 void VideoStream::play(bool startorstop)
-{    
+{
     // clear the picture queue
     flush_picture_queue();
     active = startorstop;
@@ -587,7 +587,7 @@ void VideoStream::video_refresh_timer()
             if (nextvp) {
 
                 double delay = 0.0;
-                delay = nextvp->presentationTime() - currentvp->presentationTime() ;
+                delay = nextvp->getPts() - currentvp->getPts() ;
 
                 // if delay is correct
                 if ( delay > 0 && delay < 1.0)

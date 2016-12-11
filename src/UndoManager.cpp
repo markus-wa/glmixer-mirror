@@ -53,11 +53,41 @@ void UndoManager::restore(int i)
     // set index
     _index = qBound(0, i, _counter);
 
+    if (true) {
+        QFile file("/home/bh/testhistory.xml");
+        if (!file.open(QFile::WriteOnly | QFile::Text) ) {
+            return;
+        }
+        QTextStream out(&file);
+        _history.save(out, 4);
+        file.close();
+    }
+
+
     // get status at index
     QDomElement root = _history.firstChildElement(QString("%1").arg(_counter));
     if ( !root.isNull()) {
-        qDebug() << root.text();
+
+        QDomElement renderConfig = root.firstChildElement("SourceList");
+        if ( !renderConfig.isNull()) {
+            QDomElement child = renderConfig.firstChildElement("Source");
+            while (!child.isNull()) {
+
+                QString sourcename = child.attribute("name");
+                SourceSet::iterator sit = RenderingManager::getInstance()->getByName(sourcename);
+                if ( RenderingManager::getInstance()->isValid(sit) ) {
+                    if ( !(*sit)->setConfiguration(child) )
+                        qDebug() << "failed";
+                }
+
+                child = child.nextSiblingElement("Source");
+            }
+        }
+        else
+            qDebug() << "sourcelists is empty";
     }
+    else
+        qDebug() << "root is null";
 }
 
 void UndoManager::store()
@@ -70,20 +100,18 @@ void UndoManager::store()
     _counter++;
     // TODO : max
 
-
     // set index to current counter
     _index = _counter;
 
+//    // get the configuration
+//    QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(_history);
+//    if (!renderConfig.isNull()) {
+//        QDomElement root = _history.createElement( QString("%1").arg(_counter));
+//        root.appendChild(renderConfig);
+//        _history.appendChild(root);
 
-    // get the configuration
-    QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(_history);
-    if (!renderConfig.isNull()) {
-        QDomElement root = _history.createElement( QString("%1").arg(_counter));
-        root.appendChild(renderConfig);
-        _history.appendChild(root);
-
-        fprintf(stderr, "stored status %d\n", _counter);
-    }
+//        fprintf(stderr, "stored status %d\n", _counter);
+//    }
 
     // todo : get view config?? other config ??
 

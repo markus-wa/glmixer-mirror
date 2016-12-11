@@ -645,7 +645,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
     try {
         // create a source appropriate
         s = new RenderingSource(getAvailableDepthFrom(depth));
-        renameSource( s, _defaultSource->getName() + "Render");
+        s->setName( _defaultSource->getName() + "Render");
 
     } catch (AllocationException &e){
         qWarning() << "Cannot create Rendering source; " << e.message();
@@ -685,7 +685,7 @@ Source *RenderingManager::newSvgSource(QSvgRenderer *svg, double depth){
     try {
         // create a source appropriate
         s = new SvgSource(svg, textureIndex, getAvailableDepthFrom(depth));
-        renameSource( s, _defaultSource->getName() + "Svg");
+        s->setName(_defaultSource->getName() + "Svg");
 
         // connect to error
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
@@ -720,7 +720,7 @@ Source *RenderingManager::newWebSource(QUrl web, int w, int h, int height, int s
     try {
         // create a source appropriate
         s = new WebSource(web, textureIndex, getAvailableDepthFrom(depth), w, h, height, scroll, update);
-        renameSource( s, _defaultSource->getName() + "Web");
+        s->setName(_defaultSource->getName() + "Web");
 
         // connect to error
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
@@ -754,7 +754,7 @@ Source *RenderingManager::newCaptureSource(QImage img, double depth) {
     try {
         // create a source appropriate
         s = new CaptureSource(img, textureIndex, getAvailableDepthFrom(depth));
-        renameSource( s, _defaultSource->getName() + "Capture");
+        s->setName(_defaultSource->getName() + "Capture");
 
         // connect to error
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
@@ -788,7 +788,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
     try {
         // create a source appropriate for this videofile
         s = new VideoSource( vf, textureIndex, getAvailableDepthFrom(depth) );
-        renameSource( s, _defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
+        s->setName(_defaultSource->getName() + QDir(vf->getFileName()).dirName().split(".").first());
 
         // connect to error
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
@@ -827,7 +827,7 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, int mode, double dept
         // try to create the opencv source
         OpencvSource::CameraMode m = (OpencvSource::CameraMode) CLAMP(mode, OpencvSource::DEFAULT_MODE, OpencvSource::HIGHRES_MODE );
         s = new OpencvSource(opencvIndex, m, textureIndex, getAvailableDepthFrom(depth));
-        renameSource( s, _defaultSource->getName() + QString("Camera%1").arg(opencvIndex) );
+        s->setName(_defaultSource->getName() + QString("Camera%1").arg(opencvIndex) );
 
         // connect to error
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
@@ -884,7 +884,7 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
                         s->freeframeGLPlugin()->setConfiguration( configuration );
 
                         // give it a name
-                        renameSource( s, _defaultSource->getName() + QString("Freeframe") );
+                        s->setName(_defaultSource->getName() + QString("Freeframe") );
 
                         // connect to error
                         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
@@ -935,7 +935,7 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
                 s->freeframeGLPlugin()->setConfiguration( configuration );
 
                 // give it a name
-                renameSource( s, _defaultSource->getName() + QString("Shadertoy") );
+                s->setName(_defaultSource->getName() + QString("Shadertoy") );
 
             } catch (AllocationException &e){
                 qCritical() << tr("Allocation Exception; ") << e.message();
@@ -978,7 +978,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
     try {
         // create a source appropriate
         s = new AlgorithmSource(type, textureIndex, getAvailableDepthFrom(depth), w, h, v, p, ia);
-        renameSource( s, _defaultSource->getName() + tr("Algo"));
+        s->setName(_defaultSource->getName() + tr("Algo"));
 
         // connect to error
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
@@ -1069,7 +1069,7 @@ Source *RenderingManager::newStreamSource(VideoStream *vs, double depth) {
     try {
         // create a source appropriate
         s = new VideoStreamSource(vs, textureIndex, getAvailableDepthFrom(depth) );
-        renameSource( s, _defaultSource->getName() + vs->getUrl());
+        s->setName(_defaultSource->getName() + vs->getUrl());
 
         // connect to error
         QObject::connect(s, SIGNAL(failed()), this, SLOT(onSourceFailure()));
@@ -1100,9 +1100,9 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 
         if ((*sit)->rtti() == Source::CLONE_SOURCE) {
             CloneSource *o = dynamic_cast<CloneSource *>(*sit);
-            renameSource( s, o->getOriginalName() + tr("Clone"));
+            s->setName(o->getOriginalName() + tr("Clone"));
         } else
-            renameSource( s, (*sit)->getName() + tr("Clone"));
+            s->setName((*sit)->getName() + tr("Clone"));
 
 
     } catch (AllocationException &e){
@@ -1685,156 +1685,156 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
     return config;
 }
 
-int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
+//int applySourceConfig(Source *newsource, QDomElement child, QDir current) {
 
-    int errors = 0;
-    QDomElement tmp;
+//    int errors = 0;
+//    QDomElement tmp;
 
-    newsource->_setModifiable( child.attribute("modifiable", "1").toInt() );
-    newsource->_setFixedAspectRatio( child.attribute("fixedAR", "0").toInt() );
+////    newsource->_setModifiable( child.attribute("modifiable", "1").toInt() );
+////    newsource->_setFixedAspectRatio( child.attribute("fixedAR", "0").toInt() );
 
-    double x = child.firstChildElement("Position").attribute("X", "0").toDouble();
-    double y = child.firstChildElement("Position").attribute("Y", "0").toDouble();
-    double sx = child.firstChildElement("Scale").attribute("X", "1").toDouble();
-    double sy = child.firstChildElement("Scale").attribute("Y", "1").toDouble();
-    double rx = child.firstChildElement("Center").attribute("X", "0").toDouble();
-    double ry = child.firstChildElement("Center").attribute("Y", "0").toDouble();
-    double a = child.firstChildElement("Angle").attribute("A", "0").toDouble();
-    newsource->_setGeometry(x, y, sx, sy, rx, ry, a);
+////    double x = child.firstChildElement("Position").attribute("X", "0").toDouble();
+////    double y = child.firstChildElement("Position").attribute("Y", "0").toDouble();
+////    double sx = child.firstChildElement("Scale").attribute("X", "1").toDouble();
+////    double sy = child.firstChildElement("Scale").attribute("Y", "1").toDouble();
+////    double rx = child.firstChildElement("Center").attribute("X", "0").toDouble();
+////    double ry = child.firstChildElement("Center").attribute("Y", "0").toDouble();
+////    double a = child.firstChildElement("Angle").attribute("A", "0").toDouble();
+////    newsource->_setGeometry(x, y, sx, sy, rx, ry, a);
 
-    tmp = child.firstChildElement("Alpha");
-    newsource->_setAlphaCoordinates( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble() );
+////    tmp = child.firstChildElement("Alpha");
+////    newsource->_setAlphaCoordinates( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble() );
 
-    tmp = child.firstChildElement("Color");
-    newsource->_setColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "255").toInt(), tmp.attribute("B", "255").toInt() ) );
+////    tmp = child.firstChildElement("Color");
+////    newsource->_setColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "255").toInt(), tmp.attribute("B", "255").toInt() ) );
 
-    tmp = child.firstChildElement("Crop");
-    newsource->_setTextureCoordinates( QRectF( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble(),tmp.attribute("W", "1").toDouble(),tmp.attribute("H", "1").toDouble() ) );
+////    tmp = child.firstChildElement("Crop");
+////    newsource->_setTextureCoordinates( QRectF( tmp.attribute("X", "0").toDouble(), tmp.attribute("Y", "0").toDouble(),tmp.attribute("W", "1").toDouble(),tmp.attribute("H", "1").toDouble() ) );
 
-    tmp = child.firstChildElement("Blending");
-    newsource->_setBlending( GL_SRC_ALPHA, (uint) tmp.attribute("Function", "1").toInt(),
-                              (uint) tmp.attribute("Equation", "32774").toInt());
-    newsource->_setMask( tmp.attribute("Mask", "0").toInt() );
+////    tmp = child.firstChildElement("Blending");
+////    newsource->_setBlending( GL_SRC_ALPHA, (uint) tmp.attribute("Function", "1").toInt(),
+////                              (uint) tmp.attribute("Equation", "32774").toInt());
+////    newsource->_setMask( tmp.attribute("Mask", "0").toInt() );
 
-    tmp = child.firstChildElement("Filter");
-    newsource->_setPixelated( tmp.attribute("Pixelated", "0").toInt() );
-    newsource->_setInvertMode( (Source::invertModeType) tmp.attribute("InvertMode", "0").toInt() );
-    newsource->_setFilter( (Source::filterType) tmp.attribute("Filter", "0").toInt() );
+////    tmp = child.firstChildElement("Filter");
+////    newsource->_setPixelated( tmp.attribute("Pixelated", "0").toInt() );
+////    newsource->_setInvertMode( (Source::invertModeType) tmp.attribute("InvertMode", "0").toInt() );
+////    newsource->_setFilter( (Source::filterType) tmp.attribute("Filter", "0").toInt() );
 
-    tmp = child.firstChildElement("Coloring");
-    newsource->_setBrightness( tmp.attribute("Brightness", "0").toInt() );
-    newsource->_setContrast( tmp.attribute("Contrast", "0").toInt() );
-    newsource->_setSaturation( tmp.attribute("Saturation", "0").toInt() );
-    newsource->_setHueShift( tmp.attribute("Hueshift", "0").toInt() );
-    newsource->_setLuminanceThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
-    newsource->_setNumberOfColors( tmp.attribute("numberOfColors", "0").toInt() );
+////    tmp = child.firstChildElement("Coloring");
+////    newsource->_setBrightness( tmp.attribute("Brightness", "0").toInt() );
+////    newsource->_setContrast( tmp.attribute("Contrast", "0").toInt() );
+////    newsource->_setSaturation( tmp.attribute("Saturation", "0").toInt() );
+////    newsource->_setHueShift( tmp.attribute("Hueshift", "0").toInt() );
+////    newsource->_setLuminanceThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
+////    newsource->_setNumberOfColors( tmp.attribute("numberOfColors", "0").toInt() );
 
-    tmp = child.firstChildElement("Chromakey");
-    newsource->_setChromaKey( tmp.attribute("on", "0").toInt() );
-    newsource->_setChromaKeyColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "0").toInt(), tmp.attribute("B", "0").toInt() ) );
-    newsource->_setChromaKeyTolerance( tmp.attribute("Tolerance", "7").toInt() );
+////    tmp = child.firstChildElement("Chromakey");
+////    newsource->_setChromaKey( tmp.attribute("on", "0").toInt() );
+////    newsource->_setChromaKeyColor( QColor( tmp.attribute("R", "255").toInt(),tmp.attribute("G", "0").toInt(), tmp.attribute("B", "0").toInt() ) );
+////    newsource->_setChromaKeyTolerance( tmp.attribute("Tolerance", "7").toInt() );
 
-    tmp = child.firstChildElement("Gamma");
-    newsource->_setGamma( tmp.attribute("value", "1").toDouble(),
-            tmp.attribute("minInput", "0").toDouble(),
-            tmp.attribute("maxInput", "1").toDouble(),
-            tmp.attribute("minOutput", "0").toDouble(),
-            tmp.attribute("maxOutput", "1").toDouble());
+////    tmp = child.firstChildElement("Gamma");
+////    newsource->_setGamma( tmp.attribute("value", "1").toDouble(),
+////            tmp.attribute("minInput", "0").toDouble(),
+////            tmp.attribute("maxInput", "1").toDouble(),
+////            tmp.attribute("minOutput", "0").toDouble(),
+////            tmp.attribute("maxOutput", "1").toDouble());
 
-    // apply FreeFrame plugins
-    // start loop of plugins to load
-    QDomElement p = child.firstChildElement("FreeFramePlugin");
-    while (!p.isNull()) {
-#ifdef FFGL
-        QDomElement Filename = p.firstChildElement("Filename");
-        // first reads with the absolute file name
-        QString fileNameToOpen = Filename.text();
-        // if there is no such file, try generate a file name from the relative file name
-        if (!QFileInfo(fileNameToOpen).exists())
-            fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
-        // if there is no such file, try generate a file name from the generic basename
-        if (!QFileInfo(fileNameToOpen).exists() && Filename.hasAttribute("Basename"))
-            fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
-        // if there is such a file
-        if (QFileInfo(fileNameToOpen).exists()) {
+////    // apply FreeFrame plugins
+////    // start loop of plugins to load
+////    QDomElement p = child.firstChildElement("FreeFramePlugin");
+////    while (!p.isNull()) {
+////#ifdef FFGL
+////        QDomElement Filename = p.firstChildElement("Filename");
+////        // first reads with the absolute file name
+////        QString fileNameToOpen = Filename.text();
+////        // if there is no such file, try generate a file name from the relative file name
+////        if (!QFileInfo(fileNameToOpen).exists())
+////            fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
+////        // if there is no such file, try generate a file name from the generic basename
+////        if (!QFileInfo(fileNameToOpen).exists() && Filename.hasAttribute("Basename"))
+////            fileNameToOpen =  FFGLPluginSource::libraryFileName( Filename.attribute("Basename", ""));
+////        // if there is such a file
+////        if (QFileInfo(fileNameToOpen).exists()) {
 
-            try {
-                // create and push the plugin to the source
-                FFGLPluginSource *plugin = newsource->addFreeframeGLPlugin( fileNameToOpen );
-                // apply the configuration
-                if (plugin) {
-                    plugin->setConfiguration(p);
-                    qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                             << QObject::tr("FreeFrame plugin %1 added.").arg(fileNameToOpen);
+////            try {
+////                // create and push the plugin to the source
+////                FFGLPluginSource *plugin = newsource->addFreeframeGLPlugin( fileNameToOpen );
+////                // apply the configuration
+////                if (plugin) {
+////                    plugin->setConfiguration(p);
+////                    qDebug() << child.attribute("name") << QChar(124).toLatin1()
+////                             << QObject::tr("FreeFrame plugin %1 added.").arg(fileNameToOpen);
 
-                } else {
-                    errors++;
-                    qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                               << QObject::tr("FreeFrame plugin %1 failed.").arg(fileNameToOpen);
-                }
-            }
-            catch (FFGLPluginException &e)  {
-                qWarning() << fileNameToOpen << QChar(124).toLatin1()<< e.message() << QObject::tr("\nIt was not added.");
-            }
+////                } else {
+////                    errors++;
+////                    qWarning() << child.attribute("name") << QChar(124).toLatin1()
+////                               << QObject::tr("FreeFrame plugin %1 failed.").arg(fileNameToOpen);
+////                }
+////            }
+////            catch (FFGLPluginException &e)  {
+////                qWarning() << fileNameToOpen << QChar(124).toLatin1()<< e.message() << QObject::tr("\nIt was not added.");
+////            }
 
-        }
-        else {
-            errors++;
-            qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                       << QObject::tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
-        }
-#else
-        qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
-        errors++;
-#endif
-        p = p.nextSiblingElement("FreeFramePlugin");
-    }
+////        }
+////        else {
+////            errors++;
+////            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+////                       << QObject::tr("No FreeFrame plugin file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+////        }
+////#else
+////        qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin not supported.");
+////        errors++;
+////#endif
+////        p = p.nextSiblingElement("FreeFramePlugin");
+////    }
 
-    // apply Shadertoy plugins
-    // start loop of plugins to load
-    p = child.firstChildElement("ShadertoyPlugin");
-    while (!p.isNull()) {
-#ifdef FFGL
+////    // apply Shadertoy plugins
+////    // start loop of plugins to load
+////    p = child.firstChildElement("ShadertoyPlugin");
+////    while (!p.isNull()) {
+////#ifdef FFGL
 
-        // create and push the plugin to the source
-        FFGLPluginSource *plugin = newsource->addFreeframeGLPlugin();
-        // apply the code
-        if (plugin && plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
+////        // create and push the plugin to the source
+////        FFGLPluginSource *plugin = newsource->addFreeframeGLPlugin();
+////        // apply the code
+////        if (plugin && plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
 
-            FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
+////            FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
 
-            if (stp) {
-                stp->setCode(p.firstChildElement("Code").text());
-                stp->setName(p.firstChildElement("Name").text());
-                stp->setAbout(p.firstChildElement("About").text());
-                stp->setDescription(p.firstChildElement("Description").text());
+////            if (stp) {
+////                stp->setCode(p.firstChildElement("Code").text());
+////                stp->setName(p.firstChildElement("Name").text());
+////                stp->setAbout(p.firstChildElement("About").text());
+////                stp->setDescription(p.firstChildElement("Description").text());
 
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                         << QObject::tr("Shadertoy plugin %1 added.").arg(p.firstChildElement("Name").text());
-            }
-            else {
-                errors++;
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << QObject::tr("Failed to create Shadertoy plugin.");
-            }
+////                qDebug() << child.attribute("name") << QChar(124).toLatin1()
+////                         << QObject::tr("Shadertoy plugin %1 added.").arg(p.firstChildElement("Name").text());
+////            }
+////            else {
+////                errors++;
+////                qWarning() << child.attribute("name") << QChar(124).toLatin1()
+////                           << QObject::tr("Failed to create Shadertoy plugin.");
+////            }
 
-        }
-#else
-        qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin not supported.");
-        errors++;
-#endif
-        p = p.nextSiblingElement("ShadertoyPlugin");
-    }
+////        }
+////#else
+////        qWarning() << child.attribute("name") << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin not supported.");
+////        errors++;
+////#endif
+////        p = p.nextSiblingElement("ShadertoyPlugin");
+////    }
 
-    // ok source is configured, can start it !
-    // Play the source if playing attributes says so (and not standby)
-    // NB: if no attribute, then play by default.
-    newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
-    if (!newsource->isStandby())
-        newsource->play( child.attribute("playing", "1").toInt() );
+//    // ok source is configured, can start it !
+//    // Play the source if playing attributes says so (and not standby)
+//    // NB: if no attribute, then play by default.
+//    newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
+//    if (!newsource->isStandby())
+//        newsource->play( child.attribute("playing", "1").toInt() );
 
-    return errors;
-}
+//    return errors;
+//}
 
 void RenderingManager::setConfiguration(QDomElement config, QDomDocument &doc, QDir current)
 {
@@ -2208,13 +2208,11 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
         }
 
         if (newsource) {
-            renameSource( newsource, child.attribute("name") );
-            // insert the source in the scene
-            if ( insertSource(newsource) ) {
+            // Apply parameters to the created source
+            // and insert the source in the scene
+            if ( newsource->setConfiguration(child, current) && insertSource(newsource) )  {
                 // increment counter
                 ++count;
-                // Apply parameters to the created source
-                errors += applySourceConfig(newsource, child, current);
             }
             else {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()
@@ -2222,6 +2220,14 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 errors++;
                 delete newsource;
             }
+
+            // ok source is configured, can start it !
+            // Play the source if playing attributes says so (and not standby)
+            // NB: if no attribute, then play by default.
+            newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
+            if (!newsource->isStandby())
+                newsource->play( child.attribute("playing", "1").toInt() );
+
         }
 
         child = child.nextSiblingElement("Source");
@@ -2229,7 +2235,8 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
     // end loop on sources to create
 
-    // Process the list of clones names ; now that every source exist, we can be sure they can be cloned
+    // Process the list of clones names ;
+    // now that every source exist, we can be sure they can be cloned
     QListIterator<QDomElement> it(clones);
     while (it.hasNext()) {
 
@@ -2244,28 +2251,30 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
         if (isValid(cloneof)) {
             clonesource = RenderingManager::_instance->newCloneSource(cloneof, depth);
             if (clonesource) {
-                renameSource( clonesource, c.attribute("name") );
-                // Apply parameters to the created source
-                errors += applySourceConfig(clonesource, c, current);
-                // insert the source in the scene
-                if ( insertSource(clonesource) )  {
+                // Apply parameters to the created clone
+                // and insert the clone in the scene
+                if ( clonesource->setConfiguration(c, current) && insertSource(clonesource) )  {
                     // increment counter
                     ++count;
                     // log
-                    qDebug() << c.attribute("name") << QChar(124).toLatin1() << tr("Clone of source %1 created.").arg(f.text());
+                    qDebug() << c.attribute("name") << QChar(124).toLatin1()
+                             << tr("Clone of source %1 created.").arg(f.text());
                 }
                 else {
                     errors++;
                     delete clonesource;
                 }
+
             }
             else {
-                qWarning() << c.attribute("name") << QChar(124).toLatin1() << tr("Could not create clone source.");
+                qWarning() << c.attribute("name") << QChar(124).toLatin1()
+                           << tr("Could not create clone source.");
                 errors++;
             }
         }
         else {
-            qWarning() << c.attribute("name") << QChar(124).toLatin1() << tr("Cannot clone %2 ; no such source.").arg(f.text());
+            qWarning() << c.attribute("name") << QChar(124).toLatin1()
+                       << tr("Cannot clone %2 ; no such source.").arg(f.text());
             errors++;
         }
     }
@@ -2500,11 +2509,11 @@ void RenderingManager::setSpoutSharingEnabled(bool on){
 #endif
 
 
-QString RenderingManager::renameSource(Source *s, const QString name){
+//QString RenderingManager::renameSource(Source *s, const QString name){
 
-    s->setName( getAvailableNameFrom(name) );
+//    s->setName( getAvailableNameFrom(name) );
 
-    return s->getName();
-}
+//    return s->getName();
+//}
 
 

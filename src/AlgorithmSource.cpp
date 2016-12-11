@@ -480,8 +480,6 @@ void AlgorithmSource::update() {
 
             // bind PBO
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds);
-            // copy pixels from PBO to texture object
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
             // lock filling thread
             _mutex->lock();
@@ -502,6 +500,9 @@ void AlgorithmSource::update() {
             frameChanged = false;
             _cond->wakeAll();
             _mutex->unlock();
+
+            // copy pixels from PBO to texture object
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
             // release PBOs with ID 0 after use.
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);

@@ -585,7 +585,7 @@ void ViewRenderWidget::paintGL()
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-        if ((*its)->needUpdate() || !(*its)->isStandby())
+        if (!(*its)->isStandby())
             // update the content of the sources
             (*its)->update();
 

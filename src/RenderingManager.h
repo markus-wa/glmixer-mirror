@@ -83,7 +83,7 @@ public:
     /**
     * Management of the sources
     **/
-    QString renameSource(Source *s, const QString name);
+//    QString renameSource(Source *s, const QString name);
 
     // create source per type :
     Source *newRenderingSource(double depth = -1.0);
