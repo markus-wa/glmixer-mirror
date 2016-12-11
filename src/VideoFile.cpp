@@ -441,7 +441,7 @@ void VideoFile::start()
         seek_pos = mark_in;
 
         // except restart where we where (if valid mark)
-        if (restart_where_stopped && mark_stop < mark_out && mark_stop > mark_in)
+        if (restart_where_stopped && mark_stop < (mark_out - getFrameDuration()) && mark_stop > mark_in)
             seek_pos =  mark_stop;
 
         current_frame_pts = seek_pos;
@@ -1524,7 +1524,7 @@ void DecodingThread::run()
 
             if (av_seek_frame(is->pFormatCtx, is->videoStream, seek_target, AVSEEK_FLAG_BACKWARD) < 0)
                 qDebug() << is->filename << QChar(124).toLatin1()
-                         << QObject::tr("Could not seek to frame (%1); jumping where I can!").arg(is->seek_pos);
+                         << QObject::tr("Could not seek to frame (%1).").arg(is->seek_pos);
 
             // flush buffers after seek
             avcodec_flush_buffers(is->video_st->codec);
@@ -1643,27 +1643,27 @@ void DecodingThread::run()
                     // test the end of file
                     int64_t lastdts =  is->video_st->duration;
                     if (eof && is->video_st->last_dts_for_order_check > 0) {
-                        // not yet at end of file : will be when reaching last dts
+                        // not yet at end of file : will be when reaching last dts computed
                         eof = false;
                         lastdts = is->video_st->last_dts_for_order_check;
                     }
                     else {
-                        // no end of file detected : will be reached when at last frame pts
+                        // no end of file detected : will be reached when at last frame dts (1 frame before duration)
                         lastdts -= is->video_st->duration / is->video_st->nb_frames;
                     }
 
                     // test if time will exceed one of the limits
-                    if ( !(pts < is->mark_out) || !( dts < lastdts )  )
+                    if ( !(pts < is->mark_out) || !(dts < lastdts)  )
                     {
+                        // if loop mode on, request seek to begin and do not queue the frame
+                        is->requestSeek(is->mark_in);
+
                         // react according to loop mode
-                        if (is->loop_video) {
-                            // if loop mode on, request seek to begin and do not queue the frame
-                            is->requestSeek(is->mark_in);
-                        }
-                        else
+                        if ( !is->loop_video ) {
                             // if loop mode off, stop after this frame
-                            //                        is->queue_picture(_pFrame, pts, VideoPicture::ACTION_SHOW | VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
                             actionFrame |= VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK;
+                            pts = is->getDuration();
+                        }
 
                     }
 
@@ -1671,19 +1671,19 @@ void DecodingThread::run()
                     is->queue_picture(_pFrame, pts, actionFrame);
 
 
-                } // end if (is->videoStream)
+                } // end if (SEEKING_NONE)
 
 
-            } // end if (frameFinished > 0)
+            } // end if (frameFinished)
 
             // free internal buffers
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
             av_frame_unref(_pFrame);
 #endif
 
-        }
+        } // end if (is->videoStream)
 
-        // End of file detected and not handled
+        // End of file detected and not handled as last video image
         if (eof) {
 
             is->requestSeek(is->mark_in);
