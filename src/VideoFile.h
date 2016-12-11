@@ -707,15 +707,15 @@ protected:
     int conversionAlgorithm;
     VideoPicture *firstPicture, *blackPicture;
     VideoPicture *resetPicture;
-    enum AVPixelFormat targetFormat;
     bool rgba_palette;
 
-    // Video file, streams and packets
+    // LIBAV Video stream
     AVFormatContext *pFormatCtx;
     AVStream *video_st;
     SwsContext *img_convert_ctx;
     int videoStream;
     bool ignoreAlpha, interlaced;
+    enum AVPixelFormat targetFormat;
 
     // seeking management
     QMutex *seek_mutex;

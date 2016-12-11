@@ -83,7 +83,7 @@ private:
     GLuint pboIds[2];
     int index, nextIndex;
     int imgsize;
-
+    bool pboNeedsUpdate;
 };
 
 #endif /* VIDEOSOURCE_H_ */

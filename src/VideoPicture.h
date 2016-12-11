@@ -94,9 +94,7 @@ public:
      *
      * @return pointer to an array of unsigned bytes (char or uint8_t)
      */
-    inline char *getBuffer() const {
-        return (char*) rgb.data[0];
-    }
+    char *getBuffer() const;
 
 #ifdef CUDA
     /**
@@ -166,6 +164,8 @@ public:
          return pixel_format;
     }
 
+    int getBufferSize();
+
     /**
       * Actions to perform on the Video Picture
       */
@@ -181,18 +181,18 @@ public:
     inline void addAction(Action a) { action |= a; }
     inline void removeAction(Action a) { action ^= (action & a); }
     inline bool hasAction(Action a) const { return (action & a); }
-    inline double presentationTime() const { return pts; }
-
-    inline int getBufferSize() { return avpicture_get_size(pixel_format, width, height); }
+//    inline double presentationTime() const { return pts; }
 
 
 private:
+    // LIBAV
     AVPicture rgb;
+    enum AVPixelFormat pixel_format;
+    SwsContext *img_convert_ctx_filtering;
+
     double pts;
     int width, height;
     bool convert_rgba_palette;
-    enum AVPixelFormat pixel_format;
-    SwsContext *img_convert_ctx_filtering;
     Action action;
 
 #ifdef CUDA

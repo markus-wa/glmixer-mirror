@@ -229,26 +229,30 @@ VideoPicture::~VideoPicture()
 
 void VideoPicture::saveToPPM(QString filename) const
 {
-    if (pixel_format != AV_PIX_FMT_RGBA
-            && rgb.linesize[0] > 0)
+    if (rgb.linesize[0] > 0)
     {
         FILE *pFile;
         int y;
 
         // Open file
-        pFile = fopen(filename.toUtf8().data(), "wb");
+        pFile = fopen(qPrintable(filename), "wb");
         if (pFile == NULL)
             return;
 
         // Write header
         fprintf(pFile, "P6\n%d %d\n255\n", width, height);
 
-        // Write pixel data
-        for (y = 0; y < height; y++)
-            fwrite(rgb.data[0] + y * rgb.linesize[0], 1, width * 3, pFile);
+        for (int j = 0; j < height; ++j)
+        {
+          for (int i = 0; i < width; ++i)
+          {
+            (void) fwrite(rgb.data[0] + j * rgb.linesize[0] + i * (pixel_format == AV_PIX_FMT_RGBA ? 4 : 3), 1, 3, pFile);
+          }
+        }
 
         // Close file
         fclose(pFile);
+
     }
 }
 
@@ -268,6 +272,16 @@ void VideoPicture::fill(CUdeviceptr  pInteropFrame, double Pts)
 }
 
 #endif
+
+int VideoPicture::getBufferSize()
+{
+    return avpicture_get_size(pixel_format, width, height);
+}
+
+char *VideoPicture::getBuffer() const {
+    return (char*) rgb.data[0];
+}
+
 
 void VideoPicture::fill(AVFrame *frame, double Pts)
 {

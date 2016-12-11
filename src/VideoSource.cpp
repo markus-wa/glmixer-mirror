@@ -32,7 +32,7 @@
 Source::RTTI VideoSource::type = Source::VIDEO_SOURCE;
 
 VideoSource::VideoSource(VideoFile *f, GLuint texture, double d) :
-    Source(texture, d), format(GL_RGBA), is(f), vp(NULL)
+    Source(texture, d), format(GL_RGBA), is(f), vp(NULL), pboNeedsUpdate(false)
 {
     if (!is)
         SourceConstructorException().raise();
@@ -159,15 +159,12 @@ QDomElement VideoSource::getConfiguration(QDomDocument &doc, QDir current)
 void VideoSource::fillFramePBO(VideoPicture *vp)
 {
     if ( vp->getBuffer() ) {
-        // In dual PBO mode, increment current index first then get the next index
-        index = (index + 1) % 2;
-        nextIndex = (index + 1) % 2;
 
-        // bind PBO to read pixels
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
+//        // bind PBO to read pixels
+//        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
 
-        // copy pixels from PBO to texture object
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(), vp->getHeight(), format, GL_UNSIGNED_BYTE, 0);
+//        // copy pixels from PBO to texture object
+//        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(), vp->getHeight(), format, GL_UNSIGNED_BYTE, 0);
 
         // if the video picture contains a buffer, use it to fill the PBO
 
@@ -184,6 +181,10 @@ void VideoSource::fillFramePBO(VideoPicture *vp)
             // release pointer to mapping buffer
             glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
         }
+
+        // In dual PBO mode, increment current index first then get the next index
+        index = (index + 1) % 2;
+        nextIndex = (index + 1) % 2;
     }
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
@@ -192,11 +193,24 @@ void VideoSource::fillFramePBO(VideoPicture *vp)
 // only Rendering Manager can call this
 void VideoSource::update()
 {
+    glBindTexture(GL_TEXTURE_2D, textureIndex);
+
+    if (pboNeedsUpdate && pboIds[index])
+    {
+        // bind PBO to read pixels
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboIds[index]);
+
+        // copy pixels from PBO to texture object
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, is->getFrameWidth(), is->getFrameHeight(), format, GL_UNSIGNED_BYTE, 0);
+
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+        pboNeedsUpdate = false;
+    }
 
     // update texture if given a new vp
     if ( vp && vp->getBuffer() != NULL )
     {
-        glBindTexture(GL_TEXTURE_2D, textureIndex);
 
         if (internalFormat != vp->getFormat())
             setVideoFormat(vp);
@@ -206,16 +220,15 @@ void VideoSource::update()
             // fill the texture using Pixel Buffer Object mechanism
             fillFramePBO(vp);
 
-            // Do it once more if not refreshing immediately
-            // (dual buffer mechanism)
-            if ( vp->hasAction(VideoPicture::ACTION_STOP) || vp->hasAction(VideoPicture::ACTION_RESET_PTS) )
-                fillFramePBO(vp);
+            // Explicit request to display texture (dual buffer mechanism)
+            pboNeedsUpdate = true;
 
         }
         else {
             // without PBO, use standard opengl (slower)
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vp->getWidth(),
                             vp->getHeight(), format, GL_UNSIGNED_BYTE, vp->getBuffer());
+
         }
 
         // done! Cancel (free) updated frame
@@ -234,7 +247,6 @@ void VideoSource::updateFrame(VideoPicture *p)
 
     // set new vp
     vp = p;
-
 }
 
 bool VideoSource::setVideoFormat(VideoPicture *p)
@@ -291,7 +303,8 @@ bool VideoSource::setVideoFormat(VideoPicture *p)
                 return false;
 
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-            index = nextIndex = 0;
+            index = 0;
+            nextIndex = 1;
         }
 
     }

@@ -917,7 +917,7 @@ void VideoFile::video_refresh_timer()
         _videoClock.applyRequestedSpeed();
 
         // store time of this current frame
-        current_frame_pts =  currentvp->presentationTime();
+        current_frame_pts =  currentvp->getPts();
 
         //        fprintf(stderr, "video_refresh_timer pts %f \n", current_frame_pts);
 
@@ -942,7 +942,9 @@ void VideoFile::video_refresh_timer()
             currentvp->addAction(VideoPicture::ACTION_DELETE);
             emit frameReady(currentvp);
 
-            //              fprintf(stderr, "                         Display picture pts %f queue size %d\n", currentvp->getPts(), pictq.size());
+            //            fprintf(stderr, "                         Display picture pts %f queue size %d\n", currentvp->getPts(), pictq.size());
+
+            //            currentvp->saveToPPM(tr("%1.ppm").arg(currentvp->getPts()));
 
             // if there is a next picture
             // we can compute when to present the next frame
@@ -955,7 +957,7 @@ void VideoFile::video_refresh_timer()
                     delay = _videoClock.timeBase();
                 else
                     // otherwise read presentation time and compute delay till next frame
-                    delay = ( nextvp->presentationTime() - _videoClock.time() ) / _videoClock.speed() ;
+                    delay = ( nextvp->getPts() - _videoClock.time() ) / _videoClock.speed() ;
 
                 // if delay is correct
                 if ( delay > _videoClock.minFrameDelay() ) {
@@ -971,6 +973,8 @@ void VideoFile::video_refresh_timer()
                     // remove the show tag for that frame (i.e. skip it)
                     nextvp->removeAction(VideoPicture::ACTION_SHOW);
                 }
+
+                //            fprintf(stderr, "                         NEXT    picture pts %f delay %d\n", nextvp->getPts(), ptimer_delay);
 
             }
 
@@ -1171,7 +1175,7 @@ double VideoFile::getDuration() const
     // does this looks logical ?
     if ( video_st->nb_frames > 1 && d < av_q2d(video_st->time_base))
         // not logical, compute duration from nmber of frames
-        return video_st->nb_frames * av_q2d(video_st->time_base);
+        return video_st->nb_frames * getFrameRate();
     else
         // looks ok
         return d;
@@ -1179,6 +1183,10 @@ double VideoFile::getDuration() const
 
 double VideoFile::getEnd() const
 {
+    //    if ( video_st->nb_frames > 1 )
+    //        // not logical, compute duration from nmber of frames
+    //        return video_st->nb_frames * getFrameRate();
+    //    else
     return getBegin() + getDuration();
 }
 
@@ -1478,10 +1486,13 @@ void DecodingThread::run()
     double pts = 0.0; // Presentation time stamp
     int64_t dts = 0; // Decoding time stamp
     int error_count = 0;
+    bool eof = false;
 
     _working = true;
     while (is && !is->quit && !_forceQuit)
     {
+
+        eof = false;
         /**
          *
          *   PARSING
@@ -1528,151 +1539,161 @@ void DecodingThread::run()
                 qDebug() << is->filename << QChar(124).toLatin1() << QObject::tr("Could not read frame!");
                 // forget error
                 avio_flush(is->pFormatCtx->pb);
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
+                // cleanup parsing buffers
+                avformat_flush(is->pFormatCtx);
+#endif
                 // do not treat the error; just wait a bit for the end of the packet and continue
                 msleep(PARSING_SLEEP_DELAY);
                 continue;
             }
 
-            // not really an error : read_frame reached the end of file
-            // restart parsing at beginning in any case
-            is->requestSeek(is->mark_in);
-
-            // react according to loop mode
-            if ( !is->loop_video ) {
-                // if stopping, send an empty frame with stop flag
-                // (and pretending pts is one frame later)
-                is->queue_picture(NULL, pts + is->getFrameDuration(), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
-
-            }
-            // forget error
-            avio_flush(is->pFormatCtx->pb);
-
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-            // cleanup parsing buffers
-            avformat_flush(is->pFormatCtx);
-#endif
-            // go on to next packet
-            continue;
-
-        }
-        else if ( packet.stream_index != is->videoStream ) {
-            // not a picture, go to next packet
-            continue;
+            // maybe not an error : read_frame might have reached the end of file
+            eof = true;
         }
 
-        /**
-         *
-         *   DECODING
-         *
-         * */
 
-        // remember packet pts in case the decoding looses it
-        if (packet.pts != AV_NOPTS_VALUE)
-            is->video_st->codec->reordered_opaque = packet.pts;
+        // management of video packets
+        if ( packet.stream_index == is->videoStream ) {
 
-        frameFinished = 0;
+            // remember packet pts in case the decoding looses it
+            if (packet.pts != AV_NOPTS_VALUE)
+                is->video_st->codec->reordered_opaque = packet.pts;
 
-        // Decode video frame
+            frameFinished = 0;
+
+            // Decode video frame
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-        if ( avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &packet) < 0 ) {
+            if ( avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &packet) < 0 ) {
 #else
-        if ( avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet.data, packet.size) < 0) {
+            if ( avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet.data, packet.size) < 0) {
 #endif
 
-            error_count++;
-            if (error_count < 10)
-                continue;
+                fprintf(stderr, "ERROR\n");
 
-            // recurrent decoding error : send failure message
-            _forceQuit = true;
-            is->video_st->discard = AVDISCARD_ALL;
-            emit failed();
+                error_count++;
+                if (error_count < 10)
+                    continue;
 
-            // break loop
-            break;
-        }
+                // recurrent decoding error : send failure message
+                _forceQuit = true;
+                is->video_st->discard = AVDISCARD_ALL;
+                emit failed();
 
-
-        // No error, but did we get a full video frame?
-        if ( frameFinished > 0)
-        {
-            VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
-
-            // get packet decompression time stamp (dts)
-            dts = 0;
-            if (packet.dts != (int64_t) AV_NOPTS_VALUE)
-                dts = packet.dts;
-            else if (_pFrame->reordered_opaque != (int64_t) AV_NOPTS_VALUE)
-                dts = _pFrame->reordered_opaque;
-
-            // compute presentation time stamp
-            pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
-
-            // if seeking in decoded frames
-            if (is->parsing_mode == VideoFile::SEEKING_DECODING) {
-
-                // Skip pFrame if it didn't reach the seeking position
-                // Stop seeking when seeked time is reached
-                if ( !(pts < is->seek_pos) ) {
-
-                    // this frame is the result of the seeking process
-                    // (the ACTION_RESET_PTS in video refresh timer will reset the clock)
-                    actionFrame |= VideoPicture::ACTION_RESET_PTS;
-
-                    // reached the seeked frame! : can say we are not seeking anymore
-                    is->seek_mutex->lock();
-                    is->parsing_mode = VideoFile::SEEKING_NONE;
-                    is->seek_mutex->unlock();
-
-                    // if the seek position we reached equals the mark_in
-                    if ( qAbs( is->seek_pos - is->mark_in ) < is->getFrameDuration() )
-                        // tag the frame as a MARK frame
-                        actionFrame |= VideoPicture::ACTION_MARK;
-
-                }
-
+                // break loop
+                break;
             }
 
-            // if not seeking, queue picture for display
-            // (not else of previous if because it could have unblocked this frame)
-            if (is->parsing_mode == VideoFile::SEEKING_NONE) {
 
-                // wait until we have space for a new pic
-                // the condition is released in video_refresh_timer()
-                is->pictq_mutex->lock();
-                while ( !is->quit && (is->pictq.count() > is->pictq_max_count) )
-                    is->pictq_cond->wait(is->pictq_mutex);
-                is->pictq_mutex->unlock();
+            // No error, but did we get a full video frame?
+            if ( frameFinished > 0)
+            {
+                VideoPicture::Action actionFrame = VideoPicture::ACTION_SHOW;
 
-                // now we can add the picture in the queue
+                // get packet decompression time stamp (dts)
+                dts = 0;
+                if (_pFrame->reordered_opaque != AV_NOPTS_VALUE)
+                    dts = _pFrame->reordered_opaque;
+                else if (packet.pts != AV_NOPTS_VALUE)
+                    dts = packet.pts;
+                else
+                    dts = packet.dts;
 
-                // test if time will exceed limits (mark out or will pass the end of file)
-                if ( pts > is->mark_out )
-                {
-                    // react according to loop mode
-                    if (is->loop_video) {
-                        // if loop mode on, request seek to begin and do not queue the frame
-                        is->requestSeek(is->mark_in);
+                // compute presentation time stamp
+                pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
+
+                // if seeking in decoded frames
+                if (is->parsing_mode == VideoFile::SEEKING_DECODING) {
+
+                    // Skip pFrame if it didn't reach the seeking position
+                    // Stop seeking when seeked time is reached
+                    if ( !(pts < is->seek_pos) ) {
+
+                        // this frame is the result of the seeking process
+                        // (the ACTION_RESET_PTS in video refresh timer will reset the clock)
+                        actionFrame |= VideoPicture::ACTION_RESET_PTS;
+
+                        // reached the seeked frame! : can say we are not seeking anymore
+                        is->seek_mutex->lock();
+                        is->parsing_mode = VideoFile::SEEKING_NONE;
+                        is->seek_mutex->unlock();
+
+                        // if the seek position we reached equals the mark_in
+                        if ( qAbs( is->seek_pos - is->mark_in ) < is->getFrameDuration() )
+                            // tag the frame as a MARK frame
+                            actionFrame |= VideoPicture::ACTION_MARK;
+
                     }
-                    else
-                        // if loop mode off, stop after this frame
-                        is->queue_picture(_pFrame, pts, VideoPicture::ACTION_SHOW | VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
 
                 }
-                else
-                    // default
+
+                // if not seeking, queue picture for display
+                // (not else of previous if because it could have unblocked this frame)
+                if (is->parsing_mode == VideoFile::SEEKING_NONE)
+                {
+
+                    // wait until we have space for a new pic
+                    // to add a picture in the queue
+                    // (the condition is released in video_refresh_timer() )
+                    is->pictq_mutex->lock();
+                    while ( !is->quit && (is->pictq.count() > is->pictq_max_count) )
+                        is->pictq_cond->wait(is->pictq_mutex);
+                    is->pictq_mutex->unlock();
+
+                    // test the end of file
+                    int64_t lastdts =  is->video_st->duration;
+                    if (eof && is->video_st->last_dts_for_order_check > 0) {
+                        // not yet at end of file : will be when reaching last dts
+                        eof = false;
+                        lastdts = is->video_st->last_dts_for_order_check;
+                    }
+                    else {
+                        // no end of file detected : will be reached when at last frame pts
+                        lastdts -= is->video_st->duration / is->video_st->nb_frames;
+                    }
+
+                    // test if time will exceed one of the limits
+                    if ( !(pts < is->mark_out) || !( dts < lastdts )  )
+                    {
+                        // react according to loop mode
+                        if (is->loop_video) {
+                            // if loop mode on, request seek to begin and do not queue the frame
+                            is->requestSeek(is->mark_in);
+                        }
+                        else
+                            // if loop mode off, stop after this frame
+                            //                        is->queue_picture(_pFrame, pts, VideoPicture::ACTION_SHOW | VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
+                            actionFrame |= VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK;
+
+                    }
+
                     // add frame to the queue of pictures
                     is->queue_picture(_pFrame, pts, actionFrame);
 
-            }
+
+                } // end if (is->videoStream)
 
 
-        } // end if (frameFinished > 0)
+            } // end if (frameFinished > 0)
 
-        // free internal buffers
+            // free internal buffers
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
-        av_frame_unref(_pFrame);
+            av_frame_unref(_pFrame);
 #endif
+
+        }
+
+        // End of file detected and not handled
+        if (eof) {
+
+            is->requestSeek(is->mark_in);
+
+            // react according to loop mode
+            if ( !is->loop_video )
+                // if stopping, send an empty frame with stop flag
+                // (and pretending pts is one frame later)
+                is->queue_picture(NULL, pts + is->getFrameDuration(), VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK);
+        }
 
     } // end while
 
