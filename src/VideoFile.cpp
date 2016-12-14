@@ -227,6 +227,9 @@ VideoFile::VideoFile(QObject *parent, bool generatePowerOfTwo,
     blackPicture = NULL;
     resetPicture = NULL;
     pictq_max_count = 0;
+    duration = 0.0;
+    frame_rate = 0.0;
+    nb_frames = 0;
 
     // Contruct some objects
     decod_tid = new DecodingThread(this);
@@ -493,11 +496,11 @@ void VideoFile::setPlaySpeed(double s)
     // change the picture queue size according to play speed
     // this is because, in principle, more frames are skipped when play faster
     // and we empty the queue faster
-    //    double sizeq = qBound(2.0, (double) video_st->nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
+    //    double sizeq = qBound(2.0, (double) nb_frames * SEEK_STEP + 1.0, (double) MAX_VIDEO_PICTURE_QUEUE_SIZE);
 
     //    sizeq *= s;
 
-    //    pictq_max_count = qBound(2, (int) sizeq, (int) video_st->nb_frames);
+    //    pictq_max_count = qBound(2, (int) sizeq, (int) nb_frames);
 
     _videoClock.setSpeed( s );
     emit playSpeedChanged(s);
@@ -515,7 +518,7 @@ VideoPicture *VideoFile::getResetPicture() const
 }
 
 int VideoFile::getNumFrames() const {
-    if (video_st) return video_st->nb_frames;
+    if (video_st) return nb_frames;
     else return 0;
 }
 
@@ -584,16 +587,21 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     pFormatCtx = _pFormatCtx;
     video_st = pFormatCtx->streams[videoStream];
 
-    // make sure the number of frames is correctly counted (some files have no count)
-    if (video_st->nb_frames == (int64_t) AV_NOPTS_VALUE || video_st->nb_frames < 1 )
-        video_st->nb_frames = (int64_t) (getDuration() / av_q2d(video_st->time_base));
+    // read duration, number of frames and frame rate of stream
+    duration = CodecManager::getDurationStream(pFormatCtx, videoStream);
+    frame_rate = CodecManager::getFrameRateStream(pFormatCtx, videoStream);
+    nb_frames = video_st->nb_frames;
+
+    // make sure the numbers match !
+    if (nb_frames == (int64_t) AV_NOPTS_VALUE || nb_frames < 1 )
+        nb_frames = (int64_t) ( duration * frame_rate);
 
     // disable multithreaded decoding for pictures
-    if (video_st->nb_frames < 2)
+    if (nb_frames < 2)
         video_st->codec->thread_count = 1;
 
     // check the parameters for mark in and out and setup marking accordingly
-    if (markIn < 0 || video_st->nb_frames < 2)
+    if (markIn < 0 || nb_frames < 2)
         mark_in = getBegin(); // default to start of file
     else
     {
@@ -601,7 +609,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         emit markingChanged();
     }
 
-    if (markOut <= 0 || video_st->nb_frames < 2)
+    if (markOut <= 0 || nb_frames < 2)
         mark_out = getEnd(); // default to end of file
     else
     {
@@ -651,7 +659,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     // (i.e. optimal 'unscaled' converter is used by default)
     if (conversionAlgorithm == 0)
     {
-        if ( video_st->nb_frames < 2 )
+        if ( nb_frames < 2 )
             conversionAlgorithm = SWS_LANCZOS; // optimal quality scaling for 1 frame sources (images)
         else
             conversionAlgorithm = SWS_POINT;   // optimal speed scaling for videos
@@ -698,7 +706,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     mark_stop = mark_in;
 
     // For videos only
-    if (video_st->nb_frames > 1) {
+    if (nb_frames > 1) {
 
         // we may need a black frame to return to when stopped
         blackPicture = new VideoPicture(targetWidth, targetHeight);
@@ -708,7 +716,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
         recompute_max_count_picture_queue();
 
         // tells everybody we are set !
-        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 %4 frames).").arg(video_st->nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(pfn);
+        qDebug() << filename << QChar(124).toLatin1() <<  tr("Media opened (%1 frames, buffer of %2 MB for %3 %4 frames).").arg(nb_frames).arg((float) (pictq_max_count * firstPicture->getBufferSize()) / (float) MEGABYTE, 0, 'f', 1).arg( pictq_max_count).arg(pfn);
 
     }
     else {
@@ -1013,41 +1021,11 @@ double VideoFile::getTimefromFrame(int64_t  f) const
     return f * av_q2d(video_st->time_base);
 }
 
-double VideoFile::getFrameRate() const
-{
-    if (video_st)
-    {
-        // get average framerate from libav, if correct.
-        if (video_st->avg_frame_rate.den > 0)
-            return av_q2d(video_st->avg_frame_rate);
-
-        // else get guessed framerate from libav, if correct. (deprecated)
-#if FF_API_R_FRAME_RATE
-        else if (video_st->r_frame_rate.den > 0)
-            return av_q2d(video_st->r_frame_rate);
-#endif
-        // else compute global framerate from duration and number of frames
-        else if (video_st->nb_frames > 1)
-            return (  ((double)video_st->duration / av_q2d(video_st->time_base)) / (double)video_st->nb_frames ) ;
-
-    }
-
-    return 0.0;
-}
 
 double VideoFile::getFrameDuration() const
 {
-    if (video_st)
-    {
-        // from average framerate from libav, if correct.
-        if (video_st->avg_frame_rate.num > 0)
-            return (double) video_st->avg_frame_rate.den / (double) video_st->avg_frame_rate.num;
-
-        // else :  inverse of frame rate
-        else
-            return 1.0 / getFrameRate();
-    }
-
+    if (frame_rate > 0)
+        return 1.0 / frame_rate;
     return 0.0;
 }
 
@@ -1112,14 +1090,6 @@ void VideoFile::seekBySeconds(double seekStep)
 
 }
 
-void VideoFile::seekByFrames(int seekFrameStep)
-{
-    // seek by how many seconds the number of frames corresponds to
-    seekBySeconds( (double) seekFrameStep * av_q2d(video_st->time_base));
-
-    // BHBN TODO : either remove or fix time calculation
-}
-
 
 void VideoFile::seekForwardOneFrame()
 {
@@ -1143,7 +1113,7 @@ QString VideoFile::getStringTimeFromtime(double time) const
 QString VideoFile::getStringFrameFromTime(double t) const
 {
     if (getDuration() > 0)
-        return (QString("Frame %1").arg((int) ( (t / getDuration()) * video_st->nb_frames )));
+        return (QString("Frame %1").arg((int) ( (t / getDuration()) * nb_frames )));
     else
         return (QString("Frame %1").arg((int) ( t / av_q2d(video_st->time_base) )));
 }
@@ -1160,34 +1130,25 @@ double VideoFile::getBegin() const
     return 0.0;
 }
 
-double VideoFile::getDuration() const
-{
-    double d = 0.0;
-
-    // get duration from stream
-    if (video_st && video_st->duration != (int64_t) AV_NOPTS_VALUE )
-        d = double(video_st->duration) * av_q2d(video_st->time_base);
-
-    // try to get the duration from context (codec info)
-    else if (pFormatCtx && pFormatCtx->duration != (int64_t) AV_NOPTS_VALUE )
-        d = double(pFormatCtx->duration) * av_q2d(AV_TIME_BASE_Q);
-
-    // does this looks logical ?
-    if ( video_st->nb_frames > 1 && d < av_q2d(video_st->time_base))
-        // not logical, compute duration from nmber of frames
-        return video_st->nb_frames * getFrameRate();
-    else
-        // looks ok
-        return d;
-}
-
 double VideoFile::getEnd() const
 {
-    //    if ( video_st->nb_frames > 1 )
-    //        // not logical, compute duration from nmber of frames
-    //        return video_st->nb_frames * getFrameRate();
-    //    else
     return getBegin() + getDuration();
+}
+
+int VideoFile::getStreamFrameWidth() const
+{
+    if (video_st)
+        return video_st->codec->width;
+    else
+        return targetWidth;
+}
+
+int VideoFile::getStreamFrameHeight() const
+{
+    if (video_st)
+        return video_st->codec->height;
+    else
+        return targetHeight;
 }
 
 void VideoFile::clean_until_time_picture_queue(double time) {
@@ -1380,7 +1341,7 @@ void VideoFile::requestSeek(double time, bool lock)
 bool VideoFile::jump_in_picture_queue(double time)
 {
     // discard too small seek (return true to indicate the jump is already effective)
-    if ( qAbs( time - current_frame_pts ) < qAbs( getDuration() / (double) video_st->nb_frames)  )
+    if ( qAbs( time - current_frame_pts ) < qAbs( getDuration() / (double) nb_frames)  )
         return true;
 
     // Is there a picture with the seeked time into the queue ?
@@ -1491,7 +1452,6 @@ void DecodingThread::run()
     _working = true;
     while (is && !is->quit && !_forceQuit)
     {
-
         eof = false;
         /**
          *
@@ -1557,20 +1517,17 @@ void DecodingThread::run()
         if ( packet.stream_index == is->videoStream ) {
 
             // remember packet pts in case the decoding looses it
-            if (packet.pts != AV_NOPTS_VALUE)
+            if (packet.pts >= 0 && packet.pts != AV_NOPTS_VALUE)
                 is->video_st->codec->reordered_opaque = packet.pts;
 
             frameFinished = 0;
 
             // Decode video frame
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
-            if ( avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &packet) < 0 ) {
-#else
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(52,30,0)
             if ( avcodec_decode_video(is->video_st->codec, _pFrame, &frameFinished, packet.data, packet.size) < 0) {
+#else
+            if ( avcodec_decode_video2(is->video_st->codec, _pFrame, &frameFinished, &packet) < 0 ) {
 #endif
-
-                fprintf(stderr, "ERROR\n");
-
                 error_count++;
                 if (error_count < 10)
                     continue;
@@ -1584,7 +1541,6 @@ void DecodingThread::run()
                 break;
             }
 
-
             // No error, but did we get a full video frame?
             if ( frameFinished > 0)
             {
@@ -1592,12 +1548,13 @@ void DecodingThread::run()
 
                 // get packet decompression time stamp (dts)
                 dts = 0;
-                if (_pFrame->reordered_opaque != AV_NOPTS_VALUE)
+
+                /*if (_pFrame->reordered_opaque && _pFrame->reordered_opaque != AV_NOPTS_VALUE)
                     dts = _pFrame->reordered_opaque;
-                else if (packet.pts != AV_NOPTS_VALUE)
-                    dts = packet.pts;
+                else*/ if (_pFrame->pkt_pts != AV_NOPTS_VALUE)
+                    dts = _pFrame->pkt_pts;
                 else
-                    dts = packet.dts;
+                    dts = _pFrame->pkt_dts;
 
                 // compute presentation time stamp
                 pts = is->synchronize_video(_pFrame, double(dts) * av_q2d(is->video_st->time_base));
@@ -1641,15 +1598,15 @@ void DecodingThread::run()
                     is->pictq_mutex->unlock();
 
                     // test the end of file
-                    int64_t lastdts =  is->video_st->duration;
+                    int64_t lastdts = is->video_st->duration;
                     if (eof && is->video_st->last_dts_for_order_check > 0) {
-                        // not yet at end of file : will be when reaching last dts computed
+                        // almost at end of file : will be when reaching last dts computed
                         eof = false;
                         lastdts = is->video_st->last_dts_for_order_check;
                     }
                     else {
                         // no end of file detected : will be reached when at last frame dts (1 frame before duration)
-                        lastdts -= is->video_st->duration / is->video_st->nb_frames;
+                        lastdts -= is->video_st->duration / is->nb_frames ;
                     }
 
                     // test if time will exceed one of the limits
@@ -1662,7 +1619,7 @@ void DecodingThread::run()
                         if ( !is->loop_video ) {
                             // if loop mode off, stop after this frame
                             actionFrame |= VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK;
-                            pts = is->getDuration();
+                            pts = is->video_st->duration;
                         }
 
                     }

@@ -290,23 +290,13 @@ public:
      *
      *  @return Width of frames in pixels.
      */
-    inline int getStreamFrameWidth() const {
-        if (video_st)
-            return video_st->codec->width;
-        else
-            return targetWidth;
-    }
+    int getStreamFrameWidth() const;
     /**
      *  Get the height of the frames contained in the stream.
      *
      *  @return Height of frames in pixels.
      */
-    inline int getStreamFrameHeight() const {
-        if (video_st)
-            return video_st->codec->height;
-        else
-            return targetHeight;
-    }
+    int getStreamFrameHeight() const;
     /**
      * Get the aspect ratio of the video stream.
      *
@@ -316,19 +306,25 @@ public:
     /**
      * Get the frame rate of the movie file opened.
      *
-     * NB: the frame rate is computed from avcodec information, which is not always correct as
-     * some codecs have non-constant frame rates.
-     *
      * @return frame rate in Hertz (frames per second), 0 if no video is opened.
      */
-    double getFrameRate() const;
+    inline double getFrameRate() const {
+        return frame_rate;
+    }
+    /**
+     * Get an estimate of the duration of one frame
+     *
+     * @return frame duration in second.
+     */
     double getFrameDuration() const;
     /**
      * Get the duration of the VideoFile in seconds.
      *
      * @return Duration of the stream in seconds.
      */
-    double getDuration() const;
+    inline double getDuration() const {
+        return duration;
+    }
     /**
      * Get the time of the first picture in VideoFile.
      *
@@ -391,15 +387,12 @@ public:
      * @param ss Amount of time to jump; if ss > 0 it seeks forward. if ss < 0, it seeks backward.
      */
     void seekBySeconds(double ss);
-    /**
-     * Requests a seek (jump) into the video by a given amount of frames.
-     *
-     * Does nothing if the process is not running (started) or already seeking.
-     *
-     * @param ss Amount of frames to jump; if ss > 0 it seeks forward. if ss < 0, it seeks backward.
-     */
-    void seekByFrames(int  si);
 
+    /**
+     * Ignore the time of frames (display frames as fast as possible).
+     *
+     * @param on true to activate the fast forward, false to disactivate
+     */
     void setFastForward(bool on) { fast_forward = on; }
 
     /**
@@ -686,7 +679,6 @@ protected:
     virtual void close();
     void reset();
     double fill_first_frame(bool);
-    int stream_component_open(AVFormatContext *);
     double synchronize_video(AVFrame *src_frame, double dts);
 
     void queue_picture(AVFrame *pFrame, double pts, VideoPicture::Action a);
@@ -708,6 +700,9 @@ protected:
     VideoPicture *firstPicture, *blackPicture;
     VideoPicture *resetPicture;
     bool rgba_palette;
+    double duration;
+    int64_t nb_frames;
+    double frame_rate;
 
     // LIBAV Video stream
     AVFormatContext *pFormatCtx;

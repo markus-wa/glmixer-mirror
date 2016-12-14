@@ -34,6 +34,18 @@ public:
      */
     static int getVideoStream(AVFormatContext *codeccontext);
     /**
+     *  Find duration of a stream
+     *
+     * @return duration of the stream in second (-1 on error)
+     */
+    static double getDurationStream(AVFormatContext *codeccontext, int stream);
+    /**
+     *  Find frame rate of a stream
+     *
+     * @return frame rate of the stream in second (-1 on error)
+     */
+    static double getFrameRateStream(AVFormatContext *codeccontext, int stream);
+    /**
      *  Open a Codec
      *
      * @return name of the codec if open, QString::null on failure

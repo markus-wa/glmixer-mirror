@@ -32,8 +32,8 @@ CodecManager::CodecManager(QObject *parent) : QObject(parent)
     avfilter_register_all();
 
 #ifndef NDEBUG
-         /* print debug info from ffmpeg */
-         av_log_set_level( AV_LOG_ERROR  );
+         /* print warning info from ffmpeg */
+         av_log_set_level( AV_LOG_WARNING  );
 #else
          av_log_set_level( AV_LOG_QUIET ); /* don't print warnings from ffmpeg */
 #endif
@@ -176,6 +176,48 @@ QString CodecManager::openCodec(AVCodecContext *codeccontext)
 
     return codecname;
 }
+
+
+double CodecManager::getDurationStream(AVFormatContext *codeccontext, int stream)
+{
+    double d = 0.0;
+
+    // get duration from stream
+    if (codeccontext->streams[stream] && codeccontext->streams[stream]->duration != (int64_t) AV_NOPTS_VALUE )
+        d = double(codeccontext->streams[stream]->duration) * av_q2d(codeccontext->streams[stream]->time_base);
+
+    // else try to get the duration from context (codec info)
+    else if (codeccontext && codeccontext->duration != (int64_t) AV_NOPTS_VALUE )
+        d = double(codeccontext->duration) * av_q2d(AV_TIME_BASE_Q);
+
+
+    if (codeccontext->duration_estimation_method == AVFMT_DURATION_FROM_BITRATE) {
+        qWarning() << codeccontext->filename << QChar(124).toLatin1()<< tr("Could not read duration of video.");
+    }
+
+    return d;
+}
+
+
+double CodecManager::getFrameRateStream(AVFormatContext *codeccontext, int stream)
+{
+    double d = 0.0;
+
+    // get duration from stream
+    if (codeccontext->streams[stream] &&
+            codeccontext->streams[stream]->avg_frame_rate.den > 0)
+        d = av_q2d(codeccontext->streams[stream]->avg_frame_rate);
+
+    // else get guessed framerate from libav, if correct. (deprecated)
+#if FF_API_R_FRAME_RATE
+    else if (codeccontext->streams[stream] &&
+             codeccontext->streams[stream]->r_frame_rate.den > 0)
+        d = av_q2d(codeccontext->streams[stream]->r_frame_rate);
+#endif
+
+    return d;
+}
+
 
 void CodecManager::convertSizePowerOfTwo(int &width, int &height)
 {
@@ -354,7 +396,7 @@ QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt)
 }
 #elif LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,30,0)
 QString CodecManager::getPixelFormatName(AVPixelFormat pix_fmt)
-{    
+{
     registerAll();
     QString pfn(av_pix_fmt_descriptors[pix_fmt].name);
     pfn += QString(" (%1bpp)").arg(av_get_bits_per_pixel( &av_pix_fmt_descriptors[pix_fmt]));
@@ -423,7 +465,7 @@ QString CodecManager::getPixelFormatName(AVPixelFormat ffmpegAVPixelFormat)
 #endif
 
 bool CodecManager::pixelFormatHasAlphaChannel(AVPixelFormat pix_fmt)
-{    
+{
     registerAll();
 
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)
