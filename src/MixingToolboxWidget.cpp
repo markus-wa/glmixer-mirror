@@ -758,7 +758,9 @@ void MixingToolboxWidget::on_resetPresets_pressed()
 
 void MixingToolboxWidget::on_resetPlugins_pressed()
 {
+#ifdef FFGL
     pluginBrowser->resetAll();
+#endif
 }
 
 void MixingToolboxWidget::changed(){
