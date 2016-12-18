@@ -249,6 +249,7 @@ public slots:
 signals:
     void frameBufferChanged();
     void currentSourceChanged(SourceSet::iterator csi);
+    void methodCalled(QString);
 #ifdef SPOUT
     void spoutSharingEnabled(bool on);
 #endif

@@ -104,7 +104,7 @@
 #include "glmixerdialogs.h"
 #include "glmixer.moc"
 
-#define DISABLE_UNDO
+//#define DISABLE_UNDO
 
 GLMixer *GLMixer::_instance = 0;
 

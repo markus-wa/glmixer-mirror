@@ -594,7 +594,7 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
 
     // make sure the numbers match !
     if (nb_frames == (int64_t) AV_NOPTS_VALUE || nb_frames < 1 )
-        nb_frames = (int64_t) ( duration * frame_rate);
+        nb_frames =  (int64_t) ( duration * frame_rate );
 
     // disable multithreaded decoding for pictures
     if (nb_frames < 2)
@@ -779,7 +779,7 @@ double VideoFile::fill_first_frame(bool seek)
     }
 
     // loop while we didn't finish the frame, or looped for too long
-    while (!frameFinished && trial++ < 500 )
+    while (!frameFinished && trial < 500 )
     {
 
         // read a packet
@@ -797,6 +797,7 @@ double VideoFile::fill_first_frame(bool seek)
         if (packet.pts != AV_NOPTS_VALUE)
             video_st->codec->reordered_opaque = packet.pts;
 
+        trial++;
         frameFinished = 0;
         // unreference buffers
 #if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(55,60,0)

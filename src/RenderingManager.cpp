@@ -210,6 +210,9 @@ RenderingManager::RenderingManager() :
     _spoutEnabled = false;
     _spoutInitialized = false;
 #endif
+
+
+    UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)));
 }
 
 RenderingManager::~RenderingManager() {
@@ -1130,11 +1133,13 @@ bool RenderingManager::insertSource(Source *s)
 //#endif
 
                 // connect source to the undo manager
-                UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
+                UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString)));
 
                 // inform of success
+                emit methodCalled("_insertSource(Source)");
                 return true;
-            } else
+            }
+            else
                 qCritical() << tr("Not enough space to insert the source into the stack (%1).").arg(_front_sources.size());
         }
         else
@@ -1327,6 +1332,8 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
 
         // log
         qDebug() << name_oldsource  << QChar(124).toLatin1() << tr("Source replaced by %1").arg((*it_newsource)->getName());
+
+        emit methodCalled("_replaceSource(GLuint,GLuint)");
     }
 
 }
@@ -1342,6 +1349,7 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
         qWarning() << tr("Invalid Source cannot be deleted.");
         return 0;
     }
+
 
     // remove from selection and group
     _renderwidget->removeFromSelections(*itsource);
@@ -1370,10 +1378,15 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
         num_sources_deleted++;
     }
 
+    emit methodCalled("_removeSource(SourceSet::iterator)");
+
     return num_sources_deleted;
 }
 
 void RenderingManager::clearSourceSet() {
+
+    // Suspend Undo manager
+    UndoManager::getInstance()->suspend();
 
     // how many sources to remove ?
     int total = _front_sources.size();
@@ -1395,6 +1408,8 @@ void RenderingManager::clearSourceSet() {
     // cleanup VideoPicture memory map
     VideoPicture::clearPictureMaps();
 
+    // cleanup & reactivate Undo Manager
+    UndoManager::getInstance()->clear();
 
 }
 
@@ -1532,6 +1547,8 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
         double newdepth) {
 
     newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+
+    emit methodCalled("_changeDepth(SourceSet::iterator,double)");
 
     if (itsource != _front_sources.end()) {
         // verify that the depth value is not already taken, or too close to, and adjust in case.
@@ -1853,6 +1870,9 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     QList<QDomElement> clones;
     int errors = 0;
     int count = 0;
+
+    // Suspend Undo manager
+    UndoManager::getInstance()->suspend();
 
     // start loop of sources to create
     QDomElement child = xmlconfig.firstChildElement("Source");
@@ -2287,6 +2307,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
     // log
     qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("%1 sources created (%1/%2).").arg(count).arg(xmlconfig.childNodes().count());
+
+
+    // cleanup & reactivate Undo Manager
+    UndoManager::getInstance()->clear();
 
     return errors;
 }

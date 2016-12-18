@@ -26,7 +26,7 @@ public slots:
     // store status
     void store();
     // store events from sources
-    void store(QString signature, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair);
+    void store(QString signature);
     // restore status
     void restore(int i);
 
@@ -40,13 +40,20 @@ private:
     virtual ~UndoManager();
     static UndoManager *_instance;
 
-    bool _suspended;
+    typedef enum {
+        DISABLED = 0,
+        IDLE,
+        PENDING,
+        ACTIVE
+    } status;
+
+    status _status;
     int _maximumSize;
     QString _previousSignature;
     QString _previousSender;
 
     QDomDocument _history;
-    int _counter, _index;
+    int _firstIndex, _lastIndex, _currentIndex;
 };
 
 #endif // UNDOMANAGER_H
