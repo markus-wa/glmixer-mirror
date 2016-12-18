@@ -13,7 +13,7 @@
 
 ABOUT
 
-GLMixer performs in real time the graphical blending of several movie clips. 
+GLMixer performs in real time the graphical blending of several movie clips.
 You would typically load a set of video samples by drag'n drop, and decide on the fly
 how much they should be visible, arrange the images in the screen, and which effects
 you apply to them.
@@ -69,13 +69,9 @@ libcvaux-dev
 libhighgui-dev
 libv4l-dev
 
-In short, under linux, the following command installs what is necessary :
-
-	$ sudo apt-get install subversion cmake-qt-gui ninja-build libqt4-opengl-dev libglew-dev libavformat-dev libhighgui-dev libavfilter-dev libv4l-dev xsltproc
 
 
-
-COMPILATION
+COMPILATION GUIDELINES
 
   1. Install the dependencies
 
@@ -99,24 +95,14 @@ COMPILATION
 
 UNIX COMPILATION
 
-  Alternatively for Linux, you can do all in a terminal :
+     Open a terminal
 
      Go to the building directory
-
-	$ cd glmixer-Build
+        $ cd glmixer-Build
 
      Run cmake command line and choose ninja generator.
-
         $ cmake -G Ninja ../glmixer-Source
 
-     To run cmake for compiling with all options activated :
-
-        $ cmake -D CMAKE_BUILD_TYPE=Release -D USE_OPENCV=True -D USE_FREEFRAMEGL=1.6 -G Ninja ../glmixer-Source
-
-     To run cmake for compiling with all options and to generage a package :
-
-	$ cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo -D USE_OPENCV=True -D USE_FREEFRAMEGL=1.6 -D CMAKE_INSTALL_PREFIX=/usr -G Ninja ../glmixer-Source/
-	
      If all goes well, it ends with :
 
         -- Configuring done
@@ -124,7 +110,6 @@ UNIX COMPILATION
         -- Build files have been written to: XXX YOUR SOURCE PATH XXX
 
     Compile with ninja :
-
         $ ninja
 
      It should end with a message like (ignore warnings):
@@ -132,20 +117,34 @@ UNIX COMPILATION
         [128/128] Linking CXX executable src/glmixer
 
      You can run the program directly :
-
         $ ./src/glmixer
 
-     To install it in your system, build the debian package :
+
+
+LINUX COMPILATION
+
+    Install programs and libraries (Ubuntu)
+
+        $ sudo apt-get install subversion cmake-qt-gui ninja-build libqt4-opengl-dev libglew-dev libavformat-dev libhighgui-dev libavfilter-dev libv4l-dev xsltproc
+
+    You can now compile like under Unix (see above)
+
+
+    To install it in your system, run cmake (as above but) with the following options :
+
+        $ cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo -D USE_OPENCV=True -D USE_FREEFRAMEGL=1.6 -D CMAKE_INSTALL_PREFIX=/usr -G Ninja ../glmixer-Source/
+
+    After compiling the program (see above), build the debian package :
 
         $ cpack
 
-     It hopefully ends with :
+    It hopefully ends with :
 
-        CPack: - package: /home/[YOUR SOURCE PATH]/GLMixer_[version]_amd64.deb generated.
+        CPack: - package: /home/[YOUR SOURCE PATH]/GLMixer_[version].deb generated.
 
-     And you can install it :
+    And you can now install it (use the filename generated above):
 
-        $ sudo apt-get install /home/[YOUR SOURCE PATH]/GLMixer_[version]_amd64.deb
+        $ sudo apt-get install /home/[YOUR SOURCE PATH]/GLMixer_[version].deb
 
 
 
@@ -153,12 +152,20 @@ OSX COMPILATION
 
 Install home-brew
 
-	Follow instructions from http://brew.sh/
+        Follow instructions from http://brew.sh/
 
-Install programs and libraries
-	
-	brew install subversion
-	brew install ninja
+Install programs and libraries (run the following in a terminal)
+
+        brew install subversion
+        brew install ninja
+        brew install cmake
+        brew install ffmpeg
+        brew install qt4
+        brew install glew
+        brew install homebrew/science/opencv
+
+
+You can now compile like under Unix (see above)
 
 
 
@@ -169,17 +176,17 @@ Install msys2
 
     Follow instructions from https://msys2.github.io/
 
-Install programs and x86_64 libraries
+Install programs and x86_64 libraries (run the following in a terminal)
 
-	pacman -S subversion
-	pacman -S mingw-w64-x86_64-gcc
-	pacman -S mingw-w64-x86_64-ninja
-	pacman -S mingw-w64-x86_64-cmake
-	pacman -S mingw-w64-x86_64-glew
-	pacman -S mingw-w64-x86_64-qt4
-	pacman -S mingw-w64-x86_64-opencv
-	pacman -S mingw-w64-x86_64-ffmpeg
+        pacman -S subversion
+        pacman -S mingw-w64-x86_64-gcc
+        pacman -S mingw-w64-x86_64-ninja
+        pacman -S mingw-w64-x86_64-cmake
+        pacman -S mingw-w64-x86_64-glew
+        pacman -S mingw-w64-x86_64-qt4
+        pacman -S mingw-w64-x86_64-opencv
+        pacman -S mingw-w64-x86_64-ffmpeg
 
-Now, you can open a mingw terminal and compile line under Linux (see above)
+You can now compile like under Unix (see above)
 
 
