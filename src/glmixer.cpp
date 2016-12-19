@@ -420,6 +420,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #ifdef DISABLE_UNDO
     delete actionUndo;
     delete actionRedo;
+    UndoManager::getInstance()->setMaximumSize(0);
 #else
     QObject::connect(actionUndo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(undo()));
     QObject::connect(actionRedo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(redo()));

@@ -824,5 +824,3 @@ void MixingToolboxWidget::on_addShadertoyPlugin_pressed()
 
 
 #endif
-
-

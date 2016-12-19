@@ -52,12 +52,6 @@
    </item>
    <item>
     <widget class="QCheckBox" name="ignoreAlphaCheckbox">
-     <property name="layoutDirection">
-      <enum>Qt::LeftToRight</enum>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
      <property name="text">
       <string>Enable transparency</string>
      </property>
@@ -69,16 +63,22 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="styleSheet">
+      <string notr="true">QGroupBox {
+    margin-top: 42px;
+}
+QGroupBox::title {
+    margin-top: 24px;
+    subcontrol-origin: margin;
+}</string>
+     </property>
      <property name="title">
       <string>Animation</string>
-     </property>
-     <property name="flat">
-      <bool>true</bool>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout2">
       <item>

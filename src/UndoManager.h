@@ -11,7 +11,7 @@ class UndoManager : public QObject
 public:
     static UndoManager *getInstance();
 
-    inline void setMaximumSize(int m) { _maximumSize = m; }
+    void setMaximumSize(int m);
     inline int maximumSize() const { return _maximumSize; }
 
 signals:
@@ -29,10 +29,8 @@ public slots:
     void store(QString signature);
     // restore status
     void restore(int i);
-
-    // stop listening (will be reactivated on next call to store()
+    // stop listening (will be reactivated on next call to store() or clear)
     void suspend();
-
 
 private:
 

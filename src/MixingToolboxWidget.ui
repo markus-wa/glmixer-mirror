@@ -124,7 +124,7 @@ QToolButton {
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <property name="spacing">
-          <number>4</number>
+          <number>9</number>
          </property>
          <item>
           <widget class="QComboBox" name="blendingBox">
@@ -141,7 +141,7 @@ QToolButton {
      border-radius: 5px;
      padding: 1px 3px 1px 3px;
      font-size: 12px;
-     max-height: 36px;
+     max-height: 42px;
  }
 
  QComboBox:on { /* shift the text when the popup opens */
@@ -241,14 +241,8 @@ QToolButton {
           <widget class="QToolButton" name="blendingCustomButton">
            <property name="minimumSize">
             <size>
-             <width>24</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>24</width>
-             <height>40</height>
+             <width>18</width>
+             <height>44</height>
             </size>
            </property>
            <property name="toolTip">
@@ -256,8 +250,8 @@ QToolButton {
            </property>
            <property name="styleSheet">
             <string notr="true">QToolButton {
-     min-width: 20px;
-     max-width: 20px;
+     min-height: 42px;
+     max-height: 42px;
 }</string>
            </property>
            <property name="text">
@@ -306,18 +300,6 @@ QToolButton {
          </item>
          <item>
           <widget class="QToolButton" name="blendingPixelatedButton">
-           <property name="minimumSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>40</width>
-             <height>40</height>
-            </size>
-           </property>
            <property name="toolTip">
             <string>Smoothed / Pixelated 
 (smooth between pixels or show square pixels)</string>
@@ -326,13 +308,13 @@ QToolButton {
             <string>Smoothed / Pixelated \n(smooth between pixels or show square pixels)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolButton:checked {    
-     border-color: transparent;
-     background: transparent;
-}
-
-QToolButton:checked:hover {
-    border-color: palette(highlight);
+            <string notr="true">QToolButton {
+     width: 42px;
+     height: 42px;
+     min-width: 42px;
+     min-height: 42px;
+     max-width: 42px;
+     max-height: 42px;
 }</string>
            </property>
            <property name="icon">

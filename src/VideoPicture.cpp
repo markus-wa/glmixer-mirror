@@ -332,7 +332,3 @@ void VideoPicture::fill(AVFrame *frame, double Pts)
     }
 
 }
-
-
-
-

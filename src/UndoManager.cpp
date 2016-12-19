@@ -7,8 +7,6 @@
 // static members
 UndoManager *UndoManager::_instance = 0;
 
-
-
 UndoManager *UndoManager::getInstance() {
 
         if (_instance == 0) {
@@ -28,6 +26,11 @@ UndoManager::~UndoManager() {
 
 }
 
+void UndoManager::setMaximumSize(int m)
+{
+    _status = m > 1 ? ACTIVE : DISABLED;
+    _maximumSize = m;
+}
 
 void UndoManager::clear()
 {
@@ -40,7 +43,7 @@ void UndoManager::clear()
     _currentIndex = 0;
     _lastIndex = 0;
 
-    _status = ACTIVE;
+  //  _status = ACTIVE;
     _previousSender = QString();
     _previousSignature = QString();
 
@@ -51,14 +54,14 @@ void UndoManager::clear()
 
 void UndoManager::undo()
 {
-    if (_currentIndex > _firstIndex)
+    if (_status > DISABLED && _currentIndex > _firstIndex)
         restore(_currentIndex - 1);
 }
 
 
 void UndoManager::redo()
 {
-    if (_currentIndex < _lastIndex)
+    if (_status > DISABLED && _currentIndex < _lastIndex)
         restore(_currentIndex + 1);
 }
 
@@ -68,7 +71,7 @@ void UndoManager::restore(int i)
     fprintf(stderr, "restore %d ?", i);
 
     // nothing to do
-    if (_currentIndex == i )
+    if (_status == DISABLED || _currentIndex == i )
         return;
 
     // set index
@@ -87,7 +90,7 @@ void UndoManager::restore(int i)
 //        file.close();
 //    }
 
-    // create a list of existing sources
+    // TODO create a list of existing sources
 
     // get status at index
     QDomElement root = _history.firstChildElement(QString("%1").arg(_currentIndex));
@@ -109,7 +112,7 @@ void UndoManager::restore(int i)
 
 
                 fprintf(stderr, " %s ", qPrintable(sourcename));
-                // mark source as updated
+                // TODO remove source in list of existing
 
                 // read next source
                 child = child.nextSiblingElement("Source");
@@ -120,6 +123,8 @@ void UndoManager::restore(int i)
     }
     else
         qDebug() << "root is null";
+
+    // TODO delete sources which do not exist anymore (remain in list of existing).
 
 
 //    RenderingManager::getPropertyBrowserWidget()->showProperties(RenderingManager::getInstance()->getCurrentSource());
@@ -132,6 +137,10 @@ void UndoManager::restore(int i)
 
 void UndoManager::store()
 {
+  // nothing to do
+  if (_status == DISABLED)
+      return;
+
     fprintf(stderr, "  store ? {%d}\n", _status);
 
     if (_status != IDLE) {
@@ -196,12 +205,15 @@ void UndoManager::suspend()
 
 void UndoManager::store(QString signature)
 {
+    // nothing to do
+    if (_status == DISABLED)
+      return;
 
     fprintf(stderr, "  store %s ? {%d} ", qPrintable(signature), _status);
 
-    // do nothing if manager is suspended
-    // but remember that something happened
-    if (_status != ACTIVE) {
+    // do nothing if manager is suspended (IDLE)
+    // but remember that something happened (PENDING)
+    if (_status < ACTIVE) {
         _status = PENDING;
 
         fprintf(stderr, "  NO !\n");
