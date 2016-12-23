@@ -1679,7 +1679,7 @@ void GLMixer::on_actionSelect_Previous_triggered(){
 void GLMixer::on_markInSlider_sliderReleased (){
 
     double percent = (double)(markInSlider->value())/(double)frameSlider->maximum();
-    double pos = selectedSourceVideoFile->getEnd() * percent ;
+    double pos = selectedSourceVideoFile->getDuration() * percent ;
     pos += selectedSourceVideoFile->getBegin();
     selectedSourceVideoFile->setMarkIn(pos);
 }
@@ -1687,7 +1687,7 @@ void GLMixer::on_markInSlider_sliderReleased (){
 void GLMixer::on_markOutSlider_sliderReleased (){
 
     double percent = (double)(markOutSlider->value())/(double)frameSlider->maximum();
-    double pos =  selectedSourceVideoFile->getEnd() * percent ;
+    double pos =  selectedSourceVideoFile->getDuration() * percent ;
     pos += selectedSourceVideoFile->getBegin();
     selectedSourceVideoFile->setMarkOut(pos);
 }

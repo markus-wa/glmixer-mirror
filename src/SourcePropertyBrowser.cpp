@@ -910,7 +910,7 @@ public:
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
 
-            infoManager->setValue(idToProperty["Duration"], vf->getStringTimeFromtime(vf->getEnd()) );
+            infoManager->setValue(idToProperty["Duration"], vf->getStringTimeFromtime(vf->getDuration()) );
             addProperty(idToProperty["Duration"]);
 
             // interlacing
