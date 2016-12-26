@@ -1592,7 +1592,6 @@ void DecodingThread::run()
                 // (not else of previous if because it could have unblocked this frame)
                 if (is->parsing_mode == VideoFile::SEEKING_NONE)
                 {
-
                     // wait until we have space for a new pic
                     // to add a picture in the queue
                     // (the condition is released in video_refresh_timer() )
@@ -1620,7 +1619,6 @@ void DecodingThread::run()
                         // react according to loop mode
                         if ( is->loop_video ) {
                             // if loop mode on, request seek to begin
-//                            is->requestSeek(is->mark_in);
                             eof = true;
                         }
                         else {
@@ -1628,11 +1626,10 @@ void DecodingThread::run()
                             actionFrame |= VideoPicture::ACTION_STOP | VideoPicture::ACTION_MARK;
                             pts = is->duration;
                         }
-
                     }
-//                    else
-                        // add frame to the queue of pictures
-                        is->queue_picture(_pFrame, pts, actionFrame);
+
+                    // add frame to the queue of pictures
+                    is->queue_picture(_pFrame, pts, actionFrame);
 
 
                 } // end if (SEEKING_NONE)

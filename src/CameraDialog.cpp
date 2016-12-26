@@ -27,7 +27,7 @@
 #include "Source.h"
 #include "SourceDisplayWidget.h"
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
 #include "OpencvSource.h"
 #endif
 
@@ -51,7 +51,7 @@ CameraDialog::CameraDialog(QWidget *parent, int startTabIndex) : QDialog(parent)
     QObject::connect(showPreview, SIGNAL(toggled(bool)), this, SLOT(setPreviewEnabled(bool)));
 #endif
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
     currentCameraIndex = -1;
     QObject::connect( indexSelection, SIGNAL(activated(int)), this, SLOT(setOpencvCamera(int)));
 #endif
@@ -76,7 +76,7 @@ void CameraDialog::createSource(){
 		s = 0;
 	}
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
 	if (currentCameraIndex >= 0) {
 
 		if ( !OpencvSource::getExistingSourceForCameraIndex(currentCameraIndex) ) {
@@ -105,7 +105,7 @@ void CameraDialog::createSource(){
 
 void CameraDialog::showEvent(QShowEvent *e){
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
     setOpencvCamera(indexSelection->currentIndex());
 #endif
 	QWidget::showEvent(e);
@@ -141,7 +141,7 @@ void CameraDialog::setPreviewEnabled(bool on){
 	verticalLayout->itemAt(0)->widget()->show();
 }
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
 
 void CameraDialog::setOpencvCamera(int i){
 

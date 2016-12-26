@@ -125,7 +125,7 @@ Q_OBJECT
     friend class DecodingThread;
     friend class FirstFrameFiller;
     friend class CodecWorker;
-#ifdef CUDA
+#ifdef GLM_CUDA
     friend class CUDADecodingThread;
 #endif
 

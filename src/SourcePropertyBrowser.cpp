@@ -64,13 +64,13 @@
 #include "WebSource.h"
 #include "VideoStreamSource.h"
 #include "glmixer.h"
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
 #include "OpencvSource.h"
 #endif
-#ifdef SHM
+#ifdef GLM_SHM
 #include "SharedMemorySource.h"
 #endif
-#ifdef FFGL
+#ifdef GLM_FFGL
 #include "FFGLSource.h"
 #include "FFGLPluginBrowser.h"
 #endif
@@ -348,7 +348,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     intManager->setRange(property, 0, 100);
     intManager->setSingleStep(property, 10);
     chroma->addSubProperty(property);
-#ifdef FFGL
+#ifdef GLM_FFGL
     // FreeFrameGL Plugins
     QtProperty *ffgl = infoManager->addProperty("FFGL Plugins");
     ffgl->setToolTip("List of FreeFrameGL Plugins");
@@ -755,7 +755,7 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
             idToProperty["Filter"]->setEnabled( false );
         }
     }
-#ifdef FFGL
+#ifdef GLM_FFGL
     else if ( name.contains("FFGL Plugins")) {
         // fill in the FFGL plugins if exist
         if(s->hasFreeframeGLPlugin())
@@ -1167,7 +1167,7 @@ private:
 };
 
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
 
 class OpencvSourcePropertyBrowser : public PropertyBrowser {
 
@@ -1207,7 +1207,7 @@ private:
 #endif
 
 
-#ifdef SHM
+#ifdef GLM_SHM
 
 class SharedMemorySourcePropertyBrowser : public PropertyBrowser {
 
@@ -1333,7 +1333,7 @@ private:
 PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s, QWidget *parent)
 {
     PropertyBrowser *pb = NULL;
-#ifdef FFGL
+#ifdef GLM_FFGL
     static FFGLPluginSourceStack *pluginBrowserStack = NULL;
 #endif
     if ( s->rtti() == Source::ALGORITHM_SOURCE ) {
@@ -1371,21 +1371,21 @@ PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s,
         if (cs != 0)
             pb = new CloneSourcePropertyBrowser(cs, parent);
     }
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
     else if ( s->rtti() == Source::CAMERA_SOURCE ) {
         OpencvSource *cs = dynamic_cast<OpencvSource *>(s);
         if (cs != 0)
             pb = new OpencvSourcePropertyBrowser(cs, parent);
     }
 #endif
-#ifdef SHM
+#ifdef GLM_SHM
     else if ( s->rtti() == Source::SHM_SOURCE ) {
         SharedMemorySource *cs = dynamic_cast<SharedMemorySource *>(s);
         if (cs != 0)
             pb = new SharedMemorySourcePropertyBrowser(cs, parent);
     }
 #endif
-#ifdef FFGL
+#ifdef GLM_FFGL
     else if ( s->rtti() == Source::FFGL_SOURCE ) {
         FFGLSource *cs = dynamic_cast<FFGLSource *>(s);
         if (cs != 0) {

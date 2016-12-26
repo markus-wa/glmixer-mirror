@@ -37,7 +37,7 @@
 #include <QtProperty>
 #include <QtVariantPropertyManager>
 
-#ifdef FFGL
+#ifdef GLM_FFGL
 #include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
 #endif
@@ -71,7 +71,7 @@ Source::~Source() {
     if (clones)
         delete clones;
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     // delete all plugins in the stack
     _ffgl_plugins.clear();
 #endif
@@ -323,7 +323,7 @@ QDomElement Source::getConfiguration(QDomDocument &doc, QDir current)
     sourceElem.setAttribute("stanbyMode", (int) getStandbyMode());
 
     // freeframe gl plugin
-#ifdef FFGL
+#ifdef GLM_FFGL
     FFGLPluginSourceStack *plugins = getFreeframeGLPluginStack();
     for (FFGLPluginSourceStack::iterator it = plugins->begin(); it != plugins->end(); ++it ) {
 
@@ -399,7 +399,7 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
                tmp.attribute("minOutput", "0").toDouble(),
                tmp.attribute("maxOutput", "1").toDouble());
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     clearFreeframeGLPlugin();
 #endif
 
@@ -407,7 +407,7 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
     // start loop of plugins to load
     QDomElement p = xmlconfig.firstChildElement("FreeFramePlugin");
     while (!p.isNull()) {
-#ifdef FFGL
+#ifdef GLM_FFGL
         QDomElement Filename = p.firstChildElement("Filename");
         // first reads with the absolute file name
         QString fileNameToOpen = Filename.text();
@@ -458,7 +458,7 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
     // start loop of plugins to load
     p = xmlconfig.firstChildElement("ShadertoyPlugin");
     while (!p.isNull()) {
-#ifdef FFGL
+#ifdef GLM_FFGL
 
         // create and push the plugin to the source
         FFGLPluginSource *plugin = addFreeframeGLPlugin();
@@ -573,7 +573,7 @@ void Source::setStandby(bool on) {
 
 void Source::play(bool on) {
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     // play the plugins only if not standby
     if (! _ffgl_plugins.isEmpty())
         _ffgl_plugins.play( isPlayable() ? on : standby == NOT_STANDBY );
@@ -744,7 +744,7 @@ void Source::bind() const {
     // back to texture 0 for the following
     glActiveTexture(GL_TEXTURE0);
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     // if there are plugins, then the texture to bind is the
     // texture of the top of the plugins stack
     if (! _ffgl_plugins.isEmpty())
@@ -759,7 +759,7 @@ void Source::bind() const {
 }
 
 void Source::update()  {
-#ifdef FFGL
+#ifdef GLM_FFGL
     // to be called at the end of the update of the source itself
     if (! _ffgl_plugins.isEmpty())
         _ffgl_plugins.update();
@@ -780,7 +780,7 @@ void Source::blend() const {
 
 
 // freeframe gl plugin
-#ifdef FFGL
+#ifdef GLM_FFGL
 
 FFGLPluginSource *Source::addFreeframeGLPlugin(QString filename) {
 

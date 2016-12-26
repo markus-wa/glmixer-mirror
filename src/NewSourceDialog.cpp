@@ -15,7 +15,7 @@ NewSourceDialog::NewSourceDialog(QWidget *parent) :
     for (int i = 0; i < ui->SourceTypeToolBox->count();  ) {
         w = ui->SourceTypeToolBox->widget(i);
 
-#ifndef OPEN_CV
+#ifndef GLM_OPENCV
         if ( ui->SourceTypeToolBox->itemText(i).contains("Device") ) {
             ui->SourceTypeToolBox->removeItem(i);
             delete w;
@@ -29,7 +29,7 @@ NewSourceDialog::NewSourceDialog(QWidget *parent) :
             continue;
         }
 #endif
-#ifndef SHM
+#ifndef GLM_SHM
         if ( ui->SourceTypeToolBox->itemText(i).contains("Shared") ) {
             ui->SourceTypeToolBox->removeItem(i);
             delete w;

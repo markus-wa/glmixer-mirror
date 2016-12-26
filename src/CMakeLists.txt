@@ -63,8 +63,6 @@ SET(GLMIXER_SRCS
     FuzzyCursor.cpp
     UserPreferencesDialog.cpp
     GammaLevelsWidget.cpp
-    SessionSwitcher.cpp
-    SessionSwitcherWidget.cpp
     glmixer.cpp
     main.cpp
     video_rec.c
@@ -75,16 +73,13 @@ SET(GLMIXER_SRCS
     OpenSoundControlManager.cpp
     NewSourceDialog.cpp
     WebSourceCreationDialog.cpp
+    SessionSwitcher.cpp
     Tag.cpp
-    TagsManager.cpp
-    HistoryManager.cpp
-    HistoryManagerWidget.cpp
     CodecManager.cpp
     VideoStream.cpp
     VideoStreamSource.cpp
     VideoStreamDialog.cpp
     SizeSelectionWidget.cpp
-    UndoManager.cpp
 )
 
 
@@ -117,63 +112,47 @@ SET(GLMIXER_UIS
     LayoutToolboxWidget.ui
     NewSourceDialog.ui
     WebSourceCreationDialog.ui
-    TagsManager.ui
     VideoStreamDialog.ui
     SizeSelectionWidget.ui
 )
 
-if(USE_SESSION_MANAGEMENT)
-    add_definitions(-DSESSION_MANAGEMENT)
-endif(USE_SESSION_MANAGEMENT)
 
+SET(USE_LOG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Logger")
 if(USE_LOG_MANAGEMENT)
-    add_definitions(-DLOG_MANAGEMENT)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_LOGS" )
+    message( STATUS "Using Log Management")
 endif(USE_LOG_MANAGEMENT)
 
-if(USE_TAG_MANAGEMENT)
-    add_definitions(-DTAG_MANAGEMENT)
-endif(USE_TAG_MANAGEMENT)
-
-if(USE_HISTORY_MANAGEMENT)
-    add_definitions(-DHISTORY_MANAGEMENT)
-endif(USE_HISTORY_MANAGEMENT)
 
 # If SharedMemory was set, then link with its source files
 if(USE_SHAREDMEMORY)
-    add_definitions(-DSHM)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_SHM" )
     SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
         SharedMemorySource.cpp
     )
-elseif(USE_SHAREDMEMORY)
-    remove_definitions(-DSHM)
 endif(USE_SHAREDMEMORY)
 
 if( USE_SPOUT )
-    add_definitions(-DSPOUT)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_SPOUT" )
     SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
         SpoutSource.cpp
     )
-elseif( USE_SPOUT )
-    remove_definitions(-DSPOUT)
 endif( USE_SPOUT )
 
 # the GUI for shared memory is shared for SHM and SPOUT
 if( USE_SHAREDMEMORY OR USE_SPOUT )
-
     SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
         SharedMemoryDialog.cpp
     )
-
     SET(GLMIXER_UIS  ${GLMIXER_UIS}
         SharedMemoryDialog.ui
     )
-
 endif( USE_SHAREDMEMORY OR USE_SPOUT )
 
 
 # If FreeframeGL was set, then link with its source files
 if(USE_FREEFRAMEGL)
-    add_definitions(-DFFGL)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_FFGL" )
     add_definitions(-DFFGLPATH="${CMAKE_INSTALL_PREFIX}/lib/${GLMIXER_BINARY}/")
 
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
@@ -204,14 +183,11 @@ if(USE_FREEFRAMEGL)
 
     SET(GLMIXER_LIBRARIES FreeFrameGL ${GLMIXER_LIBRARIES} )
 
-
-elseif(USE_FREEFRAMEGL)
-    remove_definitions(-DFFGL)
 endif(USE_FREEFRAMEGL)
 
-# If there is OpenCV, then this application will use OpenCV
+# If this application will use OpenCV
 if(USE_OPENCV)
-    add_definitions(-DOPEN_CV )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_OPENCV" )
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         OpencvSource.cpp
         CameraDialog.cpp
@@ -220,24 +196,58 @@ if(USE_OPENCV)
     SET(GLMIXER_UIS  ${GLMIXER_UIS}
         CameraDialog.ui
     )
-
-elseif(USE_OPENCV)
-    remove_definitions(-DOPEN_CV)
 endif(USE_OPENCV)
 
 # if we use CUDA
 if(USE_NVIDIA_CUDA)
-
-    add_definitions(-DCUDA)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_CUDA" )
     include_directories(${LIBCUDADECODER_SOURCE_DIR} )
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         CUDAVideoFile.cpp
     )
-
-else(USE_NVIDIA_CUDA)
-
-    remove_definitions(-DCUDA)
+    message( STATUS "Using CUDA")
 endif(USE_NVIDIA_CUDA)
+
+# if Use UNdO was set
+if(USE_UNDO)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_UNDO" )
+    SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
+        UndoManager.cpp
+    )
+    message( STATUS "Using Undo")
+endif(USE_UNDO)
+
+# if History Management was set
+if(USE_HISTORY_MANAGEMENT)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_HISTORY" )
+    SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
+        HistoryManager.cpp
+        HistoryManagerWidget.cpp
+    )
+    message( STATUS "Using History Management")
+endif(USE_HISTORY_MANAGEMENT)
+
+# if Session Management was set
+if(USE_SESSION_MANAGEMENT)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_SESSION" )
+    SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
+        SessionSwitcherWidget.cpp
+    )
+    message( STATUS "Using Session Management")
+endif(USE_SESSION_MANAGEMENT)
+
+# if Tags Management was set
+if(USE_TAG_MANAGEMENT)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_TAG" )
+    SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
+        TagsManager.cpp
+    )
+    SET(GLMIXER_UIS  ${GLMIXER_UIS}
+        TagsManager.ui
+    )
+    message( STATUS "Using Tag Management")
+endif(USE_TAG_MANAGEMENT)
+
 
 #include the current source dir
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

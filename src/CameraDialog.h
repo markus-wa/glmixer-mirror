@@ -29,7 +29,7 @@
 #include <QDialog>
 #include "ui_CameraDialog.h"
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
 //#include "OpencvDisplayWidget.h"
 class OpencvSource;
 #endif
@@ -51,7 +51,7 @@ class CameraDialog : public QDialog, Ui_CameraDialog
 		void setPreviewEnabled(bool);
 
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
 		void setOpencvCamera(int i);
 
     public:

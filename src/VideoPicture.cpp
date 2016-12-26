@@ -219,7 +219,7 @@ VideoPicture::~VideoPicture()
 #endif
     }
 
-#ifdef CUDA
+#ifdef GLM_CUDA
     if (g_pInteropFrame)
     {
         cuMemFree(g_pInteropFrame);
@@ -256,7 +256,7 @@ void VideoPicture::saveToPPM(QString filename) const
     }
 }
 
-#ifdef CUDA
+#ifdef GLM_CUDA
 
 void VideoPicture::fill(CUdeviceptr  pInteropFrame, double Pts)
 {

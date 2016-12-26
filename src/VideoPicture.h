@@ -10,7 +10,7 @@ extern "C" {
 #include <QMutex>
 #include <QString>
 
-#ifdef CUDA
+#ifdef GLM_CUDA
 #include <cuda.h>
 #endif
 
@@ -96,7 +96,7 @@ public:
      */
     char *getBuffer() const;
 
-#ifdef CUDA
+#ifdef GLM_CUDA
     /**
      * Fill the VideoPicture
      *
@@ -195,7 +195,7 @@ private:
     bool convert_rgba_palette;
     Action action;
 
-#ifdef CUDA
+#ifdef GLM_CUDA
     CUdeviceptr    g_pInteropFrame;
 #endif
 

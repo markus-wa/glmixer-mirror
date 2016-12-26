@@ -94,16 +94,16 @@ public:
     Source *newAlgorithmSource(int type, int w, int h, double v, int p, bool ia, double depth = -1.0);
     Source *newCloneSource(SourceSet::iterator sit, double depth = -1.0);
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
     Source *newOpencvSource(int opencvIndex, int mode, double depth = -1.0);
 #endif
-#ifdef SHM
+#ifdef GLM_SHM
     Source *newSharedMemorySource(qint64 shmid, double depth = -1.0);
 #endif
-#ifdef SPOUT
+#ifdef GLM_SPOUT
     Source *newSpoutSource(QString senderName, double depth = -1.0);
 #endif
-#ifdef FFGL
+#ifdef GLM_FFGL
     Source *newFreeframeGLSource(QDomElement configuration, int w, int h, double depth = -1.0);
 #endif
     Source *newStreamSource(VideoStream *vs, double depth = -1.0);
@@ -191,7 +191,7 @@ public:
         return clearWhite;
     }
 
-#ifdef SHM
+#ifdef GLM_SHM
     uint getSharedMemoryColorDepth();
     void setSharedMemoryColorDepth(uint mode);
 #endif
@@ -239,10 +239,10 @@ public slots:
 
     void onSourceFailure();
 
-#ifdef SHM
+#ifdef GLM_SHM
     void setFrameSharingEnabled(bool on);
 #endif
-#ifdef SPOUT
+#ifdef GLM_SPOUT
     void setSpoutSharingEnabled(bool on);
 #endif
 
@@ -250,7 +250,7 @@ signals:
     void frameBufferChanged();
     void currentSourceChanged(SourceSet::iterator csi);
     void methodCalled(QString);
-#ifdef SPOUT
+#ifdef GLM_SPOUT
     void spoutSharingEnabled(bool on);
 #endif
 
@@ -296,12 +296,12 @@ protected:
     unsigned int maxSourceCount, countRenderingSource;
 
 
-#ifdef SHM
+#ifdef GLM_SHM
     // The shared memory buffer
     class QSharedMemory *_sharedMemory;
     GLenum _sharedMemoryGLFormat, _sharedMemoryGLType;
 #endif
-#ifdef SPOUT
+#ifdef GLM_SPOUT
     bool _spoutEnabled, _spoutInitialized;
 #endif
 

@@ -29,7 +29,7 @@
 #include "glmixer.h"
 #include "RenderingManager.h"
 #include "OutputRenderWindow.h"
-#ifdef SHM
+#ifdef GLM_SHM
 #include "SharedMemoryManager.h"
 #endif
 
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
     splash.show();
     a.processEvents();
 
-#ifdef LOG_MANAGEMENT
+#ifdef GLM_LOGS
     // Redirect qDebug, qWarning and qFatal to GUI and logger
     qInstallMsgHandler(GLMixer::msgHandler);
     // this cleans up after the application ends
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     GLMixer::getInstance()->readSettings( a.applicationDirPath() );
     a.processEvents();
 
-#ifdef SHM
+#ifdef GLM_SHM
     if(!SharedMemoryManager::getInstance())
     	qWarning() << QObject::tr("Could not initiate shared memory manager");
     a.processEvents();
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     // delete static objects
     RenderingManager::deleteInstance();
     OutputRenderWindow::deleteInstance();
-#ifdef SHM
+#ifdef GLM_SHM
     SharedMemoryManager::deleteInstance();
 #endif
     a.processEvents();

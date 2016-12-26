@@ -27,7 +27,7 @@
 
 #include "RenderingManager.h"
 #include "WebSource.moc"
-#ifdef FFGL
+#ifdef GLM_FFGL
 #include "FFGLPluginSource.h"
 #endif
 
@@ -78,7 +78,7 @@ void WebSource::adjust()
     scaley = scalex / getAspectRatio();
 
     // freeframe gl plugin
-#ifdef FFGL
+#ifdef GLM_FFGL
     // resize all plugins
     for (FFGLPluginSourceStack::iterator it=_ffgl_plugins.begin(); it != _ffgl_plugins.end(); ++it){
         (*it)->resize(getFrameWidth(), getFrameHeight());

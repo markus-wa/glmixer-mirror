@@ -44,7 +44,7 @@ public:
     static GLMixer *getInstance();
     static void deleteInstance();
 
-#ifdef LOG_MANAGEMENT
+#ifdef GLM_LOGS
     // message handler
     static void msgHandler(QtMsgType type, const char *msg);
     // exit handler
@@ -134,7 +134,7 @@ public slots:
     void connectSource(SourceSet::iterator csi);
     void sourceChanged(Source *s);
 
-#ifdef LOG_MANAGEMENT
+#ifdef GLM_LOGS
     void Log(int, QString);
     void on_copyLogsToClipboard_clicked();
     void on_saveLogsToFile_clicked();
@@ -154,7 +154,7 @@ public slots:
     void screenshotView();  // "Ctrl+<,<"
     void selectGLSLFragmentShader();  // "Shift+Ctrl+G,F"
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     void editShaderToyPlugin(FFGLPluginSource *);
 #endif
 
@@ -188,16 +188,16 @@ private:
     class PropertyBrowser *specificSourcePropertyBrowser;
     class QSplitter *layoutPropertyBrowser;
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     class SessionSwitcherWidget *switcherSession;
 #endif
-#ifdef TAG_MANAGEMENT
+#ifdef GLM_TAG
     class TagsManager *tagsManager;
 #endif
-#ifdef HISTORY_MANAGEMENT
+#ifdef GLM_HISTORY
     class HistoryManagerWidget *actionHistoryView;
 #endif
-#ifdef FFGL
+#ifdef GLM_FFGL
     class GLSLCodeEditorWidget *pluginGLSLCodeEditor;
 #endif
 
@@ -208,7 +208,7 @@ private:
     QSettings settings;
     QAction *recentFileActs[MAX_RECENT_FILES];
 
-#ifdef LOG_MANAGEMENT
+#ifdef GLM_LOGS
     static QFile *logFile;
     static QTextStream logStream;
 #endif

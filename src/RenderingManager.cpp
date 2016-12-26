@@ -38,40 +38,42 @@
 #include "RenderingSource.h"
 Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "CloneSource.h"
-
-#ifdef SHM
-#include <QSharedMemory>
-#include "SharedMemoryManager.h"
-#include "SharedMemorySource.h"
-#endif
-
-#ifdef SPOUT
-#include <Spout.h>
-#include <SpoutSource.h>
-#endif
-
-#ifdef OPEN_CV
-#include "OpencvSource.h"
-#endif
-
-#ifdef FFGL
-#include "FFGLPluginSource.h"
-#include "FFGLPluginSourceShadertoy.h"
-#include "FFGLSource.h"
-#endif
-
-#ifdef CUDA
-#include "CUDAVideoFile.h"
-#endif
-
 #include "ViewRenderWidget.h"
 #include "CatalogView.h"
 #include "RenderingEncoder.h"
 #include "SourcePropertyBrowser.h"
 #include "SessionSwitcher.h"
-#include "UndoManager.h"
 
-#ifdef HISTORY_MANAGEMENT
+#ifdef GLM_SHM
+#include <QSharedMemory>
+#include "SharedMemoryManager.h"
+#include "SharedMemorySource.h"
+#endif
+
+#ifdef GLM_SPOUT
+#include <Spout.h>
+#include <SpoutSource.h>
+#endif
+
+#ifdef GLM_OPENCV
+#include "OpencvSource.h"
+#endif
+
+#ifdef GLM_FFGL
+#include "FFGLPluginSource.h"
+#include "FFGLPluginSourceShadertoy.h"
+#include "FFGLSource.h"
+#endif
+
+#ifdef GLM_CUDA
+#include "CUDAVideoFile.h"
+#endif
+
+#ifdef GLM_UNDO
+#include "UndoManager.h"
+#endif
+
+#ifdef GLM_HISTORY
 #include "HistoryManager.h"
 #endif
 
@@ -201,22 +203,24 @@ RenderingManager::RenderingManager() :
     _defaultSource = new Source();
     _currentSource = getEnd();
 
-#ifdef SHM
+#ifdef GLM_SHM
     _sharedMemory = NULL;
     _sharedMemoryGLFormat = GL_RGB;
     _sharedMemoryGLType = GL_UNSIGNED_SHORT_5_6_5;
 #endif
-#ifdef SPOUT
+#ifdef GLM_SPOUT
     _spoutEnabled = false;
     _spoutInitialized = false;
 #endif
 
 
+#ifdef GLM_UNDO
     UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)));
+#endif
 }
 
 RenderingManager::~RenderingManager() {
-#ifdef SHM
+#ifdef GLM_SHM
     setFrameSharingEnabled(false);
 #endif
     clearSourceSet();
@@ -374,14 +378,14 @@ void RenderingManager::setFrameBufferResolution(QSize size) {
     // setup recorder frames size
     _recorder->setFrameSize(_fbo->size());
 
-#ifdef SHM
+#ifdef GLM_SHM
     // re-setup shared memory
     if(_sharedMemory) {
         setFrameSharingEnabled(false);
         setFrameSharingEnabled(true);
     }
 #endif
-#ifdef SPOUT
+#ifdef GLM_SPOUT
     if(_spoutEnabled) {
         setSpoutSharingEnabled(false);
         setSpoutSharingEnabled(true);
@@ -471,7 +475,7 @@ void RenderingManager::postRenderToFrameBuffer() {
 
     // save the frame to file or copy to SHM
     if ( _recorder->isRecording()
-#ifdef SHM
+#ifdef GLM_SHM
             || _sharedMemory != NULL
 #endif
         ) {
@@ -502,7 +506,7 @@ void RenderingManager::postRenderToFrameBuffer() {
             _recorder->addFrame();
 
 
-#ifdef SHM
+#ifdef GLM_SHM
         // share to memory if needed
         if (_sharedMemory != NULL) {
 
@@ -537,7 +541,7 @@ void RenderingManager::postRenderToFrameBuffer() {
         pbo_index = pbo_nextIndex = 0;
     }
 
-#ifdef SPOUT
+#ifdef GLM_SPOUT
 
     if ( _spoutInitialized ) {
 
@@ -807,7 +811,7 @@ Source *RenderingManager::newMediaSource(VideoFile *vf, double depth) {
     return ( (Source *) s );
 }
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
 Source *RenderingManager::newOpencvSource(int opencvIndex, int mode, double depth) {
 
     GLuint textureIndex;
@@ -847,7 +851,7 @@ Source *RenderingManager::newOpencvSource(int opencvIndex, int mode, double dept
 }
 #endif
 
-#ifdef FFGL
+#ifdef GLM_FFGL
 Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w, int h, double depth) {
 
     FFGLSource *s = 0;
@@ -997,7 +1001,7 @@ Source *RenderingManager::newAlgorithmSource(int type, int w, int h, double v,
     return ( (Source *) s );
 }
 
-#ifdef SHM
+#ifdef GLM_SHM
 Source *RenderingManager::newSharedMemorySource(qint64 shmid, double depth) {
 
     SharedMemorySource *s = 0;
@@ -1028,7 +1032,7 @@ Source *RenderingManager::newSharedMemorySource(qint64 shmid, double depth) {
 }
 #endif
 
-#ifdef SPOUT
+#ifdef GLM_SPOUT
 Source *RenderingManager::newSpoutSource(QString senderName, double depth) {
 
     SpoutSource *s = 0;
@@ -1127,13 +1131,15 @@ bool RenderingManager::insertSource(Source *s)
             //insert the source to the list
             if (_front_sources.insert(s).second) {
 
-//#ifdef HISTORY_MANAGEMENT
+//#ifdef GLM_HISTORY
 //                // connect source to the history manager
 //                _undoHistory->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
 //#endif
 
+#ifdef GLM_UNDO
                 // connect source to the undo manager
                 UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString)));
+#endif
 
                 // inform of success
                 emit methodCalled("_insertSource(Source)");
@@ -1179,7 +1185,7 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
     (*sit)->importProperties(_defaultSource);
     // scale the source to match the preferences
     (*sit)->resetScale(_scalingMode);
-#ifdef FFGL
+#ifdef GLM_FFGL
     // clear plugins
     (*sit)->clearFreeframeGLPlugin();
 #endif
@@ -1319,7 +1325,7 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
             }
         }
 
-#ifdef FFGL
+#ifdef GLM_FFGL
         // copy the Freeframe plugin stack
         (*it_newsource)->reproduceFreeframeGLPluginStack( (*it_oldsource) );
 #endif
@@ -1385,8 +1391,10 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
 
 void RenderingManager::clearSourceSet() {
 
+#ifdef GLM_UNDO
     // Suspend Undo manager
     UndoManager::getInstance()->suspend();
+#endif
 
     // how many sources to remove ?
     int total = _front_sources.size();
@@ -1408,8 +1416,10 @@ void RenderingManager::clearSourceSet() {
     // cleanup VideoPicture memory map
     VideoPicture::clearPictureMaps();
 
+#ifdef GLM_UNDO
     // cleanup & reactivate Undo Manager
     UndoManager::getInstance()->clear();
+#endif
 
 }
 
@@ -1661,25 +1671,25 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
             WebSource *ws = dynamic_cast<WebSource *> (*its);
             sourceElem = ws->getConfiguration(doc, current);
         }
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
         else if ((*its)->rtti() == Source::CAMERA_SOURCE) {
             OpencvSource *cs = dynamic_cast<OpencvSource *> (*its);
             sourceElem = cs->getConfiguration(doc, current);
         }
 #endif
-#ifdef SHM
+#ifdef GLM_SHM
         else if ((*its)->rtti() == Source::SHM_SOURCE) {
             SharedMemorySource *shms = dynamic_cast<SharedMemorySource *> (*its);
             sourceElem = shms->getConfiguration(doc, current);
         }
 #endif
-#ifdef SPOUT
+#ifdef GLM_SPOUT
         else if ((*its)->rtti() == Source::SPOUT_SOURCE) {
             SpoutSource *spouts = dynamic_cast<SpoutSource *> (*its);
             sourceElem = spouts->getConfiguration(doc, current);
         }
 #endif
-#ifdef FFGL
+#ifdef GLM_FFGL
         else if ((*its)->rtti() == Source::FFGL_SOURCE) {
             FFGLSource *ffs = dynamic_cast<FFGLSource *> (*its);
             sourceElem = ffs->getConfiguration(doc, current);
@@ -1762,7 +1772,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 ////    // start loop of plugins to load
 ////    QDomElement p = child.firstChildElement("FreeFramePlugin");
 ////    while (!p.isNull()) {
-////#ifdef FFGL
+////#ifdef GLM_FFGL
 ////        QDomElement Filename = p.firstChildElement("Filename");
 ////        // first reads with the absolute file name
 ////        QString fileNameToOpen = Filename.text();
@@ -1811,7 +1821,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 ////    // start loop of plugins to load
 ////    p = child.firstChildElement("ShadertoyPlugin");
 ////    while (!p.isNull()) {
-////#ifdef FFGL
+////#ifdef GLM_FFGL
 
 ////        // create and push the plugin to the source
 ////        FFGLPluginSource *plugin = newsource->addFreeframeGLPlugin();
@@ -1871,8 +1881,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     int errors = 0;
     int count = 0;
 
+#ifdef GLM_UNDO
     // Suspend Undo manager
     UndoManager::getInstance()->suspend();
+#endif
 
     // start loop of sources to create
     QDomElement child = xmlconfig.firstChildElement("Source");
@@ -1906,7 +1918,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 convert = SWS_FAST_BILINEAR;
             }
 
-#ifdef CUDA
+#ifdef GLM_CUDA
             try {
 
                 newSourceVideoFile = new CUDAVideoFile(this, power2, convert);
@@ -2132,7 +2144,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             clones.push_back(child);
         }
         else if ( type == Source::SHM_SOURCE) {
-#ifdef SHM
+#ifdef GLM_SHM
             // read the tags specific for an algorithm source
             QDomElement SharedMemory = t.firstChildElement("SharedMemory");
 
@@ -2151,7 +2163,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 #endif
         }
         else if ( type == Source::SPOUT_SOURCE) {
-#ifdef SPOUT
+#ifdef GLM_SPOUT
             // read the tags specific for an algorithm source
             QDomElement spout = t.firstChildElement("Spout");
 
@@ -2169,7 +2181,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 #endif
         }
         else if (type == Source::FFGL_SOURCE ){
-#ifdef FFGL
+#ifdef GLM_FFGL
             QDomElement Frame = t.firstChildElement("Frame");
             QDomElement ffgl = t.firstChildElement("FreeFramePlugin");
 
@@ -2192,7 +2204,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 #endif
         }
         else if ( type == Source::CAMERA_SOURCE ) {
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
             QDomElement camera = t.firstChildElement("CameraIndex");
 
             newsource = RenderingManager::_instance->newOpencvSource( camera.text().toInt(),  camera.attribute("Mode", "0").toInt(), depth);
@@ -2229,24 +2241,31 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
         if (newsource) {
             // Apply parameters to the created source
-            // and insert the source in the scene
-            if ( newsource->setConfiguration(child, current) && insertSource(newsource) )  {
+            if ( !newsource->setConfiguration(child, current) )  {
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                           << tr("Could apply all configuration.");
+                errors++;
+            }
+
+            // Insert the source in the scene
+            if ( insertSource(newsource) )  {
                 // increment counter
                 ++count;
+
+                // ok source is configured, can start it !
+                // Play the source if playing attributes says so (and not standby)
+                // NB: if no attribute, then play by default.
+                newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
+                if (!newsource->isStandby())
+                    newsource->play( child.attribute("playing", "1").toInt() );
+
             }
             else {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << tr("Could not insert source.");
+                           << tr("Could insert source.");
                 errors++;
                 delete newsource;
             }
-
-            // ok source is configured, can start it !
-            // Play the source if playing attributes says so (and not standby)
-            // NB: if no attribute, then play by default.
-            newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
-            if (!newsource->isStandby())
-                newsource->play( child.attribute("playing", "1").toInt() );
 
         }
 
@@ -2309,8 +2328,10 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("%1 sources created (%1/%2).").arg(count).arg(xmlconfig.childNodes().count());
 
 
+#ifdef GLM_UNDO
     // cleanup & reactivate Undo Manager
     UndoManager::getInstance()->clear();
+#endif
 
     return errors;
 }
@@ -2362,7 +2383,7 @@ void RenderingManager::onSourceFailure() {
 }
 
 
-#ifdef SHM
+#ifdef GLM_SHM
 void RenderingManager::setFrameSharingEnabled(bool on){
 
     if ( on == (_sharedMemory != NULL))
@@ -2487,7 +2508,7 @@ void RenderingManager::setSharedMemoryColorDepth(uint mode){
 
 #endif
 
-#ifdef SPOUT
+#ifdef GLM_SPOUT
 
 void RenderingManager::setSpoutSharingEnabled(bool on){
 

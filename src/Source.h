@@ -31,7 +31,7 @@
 #include "ProtoSource.h"
 #include "common.h"
 
-#ifdef FFGL
+#ifdef GLM_FFGL
 #include "FFGLPluginSourceStack.h"
 #endif
 
@@ -195,7 +195,7 @@ public:
         standby = m;
     }
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     // freeframe gl plugin
     FFGLPluginSource *addFreeframeGLPlugin(QString filename = QString::null);
     FFGLPluginSourceStack *getFreeframeGLPluginStack();
@@ -317,7 +317,7 @@ protected:
     inline void setTag(Tag *t) { tag = t; }
     Tag *tag;
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     // freeframe plugin
     FFGLPluginSourceStack _ffgl_plugins;
 #endif

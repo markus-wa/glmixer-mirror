@@ -82,7 +82,7 @@ public slots:
     void on_resetPresets_pressed();
     void on_resetPlugins_pressed();
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     // Plugin page
     void on_addPlugin_pressed();
     void on_addShadertoyPlugin_pressed();
@@ -112,7 +112,7 @@ private:
     QMap<QListWidgetItem *, Source *> _userPresets;
     QSettings *appSettings;
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     class FFGLPluginBrowser *pluginBrowser;
 #endif
 };

@@ -19,7 +19,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   Copyright 2009, 2012 Bruno Herbelin
+ *   Copyright 2009, 2016 Bruno Herbelin
  *
  */
 
@@ -65,30 +65,35 @@
 #include "WebSourceCreationDialog.h"
 #include "VideoStreamDialog.h"
 #include "CodecManager.h"
-#include "UndoManager.h"
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_UNDO
+#include "UndoManager.h"
+#endif
+
+#ifdef GLM_SESSION
 #include "SessionSwitcherWidget.h"
 #endif
-#ifdef TAG_MANAGEMENT
+
+#ifdef GLM_TAG
 #include "TagsManager.h"
 #endif
-#ifdef HISTORY_MANAGEMENT
+
+#ifdef GLM_HISTORY
 #include "HistoryManagerWidget.h"
 #endif
 
-#ifdef SHM
+#ifdef GLM_SHM
 #include "SharedMemorySource.h"
 #include "SharedMemoryDialog.h"
 #include "SharedMemoryManager.h"
 #endif
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
 #include "CameraDialog.h"
 #include "OpencvSource.h"
 #endif
 
-#ifdef FFGL
+#ifdef GLM_FFGL
 #include "FFGLSource.h"
 #include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
@@ -104,11 +109,9 @@
 #include "glmixerdialogs.h"
 #include "glmixer.moc"
 
-//#define DISABLE_UNDO
-
 GLMixer *GLMixer::_instance = 0;
 
-#ifdef LOG_MANAGEMENT
+#ifdef GLM_LOGS
 QFile *GLMixer::logFile = 0;
 QTextStream GLMixer::logStream;
 #endif
@@ -147,26 +150,26 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QString styleSheet = QLatin1String(file.readAll());
     setStyleSheet(styleSheet);
 
-#ifndef SHM
+#ifndef GLM_SHM
     actionShareToRAM->setVisible(false);
     actionShmSource->setVisible(false);
 #endif
-#ifndef SPOUT
+#ifndef GLM_SPOUT
     actionShareToSPOUT->setVisible(false);
 #endif
 
-#ifndef OPEN_CV
+#ifndef GLM_OPENCV
     actionCameraSource->setVisible(false);
 #endif
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     pluginGLSLCodeEditor = new GLSLCodeEditorWidget();
 #else
     actionFreeframeSource->setVisible(false);
 #endif
 
 
-#ifdef LOG_MANAGEMENT
+#ifdef GLM_LOGS
     // The log widget
     QAction *showlog = logDockWidget->toggleViewAction();
     showlog->setShortcut(QKeySequence("Ctrl+L"));
@@ -183,13 +186,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     toolBarsMenu->addAction(layoutDockWidget->toggleViewAction());
     toolBarsMenu->addAction(blocnoteDockWidget->toggleViewAction());
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     toolBarsMenu->addAction(switcherDockWidget->toggleViewAction());
 #endif
-#ifdef TAG_MANAGEMENT
+#ifdef GLM_TAG
     toolBarsMenu->addAction(tagsDockWidget->toggleViewAction());
 #endif
-#if HISTORY_MANAGEMENT
+#ifdef GLM_HISTORY
     // The history widget
     QAction *showhistory = actionHistoryDockWidget->toggleViewAction();
     showhistory->setShortcut(QKeySequence("Ctrl+H"));
@@ -320,8 +323,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     layoutToolBox = new LayoutToolboxWidget(this);
     layoutDockWidgetContentLayout->addWidget(layoutToolBox);
 
+#ifdef GLM_TAG
     // setup the tags toolbox
-#ifdef TAG_MANAGEMENT
     tagsManager = new TagsManager(this);
     tagsDockWidgetContentLayout->addWidget(tagsManager);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(currentSourceChanged(SourceSet::iterator)), tagsManager, SLOT(connectSource(SourceSet::iterator) ) );
@@ -330,17 +333,17 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     delete tagsDockWidget;
 #endif
 
-#ifdef HISTORY_MANAGEMENT
+#ifdef GLM_HISTORY
     // setup the history toolbox
     actionHistoryView = new HistoryManagerWidget(this);
     actionHistorydockWidgetContentsLayout->addWidget(actionHistoryView);
-
 #else
+    // DISABLE HISTORY MANAGER
     delete actionHistoryDockWidget;
 #endif
 
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     // Setup the session switcher toolbox
     switcherSession = new SessionSwitcherWidget(this, &settings);
     switcherDockWidgetContentsLayout->addWidget(switcherSession);
@@ -378,7 +381,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     OutputRenderWindow::getInstance()->setWindowIcon(icon);
     QObject::connect(RenderingManager::getInstance(), SIGNAL(frameBufferChanged()), OutputRenderWindow::getInstance(), SLOT(refresh()));
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyRightPressed()), switcherSession, SLOT(startTransitionToNextSession()));
     QObject::connect(OutputRenderWindow::getInstance(), SIGNAL(keyLeftPressed()), switcherSession, SLOT(startTransitionToPreviousSession()));
 #endif
@@ -417,19 +420,18 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 //    QObject::connect(actionFullscreen, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(disableProgressBars(bool)));
     QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
 
-#ifdef DISABLE_UNDO
-    delete actionUndo;
-    delete actionRedo;
-    UndoManager::getInstance()->setMaximumSize(0);
-#else
+#ifdef GLM_UNDO
     QObject::connect(actionUndo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(undo()));
     QObject::connect(actionRedo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(redo()));
+#else
+    delete actionUndo;
+    delete actionRedo;
 #endif
 
-#ifdef SHM
+#ifdef GLM_SHM
     QObject::connect(actionShareToRAM, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setFrameSharingEnabled(bool)));
 #endif
-#ifdef SPOUT
+#ifdef GLM_SPOUT
     QObject::connect(actionShareToSPOUT, SIGNAL(triggered(bool)), RenderingManager::getInstance(), SLOT(setSpoutSharingEnabled(bool)));
     QObject::connect(RenderingManager::getInstance(), SIGNAL(spoutSharingEnabled(bool)), actionShareToSPOUT, SLOT(setChecked(bool)));
 #endif
@@ -465,7 +467,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     // do not allow to record without a fixed aspect ratio
     QObject::connect(actionFree_aspect_ratio, SIGNAL(toggled(bool)), actionRecord, SLOT(setDisabled(bool)));
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     QObject::connect(RenderingManager::getRecorder(), SIGNAL(selectAspectRatio(const standardAspectRatio )), switcherSession, SLOT(setAllowedAspectRatio(const standardAspectRatio)));
 #endif
 
@@ -545,13 +547,13 @@ GLMixer::~GLMixer()
     delete mixingToolBox;
     delete outputpreview;
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     delete switcherSession;
 #endif
-#ifdef TAG_MANAGEMENT
+#ifdef GLM_TAG
     delete tagsManager;
 #endif
-#ifdef HISTORY_MANAGEMENT
+#ifdef GLM_HISTORY
     delete actionHistoryView;
 #endif
 }
@@ -564,16 +566,16 @@ void GLMixer::closeEvent(QCloseEvent * event ){
     mixingToolBox->close();
     outputpreview->close();
     layoutToolBox->close();
-#ifdef FFGL
+#ifdef GLM_FFGL
     pluginGLSLCodeEditor->close();
 #endif
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     switcherSession->close();
 #endif
-#ifdef TAG_MANAGEMENT
+#ifdef GLM_TAG
     tagsManager->close();
 #endif
-#ifdef HISTORY_MANAGEMENT
+#ifdef GLM_HISTORY
     actionHistoryView->close();
 #endif
 
@@ -646,7 +648,7 @@ void GLMixer::on_addListToNotes_clicked() {
     blocNoteEdit->append(list);
 }
 
-#ifdef LOG_MANAGEMENT
+#ifdef GLM_LOGS
 
 void GLMixer::on_openLogsFolder_clicked() {
 
@@ -958,7 +960,7 @@ void GLMixer::on_actionNewSource_triggered(){
         case Source::VIDEO_SOURCE:
             actionMediaSource->trigger();
             break;
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
         case Source::CAMERA_SOURCE:
             actionCameraSource->trigger();
             break;
@@ -975,12 +977,12 @@ void GLMixer::on_actionNewSource_triggered(){
         case Source::SVG_SOURCE:
             actionSvgSource->trigger();
             break;
-#ifdef SHM
+#ifdef GLM_SHM
         case Source::SHM_SOURCE:
             actionShmSource->trigger();
             break;
 #endif
-#ifdef FFGL
+#ifdef GLM_FFGL
         case Source::FFGL_SOURCE:
             actionFreeframeSource->trigger();
             break;
@@ -1235,7 +1237,7 @@ void GLMixer::sourceChanged(Source *s) {
 
 void GLMixer::on_actionCameraSource_triggered() {
 
-#ifdef OPEN_CV
+#ifdef GLM_OPENCV
     static CameraDialog *cd = 0;
     if (!cd)
         cd = new CameraDialog(this);
@@ -1320,7 +1322,7 @@ void GLMixer::on_actionSvgSource_triggered(){
 
 void GLMixer::on_actionShmSource_triggered(){
 
-#ifdef SHM
+#ifdef GLM_SHM
     // popup a question dialog to select the shared memory block
     static SharedMemoryDialog *shmd = 0;
     if(!shmd)
@@ -1368,7 +1370,7 @@ void GLMixer::on_actionStreamSource_triggered(){
 
 void GLMixer::on_actionFreeframeSource_triggered(){
 
-#ifdef FFGL
+#ifdef GLM_FFGL
 
     // popup a question dialog to select the type of algorithm
     static FFGLSourceCreationDialog *ffgld = 0;
@@ -1422,7 +1424,7 @@ void GLMixer::on_actionFreeframeSource_triggered(){
 
 
 
-#ifdef FFGL
+#ifdef GLM_FFGL
 void GLMixer::editShaderToyPlugin(FFGLPluginSource *plugin)
 {
     if(!plugin)
@@ -1487,7 +1489,7 @@ void GLMixer::on_actionCloneSource_triggered(){
         if ( s ) {
             QString name = (*RenderingManager::getInstance()->getCurrentSource())->getName();
 
-#ifdef FFGL
+#ifdef GLM_FFGL
             // copy the Freeframe plugin stack
             s->reproduceFreeframeGLPluginStack( (*original) );
 #endif
@@ -1579,7 +1581,7 @@ void GLMixer::on_actionEditSource_triggered()
     SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
     if ( RenderingManager::getInstance()->isValid(cs)) {
 
-#ifdef FFGL
+#ifdef GLM_FFGL
         // for SHADERTOY sources, edit means edit code
         if ( (*cs)->rtti()  == Source::FFGL_SOURCE ) {
             FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
@@ -2042,7 +2044,7 @@ void GLMixer::on_actionSave_Session_triggered(){
         {
             confirmSessionFileName();
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
             // update session switcher
             switcherSession->fileChanged( currentSessionFileName );
 #endif
@@ -2295,7 +2297,7 @@ void GLMixer::openSessionFile()
     // start the smooth transition
     RenderingManager::getSessionSwitcher()->startTransition(true);
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     // update session switcher
     switcherSession->fileChanged( currentSessionFileName );
 #endif
@@ -2628,7 +2630,7 @@ void GLMixer::readSettings( QString pathtobin )
     if (settings.contains("cursorFuzzyFiltering"))
         cursorFuzzyFiltering->setValue(settings.value("cursorFuzzyFiltering").toInt());
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     // Switcher session
     switcherSession->restoreSettings();
 #endif
@@ -2671,7 +2673,7 @@ void GLMixer::saveSettings()
     // last session file name
     settings.setValue("lastSessionFileName", currentSessionFileName);
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     // save settings of session switcher
     switcherSession->saveSettings();
 #endif
@@ -2693,13 +2695,13 @@ void GLMixer::on_actionResetToolbars_triggered()
     restoreDockWidget(cursorDockWidget);
     restoreDockWidget(mixingDockWidget);
 
-#ifdef SESSION_MANAGEMENT
+#ifdef GLM_SESSION
     restoreDockWidget(switcherDockWidget);
 #endif
-#ifdef TAG_MANAGEMENT
+#ifdef GLM_TAG
     restoreDockWidget(tagsDockWidget);
 #endif
-#ifdef HISTORY_MANAGEMENT
+#ifdef GLM_HISTORY
     restoreDockWidget(actionHistoryDockWidget);
 #endif
 
@@ -2851,7 +2853,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     //	 n. shared memory depth
     uint shmdepth = 0;
     stream >> shmdepth;
-#ifdef SHM
+#ifdef GLM_SHM
     RenderingManager::getInstance()->setSharedMemoryColorDepth(shmdepth);
 #endif
     // o. fullscreen monitor index
@@ -2963,7 +2965,7 @@ QByteArray GLMixer::getPreferences() const {
     stream << _instance->useSystemDialogs();
 
     // n. shared memory color depth
-#ifdef SHM
+#ifdef GLM_SHM
     stream << (uint) RenderingManager::getInstance()->getSharedMemoryColorDepth();
 #else
     stream << 0;

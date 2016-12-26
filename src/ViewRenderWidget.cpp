@@ -707,7 +707,9 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
     makeCurrent();
     event->accept();
 
+#ifdef GLM_UNDO
     UndoManager::getInstance()->suspend();
+#endif
 
     // ask the catalog view if it wants this mouse press event and then
     // inform the view of the mouse press event
@@ -812,7 +814,9 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
             emit sourceLayerModified();
     }
 
+#ifdef GLM_UNDO
     UndoManager::getInstance()->store();
+#endif
 }
 
 void ViewRenderWidget::mouseDoubleClickEvent(QMouseEvent * event)

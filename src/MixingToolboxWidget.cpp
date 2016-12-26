@@ -21,7 +21,7 @@
 #include "ViewRenderWidget.h"
 #include "glmixer.h"
 
-#ifdef FFGL
+#ifdef GLM_FFGL
 #include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
 #include "FFGLPluginBrowser.h"
@@ -288,7 +288,7 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
     // make sure it is not sorting alphabetically the list
     presetsList->setSortingEnabled(false);
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     // Setup the FFGL plugin property browser
     pluginBrowser = new FFGLPluginBrowser(Plugin);
 
@@ -341,7 +341,7 @@ MixingToolboxWidget::~MixingToolboxWidget()
 
     delete gammaAdjust;
 
-#ifdef FFGL
+#ifdef GLM_FFGL
     delete pluginBrowser;
 #endif
 }
@@ -361,7 +361,7 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
         propertyChanged("Color", source->getColor());
         propertyChanged("Key Color", source->getChromaKeyColor());
 
-#ifdef FFGL
+#ifdef GLM_FFGL
         pluginBrowser->showProperties( source->getFreeframeGLPluginStack() );
 #endif
     }
@@ -371,7 +371,7 @@ void MixingToolboxWidget::connectSource(SourceSet::iterator csi)
         source = 0;
         propertyChanged("Color", palette().color(QPalette::Window));
         propertyChanged("Key Color",  palette().color(QPalette::Window));
-#ifdef FFGL
+#ifdef GLM_FFGL
         pluginBrowser->clear();
 #endif
     }
@@ -758,7 +758,7 @@ void MixingToolboxWidget::on_resetPresets_pressed()
 
 void MixingToolboxWidget::on_resetPlugins_pressed()
 {
-#ifdef FFGL
+#ifdef GLM_FFGL
     pluginBrowser->resetAll();
 #endif
 }
@@ -768,7 +768,7 @@ void MixingToolboxWidget::changed(){
     emit sourceChanged( RenderingManager::getInstance()->getById( source->getId()) );
 }
 
-#ifdef FFGL
+#ifdef GLM_FFGL
 
 void MixingToolboxWidget::on_addPlugin_pressed(){
 

@@ -58,7 +58,7 @@ UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
 
     // TODO fill in the list of available languages
 
-#ifndef SHM
+#ifndef GLM_SHM
     sharedMemoryBox->setVisible(false);
 #endif
 
