@@ -484,8 +484,29 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property, const QPointF &va
         currentItem->setRotationCenterY( value.y() * SOURCE_UNIT);
     }
     else if ( property == idToProperty["Scale"] ) {
-        currentItem->setScaleX( value.x() * SOURCE_UNIT );
-        currentItem->setScaleY( value.y() * SOURCE_UNIT);
+        double sx = value.x() * SOURCE_UNIT;
+        double sy = value.y() * SOURCE_UNIT;
+        if (currentItem->isFixedAspectRatio()) {
+
+            // forces the update of the value, without calling valueChanded again.
+            disconnect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
+
+            // if changing Y
+            if ( qAbs(currentItem->getScaleX() - sx) < EPSILON ) {
+                sx = currentItem->getScaleX() * sy / currentItem->getScaleY();
+            }
+            else {
+                sy = currentItem->getScaleY() * sx / currentItem->getScaleX();
+            }
+
+            currentItem->setScale( sx, sy );
+            updateProperty("Scale", currentItem);
+
+            connect(pointManager, SIGNAL(valueChanged(QtProperty *, const QPointF &)), this, SLOT(valueChanged(QtProperty *, const QPointF &)));
+
+        }
+        else
+            currentItem->setScale( sx, sy );
     }
 }
 
