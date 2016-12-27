@@ -120,6 +120,7 @@ SET(GLMIXER_UIS
 SET(USE_LOG_MANAGEMENT ON CACHE BOOL "CHECK to compile with the Logger")
 if(USE_LOG_MANAGEMENT)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_LOGS" )
+    add_definitions(-DGLM_LOGS)
     message( STATUS "Using Log Management")
 endif(USE_LOG_MANAGEMENT)
 
@@ -127,6 +128,7 @@ endif(USE_LOG_MANAGEMENT)
 # If SharedMemory was set, then link with its source files
 if(USE_SHAREDMEMORY)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_SHM" )
+    add_definitions(-DGLM_SHM)
     SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
         SharedMemorySource.cpp
     )
@@ -134,6 +136,7 @@ endif(USE_SHAREDMEMORY)
 
 if( USE_SPOUT )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_SPOUT" )
+    add_definitions(-DGLM_SPOUT)
     SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
         SpoutSource.cpp
     )
@@ -152,7 +155,8 @@ endif( USE_SHAREDMEMORY OR USE_SPOUT )
 
 # If FreeframeGL was set, then link with its source files
 if(USE_FREEFRAMEGL)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_FFGL" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_FFGL" ) # make QtCreator happy
+    add_definitions(-DGLM_FFGL)
     add_definitions(-DFFGLPATH="${CMAKE_INSTALL_PREFIX}/lib/${GLMIXER_BINARY}/")
 
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
@@ -187,7 +191,8 @@ endif(USE_FREEFRAMEGL)
 
 # If this application will use OpenCV
 if(USE_OPENCV)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_OPENCV" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_OPENCV" ) # make QtCreator happy
+    add_definitions(-DGLM_OPENCV)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         OpencvSource.cpp
         CameraDialog.cpp
@@ -200,7 +205,8 @@ endif(USE_OPENCV)
 
 # if we use CUDA
 if(USE_NVIDIA_CUDA)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_CUDA" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_CUDA" ) # make QtCreator happy
+    add_definitions(-DGLM_CUDA)
     include_directories(${LIBCUDADECODER_SOURCE_DIR} )
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         CUDAVideoFile.cpp
@@ -210,7 +216,8 @@ endif(USE_NVIDIA_CUDA)
 
 # if Use UNdO was set
 if(USE_UNDO)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_UNDO" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_UNDO" ) # make QtCreator happy
+    add_definitions(-DGLM_UNDO)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         UndoManager.cpp
     )
@@ -219,7 +226,8 @@ endif(USE_UNDO)
 
 # if History Management was set
 if(USE_HISTORY_MANAGEMENT)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_HISTORY" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_HISTORY" ) # make QtCreator happy
+    add_definitions(-DGLM_HISTORY)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         HistoryManager.cpp
         HistoryManagerWidget.cpp
@@ -229,7 +237,8 @@ endif(USE_HISTORY_MANAGEMENT)
 
 # if Session Management was set
 if(USE_SESSION_MANAGEMENT)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_SESSION" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_SESSION" ) # make QtCreator happy
+    add_definitions(-DGLM_SESSION)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         SessionSwitcherWidget.cpp
     )
@@ -238,7 +247,8 @@ endif(USE_SESSION_MANAGEMENT)
 
 # if Tags Management was set
 if(USE_TAG_MANAGEMENT)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_TAG" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_TAG" ) # make QtCreator happy
+    add_definitions(-DGLM_TAG)
     SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
         TagsManager.cpp
     )

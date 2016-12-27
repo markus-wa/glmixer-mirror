@@ -154,6 +154,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     actionShareToRAM->setVisible(false);
     actionShmSource->setVisible(false);
 #endif
+
 #ifndef GLM_SPOUT
     actionShareToSPOUT->setVisible(false);
 #endif
@@ -167,7 +168,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 #else
     actionFreeframeSource->setVisible(false);
 #endif
-
 
 #ifdef GLM_LOGS
     // The log widget
@@ -647,6 +647,7 @@ void GLMixer::on_addListToNotes_clicked() {
 
     blocNoteEdit->append(list);
 }
+
 
 #ifdef GLM_LOGS
 
