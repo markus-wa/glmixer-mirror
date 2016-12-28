@@ -1957,8 +1957,8 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
                         // fix old version marking : compute marks correctly
                         if ( version.toDouble() < 0.7) {
-                            newSourceVideoFile->setMarkIn(newSourceVideoFile->getTimefromFrame((int64_t)marks.attribute("In").toInt()));
-                            newSourceVideoFile->setMarkOut(newSourceVideoFile->getTimefromFrame((int64_t)marks.attribute("Out").toInt()));
+                            newSourceVideoFile->setMarkIn( (double) marks.attribute("In").toInt() / newSourceVideoFile->getFrameRate() );
+                            newSourceVideoFile->setMarkOut( (double) marks.attribute("Out").toInt() / newSourceVideoFile->getFrameRate() );
                             qWarning() << child.attribute("name") << QChar(124).toLatin1()
                                        << tr("Converted marks from old version file: begin = %1 (%2)  end = %3 (%4)").arg(newSourceVideoFile->getMarkIn()).arg(marks.attribute("In").toInt()).arg(newSourceVideoFile->getMarkOut()).arg(marks.attribute("Out").toInt());
                         }

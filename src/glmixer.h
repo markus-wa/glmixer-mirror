@@ -102,6 +102,7 @@ public slots:
     void on_copyNotes_clicked();
     void on_addDateToNotes_clicked();
     void on_addListToNotes_clicked();
+    void on_timeLineEdit_clicked();
 
     void on_actionSourcePlay_triggered();
     void on_actionSourceRestart_triggered();

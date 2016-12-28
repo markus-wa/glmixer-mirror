@@ -65,6 +65,10 @@ ENDIF(COMMAND CMAKE_POLICY)
 ## COMPILATION SETTINGS
 ##
 
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 # defines used by preprocessor to integrate program version and SVN revision into the application

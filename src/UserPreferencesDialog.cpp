@@ -419,7 +419,7 @@ void UserPreferencesDialog::recordingFolderPathChanged(const QString &s)
     if( recordingFolderLine->hasAcceptableInput ())
         recordingFolderLine->setStyleSheet("");
     else
-        recordingFolderLine->setStyleSheet("color: red");
+        recordingFolderLine->setStyleSheet("color: rgb(135, 0, 2)");
 }
 
 // TODO ; GUI configuration for key shortcuts

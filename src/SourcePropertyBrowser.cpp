@@ -64,6 +64,7 @@
 #include "WebSource.h"
 #include "VideoStreamSource.h"
 #include "glmixer.h"
+#include "glmixerdialogs.h"
 #ifdef GLM_OPENCV
 #include "OpencvSource.h"
 #endif
@@ -931,7 +932,7 @@ public:
             property->setItalics(true);
             idToProperty[property->propertyName()] = property;
 
-            infoManager->setValue(idToProperty["Duration"], vf->getStringTimeFromtime(vf->getDuration()) );
+            infoManager->setValue(idToProperty["Duration"], getStringFromTime(vf->getDuration()) );
             addProperty(idToProperty["Duration"]);
 
             // interlacing

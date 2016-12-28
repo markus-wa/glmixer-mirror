@@ -1009,7 +1009,6 @@ void VideoFile::video_refresh_timer()
     else
         ptimer->start( ptimer_delay );
 
-
 //        fprintf(stderr, "video_refresh_timer update in %d \n", ptimer_delay);
 }
 
@@ -1018,15 +1017,10 @@ double VideoFile::getCurrentFrameTime() const
     return current_frame_pts;
 }
 
-double VideoFile::getTimefromFrame(int64_t  f) const
-{
-    return f * av_q2d(video_st->time_base);
-}
-
 
 double VideoFile::getFrameDuration() const
 {
-    if (frame_rate > 0)
+    if (frame_rate > 0.0)
         return 1.0 / frame_rate;
     return 0.0;
 }
@@ -1092,34 +1086,12 @@ void VideoFile::seekBySeconds(double seekStep)
 
 }
 
-
 void VideoFile::seekForwardOneFrame()
 {
     if (!pictq.isEmpty())
         // tag this frame as a RESET frame ; this enforces its processing in video_refresh_timer
         pictq.head()->addAction(VideoPicture::ACTION_RESET_PTS);
 }
-
-QString VideoFile::getStringTimeFromtime(double time) const
-{
-    int s = (int) time;
-    time -= s;
-    int h = s / 3600;
-    int m = (s % 3600) / 60;
-    s = (s % 3600) % 60;
-    int ds = (int) (time * 100.0);
-    return QString("%1h %2m %3.%4s").arg(h, 2).arg(m, 2, 10, QChar('0')).arg(s,
-                                                                             2, 10, QChar('0')).arg(ds, 2, 10, QChar('0'));
-}
-
-QString VideoFile::getStringFrameFromTime(double t) const
-{
-    if (getDuration() > 0)
-        return (QString("Frame %1").arg((int) ( (t / getDuration()) * nb_frames )));
-    else
-        return (QString("Frame %1").arg((int) ( t / av_q2d(video_st->time_base) )));
-}
-
 
 double VideoFile::getBegin() const
 {
@@ -1228,7 +1200,6 @@ void VideoFile::setMarkIn(double time)
 
     // remember that we have to update the first picture
     first_picture_changed = true;
-
 }
 
 

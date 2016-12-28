@@ -64,6 +64,7 @@ SET(GLMIXER_SRCS
     UserPreferencesDialog.cpp
     GammaLevelsWidget.cpp
     glmixer.cpp
+    glmixerdialogs.cpp
     main.cpp
     video_rec.c
     testbuttonframe.cpp

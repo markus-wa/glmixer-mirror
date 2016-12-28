@@ -649,6 +649,26 @@ void GLMixer::on_addListToNotes_clicked() {
 }
 
 
+void GLMixer::on_timeLineEdit_clicked() {
+
+    // apply action to current source
+    SourceSet::iterator cs = RenderingManager::getInstance()->getCurrentSource();
+    if (RenderingManager::getInstance()->isValid(cs) && selectedSourceVideoFile ) {
+
+        double time = selectedSourceVideoFile->getCurrentFrameTime();
+        double min = selectedSourceVideoFile->getMarkIn();
+        double max = selectedSourceVideoFile->getMarkOut();
+        double fps = selectedSourceVideoFile->getFrameRate();
+
+        TimeInputDialog tid(this, time, min, max, fps, _displayTimeAsFrame);
+        if (tid.exec() == QDialog::Accepted) {
+
+            selectedSourceVideoFile->seekToPosition(tid.getTime());
+
+        }
+    }
+}
+
 #ifdef GLM_LOGS
 
 void GLMixer::on_openLogsFolder_clicked() {
@@ -1516,7 +1536,7 @@ void GLMixer::on_actionCaptureSource_triggered(){
 
     if (cd.exec() == QDialog::Accepted) {
 
-        int width = cd.presetsSizeComboBox->itemData(cd.presetsSizeComboBox->currentIndex()).toInt();
+        int width = cd.getWidth();
         if (width)
             capture = capture.scaledToWidth(width);
 
@@ -1557,7 +1577,7 @@ void GLMixer::on_actionSave_snapshot_triggered(){
 
         if (cd.exec() == QDialog::Accepted) {
 
-            int width = cd.presetsSizeComboBox->itemData(cd.presetsSizeComboBox->currentIndex()).toInt();
+            int width = cd.getWidth();
             if (width)
                 capture = capture.scaledToWidth(width);
 
@@ -1704,13 +1724,14 @@ void GLMixer::refreshTiming(){
         return;
     }
 
-    int f_percent = (int) ( ( selectedSourceVideoFile->getCurrentFrameTime() - selectedSourceVideoFile->getBegin() ) / ( selectedSourceVideoFile->getDuration() ) * (double)frameSlider->maximum()) ;
+    double t = selectedSourceVideoFile->getCurrentFrameTime();
+    int f_percent = (int) ( ( t - selectedSourceVideoFile->getBegin() ) / ( selectedSourceVideoFile->getDuration() ) * (double)frameSlider->maximum()) ;
     frameSlider->setValue(f_percent);
 
     if (_displayTimeAsFrame)
-        timeLineEdit->setText( selectedSourceVideoFile->getStringFrameFromTime(selectedSourceVideoFile->getCurrentFrameTime()) );
+        timeLineEdit->setText( QString("Frame %1").arg((int) (t * selectedSourceVideoFile->getFrameRate())) );
     else
-        timeLineEdit->setText( selectedSourceVideoFile->getStringTimeFromtime(selectedSourceVideoFile->getCurrentFrameTime()) );
+        timeLineEdit->setText( getStringFromTime(t) );
 
 }
 
@@ -1740,9 +1761,9 @@ void GLMixer::on_frameSlider_actionTriggered (int a) {
 
         // show the time of the frame (refreshTiming disabled)
         if (_displayTimeAsFrame)
-            timeLineEdit->setText( selectedSourceVideoFile->getStringFrameFromTime(pos) );
+            timeLineEdit->setText( QString("Frame %1").arg((int) (pos * selectedSourceVideoFile->getFrameRate())) );
         else
-            timeLineEdit->setText( selectedSourceVideoFile->getStringTimeFromtime(pos) );
+            timeLineEdit->setText( getStringFromTime(pos) );
 
     }
 
@@ -1827,11 +1848,11 @@ void GLMixer::updateMarks (){
         o_percent = (int) ( (double)( selectedSourceVideoFile->getMarkOut() - selectedSourceVideoFile->getBegin() ) / (double)( selectedSourceVideoFile->getDuration() ) * (double)frameSlider->maximum()) ;
 
         if (_displayTimeAsFrame) {
-            markInSlider->setToolTip( tr("Begin: ") + selectedSourceVideoFile->getStringFrameFromTime(selectedSourceVideoFile->getMarkIn()) );
-            markOutSlider->setToolTip( tr("End: ") + selectedSourceVideoFile->getStringFrameFromTime(selectedSourceVideoFile->getMarkOut()) );
+            markInSlider->setToolTip( tr("Begin: %1").arg((int) (selectedSourceVideoFile->getMarkIn() * selectedSourceVideoFile->getFrameRate())) );
+            markOutSlider->setToolTip( tr("End: %1").arg((int) (selectedSourceVideoFile->getMarkOut() * selectedSourceVideoFile->getFrameRate())) );
         } else {
-            markInSlider->setToolTip( tr("Begin: ") + selectedSourceVideoFile->getStringTimeFromtime(selectedSourceVideoFile->getMarkIn()) );
-            markOutSlider->setToolTip( tr("End: ") + selectedSourceVideoFile->getStringTimeFromtime(selectedSourceVideoFile->getMarkOut()) );
+            markInSlider->setToolTip( tr("Begin: ") + getStringFromTime(selectedSourceVideoFile->getMarkIn()) );
+            markOutSlider->setToolTip( tr("End: ") + getStringFromTime(selectedSourceVideoFile->getMarkOut()) );
         }
 
     }

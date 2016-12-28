@@ -396,28 +396,6 @@ public:
     void setFastForward(bool on) { fast_forward = on; }
 
     /**
-     * Gives a string for human readable display of time (hh:mm:ss.ms) from a stream time-base value (frames).
-     *
-     * @param t a time in stream time base
-     * @return a string in 'hh:mm:ss.ms' format
-     */
-    QString getStringTimeFromtime(double  t) const;
-    /**
-     * Gives a string for human readable display of frame (e.g. "frame: 125") from a stream time-base value (frames).
-     *
-     * @param t a time in stream time base
-     * @return a string in 'frame: f' format
-     */
-    QString getStringFrameFromTime(double  t) const;
-    /**
-     * Convert frame stamp (of frame) to time
-     *
-     * @param f a frame stamp in the av stream (usually frame number)
-     * @return a time in stream time base
-     */
-    double getTimefromFrame(int64_t  f) const;
-
-    /**
      * Sets the memory usage policy to define the bounding size of internal
      * buffers (both packet queue and video picture queue) used for decoding.
      * This allows limiting the allocation of memory for each video file.

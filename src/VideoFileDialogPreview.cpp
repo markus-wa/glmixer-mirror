@@ -28,6 +28,7 @@
 #include <QLabel>
 
 #include "common.h"
+#include "glmixerdialogs.h"
 #include "VideoFileDialogPreview.moc"
 #include "VideoFileDialog.h"
 
@@ -109,7 +110,7 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
             previewWidget->updateFrame(is->getResetPicture());
             // fill in details
             CodecNameLineEdit->setText(is->getCodecName());
-            endLineEdit->setText( is->getStringTimeFromtime(is->getEnd()) );
+            endLineEdit->setText( getStringFromTime(is->getEnd()) );
             // is there more than one frame ?
             if ( is->getNumFrames() > 1 ) {
                 startButton->setEnabled( true );

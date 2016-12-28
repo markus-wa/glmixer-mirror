@@ -1189,57 +1189,33 @@ QToolButton:hover {
                <number>2</number>
               </property>
               <item row="0" column="0" colspan="2">
-               <widget class="QLineEdit" name="timeLineEdit">
+               <widget class="QToolButton" name="timeLineEdit">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>100</width>
-                  <height>20</height>
-                 </size>
-                </property>
                 <property name="baseSize">
                  <size>
-                  <width>0</width>
+                  <width>60</width>
                   <height>20</height>
                  </size>
                 </property>
-                <property name="cursor">
-                 <cursorShape>ArrowCursor</cursorShape>
-                </property>
                 <property name="toolTip">
-                 <string>Current frame time</string>
+                 <string/>
                 </property>
-                <property name="layoutDirection">
-                 <enum>Qt::RightToLeft</enum>
-                </property>
-                <property name="inputMask">
-                 <string notr="true"/>
-                </property>
-                <property name="text">
-                 <string notr="true"/>
-                </property>
-                <property name="maxLength">
-                 <number>30</number>
-                </property>
-                <property name="frame">
-                 <bool>true</bool>
-                </property>
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-                <property name="placeholderText">
-                 <string notr="true"/>
+                <property name="styleSheet">
+                 <string notr="true">QToolButton { 
+    max-height: 20px;
+    min-height: 20px;
+    font-size: 9pt;
+    font-weight: bold;
+}
+</string>
                 </property>
                </widget>
               </item>
@@ -1259,11 +1235,11 @@ QToolButton:hover {
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton { 
-     border-radius: 3px;
-	max-height: 16px;
-	max-width: 16px;
-     min-height: 16px;
-     min-width: 16px;
+    border-radius: 3px;
+    max-height: 16px;
+    max-width: 16px;
+    min-height: 16px;
+    min-width: 16px;
 }
 </string>
                 </property>
@@ -1338,11 +1314,11 @@ QToolButton:hover {
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton { 
-     border-radius:3px;
-	max-height: 16px;
-	max-width: 16px;
-     min-height: 16px;
-     min-width: 16px;
+    border-radius: 3px;
+    max-height: 16px;
+    max-width: 16px;
+    min-height: 16px;
+    min-width: 16px;
 }
 </string>
                 </property>
