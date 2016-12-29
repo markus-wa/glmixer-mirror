@@ -58,6 +58,10 @@ void VideoFileDialogPreview::closeFilePreview() {
     if (is) {
         // unset video display
         previewWidget->setVideo(NULL);
+        CodecNameLineEdit->setText("");
+        endLineEdit->setText("");
+        widthLineEdit->setText("");
+        heightLineEdit->setText("");
         // stop video
         is->stop();
         // delete video File
@@ -75,6 +79,10 @@ void VideoFileDialogPreview::showFilePreview(const QString & file){
 
     //reset view to blank screen
     previewWidget->setVideo(NULL);
+    CodecNameLineEdit->setText("");
+    endLineEdit->setText("");
+    widthLineEdit->setText("");
+    heightLineEdit->setText("");
 
     if (is) {
         delete is;

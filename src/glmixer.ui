@@ -1199,6 +1199,12 @@ QToolButton:hover {
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>24</height>
+                 </size>
+                </property>
                 <property name="baseSize">
                  <size>
                   <width>60</width>
@@ -1210,12 +1216,13 @@ QToolButton:hover {
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton { 
+     border-radius:2px;
+	 padding: 2px;
     max-height: 20px;
     min-height: 20px;
     font-size: 9pt;
     font-weight: bold;
-}
-</string>
+}</string>
                 </property>
                </widget>
               </item>
@@ -1235,13 +1242,13 @@ QToolButton:hover {
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton { 
-    border-radius: 3px;
+    border-radius: 2px;
+	 padding: 2px;
     max-height: 16px;
     max-width: 16px;
     min-height: 16px;
     min-width: 16px;
-}
-</string>
+}</string>
                 </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
@@ -1271,14 +1278,12 @@ QToolButton:hover {
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QPushButton { 
-     border-radius:3px;
-	 padding: 3px;
+     border-radius:2px;
+	 padding: 2px;
 	 max-height: 16px;
      min-height: 16px;
 	 font-size: 8pt;
-}
-
-</string>
+}</string>
                 </property>
                 <property name="text">
                  <string>Set end</string>
@@ -1314,13 +1319,13 @@ QToolButton:hover {
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QToolButton { 
-    border-radius: 3px;
+    border-radius: 2px;
+	 padding: 2px;
     max-height: 16px;
     max-width: 16px;
     min-height: 16px;
     min-width: 16px;
-}
-</string>
+}</string>
                 </property>
                 <property name="icon">
                  <iconset resource="../icons.qrc">
@@ -1352,18 +1357,16 @@ QToolButton:hover {
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the begin to the current time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>Sets the begin to the current time</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QPushButton { 
-     border-radius:3px;
-	 padding: 3px;
+     border-radius:2px;
+	 padding: 2px;
 	 max-height: 16px;
      min-height: 16px;
 	 font-size: 8pt;
-}
-
-</string>
+}</string>
                 </property>
                 <property name="text">
                  <string>Set begin</string>
@@ -1382,7 +1385,7 @@ QToolButton:hover {
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_2">
               <property name="spacing">
-               <number>1</number>
+               <number>2</number>
               </property>
               <property name="leftMargin">
                <number>2</number>

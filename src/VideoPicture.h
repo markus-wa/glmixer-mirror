@@ -181,8 +181,6 @@ public:
     inline void addAction(Action a) { action |= a; }
     inline void removeAction(Action a) { action ^= (action & a); }
     inline bool hasAction(Action a) const { return (action & a); }
-//    inline double presentationTime() const { return pts; }
-
 
 private:
     // LIBAV
