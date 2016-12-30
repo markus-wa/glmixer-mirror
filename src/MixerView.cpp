@@ -139,7 +139,7 @@ void MixerView::paint()
         glDisable(GL_LINE_STIPPLE);
 
 
-        if (currentTool == View::ROTATE) {
+        if (currentTool != View::MOVE) {
             glPointSize(15);
             glBegin(GL_POINTS);
             glVertex3d(SelectionManager::getInstance()->selectionSource()->getAlphaX(), SelectionManager::getInstance()->selectionSource()->getAlphaY(), 0.0);
@@ -376,7 +376,8 @@ void MixerView::setAction(ActionType a){
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_OPEN);
         break;
     case View::GRAB:
-        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
+    case View::TOOL:
+        setTool(currentTool);
         break;
     case View::SELECT:
         RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_INDEX);
@@ -398,6 +399,17 @@ void MixerView::setTool(toolType t)
 {
     currentTool = t;
 
+    switch (t) {
+    case SCALE:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_SCALE_F);
+        break;
+    case ROTATE:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_ROT_TOP_LEFT);
+        break;
+    case MOVE:
+        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_HAND_CLOSED);
+        break;
+    }
 }
 
 bool MixerView::mousePressEvent(QMouseEvent *event)
@@ -1054,20 +1066,16 @@ void MixerView::scaleSources(Source *s, int x, int y, int dx, int dy) {
     double cx = SelectionManager::getInstance()->selectionSource()->getAlphaX();
     double cy = SelectionManager::getInstance()->selectionSource()->getAlphaY();
 
-    // remember position of s before grab
-    double sx = s->getAlphaX();
-    double sy = s->getAlphaY();
-    // compute distance to center before grab
-    double d = sqrt( (sx-cx)*(sx-cx) + (sy-cy)*(sy-cy) );
+    // remember position of s before grab (relative to C)
+    double _sx = s->getAlphaX() - cx;
+    double _sy = s->getAlphaY() -cy;
 
     // grab current source in any case
     grabSource(s, x, y, dx, dy);
 
-    // remember position of s after grab
-    sx = s->getAlphaX();
-    sy = s->getAlphaY();
-    // compute difference of distance to center after grab
-    d = sqrt( (sx-cx)*(sx-cx) + (sy-cy)*(sy-cy) ) -d;
+    // remember position of s after grab (relative to C)
+    double sx_ = s->getAlphaX() -cx;
+    double sy_ = s->getAlphaY() -cy;
 
     // if the source is in the selection, scale the selection
     if ( SelectionManager::getInstance()->isInSelection(s) ){
@@ -1077,21 +1085,22 @@ void MixerView::scaleSources(Source *s, int x, int y, int dx, int dy) {
             // ingore s
             if ( (*its)->getId() == s->getId() )
                 continue;
-
             // remember position of i before grab
-            double x = (*its)->getAlphaX();
-            double y = (*its)->getAlphaY();
-            // compute distance to center before grab
-            double _d = sqrt( (x-cx)*(x-cx) + (y-cy)*(y-cy) );
-
-            // compute position after grab
-            x += d * (x-cx) / _d;
-            y += d * (y-cy) / _d;
-
+            double _x = (*its)->getAlphaX();
+            double _y = (*its)->getAlphaY();
+            // center on C
+            _x -= cx;
+            _y -= cy;
+            // compute position after scaling
+            double x_ = _x * ( sx_ / _sx );
+            double y_ = _y * ( sy_ / _sy );
+            // un-center
+            x_ += cx;
+            y_ += cy;
             // move icon
-            (*its)->setAlphaCoordinates( qBound(_mixingArea[0], x, _mixingArea[2]), qBound(_mixingArea[1], y, _mixingArea[3]) );
+            (*its)->setAlphaCoordinates( qBound(_mixingArea[0], x_, _mixingArea[2]), qBound(_mixingArea[1], y_, _mixingArea[3]) );
         }
-        SelectionManager::getInstance()->updateSelectionSource();
+//        SelectionManager::getInstance()->updateSelectionSource();
     }
 
 }
@@ -1121,9 +1130,6 @@ void MixerView::rotateSources(Source *s, int x, int y, int dx, int dy) {
     double sd_ = sqrt( (sx_-cx)*(sx_-cx) + (sy_-cy)*(sy_-cy) );
 
     // compute the angle between vectors (after - before)
-//    double dot = ((_sx-cx)/_sd)*((sx_-cx)/sd_) + ((_sy-cy)/_sd)*((sy_-cy)/sd_) ;
-//    double angle = acos(dot);
-
     double angle = atan2(((sy_-cy)/sd_), ((sx_-cx)/sd_)) - atan2(((_sy-cy)/_sd), ((_sx-cx)/_sd) );
 
     // if the source is in the selection, scale the selection
@@ -1138,21 +1144,18 @@ void MixerView::rotateSources(Source *s, int x, int y, int dx, int dy) {
             // remember position of i before grab
             double _x = (*its)->getAlphaX();
             double _y = (*its)->getAlphaY();
-            // compute distance to center before grab
-            double _d = sqrt( (_x-cx)*(_x-cx) + (_y-cy)*(_y-cy) );
-
+            // center on C
             _x -= cx;
             _y -= cy;
-
             // compute position after rotation
             double x_ = _x * cos(angle) - _y * sin(angle);
             double y_ = _y * cos(angle) + _x * sin(angle);
-
+            // scale
+            x_ *= (sd_ / _sd) ;
+            y_ *= (sd_ / _sd) ;
+            // un-center
             x_ += cx;
             y_ += cy;
-            x_ += (x_-cx) * (sd_ - _sd) / _d;
-            y_ += (y_-cy) * (sd_ - _sd) / _d;
-
             // move icon
             (*its)->setAlphaCoordinates( qBound(_mixingArea[0], x_, _mixingArea[2]), qBound(_mixingArea[1], y_, _mixingArea[3]) );
         }
