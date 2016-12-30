@@ -151,8 +151,11 @@ void CatalogView::drawSource(Source *s)
 
         // non-transparency blending
         static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
-
         ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
+
+        // standard transparency blending
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
 
         // draw source in FBO
         // texture coordinate to default
