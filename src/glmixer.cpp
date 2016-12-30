@@ -940,6 +940,8 @@ void GLMixer::setView(QAction *a){
 
     // tools available in corresponding views
     toolsToolBar->setEnabled(a != actionRenderingView);
+    actionToolScale->setEnabled( a != actionLayersView);
+    actionToolRotate->setEnabled( a != actionLayersView);
 
     // get back the proper tool from former usage
     switch ( RenderingManager::getRenderingWidget()->getToolMode() ){

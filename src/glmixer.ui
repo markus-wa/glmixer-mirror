@@ -4202,7 +4202,7 @@ Uncheck to display the restart frame when stopped.</string>
     <bool>true</bool>
    </property>
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -4227,7 +4227,7 @@ Uncheck to display the restart frame when stopped.</string>
     <bool>true</bool>
    </property>
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -5364,38 +5364,6 @@ Shortcut:                         Ctrl + Tab</string>
     <hint type="destinationlabel">
      <x>360</x>
      <y>859</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionGeometryView</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>actionToolScale</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionGeometryView</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>actionToolRotate</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
     </hint>
    </hints>
   </connection>

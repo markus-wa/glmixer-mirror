@@ -38,7 +38,7 @@ class LayersView: public View {
 
 public:
 
-	LayersView();
+    LayersView();
 
     void paint();
     void setModelview();
@@ -51,8 +51,10 @@ public:
     bool keyReleaseEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
-	void zoomReset();
-	void zoomBestFit( bool onlyClickedSource = false );
+    void setAction(ActionType a);
+
+    void zoomReset();
+    void zoomBestFit( bool onlyClickedSource = false );
 
     bool getSourcesAtCoordinates(int mouseX, int mouseY, bool clic = true);
     void coordinatesFromMouse(int mouseX, int mouseY, double *X, double *Y);
@@ -70,7 +72,6 @@ private:
     void grabSources(Source *s, double depth);
     void panningBy(int x, int y, int dx, int dy);
 
-    void setAction(ActionType a);
 
     // selection area
     LayersSelectionArea _selectionArea;

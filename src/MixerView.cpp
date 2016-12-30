@@ -92,19 +92,27 @@ void MixerView::paint()
 
 
     // and the selection connection lines
-    glEnable(GL_LINE_STIPPLE);
-    glLineStipple(1, 0x00FC);
-    glLineWidth(2.0);
-    glColor4ub(COLOR_SELECTION, 255);
-    glBegin(GL_LINES);
-    for(SourceList::iterator  its1 = SelectionManager::getInstance()->selectionBegin(); its1 != SelectionManager::getInstance()->selectionEnd(); its1++) {
-        for(SourceList::iterator  its2 = its1; its2 != SelectionManager::getInstance()->selectionEnd(); its2++) {
-            glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
-            glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
+    if (SelectionManager::getInstance()->hasSelection())
+    {
+        glEnable(GL_LINE_STIPPLE);
+        glLineStipple(1, 0x00FC);
+        glLineWidth(2.0);
+        glColor4ub(COLOR_SELECTION, 255);
+        glBegin(GL_LINES);
+        for(SourceList::iterator  its1 = SelectionManager::getInstance()->selectionBegin(); its1 != SelectionManager::getInstance()->selectionEnd(); its1++) {
+            for(SourceList::iterator  its2 = its1; its2 != SelectionManager::getInstance()->selectionEnd(); its2++) {
+                glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
+                glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
+            }
         }
+        glEnd();
+        glDisable(GL_LINE_STIPPLE);
+
+        glPointSize(15);
+        glBegin(GL_POINTS);
+        glVertex3d(SelectionManager::getInstance()->selectionSource()->getAlphaX(), SelectionManager::getInstance()->selectionSource()->getAlphaY(), 0.0);
+        glEnd();
     }
-    glEnd();
-    glDisable(GL_LINE_STIPPLE);
 
 
     ViewRenderWidget::setSourceDrawingMode(true);
@@ -212,7 +220,7 @@ void MixerView::paint()
     glEnable(GL_LINE_STIPPLE);
     glLineStipple(1, 0xFC00);
     glLineWidth(2.0);
-    glPointSize(15);
+    glPointSize(10);
     int c = 0;
     for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++, c++) {
         // use color of the group
@@ -347,6 +355,13 @@ void MixerView::setAction(ActionType a){
     }
 }
 
+
+void MixerView::setTool(toolType t)
+{
+    currentTool = t;
+
+}
+
 bool MixerView::mousePressEvent(QMouseEvent *event)
 {
     if (!event)
@@ -416,7 +431,7 @@ bool MixerView::mousePressEvent(QMouseEvent *event)
                 if ( isUserInput(event, View::INPUT_TOOL) || isUserInput(event, View::INPUT_TOOL_INDIVIDUAL) ) {
                     // ready for grabbing the current source
                     if ( clicked->isModifiable() )
-                        setAction(View::GRAB);
+                        setAction(View::TOOL);
                 }
             }
         }
@@ -586,12 +601,24 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
                     SelectionManager::getInstance()->select(rectSources);
                 else  // new selection
                     SelectionManager::getInstance()->setSelection(rectSources);
+
             }
         }
         // clicked source not null and grab action
-        else if (currentAction == View::GRAB )
-            grabSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+        else {
+            if (currentAction == View::TOOL )
+            {
+                if (currentTool == View::MOVE)
+                    grabSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+                else if (currentTool == View::SCALE)
+                    scaleSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+                else if (currentTool == View::ROTATE)
+                    rotateSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
+            }
+            else
+                grabSources(clicked, event->x(), viewport[3] - event->y(), dx, dy);
 
+        }
         // return true if we modified (grabbed) the source
         return (bool) clicked;
     }
@@ -944,9 +971,6 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
 }
 
-/**
- *
- **/
 void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
 
     if (!s) return;
@@ -956,6 +980,7 @@ void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
         for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
             grabSource( *its, x, y, dx, dy);
         }
+        SelectionManager::getInstance()->updateSelectionSource();
     }
     // nothing special, move the source individually
     else
@@ -963,9 +988,6 @@ void MixerView::grabSources(Source *s, int x, int y, int dx, int dy) {
 
 }
 
-/**
- *
- **/
 void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
 
     if (!s || !s->isModifiable()) return;
@@ -986,9 +1008,121 @@ void MixerView::grabSource(Source *s, int x, int y, int dx, int dy) {
 }
 
 
-/**
- *
- **/
+void MixerView::scaleSources(Source *s, int x, int y, int dx, int dy) {
+
+    if (!s) return;
+
+    // read center of selection
+    double cx = SelectionManager::getInstance()->selectionSource()->getAlphaX();
+    double cy = SelectionManager::getInstance()->selectionSource()->getAlphaY();
+
+    // remember position of s before grab
+    double sx = s->getAlphaX();
+    double sy = s->getAlphaY();
+    // compute distance to center before grab
+    double d = sqrt( (sx-cx)*(sx-cx) + (sy-cy)*(sy-cy) );
+
+    // grab current source in any case
+    grabSource(s, x, y, dx, dy);
+
+    // remember position of s after grab
+    sx = s->getAlphaX();
+    sy = s->getAlphaY();
+    // compute difference of distance to center after grab
+    d = sqrt( (sx-cx)*(sx-cx) + (sy-cy)*(sy-cy) ) -d;
+
+    // if the source is in the selection, scale the selection
+    if ( SelectionManager::getInstance()->isInSelection(s) ){
+
+        // grab all other sources according to center
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+            // ingore s
+            if ( (*its)->getId() == s->getId() )
+                continue;
+
+            // remember position of i before grab
+            double x = (*its)->getAlphaX();
+            double y = (*its)->getAlphaY();
+            // compute distance to center before grab
+            double _d = sqrt( (x-cx)*(x-cx) + (y-cy)*(y-cy) );
+
+            // compute position after grab
+            x += d * (x-cx) / _d;
+            y += d * (y-cy) / _d;
+
+            // move icon
+            (*its)->setAlphaCoordinates( qBound(_mixingArea[0], x, _mixingArea[2]), qBound(_mixingArea[1], y, _mixingArea[3]) );
+        }
+        SelectionManager::getInstance()->updateSelectionSource();
+    }
+
+}
+
+
+void MixerView::rotateSources(Source *s, int x, int y, int dx, int dy) {
+
+    if (!s) return;
+
+    // read center of selection
+    double cx = SelectionManager::getInstance()->selectionSource()->getAlphaX();
+    double cy = SelectionManager::getInstance()->selectionSource()->getAlphaY();
+
+    // remember position of s before grab
+    double _sx = s->getAlphaX();
+    double _sy = s->getAlphaY();
+    // compute distance to center before grab
+    double _sd = sqrt( (_sx-cx)*(_sx-cx) + (_sy-cy)*(_sy-cy) );
+
+    // grab current source in any case
+    grabSource(s, x, y, dx, dy);
+
+    // remember position of s after grab
+    double sx_ = s->getAlphaX();
+    double sy_ = s->getAlphaY();
+    // compute distance to center after grab
+    double sd_ = sqrt( (sx_-cx)*(sx_-cx) + (sy_-cy)*(sy_-cy) );
+
+    // compute the angle between vectors (after - before)
+//    double dot = ((_sx-cx)/_sd)*((sx_-cx)/sd_) + ((_sy-cy)/_sd)*((sy_-cy)/sd_) ;
+//    double angle = acos(dot);
+
+    double angle = atan2(((sy_-cy)/sd_), ((sx_-cx)/sd_)) - atan2(((_sy-cy)/_sd), ((_sx-cx)/_sd) );
+
+    // if the source is in the selection, scale the selection
+    if ( SelectionManager::getInstance()->isInSelection(s) ){
+
+        // grab all other sources according to center
+        for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+            // ingore s
+            if ( (*its)->getId() == s->getId() )
+                continue;
+
+            // remember position of i before grab
+            double _x = (*its)->getAlphaX();
+            double _y = (*its)->getAlphaY();
+            // compute distance to center before grab
+            double _d = sqrt( (_x-cx)*(_x-cx) + (_y-cy)*(_y-cy) );
+
+            _x -= cx;
+            _y -= cy;
+
+            // compute position after rotation
+            double x_ = _x * cos(angle) - _y * sin(angle);
+            double y_ = _y * cos(angle) + _x * sin(angle);
+
+            x_ += cx;
+            y_ += cy;
+            x_ += (x_-cx) * (sd_ - _sd) / _d;
+            y_ += (y_-cy) * (sd_ - _sd) / _d;
+
+            // move icon
+            (*its)->setAlphaCoordinates( qBound(_mixingArea[0], x_, _mixingArea[2]), qBound(_mixingArea[1], y_, _mixingArea[3]) );
+        }
+//        SelectionManager::getInstance()->updateSelectionSource();
+    }
+
+}
+
 void MixerView::panningBy(int x, int y, int dx, int dy) {
 
     double bx, by, bz; // before movement

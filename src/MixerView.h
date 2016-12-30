@@ -52,6 +52,10 @@ public:
     bool keyReleaseEvent ( QKeyEvent * event );
     // TODO void tabletEvent ( QTabletEvent * event ); // handling of tablet features like pressure and rotation
 
+    // Mixing specific implementation of actions and tools
+    void setAction(ActionType a);
+    void setTool(toolType t);
+
     void clear();
     void zoomReset();
     void zoomBestFit( bool onlyClickedSource = false );
@@ -77,9 +81,9 @@ private:
     bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, double scale = 1.0, double tolerance = 1.0 );
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void grabSources(Source *s, int x, int y, int dx, int dy);
+    void scaleSources(Source *s, int x, int y, int dx, int dy);
+    void rotateSources(Source *s, int x, int y, int dx, int dy);
     void panningBy(int x, int y, int dx, int dy) ;
-
-    void setAction(ActionType a);
 
     // creation of groups from set of selection
     SourceListArray groupSources;

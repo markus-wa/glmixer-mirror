@@ -448,20 +448,23 @@ void ViewRenderWidget::showContextMenu(ViewContextMenu m, const QPoint &pos)
 
 void ViewRenderWidget::setToolMode(toolMode m){
 
-    if (_currentView == (View *) _geometryView) {
-        _geometryView->setTool( (GeometryView::toolType) m );
-        _geometryView->setAction( View::NONE );
-    }
+//    if (_currentView == (View *) _geometryView) {
+//        _geometryView->setTool( (GeometryView::toolType) m );
+//        _geometryView->setAction( View::NONE );
+//    }
 
+    _currentView->setTool( (GeometryView::toolType) m );
+    _currentView->setAction( View::NONE );
 }
 
 ViewRenderWidget::toolMode ViewRenderWidget::getToolMode(){
 
-    if (_currentView == (View *) _geometryView) {
-        return (ViewRenderWidget::toolMode) _geometryView->getTool();
-    }
-    else
-        return ViewRenderWidget::TOOL_GRAB;
+//    if (_currentView == (View *) _geometryView) {
+//        return (ViewRenderWidget::toolMode) _geometryView->getTool();
+//    }
+//    else
+//        return ViewRenderWidget::TOOL_GRAB;
+    return (ViewRenderWidget::toolMode) _currentView->getTool();
 }
 
 

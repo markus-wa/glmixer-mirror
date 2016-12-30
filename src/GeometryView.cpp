@@ -46,7 +46,7 @@ bool GeometrySelectionArea::contains(SourceSet::iterator s)
 }
 
 
-GeometryView::GeometryView() : View(), quadrant(0), currentTool(SCALE), currentSource(0)
+GeometryView::GeometryView() : View(), quadrant(0), currentSource(0)
 {
     zoom = DEFAULTZOOM;
     minzoom = MINZOOM;
@@ -470,13 +470,13 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
         cs = getCurrentSource();
 
         if (currentAction == View::TOOL) {
-            if (currentTool == GeometryView::MOVE)
+            if (currentTool == View::MOVE)
                 grabSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
-            else if (currentTool == GeometryView::SCALE)
+            else if (currentTool == View::SCALE)
                 scaleSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
-            else if (currentTool == GeometryView::CROP)
+            else if (currentTool == View::CROP)
                 cropSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
-            else if (currentTool == GeometryView::ROTATE) {
+            else if (currentTool == View::ROTATE) {
                 rotateSources(cs, event->x(), viewport[3] - event->y(), dx, dy);
                 setTool(currentTool);
             }
