@@ -32,6 +32,7 @@ public:
     bool hasSelection() { return !_selectedSources.empty(); }
     SourceList::iterator selectionBegin() { return _selectedSources.begin(); }
     SourceList::iterator selectionEnd() { return _selectedSources.end(); }
+    int selectionCount() { return _selectedSources.size(); }
     SourceList copySelection() { return SourceList (_selectedSources); }
     Source *selectionSource() { return _selectionSource; }
 

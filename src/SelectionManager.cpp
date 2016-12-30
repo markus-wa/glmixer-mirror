@@ -138,8 +138,7 @@ void SelectionManager::updateSelectionSource()
     _selectionSource->setRotationAngle( 0 );
 
     // setup the selection source alpha coordinates
-//    _selectionSource->setAlphaCoordinates(0.0, 0.0);
-    SourceSet::iterator sit = _selectedSources.begin();
+    SourceList::iterator sit = _selectedSources.begin();
     double x = (*sit)->getAlphaX();
     double y = (*sit)->getAlphaY();
     for (sit++; sit != _selectedSources.end(); sit++) {
@@ -149,6 +148,7 @@ void SelectionManager::updateSelectionSource()
     x /= _selectedSources.size();
     y /= _selectedSources.size();
     _selectionSource->setAlphaCoordinates(x, y);
+
 }
 
 

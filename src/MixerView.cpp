@@ -67,13 +67,38 @@ void MixerView::setModelview()
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
 }
 
+typedef std::map<double, Source*> mixingSourceMap;
+
+mixingSourceMap getMixingSourceMap(SourceList::iterator begin, SourceList::iterator end, int size)
+{
+    SourceList::iterator sit = begin;
+    double cx = (*sit)->getAlphaX();
+    double cy = (*sit)->getAlphaY();
+    for (sit++; sit != end; sit++) {
+        cx += (*sit)->getAlphaX();
+        cy += (*sit)->getAlphaY();
+    }
+    cx /= size;
+    cy /= size;
+
+    mixingSourceMap map;
+    for (sit = begin; sit != end; sit++) {
+        double sx = (*sit)->getAlphaX();
+        double sy = (*sit)->getAlphaY();
+        double sd = sqrt( (sx-cx)*(sx-cx) + (sy-cy)*(sy-cy) );
+        double angle = atan2(((sy-cy)/sd), ((sx-cx)/sd)) ;
+        //  map sorted by angle
+        map[angle] = (*sit);
+    }
+
+    return map;
+}
+
 void MixerView::paint()
 {
     static double renderingAspectRatio = 1.0;
     static bool first = true;
     static double ax, ay;
-
-
 
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing + 2);
@@ -99,19 +124,27 @@ void MixerView::paint()
         glLineWidth(2.0);
         glColor4ub(COLOR_SELECTION, 255);
         glBegin(GL_LINES);
-        for(SourceList::iterator  its1 = SelectionManager::getInstance()->selectionBegin(); its1 != SelectionManager::getInstance()->selectionEnd(); its1++) {
-            for(SourceList::iterator  its2 = its1; its2 != SelectionManager::getInstance()->selectionEnd(); its2++) {
-                glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
-                glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
-            }
+
+        mixingSourceMap selectionMap = getMixingSourceMap(SelectionManager::getInstance()->selectionBegin(), SelectionManager::getInstance()->selectionEnd(), SelectionManager::getInstance()->selectionCount());
+        for(mixingSourceMap::iterator  its1 = selectionMap.begin(); its1 != selectionMap.end(); its1++) {
+            mixingSourceMap::iterator  its2 = its1;
+            its2++;
+            if (its2 == selectionMap.end())
+                its2 = selectionMap.begin();
+            glVertex3d(its1->second->getAlphaX(), its1->second->getAlphaY(), 0.0);
+            glVertex3d(its2->second->getAlphaX(), its2->second->getAlphaY(), 0.0);
+
         }
         glEnd();
         glDisable(GL_LINE_STIPPLE);
 
-        glPointSize(15);
-        glBegin(GL_POINTS);
-        glVertex3d(SelectionManager::getInstance()->selectionSource()->getAlphaX(), SelectionManager::getInstance()->selectionSource()->getAlphaY(), 0.0);
-        glEnd();
+
+        if (currentTool == View::ROTATE) {
+            glPointSize(15);
+            glBegin(GL_POINTS);
+            glVertex3d(SelectionManager::getInstance()->selectionSource()->getAlphaX(), SelectionManager::getInstance()->selectionSource()->getAlphaY(), 0.0);
+            glEnd();
+        }
     }
 
 
@@ -225,19 +258,24 @@ void MixerView::paint()
     for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++, c++) {
         // use color of the group
         glColor4f(groupColors[c].redF(), groupColors[c].greenF(),groupColors[c].blueF(), 0.8);
-        for(SourceList::iterator  its1 = (*itss).begin(); its1 != (*itss).end(); its1++) {
-            // Connect to every source
-            glBegin(GL_LINES);
-            for(SourceList::iterator  its2 = its1; its2 != (*itss).end(); its2++) {
-                glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
-                glVertex3d((*its2)->getAlphaX(), (*its2)->getAlphaY(), 0.0);
-            }
-            glEnd();
-            // dot to identifiy source in the group
-            glBegin(GL_POINTS);
-            glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
-            glEnd();
+
+        glBegin(GL_LINES);
+        mixingSourceMap selectionMap = getMixingSourceMap((*itss).begin(), (*itss).end(), (*itss).size());
+        for(mixingSourceMap::iterator  its1 = selectionMap.begin(); its1 != selectionMap.end(); its1++) {
+            mixingSourceMap::iterator  its2 = its1;
+            its2++;
+            if (its2 == selectionMap.end())
+                its2 = selectionMap.begin();
+            glVertex3d(its1->second->getAlphaX(), its1->second->getAlphaY(), 0.0);
+            glVertex3d(its2->second->getAlphaX(), its2->second->getAlphaY(), 0.0);
         }
+        glEnd();
+
+        // dots to identifiy source in the group
+        glBegin(GL_POINTS);
+        for(SourceList::iterator  its1 = (*itss).begin(); its1 != (*itss).end(); its1++)
+            glVertex3d((*its1)->getAlphaX(), (*its1)->getAlphaY(), 0.0);
+        glEnd();
     }
 
     glDisable(GL_LINE_STIPPLE);
