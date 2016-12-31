@@ -42,33 +42,9 @@ DEPENDENCIES
 To compile GLMixer you need;
 subversion
 cmake
-xsltproc
-libqtcore4
-libqtgui4
-libqt4-xml
-libqt4-opengl
-qt4-qmake
-libqt4-dev
-libqt4-opengl-dev
-libavcodec-dev
-libswscale-dev
-libavformat-dev
-libavutil-dev
-libavfilter-dev
-libglew-dev
-
-Dependencies from libav (depends on version):
-libvorbis-dev
-libx264-dev
-libxvidcore-dev
-libv4l-dev
-
-For optional OpenCV:
-libcv-dev
-libcvaux-dev
-libhighgui-dev
-libv4l-dev
-
+Qt Version 4 (not Qt 5)
+Libav (or ffmpeg)
+OpenCV (optionnal)
 
 
 COMPILATION GUIDELINES
@@ -100,8 +76,12 @@ UNIX COMPILATION
      Go to the building directory
         $ cd glmixer-Build
 
-     Run cmake command line and choose ninja generator.
+     Run cmake command line to choose ninja generator.
         $ cmake -G Ninja ../glmixer-Source
+
+     To be more specific, you might want to build a Release, ignore development warnings
+     and use the optional features of OpenCV (web cam support) and FreeFrame (plugins):
+        $ cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DUSE_OPENCV=True -DUSE_FREEFRAMEGL=1.6 -G Ninja ../glmixer-Source
 
      If all goes well, it ends with :
 
@@ -126,6 +106,8 @@ LINUX COMPILATION
     Install programs and libraries (Ubuntu)
 
         $ sudo apt-get install subversion cmake-qt-gui ninja-build libqt4-opengl-dev libglew-dev libavformat-dev libhighgui-dev libavfilter-dev libv4l-dev xsltproc
+
+    (This installs all necessary packages such as xsltproc, libqtcore4, libqtgui4, libqt4-xml, libqt4-opengl, qt4-qmake, libqt4-dev, libqt4-opengl-dev, libavcodec-dev, libswscale-dev, libavformat-dev, libavutil-dev, libavfilter-dev, libglew-dev, libvorbis-dev, libx264-dev, libxvidcore-dev, libv4l-dev, libcv-dev, libcvaux-dev, libhighgui-dev, libv4l-dev).
 
     You can now compile like under Unix (see above)
 
@@ -152,7 +134,7 @@ OSX COMPILATION
 
 Install home-brew
 
-        Follow instructions from http://brew.sh/
+    Follow instructions from http://brew.sh/
 
 Install programs and libraries (run the following in a terminal)
 
@@ -163,7 +145,6 @@ Install programs and libraries (run the following in a terminal)
         brew install qt4
         brew install glew
         brew install homebrew/science/opencv
-
 
 You can now compile like under Unix (see above)
 
