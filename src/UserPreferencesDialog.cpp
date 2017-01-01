@@ -163,6 +163,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         displayTimeAsFrame->setChecked(false);
         useCustomDialogs->setChecked(true);
         displayPropertyTree->setChecked(true);
+        iconSizeSlider->setValue(50);
     }
 }
 
@@ -309,6 +310,11 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> percent;
     recordingBufferSize->setValue(percent);
 
+    // v. icon size
+    int isize = 50;
+    stream >> isize;
+    iconSizeSlider->setValue(isize);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -387,6 +393,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 
     // u. recording buffer
     stream << recordingBufferSize->value();
+
+    // v. icon size
+    stream << iconSizeSlider->value();
 
     return data;
 }

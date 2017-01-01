@@ -57,6 +57,8 @@ QMap<int, QPair<QString, QString> >  ViewRenderWidget::mask_description;
 GLuint ViewRenderWidget::fading = 0;
 GLuint ViewRenderWidget::stipplingMode = 100;
 GLuint ViewRenderWidget::black_texture = 0, ViewRenderWidget::white_texture = 0;
+GLuint ViewRenderWidget::center_pivot = 0;
+double ViewRenderWidget::iconSize = 0.5;
 
 GLubyte ViewRenderWidget::stippling[] = {
         // stippling fine
@@ -331,6 +333,7 @@ void ViewRenderWidget::initializeGL()
     border_scale = border_thin + 2;
     border_tooloverlay = buildBordersTools();
     fading = buildFadingList();
+    center_pivot = buildPivotPointList();
 
     // store render View matrices
     glMatrixMode(GL_PROJECTION);
@@ -593,7 +596,6 @@ void ViewRenderWidget::paintGL()
             (*its)->update();
 
     }
-
 
     // draw the view
     _currentView->paint();
@@ -1260,7 +1262,6 @@ void ViewRenderWidget::setFilteringEnabled(bool on, QString glslfilename)
 
 }
 
-
 void ViewRenderWidget::setSourceDrawingMode(bool on)
 {
     if (on) {
@@ -1692,6 +1693,35 @@ GLuint ViewRenderWidget::buildCircleList()
     return id;
 }
 
+
+GLuint ViewRenderWidget::buildPivotPointList()
+{
+    GLuint id = glGenLists(1);
+    GLUquadricObj *quadObj = gluNewQuadric();
+
+    glNewList(id, GL_COMPILE);
+
+    // blended antialiasing
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+    //limbo area
+    glColor4ub(COLOR_SELECTION_AREA, 50);
+    gluDisk(quadObj, 0, 3, 30, 3);
+
+    // border
+    glLineWidth(1.0);
+    glColor4ub(COLOR_SELECTION, 255);
+    glBegin(GL_LINE_LOOP);
+    for (float i = 0; i < 2.0 * M_PI; i += 0.2)
+        glVertex2f(3 * cos(i), 3 * sin(i));
+    glEnd();
+    glPopMatrix();
+
+    glEndList();
+
+    return id;
+}
 
 GLuint ViewRenderWidget::buildLimboCircleList()
 {

@@ -78,7 +78,7 @@ public:
 
 private:
 
-    bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, double scale = 1.0, double tolerance = 1.0 );
+    bool hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisplaylist, double scale = 1.0, double tx = 0.0, double ty = 0.0, double tolerance = 1.0 );
     void grabSource(Source *s, int x, int y, int dx, int dy);
     void grabSources(Source *s, int x, int y, int dx, int dy);
     void scaleSources(Source *s, int x, int y, int dx, int dy);
@@ -94,8 +94,17 @@ private:
 
     // limbo area (where sources are in standy)
     double limboSize;
-    bool _modeScaleLimbo;
-    bool _modeMoveCircle;
+//    bool _modeScaleLimbo;
+//    bool _modeMoveCircle;
+
+    // Special action modes
+    typedef enum {
+        MODE_NONE = 0,
+        MODE_SCALE_LIMBO,
+        MODE_MOVE_CIRCLE,
+        MODE_MOVE_SELECTION
+    } specialMode;
+    specialMode _specialMode;
 
     // actual area of work
     double _mixingArea[4];

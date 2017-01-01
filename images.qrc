@@ -51,5 +51,7 @@
         <file>images/new_web.png</file>
         <file>images/new_plugin.png</file>
         <file>images/new_stream.png</file>
+        <file>images/iconlarge.png</file>
+        <file>images/iconsmall.png</file>
     </qresource>
 </RCC>

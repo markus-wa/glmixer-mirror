@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>624</width>
-    <height>566</height>
+    <height>610</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1701,7 +1701,7 @@ font: 75;</string>
                  <string>Display tree of properties of the current source (side panel)</string>
                 </property>
                 <property name="text">
-                 <string>Show source properties in tree</string>
+                 <string>Show source properties as tree</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -1734,15 +1734,6 @@ font: 75;</string>
                 </property>
                </widget>
               </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="VisualsGroupBox">
-             <property name="title">
-              <string>Views</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
                <widget class="QCheckBox" name="displayFramerate">
                 <property name="toolTip">
@@ -1753,6 +1744,15 @@ font: 75;</string>
                 </property>
                </widget>
               </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="VisualsGroupBox">
+             <property name="title">
+              <string>Interface</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
                <widget class="QCheckBox" name="antiAliasing">
                 <property name="toolTip">
@@ -1771,7 +1771,7 @@ font: 75;</string>
               </item>
               <item>
                <layout class="QGridLayout" name="gridLayout_4">
-                <item row="0" column="0" rowspan="2">
+                <item row="0" column="0">
                  <spacer name="horizontalSpacer_2">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -1794,7 +1794,7 @@ font: 75;</string>
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="1" rowspan="2">
+                <item row="1" column="1">
                  <widget class="QLabel" name="label_14">
                   <property name="text">
                    <string/>
@@ -1804,20 +1804,7 @@ font: 75;</string>
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="3" rowspan="2">
-                 <widget class="QLabel" name="label_15">
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="pixmap">
-                   <pixmap resource="../images.qrc">:/glmixer/images/stippling_2.png</pixmap>
-                  </property>
-                  <property name="scaledContents">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="2">
+                <item row="1" column="2">
                  <widget class="QSlider" name="stipplingSlider">
                   <property name="minimum">
                    <number>1</number>
@@ -1851,6 +1838,65 @@ font: 75;</string>
                   </property>
                   <property name="tickInterval">
                    <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="3">
+                 <widget class="QLabel" name="label_15">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../images.qrc">:/glmixer/images/stippling_2.png</pixmap>
+                  </property>
+                  <property name="scaledContents">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1" colspan="2">
+                 <widget class="QLabel" name="label_23">
+                  <property name="text">
+                   <string>Icon size</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLabel" name="label_21">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../images.qrc">:/glmixer/images/iconsmall.png</pixmap>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="2">
+                 <widget class="QSlider" name="iconSizeSlider">
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>100</number>
+                  </property>
+                  <property name="value">
+                   <number>50</number>
+                  </property>
+                  <property name="tracking">
+                   <bool>false</bool>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="3">
+                 <widget class="QLabel" name="label_22">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="../images.qrc">:/glmixer/images/iconlarge.png</pixmap>
                   </property>
                  </widget>
                 </item>

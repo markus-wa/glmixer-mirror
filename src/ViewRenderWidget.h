@@ -108,8 +108,6 @@ public:
      */
     void displayFramerate();
     float getFramerate() { return f_p_s_; }
-    void setFramerateVisible(bool on);
-    bool getFramerateVisible(){ return showFps_; }
     void setLabels(QLabel *label, QLabel *labelFPS) { messageLabel = label; fpsLabel = labelFPS; }
     int catalogWidth();
 
@@ -142,6 +140,12 @@ public:
 
     static inline bool filteringEnabled() { return !disableFiltering; }
     void setFilteringEnabled(bool on, QString glslfilename = QString());
+
+    static inline double getIconSize() { return iconSize; }
+    static inline void setIconSize (double m) {iconSize = CLAMP(m, MIN_ICON_SIZE, MAX_ICON_SIZE);}
+
+    bool getFramerateVisible(){ return showFps_; }
+    void setFramerateVisible(bool on);
 
     /**
      * selection and layout
@@ -207,6 +211,8 @@ protected:
     static GLubyte stippling[];
     static GLuint vertex_array_coords;
     static GLuint black_texture, white_texture;
+    static GLuint center_pivot;
+    static double iconSize;
 
     // shared mask textures
     static QMap<int, GLuint> mask_textures;
@@ -254,6 +260,7 @@ private:
     GLuint buildBordersList();
     GLuint buildBordersTools();
     GLuint buildFadingList();
+    GLuint buildPivotPointList();
 
     void createMask(QString description, QString texture = QString::null);
 

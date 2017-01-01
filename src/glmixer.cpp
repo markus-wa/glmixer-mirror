@@ -2926,6 +2926,11 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> percent;
     RenderingManager::getRecorder()->setBufferSize(RenderingEncoder::computeBufferSize(percent));
 
+    // v. icon size
+    int isize = 50;
+    stream >> isize;
+    ViewRenderWidget::setIconSize(MIN_ICON_SIZE + (double)isize * (MAX_ICON_SIZE-MIN_ICON_SIZE) / 100.0);
+
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
 
@@ -3016,6 +3021,9 @@ QByteArray GLMixer::getPreferences() const {
 
     // u. recording buffer
     stream << RenderingEncoder::computeBufferPercent(RenderingManager::getRecorder()->getBufferSize());
+
+    // v. icon size
+    stream << (int) ( 100.0 * (ViewRenderWidget::getIconSize() - MIN_ICON_SIZE) / (MAX_ICON_SIZE-MIN_ICON_SIZE) );
 
     return data;
 }

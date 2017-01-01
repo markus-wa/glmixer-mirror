@@ -580,16 +580,12 @@ bool GeometryView::mouseReleaseEvent ( QMouseEvent * event )
 
     }
 
-    // default to no action
-    setAction(View::NONE);
-
     if ( RenderingManager::getInstance()->getSourceBasketTop() )
-        RenderingManager::getRenderingWidget()->setMouseCursor(ViewRenderWidget::MOUSE_QUESTION);
+        setAction(DROP);
     else if (currentAction == View::PANNING )
         setAction(previousAction);
     else if (cs && currentAction != View::SELECT )
         setAction(View::OVER);
-
 
     // end of selection area
     if (_selectionArea.isEnabled()) {
