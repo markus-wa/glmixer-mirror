@@ -55,7 +55,7 @@ QToolBox::tab {
       <enum>QFrame::Plain</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>9</number>
      </property>
      <property name="tabSpacing">
       <number>6</number>
@@ -178,7 +178,7 @@ p, li { white-space: pre-wrap; }
         <number>6</number>
        </property>
        <item>
-        <widget class="QTextBrowser" name="textBrowser_2">
+        <widget class="QTextBrowser" name="textBrowser_1">
          <property name="styleSheet">
           <string notr="true">QTextEdit{
 color:palette(button-text);
@@ -265,7 +265,7 @@ p, li { white-space: pre-wrap; }
         <number>6</number>
        </property>
        <item>
-        <widget class="QTextBrowser" name="textBrowser_7">
+        <widget class="QTextBrowser" name="textBrowser_2">
          <property name="styleSheet">
           <string notr="true">QTextEdit{
 color:palette(button-text);
@@ -346,7 +346,7 @@ p, li { white-space: pre-wrap; }
         <number>6</number>
        </property>
        <item>
-        <widget class="QTextBrowser" name="textBrowser_5">
+        <widget class="QTextBrowser" name="textBrowser_3">
          <property name="styleSheet">
           <string notr="true">QTextEdit{
 color:palette(button-text);
@@ -421,7 +421,7 @@ p, li { white-space: pre-wrap; }
         <number>6</number>
        </property>
        <item>
-        <widget class="QTextBrowser" name="textBrowser_3">
+        <widget class="QTextBrowser" name="textBrowser_4">
          <property name="styleSheet">
           <string notr="true">QTextEdit{
 color:palette(button-text);
@@ -493,7 +493,7 @@ p, li { white-space: pre-wrap; }
         <number>6</number>
        </property>
        <item>
-        <widget class="QTextBrowser" name="textBrowser_4">
+        <widget class="QTextBrowser" name="textBrowser_5">
          <property name="styleSheet">
           <string notr="true">QTextEdit{
 color:palette(button-text);
@@ -565,7 +565,7 @@ p, li { white-space: pre-wrap; }
         <number>6</number>
        </property>
        <item>
-        <widget class="QTextBrowser" name="textBrowser_5">
+        <widget class="QTextBrowser" name="textBrowser_6">
          <property name="styleSheet">
           <string notr="true">QTextEdit{
 color:palette(button-text);
@@ -637,7 +637,7 @@ p, li { white-space: pre-wrap; }
         <number>6</number>
        </property>
        <item>
-        <widget class="QTextBrowser" name="textBrowser_6">
+        <widget class="QTextBrowser" name="textBrowser_7">
          <property name="styleSheet">
           <string notr="true">QTextEdit{
 color:palette(button-text);
@@ -704,7 +704,7 @@ p, li { white-space: pre-wrap; }
       <attribute name="label">
        <string>Network Stream</string>
       </attribute>
-      <widget class="QTextBrowser" name="textBrowser_10">
+      <widget class="QTextBrowser" name="textBrowser_8">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -791,7 +791,7 @@ p, li { white-space: pre-wrap; }
         <number>6</number>
        </property>
        <item>
-        <widget class="QTextBrowser" name="textBrowser_8">
+        <widget class="QTextBrowser" name="textBrowser_9">
          <property name="styleSheet">
           <string notr="true">QTextEdit{
 color:palette(button-text);

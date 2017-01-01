@@ -265,13 +265,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     actionFree_aspect_ratio->setData(ASPECT_RATIO_FREE);
     QObject::connect(aspectRatioActions, SIGNAL(triggered(QAction *)), this, SLOT(setAspectRatio(QAction *) ) );
 
-    QAction *nextSession = new QAction("Next Session", this);
-    nextSession->setShortcut(QKeySequence("Ctrl+PgDown"));
-    addAction(nextSession);
-    QAction *prevSession = new QAction("Previous Session", this);
-    prevSession->setShortcut(QKeySequence("Ctrl+PgUp"));
-    addAction(prevSession);
-
     // HIDDEN actions
     // for debugging and development purposes
     QAction *screenshot = new QAction("Screenshot", this);
@@ -349,8 +342,13 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     switcherDockWidgetContentsLayout->addWidget(switcherSession);
     QObject::connect(switcherSession, SIGNAL(sessionTriggered(QString)), this, SLOT(switchToSessionFile(QString)) );
     QObject::connect(this, SIGNAL(sessionLoaded()), switcherSession, SLOT(unsuspend()));
-    QObject::connect(RenderingManager::getSessionSwitcher(), SIGNAL(transitionSourceChanged(Source *)), switcherSession, SLOT(setTransitionSourcePreview(Source *)));
 
+    QAction *nextSession = new QAction("Next Session", this);
+    nextSession->setShortcut(QKeySequence("Ctrl+PgDown"));
+    addAction(nextSession);
+    QAction *prevSession = new QAction("Previous Session", this);
+    prevSession->setShortcut(QKeySequence("Ctrl+PgUp"));
+    addAction(prevSession);
     QObject::connect(nextSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToNextSession()));
     QObject::connect(prevSession, SIGNAL(triggered()), switcherSession, SLOT(startTransitionToPreviousSession()));
 #else
@@ -3260,7 +3258,7 @@ QString GLMixer::getFileName(QString title, QString filter, QString saveExtentio
         sfd->setWindowTitle(title);
         sfd->setNameFilter(filter);
         sfd->selectFile(" ");
-qDebug() << sfd->history();
+
         // open file or save file?
         // if a saving extension is provided, the dialog is in save file selection mode
         if (!saveExtention.isNull()) {

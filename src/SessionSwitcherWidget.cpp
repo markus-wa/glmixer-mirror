@@ -444,6 +444,9 @@ void SessionSwitcherWidget::restoreFolderView()
     // restore availability
     folderModelAccesslock.unlock();
     setEnabled(true);
+
+    // inform user
+    qDebug() << folderHistory->currentText() << QChar(124).toLatin1() << tr("Session switcher ready with %1 session files.").arg(folderModel->rowCount());
 }
 
 bool SessionSwitcherWidget::openFolder(QString directory)
@@ -594,7 +597,7 @@ void SessionSwitcherWidget::customizeTransition()
         // no valid file name was given
         else {
             // not a valid file ; show a warning only if the QFileDialog did not return null (cancel)
-            if (!fileName.isNull())
+            if (!fileName.isEmpty())
                 qCritical() << fileName << QChar(124).toLatin1() << QObject::tr("File does not exist.");
             // if no valid oldfile neither; show icon in red
             if (RenderingManager::getSessionSwitcher()->transitionMedia().isEmpty())
@@ -665,20 +668,20 @@ void SessionSwitcherWidget::restoreSettings()
 QListWidget *SessionSwitcherWidget::createCurveIcons()
 {
     QListWidget *easingCurvePicker = new QListWidget;
-    QPixmap pix(m_iconSize);
+    QPixmap pix(m_iconSize * 1.3);
     QPainter painter(&pix);
 
     // Skip QEasingCurve::Custom
     for (int i = 0; i < QEasingCurve::NCurveTypes - 3; ++i) {
-        painter.fillRect(QRect(QPoint(0, 0), m_iconSize), QApplication::palette().base());
+        painter.fillRect(QRect(QPoint(0, 0), pix.size()), QApplication::palette().base());
         QEasingCurve curve((QEasingCurve::Type)i);
         painter.setPen(QApplication::palette().alternateBase().color());
-        qreal xAxis = m_iconSize.height()/1.15;
-        qreal yAxis = m_iconSize.width()/5.5;
-        painter.drawLine(0, xAxis, m_iconSize.width(),  xAxis);
-        painter.drawLine(yAxis, 0, yAxis, m_iconSize.height());
+        qreal xAxis = pix.height()/1.15;
+        qreal yAxis = pix.width()/5.5;
+        painter.drawLine(0, xAxis, pix.width(),  xAxis);
+        painter.drawLine(yAxis, 0, yAxis, pix.height());
 
-        qreal curveScale = m_iconSize.height()/1.4;
+        qreal curveScale = pix.height()/1.4;
 
         painter.setPen(Qt::NoPen);
 
@@ -704,8 +707,7 @@ QListWidget *SessionSwitcherWidget::createCurveIcons()
         painter.strokePath(curvePath, QApplication::palette().text().color());
         painter.setRenderHint(QPainter::Antialiasing, false);
         QListWidgetItem *item = new QListWidgetItem;
-        item->setIcon(QIcon(pix));
-        //        item->setText(metaEnum.key(i));
+        item->setIcon(QIcon(pix.scaled(m_iconSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
         easingCurvePicker->addItem(item);
     }
     return easingCurvePicker;
@@ -835,8 +837,6 @@ void SessionSwitcherWidget::transitionSliderChanged(int t)
             // request to load session file
             emit sessionTriggered(nextSession);
 
-//        } else if (t > -100 && RenderingManager::getSessionSwitcher()->getTransitionType() == SessionSwitcher::TRANSITION_CUSTOM_MEDIA) {
-//            overlayPreview->playSource(true);
         }
         // show percent of mixing
         currentSessionLabel->setText(QString("%1%").arg(ABS(t)));

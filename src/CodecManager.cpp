@@ -190,9 +190,9 @@ double CodecManager::getDurationStream(AVFormatContext *codeccontext, int stream
     else if (codeccontext && codeccontext->duration != (int64_t) AV_NOPTS_VALUE )
         d = double(codeccontext->duration) * av_q2d(AV_TIME_BASE_Q);
 
-
-    if (codeccontext->duration_estimation_method == AVFMT_DURATION_FROM_BITRATE) {
-        qWarning() << codeccontext->filename << QChar(124).toLatin1()<< tr("Could not read duration of video.");
+    // inform in case duration of file is certainly a bad estimate
+    if (codeccontext->duration_estimation_method == AVFMT_DURATION_FROM_BITRATE && codeccontext->streams[stream]->nb_frames > 2) {
+        qWarning() << codeccontext->filename << QChar(124).toLatin1()<< tr("Unspecified duration in codec.");
     }
 
     return d;
