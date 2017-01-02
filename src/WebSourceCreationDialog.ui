@@ -90,7 +90,7 @@
             <string>Enter a web URL (http://...)</string>
            </property>
            <property name="text">
-            <string></string>
+            <string>https://vimeo.com/glmixer</string>
            </property>
           </widget>
          </item>
@@ -116,7 +116,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>HTML page (local file)</string>
+         <string>HTML page (&amp;local file)</string>
         </property>
        </widget>
       </item>

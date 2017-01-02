@@ -102,6 +102,8 @@ void WebSource::setPageScroll(int s)
 void WebSource::setPageUpdate(int u)
 {
     _updateFrequency = u;
+    if (_webrenderer)
+        _webrenderer->setUpdate(u);
 }
 
 void WebSource::update()
@@ -219,7 +221,6 @@ bool WebRenderer::propertyChanged() {
 
         update();
 
-//        _imageChanged = true;
         _propertyChanged = false;
         return true;
     }
@@ -239,73 +240,87 @@ bool WebRenderer::imageChanged() {
     return false;
 }
 
-void WebRenderer::timerEvent(QTimerEvent *event)
+
+void WebRenderer::timeupdate()
 {
     _imageChanged = true;
 }
 
+
 void WebRenderer::setUpdate(int u)
 {
     // kill previous update if exist
-    if ( _updateTimerId > 0) {
-        killTimer( _updateTimerId );
-        _updateTimerId = -1;
-    }
+    _updateTimer.stop();
 
     // start updating if frequency above 0
     if ( u > 0 ) {
-        _updateTimerId = startTimer( int ( 1000.0 / double(u) )  );
+        _updateTimer.start(int ( 1000.0 / double(u) ));
+
+        qDebug() << _url.toString() << QChar(124).toLatin1() << tr("Updating at %1 Hz.").arg(u);
     }
+    else
+        qDebug() << _url.toString() << QChar(124).toLatin1() << tr("NOT updating.");
 }
 
 
-WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) : _url(url), _propertyChanged(true)
+WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) : _url(url), _height(height), _scroll(scroll), _propertyChanged(true), _imageChanged(true)
 {
 
     // init
     setHeight(height);
     setScroll(scroll);
-    _updateTimerId = -1;
     _pagesize = QSize();
 
     // display loading screen
     _image = QImage(QString(":/glmixer/textures/loading.png"));
 
-    _page.settings()->setAttribute( QWebSettings::AutoLoadImages,  true);
+    // configure web page
+    _page.settings()->setAttribute( QWebSettings::PrivateBrowsingEnabled,  true);
+    _page.settings()->setAttribute( QWebSettings::PluginsEnabled, true);
+    _page.settings()->setAttribute( QWebSettings::TiledBackingStoreEnabled, true);
+    _page.settings()->setAttribute( QWebSettings::NotificationsEnabled, false);
 
     // enable cookies
     _page.networkAccessManager()->setCookieJar( new QNetworkCookieJar(&_page) );
     _page.setPreferredContentsSize(QSize(w,h));
 
     // render page when loaded
-    qDebug() << _url << QChar(124).toLatin1() << tr("Loading web page...");
+    qDebug() << _url.toString() << QChar(124).toLatin1() << tr("Loading web page.");
     _page.mainFrame()->load(_url);
     connect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
 
     // time out 10 seconds
-    _timer.setSingleShot(true);
-    connect(&_timer, SIGNAL(timeout()), this, SLOT(timeout()));
-    _timer.start(10000);
+    _timeoutTimer.setSingleShot(true);
+    connect(&_timeoutTimer, SIGNAL(timeout()), this, SLOT(timeout()));
+    _timeoutTimer.start(10000);
 
+    // updater
+    connect(&_updateTimer, SIGNAL(timeout()), this, SLOT(timeupdate()));
 }
 
 WebRenderer::~WebRenderer()
 {
     disconnect(&_page, 0, 0, 0);
-    disconnect(&_timer, 0, 0, 0);
-    _timer.stop();
+    disconnect(&_timeoutTimer, 0, 0, 0);
+    _timeoutTimer.stop();
+    disconnect(&_updateTimer, 0, 0, 0);
+    _updateTimer.stop();
 }
 
 void WebRenderer::render(bool ok)
 {
     // cancel time out
-    disconnect(&_timer, 0, 0, 0);
-    _timer.stop();
+    disconnect(&_page, 0, 0, 0);
+    disconnect(&_timeoutTimer, 0, 0, 0);
+    _timeoutTimer.stop();
 
     // could load
     if (ok) {
         // remember page size
         _pagesize = _page.mainFrame()->contentsSize();
+
+        // force reload (to trigger animations if exist)
+        _page.triggerAction(QWebPage::Reload);
 
         _propertyChanged = true;
         _imageChanged = true;
@@ -316,25 +331,28 @@ void WebRenderer::render(bool ok)
 
 void WebRenderer::update()
 {
-    // cancel update if render buffer not initialized
-    if ( !_pagesize.isValid() )
-        return;
+    if (_propertyChanged) {
 
-    // setup viewport
-    _page.setViewportSize(QSize(_pagesize.width(), _pagesize.height() * _height / 100));
-    QImage render = QImage(_page.viewportSize(), QImage::Format_ARGB32_Premultiplied);
+        // cancel update if render buffer not initialized
+        if ( !_pagesize.isValid() )
+            return;
 
-    // setup scroll
-    _page.mainFrame()->setScrollPosition(QPoint(0, _pagesize.height() * _scroll / 100));
+        // setup viewport
+        _page.setViewportSize(QSize(_pagesize.width(), _pagesize.height() * _height / 100));
 
-    // render the page into the render buffer
-    QPainter pagePainter(&render);
+        // setup scroll
+        _page.mainFrame()->setScrollPosition(QPoint(0, _pagesize.height() * _scroll / 100));
+
+        _image = QImage(_page.viewportSize(), QImage::Format_ARGB32_Premultiplied);
+
+    }
+
+    // render the page into the image buffer
+    QPainter pagePainter(&_image);
     pagePainter.setRenderHint(QPainter::TextAntialiasing, true);
     _page.mainFrame()->render(&pagePainter);
     pagePainter.end();
 
-    // fill image with section of render
-    _image = render;
 }
 
 void WebRenderer::timeout()

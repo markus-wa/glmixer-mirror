@@ -456,6 +456,13 @@ bool VideoStream::openStream()
     if (targetHeight == 0)
         targetHeight = video_st->codec->height;
 
+    if (targetWidth == 0 && targetHeight ==0)
+    {
+        // Cannot initialize the conversion context!
+        qWarning() << urlname << QChar(124).toLatin1()<< tr("Cannot read stream.");
+        return false;
+    }
+
     // Default targetFormat to PIX_FMT_RGB24
     targetFormat = AV_PIX_FMT_RGB24;
 

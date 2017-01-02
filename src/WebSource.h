@@ -54,9 +54,9 @@ private slots:
     void render(bool);
     void timeout();
     void update();
-
-protected:
-     void timerEvent(QTimerEvent *event);
+    void timeupdate();
+//protected:
+//     void timerEvent(QTimerEvent *event);
 
 private:
     QUrl _url;
@@ -64,8 +64,8 @@ private:
     QSize _pagesize;
     QImage _image;
     int _height, _scroll;
-    QTimer _timer;
-    int _updateTimerId;
+    QTimer _timeoutTimer, _updateTimer;
+//    int _updateTimerId;
     bool _propertyChanged;
     bool _imageChanged;
 };
