@@ -50,13 +50,13 @@ public:
     void setScroll(int);
     void setUpdate(int);
 
+    void reload();
+
 private slots:
     void render(bool);
     void timeout();
     void update();
     void timeupdate();
-//protected:
-//     void timerEvent(QTimerEvent *event);
 
 private:
     QUrl _url;

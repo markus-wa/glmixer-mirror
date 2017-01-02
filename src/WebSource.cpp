@@ -66,8 +66,10 @@ void WebSource::play(bool on)
 
     if (_playing)
         _webrenderer->setUpdate(_updateFrequency);
-    else
+    else {
         _webrenderer->setUpdate(0);
+        _webrenderer->reload();
+    }
 
     Source::play(on);
 }
@@ -102,8 +104,10 @@ void WebSource::setPageScroll(int s)
 void WebSource::setPageUpdate(int u)
 {
     _updateFrequency = u;
-    if (_webrenderer)
+    if (_webrenderer) {
         _webrenderer->setUpdate(u);
+
+    }
 }
 
 void WebSource::update()
@@ -209,6 +213,10 @@ void WebRenderer::setScroll(int s)
     _propertyChanged = true;
 }
 
+void WebRenderer::reload()
+{
+    _page.triggerAction(QWebPage::Reload);
+}
 
 QImage WebRenderer::image() const {
 
