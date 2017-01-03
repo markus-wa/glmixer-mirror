@@ -17,13 +17,14 @@ UndoManager *UndoManager::getInstance() {
     return _instance;
 }
 
-UndoManager::UndoManager() : QObject(), _status(ACTIVE), _maximumSize(10), _firstIndex(0), _lastIndex(0), _currentIndex(0)
+UndoManager::UndoManager() : QObject(), _status(ACTIVE), _firstIndex(-1), _lastIndex(-1), _currentIndex(-1), _maximumSize(100)
 {
 
 }
 
 UndoManager::~UndoManager() {
 
+    clear();
 }
 
 void UndoManager::setMaximumSize(int m)
@@ -138,6 +139,8 @@ void UndoManager::restore(long int i)
     fprintf(stderr, "  DONE !\n");
 
     _status = ACTIVE;
+
+    RenderingManager::getInstance()->refreshCurrentSource();
 }
 
 void UndoManager::store()

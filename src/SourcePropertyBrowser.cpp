@@ -420,8 +420,8 @@ void SourcePropertyBrowser::showProperties(SourceSet::iterator sourceIt)
 
 void SourcePropertyBrowser::showProperties(Source *source)
 {
-    if (source == currentItem)
-        return;
+//    if (source == currentItem)
+//        return;
 
     currentItem = source;
 

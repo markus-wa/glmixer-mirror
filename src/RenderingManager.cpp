@@ -43,6 +43,7 @@ Source::RTTI RenderingSource::type = Source::RENDERING_SOURCE;
 #include "RenderingEncoder.h"
 #include "SourcePropertyBrowser.h"
 #include "SessionSwitcher.h"
+#include "SelectionManager.h"
 
 #ifdef GLM_SHM
 #include <QSharedMemory>
@@ -212,7 +213,6 @@ RenderingManager::RenderingManager() :
     _spoutEnabled = false;
     _spoutInitialized = false;
 #endif
-
 
 #ifdef GLM_UNDO
     UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)));
@@ -1238,6 +1238,17 @@ void RenderingManager::resetCurrentSource(){
     if(isValid(_currentSource)) {
         resetSource(_currentSource);
         emit currentSourceChanged(_currentSource);
+    }
+}
+
+void RenderingManager::refreshCurrentSource(){
+
+    if(isValid(_currentSource)) {
+        emit currentSourceChanged(_currentSource);
+
+        if ( SelectionManager::getInstance()->isInSelection(*_currentSource) ){
+            SelectionManager::getInstance()->updateSelectionSource();
+        }
     }
 }
 
