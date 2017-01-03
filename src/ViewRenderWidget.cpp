@@ -713,6 +713,7 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
     event->accept();
 
 #ifdef GLM_UNDO
+//    UndoManager::getInstance()->store();
     UndoManager::getInstance()->suspend();
 #endif
 
@@ -820,7 +821,8 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
     }
 
 #ifdef GLM_UNDO
-    UndoManager::getInstance()->store();
+//    UndoManager::getInstance()->store();
+    UndoManager::getInstance()->unsuspend();
 #endif
 }
 

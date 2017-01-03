@@ -28,11 +28,15 @@ public slots:
     // store events from sources
     void store(QString signature);
     // restore status
-    void restore(int i);
-    // stop listening (will be reactivated on next call to store() or clear)
+    void restore(long i);
+    // stop listening (will be reactivated on next call to store or clear or unsuspend)
     void suspend();
+    //
+    void unsuspend();
 
 private:
+
+    void addHistory(long int index);
 
     UndoManager();
     virtual ~UndoManager();
@@ -42,6 +46,7 @@ private:
         DISABLED = 0,
         IDLE,
         PENDING,
+        READY,
         ACTIVE
     } status;
 
@@ -51,7 +56,7 @@ private:
     QString _previousSender;
 
     QDomDocument _history;
-    int _firstIndex, _lastIndex, _currentIndex;
+    long int _firstIndex, _lastIndex, _currentIndex;
 };
 
 #endif // UNDOMANAGER_H

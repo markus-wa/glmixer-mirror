@@ -9,15 +9,15 @@ UndoManager *UndoManager::_instance = 0;
 
 UndoManager *UndoManager::getInstance() {
 
-        if (_instance == 0) {
-                _instance = new UndoManager;
-                Q_CHECK_PTR(_instance);
-        }
+    if (_instance == 0) {
+        _instance = new UndoManager;
+        Q_CHECK_PTR(_instance);
+    }
 
-        return _instance;
+    return _instance;
 }
 
-UndoManager::UndoManager() : QObject(), _status(ACTIVE), _maximumSize(100), _firstIndex(1), _lastIndex(0), _currentIndex(0)
+UndoManager::UndoManager() : QObject(), _status(ACTIVE), _maximumSize(10), _firstIndex(0), _lastIndex(0), _currentIndex(0)
 {
 
 }
@@ -34,41 +34,57 @@ void UndoManager::setMaximumSize(int m)
 
 void UndoManager::clear()
 {
-
     fprintf(stderr, "CLEAR \n");
 
     //clear history
     _history.clear();
-    _firstIndex = 1;
-    _currentIndex = 0;
-    _lastIndex = 0;
+    _firstIndex = -1;
+    _currentIndex = -1;
+    _lastIndex = -1;
 
-  //  _status = ACTIVE;
+    _status = ACTIVE;
     _previousSender = QString();
     _previousSignature = QString();
 
-    // store initial status
-    store();
 }
 
 
 void UndoManager::undo()
 {
-    if (_status > DISABLED && _currentIndex > _firstIndex)
-        restore(_currentIndex - 1);
+    if (_status > DISABLED) {
+
+        // store status in case an action is pending
+        // i.e. undo action marks the end of previous actions
+        if (_status < ACTIVE) {
+            store();
+        }
+
+        // if there is an index before current
+        if (_currentIndex > _firstIndex) {
+            // undo
+            restore(_currentIndex  - 1);
+        }
+
+    }
 }
 
 
 void UndoManager::redo()
 {
-    if (_status > DISABLED && _currentIndex < _lastIndex)
-        restore(_currentIndex + 1);
+    if (_status > DISABLED) {
+
+        // if there is an index after current
+        if (_currentIndex < _lastIndex)
+            // redo
+            restore(_currentIndex + 1);
+
+    }
 }
 
 
-void UndoManager::restore(int i)
+void UndoManager::restore(long int i)
 {
-    fprintf(stderr, "restore %d ?", i);
+    fprintf(stderr, "restore %ld ?", i);
 
     // nothing to do
     if (_status == DISABLED || _currentIndex == i )
@@ -77,18 +93,7 @@ void UndoManager::restore(int i)
     // set index
     _currentIndex = qBound(_firstIndex, i, _lastIndex);
 
-    fprintf(stderr, " restoring %d [%d %d] ", _currentIndex, _firstIndex, _lastIndex);
-
-
-//    if (true) {
-//        QFile file("/home/bh/testhistory.xml");
-//        if (!file.open(QFile::WriteOnly | QFile::Text) ) {
-//            return;
-//        }
-//        QTextStream out(&file);
-//        _history.save(out, 4);
-//        file.close();
-//    }
+    fprintf(stderr, " restoring %ld [%ld %ld] ", _currentIndex, _firstIndex, _lastIndex);
 
     // TODO create a list of existing sources
 
@@ -127,79 +132,48 @@ void UndoManager::restore(int i)
     // TODO delete sources which do not exist anymore (remain in list of existing).
 
 
-//    RenderingManager::getPropertyBrowserWidget()->showProperties(RenderingManager::getInstance()->getCurrentSource());
-
     _previousSender = QString();
     _previousSignature = QString();
 
     fprintf(stderr, "  DONE !\n");
+
+    _status = ACTIVE;
 }
 
 void UndoManager::store()
 {
-  // nothing to do
-  if (_status == DISABLED)
-      return;
+    // nothing to do
+    if (_status == DISABLED)
+        return;
 
     fprintf(stderr, "  store ? {%d}\n", _status);
 
-    if (_status != IDLE) {
+    // store only if not idle
+    if (_status > IDLE) {
 
-        // remove all stored status after _index
-        for (int i = _currentIndex + 1; i <=_lastIndex; ++i) {
-            QDomElement elem = _history.firstChildElement(QString("%1").arg(i));
-            _history.removeChild(elem);
-//            fprintf(stderr, "remove future index %d\n", i);
-        }
+        _currentIndex++;
 
-        // go back to index
-        _lastIndex = _currentIndex;
-
-        // increment counter
-        _lastIndex++;
-
-        // get the configuration
-        QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(_history);
-        if (!renderConfig.isNull()) {
-            QDomElement root = _history.createElement( QString("%1").arg(_lastIndex));
-            root.appendChild(renderConfig);
-            _history.appendChild(root);
-        }
+        addHistory(_currentIndex);
 
         // remove old event if counter exceed maximum
         if (_lastIndex-_firstIndex > _maximumSize) {
             QDomElement elem = _history.firstChildElement(QString("%1").arg(_firstIndex));
             _history.removeChild(elem);
-//            fprintf(stderr, "remove old index %d\n", _firstIndex);
+            fprintf(stderr, "remove old index %ld\n", _firstIndex);
             _firstIndex++;
         }
 
-        // set index to current counter
-        _currentIndex = _lastIndex;
+        if (_firstIndex < 0)
+            _firstIndex = 0;
 
-        fprintf(stderr, "=>stored index %d [%d %d]\n", _currentIndex, _firstIndex, _lastIndex);
+        fprintf(stderr, "=>stored index %ld [%ld %ld]\n", _currentIndex, _firstIndex, _lastIndex);
     }
 
-    // reactivate the undo manager
-    _status = ACTIVE;
+    // if suspended, do not store next event
+    if (_status == PENDING) {
+        _status = IDLE;
+    }
 
-//    if (_counter%10) {
-//        QFile file("/home/bh/testhistory.xml");
-//        if (!file.open(QFile::WriteOnly | QFile::Text) ) {
-//            return;
-//        }
-//        QTextStream out(&file);
-//        _history.save(out, 4);
-//        file.close();
-//    }
-}
-
-
-void UndoManager::suspend()
-{
-    _status = IDLE;
-
-    fprintf(stderr, "  suspend  {%d}\n", _status);
 }
 
 
@@ -207,20 +181,7 @@ void UndoManager::store(QString signature)
 {
     // nothing to do
     if (_status == DISABLED)
-      return;
-
-    fprintf(stderr, "  store %s ? {%d} ", qPrintable(signature), _status);
-
-    // do nothing if manager is suspended (IDLE)
-    // but remember that something happened (PENDING)
-    if (_status < ACTIVE) {
-        _status = PENDING;
-
-        fprintf(stderr, "  NO !\n");
         return;
-    }
-
-    fprintf(stderr, "  YES !\n");
 
     // Check the event and determine if this event should be stored
     QObject *sender_object = sender();
@@ -228,6 +189,7 @@ void UndoManager::store(QString signature)
 
         // if no previous sender or no previous signature; its a new event!
         if (_previousSender.isEmpty() || _previousSignature.isEmpty()) {
+            fprintf(stderr, "  store %s  {%d} ", qPrintable(signature), _status);
             store();
         }
         // we have a previous sender and a previous signature
@@ -237,6 +199,7 @@ void UndoManager::store(QString signature)
             if (sender_object->objectName() != _previousSender
                     || signature != _previousSignature ) {
                 // this event is different from previous
+                fprintf(stderr, "  store %s  {%d} ", qPrintable(signature), _status);
                 store();
             }
             // do not store event if was same previous sender and signature
@@ -249,5 +212,46 @@ void UndoManager::store(QString signature)
     }
 
 
+}
 
+
+
+void UndoManager::addHistory(long int index)
+{
+    // remove all history after current index
+    for (long int i = _lastIndex; i >= index; --i) {
+        QDomElement elem = _history.firstChildElement(QString("%1").arg(i));
+        _history.removeChild(elem);
+        fprintf(stderr, "remove future index %ld\n", i);
+    }
+
+    // add the configuration
+    QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(_history);
+    if (!renderConfig.isNull()) {
+        QDomElement root = _history.createElement( QString("%1").arg(index));
+        root.appendChild(renderConfig);
+        _history.appendChild(root);
+    }
+
+    // remember last added index
+    _lastIndex = index;
+}
+
+
+void UndoManager::suspend()
+{
+    _status = PENDING;
+
+    fprintf(stderr, "  suspend  {%d}\n", _status);
+}
+
+
+void UndoManager::unsuspend()
+{
+    _status = READY;
+
+    _previousSender = QString();
+    _previousSignature = QString();
+
+    fprintf(stderr, "  unsuspend  {%d}\n", _status);
 }
