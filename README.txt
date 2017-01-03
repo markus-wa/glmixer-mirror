@@ -81,7 +81,7 @@ UNIX COMPILATION
 
      To be more specific, you might want to build a Release, ignore development warnings
      and use the optional features of OpenCV (web cam support) and FreeFrame (plugins):
-        $ cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DUSE_OPENCV=True -DUSE_FREEFRAMEGL=1.6 -G Ninja ../glmixer-Source
+        $ cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DUSE_OPENCV=True -DUSE_UNDO=False -G Ninja ../
 
      If all goes well, it ends with :
 

@@ -72,8 +72,7 @@ void TestWheelFrame::wheelEvent ( QWheelEvent * event ){
 
 void TestWheelFrame::paintEvent(QPaintEvent *event){
 
-    QPainter painter;
-    painter.begin(this);
+    QPainter painter(this);
 
     // show highlight border if out of scale
     if ( scale < MINSCALE || scale > MAXSCALE ){
@@ -95,8 +94,7 @@ void TestWheelFrame::paintEvent(QPaintEvent *event){
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(QColor(COLOR_DRAWINGS));
     painter.setBrush(Qt::NoBrush);
-    for (float diameter = 0; diameter < 50.0; diameter += 2.0)
+    for (float diameter = 2; diameter < 50.0; diameter += 2.0)
         painter.drawEllipse(QRectF(-diameter / 2.0, -diameter / 2.0, diameter, diameter));
-
 
 }

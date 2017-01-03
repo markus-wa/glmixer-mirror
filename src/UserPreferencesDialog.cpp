@@ -37,7 +37,7 @@
 #include <QDesktopWidget>
 #include <QDesktopServices>
 
-UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent)
+UserPreferencesDialog::UserPreferencesDialog(QWidget *parent): QDialog(parent), monitorindex(0)
 {
     setupUi(this);
     IntroTextLabel->setVisible(false);
@@ -80,9 +80,13 @@ void UserPreferencesDialog::showEvent(QShowEvent *e){
     defaultProperties->setPropertyEnabled("Depth", false);
 
     // set number of available monitors
-    fullscreenMonitor->clear();
-    for( int i = 0; i < QApplication::desktop()->screenCount(); ++i)
-        fullscreenMonitor->addItem(QString("Monitor %1").arg(i));
+    if (QApplication::desktop()->screenCount() != fullscreenMonitor->count()) {
+        fullscreenMonitor->clear();
+        for( int i = 0; i < QApplication::desktop()->screenCount(); ++i)
+            fullscreenMonitor->addItem(QString("Monitor %1").arg(i));
+
+        fullscreenMonitor->setCurrentIndex(monitorindex);
+    }
 
     QWidget::showEvent(e);
 }
@@ -272,9 +276,9 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     sharedMemoryColorDepth->setCurrentIndex(shmdepth);
 
     // o. fullscreen monitor index
-    uint fsmi = 0;
-    stream >> fsmi;
-    fullscreenMonitor->setCurrentIndex(fsmi);
+    monitorindex = 0;
+    stream >> monitorindex;
+    fullscreenMonitor->setCurrentIndex(monitorindex);
 
     // p. options
     bool fs, taf, rs = false;

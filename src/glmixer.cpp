@@ -2673,7 +2673,7 @@ void GLMixer::saveSettings()
     // windows config
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-   //  qDebug() << "windowState" << saveState().toHex();
+    // qDebug() << "windowState" << saveState().toHex();
     settings.setValue("OutputRenderWindowState", OutputRenderWindow::getInstance()->saveState() );
 
     // dialogs configs
@@ -2709,7 +2709,7 @@ void GLMixer::saveSettings()
 void GLMixer::on_actionResetToolbars_triggered()
 {
     restoreGeometry(settings.value("defaultGeometry").toByteArray());
-    restoreState(settings.value("defaultWindowState").toByteArray());
+    restoreState(static_windowstate);
     OutputRenderWindow::getInstance()->restoreState( settings.value("defaultOutputRenderWindowState").toByteArray() );
     restoreDockWidget(previewDockWidget);
     restoreDockWidget(sourceDockWidget);

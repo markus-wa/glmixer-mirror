@@ -5,14 +5,6 @@
   <property name="enabled">
    <bool>true</bool>
   </property>
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>1424</width>
-    <height>928</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string notr="true">Graphic Live Mixer</string>
   </property>
@@ -24,7 +16,7 @@
    <locale language="English" country="UnitedStates"/>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
-   <bool>true</bool>
+   <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="centralViewLayout">
@@ -194,7 +186,7 @@ border-bottom-left-radius: 5px;
           <string>Zoom reset</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">QToolButton { 
+          <string notr="true">QToolButton {
      border-style: solid;
      border-width: 1px;
      border-radius:5px;
@@ -204,10 +196,10 @@ border-bottom-left-radius: 5px;
      border-color: transparent;
      background: transparent;
 }
-QToolButton:pressed { 
+QToolButton:pressed {
 	background: palette(dark);
 }
-QToolButton:hover { 
+QToolButton:hover {
      border-color: palette(mid);
 }
 </string>
@@ -227,7 +219,7 @@ QToolButton:hover {
           <string>Zoom in</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">QToolButton { 
+          <string notr="true">QToolButton {
      border-style: solid;
      border-width: 1px;
      border-radius:5px;
@@ -237,10 +229,10 @@ QToolButton:hover {
      border-color: transparent;
      background: transparent;
 }
-QToolButton:pressed { 
+QToolButton:pressed {
 	background: palette(dark);
 }
-QToolButton:hover { 
+QToolButton:hover {
      border-color: palette(mid);
 }
 </string>
@@ -263,7 +255,7 @@ QToolButton:hover {
           <string>Zoom out</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">QToolButton { 
+          <string notr="true">QToolButton {
      border-style: solid;
      border-width: 1px;
      border-radius:5px;
@@ -273,10 +265,10 @@ QToolButton:hover {
      border-color: transparent;
      background: transparent;
 }
-QToolButton:pressed { 
+QToolButton:pressed {
 	background: palette(dark);
 }
-QToolButton:hover { 
+QToolButton:hover {
      border-color: palette(mid);
 }
 </string>
@@ -299,7 +291,7 @@ QToolButton:hover {
           <string>Zoom best fit</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">QToolButton { 
+          <string notr="true">QToolButton {
      border-style: solid;
      border-width: 1px;
      border-radius:5px;
@@ -309,10 +301,10 @@ QToolButton:hover {
      border-color: transparent;
      background: transparent;
 }
-QToolButton:pressed { 
+QToolButton:pressed {
 	background: palette(dark);
 }
-QToolButton:hover { 
+QToolButton:hover {
      border-color: palette(mid);
 }
 </string>
@@ -335,7 +327,7 @@ QToolButton:hover {
           <string>Zoom on current source</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">QToolButton { 
+          <string notr="true">QToolButton {
      border-style: solid;
      border-width: 1px;
      border-radius:5px;
@@ -345,10 +337,10 @@ QToolButton:hover {
      border-color: transparent;
      background: transparent;
 }
-QToolButton:pressed { 
+QToolButton:pressed {
 	background: palette(dark);
 }
-QToolButton:hover { 
+QToolButton:hover {
      border-color: palette(mid);
 }
 </string>
@@ -710,8 +702,8 @@ QToolButton:hover {
            </property>
            <property name="minimumSize">
             <size>
-             <width>52</width>
-             <height>36</height>
+             <width>50</width>
+             <height>34</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -727,7 +719,7 @@ QToolButton:hover {
             <string>Starts / stops updating the video</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolButton { 
+            <string notr="true">QToolButton {
      min-height: 32px;
      min-width: 48px;
 }
@@ -1103,7 +1095,7 @@ QToolButton:hover {
                   <string>Reset speed to 1</string>
                  </property>
                  <property name="styleSheet">
-                  <string notr="true">QToolButton { 
+                  <string notr="true">QToolButton {
      border-style: solid;
      border-width: 1px;
      border-radius:5px;
@@ -1116,11 +1108,11 @@ QToolButton:hover {
      min-width: 16px;
 }
 
-QToolButton:pressed { 
+QToolButton:pressed {
 	background: palette(midlight);
 }
 
-QToolButton:hover { 
+QToolButton:hover {
      border-color: palette(highlight);
 }
 
@@ -1215,7 +1207,7 @@ QToolButton:hover {
                  <string/>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">QToolButton { 
+                 <string notr="true">QToolButton {
      border-radius:2px;
 	 padding: 2px;
     max-height: 20px;
@@ -1241,7 +1233,7 @@ QToolButton:hover {
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resets the begin to the start of file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">QToolButton { 
+                 <string notr="true">QToolButton {
     border-radius: 2px;
 	 padding: 2px;
     max-height: 16px;
@@ -1277,7 +1269,7 @@ QToolButton:hover {
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the end to the current time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">QPushButton { 
+                 <string notr="true">QPushButton {
      border-radius:2px;
 	 padding: 2px;
 	 max-height: 16px;
@@ -1318,7 +1310,7 @@ QToolButton:hover {
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reset the end to the end of file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">QToolButton { 
+                 <string notr="true">QToolButton {
     border-radius: 2px;
 	 padding: 2px;
     max-height: 16px;
@@ -1360,7 +1352,7 @@ QToolButton:hover {
                  <string>Sets the begin to the current time</string>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">QPushButton { 
+                 <string notr="true">QPushButton {
      border-radius:2px;
 	 padding: 2px;
 	 max-height: 16px;
@@ -1644,7 +1636,7 @@ s</string>
             <string/>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolButton { 
+            <string notr="true">QToolButton {
      border: 0px;
      background: transparent;
 	max-height: 64px;
@@ -1857,8 +1849,8 @@ Uncheck to display the restart frame when stopped.</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1424</width>
-     <height>23</height>
+     <width>1558</width>
+     <height>22</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -3044,7 +3036,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Switch smoothly between .glm sessions.</string>
    </property>
    <property name="styleSheet">
-    <string notr="true">QToolButton { 
+    <string notr="true">QToolButton {
      min-height:16 px;
      min-width: 16 px;
      max-height:20 px;
@@ -3367,8 +3359,8 @@ Uncheck to display the restart frame when stopped.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>238</width>
-          <height>73</height>
+          <width>244</width>
+          <height>96</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
@@ -4371,7 +4363,7 @@ Uncheck to display the restart frame when stopped.</string>
     <string>Next</string>
    </property>
    <property name="toolTip">
-    <string>Select next source 
+    <string>Select next source
 Shortcut:                                    Tab</string>
    </property>
    <property name="statusTip">
