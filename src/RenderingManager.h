@@ -200,7 +200,7 @@ public:
      * save and load configuration
      */
     QDomElement getConfiguration(QDomDocument &doc, QDir current = QDir());
-    void setConfiguration(QDomElement config, QDomDocument &doc, QDir current = QDir());
+//    void setConfiguration(QDomElement config, QDomDocument &doc, QDir current = QDir());
     int addConfiguration(QDomElement xmlconfig, QDir current, QString version = XML_GLM_VERSION);
 
     inline Source *defaultSource() { return _defaultSource; }

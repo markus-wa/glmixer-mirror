@@ -1199,6 +1199,8 @@ void MixerView::rotateSources(Source *s, int x, int y, int dx, int dy) {
             // move icon
             (*its)->setAlphaCoordinates( qBound(_mixingArea[0], x_, _mixingArea[2]), qBound(_mixingArea[1], y_, _mixingArea[3]) );
         }
+
+//        SelectionManager::getInstance()->updateSelectionSource();
     }
 
 }

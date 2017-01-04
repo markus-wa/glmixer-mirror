@@ -4,6 +4,8 @@
 #include "RenderingManager.h"
 #include "SourcePropertyBrowser.h"
 
+#define DEBUG_UNDO
+
 // static members
 UndoManager *UndoManager::_instance = 0;
 
@@ -17,7 +19,7 @@ UndoManager *UndoManager::getInstance() {
     return _instance;
 }
 
-UndoManager::UndoManager() : QObject(), _status(ACTIVE), _firstIndex(-1), _lastIndex(-1), _currentIndex(-1), _maximumSize(100)
+UndoManager::UndoManager() : QObject(), _status(ACTIVE), _firstIndex(-1), _lastIndex(-1), _currentIndex(-1), _saveIndex(-1), _maximumSize(100)
 {
 
 }
@@ -33,20 +35,29 @@ void UndoManager::setMaximumSize(int m)
     _maximumSize = m;
 }
 
+void UndoManager::save()
+{
+    _saveIndex = _currentIndex;
+}
+
 void UndoManager::clear()
 {
-    fprintf(stderr, "CLEAR \n");
-
     //clear history
     _history.clear();
     _firstIndex = -1;
     _currentIndex = -1;
     _lastIndex = -1;
+    _saveIndex = -1;
 
-    _status = ACTIVE;
     _previousSender = QString();
     _previousSignature = QString();
 
+    if (_status > DISABLED)
+        _status = ACTIVE;
+
+#ifdef DEBUG_UNDO
+    fprintf(stderr, "Undo CLEARED\n");
+#endif
 }
 
 
@@ -85,7 +96,9 @@ void UndoManager::redo()
 
 void UndoManager::restore(long int i)
 {
+#ifdef DEBUG_UNDO
     fprintf(stderr, "restore %ld ?", i);
+#endif
 
     // nothing to do
     if (_status == DISABLED || _currentIndex == i )
@@ -94,7 +107,9 @@ void UndoManager::restore(long int i)
     // set index
     _currentIndex = qBound(_firstIndex, i, _lastIndex);
 
+#ifdef DEBUG_UNDO
     fprintf(stderr, " restoring %ld [%ld %ld] ", _currentIndex, _firstIndex, _lastIndex);
+#endif
 
     // TODO create a list of existing sources
 
@@ -116,8 +131,9 @@ void UndoManager::restore(long int i)
                         qDebug() << "failed";
                 }
 
-
+#ifdef DEBUG_UNDO
                 fprintf(stderr, " %s ", qPrintable(sourcename));
+#endif
                 // TODO remove source in list of existing
 
                 // read next source
@@ -133,14 +149,13 @@ void UndoManager::restore(long int i)
     // TODO delete sources which do not exist anymore (remain in list of existing).
 
 
+    // forget previous event and get ready
     _previousSender = QString();
     _previousSignature = QString();
-
-    fprintf(stderr, "  DONE !\n");
-
     _status = ACTIVE;
 
-    RenderingManager::getInstance()->refreshCurrentSource();
+    // inform if we reached the index of last save
+    emit changed( _saveIndex != _currentIndex );
 }
 
 void UndoManager::store()
@@ -149,8 +164,9 @@ void UndoManager::store()
     if (_status == DISABLED)
         return;
 
+#ifdef DEBUG_UNDO
     fprintf(stderr, "  store ? {%d}\n", _status);
-
+#endif
     // store only if not idle
     if (_status > IDLE) {
 
@@ -162,14 +178,19 @@ void UndoManager::store()
         if (_lastIndex-_firstIndex > _maximumSize) {
             QDomElement elem = _history.firstChildElement(QString("%1").arg(_firstIndex));
             _history.removeChild(elem);
+
+#ifdef DEBUG_UNDO
             fprintf(stderr, "remove old index %ld\n", _firstIndex);
+#endif
             _firstIndex++;
         }
 
         if (_firstIndex < 0)
             _firstIndex = 0;
 
+#ifdef DEBUG_UNDO
         fprintf(stderr, "=>stored index %ld [%ld %ld]\n", _currentIndex, _firstIndex, _lastIndex);
+#endif
     }
 
     // if suspended, do not store next event
@@ -177,6 +198,12 @@ void UndoManager::store()
         _status = IDLE;
     }
 
+    // initialize the first time save index
+    if (_saveIndex < 0)
+        _saveIndex = _currentIndex;
+
+    // inform if we reached the index of last save
+    emit changed( _saveIndex != _currentIndex );
 }
 
 
@@ -190,9 +217,13 @@ void UndoManager::store(QString signature)
     QObject *sender_object = sender();
     if (sender_object) {
 
-        // if no previous sender or no previous signature; its a new event!
+        // if no previous sender or no previous signature
         if (_previousSender.isEmpty() || _previousSignature.isEmpty()) {
+
+#ifdef DEBUG_UNDO
             fprintf(stderr, "  store %s  {%d} ", qPrintable(signature), _status);
+#endif
+            // its a new event!
             store();
         }
         // we have a previous sender and a previous signature
@@ -201,8 +232,11 @@ void UndoManager::store(QString signature)
             // OR if the method called is different from previous
             if (sender_object->objectName() != _previousSender
                     || signature != _previousSignature ) {
-                // this event is different from previous
+
+#ifdef DEBUG_UNDO
                 fprintf(stderr, "  store %s  {%d} ", qPrintable(signature), _status);
+#endif
+                // this event is different from previous
                 store();
             }
             // do not store event if was same previous sender and signature
@@ -214,7 +248,6 @@ void UndoManager::store(QString signature)
         _previousSignature = signature;
     }
 
-
 }
 
 
@@ -225,7 +258,10 @@ void UndoManager::addHistory(long int index)
     for (long int i = _lastIndex; i >= index; --i) {
         QDomElement elem = _history.firstChildElement(QString("%1").arg(i));
         _history.removeChild(elem);
+
+#ifdef DEBUG_UNDO
         fprintf(stderr, "remove future index %ld\n", i);
+#endif
     }
 
     // add the configuration
@@ -245,7 +281,9 @@ void UndoManager::suspend()
 {
     _status = PENDING;
 
+#ifdef DEBUG_UNDO
     fprintf(stderr, "  suspend  {%d}\n", _status);
+#endif
 }
 
 
@@ -256,5 +294,7 @@ void UndoManager::unsuspend()
     _previousSender = QString();
     _previousSignature = QString();
 
+#ifdef DEBUG_UNDO
     fprintf(stderr, "  unsuspend  {%d}\n", _status);
+#endif
 }

@@ -172,7 +172,7 @@ public:
     // get XML config
     QDomElement getConfiguration(QDomDocument &doc);
     // set XML config
-//    void setConfiguration(QDomElement config, QDomDocument doc);
+    bool setConfiguration(QDomElement xmlconfig);
 
 signals:
 

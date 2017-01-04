@@ -295,7 +295,6 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     SourcePropertyBrowser *sourcePropertyBrowser = RenderingManager::getPropertyBrowserWidget();
     layoutPropertyBrowser->addWidget(sourcePropertyBrowser);
 //    QObject::connect(this, SIGNAL(sourceMarksModified(bool)), sourcePropertyBrowser, SLOT(updateMarksProperties(bool) ) );
-    QObject::connect(sourcePropertyBrowser, SIGNAL(changed(Source*)), this, SLOT(sourceChanged(Source*) ) );
     sourceDockWidgetContentsLayout->addWidget(layoutPropertyBrowser);
 
     // setup the mixing toolbox
@@ -419,8 +418,14 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
 
 #ifdef GLM_UNDO
+    // connect actions to Undo Manager
     QObject::connect(actionUndo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(undo()));
     QObject::connect(actionRedo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(redo()));
+
+    // Connect events to follow up when saving and need for saving
+    QObject::connect(this, SIGNAL(sessionLoaded()), UndoManager::getInstance(), SLOT(save()));
+    QObject::connect(UndoManager::getInstance(), SIGNAL(changed(bool)), this, SLOT(sessionChanged(bool)));
+
 #else
     delete actionUndo;
     delete actionRedo;
@@ -1249,10 +1254,14 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 }
 
 
-void GLMixer::sourceChanged(Source *s) {
+void GLMixer::sessionChanged(bool on) {
 
-    if (s)
-        maybeSave = true;
+    maybeSave = on;
+
+    QString title = windowTitle().section('*', 0, 0);
+    if (on)
+        title.append('*');
+    setWindowTitle( title );
 
 }
 

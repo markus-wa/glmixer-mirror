@@ -197,7 +197,7 @@ void FFGLPluginSourceShadertoy::setDescription(QString string)
 QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 {
     QDomDocument root;
-    QDomElement p = root.createElement("ShadertoyPlugin");
+    QDomElement p = root.createElement("FreeFramePlugin");
 
     // save info as XML nodes
     QDomElement info = root.createElement("Name");

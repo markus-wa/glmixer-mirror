@@ -2,6 +2,7 @@
 #define UNDOMANAGER_H
 
 #include "defines.h"
+#include "SourceSet.h"
 
 #include <QDomDocument>
 
@@ -15,7 +16,7 @@ public:
     inline int maximumSize() const { return _maximumSize; }
 
 signals:
-    void changed();
+    void changed(bool);
 
 public slots:
     // clear the history
@@ -34,6 +35,8 @@ public slots:
     void suspend();
     // restart listenting to store(signature) events
     void unsuspend();
+    // remember last time sesion is saved
+    void save();
 
 private:
 
@@ -57,6 +60,7 @@ private:
 
     QDomDocument _history;
     long int _firstIndex, _lastIndex, _currentIndex;
+    long int _saveIndex;
     int _maximumSize;
 };
 
