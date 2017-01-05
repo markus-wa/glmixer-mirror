@@ -285,8 +285,9 @@ WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) 
     // configure web page
     _page.settings()->setAttribute( QWebSettings::PrivateBrowsingEnabled,  true);
     _page.settings()->setAttribute( QWebSettings::PluginsEnabled, true);
+    _page.settings()->setAttribute( QWebSettings::JavascriptEnabled, true);
     _page.settings()->setAttribute( QWebSettings::TiledBackingStoreEnabled, true);
-    _page.settings()->setAttribute( QWebSettings::NotificationsEnabled, false);
+    //_page.settings()->setAttribute( QWebSettings::NotificationsEnabled, false);
 
     // enable cookies
     _page.networkAccessManager()->setCookieJar( new QNetworkCookieJar(&_page) );
@@ -398,4 +399,3 @@ QDomElement WebSource::getConfiguration(QDomDocument &doc, QDir current)
     sourceElem.appendChild(specific);
     return sourceElem;
 }
-
