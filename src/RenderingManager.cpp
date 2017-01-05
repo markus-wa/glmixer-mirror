@@ -215,8 +215,8 @@ RenderingManager::RenderingManager() :
 #endif
 
 #ifdef GLM_UNDO
-    UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)));
-    connect(UndoManager::getInstance(), SIGNAL(changed(bool)), SLOT(refreshCurrentSource()));
+    UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)), Qt::QueuedConnection);
+    connect(UndoManager::getInstance(), SIGNAL(changed(bool)), SLOT(refreshCurrentSource()), Qt::QueuedConnection);
 #endif
 }
 
@@ -1139,7 +1139,7 @@ bool RenderingManager::insertSource(Source *s)
 
 #ifdef GLM_UNDO
                 // connect source to the undo manager
-                UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString)));
+                UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString)), Qt::UniqueConnection);
 #endif
 
                 // inform of success
@@ -1246,11 +1246,9 @@ void RenderingManager::refreshCurrentSource(){
 
     if(isValid(_currentSource)) {
         emit currentSourceChanged(_currentSource);
-
-        if ( SelectionManager::getInstance()->isInSelection(*_currentSource) ){
-            SelectionManager::getInstance()->updateSelectionSource();
-        }
     }
+
+    SelectionManager::getInstance()->updateSelectionSource();
 }
 
 
@@ -1405,7 +1403,7 @@ void RenderingManager::clearSourceSet() {
 
 #ifdef GLM_UNDO
     // Suspend Undo manager
-    UndoManager::getInstance()->suspend();
+    UndoManager::getInstance()->suspend(true);
 #endif
 
     // how many sources to remove ?
@@ -1745,7 +1743,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
 #ifdef GLM_UNDO
     // Suspend Undo manager
-    UndoManager::getInstance()->suspend();
+    UndoManager::getInstance()->suspend(true);
 #endif
 
     // start loop of sources to create

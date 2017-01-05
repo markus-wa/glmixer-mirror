@@ -16,7 +16,7 @@ public:
     inline int maximumSize() const { return _maximumSize; }
 
 signals:
-    void changed(bool);
+    void changed();
 
 public slots:
     // clear the history
@@ -32,9 +32,7 @@ public slots:
     void restore(long i);
     // stop listening to store(signature) events
     // (will be reactivated on next call to clear or unsuspend)
-    void suspend();
-    // restart listenting to store(signature) events
-    void unsuspend();
+    void suspend(bool on);
     // remember last time sesion is saved
     void save();
 
@@ -60,8 +58,8 @@ private:
 
     QDomDocument _history;
     long int _firstIndex, _lastIndex, _currentIndex;
-    long int _saveIndex;
     int _maximumSize;
+    bool _changed;
 };
 
 #endif // UNDOMANAGER_H

@@ -4,7 +4,7 @@
 #include "RenderingManager.h"
 #include "SourcePropertyBrowser.h"
 
-#define DEBUG_UNDO
+//#define DEBUG_UNDO
 
 // static members
 UndoManager *UndoManager::_instance = 0;
@@ -19,7 +19,7 @@ UndoManager *UndoManager::getInstance() {
     return _instance;
 }
 
-UndoManager::UndoManager() : QObject(), _status(ACTIVE), _firstIndex(-1), _lastIndex(-1), _currentIndex(-1), _saveIndex(-1), _maximumSize(100)
+UndoManager::UndoManager() : QObject(), _status(ACTIVE), _firstIndex(-1), _lastIndex(-1), _currentIndex(-1), _maximumSize(100), _changed(true)
 {
 
 }
@@ -37,7 +37,7 @@ void UndoManager::setMaximumSize(int m)
 
 void UndoManager::save()
 {
-    _saveIndex = _currentIndex;
+    _changed = false;
 }
 
 void UndoManager::clear()
@@ -47,7 +47,6 @@ void UndoManager::clear()
     _firstIndex = -1;
     _currentIndex = -1;
     _lastIndex = -1;
-    _saveIndex = -1;
 
     _previousSender = QString();
     _previousSignature = QString();
@@ -154,8 +153,11 @@ void UndoManager::restore(long int i)
     _previousSignature = QString();
     _status = ACTIVE;
 
-    // inform if we reached the index of last save
-    emit changed( _saveIndex != _currentIndex );
+    // inform something Changed
+    if ( !_changed ) {
+        emit changed();
+        _changed = true;
+    }
 }
 
 void UndoManager::store()
@@ -164,12 +166,12 @@ void UndoManager::store()
     if (_status == DISABLED)
         return;
 
-#ifdef DEBUG_UNDO
-    fprintf(stderr, "  store ? {%d}\n", _status);
-#endif
     // store only if not idle
     if (_status > IDLE) {
 
+#ifdef DEBUG_UNDO
+    fprintf(stderr, "  storing {%d}\n", _status);
+#endif
         _currentIndex++;
 
         addHistory(_currentIndex);
@@ -198,12 +200,11 @@ void UndoManager::store()
         _status = IDLE;
     }
 
-    // initialize the first time save index
-    if (_saveIndex < 0)
-        _saveIndex = _currentIndex;
-
-    // inform if we reached the index of last save
-    emit changed( _saveIndex != _currentIndex );
+    // inform something Changed
+    if ( !_changed ) {
+        emit changed();
+        _changed = true;
+    }
 }
 
 
@@ -277,24 +278,31 @@ void UndoManager::addHistory(long int index)
 }
 
 
-void UndoManager::suspend()
+void UndoManager::suspend(bool on)
 {
-    _status = PENDING;
+    if (on)
+        _status = PENDING;
+    else {
+        _status = READY;
+
+        _previousSender = QString();
+        _previousSignature = QString();
+    }
 
 #ifdef DEBUG_UNDO
-    fprintf(stderr, "  suspend  {%d}\n", _status);
+    fprintf(stderr, "  suspend %d {%d}\n", on, _status);
 #endif
 }
 
 
-void UndoManager::unsuspend()
-{
-    _status = READY;
+//void UndoManager::unsuspend()
+//{
+//    _status = READY;
 
-    _previousSender = QString();
-    _previousSignature = QString();
+//    _previousSender = QString();
+//    _previousSignature = QString();
 
-#ifdef DEBUG_UNDO
-    fprintf(stderr, "  unsuspend  {%d}\n", _status);
-#endif
-}
+//#ifdef DEBUG_UNDO
+//    fprintf(stderr, "  unsuspend  {%d}\n", _status);
+//#endif
+//}

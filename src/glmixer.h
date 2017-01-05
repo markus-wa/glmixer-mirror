@@ -133,7 +133,7 @@ public slots:
 
     // source config
     void connectSource(SourceSet::iterator csi);
-    void sessionChanged(bool);
+    void sessionChanged();
 
 #ifdef GLM_LOGS
     void Log(int, QString);

@@ -418,13 +418,17 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(actionPause, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(pause(bool)));
 
 #ifdef GLM_UNDO
+
     // connect actions to Undo Manager
     QObject::connect(actionUndo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(undo()));
     QObject::connect(actionRedo, SIGNAL(triggered()), UndoManager::getInstance(), SLOT(redo()));
 
     // Connect events to follow up when saving and need for saving
-    QObject::connect(this, SIGNAL(sessionLoaded()), UndoManager::getInstance(), SLOT(save()));
-    QObject::connect(UndoManager::getInstance(), SIGNAL(changed(bool)), this, SLOT(sessionChanged(bool)));
+    QObject::connect(this, SIGNAL(sessionLoaded()), UndoManager::getInstance(), SLOT(save()), Qt::UniqueConnection);
+    QObject::connect(UndoManager::getInstance(), SIGNAL(changed()), this, SLOT(sessionChanged()), Qt::UniqueConnection);
+
+    QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(mousePressed(bool)), UndoManager::getInstance(), SLOT(suspend(bool)), Qt::UniqueConnection);
+
 
 #else
     delete actionUndo;
@@ -1254,13 +1258,12 @@ void GLMixer::connectSource(SourceSet::iterator csi){
 }
 
 
-void GLMixer::sessionChanged(bool on) {
+void GLMixer::sessionChanged() {
 
-    maybeSave = on;
+    maybeSave = true;
 
     QString title = windowTitle().section('*', 0, 0);
-    if (on)
-        title.append('*');
+    title.append('*');
     setWindowTitle( title );
 
 }
@@ -2020,8 +2023,6 @@ void GLMixer::newSession()
 
     // broadcast session file ready
     emit sessionLoaded();
-
-    // reset
     maybeSave = false;
 
     qDebug() << QApplication::applicationName() <<  QChar(124).toLatin1() << "New session.";
@@ -2087,9 +2088,9 @@ void GLMixer::on_actionSave_Session_triggered(){
 
         // broadcast session file ready
         emit sessionLoaded();
+        maybeSave = false;
     }
 
-    maybeSave = false;
 }
 
 void GLMixer::on_actionSave_Session_as_triggered()
@@ -2402,7 +2403,8 @@ void GLMixer::on_actionAppend_Session_triggered(){
         qDebug() << currentSessionFileName <<  QChar(124).toLatin1() << tr("Sources from %1 added.").arg( fileName );
     }
 
-    maybeSave = true;
+    // inform session has changed
+    sessionChanged();
 
 }
 
@@ -2546,7 +2548,8 @@ void GLMixer::drop(QDropEvent *event)
             }
         }
 
-        maybeSave = true;
+        // inform session changed
+        sessionChanged();
     }
 
     if (errors > 0)

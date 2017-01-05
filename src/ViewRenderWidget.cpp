@@ -41,7 +41,6 @@
 #include "LineCursor.h"
 #include "FuzzyCursor.h"
 #include "glmixer.h"
-#include "UndoManager.h"
 
 GLuint ViewRenderWidget::vertex_array_coords = 0;
 GLuint ViewRenderWidget::border_thin_shadow = 0,
@@ -712,10 +711,7 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
     makeCurrent();
     event->accept();
 
-#ifdef GLM_UNDO
-//    UndoManager::getInstance()->store();
-    UndoManager::getInstance()->suspend();
-#endif
+    emit mousePressed(true);
 
     // ask the catalog view if it wants this mouse press event and then
     // inform the view of the mouse press event
@@ -820,10 +816,7 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
             emit sourceLayerModified();
     }
 
-#ifdef GLM_UNDO
-//    UndoManager::getInstance()->store();
-    UndoManager::getInstance()->unsuspend();
-#endif
+    emit mousePressed(false);
 }
 
 void ViewRenderWidget::mouseDoubleClickEvent(QMouseEvent * event)

@@ -166,6 +166,8 @@ signals:
 
     void zoomPercentChanged(int);
 
+    void mousePressed(bool);
+
 public slots:
 
     void clearViews();
