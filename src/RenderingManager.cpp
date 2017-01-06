@@ -918,52 +918,50 @@ Source *RenderingManager::newFreeframeGLSource(QDomElement configuration, int w,
             else
                 qCritical() << fileNameToOpen << QChar(124).toLatin1() << tr("File does not exist.");
 
-        } else
-            qCritical() << tr("No file name provided to create Freeframe source.");
-
         }
-    // not FreeFramePlugin : must be ShadertoyPlugin
-    else {
+        // not FreeFramePlugin : must be ShadertoyPlugin
+        else {
 
-        GLuint textureIndex;
-        // try to create the Shadertoy source
-        try {
+            GLuint textureIndex;
+            // try to create the Shadertoy source
             try {
-                // create the texture for this source
-                _renderwidget->makeCurrent();
-                glGenTextures(1, &textureIndex);
-                GLclampf lowpriority = 0.1;
+                try {
+                    // create the texture for this source
+                    _renderwidget->makeCurrent();
+                    glGenTextures(1, &textureIndex);
+                    GLclampf lowpriority = 0.1;
 
-                glPrioritizeTextures(1, &textureIndex, &lowpriority);
+                    glPrioritizeTextures(1, &textureIndex, &lowpriority);
 
-                // try to create the opencv source
-                s = new FFGLSource(textureIndex, getAvailableDepthFrom(depth), w, h);
+                    // try to create the opencv source
+                    s = new FFGLSource(textureIndex, getAvailableDepthFrom(depth), w, h);
 
-                // all good, set parameters
-                s->freeframeGLPlugin()->setConfiguration( configuration );
+                    // all good, set parameters
+                    s->freeframeGLPlugin()->setConfiguration( configuration );
 
-                // give it a name
-                s->setName(_defaultSource->getName() + QString("Shadertoy") );
+                    // give it a name
+                    s->setName(_defaultSource->getName() + QString("Shadertoy") );
 
-            } catch (AllocationException &e){
-                qCritical() << tr("Allocation Exception; ") << e.message();
-                throw;
+                } catch (AllocationException &e){
+                    qCritical() << tr("Allocation Exception; ") << e.message();
+                    throw;
+                }
+                catch (FFGLPluginException &e)  {
+                    qCritical() << tr("Shadertoy error; ") << e.message();
+                    throw;
+                }
             }
-            catch (FFGLPluginException &e)  {
-                qCritical() << tr("Shadertoy error; ") << e.message();
-                throw;
+            catch (...)  {
+                qCritical() << "shadertoy" << QChar(124).toLatin1() << tr("Could no create plugin source.");
+                // free the OpenGL texture
+                glDeleteTextures(1, &textureIndex);
+                // return an invalid pointer
+                s = 0;
             }
-        }
-        catch (...)  {
-            qCritical() << "shadertoy" << QChar(124).toLatin1() << tr("Could no create plugin source.");
-            // free the OpenGL texture
-            glDeleteTextures(1, &textureIndex);
-            // return an invalid pointer
-            s = 0;
+
         }
 
     }
-
 
     return ( (Source *) s );
 }
@@ -2047,7 +2045,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             QDomElement ffgl = t.firstChildElement("FreeFramePlugin");
 
             if ( ffgl.isNull() )
-                ffgl = t.firstChildElement("ShadertoyPlugin");
+                ffgl = t.firstChildElement("FreeFramePlugin");
 
             newsource = RenderingManager::_instance->newFreeframeGLSource(ffgl, Frame.attribute("Width", "64").toInt(),  Frame.attribute("Height", "64").toInt());
 
