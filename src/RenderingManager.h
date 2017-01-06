@@ -126,6 +126,7 @@ public:
     SourceSet::iterator changeDepth(SourceSet::iterator itsource,double newdepth);
 
     inline bool empty() const { return _front_sources.empty(); }
+    inline SourceSet getCopy() { return SourceSet (_front_sources); }
 
     int removeSource(SourceSet::iterator itsource);
     int removeSource(const GLuint idsource);
