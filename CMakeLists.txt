@@ -5,12 +5,23 @@ project(glmixer)
 cmake_minimum_required(VERSION 2.8.0)
 include(${CMAKE_SOURCE_DIR}/macros.cmake)
 
+IF( MINGW )
+macro(msys_to_cmake_path MsysPath ResultingPath)
+  string(REGEX REPLACE "C:([^ ]*)"  "//c\\1" ${ResultingPath} "${MsysPath}")
+endmacro()
+ENDIF (MINGW)
+
 # Use SVN to read repository version
 IF(EXISTS "${CMAKE_SOURCE_DIR}/.svn")
     FIND_PACKAGE(Subversion)
     IF(Subversion_FOUND)
-      Subversion_WC_INFO( ${CMAKE_SOURCE_DIR} GLMIXER)
-      MESSAGE("Current subversion revision is ${GLMIXER_WC_REVISION}")
+        IF( MINGW )
+          msys_to_cmake_path(${CMAKE_SOURCE_DIR} CMAKE_SOURCE_DIR_MINGW )
+          Subversion_WC_INFO( ${CMAKE_SOURCE_DIR_MINGW} GLMIXER)
+        ELSE (MINGW)
+          Subversion_WC_INFO( ${CMAKE_SOURCE_DIR} GLMIXER)
+        ENDIF (MINGW)
+        MESSAGE("Current subversion revision is ${GLMIXER_WC_REVISION}")
     ENDIF(Subversion_FOUND)
 ENDIF()
 
@@ -396,5 +407,3 @@ if(USE_FREEFRAMEGL)
 endif(USE_FREEFRAMEGL)
 
 add_subdirectory(src)
-
-

@@ -1,6 +1,7 @@
 #include "FreeFrameShake.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <random>
 #include <cmath>
 #include <ctime>
@@ -120,12 +121,12 @@ FFResult FreeFrameShake::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     glColor4f(1.f, 1.f, 1.f, 1.f);
 
     double amplitude = distort * 0.1;
-    srandom((uint) (m_curTime * 1000));
+    srand((unsigned) (m_curTime * 1000));
 
-    double speed = amplitude * ( 2.0 * ((double) random() / (double) (RAND_MAX)) - 1.0);
+    double speed = amplitude * ( 2.0 * ((double) rand() / (double) (RAND_MAX)) - 1.0);
     tx = CLAMP( tx + deltaTime * speed * 2.0, 0, amplitude);
 
-    speed = amplitude * ( 2.0 * ((double) random() / (double) (RAND_MAX)) -1.0 );
+    speed = amplitude * ( 2.0 * ((double) rand() / (double) (RAND_MAX)) -1.0 );
     ty = CLAMP( ty + deltaTime * speed * 2.0, 0, amplitude);
 
     glBegin(GL_QUADS);
