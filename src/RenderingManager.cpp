@@ -1438,7 +1438,7 @@ bool RenderingManager::notAtEnd(SourceSet::const_iterator itsource)  const{
 
 bool RenderingManager::isValid(SourceSet::const_iterator itsource)  const{
 
-    if (notAtEnd(itsource))
+    if (notAtEnd(itsource) && (*itsource) != NULL)
         return (_front_sources.find(*itsource) != _front_sources.end());
     else
         return false;

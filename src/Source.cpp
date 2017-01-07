@@ -456,46 +456,6 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
         id++;
     }
 
-    // OLD BUGGY IMLPEMENTATION : KEPT HERE FOR BACKWARD COMPATIBILITY
-
-    // apply Shadertoy plugins
-    // start loop of plugins to load
-    p = xmlconfig.firstChildElement("ShadertoyPlugin");
-    id = 0;
-    while (!p.isNull()) {
-#ifdef GLM_FFGL
-
-        // create and push the plugin to the source
-        FFGLPluginSource *plugin = addFreeframeGLPlugin();
-        // apply the code
-        if (plugin && plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
-
-            FFGLPluginSourceShadertoy *stp = qobject_cast<FFGLPluginSourceShadertoy *>(plugin);
-
-            if (stp) {
-                stp->setCode(p.firstChildElement("Code").text());
-                stp->setName(p.firstChildElement("Name").text());
-                stp->setAbout(p.firstChildElement("About").text());
-                stp->setDescription(p.firstChildElement("Description").text());
-
-                qDebug() << xmlconfig.attribute("name") << QChar(124).toLatin1()
-                         << QObject::tr("Shadertoy plugin %1 added.").arg(p.firstChildElement("Name").text());
-            }
-            else {
-                ret = false;
-                qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1()
-                           << QObject::tr("Failed to create Shadertoy plugin.");
-            }
-
-        }
-#else
-        qWarning() << xmlconfig.attribute("name") << QChar(124).toLatin1() << QObject::tr("Shadertoy plugin not supported.");
-        ret = false;
-#endif
-        p = p.nextSiblingElement("ShadertoyPlugin");
-    }
-
-
     return ret;
 }
 

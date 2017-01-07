@@ -40,7 +40,7 @@ struct Source_distance_comp
     inline bool operator () (Source *a, Source *b) const
     {
         //Sort Furthest to Closest
-        return (a->getDepth() < b->getDepth());
+        return (a && b && a->getDepth() < b->getDepth());
     }
 };
 typedef std::set<Source*, Source_distance_comp> SourceSet;
@@ -50,7 +50,7 @@ struct Source_distance_reverse_comp
     inline bool operator () (Source *a, Source *b) const
     {
         //Sort Closest to Furthest
-        return (a->getDepth() > b->getDepth());
+        return (a && b && a->getDepth() > b->getDepth());
     }
 };
 typedef std::set<Source*, Source_distance_reverse_comp> reverseSourceSet;
@@ -59,7 +59,7 @@ struct hasId: public std::unary_function<Source*, bool>
 {
     inline bool operator()(const Source* elem) const
     {
-       return elem->getId() == _id;
+       return (elem && elem->getId() == _id);
     }
 
     hasId(GLuint id) : _id(id) { }
@@ -75,7 +75,7 @@ struct hasName: public std::unary_function<Source*, bool>
 {
     inline bool operator()(const Source* elem) const
     {
-       return elem->getName() == _n;
+       return (elem && elem->getName() == _n);
     }
 
     hasName(QString n) : _n(n) { }
@@ -90,7 +90,7 @@ struct isCloseTo: public std::unary_function<Source*, bool>
 {
     inline bool operator()(const Source* elem) const
     {
-       return ( ABS(elem->getDepth() - _d) < DEPTH_EPSILON );
+       return ( elem && ABS(elem->getDepth() - _d) < DEPTH_EPSILON );
     }
 
     isCloseTo(GLdouble d) : _d(d) { }
