@@ -70,6 +70,10 @@ typedef std::map<double, Source*> mixingSourceMap;
 
 mixingSourceMap getMixingSourceMap(SourceList::iterator begin, SourceList::iterator end, int size)
 {
+    mixingSourceMap map;
+    if ( !RenderingManager::getInstance()->isValid(begin))
+        return map;
+
     SourceList::iterator sit = begin;
     double cx = (*sit)->getAlphaX();
     double cy = (*sit)->getAlphaY();
@@ -80,8 +84,9 @@ mixingSourceMap getMixingSourceMap(SourceList::iterator begin, SourceList::itera
     cx /= size;
     cy /= size;
 
-    mixingSourceMap map;
     for (sit = begin; sit != end; sit++) {
+        if ( !RenderingManager::getInstance()->isValid(sit) )
+            break;
         double sx = (*sit)->getAlphaX();
         double sy = (*sit)->getAlphaY();
         double sd = sqrt( (sx-cx)*(sx-cx) + (sy-cy)*(sy-cy) );
