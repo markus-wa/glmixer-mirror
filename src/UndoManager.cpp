@@ -4,7 +4,7 @@
 #include "RenderingManager.h"
 #include "SourcePropertyBrowser.h"
 
-//#define DEBUG_UNDO
+#define DEBUG_UNDO
 
 // static members
 UndoManager *UndoManager::_instance = 0;
@@ -107,16 +107,15 @@ void UndoManager::restore(long int i)
     _currentIndex = qBound(_firstIndex, i, _lastIndex);
 
 #ifdef DEBUG_UNDO
-    fprintf(stderr, " restoring %ld [%ld %ld] ", _currentIndex, _firstIndex, _lastIndex);
+    fprintf(stderr, " restoring %ld [%ld %ld] :\n", _currentIndex, _firstIndex, _lastIndex);
 #endif
 
     // TODO create a list of existing sources
+    SourceSet existingsources = RenderingManager::getInstance()->getCopy();
 
     // get status at index
     QDomElement root = _history.firstChildElement(QString("%1").arg(_currentIndex));
     if ( !root.isNull()) {
-
-        // TODO . use setConfiguration of Rendering Manager
 
         QDomElement renderConfig = root.firstChildElement("SourceList");
         if ( !renderConfig.isNull()) {
@@ -128,12 +127,16 @@ void UndoManager::restore(long int i)
                 if ( RenderingManager::getInstance()->isValid(sit) ) {
                     if ( !(*sit)->setConfiguration(child) )
                         qDebug() << "failed";
+                    // TODO remove source in list of existing
+                    existingsources.erase(*sit);
+                }
+                else {
+                    fprintf(stderr, "    Create %s \n", qPrintable(sourcename));
                 }
 
 #ifdef DEBUG_UNDO
-                fprintf(stderr, " %s ", qPrintable(sourcename));
+                fprintf(stderr, "    Update %s \n", qPrintable(sourcename));
 #endif
-                // TODO remove source in list of existing
 
                 // read next source
                 child = child.nextSiblingElement("Source");
@@ -146,6 +149,10 @@ void UndoManager::restore(long int i)
         qDebug() << "root is null";
 
     // TODO delete sources which do not exist anymore (remain in list of existing).
+    for (SourceSet::iterator its = existingsources.begin(); its != existingsources.end(); its++) {
+
+        fprintf(stderr, "    Delete %s \n", qPrintable( (*its)->getName()) );
+    }
 
 
     // forget previous event and get ready
