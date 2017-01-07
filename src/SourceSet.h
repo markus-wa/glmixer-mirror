@@ -37,7 +37,7 @@ typedef std::deque<SourceList> SourceListArray;
 
 struct Source_distance_comp
 {
-    inline bool operator () (Source *a, Source *b) const
+    inline bool operator () (const Source *a, const Source *b) const
     {
         //Sort Furthest to Closest
         return (a && b && a->getDepth() < b->getDepth());
@@ -47,7 +47,7 @@ typedef std::set<Source*, Source_distance_comp> SourceSet;
 
 struct Source_distance_reverse_comp
 {
-    inline bool operator () (Source *a, Source *b) const
+    inline bool operator () (const Source *a, const Source *b) const
     {
         //Sort Closest to Furthest
         return (a && b && a->getDepth() > b->getDepth());
@@ -64,7 +64,6 @@ struct hasId: public std::unary_function<Source*, bool>
 
     hasId(GLuint id) : _id(id) { }
 
-
 private:
     GLuint _id;
 
@@ -80,7 +79,6 @@ struct hasName: public std::unary_function<Source*, bool>
 
     hasName(QString n) : _n(n) { }
 
-
 private:
     QString _n;
 
@@ -94,7 +92,6 @@ struct isCloseTo: public std::unary_function<Source*, bool>
     }
 
     isCloseTo(GLdouble d) : _d(d) { }
-
 
 private:
     GLdouble _d;
