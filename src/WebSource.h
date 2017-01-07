@@ -45,6 +45,7 @@ public:
     QUrl url() const { return _url; }
     int height() const { return _height; }
     int scroll() const { return _scroll; }
+    bool updating() const;
 
     void setHeight(int);
     void setScroll(int);
@@ -65,7 +66,6 @@ private:
     QImage _image;
     int _height, _scroll;
     QTimer _timeoutTimer, _updateTimer;
-//    int _updateTimerId;
     bool _propertyChanged;
     bool _imageChanged;
 };
@@ -116,7 +116,6 @@ private:
     static bool playable;
 
     WebRenderer *_webrenderer;
-    bool _playing;
     int _updateFrequency;
 };
 

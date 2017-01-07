@@ -191,7 +191,7 @@ void WebSourceCreationDialog::browseHtmlPage() {
     // check validity of file
     QFileInfo htmlfile(fileName);
     if (htmlfile.isFile() && htmlfile.isReadable()) {
-    
+
         // try to find & remove the file in the list
         ui->htmlPageList->removeItem( ui->htmlPageList->findData(htmlfile.absoluteFilePath()) );
 
@@ -223,7 +223,7 @@ void WebSourceCreationDialog::validateWebUrl(QString text)
         delete s;
         s = NULL;
     }
-    ui->validationBox->button(QDialogButtonBox::Ok)->setEnabled( s != NULL );
+    ui->validationBox->button(QDialogButtonBox::Ok)->setEnabled( false );
 
     QString tentativeUrl = text;
     int tentativepos = 0;

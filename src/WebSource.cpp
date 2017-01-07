@@ -24,6 +24,7 @@
  */
 
 #include <QNetworkCookieJar>
+#include <QWebElementCollection>
 
 #include "RenderingManager.h"
 #include "WebSource.moc"
@@ -35,7 +36,7 @@ Source::RTTI WebSource::type = Source::WEB_SOURCE;
 bool WebSource::playable = true;
 
 
-WebSource::WebSource(QUrl web, GLuint texture, double d, int w, int h, int height, int scroll, int update):  Source(texture, d), _playing(true), _updateFrequency(update)
+WebSource::WebSource(QUrl web, GLuint texture, double d, int w, int h, int height, int scroll, int update):  Source(texture, d), _updateFrequency(update)
 {
 
    // Web browser settings
@@ -44,7 +45,6 @@ WebSource::WebSource(QUrl web, GLuint texture, double d, int w, int h, int heigh
    QWebSettings::setMaximumPagesInCache(0);
 
     _webrenderer = new WebRenderer(web, w, h, height, scroll);
-    _webrenderer->setUpdate(_updateFrequency);
 
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -54,7 +54,10 @@ WebSource::WebSource(QUrl web, GLuint texture, double d, int w, int h, int heigh
 
 bool WebSource::isPlaying() const
 {
-    return (_playing);
+    if (_webrenderer)
+        return ( _webrenderer->updating() );
+    else
+        return false;
 }
 
 void WebSource::play(bool on)
@@ -62,9 +65,7 @@ void WebSource::play(bool on)
     if (!_webrenderer || isPlaying() == on )
         return;
 
-    _playing = on;
-
-    if (_playing)
+    if (on)
         _webrenderer->setUpdate(_updateFrequency);
     else {
         _webrenderer->setUpdate(0);
@@ -151,8 +152,8 @@ void WebSource::update()
 
 WebSource::~WebSource()
 {
+    play(false);
     delete _webrenderer;
-
 }
 
 
@@ -161,7 +162,7 @@ int WebSource::getFrameWidth() const
     if (_webrenderer)
     return _webrenderer->image().width();
     else
-    return 0;
+    return 1;
 }
 
 int WebSource::getFrameHeight() const
@@ -169,7 +170,7 @@ int WebSource::getFrameHeight() const
     if (_webrenderer)
     return _webrenderer->image().height();
     else
-    return 0;
+    return 1;
 }
 
 QUrl WebSource::getUrl() const
@@ -245,6 +246,7 @@ bool WebRenderer::imageChanged() {
         _imageChanged = false;
         return true;
     }
+
     return false;
 }
 
@@ -254,6 +256,10 @@ void WebRenderer::timeupdate()
     _imageChanged = true;
 }
 
+bool WebRenderer::updating() const
+{
+    return _updateTimer.isActive();
+}
 
 void WebRenderer::setUpdate(int u)
 {
@@ -263,11 +269,8 @@ void WebRenderer::setUpdate(int u)
     // start updating if frequency above 0
     if ( u > 0 ) {
         _updateTimer.start(int ( 1000.0 / double(u) ));
-
-        qDebug() << _url.toString() << QChar(124).toLatin1() << tr("Updating at %1 Hz.").arg(u);
     }
-    else
-        qDebug() << _url.toString() << QChar(124).toLatin1() << tr("NOT updating.");
+
 }
 
 
@@ -295,8 +298,8 @@ WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) 
 
     // render page when loaded
     qDebug() << _url.toString() << QChar(124).toLatin1() << tr("Loading web page.");
-    _page.mainFrame()->load(_url);
     connect(&_page, SIGNAL(loadFinished(bool)), this, SLOT(render(bool)));
+    _page.mainFrame()->load(_url);
 
     // time out 10 seconds
     _timeoutTimer.setSingleShot(true);
@@ -325,14 +328,17 @@ void WebRenderer::render(bool ok)
 
     // could load
     if (ok) {
+
         // remember page size
         _pagesize = _page.mainFrame()->contentsSize();
 
         // force reload (to trigger animations if exist)
         _page.triggerAction(QWebPage::Reload);
 
+//       _page.mainFrame()->evaluateJavaScript("var mute=function(tag){var elems = document.getElementsByTagName(tag);for(var i = 0; i < elems.length; i++){elems[i].muted=true;}} mute(\"video\");mute (\"audio\");");
+
         _propertyChanged = true;
-        _imageChanged = true;
+        _imageChanged = false;
     }
     else
         timeout();
@@ -343,25 +349,39 @@ void WebRenderer::update()
     if (_propertyChanged) {
 
         // cancel update if render buffer not initialized
-        if ( !_pagesize.isValid() )
-            return;
+        if ( _pagesize.isValid() ) {
 
-        // setup viewport
-        _page.setViewportSize(QSize(_pagesize.width(), _pagesize.height() * _height / 100));
+            // setup viewport
+            _page.setViewportSize(QSize(_pagesize.width(), _pagesize.height() * _height / 100));
 
-        // setup scroll
-        _page.mainFrame()->setScrollPosition(QPoint(0, _pagesize.height() * _scroll / 100));
+            // setup scroll
+            _page.mainFrame()->setScrollPosition(QPoint(0, _pagesize.height() * _scroll / 100));
 
-        _image = QImage(_page.viewportSize(), QImage::Format_ARGB32_Premultiplied);
+            // new image
+            _image = QImage(_page.viewportSize(), QImage::Format_ARGB32_Premultiplied);
 
+            _imageChanged = true;
+        }
+        else
+            _imageChanged = false;
     }
 
-    // render the page into the image buffer
-    QPainter pagePainter(&_image);
-    pagePainter.setRenderHint(QPainter::TextAntialiasing, true);
-    _page.mainFrame()->render(&pagePainter);
-    pagePainter.end();
+    if (_imageChanged) {
 
+        if (_image.isNull()) {
+            _image = QImage(QString(":/glmixer/textures/timeout.png"));
+            qWarning() << _url.toString() << QChar(124).toLatin1() << "Error loading web page.";
+            return;
+        }
+
+        // render the page into the image buffer
+        QPainter pagePainter(&_image);
+        if (pagePainter.isActive()) {
+            pagePainter.setRenderHint(QPainter::TextAntialiasing, true);
+            _page.mainFrame()->render(&pagePainter);
+            pagePainter.end();
+        }
+    }
 }
 
 void WebRenderer::timeout()
@@ -371,8 +391,12 @@ void WebRenderer::timeout()
     // display timeout
     _image = QImage(QString(":/glmixer/textures/timeout.png"));
     // inform of need to change
-    _imageChanged = true;
+    _imageChanged = false;
     _propertyChanged = true;
+    // not updating
+    _timeoutTimer.stop();
+
+    qDebug() << _url.toString() << QChar(124).toLatin1() << "Loading time out.";
 }
 
 QDomElement WebSource::getConfiguration(QDomDocument &doc, QDir current)
