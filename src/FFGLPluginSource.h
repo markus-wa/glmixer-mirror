@@ -91,7 +91,7 @@ public:
     virtual QDomElement getConfiguration(QDir current = QDir());
     virtual void setConfiguration(QDomElement xml);
 
-    static QString libraryFileName(QString embeddedName);
+    static QString libraryFileName(QString embeddedName, bool install=true);
 
 
 public slots:

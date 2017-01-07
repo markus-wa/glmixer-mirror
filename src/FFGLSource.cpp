@@ -168,7 +168,6 @@ void FFGLSource::update() {
         // call the update on the ffgl plugin
         if (_plugin && _playing)
             _plugin->update();
-
     }
     catch (FFGLPluginException &e) {
         this->play(false);

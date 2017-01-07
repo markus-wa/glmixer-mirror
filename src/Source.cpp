@@ -789,7 +789,7 @@ void Source::blend() const {
 
 FFGLPluginSource *Source::addFreeframeGLPlugin(QString filename) {
 
-    if (filename.isNull() || filename == FFGLPluginSource::libraryFileName("ShadertoyEffect") )
+    if (filename.isNull() || filename == FFGLPluginSource::libraryFileName("ShadertoyEffect", false) )
         return _ffgl_plugins.pushNewPlugin(getFrameWidth(), getFrameHeight(), getTextureIndex());
     else
         return _ffgl_plugins.pushNewPlugin(filename, getFrameWidth(), getFrameHeight(), getTextureIndex());
@@ -827,4 +827,3 @@ void Source::reproduceFreeframeGLPluginStack(Source *s)
 }
 
 #endif
-

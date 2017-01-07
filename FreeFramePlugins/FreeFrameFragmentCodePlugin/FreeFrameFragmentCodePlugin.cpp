@@ -4,9 +4,6 @@ const char *fragmentMainCode = "\nvoid main(void){\n"
                                "}\0";
 
 
-GLuint displayList = 0;
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,34 +75,32 @@ FFResult FreeFrameShadertoy::InitGL(const FFGLViewportStruct *vp)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    if (displayList == 0) {
-        displayList = glGenLists(1);
-        glNewList(displayList, GL_COMPILE);
-            glColor4f(1.f, 1.f, 1.f, 1.f);
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
+    displayList = glGenLists(1);
+    glNewList(displayList, GL_COMPILE);
+        glColor4f(1.f, 1.f, 1.f, 1.f);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
-            glBegin(GL_QUADS);
-            //lower left
-            glTexCoord2d(0.0, 0.0);
-            glVertex2f(-1,-1);
+        glBegin(GL_QUADS);
+        //lower left
+        glTexCoord2d(0.0, 0.0);
+        glVertex2f(-1,-1);
 
-            //upper left
-            glTexCoord2d(0.0, 1.0);
-            glVertex2f(-1,1);
+        //upper left
+        glTexCoord2d(0.0, 1.0);
+        glVertex2f(-1,1);
 
-            //upper right
-            glTexCoord2d(1.0, 1.0);
-            glVertex2f(1,1);
+        //upper right
+        glTexCoord2d(1.0, 1.0);
+        glVertex2f(1,1);
 
-            //lower right
-            glTexCoord2d(1.0, 0.0);
-            glVertex2f(1,-1);
-            glEnd();
-        glEndList();
-    }
+        //lower right
+        glTexCoord2d(1.0, 0.0);
+        glVertex2f(1,-1);
+        glEnd();
+    glEndList();
 
     return FF_SUCCESS;
 }
@@ -124,6 +119,7 @@ FFResult FreeFrameShadertoy::DeInitGL()
     if (frameBufferObject) glDeleteFramebuffers( 1, &frameBufferObject );
     if (fragmentShader) glDeleteShader(fragmentShader);
     if (shaderProgram)  glDeleteProgram(shaderProgram);
+    if (displayList) glDeleteLists(displayList, 1);
 
     return FF_SUCCESS;
 }
@@ -140,7 +136,7 @@ FFResult FreeFrameShadertoy::SetTime(double time)
     return FF_SUCCESS;
 }
 
-void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
+void FreeFrameShadertoy::drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture)
 {
     // bind the texture to apply
     glBindTexture(GL_TEXTURE_2D, texture.Handle);
@@ -212,9 +208,11 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         glUseProgram(shaderProgram);
 
         uniform_texturesize = glGetUniformLocation(shaderProgram, "iChannelResolution[0]");
-        glUniform3f(uniform_texturesize, viewport.width, viewport.height, 0.0);
+        if (uniform_texturesize > -1)
+            glUniform3f(uniform_texturesize, viewport.width, viewport.height, 0.0);
         uniform_viewportsize = glGetUniformLocation(shaderProgram, "iResolution");
-        glUniform3f(uniform_viewportsize, viewport.width, viewport.height, 0.0);
+        if (uniform_viewportsize > -1)
+            glUniform3f(uniform_viewportsize, viewport.width, viewport.height, 0.0);
         uniform_time = glGetUniformLocation(shaderProgram, "iGlobalTime");
         uniform_channeltime = glGetUniformLocation(shaderProgram, "iChannelTime[0]");
         uniform_date = glGetUniformLocation(shaderProgram, "iDate");
@@ -227,15 +225,20 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     // use the shader program
     glUseProgram(shaderProgram);
 
-    // set time uniforms
-    glUniform1f(uniform_time, m_curTime);
-    glUniform1f(uniform_channeltime, m_curTime);
-    std::time_t now = std::time(0);
-    std::tm *local = std::localtime(&now);
-    glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*3600.0+local->tm_min*60.0+local->tm_sec);
-
-    // set keyboard uniform
-    glUniform1uiv(uniform_keys, 10, keyboard);
+    // According to GLSL specs, uniform are available (active) only if
+    // they are used in the shader code (determined at compilation).
+    // As se do not know the code of the user, we have to test each uniform
+    if (uniform_time > -1)
+        glUniform1f(uniform_time, m_curTime);
+    if (uniform_channeltime > -1)
+        glUniform1f(uniform_channeltime, m_curTime);
+    if (uniform_date > -1) {
+        std::time_t now = std::time(0);
+        std::tm *local = std::localtime(&now);
+        glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*3600.0+local->tm_min*60.0+local->tm_sec);
+    }
+    if (uniform_keys > -1) 
+        glUniform1iv(uniform_keys, 10, keyboard);
 
     // activate the fbo2 as our render target
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferObject);
@@ -377,7 +380,6 @@ bool setKeyboard(int key, bool status, FFInstanceID *instanceID)
     FreeFrameShadertoy* pPlugObj = (FreeFrameShadertoy*) instanceID;
 
     if (pPlugObj) {
-
         pPlugObj->setKeyboard(key, status);
         return true;
     }

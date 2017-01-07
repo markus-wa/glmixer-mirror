@@ -8,7 +8,7 @@ const char *fragmentShaderHeader =  "uniform vec3      iResolution;           //
                                     "uniform float     iGlobalTime;           // shader playback time (in seconds)\n"
                                     "uniform float     iChannelTime[1];       // channel playback time (in seconds)\n"
                                     "uniform vec4      iDate;                 // (year, month, day, time in seconds)\n"
-                                    "uniform bool      key[10];               // numpad key pressed\0";
+                                    "uniform int       key[10];               // keyboard [0] to [9] (1 when key down)\0";
 
 const char *fragmentShaderDefaultCode = "void mainImage( out vec4 fragColor, in vec2 fragCoord )\n{\n"
                                         "\tfragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
@@ -54,6 +54,7 @@ FreeFrameShadertoy::FreeFrameShadertoy()
     uniform_date = 0;
     uniform_keys = 0;
     m_curTime = 0.0;
+    displayList = 0;
 
     for (int k=0; k<10; ++k) keyboard[k] = 0;
 

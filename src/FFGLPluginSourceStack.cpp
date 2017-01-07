@@ -33,7 +33,7 @@ FFGLPluginSourceStack::FFGLPluginSourceStack( FFGLPluginSource *ffgl_plugin )
 FFGLPluginSource *FFGLPluginSourceStack::pushNewPlugin(QString filename, int width, int height, unsigned int inputTexture)
 {
 
-    if (filename.isEmpty() || !QFileInfo(filename).isFile()) {
+    if (filename.isEmpty() || !QFileInfo(filename).exists() ) {
         qCritical()<< filename << QChar(124).toLatin1()<< QObject::tr("FreeFrameGL plugin given an invalid file name");
         return NULL;
     }

@@ -29,8 +29,10 @@ FFGLPluginSource::RTTI FFGLPluginSourceShadertoy::type = FFGLPluginSource::SHADE
 
 FFGLPluginSourceShadertoy::FFGLPluginSourceShadertoy(bool plugintype, int w, int h, FFGLTextureStruct inputTexture) : FFGLPluginSource(w, h, inputTexture)
 {
-    // free the FFGLPluginInstanceFreeframe instance
-    if (_plugin) delete(_plugin);
+    if (_plugin){
+        qWarning()<< "Shadertoy" << QChar(124).toLatin1() << QObject::tr("Plugin already instanciated");
+        FFGLPluginException().raise();
+    }
 
     // instanciate a FFGLPluginInstanceShadertoy plugin instead
     _plugin =  FFGLPluginInstanceShadertoy::New();
@@ -234,4 +236,3 @@ void FFGLPluginSourceShadertoy::setConfiguration(QDomElement xml)
     setCode( xml.firstChildElement("Code").text() );
 
 }
-

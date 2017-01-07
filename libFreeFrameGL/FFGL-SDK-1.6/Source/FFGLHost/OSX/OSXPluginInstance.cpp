@@ -33,37 +33,43 @@ OSXPluginInstance::OSXPluginInstance()
 
 FFResult OSXPluginInstance::Load(const char *fname)
 {
+
+  FFDebugMessage(fname);
+
   if (fname==NULL || fname[0]==0)
     return FF_FAIL;
 
   Unload();
 
-  if (NSCreateObjectFileImageFromFile(fname, &m_ffImage)!=NSObjectFileImageSuccess)
-    return FF_FAIL;
+  if (NSCreateObjectFileImageFromFile(fname, &m_ffImage)!=NSObjectFileImageSuccess){
+     FFDebugMessage("Failed to load with NSCreateObjectFileImageFromFile");
+     return FF_FAIL;
+  }
 
-  NSModule m_ffModule =
-    NSLinkModule(
-      m_ffImage,
-      fname,
-      NSLINKMODULE_OPTION_NONE);
+  NSModule m_ffModule = NSLinkModule( m_ffImage, fname, NSLINKMODULE_OPTION_NONE);
 
   if (m_ffModule==NULL)
   {
+    FFDebugMessage("m_ffModule ==NULL");
     Unload(); //to undo NSCreateObjectFileImageFromFile
     return FF_FAIL;
   }
 
+
   NSSymbol s = NSLookupSymbolInModule(m_ffModule, "_plugMain");
   if (s==NULL)
   {
-    Unload();//to undo NSLinkModule and NSCreateObjectFileImageFromFile
+    FFDebugMessage("NSLookupSymbolInModule == NULL");
+    Unload(); //to undo NSLinkModule and NSCreateObjectFileImageFromFile
     return FF_FAIL;
   }
+
 
 	FF_Main_FuncPtr pFreeFrameMain = (FF_Main_FuncPtr)NSAddressOfSymbol(s);
 
 	if (pFreeFrameMain==NULL)
   {
+    FFDebugMessage("pFreeFrameMain ==NULL");
     Unload(); //to undo same
     return FF_FAIL;
   }

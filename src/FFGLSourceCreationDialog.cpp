@@ -42,7 +42,13 @@ FFGLSourceCreationDialog::FFGLSourceCreationDialog(QWidget *parent, QSettings *s
     // setup filenames for embeded plugins
     ui->freeframeEmbededList->setItemData(0, QVariant::fromValue(QString("")));
     ui->freeframeEmbededList->setItemData(1, QVariant::fromValue(FFGLPluginSource::libraryFileName("ScreenCapture")));
+
+// TODO Implement Camera plugin for OSX
+#ifdef Q_OS_MAC
+    ui->freeframeEmbededList->removeItem(2);
+#else
     ui->freeframeEmbededList->setItemData(2, QVariant::fromValue(FFGLPluginSource::libraryFileName("Camera")));
+#endif
 
     // restore settings
     ui->freeframeFileList->addItem("");
@@ -218,13 +224,14 @@ void FFGLSourceCreationDialog::updateSourcePreview(){
     // apply the source to the preview (null pointer is ok to reset preview)
     ui->preview->setSource(s);
     ui->preview->playSource(true);
+
 }
 
 
 void FFGLSourceCreationDialog::browseFreeframePlugin() {
 
     #ifdef Q_OS_MAC
-    QString ext = " (*.bundle *.so)";
+    QString ext = " (*.bundle *.dylib *.so)";
     #else
     #ifdef Q_OS_WIN
     QString ext = " (*.dll)";

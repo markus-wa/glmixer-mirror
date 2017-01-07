@@ -8,7 +8,7 @@ else(WIN32)
 endif(WIN32)
 
 if(APPLE)
-target_link_libraries(ffglMonteCarlo FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(ffglMonteCarlo -Wl,-all_load FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 else(APPLE)
 target_link_libraries(ffglMonteCarlo -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 endif(APPLE)

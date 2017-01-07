@@ -9,7 +9,7 @@ else(WIN32)
 endif(WIN32)
 
 if(APPLE)
-target_link_libraries(ffglWave FreeFrameGL ${OPENGL_LIBRARY})
+target_link_libraries(ffglWave -Wl,-all_load FreeFrameGL ${OPENGL_LIBRARY})
 else(APPLE)
 target_link_libraries(ffglWave -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY})
 endif(APPLE)

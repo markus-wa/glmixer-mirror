@@ -39,8 +39,8 @@ FFResult LinuxPluginInstance::Load(const char *fname)
   plugin_handle = dlopen(fname, RTLD_NOW);
   if (plugin_handle == NULL)
   {
-    printf("dlopen: %s\n", dlerror());
-	Unload();
+    fprintf(stderr, "FreeFrame error: %s\n", dlerror());
+	  Unload();
     return FF_FAIL;
   }
 
@@ -49,6 +49,7 @@ FFResult LinuxPluginInstance::Load(const char *fname)
 
   if (pFreeFrameMain==NULL)
   {
+    fprintf(stderr, "FreeFreme error: %s\n", dlerror());
     Unload(); //to undo same
     return FF_FAIL;
   }

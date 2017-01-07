@@ -53,5 +53,3 @@ else(WIN32)
     endif(APPLE)
 
 endif(WIN32)
-
-

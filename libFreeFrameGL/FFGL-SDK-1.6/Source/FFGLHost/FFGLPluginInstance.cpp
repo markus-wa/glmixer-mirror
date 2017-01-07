@@ -151,7 +151,7 @@ FFResult FFGLPluginInstance::CallProcessOpenGL(ProcessOpenGLStructTag &t)
     //make sure we have code to call otherwise return the unprocessed input
     if (m_ffPluginMain==NULL || m_ffInstanceID==INVALIDINSTANCE)
     {
-        FFDebugMessage("Invalid CallProcessOpenGL call");
+        FFDebugMessage("Invalid plugin to call OpenGL process.");
         return FF_FAIL;
     }
 
@@ -164,7 +164,7 @@ FFResult FFGLPluginInstance::CallProcessOpenGL(ProcessOpenGLStructTag &t)
     }
     catch (...)
     {
-        FFDebugMessage("Error on call to FreeFrame::ProcessFrame");
+        FFDebugMessage("OpenGL ProcessFrame failed.");
         retVal = FF_FAIL;
     }
 
@@ -350,4 +350,3 @@ void FFDebugMessage(const char *msg) {
 
     fprintf(stderr, "FreeFrame error: %s\n", msg);
 }
-

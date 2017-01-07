@@ -48,21 +48,24 @@ public:
     char *getFragmentProgramCode();
     char *getFragmentProgramLogs();
 
-    void setKeyboard(int key, bool status) { keyboard[key] = status; }
+    void setKeyboard(int key, bool status) { keyboard[key] = status ? 1 : 0; }
 
 protected:
+
+    void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture);
 
     FFGLViewportStruct viewport;
     FFGLTextureStruct textureFrameBufferObject;
     GLuint frameBufferObject;
     GLuint shaderProgram;
     GLuint fragmentShader;
-    GLuint uniform_texturesize;
-    GLuint uniform_viewportsize;
-    GLuint uniform_time;
-    GLuint uniform_channeltime;
-    GLuint uniform_date;
-    GLuint uniform_keys;
+    GLint uniform_texturesize;
+    GLint uniform_viewportsize;
+    GLint uniform_time;
+    GLint uniform_channeltime;
+    GLint uniform_date;
+    GLint uniform_keys;
+    GLuint displayList;
 
     bool code_changed;
     char *fragmentShaderCode;
@@ -75,7 +78,7 @@ protected:
     double m_curTime;
 
     // keys
-    GLuint keyboard[10];
+    GLint keyboard[10];
 };
 
 

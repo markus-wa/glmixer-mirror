@@ -13,7 +13,7 @@ endif(WIN32)
 
 
 if(APPLE)
-target_link_libraries(ffglQtScreenCapture FreeFrameGL ${OPENGL_LIBRARY} ${QT_LIBRARIES})
+target_link_libraries(ffglQtScreenCapture -Wl,-all_load FreeFrameGL ${OPENGL_LIBRARY} ${QT_LIBRARIES})
 else(APPLE)
 target_link_libraries(ffglQtScreenCapture -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${QT_LIBRARIES})
 endif(APPLE)

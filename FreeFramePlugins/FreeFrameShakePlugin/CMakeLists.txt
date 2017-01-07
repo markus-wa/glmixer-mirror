@@ -14,7 +14,7 @@ endif(WIN32)
 
 
 if(APPLE)
-target_link_libraries(ffglShake FreeFrameGL ${OPENGL_LIBRARY})
+target_link_libraries(ffglShake -Wl,-all_load FreeFrameGL ${OPENGL_LIBRARY})
 else(APPLE)
 target_link_libraries(ffglShake -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY})
 endif(APPLE)

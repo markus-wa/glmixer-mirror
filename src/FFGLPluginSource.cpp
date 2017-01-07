@@ -34,16 +34,8 @@ FFGLPluginSource::RTTI FFGLPluginSource::type = FFGLPluginSource::FREEFRAME_PLUG
 
 
 FFGLPluginSource::FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture)
-    : _filename("Freeframe"), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _enabled(true), _fbo(0), _fboSize(w,h)
+    : _plugin(0), _filename("Freeframe"), _initialized(false), _isFreeframeTypeSource(false), _elapsedtime(0), _pause(false), _enabled(true), _fbo(0), _fboSize(w,h)
 {
-    _plugin =  FFGLPluginInstanceFreeframe::New();
-
-    // check validity of plugin
-    if (!_plugin){
-        qWarning()<< "Freeframe" << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be instanciated");
-        FFGLPluginException().raise();
-    }
-
     // descriptor for the source texture, used also to store size
     _inputTexture.Handle = inputTexture.Handle;
     _inputTexture.Width = inputTexture.Width;
@@ -51,16 +43,27 @@ FFGLPluginSource::FFGLPluginSource(int w, int h, FFGLTextureStruct inputTexture)
     _inputTexture.HardwareWidth = inputTexture.HardwareWidth;
     _inputTexture.HardwareHeight = inputTexture.HardwareHeight;
 
-//    qDebug() << _filename << "| " << QObject::tr("FreeframeGL plugin created") << " ("<< info["Name"].toString() <<", "<< _inputTexture.Width << _inputTexture.Height <<")";
 }
 
 void FFGLPluginSource::load(QString filename)
 {
     _filename = filename;
 
+    // instanciate if needed
+    if ( !_plugin ) {
+        _plugin =  FFGLPluginInstanceFreeframe::New();
+        qDebug()<< _filename << QChar(124).toLatin1() << QObject::tr("Plugin instanciated");
+    }
+
+    // check validity of plugin
+    if (!_plugin){
+        qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not be instanciated");
+        FFGLPluginException().raise();
+    }
+
     // check the file exists
     QFileInfo pluginfile(_filename);
-    if (!pluginfile.isFile()){
+    if (!pluginfile.exists()){
         qWarning()<< _filename << QChar(124).toLatin1() << QObject::tr("The file does not exist.");
         FFGLPluginException().raise();
     }
@@ -98,6 +101,8 @@ void FFGLPluginSource::load(QString filename)
         qWarning()<< QFileInfo(_filename).baseName() << QChar(124).toLatin1() << QObject::tr("Invalid FreeframeGL plugin");
         FFGLPluginException().raise();
     }
+
+    //qDebug()<< _filename << QChar(124).toLatin1() << QObject::tr("Loaded");
 }
 
 QVariantHash FFGLPluginSource::getParameters()
@@ -300,7 +305,7 @@ void FFGLPluginSource::update()
 
         // through exception once opengl has returned to normal
         if ( callresult != FF_SUCCESS ){
-            qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not process OpenGL. Probably missing an input texture.");
+            qWarning()<< QFileInfo(_filename).baseName()<< QChar(124).toLatin1() << QObject::tr("FreeframeGL plugin could not process OpenGL.");
             FFGLPluginException().raise();
         }
         else
@@ -361,6 +366,7 @@ bool FFGLPluginSource::initialize()
             //the FBO (plugin is rendered into our FBO)
             if ( _plugin->InstantiateGL( &_fboViewport ) == FF_SUCCESS ) {
 
+                // start update timer
                 timer.start();
 
                 // remember successful initialization
@@ -464,7 +470,7 @@ void FFGLPluginSource::setConfiguration(QDomElement xml)
 
 // Static function to extract the DLL
 // for the plugin Freeframe embeded in ffgl ressource
-QString FFGLPluginSource::libraryFileName(QString embeddedName)
+QString FFGLPluginSource::libraryFileName(QString embeddedName, bool install)
 {
 
 #ifdef Q_OS_WIN
@@ -472,23 +478,22 @@ QString FFGLPluginSource::libraryFileName(QString embeddedName)
 #else
     QFileInfo plugindll( QString(QDesktopServices::storageLocation(QDesktopServices::TempLocation)).append(QString("/%1.so").arg(embeddedName)) );
 #endif
-    qDebug() << "Loading dll " << plugindll.absoluteFilePath();
 
+    if (install) {
+      // replace the plugin file in temporary location
+      // copy the file if
+      // either it does not exist yet
+      // or it does exist AND we could remove it
+      // (if remove fails, do not copy: this means the file is in use by GLMixer already)
+      if ( !plugindll.exists() || (plugindll.exists() && QFile::remove(plugindll.absoluteFilePath()) )) {
 
-    // replace the plugin file in temporary location
-    // copy the file if
-    // either it does not exist yet
-    // or it does exist AND we could remove it
-    // (if remove fails, do not copy: this means the file is in use by GLMixer already)
-    if ( !plugindll.exists() || (plugindll.exists() && QFile::remove(plugindll.absoluteFilePath()) )) {
-
-        if ( QFile::copy(QString(":/ffgl/%1").arg(embeddedName), plugindll.absoluteFilePath()) ) {
-            QFile::setPermissions(plugindll.absoluteFilePath(), QFile::ReadOwner | QFile::WriteOwner);
-        } else
-            qCritical() << QObject::tr("Error creating temporary file plugin (%1).").arg(plugindll.absoluteFilePath());
+          if ( QFile::copy(QString(":/ffgl/%1").arg(embeddedName), plugindll.absoluteFilePath()) ) {
+              QFile::setPermissions(plugindll.absoluteFilePath(), QFile::ReadOwner | QFile::WriteOwner);
+              qDebug() << QObject::tr("Created temporary file plugin (%1).").arg(plugindll.absoluteFilePath());
+          } else
+              qCritical() << QObject::tr("Error creating temporary file plugin (%1).").arg(plugindll.absoluteFilePath());
+      }
     }
-
 
     return plugindll.absoluteFilePath();
 }
-

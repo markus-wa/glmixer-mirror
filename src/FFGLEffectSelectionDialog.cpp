@@ -140,27 +140,22 @@ void FFGLEffectSelectionDialog::updateSourcePreview(){
     {
         selectedFreeframePlugin = ui->freeframeEmbededList->itemData(ui->freeframeEmbededList->currentIndex()).toString();
 
-
     }
     // CASE 2: load file Freeframe plugin
     else if ( ui->freeframeFilePlugin->isChecked() && ui->freeframeFileList->currentIndex() > 0 ) {
-
 
         selectedFreeframePlugin = ui->freeframeFileList->itemData(ui->freeframeFileList->currentIndex()).toString();
 
     }
 
     QFileInfo pluginfile(selectedFreeframePlugin);
-#ifdef Q_OS_MAC
-    if (pluginfile.isBundle())
-        pluginfile.setFile( pluginfile.absoluteFilePath() + "/Contents/MacOS/" + pluginfile.baseName() );
-#endif
-    if (s && pluginfile.isFile()) {
+
+    if (s && pluginfile.exists() ) {
 
         // add a the given freeframe plugin
         FFGLPluginSource *plugin = s->addFreeframeGLPlugin( pluginfile.absoluteFilePath() );
 
-//        qDebug() << pluginfile.absoluteFilePath() << QChar(124).toLatin1() << tr("Trying Freeframe plugin.");
+        // qDebug() << pluginfile.absoluteFilePath() << QChar(124).toLatin1() << tr("Trying Freeframe plugin.");
         // test if plugin was added
         if ( !plugin ) {
             selectedFreeframePlugin = QString::null;
@@ -175,25 +170,18 @@ void FFGLEffectSelectionDialog::updateSourcePreview(){
 
 void FFGLEffectSelectionDialog::browseFreeframePlugin() {
 
-    #ifdef Q_OS_MAC
-    QString ext = " (*.bundle *.so)";
-    #else
     #ifdef Q_OS_WIN
     QString ext = " (*.dll)";
     #else
     QString ext = " (*.so)";
     #endif
-    #endif
+
     // browse for a plugin file
     QString fileName = GLMixer::getInstance()->getFileName(tr("Open FFGL Plugin file"), tr("Freeframe GL Plugin") + ext);
 
     QFileInfo pluginfile(fileName);
-#ifdef Q_OS_MAC
-    if (pluginfile.isBundle())
-        pluginfile.setFile( pluginfile.absoluteFilePath() + "/Contents/MacOS/" + pluginfile.baseName() );
-#endif
-    // if a file was selected
-    if (pluginfile.isFile()) {
+
+    if ( pluginfile.exists() ) {
         // try to find & remove the file in the recent plugins list
         ui->freeframeFileList->removeItem( ui->freeframeFileList->findData(pluginfile.absoluteFilePath()) );
 
@@ -224,4 +212,3 @@ void FFGLEffectSelectionDialog::showFreeframeHelp()
 {
     QDesktopServices::openUrl(QUrl("http://freeframe.sourceforge.net/specification_1-5.html", QUrl::TolerantMode));
 }
-

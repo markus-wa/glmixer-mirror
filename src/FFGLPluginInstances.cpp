@@ -30,17 +30,10 @@
 #define CLASSPLUGININSTANCE WinPluginInstance
 
 #else
-#ifdef __APPLE__
-
-#include <OSX/OSXPluginInstance.cpp>
-#define CLASSPLUGININSTANCE OSXPluginInstance
-
-#else
 
 #include <Linux/LinuxPluginInstance.cpp>
 #define CLASSPLUGININSTANCE LinuxPluginInstance
 
-#endif
 #endif
 
 
@@ -262,7 +255,7 @@ bool FFGLPluginInstanceFreeframePlatform::setParameter(QString paramName, QVaria
 
 bool FFGLPluginInstanceFreeframePlatform::setParameter(unsigned int paramNum, QVariant value)
 {
-    if (paramNum < 0 || paramNum >= (unsigned int) m_numParameters ||
+    if (paramNum >= (unsigned int) m_numParameters ||
         m_ffInstanceID==INVALIDINSTANCE || m_ffPluginMain==NULL)
         return false;
 
@@ -421,23 +414,6 @@ bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
 }
 
 #else
-#ifdef Q_OS_MAC
-
-bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
-{
-    if (m_ffModule == NULL)
-        return false;
-
-    m_ffPluginFunctionSetString = (_FuncPtrSetString)NSAddressOfSymbol( NSLookupSymbolInModule(m_ffModule, "setString") );
-    m_ffPluginFunctionGetString = (_FuncPtrGetString)NSAddressOfSymbol( NSLookupSymbolInModule(m_ffModule, "getString") );
-    m_ffPluginFunctionSetKeyboard = (_FuncPtrSetKeyboard)NSAddressOfSymbol( NSLookupSymbolInModule(m_ffModule, "setKeyboard") );
-
-    return ( m_ffPluginFunctionSetString != NULL &&
-             m_ffPluginFunctionGetString != NULL &&
-             m_ffPluginFunctionSetKeyboard != NULL );
-}
-
-#else
 
 bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
 {
@@ -453,5 +429,4 @@ bool FFGLPluginInstanceShadertoyPlaftorm::declareShadertoyFunctions()
              m_ffPluginFunctionSetKeyboard != NULL );
 }
 
-#endif
 #endif
