@@ -182,6 +182,8 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         // disable shader program
         glUseProgram(0);
 
+        char fragLog[4096];
+        char progLog[4096];
         infologLength = 0;
 
         if (shaderProgram) glDeleteProgram(shaderProgram);
@@ -197,12 +199,14 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragmentShader, 1, (const GLchar **) &fsc, NULL);
         glCompileShader(fragmentShader);
-        glGetShaderInfoLog(fragmentShader, 4096, &infologLength, infoLog);
+        glGetShaderInfoLog(fragmentShader, 4096, &infologLength, fragLog);
 
         shaderProgram = glCreateProgram();
         glAttachShader(shaderProgram, fragmentShader);
         glLinkProgram(shaderProgram);
-        glGetProgramInfoLog(shaderProgram, 4096, &infologLength, infoLog);
+        glGetProgramInfoLog(shaderProgram, 4096, &infologLength, progLog);
+
+        sprintf(infoLog, "%s\n%s\n", fragLog, progLog);
 
         // use the shader program
         glUseProgram(shaderProgram);
@@ -237,7 +241,7 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         std::tm *local = std::localtime(&now);
         glUniform4f(uniform_date, local->tm_year, local->tm_mon, local->tm_mday, local->tm_hour*3600.0+local->tm_min*60.0+local->tm_sec);
     }
-    if (uniform_keys > -1) 
+    if (uniform_keys > -1)
         glUniform1iv(uniform_keys, 10, keyboard);
 
     // activate the fbo2 as our render target
