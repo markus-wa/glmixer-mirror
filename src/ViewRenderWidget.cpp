@@ -570,6 +570,11 @@ void ViewRenderWidget::refresh()
     // default resize ; will refresh everything
     _currentView->resize(width(), height());
 
+    // make sure source icons are updated
+    for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+        // update the content of the sources
+        (*its)->update();
+    }
 }
 
 void ViewRenderWidget::paintGL()
@@ -590,10 +595,9 @@ void ViewRenderWidget::paintGL()
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
+        // update the content of the sources if not in standy
         if (!(*its)->isStandby())
-            // update the content of the sources
             (*its)->update();
-
     }
 
     // draw the view

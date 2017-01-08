@@ -405,7 +405,10 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
         else {
 
             try {
+
+                // create and push the plugin to the source
                 FFGLPluginSource *plugin = NULL;
+
                 // is this the same plugin than in the current stack ?
                 if ( id < _ffgl_plugins.size() && _ffgl_plugins.at(id)->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN ) {
                     // can keep this plugin as it is the same as in the config
@@ -421,8 +424,6 @@ bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
                              << tr("Shadertoy plugin added.");
                 }
 
-                // create and push the plugin to the source
-                //            FFGLPluginSource *plugin = addFreeframeGLPlugin();
                 // apply the code
                 if (plugin) {
 
