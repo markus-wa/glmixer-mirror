@@ -373,19 +373,19 @@ SET(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/;" )
 #--------------------------------------------------------------------------------
 
 IF(APPLE)
-      SET(qtplugin_dest_dir GLMixer.app/Contents/MacOS)
-      SET(qtconf_dest_dir GLMixer.app/Contents/Resources)
-      SET(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
-
+    set(APPS "\${CMAKE_INSTALL_PREFIX}/GLMixer.app")
+    set(qtplugin_dest_dir GLMixer.app/Contents/MacOS)
+    set(qtconf_dest_dir GLMixer.app/Contents/Resources)
 
     # OSX cpack info
-    set( CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_ARCHITECTURES}")
+    set( CPACK_SYSTEM_NAME "OSX_${CMAKE_OSX_DEPLOYMENT_TARGET}_${CMAKE_OSX_ARCHITECTURES}")
     set( CPACK_BUNDLE_NAME ${CPACK_PACKAGE_NAME})
     set( CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/osx/Info.plist)
     set( CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/osx/${MACOSX_BUNDLE_ICON_FILE})
     set( CPACK_BINARY_DRAGNDROP ON)
 
 ELSE(APPLE)
+
     IF(WIN32)
         SET(APPS "\${CMAKE_INSTALL_PREFIX}/${GLMIXER_BINARY}.exe")
         SET(CPACK_PACKAGE_EXECUTABLES "${GLMIXER_BINARY}" "GLMixer")

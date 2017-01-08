@@ -22,7 +22,7 @@ FFGLEffectSelectionDialog::FFGLEffectSelectionDialog(QWidget *parent, QSettings 
         effectDir = QDir(appSettings->value("ExecutionPath").toString());
     }
 
-    if ( effectDir.cd("../lib/glmixer/")  ||  effectDir.cd("./lib/glmixer/")) {
+    if ( effectDir.cd("../lib/glmixer/")  ||  effectDir.cd("./lib/glmixer/") || effectDir.cd("./lib/") ) {
 
         #ifdef Q_OS_WIN
         QString ext = "dll";

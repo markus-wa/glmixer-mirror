@@ -3,6 +3,9 @@ cmake_minimum_required (VERSION 2.8)
 
 if(APPLE)
     add_definitions(-DTARGET_OS_MAC)
+    set(FREEFRAME_INSTALL_DIR "GLMixer.app/Contents/MacOS/lib")
+else(APPLE)
+    set(FREEFRAME_INSTALL_DIR "./lib/${GLMIXER_BINARY}")
 endif(APPLE)
 
 if(WIN32)
