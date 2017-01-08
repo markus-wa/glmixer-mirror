@@ -49,6 +49,7 @@
 #include <QtColorEditorFactory>
 #include <QFileInfo>
 
+#include "common.h"
 #include "FFGLPluginSource.h"
 
 
@@ -91,8 +92,8 @@ FFGLPluginBrowser::FFGLPluginBrowser(QWidget *parent, bool allowRemove) : Proper
     }
 
     setStyleSheet(QString::fromUtf8("QToolTip {\n"
-        "	font: 8pt \"Monospace,Courier\";\n"
-        "}"));
+        "	font: 8pt \"%1\";\n"
+        "}").arg(getMonospaceFont()));
 }
 
 

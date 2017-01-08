@@ -1,8 +1,11 @@
 #include "common.h"
 
+#include <QFontDatabase>
 
 QMap<int, QPair<int, int> > presetBlending;
 QStringList listofextensions;
+
+QString monospaceFont = "Courier";
 
 // we will need these for the correspondence between comboBox and GLenums:
 GLenum blendfunctionFromInt(int i){
@@ -196,4 +199,25 @@ QString getByteSizeString(double numbytes)
         numbytes /= 1024.0;
     }
     return QString().setNum(numbytes,'f',1) + " " + unit;
+}
+
+
+
+void initApplicationFonts()
+{
+    int fontid = QFontDatabase::addApplicationFont(":/glmixer/fonts/Hack-Regular.ttf");
+    fontid = QFontDatabase::addApplicationFont(":/glmixer/fonts/Hack-Bold.ttf");
+    fontid = QFontDatabase::addApplicationFont(":/glmixer/fonts/Hack-RegularOblique.ttf");
+    fontid = QFontDatabase::addApplicationFont(":/glmixer/fonts/Hack-BoldOblique.ttf");
+
+    if ( fontid > -1 ) {
+        monospaceFont = QFontDatabase::applicationFontFamilies(fontid)[0];
+        qDebug() << "Loaded font " << monospaceFont << QFontDatabase ().styles( monospaceFont );
+    }
+}
+
+
+QString getMonospaceFont()
+{
+    return monospaceFont;
 }

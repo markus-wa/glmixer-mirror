@@ -14,6 +14,7 @@
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
 
+#include "common.h"
 #include "RenderingManager.h"
 #include "GammaLevelsWidget.h"
 #include "SourcePropertyBrowser.h"
@@ -243,6 +244,11 @@ MixingToolboxWidget::MixingToolboxWidget(QWidget *parent, QSettings *settings) :
 {
     setupUi(this);
     setEnabled(false);
+
+    // Tooltip font
+    presetsList->setStyleSheet(QString::fromUtf8("QToolTip {\n"
+        "	font: 8pt \"%1\";\n"
+        "}").arg(getMonospaceFont()));
 
     // fill the list of masks
     QMapIterator<int, QPair<QString, QString> > i(ViewRenderWidget::getMaskDecription());

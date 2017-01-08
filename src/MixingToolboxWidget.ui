@@ -1971,12 +1971,6 @@ border:0px
          <property name="toolTip">
           <string>Double clic on a preset to apply it to the selected source(s).</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolTip {
-	font: 8pt &quot;Monospace, Courier&quot;;
-}
-</string>
-         </property>
          <property name="editTriggers">
           <set>QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
          </property>

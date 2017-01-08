@@ -58,6 +58,7 @@ GLSLSyntaxHighlighter::GLSLSyntaxHighlighter(QTextEdit *parent) :
     glslkeywords.append("iGlobalTime");
     glslkeywords.append("iChannelTime");
     glslkeywords.append("iDate");
+    glslkeywords.append("key");
     addPatternFromList(glslkeywords, keywordFormat);
 
     QStringList glslConditional;
@@ -70,6 +71,8 @@ GLSLSyntaxHighlighter::GLSLSyntaxHighlighter(QTextEdit *parent) :
     glslStatement.append("return");
     glslStatement.append("continue");
     glslStatement.append("discard");
+    glslStatement.append("true");
+    glslStatement.append("false");
     addPatternFromList(glslStatement, statementFormat);
 
     QStringList glslRepeat;

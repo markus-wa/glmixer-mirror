@@ -99,6 +99,7 @@ SET(GLMIXER_RCS
     ../textures.qrc
     ../images.qrc
     ../opengl.qrc
+    ../fonts.qrc
     ${CMAKE_CURRENT_BINARY_DIR}/style.qrc
 )
 

@@ -22,6 +22,7 @@
 
 #include <QtGui>
 
+#include "common.h"
 #include "GLSLSyntaxHighlighter.h"
 #include "GLSLCodeEditor.moc"
 
@@ -73,12 +74,7 @@ void CodeEditor::highlightCurrentLine()
     // Ensure non-proportionnal font, large enough
     QFont f = font();
     f.setPointSize(QApplication::font().pointSize() - 1);
-#ifdef Q_OS_WIN
-    f.setFamily("Consolas, Courier");
-    f.setPointSize( f.pointSize() < 10 ? 10 : f.pointSize() );
-#else
-    f.setFamily("Monospace");
-#endif
+    f.setFamily( getMonospaceFont() );
     setFont( f );
 
     // make sure line number area is of same font

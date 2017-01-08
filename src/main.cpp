@@ -134,11 +134,13 @@ int main(int argc, char **argv)
 //    a.installTranslator(&translator);
 //    a.processEvents();
 
+    initApplicationFonts();
+
     //
     // 2. Test OpenGL support and initialize list of GL extensions
     //
     if (!QGLFormat::hasOpenGL() )
-    	qFatal( "%s", qPrintable( QObject::tr("This system does not support OpenGL and this program cannot work without it.")) );
+        qFatal( "%s", qPrintable( QObject::tr("This system does not support OpenGL and this program cannot work without it.")) );
     initListOfExtension();
     a.processEvents();
 
@@ -150,7 +152,7 @@ int main(int argc, char **argv)
 
 #ifdef GLM_SHM
     if(!SharedMemoryManager::getInstance())
-    	qWarning() << QObject::tr("Could not initiate shared memory manager");
+        qWarning() << QObject::tr("Could not initiate shared memory manager");
     a.processEvents();
 #endif
 

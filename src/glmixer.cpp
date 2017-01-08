@@ -150,6 +150,10 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QString styleSheet = QLatin1String(file.readAll());
     setStyleSheet(styleSheet);
 
+    // Use embedded fixed size font
+    blocNoteEdit->setFontFamily(getMonospaceFont());
+    blocNoteEdit->setFontPointSize(10);
+
 #ifndef GLM_SHM
     actionShareToRAM->setVisible(false);
     actionShmSource->setVisible(false);

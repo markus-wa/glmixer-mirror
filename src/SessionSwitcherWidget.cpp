@@ -288,6 +288,9 @@ SessionSwitcherWidget::SessionSwitcherWidget(QWidget *parent, QSettings *setting
     proxyView->header()->resizeSection(1, 25);
     proxyView->header()->resizeSection(2, 35);
     //    proxyView->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding));
+    proxyView->setStyleSheet(QString::fromUtf8("QToolTip {\n"
+        "	font: 8pt \"%1\";\n"
+        "}").arg(getMonospaceFont()));
 
     proxyView->setContextMenuPolicy(Qt::ActionsContextMenu);
     QAction *reloadAction = new QAction(tr("Reload folder"), proxyView);

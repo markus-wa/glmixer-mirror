@@ -67,4 +67,7 @@ void addPathToSystemPath(QByteArray path);
 
 QString getByteSizeString(double numbytes);
 
+void initApplicationFonts();
+QString getMonospaceFont();
+
 #endif /*  COMMON_H_ */
