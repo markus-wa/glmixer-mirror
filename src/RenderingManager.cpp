@@ -90,9 +90,9 @@ bool RenderingManager::blit_fbo_extension = true;
 bool RenderingManager::pbo_extension = true;
 
 QSize RenderingManager::sizeOfFrameBuffer[ASPECT_RATIO_FREE][QUALITY_UNSUPPORTED] = { { QSize(640,480), QSize(768,576), QSize(800,600), QSize(1024,768), QSize(1600,1200), QSize(2048,1536) },
-                                                                           { QSize(720,480), QSize(864,576), QSize(900,600), QSize(1152,768), QSize(1440,960), QSize(1920,1280) },
-                                                                           { QSize(800,480), QSize(912,570), QSize(960,600), QSize(1280,800), QSize(1920,1200), QSize(2048,1280) },
-                                                                           { QSize(848,480), QSize(1024,576), QSize(1088,612), QSize(1280,720), QSize(1920,1080), QSize(2048,1152) }};
+                                                                                      { QSize(720,480), QSize(864,576), QSize(900,600), QSize(1152,768), QSize(1440,960), QSize(1920,1280) },
+                                                                                      { QSize(800,480), QSize(912,570), QSize(960,600), QSize(1280,800), QSize(1920,1200), QSize(2048,1280) },
+                                                                                      { QSize(848,480), QSize(1024,576), QSize(1088,612), QSize(1280,720), QSize(1920,1080), QSize(2048,1152) }};
 
 ViewRenderWidget *RenderingManager::getRenderingWidget() {
 
@@ -422,7 +422,7 @@ void RenderingManager::postRenderToFrameBuffer() {
             previousframe_index = 0;
 
             if (RenderingManager::blit_fbo_extension)
-            // use the accelerated GL_EXT_framebuffer_blit if available
+                // use the accelerated GL_EXT_framebuffer_blit if available
             {
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo->handle());
                 // TODO : Can we draw in different texture buffer so we can keep an history of
@@ -430,8 +430,8 @@ void RenderingManager::postRenderToFrameBuffer() {
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previousframe_fbo->handle());
 
                 glBlitFramebuffer(0, _fbo->height(), _fbo->width(), 0, 0, 0,
-                        previousframe_fbo->width(), previousframe_fbo->height(),
-                        GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                                  previousframe_fbo->width(), previousframe_fbo->height(),
+                                  GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
             }
@@ -476,10 +476,10 @@ void RenderingManager::postRenderToFrameBuffer() {
 
     // save the frame to file or copy to SHM
     if ( _recorder->isRecording()
-#ifdef GLM_SHM
-            || _sharedMemory != NULL
-#endif
-        ) {
+     #ifdef GLM_SHM
+         || _sharedMemory != NULL
+     #endif
+         ) {
 
 
         glEnable(GL_TEXTURE_2D);
@@ -1130,10 +1130,10 @@ bool RenderingManager::insertSource(Source *s)
             //insert the source to the list
             if (_front_sources.insert(s).second) {
 
-//#ifdef GLM_HISTORY
-//                // connect source to the history manager
-//                _undoHistory->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
-//#endif
+                //#ifdef GLM_HISTORY
+                //                // connect source to the history manager
+                //                _undoHistory->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(rememberEvent(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)));
+                //#endif
 
 #ifdef GLM_UNDO
                 // connect source to the undo manager
@@ -1562,7 +1562,7 @@ double RenderingManager::getAvailableDepthFrom(double depth) const {
 }
 
 SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
-        double newdepth) {
+                                                  double newdepth) {
 
     newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
 
@@ -1596,7 +1596,7 @@ SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
         if (newdepth < 0) {
             // if request to place the source in a negative depth, shift all sources forward
             for (SourceSet::iterator it = _front_sources.begin(); it
-                    != _front_sources.end(); it++)
+                 != _front_sources.end(); it++)
                 (*it)->setDepth((*it)->getDepth() - newdepth);
         }
 
@@ -1763,44 +1763,43 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             QDomElement Filename = t.firstChildElement("Filename");
             QDomElement marks = t.firstChildElement("Marks");
 
-            // create the video file
-            VideoFile *newSourceVideoFile = NULL;
+            // first reads with the absolute file name
+            QString fileNameToOpen = Filename.text();
+            // if there is no such file, try generate a file name from the relative file name
+            if (!QFileInfo(fileNameToOpen).exists())
+                fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
+            // if there is such a file
+            if (QFileInfo(fileNameToOpen).exists()) {
 
-            // generate texture of size in power of two if required
-            bool power2 = false;
-            int convert = 0;
-            if ( Filename.attribute("PowerOfTwo","0").toInt() > 0
-                 || !( glewIsSupported("GL_EXT_texture_non_power_of_two")
-                 || glewIsSupported("GL_ARB_texture_non_power_of_two") ) ) {
-                power2 = true;
-                convert = SWS_FAST_BILINEAR;
-            }
+                // create the video file
+                VideoFile *newSourceVideoFile = NULL;
+
+                // generate texture of size in power of two if required
+                bool power2 = false;
+                int convert = 0;
+                if ( Filename.attribute("PowerOfTwo","0").toInt() > 0
+                     || !( glewIsSupported("GL_EXT_texture_non_power_of_two")
+                           || glewIsSupported("GL_ARB_texture_non_power_of_two") ) ) {
+                    power2 = true;
+                    convert = SWS_FAST_BILINEAR;
+                }
 
 #ifdef GLM_CUDA
-            try {
-
-                newSourceVideoFile = new CUDAVideoFile(this, power2, convert);
-
-                qDebug() << child.attribute("name") << QChar(124).toLatin1() << "Using GPU accelerated CUDA Decoding.";
-
-            }
-            catch (AllocationException &e){
-                qDebug() << child.attribute("name") << QChar(124).toLatin1() <<"CANNOT use GPU accelerated CUDA Decoding.";
-                newSourceVideoFile = 0;
-            }
+                // trying to use CUDA for decoding
+                try {
+                    newSourceVideoFile = new CUDAVideoFile(this, power2, convert);
+                    qDebug() << child.attribute("name") << QChar(124).toLatin1() << "Using GPU accelerated CUDA Decoding.";
+                }
+                catch (AllocationException &e){
+                    qDebug() << child.attribute("name") << QChar(124).toLatin1() <<"CANNOT use GPU accelerated CUDA Decoding.";
+                    newSourceVideoFile = 0;
+                }
 #endif
-            if (!newSourceVideoFile)
-                newSourceVideoFile = new VideoFile(this, power2, convert);
+                if (!newSourceVideoFile)
+                    newSourceVideoFile = new VideoFile(this, power2, convert);
 
-            // if the video file was created successfully
-            if (newSourceVideoFile){
-                // first reads with the absolute file name
-                QString fileNameToOpen = Filename.text();
-                // if there is no such file, try generate a file name from the relative file name
-                if (!QFileInfo(fileNameToOpen).exists())
-                    fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
-                // if there is such a file
-                if (QFileInfo(fileNameToOpen).exists()) {
+                // if the video file was created successfully
+                if (newSourceVideoFile){
 
                     double markin = -1.0, markout = -1.0;
                     // old version used different system for marking : ignore the values for now
@@ -1811,7 +1810,20 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
 
                     // can we open this existing file ?
                     _renderwidget->makeCurrent();
-                    if ( newSourceVideoFile->open( fileNameToOpen, markin, markout, Filename.attribute("IgnoreAlpha").toInt() ) ) {
+
+                    // try to open until success (or maximum 3 tentatives)
+                    int tentative = 0;
+                    bool success = false;
+                    while (!success && tentative < 3) {
+                        success = newSourceVideoFile->open( fileNameToOpen, markin, markout, Filename.attribute("IgnoreAlpha").toInt() ) ;
+                        tentative++;
+                    }
+                    // inform if there was a problem
+                    if (tentative > 1)
+                        qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("There might be a problem with this video. %1 attempts were required to open it.").arg(tentative);
+
+                    // somehow managed to open the file
+                    if ( success ) {
 
                         // fix old version marking : compute marks correctly
                         if ( version.toDouble() < 0.7) {
@@ -1830,28 +1842,28 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                             // fix old version speed : compute speed correctly
                             double play_speed = 1.0;
                             if ( version.toDouble() < 0.7 ) {
-                                    switch (play.attribute("Speed","3").toInt())
-                                    {
-                                    case 0:
-                                        play_speed = 0.25;
-                                        break;
-                                    case 1:
-                                        play_speed = 0.333;
-                                        break;
-                                    case 2:
-                                        play_speed = 0.5;
-                                        break;
-                                    case 4:
-                                        play_speed = 2.0;
-                                        break;
-                                    case 5:
-                                        play_speed = 3.0;
-                                        break;
-                                    case 3:
-                                    default:
-                                        play_speed = 1.0;
-                                        break;
-                                    }
+                                switch (play.attribute("Speed","3").toInt())
+                                {
+                                case 0:
+                                    play_speed = 0.25;
+                                    break;
+                                case 1:
+                                    play_speed = 0.333;
+                                    break;
+                                case 2:
+                                    play_speed = 0.5;
+                                    break;
+                                case 4:
+                                    play_speed = 2.0;
+                                    break;
+                                case 5:
+                                    play_speed = 3.0;
+                                    break;
+                                case 3:
+                                default:
+                                    play_speed = 1.0;
+                                    break;
+                                }
                             }
                             // new format speed
                             else
@@ -1888,18 +1900,18 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 }
                 else {
                     qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                               << tr("No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+                               << tr("Could not allocate memory.");
                     errors++;
                 }
 
-                // if one of the above failed, remove the video file object from memory
-                if (!newsource)
+                // if creating the source failed, remove the video file object from memory
+                if (newSourceVideoFile && !newsource)
                     delete newSourceVideoFile;
 
             }
             else {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << tr("Could not allocate memory.");
+                           << tr("No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
                 errors++;
             }
 
@@ -2074,7 +2086,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             } else
                 qDebug() << child.attribute("name") << QChar(124).toLatin1()
                          <<  tr("OpenCV source created (device index %2, ").arg(camera.text())
-                         << newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
+                          << newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
 #else
             qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not create source: type OpenCV not supported.");
             errors++;
@@ -2313,7 +2325,7 @@ void RenderingManager::setFrameSharingEnabled(bool on){
         if (!_sharedMemory->create( shmbytecount ) ) {
             qWarning() << tr("Unable to create shared memory:") << _sharedMemory->errorString();
             if ( !_sharedMemory->attach()) {
-                 qWarning() << tr("Unable to attach shared memory:") << _sharedMemory->errorString();
+                qWarning() << tr("Unable to attach shared memory:") << _sharedMemory->errorString();
                 return;
             }
         }
@@ -2387,7 +2399,7 @@ void RenderingManager::setSpoutSharingEnabled(bool on){
     if (_spoutEnabled) {
 
         char SenderName[256];
-//        strcpy(SenderName, "GLMixer"  );
+        //        strcpy(SenderName, "GLMixer"  );
         strcpy(SenderName, QString("GLMixer%1").arg(QCoreApplication::applicationPid()).toUtf8().constData()  );
         bool spoutTextureShare = false;
 
@@ -2399,9 +2411,9 @@ void RenderingManager::setSpoutSharingEnabled(bool on){
         else {
 
             QMessageBox::warning(NULL, tr("SPOUT GLMixer"),
-                                       tr("Unfortunately, SPOUT can be enabled only ONCE per execution of GLMixer.\n\n"
-                                          "The SPOUT forum says 'This initial release of Spout is very basic and the concept is one thing at a time.'  and we are waiting for a more robust implementation. \n"
-                                          "\nFor now, you should restart GLMixer every time you get this message.\n"));
+                                 tr("Unfortunately, SPOUT can be enabled only ONCE per execution of GLMixer.\n\n"
+                                    "The SPOUT forum says 'This initial release of Spout is very basic and the concept is one thing at a time.'  and we are waiting for a more robust implementation. \n"
+                                    "\nFor now, you should restart GLMixer every time you get this message.\n"));
 
             qCritical() << tr("Could not enable SPOUT (%1x%2, sender name '%3')").arg(_fbo->width()).arg(_fbo->height()).arg(SenderName);
             Spout::ReleaseSender();

@@ -301,10 +301,9 @@ void CodecWorker::run()
 
 void VideoFile::close()
 {
-
-#ifdef VIDEOFILE_DEBUG
-    qDebug() << filename << QChar(124).toLatin1() << tr("Closing...");
-#endif
+    // the absence of firstPicture means file was not openned
+    if (!firstPicture)
+        return;
 
     // Stop playing
     stop();
@@ -335,10 +334,9 @@ void VideoFile::close()
         sws_freeContext(img_convert_ctx);
 
     // free pictures
+    delete firstPicture;
     if (blackPicture)
         delete blackPicture;
-    if (firstPicture)
-        delete firstPicture;
 
     // reset pointers
     pFormatCtx = NULL;
@@ -692,13 +690,14 @@ bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlp
     first_picture_changed = true;
     FirstFrameFiller *fff = new FirstFrameFiller(this, mark_in != getBegin() );
     fff->start();
-    if ( !fff->wait(1500) ) {
+    // 2 seconds timeout
+    if ( !fff->wait(2000) ) {
         qWarning() << filename << QChar(124).toLatin1()<< tr("Cannot open file.");
         return false;
     }
     current_frame_pts = fff->getValue();
 
-
+    // make sure the first picture was filled
     if (!firstPicture) {
         qWarning() << filename << QChar(124).toLatin1()<< tr("Could not create first picture.");
         return false;
