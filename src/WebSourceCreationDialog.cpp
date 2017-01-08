@@ -81,6 +81,7 @@ void WebSourceCreationDialog::updateSourcePreview(){
     }
 
     url.clear();
+    ui->validationBox->button(QDialogButtonBox::Ok)->setEnabled( false );
 
     if (ui->webURL->isChecked() && !ui->webUrlEdit->text().isEmpty()) {
 
@@ -109,6 +110,8 @@ void WebSourceCreationDialog::updateSourcePreview(){
             // create a new source with a new texture index and the new parameters
             s = new WebSource(url, tex, 0, getSelectedWidth(), getSelectedHeight(), getSelectedWindowHeight(), getSelectedScroll(), getSelectedUpdate());
 
+            ui->validationBox->button(QDialogButtonBox::Ok)->connect(s, SIGNAL(pageLoaded(bool)), SLOT(setEnabled(bool)));
+
         }
         catch (...)  {
             qCritical() << url << QChar(124).toLatin1() << tr("Web Source Creation error.");
@@ -119,8 +122,6 @@ void WebSourceCreationDialog::updateSourcePreview(){
         }
     }
 
-    // enable / disable ok button
-    ui->validationBox->button(QDialogButtonBox::Ok)->setEnabled( s != NULL );
 
     // apply the source to the preview (null pointer is ok to reset preview)
     ui->preview->setSource(s);
@@ -148,24 +149,21 @@ void WebSourceCreationDialog::setUpdate(int u){
 
     if (s)
         s->setPageUpdate(u);
-    else
-        updateSourcePreview();
+
 }
 
 void WebSourceCreationDialog::setHeight(int h){
 
     if (s)
         s->setPageHeight(h);
-    else
-        updateSourcePreview();
+
 }
 
 void WebSourceCreationDialog::setScroll(int i){
 
     if (s)
         s->setPageScroll(i);
-    else
-        updateSourcePreview();
+
 }
 
 int  WebSourceCreationDialog::getSelectedWindowHeight(){
@@ -223,6 +221,7 @@ void WebSourceCreationDialog::validateWebUrl(QString text)
         delete s;
         s = NULL;
     }
+
     ui->validationBox->button(QDialogButtonBox::Ok)->setEnabled( false );
 
     QString tentativeUrl = text;
@@ -232,10 +231,10 @@ void WebSourceCreationDialog::validateWebUrl(QString text)
 
     if ( urlValidator.validate(tentativeUrl, tentativepos) == QValidator::Invalid ) {
         ui->webUrlEdit->setStyleSheet("color: rgb(135, 0, 2);");
-        disconnect(ui->webUrlEdit, SIGNAL(editingFinished()), this, SLOT(updateSourcePreview()));
+        ui->webUrlButton->setEnabled(false);
     }
     else
-        connect(ui->webUrlEdit, SIGNAL(editingFinished()), this, SLOT(updateSourcePreview()));
+        ui->webUrlButton->setEnabled(true);
 
 }
 

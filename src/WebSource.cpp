@@ -39,13 +39,16 @@ bool WebSource::playable = true;
 WebSource::WebSource(QUrl web, GLuint texture, double d, int w, int h, int height, int scroll, int update):  Source(texture, d), _updateFrequency(update)
 {
 
-   // Web browser settings
-   QWebSettings::setIconDatabasePath("");
-   QWebSettings::setOfflineStoragePath("");
-   QWebSettings::setMaximumPagesInCache(0);
+    // Web browser settings
+    QWebSettings::setIconDatabasePath("");
+    QWebSettings::setOfflineStoragePath("");
+    QWebSettings::setMaximumPagesInCache(0);
 
+    // new web renderer
     _webrenderer = new WebRenderer(web, w, h, height, scroll);
+    connect(_webrenderer, SIGNAL(loaded(bool)), SIGNAL(pageLoaded(bool)));
 
+    // prepare texture
     glBindTexture(GL_TEXTURE_2D, textureIndex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -93,13 +96,13 @@ void WebSource::adjust()
 void WebSource::setPageHeight(int h)
 {
     if (_webrenderer)
-    _webrenderer->setHeight(h);
+        _webrenderer->setHeight(h);
 }
 
 void WebSource::setPageScroll(int s)
 {
     if (_webrenderer)
-    _webrenderer->setScroll(s);
+        _webrenderer->setScroll(s);
 }
 
 void WebSource::setPageUpdate(int u)
@@ -160,41 +163,41 @@ WebSource::~WebSource()
 int WebSource::getFrameWidth() const
 {
     if (_webrenderer)
-    return _webrenderer->image().width();
+        return _webrenderer->image().width();
     else
-    return 1;
+        return 1;
 }
 
 int WebSource::getFrameHeight() const
 {
     if (_webrenderer)
-    return _webrenderer->image().height();
+        return _webrenderer->image().height();
     else
-    return 1;
+        return 1;
 }
 
 QUrl WebSource::getUrl() const
 {
     if (_webrenderer)
-    return _webrenderer->url();
+        return _webrenderer->url();
     else
-    return QUrl();
+        return QUrl();
 }
 
 int WebSource::getPageHeight() const
 {
     if (_webrenderer)
-    return _webrenderer->height();
+        return _webrenderer->height();
     else
-    return 0;
+        return 0;
 }
 
 int WebSource::getPageScroll() const
 {
     if (_webrenderer)
-    return _webrenderer->scroll();
+        return _webrenderer->scroll();
     else
-    return 0;
+        return 0;
 }
 
 int WebSource::getPageUpdate() const
@@ -276,7 +279,6 @@ void WebRenderer::setUpdate(int u)
 
 WebRenderer::WebRenderer(const QUrl &url, int w, int h, int height, int scroll) : _url(url), _height(height), _scroll(scroll), _propertyChanged(true), _imageChanged(true)
 {
-
     // init
     setHeight(height);
     setScroll(scroll);
@@ -335,7 +337,7 @@ void WebRenderer::render(bool ok)
         // force reload (to trigger animations if exist)
         _page.triggerAction(QWebPage::Reload);
 
-//       _page.mainFrame()->evaluateJavaScript("var mute=function(tag){var elems = document.getElementsByTagName(tag);for(var i = 0; i < elems.length; i++){elems[i].muted=true;}} mute(\"video\");mute (\"audio\");");
+        //       _page.mainFrame()->evaluateJavaScript("var mute=function(tag){var elems = document.getElementsByTagName(tag);for(var i = 0; i < elems.length; i++){elems[i].muted=true;}} mute(\"video\");mute (\"audio\");");
 
         _propertyChanged = true;
         _imageChanged = false;
@@ -370,7 +372,8 @@ void WebRenderer::update()
 
         if (_image.isNull()) {
             _image = QImage(QString(":/glmixer/textures/timeout.png"));
-            qWarning() << _url.toString() << QChar(124).toLatin1() << "Error loading web page.";
+            qWarning() << _url.toString() << QChar(124).toLatin1() << "Could not load.";
+            emit loaded(false);
             return;
         }
 
@@ -381,6 +384,8 @@ void WebRenderer::update()
             _page.mainFrame()->render(&pagePainter);
             pagePainter.end();
         }
+
+        emit loaded(true);
     }
 }
 
@@ -396,7 +401,8 @@ void WebRenderer::timeout()
     // not updating
     _timeoutTimer.stop();
 
-    qDebug() << _url.toString() << QChar(124).toLatin1() << "Loading time out.";
+    qWarning() << _url.toString() << QChar(124).toLatin1() << "Could not access.";
+    emit loaded(false);
 }
 
 QDomElement WebSource::getConfiguration(QDomDocument &doc, QDir current)

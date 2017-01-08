@@ -45,19 +45,24 @@ public:
     QUrl url() const { return _url; }
     int height() const { return _height; }
     int scroll() const { return _scroll; }
-    bool updating() const;
 
     void setHeight(int);
     void setScroll(int);
+
     void setUpdate(int);
+    bool updating() const;
 
     void reload();
+
+signals:
+    void loaded(bool);
 
 private slots:
     void render(bool);
     void timeout();
     void update();
     void timeupdate();
+
 
 private:
     QUrl _url;
@@ -102,6 +107,9 @@ public slots:
     void setPageScroll(int);
     void setPageUpdate(int);
     void adjust();
+
+signals:
+    void pageLoaded(bool);
 
 protected:
 
