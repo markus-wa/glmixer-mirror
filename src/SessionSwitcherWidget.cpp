@@ -550,6 +550,7 @@ void SessionSwitcherWidget::setTransitionType(int t)
     customButton->setStyleSheet("QToolButton { padding: 1px;}");
     //	transitionTab->setEnabled(tt != SessionSwitcher::TRANSITION_NONE);
     transitionTab->setVisible(tt != SessionSwitcher::TRANSITION_NONE);
+
     // hack ; NONE transition type should emulate automatic transition mode
     setTransitionMode(tt == SessionSwitcher::TRANSITION_NONE ? 0 : transitionTab->currentIndex());
 
@@ -570,7 +571,8 @@ void SessionSwitcherWidget::setTransitionType(int t)
         }
         else
             customButton->setToolTip(QString("%1").arg(RenderingManager::getSessionSwitcher()->transitionMedia()));
-    } else
+    }
+    else
         customButton->setVisible(false);
 
 }
@@ -659,9 +661,9 @@ void SessionSwitcherWidget::restoreSettings()
     if (QFileInfo(mediaFileName).exists())
         RenderingManager::getSessionSwitcher()->setTransitionMedia(mediaFileName);
 
-    transitionSelection->setCurrentIndex(appSettings->value("transitionSelection", "0").toInt());
     transitionDuration->setValue(appSettings->value("transitionDuration", "1000").toInt());
     easingCurvePicker->setCurrentRow(appSettings->value("transitionCurve", "3").toInt());
+    transitionSelection->setCurrentIndex(appSettings->value("transitionSelection", "0").toInt());
 
     connect(transitionSelection, SIGNAL(currentIndexChanged(int)), this, SLOT(saveSettings()));
     connect(transitionDuration, SIGNAL(valueChanged(int)), this, SLOT(saveSettings()));
@@ -782,6 +784,8 @@ void  SessionSwitcherWidget::setTransitionMode(int m)
         proxyView->setToolTip("Double click on a session to initiate the transition");
         connect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(startTransitionToSession(QModelIndex) ));
         disconnect(proxyView, SIGNAL(activated(QModelIndex)), this, SLOT(selectSession(QModelIndex) ));
+
+        easingCurvePicker->scrollToItem(easingCurvePicker->item( easingCurvePicker->currentRow() ), QAbstractItemView::PositionAtCenter );
     }
 
 }

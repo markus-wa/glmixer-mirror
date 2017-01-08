@@ -20,6 +20,7 @@
  *
  */
 #include "defines.h"
+#include "common.h"
 #include "GLSLCodeEditorWidget.moc"
 #include "ui_GLSLCodeEditorWidget.h"
 #include "FFGLPluginSourceShadertoy.h"
@@ -48,6 +49,9 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
     QList<int> sizes;
     sizes << (ui->splitter->sizes()[0] + ui->splitter->sizes()[1]) << 0;
     ui->splitter->setSizes( sizes );
+
+    // Use embedded fixed size font
+    ui->logText->document()->setDefaultFont(QFont(getMonospaceFont(), QApplication::font().pointSize() - 1));
 }
 
 GLSLCodeEditorWidget::~GLSLCodeEditorWidget()
