@@ -73,6 +73,7 @@
 #endif
 #ifdef GLM_FFGL
 #include "FFGLSource.h"
+#include "FFGLPluginSource.h"
 #include "FFGLPluginBrowser.h"
 #endif
 
@@ -1414,6 +1415,12 @@ PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s,
             FFGLPluginBrowser *ffglpb = new FFGLPluginBrowser( parent, false);
 
             QObject::connect(ffglpb, SIGNAL(edit(FFGLPluginSource *)), GLMixer::getInstance(), SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
+
+            // for SHADERTOY sources, edit code
+            FFGLPluginSource *plugin = cs->freeframeGLPlugin();
+            if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
+                GLMixer::getInstance()->editShaderToyPlugin(  plugin );
+            }
 
             if (pluginBrowserStack)
                 delete pluginBrowserStack;

@@ -1435,9 +1435,6 @@ void GLMixer::on_actionFreeframeSource_triggered(){
                 // if it is a Shadertoy
                 if (st) {
 
-                    // open editor for shadertoy code
-                    editShaderToyPlugin(st);
-
                     // shadertoy info
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Shadertoy plugin source created.");
                     statusbar->showMessage( tr("Shadertoy plugin source %1 created.").arg( s->getName() ), 3000 );
