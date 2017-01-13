@@ -1307,7 +1307,9 @@ void RenderingManager::dropSource(){
             // start playing (according to preference)
             top->play(_playOnDrop);
 
-        } else
+            emit editCurrentSource();
+        }
+        else
             delete top;
     }
 }

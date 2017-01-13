@@ -252,6 +252,7 @@ signals:
     void frameBufferChanged();
     void currentSourceChanged(SourceSet::iterator csi);
     void methodCalled(QString);
+    void editCurrentSource();
 #ifdef GLM_SPOUT
     void spoutSharingEnabled(bool on);
 #endif

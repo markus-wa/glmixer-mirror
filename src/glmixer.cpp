@@ -1438,6 +1438,10 @@ void GLMixer::on_actionFreeframeSource_triggered(){
                     // shadertoy info
                     qDebug() << s->getName() << QChar(124).toLatin1() << tr("New Shadertoy plugin source created.");
                     statusbar->showMessage( tr("Shadertoy plugin source %1 created.").arg( s->getName() ), 3000 );
+
+                    // connect the signal from the rendering manager to
+                    // show the code editor after drop
+                    QObject::connect(RenderingManager::getInstance(), SIGNAL(editCurrentSource()), this, SLOT(on_actionEditSource_triggered()) );
                 }
                 // if it is a Freeframe plugin
                 else {
@@ -1617,6 +1621,10 @@ void GLMixer::on_actionEditSource_triggered()
     if ( RenderingManager::getInstance()->isValid(cs)) {
 
 #ifdef GLM_FFGL
+
+        // this connection is useful only after creation of a new Freeframe Source
+        QObject::disconnect(RenderingManager::getInstance(), SIGNAL(editCurrentSource()), this, SLOT(on_actionEditSource_triggered()) );
+
         // for SHADERTOY sources, edit means edit code
         if ( (*cs)->rtti()  == Source::FFGL_SOURCE ) {
             FFGLSource *ffgls = dynamic_cast<FFGLSource *>(*cs);
@@ -1624,8 +1632,8 @@ void GLMixer::on_actionEditSource_triggered()
                 FFGLPluginSource *plugin = ffgls->freeframeGLPlugin();
                 if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
                     editShaderToyPlugin(  plugin );
-                    return;
                 }
+                return;
             }
         }
 #endif

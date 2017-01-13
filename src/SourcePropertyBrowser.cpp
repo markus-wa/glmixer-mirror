@@ -1416,12 +1416,6 @@ PropertyBrowser *SourcePropertyBrowser::createSpecificPropertyBrowser(Source *s,
 
             QObject::connect(ffglpb, SIGNAL(edit(FFGLPluginSource *)), GLMixer::getInstance(), SLOT(editShaderToyPlugin(FFGLPluginSource *)) );
 
-            // for SHADERTOY sources, edit code
-            FFGLPluginSource *plugin = cs->freeframeGLPlugin();
-            if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
-                GLMixer::getInstance()->editShaderToyPlugin(  plugin );
-            }
-
             if (pluginBrowserStack)
                 delete pluginBrowserStack;
 
