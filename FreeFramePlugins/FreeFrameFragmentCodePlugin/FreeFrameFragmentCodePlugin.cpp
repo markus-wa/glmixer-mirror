@@ -1,4 +1,6 @@
 
+#include "FreeFrameFragmentCodePlugin.h"
+
 const char *fragmentMainCode = "\nvoid main(void){\n"
                                "mainImage( gl_FragColor, gl_FragCoord.xy );\n"
                                "}\0";
@@ -7,6 +9,36 @@ const char *fragmentMainCode = "\nvoid main(void){\n"
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+FreeFrameShadertoy::FreeFrameShadertoy()
+    : CFreeFrameGLPlugin()
+{
+    // clean start
+    textureFrameBufferObject.Handle = 0;
+    frameBufferObject = 0;
+    shaderProgram = 0;
+    fragmentShader = 0;
+    uniform_texturesize = 0;
+    uniform_viewportsize = 0;
+    uniform_time = 0;
+    uniform_channeltime = 0;
+    uniform_date = 0;
+    uniform_keys = 0;
+    m_curTime = 0.0;
+    displayList = 0;
+
+    for (int k=0; k<10; ++k) keyboard[k] = 0;
+
+    // Input properties
+    SetTimeSupported(true);
+
+    // No Parameters
+    code_changed = true;
+    fragmentShaderCode = NULL;
+    fragmentShaderHeader = NULL;
+    fragmentShaderDefaultCode = NULL;
+
+}
 
 
 void FreeFrameShadertoy::setFragmentProgramCode(const char *code)
@@ -24,10 +56,44 @@ void FreeFrameShadertoy::setFragmentProgramCode(const char *code)
     code_changed = true;
 }
 
+void FreeFrameShadertoy::setFragmentProgramHeader(const char *code)
+{
+    // free  previous string
+    if (fragmentShaderHeader)
+        free(fragmentShaderHeader);
+
+    // allocate, fill and terminate string
+    fragmentShaderHeader = (char *) malloc(sizeof(char)*(strlen(code)+1));
+    strncpy(fragmentShaderHeader, code, strlen(code));
+    fragmentShaderHeader[strlen(code)] = '\0';
+
+    // inform update that code has changed
+    code_changed = true;
+}
+
+void FreeFrameShadertoy::setFragmentProgramDefaultCode(const char *code)
+{
+    // free  previous string
+    if (fragmentShaderDefaultCode)
+        free(fragmentShaderDefaultCode);
+
+    // allocate, fill and terminate string
+    fragmentShaderDefaultCode = (char *) malloc(sizeof(char)*(strlen(code)+1));
+    strncpy(fragmentShaderDefaultCode, code, strlen(code));
+    fragmentShaderDefaultCode[strlen(code)] = '\0';
+}
 
 char *FreeFrameShadertoy::getFragmentProgramCode()
 {
     return fragmentShaderCode;
+}
+char *FreeFrameShadertoy::getFragmentProgramHeader()
+{
+    return fragmentShaderHeader;
+}
+char *FreeFrameShadertoy::getFragmentProgramDefaultCode()
+{
+    return fragmentShaderDefaultCode;
 }
 
 char *FreeFrameShadertoy::getFragmentProgramLogs()
@@ -189,6 +255,9 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         if (shaderProgram) glDeleteProgram(shaderProgram);
         if (fragmentShader) glDeleteShader(fragmentShader);
 
+        if (!fragmentShaderCode)
+            setFragmentProgramCode(fragmentShaderDefaultCode);
+
         char *fsc = (char *) malloc(sizeof(char)*(strlen(fragmentShaderHeader)+strlen(fragmentShaderCode)+strlen(fragmentMainCode)+2));
         strcpy(fsc, fragmentShaderHeader);
         strcat(fsc, "\n");
@@ -206,7 +275,7 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
         glLinkProgram(shaderProgram);
         glGetProgramInfoLog(shaderProgram, 4096, &infologLength, progLog);
 
-        sprintf(infoLog, "%s\n%s\n", fragLog, progLog);
+        sprintf(infoLog, "%s\n%s", fragLog, progLog);
 
         // use the shader program
         glUseProgram(shaderProgram);
@@ -344,11 +413,11 @@ char *getString(unsigned int t, FFInstanceID *instanceID)
             codetoread =   pPlugObj->getFragmentProgramLogs();
             break;
         case 2:
-            codetoread =   fragmentShaderHeader;
+            codetoread =   pPlugObj->getFragmentProgramHeader();
             break;
         default:
         case 3:
-            codetoread =   fragmentShaderDefaultCode;
+            codetoread =   pPlugObj->getFragmentProgramDefaultCode();
             break;
         }
 

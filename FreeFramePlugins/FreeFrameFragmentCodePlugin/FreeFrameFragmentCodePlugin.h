@@ -1,6 +1,10 @@
 #ifndef FFGLQTGLSL_H
 #define FFGLQTGLSL_H
 
+#include <GL/glew.h>
+#include <cstdio>
+#include <ctime>
+
 #include <FFGLPluginSDK.h>
 
 class FreeFrameShadertoy : public CFreeFrameGLPlugin
@@ -27,23 +31,12 @@ public:
     FFResult    DeInitGL();
 #endif
 
-    ///////////////////////////////////////////////////
-    // Factory method
-    ///////////////////////////////////////////////////
-#ifdef FF_FAIL
-    // FFGL 1.5
-    static DWORD __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
-#else
-    // FFGL 1.6
-    static FFResult __stdcall CreateInstance(CFreeFrameGLPlugin **ppOutInstance)
-#endif
-    {
-        *ppOutInstance = new FreeFrameShadertoy();
-        if (*ppOutInstance != NULL)
-            return FF_SUCCESS;
-        return FF_FAIL;
-    }
 
+
+    void setFragmentProgramHeader(const char *code);
+    char *getFragmentProgramHeader();
+    void setFragmentProgramDefaultCode(const char *code);
+    char *getFragmentProgramDefaultCode();
     void setFragmentProgramCode(const char *code);
     char *getFragmentProgramCode();
     char *getFragmentProgramLogs();
@@ -52,6 +45,7 @@ public:
 
 protected:
 
+    void setFragmentProgramString(char *string, const char *code);
     void drawQuad( FFGLViewportStruct vp, FFGLTextureStruct texture);
 
     FFGLViewportStruct viewport;
@@ -69,10 +63,12 @@ protected:
 
     bool code_changed;
     char *fragmentShaderCode;
+    char *fragmentShaderHeader;
+    char *fragmentShaderDefaultCode;
 
     // logging
     int infologLength;
-    char infoLog[4096];
+    char infoLog[8194];
 
     // Time
     double m_curTime;
