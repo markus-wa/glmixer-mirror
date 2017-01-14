@@ -503,7 +503,7 @@ IF(APPLE)
         file(GLOB_RECURSE QTPLUGINS
         \"\${CMAKE_INSTALL_PREFIX}/${qtplugin_dest_dir}/lib/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
         file(GLOB_RECURSE FFPLUGINS
-          \"\${CMAKE_INSTALL_PREFIX}/${qtplugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+        \"\${CMAKE_INSTALL_PREFIX}/${qtplugin_dest_dir}/plugins/*.so\")
         include(BundleUtilities)
         fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"\${FFPLUGINS}\"  \"${DIRS}\")
         " COMPONENT Runtime)
