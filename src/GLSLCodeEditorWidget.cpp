@@ -106,6 +106,8 @@ void GLSLCodeEditorWidget::linkPlugin(FFGLPluginSourceShadertoy *plugin)
     // remember which plugin is current
     _currentplugin = plugin;
 
+    qDebug()  << _currentplugin  << "Edit Plugin id =" << _currentplugin->getInfo()["Name"].toString();
+
     // update
     updateFields();
 
@@ -126,6 +128,8 @@ void GLSLCodeEditorWidget::updateFields()
 
     if ( _currentplugin )
     {
+        qDebug() << _currentplugin << "Update Plugin id =" << _currentplugin->getInfo()["Name"].toString();
+
         // change the header with the plugin code
         ui->headerText->setCode( _currentplugin->getHeaders() );
 

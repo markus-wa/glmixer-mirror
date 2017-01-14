@@ -4,6 +4,10 @@ cmake_minimum_required (VERSION 2.8)
 if(APPLE)
     add_definitions(-DTARGET_OS_MAC)
     set(FREEFRAME_INSTALL_DIR "GLMixer.app/Contents/MacOS/lib")
+
+    set( CMAKE_FIND_LIBRARY_SUFFIXES .a .so .so.0 .dylib .framework)
+    find_library( GLEW_LIBRARY_STATIC NAMES GLEW glew glew32)
+
 else(APPLE)
     set(FREEFRAME_INSTALL_DIR "./lib/${GLMIXER_BINARY}")
 endif(APPLE)
