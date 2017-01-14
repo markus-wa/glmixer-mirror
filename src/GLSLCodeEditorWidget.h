@@ -56,11 +56,15 @@ public slots:
     void loadCode();
     void saveCode();
     void restoreCode();
+    void openExample(int index);
 
     // reset signaling of errors
     void restoreStyle();
 
 private:
+
+    void fillExamplesList(bool effect = true);
+
     Ui::GLSLCodeEditorWidget *ui;
     QDir _currentDirectory;
     FFGLPluginSourceShadertoy *_currentplugin;

@@ -52,11 +52,49 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
 
     // Use embedded fixed size font
     ui->logText->document()->setDefaultFont(QFont(getMonospaceFont(), QApplication::font().pointSize() - 1));
+
+    // open example on selection
+    connect(ui->examplesCombobox, SIGNAL(currentIndexChanged(int)), SLOT(openExample(int)) );
 }
 
 GLSLCodeEditorWidget::~GLSLCodeEditorWidget()
 {
     delete ui;
+}
+
+void GLSLCodeEditorWidget::fillExamplesList(bool effect)
+{
+    ui->examplesCombobox->clear();
+    ui->examplesCombobox->addItem("Load example..");
+
+    QDir dir;
+    if (effect) {
+        dir = QDir(":/shadertoy/shaders/effect/");
+    } else {
+        dir = QDir(":/shadertoy/shaders/source/");
+    }
+
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); ++i) {
+        QFileInfo fileInfo = list.at(i);
+        ui->examplesCombobox->addItem(fileInfo.baseName(), fileInfo.absoluteFilePath());
+    }
+}
+
+void GLSLCodeEditorWidget::openExample(int index)
+{
+    if (index > 0) {
+
+        QString filename = ui->examplesCombobox->itemData(index).toString();
+
+        QFile fileContent( filename );
+        if (!fileContent.open(QIODevice::ReadOnly | QIODevice::Text))
+            return;
+        ui->codeTextEdit->setCode( QTextStream(&fileContent).readAll() );
+
+        // do not leave the combobox on the index
+        ui->examplesCombobox->setCurrentIndex(0);
+    }
 }
 
 void GLSLCodeEditorWidget::linkPlugin(FFGLPluginSourceShadertoy *plugin)
@@ -103,6 +141,8 @@ void GLSLCodeEditorWidget::updateFields()
 
         // restore logs
         ui->logText->appendPlainText(_currentplugin->getLogs());
+
+        fillExamplesList(ui->headerText->lineCount() > 5);
 
     } else
     {
@@ -239,6 +279,7 @@ void GLSLCodeEditorWidget::loadCode()
         ui->codeTextEdit->setCode( QTextStream(&fileContent).readAll() );
     }
 
+    _currentDirectory = fileInfo.dir();
 }
 
 void GLSLCodeEditorWidget::saveCode()
@@ -246,11 +287,11 @@ void GLSLCodeEditorWidget::saveCode()
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save ShaderToy GLSL fragment shader code"), _currentDirectory.absolutePath(), tr("GLSL code (*.glsl);;Text file (*.txt);;Any file (*.*)") );
 
     if ( !fileName.isEmpty() ) {
+        _currentDirectory = QFileInfo(fileName).dir();
         // open file and put text into it
         QFile fileContent(fileName);
         fileContent.open(QIODevice::WriteOnly | QIODevice::Text);
         QTextStream out(&fileContent);
         out << ui->codeTextEdit->code();
     }
-
 }
