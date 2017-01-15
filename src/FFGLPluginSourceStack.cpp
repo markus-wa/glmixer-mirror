@@ -254,8 +254,10 @@ void FFGLPluginSourceStack::play(bool on){
 QStringList FFGLPluginSourceStack::namesList()
 {
     QStringList pluginlist;
-    for (FFGLPluginSourceStack::iterator it = begin(); it != end(); ++it )
-        pluginlist.append( QFileInfo((*it)->fileName()).baseName() );
+    for (FFGLPluginSourceStack::iterator it = begin(); it != end(); ++it ) {
 
+        QVariantHash informations = (*it)->getInfo();
+        pluginlist.append( informations["Name"].toString() );
+    }
     return pluginlist;
 }
