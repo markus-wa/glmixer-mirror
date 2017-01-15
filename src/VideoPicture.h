@@ -184,10 +184,12 @@ public:
 
 private:
     // LIBAV
-    AVPicture rgb;
+//    AVPicture rgb;
     enum AVPixelFormat pixel_format;
     SwsContext *img_convert_ctx_filtering;
 
+    uint8_t *data;
+    int linesize;
     double pts;
     int width, height;
     bool convert_rgba_palette;

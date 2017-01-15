@@ -267,7 +267,7 @@ bool VideoSource::setVideoFormat(VideoPicture *p)
 
         if ( isPlayable() && RenderingManager::usePboExtension())
         {
-            imgsize =  p->getWidth() * p->getHeight() * (format == GL_RGB ? 3 : 4);
+            imgsize = p->getBufferSize();
 
             // delete picture buffer
             if (pboIds[0] || pboIds[1])

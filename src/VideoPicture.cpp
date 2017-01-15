@@ -160,8 +160,8 @@ VideoPicture::VideoPicture() :
     action(0),
     _pictureMap(NULL)
 {
-    rgb.data[0] = NULL;
-
+    data = NULL;
+    linesize = 0;
 }
 
 VideoPicture::VideoPicture(int w, int h, SwsContext *img_convert_ctx,
@@ -175,47 +175,41 @@ VideoPicture::VideoPicture(int w, int h, SwsContext *img_convert_ctx,
     action(0),
     _pictureMap(NULL)
 {
-    for(int i=0; i<AV_NUM_DATA_POINTERS; ++i) {
-        rgb.data[i] = NULL;
-        rgb.linesize[i] = 0;
-    }
+    data = NULL;
+    linesize = ( format == AV_PIX_FMT_RGB24 ? 3 : 4 ) * width;
 
 #ifdef PICTURE_MAP
     VideoPicture::VideoPictureMapLock.lock();
     do {
         _pictureMap = VideoPicture::getAvailablePictureMap(width, height, format);
-        rgb.data[0] = _pictureMap->getAvailablePictureMemory();
-    } while (rgb.data[0] == NULL);
+        data = _pictureMap->getAvailablePictureMemory();
+    } while (data == NULL);
     VideoPicture::VideoPictureMapLock.unlock();
-
-    rgb.linesize[0] = ( format == AV_PIX_FMT_RGB24 ? 3 : 4 ) * width;
-
 #else
-    avpicture_alloc(&rgb, pixel_format, width, height);
+    data = (uint8_t *) malloc( sizeof(uint8_t) * linesize * height);
 #endif
 
     // initialize buffer if no conversion context is provided
     if (!img_convert_ctx_filtering) {
-        int nbytes = avpicture_get_size(pixel_format, width, height);
-        memset((void *) rgb.data[0], 0,  nbytes);
+        int nbytes = linesize * height;
+        memset((void *) data, 0,  nbytes);
     }
 
 }
 
 
-
 VideoPicture::~VideoPicture()
 {
-    if (rgb.data[0]) {
+    if (data) {
 #ifdef PICTURE_MAP
         VideoPicture::VideoPictureMapLock.lock();
-        _pictureMap->freePictureMemory(rgb.data[0]);
+        _pictureMap->freePictureMemory(data);
         VideoPicture::freePictureMap(_pictureMap);
         VideoPicture::VideoPictureMapLock.unlock();
-
 #else
-        avpicture_free(&rgb);
-        rgb.data[0] = NULL;
+        free(data);
+        data = NULL;
+        linesize = 0;
 #endif
     }
 
@@ -229,7 +223,7 @@ VideoPicture::~VideoPicture()
 
 void VideoPicture::saveToPPM(QString filename) const
 {
-    if (rgb.linesize[0] > 0)
+    if (linesize > 0)
     {
         FILE *pFile;
         int y;
@@ -246,7 +240,7 @@ void VideoPicture::saveToPPM(QString filename) const
         {
           for (int i = 0; i < width; ++i)
           {
-            (void) fwrite(rgb.data[0] + j * rgb.linesize[0] + i * (pixel_format == AV_PIX_FMT_RGBA ? 4 : 3), 1, 3, pFile);
+            (void) fwrite(data + j * linesize + i * (pixel_format == AV_PIX_FMT_RGBA ? 4 : 3), 1, 3, pFile);
           }
         }
 
@@ -268,18 +262,18 @@ void VideoPicture::fill(CUdeviceptr  pInteropFrame, double Pts)
     pixel_format = AV_PIX_FMT_RGBA;
 
     // no AVFrame
-    rgb.data[0] = 0;
+    data = 0;
 }
 
 #endif
 
 int VideoPicture::getBufferSize()
 {
-    return avpicture_get_size(pixel_format, width, height);
+    return linesize * height;
 }
 
 char *VideoPicture::getBuffer() const {
-    return (char*) rgb.data[0];
+    return (char*) data;
 }
 
 
@@ -296,9 +290,11 @@ void VideoPicture::fill(AVFrame *frame, double Pts)
     {
         // Convert the image with ffmpeg sws
         if ( 0 == sws_scale(img_convert_ctx_filtering, frame->data, frame->linesize, 0,
-                            frame->height, (uint8_t**) rgb.data, (int *) rgb.linesize) )
+                            frame->height, (uint8_t**) &data, (int *) &linesize) ) {
             // fail : set pointer to NULL (do not display)
-            rgb.data[0] = NULL;
+            data = NULL;
+            linesize = 0;
+        }
     }
     // I reimplement here sws_convertPalette8ToPacked32 which does not work with alpha channel (RGBA)...
     else
@@ -314,7 +310,7 @@ void VideoPicture::fill(AVFrame *frame, double Pts)
             }
             // copy BGR palette color from frame to RGBA buffer of VideoPicture
             uint8_t *map = frame->data[0];
-            uint8_t *bgr = rgb.data[0];
+            uint8_t *bgr = data;
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
