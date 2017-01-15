@@ -73,8 +73,12 @@ void CodeEditor::highlightCurrentLine()
 
     // Ensure non-proportionnal font, large enough
     QFont f = font();
-    f.setPointSize(QApplication::font().pointSize() - 1);
     f.setFamily( getMonospaceFont() );
+#ifdef Q_OS_WIN32
+    f.setPointSize(QApplication::font().pointSize() + 1);
+#else
+    f.setPointSize(QApplication::font().pointSize() - 1);
+#endif
     setFont( f );
 
     // make sure line number area is of same font
@@ -185,5 +189,3 @@ void GLSLCodeEditor::setReadOnly(bool on)
     codeArea->setReadOnly(on);
     codeArea->setLineWrapMode(QTextEdit::NoWrap);
 }
-
-

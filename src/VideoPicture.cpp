@@ -299,7 +299,6 @@ void VideoPicture::fill(AVFrame *frame, double Pts)
                             frame->height, (uint8_t**) rgb.data, (int *) rgb.linesize) )
             // fail : set pointer to NULL (do not display)
             rgb.data[0] = NULL;
-
     }
     // I reimplement here sws_convertPalette8ToPacked32 which does not work with alpha channel (RGBA)...
     else

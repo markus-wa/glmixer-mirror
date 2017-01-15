@@ -66,7 +66,11 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
     ui->splitter->setSizes( sizes );
 
     // Use embedded fixed size font
+#ifdef Q_OS_WIN32
+    ui->logText->document()->setDefaultFont(QFont(getMonospaceFont(), QApplication::font().pointSize() + 1));
+#else
     ui->logText->document()->setDefaultFont(QFont(getMonospaceFont(), QApplication::font().pointSize() - 1));
+#endif
 
     // open example on selection
     ui->examplesCombobox->installEventFilter(new wheelEventFilter());
