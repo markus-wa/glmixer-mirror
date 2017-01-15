@@ -501,13 +501,19 @@ IF(APPLE)
     # over.
     INSTALL(CODE "
         file(GLOB_RECURSE QTPLUGINS
-        \"\${CMAKE_INSTALL_PREFIX}/${qtplugin_dest_dir}/lib/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
-        file(GLOB_RECURSE FFPLUGINS
-        \"\${CMAKE_INSTALL_PREFIX}/${qtplugin_dest_dir}/plugins/*.so\")
+          \"\${CMAKE_INSTALL_PREFIX}/${qtplugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
         include(BundleUtilities)
-        fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"\${FFPLUGINS}\"  \"${DIRS}\")
+        fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
         " COMPONENT Runtime)
 
+    set(ffplugin_dest_dir GLMixer.app/Contents/MacOS/lib)
+
+    INSTALL(CODE "
+        file(GLOB_RECURSE FFPLUGINS
+        \"\${CMAKE_INSTALL_PREFIX}/${ffplugin_dest_dir}/*.so\")
+        include(BundleUtilities)
+        fixup_bundle(\"${APPS}\" \"\${FFPLUGINS}\" \"${DIRS}\")
+        " COMPONENT Runtime)
 
 ELSE(APPLE)
 
