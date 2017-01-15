@@ -11,9 +11,9 @@ extern "C"
 
 #ifdef Q_OS_UNIX
 #include <sys/mman.h>
+#define PICTURE_MAP
 #endif
 
-#define PICTURE_MAP
 
 // memory map
 QList<VideoPicture::PictureMap*> VideoPicture::_pictureMaps;
