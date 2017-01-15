@@ -7,6 +7,9 @@
 
 #include <FFGLPluginSDK.h>
 
+
+#define FFPARAM_TIME (0)
+
 class FreeFrameShadertoy : public CFreeFrameGLPlugin
 {
 public:
@@ -20,17 +23,20 @@ public:
 #ifdef FF_FAIL
     // FFGL 1.5
     DWORD	ProcessOpenGL(ProcessOpenGLStruct* pGL);
-    DWORD   SetTime(double time);
-    DWORD   InitGL(const FFGLViewportStruct *vp);
-    DWORD   DeInitGL();
+    DWORD       SetTime(double time);
+    DWORD       InitGL(const FFGLViewportStruct *vp);
+    DWORD       DeInitGL();
+    DWORD	SetParameter(const SetParameterStruct* pParam);
+    DWORD	GetParameter(DWORD dwIndex);
 #else
     // FFGL 1.6
     FFResult    ProcessOpenGL(ProcessOpenGLStruct* pGL);
     FFResult    SetTime(double time);
     FFResult    InitGL(const FFGLViewportStruct *vp);
     FFResult    DeInitGL();
+    FFResult	SetFloatParameter(unsigned int index, float value);
+    float	GetFloatParameter(unsigned int index);
 #endif
-
 
 
     void setFragmentProgramHeader(const char *code);
@@ -71,7 +77,8 @@ protected:
     char infoLog[8194];
 
     // Time
-    double m_curTime;
+    double timeFactor;
+    double m_curTime, g_curTime;
 
     // keys
     GLint keyboard[10];

@@ -25,6 +25,7 @@ FreeFrameShadertoy::FreeFrameShadertoy()
     uniform_date = 0;
     uniform_keys = 0;
     m_curTime = 0.0;
+    g_curTime = 0.0;
     displayList = 0;
 
     for (int k=0; k<10; ++k) keyboard[k] = 0;
@@ -32,7 +33,11 @@ FreeFrameShadertoy::FreeFrameShadertoy()
     // Input properties
     SetTimeSupported(true);
 
-    // No Parameters
+    // Parameter
+    SetParamInfo(FFPARAM_TIME, "Speed", FF_TYPE_STANDARD, 0.5f);
+    timeFactor = 0.5;
+
+    // code management
     code_changed = true;
     fragmentShaderCode = NULL;
     fragmentShaderHeader = NULL;
@@ -198,7 +203,13 @@ DWORD   FreeFrameShadertoy::SetTime(double time)
 FFResult FreeFrameShadertoy::SetTime(double time)
 #endif
 {
+    // Global time is influenced by time factor
+    double dt = time - m_curTime;
+    g_curTime += (timeFactor * 2.0) * dt;
+
+    // channel time is absolute
     m_curTime = time;
+
     return FF_SUCCESS;
 }
 
@@ -302,7 +313,7 @@ FFResult FreeFrameShadertoy::ProcessOpenGL(ProcessOpenGLStruct *pGL)
     // they are used in the shader code (determined at compilation).
     // As se do not know the code of the user, we have to test each uniform
     if (uniform_time > -1)
-        glUniform1f(uniform_time, m_curTime);
+        glUniform1f(uniform_time, g_curTime);
     if (uniform_channeltime > -1)
         glUniform1f(uniform_channeltime, m_curTime);
     if (uniform_date > -1) {
@@ -459,3 +470,49 @@ bool setKeyboard(int key, bool status, FFInstanceID *instanceID)
 
     return false;
 }
+
+
+#ifdef FF_FAIL
+// FFGL 1.5
+DWORD FreeFrameShadertoy::SetParameter(const SetParameterStruct* pParam)
+{
+    if (pParam != NULL && pParam->ParameterNumber == FFPARAM_TIME) {
+        timeFactor = *((float *)(unsigned)&(pParam->NewParameterValue));
+        return FF_SUCCESS;
+    }
+
+    return FF_FAIL;
+}
+
+DWORD FreeFrameShadertoy::GetParameter(DWORD index)
+{
+    DWORD dwRet = 0;
+    *((float *)(unsigned)&dwRet) = timeFactor;
+
+    if (index == FFPARAM_TIME)
+        return dwRet;
+    else
+        return FF_FAIL;
+}
+
+#else
+// FFGL 1.6
+FFResult FreeFrameShadertoy::SetFloatParameter(unsigned int index, float value)
+{
+    if (index == FFPARAM_TIME) {
+        timeFactor = value;
+        return FF_SUCCESS;
+    }
+
+    return FF_FAIL;
+}
+
+float FreeFrameShadertoy::GetFloatParameter(unsigned int index)
+{
+    if (index == FFPARAM_TIME)
+        return timeFactor;
+
+    return 0.0;
+}
+#endif
+

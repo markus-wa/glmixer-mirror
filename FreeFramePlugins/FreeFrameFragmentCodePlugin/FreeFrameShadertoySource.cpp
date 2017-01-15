@@ -22,7 +22,6 @@ class FreeFrameShadertoySource : public FreeFrameShadertoy
 public:
     FreeFrameShadertoySource() : FreeFrameShadertoy()
     {
-
         // Input properties
         SetMinInputs(0);
         SetMaxInputs(0);
