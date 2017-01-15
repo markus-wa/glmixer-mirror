@@ -28,6 +28,21 @@
 #include <QDebug>
 
 
+class wheelEventFilter: public QObject
+{
+public:
+    wheelEventFilter():QObject() {}
+    ~wheelEventFilter(){}
+
+    bool eventFilter(QObject* object,QEvent* event)
+    {
+        if(event->type() == QEvent::Wheel)
+            return true;
+        else
+            return QObject::eventFilter(object,event);
+    }
+};
+
 GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
     QWidget(parent), ui(new Ui::GLSLCodeEditorWidget), _currentDirectory(QDir::home()), _currentplugin(NULL)
 {
@@ -54,6 +69,7 @@ GLSLCodeEditorWidget::GLSLCodeEditorWidget(QWidget *parent) :
     ui->logText->document()->setDefaultFont(QFont(getMonospaceFont(), QApplication::font().pointSize() - 1));
 
     // open example on selection
+    ui->examplesCombobox->installEventFilter(new wheelEventFilter());
     connect(ui->examplesCombobox, SIGNAL(currentIndexChanged(int)), SLOT(openExample(int)) );
 }
 

@@ -453,11 +453,6 @@ p, li { white-space: pre-wrap; }
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <item>
-            <property name="text">
-             <string>Choose example...</string>
-            </property>
-           </item>
           </widget>
          </item>
          <item>
