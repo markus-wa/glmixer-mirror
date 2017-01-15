@@ -13,9 +13,16 @@ endif(WIN32)
 message( STATUS "Using ShadertoyEffect and ShadertoySource")
 
 if(APPLE)
-target_link_libraries(ShadertoyEffect -Wl,-all_load FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
-target_link_libraries(ShadertoySource -Wl,-all_load FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+
+  set( CMAKE_FIND_LIBRARY_SUFFIXES .a )
+  find_library( GLEW_LIBRARY_STATIC NAMES GLEW glew glew32)
+
+  target_link_libraries(ShadertoyEffect -Wl,-all_load FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY_STATIC})
+  target_link_libraries(ShadertoySource -Wl,-all_load FreeFrameGL ${OPENGL_LIBRARY} ${GLEW_LIBRARY_STATIC})
+
 else(APPLE)
-target_link_libraries(ShadertoyEffect -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
-target_link_libraries(ShadertoySource -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+
+  target_link_libraries(ShadertoyEffect -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+  target_link_libraries(ShadertoySource -Wl,--whole-archive FreeFrameGL -Wl,--no-whole-archive ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+
 endif(APPLE)
