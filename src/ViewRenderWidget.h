@@ -121,8 +121,8 @@ public:
     void setMouseCursor(mouseCursor c);
 
     typedef enum {TOOL_GRAB=0, TOOL_SCALE, TOOL_ROTATE, TOOL_CUT } toolMode;
-    void setToolMode(toolMode m);
-    toolMode getToolMode();
+    void setToolMode(toolMode m, View::viewMode v = View::NULLVIEW);
+    toolMode getToolMode(View::viewMode v = View::NULLVIEW);
 
     typedef enum {CURSOR_NORMAL=0, CURSOR_SPRING, CURSOR_DELAY, CURSOR_AXIS, CURSOR_LINE, CURSOR_FUZZY} cursorMode;
     void setCursorMode(cursorMode m);

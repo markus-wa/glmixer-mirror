@@ -448,25 +448,42 @@ void ViewRenderWidget::showContextMenu(ViewContextMenu m, const QPoint &pos)
     }
 }
 
-void ViewRenderWidget::setToolMode(toolMode m){
+void ViewRenderWidget::setToolMode(toolMode m, View::viewMode v){
 
-//    if (_currentView == (View *) _geometryView) {
-//        _geometryView->setTool( (GeometryView::toolType) m );
-//        _geometryView->setAction( View::NONE );
-//    }
-
-    _currentView->setTool( (GeometryView::toolType) m );
-    _currentView->setAction( View::NONE );
+    switch (v)
+    {
+    case View::MIXING:
+        _mixingView->setTool( (View::toolType) m );
+        break;
+    case View::GEOMETRY:
+        _geometryView->setTool( (View::toolType) m );
+        break;
+    case View::NULLVIEW:
+    default:
+        _currentView->setTool( (View::toolType) m );
+        _currentView->setAction( View::NONE );
+        break;
+    }
 }
 
-ViewRenderWidget::toolMode ViewRenderWidget::getToolMode(){
+ViewRenderWidget::toolMode ViewRenderWidget::getToolMode(View::viewMode v){
 
-//    if (_currentView == (View *) _geometryView) {
-//        return (ViewRenderWidget::toolMode) _geometryView->getTool();
-//    }
-//    else
-//        return ViewRenderWidget::TOOL_GRAB;
-    return (ViewRenderWidget::toolMode) _currentView->getTool();
+    View::toolType t = View::MOVE;
+    switch (v)
+    {
+    case View::MIXING:
+        t = _mixingView->getTool();
+        break;
+    case View::GEOMETRY:
+        t = _geometryView->getTool();
+        break;
+    case View::NULLVIEW:
+    default:
+        t = _currentView->getTool();
+        break;
+    }
+
+    return (ViewRenderWidget::toolMode) t;
 }
 
 

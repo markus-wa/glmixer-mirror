@@ -2674,6 +2674,14 @@ void GLMixer::readSettings( QString pathtobin )
     if (settings.contains("cursorFuzzyFiltering"))
         cursorFuzzyFiltering->setValue(settings.value("cursorFuzzyFiltering").toInt());
 
+
+    // last tools used
+    if (settings.contains("lastToolMixing"))
+        RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) settings.value("lastToolMixing").toInt() ,View::MIXING);
+    if (settings.contains("lastToolGeometry"))
+        RenderingManager::getRenderingWidget()->setToolMode( (ViewRenderWidget::toolMode) settings.value("lastToolGeometry").toInt() ,View::GEOMETRY);
+
+
 #ifdef GLM_SESSION
     // Switcher session
     switcherSession->restoreSettings();
@@ -2716,6 +2724,10 @@ void GLMixer::saveSettings()
 
     // last session file name
     settings.setValue("lastSessionFileName", currentSessionFileName);
+
+    // last tools used
+    settings.setValue("lastToolMixing", (int) RenderingManager::getRenderingWidget()->getToolMode(View::MIXING));
+    settings.setValue("lastToolGeometry", (int) RenderingManager::getRenderingWidget()->getToolMode(View::GEOMETRY));
 
 #ifdef GLM_SESSION
     // save settings of session switcher
