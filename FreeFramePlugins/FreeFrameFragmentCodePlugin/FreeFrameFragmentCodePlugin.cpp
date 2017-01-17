@@ -4,7 +4,7 @@
 const char *fragmentMainCode = "\nvoid main(void){\n"
                                "mainImage( gl_FragColor, gl_FragCoord.xy );\n"
                                "}\0";
-
+const char *emptyString = " \0";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Methods
@@ -48,6 +48,9 @@ FreeFrameShadertoy::FreeFrameShadertoy()
 
 void FreeFrameShadertoy::setFragmentProgramCode(const char *code)
 {
+    if (code == NULL || strlen(code) == 0)
+        return;
+
     // free  previous string
     if (fragmentShaderCode)
         free(fragmentShaderCode);
@@ -63,6 +66,9 @@ void FreeFrameShadertoy::setFragmentProgramCode(const char *code)
 
 void FreeFrameShadertoy::setFragmentProgramHeader(const char *code)
 {
+    if (code == NULL || strlen(code) == 0)
+        return;
+
     // free  previous string
     if (fragmentShaderHeader)
         free(fragmentShaderHeader);
@@ -78,6 +84,9 @@ void FreeFrameShadertoy::setFragmentProgramHeader(const char *code)
 
 void FreeFrameShadertoy::setFragmentProgramDefaultCode(const char *code)
 {
+    if (code == NULL || strlen(code) == 0)
+        return;
+
     // free  previous string
     if (fragmentShaderDefaultCode)
         free(fragmentShaderDefaultCode);
@@ -431,6 +440,9 @@ char *getString(unsigned int t, FFInstanceID *instanceID)
             codetoread =   pPlugObj->getFragmentProgramDefaultCode();
             break;
         }
+
+        if (codetoread == NULL || strlen(codetoread) == 0)
+            codetoread = emptyString;
 
         stringtoreturn = (char *) malloc(sizeof(char)*(strlen(codetoread)+1));
         strcpy(stringtoreturn, codetoread);

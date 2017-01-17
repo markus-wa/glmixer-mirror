@@ -200,6 +200,7 @@ QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 {
     QDomDocument root;
     QDomElement p = root.createElement("FreeFramePlugin");
+    p.setAttribute("speed", QString::number(_plugin->GetFloatParameter(0),'f',PROPERTY_DECIMALS) );
 
     // save info as XML nodes
     QDomElement info = root.createElement("Name");
@@ -228,7 +229,9 @@ QDomElement FFGLPluginSourceShadertoy::getConfiguration( QDir current )
 
 void FFGLPluginSourceShadertoy::setConfiguration(QDomElement xml)
 {
-//    initialize();
+    double s = xml.attribute("speed", "0.5").toDouble();
+    if (_plugin)
+        _plugin->SetFloatParameter(0, s);
 
     setName( xml.firstChildElement("Name").text() );
     setAbout( xml.firstChildElement("About").text() );

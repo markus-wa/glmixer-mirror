@@ -94,7 +94,7 @@ QVariantHash FFGLPluginInstanceFreeframePlatform::getInfo() {
 #endif
     if (result!=NULL) {
         PluginInfoStructTag *plugininfo = (PluginInfoStructTag*) result;
-        mapinfo.insert("Name", (char *) plugininfo->PluginName);
+        mapinfo.insert("Name", QString( (char *) plugininfo->PluginName ) );
         mapinfo.insert("Type", plugininfo->PluginType == 1 ? QString("Source") : QString("Effect") );
     }
     return mapinfo;
@@ -114,8 +114,8 @@ QVariantHash FFGLPluginInstanceFreeframePlatform::getExtendedInfo() {
     if (result!=NULL) {
         PluginExtendedInfoStructTag *plugininfo = (PluginExtendedInfoStructTag*) result;
         mapinfo.insert("Version", QString("%1.%2").arg(plugininfo->PluginMajorVersion).arg(plugininfo->PluginMinorVersion));
-        mapinfo.insert("Description", plugininfo->Description);
-        mapinfo.insert("About", plugininfo->About);
+        mapinfo.insert("Description", QString(plugininfo->Description) );
+        mapinfo.insert("About", QString(plugininfo->About) );
     }
     return mapinfo;
 }
