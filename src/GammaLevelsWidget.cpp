@@ -213,8 +213,8 @@ void GammaPlotArea::mouseMoveEvent ( QMouseEvent * event )
         int y = qBound( 0, event->y(), this->height());
         gamma = ScaleToGamma( (1.f - ((float) y / (float) this->height()) ) * 1000.0 );
 
-        qDebug() << (1.f - ((float) y / (float) this->height()) ) * 1000.0;
-        qDebug() << gamma;
+//        qDebug() << (1.f - ((float) y / (float) this->height()) ) * 1000.0;
+//        qDebug() << gamma;
         emit gammaChanged();
     }
 }
