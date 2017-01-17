@@ -769,14 +769,16 @@ void MixingToolboxWidget::on_resetPlugins_pressed()
 #endif
 }
 
-void MixingToolboxWidget::changed(){
-
-    emit sourceChanged( RenderingManager::getInstance()->getById( source->getId()) );
+void MixingToolboxWidget::changed()
+{
+    if (source)
+        emit sourceChanged( RenderingManager::getInstance()->getById( source->getId()) );
 }
 
 #ifdef GLM_FFGL
 
-void MixingToolboxWidget::on_addPlugin_pressed(){
+void MixingToolboxWidget::on_addPlugin_pressed()
+{
 
     static FFGLEffectSelectionDialog *effectDialog = new FFGLEffectSelectionDialog(this, appSettings);
 
@@ -803,7 +805,6 @@ void MixingToolboxWidget::on_addPlugin_pressed(){
                 changed();
             }
         }
-
     }
 }
 
