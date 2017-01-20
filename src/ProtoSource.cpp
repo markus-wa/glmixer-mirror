@@ -1,5 +1,6 @@
 #include "ProtoSource.moc"
 #include "common.h"
+#include "defines.h"
 
 #include <QtGui>
 
@@ -45,45 +46,6 @@ void ProtoSource::_setName(QString n) {
     setObjectName(n);
 }
 
-//void ProtoSource::_setX(double v) {
-//    x = v;
-//}
-
-//void ProtoSource::_setY(double v) {
-//    y = v;
-//}
-
-//void ProtoSource::_setPosition(double posx, double posy) {
-//    x = posx;
-//    y = posy;
-////    qDebug() << "ProtoSource::_setPosition " << x << y;
-//}
-
-//void ProtoSource::_setRotationCenterX(double v) {
-//    centerx = v;
-//}
-
-//void ProtoSource::_setRotationCenterY(double v) {
-//    centery = v;
-//}
-
-//void ProtoSource::_setRotationAngle(double v) {
-//    v += 360.0;
-//    rotangle = ABS( v - (double)( (int) v / 360 ) * 360.0 );
-//}
-
-//void ProtoSource::_setScaleX(double v) {
-//    scalex = v;
-//}
-
-//void ProtoSource::_setScaleY(double v) {
-//    scaley = v;
-//}
-
-//void ProtoSource::_setScale(double sx, double sy) {
-//    scalex = sx;
-//    scaley = sy;
-//}
 
 void ProtoSource::_setGeometry(double px, double py, double sx, double sy, double rx, double ry, double a)
 {
@@ -518,5 +480,122 @@ QDataStream &operator>>(QDataStream &stream, ProtoSource *source){
     return stream;
 }
 
+
+
+GenericArgument::GenericArgument(QVariant val) : intValue(0), uintValue(0), doubleValue(0.0), boolValue(false)
+{
+    if (val.isValid()) {
+        // create a persistent value and an argument which can be reinjected
+        switch (val.type()) {
+        case QVariant::Int:
+            intValue = val.toInt();
+            type = "int";
+            break;
+        case QVariant::UInt:
+            uintValue = val.toUInt();
+            type = "uint";
+            break;
+        case QVariant::Double:
+            doubleValue = val.toDouble();
+            type = "double";
+            break;
+        case QVariant::Bool:
+            boolValue = val.toBool();
+            type = "bool";
+            break;
+        case QVariant::RectF:
+            rectValue = val.toRectF();
+            type = "QRectF";
+            break;
+        case QVariant::Color:
+            colorValue = val.value<QColor>();
+            type = "QColor";
+            break;
+        case QVariant::String:
+            stringValue = val.toString();
+            type = "QString";
+            break;
+        default:
+            break;
+        }
+    }
+    else
+        type = "";
+}
+
+QVariant GenericArgument::variant() const
+{
+    QVariant val( QVariant::nameToType(type) );
+    if (val.isValid()) {
+        switch (val.type()) {
+        case QVariant::Int:
+            return QVariant(intValue);
+        case QVariant::UInt:
+            return QVariant(uintValue);
+        case QVariant::Double:
+            return QVariant(doubleValue);
+        case QVariant::Bool:
+            return QVariant(boolValue);
+        case QVariant::RectF:
+            return QVariant(rectValue);
+        case QVariant::String:
+            return QVariant(stringValue);
+        case QVariant::Color:
+        {
+            QVariant col = colorValue;
+            return col;
+        }
+        default:
+            break;
+        }
+    }
+    return QVariant();
+}
+
+QGenericArgument GenericArgument::argument() const
+{
+    QVariant val( QVariant::nameToType(type) );
+
+    if (val.isValid()) {
+        switch (val.type()) {
+        case QVariant::Int:
+            return QArgument<int>(type, intValue);
+        case QVariant::UInt:
+            return QArgument<uint>(type, uintValue);
+        case QVariant::Double:
+            return QArgument<double>(type, doubleValue);
+        case QVariant::Bool:
+            return QArgument<bool>(type, boolValue);
+        case QVariant::RectF:
+            return QArgument<QRectF>(type, rectValue);
+        case QVariant::String:
+            return QArgument<QString>(type, stringValue);
+        case QVariant::Color:
+            return QArgument<QColor>(type, colorValue);
+        default:
+            break;
+        }
+    }
+    return QGenericArgument();
+}
+
+
+QString GenericArgument::string() const
+{
+    QVariant v = variant();
+
+    if ( !v.isValid() )
+        return QString("");
+    else if (v.type() == QVariant::Double)
+        return QString().setNum( v.toDouble(), 'f', 3);
+    else
+        return variant().toString();
+}
+
+QDebug operator << ( QDebug out, const GenericArgument & a )
+{
+    out << a.string();
+    return out;
+}
 
 

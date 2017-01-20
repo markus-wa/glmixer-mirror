@@ -216,7 +216,7 @@ RenderingManager::RenderingManager() :
 
 #ifdef GLM_UNDO
     UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)), Qt::QueuedConnection);
-    connect(UndoManager::getInstance(), SIGNAL(changed(bool)), SLOT(refreshCurrentSource()), Qt::QueuedConnection);
+    connect(UndoManager::getInstance(), SIGNAL(changed()), SLOT(refreshCurrentSource()), Qt::QueuedConnection);
 #endif
 }
 

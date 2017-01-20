@@ -5,132 +5,22 @@
 
 #include <Source.h>
 
-HistoryArgument::HistoryArgument(QVariant val) : intValue(0), uintValue(0), doubleValue(0.0), boolValue(false)
-{
-    if (val.isValid()) {
-        // create a persistent value and an argument which can be reinjected
-        switch (val.type()) {
-        case QVariant::Int:
-            intValue = val.toInt();
-            type = "int";
-            break;
-        case QVariant::UInt:
-            uintValue = val.toUInt();
-            type = "uint";
-            break;
-        case QVariant::Double:
-            doubleValue = val.toDouble();
-            type = "double";
-            break;
-        case QVariant::Bool:
-            boolValue = val.toBool();
-            type = "bool";
-            break;
-        case QVariant::RectF:
-            rectValue = val.toRectF();
-            type = "QRectF";
-            break;
-        case QVariant::Color:
-            colorValue = val.value<QColor>();
-            type = "QColor";
-            break;
-        case QVariant::String:
-            stringValue = val.toString();
-            type = "QString";
-            break;
-        default:
-            break;
-        }
-    }
-}
-
-QVariant HistoryArgument::variant() const
-{
-    QVariant val( QVariant::nameToType(type) );
-    switch (val.type()) {
-    case QVariant::Int:
-        return QVariant(intValue);
-    case QVariant::UInt:
-        return QVariant(uintValue);
-    case QVariant::Double:
-        return QVariant(doubleValue);
-    case QVariant::Bool:
-        return QVariant(boolValue);
-    case QVariant::RectF:
-        return QVariant(rectValue);
-    case QVariant::String:
-        return QVariant(stringValue);
-    case QVariant::Color:
-    {
-        QVariant col = colorValue;
-        return col;
-    }
-    default:
-        break;
-    }
-
-    return QVariant();
-}
-
-QGenericArgument HistoryArgument::argument() const
-{
-    QVariant val( QVariant::nameToType(type) );
-    switch (val.type()) {
-    case QVariant::Int:
-        return QArgument<int>(type, intValue);
-    case QVariant::UInt:
-        return QArgument<uint>(type, uintValue);
-    case QVariant::Double:
-        return QArgument<double>(type, doubleValue);
-    case QVariant::Bool:
-        return QArgument<bool>(type, boolValue);
-    case QVariant::RectF:
-        return QArgument<QRectF>(type, rectValue);
-    case QVariant::String:
-        return QArgument<QString>(type, stringValue);
-    case QVariant::Color:
-        return QArgument<QColor>(type, colorValue);
-    default:
-        break;
-    }
-    return QGenericArgument();
-}
-
-
-QString HistoryArgument::string() const
-{
-    QVariant v = variant();
-
-    if ( !v.isValid() )
-        return QString("-");
-    else if (v.type() == QVariant::Double)
-        return QString().setNum( v.toDouble(), 'f', 3);
-    else
-        return variant().toString();
-}
-
-QDebug operator << ( QDebug out, const HistoryArgument & a )
-{
-    out << a.string();
-    return out;
-}
-
 
 HistoryManager::Event::Event(QObject *o, QMetaMethod m, QVector< QVariantPair > args) : _object(o), _method(m), _iskey(false)
 {
     // convert the list of QVariant pairs into list of History Arguments
     foreach ( const QVariantPair &a, args) {
         // create pair of History Arguments as a Vector
-        QVector<HistoryArgument> argument;
+        QVector<GenericArgument> argument;
         // set value only for valid QVariant
         if (a.first.isValid()) {
-            argument.append( HistoryArgument(a.first) );
-            argument.append( HistoryArgument(a.second) );
+            argument.append( GenericArgument(a.first) );
+            argument.append( GenericArgument(a.second) );
 //            qDebug() << argument[BACKWARD] << argument[FORWARD];
         } else {
             // else create empty arguments
-            argument.append( HistoryArgument() );
-            argument.append( HistoryArgument() );
+            argument.append( GenericArgument() );
+            argument.append( GenericArgument() );
         }
         // append the history argument to the list (in order)
         _arguments.append(argument);
@@ -163,7 +53,7 @@ QString HistoryManager::Event::arguments(Direction dir) const {
 
     QString args("");
 
-    foreach (QVector<HistoryArgument> a, _arguments) {
+    foreach (QVector<GenericArgument> a, _arguments) {
         args += " " + a[dir].string();
     }
 

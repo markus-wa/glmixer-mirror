@@ -1,3 +1,28 @@
+/*
+ *  ProtoSource.h
+ *
+ *  Created on: Jun 29, 2009
+ *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2016 Bruno Herbelin
+ *
+ */
+
 #ifndef PROTOSOURCE_H
 #define PROTOSOURCE_H
 
@@ -5,8 +30,41 @@
 #include <QColor>
 #include <QRect>
 #include <QDomDocument>
+#include <QVariant>
+#include <QPair>
 
-#include "defines.h"
+
+typedef QPair<QVariant, QVariant> QVariantPair;
+#define S_ARG(before, after) QVariantPair(QVariant(before), QVariant(after))
+
+/*
+ * Arguments stored in history have to keep any type of value
+ * A pointer to the member variable is given inside the QGenericArgument
+ * which is used when the method is invoked.
+ *
+*/
+class GenericArgument
+{
+    int intValue;
+    uint uintValue;
+    double doubleValue;
+    bool boolValue;
+    QRectF rectValue;
+    QString stringValue;
+    QColor colorValue;
+
+    char *type;
+
+public:
+    GenericArgument(QVariant v = QVariant());
+    QVariant variant() const;
+    QString string() const;
+    QString typeName() const { return QString(type); }
+    QGenericArgument argument() const;
+};
+
+QDebug operator << ( QDebug out, const GenericArgument & a );
+
 
 /**
  * Common ancestor for all Sources.

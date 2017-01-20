@@ -10,34 +10,8 @@
 #include <QStack>
 #include <QElapsedTimer>
 
-#include "defines.h"
+#include "ProtoSource.h"
 
-/*
- * Arguments stored in history have to keep any type of value
- * A pointer to the member variable is given inside the QGenericArgument
- * which is used when the method is invoked.
- *
-*/
-class HistoryArgument
-{
-    int intValue;
-    uint uintValue;
-    double doubleValue;
-    bool boolValue;
-    QRectF rectValue;
-    QString stringValue;
-    QColor colorValue;
-
-    char *type;
-
-public:
-    HistoryArgument(QVariant v = QVariant());
-    QVariant variant() const;
-    QString string() const;
-    QGenericArgument argument() const;
-};
-
-QDebug operator << ( QDebug out, const HistoryArgument & a );
 
 /*
  * History manager keeps a list of method calls given to the
@@ -82,7 +56,7 @@ public:
     private:
         QObject *_object;
         QMetaMethod _method;
-        QVector< QVector<HistoryArgument> > _arguments;
+        QVector< QVector<GenericArgument> > _arguments;
         bool _iskey;
     };
 

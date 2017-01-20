@@ -29,6 +29,7 @@
 #include <set>
 
 #include "ProtoSource.h"
+#include "defines.h"
 #include "common.h"
 
 #ifdef GLM_FFGL

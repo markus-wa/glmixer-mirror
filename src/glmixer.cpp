@@ -60,11 +60,15 @@
 #include "MixingToolboxWidget.h"
 #include "LayoutToolboxWidget.h"
 #include "GammaLevelsWidget.h"
-#include "OpenSoundControlManager.h"
 #include "NewSourceDialog.h"
 #include "WebSourceCreationDialog.h"
 #include "VideoStreamDialog.h"
 #include "CodecManager.h"
+
+#define GLM_OSC
+#ifdef GLM_OSC
+#include "OpenSoundControlManager.h"
+#endif
 
 #ifdef GLM_UNDO
 #include "UndoManager.h"
@@ -2687,12 +2691,12 @@ void GLMixer::readSettings( QString pathtobin )
     switcherSession->restoreSettings();
 #endif
 
-#ifdef OPENSOUNDCONTROL_MANAGEMENT
+#ifdef GLM_OSC
     // start OSC
     OpenSoundControlManager::getInstance()->setEnabled(true);
 #endif
 
-    qDebug() << tr("All settings restored.");
+    qDebug() << QApplication::applicationName()  << QChar(124).toLatin1() << tr("Settings restored (") << settings.fileName() << ").";
 }
 
 void GLMixer::saveSettings()
@@ -2736,7 +2740,7 @@ void GLMixer::saveSettings()
 
     // make sure system saves settings NOW
     settings.sync();
-    qDebug() << tr("All settings saved.");
+    qDebug() << QApplication::applicationName()  << QChar(124).toLatin1() << tr("Settings saved (") << settings.fileName() << ").";
 }
 
 
@@ -2765,7 +2769,7 @@ void GLMixer::on_actionResetToolbars_triggered()
     logDockWidget->hide();
     logDockWidget->setGeometry(0,0,800,300);
 
-    qDebug() << tr("Default layout restored.");
+    qDebug() << QApplication::applicationName()  << QChar(124).toLatin1()  << tr("Default layout restored.");
 }
 
 void GLMixer::on_actionPreferences_triggered()
@@ -2969,7 +2973,7 @@ void GLMixer::restorePreferences(const QByteArray & state){
     // de-select current source
     RenderingManager::getInstance()->unsetCurrentSource();
 
-    qDebug() << tr("Preferences loaded.");
+    qDebug() << QApplication::applicationName() << QChar(124).toLatin1() << tr("Preferences restored.");
 }
 
 QByteArray GLMixer::getPreferences() const {

@@ -273,7 +273,7 @@ qt4_add_resources(GLMIXER_RCS_SRCS ${GLMIXER_RCS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # this application uses the libraries QtProperty and QtColorPicker
-include_directories(${LIBQTPROPERTY_SOURCE_DIR} ${LIBQTCOLORPICKER_SOURCE_DIR} )
+include_directories(${LIBQTPROPERTY_SOURCE_DIR} ${LIBQTCOLORPICKER_SOURCE_DIR} ${LIBOSCPACK_SOURCE_DIR} )
 
 # tell cmake to create .moc files for all files in the variable qtproject_SRCS that require such a file.
 # note: this assumes that you use #include "header.moc" in your files
