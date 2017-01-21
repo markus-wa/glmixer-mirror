@@ -135,11 +135,11 @@ void setPresetItemTooltip(QListWidgetItem *item, Source *source)
     if ( source->getContrast() != 0 )
         tooltip << QString("Contrast  \t%1").arg(source->getContrast());
     if ( source->getHueShift() != 0 )
-        tooltip << QString("Hue Shift \t%1").arg(source->getHueShift());
-    if ( source->getLuminanceThreshold() != 0 )
-        tooltip << QString("Threshold \t%1").arg(source->getLuminanceThreshold());
-    if ( source->getNumberOfColors() != 0 )
-        tooltip << QString("Posterize \t%1").arg(source->getNumberOfColors());
+        tooltip << QString("HueShift  \t%1").arg(source->getHueShift());
+    if ( source->getThreshold() != 0 )
+        tooltip << QString("Threshold \t%1").arg(source->getThreshold());
+    if ( source->getPosterized() != 0 )
+        tooltip << QString("Posterized\t%1").arg(source->getPosterized());
     if ( source->getFilter() != Source::FILTER_NONE )
         tooltip << QString("Filter    \t%1").arg(Source::getFilterNames()[source->getFilter()] );
     if ( source->getChromaKey() )
@@ -417,9 +417,9 @@ void MixingToolboxWidget::propertyChanged(QString propertyname, int value)
         contrastSlider->setValue(value);
     else if (propertyname == "Threshold")
         thresholdSlider->setValue(value);
-    else if (propertyname == "Posterize")
+    else if (propertyname == "Posterized")
         posterizeSlider->setValue(value < 1 ? 255 : value);
-    else if (propertyname == "Hue shift")
+    else if (propertyname == "HueShift")
         hueSlider->setValue(value);
     else if (propertyname == "Filter")
     {
@@ -538,7 +538,7 @@ void MixingToolboxWidget::on_contrastSlider_valueChanged(int value)
 
 void MixingToolboxWidget::on_hueSlider_valueChanged(int value)
 {
-    emit(valueChanged("Hue shift", value));
+    emit(valueChanged("HueShift", value));
 }
 
 void MixingToolboxWidget::on_thresholdSlider_valueChanged(int value)
@@ -548,7 +548,7 @@ void MixingToolboxWidget::on_thresholdSlider_valueChanged(int value)
 
 void MixingToolboxWidget::on_posterizeSlider_valueChanged(int value)
 {
-    emit(valueChanged("Posterize", value > 254 ? 0 : value));
+    emit(valueChanged("Posterized", value > 254 ? 0 : value));
 }
 
 void MixingToolboxWidget::on_saturationReset_pressed()

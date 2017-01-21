@@ -150,10 +150,10 @@ public:
     inline int getHueShift() const {
         return (int)(hueShift * 360.0);
     }
-    inline int getLuminanceThreshold() const {
+    inline int getThreshold() const {
         return luminanceThreshold;
     }
-    inline int getNumberOfColors() const {
+    inline int getPosterized() const {
         return numberOfColors;
     }
     inline bool getChromaKey() const {
@@ -257,8 +257,8 @@ public:
     Q_INVOKABLE void _setContrast(int c);
     Q_INVOKABLE void _setSaturation(int s);
     Q_INVOKABLE void _setHueShift(int h);
-    Q_INVOKABLE void _setLuminanceThreshold(int l);
-    Q_INVOKABLE void _setNumberOfColors(int n);
+    Q_INVOKABLE void _setThreshold(int l);
+    Q_INVOKABLE void _setPosterized(int n);
     Q_INVOKABLE void _setChromaKey(bool on);
     Q_INVOKABLE void _setChromaKeyColor(QColor c);
     Q_INVOKABLE void _setChromaKeyTolerance(int t);

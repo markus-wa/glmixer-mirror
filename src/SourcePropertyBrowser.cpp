@@ -191,7 +191,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
         pointManager->subDoublePropertyManager()->setDecimals(property->subProperties()[1], PROPERTY_DECIMALS);
         modifyroperty->addSubProperty(property);
         // fixed aspect ratio on/off
-        property = boolManager->addProperty("Fixed aspect ratio");
+        property = boolManager->addProperty("FixedAspectRatio");
         property->setToolTip("Keep width/height proportion when scaling");
         idToProperty[property->propertyName()] = property;
         modifyroperty->addSubProperty(property);
@@ -303,7 +303,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     intManager->setSingleStep(property, 10);
     root->addSubProperty(property);
     // hue
-    property = intManager->addProperty( QLatin1String("Hue shift") );
+    property = intManager->addProperty( QLatin1String("HueShift") );
     property->setToolTip("Hue shift (circular shift of color Hue)");
     idToProperty[property->propertyName()] = property;
     intManager->setRange(property, 0, 360);
@@ -317,7 +317,7 @@ void SourcePropertyBrowser::createSourcePropertyTree(){
     intManager->setSingleStep(property, 10);
     root->addSubProperty(property);
     // nb colors
-    property = intManager->addProperty( QLatin1String("Posterize") );
+    property = intManager->addProperty( QLatin1String("Posterized") );
     property->setToolTip("Posterize (reduce number of colors, 0 to keep original)");
     idToProperty[property->propertyName()] = property;
     intManager->setRange(property, 0, 256);
@@ -576,7 +576,7 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  bool value){
     else if ( property == idToProperty["Pixelated"] ) {
         currentItem->setPixelated(value);
     }
-    else if ( property == idToProperty["Fixed aspect ratio"] ) {
+    else if ( property == idToProperty["FixedAspectRatio"] ) {
         currentItem->setFixedAspectRatio(value);
     }
     else if ( property == idToProperty["Chroma key"] ) {
@@ -601,14 +601,14 @@ void SourcePropertyBrowser::valueChanged(QtProperty *property,  int value){
     else if ( property == idToProperty["Saturation"] ) {
         currentItem->setSaturation(value);
     }
-    else if ( property == idToProperty["Hue shift"] ) {
+    else if ( property == idToProperty["HueShift"] ) {
         currentItem->setHueShift(value);
     }
     else if ( property == idToProperty["Threshold"] ) {
-        currentItem->setLuminanceThreshold(value);
+        currentItem->setThreshold(value);
     }
-    else if ( property == idToProperty["Posterize"] ) {
-        currentItem->setNumberOfColors(value);
+    else if ( property == idToProperty["Posterized"] ) {
+        currentItem->setPosterized(value);
     }
     else if ( property == idToProperty["Key Tolerance"] ) {
         currentItem->setChromaKeyTolerance(value);
@@ -712,8 +712,8 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
         doubleManager->setValue(idToProperty["Angle"], s->getRotationAngle() );
     else if ( name.contains("Scale"))
         pointManager->setValue(idToProperty["Scale"], QPointF( s->getScaleX() / SOURCE_UNIT, s->getScaleY() / SOURCE_UNIT));
-    else if ( name.contains("Fixed aspect ratio"))
-        boolManager->setValue(idToProperty["Fixed aspect ratio"], s->isFixedAspectRatio());
+    else if ( name.contains("FixedAspectRatio"))
+        boolManager->setValue(idToProperty["FixedAspectRatio"], s->isFixedAspectRatio());
     else if ( name.contains("Crop"))
         rectManager->setValue(idToProperty["Crop"], s->getTextureCoordinates());
     else if ( name.contains("Depth"))
@@ -724,7 +724,7 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
         boolManager->setValue(idToProperty["Modifiable"], s->isModifiable() );
         idToProperty["Position"]->setEnabled(s->isModifiable());
         idToProperty["Angle"]->setEnabled(s->isModifiable());
-        idToProperty["Fixed aspect ratio"]->setEnabled(s->isModifiable());
+        idToProperty["FixedAspectRatio"]->setEnabled(s->isModifiable());
         idToProperty["Scale"]->setEnabled(s->isModifiable());
         idToProperty["Crop"]->setEnabled(s->isModifiable());
         idToProperty["Depth"]->setEnabled(s->isModifiable());
@@ -754,12 +754,12 @@ void SourcePropertyBrowser::updateProperty(QString name, Source *s)
         intManager->setValue(idToProperty["Brightness"], s->getBrightness() );
     else if ( name.contains("Contrast"))
         intManager->setValue(idToProperty["Contrast"], s->getContrast() );
-    else if ( name.contains("Hue shift"))
-        intManager->setValue(idToProperty["Hue shift"], s->getHueShift());
+    else if ( name.contains("HueShift"))
+        intManager->setValue(idToProperty["HueShift"], s->getHueShift());
     else if ( name.contains("Threshold"))
-        intManager->setValue(idToProperty["Threshold"], s->getLuminanceThreshold() );
-    else if ( name.contains("Posterize"))
-        intManager->setValue(idToProperty["Posterize"], s->getNumberOfColors() );
+        intManager->setValue(idToProperty["Threshold"], s->getThreshold() );
+    else if ( name.contains("Posterized"))
+        intManager->setValue(idToProperty["Posterized"], s->getPosterized() );
     else if ( name.contains("Chroma key")) {
         boolManager->setValue(idToProperty["Chroma key"], s->getChromaKey());
         idToProperty["Key Color"]->setEnabled(s->getChromaKey());

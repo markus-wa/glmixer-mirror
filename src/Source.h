@@ -253,9 +253,9 @@ public:
     // Adjust hue shift factor
     void setHueShift(int h);
     // Adjust Luminance Threshold
-    void setLuminanceThreshold(int l);
+    void setThreshold(int l);
     // Adjust number of colors
-    void setNumberOfColors(int n);
+    void setPosterized(int n);
     // chroma keying activation
     void setChromaKey(bool on);
     // chroma keying color

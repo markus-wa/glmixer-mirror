@@ -242,16 +242,16 @@ void Source::setHueShift(int h){
     ProtoSource::_setHueShift(h);
 }
 
-void Source::setLuminanceThreshold(int l){
-    emit methodCalled("_setLuminanceThreshold(int)", S_ARG(luminanceThreshold, l));
+void Source::setThreshold(int l){
+    emit methodCalled("_setThreshold(int)", S_ARG(luminanceThreshold, l));
 
-    ProtoSource::_setLuminanceThreshold(l);
+    ProtoSource::_setThreshold(l);
 }
 
-void Source::setNumberOfColors(int n){
-    emit methodCalled("_setNumberOfColors(int)", S_ARG(numberOfColors, n));
+void Source::setPosterized(int n){
+    emit methodCalled("_setPosterized(int)", S_ARG(numberOfColors, n));
 
-    ProtoSource::_setNumberOfColors(n);
+    ProtoSource::_setPosterized(n);
 }
 
 void Source::setChromaKey(bool on) {

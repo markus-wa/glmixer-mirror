@@ -110,8 +110,12 @@ void OpenSoundControlManager::readPendingDatagrams()
 
                     if ((arg)->IsInt32())
                         args.append( (int) (arg)->AsInt32() );
+                    else if ((arg)->IsInt64())
+                        args.append( (int) (arg)->AsInt64() );
                     else if ((arg)->IsFloat())
                         args.append( (double) (arg)->AsFloat() );
+                    else if ((arg)->IsDouble())
+                        args.append( (double) (arg)->AsDouble() );
                     else if ((arg)->IsBool())
                         args.append( (bool) (arg)->AsBool() );
                     else
@@ -195,7 +199,8 @@ void OpenSoundControlManager::executeMessage(QString object, QString property, Q
             // Try to find the index of the given slot
             int methodIndex = s->metaObject()->indexOfSlot( qPrintable(slot) );
             if ( methodIndex > 0 ) {
-//                qDebug() << "invoke " << slot << " on " << s->getName();
+
+                qDebug() << "invoke " << slot << " on " << s->getName() << " " << arguments[0]<< arguments[1]<< arguments[2];
 
                 // invoke the method with all arguments
                 QMetaMethod method = s->metaObject()->method(methodIndex);

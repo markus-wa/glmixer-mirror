@@ -131,12 +131,12 @@ void ProtoSource::_setHueShift(int h){
     hueShift = CLAMP(double(h) / 360.0, 0.0, 1.0);
 }
 
-void ProtoSource::_setLuminanceThreshold(int l){
+void ProtoSource::_setThreshold(int l){
     luminanceThreshold = CLAMP(l, 0, 100);
 
 }
 
-void ProtoSource::_setNumberOfColors(int n){
+void ProtoSource::_setPosterized(int n){
     numberOfColors = CLAMP(n, 0, 256);
 }
 
@@ -292,9 +292,9 @@ QDomElement ProtoSource::getConfiguration(QDomDocument &doc)
     Coloring.setAttribute("Brightness", getBrightness());
     Coloring.setAttribute("Contrast", getContrast());
     Coloring.setAttribute("Saturation", getSaturation());
-    Coloring.setAttribute("Hueshift", getHueShift());
-    Coloring.setAttribute("luminanceThreshold", getLuminanceThreshold());
-    Coloring.setAttribute("numberOfColors", getNumberOfColors());
+    Coloring.setAttribute("HueShift", getHueShift());
+    Coloring.setAttribute("luminanceThreshold", getThreshold());
+    Coloring.setAttribute("numberOfColors", getPosterized());
     sourceElem.appendChild(Coloring);
 
     QDomElement Chromakey = doc.createElement("Chromakey");
@@ -363,9 +363,9 @@ bool ProtoSource::setConfiguration(QDomElement xmlconfig)
     _setBrightness( tmp.attribute("Brightness", "0").toInt() );
     _setContrast( tmp.attribute("Contrast", "0").toInt() );
     _setSaturation( tmp.attribute("Saturation", "0").toInt() );
-    _setHueShift( tmp.attribute("Hueshift", "0").toInt() );
-    _setLuminanceThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
-    _setNumberOfColors( tmp.attribute("numberOfColors", "0").toInt() );
+    _setHueShift( tmp.attribute("HueShift", "0").toInt() );
+    _setThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
+    _setPosterized( tmp.attribute("numberOfColors", "0").toInt() );
 
     tmp = xmlconfig.firstChildElement("Chromakey");
     _setChromaKey( tmp.attribute("on", "0").toInt() );
@@ -419,8 +419,8 @@ QDataStream &operator<<(QDataStream &stream, const ProtoSource *source){
             << source->getGammaMinOuput()
             << source->getGammaMaxOutput()
             << source->getHueShift()
-            << source->getLuminanceThreshold()
-            << source->getNumberOfColors()
+            << source->getThreshold()
+            << source->getPosterized()
             << source->getChromaKey()
             << source->getChromaKeyColor()
             << source->getChromaKeyTolerance()
@@ -468,8 +468,8 @@ QDataStream &operator>>(QDataStream &stream, ProtoSource *source){
     stream >> intValue;		source->_setSaturation(intValue);
     stream >> v1 >> v2 >> v3 >> v4 >> v5; 	source->_setGamma(v1, v2, v3, v4, v5);
     stream >> intValue;		source->_setHueShift(intValue);
-    stream >> intValue;		source->_setLuminanceThreshold(intValue);
-    stream >> intValue;		source->_setNumberOfColors(intValue);
+    stream >> intValue;		source->_setThreshold(intValue);
+    stream >> intValue;		source->_setPosterized(intValue);
     stream >> boolValue;	source->_setChromaKey(boolValue);
     stream >> colorValue;	source->_setChromaKeyColor(colorValue);
     stream >> intValue;		source->_setChromaKeyTolerance(intValue);
