@@ -1665,12 +1665,12 @@ font: 75;</string>
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="displayPropertyTree">
+               <widget class="QCheckBox" name="saveExitSession">
                 <property name="toolTip">
-                 <string>Display tree of properties of the current source (side panel)</string>
+                 <string>Save the current session on exit (if possible)</string>
                 </property>
                 <property name="text">
-                 <string>Show source properties as tree</string>
+                 <string>Save session on exit</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -1951,8 +1951,8 @@ font: 75;</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

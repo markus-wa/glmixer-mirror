@@ -203,7 +203,7 @@ private:
 #endif
 
     QTimer *refreshTimingTimer;
-    bool _displayTimeAsFrame, _restoreLastSession;
+    bool _displayTimeAsFrame, _restoreLastSession, _saveExitSession;
     bool _disableOutputWhenRecord;
 
     QSettings settings;

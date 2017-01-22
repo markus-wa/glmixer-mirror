@@ -40,8 +40,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     // property Group Box
     propertyGroupEditor = new QtGroupBoxPropertyBrowser(this);
     propertyGroupEditor->setObjectName(QString::fromUtf8("Property Groups"));
-    propertyGroupEditor->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(propertyGroupEditor, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenuGroup(const QPoint &)));
+    propertyGroupEditor->setContextMenuPolicy(Qt::NoContextMenu);
 
     propertyGroupArea = new QScrollArea(this);
     propertyGroupArea->setFrameShape(QFrame::NoFrame);
@@ -123,7 +122,7 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
     openUrlAction = new QAction(QObject::tr("Show file in browser"), this);
     QObject::connect(openUrlAction, SIGNAL(triggered()), this, SLOT(showReferenceURL() ) );
 
-    // TODO : enable the default value action
+    // Actions of the Tree Context Menu
     menuTree.addAction(defaultValueAction);
     menuTree.addAction(resetAction);
     menuTree.addAction(openUrlAction);
@@ -133,10 +132,6 @@ PropertyBrowser::PropertyBrowser(QWidget *parent) :
 //    menuTree.addAction(QObject::tr("Expand tree"), this, SLOT(expandAll()));
 //    menuTree.addAction(QObject::tr("Collapse tree"), this, SLOT(collapseAll()));
 
-    // TODO : enable the default value action
-    menuGroup.addAction(defaultValueAction);
-    menuGroup.addAction(resetAction);
-    menuGroup.addAction(openUrlAction);
 }
 
 
@@ -326,32 +321,6 @@ void PropertyBrowser::propertyValueChanged(QtProperty *property, const QColor &v
 void PropertyBrowser::propertyValueChanged(QtProperty *property, double value)
 {
     emit( propertyChanged( property->propertyName(), value) );
-}
-
-
-void PropertyBrowser::ctxMenuGroup(const QPoint &pos)
-{
-    if (contextMenuPolicy() == Qt::NoContextMenu)
-        return;
-
-    openUrlAction->setVisible( referenceURL.isValid() );
-
-    defaultValueAction->setVisible( false );
-    defaultValueAction->setEnabled(true);
-    resetAction->setVisible(true);
-
-    if (propertyGroupEditor->currentItem()) {
-        QtProperty *property = propertyGroupEditor->currentItem()->property();
-        if ( property->hasValue() ) {
-            defaultValueAction->setVisible( true );
-            resetAction->setVisible(false);
-
-            if ( !property->isEnabled() || property->isItalics()) {
-                defaultValueAction->setEnabled(false);
-            }
-        }
-    }
-    menuGroup.exec( propertyGroupEditor->mapToGlobal(pos) );
 }
 
 

@@ -168,7 +168,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         restoreLastSession->setChecked(true);
         displayTimeAsFrame->setChecked(false);
         useCustomDialogs->setChecked(true);
-        displayPropertyTree->setChecked(true);
+        saveExitSession->setChecked(true);
         iconSizeSlider->setValue(50);
     }
 }
@@ -299,10 +299,10 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> mem;
     MemoryUsagePolicySlider->setValue(mem);
 
-    // s. display property tree
-    bool propertytree = true;
-    stream >> propertytree;
-    displayPropertyTree->setChecked(propertytree);
+    // s. save session on exit
+    bool save = true;
+    stream >> save;
+    saveExitSession->setChecked(save);
 
     // t. disable PBO
     bool usePBO = true;
@@ -397,8 +397,8 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     // r. memory usage policy
     stream << MemoryUsagePolicySlider->value();
 
-    // s. display property tree
-    stream << displayPropertyTree->isChecked();
+    // s. save session on exit
+    stream << saveExitSession->isChecked();
 
     // t. disable pbo
     stream << !disablePixelBufferObject->isChecked();

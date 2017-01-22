@@ -52,7 +52,6 @@ public slots:
     void showReferenceURL();
 
     // Context menu actions
-    virtual void ctxMenuGroup(const QPoint &);
     virtual void ctxMenuTree(const QPoint &);
     virtual void resetAll() {}
     virtual void defaultValue() {}
@@ -106,7 +105,7 @@ protected:
 
     // context menus
     QUrl referenceURL;
-    QMenu menuTree, menuGroup;
+    QMenu menuTree;
     QAction *resetAction, *defaultValueAction, *openUrlAction;
     bool displayPropertyTree;
 };

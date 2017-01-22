@@ -145,7 +145,7 @@ void GLMixer::deleteInstance() {
 GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     usesystemdialogs(false), maybeSave(true), selectedSourceVideoFile(NULL),
     refreshTimingTimer(0), _displayTimeAsFrame(false), _restoreLastSession(true),
-    _disableOutputWhenRecord(false)
+    _saveExitSession(true), _disableOutputWhenRecord(false)
 {
     setupUi ( this );
 
@@ -576,6 +576,9 @@ GLMixer::~GLMixer()
 
 
 void GLMixer::closeEvent(QCloseEvent * event ){
+
+    if (_saveExitSession && !currentSessionFileName.isEmpty())
+        on_actionSave_Session_triggered();
 
     refreshTimingTimer->stop();
 
@@ -1636,8 +1639,8 @@ void GLMixer::on_actionEditSource_triggered()
                 FFGLPluginSource *plugin = ffgls->freeframeGLPlugin();
                 if( plugin->rtti() == FFGLPluginSource::SHADERTOY_PLUGIN) {
                     editShaderToyPlugin(  plugin );
+                    return;
                 }
-                return;
             }
         }
 #endif
@@ -1646,6 +1649,8 @@ void GLMixer::on_actionEditSource_triggered()
 
         sed.exec();
 
+        // update the property browser of the source
+        connectSource(cs);
     }
 }
 
@@ -2571,6 +2576,22 @@ void GLMixer::drop(QDropEvent *event)
 
 }
 
+QList<QUrl> getExtendedSidebarUrls(QList<QUrl> sideurls)
+{
+    // fill side Bar URLS with standard locations
+    // (use a set to avoid duplicates)
+    QSet<QUrl> urls = sideurls.toSet();
+    urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
+         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation))
+         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation))
+         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MusicLocation));
+    QFileInfoList driv = QDir::drives();
+    while (!driv.isEmpty())
+         urls << QUrl::fromLocalFile(driv.takeFirst().absolutePath());
+    return urls.toList();
+}
+
 void GLMixer::readSettings( QString pathtobin )
 {
     if ( !pathtobin.isNull() )
@@ -2604,33 +2625,12 @@ void GLMixer::readSettings( QString pathtobin )
     if (settings.contains("VideoFileDialog")) {
         mfd->restoreState(settings.value("VideoFileDialog").toByteArray());
         mfd->setDirectory( mfd->history().last() );
-        // Side Bar URLS
-        QSet<QUrl> urls = mfd->sidebarUrls().toSet();
-        urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
-             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
-             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation))
-             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation))
-             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MusicLocation));
-        QFileInfoList driv = QDir::drives();
-        while (!driv.isEmpty())
-             urls << QUrl::fromLocalFile(driv.takeFirst().absolutePath());
-        mfd->setSidebarUrls(urls.toList());
+        mfd->setSidebarUrls( getExtendedSidebarUrls( mfd->sidebarUrls()) );
     }
     if (settings.contains("SessionFileDialog")) {
         sfd->restoreState(settings.value("SessionFileDialog").toByteArray());
         sfd->setDirectory( sfd->history().last() );
-
-        // Side Bar URLS
-        QSet<QUrl> urls = sfd->sidebarUrls().toSet();
-        urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
-             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
-             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MoviesLocation))
-             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::PicturesLocation))
-             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::MusicLocation));
-        QFileInfoList driv = QDir::drives();
-        while (!driv.isEmpty())
-             urls << QUrl::fromLocalFile(driv.takeFirst().absolutePath());
-        sfd->setSidebarUrls(urls.toList());
+        sfd->setSidebarUrls( getExtendedSidebarUrls( sfd->sidebarUrls()) );
 
     }
     if (settings.contains("logTextColumnWidth")) {
@@ -2934,10 +2934,8 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> mem;
     VideoFile::setMemoryUsagePolicy(mem);
 
-    // s. display property tree
-    bool propertytree = true;
-    stream >> propertytree;
-    RenderingManager::getPropertyBrowserWidget()->setDisplayPropertyTree(propertytree);
+    // s. save session on exit
+    stream >> _saveExitSession;
 
     // t. disable PBO
     bool usePBO = true;
@@ -3052,8 +3050,8 @@ QByteArray GLMixer::getPreferences() const {
     // r. Memory usage policy
     stream << VideoFile::getMemoryUsagePolicy();
 
-    // s. property tree
-    stream << RenderingManager::getPropertyBrowserWidget()->getDisplayPropertyTree();
+    // s. save session on exit
+    stream << _saveExitSession;
 
     // t. disable PBO
     stream << RenderingManager::usePboExtension();

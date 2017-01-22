@@ -1330,7 +1330,7 @@ border:0px
           <bool>false</bool>
          </property>
          <property name="currentRow">
-          <number>0</number>
+          <number>-1</number>
          </property>
          <item>
           <property name="text">
@@ -1382,7 +1382,7 @@ border:0px
          </item>
          <item>
           <property name="text">
-           <string>Hue shift</string>
+           <string>HueShift</string>
           </property>
           <property name="toolTip">
            <string>Color hue (shift in color tint)</string>
@@ -1414,7 +1414,7 @@ border:0px
          </item>
          <item>
           <property name="text">
-           <string>Posterize</string>
+           <string>Posterized</string>
           </property>
           <property name="toolTip">
            <string>Posterize the image (reduce the number of colors)</string>
@@ -2116,8 +2116,8 @@ border:0px
   </layout>
  </widget>
  <resources>
-  <include location="../images.qrc"/>
   <include location="../icons.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -272,7 +272,9 @@ void GLSLCodeEditorWidget::restoreStyle()
 
 void GLSLCodeEditorWidget::showHelp()
 {
-    QDesktopServices::openUrl(QUrl("https://www.opengl.org/documentation/glsl/", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://www.khronos.org/registry/OpenGL/index_gl.php#apispecs", QUrl::TolerantMode));
+
+
 }
 
 void GLSLCodeEditorWidget::pasteCode()
