@@ -157,6 +157,8 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
         speedZoom->setValue(120);
         centeredZoom->setChecked(false);
         selectionViewContextMenu->setCurrentIndex(0);
+        enableOSC->setChecked(false);
+        OSCPort->setValue(7000);
     }
 
     if (stackedPreferences->currentWidget() == PageOptions){
@@ -319,6 +321,13 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     stream >> isize;
     iconSizeSlider->setValue(isize);
 
+    // w. Open Sound Control
+    bool useOSC = false;
+    int portOSC = 7000;
+    stream >> useOSC >> portOSC;
+    OSCPort->setValue(portOSC);
+    enableOSC->setChecked(useOSC);
+
 }
 
 QByteArray UserPreferencesDialog::getUserPreferences() const {
@@ -401,6 +410,9 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     // v. icon size
     stream << iconSizeSlider->value();
 
+    // w. Open Sound Control
+    stream << enableOSC->isChecked() << OSCPort->value();
+
     return data;
 }
 
@@ -463,4 +475,9 @@ void UserPreferencesDialog::on_MemoryUsagePolicySlider_valueChanged(int mem)
 void UserPreferencesDialog::on_recordingBufferSize_valueChanged(int percent)
 {
     recordingBuffersizeString->setText(getByteSizeString(RenderingEncoder::computeBufferSize(percent)));
+}
+
+void UserPreferencesDialog::on_OSCHelp_pressed()
+{
+    QDesktopServices::openUrl(QUrl("http://opensoundcontrol.org/introduction-osc", QUrl::TolerantMode));
 }

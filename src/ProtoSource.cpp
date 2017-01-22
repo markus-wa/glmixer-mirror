@@ -49,13 +49,20 @@ void ProtoSource::_setName(QString n) {
 
 void ProtoSource::_setGeometry(double px, double py, double sx, double sy, double rx, double ry, double a)
 {
-    x = px;
-    y = py;
-    scalex = sx;
-    scaley = sy;
-    centerx = rx;
-    centery = ry;
-    rotangle = a;
+    if (px < std::numeric_limits<double>::max())
+        x = px;
+    if (py < std::numeric_limits<double>::max())
+        y = py;
+    if (sx < std::numeric_limits<double>::max())
+        scalex = sx;
+    if (sy < std::numeric_limits<double>::max())
+        scaley = sy;
+    if (rx < std::numeric_limits<double>::max())
+        centerx = rx;
+    if (ry < std::numeric_limits<double>::max())
+        centery = ry;
+    if (a < std::numeric_limits<double>::max())
+        rotangle = a;
 }
 
 void ProtoSource::_setFixedAspectRatio(bool on) {
@@ -115,6 +122,10 @@ void ProtoSource::_setColor(QColor c){
     texcolor = c;
 }
 
+void ProtoSource::_setColor(int r, int g, int b){
+    texcolor = QColor(r,g,b);
+}
+
 void ProtoSource::_setBrightness(int b) {
     brightness  = double(b) / 100.0;
 }
@@ -148,18 +159,26 @@ void ProtoSource::_setChromaKeyColor(QColor c) {
     chromaKeyColor = c;
 }
 
+void ProtoSource::_setChromaKeyColor(int r, int g, int b){
+    chromaKeyColor = QColor(r, g, b);
+}
+
 void ProtoSource::_setChromaKeyTolerance(int t) {
     chromaKeyTolerance = CLAMP( double(t) / 100.0, 0.0, 1.0);
 }
 
 void ProtoSource::_setGamma(double g, double minI, double maxI, double minO, double maxO){
-    gamma = CLAMP(g, 0.001, 50.0);
-    gammaMinIn = CLAMP(minI, 0.0, 1.0);
-    gammaMaxIn = CLAMP(maxI, 0.0, 1.0);
-    gammaMinOut = CLAMP(minO, 0.0, 1.0);
-    gammaMaxOut = CLAMP(maxO, 0.0, 1.0);
 
-    //    qDebug() << "_setGamma " << gamma ;
+    if (g < std::numeric_limits<double>::max())
+        gamma = CLAMP(g, 0.001, 50.0);
+    if (minI < std::numeric_limits<double>::max())
+        gammaMinIn = CLAMP(minI, 0.0, 1.0);
+    if (maxI < std::numeric_limits<double>::max())
+        gammaMaxIn = CLAMP(maxI, 0.0, 1.0);
+    if (minO < std::numeric_limits<double>::max())
+        gammaMinOut = CLAMP(minO, 0.0, 1.0);
+    if (maxO < std::numeric_limits<double>::max())
+        gammaMaxOut = CLAMP(maxO, 0.0, 1.0);
 }
 
 void ProtoSource::_setPixelated(bool on) {
@@ -177,12 +196,21 @@ void ProtoSource::_setBlending(uint sfactor, uint dfactor, uint eq) {
 }
 
 void ProtoSource::_setInvertMode(invertModeType i) {
-    invertMode = CLAMP( i, INVERT_NONE, INVERT_LUMINANCE);
+    invertMode = i;
 }
 
 void ProtoSource::_setFilter(filterType c) {
-    filter = CLAMP( c, FILTER_NONE, FILTER_CUSTOM_GLSL);
+    filter = c;
 }
+
+void ProtoSource::_setInvertMode(int i) {
+    invertMode = (invertModeType) CLAMP( i, INVERT_NONE, INVERT_LUMINANCE);
+}
+
+void ProtoSource::_setFilter(int c) {
+    filter = (filterType) CLAMP( c, FILTER_NONE, FILTER_CUSTOM_GLSL);
+}
+
 
 void ProtoSource::importProperties(const ProtoSource *source, bool withGeometry){
 
@@ -292,7 +320,7 @@ QDomElement ProtoSource::getConfiguration(QDomDocument &doc)
     Coloring.setAttribute("Brightness", getBrightness());
     Coloring.setAttribute("Contrast", getContrast());
     Coloring.setAttribute("Saturation", getSaturation());
-    Coloring.setAttribute("HueShift", getHueShift());
+    Coloring.setAttribute("Hueshift", getHueShift());
     Coloring.setAttribute("luminanceThreshold", getThreshold());
     Coloring.setAttribute("numberOfColors", getPosterized());
     sourceElem.appendChild(Coloring);
@@ -350,7 +378,7 @@ bool ProtoSource::setConfiguration(QDomElement xmlconfig)
                                     tmp.attribute("H", "1").toDouble() ) );
 
     tmp = xmlconfig.firstChildElement("Blending");
-    _setBlending( GL_SRC_ALPHA, (uint) tmp.attribute("Function", "1").toInt(),
+    _setBlending( (uint) GL_SRC_ALPHA, (uint) tmp.attribute("Function", "1").toInt(),
                                 (uint) tmp.attribute("Equation", "32774").toInt());
     _setMask( tmp.attribute("Mask", "0").toInt() );
 
@@ -363,7 +391,7 @@ bool ProtoSource::setConfiguration(QDomElement xmlconfig)
     _setBrightness( tmp.attribute("Brightness", "0").toInt() );
     _setContrast( tmp.attribute("Contrast", "0").toInt() );
     _setSaturation( tmp.attribute("Saturation", "0").toInt() );
-    _setHueShift( tmp.attribute("HueShift", "0").toInt() );
+    _setHueShift( tmp.attribute("Hueshift", "0").toInt() );
     _setThreshold( tmp.attribute("luminanceThreshold", "0").toInt() );
     _setPosterized( tmp.attribute("numberOfColors", "0").toInt() );
 
@@ -455,7 +483,7 @@ QDataStream &operator>>(QDataStream &stream, ProtoSource *source){
     stream >> v1; 	source->_setAlpha(v1);
     // blending
     stream >> uintValue >> uintValue2;
-    source->_setBlending(GL_SRC_ALPHA, uintValue, uintValue2);
+    source->_setBlending((uint) GL_SRC_ALPHA, uintValue, uintValue2);
     // all others
     stream >> rectValue;	source->_setTextureCoordinates(rectValue);
     stream >> colorValue;	source->_setColor(colorValue);
@@ -586,8 +614,12 @@ QString GenericArgument::string() const
 
     if ( !v.isValid() )
         return QString("");
-    else if (v.type() == QVariant::Double)
-        return QString().setNum( v.toDouble(), 'f', 3);
+    else if (v.type() == QVariant::Double) {
+        if (v.toDouble() < std::numeric_limits<double>::max())
+            return QString().setNum( v.toDouble(), 'f', 3);
+        else
+            return QString("NaN");
+    }
     else
         return variant().toString();
 }

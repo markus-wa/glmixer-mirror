@@ -280,6 +280,7 @@ void Source::setGamma(double g, double minI, double maxI, double minO, double ma
 
 void Source::setPixelated(bool on) {
     emit methodCalled("_setPixelated(bool)", S_ARG(pixelated, on));
+
     ProtoSource::_setPixelated(on);
 }
 

@@ -17,14 +17,6 @@ public:
         : Exception( w ) {}
 };
 
-
-class InvalidAddressException : public Exception{
-public:
-    InvalidAddressException( const char *w="invalid address pattern" )
-        : Exception( w ) {}
-};
-
-
 class BundleNotSupportedException : public Exception{
 public:
     BundleNotSupportedException( const char *w="Bundle not supported" )
@@ -52,40 +44,58 @@ OpenSoundControlManager *OpenSoundControlManager::_instance = 0;
 OpenSoundControlManager *OpenSoundControlManager::getInstance() {
 
     if (_instance == 0) {
-        _instance = new OpenSoundControlManager;
+        _instance = new OpenSoundControlManager();
         Q_CHECK_PTR(_instance);
     }
 
     return _instance;
 }
 
-OpenSoundControlManager::OpenSoundControlManager(qint16 port) : QObject()
+OpenSoundControlManager::OpenSoundControlManager() : QObject(), _udpSocket(0), _port(7000)
 {
-    _port = port;
-    _udpSocket.bind(QHostAddress::LocalHost, _port);
-
 }
 
 
-void OpenSoundControlManager::setEnabled(bool enabled)
-{
-    if (enabled)
-        connect(&_udpSocket, SIGNAL(readyRead()),  this, SLOT(readPendingDatagrams()));
-    else
-        disconnect(&_udpSocket, SIGNAL(readyRead()),  this, SLOT(readPendingDatagrams()));
 
-    qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "Network Open Sound Control " << (enabled ? "enabled" : "disabled") << "on port " << _port;
+qint16 OpenSoundControlManager::getPort()
+{
+    return _port;
+}
+
+bool OpenSoundControlManager::isEnabled()
+{
+    return ( _udpSocket != 0 );
+}
+
+void OpenSoundControlManager::setEnabled(bool enable, qint16 port)
+{
+
+    if ( _udpSocket ) {
+        delete _udpSocket;
+        _udpSocket = 0;
+    }
+
+    if (enable) {
+        _port = port;
+        _udpSocket = new QUdpSocket(this);
+        _udpSocket->bind(QHostAddress::LocalHost, _port);
+        connect(_udpSocket, SIGNAL(readyRead()),  this, SLOT(readPendingDatagrams()));
+        qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "UDP OSC Server enabled (port " << _port <<").";
+    }
+    else
+        qDebug() << "OpenSoundControlManager" << QChar(124).toLatin1() << "UDP OSC Server disabled.";
+
 }
 
 void OpenSoundControlManager::readPendingDatagrams()
 {
-    while (_udpSocket.hasPendingDatagrams()) {
+    while (_udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
-        datagram.resize(_udpSocket.pendingDatagramSize());
+        datagram.resize(_udpSocket->pendingDatagramSize());
         QHostAddress sender;
         quint16 senderPort;
 
-        _udpSocket.readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
+        _udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
         // PROCESS THE UDP Datagram
         try {
@@ -118,6 +128,8 @@ void OpenSoundControlManager::readPendingDatagrams()
                         args.append( (double) (arg)->AsDouble() );
                     else if ((arg)->IsBool())
                         args.append( (bool) (arg)->AsBool() );
+                    else if ((arg)->IsNil() || (arg)->IsInfinitum())
+                        args.append( (double) std::numeric_limits<double>::max() );
                     else
                         throw osc::WrongArgumentTypeException();
                 }
@@ -146,9 +158,6 @@ void OpenSoundControlManager::readPendingDatagrams()
 
 void OpenSoundControlManager::executeMessage(QString object, QString property, QVariantList value)
 {
-
-    qDebug() << "execute " << object << property << value;
-
     // Target OBJECT named "render" (control rendering attributes)
     if ( object == "render" ) {
         // Target ATTRIBUTE for render : alpha (transparency)
@@ -161,6 +170,12 @@ void OpenSoundControlManager::executeMessage(QString object, QString property, Q
                 else
                     throw osc::WrongArgumentTypeException();
             }
+            else
+                throw osc::MissingArgumentException();
+        }
+        else if ( property == "Pause") {
+            if (value.size() > 0 && value[0].isValid())
+                RenderingManager::getInstance()->pause( value[0].toBool() );
             else
                 throw osc::MissingArgumentException();
         }
@@ -197,10 +212,10 @@ void OpenSoundControlManager::executeMessage(QString object, QString property, Q
             Source *s = *sit;
 
             // Try to find the index of the given slot
-            int methodIndex = s->metaObject()->indexOfSlot( qPrintable(slot) );
+            int methodIndex = s->metaObject()->indexOfMethod( qPrintable(slot) );
             if ( methodIndex > 0 ) {
 
-                qDebug() << "invoke " << slot << " on " << s->getName() << " " << arguments[0]<< arguments[1]<< arguments[2];
+//                qDebug() << "invoke " << slot << " on " << s->getName() << " " << arguments[0]<< arguments[1]<< arguments[2];
 
                 // invoke the method with all arguments
                 QMetaMethod method = s->metaObject()->method(methodIndex);

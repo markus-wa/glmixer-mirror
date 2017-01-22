@@ -26,6 +26,8 @@
 #ifndef PROTOSOURCE_H
 #define PROTOSOURCE_H
 
+#include <limits>
+
 #include <QObject>
 #include <QColor>
 #include <QRect>
@@ -268,6 +270,12 @@ public:
     Q_INVOKABLE void _setBlending(uint sfactor, uint dfactor, uint eq);
     Q_INVOKABLE void _setInvertMode(invertModeType i);
     Q_INVOKABLE void _setFilter(filterType c);
+
+    // for type compatibility
+    Q_INVOKABLE void _setInvertMode(int i);
+    Q_INVOKABLE void _setFilter(int c);
+    Q_INVOKABLE void _setColor(int r, int g, int b);
+    Q_INVOKABLE void _setChromaKeyColor(int r, int g, int b);
 
 protected:
 

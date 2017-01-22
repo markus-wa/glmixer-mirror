@@ -77,16 +77,19 @@ public:
     static OpenSoundControlManager *getInstance();
 
 public slots:
-    void readPendingDatagrams();
-    void setEnabled(bool);
+    void setEnabled(bool enable, qint16 port);
 
+    bool isEnabled();
+    qint16 getPort();
+
+    void readPendingDatagrams();
     void executeMessage(QString object, QString property, QVariantList value);
 
 private:
-    OpenSoundControlManager(qint16 port=7000);
+    OpenSoundControlManager();
     static OpenSoundControlManager *_instance;
 
-    QUdpSocket _udpSocket;
+    QUdpSocket *_udpSocket;
     qint16 _port;
 };
 

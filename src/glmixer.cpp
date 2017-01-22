@@ -2691,11 +2691,6 @@ void GLMixer::readSettings( QString pathtobin )
     switcherSession->restoreSettings();
 #endif
 
-#ifdef GLM_OSC
-    // start OSC
-    OpenSoundControlManager::getInstance()->setEnabled(true);
-#endif
-
     qDebug() << QApplication::applicationName()  << QChar(124).toLatin1() << tr("Settings restored (") << settings.fileName() << ").";
 }
 
@@ -2967,6 +2962,15 @@ void GLMixer::restorePreferences(const QByteArray & state){
     stream >> isize;
     ViewRenderWidget::setIconSize(MIN_ICON_SIZE + (double)isize * (MAX_ICON_SIZE-MIN_ICON_SIZE) / 100.0);
 
+    // w. Open Sound Control
+    bool useOSC = false;
+    int portOSC = 7000;
+    stream >> useOSC >> portOSC;
+#ifdef GLM_OSC
+    // start OSC
+    OpenSoundControlManager::getInstance()->setEnabled(useOSC, (qint16) portOSC);
+#endif
+
     // ensure the Rendering Manager updates
     RenderingManager::getInstance()->resetFrameBuffer();
 
@@ -3060,6 +3064,15 @@ QByteArray GLMixer::getPreferences() const {
 
     // v. icon size
     stream << (int) ( 100.0 * (ViewRenderWidget::getIconSize() - MIN_ICON_SIZE) / (MAX_ICON_SIZE-MIN_ICON_SIZE) );
+
+    // w. Open Sound Control
+    bool useOSC = false;
+    int portOSC = 7000;
+#ifdef GLM_OSC
+    useOSC = OpenSoundControlManager::getInstance()->isEnabled();
+    portOSC = (int) OpenSoundControlManager::getInstance()->getPort();
+#endif
+    stream << useOSC << portOSC;
 
     return data;
 }
