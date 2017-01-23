@@ -479,5 +479,5 @@ void UserPreferencesDialog::on_recordingBufferSize_valueChanged(int percent)
 
 void UserPreferencesDialog::on_OSCHelp_pressed()
 {
-    QDesktopServices::openUrl(QUrl("http://opensoundcontrol.org/introduction-osc", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://sourceforge.net/p/glmixer/wiki/GLMixer_OSC_Specs/", QUrl::TolerantMode));
 }
