@@ -1005,6 +1005,9 @@ public:
         infoManager->setValue(idToProperty["Type"], "Loopback" );
         addProperty(idToProperty["Type"]);
 
+        // Recursivity of loopback
+        idToProperty["Recursive"] = boolManager->addProperty("Recursive");
+        idToProperty["Recursive"]->setToolTip("Recursive rendering of the whole scene.");
 
         property = infoManager->addProperty( QLatin1String("Rendering method") );
         property->setItalics(true);
@@ -1014,14 +1017,28 @@ public:
         property->setItalics(true);
         idToProperty[property->propertyName()] = property;
 
+        // Set values
+        boolManager->setValue(idToProperty["Recursive"], rs->isRecursive() );
         if (RenderingManager::getInstance()->useFboBlitExtension())
             infoManager->setValue(idToProperty["Rendering method"], "Blit to frame buffer object" );
         else
             infoManager->setValue(idToProperty["Rendering method"], "Draw in frame buffer object" );
         infoManager->setValue(idToProperty["Frame delay"], QString::number(RenderingManager::getInstance()->getPreviousFrameDelay()) );
 
+        // show properties
+        addProperty(idToProperty["Recursive"]);
         addProperty(idToProperty["Rendering method"]);
         addProperty(idToProperty["Frame delay"]);
+
+        connectManagers();
+    }
+
+public slots:
+
+    void valueChanged(QtProperty *property, bool value)
+    {
+        if ( property == idToProperty["Recursive"] )
+            rs->setRecursive(value);
     }
 
 private:

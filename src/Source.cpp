@@ -702,7 +702,7 @@ void Source::setShaderAttributes() const {
 
 }
 
-void Source::bind() const {
+void Source::bind() {
 
     // activate texture 1 ; double texturing of the mask
     glActiveTexture(GL_TEXTURE1);

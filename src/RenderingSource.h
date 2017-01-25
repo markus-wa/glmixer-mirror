@@ -38,42 +38,25 @@ public:
     static RTTI type;
     RTTI rtti() const { return type; }
 
-    // only RenderingManager can create a source
+    void setRecursive(bool on);
+    inline bool isRecursive() const { return _recursive; }
+
 protected:
-    RenderingSource(double d): Source(0, d) {
-        // increment the counter of rendering sources
-        RenderingManager::getInstance()->countRenderingSource++;
-    }
+    // only RenderingManager can create a source
+    RenderingSource(bool recursive, double d);
+    virtual ~RenderingSource();
 
-    virtual ~RenderingSource() {
-        // decrement the counter of rendering sources
-        RenderingManager::getInstance()->countRenderingSource--;
-    }
+    GLuint getTextureIndex() const ;
+    int getFrameWidth() const ;
+    int getFrameHeight() const ;
+    double getFrameRate() const ;
 
-    GLuint getTextureIndex() const {
-        return RenderingManager::getInstance()->previousframe_fbo->texture();
-    }
+    void bind();
+    QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
-    int getFrameWidth() const {
-        return RenderingManager::getInstance()->previousframe_fbo->width();
-    }
-
-    int getFrameHeight() const {
-        return RenderingManager::getInstance()->previousframe_fbo->height();
-    }
-
-    double getFrameRate() const {
-        return RenderingManager::getRenderingWidget()->getFramerate() / double(RenderingManager::getInstance()->getPreviousFrameDelay());
-    }
-
-    QDomElement getConfiguration(QDomDocument &doc, QDir current) {
-        QDomElement sourceElem = Source::getConfiguration(doc, current);
-        sourceElem.setAttribute("playing", isPlaying());
-        QDomElement specific = doc.createElement("TypeSpecific");
-        specific.setAttribute("type", rtti());
-        sourceElem.appendChild(specific);
-        return sourceElem;
-    }
+private:
+    bool _recursive;
+    QGLFramebufferObject *_sfbo;
 
 };
 

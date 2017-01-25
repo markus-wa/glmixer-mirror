@@ -26,6 +26,23 @@ public:
     }
 };
 
+
+class RenderingSourceDialog: public QDialog {
+
+    QToolButton *recursiveButton;
+
+public:
+
+    bool getRecursive();
+
+    RenderingSourceDialog(QWidget *parent);
+
+    QSize sizeHint() const {
+        return QSize(400, 300);
+    }
+};
+
+
 class SourceFileEditDialog: public QDialog {
 
     Source *s;

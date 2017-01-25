@@ -170,7 +170,7 @@ void RenderingManager::deleteInstance() {
 }
 
 RenderingManager::RenderingManager() :
-    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), maxSourceCount(0), countRenderingSource(0)
+    QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), maxSourceCount(0)
 {
     // 1. Create the view rendering widget
     _renderwidget = new ViewRenderWidget;
@@ -409,15 +409,37 @@ double RenderingManager::getFrameBufferAspectRatio() const{
 
 void RenderingManager::postRenderToFrameBuffer() {
 
+    if (_renderwidget->_catalogView->visible() ) {
+        // finalize catalog view
+        _renderwidget->_catalogView->reorganize();
+    }
+
     if (!_fbo)
         return;
 
-    // skip loop back if no rendering source
-    if (countRenderingSource > 0 && !paused)
+    // setup standard state for texturing (used bellow)
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+    glEnable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
+
+
+    // Draw recursive loop back (skip if no rendering source)
+    if (_rendering_sources.size() > 0 && !paused)
     {
         // frame delay
         previousframe_index++;
-        if (!(previousframe_index % previousframe_delay)) {
+        if (!(previousframe_index % previousframe_delay))
+        {
 
             previousframe_index = 0;
 
@@ -440,18 +462,7 @@ void RenderingManager::postRenderToFrameBuffer() {
                 glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
                 glViewport(0, 0, previousframe_fbo->width(), previousframe_fbo->height());
-
-                glMatrixMode(GL_PROJECTION);
-                glPushMatrix();
-                glLoadIdentity();
-                gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
-
-                glMatrixMode(GL_MODELVIEW);
-                glPushMatrix();
-                glLoadIdentity();
-
-                glColor4f(1.0, 1.0, 1.0, 1.0);
-                glEnable(GL_TEXTURE_2D);
+                glColor4f(1.f, 1.f, 1.f, 1.f);
 
                 // render to the frame buffer object
                 if (previousframe_fbo->bind())
@@ -462,16 +473,22 @@ void RenderingManager::postRenderToFrameBuffer() {
                     previousframe_fbo->release();
                 }
 
-                // pop the projection matrix and GL state back for rendering the current view
-                // to the actual widget
-                glDisable(GL_TEXTURE_2D);
                 glPopAttrib();
-                glMatrixMode(GL_PROJECTION);
-                glPopMatrix();
-                glMatrixMode(GL_MODELVIEW);
-                glPopMatrix();
             }
         }
+    }
+
+    // At last, draw the session switcher overlay on the frame buffer
+    if ( (_switcher->alpha()>0 || _switcher->overlay()>0 ) && _fbo->bind())
+    {
+        glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
+        glViewport(0, 0, _renderwidget->_renderView->viewport[2], _renderwidget->_renderView->viewport[3]);
+
+        // render the transition layer on _fbo
+        _switcher->render();
+
+        glPopAttrib();
+        _fbo->release();
     }
 
     // save the frame to file or copy to SHM
@@ -481,9 +498,6 @@ void RenderingManager::postRenderToFrameBuffer() {
      #endif
          ) {
 
-
-        glEnable(GL_TEXTURE_2D);
-        glActiveTexture(GL_TEXTURE0);
         // read texture from the framebuferobject and record this frame (the recorder knows if it is active or not)
         glBindTexture(GL_TEXTURE_2D, _fbo->texture());
 
@@ -522,8 +536,6 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 #endif // SHM
 
-        glDisable(GL_TEXTURE_2D);
-
         // restore state if using PBO
         if (pboIds[0] && pboIds[1]) {
             // back to conventional pixel operation
@@ -551,13 +563,46 @@ void RenderingManager::postRenderToFrameBuffer() {
 
 #endif // SPOUT
 
+    // restore state
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+
 }
 
-
-void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last) {
-
+void RenderingManager::preRenderToFrameBuffer()
+{
+    // create frame buffer if not existing
     if (!_fbo)
         setFrameBufferResolution( sizeOfFrameBuffer[renderingAspectRatio][renderingQuality] );
+
+    glPushAttrib( GL_COLOR_BUFFER_BIT );
+
+    // clear frame buffer
+    if (_fbo && !paused && _fbo->bind())
+    {
+        if (clearWhite)
+            glClearColor(1.f, 1.f, 1.f, 1.f);
+        else
+            glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        _fbo->release();
+    }
+
+    // clear catalog
+    if (_renderwidget->_catalogView->visible() )
+        _renderwidget->_catalogView->clear();
+
+    glPopAttrib();
+}
+
+void RenderingManager::sourceRenderToFrameBuffer(Source *source) {
+
+    if (!source)
+        return;
 
     glPushAttrib(GL_COLOR_BUFFER_BIT | GL_VIEWPORT_BIT);
 
@@ -574,35 +619,20 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
     if (!paused)
     {
         // render to the frame buffer object
-        if (_fbo->bind())
+        if (_fbo && _fbo->bind())
         {
             //
             // 1. Draw into first texture attachment; the final output rendering
             //
-            if (first) {
-                if (clearWhite)
-                    glClearColor(1.f, 1.f, 1.f, 1.f);
-                else
-                    glClearColor(0.f, 0.f, 0.f, 1.f);
-                glClear(GL_COLOR_BUFFER_BIT);
-            }
 
-            if (source) {
-                // draw the source only if not culled and alpha not null
-                if (!source->isCulled() && source->getAlpha() > 0.0) {
-                    glTranslated(source->getX(), source->getY(), 0.0);
-                    glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
-                    glScaled(source->getScaleX(), source->getScaleY(), 1.f);
+            // draw the source only if not culled and alpha not null
+            if (!source->isCulled() && source->getAlpha() > 0.0) {
+                glTranslated(source->getX(), source->getY(), 0.0);
+                glRotated(source->getRotationAngle(), 0.0, 0.0, 1.0);
+                glScaled(source->getScaleX(), source->getScaleY(), 1.f);
 
-                    source->blend();
-                    source->draw();
-                }
-
-            }
-
-            // render the transition layer on top after the last frame
-            if (last) {
-                _switcher->render();
+                source->blend();
+                source->draw();
             }
 
             _fbo->release();
@@ -618,19 +648,10 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
     //
     if (_renderwidget->_catalogView->visible() ) {
 
-        if (first)
-            // Clear Catalog view
-            _renderwidget->_catalogView->clear();
-
-        if (source)
-            // Draw this source into the catalog
-            _renderwidget->_catalogView->drawSource( source );
-
-        if (last)
-            _renderwidget->_catalogView->reorganize();
+        // Draw this source into the catalog
+        _renderwidget->_catalogView->drawSource( source );
 
     }
-
 
     // pop the projection matrix and GL state back for rendering the current view
     // to the actual widget
@@ -641,7 +662,7 @@ void RenderingManager::renderToFrameBuffer(Source *source, bool first, bool last
     glPopMatrix();
 }
 
-Source *RenderingManager::newRenderingSource(double depth) {
+Source *RenderingManager::newRenderingSource(bool recursive, double depth) {
 
 #ifndef NDEBUG
     qDebug() << tr("RenderingManager::newRenderingSource ")<< depth;
@@ -652,7 +673,7 @@ Source *RenderingManager::newRenderingSource(double depth) {
 
     try {
         // create a source appropriate
-        s = new RenderingSource(getAvailableDepthFrom(depth));
+        s = new RenderingSource(recursive, getAvailableDepthFrom(depth));
         s->setName( _defaultSource->getName() + "Render");
 
     } catch (AllocationException &e){
@@ -1944,8 +1965,12 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                          <<"x"<<newsource->getFrameHeight() << ").";
         }
         else if ( type == Source::RENDERING_SOURCE) {
-            // no tags specific for a rendering source
-            newsource = RenderingManager::_instance->newRenderingSource(depth);
+            // tags specific for a rendering source
+            int r = 1;
+            QDomElement Recursive = t.firstChildElement("Recursive");
+            if (!Recursive.isNull())
+                r = Recursive.text().toInt();
+            newsource = RenderingManager::_instance->newRenderingSource(r > 0, depth);
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()
                            << tr("Could not create rendering loop-back source.");

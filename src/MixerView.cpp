@@ -101,7 +101,6 @@ mixingSourceMap getMixingSourceMap(SourceList::iterator begin, SourceList::itera
 void MixerView::paint()
 {
     static double renderingAspectRatio = 1.0;
-    static bool first = true;
     static double ax, ay;
 
     // First the background stuff
@@ -155,30 +154,32 @@ void MixerView::paint()
     }
 
 
+    // pre render draw (clear and prepare)
+    RenderingManager::getInstance()->preRenderToFrameBuffer();
+
+    // set mode for source
     ViewRenderWidget::setSourceDrawingMode(true);
 
-    // Second the icons of the sources (reversed depth order)
-    // render in the depth order
-    first = true;
     // The icons of the sources (reversed depth order)
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+
+        Source *s = *its;
+        if (!s)
+            continue;
 
         //
         // 0. prepare texture
         //
 
         // bind the source textures
-        (*its)->bind();
-
-        //
-        (*its)->setShaderAttributes();
+        s->bind();
+        s->setShaderAttributes();
 
         //
         // 1. Draw it into render FBO
         //
-         if (!(*its)->isStandby()) {
-            RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-            first = false;
+         if (!s->isStandby()) {
+            RenderingManager::getInstance()->sourceRenderToFrameBuffer(s);
         }
 
         //
@@ -186,19 +187,19 @@ void MixerView::paint()
         //
         glPushMatrix();
 
-        ax = (*its)->getAlphaX();
-        ay = (*its)->getAlphaY();
-        glTranslated(ax, ay, (*its)->getDepth());
-        renderingAspectRatio = (*its)->getAspectRatio();
+        ax = s->getAlphaX();
+        ay = s->getAlphaY();
+        glTranslated(ax, ay, s->getDepth());
+        renderingAspectRatio = s->getAspectRatio();
         if ( ABS(renderingAspectRatio) > 1.0)
             glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT, ViewRenderWidget::iconSize * SOURCE_UNIT / renderingAspectRatio,  1.0);
         else
             glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT * renderingAspectRatio, ViewRenderWidget::iconSize * SOURCE_UNIT,  1.0);
 
         // test if the source is passed the standby line
-        (*its)->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
+        s->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
 
-        if (!(*its)->isStandby())
+        if (!s->isStandby())
         {
             //   draw stippled version of the source
             static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
@@ -214,29 +215,27 @@ void MixerView::paint()
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
 
-        (*its)->draw();
+        s->draw();
 
         //
         // 3. draw border and handles if active
         //
 
         // Tag color
-        ViewRenderWidget::setDrawMode((*its)->getTag()->getColor());
+        ViewRenderWidget::setDrawMode(s->getTag()->getColor());
 
         // draw border (larger if active)
-        if (RenderingManager::getInstance()->isCurrentSource(its))
-            glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2) );
+        if (RenderingManager::getInstance()->isCurrentSource(s))
+            glCallList(ViewRenderWidget::border_large_shadow + (s->isModifiable() ? 0 :2) );
         else
-            glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2) );
+            glCallList(ViewRenderWidget::border_thin_shadow + (s->isModifiable() ? 0 :2) );
 
         // done geometry
         glPopMatrix();
     }
 
+    // unset mode for source
     ViewRenderWidget::setSourceDrawingMode(false);
-
-    // if no source was rendered, clear anyway
-    RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
 
     // post render draw (loop back and recorder)
     RenderingManager::getInstance()->postRenderToFrameBuffer();

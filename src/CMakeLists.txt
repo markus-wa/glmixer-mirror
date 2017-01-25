@@ -40,6 +40,7 @@ SET(GLMIXER_SRCS
     CaptureSource.cpp
     SvgSource.cpp
     WebSource.cpp
+    RenderingSource.cpp
     AlgorithmSource.cpp
     AlgorithmSelectionDialog.cpp
     SourceDisplayWidget.cpp

@@ -53,5 +53,7 @@
         <file>images/new_stream.png</file>
         <file>images/iconlarge.png</file>
         <file>images/iconsmall.png</file>
+        <file>images/loopback_recursive.png</file>
+        <file>images/loopback_non_recursive.png</file>
     </qresource>
 </RCC>

@@ -86,7 +86,7 @@ public:
 //    QString renameSource(Source *s, const QString name);
 
     // create source per type :
-    Source *newRenderingSource(double depth = -1.0);
+    Source *newRenderingSource(bool recursive, double depth = -1.0);
     Source *newCaptureSource(QImage img, double depth = -1.0);
     Source *newMediaSource(VideoFile *vf, double depth = -1.0);
     Source *newSvgSource(QSvgRenderer *svg, double depth = -1.0);
@@ -150,6 +150,11 @@ public:
     /**
      * management of the rendering
      */
+    void resetFrameBuffer();
+    void preRenderToFrameBuffer();
+    void sourceRenderToFrameBuffer(Source *source);
+    void postRenderToFrameBuffer();
+
     void setRenderingQuality(frameBufferQuality q);
     inline frameBufferQuality getRenderingQuality() const {
         return renderingQuality;
@@ -160,15 +165,15 @@ public:
         return renderingAspectRatio;
     }
 
-    void resetFrameBuffer();
-
     double getFrameBufferAspectRatio() const;
     inline QSize getFrameBufferResolution() const {
             return renderingSize;
     }
+
     inline int getFrameBufferWidth() const{
         return renderingSize.width();
     }
+
     inline int getFrameBufferHeight() const{
         return renderingSize.height();
     }
@@ -181,8 +186,6 @@ public:
         return _fbo ? _fbo->handle() : 0;
     }
 
-    void renderToFrameBuffer(Source *source, bool first, bool last = false);
-    void postRenderToFrameBuffer();
     inline unsigned int getPreviousFrameDelay() const {
         return previousframe_delay;
     }
@@ -296,7 +299,9 @@ protected:
     Source::scalingMode _scalingMode;
     bool _playOnDrop;
     bool paused;
-    unsigned int maxSourceCount, countRenderingSource;
+    unsigned int maxSourceCount;
+    // set of sources using previousframe_fbo
+    SourceSet _rendering_sources;
 
 
 #ifdef GLM_SHM

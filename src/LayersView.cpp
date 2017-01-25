@@ -136,8 +136,6 @@ void LayersView::setModelview()
 
 void LayersView::paint()
 {
-    static bool first = true;
-
     // First the background stuff
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
@@ -165,14 +163,18 @@ void LayersView::paint()
     glPopMatrix();
 
 
+    // pre render draw (clear and prepare)
+    RenderingManager::getInstance()->preRenderToFrameBuffer();
 
+    // set mode for source
     ViewRenderWidget::setSourceDrawingMode(true);
 
     // loop over the sources (reversed depth order)
-    first = true;
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-        if ((*its)->isStandby())
+        Source *s = *its;
+
+        if (s->isStandby())
             continue;
 
         //
@@ -180,16 +182,13 @@ void LayersView::paint()
         //
 
         // bind the source textures
-        (*its)->bind();
-
-        //
-        (*its)->setShaderAttributes();
+        s->bind();
+        s->setShaderAttributes();
 
         //
         // 1. Draw it into FBO
         //
-        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-        first = false;
+        RenderingManager::getInstance()->sourceRenderToFrameBuffer(s);
 
         //
         // 2. Draw it into current view
@@ -197,24 +196,23 @@ void LayersView::paint()
         glPushMatrix();
 
         // if the source is active or part of the selection which is active
-        if ( forwardSources.count(*its) > 0 ) {
+        if ( forwardSources.count(s) > 0 ) {
             // animated displacement
             if (forwardDisplacement < MAXDISPLACEMENT)
                 forwardDisplacement += ( MAXDISPLACEMENT + 0.1 - forwardDisplacement) * 10.f / RenderingManager::getRenderingWidget()->getFramerate();
             glTranslated( forwardDisplacement, 0.0, 0.0);
         }
 
-        glTranslated( 0.0, 0.0, (*its)->getDepth());
-        glScaled((*its)->getAspectRatio(), 1.0, 1.0);
+        glTranslated( 0.0, 0.0, s->getDepth());
+        glScaled(s->getAspectRatio(), 1.0, 1.0);
 
         // Blending Function For mixing like in the rendering window
-        (*its)->blend();
+        s->blend();
 
         //   draw stippled version of the source
-
         static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
         ViewRenderWidget::program->setUniformValue( _stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
-        (*its)->draw();
+        s->draw();
 
         //
         // 3. draw border and handles if active
@@ -225,16 +223,16 @@ void LayersView::paint()
         glBlendEquation(GL_FUNC_ADD);
 
         // Tag color
-        ViewRenderWidget::setDrawMode((*its)->getTag()->getColor());
+        ViewRenderWidget::setDrawMode(s->getTag()->getColor());
 
         // draw border (larger if active)
-        if (RenderingManager::getInstance()->isCurrentSource(its))
-            glCallList(ViewRenderWidget::border_large_shadow + ((*its)->isModifiable() ? 0 :2));
+        if (RenderingManager::getInstance()->isCurrentSource(s))
+            glCallList(ViewRenderWidget::border_large_shadow + (s->isModifiable() ? 0 :2));
         else
-            glCallList(ViewRenderWidget::border_thin_shadow + ((*its)->isModifiable() ? 0 :2));
+            glCallList(ViewRenderWidget::border_thin_shadow + (s->isModifiable() ? 0 :2));
 
         // draw border for selection
-        if (SelectionManager::getInstance()->isInSelection(*its)) {
+        if (SelectionManager::getInstance()->isInSelection(s)) {
 
             static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
             ViewRenderWidget::program->setUniformValue( _baseColor, QColor(COLOR_SELECTION));
@@ -245,12 +243,8 @@ void LayersView::paint()
         glPopMatrix();
     }
 
-
-    // restore state
+    // unset mode for source
     ViewRenderWidget::setSourceDrawingMode(false);
-
-    // if no source was rendered, clear anyway
-    RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
 
     // post render draw (loop back and recorder)
     RenderingManager::getInstance()->postRenderToFrameBuffer();

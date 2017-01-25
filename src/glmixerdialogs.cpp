@@ -1,5 +1,6 @@
 #include "glmixerdialogs.moc"
 
+#include "RenderingManager.h"
 
 
 int CaptureDialog::getWidth()
@@ -63,6 +64,78 @@ CaptureDialog::CaptureDialog(QWidget *parent, QImage capture, QString caption): 
     QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
     QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
 }
+
+
+bool RenderingSourceDialog::getRecursive()
+{
+    return recursiveButton->isChecked();
+}
+
+RenderingSourceDialog::RenderingSourceDialog(QWidget *parent): QDialog(parent)
+{
+
+    QVBoxLayout *verticalLayout;
+    QLabel *Question, *Display, *Info;
+    QDialogButtonBox *DecisionButtonBox;
+    QHBoxLayout *horizontalLayout;
+    QToolButton *nonrecursiveButton;
+
+    setObjectName(QString::fromUtf8("RenderingSourceDialog"));
+    setWindowTitle(tr( "GLMixer - New Rendering Source"));
+    verticalLayout = new QVBoxLayout(this);
+    verticalLayout->setSpacing(9);
+
+    Question = new QLabel(this);
+    Question->setText(tr(" Choose recursive or non-recursive loop-back:"));
+    verticalLayout->addWidget(Question);
+
+    Display = new QLabel(this);
+    Display->setText(tr("Recursive \t\t\tSimple"));
+    verticalLayout->addWidget(Display);
+
+    horizontalLayout = new QHBoxLayout(this);
+    horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
+    horizontalLayout->setContentsMargins(0, 0, 0, 0);
+    recursiveButton = new QToolButton(this);
+    recursiveButton->setObjectName(QString::fromUtf8("recursiveButton"));
+    recursiveButton->setCheckable(true);
+    recursiveButton->setChecked(true);
+    recursiveButton->setAutoExclusive(true);
+    QPixmap i(QString::fromUtf8(":/glmixer/images/loopback_recursive.png")) ;
+    recursiveButton->setIcon( QIcon(i) );
+    recursiveButton->setIconSize( i.size() );
+
+    horizontalLayout->addWidget(recursiveButton);
+
+    nonrecursiveButton = new QToolButton(this);
+    nonrecursiveButton->setObjectName(QString::fromUtf8("nonrecursiveButton"));
+    nonrecursiveButton->setCheckable(true);
+    nonrecursiveButton->setAutoExclusive(true);
+    i = QPixmap(QString::fromUtf8(":/glmixer/images/loopback_non_recursive.png")) ;
+    nonrecursiveButton->setIcon( QIcon(i) );
+    nonrecursiveButton->setIconSize( i.size() );
+
+    horizontalLayout->addWidget(nonrecursiveButton);
+
+    verticalLayout->addLayout(horizontalLayout);
+
+    Info = new QLabel(this);
+    Info->setStyleSheet("font: italic 9pt");
+    if (RenderingManager::getInstance()->useFboBlitExtension())
+        Info->setText(tr("Rendering mode optimal (Frame Buffer Blit enabled)."));
+    else
+        Info->setText(tr("Rendering mode not optimal (Frame Buffer Blit disabled).") );
+    verticalLayout->addWidget(Info);
+
+    DecisionButtonBox = new QDialogButtonBox(this);
+    DecisionButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+    verticalLayout->addWidget(DecisionButtonBox);
+
+    QObject::connect(DecisionButtonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    QObject::connect(DecisionButtonBox, SIGNAL(rejected()), this, SLOT(reject()));
+}
+
+
 
 SourceFileEditDialog::SourceFileEditDialog(QWidget *parent, Source *source, QString caption): QDialog(parent), s(source) {
 

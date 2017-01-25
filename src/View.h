@@ -37,6 +37,7 @@ class View {
 
     friend class ViewRenderWidget;
     friend class RenderingManager;
+    friend class RenderingSource;
 
 public:
     /**

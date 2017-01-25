@@ -68,21 +68,13 @@ SessionSwitcher::~SessionSwitcher() {
 void SessionSwitcher::render() {
 
     if (currentAlpha > 0.0) {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendEquation(GL_FUNC_ADD);
 
         glColor4f(0.0, 0.0, 0.0, currentAlpha);
-
-        glScaled( OutputRenderWindow::getInstance()->getAspectRatio() * SOURCE_UNIT, SOURCE_UNIT, 1.0);
         glCallList(ViewRenderWidget::quad_texured);
     }
 
     // if we shall render the overlay, do it !
     if ( overlayAlpha > 0.0 ) {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendEquation(GL_FUNC_ADD);
-        glEnable(GL_TEXTURE_2D);
-        glActiveTexture(GL_TEXTURE0);
 
         glColor4f(overlayColor.redF(), overlayColor.greenF(), overlayColor.blueF(), overlayAlpha);
 
@@ -95,9 +87,7 @@ void SessionSwitcher::render() {
             glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::white_texture);
         }
 
-        glScaled( OutputRenderWindow::getInstance()->getAspectRatio() * SOURCE_UNIT, SOURCE_UNIT, 1.0);
         glCallList(ViewRenderWidget::quad_texured);
-        glDisable(GL_TEXTURE_2D);
     }
 
 }

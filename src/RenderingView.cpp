@@ -69,24 +69,24 @@ void RenderingView::resize(int w, int h)
 
 void RenderingView::paint()
 {
-    static bool first = true;
-
-
     // first the background (as the rendering black clear color) with shadow
     glPushMatrix();
     glScalef( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
     glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
     glPopMatrix();
 
-//    glActiveTexture(GL_TEXTURE0);
-//    glEnable(GL_TEXTURE_2D);
 
+    // pre render draw (clear and prepare)
+    RenderingManager::getInstance()->preRenderToFrameBuffer();
+
+    // set mode for source
     ViewRenderWidget::setSourceDrawingMode(true);
-    first = true;
+
     // The icons of the sources (reversed depth order)
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-        if ((*its)->isStandby())
+        Source *s = *its;
+        if (!s || s->isStandby())
             continue;
 
         //
@@ -94,39 +94,38 @@ void RenderingView::paint()
         //
 
         // bind the source textures
-        (*its)->bind();
+        s->bind();
 
         // bind the source textures
-        (*its)->setShaderAttributes();
+        s->setShaderAttributes();
 
         //
         // 1. Draw it into FBO
         //
-        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-        first = false;
+        RenderingManager::getInstance()->sourceRenderToFrameBuffer(s);
 
         //
         // 2. Draw it into current view
         //
         // draw only if it is the current source
-        if ( RenderingManager::getInstance()->isCurrentSource(its)
+        if ( RenderingManager::getInstance()->isCurrentSource(s)
              // OR it is selected
-             || SelectionManager::getInstance()->isInSelection(*its)
+             || SelectionManager::getInstance()->isInSelection(s)
              // OR if there is no current source and no selection (i.e default case draw everything)
              || ( !RenderingManager::getInstance()->isValid( RenderingManager::getInstance()->getCurrentSource())
                 && !SelectionManager::getInstance()->hasSelection() )  ) {
 
             // place and scale
             glPushMatrix();
-            glTranslated((*its)->getX(), (*its)->getY(), 0);
-            glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
-            glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+            glTranslated(s->getX(), s->getY(), 0);
+            glRotated(s->getRotationAngle(), 0.0, 0.0, 1.0);
+            glScaled(s->getScaleX(), s->getScaleY(), 1.f);
 
             // Blending Function For mixing like in the rendering window
-            (*its)->blend();
+            s->blend();
 
             // Draw source in canvas
-            (*its)->draw();
+            s->draw();
 
             // done geometry
             glPopMatrix();
@@ -134,10 +133,8 @@ void RenderingView::paint()
 
     }
 
+    // unset mode for source
     ViewRenderWidget::setSourceDrawingMode(false);
-
-    // if no source was rendered, clear anyway
-    RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
 
     // post render draw (loop back and recorder)
     RenderingManager::getInstance()->postRenderToFrameBuffer();

@@ -1517,13 +1517,24 @@ void GLMixer::on_actionAlgorithmSource_triggered(){
 
 void GLMixer::on_actionRenderingSource_triggered(){
 
-    Source *s = RenderingManager::getInstance()->newRenderingSource();
-    if ( s ){
-        RenderingManager::getInstance()->addSourceToBasket(s);
-        qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New rendering loopback source created.");
-        statusbar->showMessage( tr("Source created with the rendering output loopback."), 3000 );
-    } else
-        qCritical() << tr("Could not create rendering loopback source.");
+    // popup a question dialog to select the type of rendering source
+    static RenderingSourceDialog *rsd = 0;
+    if (!rsd)
+        rsd = new RenderingSourceDialog(this);
+
+
+    if (rsd->exec() == QDialog::Accepted) {
+
+        Source *s = RenderingManager::getInstance()->newRenderingSource( rsd->getRecursive());
+        if ( s ){
+            RenderingManager::getInstance()->addSourceToBasket(s);
+            qDebug() << s->getName() <<  QChar(124).toLatin1() << tr("New rendering loopback source created.");
+            statusbar->showMessage( tr("Source created with the rendering output loopback."), 3000 );
+        } else
+            qCritical() << tr("Could not create rendering loopback source.");
+
+    }
+
 }
 
 

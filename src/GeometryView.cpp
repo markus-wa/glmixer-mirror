@@ -74,21 +74,24 @@ void GeometryView::setModelview()
 
 void GeometryView::paint()
 {
-    static bool first = true;
-
     // first the background (as the rendering black clear color) with shadow
     glPushMatrix();
     glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
     glCallList(ViewRenderWidget::quad_window[RenderingManager::getInstance()->clearToWhite()?1:0]);
     glPopMatrix();
 
+
+    // pre render draw (clear and prepare)
+    RenderingManager::getInstance()->preRenderToFrameBuffer();
+
+    // set mode for source
     ViewRenderWidget::setSourceDrawingMode(true);
 
     // loop over the sources (reversed depth order)
-    first = true;
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-        if ((*its)->isStandby())
+        Source *s = *its;
+        if (!s || s->isStandby())
             continue;
 
         //
@@ -96,17 +99,13 @@ void GeometryView::paint()
         //
 
         // bind the source textures
-        (*its)->bind();
-
-        //
-        (*its)->setShaderAttributes();
+        s->bind();
+        s->setShaderAttributes();
 
         //
         // 1. Draw it into FBO
         //
-        RenderingManager::getInstance()->renderToFrameBuffer(*its, first);
-        first = false;
-
+        RenderingManager::getInstance()->sourceRenderToFrameBuffer(s);
 
         //
         // 2. Draw it into current view
@@ -114,31 +113,31 @@ void GeometryView::paint()
 
         // place and scale
         glPushMatrix();
-        glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
-        glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
-        glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.f);
+        glTranslated(s->getX(), s->getY(), s->getDepth());
+        glRotated(s->getRotationAngle(), 0.0, 0.0, 1.0);
+        glScaled(s->getScaleX(), s->getScaleY(), 1.f);
 
         // Blending Function For mixing like in the rendering window
-        (*its)->blend();
+        s->blend();
         // Draw source in canvas
-        (*its)->draw();
+        s->draw();
 
         // done geometry
         glPopMatrix();
 
     }
 
+    // unset mode for source
     ViewRenderWidget::setSourceDrawingMode(false);
-
-    // if no source was rendered, clear anyway
-    RenderingManager::getInstance()->renderToFrameBuffer(0, first, true);
 
     // post render draw (loop back and recorder)
     RenderingManager::getInstance()->postRenderToFrameBuffer();
 
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-        if ((*its)->isStandby())
+
+        Source *s = *its;
+        if (!s || s->isStandby())
             continue;
 
         //
@@ -146,35 +145,35 @@ void GeometryView::paint()
         //
         // place and scale
         glPushMatrix();
-        glTranslated((*its)->getX(), (*its)->getY(), (*its)->getDepth());
-        glRotated((*its)->getRotationAngle(), 0.0, 0.0, 1.0);
-        glScaled((*its)->getScaleX(), (*its)->getScaleY(), 1.0);
+        glTranslated(s->getX(), s->getY(), s->getDepth());
+        glRotated(s->getRotationAngle(), 0.0, 0.0, 1.0);
+        glScaled(s->getScaleX(), s->getScaleY(), 1.0);
 
         // Tag color
-        glColor4ub((*its)->getTag()->getColor().red(), (*its)->getTag()->getColor().green(), (*its)->getTag()->getColor().blue(), 200);
+        glColor4ub(s->getTag()->getColor().red(), s->getTag()->getColor().green(), s->getTag()->getColor().blue(), 200);
 
 
-        if (RenderingManager::getInstance()->isCurrentSource(its)) {
+        if (RenderingManager::getInstance()->isCurrentSource(s)) {
             // Border according to type and to status of source !!! GL ERROR invalid value
-            int b = borderType + ((*its)->isModifiable() ? 0 : 3);
+            int b = borderType + (s->isModifiable() ? 0 : 3);
             glCallList(b);
             // Draw extra overlay information depending on tool
             if (currentAction == View::TOOL ) {
                 // show that the source has a fixed aspect ratio
-                if ((*its)->isFixedAspectRatio() || currentTool == GeometryView::ROTATE ){
+                if (s->isFixedAspectRatio() || currentTool == GeometryView::ROTATE ){
                     glCallList(ViewRenderWidget::border_tooloverlay + 1);
                 }
                 // show the rotation center when ROTATE
                 if (currentTool == GeometryView::ROTATE) {
-                    glScaled(1.0 / (*its)->getScaleX(), 1.0 / (*its)->getScaleY(), 1.0);
+                    glScaled(1.0 / s->getScaleX(), 1.0 / s->getScaleY(), 1.0);
                     glCallList(ViewRenderWidget::border_tooloverlay);
                 } else if (currentTool == GeometryView::CROP) {
-                    glScaled( 1.0 + 0.07 * ( SOURCE_UNIT / (*its)->getScaleX() ),  1.0 + 0.07 * ( SOURCE_UNIT / (*its)->getScaleY() ), 1.0);
+                    glScaled( 1.0 + 0.07 * ( SOURCE_UNIT / s->getScaleX() ),  1.0 + 0.07 * ( SOURCE_UNIT / s->getScaleY() ), 1.0);
                     glCallList(ViewRenderWidget::border_tooloverlay + 2);
                 }
             }
         } else
-            glCallList(ViewRenderWidget::border_thin + ((*its)->isModifiable() ? 0 : 3));
+            glCallList(ViewRenderWidget::border_thin + (s->isModifiable() ? 0 : 3));
 
         glPopMatrix();
 
