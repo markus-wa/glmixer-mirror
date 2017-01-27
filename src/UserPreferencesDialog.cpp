@@ -72,6 +72,10 @@ UserPreferencesDialog::~UserPreferencesDialog()
 
 void UserPreferencesDialog::showEvent(QShowEvent *e){
 
+    // update labels
+    on_updatePeriod_valueChanged( updatePeriod->value() );
+    on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
+
     defaultProperties->showProperties(defaultSource);
     defaultProperties->setPropertyEnabled("Resolution", false);
     defaultProperties->setPropertyEnabled("Frame rate", false);
@@ -123,6 +127,7 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
     if (stackedPreferences->currentWidget() == PageRendering) {
         resolutionTable->selectRow(3);
         updatePeriod->setValue(16); // default fps at 60
+        on_updatePeriod_valueChanged( updatePeriod->value() );
         disableFiltering->setChecked(false);
         fullscreenMonitor->setCurrentIndex(0);
         disableBlitFrameBuffer->setChecked(!GLEW_EXT_framebuffer_blit);
@@ -147,7 +152,8 @@ void UserPreferencesDialog::restoreDefaultPreferences() {
 
         defaultStartPlaying->setChecked(true);
         scalingModeSelection->setCurrentIndex(0);
-        numberOfFramesRendering->setValue(1);
+        loopbackSkippedFrames->setValue(1);
+        on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
 
         MemoryUsagePolicySlider->setValue(DEFAULT_MEMORY_USAGE_POLICY);
     }
@@ -219,7 +225,7 @@ void UserPreferencesDialog::showPreferences(const QByteArray & state){
     // e.  PreviousFrameDelay
     uint  PreviousFrameDelay = 1;
     stream >> PreviousFrameDelay;
-    numberOfFramesRendering->setValue( (int) PreviousFrameDelay);
+    loopbackSkippedFrames->setValue( (int) PreviousFrameDelay);
 
     // f. Mixing icons stippling
     uint  stippling = 0;
@@ -352,7 +358,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
     stream << defaultStartPlaying->isChecked();
 
     // e. PreviousFrameDelay
-    stream << (uint) numberOfFramesRendering->value();
+    stream << (uint) loopbackSkippedFrames->value();
 
     // f. Mixing icons stippling
     stream << (uint) stipplingSlider->value() * 10;
@@ -420,6 +426,7 @@ QByteArray UserPreferencesDialog::getUserPreferences() const {
 void UserPreferencesDialog::on_updatePeriod_valueChanged(int period)
 {
     frameRateString->setText(QString("%1 fps").arg((int) ( 1000.0 / double(period) ) ) );
+    on_loopbackSkippedFrames_valueChanged( loopbackSkippedFrames->value() );
 }
 
 
@@ -469,6 +476,15 @@ QList<QAction *> UserPreferencesDialog::getActionsList(QList<QAction *> actionli
 void UserPreferencesDialog::on_MemoryUsagePolicySlider_valueChanged(int mem)
 {
     MemoryUsageMaximumLabel->setText(QString("%1 MB").arg(VideoFile::getMemoryUsageMaximum(mem)));
+}
+
+
+void UserPreferencesDialog::on_loopbackSkippedFrames_valueChanged(int i)
+{
+    double fps =  1000.0 / double( updatePeriod->value() ) ;
+    fps /= (double) i;
+
+    loopbackFPS->setText( QString("%1 fps").arg((int)fps));
 }
 
 

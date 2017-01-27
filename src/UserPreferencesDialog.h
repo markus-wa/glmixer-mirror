@@ -60,6 +60,7 @@ public slots:
     void recordingFolderPathChanged(const QString &);
     void on_MemoryUsagePolicySlider_valueChanged(int mem);
     void on_OSCHelp_pressed();
+    void on_loopbackSkippedFrames_valueChanged(int i);
 
 protected:
 
