@@ -2078,7 +2078,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
             if ( ffgl.isNull() )
                 ffgl = t.firstChildElement("FreeFramePlugin");
 
-            newsource = RenderingManager::_instance->newFreeframeGLSource(ffgl, Frame.attribute("Width", "64").toInt(),  Frame.attribute("Height", "64").toInt());
+            newsource = RenderingManager::_instance->newFreeframeGLSource(ffgl, Frame.attribute("Width", "64").toInt(),  Frame.attribute("Height", "64").toInt(), depth);
 
             if (!newsource) {
                 qWarning() << child.attribute("name") << QChar(124).toLatin1()
