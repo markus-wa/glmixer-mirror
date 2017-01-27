@@ -29,6 +29,8 @@
 
 #include "FFGLPluginSource.h"
 #include "FFGLPluginSourceShadertoy.h"
+#include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 
 Source::RTTI FFGLSource::type = Source::FFGL_SOURCE;
 bool FFGLSource::playable = true;
@@ -178,7 +180,10 @@ void FFGLSource::update() {
     Source::update();
 }
 
+double FFGLSource::getFrameRate() const {
 
+    return RenderingManager::getRenderingWidget()->getFramerate();
+}
 
 QDomElement FFGLSource::getConfiguration(QDomDocument &doc, QDir current)
 {

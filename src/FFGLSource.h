@@ -55,6 +55,7 @@ public:
 
     int getFrameWidth() const;
     int getFrameHeight() const;
+    double getFrameRate() const ;
 
     QDomElement getConfiguration(QDomDocument &doc, QDir current);
 
