@@ -298,6 +298,33 @@ void CodecWorker::run()
     }
 }
 
+class FirstFrameFiller : public QThread
+{
+    void run();
+
+    VideoFile *_vf;
+    bool option;
+    double value;
+
+public:
+    FirstFrameFiller(VideoFile *vf, bool o);
+
+    double getValue() { return value; }
+};
+
+FirstFrameFiller::FirstFrameFiller(VideoFile *vf, bool o)
+    : QThread(vf), _vf(vf), option(o), value(0.0)
+{
+    setTerminationEnabled(true);
+
+}
+
+void FirstFrameFiller::run()
+{
+    if(_vf)
+        value = _vf->fill_first_frame(option);
+}
+
 
 void VideoFile::close()
 {
@@ -385,7 +412,7 @@ void VideoFile::stop()
     if (!quit)
     {
 #ifdef VIDEOFILE_DEBUG
-        qDebug() << filename << QChar(124).toLatin1() << tr("Stopping.");
+        qDebug() << filename << QChar(124).toLatin1() << tr("Stopping video...");
 #endif
 
         // request quit
@@ -402,7 +429,16 @@ void VideoFile::stop()
         if (!restart_where_stopped)
         {
             // recreate first picture in case begin has changed
-            current_frame_pts = fill_first_frame(true);
+            // current_frame_pts = fill_first_frame(true);
+            FirstFrameFiller *fff = new FirstFrameFiller(this, true);
+            fff->start();
+            // 2 seconds timeout
+            if ( !fff->wait(2000) ) {
+                qWarning() << filename << QChar(124).toLatin1()<< tr("Failed to stop.");
+            }
+            else
+                current_frame_pts = fff->getValue();
+
             // display firstPicture or black picture
             emit frameReady( resetPicture );
         }
@@ -430,7 +466,7 @@ void VideoFile::start()
     if (quit)
     {
 #ifdef VIDEOFILE_DEBUG
-        qDebug() << filename << QChar(124).toLatin1() << tr("Starting.");
+        qDebug() << filename << QChar(124).toLatin1() << tr("Starting video...");
 #endif
 
         // reset internal state
@@ -525,32 +561,6 @@ bool VideoFile::isOpen() const {
     return (pFormatCtx != NULL);
 }
 
-class FirstFrameFiller : public QThread
-{
-    void run();
-
-    VideoFile *_vf;
-    bool option;
-    double value;
-
-public:
-    FirstFrameFiller(VideoFile *vf, bool o);
-
-    double getValue() { return value; }
-};
-
-FirstFrameFiller::FirstFrameFiller(VideoFile *vf, bool o)
-    : QThread(vf), _vf(vf), option(o), value(0.0)
-{
-    setTerminationEnabled(true);
-
-}
-
-void FirstFrameFiller::run()
-{
-    if(_vf)
-        value = _vf->fill_first_frame(option);
-}
 
 
 bool VideoFile::open(QString file, double markIn, double markOut, bool ignoreAlphaChannel)
