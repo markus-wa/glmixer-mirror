@@ -127,6 +127,15 @@ if(USE_LOG_MANAGEMENT)
     message( STATUS "Using Log Management")
 endif(USE_LOG_MANAGEMENT)
 
+# if Use UNdO was set
+if(USE_UNDO)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_UNDO" ) # make QtCreator happy
+    add_definitions(-DGLM_UNDO)
+    SET(GLMIXER_SRCS  ${GLMIXER_SRCS}
+        UndoManager.cpp
+    )
+    message( STATUS "Using Undo")
+endif(USE_UNDO)
 
 # If SharedMemory was set, then link with its source files
 if(USE_SHAREDMEMORY)
@@ -216,16 +225,6 @@ if(USE_NVIDIA_CUDA)
     )
     message( STATUS "Using CUDA")
 endif(USE_NVIDIA_CUDA)
-
-# if Use UNdO was set
-if(USE_UNDO)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_UNDO" ) # make QtCreator happy
-    add_definitions(-DGLM_UNDO)
-    SET( GLMIXER_SRCS  ${GLMIXER_SRCS}
-        UndoManager.cpp
-    )
-    message( STATUS "Using Undo")
-endif(USE_UNDO)
 
 # if History Management was set
 if(USE_HISTORY_MANAGEMENT)

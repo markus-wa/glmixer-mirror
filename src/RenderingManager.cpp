@@ -215,8 +215,8 @@ RenderingManager::RenderingManager() :
 #endif
 
 #ifdef GLM_UNDO
-    UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)), Qt::QueuedConnection);
-    connect(UndoManager::getInstance(), SIGNAL(changed()), SLOT(refreshCurrentSource()), Qt::QueuedConnection);
+    UndoManager::getInstance()->connect(this, SIGNAL(methodCalled(QString)), SLOT(store(QString)));
+    connect(UndoManager::getInstance(), SIGNAL(changed()), SLOT(refreshCurrentSource()));
 #endif
 }
 
@@ -1139,6 +1139,9 @@ bool RenderingManager::insertSource(Source *s)
         s->setName( getAvailableNameFrom(s->getName()) );
 
         if (_front_sources.size() < maxSourceCount) {
+            // inform undo manager
+            emit methodCalled("_insertSource(Source)");
+
             //insert the source to the list
             if (_front_sources.insert(s).second) {
 
@@ -1151,9 +1154,7 @@ bool RenderingManager::insertSource(Source *s)
                 // connect source to the undo manager
                 UndoManager::getInstance()->connect(s, SIGNAL(methodCalled(QString, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair, QVariantPair)), SLOT(store(QString)), Qt::UniqueConnection);
 #endif
-
                 // inform of success
-                emit methodCalled("_insertSource(Source)");
                 return true;
             }
             else
@@ -1333,6 +1334,8 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
 
     if ( isValid(it_oldsource) && isValid(it_newsource)) {
 
+        emit methodCalled("_replaceSource(GLuint,GLuint)");
+
         double depth_oldsource = (*it_oldsource)->getDepth();
         QString name_oldsource = (*it_oldsource)->getName();
 
@@ -1362,7 +1365,6 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
         // log
         qDebug() << name_oldsource  << QChar(124).toLatin1() << tr("Source replaced by %1").arg((*it_newsource)->getName());
 
-        emit methodCalled("_replaceSource(GLuint,GLuint)");
     }
 
 }
@@ -1379,6 +1381,7 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
         return 0;
     }
 
+    emit methodCalled("_removeSource(SourceSet::iterator)");
 
     // remove from selection and group
     _renderwidget->removeFromSelections(*itsource);
@@ -1407,7 +1410,6 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
         num_sources_deleted++;
     }
 
-    emit methodCalled("_removeSource(SourceSet::iterator)");
 
     return num_sources_deleted;
 }
@@ -1736,23 +1738,441 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 }
 
 
-//void RenderingManager::setConfiguration(QDomElement config, QDomDocument &doc, QDir current)
-//{
-//    for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its++)
-//    {
+int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QString version)
+{
+    // counter of errors
+    int errors = 0;
+    // pointer for new source
+    Source *newsource = 0;
+
+    // read the depth where the source should be created
+    double depth = child.firstChildElement("Depth").attribute("Z", "0").toDouble();
+
+    // get the type of the source to create
+    QDomElement t = child.firstChildElement("TypeSpecific");
+    Source::RTTI type = (Source::RTTI) t.attribute("type").toInt();
+
+    if (type == Source::VIDEO_SOURCE )
+    {
+        // read the tags specific for a video source
+        QDomElement Filename = t.firstChildElement("Filename");
+        QDomElement marks = t.firstChildElement("Marks");
+
+        // first reads with the absolute file name
+        QString fileNameToOpen = Filename.text();
+        // if there is no such file, try generate a file name from the relative file name
+        if (!QFileInfo(fileNameToOpen).exists())
+            fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
+        // if there is such a file
+        if (QFileInfo(fileNameToOpen).exists()) {
+
+            // create the video file
+            VideoFile *newSourceVideoFile = NULL;
+
+            // generate texture of size in power of two if required
+            bool power2 = false;
+            int convert = 0;
+            if ( Filename.attribute("PowerOfTwo","0").toInt() > 0
+                 || !( glewIsSupported("GL_EXT_texture_non_power_of_two")
+                       || glewIsSupported("GL_ARB_texture_non_power_of_two") ) ) {
+                power2 = true;
+                convert = SWS_FAST_BILINEAR;
+            }
+
+#ifdef GLM_CUDA
+            // trying to use CUDA for decoding
+            try {
+                newSourceVideoFile = new CUDAVideoFile(this, power2, convert);
+                qDebug() << child.attribute("name") << QChar(124).toLatin1() << "Using GPU accelerated CUDA Decoding.";
+            }
+            catch (AllocationException &e){
+                qDebug() << child.attribute("name") << QChar(124).toLatin1() <<"CANNOT use GPU accelerated CUDA Decoding.";
+                newSourceVideoFile = 0;
+            }
+#endif
+            if (!newSourceVideoFile)
+                newSourceVideoFile = new VideoFile(this, power2, convert);
+
+            // if the video file was created successfully
+            if (newSourceVideoFile){
+
+                double markin = -1.0, markout = -1.0;
+                // old version used different system for marking : ignore the values for now
+                if ( !( version.toDouble() < 0.7) ) {
+                    markin = marks.attribute("In").toDouble();
+                    markout = marks.attribute("Out").toDouble();
+                }
+
+                // can we open this existing file ?
+                _renderwidget->makeCurrent();
+
+                // try to open until success (or maximum 3 tentatives)
+                int tentative = 0;
+                bool success = false;
+                while (!success && tentative < 3) {
+                    success = newSourceVideoFile->open( fileNameToOpen, markin, markout, Filename.attribute("IgnoreAlpha").toInt() ) ;
+                    tentative++;
+                }
+                // inform if there was a problem
+                if (tentative > 1)
+                    qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("There might be a problem with this video. %1 attempts were required to open it.").arg(tentative);
+
+                // somehow managed to open the file
+                if ( success ) {
+
+                    // fix old version marking : compute marks correctly
+                    if ( version.toDouble() < 0.7) {
+                        newSourceVideoFile->setMarkIn( (double) marks.attribute("In").toInt() / newSourceVideoFile->getFrameRate() );
+                        newSourceVideoFile->setMarkOut( (double) marks.attribute("Out").toInt() / newSourceVideoFile->getFrameRate() );
+                        qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                                   << tr("Converted marks from old version file: begin = %1 (%2)  end = %3 (%4)").arg(newSourceVideoFile->getMarkIn()).arg(marks.attribute("In").toInt()).arg(newSourceVideoFile->getMarkOut()).arg(marks.attribute("Out").toInt());
+                    }
+
+                    // create the source as it is a valid video file (this also set it to be the current source)
+                    newsource = RenderingManager::_instance->newMediaSource(newSourceVideoFile, depth);
+                    if (newsource){
+                        // all is good ! we can apply specific parameters to the video file
+                        QDomElement play = t.firstChildElement("Play");
+
+                        // fix old version speed : compute speed correctly
+                        double play_speed = 1.0;
+                        if ( version.toDouble() < 0.7 ) {
+                            switch (play.attribute("Speed","3").toInt())
+                            {
+                            case 0:
+                                play_speed = 0.25;
+                                break;
+                            case 1:
+                                play_speed = 0.333;
+                                break;
+                            case 2:
+                                play_speed = 0.5;
+                                break;
+                            case 4:
+                                play_speed = 2.0;
+                                break;
+                            case 5:
+                                play_speed = 3.0;
+                                break;
+                            case 3:
+                            default:
+                                play_speed = 1.0;
+                                break;
+                            }
+                        }
+                        // new format speed
+                        else
+                            play_speed = play.attribute("Speed","1.0").toDouble();
+                        newSourceVideoFile->setPlaySpeed(play_speed);
+
+                        newSourceVideoFile->setLoop(play.attribute("Loop","1").toInt());
+                        QDomElement options = t.firstChildElement("Options");
+                        newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
+                        newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
+
+                        if ( version.toDouble() < 0.9 &&  options.hasAttribute("AllowDirtySeek"))
+                            qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                                     << tr("Option Allow Seek Dirty Frames is deprecated: ignoring!");
 
 
+                        qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                                 << tr("Media source created with ")
+                                 << QFileInfo(fileNameToOpen).fileName()
+                                 << " ("<<newSourceVideoFile->getFrameWidth()
+                                 <<"x"<<newSourceVideoFile->getFrameHeight()<<").";
+                    }
+                    else {
+                        qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                                   << tr("Could not be created.");
+                        errors++;
+                    }
+                }
+                else {
+                    qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                               << tr("Could not load ")<< fileNameToOpen;
+                    errors++;
+                }
+            }
+            else {
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                           << tr("Could not allocate memory.");
+                errors++;
+            }
 
+            // if creating the source failed, remove the video file object from memory
+            if (newSourceVideoFile && !newsource)
+                delete newSourceVideoFile;
 
+        }
+        else {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       << tr("No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+            errors++;
+        }
 
-//    }
-//}
+    }
+    else if ( type == Source::ALGORITHM_SOURCE)
+    {
+        // read the tags specific for an algorithm source
+        QDomElement Algorithm = t.firstChildElement("Algorithm");
+        QDomElement Frame = t.firstChildElement("Frame");
+        QDomElement Update = t.firstChildElement("Update");
+
+        int type = Algorithm.text().toInt();
+        double v = Update.attribute("Variability").toDouble();
+        // fix old version
+        if ( version.toDouble() < 0.8 && type == 0)
+            v = 0.0;
+
+        newsource = RenderingManager::_instance->newAlgorithmSource(type,  Frame.attribute("Width", "64").toInt(), Frame.attribute("Height", "64").toInt(), v, Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha", "0").toInt(), depth);
+        if (!newsource) {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       << tr("Could not create algorithm source.");
+            errors++;
+        } else
+            qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                     << tr("Algorithm source created (")
+                     << AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt())
+                     << ", "<<newsource->getFrameWidth()
+                     <<"x"<<newsource->getFrameHeight() << ").";
+    }
+    else if ( type == Source::RENDERING_SOURCE)
+    {
+        // tags specific for a rendering source
+        int r = 1;
+        QDomElement Recursive = t.firstChildElement("Recursive");
+        if (!Recursive.isNull())
+            r = Recursive.text().toInt();
+        newsource = RenderingManager::_instance->newRenderingSource(r > 0, depth);
+        if (!newsource) {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       << tr("Could not create rendering loop-back source.");
+            errors++;
+        } else
+            qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                     <<  tr("Rendering loop-back source created.");
+    }
+    else if ( type == Source::CAPTURE_SOURCE)
+    {
+        QDomElement img = t.firstChildElement("Image");
+        QImage image;
+        QByteArray data =  img.text().toLatin1();
+
+        if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size()) )
+            newsource = RenderingManager::_instance->newCaptureSource(image, depth);
+
+        if (!newsource) {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       << tr("Could not create capture source; invalid picture in session file.");
+            errors++;
+        } else
+            qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                     << tr("Capture source created (") <<newsource->getFrameWidth()
+                     <<"x"<<newsource->getFrameHeight() << ").";
+    }
+    else if ( type == Source::SVG_SOURCE)
+    {
+        QDomElement svg = t.firstChildElement("Svg");
+        QByteArray data =  svg.text().toLatin1();
+
+        QSvgRenderer *rendersvg = new QSvgRenderer(data);
+        if ( rendersvg )
+            newsource = RenderingManager::_instance->newSvgSource(rendersvg, depth);
+
+        if (!newsource) {
+            qWarning() << child.attribute("name")<< QChar(124).toLatin1()
+                       << tr("Could not create vector graphics source.");
+            errors++;
+        } else
+            qDebug() << child.attribute("name")<< QChar(124).toLatin1()
+                     << tr("Vector graphics source created (")
+                     <<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << ").";
+    }
+    else if ( type == Source::WEB_SOURCE)
+    {
+        QDomElement web = t.firstChildElement("Web");
+        QUrl url =  QUrl(web.text());
+        QDomElement Frame = t.firstChildElement("Frame");
+
+        if ( Frame.hasAttributes() ) {
+            newsource = RenderingManager::_instance->newWebSource(url, Frame.attribute("Width", "1024").toInt(), Frame.attribute("Height", "768").toInt(), web.attribute("Height", "100").toInt(), web.attribute("Scroll", "0").toInt(), web.attribute("Update", "0").toInt(), depth);
+        }
+        else {
+            newsource = RenderingManager::_instance->newWebSource(url, 1024, 768, web.attribute("Height", "100").toInt(), web.attribute("Scroll", "0").toInt(), web.attribute("Update", "0").toInt(), depth);
+            qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                     << tr("No resolution goven for web rendering; using 1024x768.");
+        }
+
+        if (!newsource) {
+            qWarning() << child.attribute("name")<< QChar(124).toLatin1()
+                       << tr("Could not create web source.");
+            errors++;
+        } else
+            qDebug() << child.attribute("name")<< QChar(124).toLatin1()
+                     << tr("Web source created (")<<web.text() << ").";
+    }
+    else if ( type == Source::SHM_SOURCE)
+    {
+#ifdef GLM_SHM
+        // read the tags specific for an algorithm source
+        QDomElement SharedMemory = t.firstChildElement("SharedMemory");
+
+        qint64 shmid = SharedMemoryManager::_instance->findProgramSharedMap(SharedMemory.text());
+        if (shmid != 0)
+            newsource = RenderingManager::_instance->newSharedMemorySource(shmid, depth);
+        if (!newsource) {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the program %1.").arg(SharedMemory.text());
+            errors++;
+        } else
+            qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Shared memory source created (")<< SharedMemory.text() << ").";
+#else
+        qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                   << tr("Could not create source: type Shared Memory not supported.");
+        errors++;
+#endif
+    }
+    else if ( type == Source::SPOUT_SOURCE)
+    {
+#ifdef GLM_SPOUT
+        // read the tags specific for an algorithm source
+        QDomElement spout = t.firstChildElement("Spout");
+
+        newsource = RenderingManager::_instance->newSpoutSource(spout.text(), depth);
+
+        if (!newsource) {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the SPOUT sender %1.").arg(spout.text());
+            errors++;
+        } else
+            qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("SPOUT source created (")<< spout.text() << ").";
+#else
+        qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                   << tr("Could not create source: type SPOUT not supported.");
+        errors++;
+#endif
+    }
+    else if (type == Source::FFGL_SOURCE )
+    {
+#ifdef GLM_FFGL
+        QDomElement Frame = t.firstChildElement("Frame");
+        QDomElement ffgl = t.firstChildElement("FreeFramePlugin");
+
+        if ( ffgl.isNull() )
+            ffgl = t.firstChildElement("FreeFramePlugin");
+
+        newsource = RenderingManager::_instance->newFreeframeGLSource(ffgl, Frame.attribute("Width", "64").toInt(),  Frame.attribute("Height", "64").toInt(), depth);
+
+        if (!newsource) {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       << tr("Could not create FreeframeGL source.");
+            errors++;
+        } else
+            qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                     << tr("FreeframeGL source created (") <<newsource->getFrameWidth()
+                     <<"x"<<newsource->getFrameHeight() << ").";;
+#else
+        qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create source: type FreeframeGL not supported.");
+        errors++;
+#endif
+    }
+    else if ( type == Source::CAMERA_SOURCE )
+    {
+#ifdef GLM_OPENCV
+        QDomElement camera = t.firstChildElement("CameraIndex");
+
+        newsource = RenderingManager::_instance->newOpencvSource( camera.text().toInt(),  camera.attribute("Mode", "0").toInt(), depth);
+        if (!newsource) {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       <<  tr("Could not open OpenCV device index %2.").arg(camera.text());
+            errors ++;
+        } else
+            qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                     <<  tr("OpenCV source created (device index %2, ").arg(camera.text())
+                      << newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
+#else
+        qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not create source: type OpenCV not supported.");
+        errors++;
+#endif
+    }
+    else if ( type == Source::STREAM_SOURCE)
+    {
+        QDomElement str = t.firstChildElement("Url");
+
+        VideoStream *vs = new VideoStream();
+        vs->open(str.text());
+
+        newsource = RenderingManager::_instance->newStreamSource(vs, depth);
+
+        if (!newsource) {
+            qWarning() << child.attribute("name")<< QChar(124).toLatin1()
+                       << tr("Could not create video stream source.");
+            errors++;
+        } else
+            qDebug() << child.attribute("name")<< QChar(124).toLatin1()
+                     << tr("Video Stream source created (") << str.text() << ").";
+    }
+    else if ( type == Source::CLONE_SOURCE)
+    {
+        QDomElement f = t.firstChildElement("CloneOf");
+
+        // find the source which name is f.text()
+        SourceSet::iterator cloneof =  getByName(f.text());
+        if (isValid(cloneof)) {
+            newsource = RenderingManager::_instance->newCloneSource(cloneof, depth);
+            if (!newsource) {
+                qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                           << tr("Could not create clone source.");
+                errors++;
+            }
+            else
+                qDebug() << child.attribute("name") << QChar(124).toLatin1()
+                         << tr("Clone of source %1 created.").arg(f.text());
+        }
+        else {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       << tr("Cannot clone %2 ; no such source.").arg(f.text());
+            errors++;
+        }
+
+    }
+
+    // if a new source was created
+    if (newsource) {
+        // Apply parameters to the created source
+        if ( !newsource->setConfiguration(child, current) )  {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       << tr("Could apply all configuration.");
+            errors++;
+        }
+
+        // Insert the source in the scene
+        if ( insertSource(newsource) )  {
+            // ok ! source is configured, we can start it !
+            if (newsource->isPlayable()) {
+                // Play the source if playing attributes says so (and not standby)
+                // NB: if no attribute, then play by default.
+                newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
+                if (!newsource->isStandby())
+                    newsource->play( child.attribute("playing", "1").toInt() );
+            }
+
+        }
+        else {
+            qWarning() << child.attribute("name") << QChar(124).toLatin1()
+                       << tr("Could not insert source.");
+            errors++;
+            delete newsource;
+        }
+
+    }
+
+    return errors;
+}
 
 int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QString version) {
 
     QList<QDomElement> clones;
     int errors = 0;
-    int count = 0;
+    int count = _front_sources.size();
 
 #ifdef GLM_UNDO
     // Suspend Undo manager
@@ -1763,459 +2183,42 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     QDomElement child = xmlconfig.firstChildElement("Source");
     while (!child.isNull()) {
 
-        // pointer for new source
-        Source *newsource = 0;
-        // read the depth where the source should be created
-        double depth = child.firstChildElement("Depth").attribute("Z", "0").toDouble();
-
         // get the type of the source to create
         QDomElement t = child.firstChildElement("TypeSpecific");
-        Source::RTTI type = (Source::RTTI) t.attribute("type").toInt();
-
-        // create the source according to its specific type information
-        if (type == Source::VIDEO_SOURCE ){
-            // read the tags specific for a video source
-            QDomElement Filename = t.firstChildElement("Filename");
-            QDomElement marks = t.firstChildElement("Marks");
-
-            // first reads with the absolute file name
-            QString fileNameToOpen = Filename.text();
-            // if there is no such file, try generate a file name from the relative file name
-            if (!QFileInfo(fileNameToOpen).exists())
-                fileNameToOpen = current.absoluteFilePath( Filename.attribute("Relative", "") );
-            // if there is such a file
-            if (QFileInfo(fileNameToOpen).exists()) {
-
-                // create the video file
-                VideoFile *newSourceVideoFile = NULL;
-
-                // generate texture of size in power of two if required
-                bool power2 = false;
-                int convert = 0;
-                if ( Filename.attribute("PowerOfTwo","0").toInt() > 0
-                     || !( glewIsSupported("GL_EXT_texture_non_power_of_two")
-                           || glewIsSupported("GL_ARB_texture_non_power_of_two") ) ) {
-                    power2 = true;
-                    convert = SWS_FAST_BILINEAR;
-                }
-
-#ifdef GLM_CUDA
-                // trying to use CUDA for decoding
-                try {
-                    newSourceVideoFile = new CUDAVideoFile(this, power2, convert);
-                    qDebug() << child.attribute("name") << QChar(124).toLatin1() << "Using GPU accelerated CUDA Decoding.";
-                }
-                catch (AllocationException &e){
-                    qDebug() << child.attribute("name") << QChar(124).toLatin1() <<"CANNOT use GPU accelerated CUDA Decoding.";
-                    newSourceVideoFile = 0;
-                }
-#endif
-                if (!newSourceVideoFile)
-                    newSourceVideoFile = new VideoFile(this, power2, convert);
-
-                // if the video file was created successfully
-                if (newSourceVideoFile){
-
-                    double markin = -1.0, markout = -1.0;
-                    // old version used different system for marking : ignore the values for now
-                    if ( !( version.toDouble() < 0.7) ) {
-                        markin = marks.attribute("In").toDouble();
-                        markout = marks.attribute("Out").toDouble();
-                    }
-
-                    // can we open this existing file ?
-                    _renderwidget->makeCurrent();
-
-                    // try to open until success (or maximum 3 tentatives)
-                    int tentative = 0;
-                    bool success = false;
-                    while (!success && tentative < 3) {
-                        success = newSourceVideoFile->open( fileNameToOpen, markin, markout, Filename.attribute("IgnoreAlpha").toInt() ) ;
-                        tentative++;
-                    }
-                    // inform if there was a problem
-                    if (tentative > 1)
-                        qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("There might be a problem with this video. %1 attempts were required to open it.").arg(tentative);
-
-                    // somehow managed to open the file
-                    if ( success ) {
-
-                        // fix old version marking : compute marks correctly
-                        if ( version.toDouble() < 0.7) {
-                            newSourceVideoFile->setMarkIn( (double) marks.attribute("In").toInt() / newSourceVideoFile->getFrameRate() );
-                            newSourceVideoFile->setMarkOut( (double) marks.attribute("Out").toInt() / newSourceVideoFile->getFrameRate() );
-                            qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                                       << tr("Converted marks from old version file: begin = %1 (%2)  end = %3 (%4)").arg(newSourceVideoFile->getMarkIn()).arg(marks.attribute("In").toInt()).arg(newSourceVideoFile->getMarkOut()).arg(marks.attribute("Out").toInt());
-                        }
-
-                        // create the source as it is a valid video file (this also set it to be the current source)
-                        newsource = RenderingManager::_instance->newMediaSource(newSourceVideoFile, depth);
-                        if (newsource){
-                            // all is good ! we can apply specific parameters to the video file
-                            QDomElement play = t.firstChildElement("Play");
-
-                            // fix old version speed : compute speed correctly
-                            double play_speed = 1.0;
-                            if ( version.toDouble() < 0.7 ) {
-                                switch (play.attribute("Speed","3").toInt())
-                                {
-                                case 0:
-                                    play_speed = 0.25;
-                                    break;
-                                case 1:
-                                    play_speed = 0.333;
-                                    break;
-                                case 2:
-                                    play_speed = 0.5;
-                                    break;
-                                case 4:
-                                    play_speed = 2.0;
-                                    break;
-                                case 5:
-                                    play_speed = 3.0;
-                                    break;
-                                case 3:
-                                default:
-                                    play_speed = 1.0;
-                                    break;
-                                }
-                            }
-                            // new format speed
-                            else
-                                play_speed = play.attribute("Speed","1.0").toDouble();
-                            newSourceVideoFile->setPlaySpeed(play_speed);
-
-                            newSourceVideoFile->setLoop(play.attribute("Loop","1").toInt());
-                            QDomElement options = t.firstChildElement("Options");
-                            newSourceVideoFile->setOptionRestartToMarkIn(options.attribute("RestartToMarkIn","0").toInt());
-                            newSourceVideoFile->setOptionRevertToBlackWhenStop(options.attribute("RevertToBlackWhenStop","0").toInt());
-
-                            if ( version.toDouble() < 0.9 &&  options.hasAttribute("AllowDirtySeek"))
-                                qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                                         << tr("Option Allow Seek Dirty Frames is deprecated: ignoring!");
-
-
-                            qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                                     << tr("Media source created with ")
-                                     << QFileInfo(fileNameToOpen).fileName()
-                                     << " ("<<newSourceVideoFile->getFrameWidth()
-                                     <<"x"<<newSourceVideoFile->getFrameHeight()<<").";
-                        }
-                        else {
-                            qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                                       << tr("Could not be created.");
-                            errors++;
-                        }
-                    }
-                    else {
-                        qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                                   << tr("Could not load ")<< fileNameToOpen;
-                        errors++;
-                    }
-                }
-                else {
-                    qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                               << tr("Could not allocate memory.");
-                    errors++;
-                }
-
-                // if creating the source failed, remove the video file object from memory
-                if (newSourceVideoFile && !newsource)
-                    delete newSourceVideoFile;
-
-            }
-            else {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << tr("No file named %1 or %2.").arg(Filename.text()).arg(fileNameToOpen);
+        if (!t.isNull())
+        {
+            // create the source according to its specific type
+            Source::RTTI type = (Source::RTTI) t.attribute("type").toInt();
+            // error if invalid type
+            if (type == Source::SIMPLE_SOURCE)
                 errors++;
-            }
-
-        }
-        else if ( type == Source::ALGORITHM_SOURCE) {
-            // read the tags specific for an algorithm source
-            QDomElement Algorithm = t.firstChildElement("Algorithm");
-            QDomElement Frame = t.firstChildElement("Frame");
-            QDomElement Update = t.firstChildElement("Update");
-
-            int type = Algorithm.text().toInt();
-            double v = Update.attribute("Variability").toDouble();
-            // fix old version
-            if ( version.toDouble() < 0.8 && type == 0)
-                v = 0.0;
-
-            newsource = RenderingManager::_instance->newAlgorithmSource(type,  Frame.attribute("Width", "64").toInt(), Frame.attribute("Height", "64").toInt(), v, Update.attribute("Periodicity").toInt(), Algorithm.attribute("IgnoreAlpha", "0").toInt(), depth);
-            if (!newsource) {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << tr("Could not create algorithm source.");
-                errors++;
-            } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                         << tr("Algorithm source created (")
-                         << AlgorithmSource::getAlgorithmDescription(Algorithm.text().toInt())
-                         << ", "<<newsource->getFrameWidth()
-                         <<"x"<<newsource->getFrameHeight() << ").";
-        }
-        else if ( type == Source::RENDERING_SOURCE) {
-            // tags specific for a rendering source
-            int r = 1;
-            QDomElement Recursive = t.firstChildElement("Recursive");
-            if (!Recursive.isNull())
-                r = Recursive.text().toInt();
-            newsource = RenderingManager::_instance->newRenderingSource(r > 0, depth);
-            if (!newsource) {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << tr("Could not create rendering loop-back source.");
-                errors++;
-            } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                         <<  tr("Rendering loop-back source created.");
-        }
-        else if ( type == Source::CAPTURE_SOURCE) {
-
-            QDomElement img = t.firstChildElement("Image");
-            QImage image;
-            QByteArray data =  img.text().toLatin1();
-
-            if ( image.loadFromData( reinterpret_cast<const uchar *>(data.data()), data.size()) )
-                newsource = RenderingManager::_instance->newCaptureSource(image, depth);
-
-            if (!newsource) {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << tr("Could not create capture source; invalid picture in session file.");
-                errors++;
-            } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                         << tr("Capture source created (") <<newsource->getFrameWidth()
-                         <<"x"<<newsource->getFrameHeight() << ").";
-        }
-        else if ( type == Source::SVG_SOURCE) {
-
-            QDomElement svg = t.firstChildElement("Svg");
-            QByteArray data =  svg.text().toLatin1();
-
-            QSvgRenderer *rendersvg = new QSvgRenderer(data);
-            if ( rendersvg )
-                newsource = RenderingManager::_instance->newSvgSource(rendersvg, depth);
-
-            if (!newsource) {
-                qWarning() << child.attribute("name")<< QChar(124).toLatin1()
-                           << tr("Could not create vector graphics source.");
-                errors++;
-            } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1()
-                         << tr("Vector graphics source created (")
-                         <<newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << ").";
-        }
-        else if ( type == Source::WEB_SOURCE) {
-
-            QDomElement web = t.firstChildElement("Web");
-            QUrl url =  QUrl(web.text());
-            QDomElement Frame = t.firstChildElement("Frame");
-
-            if ( Frame.hasAttributes() ) {
-                newsource = RenderingManager::_instance->newWebSource(url, Frame.attribute("Width", "1024").toInt(), Frame.attribute("Height", "768").toInt(), web.attribute("Height", "100").toInt(), web.attribute("Scroll", "0").toInt(), web.attribute("Update", "0").toInt(), depth);
-            }
-            else {
-                newsource = RenderingManager::_instance->newWebSource(url, 1024, 768, web.attribute("Height", "100").toInt(), web.attribute("Scroll", "0").toInt(), web.attribute("Update", "0").toInt(), depth);
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                         << tr("No resolution goven for web rendering; using 1024x768.");
-            }
-
-            if (!newsource) {
-                qWarning() << child.attribute("name")<< QChar(124).toLatin1()
-                           << tr("Could not create web source.");
-                errors++;
-            } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1()
-                         << tr("Web source created (")<<web.text() << ").";
-        }
-        else if ( type == Source::CLONE_SOURCE) {
             // remember the node of the sources to clone
-            clones.push_back(child);
-        }
-        else if ( type == Source::SHM_SOURCE) {
-#ifdef GLM_SHM
-            // read the tags specific for an algorithm source
-            QDomElement SharedMemory = t.firstChildElement("SharedMemory");
-
-            qint64 shmid = SharedMemoryManager::_instance->findProgramSharedMap(SharedMemory.text());
-            if (shmid != 0)
-                newsource = RenderingManager::_instance->newSharedMemorySource(shmid, depth);
-            if (!newsource) {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the program %1.").arg(SharedMemory.text());
-                errors++;
-            } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("Shared memory source created (")<< SharedMemory.text() << ").";
-#else
-            qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                       << tr("Could not create source: type Shared Memory not supported.");
-            errors++;
-#endif
-        }
-        else if ( type == Source::SPOUT_SOURCE) {
-#ifdef GLM_SPOUT
-            // read the tags specific for an algorithm source
-            QDomElement spout = t.firstChildElement("Spout");
-
-            newsource = RenderingManager::_instance->newSpoutSource(spout.text(), depth);
-
-            if (!newsource) {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not connect to the SPOUT sender %1.").arg(spout.text());
-                errors++;
-            } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1() << tr("SPOUT source created (")<< spout.text() << ").";
-#else
-            qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                       << tr("Could not create source: type SPOUT not supported.");
-            errors++;
-#endif
-        }
-        else if (type == Source::FFGL_SOURCE ){
-#ifdef GLM_FFGL
-            QDomElement Frame = t.firstChildElement("Frame");
-            QDomElement ffgl = t.firstChildElement("FreeFramePlugin");
-
-            if ( ffgl.isNull() )
-                ffgl = t.firstChildElement("FreeFramePlugin");
-
-            newsource = RenderingManager::_instance->newFreeframeGLSource(ffgl, Frame.attribute("Width", "64").toInt(),  Frame.attribute("Height", "64").toInt(), depth);
-
-            if (!newsource) {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << tr("Could not create FreeframeGL source.");
-                errors++;
-            } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                         << tr("FreeframeGL source created (") <<newsource->getFrameWidth()
-                         <<"x"<<newsource->getFrameHeight() << ").";;
-#else
-            qWarning() << child.attribute("name") << QChar(124).toLatin1()<< tr("Could not create source: type FreeframeGL not supported.");
-            errors++;
-#endif
-        }
-        else if ( type == Source::CAMERA_SOURCE ) {
-#ifdef GLM_OPENCV
-            QDomElement camera = t.firstChildElement("CameraIndex");
-
-            newsource = RenderingManager::_instance->newOpencvSource( camera.text().toInt(),  camera.attribute("Mode", "0").toInt(), depth);
-            if (!newsource) {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           <<  tr("Could not open OpenCV device index %2.").arg(camera.text());
-                errors ++;
-            } else
-                qDebug() << child.attribute("name") << QChar(124).toLatin1()
-                         <<  tr("OpenCV source created (device index %2, ").arg(camera.text())
-                          << newsource->getFrameWidth()<<"x"<<newsource->getFrameHeight() << " ).";
-#else
-            qWarning() << child.attribute("name") << QChar(124).toLatin1() << tr("Could not create source: type OpenCV not supported.");
-            errors++;
-#endif
-        }
-        else if ( type == Source::STREAM_SOURCE) {
-
-            QDomElement str = t.firstChildElement("Url");
-
-            VideoStream *vs = new VideoStream();
-            vs->open(str.text());
-
-            newsource = RenderingManager::_instance->newStreamSource(vs, depth);
-
-            if (!newsource) {
-                qWarning() << child.attribute("name")<< QChar(124).toLatin1()
-                           << tr("Could not create video stream source.");
-                errors++;
-            } else
-                qDebug() << child.attribute("name")<< QChar(124).toLatin1()
-                         << tr("Video Stream source created (") << str.text() << ").";
-        }
-
-        if (newsource) {
-            // Apply parameters to the created source
-            if ( !newsource->setConfiguration(child, current) )  {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << tr("Could apply all configuration.");
-                errors++;
-            }
-
-            // Insert the source in the scene
-            if ( insertSource(newsource) )  {
-                // increment counter
-                ++count;
-
-                // ok source is configured, can start it !
-                // Play the source if playing attributes says so (and not standby)
-                // NB: if no attribute, then play by default.
-                newsource->setStandbyMode( (Source::StandbyMode) child.attribute("stanbyMode", "0").toInt() );
-                if (!newsource->isStandby())
-                    newsource->play( child.attribute("playing", "1").toInt() );
-
-            }
-            else {
-                qWarning() << child.attribute("name") << QChar(124).toLatin1()
-                           << tr("Could insert source.");
-                errors++;
-                delete newsource;
-            }
-
+            else if ( type == Source::CLONE_SOURCE)
+                clones.push_back(child);
+            // create the source of known type
+            else
+                errors += addSourceConfiguration(child, current, version);
         }
 
         child = child.nextSiblingElement("Source");
     }
-
     // end loop on sources to create
 
     // Process the list of clones names ;
     // now that every source exist, we can be sure they can be cloned
     QListIterator<QDomElement> it(clones);
     while (it.hasNext()) {
-
-        Source *clonesource = 0;
-
         QDomElement c = it.next();
-        double depth = c.firstChildElement("Depth").attribute("Z").toDouble();
-        QDomElement t = c.firstChildElement("TypeSpecific");
-        QDomElement f = t.firstChildElement("CloneOf");
-        // find the source which name is f.text()
-        SourceSet::iterator cloneof =  getByName(f.text());
-        if (isValid(cloneof)) {
-            clonesource = RenderingManager::_instance->newCloneSource(cloneof, depth);
-            if (clonesource) {
-                // Apply parameters to the created clone
-                // and insert the clone in the scene
-                if ( clonesource->setConfiguration(c, current) && insertSource(clonesource) )  {
-                    // increment counter
-                    ++count;
-                    // log
-                    qDebug() << c.attribute("name") << QChar(124).toLatin1()
-                             << tr("Clone of source %1 created.").arg(f.text());
-                }
-                else {
-                    errors++;
-                    delete clonesource;
-                }
 
-            }
-            else {
-                qWarning() << c.attribute("name") << QChar(124).toLatin1()
-                           << tr("Could not create clone source.");
-                errors++;
-            }
-        }
-        else {
-            qWarning() << c.attribute("name") << QChar(124).toLatin1()
-                       << tr("Cannot clone %2 ; no such source.").arg(f.text());
-            errors++;
-        }
+        errors += addSourceConfiguration(c, current, version);
     }
-
-    // un-busy
-
 
     // set current source to none (end of list)
     unsetCurrentSource();
 
     // log
-    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("%1 sources created (%1/%2).").arg(count).arg(xmlconfig.childNodes().count());
+    count = _front_sources.size() - count;
+    qDebug() << "RenderingManager" << QChar(124).toLatin1() << tr("%1 sources loaded (%1/%2).").arg(count).arg(xmlconfig.childNodes().count());
 
 
 #ifdef GLM_UNDO

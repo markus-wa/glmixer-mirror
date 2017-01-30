@@ -1,22 +1,52 @@
+/*
+ *  UndoManager.h
+ *
+ *  Created on: Dec 2016
+ *      Author: bh
+ *
+ *  This file is part of GLMixer.
+ *
+ *   GLMixer is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   GLMixer is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with GLMixer.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   Copyright 2009, 2017 Bruno Herbelin
+ *
+ */
+
 #ifndef UNDOMANAGER_H
 #define UNDOMANAGER_H
 
-#include "defines.h"
-#include "SourceSet.h"
-
+#include <QObject>
 #include <QDomDocument>
 
-class UndoManager : public QObject
+class UndoManager: public QObject
 {
     Q_OBJECT
+
 public:
     static UndoManager *getInstance();
 
+    /**
+     * Set the size of the undo buffer.
+     * 0 to disable it (status to DISADLED)
+     */
     void setMaximumSize(int m);
+    /*
+     * get the size of the undo buffer
+     * > 0 if enabled
+     */
     inline int maximumSize() const { return _maximumSize; }
 
-signals:
-    void changed();
 
 public slots:
     // clear the history
@@ -35,6 +65,9 @@ public slots:
     void suspend(bool on);
     // remember last time sesion is saved
     void save();
+
+signals:
+    void changed();
 
 private:
 

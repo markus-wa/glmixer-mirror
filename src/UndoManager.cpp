@@ -1,8 +1,11 @@
-#include "UndoManager.moc"
 
+#include "defines.h"
+#include "SourceSet.h"
 #include "Source.h"
 #include "RenderingManager.h"
 #include "SourcePropertyBrowser.h"
+
+#include "UndoManager.moc"
 
 #define DEBUG_UNDO
 
@@ -19,9 +22,9 @@ UndoManager *UndoManager::getInstance() {
     return _instance;
 }
 
-UndoManager::UndoManager() : QObject(), _status(ACTIVE), _firstIndex(-1), _lastIndex(-1), _currentIndex(-1), _maximumSize(100), _changed(true)
+UndoManager::UndoManager() : QObject(), _status(READY), _firstIndex(-1), _lastIndex(-1), _currentIndex(-1), _maximumSize(100), _changed(true)
 {
-
+    clear();
 }
 
 UndoManager::~UndoManager() {
@@ -31,7 +34,7 @@ UndoManager::~UndoManager() {
 
 void UndoManager::setMaximumSize(int m)
 {
-    _status = m > 1 ? ACTIVE : DISABLED;
+    _status = m > 1 ? READY : DISABLED;
     _maximumSize = m;
 }
 
@@ -52,7 +55,7 @@ void UndoManager::clear()
     _previousSignature = QString();
 
     if (_status > DISABLED)
-        _status = ACTIVE;
+        _status = READY;
 
 #ifdef DEBUG_UNDO
     fprintf(stderr, "Undo CLEARED\n");
@@ -75,7 +78,6 @@ void UndoManager::undo()
             // undo
             restore(_currentIndex  - 1);
         }
-
     }
 }
 
@@ -111,7 +113,7 @@ void UndoManager::restore(long int i)
 #endif
 
     // TODO create a list of existing sources
-    SourceSet existingsources = RenderingManager::getInstance()->getCopy();
+    SourceSet sourcesBeforeRestore = RenderingManager::getInstance()->getCopy();
 
     // get status at index
     QDomElement root = _history.firstChildElement(QString("%1").arg(_currentIndex));
@@ -127,11 +129,16 @@ void UndoManager::restore(long int i)
                 if ( RenderingManager::getInstance()->isValid(sit) ) {
                     if ( !(*sit)->setConfiguration(child) )
                         qDebug() << "failed";
-                    // TODO remove source in list of existing
-                    existingsources.erase(*sit);
+                    // we delt with this source
+                    sourcesBeforeRestore.erase(*sit);
                 }
+                // there was no such source before, it must be new !
                 else {
                     fprintf(stderr, "    Create %s \n", qPrintable(sourcename));
+
+                    if ( RenderingManager::getInstance()->addSourceConfiguration(child) > 0)
+                        qDebug() << "failed to Undo new source";
+
                 }
 
 #ifdef DEBUG_UNDO
@@ -149,9 +156,12 @@ void UndoManager::restore(long int i)
         qDebug() << "root is null";
 
     // TODO delete sources which do not exist anymore (remain in list of existing).
-    for (SourceSet::iterator its = existingsources.begin(); its != existingsources.end(); its++) {
+    for (SourceSet::iterator its = sourcesBeforeRestore.begin(); its != sourcesBeforeRestore.end(); its++) {
 
         fprintf(stderr, "    Delete %s \n", qPrintable( (*its)->getName()) );
+
+        RenderingManager::getInstance()->removeSource( (*its)->getId() );
+
     }
 
 
@@ -159,6 +169,10 @@ void UndoManager::restore(long int i)
     _previousSender = QString();
     _previousSignature = QString();
     _status = ACTIVE;
+
+#ifdef DEBUG_UNDO
+    fprintf(stderr, "  restored {%d}\n", _status);
+#endif
 
     // inform something Changed
     if ( !_changed ) {
@@ -172,6 +186,12 @@ void UndoManager::store()
     // nothing to do
     if (_status == DISABLED)
         return;
+
+    // skip if already active
+    if (_status == ACTIVE) {
+        _status = READY;
+        return;
+    }
 
     // store only if not idle
     if (_status > IDLE) {
@@ -200,18 +220,20 @@ void UndoManager::store()
 #ifdef DEBUG_UNDO
         fprintf(stderr, "=>stored index %ld [%ld %ld]\n", _currentIndex, _firstIndex, _lastIndex);
 #endif
+
+        // if suspended, do not store next events
+        if (_status == PENDING) {
+            _status = IDLE;
+        }
+
+        // inform something Changed
+        if ( !_changed ) {
+            emit changed();
+            _changed = true;
+        }
     }
 
-    // if suspended, do not store next event
-    if (_status == PENDING) {
-        _status = IDLE;
-    }
 
-    // inform something Changed
-    if ( !_changed ) {
-        emit changed();
-        _changed = true;
-    }
 }
 
 
@@ -287,6 +309,9 @@ void UndoManager::addHistory(long int index)
 
 void UndoManager::suspend(bool on)
 {
+    if (_status == DISABLED || _status == ACTIVE)
+        return;
+
     if (on)
         _status = PENDING;
     else {

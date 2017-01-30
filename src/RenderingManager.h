@@ -204,8 +204,8 @@ public:
      * save and load configuration
      */
     QDomElement getConfiguration(QDomDocument &doc, QDir current = QDir());
-//    void setConfiguration(QDomElement config, QDomDocument &doc, QDir current = QDir());
     int addConfiguration(QDomElement xmlconfig, QDir current, QString version = XML_GLM_VERSION);
+    int addSourceConfiguration(QDomElement child, QDir current = QDir(), QString version = XML_GLM_VERSION);
 
     inline Source *defaultSource() { return _defaultSource; }
     inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
