@@ -68,6 +68,12 @@ class RenderingManager: public QObject {
 
     friend class RenderingSource;
     friend class OutputRenderWidget;
+    friend class UndoManager;
+
+    RenderingManager();
+    virtual ~RenderingManager();
+    static RenderingManager *_instance;
+
 
 public:
     /**
@@ -108,9 +114,13 @@ public:
 #endif
     Source *newStreamSource(VideoStream *vs, double depth = -1.0);
 
-
-    // insert the source into the scene
+    // insert & remove sources into the scene
     bool insertSource(Source *s);
+    int removeSource(SourceSet::iterator itsource);
+    void replaceSource(GLuint oldsource, GLuint newsource);
+    void addSourceToBasket(Source *s);
+    int getSourceBasketSize() const;
+    Source *getSourceBasketTop() const;
 
     SourceSet::iterator getBegin();
     SourceSet::iterator getEnd();
@@ -128,10 +138,7 @@ public:
     inline bool empty() const { return _front_sources.empty(); }
     inline SourceSet getCopy() { return SourceSet (_front_sources); }
 
-    int removeSource(SourceSet::iterator itsource);
-    int removeSource(const GLuint idsource);
-    void replaceSource(GLuint oldsource, GLuint newsource);
-
+    // current source
     bool isCurrentSource(const Source *s);
     bool isCurrentSource(SourceSet::iterator si);
     void setCurrentSource(SourceSet::iterator si);
@@ -143,9 +150,6 @@ public:
     bool setCurrentPrevious();
     void unsetCurrentSource() { setCurrentSource( getEnd() ); }
 
-    void addSourceToBasket(Source *s);
-    int getSourceBasketSize() const;
-    Source *getSourceBasketTop() const;
 
     /**
      * management of the rendering
@@ -205,7 +209,6 @@ public:
      */
     QDomElement getConfiguration(QDomDocument &doc, QDir current = QDir());
     int addConfiguration(QDomElement xmlconfig, QDir current, QString version = XML_GLM_VERSION);
-    int addSourceConfiguration(QDomElement child, QDir current = QDir(), QString version = XML_GLM_VERSION);
 
     inline Source *defaultSource() { return _defaultSource; }
     inline Source::scalingMode getDefaultScalingMode() const { return _scalingMode; }
@@ -260,14 +263,16 @@ signals:
     void spoutSharingEnabled(bool on);
 #endif
 
-private:
-    RenderingManager();
-    virtual ~RenderingManager();
-    static RenderingManager *_instance;
+protected:
+    // insert & remove sources into the scene
+    bool _insertSource(Source *s);
+    int _removeSource(SourceSet::iterator itsource);
+    int _removeSource(const GLuint idsource);
+    int _addSourceConfiguration(QDomElement child, QDir current = QDir(), QString version = XML_GLM_VERSION);
 
+    // frame buffer
     void setFrameBufferResolution(QSize size);
 
-protected:
     // the rendering area
     ViewRenderWidget *_renderwidget;
     // properties of the sources

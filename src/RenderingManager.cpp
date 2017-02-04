@@ -1132,15 +1132,22 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
     return ( (Source *) s );
 }
 
+
 bool RenderingManager::insertSource(Source *s)
+{
+    // inform undo manager
+    emit methodCalled("_insertSource(Source)");
+
+    return _insertSource(s);
+}
+
+bool RenderingManager::_insertSource(Source *s)
 {
     if (s) {
         // replace the source name by another available one based on the original name
         s->setName( getAvailableNameFrom(s->getName()) );
 
         if (_front_sources.size() < maxSourceCount) {
-            // inform undo manager
-            emit methodCalled("_insertSource(Source)");
 
             //insert the source to the list
             if (_front_sources.insert(s).second) {
@@ -1357,7 +1364,7 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
 #endif
 
         // delete old source (and eventual plugins)
-        removeSource(it_oldsource);
+        _removeSource(it_oldsource);
 
         // restore former depth
         changeDepth(it_newsource, depth_oldsource);
@@ -1369,19 +1376,27 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
 
 }
 
-int RenderingManager::removeSource(const GLuint idsource){
 
-    return removeSource(getById(idsource));
+int RenderingManager::removeSource(SourceSet::iterator itsource)
+{
+    // inform undo manager
+    emit methodCalled("_removeSource(SourceSet::iterator)");
+
+    return _removeSource(itsource);
 }
 
-int RenderingManager::removeSource(SourceSet::iterator itsource) {
+int RenderingManager::_removeSource(const GLuint idsource){
+
+    return _removeSource(getById(idsource));
+}
+
+int RenderingManager::_removeSource(SourceSet::iterator itsource) {
 
     if (!isValid(itsource)) {
         qWarning() << tr("Invalid Source cannot be deleted.");
         return 0;
     }
 
-    emit methodCalled("_removeSource(SourceSet::iterator)");
 
     // remove from selection and group
     _renderwidget->removeFromSelections(*itsource);
@@ -1400,7 +1415,7 @@ int RenderingManager::removeSource(SourceSet::iterator itsource) {
         if (s->rtti() != Source::CLONE_SOURCE)
             // remove every clone of the source to be removed
             for (SourceList::iterator clone = s->getClones()->begin(); clone != s->getClones()->end(); clone = s->getClones()->begin()) {
-                num_sources_deleted += removeSource((*clone)->getId());
+                num_sources_deleted += _removeSource((*clone)->getId());
             }
         // then remove the source itself
         qDebug() << s->getName() << QChar(124).toLatin1() << tr("Delete source.");
@@ -1430,7 +1445,7 @@ void RenderingManager::clearSourceSet() {
 
         // clear the list of sources
         for (SourceSet::iterator its = _front_sources.begin(); its != _front_sources.end(); its = _front_sources.begin())
-            num_sources_deleted += removeSource(its);
+            num_sources_deleted += _removeSource(its);
 
         // reset the id counter
         Source::lastid = 1;
@@ -1738,7 +1753,7 @@ QDomElement RenderingManager::getConfiguration(QDomDocument &doc, QDir current) 
 }
 
 
-int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QString version)
+int RenderingManager::_addSourceConfiguration(QDomElement child, QDir current, QString version)
 {
     // counter of errors
     int errors = 0;
@@ -2145,7 +2160,7 @@ int RenderingManager::addSourceConfiguration(QDomElement child, QDir current, QS
         }
 
         // Insert the source in the scene
-        if ( insertSource(newsource) )  {
+        if ( _insertSource(newsource) )  {
             // ok ! source is configured, we can start it !
             if (newsource->isPlayable()) {
                 // Play the source if playing attributes says so (and not standby)
@@ -2197,7 +2212,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
                 clones.push_back(child);
             // create the source of known type
             else
-                errors += addSourceConfiguration(child, current, version);
+                errors += _addSourceConfiguration(child, current, version);
         }
 
         child = child.nextSiblingElement("Source");
@@ -2210,7 +2225,7 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     while (it.hasNext()) {
         QDomElement c = it.next();
 
-        errors += addSourceConfiguration(c, current, version);
+        errors += _addSourceConfiguration(c, current, version);
     }
 
     // set current source to none (end of list)
@@ -2261,7 +2276,7 @@ void RenderingManager::onSourceFailure() {
 
         // try to remove the source from the manager
         if ( isValid( getByName(name) ) )
-            removeSource(s->getId());
+            _removeSource(s->getId());
         // not in the manager, maybe in the drop basket
         else {
             for (SourceList::iterator sit = dropBasket.begin(); sit != dropBasket.end(); sit++ ) {

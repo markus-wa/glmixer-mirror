@@ -134,9 +134,9 @@ void UndoManager::restore(long int i)
                 }
                 // there was no such source before, it must be new !
                 else {
-                    fprintf(stderr, "    Create %s \n", qPrintable(sourcename));
+                    fprintf(stderr, " +  Create %s \n", qPrintable(sourcename));
 
-                    if ( RenderingManager::getInstance()->addSourceConfiguration(child) > 0)
+                    if ( RenderingManager::getInstance()->_addSourceConfiguration(child) > 0)
                         qDebug() << "failed to Undo new source";
 
                 }
@@ -158,9 +158,9 @@ void UndoManager::restore(long int i)
     // TODO delete sources which do not exist anymore (remain in list of existing).
     for (SourceSet::iterator its = sourcesBeforeRestore.begin(); its != sourcesBeforeRestore.end(); its++) {
 
-        fprintf(stderr, "    Delete %s \n", qPrintable( (*its)->getName()) );
+        fprintf(stderr, " -  Delete %s \n", qPrintable( (*its)->getName()) );
 
-        RenderingManager::getInstance()->removeSource( (*its)->getId() );
+        RenderingManager::getInstance()->_removeSource( (*its)->getId() );
 
     }
 
@@ -251,7 +251,7 @@ void UndoManager::store(QString signature)
         if (_previousSender.isEmpty() || _previousSignature.isEmpty()) {
 
 #ifdef DEBUG_UNDO
-            fprintf(stderr, "  store %s  {%d} ", qPrintable(signature), _status);
+            fprintf(stderr, "  catch %s  {%d} ", qPrintable(signature), _status);
 #endif
             // its a new event!
             store();
@@ -264,7 +264,7 @@ void UndoManager::store(QString signature)
                     || signature != _previousSignature ) {
 
 #ifdef DEBUG_UNDO
-                fprintf(stderr, "  store %s  {%d} ", qPrintable(signature), _status);
+                fprintf(stderr, "  catch %s  {%d} ", qPrintable(signature), _status);
 #endif
                 // this event is different from previous
                 store();
