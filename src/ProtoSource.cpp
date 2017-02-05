@@ -248,7 +248,7 @@ void ProtoSource::importProperties(const ProtoSource *source, bool withGeometry)
         modifiable = source->modifiable;
         fixedAspectRatio = source->fixedAspectRatio;
 
-        _setAlpha(source->texalpha);
+        _setAlphaCoordinates(source->alphax, source->alphay);
         textureCoordinates = source->textureCoordinates;
     }
 
