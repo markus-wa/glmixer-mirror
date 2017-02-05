@@ -420,6 +420,10 @@ void ViewRenderWidget::setCatalogSizeLarge()
 
 void ViewRenderWidget::showContextMenu(ViewContextMenu m, const QPoint &pos)
 {
+    // emulate mouse released
+    emit mousePressed(false);
+
+    // display appropriate menu
     switch (m) {
     case CONTEXT_MENU_VIEW:
         if (viewMenu)
@@ -446,6 +450,7 @@ void ViewRenderWidget::showContextMenu(ViewContextMenu m, const QPoint &pos)
         }
         break;
     }
+
 }
 
 void ViewRenderWidget::setToolMode(toolMode m, View::viewMode v){
@@ -732,6 +737,7 @@ void ViewRenderWidget::mousePressEvent(QMouseEvent *event)
     makeCurrent();
     event->accept();
 
+    // inform mouse was pressed
     emit mousePressed(true);
 
     // ask the catalog view if it wants this mouse press event and then
@@ -824,19 +830,22 @@ void ViewRenderWidget::mouseReleaseEvent(QMouseEvent * event)
     }
 
     // ask the catalog view if it wants this mouse release event
-    if (_catalogView->mouseReleaseEvent(event))
-        return;
+    if ( !_catalogView->mouseReleaseEvent(event)) {
 
-    if (_currentView->mouseReleaseEvent(event)) {
-        // the view 'mouseReleaseEvent' returns true ; there was something changed!
-        if (_currentView == _mixingView)
-            emit sourceMixingModified();
-        else if (_currentView == _geometryView)
-            emit sourceGeometryModified();
-        else if (_currentView == _layersView)
-            emit sourceLayerModified();
+        // not used by catalog, so forward to views
+        if (_currentView->mouseReleaseEvent(event)) {
+            // the view 'mouseReleaseEvent' returns true ; there was something changed!
+            if (_currentView == _mixingView)
+                emit sourceMixingModified();
+            else if (_currentView == _geometryView)
+                emit sourceGeometryModified();
+            else if (_currentView == _layersView)
+                emit sourceLayerModified();
+        }
+
     }
 
+    // inform mouse was released
     emit mousePressed(false);
 }
 

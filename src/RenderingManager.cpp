@@ -1200,6 +1200,9 @@ void RenderingManager::clearBasket()
 
 void RenderingManager::resetSource(SourceSet::iterator sit){
 
+    // inform undo manager
+    emit methodCalled("_resetSource(SourceSet::iterator)");
+
     // apply default parameters
     (*sit)->importProperties(_defaultSource);
     // scale the source to match the preferences
@@ -1341,7 +1344,13 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
 
     if ( isValid(it_oldsource) && isValid(it_newsource)) {
 
+        // inform undo manager
         emit methodCalled("_replaceSource(GLuint,GLuint)");
+
+#ifdef GLM_UNDO
+        // suspend
+        UndoManager::getInstance()->suspend(true);
+#endif
 
         double depth_oldsource = (*it_oldsource)->getDepth();
         QString name_oldsource = (*it_oldsource)->getName();
@@ -1364,7 +1373,7 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
 #endif
 
         // delete old source (and eventual plugins)
-        _removeSource(it_oldsource);
+        removeSource(it_oldsource);
 
         // restore former depth
         changeDepth(it_newsource, depth_oldsource);
@@ -1372,6 +1381,10 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
         // log
         qDebug() << name_oldsource  << QChar(124).toLatin1() << tr("Source replaced by %1").arg((*it_newsource)->getName());
 
+#ifdef GLM_UNDO
+        // unsuspend
+        UndoManager::getInstance()->suspend(false);
+#endif
     }
 
 }
@@ -1396,7 +1409,6 @@ int RenderingManager::_removeSource(SourceSet::iterator itsource) {
         qWarning() << tr("Invalid Source cannot be deleted.");
         return 0;
     }
-
 
     // remove from selection and group
     _renderwidget->removeFromSelections(*itsource);
@@ -1430,11 +1442,6 @@ int RenderingManager::_removeSource(SourceSet::iterator itsource) {
 }
 
 void RenderingManager::clearSourceSet() {
-
-#ifdef GLM_UNDO
-    // Suspend Undo manager
-    UndoManager::getInstance()->suspend(true);
-#endif
 
     // how many sources to remove ?
     int total = _front_sources.size();
@@ -2188,11 +2195,6 @@ int RenderingManager::addConfiguration(QDomElement xmlconfig, QDir current, QStr
     QList<QDomElement> clones;
     int errors = 0;
     int count = _front_sources.size();
-
-#ifdef GLM_UNDO
-    // Suspend Undo manager
-    UndoManager::getInstance()->suspend(true);
-#endif
 
     // start loop of sources to create
     QDomElement child = xmlconfig.firstChildElement("Source");
