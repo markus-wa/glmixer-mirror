@@ -90,7 +90,6 @@ void UndoManager::redo()
         if (_currentIndex < _lastIndex)
             // redo
             restore(_currentIndex + 1);
-
     }
 }
 
@@ -105,64 +104,74 @@ void UndoManager::restore(long int i)
     if (_status == DISABLED || _currentIndex == i )
         return;
 
-    // set index
+    // set index to new value
     _currentIndex = qBound(_firstIndex, i, _lastIndex);
 
 #ifdef DEBUG_UNDO
     fprintf(stderr, " restoring %ld [%ld %ld] :\n", _currentIndex, _firstIndex, _lastIndex);
 #endif
 
-    // TODO create a list of existing sources
-    SourceSet sourcesBeforeRestore = RenderingManager::getInstance()->getCopy();
-
-    // get status at index
+    // get status of sources at index in history
     QDomElement root = _history.firstChildElement(QString("%1").arg(_currentIndex));
     if ( !root.isNull()) {
 
+        // get the list of sources at index
         QDomElement renderConfig = root.firstChildElement("SourceList");
         if ( !renderConfig.isNull()) {
+
+            // get the list of sources existing now
+            SourceSet sourcesBeforeRestore = RenderingManager::getInstance()->getCopy();
+
+            // browse the list of source in history
             QDomElement child = renderConfig.firstChildElement("Source");
             while (!child.isNull()) {
 
                 QString sourcename = child.attribute("name");
                 SourceSet::iterator sit = RenderingManager::getInstance()->getByName(sourcename);
-                if ( RenderingManager::getInstance()->isValid(sit) ) {
+                if ( RenderingManager::getInstance()->isValid(sit) )  {
+#ifdef DEBUG_UNDO
+                    fprintf(stderr, "    Update %s \n", qPrintable(sourcename));
+#endif
+                    // apply configuration
                     if ( !(*sit)->setConfiguration(child) )
-                        qDebug() << "failed";
-                    // we delt with this source
+                        qDebug() << "failed to set configuration";
+
+                    // apply change of depth
+                    double depth = child.firstChildElement("Depth").attribute("Z", "0").toDouble();
+                    RenderingManager::getInstance()->changeDepth(sit, depth);
+
+                    // we are done with this source
                     sourcesBeforeRestore.erase(*sit);
                 }
                 // there was no such source before, it must be new !
                 else {
+#ifdef DEBUG_UNDO
                     fprintf(stderr, " +  Create %s \n", qPrintable(sourcename));
-
+#endif
                     if ( RenderingManager::getInstance()->_addSourceConfiguration(child) > 0)
                         qDebug() << "failed to Undo new source";
 
                 }
 
-#ifdef DEBUG_UNDO
-                fprintf(stderr, "    Update %s \n", qPrintable(sourcename));
-#endif
-
                 // read next source
                 child = child.nextSiblingElement("Source");
             }
+
+            // delete sources which do not exist anymore (remain in list of existing).
+            for (SourceSet::iterator its = sourcesBeforeRestore.begin(); its != sourcesBeforeRestore.end(); its++) {
+#ifdef DEBUG_UNDO
+                fprintf(stderr, " -  Delete %s \n", qPrintable( (*its)->getName()) );
+#endif
+                RenderingManager::getInstance()->_removeSource( (*its)->getId() );
+            }
+
         }
         else
             qDebug() << "sourcelists is empty";
+
     }
     else
         qDebug() << "root is null";
-
-    // TODO delete sources which do not exist anymore (remain in list of existing).
-    for (SourceSet::iterator its = sourcesBeforeRestore.begin(); its != sourcesBeforeRestore.end(); its++) {
-
-        fprintf(stderr, " -  Delete %s \n", qPrintable( (*its)->getName()) );
-
-        RenderingManager::getInstance()->_removeSource( (*its)->getId() );
-
-    }
 
 
     // forget previous event and get ready
@@ -179,6 +188,8 @@ void UndoManager::restore(long int i)
         emit changed();
         _changed = true;
     }
+
+    emit currentChanged( _currentIndex > _firstIndex, _currentIndex < _lastIndex);
 }
 
 void UndoManager::store()
@@ -218,7 +229,7 @@ void UndoManager::store()
             _firstIndex = 0;
 
 #ifdef DEBUG_UNDO
-        fprintf(stderr, "=>stored index %ld [%ld %ld]\n", _currentIndex, _firstIndex, _lastIndex);
+        fprintf(stderr, "=> stored index %ld [%ld %ld]\n", _currentIndex, _firstIndex, _lastIndex);
 #endif
 
         // if suspended, do not store next events
@@ -231,9 +242,10 @@ void UndoManager::store()
             emit changed();
             _changed = true;
         }
+
     }
 
-
+    emit currentChanged(true, false);
 }
 
 
@@ -243,6 +255,8 @@ void UndoManager::store(QString signature)
     if (_status == DISABLED)
         return;
 
+    _lastSignature = signature;
+
     // Check the event and determine if this event should be stored
     QObject *sender_object = sender();
     if (sender_object) {
@@ -251,7 +265,7 @@ void UndoManager::store(QString signature)
         if (_previousSender.isEmpty() || _previousSignature.isEmpty()) {
 
 #ifdef DEBUG_UNDO
-            fprintf(stderr, "  catch %s  {%d} ", qPrintable(signature), _status);
+            fprintf(stderr, "> catch %s %s  {%d} ", qPrintable(sender_object->objectName()), qPrintable(signature), _status);
 #endif
             // its a new event!
             store();
@@ -264,7 +278,7 @@ void UndoManager::store(QString signature)
                     || signature != _previousSignature ) {
 
 #ifdef DEBUG_UNDO
-                fprintf(stderr, "  catch %s  {%d} ", qPrintable(signature), _status);
+                fprintf(stderr, "  catch %s %s  {%d} ", qPrintable(sender_object->objectName()), qPrintable(signature), _status);
 #endif
                 // this event is different from previous
                 store();
@@ -294,10 +308,14 @@ void UndoManager::addHistory(long int index)
 #endif
     }
 
+    // label the configuration from last signature received
+    QString undolabel = _lastSignature.section('(', 0, 0).remove('_');
+
     // add the configuration
     QDomElement renderConfig = RenderingManager::getInstance()->getConfiguration(_history);
     if (!renderConfig.isNull()) {
         QDomElement root = _history.createElement( QString("%1").arg(index));
+        root.setAttribute("label", undolabel);
         root.appendChild(renderConfig);
         _history.appendChild(root);
     }
@@ -326,15 +344,3 @@ void UndoManager::suspend(bool on)
 #endif
 }
 
-
-//void UndoManager::unsuspend()
-//{
-//    _status = READY;
-
-//    _previousSender = QString();
-//    _previousSignature = QString();
-
-//#ifdef DEBUG_UNDO
-//    fprintf(stderr, "  unsuspend  {%d}\n", _status);
-//#endif
-//}

@@ -172,6 +172,9 @@ void RenderingManager::deleteInstance() {
 RenderingManager::RenderingManager() :
     QObject(), _fbo(NULL), previousframe_fbo(NULL), pbo_index(0), pbo_nextIndex(0), previousframe_index(0), previousframe_delay(1), clearWhite(false), maxtexturewidth(TEXTURE_REQUIRED_MAXIMUM), maxtextureheight(TEXTURE_REQUIRED_MAXIMUM), renderingQuality(QUALITY_VGA), renderingAspectRatio(ASPECT_RATIO_4_3), _scalingMode(Source::SCALE_CROP), _playOnDrop(true), paused(false), maxSourceCount(0)
 {
+    // idenfity for event
+    setObjectName("RenderingManager");
+
     // 1. Create the view rendering widget
     _renderwidget = new ViewRenderWidget;
     Q_CHECK_PTR(_renderwidget);
@@ -1136,7 +1139,7 @@ Source *RenderingManager::newCloneSource(SourceSet::iterator sit, double depth) 
 bool RenderingManager::insertSource(Source *s)
 {
     // inform undo manager
-    emit methodCalled("_insertSource(Source)");
+    emit methodCalled(QString("_insertSource(%1)").arg(s->getId()));
 
     return _insertSource(s);
 }
@@ -1201,7 +1204,7 @@ void RenderingManager::clearBasket()
 void RenderingManager::resetSource(SourceSet::iterator sit){
 
     // inform undo manager
-    emit methodCalled("_resetSource(SourceSet::iterator)");
+    emit methodCalled(QString("_resetSource(%1)").arg((*sit)->getId()));
 
     // apply default parameters
     (*sit)->importProperties(_defaultSource);
@@ -1345,7 +1348,7 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
     if ( isValid(it_oldsource) && isValid(it_newsource)) {
 
         // inform undo manager
-        emit methodCalled("_replaceSource(GLuint,GLuint)");
+        emit methodCalled(QString("_replaceSource(%1,%2)").arg(oldsource).arg(newsource));
 
 #ifdef GLM_UNDO
         // suspend
@@ -1393,7 +1396,7 @@ void RenderingManager::replaceSource(GLuint oldsource, GLuint newsource) {
 int RenderingManager::removeSource(SourceSet::iterator itsource)
 {
     // inform undo manager
-    emit methodCalled("_removeSource(SourceSet::iterator)");
+    emit methodCalled(QString("_removeSource(%1)").arg((*itsource)->getId()));
 
     return _removeSource(itsource);
 }
@@ -1603,11 +1606,19 @@ double RenderingManager::getAvailableDepthFrom(double depth) const {
 SourceSet::iterator RenderingManager::changeDepth(SourceSet::iterator itsource,
                                                   double newdepth) {
 
-    newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
-
-    emit methodCalled("_changeDepth(SourceSet::iterator,double)");
-
+    // ignore invalid iterator
     if (itsource != _front_sources.end()) {
+
+        // ignore if no change required
+        if ( ABS(newdepth - (*itsource)->getDepth()) < EPSILON)
+            return itsource;
+
+        // clamp values
+        newdepth = CLAMP( newdepth, MIN_DEPTH_LAYER, MAX_DEPTH_LAYER);
+
+        // inform undo
+        emit methodCalled(QString("_changeDepth(%1,double)").arg((*itsource)->getId()));
+
         // verify that the depth value is not already taken, or too close to, and adjust in case.
         SourceSet::iterator sb, se;
         double depthinc = 0.0;

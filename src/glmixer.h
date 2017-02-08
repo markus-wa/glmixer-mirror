@@ -130,6 +130,7 @@ public slots:
     void showBusyRecording(bool);
     void startButton_toogled(bool);
     void replaceCurrentSource();
+    void undoChanged(bool, bool);
 
     // source config
     void connectSource(SourceSet::iterator csi);

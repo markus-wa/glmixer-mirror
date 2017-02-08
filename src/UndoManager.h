@@ -65,12 +65,14 @@ public slots:
     void suspend(bool on);
     // remember last time sesion is saved
     void save();
+    // get history list
+//    QStringList getHistory();
 
 signals:
     void changed();
+    void currentChanged(bool undo, bool redo);
 
 private:
-
     void addHistory(long int index);
 
     UndoManager();
@@ -88,6 +90,7 @@ private:
     status _status;
     QString _previousSignature;
     QString _previousSender;
+    QString _lastSignature;
 
     QDomDocument _history;
     long int _firstIndex, _lastIndex, _currentIndex;

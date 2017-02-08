@@ -435,6 +435,11 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(this, SIGNAL(sessionLoaded()), UndoManager::getInstance(), SLOT(save()), Qt::UniqueConnection);
     QObject::connect(UndoManager::getInstance(), SIGNAL(changed()), this, SLOT(sessionChanged()), Qt::UniqueConnection);
 
+    // connect undo manager to menu item changer
+    QObject::connect(UndoManager::getInstance(), SIGNAL(currentChanged(bool,bool)), this, SLOT(undoChanged(bool,bool)));
+    actionUndo->setEnabled(false);
+    actionRedo->setEnabled(false);
+
     // suspend the undo manager during continuous mouse mouvements in View
     QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(mousePressed(bool)), UndoManager::getInstance(), SLOT(suspend(bool)), Qt::UniqueConnection);
 
@@ -3257,10 +3262,6 @@ void GLMixer::on_actionSourceSeekForward_triggered(){
         }
 }
 
-//
-// Align and distribute toolbox
-//
-
 
 void GLMixer::screenshotView(){
 
@@ -3378,25 +3379,8 @@ void GLMixer::showBusyRecording(bool on) {
     busy->setVisible(on);
 }
 
-
-// Example snippets
-
-//        Source *s = *cs;
-//        if (s) {
-//            double x = 0.0, y = 0.0;
-//            // invoke a delayed call (in Qt event loop) of the source method
-//            int methodIndex = s->metaObject()->indexOfSlot("setPosition(double,double)");
-//            QMetaMethod method = s->metaObject()->method(methodIndex);
-//            method.invoke(s, Qt::QueuedConnection, Q_ARG(double, x), Q_ARG(double, y));
-////            s->moveTo(x, y);
-
-//            QColor c("red");
-//            methodIndex = s->metaObject()->indexOfSlot("setColor(QColor)");
-//            method = s->metaObject()->method(methodIndex);
-//            method.invoke(s, Qt::QueuedConnection, Q_ARG(QColor, c));
-
-//            int v = -100;
-//            methodIndex = s->metaObject()->indexOfSlot("setSaturation(int)");
-//            method = s->metaObject()->method(methodIndex);
-//            method.invoke(s, Qt::QueuedConnection, Q_ARG(int, v));
-//        }
+void GLMixer::undoChanged(bool undo, bool redo)
+{
+    actionUndo->setEnabled(undo);
+    actionRedo->setEnabled(redo);
+}
