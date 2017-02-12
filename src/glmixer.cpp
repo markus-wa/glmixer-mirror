@@ -273,6 +273,29 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     actionFree_aspect_ratio->setData(ASPECT_RATIO_FREE);
     QObject::connect(aspectRatioActions, SIGNAL(triggered(QAction *)), this, SLOT(setAspectRatio(QAction *) ) );
 
+
+    QActionGroup *workspaceActions = new QActionGroup(this);
+    workspaceActions->addAction(actionWorkspace1);
+    actionWorkspace1->setData(0);
+    toolButtonWorkspace1->setDefaultAction(actionWorkspace1);
+    workspaceActions->addAction(actionWorkspace2);
+    actionWorkspace2->setData(1);
+    toolButtonWorkspace2->setDefaultAction(actionWorkspace2);
+    workspaceActions->addAction(actionWorkspace3);
+    actionWorkspace3->setData(2);
+    toolButtonWorkspace3->setDefaultAction(actionWorkspace3);
+    QObject::connect(workspaceActions, SIGNAL(triggered(QAction *)), this, SLOT(setWorkspace(QAction *) ) );
+
+    QActionGroup *workspaceSourceActions = new QActionGroup(this);
+    workspaceSourceActions->addAction(actionWorkspace1Source);
+    actionWorkspace1Source->setData(0);
+    workspaceSourceActions->addAction(actionWorkspace2Source);
+    actionWorkspace2Source->setData(1);
+    workspaceSourceActions->addAction(actionWorkspace3Source);
+    actionWorkspace3Source->setData(2);
+    QObject::connect(workspaceSourceActions, SIGNAL(triggered(QAction *)), this, SLOT(setSourceWorkspace(QAction*)) );
+
+
     // HIDDEN actions
     // for debugging and development purposes
     QAction *screenshot = new QAction("Screenshot", this);
@@ -543,6 +566,12 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectInvert, SLOT(setEnabled(bool)));
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectNone, SLOT(setEnabled(bool)));
 
+
+    // Workspace change
+    QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(workspaceChanged(int)), this, SLOT(setWorkspace(int)) );
+    QObject::connect(actionWorkspace1Source, SIGNAL(triggered()), this, SLOT(workspaceChangeCurrentSource()));
+    QObject::connect(actionWorkspace2Source, SIGNAL(triggered()), this, SLOT(workspaceChangeCurrentSource()));
+    QObject::connect(actionWorkspace3Source, SIGNAL(triggered()), this, SLOT(workspaceChangeCurrentSource()));
 
     // a Timer to update sliders and counters
     frameSlider->setTracking(true);
@@ -1185,6 +1214,20 @@ void GLMixer::connectSource(SourceSet::iterator csi){
         vcontrolDockWidgetOptions->setEnabled(false);
         videoFrame->setEnabled(false);
         timingControlFrame->setEnabled(false);
+
+        // check the menu action of the current source
+        switch ( (*csi)->getWorkspace() ) {
+        case 2:
+            actionWorkspace3Source->setChecked(true);
+            break;
+        case 1:
+            actionWorkspace2Source->setChecked(true);
+            break;
+        default:
+        case 0:
+            actionWorkspace1Source->setChecked(true);
+            break;
+        }
 
         // Set the status of start button without circular call to startCurrentSource
         QObject::disconnect(startButton, SIGNAL(toggled(bool)), this, SLOT(startButton_toogled(bool)));
@@ -3383,4 +3426,39 @@ void GLMixer::undoChanged(bool undo, bool redo)
 {
     actionUndo->setEnabled(undo);
     actionRedo->setEnabled(redo);
+}
+
+void GLMixer::setWorkspace(int workspace)
+{
+    switch (workspace) {
+    case 2:
+        actionWorkspace3->setChecked(true);
+        break;
+    case 1:
+        actionWorkspace2->setChecked(true);
+        break;
+    default:
+    case 0:
+        actionWorkspace1->setChecked(true);
+        break;
+    }
+
+}
+
+void GLMixer::setWorkspace(QAction *a)
+{
+    int w1 = RenderingManager::getRenderingWidget()->getCurrentWorkspace();
+    int w2 = a->data().toInt();
+
+    if (w1 != w2) {
+        RenderingManager::getRenderingWidget()->setCurrentWorkspace( w2 );
+
+        RenderingManager::getInstance()->unsetCurrentSource();
+        SelectionManager::getInstance()->clearSelection();
+    }
+}
+
+void GLMixer::setSourceWorkspace(QAction *a)
+{
+    RenderingManager::getInstance()->setWorkspaceCurrentSource(a->data().toInt());
 }

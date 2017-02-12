@@ -227,7 +227,8 @@ vec3 RGB2HSV( vec3 color )
 void main(void)
 {
     // deal with alpha separately
-    float alpha = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a * baseAlpha;
+    float ma = texture2D(maskTexture, maskc).a * texture2D(sourceTexture, texc).a;
+    float alpha = ma  * baseAlpha;
     vec3 transformedRGB;
 
     transformedRGB = mix(vec3(0.62), apply_filter(), contrast) + brightness;
@@ -261,7 +262,7 @@ void main(void)
     alpha -= mix( 0.0, step( length( normalize(chromakey.xyz) - normalize(transformedRGB) ), chromadelta ), float(chromakey.w > 0.0) );
 
     // stippling
-    alpha += mod( floor(gl_FragCoord.x * stippling) + floor(gl_FragCoord.y * stippling), 2.0);
+    alpha += 2.0 * ma * mod( floor(gl_FragCoord.x * stippling) + floor(gl_FragCoord.y * stippling), 2.0);
 
     // apply base color and alpha for final fragment color
     gl_FragColor = vec4(transformedRGB * baseColor.rgb, clamp(alpha, 0.0, 1.0) );

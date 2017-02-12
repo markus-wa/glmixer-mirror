@@ -50,6 +50,8 @@
 #define COLOR_FRAME_MOVE 230, 30, 230
 #define COLOR_CURSOR 13, 148, 224
 
+#define WORKSPACE_MAX_ALPHA 0.4f
+#define WORKSPACE_COLOR_SHIFT 130
 
 #include <QtCore>
 #include <QtDebug>

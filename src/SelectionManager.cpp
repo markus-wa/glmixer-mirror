@@ -8,6 +8,7 @@
 #include "SelectionManager.moc"
 
 #include "RenderingManager.h"
+#include "ViewRenderWidget.h"
 #include "GeometryView.h"
 
 
@@ -116,7 +117,7 @@ void SelectionManager::updateSelectionSource()
 {
     // do not add sources which are not modifiable
     for ( SourceSet::iterator sit = _selectedSources.begin(); sit != _selectedSources.end(); sit++) {
-        if ( !(*sit)->isModifiable() )
+        if ( RenderingManager::getRenderingWidget()->getCurrentWorkspace() != (*sit)->getWorkspace() )
             _selectedSources.erase(sit);
     }
 

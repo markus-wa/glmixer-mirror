@@ -1228,6 +1228,24 @@ void RenderingManager::toggleUnchangeableCurrentSource(bool on){
 }
 
 
+void RenderingManager::setWorkspaceCurrentSource(int w)
+{
+    if(isValid(_currentSource)) {
+
+        // move selection to workspace, if exists
+        if (SelectionManager::getInstance()->isInSelection(*_currentSource))
+        {
+            for(SourceList::iterator  its = SelectionManager::getInstance()->selectionBegin(); its != SelectionManager::getInstance()->selectionEnd(); its++) {
+                (*its)->setWorkspace(w);
+            }
+        }
+        else
+            (*_currentSource)->setWorkspace(w);
+
+        _renderwidget->setCurrentWorkspace(w);
+    }
+}
+
 void RenderingManager::toggleFixAspectRatioCurrentSource(bool on){
 
     if(isValid(_currentSource)) {
@@ -1508,7 +1526,13 @@ void RenderingManager::setCurrentSource(SourceSet::iterator si) {
         if ( isValid(_currentSource) )
             (*_currentSource)->disconnect(SIGNAL(playing(bool)));
 
+        // set current source
         _currentSource = si;
+
+        // switch to workspace of current source
+        if (_currentSource != _front_sources.end())
+            getRenderingWidget()->setCurrentWorkspace( (*_currentSource)->getWorkspace() );
+
         emit currentSourceChanged(_currentSource);
     }
 }

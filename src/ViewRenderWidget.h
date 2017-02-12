@@ -113,6 +113,14 @@ public:
     int catalogWidth();
 
     /**
+     * Workspace management
+     */
+    void setWorkspaceVisible(int w, bool visible) { visible_workspace[qBound(0,w,max_workspace)] = visible; }
+    bool getWorkspaceVisible(int w) const { return visible_workspace[qBound(0,w,max_workspace)]; }
+    void setCurrentWorkspace(int w);
+    int getCurrentWorkspace() const { return current_workspace; }
+
+    /**
      * management of the manipulation views
      */
     void setViewMode(View::viewMode mode);
@@ -166,6 +174,7 @@ signals:
     void sourceLayerDrop(double);
 
     void zoomPercentChanged(int);
+    void workspaceChanged(int);
 
     void mousePressed(bool);
 
@@ -188,6 +197,7 @@ public slots:
     void setFaded(bool on) { faded = on; }
     void setCursorEnabled(bool on);
 
+
 public:
     // Shading
     static GLfloat coords[8];
@@ -199,7 +209,7 @@ public:
     static bool disableFiltering;
     static const QMap<int, QPair<QString, QString> > getMaskDecription();
     static void setSourceDrawingMode(bool on);
-    static void setDrawMode(QColor c);
+    static void resetShaderAttributes();
     static void setupFilteringShaderProgram(QGLShaderProgram *program, QString glslfilename = QString());
 
 protected:
@@ -250,6 +260,10 @@ private:
     unsigned int fpsCounter_;
     float f_p_s_;
     bool showFps_;
+
+    // W o r k s p a c e s
+    QList<bool> visible_workspace;
+    int current_workspace, max_workspace;
 
     // utility to build the display lists
     GLuint buildSelectList();

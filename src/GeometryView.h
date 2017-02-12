@@ -64,7 +64,7 @@ public:
     static QRectF getBoundingBox(const Source *s, bool invert_y=false);
     static QRectF getBoundingBox(const SourceList &l, bool invert_y=false);
 
-    bool getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNonModifiable = false);
+    bool getSourcesAtCoordinates(int mouseX, int mouseY);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);
     void transformSelection(View::Transformation t, View::Axis a, View::Reference r);

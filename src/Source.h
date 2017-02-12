@@ -156,6 +156,10 @@ public:
     // tags
     inline Tag *getTag() const { return tag; }
 
+    // workspace
+    inline void setWorkspace(int w) { workspace = w; }
+    inline int getWorkspace() const { return workspace; }
+
     /**
      *  Geometry and deformation
      */
@@ -311,12 +315,12 @@ protected:
     // GL Stuff
     GLuint textureIndex;
 
-    // some textures are inverted
-    bool flipVertical;
-
     // tag : only Tag class can set a tag
     inline void setTag(Tag *t) { tag = t; }
     Tag *tag;
+
+    // workspace it belongs to
+    int workspace;
 
 #ifdef GLM_FFGL
     // freeframe plugin

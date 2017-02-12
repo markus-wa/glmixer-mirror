@@ -239,6 +239,7 @@ public slots:
     void toggleFixAspectRatioCurrentSource(bool);
     void setOriginalAspectRatioCurrentSource();
     void setRenderingAspectRatioCurrentSource();
+    void setWorkspaceCurrentSource(int);
 
     void dropSource();
     void dropSourceWithAlpha(double alphax, double alphay);

@@ -5,6 +5,14 @@
   <property name="enabled">
    <bool>true</bool>
   </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1468</width>
+    <height>1008</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string notr="true">Graphic Live Mixer</string>
   </property>
@@ -44,7 +52,30 @@
        </sizepolicy>
       </property>
       <property name="styleSheet">
-       <string>background-color:  rgba(52,52,52, 255);</string>
+       <string notr="true">QFrame {
+    background-color:  rgba(52,52,52, 255);
+}
+QToolButton {
+     border-style: solid;
+     border-width: 1px;
+     border-radius:5px;
+	 padding: 3px;
+     min-height: 12px;
+     min-width:12px;
+     border-color: transparent;
+     background: transparent;
+    color :  rgba(250,250,250, 255);
+}
+QToolButton:pressed {
+	background:  rgba(72,72,72, 255);
+}
+QToolButton:checked {
+     border-color:  rgba(102,102,102, 255);
+}
+QToolButton:hover {
+     border-color:  rgba(72,72,72, 255);
+}
+</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::NoFrame</enum>
@@ -108,10 +139,74 @@
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::MinimumExpanding</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
            <width>0</width>
            <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonWorkspace1">
+         <property name="text">
+          <string>1</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonWorkspace2">
+         <property name="text">
+          <string>2</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonWorkspace3">
+         <property name="text">
+          <string>3</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
           </size>
          </property>
         </spacer>
@@ -185,25 +280,6 @@ border-bottom-left-radius: 5px;
          <property name="toolTip">
           <string>Zoom reset</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-}
-QToolButton:pressed {
-	background: palette(dark);
-}
-QToolButton:hover {
-     border-color: palette(mid);
-}
-</string>
-         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -217,25 +293,6 @@ QToolButton:hover {
         <widget class="QToolButton" name="toolButtonZoomPlus">
          <property name="toolTip">
           <string>Zoom in</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-}
-QToolButton:pressed {
-	background: palette(dark);
-}
-QToolButton:hover {
-     border-color: palette(mid);
-}
-</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -254,25 +311,6 @@ QToolButton:hover {
          <property name="toolTip">
           <string>Zoom out</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-}
-QToolButton:pressed {
-	background: palette(dark);
-}
-QToolButton:hover {
-     border-color: palette(mid);
-}
-</string>
-         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -290,25 +328,6 @@ QToolButton:hover {
          <property name="toolTip">
           <string>Zoom best fit</string>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-}
-QToolButton:pressed {
-	background: palette(dark);
-}
-QToolButton:hover {
-     border-color: palette(mid);
-}
-</string>
-         </property>
          <property name="text">
           <string>...</string>
          </property>
@@ -325,25 +344,6 @@ QToolButton:hover {
          </property>
          <property name="toolTip">
           <string>Zoom on current source</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QToolButton {
-     border-style: solid;
-     border-width: 1px;
-     border-radius:5px;
-	 padding: 3px;
-     min-height: 12px;
-     min-width:12px;
-     border-color: transparent;
-     background: transparent;
-}
-QToolButton:pressed {
-	background: palette(dark);
-}
-QToolButton:hover {
-     border-color: palette(mid);
-}
-</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -702,8 +702,8 @@ QToolButton:hover {
            </property>
            <property name="minimumSize">
             <size>
-             <width>50</width>
-             <height>34</height>
+             <width>52</width>
+             <height>36</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -1849,8 +1849,8 @@ Uncheck to display the restart frame when stopped.</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1558</width>
-     <height>22</height>
+     <width>1468</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -1908,12 +1908,21 @@ Uncheck to display the restart frame when stopped.</string>
      <addaction name="actionResetToolbars"/>
      <addaction name="separator"/>
     </widget>
+    <widget class="QMenu" name="menuWorkspace">
+     <property name="title">
+      <string>W&amp;orkspace</string>
+     </property>
+     <addaction name="actionWorkspace1"/>
+     <addaction name="actionWorkspace2"/>
+     <addaction name="actionWorkspace3"/>
+    </widget>
     <addaction name="actionMixingView"/>
     <addaction name="actionGeometryView"/>
     <addaction name="actionLayersView"/>
     <addaction name="actionRenderingView"/>
-    <addaction name="zoomMenu"/>
     <addaction name="catalogMenu"/>
+    <addaction name="menuWorkspace"/>
+    <addaction name="zoomMenu"/>
     <addaction name="separator"/>
     <addaction name="toolBarsMenu"/>
    </widget>
@@ -1935,7 +1944,7 @@ Uncheck to display the restart frame when stopped.</string>
     </property>
     <widget class="QMenu" name="currentSourceMenu">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>&amp;Current source</string>
@@ -1956,9 +1965,21 @@ Uncheck to display the restart frame when stopped.</string>
       <addaction name="actionAspectRatioResetOriginal"/>
       <addaction name="actionAspectRatioSetRendering"/>
      </widget>
+     <widget class="QMenu" name="menuSendToWorkspace">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="title">
+       <string>To &amp;Workspace..</string>
+      </property>
+      <addaction name="actionWorkspace1Source"/>
+      <addaction name="actionWorkspace2Source"/>
+      <addaction name="actionWorkspace3Source"/>
+     </widget>
      <addaction name="actionEditSource"/>
      <addaction name="actionZoomCurrentSource"/>
      <addaction name="actionSelectCurrent"/>
+     <addaction name="menuSendToWorkspace"/>
      <addaction name="actionUnchangeable"/>
      <addaction name="menuAspect_Ratio"/>
      <addaction name="actionResetSource"/>
@@ -3359,8 +3380,8 @@ Uncheck to display the restart frame when stopped.</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>244</width>
-          <height>96</height>
+          <width>238</width>
+          <height>73</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="layoutDockWidgetContentLayout">
@@ -5239,6 +5260,84 @@ Shortcut:                         Ctrl + Tab</string>
   <action name="actionDfgdg">
    <property name="text">
     <string>dfgdg</string>
+   </property>
+  </action>
+  <action name="actionWorkspace1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;1</string>
+   </property>
+   <property name="toolTip">
+    <string>Activate workspace 1</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionWorkspace2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;2</string>
+   </property>
+   <property name="toolTip">
+    <string>Activate workspace 2</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="actionWorkspace3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;3</string>
+   </property>
+   <property name="toolTip">
+    <string>Activate workspace 3</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="actionWorkspace1Source">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;1</string>
+   </property>
+  </action>
+  <action name="actionWorkspace2Source">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;2</string>
+   </property>
+  </action>
+  <action name="actionWorkspace3Source">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;3</string>
    </property>
   </action>
  </widget>

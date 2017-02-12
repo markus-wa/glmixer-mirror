@@ -50,7 +50,8 @@ bool Source::playable = false;
 // source constructor.
 Source::Source(GLuint texture, double depth): ProtoSource(),
     standby(NOT_STANDBY), culled(false),
-    clones(NULL), textureIndex(texture)
+    clones(NULL), textureIndex(texture),
+    workspace(0)
 {
     // give it a unique identifier
     id = Source::lastid++;

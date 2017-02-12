@@ -136,6 +136,10 @@ void LayersView::setModelview()
 
 void LayersView::paint()
 {
+    static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
+    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
+    static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
+
     // First the background stuff
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
@@ -209,27 +213,51 @@ void LayersView::paint()
         // Blending Function For mixing like in the rendering window
         s->blend();
 
-        //   draw stippled version of the source
-        static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
-        ViewRenderWidget::program->setUniformValue( _stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
-        s->draw();
+        // Normal draw in current workspace
+        if (RenderingManager::getRenderingWidget()->getCurrentWorkspace() == s->getWorkspace()) {
 
-        //
-        // 3. draw border and handles if active
-        //
+            //   draw stippled version of the source
+            ViewRenderWidget::program->setUniformValue( _stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
 
-        // standard transparency blending
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendEquation(GL_FUNC_ADD);
+            s->draw();
 
-        // Tag color
-        ViewRenderWidget::setDrawMode(s->getTag()->getColor());
+            // standard transparency blending
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendEquation(GL_FUNC_ADD);
 
-        // draw border (larger if active)
-        if (RenderingManager::getInstance()->isCurrentSource(s))
-            glCallList(ViewRenderWidget::border_large_shadow + (s->isModifiable() ? 0 :2));
-        else
-            glCallList(ViewRenderWidget::border_thin_shadow + (s->isModifiable() ? 0 :2));
+            // switch to drawing mode
+            ViewRenderWidget::resetShaderAttributes();
+
+            // draw border (larger if active)
+            ViewRenderWidget::program->setUniformValue(_baseColor, s->getTag()->getColor());
+            if (RenderingManager::getInstance()->isCurrentSource(s))
+                glCallList(ViewRenderWidget::border_large_shadow);
+            else
+                glCallList(ViewRenderWidget::border_thin_shadow);
+
+        }
+        // Shadow draw in other workspace
+        else {
+
+            // set shadow color and alpha
+            ViewRenderWidget::program->setUniformValue( _baseColor, s->getColor().darker(WORKSPACE_COLOR_SHIFT));
+            ViewRenderWidget::program->setUniformValue( _baseAlpha, WORKSPACE_MAX_ALPHA);
+
+            s->draw();
+
+            // standard transparency blending
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendEquation(GL_FUNC_ADD);
+
+            // switch to drawing mode
+            ViewRenderWidget::resetShaderAttributes();
+
+            // draw border (never active)
+            ViewRenderWidget::program->setUniformValue(_baseAlpha, WORKSPACE_MAX_ALPHA);
+            ViewRenderWidget::program->setUniformValue(_baseColor, s->getTag()->getColor().darker(WORKSPACE_COLOR_SHIFT));
+            glCallList(ViewRenderWidget::border_thin_shadow + 2);
+        }
+
 
         // draw border for selection
         if (SelectionManager::getInstance()->isInSelection(s)) {
@@ -702,7 +730,7 @@ bool LayersView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
-        if ((*its)->isStandby())
+        if ((*its)->isStandby() || RenderingManager::getRenderingWidget()->getCurrentWorkspace() != (*its)->getWorkspace())
             continue;
 
         glPushMatrix();

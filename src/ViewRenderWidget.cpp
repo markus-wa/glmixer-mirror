@@ -161,7 +161,7 @@ GLfloat ViewRenderWidget::filter_kernel[10][3][3] = { {KERNEL_DEFAULT},
                                                       {KERNEL_EMBOSS_EDGE } };
 
 ViewRenderWidget::ViewRenderWidget() :
-    glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0)
+    glRenderWidget(), faded(false), messageLabel(0), fpsLabel(0), viewMenu(0), catalogMenu(0), sourceMenu(0), showFps_(0), current_workspace(0), max_workspace(3)
 {
 
     setAcceptDrops ( true );
@@ -201,6 +201,10 @@ ViewRenderWidget::ViewRenderWidget() :
     // sets the current cursor
     _currentCursor = 0;
     cursorEnabled = false;
+
+    // create the workspaces
+    for (int i = 0; i < max_workspace; ++i)
+        visible_workspace << true;
 
     // opengl HID display
     connect(&messageTimer, SIGNAL(timeout()), SLOT(hideMessage()));
@@ -346,6 +350,14 @@ void ViewRenderWidget::initializeGL()
     glGetDoublev(GL_MODELVIEW_MATRIX, _renderView->modelview);
     glGetDoublev(GL_MODELVIEW_MATRIX, _catalogView->modelview);
 
+}
+
+void ViewRenderWidget::setCurrentWorkspace(int w)
+{
+    current_workspace = qBound(0,w,max_workspace);
+    setWorkspaceVisible(w, true);
+
+    emit workspaceChanged(w);
 }
 
 void ViewRenderWidget::setViewMode(View::viewMode mode)
@@ -1237,6 +1249,7 @@ void ViewRenderWidget::setupFilteringShaderProgram(QGLShaderProgram *program, QS
 
     // set the default values for the uniform variables
     program->setUniformValue("baseColor", QColor(0,0,0));
+    program->setUniformValue("baseAlpha", 1.f);
     program->setUniformValue("stippling", 0.f);
     program->setUniformValue("sourceTexture", 0);
     program->setUniformValue("maskTexture", 1);
@@ -1304,7 +1317,7 @@ void ViewRenderWidget::setSourceDrawingMode(bool on)
 
 }
 
-void ViewRenderWidget::setDrawMode(QColor c)
+void ViewRenderWidget::resetShaderAttributes()
 {
     static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
     static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
@@ -1322,7 +1335,7 @@ void ViewRenderWidget::setDrawMode(QColor c)
     static int _filter  = ViewRenderWidget::program->uniformLocation("filter");
 
     // set color & alpha
-    ViewRenderWidget::program->setUniformValue(_baseColor, c);
+    ViewRenderWidget::program->setUniformValue(_baseColor, QColor(Qt::white));
     ViewRenderWidget::program->setUniformValue(_baseAlpha, 1.f);
     ViewRenderWidget::program->setUniformValue(_stippling, 0.f);
     // gamma
@@ -1347,6 +1360,15 @@ void ViewRenderWidget::setDrawMode(QColor c)
     glBindTexture(GL_TEXTURE_2D, ViewRenderWidget::mask_textures[0]);
     // back to texture 0 for the following
     glActiveTexture(GL_TEXTURE0);
+
+    // reset texture coordinate
+    ViewRenderWidget::texc[0] = ViewRenderWidget::texc[6] = 0.f;
+    ViewRenderWidget::texc[1] = ViewRenderWidget::texc[3] = 1.f;
+    ViewRenderWidget::texc[2] = ViewRenderWidget::texc[4] = 1.f;
+    ViewRenderWidget::texc[5] = ViewRenderWidget::texc[7] = 0.f;
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
 
 }
 
@@ -1492,32 +1514,18 @@ GLuint ViewRenderWidget::buildLineList()
 
     glEndList();
 
-    // default thin border STATIC
+    // default border STATIC
     glNewList(base + 2, GL_COMPILE);
 
         glCallList(vertex_array_coords);
 
-        glBindTexture(GL_TEXTURE_2D, texid); // 2d texture (x and y size)
-        glColor4f(0.0, 0.0, 0.0, 0.0);
-        glPushMatrix();
-        glScalef(1.28, 1.28, 1.0);
-        glDrawArrays(GL_QUADS, 0, 4);
-        glPopMatrix();
-
         glBindTexture(GL_TEXTURE_2D, white_texture);
         glLineWidth(1.0);
-//        glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
         glPopMatrix();
 
-        glPointSize(6.0);
-//        glColor4ub(COLOR_SOURCE_STATIC, 180);
-        glPushMatrix();
-        glScalef(0.9, 0.9, 1.0);
-        glDrawArrays(GL_POINTS, 0, 4);
-        glPopMatrix();
 
     glEndList();
 
@@ -1526,26 +1534,11 @@ GLuint ViewRenderWidget::buildLineList()
 
         glCallList(vertex_array_coords);
 
-        glBindTexture(GL_TEXTURE_2D, texid2); // 2d texture (x and y size)
-        glColor4f(0.0, 0.0, 0.0, 0.0);
-        glPushMatrix();
-        glScalef(1.28, 1.28, 1.0);
-        glDrawArrays(GL_QUADS, 0, 4);
-        glPopMatrix();
-
         glBindTexture(GL_TEXTURE_2D, white_texture);
         glLineWidth(3.0);
-//        glColor4ub(COLOR_SOURCE_STATIC, 180);
         glPushMatrix();
         glScalef(1.05, 1.05, 1.0);
         glDrawArrays(GL_LINE_LOOP, 0, 4);
-        glPopMatrix();
-
-        glPointSize(8.0);
-//        glColor4ub(COLOR_SOURCE_STATIC, 180);
-        glPushMatrix();
-        glScalef(0.9, 0.9, 1.0);
-        glDrawArrays(GL_POINTS, 0, 4);
         glPopMatrix();
 
     glEndList();
@@ -2137,41 +2130,43 @@ GLuint ViewRenderWidget::buildBordersList()
     glEndList();
 
 
-    // Static source color
+    // Static source
     glNewList(base + 6, GL_COMPILE);
-//    glColor4ub(COLOR_SOURCE_STATIC, 180);
-    glCallList(base);
-    glPointSize(6.0);
-//    glColor4ub(COLOR_SOURCE_STATIC, 180);
+    glLineWidth(1.0);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
     glCallList(vertex_array_coords);
-    glPushMatrix();
-    glScalef(0.8, 0.8, 1.0);
-    glDrawArrays(GL_POINTS, 0, 4);
-    glPopMatrix();
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
     glEndList();
 
     glNewList(base + 7, GL_COMPILE);
 //    glColor4ub(COLOR_SOURCE_STATIC, 200);
+//    glLineStipple(1, 0x9999);
+//    glEnable(GL_LINE_STIPPLE);
     glCallList(base+1);
-    glPointSize(8.0);
-//    glColor4ub(COLOR_SOURCE_STATIC, 180);
-    glCallList(vertex_array_coords);
-    glPushMatrix();
-    glScalef(0.8, 0.8, 1.0);
-    glDrawArrays(GL_POINTS, 0, 4);
-    glPopMatrix();
+//    glDisable(GL_LINE_STIPPLE);
+//    glPointSize(8.0);
+////    glColor4ub(COLOR_SOURCE_STATIC, 180);
+//    glCallList(vertex_array_coords);
+//    glPushMatrix();
+//    glScalef(0.8, 0.8, 1.0);
+//    glDrawArrays(GL_POINTS, 0, 4);
+//    glPopMatrix();
     glEndList();
 
     glNewList(base + 8, GL_COMPILE);
 //    glColor4ub(COLOR_SOURCE_STATIC, 220);
+    glLineStipple(1, 0x9999);
+    glEnable(GL_LINE_STIPPLE);
     glCallList(base+1);
-    glPointSize(8.0);
-//    glColor4ub(COLOR_SOURCE_STATIC, 180);
-    glCallList(vertex_array_coords);
-    glPushMatrix();
-    glScalef(0.8, 0.8, 1.0);
-    glDrawArrays(GL_POINTS, 0, 4);
-    glPopMatrix();
+    glDisable(GL_LINE_STIPPLE);
+//    glPointSize(8.0);
+////    glColor4ub(COLOR_SOURCE_STATIC, 180);
+//    glCallList(vertex_array_coords);
+//    glPushMatrix();
+//    glScalef(0.8, 0.8, 1.0);
+//    glDrawArrays(GL_POINTS, 0, 4);
+//    glPopMatrix();
     glEndList();
 
 

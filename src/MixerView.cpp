@@ -102,6 +102,9 @@ void MixerView::paint()
 {
     static double renderingAspectRatio = 1.0;
     static double ax, ay;
+    static int _baseColor = ViewRenderWidget::program->uniformLocation("baseColor");
+    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
+    static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
 
     // First the background stuff
     glCallList(ViewRenderWidget::circle_mixing + 2);
@@ -167,6 +170,11 @@ void MixerView::paint()
         if (!s)
             continue;
 
+        // test if the source is passed the standby line
+        ax = s->getAlphaX();
+        ay = s->getAlphaY();
+        s->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
+
         //
         // 0. prepare texture
         //
@@ -178,7 +186,7 @@ void MixerView::paint()
         //
         // 1. Draw it into render FBO
         //
-         if (!s->isStandby()) {
+        if (!s->isStandby()) {
             RenderingManager::getInstance()->sourceRenderToFrameBuffer(s);
         }
 
@@ -187,8 +195,6 @@ void MixerView::paint()
         //
         glPushMatrix();
 
-        ax = s->getAlphaX();
-        ay = s->getAlphaY();
         glTranslated(ax, ay, s->getDepth());
         renderingAspectRatio = s->getAspectRatio();
         if ( ABS(renderingAspectRatio) > 1.0)
@@ -196,39 +202,56 @@ void MixerView::paint()
         else
             glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT * renderingAspectRatio, ViewRenderWidget::iconSize * SOURCE_UNIT,  1.0);
 
-        // test if the source is passed the standby line
-        s->setStandby( CIRCLE_SQUARE_DIST(ax, ay) > (limboSize * limboSize) );
-
-        if (!s->isStandby())
-        {
-            //   draw stippled version of the source
-            static int _stippling = ViewRenderWidget::program->uniformLocation("stippling");
-            ViewRenderWidget::program->setUniformValue( _stippling, (float) ViewRenderWidget::getStipplingMode() / 100.f);
-
-        } else {
-            // draw flat version of the source
-            static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
-            ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
-        }
-
         // standard transparency blending
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
 
-        s->draw();
 
-        //
-        // 3. draw border and handles if active
-        //
+        // Normal draw in current workspace
+        if (RenderingManager::getRenderingWidget()->getCurrentWorkspace() == s->getWorkspace()) {
 
-        // Tag color
-        ViewRenderWidget::setDrawMode(s->getTag()->getColor());
+            if (!s->isStandby())  {
+                //   draw stippled version of the source
+                ViewRenderWidget::program->setUniformValue( _stippling, (GLfloat) ViewRenderWidget::getStipplingMode() / 100.f);
+            }
+            else {
+                // draw flat version of the source
+                ViewRenderWidget::program->setUniformValue( _baseAlpha, 1.f);
+            }
 
-        // draw border (larger if active)
-        if (RenderingManager::getInstance()->isCurrentSource(s))
-            glCallList(ViewRenderWidget::border_large_shadow + (s->isModifiable() ? 0 :2) );
-        else
-            glCallList(ViewRenderWidget::border_thin_shadow + (s->isModifiable() ? 0 :2) );
+            s->draw();
+
+            // switch to drawing mode
+            ViewRenderWidget::resetShaderAttributes();
+
+            // draw border (larger if active)
+            ViewRenderWidget::program->setUniformValue(_baseColor, s->getTag()->getColor());
+            if (RenderingManager::getInstance()->isCurrentSource(s))
+                glCallList(ViewRenderWidget::border_large_shadow);
+            else
+                glCallList(ViewRenderWidget::border_thin_shadow);
+
+        }
+        // Shadow draw in other workspace
+        else {
+
+            // set shadow color and alpha
+            ViewRenderWidget::program->setUniformValue( _baseColor, s->getColor().darker(WORKSPACE_COLOR_SHIFT));
+            ViewRenderWidget::program->setUniformValue( _baseAlpha, WORKSPACE_MAX_ALPHA);
+
+            // draw texture
+            s->draw();
+
+            // switch to drawing mode
+            ViewRenderWidget::resetShaderAttributes();
+
+            // draw border (never active)
+            ViewRenderWidget::program->setUniformValue(_baseAlpha, WORKSPACE_MAX_ALPHA);
+            ViewRenderWidget::program->setUniformValue(_baseColor, s->getTag()->getColor().darker(WORKSPACE_COLOR_SHIFT));
+            glCallList(ViewRenderWidget::border_thin_shadow + 2);
+
+        }
+
 
         // done geometry
         glPopMatrix();
@@ -262,11 +285,18 @@ void MixerView::paint()
     glPointSize(ViewRenderWidget::iconSize * 10);
     int c = 0;
     for(SourceListArray::iterator itss = groupSources.begin(); itss != groupSources.end(); itss++, c++) {
+
+        // get a reordered map of source
+        mixingSourceMap selectionMap = getMixingSourceMap((*itss).begin(), (*itss).end(), (*itss).size());
+
+        // check if the sources are in the current view
+        int w = selectionMap.begin()->second->getWorkspace();
+        float a = 0.8f * (RenderingManager::getRenderingWidget()->getCurrentWorkspace() == w ? 1.0 : WORKSPACE_MAX_ALPHA);
+
         // use color of the group
-        glColor4f(groupColors[c].redF(), groupColors[c].greenF(),groupColors[c].blueF(), 0.8);
+        glColor4f(groupColors[c].redF(), groupColors[c].greenF(),groupColors[c].blueF(), a);
 
         glBegin(GL_LINES);
-        mixingSourceMap selectionMap = getMixingSourceMap((*itss).begin(), (*itss).end(), (*itss).size());
         for(mixingSourceMap::iterator  its1 = selectionMap.begin(); its1 != selectionMap.end(); its1++) {
             mixingSourceMap::iterator  its2 = its1;
             its2++;
@@ -1030,16 +1060,18 @@ bool MixerView::getSourcesAtCoordinates(int mouseX, int mouseY, bool clic) {
     glMatrixMode(GL_MODELVIEW);
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-        glPushMatrix();
-        glTranslated( (*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
-        double renderingAspectRatio = (*its)->getAspectRatio();
-        if ( ABS(renderingAspectRatio) > 1.0)
-            glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT, ViewRenderWidget::iconSize * SOURCE_UNIT / renderingAspectRatio,  1.0);
-        else
-            glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT * renderingAspectRatio, ViewRenderWidget::iconSize * SOURCE_UNIT,  1.0);
+        if (RenderingManager::getRenderingWidget()->getCurrentWorkspace() == (*its)->getWorkspace()) {
+            glPushMatrix();
+            glTranslated( (*its)->getAlphaX(), (*its)->getAlphaY(), (*its)->getDepth());
+            double renderingAspectRatio = (*its)->getAspectRatio();
+            if ( ABS(renderingAspectRatio) > 1.0)
+                glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT, ViewRenderWidget::iconSize * SOURCE_UNIT / renderingAspectRatio,  1.0);
+            else
+                glScaled(ViewRenderWidget::iconSize * SOURCE_UNIT * renderingAspectRatio, ViewRenderWidget::iconSize * SOURCE_UNIT,  1.0);
 
-        (*its)->draw(GL_SELECT);
-        glPopMatrix();
+            (*its)->draw(GL_SELECT);
+            glPopMatrix();
+        }
     }
 
     // compute picking . return to rendering mode

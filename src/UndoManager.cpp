@@ -7,7 +7,7 @@
 
 #include "UndoManager.moc"
 
-#define DEBUG_UNDO
+//#define DEBUG_UNDO
 
 // static members
 UndoManager *UndoManager::_instance = 0;

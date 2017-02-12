@@ -196,6 +196,7 @@ void OutputRenderWidget::paintGL()
     {
         // apply the texture of the frame buffer
         glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // draw the polygon with texture
         glCallList(ViewRenderWidget::quad_texured);

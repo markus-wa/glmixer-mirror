@@ -74,6 +74,8 @@ void GeometryView::setModelview()
 
 void GeometryView::paint()
 {
+    static int _baseAlpha = ViewRenderWidget::program->uniformLocation("baseAlpha");
+
     // first the background (as the rendering black clear color) with shadow
     glPushMatrix();
     glScaled( OutputRenderWindow::getInstance()->getAspectRatio(), 1.0, 1.0);
@@ -119,6 +121,13 @@ void GeometryView::paint()
 
         // Blending Function For mixing like in the rendering window
         s->blend();
+
+        // test workspace
+        if ( RenderingManager::getRenderingWidget()->getCurrentWorkspace() != s->getWorkspace() ) {
+            // draw shadow version of the source
+            ViewRenderWidget::program->setUniformValue( _baseAlpha, (GLfloat) s->getAlpha() * WORKSPACE_MAX_ALPHA);
+        }
+
         // Draw source in canvas
         s->draw();
 
@@ -127,13 +136,26 @@ void GeometryView::paint()
 
     }
 
+    // Re-Draw frame buffer in the render window
+    // With correct rendering on top of the different workspaces
+    ViewRenderWidget::resetShaderAttributes(); // switch to drawing mode
+    glPushMatrix();
+    glScaled( OutputRenderWindow::getInstance()->getAspectRatio()* SOURCE_UNIT, 1.0* SOURCE_UNIT, 1.0);
+    glBindTexture(GL_TEXTURE_2D, RenderingManager::getInstance()->getFrameBufferTexture());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glCallList(ViewRenderWidget::vertex_array_coords);
+    glDrawArrays(GL_QUADS, 0, 4);
+    glPopMatrix();
+
     // unset mode for source
     ViewRenderWidget::setSourceDrawingMode(false);
 
     // post render draw (loop back and recorder)
     RenderingManager::getInstance()->postRenderToFrameBuffer();
 
-
+    //
+    //  Draw borders
+    //
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
 
         Source *s = *its;
@@ -143,6 +165,15 @@ void GeometryView::paint()
         //
         // 3. draw border and handles if active
         //
+        GLuint border_workspace = 0;
+        int alpha = 200;
+        QColor c = s->getTag()->getColor();
+        if ( RenderingManager::getRenderingWidget()->getCurrentWorkspace() != s->getWorkspace() ) {
+            border_workspace = 3;
+            alpha = (float) alpha * WORKSPACE_MAX_ALPHA;
+            c = c.darker(WORKSPACE_COLOR_SHIFT);
+        }
+
         // place and scale
         glPushMatrix();
         glTranslated(s->getX(), s->getY(), s->getDepth());
@@ -150,12 +181,11 @@ void GeometryView::paint()
         glScaled(s->getScaleX(), s->getScaleY(), 1.0);
 
         // Tag color
-        glColor4ub(s->getTag()->getColor().red(), s->getTag()->getColor().green(), s->getTag()->getColor().blue(), 200);
-
+        glColor4ub(c.red(), c.green(), c.blue(), alpha);
 
         if (RenderingManager::getInstance()->isCurrentSource(s)) {
             // Border according to type and to status of source !!! GL ERROR invalid value
-            int b = borderType + (s->isModifiable() ? 0 : 3);
+            int b = borderType + border_workspace;
             glCallList(b);
             // Draw extra overlay information depending on tool
             if (currentAction == View::TOOL ) {
@@ -173,7 +203,7 @@ void GeometryView::paint()
                 }
             }
         } else
-            glCallList(ViewRenderWidget::border_thin + (s->isModifiable() ? 0 : 3));
+            glCallList(ViewRenderWidget::border_thin + border_workspace);
 
         glPopMatrix();
 
@@ -526,7 +556,7 @@ bool GeometryView::mouseMoveEvent(QMouseEvent *event)
         // by default, reset quadrant
         quadrant = 0;
         // mouse over which sources ? fill in clickedSources list (ingoring non-modifiable sources)
-        if ( !_modeMoveFrame && getSourcesAtCoordinates(event->x(), viewport[3] - event->y(), true) )
+        if ( !_modeMoveFrame && getSourcesAtCoordinates(event->x(), viewport[3] - event->y()) )
         {
             // if there is a current source
             // AND
@@ -891,7 +921,7 @@ bool GeometryView::hasObjectAtCoordinates(int mouseX, int mouseY, int objectdisp
 }
 
 
-bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNonModifiable) {
+bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY) {
 
     // prepare variables
     GLuint selectBuf[SELECTBUFSIZE] = { 0 };
@@ -927,7 +957,7 @@ bool GeometryView::getSourcesAtCoordinates(int mouseX, int mouseY, bool ignoreNo
     }
 
     for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
-        if ((*its)->isStandby() || (ignoreNonModifiable && !(*its)->isModifiable()))
+        if ((*its)->isStandby() ||  RenderingManager::getRenderingWidget()->getCurrentWorkspace() != (*its)->getWorkspace())
             continue;
         glPushMatrix();
         // place and scale
