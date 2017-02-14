@@ -701,15 +701,20 @@ bool MixerView::mouseMoveEvent(QMouseEvent *event)
 
                 // loop over every sources to check if it is in the rectangle area
                 SourceList rectSources;
-                for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++)
-                    if (_selectionArea.contains(its) )
+                for(SourceSet::iterator  its = RenderingManager::getInstance()->getBegin(); its != RenderingManager::getInstance()->getEnd(); its++) {
+                    if (_selectionArea.contains(its) ) {
                         rectSources.insert(*its);
 
-                if ( isUserInput(event, View::INPUT_SELECT) )
-                    // extend selection
-                    SelectionManager::getInstance()->select(rectSources);
-                else  // new selection
-                    SelectionManager::getInstance()->setSelection(rectSources);
+                        // INSERT the whole group is one of its source is selected
+                        SourceListArray::iterator itss = findGroup(*its);
+                        if (  itss != groupSources.end() ) {
+                            rectSources.insert( (*itss).begin(), (*itss).end() );
+                        }
+                    }
+                }
+
+                // select all sources in rectangle
+                SelectionManager::getInstance()->setSelection(rectSources);
 
             }
         }

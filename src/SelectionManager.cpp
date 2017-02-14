@@ -54,6 +54,10 @@ void SelectionManager::select(Source *s) {
     if (!s || s == _selectionSource )
         return;
 
+    // do not select source from other workspace
+    if ( RenderingManager::getRenderingWidget()->getCurrentWorkspace() != s->getWorkspace() )
+        return;
+
     if ( _selectedSources.count(s) > 0)
         _selectedSources.erase(s);
     else
@@ -122,7 +126,7 @@ void SelectionManager::updateSelectionSource()
     }
 
     // inform of the status of the selection
-    emit selectionChanged( ! _selectedSources.empty());
+    emit selectionChanged( !_selectedSources.empty());
 
     // ignore if no selected sources
     if (_selectedSources.empty())

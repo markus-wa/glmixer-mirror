@@ -526,7 +526,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
 
     // Signals between GUI and rendering widget
     QObject::connect(actionShow_Catalog, SIGNAL(triggered(bool)), RenderingManager::getRenderingWidget(), SLOT(setCatalogVisible(bool)));
-    QObject::connect(actionWhite_background, SIGNAL(triggered(bool)), RenderingManager::getInstance(), SLOT(setClearToWhite(bool)));
+    QObject::connect(actionWhite_background, SIGNAL(toggled(bool)), RenderingManager::getInstance(), SLOT(setClearToWhite(bool)));
     QObject::connect(sliderZoom, SIGNAL(valueChanged(int)), RenderingManager::getRenderingWidget(), SLOT(zoom(int)));
 
     QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(zoomPercentChanged(int)), sliderZoom, SLOT(setValue(int)));
@@ -566,12 +566,8 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectInvert, SLOT(setEnabled(bool)));
     QObject::connect(SelectionManager::getInstance(), SIGNAL(selectionChanged(bool)), actionSelectNone, SLOT(setEnabled(bool)));
 
-
     // Workspace change
     QObject::connect(RenderingManager::getRenderingWidget(), SIGNAL(workspaceChanged(int)), this, SLOT(setWorkspace(int)) );
-    QObject::connect(actionWorkspace1Source, SIGNAL(triggered()), this, SLOT(workspaceChangeCurrentSource()));
-    QObject::connect(actionWorkspace2Source, SIGNAL(triggered()), this, SLOT(workspaceChangeCurrentSource()));
-    QObject::connect(actionWorkspace3Source, SIGNAL(triggered()), this, SLOT(workspaceChangeCurrentSource()));
 
     // a Timer to update sliders and counters
     frameSlider->setTracking(true);

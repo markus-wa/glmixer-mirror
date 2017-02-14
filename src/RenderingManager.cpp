@@ -575,7 +575,7 @@ void RenderingManager::preRenderToFrameBuffer()
     glPushAttrib( GL_COLOR_BUFFER_BIT );
 
     // clear frame buffer
-    if (_fbo && !paused && _fbo->bind())
+    if (_fbo && /*!paused &&*/ _fbo->bind())
     {
         if (clearWhite)
             glClearColor(1.f, 1.f, 1.f, 1.f);
@@ -1239,8 +1239,11 @@ void RenderingManager::setWorkspaceCurrentSource(int w)
                 (*its)->setWorkspace(w);
             }
         }
-        else
+        // move the source only, and cleanup selection
+        else {
             (*_currentSource)->setWorkspace(w);
+            SelectionManager::getInstance()->clearSelection();
+        }
 
         _renderwidget->setCurrentWorkspace(w);
     }
@@ -1530,8 +1533,19 @@ void RenderingManager::setCurrentSource(SourceSet::iterator si) {
         _currentSource = si;
 
         // switch to workspace of current source
-        if (_currentSource != _front_sources.end())
-            getRenderingWidget()->setCurrentWorkspace( (*_currentSource)->getWorkspace() );
+        if (_currentSource != _front_sources.end()) {
+
+            // change onmly if workspace is different
+            int wc = getRenderingWidget()->getCurrentWorkspace();
+            int ws = (*_currentSource)->getWorkspace();
+            if ( wc != ws ) {
+                getRenderingWidget()->setCurrentWorkspace( ws );
+
+                // if changing workspace without current source, clear selection
+                if ( !SelectionManager::getInstance()->isInSelection(*_currentSource))
+                    SelectionManager::getInstance()->clearSelection();
+            }
+        }
 
         emit currentSourceChanged(_currentSource);
     }
