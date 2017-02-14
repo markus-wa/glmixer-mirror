@@ -115,8 +115,8 @@ public:
     /**
      * Workspace management
      */
-    void setWorkspaceVisible(int w, bool visible) { visible_workspace[qBound(0,w,max_workspace)] = visible; }
-    bool getWorkspaceVisible(int w) const { return visible_workspace[qBound(0,w,max_workspace)]; }
+//    void setWorkspaceVisible(int w, bool visible) { visible_workspace[qBound(0,w,max_workspace)] = visible; }
+//    bool getWorkspaceVisible(int w) const { return visible_workspace[qBound(0,w,max_workspace)]; }
     void setCurrentWorkspace(int w);
     int getCurrentWorkspace() const { return current_workspace; }
 
@@ -159,6 +159,7 @@ public:
     /**
      * selection and layout
      */
+    void selectWholeGroup(Source *s);
     void removeFromSelections(Source *s);
     void alignSelection(View::Axis a, View::RelativePoint p, View::Reference r);
     void distributeSelection(View::Axis a, View::RelativePoint p);

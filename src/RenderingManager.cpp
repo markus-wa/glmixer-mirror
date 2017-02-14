@@ -1221,10 +1221,12 @@ void RenderingManager::resetSource(SourceSet::iterator sit){
     emit currentSourceChanged(sit);
 }
 
-
 void RenderingManager::setWorkspaceCurrentSource(int w)
 {
     if(isValid(_currentSource)) {
+
+        // ensure we move a Mixing group together
+        _renderwidget->selectWholeGroup(*_currentSource);
 
         // move selection to workspace, if exists
         if (SelectionManager::getInstance()->isInSelection(*_currentSource))

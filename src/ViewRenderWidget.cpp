@@ -355,7 +355,7 @@ void ViewRenderWidget::initializeGL()
 void ViewRenderWidget::setCurrentWorkspace(int w)
 {
     current_workspace = qBound(0,w,max_workspace);
-    setWorkspaceVisible(w, true);
+//    setWorkspaceVisible(w, true);
 
     emit workspaceChanged(w);
 }
@@ -394,6 +394,14 @@ void ViewRenderWidget::setViewMode(View::viewMode mode)
 
     zoomPercentChanged((int) _currentView->getZoomPercent());
 
+}
+
+
+void ViewRenderWidget::selectWholeGroup(Source *s)
+{
+    if (  _mixingView->isInAGroup(s) ) {
+        SelectionManager::getInstance()->select( *(_mixingView->findGroup(s)) );
+    }
 }
 
 void ViewRenderWidget::removeFromSelections(Source *s)
