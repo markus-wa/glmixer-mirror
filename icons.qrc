@@ -180,5 +180,9 @@
         <file>icons/vimeo.png</file>
         <file>icons/networkstream.png</file>
         <file>icons/textopen.png</file>
+        <file>icons/workspaces.png</file>
+        <file>icons/workspace_3.png</file>
+        <file>icons/workspace_2.png</file>
+        <file>icons/workspace_1.png</file>
     </qresource>
 </RCC>

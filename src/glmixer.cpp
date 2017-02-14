@@ -401,6 +401,7 @@ GLMixer::GLMixer ( QWidget *parent): QMainWindow ( parent ),
     RenderingManager::getRenderingWidget()->setViewContextMenu(zoomMenu);
     RenderingManager::getRenderingWidget()->setCatalogContextMenu(catalogMenu);
     RenderingManager::getRenderingWidget()->setSourceContextMenu(currentSourceMenu);
+    currentSourceMenu->setEnabled(false);
 
     // setup render window
     QIcon icon;

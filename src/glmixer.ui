@@ -213,6 +213,18 @@ QToolButton:hover {
        </item>
        <item>
         <widget class="QLabel" name="zoomLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>50</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(128, 128, 128);</string>
          </property>
@@ -1912,6 +1924,10 @@ Uncheck to display the restart frame when stopped.</string>
      <property name="title">
       <string>W&amp;orkspace</string>
      </property>
+     <property name="icon">
+      <iconset resource="../icons.qrc">
+       <normaloff>:/glmixer/icons/workspaces.png</normaloff>:/glmixer/icons/workspaces.png</iconset>
+     </property>
      <addaction name="actionWorkspace1"/>
      <addaction name="actionWorkspace2"/>
      <addaction name="actionWorkspace3"/>
@@ -1971,6 +1987,10 @@ Uncheck to display the restart frame when stopped.</string>
       </property>
       <property name="title">
        <string>To &amp;Workspace..</string>
+      </property>
+      <property name="icon">
+       <iconset resource="../icons.qrc">
+        <normaloff>:/glmixer/icons/workspaces.png</normaloff>:/glmixer/icons/workspaces.png</iconset>
       </property>
       <addaction name="actionWorkspace1Source"/>
       <addaction name="actionWorkspace2Source"/>
@@ -5319,6 +5339,10 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="checked">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/workspace_1.png</normaloff>:/glmixer/icons/workspace_1.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;1</string>
    </property>
@@ -5327,6 +5351,10 @@ Shortcut:                         Ctrl + Tab</string>
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/workspace_2.png</normaloff>:/glmixer/icons/workspace_2.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;2</string>
    </property>
@@ -5334,6 +5362,10 @@ Shortcut:                         Ctrl + Tab</string>
   <action name="actionWorkspace3Source">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/glmixer/icons/workspace_3.png</normaloff>:/glmixer/icons/workspace_3.png</iconset>
    </property>
    <property name="text">
     <string>&amp;3</string>
