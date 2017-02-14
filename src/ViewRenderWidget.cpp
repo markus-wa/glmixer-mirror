@@ -1165,6 +1165,8 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
     else if (_currentView == _renderingView)
         config.setAttribute("current", View::RENDERING);
 
+    config.setAttribute("workspace", getCurrentWorkspace());
+
     QDomElement mix = _mixingView->getConfiguration(doc);
     mix.setAttribute("name", "Mixing");
     config.appendChild(mix);
@@ -1193,6 +1195,9 @@ QDomElement ViewRenderWidget::getConfiguration(QDomDocument &doc)
 
 void ViewRenderWidget::setConfiguration(QDomElement xmlconfig)
 {
+    int ws = xmlconfig.attribute("workspace", "0").toInt();
+    setCurrentWorkspace(ws);
+
     QDomElement child = xmlconfig.firstChildElement("View");
     while (!child.isNull()) {
         // apply configuration node

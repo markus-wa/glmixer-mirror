@@ -323,6 +323,7 @@ QDomElement Source::getConfiguration(QDomDocument &doc, QDir current)
     QDomElement sourceElem = ProtoSource::getConfiguration(doc);
     // set more config from Source
     sourceElem.setAttribute("stanbyMode", (int) getStandbyMode());
+    sourceElem.setAttribute("workspace", (int) getWorkspace());
 
     // freeframe gl plugin
 #ifdef GLM_FFGL
@@ -340,6 +341,10 @@ QDomElement Source::getConfiguration(QDomDocument &doc, QDir current)
 bool Source::setConfiguration(QDomElement xmlconfig, QDir current)
 {
     bool ret = ProtoSource::setConfiguration(xmlconfig);
+
+    // set workspace
+    int ws = xmlconfig.attribute("workspace", "0").toInt();
+    setWorkspace(ws);
 
     // apply FreeFrame plugins configuration
     // start loop of plugins to load
